@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scrounger, printed: 'you MAY put a loyalty counter'. A creature died this turn, but the controller declines: no counter (Liliana stays 3).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sc", "real": "Liliana's Scrounger", "zone": "battlefield", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "lili"},
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "deal_damage", "source": "sc", "target": "bear", "amount": 99},
+  {"op": "end_turn", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard"},
+  "counters": {"lili": {"LOYALTY": 3}}
+ }
+}

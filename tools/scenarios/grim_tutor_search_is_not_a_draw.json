@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "notes": "Grim Tutor, printed: 'Search your library for a card, put that card into your hand, then shuffle. You lose 3 life.' Searching is not drawing (CR 701.23a, 121.5). The runner's opening begin_turn draws Top Junk (the turn's first draw). Grim Tutor then puts Cardinal into hand by searching: that is not a draw, so Jolrael, Mwonvuli Recluse ('Whenever you draw your second card each turn, create a 2/2 green Cat creature token') must NOT trigger. Expect Cardinal in hand, life 17, no Cat token, library down to the 6 filler cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "gt", "real": "Grim Tutor", "zone": "hand", "controller": 0},
+  {"key": "cardinal", "name": "Cardinal", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Grim Tutor", "key": "gt", "decisions": ["cardinal"]}
+ ],
+ "expect": {
+  "zone": {"gt": "graveyard", "cardinal": "hand", "junk": "hand"},
+  "life": {"0": 17},
+  "tokens": {"Cat": 0},
+  "library": {"0": ["*", "*", "*", "*", "*", "*"]}
+ }
+}

@@ -197,7 +197,8 @@ class TestLifeAndDamage(ExecutorCase):
             source=self.alpha,
             controller=self.p0,
         )
-        self.assertEqual(self.world.players[self.p0].life, 0)  # clamps at 0
+        # re-pinned 2026-10-30: no clamp at 0 (CR 119.3, 119.6): 23 - 30.
+        self.assertEqual(self.world.players[self.p0].life, -7)
 
     def test_deal_damage_to_player_clamps(self):
         self.ex.execute(
@@ -210,7 +211,9 @@ class TestLifeAndDamage(ExecutorCase):
             controller=self.p0,
             bindings={"target": self.p1},
         )
-        self.assertEqual(self.world.players[self.p1].life, 0)
+        # re-pinned 2026-10-30: damage is that much life lost, below 0 too (CR 120.3a,
+        # 119.3); the old clamp at 0 recorded 25 damage as 20.
+        self.assertEqual(self.world.players[self.p1].life, -5)
 
     def test_lethal_damage_uses_ledger_pt(self):
         self.ex.execute(
@@ -359,26 +362,35 @@ class TestPtLedger(ExecutorCase):
         # layer-model work lands, so the move is a loud diff, not a
         # silent one). Flagged to the T4 ledger note in
         # KNOWLEDGE/2026-10-07/34.
+        # re-pinned 2026-10-30: V27 (CR 613.4) changes order A from 3/3 to 4/4:
+        # every set (7a/7b) now applies before every delta (7c), so both orders
+        # land at the CR oracle's 4/4 (the loud diff this pin was written for).
         from MTG_bot.core.ability_tree import DurationEot
 
-        for expect, ops in {
-            (3, 3): (
+        for expect, ops in (
+            (
+                (4, 4),
                 (
-                    Verb.MODIFY_PT,
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                ),
-                (Verb.SET_PT, QConst(3), QConst(3)),
-            ),
-            (4, 4): (
-                (Verb.SET_PT, QConst(3), QConst(3)),
-                (
-                    Verb.MODIFY_PT,
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                    (
+                        Verb.MODIFY_PT,
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                    ),
+                    (Verb.SET_PT, QConst(3), QConst(3)),
                 ),
             ),
-        }.items():
+            (
+                (4, 4),
+                (
+                    (Verb.SET_PT, QConst(3), QConst(3)),
+                    (
+                        Verb.MODIFY_PT,
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                    ),
+                ),
+            ),
+        ):
             self.ex.begin_turn(self.p0)  # opens a fresh EOT window per case
             for verb, first, second in ops:
                 self.ex.execute(

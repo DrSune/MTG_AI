@@ -1,0 +1,78 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lili",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "guard",
+   "name": "Guard",
+   "power": "1",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "corpse"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "corpse": "lili"
+   },
+   "block": {
+    "guard": "corpse"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "corpse": [
+    "guard"
+   ]
+  },
+  "counters": {
+   "lili": {
+    "LOYALTY": 4
+   }
+  },
+  "damage": {
+   "guard": 2,
+   "corpse": 1
+  },
+  "life": {
+   "1": 20
+  }
+ },
+ "notes": "V41, CR 509.1a, 510.1c: a creature attacking a planeswalker can be blocked by the defending player's creatures. Blocked, Walking Corpse deals its 2 damage to the Guard and none to Liliana, whose loyalty stays 4."
+}

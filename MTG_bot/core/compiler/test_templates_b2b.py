@@ -74,7 +74,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
-    ZonePosition,
     canonical_json,
     fingerprint,
 )
@@ -979,11 +978,15 @@ class TestB2bTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, CastSpellEvent)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        assert isinstance(event.filter, FAtom)
-        self.assertIs(event.filter.pred, FAtomPred.COLOR_IN)
-        # R1a canonicalization (ontology §3 SET-R1a): FAtom.colors is a
-        # membership set, construction-sorted; the SET is the pinned fact.
-        self.assertEqual(event.filter.colors, ("B", "R", "U", "W"))
+        # re-pinned 2026-10-29: V39 changes the filter from COLOR_IN (a subset
+        # test: a green-blue spell failed it) to "has any of the four colors",
+        # the FOr of COLOR_HAS (CR 105.2). FOr children are construction-
+        # sorted (ontology §3 SET-R1a); the SET of colors is the pinned fact.
+        assert isinstance(event.filter, FOr)
+        self.assertTrue(all(c.pred is FAtomPred.COLOR_HAS for c in event.filter.children))
+        self.assertEqual(
+            sorted(c.color for c in event.filter.children), ["B", "R", "U", "W"]
+        )
 
     def test_draw_counter_is_card_drawn_you(self) -> None:
         ability = _ability(
@@ -1808,7 +1811,10 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         option = _optional(ability)
         seq = _seq_inner(option)
-        self.assertEqual(len(seq.steps), 3)
+        # re-pinned 2026-10-30 (G3 finisher): two steps. The third, MOVE_ZONE(this creature
+        # from the top of your library to your hand), was unprinted ("put it into your hand"
+        # is the SEARCH's destination) and moved the creature itself when it was on top.
+        self.assertEqual(len(seq.steps), 2)
         # SEARCH
         search = _atom_step(seq, 0)
         self.assertIs(search.verb, Verb.SEARCH)
@@ -1837,20 +1843,6 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
         reveal_count = _qconst(reveal, "count")
         self.assertEqual(reveal_count.value, 1)
-        # MOVE_ZONE
-        move = _atom_step(seq, 2)
-        self.assertIs(move.verb, Verb.MOVE_ZONE)
-        move_sel = _selector(move, "cards")
-        assert isinstance(move_sel.filter, FAtom)
-        self.assertIs(move_sel.filter.pred, FAtomPred.IS_SOURCE)
-        self.assertEqual(
-            move_sel.zones[0],
-            Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=ZonePosition.TOP),
-        )
-        self.assertEqual(
-            move.args.get("destination"),
-            Zone(ZoneKind.HAND, ControllerRef.YOU),
-        )
 
     def test_nine_lives_lose_game(self) -> None:
         ability = _ability(

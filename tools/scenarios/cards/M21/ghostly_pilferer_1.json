@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ghostly Pilferer attacks (taps). On its controller's next turn it untaps in the untap step: 'you may pay {2}. If you do, draw a card.' The may is taken: {2} is spent and one extra card is drawn (hand: opening draw + turn-3 draw + Pilferer draw = 3).",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gp": true}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "life": {"1": 18},
+  "tapped": {"gp": false},
+  "hand": {"0": 3},
+  "mana_pool": {"0": {}}
+ }
+}

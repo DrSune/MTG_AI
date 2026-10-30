@@ -241,6 +241,12 @@ def test_stash_wrappers_are_pure_memos(monkeypatch):
         assert not expand and pool[0][:2] == ["set", "atom"]
         assert "deathtouch" in pool[0] and "lifelink" not in pool[0]
     finally:
+        # 2026-10-30 (test isolation): put the real _ORIG_* back BEFORE the
+        # uninstall restores query.verb_choose_options / choose_options from
+        # them. Uninstalling first left the fake lambdas above installed in
+        # the engine's query module for every later test in the process (the
+        # seeded games of test_duel_elo then played with fake CHOOSE menus).
+        monkeypatch.undo()
         v2.uninstall_choose_stash()
     assert query_mod.verb_choose_options is v2._ORIG_VCO
     assert v2._executor_pkg.choose_options is v2._ORIG_CO_EXEC

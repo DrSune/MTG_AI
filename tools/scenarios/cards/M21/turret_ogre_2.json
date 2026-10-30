@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Reach: on the opponent's turn their 2/2 flier attacks; Turret Ogre (4/3, reach) can block it, so the block stands, the flier dies and seat 0 takes no damage.",
+ "cards": [
+  {"key": "ogre", "real": "Turret Ogre", "zone": "battlefield", "controller": 0},
+  {"key": "bird", "name": "Opp Bird", "type": "Creature", "power": 2, "toughness": 2, "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"bird": true}, "block": {"ogre": "bird"}}
+ ],
+ "expect": {
+  "blocked": {"bird": ["ogre"]},
+  "life": {"0": 20},
+  "zone": {"bird": "graveyard", "ogre": "battlefield"},
+  "damage": {"ogre": 2}
+ }
+}

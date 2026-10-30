@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Warded Battlements, printed: 'Attacking creatures you control get +1/+0.' Your 2/2 bear attacks as a 3/2 and the opponent's 2/4 wall blocks: the bear deals 3 to the wall (it survives, 3 damage marked) and the wall's 2 damage kills the bear (toughness unchanged at 2).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wb", "real": "Warded Battlements", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "owall", "name": "Opp Wall", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"owall": "bear"}}
+ ],
+ "expect": {
+  "blocked": {"bear": ["owall"]},
+  "zone": {"bear": "graveyard", "owall": "battlefield"},
+  "damage": {"owall": 3},
+  "life": {"0": 20, "1": 20}
+ }
+}

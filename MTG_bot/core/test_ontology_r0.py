@@ -125,6 +125,31 @@ def search_atom_dict(card: str) -> dict:
     return atom
 
 
+def search_steps(card: str) -> list:
+    """The steps of the Seq whose first step is the card's SEARCH atom (the named
+    tutors: [SEARCH, REVEAL, SHUFFLE] inside the may)."""
+    target = search_atom_dict(card)
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("tag") == "Seq" and node["steps"] and node["steps"][0] == target:
+                return node["steps"]
+            for value in node.values():
+                found = walk(value)
+                if found is not None:
+                    return found
+        elif isinstance(node, list):
+            for value in node:
+                found = walk(value)
+                if found is not None:
+                    return found
+        return None
+
+    steps = walk(golden(card)["abilities"])
+    assert steps is not None, f"{card}: no Seq starting with the SEARCH"
+    return steps
+
+
 def search_selector_dict(card: str) -> dict:
     """The folded ONE_OF search selector dict out of a battery golden."""
     return dict(search_atom_dict(card)["args"]["pairs"])["cards"]
@@ -444,13 +469,19 @@ class TestL5NoBlindDraw(LibraryProbe):
             with self.subTest(card):
                 self.setUp()
                 _, _, _, gv = self.seed(search_selector_dict(card))
-                eff = golden(card)["abilities"][0]["effect"]
-                steps = (eff.get("inner") or eff)["steps"]
+                steps = search_steps(card)
                 lib_before = list(
                     self.world.players[self.p0].zone(ZONE_LIBRARY).entries
                 )
                 self.run_search_step(card, str(gv))
-                for s in steps[1:3]:  # REVEAL + MOVE tail (skip SHUFFLE)
+                # re-pinned 2026-10-30: the tail is every step after the SEARCH except the
+                # SHUFFLE (REVEAL only, since the unprinted MOVE step is gone, G3 finisher).
+                tail = [
+                    s
+                    for s in steps[1:]
+                    if not (s.get("tag") == "Atom" and s["verb"]["name"] == "SHUFFLE")
+                ]
+                for s in tail:
                     node = (
                         from_dict("Atom", s)
                         if s.get("tag") == "Atom"
@@ -469,6 +500,42 @@ class TestL5NoBlindDraw(LibraryProbe):
                     list(self.world.players[self.p0].zone(ZONE_HAND).entries),
                     [gv],
                 )
+
+
+class TestNamedSearchLeavesItsSourceAlone(LibraryProbe):
+    """G3 finisher (2026-10-30): "search your library and/or graveyard for a card named
+    <planeswalker>, reveal it, and put it into your hand" has no step that moves the source.
+    The compiled tree had a third step, MOVE_ZONE(this card from the top of your library to
+    your hand), so a tutor creature put on top of its library in response (Griptide) went to
+    its controller's hand as its own trigger resolved. Every non-SHUFFLE step runs here with
+    the card itself on top of the library: it stays there, only the named card moves."""
+
+    CARDS = (
+        "Garruk's Warsteed",
+        "Teferi's Wavecaster",
+        "Chandra's Firemaw",
+        "Basri's Aegis",
+        "Liliana's Scorn",
+    )
+
+    def test_the_source_on_top_of_the_library_stays_there(self):
+        for card in self.CARDS:
+            with self.subTest(card):
+                self.setUp()
+                _, _, _, gv = self.seed(search_selector_dict(card))
+                src = self.world.add_card(card_id(card), self.p0, ZONE_LIBRARY)  # the top
+                for s in search_steps(card):
+                    if s.get("tag") == "Atom" and s["verb"]["name"] == "SHUFFLE":
+                        continue
+                    self.ex.execute(
+                        from_dict("Atom", s),
+                        source=src,
+                        controller=self.p0,
+                        decisions=(str(gv),),
+                    )
+                library = self.world.players[self.p0].zone(ZONE_LIBRARY).entries
+                self.assertEqual(library[-1], src)
+                self.assertEqual(list(self.world.players[self.p0].zone(ZONE_HAND).entries), [gv])
 
 
 class TestL3WalkerDesignationStands(R21aCase):

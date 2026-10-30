@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16d, 704.5n). With protection from black, the Bear can't be equipped by the black Malefic Scythe: the Equipment becomes unattached as a state-based action and stays on the battlefield. Before V44 it stayed attached.",
+ "cards": [
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fr",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "scy",
+   "real": "Malefic Scythe",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "scy",
+   "host": "bear"
+  },
+  {
+   "op": "cast",
+   "real": "Feat of Resistance",
+   "key": "fr",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "scy": "battlefield",
+   "bear": "battlefield"
+  },
+  "attached": {
+   "scy": null
+  }
+ }
+}

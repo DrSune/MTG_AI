@@ -1,0 +1,57 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16f). The Sovereign's static grant gives the attacking Cat protection from Dogs, so the Dog can't block it: the 2/2 Cat's damage lands in the player (seat 1 at 18). Before V44 the static grant never reached the block-legality lane and the Dog blocked and killed the Cat.",
+ "cards": [
+  {
+   "key": "fs",
+   "real": "Feline Sovereign",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cat",
+   "name": "House Cat",
+   "type": "Creature — Cat",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dog",
+   "name": "Opp Dog",
+   "type": "Creature — Dog",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "cat": true
+   },
+   "block": {
+    "dog": "cat"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 18
+  },
+  "blocked": {
+   "cat": []
+  },
+  "zone": {
+   "cat": "battlefield"
+  }
+ }
+}

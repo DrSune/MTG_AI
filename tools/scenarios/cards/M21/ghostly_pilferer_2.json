@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "As pilferer_untap_pay_draw, but the may is declined: no mana is spent and no extra card is drawn (hand = opening draw + turn-3 draw = 2).",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gp": true}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "tapped": {"gp": false},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {"C": 2}}
+ }
+}

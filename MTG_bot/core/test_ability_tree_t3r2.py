@@ -559,6 +559,8 @@ def test_explicit_empty_omit_fields_decode() -> None:
 def test_verb_role_table_pins() -> None:
     # T4 P1a: MOVE_ZONE became the ONE move atom — objects ride one of
     # cards/target/amount, with from/journal_kind/pop_order slots.
+    # re-pinned 2026-10-29: ontology R5-1 adds the optional "duration" role
+    # (CR 610.3, "exile ... until this creature leaves the battlefield").
     assert at._VERB_ROLES[at.Verb.MOVE_ZONE] == {
         "destination": True,
         "cards": False,
@@ -569,6 +571,7 @@ def test_verb_role_table_pins() -> None:
         "journal_kind": False,
         "pop_order": False,
         "tapped_on_enter": False,
+        "duration": False,
     }
     assert at._VERB_ROLES[at.Verb.SEARCH] == {
         "cards": True,

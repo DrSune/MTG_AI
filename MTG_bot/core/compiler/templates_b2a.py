@@ -75,6 +75,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     EachPlayer,
     FAnd,
     FAtom,
@@ -2110,17 +2111,17 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
     """``When this artifact enters, exile all creature cards with mana
     value N or less from your graveyard until this artifact leaves the
     battlefield.`` (Idol of Endurance) — ALL+QUnbounded exile of the
-    filtered graveyard.
-    LOSSY (C11 verbatim): "until this artifact leaves the battlefield" —
-    ``_VERB_ROLES[EXILE]`` has no duration role (the round-7 grammar
-    added ``DurationUntilLeaves`` but wired the role only to
-    GAIN_CONTROL), so the temporary window is dropped; R8 grammar item.
-    The card SET choice (filter + ALL) is fully expressed."""
+    filtered graveyard, with ``duration=DurationUntilLeaves()`` (ontology
+    R5-1, 2026-10-29, CR 610.3): when the Idol leaves the battlefield the
+    cards still in exile return to their previous zone, their owner's
+    graveyard. The C11 loss this template used to carry (no duration role
+    on the move, so the cards never came back) is closed."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
                 ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("duration", DurationUntilLeaves()),
                 (
                     "target",
                     Selector(

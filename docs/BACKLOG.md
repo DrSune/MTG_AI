@@ -455,6 +455,15 @@ These are forks, not tasks. See the report that accompanied this audit.
   Fix: the three builders → `Zone(HAND, OWNER)`, three goldens re-baked, a pack that bounces an
   opponent's creature, and an owner field if GAIN_CONTROL cards are dealt. Schedule it at an RL
   pilot era boundary: it changes M21 episodes.
+  - **Engine half FIXED on branch `engine/verify-fixes-3` (V24, 2026-10-29).** A moving card lands
+    in its owner's hand, library, graveyard or exile whatever player the destination names (CR
+    400.3; `selectors.move_destination`), and `zone_owner` resolves ANY to the owner. A permanent
+    put onto the battlefield under another player's control stays in its owner's zone with a
+    control entry (CR 110.2a), so the World's zone owner is the card's owner even after
+    GAIN_CONTROL: no owner field is needed. `cast_card` refuses a card the caster does not own
+    (no dealt card does that). The template half landed separately on `cards/m21-fidelity`
+    (`Zone(HAND, OWNER)` for Barrin, Niambi and Roaming Ghostlight); both halves meet at the
+    integration merge (2026-10-30). B-42's identity fold is still open.
 - **B-44 One-card predicates**: `LIFE_LEAD_OVER_START_GE`, `NAME_PARTITION_COUNT_GE`,
   `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
   single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
@@ -586,9 +595,13 @@ These are forks, not tasks. See the report that accompanied this audit.
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
   - Damage marked on a non-creature land through a forced binding: only reachable from harness ops,
-    but `DEAL_DAMAGE` does not check the recipient's type.
+    but `DEAL_DAMAGE` does not check the recipient's type. **[FIXED on branch
+    `engine/verify-fixes-4` 2026-10-30: CR 120.1a, no damage to anything but a battle, a creature or
+    a planeswalker.]**
   - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
     trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
+    **[FIXED on branch `engine/verify-fixes-4` 2026-10-29 (V39): the template writes the FOr of
+    `COLOR_HAS`; no compiled card writes `COLOR_IN` now.]**
 
 **Engine findings from mapper B's FDN batch and the FDN soak (2026-10-29).**
 - Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds the outcome the
@@ -621,7 +634,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The dispatch ledgers clear only when the creature leaves the battlefield.
   - So a one-turn lure keeps forcing blocks on later turns (FDN Joraga Invocation, checked by
     mapper B with a pack).
-- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter needs a design decision, see below]**
+- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter FIXED on branch `engine/r5a-until-leaves` 2026-10-29 by ontology R5-1, see B-60c and B-97]**
   `templates_b5a.py`).
   - Equip has no sorcery timing, so every Equipment can move at instant speed and mid-combat (M21
     Short Sword, Malefic Scythe).
@@ -660,8 +673,16 @@ These are forks, not tasks. See the report that accompanied this audit.
   - With the key honoured, `rewind.json` FAILS: its three tapped Plains stay tapped. Its own note
     says Rewind "untaps them all", so either Rewind's untap step or the pack's premise is wrong.
     The others still pass.
+  - **Settled 2026-10-29 (V28, branch `engine/verify-fixes-3`): the untap step was wrong.**
+    `selectors.role_handles` handed the UNTAP's CHOOSE selector the spell's TARGET designation
+    (the countered spell). A CHOOSE selector now ignores a designation it could not select
+    (packs `rewind_counters_and_untaps`, `rewind_untap_choice`).
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
+  - **FIXED on branch `engine/verify-fixes-3` (fixer 3, 2026-10-30).** The runner honours `tapped`
+    as well as `start_tapped`, and applies both after the opening `begin_turn` (whose untap step
+    used to undo `start_tapped` on seat 0). All eight packs pass with the key honoured (Rewind's
+    untap was the engine bug, V28).
 - **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
   empty hand** (stronger than printed).
   - The may-offer is not narrowed when there is nothing to discard. `MAY_DONE`
@@ -693,6 +714,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     Emancipation with Nine Lives, or two Fiery Emancipations).
   - Repro script on the B-49 branch: `cr6161_repro.py`.
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
+  **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
+  branch `engine/r5a-until-leaves`; follow-ups in B-97]**
   - (1) Recommended: an optional `duration` role on MOVE_ZONE/EXILE taking `DurationUntilLeaves`.
     The executor keeps (card, previous zone, anchor) and returns the card when the anchor leaves
     (CR 610.3). If the anchor already left, the exile does not happen (CR 610.3a). The return table
@@ -706,9 +729,16 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
   - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
     so the fold needs sublayers. Weaker than printed.
+  - **FIXED on branch `engine/verify-fixes-3` (V27, 2026-10-30)**: `DurationLedger._effective`
+    applies every set before every delta (then counters). 7a and 7b are still ordered by
+    timestamp between themselves (no dealt card pairs a CDA with a 7b set). Pack
+    `glorious_anthem_cda_creature`.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
-  hand is payable with no cards.
+  hand is payable with no cards. **FIXED on branch `engine/verify-fixes-3` (V33, 2026-10-29)**: an
+  unbounded ALL cost selector demands every candidate and none when there are none, and Subira's
+  cost now discards the whole hand instead of one card (packs `subira_discard_whole_hand`,
+  `subira_discard_empty_hand_pays`).
 - **B-72 [fixer A] DESTROY and other direct graveyard moves never check the dies replacements**
   (`verbs._to_graveyard` → `_move_to`). A creature hit by Scorching Dragonfire, then destroyed later
   the same turn, goes to the graveyard instead of exile. Weaker than printed.
@@ -790,7 +820,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     but "UR" fuses two colours into one token (AGENTS §9) and breaks the IR's `color` (one) /
     `colors` (several) convention that `FAtom` follows.
 - **B-76 [fixer A, found 2026-10-29] A creature with defender can never block** (live in M21,
-  weaker than printed).
+  weaker than printed). **[FIXED on branch `engine/verify-fixes-4` 2026-10-30 (V40): both block-side checks dropped;
+  the attack-side reason now cites CR 702.3b.]**
   - `legality.block_pair_blocked_reason` (`executor/legality.py` ~1878) and `blocker_askable`
     (~1925) refuse every blocker with DEFENDER, citing "CR 702.4a". Defender only forbids attacking
     (CR 702.3b), and 702.4 is double strike.
@@ -835,6 +866,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     card), and positional multi-slot designation that accepts an empty trailing optional slot
     (`stack._validate_positional` raises on any non-exactly-one slot). The games policy also
     skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
+  - Re-checked on `cards/integration` 18afa85 (2026-10-30): tree unchanged in M21 and FDN, both
+    review packs still fail the same way, `_validate_positional` still exactly-one only.
 - **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
   component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
   - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
@@ -846,6 +879,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
     "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
     though" cards; recommended.
+  - Re-checked on 18afa85 (2026-10-30): tree unchanged; the Portcullis Vine pack still fails, the
+    two attack packs pass.
 - **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
   AGENTS §11 (alters legal options or state outcomes).
   - Fixed: Lofty Denial (the {4} branch never applied; now a conditional arm, pack
@@ -855,7 +890,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     hand, put each of those cards into your hand instead" runs as an extra step that returns one
     card, not all three. It is unreachable until something lets you cast it from elsewhere
     (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
-    replacing the one-and-rest split, once a pack can cast it from the graveyard.
+    replacing the one-and-rest split, once a pack can cast it from the graveyard. Re-checked on
+    18afa85 (2026-10-30): tree unchanged, still unreachable.
   - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
     information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
@@ -864,7 +900,182 @@ These are forks, not tasks. See the report that accompanied this audit.
     one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
     printed; only the docstring's reading is off).
   - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
-- **B-105 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-7: `AbilityActivatedEvent` and
+- **B-96 [fixer 4, 2026-10-29] "You have no maximum hand size" compiles nowhere.** Since V36 the
+  cleanup step discards down to seven (CR 514.1, 402.2: `executor.MAX_HAND_SIZE`, read only by
+  `Executor._discard_to_hand_size`). The sentence is UNPARSED on Reliquary Tower (M13), Spellbook
+  (10E), Niv-Mizzet, Visionary and Finale of Revelation (FDN), Folio of Fancies and The Magic Mirror
+  (ELD) and Sea Gate Restoration (ZNR), so these partly compiled cards are now weaker than printed
+  in the pool modes that deal partly compiled cards. No M21 card and no FDN record is affected.
+  Needs a component for a player's maximum hand size (a static over the player, and "for the rest of
+  the game" on a resolving effect): an ontology decision for a gated round.
+- **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
+  (CR 610.3) are built; what is left.**
+  - Done: `MOVE_ZONE` takes an optional `duration` (`DurationUntilLeaves`, `DurationEot`,
+    `DurationUntilNextTurn` only; any other Duration is refused at construction). The executor's
+    return registry (`core/executor/returns.py`, `Executor._run_returns`, folded into
+    `state_fingerprint` while non-empty) keeps one row per moved object and returns it through
+    the normal MOVE_ZONE path when the duration ends: 610.3a/b (anchor already gone: nothing
+    moves), 610.3c (owner's control), 610.3d (one batch), 400.7 by journal provenance, tokens never
+    return (704.5d), Containment Priest applies (614), a returning Aura asks its owner for a host
+    (303.4f-g, V32 cherry-picked from `engine/verify-fixes-2`). The per-seat view (`returns_to`,
+    `returns_when`) and the G1 probe trace show every row. Templates: Kitesail Freebooter, Idol of
+    Endurance, and a general `B11-exile-np-until-leaves` clause that, behind the enters frame,
+    newly compiles Hieromancer's Cage (M19), Banishing Light (FDN, THB), Stasis Snare (FDN),
+    Banisher Priest (M14), Prison Realm (WAR) and Journey to Oblivion (ZNR), all unverified.
+  - **The training observation cannot see the rows** (`tools/training`, pinned, so not edited):
+    a policy trained on it does not know that killing Banishing Light returns its card (AGENTS
+    §10). Add the row (anchor, card, return zone) at the next observation-schema change.
+  - **"For as long as ~ remains on the battlefield" (CR 611.2b)** ends when the object phases out
+    (702.26f). It must not reuse `DurationUntilLeaves`; it needs its own node or a field.
+  - **Calix, Destiny's Hand [−3]** ("until target enchantment you control leaves the
+    battlefield"): the anchor is a second target, and `DurationUntilLeaves(source="target")` can
+    only name the spell's single target binding. Gap ledger; needs a per-slot referent.
+  - **Still unparsed** (each needs a clause the compiler lacks, not a new atom): Prayer of Binding
+    ("up to one target", ready for a mapper now), Seal Away ("tapped creature"), Glass Casket
+    ("with mana value 3 or less"), Sigrid, Colossal Whale, Glorious Protector, Grasping Giant,
+    Hixus, Constricting Sliver, Valki.
+  - **A return to a zone other than the battlefield consults no replacement effect.** The move
+    path asks `replacement_for_zone_change` only for battlefield entries (`verbs._v_move_zone`), so
+    Leyline of the Void would not exile Idol of Endurance's returning cards (B-72 family; general,
+    not specific to returns).
+  - **Tapped status survives zone changes (CR 110.5b/110.5d).** `CardState.tapped` is never
+    cleared when a card leaves the battlefield, so a creature exiled while tapped returns tapped,
+    and a tapped creature bounced and recast enters tapped. General engine gap.
+  - **Simultaneity is per destination zone.** One MOVE_ZONE per zone, in the fixed order
+    battlefield, hand, graveyard, exile; within a zone every object moves at once. V32 chooses
+    each entering Aura's host inside the move loop, so an Aura returning in the same batch as a
+    creature can pick that creature (strictly, 303.4f sees only objects already on the
+    battlefield).
+  - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
+    trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
+    consequence.
+- **B-98 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-77 at the integration merge] Ontology R5-6: `TargetingEvent.actor`
+  ("becomes the target of a spell or ability an opponent controls") is built; the rest of the
+  census needs other pieces.**
+  - Done: the optional `actor` Filter over the targeting spell's or ability's controller (the
+    TARGETING row's journalled actor), read by `binding._match_node`. Warden of the Woods (M21) no
+    longer draws off its controller's own spells; Thorn Lieutenant (M19) compiles through the new
+    `B13-targeted` frame. Mapper rule: "can't be the target of spells or abilities your opponents
+    control" stays HEXPROOF (MAPPER_GUIDE).
+  - Not compiled, each for a reason outside R5-6 (11 cards, 8 sets, by the oracle census):
+    - Frost Titan (M11, M12), Diffusion Sliver (M15), Reidane (KHM): "counter that spell or ability
+      unless its controller pays": abilities never sit on the stack, so an ability cannot be
+      countered (R5 gate round 2).
+    - Ward (Cackling Prowler, Tolarian Terror, Zul Ashur; FDN): the IR has no WARD keyword, and
+      ward (CR 702.21a) also counters abilities, which cannot be countered here.
+    - Battle Mammoth (KHM): its clause "you may draw a card" does not parse on its own.
+    - Shield Mare (M19): "When this creature enters or becomes the target ...", a trigger on either
+      of two events, which no template composes.
+    - Leyline of Combustion (M20): "you and/or at least one permanent you control" triggers once per
+      spell, not per targeted object, and "that player" needs a referent for the event's actor.
+- **B-99 [fixer 3, 2026-10-29; renumbered from B-75 (phasing took it) and then B-97 (R5-1 took it) at the integration merges] Chandra, Flame's Catalyst's "If that spell would be put into your
+  graveyard, exile it instead" is not applied.** Her -2 casts a red instant or sorcery from your
+  graveyard through `stack.cast_card`; the rider's replacement (`B5b-repl-graveyard-exile`) is never
+  registered for that cast, so the spell resolves into the graveyard and can be recast. Stronger than
+  printed, but Chandra, Flame's Catalyst is not castable yet, so nothing exploits it today. Repro:
+  `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
+  should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
+  redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
+- **B-100 [fixer 3, 2026-10-30; renumbered from B-76 (the defender entry took it) and then B-98 (R5-6 took it) at the integration merges] Two permission rows do nothing until the R5 permission lane.**
+  Weaker than printed; never a crash and never a phantom option.
+  - Radha, Heart of Keld's "you may play lands from the top of your library" compiles to a free
+    row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
+    action), so the row can do nothing: the CAST head refuses with a cast-gap ledger row, the
+    may-offer narrows to skip, and `query.legal_activations` no longer offers the row
+    (`query.inert_free_row`). R5-3's `play_lands` makes it playable.
+  - Demonic Embrace's "You may cast this card from your graveyard ..." row is an activated
+    ability, and activations need the source on the battlefield (`window:not_on_battlefield`), so
+    the graveyard cast is never available. R5-2's permission lane (a StaticAbility CAST) fixes it.
+  - Also: a CAST whose designation is empty (a nonland on top for Radha, a non-Goblin for
+    Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
+- **B-101 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd (a duplicate of the
+  multicoloured-token entry's number), then B-83, renumbered at the integration merge]
+  Protection (CR 702.16) works only against blocking.** **[FIXED on branch
+  `engine/verify-fixes-3` 2026-10-30 (fixer 3, V44), pending the era-boundary merge]**
+  - Fix: one oracle, `legality.protected_from(executor, holder, source)`, over
+    `layers.protection_rows` (printed and granted keywords, static grants to cards AND
+    players, each quality judged in the coordinates of the ability that gives it, so
+    Runed Halo's NAME_CHOSEN reads the Halo's name). Consumers: the TARGET chokepoint
+    `enumerate_candidates`, the "any target" player widening, the synthetic
+    target-opponent slots of spells, activations and triggers (702.16b); the Aura
+    SBA and the enter-without-cast host choice (702.16c, 704.5m); an Equipment SBA
+    that unattaches it (702.16d, 704.5n); damage prevention for players and
+    permanents with a DAMAGE_PREVENTED row (702.16e); block legality reads only the
+    ATTACKER's protection (702.16f), so a protected creature may now block the
+    quality (the old blocker-side veto was wrong). A universal quality is
+    protection from everything (702.16j). Each fighting creature is now the source
+    of its own damage (CR 701.12b), so protection, deathtouch and lifelink read it.
+  - The three repros below now pass and live in `tools/scenarios/`, with 11 more
+    protection packs (Baneslayer, Basri's Lieutenant, Feat of Resistance, Feline
+    Sovereign, Runed Halo, Sparkhunter Masticore). No verified card pack changed.
+  - Residues: (1) no CR 608.2b re-check at resolution, for protection or anything
+    else (a target that gains protection after it was chosen stays a target);
+    reachable only through trigger order today, since the response window offers
+    counterspells only. (2) 702.16n/p ("this effect doesn't remove Auras") has no
+    IR; no compiled card needs it (M15 Spectra Ward does not compile). (3) The
+    compiler has no general "Protection from <quality>" line: only the printed M21
+    forms compile, and an unseen "Protection from black" stays unparsed
+    (`compiler._is_keyword_line`); 702.16k (from a player) has no compiled shape.
+    (4) A fight's DAMAGE journal rows still name the fight's source as the cause.
+  - `layers.protections_of` has one consumer, block legality. Nothing makes a protected
+    permanent or player an illegal target for sources of the quality (702.16b), prevents their
+    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros (failing before
+    V44, now moved to `tools/scenarios/`): `feat_of_resistance_protection_targeting.json`,
+    `feat_of_resistance_protection_damage.json`, `runed_halo_protects_player.json`.
+  - Player protection does not even land: Runed Halo's static GRANT_ABILITY(PROTECTION
+    (NAME_CHOSEN)) to Zone(PLAYER, YOU) leaves `protections_of(player)` empty (the layer
+    keyword map is built over card handles only), and `protections_of` ignores static-layer
+    grants for cards too (it reads keyword/grant layers and `_granted`).
+  - Not small, so not done in the template lane. Plan: (1) `protections_of` covers static grants
+    and player handles; (2) a targeting veto beside `_hexproof_vetoes_target` (both cards and
+    players; quality judged against the targeting source, NAME_CHOSEN in the granting
+    permanent's coordinates, i.e. Runed Halo's chosen name); (3) damage prevention in the
+    noncombat and combat damage lanes; (4) the 704.5m/n attachment SBAs. Every protection card
+    changes play (Baneslayer Angel, Basri's Lieutenant, Feat of Resistance, Runed Halo, other
+    sets), so it belongs to an era boundary. Engine lane.
+- **B-102 [fixer A, found 2026-10-30; B-84 until the integration merge] Attack triggers can see a creature put onto the battlefield
+  attacking** (latent: no M21 card misfires today).
+  - `Executor.join_attack` (`executor/__init__.py` ~1915) journals the same DECLARE_ATTACKERS
+    row, in the same declare group, as a declared attacker, and `binding._match_node` (~919)
+    matches every such row. CR 508.3a and 508.4: a creature put onto the battlefield attacking
+    never "attacked", so no "whenever ... attacks" trigger may see it. Falconer Adept's Bird
+    (80a895f) and Basri Ket's -2 Soldiers take this path.
+  - Hidden today by two accidents. The joined row is journalled before the token's own
+    ZONE_CHANGE row, so at match time the token's keywords are not yet in the layer map (a
+    flying filter misses the Bird). And the per-declaration dedup (`binding._queue` ~728, one
+    instance per ability per declare group) has already queued any trigger the declared
+    creature matched. Probes 2026-10-30 (Tide Skimmer + Falconer Adept, and a per-creature
+    flying filter with only the Adept declared): no extra trigger. A filter on type, subtype,
+    token-ness or controller that the token matches and no declared creature does would fire.
+  - Coupling: that dedup is itself wrong for per-creature triggers (B-103). Whoever fixes B-103
+    must exclude joined rows in the same change, or the Bird and the Soldiers start
+    triggering. `_group_size` (battalion) and the `declare_attackers` register
+    (THAT_MANY_COUNT) count joined rows as well.
+  - Fix: mark the joined row (its own payload, or an `entered_attacking` set folded into the
+    replay hash) and skip it in the DeclareAttackersEvent match, the group size and the
+    register. Engine lane.
+- **B-103 [fixer A, found 2026-10-30; B-85 until the integration merge] "Whenever a creature ... attacks" fires once per
+  declaration, not once per attacker** (live in M21, weaker than printed).
+  - `binding._queue` (~728) queues one instance per ability per declare group for every
+    DeclareAttackersEvent. That is right for "one or more" and "attack with two or more"
+    (Basri Ket's -2, Tide Skimmer, Mangara) and wrong for a per-creature trigger, which
+    CR 603.2c fires once per matching attacker. Repro, failing today:
+    `tools/scenarios/known_bugs/hooded_blightfang_each_deathtouch_attacker.json` (two
+    Blightfangs attack: four triggers are due, two fire, so the life totals end 22/16, not
+    24/14).
+  - Live in M21: Basri, Devoted Paladin's -1 puts its counter on one attacker per declaration,
+    and Hooded Blightfang drains once however many deathtouch creatures attack. Across the 19
+    sets these two, Basri Ket, Tide Skimmer and Mangara are the only compiled attack triggers
+    not keyed on IS_SOURCE (snapshot 2026-10-30).
+  - Design decision, an IR change: `DeclareAttackersEvent` cannot tell "a creature attacks"
+    from "one or more creatures attack" (Basri Ket's -2 and the Paladin's -1 differ only in
+    their filters). (a) A `batch: bool = False` field, omitted when False so per-creature trees
+    stay byte-identical, set by the compiler on "one or more", "attack with N or more" and
+    "you attack"; the dedup then applies to batch triggers only. Three goldens re-bake (Basri
+    Ket, Tide Skimmer, Mangara). Recommended. (b) Infer batching in the engine from a
+    CONTROLLER_COUNT_GE condition: no schema change, but it cannot separate Basri Ket's -2
+    from the Paladin's -1, so it is not enough. Either way it lands with B-102's exclusion.
+- **B-109 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-7: `AbilityActivatedEvent` and
   one CR 605.1a classifier.**
   - Done: `AbilityActivatedEvent(source, kind, actor)` replaces `LoyaltyActivatedEvent`; `kind`
     (ANY / NON_MANA / LOYALTY) is required. `ability_tree.is_mana_ability` implements 605.1a's four
@@ -887,7 +1098,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - After `engine/verify-fixes` merges: its B-90 payment witness picks mana sources through
     `ability_playable` and taps them through `activate()`, so an ANY lock already skips a locked
     mana source and each tap journals its row. Pin that with a test at the merge.
-- **B-106 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: abilities never sit on the
+- **B-110 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: abilities never sit on the
   stack, so "counter target activated or triggered ability" has no legal target** (engine gap).
   - Done: `FAtom(STACK_KIND_EQ, string_value)` with the closed vocabulary SPELL / ACTIVATED /
     TRIGGERED (validated per predicate, `ability_tree._FATOM_STRING_VOCAB`); every compiled "counter
@@ -903,7 +1114,7 @@ These are forks, not tasks. See the report that accompanied this audit.
     with a spell on the stack). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature)`, one golden.
   - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
     bullets only when every option set is one mode); it is representable but not described.
-- **B-107 [2026-10-30, branch `engine/r5b-go-items`] Verified records to re-verify after the R5
+- **B-111 [2026-10-30, branch `engine/r5b-go-items`] Verified records to re-verify after the R5
   items** (their tree changed, their `verified` block was not edited, so they are out of the
   verified supply until a verifier passes them again):
   - re-verify after R5-11 (schema rename only, `color` -> `colors`): FDN Imperious Perfect and
@@ -911,12 +1122,19 @@ These are forks, not tasks. See the report that accompanied this audit.
     FDN Regal Caracal, unverified, was renamed too), FDN Prideful Parent and Release the Dogs
     (compiler trees). FDN verified 59 -> 55.
   - re-verify after R5-10 (STACK_KIND_EQ SPELL added to the counter target): M21 Cancel and
-    Miscast. M21 verified 135 -> 133.
+    Miscast.
+  - re-verify after R5-7 (the trigger's event node is AbilityActivatedEvent, kind LOYALTY): M21
+    Keral Keep Disciples (stamped by the G3 finisher on `cards/integration`).
+  - After the merge of `cards/integration` d955f67: M21 verified 159 -> 156, FDN 59 -> 55; every
+    card pack of these cards still passes.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
   - M21 Subira, ZNR Sneaking Guide and FDN Goblin Smuggler's "target creature can't be blocked"
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
+    **FIXED on branch `engine/verify-fixes-3` (V34, 2026-10-29)**: a synthesized one-creature slot
+    from the IS_ANY_TARGET combat filter, and the targeting restriction is checked at resolution
+    and locked in (CR 608.2b).
   - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
     bind the spell's targets (FDN Gnarlback Rhino).
   - [2026-10-29, Ugin] Ugin's [−10] "put up to seven permanent cards from your hand onto the

@@ -1,0 +1,91 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Control for the eight-card threshold: the Enforcer is on the battlefield, the opponent has 5 graveyard cards, another Rogue enters and mills two, making 7: the Enforcer stays 1/1 without deathtouch.",
+ "cards": [
+  {
+   "key": "tge",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rogue",
+   "name": "Sneak",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature \u2014 Human Rogue",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g0",
+   "name": "Old Card 0",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g1",
+   "name": "Old Card 1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g2",
+   "name": "Old Card 2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g3",
+   "name": "Old Card 3",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g4",
+   "name": "Old Card 4",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "rogue"
+  }
+ ],
+ "expect": {
+  "power": {
+   "tge": 1
+  },
+  "toughness": {
+   "tge": 1
+  },
+  "battlefield_keywords": {
+   "Thieves' Guild Enforcer": []
+  },
+  "zone": {
+   "tge": "battlefield",
+   "rogue": "battlefield"
+  }
+ }
+}

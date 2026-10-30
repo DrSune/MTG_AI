@@ -323,14 +323,19 @@ def test_elo_json_schema(tmp_path: Path) -> None:
     assert doc["engine"]["git_head"]
     assert doc["games_per_pair"] == 4 and doc["games_total"] == 12
     by_name = {r["policy"]: r for r in doc["ratings"]}
-    # 4 games/pair cannot move any wr CI off 0.5 -> every non-anchor policy
-    # is UNRATED now. (The old code fabricated ratings for scripted/first
-    # here — the /26 hole this schema test now guards.)
-    assert set(by_name) == {"random"}
+    # A pair's win-rate CI must leave 0.5 before the pair enters the fit; a
+    # non-anchor policy with no such pair is UNRATED. (The old code fabricated
+    # ratings for scripted/first here — the /26 hole this schema test guards.)
+    # re-pinned 2026-10-30: V36 cleanup discard changes the seeded games. The
+    # old pin assumed 4 games/pair could never move a CI off 0.5, but a 4-0
+    # sweep does (Wilson 95% for 4/4 is [0.51, 1.0]): random now wins all four
+    # against both first and pass-floor, so both are rated against the anchor,
+    # while pass-floor vs first (3-1, CI [0.25, 1.0]) stays out of the fit.
+    assert set(by_name) == {"random", "first", "pass-floor"}
     assert by_name["random"]["elo"] == 0.0  # pinned, exact, in the JSON
     assert by_name["random"]["admissible"] is True  # anchor: 0 by construction
-    assert {u["policy"] for u in doc["unrated"]} == {"pass-floor", "first"}
-    assert len(doc["fit_excluded_pairs"]) == 3  # every pair under-powered
+    assert {u["policy"] for u in doc["unrated"]} == set()
+    assert [p["pair"] for p in doc["fit_excluded_pairs"]] == ["pass-floor vs first"]
     for r in doc["ratings"]:
         assert set(r) == {
             "policy",
@@ -342,8 +347,11 @@ def test_elo_json_schema(tmp_path: Path) -> None:
         }
         assert r["ci_lo"] <= r["elo"] <= r["ci_hi"]
         assert 0.0 <= r["vs_field_wr"] <= 1.0
-    # no claims from an under-powered matrix (/26 + /135 item 2)
-    assert doc["headline_claims"] == []
+    # claims come only from admissible ratings (/26 + /135 item 2).
+    # re-pinned 2026-10-30: V36 cleanup discard changes the seeded games; the
+    # two sweeps above make first and pass-floor admissible (was: no claims).
+    assert {c["policy"] for c in doc["headline_claims"]} == {"first", "pass-floor"}
+    assert all(by_name[c["policy"]]["admissible"] for c in doc["headline_claims"])
     json.dumps(doc)  # board-safe
 
 

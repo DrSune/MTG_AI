@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0a865453-ddc8-4403-8f1e-5752e3582458",
+ "name": "Keral Keep Disciples",
+ "text_sha": "f52a13704fc86e1ae825e31d0b4c02ae1dc89dcef98945255b8a9fa18f6e6161",
+ "verified": {
+  "tree_sha": "e5257edfe220b95a6b8a45e532a8021fc29439368cddfc1dbc617bee210280e1",
+  "probe_sha": "546e24c1469168f8b6c247799b4ce5c38d389e5eebc19ac9c10ddf1ea45224e7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no stimulus activates a loyalty ability (every listed stimulus gives 'none' or no change from the card); the tree (LoyaltyActivatedEvent filter SUBTYPE_EQ Chandra + TYPE_EQ Planeswalker, actor CONTROLLER_IS YOU; EachPlayer ALL_OPPONENTS DEAL_DAMAGE 1) is identical to the compiler's parse of the sentence. Packs keral_keep_chandra_trigger (your Chandra +1: P1 20-3-1=16; your Basri Ket +1 adds nothing) and keral_keep_opp_chandra (the opponent's own Chandra activation does not trigger it) pass",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/keral_keep_disciples_1.json",
+   "tools/scenarios/cards/M21/keral_keep_disciples_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 1,
+   "score": 0.16666666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "controller ALL_OPPONENTS->YOU at 1/0/effect/ref",
+    "amount+1 at 1/0/effect/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/effect/args/target/zones/0/controller"
+   ]
+  }
+ }
+}

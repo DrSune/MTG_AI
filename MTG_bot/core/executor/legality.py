@@ -374,10 +374,10 @@ def _loyalty_of(world: GameWorld, handle: Handle) -> int:
     planeswalker paying a loyalty cost is illegal, and
     :func:`build_payment_plan` flags it).
 
-    Note: the generic counter verb deletes a zeroed counter key.  A payment
-    that brings loyalty to exactly 0 therefore passes the resulting ledger
-    value to :func:`_loyalty_death_check` directly rather than rereading it
-    here.
+    Note (V31, 2026-10-29): the counter verb keeps a zeroed LOYALTY key (every
+    other counter kind is deleted at 0), so a walker brought to 0 reads 0 here,
+    never its printed loyalty. The key is dropped when the walker leaves the
+    battlefield (CR 122.2).
     """
     state = world.cards.get(handle)
     if state is None:
@@ -499,6 +499,45 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     return any(row is None or eval_filter(row, ctx.source, ctx) for row in rows)
 
 
+def protected_from(executor: Executor | None, holder: Handle, source: Handle | None) -> bool:
+    """V44 (CR 702.16): does ``holder``, a permanent on the battlefield or a player,
+    have protection from ``source``? The one oracle every protection consumer reads:
+    targeting (702.16b), Auras and Equipment (702.16c-d), damage (702.16e) and
+    blocking (702.16f).
+
+    The quality is judged on the SOURCE object: a permanent, a spell, or a card in
+    another zone (702.16a; 609.7c), through ``eval_filter``. It is judged in the
+    coordinates of the ability that gives the protection (``protection_rows``), so a
+    quality that reads its own source answers for that ability: Runed Halo's
+    NAME_CHOSEN is the name the Halo chose. A universal quality (``FAnd(())``) is
+    protection from everything (702.16j). Only a card can be a source with
+    qualities here (an emblem or a player is not), and a card off the battlefield
+    has no protection that functions (113.6)."""
+    if executor is None or source is None or source.namespace != "card":
+        return False
+    world = executor.world
+    if source not in world.cards:
+        return False
+    if holder.namespace == "card":
+        if holder not in world.cards or world.zone_of(holder).kind != ZONE_BATTLEFIELD:
+            return False
+    elif holder.namespace != "player":
+        return False
+    for quality, granter, controller in executor.layers.protection_rows(holder):
+        ctx = executor._ctx(source=granter, controller=controller, bindings=None, decisions=())
+        if eval_filter(quality, source, ctx):
+            return True
+    return False
+
+
+def _protection_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
+    """V44 (CR 702.16b): "A permanent or player with protection can't be targeted
+    by spells with the stated quality and can't be targeted by abilities from a
+    source with the stated quality." ``ctx.source`` is the spell, or the source of
+    the ability, doing the targeting."""
+    return protected_from(ctx.executor, candidate, ctx.source)
+
+
 def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     """The legal candidate set of one Selector IR node in ``ctx`` —
     Handle-sorted (§5.5). This is the per-slot candidate list the query
@@ -537,15 +576,25 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         # identity, §10 blindness audit). TARGET-only by mode: ALL/CHOOSE/
         # ONE_OF selections never TARGET, so sweepers are untouched.
         handles = [h for h in handles if not _hexproof_vetoes_target(h, ctx)]
+        # V44 (CR 702.16b): protection is the same chokepoint's second veto.
+        handles = [h for h in handles if not _protection_vetoes_target(h, ctx)]
     return handles
 
 
-def _required_count(count: Quantity, ctx: ExecCtx) -> int:
+def _required_count(sel: Selector, ctx: ExecCtx, available: int) -> int:
     """How many objects a cost's selector demands (costs pay in full —
-    CR 117.3). QUnbounded in a cost position is the degenerate "any
-    number"; the resource floor is one (paying zero is not paying)."""
+    CR 118.3). QUnbounded in a cost position is the degenerate "any
+    number"; the resource floor is one (paying zero is not paying).
+
+    V33 (2026-10-29): an ALL selector with no bound is "all of them" ("Discard
+    your hand", Subira, Tulzidi Caravanner): it demands every one of the
+    ``available`` candidates, and none when there are none. Discarding an empty
+    hand pays that cost in full (CR 118.3; 701.9a), as paying 0 mana or 0 life
+    does (118.3a/b). The old floor of one discarded a single card and refused
+    an empty hand."""
+    count = sel.count
     if isinstance(count, QUnbounded):
-        return 1
+        return available if sel.mode is SelectorMode.ALL else 1
     return max(1, resolve(count, ctx))
 
 
@@ -705,7 +754,9 @@ def build_payment_plan(
             else:
                 mod_ctx = ex._ctx(
                     source=host,
-                    controller=world.controller_of(host),
+                    # V29: "your opponents" is relative to the host's controller
+                    # (the control overlay), not its owner's zone.
+                    controller=ex.controller_of(host),
                     bindings=dict(ctx.bindings),
                     decisions=(),
                     x_value=ctx.x_value,
@@ -803,7 +854,7 @@ def build_payment_plan(
                     if not world.cards[h].tapped
                     and world.controller_of(h) == ctx.controller
                 ]
-                need = _required_count(part.target.count, ctx)
+                need = _required_count(part.target, ctx, len(cands))
                 if len(cands) < need:
                     return None, (
                         f"cost:tap:insufficient_candidates:{len(cands)}<{need}"
@@ -833,7 +884,7 @@ def build_payment_plan(
                 for h in enumerate_candidates(part.target, ctx)
                 if world.controller_of(h) == ctx.controller
             ]
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:sacrifice:insufficient_candidates:{len(cands)}<{need}"
@@ -868,7 +919,7 @@ def build_payment_plan(
 
             if not _filter_is_self_referential(part.target.filter):
                 cands = [h for h in cands if h != ctx.source]
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:discard:insufficient_candidates:{len(cands)}<{need}"
@@ -882,7 +933,7 @@ def build_payment_plan(
             discard.extend(cands[:need])
         elif isinstance(part, CostPutCounter):
             cands = enumerate_candidates(part.target, ctx)
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:put_counter:insufficient_candidates:{len(cands)}<{need}"
@@ -1220,6 +1271,35 @@ def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
     return Cost(parts=tuple(parts))
 
 
+def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> Cost | None:
+    """V36 (CR 601.2f, 118.9d): the total cost of a spell an effect casts
+    (stack.cast_card, and the offer oracle query._cast_option_payable, so the two
+    can never disagree). The CAST atom's ``cost`` role means (the documented 13b
+    convention, ``verbs._v_cast``; DESIGN_ATOM_ONTOLOGY R5-2):
+    - absent: the spell's mana cost;
+    - an EMPTY Cost: "without paying its mana cost", an alternative cost (118.9);
+    - a Cost WITH parts: additional costs paid on top of the mana cost ("by
+      paying 3 life and discarding a card in addition to paying its other costs",
+      Demonic Embrace). It never replaces the mana cost.
+    Every additional cost the spell itself lists is added in all three cases
+    ("As an additional cost to cast this spell, discard a card"): 118.9d applies
+    additional costs to an alternative cost too. None or an empty Cost means
+    nothing to pay."""
+    if cost_override is not None and not cost_override.parts:
+        base: Cost | None = cost_override  # the alternative cost: no mana cost
+    else:
+        base = record.mana_cost
+    extras: list[Cost] = list(node.additional_costs)
+    if cost_override is not None and cost_override.parts:
+        extras.insert(0, cost_override)  # additional costs, CR 601.2f
+    if not extras:
+        return base
+    parts: list = list(base.parts) if base is not None else []
+    for extra in extras:
+        parts.extend(extra.parts)
+    return Cost(parts=tuple(parts))
+
+
 def _cost_has_x(cost: Cost) -> bool:
     for part in cost.parts:
         if isinstance(part, (CostManaColor, CostManaGeneric, CostManaHybrid)):
@@ -1361,6 +1441,7 @@ def spell_castable(
     *,
     x: int | None = None,
     kicked: bool = False,
+    targets: tuple[Handle, ...] = (),
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
     (§8.3: same answer as the one ``legal_casts`` gave, until the world
@@ -1376,7 +1457,13 @@ def spell_castable(
     fold into an ordinary ``cost:mana`` SHORTAGE — an illegal-cast reason,
     never a raise: X is enumerated at 0-floor by ``legal_casts``) and the
     spell handle as the mana-USE subject (THIS_MANA restrictions read
-    their filter over the spell being cast)."""
+    their filter over the spell being cast).
+
+    V29 (2026-10-29): ``targets`` binds the declared targets into the fold, so a
+    target-dependent cost increase ("Spells your opponents cast that target this
+    creature cost {3} more", Pursued Whale; "... an additional 3 life", Terror of
+    the Peaks) is part of the total. CR 601.2f determines the total cost after
+    601.2c's targets; ``stack.cast`` re-folds with them before paying."""
     world = executor.world
     if handle not in world.cards:
         return f"cast:unknown_card:{handle}", None, None, None
@@ -1433,7 +1520,13 @@ def spell_castable(
         # The declaration is the caller's; X=0 is legal (CR 107.1) — the
         # SURFACE enumerates at 0, an explicit x reaches the fold.
         x = 0
-    ctx = ctx_for(executor, source=handle, controller=seat, x_value=x)
+    ctx = ctx_for(
+        executor,
+        source=handle,
+        controller=seat,
+        bindings={"target": list(targets)} if targets else None,
+        x_value=x,
+    )
     plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)
     if plan is None:
         return reason, None, None, None
@@ -1483,7 +1576,12 @@ def _loyalty_death_check(
     It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
     the documented stand-in for the SBZA's graveyard replacement; destroy
     *replacement* effects (Rest in Peace) would see it as a destroy, a
-    corner the frozen corpus has no golden for."""
+    corner the frozen corpus has no golden for.
+
+    V31 (2026-10-29): the counter verb now keeps a zeroed LOYALTY key, so the
+    settle that closes the payment's own atom (apply_effect) already buries a
+    walker paid down to 0 through the state check (CR 704.5i), and this call
+    finds it gone. It stays as the backstop for a caller without that settle."""
     world = executor.world
     state = world.cards.get(source)
     if state is None or state.identity.loyalty is None:
@@ -1819,12 +1917,28 @@ def activate(
         executor.journal.emit_targeting(handle, seat, chosen)
     effect = ability.effect
     assert effect is not None  # ActivatedAbility.effect is a required field
+    # V25 (CR 602.2b, 601.2c): an ability with several targets ("Target creature
+    # you control deals damage equal to its power to another target creature",
+    # Garruk, Savage Herald's -2) designates one object per target, in slot order,
+    # exactly as the cast lane threads them (stack._plan_cast_designation); each
+    # TARGET selector then reads its own designation, not the union.
+    slot_designations = None
+    if len(targets) > 1:
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        slots = activation_target_slots(executor, effect, source=handle, seat=seat)
+        if len(slots) == len(targets) > 1:
+            slot_designations = {
+                repr(slot.selector): (one,)
+                for slot, one in zip(slots, targets, strict=True)
+            }
     return executor.apply_effect(
         effect,
         source=handle,
         controller=seat,
         bindings=bindings,
         decisions=decisions,
+        slot_designations=slot_designations,
         x_value=x_value,  # CR 107.3a: every X in the ability is the announced X
     )
 
@@ -1882,8 +1996,9 @@ def attack_blocked_reason(
     """Why ``creature`` may not attack for ``seat`` right now, or ``None``
     when the declaration is legal. Encoded restrictions (CR 508.1 pre-
     check): creature-ness (the LIVE type line — GRANT_TYPE overlay aware),
-    controller, DEFENDER (CR 702.4a — no "can attack as though it didn't"
-    carrier in the corpus), summoning sickness (CR 302.6) unless the
+    controller, DEFENDER (CR 702.3b; Drowsing Tyrannodon's "can attack as
+    though it didn't have defender" lifts it through a LOSE_ABILITY static),
+    summoning sickness (CR 302.6) unless the
     creature has HASTE (CR 702.10a), and the PREVENT_EFFECT attack veto
     (16c — Faith's Fetters' "enchanted permanent can't attack", consumed
     through the prevention registry). TAPPED creatures are legal attackers
@@ -1900,7 +2015,7 @@ def attack_blocked_reason(
     if not eval_filter(_IS_CREATURE, creature, ctx):
         return "not a creature"
     if executor.layers.keyword_of(creature, Keyword.DEFENDER):
-        return "defender (CR 702.4a)"
+        return "defender (CR 702.3b)"
     if not executor.layers.keyword_of(creature, Keyword.HASTE) and not (
         _controlled_since_turn_start(executor, creature)
     ):
@@ -1990,13 +2105,13 @@ def block_pair_blocked_reason(
     (CR 702.113 "except by two or more creatures", Bone Pit Brute) is a
     property of the WHOLE assignment, so the ask loop applies it beside
     this reason, never buried inside it. Consumers:
-      * DEFENDER keyword (CR 702.4a) and creature-ness (only creatures
-        block);
+      * creature-ness (only creatures block). DEFENDER is no veto: it
+        only forbids attacking (CR 702.3b), so a wall blocks (V40);
       * REACH (CR 509.1b): a flying attacker is unblockable without reach
         (Snarespinner, Elder Gargaroth carry it for themselves);
-      * PROTECTION (CR 702.16c): either side's live protection filter
-        matching the OTHER side vetoes the pair (Baneslayer Angel's
-        "protection from red and from black");
+      * PROTECTION (CR 702.16f, V44): the ATTACKER's protection from the
+        blocker vetoes the pair (Baneslayer Angel's "protection from red and
+        from black"); a protected blocker may block (``protected_from``);
       * the PREVENT_EFFECT block veto (16c): Tome Anima / Ghostly Pilferer
         "can't be blocked" (blocked-side slots), Pirate "can't block" and
         Shacklegeist "can block only creatures with flying" (blocker-side
@@ -2019,26 +2134,19 @@ def block_pair_blocked_reason(
         return "not a creature (CR 509.1)"
     if world.cards[blocker].tapped:
         return "tapped (CR 509.1a)"
-    if executor.layers.keyword_of(blocker, Keyword.DEFENDER):
-        return "defender (CR 702.4a)"
     # CR 702.7b: a flyer is blocked only by a creature with FLYING or REACH
     if executor.layers.keyword_of(attacker, Keyword.FLYING) and not (
         executor.layers.keyword_of(blocker, Keyword.REACH)
         or executor.layers.keyword_of(blocker, Keyword.FLYING)
     ):
         return "flying attacker, neither flying nor reach (CR 509.1b)"
-    ctx_attacker = executor._ctx(
-        source=attacker,
-        controller=executor.controller_of(attacker),
-        bindings=None,
-        decisions=(),
-    )
-    for quality in executor.layers.protections_of(attacker):
-        if eval_filter(quality, blocker, ctx_attacker):
-            return "attacker's protection (CR 702.16c)"
-    for quality in executor.layers.protections_of(blocker):
-        if eval_filter(quality, attacker, ctx_blocker):
-            return "blocker's protection (CR 702.16c)"
+    # V44 (CR 702.16f): "Attacking creatures with protection can't be blocked by
+    # creatures that have the stated quality." Only the ATTACKER's protection
+    # restricts the pair: a creature with protection from red may block a red
+    # attacker (its damage to the blocker is prevented instead, 702.16e). The old
+    # blocker-side veto kept every protected creature from blocking that quality.
+    if protected_from(executor, attacker, blocker):
+        return "attacker's protection (CR 702.16f)"
     if executor.replacements.prevents_block_declaration(blocker, attacker):
         return "block prevented (PREVENT_EFFECT)"
     return None
@@ -2048,11 +2156,12 @@ def blocker_askable(
     executor: Executor, blocker: Handle, attackers: Sequence[Handle]
 ) -> bool:
     """Pre-filter for the block-ask candidate list: could ``blocker`` have
-    ANY legal declaration against the current attackers? Creature-ness,
-    tap state and DEFENDER are attacker-independent; the pair vetoes are
-    checked against each attacker. A blocker legal against nothing is
-    never asked (no decision exists); tapped and defender creatures fall
-    out here — the "tapped creatures cannot block" face of CR 509.1a."""
+    ANY legal declaration against the current attackers? Creature-ness
+    and tap state are attacker-independent; the pair vetoes are checked
+    against each attacker. A blocker legal against nothing is never asked
+    (no decision exists); tapped creatures fall out here — the "tapped
+    creatures cannot block" face of CR 509.1a. A creature with defender
+    blocks like any other (CR 702.3b forbids only attacking; V40)."""
     world = executor.world
     if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
         return False
@@ -2067,8 +2176,6 @@ def blocker_askable(
     if not eval_filter(_IS_CREATURE, blocker, ctx_blocker):
         return False
     if world.cards[blocker].tapped:
-        return False
-    if executor.layers.keyword_of(blocker, Keyword.DEFENDER):
         return False
     return any(
         block_pair_blocked_reason(executor, blocker, attacker) is None

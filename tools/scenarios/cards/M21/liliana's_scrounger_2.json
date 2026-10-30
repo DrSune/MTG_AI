@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scrounger, printed: 'if a CREATURE died this turn'. Only a noncreature permanent goes to the graveyard this turn (the opponent's Basri Ket, a planeswalker, takes 13 damage). No creature died, so at the end step nothing happens even when the may is answered yes: your Liliana stays at 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sc", "real": "Liliana's Scrounger", "zone": "battlefield", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "obasri", "real": "Basri Ket", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "lili"},
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "enter", "key": "obasri"},
+  {"op": "loyalty", "key": "obasri", "set": 3},
+  {"op": "deal_damage", "source": "sc", "target": "obasri", "amount": 13},
+  {"op": "end_turn", "decisions": ["fire", "lili"]}
+ ],
+ "expect": {
+  "zone": {"obasri": "graveyard", "lili": "battlefield"},
+  "counters": {"lili": {"LOYALTY": 3}}
+ }
+}

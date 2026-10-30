@@ -40,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     EachPlayer,
     FAnd,
     FAtom,
@@ -2106,6 +2107,8 @@ class TestB2aRound7Batch(unittest.TestCase):
         self.assertIsInstance(target.count, QUnbounded)
         self.assertIs(target.zones[0].kind, ZoneKind.GRAVEYARD)
         self.assertIs(target.zones[0].controller, ControllerRef.YOU)
+        # R5-1 (CR 610.3): "until this artifact leaves the battlefield".
+        self.assertEqual(atom.args.get("duration"), DurationUntilLeaves())
 
 
 # ---------------------------------------------------------------------------

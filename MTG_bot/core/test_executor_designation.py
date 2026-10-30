@@ -410,16 +410,15 @@ class TestTargetPlayerRouting(DesignationCase):
         )
         self.never_ask()
         self.enter(dower)  # arms the draw trigger
+        # re-pinned 2026-10-29: V23 changes what counts as a draw: only a DRAW atom
+        # draws (CR 121.1, 121.5); the library-to-hand MOVE_ZONE this test used was
+        # logged as a draw. Drawme is the top card, so the draw takes it.
         self.ex.execute(
-            atom(
-                Verb.MOVE_ZONE,
-                cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
-                destination=HAND_YOU,
-            ),
+            atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
             source=dower,
             controller=self.p0,
-            bindings={"cards": lib},
         )
+        self.assertEqual(self.world.zone_of(lib).kind, ZONE_HAND)
         self.assertEqual(self.world.zone_of(victim).kind, ZONE_GRAVEYARD)
 
 

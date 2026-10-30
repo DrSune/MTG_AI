@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Subira, Tulzidi Caravanner (M21): '{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.' The cost discards the WHOLE hand: with three cards in hand, all three go to the graveyard and the hand is empty.",
+ "cards": [
+  {"key": "sub", "zone": "battlefield", "controller": 0, "real": "Subira, Tulzidi Caravanner"},
+  {"key": "h1", "zone": "hand", "controller": 0, "name": "Hand One", "type": "Instant"},
+  {"key": "h2", "zone": "hand", "controller": 0, "name": "Hand Two", "type": "Sorcery"},
+  {"key": "h3", "zone": "hand", "controller": 0, "name": "Hand Three", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 1, "seat": 0}
+ ],
+ "expect": {"tapped": {"sub": true}, "zone": {"h1": "graveyard", "h2": "graveyard", "h3": "graveyard"}, "hand": {"0": 0}}}

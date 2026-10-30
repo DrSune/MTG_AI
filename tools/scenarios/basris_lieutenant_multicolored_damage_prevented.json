@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16e). Printed: 'Vigilance, protection from multicolored.' 2 damage from a red-green source is prevented; 1 from a mono-red source is dealt. Before V44 protection prevented no damage (marks 3, the 3/4 lived only by luck of the numbers).",
+ "cards": [
+  {
+   "key": "lt",
+   "real": "Basri's Lieutenant",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gold",
+   "name": "Gold Imp",
+   "power": "1",
+   "toughness": "1",
+   "colors": [
+    "R",
+    "G"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "red",
+   "name": "Red Imp",
+   "power": "1",
+   "toughness": "1",
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "gold",
+   "target": "lt",
+   "amount": 2,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "red",
+   "target": "lt",
+   "amount": 1,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lt": "battlefield"
+  },
+  "damage": {
+   "lt": 1
+  }
+ }
+}

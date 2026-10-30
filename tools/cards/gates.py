@@ -29,9 +29,12 @@ for _p in (HERE.parents[1], HERE):
 from probe import Probe
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     AtomArgs,
     CardRecord,
+    Choose,
+    Conditional,
     ControllerRef,
     Cost,
     DurationEot,
@@ -43,16 +46,20 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     OptionalEffect,
     QConst,
+    QProp,
+    QPropField,
     QUnbounded,
     Selector,
     SelectorMode,
     Seq,
     SpellAbility,
     TokenSpec,
+    TriggeredAbility,
     TurnPhaseEvent,
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
     from_dict,
     to_dict,
     walk,
@@ -64,6 +71,19 @@ from MTG_bot.core.identity import LegalityFlags
 
 _NUM_WORDS = {w: i for i, w in enumerate(
     ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"))}
+
+# CR 207.2c: ability words have no rules meaning, so a tree has nothing to show for them (the
+# ability itself is checked like any other clause). MTGJSON lists them with the keywords, and the
+# Keyword enum carries one (BATTALION); spelled as G0 normalises MTGJSON keywords.
+ABILITY_WORDS = frozenset(w.upper().replace(" ", "_") for w in (
+    "adamant", "addendum", "alliance", "battalion", "bloodrush", "celebration", "channel", "chroma",
+    "cohort", "constellation", "converge", "council's dilemma", "coven", "delirium", "descend 4",
+    "descend 8", "domain", "eerie", "eminence", "enrage", "fateful hour", "fathomless descent",
+    "ferocious", "flurry", "formidable", "grandeur", "hellbent", "hero's reward", "heroic", "imprint",
+    "inspired", "join forces", "kinship", "landfall", "lieutenant", "magecraft", "metalcraft",
+    "morbid", "pack tactics", "paradox", "parley", "radiance", "raid", "rally", "revolt",
+    "secret council", "spell mastery", "strive", "survival", "sweep", "tempting offer", "threshold",
+    "underdog", "undergrowth", "valiant", "will of the council"))
 
 
 # ----------------------------------------------------------------------------- G0
@@ -124,12 +144,16 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     missing = sorted(text_numbers(raw) - tree_ints)
     if missing:
         warns.append(f"numbers in the text but not in the tree: {missing}")
-    printed_kw = {k.upper().replace(" ", "_") for k in raw.keywords}
+    printed_kw = {k.upper().replace(" ", "_") for k in raw.keywords} - ABILITY_WORDS
     tree_kw = {k.keyword.name for k in card.keywords} | {
         n.keyword.name for n in walk(card) if isinstance(n, KeywordAbility)}
     # Keyword actions the compiler writes as their verb (scry, mill, fight exist as both a Verb and
     # a Keyword, T4 ledger L-20): the verb in the tree satisfies the printed keyword.
     tree_kw |= {n.verb.name for n in walk(card) if isinstance(n, Atom)}
+    # ... or as the merged MOVE atom (T4 P1a), whose journal_kind slot names the keyword action it
+    # performs: the mill shape writes "MILL" (verbs.py _v_move_zone), so it satisfies "Mill".
+    tree_kw |= {str(n.args.get("journal_kind")) for n in walk(card)
+                if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & set(Keyword.__members__)
     unknown = sorted(k for k in printed_kw - tree_kw if k in Keyword.__members__)
     if unknown:
         fails.append(f"MTGJSON keywords missing from the tree: {unknown}")
@@ -219,6 +243,51 @@ def _is_self(filter_: Any) -> bool:
     return False
 
 
+def _reveal_dead_roles(ability: Any) -> set[str]:
+    """The REVEAL roles of ``ability`` no game state can observe (see ``mutants``): REVEAL is a
+    recorded no-op (verbs.py ``_look``: it moves nothing, the journal has no row for it, the seat
+    view tracks no revealed card). Its only outputs are the look window, read by a Conditional
+    right after it, a ONE_OF/REST partition over the library top or a REVEAL right after it, and
+    the ``result`` register, read by a ``referent="result"`` node, THAT_MANY_COUNT or FIGHT's
+    attacker. With none of those in the ability, controller and count are dead. A Conditional
+    judges the window's first card, the top card for any count >= 1, so it leaves count dead."""
+    if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
+        return set()
+    nodes = list(walk(ability))
+    looks = [n for n in nodes if isinstance(n, Atom) and n.verb in (Verb.REVEAL, Verb.LOOK_AT)]
+    if len(looks) != 1 or looks[0].verb is not Verb.REVEAL or looks[0].args.get("duration") is not None:
+        return set()
+    for n in nodes:
+        if getattr(n, "referent", None) == "result" or (
+                isinstance(n, QProp) and n.field is QPropField.THAT_MANY_COUNT) or (
+                isinstance(n, Atom) and n.verb is Verb.FIGHT) or (
+                isinstance(n, Selector) and n.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+                and any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP for z in n.zones)):
+            return set()
+    return {"count"} if any(isinstance(n, Conditional) for n in nodes) else {"controller", "count"}
+
+
+def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
+    """Paths of the TARGET selectors in ``ability`` that "target->all" cannot change (see
+    ``mutants``): a spell (the cast lane refuses a cast whose slot is not designated, so the
+    designation always binds; ``activate`` validates no targets, V8, so activations stay out)
+    where two or more atoms carry the same TARGET selector in their ``target`` role and nothing
+    else is a TARGET selector or a mode, so there is one designation slot; an exact count >= 1,
+    battlefield zones and no referent anywhere in it, so none of role_handles' self-resolving
+    shapes (anaphora, referent-filtered population, player side, graveyard sweep) applies."""
+    if not isinstance(ability, SpellAbility) or any(isinstance(n, Choose) for n in walk(ability)):
+        return set()
+    sels = [(p, n) for p, n in _paths(ability, base) if isinstance(n, Selector) and n.mode is SelectorMode.TARGET]
+    if len(sels) < 2 or any(n != sels[0][1] for _, n in sels) or any(p[-2:] != ("args", "target") for p, _ in sels):
+        return set()
+    sel = sels[0][1]
+    if not (isinstance(sel.count, QConst) and sel.count.value >= 1) or sel.referent is not None \
+            or any(getattr(n, "referent", None) is not None for n in walk(sel.filter)) \
+            or not all(z.kind is ZoneKind.BATTLEFIELD for z in sel.zones):
+        return set()
+    return {p for p, _ in sels}
+
+
 _FLIP = {ControllerRef.YOU: ControllerRef.OPPONENT, ControllerRef.OPPONENT: ControllerRef.YOU,
          ControllerRef.ALL_OPPONENTS: ControllerRef.YOU}
 _ZONE_SWAP = {ZoneKind.GRAVEYARD: ZoneKind.EXILE, ZoneKind.EXILE: ZoneKind.GRAVEYARD,
@@ -256,6 +325,39 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         if type(node).__name__ == "CostDeltaReduceGeneric" and isinstance(getattr(node, "amount", None), QConst) \
                 and node.amount.value >= generic:
             dead.add((*path, "amount"))
+        # G3 finisher (2026-10-29), each rule proven in test_gates.py:
+        # - the merged MOVE atom's mill shape (pop_order TOP) and discard shape (from HAND) move the
+        #   cards of the `controller` role's player: `from` and `destination` are read for their
+        #   kind only (verbs.py _v_move_zone), so their controller fields are dead;
+        # - ZONE_COUNT_GE counts the zone of its `who` players; the zone's controller is never read
+        #   (quantity.py, ZONE_COUNT_GE: "reading WHO is the whole answer");
+        # - a REST partition is the complement of the ONE_OF pick, its count is never read
+        #   (selectors.py REST branch, query.py "count ignored (like ALL)", verbs.py partition lane);
+        # - a CHOOSE over the one zone Zone(PLAYER, YOU) has one player to pick, so every count >= 1
+        #   picks that player (selectors.py CHOOSE branch, ``ordered[:k]``; a static's population is
+        #   enumerate_candidates, which reads no count). Cost selectors are left out.
+        if isinstance(node, Atom) and node.verb is Verb.MOVE_ZONE and (
+                node.args.get("pop_order") == "TOP"
+                or getattr(node.args.get("from"), "kind", None) is ZoneKind.HAND):
+            dead |= {(*path, "args", "from", "controller"), (*path, "args", "destination", "controller")}
+        if isinstance(node, FAtom) and node.pred is FAtomPred.ZONE_COUNT_GE:
+            dead.add((*path, "zone", "controller"))
+        if isinstance(node, Selector) and node.referent is None and (
+                node.mode is SelectorMode.REST
+                or node.mode is SelectorMode.CHOOSE and len(node.zones) == 1
+                and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
+                and not any(path[: len(c)] == c for c in in_cost)):
+            dead.add((*path, "count"))
+    # Two ability-level rules (their docstrings carry the argument): a REVEAL nothing reads, and a
+    # TARGET selector whose twin keeps the one designation slot (role_handles gives a referent-free
+    # ALL selector in the bound role the designation itself, the documented 12a convention).
+    twins: set[tuple] = set()
+    for i, ability in enumerate(card.abilities):
+        twins |= _twin_targets(ability, (1, i))
+        roles = _reveal_dead_roles(ability)
+        for path, node in _paths(ability, (1, i)) if roles else ():
+            if isinstance(node, Atom) and node.verb is Verb.REVEAL:
+                dead |= {(*path, "args", role) for role in roles}
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
         if isinstance(node, QConst) and path in self_counts:
@@ -283,7 +385,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         elif isinstance(node, Zone) and node.kind in _ZONE_SWAP and path and path[-1] == "destination":
             cands.append((f"zone {node.kind.name}->{_ZONE_SWAP[node.kind].name}",
                           dataclasses.replace(node, kind=_ZONE_SWAP[node.kind])))
-        elif isinstance(node, Selector) and node.mode is SelectorMode.TARGET:
+        elif isinstance(node, Selector) and node.mode is SelectorMode.TARGET and path not in twins:
             cands.append(("target->all", dataclasses.replace(node, mode=SelectorMode.ALL, count=QUnbounded())))
         elif isinstance(node, Seq) and len(node.steps) >= 2:
             for i in range(len(node.steps)):

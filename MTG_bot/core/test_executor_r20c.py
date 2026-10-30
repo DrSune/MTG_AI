@@ -194,15 +194,21 @@ class TestSelfRefSelectorRole(LegalityCase):
 
     def test_plain_choose_selector_stays_binding_first(self):
         # The 12a designation convention stands for every non-self filter.
+        # re-pinned 2026-10-29: V28 changes the binding a CHOOSE selector accepts:
+        # one it could not select (here the opponent's Beta for a "your
+        # battlefield" CHOOSE) is a foreign designation and no longer hijacks it
+        # (Rewind). The convention is pinned with a binding that fits: Gamma, not
+        # the first-n stand-in Alpha, comes back.
+        gamma = self.world.add_card(card_id("Gamma", "3", "3"), self.p0, ZONE_BATTLEFIELD)
         ctx = ctx_for(
             self.ex,
             source=self.alpha,
             controller=self.p0,
-            bindings={"target": [self.beta]},
+            bindings={"target": [gamma]},
         )
         sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.assertEqual(
-            role_handles(ctx, self.put_counter_atom(sel), "target"), [self.beta]
+            role_handles(ctx, self.put_counter_atom(sel), "target"), [gamma]
         )
 
 

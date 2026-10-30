@@ -1,0 +1,15 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+    {"key": "fr", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+    {"key": "fury", "real": "Unleash Fury", "zone": "hand", "controller": 1}
+  ],
+  "mana": {"0": {"W": 2}, "1": {"R": 2}},
+  "steps": [
+    {"op": "cast", "real": "Feat of Resistance", "key": "fr", "targets": ["bear"], "decisions": ["3"]},
+    {"op": "cast", "real": "Unleash Fury", "key": "fury", "controller": 1, "targets": ["bear"], "expect_raise": "illegal"}
+  ],
+  "expect": {"zone": {"fury": "hand"}},
+  "notes": "B-101 repro (m21-fidelity, 2026-10-30). Feat of Resistance gives the Bear protection from red (decision 3 = R, WUBRG): a red spell cannot target it (CR 702.16b). Fixed by V44 (engine/verify-fixes-3): the TARGET chokepoint (legality.enumerate_candidates) vetoes it, so the cast is refused as illegal."
+}

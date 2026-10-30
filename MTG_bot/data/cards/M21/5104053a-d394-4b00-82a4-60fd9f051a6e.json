@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5104053a-d394-4b00-82a4-60fd9f051a6e",
+ "name": "Fierce Empath",
+ "text_sha": "1f61f120c4fc809f684c2f1831e70f683b51c1931d64cd42456275bdce7de9f7",
+ "verified": {
+  "tree_sha": "f3126232d4f60b6461110758210bada0e5659f3a7dc09266d172fd0e8d5130e7",
+  "probe_sha": "0a4192176576355729edd782f7d51ed72b59213750e77e3a7346e4b0acf6a813",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast]: 'ask may: [fire, skip]' honoured both ways ([cast | ask 1 -> skip]); the probe library holds only mana-value-1 filler creatures, so nothing can be found. Cost G-1 W-2 = {2}{G}. Tree: OptionalEffect(Seq(SEARCH ONE_OF 1 of Creature & CMC_GE 6 in your library -> hand, REVEAL, SHUFFLE)); it differs from parse template B2b-fierce-empath-etb only by mode ONE_OF vs CHOOSE, both of which ask the controller in the SEARCH lane (verbs.py:1234). Packs fierce_empath_search_mv6_creature (library: 6-MV creature, 5-MV creature, 7-MV artifact; asking for the 5-MV creature is not honoured, the 6-MV creature goes to hand, the others stay) and fierce_empath_may_decline (skip: nothing moves) PASS on the live tree and on this packet's tree.",
+    "issue": "The shuffle is not visible in any trace or pack (seeded order); not checked."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/fierce_empath_1.json",
+   "tools/scenarios/cards/M21/fierce_empath_2.json",
+   "tools/scenarios/cards/M21/fierce_empath_3.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 4,
+   "score": 0.2857142857142857,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "drop step 2 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/inner/steps/0/args/cards/filter",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/filter/children/1/count",
+    "amount-1 at 1/0/effect/inner/steps/0/args/cards/filter/children/1/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/destination/controller"
+   ]
+  }
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Waker of Waves on the battlefield: creatures your OPPONENTS control get -1/-0 (the opponent's 3/3 reads 2/3); your own 3/3 is untouched.",
+ "cards": [
+  {"key": "w", "real": "Waker of Waves", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Ox", "type": "Creature", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Opp Ox", "type": "Creature", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {
+  "power": {"theirs": 2, "mine": 3, "w": 7},
+  "toughness": {"theirs": 3, "mine": 3, "w": 7}
+ }
+}

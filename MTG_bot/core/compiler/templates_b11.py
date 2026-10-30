@@ -14,6 +14,7 @@ templates build for the same meaning (identity law, DESIGN_ATOM_ONTOLOGY §6):
   "with power N or less|greater". The pattern IS the grammar (built from the same tables the
   builder reads), so a pattern can never match a phrase its builder cannot encode (B-36).
 * the verbs over it: destroy, exile, return to its owner's hand, tap, untap.
+* exile it "until this <permanent> leaves the battlefield" (ontology R5-1, CR 610.3).
 * "Enchanted|Equipped creature gets +P/+T [and has <keywords>]." statics.
 * a bare "Equip {cost}" line (the specific template needs the reminder text, which rares omit).
 * "Enchant <type phrase>".
@@ -39,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     ControllerRef,
+    DurationUntilLeaves,
     FAnd,
     FAtom,
     FAtomPred,
@@ -194,6 +196,25 @@ def _build_exile_np(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
+def _build_exile_np_until_leaves(m: re.Match[str]) -> SentenceOutcome:
+    """Ontology R5-1 (2026-10-29, CR 610.3): "Exile target <noun phrase> until this <permanent>
+    leaves the battlefield." The exile of :func:`_build_exile_np` with
+    ``duration=DurationUntilLeaves()``; "this <permanent>" is the ability's source, the referent
+    "source". Composed with an enters frame (frames.py) this is Hieromancer's Cage, Banishing Light,
+    Journey to Oblivion, Banisher Priest, Stasis Snare and Prison Realm."""
+    atom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("duration", DurationUntilLeaves()),
+                ("target", _target(m)),
+            )
+        ),
+    )
+    return EffectOutcome(effect=atom)
+
+
 def _build_bounce_np(m: re.Match[str]) -> SentenceOutcome:
     # Moved object under ``cards`` (the return-to-hand carriers); destination the OWNER's hand
     # (Unsubstantiate, Read the Tides), never Zone(HAND, ANY), which resolves to seat 0 (B-43).
@@ -297,6 +318,9 @@ TEMPLATES: tuple[Template, ...] = (
     _t("B11-destroy-np", "destroy <target noun phrase>", rf"^Destroy {_NP_RE}\.$",
        _build_destroy_np),
     _t("B11-exile-np", "exile <target noun phrase>", rf"^Exile {_NP_RE}\.$", _build_exile_np),
+    _t("B11-exile-np-until-leaves", "exile <target noun phrase> until this <permanent> leaves the battlefield",
+       rf"^Exile {_NP_RE} until this (?:creature|artifact|enchantment) leaves the battlefield\.$",
+       _build_exile_np_until_leaves),
     _t("B11-bounce-np", "return <target noun phrase> to its owner's hand",
        rf"^Return {_NP_RE} to its owner's hand\.$", _build_bounce_np),
     _t("B11-tap-np", "tap <target noun phrase>", rf"^Tap {_NP_RE}\.$", _tap_like(Verb.TAP)),

@@ -1,0 +1,18 @@
+{
+ "set": "M19",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "thorn", "real": "Thorn Lieutenant", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "shock", "controller": 1, "targets": ["thorn"]}
+ ],
+ "expect": {
+  "zone": {"thorn": "battlefield", "shock": "graveyard"},
+  "damage": {"thorn": 2},
+  "tokens": {"Elf Warrior": 1}
+ },
+ "notes": "R5-6: 'Whenever this creature becomes the target of a spell or ability an opponent controls, create a 1/1 green Elf Warrior creature token.' Seat 1's Shock targets seat 0's Thorn Lieutenant (2/3): the trigger fires and seat 0 gets the token; the Lieutenant survives the 2 damage. Before R5-6 the sentence did not parse (no trigger)."
+}
