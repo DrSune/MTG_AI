@@ -1471,15 +1471,22 @@ class Executor:
         and "target creature card from your graveyard" never see it. A token on the
         stack is not a thing in this engine (spell copies are not tokens). No journal
         row: ceasing to exist is not a zone change and triggers nothing. Returns the
-        tokens removed (Handle-sorted)."""
+        tokens removed (Handle-sorted).
+
+        W4-4: state-based actions now run before triggered abilities resolve (CR
+        117.5), so a token's own leave triggers can still be queued here. A token
+        a queued firing names (its source, or its event's subject or cause) waits
+        for the next check after that firing resolves: the engine keeps it as the
+        last-known information those triggers read (CR 603.10a)."""
         world = self.world
+        pending = self.binder.pending_references()
         gone: list[Handle] = []
         for player in world.player_order:
             for kind, zone in world.players[player].zones.items():
                 if kind in (ZONE_BATTLEFIELD, ZONE_STACK):
                     continue
                 for card in list(zone.entries):
-                    if world.cards[card].identity.is_token:
+                    if world.cards[card].identity.is_token and card not in pending:
                         zone.entries.remove(card)
                         gone.append(card)
         for card in gone:
@@ -1605,12 +1612,19 @@ class Executor:
         walkers are buried here, the same graveyard-move SBA reading the
         frozen-world stand-in already uses for the other lanes. V22: and
         the legend rule (CR 704.5j); its choices are made before anything
-        moves, because every action of one check happens at once (704.3)."""
-        fired = 0
+        moves, because every action of one check happens at once (704.3).
+
+        W4-4 (CR 704.3, 117.5): the check repeats until no action applies
+        BEFORE any triggered ability resolves. The triggers a batch causes
+        (a creature's dies trigger) are matched and queued here, and the
+        settle resolves them afterwards, checking again after each one; the
+        sweep used to resolve them between its own batches, and the settle
+        resolved the op's triggers before the first check at all. Returns the
+        number of batches performed."""
+        batches = 0
         while True:
             # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
-            # Its leave triggers already fired (the drain before this sweep, or the
-            # previous iteration's), as 111.7 says they do.
+            # W4-4: one whose leave triggers are still queued waits for them.
             self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
@@ -1625,7 +1639,7 @@ class Executor:
                 and not legends
                 and not freed
             ):
-                return fired
+                return batches
             # A permanent another lane of this check already removes is not
             # moved twice (a lethally damaged copy the player did not keep).
             taken = set(dying) | set(unattached) | set(walkers)
@@ -1752,8 +1766,10 @@ class Executor:
                 )
                 inner.replaced_seq = frozenset({repl.seq})
                 self._run_effect(repl.action, inner)
+            # W4-4: queue the triggers this batch caused; they resolve once the
+            # check is stable (the settle's drain).
             self.binder.on_events()
-            fired += self.binder.fire_all()
+            batches += 1
 
     def _settle(self) -> int:
         """Match the journal's new events and drain — the end of every
@@ -1762,12 +1778,20 @@ class Executor:
         truth is re-evaluated on the ledger, and the layer registry
         re-reads the set (new/lost members, condition toggles) and rebuilds
         the keyword / granted-ability oracles. All of it is pure function
-        of the journal's final state, so replays are byte-identical."""
+        of the journal's final state, so replays are byte-identical.
+
+        W4-4 (CR 117.5, 704.3): "the game first performs all applicable
+        state-based actions as a single event, then repeats this process
+        until no state-based actions are performed. Then triggered abilities
+        are put on the stack." The check runs first, and again after each
+        firing, so no trigger resolves beside a creature that should already
+        be dead (a 0/0 reanimated Archfiend's Vessel dies before its enter
+        trigger resolves, and that trigger can no longer exile it)."""
         self.binder.on_events()
-        fired = self.binder.fire_all()
-        # 16a: the state-based lethal-damage check sits at the settle point
-        # (CR 704.3), so execute / apply_effect / end_turn all drain it.
-        fired += self._state_checks()
+        # 16a: the state-based check sits at the settle point (CR 704.3), so
+        # execute / apply_effect / end_turn all reach it.
+        self._state_checks()
+        fired = self.binder.fire_all(between=self._state_checks)
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
         return fired

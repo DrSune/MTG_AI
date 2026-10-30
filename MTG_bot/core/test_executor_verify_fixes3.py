@@ -47,6 +47,8 @@ W4-6 A search's ONE_OF/REST partition divides the cards the search found (Cultiv
      one onto the battlefield, the other into your hand; CR 701.23a).
 W4-1 "Create that many" after "whenever one or more nontoken creatures attack" counts
      the attackers the trigger's own filter names (Basri Ket's -2; CR 603.2c).
+W4-4 State-based actions are performed, repeatedly, before triggered abilities
+     resolve, and again after each one (CR 117.5, 704.3).
 """
 
 from __future__ import annotations
@@ -1205,6 +1207,105 @@ class TestW41ThatManyCountsTheTriggersAttackers(unittest.TestCase):
 
     def test_tokens_alone_make_none(self):
         self.assertEqual(self.soldiers_after_attack(("t1", "t2")), 0)
+
+
+class TestW44StateBasedActionsBeforeTriggers(unittest.TestCase):
+    def setUp(self):
+        from MTG_bot.core.test_executor_stack import StackCase
+
+        self.case = StackCase()
+        self.case.setUp()
+
+    def saver(self):
+        """A permanent with "Whenever a creature is dealt damage, put a +1/+1
+        counter on it": resolved before the state-based check, it would save a
+        creature dealt exactly lethal damage."""
+        from MTG_bot.core.ability_tree import (
+            DamageDealtEvent,
+            FAtom,
+            FAtomPred,
+            Selector,
+            SelectorMode,
+            SpellKind,
+            TriggeredAbility,
+        )
+
+        trigger = TriggeredAbility(
+            event=DamageDealtEvent(QConst(1), FAtom(FAtomPred.TYPE_EQ, string_value="Creature")),
+            condition=None,
+            effect=atom(
+                Verb.PUT_COUNTER,
+                count=QConst(1),
+                counter_kind=CounterKind.PLUS_1_PLUS_1,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    UNIV,
+                    zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                    referent="event",
+                ),
+            ),
+        )
+        return self.case.give(
+            "Medic",
+            SpellKind.CREATURE,
+            zone=ZONE_BATTLEFIELD,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(trigger,),
+        )
+
+    def test_a_lethally_damaged_creature_dies_before_a_trigger_resolves(self):
+        case = self.case
+        medic = self.saver()
+        bear = case.world.add_card(card_id("Bear", "2", "2"), case.p1, ZONE_BATTLEFIELD)
+        case.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(2)),
+            source=medic,
+            controller=case.p0,
+            bindings={"target": [bear]},
+        )
+        self.assertEqual(case.world.zone_of(bear).kind, ZONE_GRAVEYARD)
+        kinds = [e.kind for e in case.ex.journal.events if e.subject == bear]
+        self.assertIn("CREATURE_DIES", kinds)
+        self.assertNotIn("COUNTER_PLACED", kinds[: kinds.index("CREATURE_DIES")])
+
+    def test_the_check_queues_triggers_and_does_not_resolve_them(self):
+        from MTG_bot.core.ability_tree import (
+            CreatureDiesEvent,
+            FAtom,
+            FAtomPred,
+            SpellKind,
+            TriggeredAbility,
+        )
+
+        case = self.case
+        mourner = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature")),
+            condition=None,
+            effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(3)),
+        )
+        case.give(
+            "Mourner",
+            SpellKind.CREATURE,
+            zone=ZONE_BATTLEFIELD,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(mourner,),
+        )
+        bear = case.world.add_card(card_id("Bear", "2", "2"), case.p1, ZONE_BATTLEFIELD)
+        case.ex.mark_damage(bear, 2)
+        life = case.world.players[case.p0].life
+        case.ex._state_checks()
+        self.assertEqual(case.world.zone_of(bear).kind, ZONE_GRAVEYARD)
+        self.assertTrue(case.world.triggers)  # queued, not yet resolved
+        self.assertEqual(case.world.players[case.p0].life, life)
+        case.ex.fire_triggers()
+        self.assertEqual(case.world.players[case.p0].life, life + 3)
 
 
 if __name__ == "__main__":
