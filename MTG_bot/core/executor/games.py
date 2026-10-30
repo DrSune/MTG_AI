@@ -413,6 +413,11 @@ def identity_of(record: CardRecord) -> CardIdentity:
         # never ran and every cast planeswalker entered with an empty
         # counters map. One field, one path — the seed itself is unchanged.
         loyalty=str(record.loyalty) if record.loyalty is not None else None,
+        # Fixer 3 (2026-10-30): a token record (the scenario runner's by-name token
+        # lane, "real": "Treasure") stays a token in the world, so the token rules
+        # see it (CR 704.5d ceasing to exist, IS_TOKEN filters). Dealt decks never
+        # hold token records (compile_supply filters them), so dealing is unchanged.
+        is_token=bool(record.is_token),
     )
 
 

@@ -658,6 +658,10 @@ These are forks, not tasks. See the report that accompanied this audit.
     (packs `rewind_counters_and_untaps`, `rewind_untap_choice`).
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
+  - **FIXED on branch `engine/verify-fixes-3` (fixer 3, 2026-10-30).** The runner honours `tapped`
+    as well as `start_tapped`, and applies both after the opening `begin_turn` (whose untap step
+    used to undo `start_tapped` on seat 0). All eight packs pass with the key honoured (Rewind's
+    untap was the engine bug, V28).
 - **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
   empty hand** (stronger than printed).
   - The may-offer is not narrowed when there is nothing to discard. `MAY_DONE`

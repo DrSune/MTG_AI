@@ -62,7 +62,8 @@ Pack vocabulary (all keys required as noted):
                                             these maps (C15 narrowing is
                                             the engine's, and recorded;
                                             an unspecified block is NONE)]
-  expect  : {"life": {"0": int...}, "zone": {key: zone...},
+  expect  : {"life": {"0": int...}, "zone": {key: zone...},  zone may be
+                                            "ceased": a token gone (CR 704.5d),
               "damage": {key: int...},      — damage is the 16a mark ledger
               "damage_received": {key: int...}, — historical card DAMAGE rows
                                          summed (survives cleanup; subset lane)
@@ -144,6 +145,16 @@ class PackError(Exception):
     pass
 
 
+def _keyword_tuple(card: dict) -> tuple[str, ...]:
+    """A synthetic card's printed keywords. Fixer 3 (2026-10-30): a bare string
+    ("FLYING") used to become a tuple of letters, so the card silently had no
+    keyword at all; it is refused now."""
+    keywords = card.get("keywords", ())
+    if isinstance(keywords, str):
+        raise PackError(f"card {card.get('key')!r}: keywords must be a list, got {keywords!r}")
+    return tuple(keywords)
+
+
 def _atom(verb, **roles):
     from MTG_bot.core.ability_tree import Atom, AtomArgs
 
@@ -173,6 +184,7 @@ class ScenarioRunner:
         self.ex = Executor(self.world)
         self.handles: dict[str, Any] = {}
         synth = 0
+        start_tapped: list[Any] = []
         for card in pack["cards"]:
             if "real" in card:
                 record = None
@@ -212,16 +224,22 @@ class ScenarioRunner:
                     # tools/cards probe board (2026-10-29): optional colour and printed keywords
                     # for synthetic cards; absent keys are the dataclass defaults (byte-identical).
                     colors=tuple(card.get("colors", ())),
-                    keywords=tuple(card.get("keywords", ())),
+                    keywords=_keyword_tuple(card),
+                    # Fixer 3 (2026-10-30): a synthetic planeswalker may declare its printed
+                    # loyalty, so damage removes loyalty (CR 120.3c) instead of marking it
+                    # like creature damage; absent stays None (byte-identical).
+                    loyalty=str(card["loyalty"]) if "loyalty" in card else None,
                 )
             zone = ZONE_OF_NAME[card.get("zone", "battlefield")]
             self.handles[card["key"]] = self.world.add_card(
                 identity, self.seats[card["controller"]], zone
             )
-            # tools/cards probe board: a permanent that starts tapped. Not "tapped": eight packs
-            # carry a "tapped" key this runner never honoured (B-63), and honouring it changes them.
-            if card.get("start_tapped"):
-                self.world.cards[self.handles[card["key"]]].tapped = True
+            # tools/cards probe board: a permanent that starts tapped. Fixer 3 (2026-10-30):
+            # applied after the opening begin_turn below, whose untap step used to untap seat
+            # 0's start_tapped permanents before any step ran; and the older "tapped" key that
+            # eight packs carry is now honoured too (B-63: ignored, it made them vacuous).
+            if card.get("start_tapped") or card.get("tapped"):
+                start_tapped.append(self.handles[card["key"]])
         # The real cards' triggers/abilities register from the compiled pool.
         self.registered = self.ex.attach_pool(supply.pool)
         for seat, colors in pack.get("mana", {}).items():
@@ -239,6 +257,8 @@ class ScenarioRunner:
             self.ex.begin_turn(self.p0)
         finally:
             self.ex.decisions.provider = None
+        for handle in start_tapped:
+            self.world.cards[handle].tapped = True
         # 16b: the combat rig — asks the engine actually made, and
         # libraries deep enough for real begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []
@@ -580,8 +600,11 @@ class ScenarioRunner:
             if got != life:
                 fails.append(f"life[{seat}]: expected {life}, got {got}")
         for key, zone in self.pack.get("expect", {}).get("zone", {}).items():
-            got = self.world.zone_of(self.handles[key]).kind
-            if got != ZONE_OF_NAME[zone]:
+            # Fixer 3 (2026-10-30): "ceased" is the answer for a token that left the
+            # battlefield and ceased to exist (CR 704.5d, V35); it is in no zone.
+            handle = self.handles[key]
+            got = self.world.zone_of(handle).kind if handle in self.world.cards else "ceased"
+            if got != ZONE_OF_NAME.get(zone, zone):
                 fails.append(f"zone[{key}]: expected {zone}, got {got}")
         # B-49 follow-up #2 ATTACHED LANE: the executor's attachment table (aura or equipment
         # -> host), the one IS_ATTACHED_TO_SOURCE reads; null = attached to nothing.
@@ -970,7 +993,10 @@ def run_pack(path: Path, supply) -> list[str]:
             continue
         if want is not None:
             return [f"step {step}: expected raise {want!r}, but it succeeded"]
-    return runner.check()
+    try:
+        return runner.check()
+    except Exception as e:  # noqa: BLE001 - one pack's check never aborts the sweep
+        return [f"check: {type(e).__name__}: {e}"]
 
 
 def main(argv=None) -> int:
