@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     EventSpec,
     FAnd,
     FAtom,
+    FAtomPred,
     Filter,
     FNot,
     FOr,
@@ -508,6 +509,15 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         _deal_damage_to_card(ctx, target, n_i)
 
 
+#: CR 120.1a: the only objects damage can be dealt to.
+_DAMAGEABLE = FOr(
+    children=tuple(
+        FAtom(pred=FAtomPred.TYPE_EQ, string_value=kind)
+        for kind in ("Battle", "Creature", "Planeswalker")
+    )
+)
+
+
 def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
     """One card-side damage application: mark it, journal it, decide nothing.
     16c (CR 702.2b): when the SOURCE carries DEATHTOUCH the mark is flagged
@@ -519,6 +529,12 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
             "executor: card damage needs an executor-backed ExecCtx "
             "(bare ExecCtx has no damage ledger)"
         )
+    if not eval_filter(_DAMAGEABLE, target, ctx):
+        # CR 120.1a: damage can't be dealt to an object that's not a battle,
+        # a creature or a planeswalker (a land, a noncreature artifact): no
+        # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
+        # forced binding (a harness stimulus) did, and marked it (B-54).
+        return
     # r20a (Pack Leader): prevention-before-apply for card damage. A live
     # DamageDealtEvent PreventionRecord (the PREVENT_EFFECT lane's first
     # damage consumer) vetoes the WHOLE mark (QUnbounded = "all"); the

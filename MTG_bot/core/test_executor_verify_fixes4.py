@@ -18,6 +18,8 @@ V40  Defender only forbids attacking (CR 702.3b): a creature with defender block
 V41  Creatures attack planeswalkers (CR 506.2, 508.1b): the attack ask names what each attacker
      attacks; combat damage to a planeswalker removes loyalty (CR 120.3c, 510.1b); a creature
      whose planeswalker left combat attacks nothing and deals no damage (CR 506.4c).
+B-54 Damage can't be dealt to an object that's not a battle, a creature or a planeswalker
+     (CR 120.1a): a land takes no mark and leaves no damage event.
 """
 
 import unittest
@@ -52,7 +54,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import MAX_HAND_SIZE, Executor
 from MTG_bot.core.executor import games as games_module
-from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
+from MTG_bot.core.executor.events import KIND_DAMAGE, KIND_TURN_PHASE, KIND_ZONE_CHANGE
 from MTG_bot.core.executor.games import (
     RandomPolicy,
     _setup_game,
@@ -514,6 +516,28 @@ class PlaneswalkerAttackTest(unittest.TestCase):
         self.assertEqual(labels[2], "do not attack")
         plain = engine_ask(lens, self.ex, ("ATTACK", "DECLINE"), f"attack:{self.corpse}:1", 0)
         self.assertEqual([o.label for o in plain.options], ["attack", "do not attack"])
+
+
+class DamageOnlyToDamageableTest(Case):
+    """B-54 (CR 120.1a)."""
+
+    def test_a_land_is_not_dealt_damage(self):
+        land = self.world.add_card(
+            card_id("Forest", type_line="Basic Land — Forest"), self.p1, ZONE_BATTLEFIELD
+        )
+        bear = self.world.add_card(card_id("Bear", "2", "3"), self.p1, ZONE_BATTLEFIELD)
+        source = self.world.add_card(card_id("Pinger", "1", "1"), self.p0, ZONE_BATTLEFIELD)
+        self.ex.begin_turn(self.p0)
+        for victim in (land, bear):
+            self.ex.execute(
+                atom(Verb.DEAL_DAMAGE, target=any_target(), amount=QConst(2)),
+                source=source,
+                controller=self.p0,
+                bindings={"target": victim},
+            )
+        self.assertEqual(self.ex.damage, {bear: 2})
+        damaged = [e.subject for e in self.ex.journal.events if e.kind == KIND_DAMAGE]
+        self.assertEqual(damaged, [bear])
 
 
 if __name__ == "__main__":

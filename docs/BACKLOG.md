@@ -586,7 +586,9 @@ These are forks, not tasks. See the report that accompanied this audit.
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
   - Damage marked on a non-creature land through a forced binding: only reachable from harness ops,
-    but `DEAL_DAMAGE` does not check the recipient's type.
+    but `DEAL_DAMAGE` does not check the recipient's type. **[FIXED on branch
+    `engine/verify-fixes-4` 2026-10-30: CR 120.1a, no damage to anything but a battle, a creature or
+    a planeswalker.]**
   - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
     trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
     **[FIXED on branch `engine/verify-fixes-4` 2026-10-29 (V39): the template writes the FOr of
