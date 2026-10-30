@@ -1,0 +1,9 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mutt", "real": "Chandra's Magmutt", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [{"op": "activate", "key": "mutt", "idx": 0, "seat": 0, "targets": ["bear"], "expect_raise": "illegal activation: target"}],
+ "expect": {"tapped": {"mutt": false}, "damage": {}, "zone": {"bear": "battlefield"}},
+ "notes": "V8 (2026-10-29). Printed: '{T}: This creature deals 1 damage to target player or planeswalker.' A creature is not a legal target, so the activation is refused before its {T} cost is paid (CR 602.2b: targets are announced before costs). Before the fix activate() took any target it was handed."}

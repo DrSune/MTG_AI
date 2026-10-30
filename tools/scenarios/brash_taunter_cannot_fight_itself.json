@@ -1,0 +1,65 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Brash Taunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "t"
+   ],
+   "expect_raise": "illegal activation: target"
+  },
+  {
+   "op": "activate",
+   "key": "t",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "t": true
+  },
+  "damage": {
+   "ogre": 1,
+   "t": 3
+  },
+  "zone": {
+   "t": "battlefield",
+   "ogre": "battlefield"
+  }
+ },
+ "notes": "V13 + V8 (2026-10-29). Printed: '{2}{R}, {T}: This creature fights another target creature.' The Taunter is not 'another' creature: fighting itself is refused before anything is paid. Fighting the 3/3 Ogre works: the 1/1 indestructible Taunter deals 1 and is dealt 3. (Where its 'dealt damage' echo goes is not pinned here: a fight journals both directions with the fight's source as the cause, BACKLOG B-92.)"
+}

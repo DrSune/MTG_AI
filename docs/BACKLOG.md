@@ -722,6 +722,15 @@ These are forks, not tasks. See the report that accompanied this audit.
   creature you control dies", not the thief's. Since V7 every CREATURE_DIES row carries the
   controller and the token flag as of death (`events.py`, data[5:7]); the matcher can read them, as
   the died-this-turn census does (`quantity._died_this_turn_census`). Rare in M21 (needs a steal).
+- **B-92 [vfix V8, 2026-10-29] A fight journals both directions with the fight's source as the
+  damage cause** (CR 701.12b: each creature deals damage equal to its power to the other).
+  `verbs._v_fight` marks both blows through one ctx whose source is the ability's source, and the
+  journal's one-cause-per-atom diff names that source for both DAMAGE rows. Live in M21: Brash
+  Taunter fighting an Ogre is "dealt damage" by itself, so its echo ("it deals that much damage to
+  target opponent") hits its own controller (weaker); a fighting creature's deathtouch or lifelink
+  follows the ability's source, not the creature (Primal Might: neither applies). The V3 dealer
+  lane (`verbs.damage_source`) is the model: per-direction source, and a per-row cause in the
+  journal.
 - **B-90 [vfix V2, 2026-10-29] A payment outside the active player's main phase had no mana** **[option (a) BUILT
   on `engine/verify-fixes` 2026-10-29, owner decision; (b) stays the design target]**
   (weaker than printed, live in M21 until (a)). Since V2 the pool empties as each step and phase ends

@@ -477,6 +477,26 @@ class TestActivateFold(LegalityCase):
         self.assertEqual([v for v, w in seen if w.startswith("mana:")], [("W", "U", "B", "R", "G")])
         self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 1})
 
+    def test_an_illegal_target_is_refused_before_anything_is_paid(self):
+        # V8 (2026-10-29): activate() validates its targets against the
+        # ability's target slot (as cast() does), before the costs (CR 602.2b).
+        yours = Selector(
+            QConst(1),
+            SelectorMode.TARGET,
+            FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            zones=(BF_YOU,),
+        )
+        grant = Atom(
+            verb=Verb.TAP, args=AtomArgs(pairs=(("target", yours),))
+        )
+        self.attach([ability(cost(CostTap()), effect=grant)])
+        with self.assertRaises(ValueError) as caught:
+            activate(self.ex, self.alpha, 0, seat=self.p0, targets=[self.beta])
+        self.assertIn("illegal activation: target:", str(caught.exception))
+        self.assertFalse(self.world.cards[self.alpha].tapped)  # nothing paid
+        activate(self.ex, self.alpha, 0, seat=self.p0, targets=[self.alpha])
+        self.assertTrue(self.world.cards[self.alpha].tapped)
+
     def test_sac_cost_self_sacrifice_moves_the_permanent(self):
         sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.attach([ability(cost(CostTap(), CostSacrifice(sel)))])

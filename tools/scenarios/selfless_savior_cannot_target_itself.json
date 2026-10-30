@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Selfless Savior", "zone": "battlefield", "controller": 0},
+  {"key": "w", "real": "Walking Corpse", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "s", "idx": 0, "seat": 0, "targets": ["s"], "expect_raise": "illegal activation: target"},
+  {"op": "activate", "key": "s", "idx": 0, "seat": 0, "targets": ["w"]}
+ ],
+ "expect": {"zone": {"s": "graveyard", "w": "battlefield"}},
+ "notes": "V5 + V8 (2026-10-29). Printed: 'Sacrifice this creature: Another target creature you control gains indestructible until end of turn.' The Savior is not 'another' creature: targeting itself is refused before the sacrifice is paid (it stays on the battlefield); targeting the Corpse works and the Savior is sacrificed."}

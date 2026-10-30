@@ -1624,6 +1624,55 @@ def pay_costs(
         )
 
 
+def activation_target_reason(
+    executor: Executor,
+    ability: ActivatedAbility,
+    *,
+    source: Handle,
+    seat: Handle,
+    targets: Sequence[Handle],
+) -> str | None:
+    """V8 (2026-10-29): why ``targets`` is not a legal designation for the
+    ability's target slots (query.activation_target_slots, the slots the
+    policies designate from), or None. One slot: the slot's own oracle
+    (validate_target_selection, as a single-slot cast), on the sorted
+    designation activate() binds. Several: positional, one target per slot in
+    walk order, each against its own slot, and an "another target" slot must
+    differ from the others (V13), as stack._validate_positional does for a
+    spell. On the synthesized player slot ("target opponent") a card stands
+    for its controller, the runtime's own re-point rule. No targets, or no
+    slot the walker can see (Subira's target rides a PREVENT_EFFECT
+    condition, BACKLOG "Weaker than printed"), keeps the old lane."""
+    from MTG_bot.core.executor.query import (
+        activation_target_slots,
+        validate_target_selection,
+    )
+    from MTG_bot.core.executor.stack import another_target_reason
+
+    if not targets:
+        return None
+    slots = activation_target_slots(executor, ability.effect, source=source, seat=seat)
+    if not slots:
+        return None
+
+    def designated(slot, handle: Handle) -> Handle:
+        if getattr(slot, "synthetic", False) and handle.namespace == "card":
+            return executor.controller_of(handle)
+        return handle
+
+    if len(slots) == 1:
+        return validate_target_selection(
+            slots[0], tuple(sorted(designated(slots[0], h) for h in targets))
+        )
+    if len(targets) != len(slots):
+        return f"{len(slots)} target slots need {len(slots)} targets, got {len(targets)}"
+    for slot, one in zip(slots, targets, strict=True):
+        reason = validate_target_selection(slot, (designated(slot, one),))
+        if reason is not None:
+            return reason
+    return another_target_reason(slots, targets)
+
+
 def activate(
     executor: Executor,
     handle: Handle,
@@ -1669,6 +1718,15 @@ def activate(
         # ValueError, not TypeError: "illegal activation" is the documented
         # domain contract of activate(), whatever the wrong input was.
         raise ValueError("executor: illegal activation: ability:not_activated")
+    # V8 (2026-10-29): the targets are announced before costs are paid (CR
+    # 602.2b, 601.2c) and must be legal for the ability's own target slots,
+    # exactly as stack.cast validates a spell's: a policy or tool passing an
+    # illegal target is refused before anything is paid.
+    target_reason = activation_target_reason(
+        executor, ability, source=handle, seat=seat, targets=targets
+    )
+    if target_reason is not None:
+        raise ValueError(f"executor: illegal activation: target:{target_reason}")
     ctx = ctx_for(executor, source=handle, controller=seat)
     plan, plan_reason = build_payment_plan(
         executor.world, ctx, ability.cost, activation=handle

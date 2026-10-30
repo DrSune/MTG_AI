@@ -459,12 +459,16 @@ class TestGoldenSurface(unittest.TestCase):
         from MTG_bot.core.executor.legality import activate
 
         events_before = len(self.ex.events)
+        # re-pinned 2026-10-29: V8 validates an activation's targets against
+        # its slots. "Exile target player's graveyard" targets ONE player, and
+        # on that synthesized player slot a card stands for its controller, so
+        # the two p1 graveyard cards were a duplicate designation; one does.
         activate(
             self.ex,
             self.crypt,
             0,
             seat=self.p0,
-            targets=[self.gy2, self.gy1],  # activate sorts them (§5.5)
+            targets=[self.gy1],
         )
         for gy_card in (self.gy1, self.gy2):
             zone = self.world.zone_of(gy_card)

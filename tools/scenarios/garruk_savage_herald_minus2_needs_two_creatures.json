@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Savage Herald",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "bear",
+    "bear"
+   ],
+   "expect_raise": "illegal activation: target"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "garruk": {
+    "LOYALTY": 5
+   }
+  },
+  "damage": {},
+  "zone": {
+   "bear": "battlefield"
+  }
+ },
+ "notes": "V13 + V8 (2026-10-29). Printed: '[-2]: Target creature you control deals damage equal to its power to another target creature.' The same creature cannot be both targets (CR 115.3 with 'another'): refused before the loyalty cost is paid."
+}
