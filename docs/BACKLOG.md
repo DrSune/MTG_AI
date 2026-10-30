@@ -865,6 +865,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     card), and positional multi-slot designation that accepts an empty trailing optional slot
     (`stack._validate_positional` raises on any non-exactly-one slot). The games policy also
     skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
+  - Re-checked on `cards/integration` 18afa85 (2026-10-30): tree unchanged in M21 and FDN, both
+    review packs still fail the same way, `_validate_positional` still exactly-one only.
 - **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
   component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
   - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
@@ -876,6 +878,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
     "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
     though" cards; recommended.
+  - Re-checked on 18afa85 (2026-10-30): tree unchanged; the Portcullis Vine pack still fails, the
+    two attack packs pass.
 - **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
   AGENTS §11 (alters legal options or state outcomes).
   - Fixed: Lofty Denial (the {4} branch never applied; now a conditional arm, pack
@@ -885,7 +889,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     hand, put each of those cards into your hand instead" runs as an extra step that returns one
     card, not all three. It is unreachable until something lets you cast it from elsewhere
     (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
-    replacing the one-and-rest split, once a pack can cast it from the graveyard.
+    replacing the one-and-rest split, once a pack can cast it from the graveyard. Re-checked on
+    18afa85 (2026-10-30): tree unchanged, still unreachable.
   - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
     information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
@@ -982,6 +987,67 @@ These are forks, not tasks. See the report that accompanied this audit.
     the graveyard cast is never available. R5-2's permission lane (a StaticAbility CAST) fixes it.
   - Also: a CAST whose designation is empty (a nonland on top for Radha, a non-Goblin for
     Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
+- **B-101 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd (a duplicate of the
+  multicoloured-token entry's number), then B-83, renumbered at the integration merge]
+  Protection (CR 702.16) works only against blocking.**
+  - `layers.protections_of` has one consumer, block legality. Nothing makes a protected
+    permanent or player an illegal target for sources of the quality (702.16b), prevents their
+    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros, all failing today:
+    `tools/scenarios/known_bugs/feat_of_resistance_protection_targeting.json`,
+    `.../feat_of_resistance_protection_damage.json`, `.../runed_halo_protects_player.json`.
+  - Player protection does not even land: Runed Halo's static GRANT_ABILITY(PROTECTION
+    (NAME_CHOSEN)) to Zone(PLAYER, YOU) leaves `protections_of(player)` empty (the layer
+    keyword map is built over card handles only), and `protections_of` ignores static-layer
+    grants for cards too (it reads keyword/grant layers and `_granted`).
+  - Not small, so not done in the template lane. Plan: (1) `protections_of` covers static grants
+    and player handles; (2) a targeting veto beside `_hexproof_vetoes_target` (both cards and
+    players; quality judged against the targeting source, NAME_CHOSEN in the granting
+    permanent's coordinates, i.e. Runed Halo's chosen name); (3) damage prevention in the
+    noncombat and combat damage lanes; (4) the 704.5m/n attachment SBAs. Every protection card
+    changes play (Baneslayer Angel, Basri's Lieutenant, Feat of Resistance, Runed Halo, other
+    sets), so it belongs to an era boundary. Engine lane.
+- **B-102 [fixer A, found 2026-10-30; B-84 until the integration merge] Attack triggers can see a creature put onto the battlefield
+  attacking** (latent: no M21 card misfires today).
+  - `Executor.join_attack` (`executor/__init__.py` ~1915) journals the same DECLARE_ATTACKERS
+    row, in the same declare group, as a declared attacker, and `binding._match_node` (~919)
+    matches every such row. CR 508.3a and 508.4: a creature put onto the battlefield attacking
+    never "attacked", so no "whenever ... attacks" trigger may see it. Falconer Adept's Bird
+    (80a895f) and Basri Ket's -2 Soldiers take this path.
+  - Hidden today by two accidents. The joined row is journalled before the token's own
+    ZONE_CHANGE row, so at match time the token's keywords are not yet in the layer map (a
+    flying filter misses the Bird). And the per-declaration dedup (`binding._queue` ~728, one
+    instance per ability per declare group) has already queued any trigger the declared
+    creature matched. Probes 2026-10-30 (Tide Skimmer + Falconer Adept, and a per-creature
+    flying filter with only the Adept declared): no extra trigger. A filter on type, subtype,
+    token-ness or controller that the token matches and no declared creature does would fire.
+  - Coupling: that dedup is itself wrong for per-creature triggers (B-103). Whoever fixes B-103
+    must exclude joined rows in the same change, or the Bird and the Soldiers start
+    triggering. `_group_size` (battalion) and the `declare_attackers` register
+    (THAT_MANY_COUNT) count joined rows as well.
+  - Fix: mark the joined row (its own payload, or an `entered_attacking` set folded into the
+    replay hash) and skip it in the DeclareAttackersEvent match, the group size and the
+    register. Engine lane.
+- **B-103 [fixer A, found 2026-10-30; B-85 until the integration merge] "Whenever a creature ... attacks" fires once per
+  declaration, not once per attacker** (live in M21, weaker than printed).
+  - `binding._queue` (~728) queues one instance per ability per declare group for every
+    DeclareAttackersEvent. That is right for "one or more" and "attack with two or more"
+    (Basri Ket's -2, Tide Skimmer, Mangara) and wrong for a per-creature trigger, which
+    CR 603.2c fires once per matching attacker. Repro, failing today:
+    `tools/scenarios/known_bugs/hooded_blightfang_each_deathtouch_attacker.json` (two
+    Blightfangs attack: four triggers are due, two fire, so the life totals end 22/16, not
+    24/14).
+  - Live in M21: Basri, Devoted Paladin's -1 puts its counter on one attacker per declaration,
+    and Hooded Blightfang drains once however many deathtouch creatures attack. Across the 19
+    sets these two, Basri Ket, Tide Skimmer and Mangara are the only compiled attack triggers
+    not keyed on IS_SOURCE (snapshot 2026-10-30).
+  - Design decision, an IR change: `DeclareAttackersEvent` cannot tell "a creature attacks"
+    from "one or more creatures attack" (Basri Ket's -2 and the Paladin's -1 differ only in
+    their filters). (a) A `batch: bool = False` field, omitted when False so per-creature trees
+    stay byte-identical, set by the compiler on "one or more", "attack with N or more" and
+    "you attack"; the dedup then applies to batch triggers only. Three goldens re-bake (Basri
+    Ket, Tide Skimmer, Mangara). Recommended. (b) Infer batching in the engine from a
+    CONTROLLER_COUNT_GE condition: no schema change, but it cannot separate Basri Ket's -2
+    from the Paladin's -1, so it is not enough. Either way it lands with B-102's exclusion.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

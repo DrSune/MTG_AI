@@ -389,15 +389,16 @@ class TestTriggerFeeds(CombatCase):
             h for h in self.world.cards if self.world.cards[h].identity.name == "Bird"
         ]
         self.assertEqual(len(birds), 2)
-        # Compiler-fidelity face (pinned AS IS, report item): the compiled
-        # Bird spec drops Falconer's "that's tapped and attacking" (both
-        # enters_* flags are None) — the birds enter plain and deal NO
-        # phantom combat damage this combat.
-        self.assertEqual(self.world.players[self.p1].life, 20 - (2 + 2))
+        # re-pinned 2026-10-30 (m21-fidelity, fixer 4's finding): the compiled
+        # Bird spec now keeps Falconer's "that's tapped and attacking"
+        # (enters_tapped/enters_attacking, CR 508.4), so each Bird joins the
+        # attack record and deals its 1 combat damage: 20 - (2 + 2 + 1 + 1).
+        self.assertEqual(self.world.players[self.p1].life, 20 - (2 + 2 + 1 + 1))
         self.assertEqual(
             sum(1 for e in self.rows("DECLARE_ATTACKERS") if e.subject in birds),
-            0,
+            2,
         )
+        self.assertTrue(all(self.world.cards[b].tapped for b in birds))
         del f1, f2
 
     def test_mangara_condition_counts_the_attack_record(self):
