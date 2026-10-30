@@ -102,6 +102,7 @@ sentences share one template and match only it); verified in tests.
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from typing import Final
 
 from MTG_bot.core.ability_tree import (
@@ -804,17 +805,21 @@ def _build_wildwood_scorge(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_falconer_adept(m: re.Match[str]) -> SentenceOutcome:
-    """#28: create 1/1 white Bird with flying, tapped and attacking."""
-    # color="W" populated (round 8 / C-2 repair).  GAP: "that's tapped and
-    # attacking" token state stays dropped in 8-B (TokenSpec.enters_tapped/
-    # enters_attacking rows are 8-C coverage work, not this flip pass).
+    """#28: create 1/1 white Bird with flying, tapped and attacking.
+
+    "that's tapped and attacking" is TokenSpec.enters_tapped/enters_attacking
+    (R8-4, the Basri Ket [-2] Soldier shape; CR 508.4: put onto the battlefield
+    attacking, never declared). m21-fidelity (fixer 4, 2026-10-30): both flags
+    were left unset (an 8-B gap note), so the Bird entered untapped and out of
+    combat: no attack row, no damage (weaker than printed)."""
+    bird = replace(_bird_token(1, 1), enters_tapped=True, enters_attacking=True)
     return _ability(
         _attack_event(),
         Atom(
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(
                 pairs=(
-                    ("tokens", _bird_token(1, 1)),
+                    ("tokens", bird),
                     ("count", QConst(1)),
                 )
             ),
