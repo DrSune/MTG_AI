@@ -1,15 +1,8 @@
 {
  "set": "M21",
  "world": {"life": 20, "seed": 7},
- "cards": [
-  {"key": "copy", "name": "Azusa, Lost but Seeking", "type": "Legendary Creature — Human Monk", "power": "1", "toughness": "2", "token": true, "zone": "battlefield", "controller": 0},
-  {"key": "azusa", "real": "Azusa, Lost but Seeking", "zone": "hand", "controller": 0}
- ],
- "steps": [
-  {"op": "enter", "key": "azusa", "decisions": ["azusa"]}
- ],
- "expect": {
-  "zone": {"copy": "graveyard", "azusa": "battlefield"}
- },
- "notes": "V22 (2026-10-29). A token copy of a legendary creature is a legendary permanent with the same name, so CR 704.5j applies to it and the card alike. The controller keeps the card; the token goes to the graveyard (where CR 704.5d would make it cease to exist)."
+ "cards": [{"key": "copy", "name": "Azusa, Lost but Seeking", "type": "Legendary Creature — Human Monk", "power": "1", "toughness": "2", "token": true, "zone": "battlefield", "controller": 0}, {"key": "azusa", "real": "Azusa, Lost but Seeking", "zone": "hand", "controller": 0}],
+ "steps": [{"op": "enter", "key": "azusa", "decisions": ["azusa"]}],
+ "expect": {"zone": {"copy": "ceased", "azusa": "battlefield"}},
+ "notes": "V22 (2026-10-29). A token copy of a legendary creature is a legendary permanent with the same name, so CR 704.5j applies to it and the card alike. The controller keeps the card; the token goes to the graveyard. re-pinned 2026-10-30: the merge of cards/integration (V35) makes it then cease to exist (CR 704.5d), so its zone is 'ceased'."
 }

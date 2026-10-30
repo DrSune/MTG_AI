@@ -42,7 +42,6 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextTurn,
     EachPlayer,
     Effect,
-    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -616,6 +615,9 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
     # KNOWN-GAP: keywords in _KEYWORDS_BARE_UNBUILDABLE cannot be
     constructed without params; "Hexproof from" needs a Filter.
     These are silently omitted (reported via CompileResult.known_gaps).
+
+    A whole-ability keyword (``_LINE_KEYWORDS``) is built only if the face prints it
+    (``_face_prints_keyword``): MTGJSON's list is not the face's own keyword list.
     """
     results: list[KeywordAbility] = []
     for kw_str in raw.keywords:
@@ -628,8 +630,39 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
         # Keywords that require params in ALL their signatures.
         if kw_enum in _KEYWORDS_BARE_UNBUILDABLE:
             continue
+        if kw_str in _LINE_KEYWORDS and not _face_prints_keyword(raw, kw_str):
+            continue
         results.append(KeywordAbility(keyword=kw_enum, params=()))
     return tuple(results)
+
+
+def _face_prints_keyword(raw: RawCard, kw_str: str) -> bool:
+    """Does this face print the whole-ability keyword ``kw_str`` as its own?
+
+    MTGJSON's ``keywords`` field is not the face's keyword list, in two ways
+    (m21-fidelity item 1, 2026-10-29; 19-set census: 9 cards):
+
+    - It lists the bare keyword beside a parameterized variant of it: "Hexproof" next to
+      "Hexproof from" for "Hexproof from black" (Garruk's Harbinger, Sporeweb Weaver, Knight of
+      Grace, Knight of Malice, Elenda, Eradicator Valkyrie). "Hexproof from [quality]" is a
+      variant of hexproof that stops only [quality] spells and abilities (CR 702.11d), so a bare
+      HEXPROOF beside it was full hexproof (CR 702.11b): stronger than printed.
+    - A modal double-faced card lists both faces' keywords on each face, and a face has only
+      its own characteristics (CR 712.8a, 712.8f): Alrund, God of the Cosmos got the Flying of
+      its back face, Hakka.
+
+    A whole-ability keyword is printed as one comma-separated part of a line, trailing reminder
+    text dropped (CR 207.2): "Flying", "Reach, hexproof from blue" (Reach only), "First strike
+    (This creature deals combat damage first.)". Keywords that only other objects get ("creatures
+    you control have flying") are not in MTGJSON's list at all (measured on the 19 sets).
+    """
+    want = kw_str.lower()
+    for sentence in raw.sentences:
+        match = _TRAILING_REMINDER_RE.match(sentence.strip())
+        head = (match.group("head") if match else sentence.strip()).rstrip(".")
+        if any(part.strip().lower() == want for part in head.split(",")):
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -1624,32 +1657,26 @@ def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bo
         # counters — stay SUPPORTED; what remains unplayable is marked
         # unsupported here, honestly:
         #   * an X-kicker ({X} in the optional cost): no producer wires
-        #     the kick choice to an X declaration (deferred, /95);
-        #   * a gated EtBState whose counters are not constants: the
-        #     engine's entering-state stamp is QConst-only.
+        #     the kick choice to an X declaration (deferred, /95).
+        # (m21-fidelity, 2026-10-29: the gate on a gated EtBState with
+        # non-constant counters is gone. The entering-state stamp now
+        # resolves any counter Quantity with the cast X (executor
+        # _apply_etb_state), the lane "enters with X +1/+1 counters" uses.)
         if engine_supported:
             for node in walk(card, skip=BackFace):
                 if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
                     engine_supported = False
                     break
+                # B-49 follow-up #4 (2026-10-29): a loyalty [−X] (Ugin) is
+                # supported: legality.activate announces X before paying
+                # (CR 602.2b -> 601.2b, 107.3a), capped by the loyalty
+                # counters (CR 606.6). The lane handles a bare X only, so
+                # any other Quantity delta stays honestly unsupported.
                 if (
-                    isinstance(node, EtBState)
-                    and node.condition is not None
-                    and any(
-                        not isinstance(qty, QConst)
-                        for _kind, qty in node.initial_counters
-                    )
+                    isinstance(node, CostLoyalty)
+                    and not isinstance(node.delta, int)
+                    and not isinstance(node.delta, QX)
                 ):
-                    engine_supported = False
-                    break
-                # B-49 follow-up #4 (2026-10-29): a loyalty cost with a
-                # Quantity delta (Ugin's [−X]). X is announced as the ability
-                # is activated (CR 601.2b via 602.2b), and the activation lane
-                # has no X declaration: legal_activations raised
-                # NotImplementedError on it once Ugin was castable, and a
-                # resolved delta would be priced as a loyalty gain. Gated
-                # until an ACTIVATE X lane exists. Ugin is the only such card.
-                if isinstance(node, CostLoyalty) and not isinstance(node.delta, int):
                     engine_supported = False
                     break
     return engine_supported
@@ -1790,8 +1817,17 @@ def compile_card(
         # ZNR kicker tail ("If this spell/it was kicked, [instead] X"):
         # fold the WAS_KICKED-gated arm onto the previous effect-bearing
         # slot — additive append, or "instead" replacement (the arm wins,
-        # the base moves to the Conditional's else_effect).
+        # the base moves to the Conditional's else_effect). The same fold
+        # takes any other printed condition (outcome.pred, m21-fidelity
+        # item 4): "You gain 4 life. If a creature died this turn, you gain
+        # 8 life instead." is Conditional(DIED_THIS_TURN, 8, else=4)
+        # (CR 608.2c), not a turn-long replacement.
         if isinstance(outcome, KickerEffectOutcome):
+            arm_pred = (
+                outcome.pred
+                if outcome.pred is not None
+                else FAtom(pred=FAtomPred.WAS_KICKED)
+            )
             j: int | None = None
             base: Effect | None = None
             saw_unparsed_base = False
@@ -1818,8 +1854,8 @@ def compile_card(
                     # effect content — no base clause exists in the text
                     # at all; never silently drop the clause.
                     raise StateCorruptionError(
-                        "compile_card: kicker 'instead' arm has no "
-                        "preceding base effect to replace it",
+                        "compile_card: kicker or conditional 'instead' arm has "
+                        "no preceding base effect to replace it",
                         context={"sentence": raw.sentences[i]},
                     )
                 if outcome.replaces:
@@ -1838,7 +1874,7 @@ def compile_card(
                 processed.append(
                     EffectOutcome(
                         effect=Conditional(
-                            pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                            pred=arm_pred,
                             then_effect=outcome.effect,
                         )
                     )
@@ -1847,7 +1883,7 @@ def compile_card(
                 continue
             merged = (
                 Conditional(
-                    pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                    pred=arm_pred,
                     then_effect=outcome.effect,
                     else_effect=base,
                 )
@@ -1855,7 +1891,7 @@ def compile_card(
                 else _append_mandatory_to_seq(
                     base,
                     Conditional(
-                        pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                        pred=arm_pred,
                         then_effect=outcome.effect,
                     ),
                 )

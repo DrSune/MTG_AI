@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d3de6b36-c631-4b52-b16b-0749a347d73d",
+ "name": "Daybreak Charger",
+ "text_sha": "017c9e7425c8f9d7654bdddf632a7d2833e3745661b85a88613c8117e9d4e546",
+ "verified": {
+  "tree_sha": "b1e9c1e015fe0656efb8bf55d57f6523bb07928413420d0e0e49b9bf1b4951b9",
+  "probe_sha": "0964e4369e7209cfc124221ed292eb3e3350c3ff74e065b25b30a96ebe64ac4c",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "When this creature enters, target creature gets +2/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast] variants: trigger on entry; 'ask target' offers every creature on both sides incl. itself; you_bear 2/2 -> 4/2, opp_giant 4/4 -> 6/4, card 3/1 -> 5/1; 'after the turn ends' each reverts. Also triggers when put onto the battlefield on the opponent's turn (the pump has worn off by that turn's end).",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{W} 3/1 creature",
+    "status": "OK",
+    "evidence": "[cast]: mana W-2; P/T - -> 3/1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

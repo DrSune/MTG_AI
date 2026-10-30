@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a source YOU CONTROL deals noncombat damage to an opponent ...'. The opponent's own Meteorite deals 2 to the opponent (20 -> 18): the recipient is your opponent but the source is not yours, so Pyreling stays 1/3 without double strike.",
+ "cards": [
+  {"key": "py", "real": "Chandra's Pyreling", "zone": "battlefield", "controller": 0},
+  {"key": "om", "real": "Meteorite", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "om", "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "power": {"py": 1}, "toughness": {"py": 3},
+  "battlefield_keywords": {"Chandra's Pyreling": []}
+ }}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cs", "real": "Canopy Stalker", "zone": "battlefield", "controller": 0},
+  {"key": "steed", "real": "Valorous Steed", "zone": "hand", "controller": 0},
+  {"key": "haze", "real": "Pestilent Haze", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "B": 2, "C": 6}},
+ "steps": [
+  {"op": "enter", "key": "steed"},
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"cs": "graveyard", "steed": "battlefield", "haze": "graveyard"},
+  "tokens": {"Knight": 0},
+  "life": {"0": 22}
+ },
+ "notes": "M21 G2 spec: Canopy Stalker. 'When this creature dies, you gain 1 life for each creature that died this turn.' Valorous Steed makes a 2/2 Knight token; Pestilent Haze (-2/-2) kills the token and the 4/2 Stalker together (the 3/3 Steed survives). Two creatures died this turn, the token included (it died even though it no longer exists): you gain 2."
+}

@@ -1,0 +1,76 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V23, nested journal boundaries: Chandra, Flame's Catalyst's -2 casts Crash Through from your graveyard while the -2 resolves ('Creatures you control gain trample until end of turn. Draw a card.'). That is one draw, so Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') mills two cards, not four: the CAST atom that holds the whole cast must not journal the draw a second time. (Chandra's 'If that spell would be put into your graveyard, exile it instead' is not applied on this lane today: Crash Through lands in the graveyard. That is a separate finding, not asserted here.) Top Junk is listed last so the runner's opening draw takes it before the filler exists.",
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tut",
+   "real": "Teferi's Tutelage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "crash",
+   "real": "Crash Through",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "junk",
+   "name": "Top Junk",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "ch",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "crash"
+   ],
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ch": "battlefield",
+   "junk": "hand"
+  },
+  "counters": {
+   "ch": {
+    "LOYALTY": 3
+   }
+  },
+  "hand": {
+   "0": 2
+  },
+  "graveyard": {
+   "1": [
+    "Library 5",
+    "Library 4"
+   ]
+  }
+ }
+}

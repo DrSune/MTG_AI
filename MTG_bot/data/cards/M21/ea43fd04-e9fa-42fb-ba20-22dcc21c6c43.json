@@ -1,0 +1,58 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ea43fd04-e9fa-42fb-ba20-22dcc21c6c43",
+ "name": "Stormwing Entity",
+ "text_sha": "c5d587a5e952d80db3940f128edd3640d0eddaf348726615cf4db58bdff51e34",
+ "verified": {
+  "tree_sha": "5fce10e1629f418d26171272f7ec6a984b159bf193e44f83f938d7a5167c07c3",
+  "probe_sha": "4f48330676a421319e8822367c61f7407a42501f3d5fbbb816a687dd52b7bcf4",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "This spell costs {2}{U} less to cast if you've cast an instant or sorcery spell this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast] with no instant/sorcery cast first pays the full {3}{U}{U} (mana U-2 W-3): the condition's false side is right. Tree abilities[0] CostModifier IS_SOURCE, ReduceGeneric 2 + ReduceMana U 1, condition INSTANT_OR_SORCERY_CAST_THIS_TURN who=YOU. Pack stormwing_entity_cost_reduced.json (after Crash Through a U:2 pool pays it exactly) PASS; pack stormwing_entity_cost_opponent_spell.json (only the opponent cast an instant: refused cost:mana_generic) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; [this creature attacks and opp_giant blocks it]: the non-flying giant does not block, opp 20 -> 17.",
+    "issue": ""
+   },
+   {
+    "clause": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Crash Through)]: card P/T 3/3 -> 4/4; [you cast a creature (Staunch Shieldmate)]: none. Expiry: pack stormwing_entity_prowess_wears_off.json (3/3 again after end_turn) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, scry 2.",
+    "status": "OK",
+    "evidence": "[cast] and its two branches: card's triggered ability [1] triggers with two 'ask scry: [top, bottom]' asks; [from your hand, the card enters during the opponent's turn]: triggers with two scry asks. Tree abilities[1] equals parse (template B2a-scry-n, to_zone controller=YOU). Library result: pack stormwing_entity_etb_scry2.json (bottom, top -> Library 4 on top, Library 5 at the bottom) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/stormwing_entity_1.json",
+   "tools/scenarios/cards/M21/stormwing_entity_2.json",
+   "tools/scenarios/cards/M21/stormwing_entity_3.json",
+   "tools/scenarios/cards/M21/stormwing_entity_4.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 5,
+   "score": 0.45454545454545453,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/delta/amount",
+    "amount-1 at 1/0/delta/amount",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "amount+1 at 1/0/extra_deltas/0/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

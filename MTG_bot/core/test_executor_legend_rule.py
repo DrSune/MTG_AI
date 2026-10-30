@@ -94,7 +94,10 @@ class LegendRuleTest(unittest.TestCase):
         token = self.add(replace(legend(), oracle_id="cccccccc-1111-2222-3333-444444444444", is_token=True), self.p0)
         self.keep = [card]
         self.settle()
-        self.assertEqual(self.zones(card, token), [ZONE_BATTLEFIELD, ZONE_GRAVEYARD])
+        # re-pinned 2026-10-30: the merge of cards/integration (V35, CR 704.5d) changes where the
+        # token ends: it goes to the graveyard and then ceases to exist, so it is in no zone.
+        self.assertEqual(self.zones(card), [ZONE_BATTLEFIELD])
+        self.assertNotIn(token, self.world.cards)
 
     def test_control_is_the_effective_one(self) -> None:
         # Player 1 steals player 0's Azusa while controlling one: player 1 now controls two.

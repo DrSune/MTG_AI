@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0d899095-cef7-43d2-aaf7-eb73b62f5ec8",
+ "name": "Igneous Cur",
+ "text_sha": "b41b80ece64c3ea5200098517c15e4d18dedb09f202967c9763d4849a7cf2dd9",
+ "verified": {
+  "tree_sha": "38c3453d451035ea7cd16453b832c59f3b1a62fe89c442aa12de45816f819c4f",
+  "probe_sha": "20e14d3bf4020ddf760388968b8a51534553beea65f5ec45b1033deafacc5301",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "{1}{R}: This creature gets +2/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: cost paid 'mana R-1 W-1' ({R} plus one generic), 'card: P/T 1/2 -> 3/2'; 'after the turn ends: card: P/T 3/2 -> 1/2'. No other object changes. Tree equals the compiler's parse of the sentence (B3-modify-pt-self).",
+    "issue": "engine-limit: no priority; the instant-speed pump is usable only in its controller's own action window (weaker only)."
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

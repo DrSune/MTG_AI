@@ -1,0 +1,86 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "patrol",
+   "real": "Wildwood Patrol",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lili",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "chump",
+   "name": "Chump",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "patrol"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "patrol": "lili"
+   },
+   "block": {
+    "chump": "patrol"
+   },
+   "trample": {
+    "patrol": [
+     0
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "patrol": [
+    "chump"
+   ]
+  },
+  "counters": {
+   "lili": {
+    "LOYALTY": 1
+   }
+  },
+  "zone": {
+   "chump": "graveyard",
+   "lili": "battlefield"
+  },
+  "life": {
+   "1": 20
+  },
+  "damage": {
+   "patrol": 1
+  }
+ },
+ "notes": "V41, CR 702.19b: Wildwood Patrol (4/2, trample) attacks Liliana and is blocked by a 1/1. It assigns lethal 1 to the blocker and, asked how much more the blocker gets, gives 0, so the excess 3 goes to the planeswalker it is attacking (not the player): Liliana 4 -> 1."
+}

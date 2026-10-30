@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Turn to Slag, printed: '... deals 5 damage to target creature. Destroy all Equipment attached to that creature.' The 2/2 target is dealt 5 (lethal), but state-based actions wait until the spell has finished resolving (CR 704.3, 608.2), so the Equipment is still attached when the second sentence resolves: the creature dies AND its Equipment is destroyed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Turn to Slag", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "eq", "name": "Blade", "type": "Artifact — Equipment", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 5}},
+ "steps": [
+  {"op": "enchant", "aura": "eq", "host": "bear"},
+  {"op": "cast", "real": "Turn to Slag", "key": "sp", "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "bear": "graveyard", "eq": "graveyard"},
+  "damage": {}
+ }
+}

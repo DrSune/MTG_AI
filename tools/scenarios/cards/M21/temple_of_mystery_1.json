@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tm", "real": "Temple of Mystery", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "tm", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"tm": "battlefield"},
+  "tapped": {"tm": true},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}
+ },
+ "notes": "Printed: 'This land enters tapped. When this land enters, scry 1.' Played as the turn's land drop, it enters tapped; scry 1 looks at exactly one card (Library 5) and the 'bottom' answer puts it under the other five."
+}

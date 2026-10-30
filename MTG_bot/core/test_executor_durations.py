@@ -469,9 +469,20 @@ class TestNineLivesReplacement(unittest.TestCase):
         self.assertEqual(self.life(), 19)  # replacement left with the aura
 
     def test_ninth_incarnation_counter_exiles_the_enchantment(self):
+        from MTG_bot.core.executor.events import KIND_COUNTER_PLACED
+
         for _ in range(9):
             self.hit(1)
-        self.assertEqual(self.counters(), 9)
+        # re-pinned 2026-10-29: V31b (CR 122.2) changes the counters an exiled card
+        # keeps: nine incarnation counters were placed (the rows below), then they
+        # ceased to exist when the enchantment moved to exile.
+        placed = [
+            e
+            for e in self.ex.journal.events
+            if e.kind == KIND_COUNTER_PLACED and e.subject == self.nine
+        ]
+        self.assertEqual(sum(e.counter[1] for e in placed), 9)
+        self.assertEqual(self.counters(), 0)
         self.assertEqual(self.world.zone_of(self.nine).kind, ZONE_EXILE)
         self.hit(1)
         self.assertEqual(self.life(), 19)  # unprotected now: damage lands

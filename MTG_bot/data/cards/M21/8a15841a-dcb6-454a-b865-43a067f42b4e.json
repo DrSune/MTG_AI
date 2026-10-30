@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8a15841a-dcb6-454a-b865-43a067f42b4e",
+ "name": "Trufflesnout",
+ "text_sha": "2de566dd5beae02fa66b0e49d75b89116bd39c6c4d4762557f1ad191f0a6dfa3",
+ "verified": {
+  "tree_sha": "b46f6546fd24369552290ca4ecbfda9f3b0536c09d221ca22cfff9f62cf06569",
+  "probe_sha": "ad62c77151f7a84a1c4b1dc3c8242c4ec7d928dd9bc4e618752e6f40cea643d1",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "When this creature enters, choose one —",
+    "status": "OK",
+    "evidence": "[cast] triggered ability [0] triggers on its own entry with 'ask choose: [0, 1]' (one mode); also on the MOVE_ZONE entry during the opponent's turn; [a creature enters under your control -> none] (another creature does not trigger it)",
+    "issue": ""
+   },
+   {
+    "clause": "• Put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[cast] mode 0: 'card gets 1 PLUS_1_PLUS_1 counter(s)', counters {} -> {PLUS_1_PLUS_1: 1}, P/T -> 3/3",
+    "issue": ""
+   },
+   {
+    "clause": "• You gain 4 life.",
+    "status": "OK",
+    "evidence": "[cast | ask 1 -> 1] 'you gains 4 life', life 20 -> 24, no counter",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/options/0/args/target/filter"
+   ]
+  }
+ }
+}

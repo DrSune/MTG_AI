@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1cb0610b-a731-42c2-b93f-0a29f63cebf4",
+ "name": "Thrill of Possibility",
+ "text_sha": "9ac3e83f18f0ce7b20fd722bf77c49015a3c693d4e424a85cb9191e74a9e0eea",
+ "verified": {
+  "tree_sha": "d31a3e521ffda0faac689ec193fdbc49e75f3738730846ee8215ec304d16b0ae",
+  "probe_sha": "72f6af1d80536a7f1b76d9fcbb45851edfa9d21c0f60316b539085271efd2763",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {1}{R}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); every cast 'mana R-1 W-1'",
+    "issue": ""
+   },
+   {
+    "clause": "As an additional cost to cast this spell, discard a card.",
+    "status": "OK",
+    "evidence": "additional_costs=CostDiscard(1 card from your hand); every [cast]: 'ask discard' offers the five other hand cards (not Thrill itself), no skip word; the chosen card moves hand -> graveyard before 'card moves hand -> stack'. Packs PASS: /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P9493e15e59_thrill_empty_hand.json (no other card: cast refused 'illegal cast', nothing spent or drawn) and /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P9493e15e59_thrill_discard_choice.json (the named card is the one discarded)",
+    "issue": "engine quirk (no effect seen here): each discard is journalled twice, 'moves hand -> graveyard (by card/MOVE_ZONE)' and '(by card/CAST)', for one zone change; a future 'card put into a graveyard' trigger could fire twice"
+   },
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "DRAW 2 YOU; every cast: 'you draws' Library 5#1 and 4#1, library 6 -> 4",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/thrill_of_possibility_1.json",
+   "tools/scenarios/cards/M21/thrill_of_possibility_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

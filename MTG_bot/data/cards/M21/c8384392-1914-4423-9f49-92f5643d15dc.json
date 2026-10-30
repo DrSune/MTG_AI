@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c8384392-1914-4423-9f49-92f5643d15dc",
+ "name": "Garruk's Gorehorn",
+ "text_sha": "6893315c59deb261466d660200b188652879bcd63f8200c773c36983ce59bd5a",
+ "verified": {
+  "tree_sha": "92480de9d9b085f63a72a2f4e87996eb42760c7bc5f630431c40d1ffb8142c48",
+  "probe_sha": "1c231edeac32a1494ad1bc6f2fada251f1842537c0b74cfb400716e15d328f8d",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Beast {4}{G} 7/3 (no rules text)",
+    "status": "OK",
+    "evidence": "[cast]: P/T 7/3, mana G-1 W-4; no keywords, triggers or statics; attacks unblocked for 7 (opp 20 -> 13); trades with the blocking 4/4",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

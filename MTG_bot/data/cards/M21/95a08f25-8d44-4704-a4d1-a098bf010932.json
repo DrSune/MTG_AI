@@ -1,0 +1,32 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "95a08f25-8d44-4704-a4d1-a098bf010932",
+ "name": "Burlfist Oak",
+ "text_sha": "7349bced3259ed23b4b986899b077c9a3be56699c44f0ff76166cdac1167494c",
+ "verified": {
+  "tree_sha": "1b4ab40dee45a1b71acbf1d78dea22ebc651996f9f4b2e86e204927575192ffb",
+  "probe_sha": "5b08deb58bfb40a38ba48c7e84a39e14282693d3615793cc5be3304f2009938d",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Whenever you draw a card, this creature gets +2/+2 until end of turn.",
+    "status": "OK",
+    "evidence": "[you draw a card]: trigger [0], 'card: P/T 2/3 -> 4/5'; [you draw two cards]: two triggers, 6/7; [turns pass ... your next upkeep]: your draw step triggers, 4/5; [you cast Crash Through]: its draw triggers, 4/5; [the opponent draws a card]: none. Tree equals the compiler's parse (B2b-draw-self-boost). The wear-off at end of turn is not visible in the trace: pack burlfist_oak_pump_wears_off (Crash Through draws, oak 4/5, then end_turn: 2/3) PASS; it kills a permanent-duration mutant.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/burlfist_oak_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
+ }
+}

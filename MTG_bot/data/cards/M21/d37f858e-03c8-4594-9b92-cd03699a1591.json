@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d37f858e-03c8-4594-9b92-cd03699a1591",
+ "name": "Scoured Barrens",
+ "text_sha": "82728e6b994b6ba9f8b6001ace36c4764bd53cc3ccc46f039205a8d3d984f889",
+ "verified": {
+  "tree_sha": "c5de03339871c5d67a5d1bf3f78702e82e27a0744dc7c2cff0c1ee1b0bc06481",
+  "probe_sha": "dfe5279c3f610cbeaf544c23d13a4c47f75d604ed9e5888967ee26a2e3468ac6",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card: zone hand -> battlefield; tapped False -> True. Same when put onto the battlefield on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'you gains 1 life (by card/GAIN_LIFE)', you: life 20 -> 21; also on the MOVE_ZONE entry",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0, 1] -> 0: tapped, mana W+1; -> 1: tapped, mana B+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

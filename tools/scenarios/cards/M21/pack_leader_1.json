@@ -1,0 +1,25 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Pack Leader (M21): 'Other Dogs you control get +1/+1. Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control.' Seat 0 attacks with Pack Leader, another Dog (2/2, 3/3 with the bonus), a non-Dog Bear and an Ox. Three 4/4s block Pack Leader, the Hound and the Bear; the opponent's own Dog (2/2, no bonus) blocks the Ox. Combat damage to Pack Leader and the Hound is prevented; the Bear (not a Dog) dies; the opponent's Dog (not yours) dies.",
+ "cards": [
+  {"key": "pl", "zone": "battlefield", "controller": 0, "real": "Pack Leader"},
+  {"key": "dog2", "zone": "battlefield", "controller": 0, "name": "Your Hound", "type": "Creature — Dog", "power": 2, "toughness": 2},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "ox", "zone": "battlefield", "controller": 0, "name": "Your Ox", "type": "Creature — Ox", "power": 3, "toughness": 3},
+  {"key": "g1", "zone": "battlefield", "controller": 1, "name": "Opp Giant A", "type": "Creature — Giant", "power": 4, "toughness": 4},
+  {"key": "g2", "zone": "battlefield", "controller": 1, "name": "Opp Giant B", "type": "Creature — Giant", "power": 4, "toughness": 4},
+  {"key": "g3", "zone": "battlefield", "controller": 1, "name": "Opp Giant C", "type": "Creature — Giant", "power": 4, "toughness": 4},
+  {"key": "odog", "zone": "battlefield", "controller": 1, "name": "Opp Dog", "type": "Creature — Dog", "power": 2, "toughness": 2}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"pl": true, "dog2": true, "bear": true, "ox": true},
+   "block": {"g1": "pl", "g2": "dog2", "g3": "bear", "odog": "ox"}}
+ ],
+ "expect": {
+  "attackers": {"pl": true, "dog2": true, "bear": true, "ox": true},
+  "power": {"pl": 2, "dog2": 3, "odog": 2},
+  "zone": {"pl": "battlefield", "dog2": "battlefield", "bear": "graveyard", "ox": "battlefield", "odog": "graveyard",
+           "g1": "battlefield", "g2": "battlefield", "g3": "battlefield"},
+  "damage_received": {"pl": 0, "dog2": 0, "bear": 4, "odog": 3, "ox": 2},
+  "damage": {"g1": 2, "g2": 3, "g3": 2, "ox": 2},
+  "life": {"0": 20, "1": 20}
+ }}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Warded Battlements, printed: 'Defender' and 'Attacking creatures you control get +1/+0.' Your 2/2 bear attacks unblocked as a 3/2 (P1 20 -> 17); your non-attacking giant stays 4/4 and the Battlements (defender) is never asked to attack. Once the combat phase is over the bear is no longer an attacking creature (CR 511.3), so it is 2/2 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wb", "real": "Warded Battlements", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "giant": false, "wb": true}}
+ ],
+ "expect": {
+  "attackers": {"bear": true, "giant": false, "wb": false},
+  "not_asked": ["wb"],
+  "life": {"1": 17},
+  "power": {"bear": 2, "giant": 4, "wb": 0},
+  "toughness": {"bear": 2, "giant": 4, "wb": 3}
+ }
+}

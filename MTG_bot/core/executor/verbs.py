@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     EventSpec,
     FAnd,
     FAtom,
+    FAtomPred,
     Filter,
     FNot,
     FOr,
@@ -75,10 +76,13 @@ from MTG_bot.core.executor.quantity import (
     referent_handle,
     resolve,
 )
+from MTG_bot.core.executor.returns import anchor_unmoved, battlefield_entry_clock
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
     apnap_order,
+    existing,
+    move_destination,
     resolve_selector,
     role_handles,
     role_player,
@@ -153,6 +157,19 @@ def _discard_picks(ctx: ExecCtx, sel: Selector, player: Handle) -> list[Handle]:
         picks.append(pick)
         remaining.remove(pick)
     return picks
+
+
+def _enter_under_control(ctx: ExecCtx, card: Handle, controller: Handle) -> None:
+    """V24 (CR 110.2, 110.2a): a card put onto the battlefield under the control of a
+    player other than its owner sits in its owner's zone (the frozen world reads the
+    owner off the zone) and gets a control entry for that player, which ends when it
+    leaves the battlefield (Executor._on_zone_changes)."""
+    if ctx.executor is None:
+        raise ValueError(
+            "executor: a permanent entering under a non-owner's control needs an "
+            "executor-backed ExecCtx (the control overlay)"
+        )
+    ctx.executor.gain_control(card, controller, "Permanent", None)
 
 
 def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
@@ -247,6 +264,8 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         return
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = ctx.binding_handles("cards")
+    if cards is not None:
+        cards = existing(ctx, cards)  # CR 702.26b: a phased-out designation is skipped
     if cards is None:
         sel = atom.args.get("cards")
         if sel is None:
@@ -331,8 +350,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     )
     stayed: set[Handle] = set()
     for card in sorted(cards, reverse=True) if bottom_dest else cards:
-        owner = ctx.world.controller_of(card)
-        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        # V24: the owner's zone always (CR 400.3); a battlefield controller other
+        # than the owner becomes a control entry below, never a zone (CR 108.3).
+        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
@@ -355,12 +375,16 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     (len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source))
                 )
                 continue
-            enters, host = _aura_entry_host(ctx, card, target_player)
+            # V24 x V32 (CR 303.4f): the player the Aura enters under chooses its host,
+            # which is the controller when that is not the owner (whose zone it joins).
+            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
             if not enters:
                 stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
                 continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if new_controller is not None:
+            _enter_under_control(ctx, card, new_controller)
         if bottom_dest:
             zone.entries.remove(card)
             zone.entries.insert(0, card)
@@ -401,6 +425,80 @@ def _attach_entering_aura(ctx: ExecCtx, card: Handle, host: Handle) -> None:
     assert ctx.executor is not None  # _aura_entry_host chose a host only with one
     ctx.executor.attach_aura(card, host)
     ctx.events.append((len(ctx.events), "ATTACH", str(card), str(host)))
+
+
+#: Ontology R5-1: the zones a move "until" may take an object from. The return puts it back there
+#: (CR 610.3); a library or the stack has no position rule for that here, so such a move raises.
+_RETURNABLE_ZONES = (ZONE_BATTLEFIELD, ZONE_HAND, ZONE_GRAVEYARD, ZONE_EXILE)
+
+
+def _zone_map(world) -> dict[Handle, tuple[Handle, str]]:
+    """card -> (zone owner, zone kind) over every zone, without opening a journal boundary."""
+    out: dict[Handle, tuple[Handle, str]] = {}
+    for player in world.player_order:
+        for kind, zone in world.players[player].zones.items():
+            for card in zone.entries:
+                out[card] = (player, kind)
+    return out
+
+
+def _v_move_zone_until(ctx: ExecCtx, atom: Atom) -> None:
+    """MOVE_ZONE's handler. Without a ``duration`` role it is :func:`_v_move_zone`, unchanged.
+
+    Ontology R5-1 (CR 610.3): with one, the move is the first of two one-shot effects ("exile that
+    card until this creature leaves the battlefield"). The objects move exactly as without it, and
+    each one that arrives gets a row in the executor's return registry (``returns.py``). When the
+    duration ends, the executor returns it to its previous zone (``Executor._run_returns``).
+    CR 610.3a/b: if the anchor already left the battlefield after the ability triggered or the
+    spell was cast, the event has happened and nothing moves."""
+    duration = atom.args.get("duration")
+    if duration is None:
+        _v_move_zone(ctx, atom)
+        return
+    executor = ctx.executor
+    if executor is None:
+        raise ValueError(
+            "executor: MOVE_ZONE with a duration needs an executor-backed ExecCtx "
+            "(the return registry)"
+        )
+    assert isinstance(duration, Duration)  # the role table types it
+    tag = duration_tag(duration)
+    anchor: Handle | None = None
+    anchor_clock = 0
+    if isinstance(duration, DurationUntilLeaves):
+        anchor = referent_handle(duration.source, ctx)
+        if not anchor_unmoved(ctx, anchor):
+            # CR 610.3a/b: "the specified event has already occurred": the object doesn't move.
+            if atom.args.get("cards") is not None:
+                ctx.bindings["result"] = []
+            ctx.events.append((len(ctx.events), "MOVE_UNTIL_ENDED", str(anchor), tag))
+            return
+        if ctx.journal is not None:
+            anchor_clock = battlefield_entry_clock(ctx.journal, anchor)
+    before = _zone_map(ctx.world)
+    _v_move_zone(ctx, atom)
+    after = _zone_map(ctx.world)
+    for card in sorted(after):
+        was = before.get(card)
+        now = after[card]
+        if was is None or was == now:
+            continue
+        if was[1] not in _RETURNABLE_ZONES:
+            raise NotImplementedError(
+                f"executor: MOVE_ZONE until … from the {was[1]}: returning an object to a "
+                "library or the stack has no position rule here (flag, don't degrade)"
+            )
+        executor.returns.stage(
+            card,
+            zone=now[1],
+            previous_zone=was[1],
+            owner=now[0],
+            tag=tag,
+            anchor=anchor,
+            anchor_clock=anchor_clock,
+            source=ctx.source,
+            controller=ctx.controller,
+        )
 
 
 def _to_graveyard(ctx: ExecCtx, atom: Atom) -> None:
@@ -502,7 +600,10 @@ def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
         p = ctx.world.players[player]
-        p.life = max(0, p.life - n)  # life clamps at 0; deaths are 12b state-checks
+        # CR 119.3/119.6: the life total is adjusted, and may go below 0; a player at
+        # 0 or less loses as a state-based action (games' loss check reads <= 0).
+        # The old clamp at 0 also capped the journal's life-loss amount.
+        p.life = p.life - n
         ctx.events.append((len(ctx.events), "LOSE_LIFE", str(player), p.life))
 
 
@@ -559,7 +660,10 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
                 )
                 n_i = new_n
             p = ctx.world.players[target]
-            p.life = max(0, p.life - n_i)
+            # CR 120.3a, 119.3: damage to a player is that much life lost, below 0 too.
+            # The old clamp at 0 recorded 99 damage as 20 (the journal's DAMAGE row is
+            # the life difference), undercounting "that much damage" readers.
+            p.life = p.life - n_i
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
             _lifelink_gain(ctx, n_i)  # r20a: lifelink reads ANY damage dealt
             continue
@@ -573,6 +677,15 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         _deal_damage_to_card(ctx, target, n_i)
 
 
+#: CR 120.1a: the only objects damage can be dealt to.
+_DAMAGEABLE = FOr(
+    children=tuple(
+        FAtom(pred=FAtomPred.TYPE_EQ, string_value=kind)
+        for kind in ("Battle", "Creature", "Planeswalker")
+    )
+)
+
+
 def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
     """One card-side damage application: mark it, journal it, decide nothing.
     16c (CR 702.2b): when the SOURCE carries DEATHTOUCH the mark is flagged
@@ -584,6 +697,12 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
             "executor: card damage needs an executor-backed ExecCtx "
             "(bare ExecCtx has no damage ledger)"
         )
+    if not eval_filter(_DAMAGEABLE, target, ctx):
+        # CR 120.1a: damage can't be dealt to an object that's not a battle,
+        # a creature or a planeswalker (a land, a noncreature artifact): no
+        # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
+        # forced binding (a harness stimulus) did, and marked it (B-54).
+        return
     # r20a (Pack Leader): prevention-before-apply for card damage. A live
     # DamageDealtEvent PreventionRecord (the PREVENT_EFFECT lane's first
     # damage consumer) vetoes the WHOLE mark (QUnbounded = "all"); the
@@ -804,7 +923,29 @@ def _v_remove_counter(ctx: ExecCtx, atom: Atom) -> None:
     assert isinstance(kind, CounterKind)
     n = amount(ctx, atom, "count")
     for card in role_handles(ctx, atom, "target"):
-        counters = ctx.world.cards[card].counters
+        state = ctx.world.cards[card]
+        counters = state.counters
+        if kind is CounterKind.LOYALTY and (
+            kind.name in counters
+            or (
+                state.identity.loyalty is not None
+                and ctx.world.zone_of(card).kind == ZONE_BATTLEFIELD
+            )
+        ):
+            # V31 (CR 306.5c, 704.5i): the LOYALTY key IS the loyalty, and an absent
+            # key means an unseeded ledger that reads the printed loyalty
+            # (legality._loyalty_of). So 0 stays a value: popping it reset a walker
+            # brought to 0 to its printed loyalty instead of letting the state check
+            # put it into its owner's graveyard. Same read and write as the damage
+            # lane (CR 120.3c); the key leaves with the walker (_on_zone_changes).
+            have = counters.get(kind.name)
+            if have is None:
+                have = int(str(state.identity.loyalty))
+            counters[kind.name] = max(0, have - n)
+            ctx.events.append(
+                (len(ctx.events), "REMOVE_COUNTER", str(card), kind.name, n)
+            )
+            continue
         remaining = max(0, counters.get(kind.name, 0) - n)
         if remaining:
             counters[kind.name] = remaining
@@ -981,7 +1122,19 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
     if ctx.replacements is None:
         raise ValueError("executor: PREVENT_EFFECT needs an executor-backed ExecCtx")
     designated = ctx.binding_handles("target") or []
-    targets = tuple(h for h in designated if eval_filter(condition, h, ctx))
+    # V34 (CR 608.2b): the targeting restrictions written beside IS_ANY_TARGET in
+    # a combat slot ("another target creature with power 2 or less") are checked
+    # as the ability resolves; the creatures that pass are locked in, and the
+    # record reads only that set afterwards (replacements._slot_holds), so a
+    # pump after resolution does not undo "can't be blocked this turn".
+    from MTG_bot.core.executor.query import combat_target_filters
+
+    bound = combat_target_filters(event)
+    targets = tuple(
+        h
+        for h in designated
+        if eval_filter(condition, h, ctx) and all(eval_filter(f, h, ctx) for f in bound)
+    )
     ctx.replacements.register_prevention(
         ctx.source, ctx.controller, condition, event, step, duration, targets
     )
@@ -1312,7 +1465,7 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
     The compiler's documented debt is CARD-level divergence (the ONE_OF/
     REST split re-searches the library in sibling atoms); per-ATOM
     faithfulness is what this handler owns. The destination is role-based
-    (``zone_owner`` resolves the Zone's ControllerRef), ``tapped_on_enter``
+    (``move_destination``: the owner's zone, V24), ``tapped_on_enter``
     is honored on battlefield entry, and every move gets its journal row."""
     dest_ir = atom.args.get("destination")
     assert isinstance(dest_ir, Zone)  # Atom validation guarantees it
@@ -1338,17 +1491,20 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         return
     stayed: set[Handle] = set()
     for card in cards:
-        owner = ctx.world.controller_of(card)
-        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        # V24: the owner's zone, a non-owner controller as a control entry.
+        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
-            enters, host = _aura_entry_host(ctx, card, target_player)  # V32
+            # V32, chosen by the player it enters under (V24: the controller if not the owner)
+            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
             if not enters:
                 stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
                 continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if new_controller is not None:
+            _enter_under_control(ctx, card, new_controller)
         if tapped_on_enter and dest_kind == ZONE_BATTLEFIELD:
             ctx.world.cards[card].tapped = True
         ctx.events.append(
@@ -1405,33 +1561,54 @@ def _v_flip_coin(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_end_turn(ctx: ExecCtx, atom: Atom) -> None:
-    """END_TURN (13a, Discontinuity): the request flag is set here; the
-    actual close (marker + Eot sweeps) runs in the executor loop after the
-    current op's settle, so the turn still closes through the ONE turn
-    skeleton (:meth:`Executor.end_turn`) — no second end-of-turn path."""
+    """END_TURN (13a, Discontinuity): the request flag is set here; the turn
+    ends at the op boundary through the CR 724.1 procedure
+    (:meth:`Executor._end_the_turn`: no end step, straight to the cleanup
+    step). V37: the journal position is recorded as the process start, so
+    the abilities that triggered before it cease to exist (724.1a)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
+    if not executor.end_turn_requested:
+        executor.end_turn_mark = len(executor.journal.events)
     executor.end_turn_requested = True
     # The clock moves ahead of the close: an activation attempted later in
     # the SAME op is already out of the sorcery window (legality reads
-    # ``executor.phase``), and :meth:`Executor.end_turn` re-stamps it.
+    # ``executor.phase``), and the end of the turn re-stamps it.
     executor.phase = "END_TURN"
     ctx.events.append((len(ctx.events), "END_TURN", str(ctx.controller)))
 
 
 def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
-    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): enqueue the controller
-    ``count`` times — :meth:`Executor.advance_turn` pops the queue before
-    rotating, which is exactly CR 500.7's "next turn belongs to that
-    player" for consecutive grants (documented simplification: nested
-    extra turns from DIFFERENT players resolve queue-order, not the full
-    CR 500.7 dependency ordering)."""
+    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): the controller takes
+    ``count`` extra turns after this one. CR 500.7: the turns are added
+    directly after the current turn, one at a time, and the most recently
+    created turn is taken first, so they go to the FRONT of the queue
+    (:meth:`Executor.advance_turn` pops index 0), ahead of any extra turn
+    created earlier. The normal turn order resumes after the queue drains
+    (``advance_turn`` keeps that rotation)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
     count_q = atom.args.get("count")
     assert count_q is None or isinstance(count_q, Quantity)
     n = 1 if count_q is None else resolve(count_q, ctx)
-    for _ in range(n):
-        executor.extra_turn_queue.append(ctx.controller)
+    executor.extra_turn_queue[0:0] = [ctx.controller] * n
     ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
+
+
+def _v_phase_out(ctx: ExecCtx, atom: Atom) -> None:
+    """PHASE_OUT (CR 702.26; Teferi, Master of Time's [−3], Teferi, Timeless
+    Voyager's [−8]): the permanents the ``target`` role names phase out
+    (:meth:`Executor.phase_out`: the status, indirect phasing, removal from
+    combat). The role's Selector resolves itself: a TARGET selector reads
+    the designation (only targets still legal, CR 608.2b), an ALL selector
+    ("each creature target opponent controls") its population, whose
+    filter reads the designated player. ``role_handles``' binding-first
+    lane would hand that designated PLAYER to the verb instead. The
+    permanents that phased out directly are the ``result`` register (the
+    anaphora "they" of a following instruction)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    sel = atom.args.get("target")
+    assert isinstance(sel, Selector)  # role table: PHASE_OUT target is a Selector
+    cards = [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
+    ctx.bindings["result"] = executor.phase_out(cards)
 
 
 def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
@@ -2090,7 +2267,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
 
 
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
-    Verb.MOVE_ZONE: _v_move_zone,
+    Verb.MOVE_ZONE: _v_move_zone_until,  # R5-1: _v_move_zone plus the "until" duration
     Verb.SACRIFICE: _to_graveyard,
     Verb.DESTROY: _to_graveyard,
     Verb.GAIN_LIFE: _v_gain_life,
@@ -2120,6 +2297,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.FLIP_COIN: _v_flip_coin,
     Verb.END_TURN: _v_end_turn,
     Verb.EXTRA_TURN: _v_extra_turn,
+    Verb.PHASE_OUT: _v_phase_out,  # CR 702.26 (2026-10-29)
     Verb.LOSE_GAME: _v_lose_game,
     # 13b: the cast-side verbs — the gate-flip five (PAY, CAST, CHOOSE,
     # CHOOSE_NAME, MANA_POLICY). SUPPORTED_VERBS_V2 derives from THIS

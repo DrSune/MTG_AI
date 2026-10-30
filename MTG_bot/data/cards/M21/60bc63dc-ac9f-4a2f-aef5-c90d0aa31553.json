@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "60bc63dc-ac9f-4a2f-aef5-c90d0aa31553",
+ "name": "Thrashing Brontodon",
+ "text_sha": "ba4ed7ee888f4b420940886e697f9ce92b44d3f3b618f6be2822bb8ca279b356",
+ "verified": {
+  "tree_sha": "9900be46178712b405a8836c1b2b1fcf5f4b10bbc734bdccd39483288eaf0297",
+  "probe_sha": "80729656845798a68ee7ac02891fb5e7284fc1cd81259e95452255d8eb924c55",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "{1}, Sacrifice this creature: Destroy target artifact or enchantment.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_relic, you_charm, opp_relic, opp_charm] (artifacts and enchantments of both players, no creatures or lands). Each [activate [0] targets=...]: mana W-1 (the {1}), card moves battlefield -> graveyard by SACRIFICE, target destroyed (moves to graveyard by DESTROY). No timing restriction (instant speed, as printed). Tree equal to parse template B5c-cost-sacrifice-destroy.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

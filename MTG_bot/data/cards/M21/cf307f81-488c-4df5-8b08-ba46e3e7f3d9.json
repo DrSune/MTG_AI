@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "cf307f81-488c-4df5-8b08-ba46e3e7f3d9",
+ "name": "Eliminate",
+ "text_sha": "1e9f2c86776747f0871b8beb19b0ed861d9d820eae37c1379d8ddf31a15fc7ed",
+ "verified": {
+  "tree_sha": "d635a2bb8681c33b6191e59c132fb62fd10c4818a3d5768e28c4b1e6f1e364d1",
+  "probe_sha": "07211c5ce9334b09c535041e126d28b4851446a58634f2f73fa3081885aec8ac",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Destroy target creature ... with mana value 3 or less.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you_bear, opp_flier, opp_tapped, opp_bear]': exactly one target; creatures of either side with MV <= 3 (opp_tapped MV 3 included), the MV-5 giants and the non-creature relics/charms excluded. Each [cast targets=[...]] destroys that creature ('moves battlefield -> graveyard (by card/DESTROY)', 'dies'), the spell goes to the graveyard, cost B-1 plus one generic.",
+    "issue": "engine-limit: no priority; the instant is cast only in its controller's own action window (weaker only)."
+   },
+   {
+    "clause": "Destroy target ... planeswalker with mana value 3 or less.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No planeswalker on the probe board. Tree: FOr branch FAnd(TYPE_EQ Planeswalker, CMC_LE 3). Pack eliminate_planeswalker_mv: a MV-4 planeswalker and a MV-4 creature are refused as targets ('illegal target selection'), a MV-3 planeswalker is destroyed: PASS. The pack kills a mutant without the planeswalker branch and one without the planeswalker MV limit.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/eliminate_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 6,
+   "score": 0.6,
+   "survived": [
+    "amount+1 at 1/0/effect/args/target/filter/children/0/children/1/count",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter/children/1",
+    "amount+1 at 1/0/effect/args/target/filter/children/1/children/1/count",
+    "amount-1 at 1/0/effect/args/target/filter/children/1/children/1/count"
+   ]
+  }
+ }
+}

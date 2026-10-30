@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fish", "real": "Mystic Skyfish", "zone": "battlefield", "controller": 0},
+  {"key": "or", "real": "Revitalize", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"W": 2}},
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "cast", "real": "Revitalize", "key": "or", "controller": 1}
+ ],
+ "expect": {
+  "hand": {"1": 2},
+  "life": {"1": 23},
+  "battlefield_keywords": {"Mystic Skyfish": []}
+ },
+ "notes": "Printed: 'Whenever YOU draw your second card each turn ...'. On the opponent's turn the opponent draws in their draw step and again with Revitalize (their second card this turn): the Skyfish's controller drew nothing, so it does not gain flying."
+}

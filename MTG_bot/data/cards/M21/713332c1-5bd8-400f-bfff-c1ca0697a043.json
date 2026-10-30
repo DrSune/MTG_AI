@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "713332c1-5bd8-400f-bfff-c1ca0697a043",
+ "name": "Opt",
+ "text_sha": "455a1fd401e876ba6333ef83c01ff6cfcd0ac2aaf792255b49647578c6896c1e",
+ "verified": {
+  "tree_sha": "a079fdddb19c2d7926b55124ea8962fe90667f590c4b2a0d319a386e49709496",
+  "probe_sha": "711976ebb4bcc5d0f898b4402f16568d4750644424b1a2d4420107efb5054a9a",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Scry 1. (Instant {U})",
+    "status": "OK",
+    "evidence": "[cast]: ask scry: [top, bottom] (one card) -> top, then draws Library 5#1; [cast | ask 1 -> bottom]: the top card goes to the bottom and the draw takes Library 4#1; mana U-1",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "Both variants: exactly one DRAW after the scry, library 6 -> 5",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.' You control six Shrines: Sanctum of All, Sanctum of Stone Fangs and four synthetic Shrines. On your next turn (upkeep search skipped) Stone Fangs' precombat-main trigger ('each opponent loses X life and you gain X life, X = Shrines you control') triggers twice with X = 6: opponent 20 -> 8, you 20 -> 32.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sf",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s0",
+   "name": "Shrine 0",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "name": "Shrine 1",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Shrine 2",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Shrine 3",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "enter",
+   "key": "sf"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 32,
+   "1": 8
+  }
+ }
+}

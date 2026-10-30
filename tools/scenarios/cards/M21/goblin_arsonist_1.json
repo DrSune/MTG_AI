@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "notes": "Goblin Arsonist, printed: 'When this creature dies, you may have it deal 1 damage to ANY TARGET.' Any target includes a planeswalker: the Arsonist is dealt lethal damage, its dies trigger targets the opponent's Basri Ket and the may is taken: Basri loses 1 loyalty (3 -> 2). Nothing else is damaged.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ars", "real": "Goblin Arsonist", "zone": "battlefield", "controller": 0},
+  {"key": "obasri", "real": "Basri Ket", "zone": "hand", "controller": 1},
+  {"key": "ogiant", "name": "Opp Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "obasri"},
+  {"op": "loyalty", "key": "obasri", "set": 3},
+  {"op": "deal_damage", "source": "ogiant", "target": "ars", "amount": 1, "decisions": ["obasri", "fire"]}
+ ],
+ "expect": {
+  "zone": {"ars": "graveyard", "obasri": "battlefield"},
+  "counters": {"obasri": {"LOYALTY": 2}},
+  "life": {"0": 20, "1": 20},
+  "damage": {}
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Predatory Wurm, printed: '+2/+2 AS LONG AS you control a Garruk planeswalker.' Your Garruk, Unleashed enters, then takes 13 damage and goes to the graveyard (loyalty 0): the bonus ends and the Wurm attacks as a 4/4 (P1 20->16).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Predatory Wurm", "zone": "battlefield", "controller": 0},
+  {"key": "g", "real": "Garruk, Unleashed", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "g"},
+  {"op": "loyalty", "key": "g", "set": 4},
+  {"op": "deal_damage", "source": "w", "target": "g", "amount": 13},
+  {"op": "combat", "seat": 0, "attack": {"w": true}}
+ ],
+ "expect": {
+  "zone": {"g": "graveyard"},
+  "power": {"w": 4},
+  "toughness": {"w": 4},
+  "life": {"1": 16},
+  "tapped": {"w": false}
+ }
+}

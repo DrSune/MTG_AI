@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the planeswalker count). Printed: 'At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on A Liliana planeswalker you control.' You control two Liliana planeswalkers (Liliana, Waker of the Dead and Liliana, Death Mage; different names, so the legend rule keeps both), each at 3 loyalty. Your Bear dies; at your end step you take the may and choose Death Mage: it goes to 4, Waker of the Dead stays at 3.",
+ "cards": [
+  {"key": "sc", "real": "Liliana's Scrounger", "zone": "battlefield", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "lili2", "real": "Liliana, Death Mage", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "lili"},
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "enter", "key": "lili2"},
+  {"op": "loyalty", "key": "lili2", "set": 3},
+  {"op": "deal_damage", "source": "sc", "target": "bear", "amount": 99},
+  {"op": "end_turn", "decisions": ["fire", "lili2"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "lili": "battlefield", "lili2": "battlefield"},
+  "counters": {"lili": {"LOYALTY": 3}, "lili2": {"LOYALTY": 4}}
+ }
+}

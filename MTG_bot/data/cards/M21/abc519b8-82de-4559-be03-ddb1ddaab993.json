@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "abc519b8-82de-4559-be03-ddb1ddaab993",
+ "name": "Wishcoin Crab",
+ "text_sha": "af4f7322bcf7672ed9916e255cdeb9f69f6690a10c6436c4e930e2b10234bd21",
+ "verified": {
+  "tree_sha": "1886a6beb8a23e3d734a138c639a9310503cb5370d7f59d6efdc82dabefa6069",
+  "probe_sha": "f25f53d73a22bcf1f5e8643e4dd534d554f7b5ef033188bd7583a0e66665409b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Crab {3}{U} 2/5, no rules text (vanilla)",
+    "status": "OK",
+    "evidence": "tree: no keywords, only SpellAbility(CREATURE); [cast]: P/T - -> 2/5, mana U-1 W-3 (4 total); unblocked: opp 20 -> 18; blocked by opp_giant: takes 4 and survives (damage 0 -> 4), deals 2; no stimulus triggers anything",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

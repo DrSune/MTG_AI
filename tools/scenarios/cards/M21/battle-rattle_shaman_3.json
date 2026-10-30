@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sh", "real": "Battle-Rattle Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "foe", "name": "Foe Bear", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "may": {"sh": true}, "decisions": ["foe"]}
+ ],
+ "expect": {"power": {"foe": 4, "sh": 2}, "toughness": {"foe": 2}},
+ "notes": "Printed: '... target creature ...' (any creature): the opponent's creature is a legal target and gets +2/+0 when chosen."}

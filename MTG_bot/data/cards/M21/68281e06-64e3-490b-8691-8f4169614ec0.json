@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "68281e06-64e3-490b-8691-8f4169614ec0",
+ "name": "Basri's Solidarity",
+ "text_sha": "3037399409aa17c2bc73723c97215c819150335737b889a268867828ce7dffeb",
+ "verified": {
+  "tree_sha": "c16508a13c7fb1018672816e82caacd9e91b75c2c48ff2983c46e66829de959c",
+  "probe_sha": "927602e60fd446053f9b2ffa22f61f2e48b278a0c00f0de6a373d4c7ab79c50c",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on each creature you control. (Sorcery {1}{W})",
+    "status": "OK",
+    "evidence": "[cast]: you_bear and you_giant each get one PLUS_1_PLUS_1 counter (2/2 -> 3/3, 4/4 -> 5/5); no opponent creature gets one; after the turn ends nothing changes (counters stay); mana W-2. Tree filter FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

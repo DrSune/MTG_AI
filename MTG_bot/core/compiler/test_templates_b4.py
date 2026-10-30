@@ -58,10 +58,8 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     TargetingEvent,
-    TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
     canonical_json,
@@ -428,15 +426,17 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-cast-graveyard-recost",
         "ability",
     ),
+    # re-pinned 2026-10-29: m21-fidelity, the sorcery tutors are part of the spell's effect
+    # (they were free activated rows that never ran on resolution).
     "You may search your library and/or graveyard for a card named "
     "Basri, Devoted Paladin, reveal it, and put it into your hand.": (
         "B4-tutor-basri",
-        "ability",
+        "effect",
     ),
     "You may search your library and/or graveyard for a card named "
     "Liliana, Death Mage, reveal it, and put it into your hand.": (
         "B4-tutor-liliana",
-        "ability",
+        "effect",
     ),
     "This spell costs {2}{U} less to cast if you've cast an instant or "
     "sorcery spell this turn.": ("B4-stormwing-cost", "ability"),
@@ -1175,16 +1175,17 @@ class TestB4IrStructure(unittest.TestCase):
         )
 
     def _assert_tutor_structure(self, sentence: str, card_name: str) -> None:
-        outcome = _as_ability(_single_match(self.reg, sentence).outcome)
-        ability = _as_activated(outcome.ability)
-        self.assertEqual(ability.cost.parts, ())
-        optional = _as_optional(ability.effect)
+        # re-pinned 2026-10-29: m21-fidelity, an EffectOutcome of the sorcery (the optional
+        # search runs as the spell resolves), no longer a free ActivatedAbility(cost={}).
+        outcome = _as_effect(_single_match(self.reg, sentence).outcome)
+        optional = _as_optional(outcome.effect)
         seq = _as_seq(optional.inner)
-        self.assertEqual(len(seq.steps), 3)
-        search_atom, reveal_atom, move_atom = seq.steps
+        # re-pinned 2026-10-30 (G3 finisher): SEARCH + REVEAL only; the third step, an
+        # unprinted MOVE_ZONE of this card from the top of the library, is gone.
+        self.assertEqual(len(seq.steps), 2)
+        search_atom, reveal_atom = seq.steps
         assert isinstance(search_atom, Atom)
         assert isinstance(reveal_atom, Atom)
-        assert isinstance(move_atom, Atom)
         # SEARCH
         self.assertIs(search_atom.verb, Verb.SEARCH)
         cards = _selector(search_atom, "cards")
@@ -1209,12 +1210,6 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(reveal_atom.verb, Verb.REVEAL)
         self.assertIs(_pairs(reveal_atom).get("controller"), ControllerRef.YOU)
         self.assertEqual(_qconst(_pairs(reveal_atom).get("count")).value, 1)
-        # MOVE_ZONE
-        self.assertIs(move_atom.verb, Verb.MOVE_ZONE)
-        move_dest = move_atom.args.get("destination")
-        assert isinstance(move_dest, Zone)
-        self.assertIs(move_dest.kind, ZoneKind.HAND)
-        self.assertIs(move_dest.controller, ControllerRef.YOU)
 
     # ------------------------------------------------------------------
     # Round-6 batch: blocked-side restrictions, MANDATE_BLOCK, ETB X-counters
@@ -1291,29 +1286,12 @@ class TestB4IrStructure(unittest.TestCase):
             ).outcome
         )
         ability = outcome.ability
-        assert isinstance(ability, TriggeredAbility), (
-            f"expected TriggeredAbility, got {type(ability).__name__}"
+        # re-pinned 2026-10-29: m21-fidelity (review batch B). "enters with X counters" is an
+        # entering-state replacement (CR 614.1c), EtBState with (+1/+1, X); it was an ETB
+        # trigger putting X counters on the event subject, so the creature entered as a 0/0.
+        self.assertEqual(
+            ability, EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
         )
-        self.assertIsNone(ability.condition)
-        event = ability.event
-        assert isinstance(event, ZoneChangeEvent), (
-            f"expected ZoneChangeEvent, got {type(event).__name__}"
-        )
-        self.assertIs(event.from_zone.kind, ZoneKind.ANY)
-        self.assertIs(event.to_zone.kind, ZoneKind.BATTLEFIELD)
-        assert event.subject is not None
-        self.assertIs(_as_fatom(event.subject).pred, FAtomPred.IS_SOURCE)
-        atom = _as_atom(ability.effect)
-        self.assertIs(atom.verb, Verb.PUT_COUNTER)
-        target = _selector(atom, "target")
-        # Convention C2: referent selector — CHOOSE + QConst(1) + neutral zone.
-        self.assertEqual(target.referent, "event")
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(_qconst(target.count).value, 1)
-        self.assertIs(target.zones[0].kind, ZoneKind.ANY)
-        self.assertEqual(target.filter, FAnd(children=()))
-        self.assertIs(_pairs(atom).get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
-        self.assertIsInstance(_pairs(atom).get("count"), QX)
 
 
 class TestB4Round7AnaphoraIr(unittest.TestCase):
@@ -1418,9 +1396,14 @@ class TestB4Round9B(unittest.TestCase):
         self.assertEqual(_pairs(atom), {"scope": "ALL_YOURS"})
 
     def test_tefei_grant_activation(self) -> None:
-        """GRANT_ACTIVATION (R9-7): holder gate FAnd(Planeswalker,
-        NAME_CONTAINS Teferi); window = INSTANT verbatim from "any time you
-        could cast an instant" (NOT the r10 fixture's SORCERY example)."""
+        """GRANT_ACTIVATION (R9-7): holder gate = the self referent IS_SOURCE;
+        window = INSTANT verbatim from "any time you could cast an instant"
+        (NOT the r10 fixture's SORCERY example).
+
+        re-pinned 2026-10-29: the holder was FAnd(Planeswalker, NAME_CONTAINS
+        "Teferi"), which also matched every other Teferi planeswalker. "Teferi"
+        is the card's shortened name, so it means this object only (CR 201.5,
+        201.5c)."""
         outcome = _single_match(
             self.reg,
             "You may activate loyalty abilities of Teferi on any player's "
@@ -1430,21 +1413,7 @@ class TestB4Round9B(unittest.TestCase):
         opt = _as_optional(static.effect)
         atom = _as_atom(opt.inner)
         self.assertIs(atom.verb, Verb.GRANT_ACTIVATION)
-        holder = atom.args.get("filter")
-        assert isinstance(holder, FAnd)
-        # R1a canonicalization (ontology §3 SET-R1a): FAnd children are
-        # construction-sorted by canonical_json — members pinned by pred, the
-        # printed-order index replaced, the ORDER pinned by the law itself.
-        self.assertEqual(
-            list(holder.children), sorted(holder.children, key=canonical_json)
-        )
-        by_pred = {c.pred: c for c in holder.children}
-        self.assertEqual(len(by_pred), 2)
-        type_a = by_pred[FAtomPred.TYPE_EQ]
-        name_a = by_pred[FAtomPred.NAME_CONTAINS]
-        assert isinstance(type_a, FAtom) and isinstance(name_a, FAtom)
-        self.assertEqual(type_a.string_value, "Planeswalker")
-        self.assertEqual(name_a.string_value, "Teferi")
+        self.assertEqual(atom.args.get("filter"), FAtom(pred=FAtomPred.IS_SOURCE))
         self.assertIs(atom.args.get("window"), ActivationWindow.INSTANT)
 
     def test_enthralling_target_choice(self) -> None:

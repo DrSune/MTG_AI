@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '{R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker.' Targeting the opponent's Basri Ket at 5 loyalty: the 2/2 Immolator's 2 damage removes 2 loyalty counters (5 -> 3).",
+ "cards": [
+  {"key": "hi", "real": "Heartfire Immolator", "zone": "battlefield", "controller": 0},
+  {"key": "pw", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 5},
+  {"op": "activate", "key": "hi", "idx": 0, "seat": 0, "targets": ["pw"]}
+ ],
+ "expect": {
+  "zone": {"hi": "graveyard", "pw": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 3}},
+  "mana_pool": {"0": {}}
+ }}

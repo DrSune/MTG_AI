@@ -47,15 +47,19 @@ def _record(raw, card, *, verified: bool) -> dict:
     return rec
 
 
-def test_m21_has_no_records_and_compiles_byte_identically() -> None:
-    assert card_records.load_records("M21") == {}
+def test_m21_records_are_stamps_and_compile_byte_identically() -> None:
+    # re-pinned 2026-10-29: the M21 verification campaign stamped compiled cards as verified.
+    # Their records carry no mapped tree ("ir"), only the verification of the compiler's own
+    # tree, so applying them must leave every M21 tree byte-identical.
+    records = card_records.load_records("M21")
+    assert records and all("ir" not in rec and "verified" in rec for rec in records.values())
     raw = ingest_pool(DATA / "M21.json")
-    plain = compile_pool(raw, REGISTRY)
-    with_empty = compile_pool(raw, REGISTRY, records={})
+    plain = compile_pool(raw, REGISTRY, records={})
+    stamped = compile_pool(raw, REGISTRY, records=records)
     assert {o: fingerprint(c) for o, c in plain.cards.items()} == {
-        o: fingerprint(c) for o, c in with_empty.cards.items()
+        o: fingerprint(c) for o, c in stamped.cards.items()
     }
-    assert all(r.record is None for r in with_empty.results.values())
+    assert all(r.record is None for r in plain.results.values())
 
 
 def test_a_verified_record_replaces_the_tree_and_clears_the_unparsed_register(fdn) -> None:

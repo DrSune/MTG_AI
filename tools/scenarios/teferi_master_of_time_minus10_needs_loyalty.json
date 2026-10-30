@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "teferi", "set": 9},
+  {"op": "activate", "key": "teferi", "idx": 3, "seat": 0, "expect_raise": "cost:loyalty:9<10"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"teferi": "battlefield"},
+  "counters": {"teferi": {"LOYALTY": 9}}
+ },
+ "notes": "Negative case for Teferi, Master of Time [-10]: CR 606.6, a loyalty ability with a negative cost can't be activated unless the permanent has at least that many loyalty counters. With 9 loyalty the activation is refused, no extra turn is created, and the next turn is seat 1's."
+}

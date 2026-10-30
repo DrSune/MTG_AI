@@ -1,0 +1,51 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "'fights ANOTHER target creature': Brash Taunter cannot target itself, so the activation is refused and nothing happens (no damage, no life change, Taunter stays untapped). ENGINE repro (m21-fidelity, 2026-10-29): the tree now excludes the source (FNot(IS_SOURCE)), and activation_target_slots offers only the Opp Giant, but legality.activate never validates the given targets against the ability's target slots (the spell lane does, stack._validate_spell_targets), so the self-designation is still accepted. Fails until activate validates its designation (CR 602.2b, 601.2c).",
+ "cards": [
+  {
+   "key": "bt",
+   "real": "Brash Taunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Opp Giant",
+   "type": "Creature",
+   "power": 4,
+   "toughness": 4,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "bt",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "bt"
+   ],
+   "expect_raise": "illegal"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tapped": {
+   "bt": false
+  }
+ }
+}

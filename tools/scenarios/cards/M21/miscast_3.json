@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+  {"key": "miscast", "real": "Miscast", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}, "1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Staunch Shieldmate", "key": "mate", "decisions": ["miscast"]}
+ ],
+ "expect": {
+  "zone": {"mate": "battlefield", "miscast": "hand"},
+  "window_asks": {"1": []}
+ },
+ "notes": "Printed Miscast: 'Counter target instant or sorcery spell ...'. A creature spell is not a legal target, so Miscast is never offered against Staunch Shieldmate, which resolves; Miscast stays in hand."
+}

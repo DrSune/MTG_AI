@@ -15,7 +15,9 @@ Batch C3 restores three clause emissions that the goldens never carried:
 3. Peer into the Abyss — STOP verdict: the missing half-life clause has
    no quantity lane (no LIFE-total quantity field; R9 grammar roadmap), so
    the golden stays byte-identical and the pin below only falsifies that
-   no half-LOSE_LIFE approximation was smuggled in.
+   no half-LOSE_LIFE approximation was smuggled in. (Superseded
+   2026-10-29, m21-fidelity item 2: r24a added QPropField.LIFE, the exact
+   clause is emitted, and the pin now checks it is exact.)
 
 Goldens moved for the two promoted cards under the C1-form set-evidence
 audit (pre-snapshot /tmp/golden_pre_c3, 303 others byte-identical; moved
@@ -37,8 +39,13 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     FNot,
+    QBin,
+    QBinOp,
     QConst,
+    QProp,
+    QPropField,
     QUnbounded,
+    Rounding,
     Seq,
     Selector,
     SelectorMode,
@@ -234,17 +241,38 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- peer: STOP verdict falsification ----
 
     def test_peer_golden_unchanged_no_half_life_approximation(self) -> None:
-        """Peer's DRAW half-library clause stays the ONLY emitted effect
-        (QCount-shape intact); the missing "loses half their life" has no
-        quantity lane (no LIFE-total Quantity in the grammar — R9 roadmap),
-        so no approximation is emitted and the golden stays byte-identical."""
+        """Peer's DRAW half-library clause keeps its QCount shape, and no
+        approximation of "loses half their life" is emitted.
+
+        # re-pinned 2026-10-29: m21-fidelity item 2 emits the exact life
+        # half now that QPropField.LIFE exists (r24a), so the pin moves from
+        # "no LOSE_LIFE at all" to "the LOSE_LIFE is exact": the target
+        # player's own life (EachPlayer rotation, never the caster's),
+        # halved and rounded up (CR 107.1a), after the draw (printed order)."""
         res = self._compile(_PEER)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
         effect = spell.effect
-        assert isinstance(effect, Atom)
-        self.assertIs(effect.verb, Verb.DRAW)
-        self.assertNotIn("LOSE_LIFE", repr(effect))
+        assert isinstance(effect, Seq)
+        draw, lose = effect.steps
+        assert isinstance(draw, Atom)
+        self.assertIs(draw.verb, Verb.DRAW)
+        self.assertIs(draw.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        self.assertNotIn("LOSE_LIFE", repr(draw))
+        assert isinstance(lose, EachPlayer)
+        self.assertIs(lose.ref, ControllerRef.TARGET_PLAYER)
+        assert isinstance(lose.effect, Atom)
+        self.assertIs(lose.effect.verb, Verb.LOSE_LIFE)
+        self.assertIs(lose.effect.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(
+            lose.effect.args.get("amount"),
+            QBin(
+                op=QBinOp.DIV,
+                left=QProp(referent="controller", field=QPropField.LIFE),
+                right=QConst(2),
+                rounding=Rounding.CEIL,
+            ),
+        )
 
 
 if __name__ == "__main__":

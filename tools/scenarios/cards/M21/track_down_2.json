@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7, "library_top": true},
+  "cards": [
+    {"key": "td", "real": "Track Down", "zone": "hand", "controller": 0},
+    {"key": "x1", "name": "Test Spell One", "type": "Instant", "zone": "library", "controller": 0},
+    {"key": "x2", "name": "Test Spell Two", "type": "Sorcery", "zone": "library", "controller": 0},
+    {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+    {"key": "opener", "name": "Test Opener", "type": "Sorcery", "zone": "library", "controller": 0}
+  ],
+  "mana": {"0": {"G": 2}},
+  "steps": [
+    {"op": "cast", "key": "td", "real": "Track Down", "decisions": ["top", "top", "top"]}
+  ],
+  "expect": {
+    "zone": {"td": "graveyard", "opener": "hand", "forest": "hand", "x1": "library", "x2": "library"},
+    "hand": {"0": 2}
+  }
+}

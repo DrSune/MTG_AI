@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "a7865331-4c53-46db-b2d7-7e5cb21b6b9d",
+ "name": "Frantic Inventory",
+ "text_sha": "315844cf2537ac9710c5ca4902de3bddb46562ef61842618bccf71e9c04f0852",
+ "verified": {
+  "tree_sha": "2a022c876536966805da9ed6c16791919986cc11b9e1ccbd98944ae511bccb77",
+  "probe_sha": "ac8f1e1e8d4974b61a661767603ffa514c94480a373f5852a5f43c70ec723660",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {1}{U}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); [cast] 'mana U-1 W-1'",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card,",
+    "status": "OK",
+    "evidence": "DRAW 1 YOU; [cast] with no copy in the graveyard: exactly one 'you draws', library 6 -> 5 (the resolving copy does not count itself)",
+    "issue": ""
+   },
+   {
+    "clause": "then draw cards equal to the number of cards named Frantic Inventory in your graveyard.",
+    "status": "OK",
+    "evidence": "DRAW QCount(ALL NAME_EQ 'Frantic Inventory' in GRAVEYARD YOU); the trace has no copy in the graveyard (count 0). Pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pb5a75a5608_frantic_inventory_count.json (PASS): two copies in my graveyard and one in the opponent's -> 3 cards drawn in total (opponent's copy and the copy on the stack not counted)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/frantic_inventory_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/amount/selector/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/controller"
+   ]
+  }
+ }
+}

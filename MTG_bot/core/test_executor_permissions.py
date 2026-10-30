@@ -206,6 +206,47 @@ class TestLandPlayBonus(PermCase):
         self.assertEqual(self.ex.layers.land_play_bonus(self.p1), 0)
 
 
+class TestLandPlayStatic(PermCase):
+    """m21-fidelity (2026-10-29): the compiled Azusa is a STATIC ability (CR 604.1, 305.2),
+    StaticAbility(OptionalEffect(ADD_LAND_PLAY count=2)): the allowance is 1 + 2 while she is on
+    the battlefield, with no activation, it never grows, and it ends when she leaves."""
+
+    def setUp(self):
+        super().setUp()
+        self.azusa = self.place(
+            "Azusa",
+            self.p0,
+            abilities=[
+                StaticAbility(
+                    effect=OptionalEffect(atom(Verb.ADD_LAND_PLAY, count=QConst(2)))
+                )
+            ],
+        )
+        self.hands = []
+        for _ in range(5):
+            cid = card_id("Plains", type_line="Land")
+            land = self.world.add_card(cid, self.p0, ZONE_HAND)
+            self.ex.attach_card(land, rec("Plains", cid.oracle_id, (), "Land"))
+            self.hands.append(land)
+        self.ex.begin_turn(self.p0)
+
+    def test_static_allowance_is_one_plus_two(self):
+        self.assertEqual(self.ex.layers.land_play_bonus(self.p0), 2)
+        self.assertEqual(self.ex.layers.land_play_bonus(self.p1), 0)
+        for land in self.hands[:3]:
+            self.assertIsNone(land_playable(self.ex, self.p0, land))
+            play_land(self.ex, self.p0, land)
+        self.assertIn(
+            "land:used_this_turn", land_playable(self.ex, self.p0, self.hands[3]) or ""
+        )
+        self.assertEqual(self.ex.layers.land_play_bonus(self.p0), 2)  # never grows
+
+    def test_static_allowance_ends_when_the_source_leaves(self):
+        self.ex.layers.detach_source(self.azusa)
+        self.settle()
+        self.assertEqual(self.ex.layers.land_play_bonus(self.p0), 0)
+
+
 # ------------------------------------------------------------------ GRANT_TYPE
 
 

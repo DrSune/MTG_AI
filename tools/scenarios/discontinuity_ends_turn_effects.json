@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0},
+  {"key": "disc", "real": "Discontinuity", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "U": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["bear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 3, "controller": 1},
+  {"op": "cast", "real": "Discontinuity", "key": "disc"}
+ ],
+ "expect": {
+  "zone": {"disc": "exile", "tg": "graveyard", "bear": "battlefield"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2},
+  "damage": {},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Discontinuity: 'During your turn, this spell costs {2}{U}{U} less to cast. End the turn.' On your turn it costs {1}{U} (pool G2 U2 exactly covers it after Titanic Growth's {1}{G}). Ending the turn exiles the spell, and damage wears off at the same time 'until end of turn' effects end (CR 514.2 via 724.1d): the Bear is back to 2/2 with no damage and survives."
+}

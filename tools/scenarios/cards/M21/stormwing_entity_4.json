@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Stormwing Entity", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 5}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Stormwing Entity", "controller": 0, "decisions": ["bottom", "top"]}
+ ],
+ "expect": {
+  "zone": {"s": "battlefield"},
+  "mana_pool": {"0": {}},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}
+ },
+ "notes": "Printed: 'When this creature enters, scry 2.' Cast for the full {3}{U}{U}; the enters trigger looks at the top two (Library 5, Library 4): the first goes to the bottom, the second stays on top."
+}

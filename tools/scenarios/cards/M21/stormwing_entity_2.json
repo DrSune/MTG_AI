@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Stormwing Entity", "zone": "hand", "controller": 0},
+  {"key": "fi", "real": "Frantic Inventory", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "fi", "real": "Frantic Inventory", "controller": 1},
+  {"op": "cast", "key": "s", "real": "Stormwing Entity", "controller": 0, "decisions": ["top", "top"], "expect_raise": "cost:mana_generic"}
+ ],
+ "expect": {
+  "zone": {"s": "hand", "fi": "graveyard"}
+ },
+ "notes": "Printed: 'if YOU've cast an instant or sorcery spell this turn.' Only the opponent cast an instant (Frantic Inventory) this turn, so the Entity still costs {3}{U}{U} and a U:2 pool cannot pay it: the cast must be refused."
+}

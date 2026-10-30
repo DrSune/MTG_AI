@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fish", "real": "Mystic Skyfish", "zone": "battlefield", "controller": 0},
+  {"key": "r1", "real": "Revitalize", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "cast", "real": "Revitalize", "key": "r1"}
+ ],
+ "expect": {
+  "hand": {"0": 2},
+  "battlefield_keywords": {"Mystic Skyfish": ["FLYING"]}
+ },
+ "notes": "Printed: '... your second card EACH TURN ...'. On your next turn the draw-step card is your first card that turn and Revitalize's draw is your second, so the Skyfish gains flying (the count restarts each turn and the opponent's draw in between does not count)."
+}

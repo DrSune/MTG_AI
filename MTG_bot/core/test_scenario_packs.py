@@ -23,6 +23,10 @@ from tools.run_scenarios import run_pack
 
 PACK_DIR = Path(__file__).resolve().parents[2] / "tools" / "scenarios"
 PACKS = sorted(PACK_DIR.glob("*.json"))
+# Spec packs of verified cards (docs/PLAN_CARD_ONBOARDING.md gate G4), copied in by
+# `tools/cards/cardtool.py verify`: tools/scenarios/cards/<SET>/<card>_<n>.json. They pin the
+# printed behaviour of every verified card, so an engine change that breaks one fails here.
+CARD_PACKS = sorted(PACK_DIR.glob("cards/*/*.json"))
 
 
 def _set_code(path: Path) -> str:
@@ -39,5 +43,11 @@ def test_pack_directory_is_complete() -> None:
 
 @pytest.mark.parametrize("path", PACKS, ids=[p.stem for p in PACKS])
 def test_pack(path: Path) -> None:
+    failures = run_pack(path, get_supply("all", _set_code(path)))
+    assert not failures, "\n".join(failures)
+
+
+@pytest.mark.parametrize("path", CARD_PACKS, ids=[f"{p.parent.name}/{p.stem}" for p in CARD_PACKS])
+def test_card_pack(path: Path) -> None:
     failures = run_pack(path, get_supply("all", _set_code(path)))
     assert not failures, "\n".join(failures)

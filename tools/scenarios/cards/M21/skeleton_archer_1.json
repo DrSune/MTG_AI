@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "archer", "real": "Skeleton Archer", "zone": "hand", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+    {"key": "bear", "name": "Test Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "loyalty", "key": "basri", "set": 5},
+    {"op": "enter", "key": "archer", "decisions": ["basri"]}
+  ],
+  "expect": {
+    "zone": {"archer": "battlefield", "basri": "battlefield", "bear": "battlefield"},
+    "counters": {"basri": {"LOYALTY": 4}},
+    "life": {"0": 20, "1": 20}
+  }
+}

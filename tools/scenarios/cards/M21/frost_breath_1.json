@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Frost Breath, printed 'Tap up to two target creatures. Those creatures don't untap during their controller's next untap step.' Cast on my turn at two opponent creatures, then the opponent's turn begins (its untap step). Expected: both targets stay tapped; an untargeted opponent creature that started tapped untaps normally (control).",
+ "cards": [
+  {"key": "fb", "real": "Frost Breath", "zone": "hand", "controller": 0},
+  {"key": "one", "name": "Frost One", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "two", "name": "Frost Two", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "ctl", "name": "Frost Control", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Breath", "key": "fb", "targets": ["one", "two"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"zone": {"fb": "graveyard"}, "tapped": {"one": true, "two": true, "ctl": false}}}

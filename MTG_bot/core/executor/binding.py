@@ -325,6 +325,34 @@ class DelayedBinding:
     controller: Handle
 
 
+def functions_from_graveyard(ability: object) -> bool:
+    """V30 (CR 113.6m: "An ability whose cost or effect specifies that it moves
+    the object it's on out of a particular zone functions only in that zone"): a
+    triggered ability whose effect moves its own source out of a graveyard
+    ("return this card from your graveyard to the battlefield tapped", Silversmote
+    Ghoul) functions only while that card is in a graveyard."""
+    from MTG_bot.core.executor.selectors import _filter_is_self_referential
+
+    if not isinstance(ability, TriggeredAbility):
+        return False
+    for node in walk(ability.effect):
+        if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
+            continue
+        dest = node.args.get("destination")
+        if isinstance(dest, Zone) and dest.kind is ZoneKind.GRAVEYARD:
+            continue
+        for role in ("cards", "target"):
+            sel = node.args.get(role)
+            if (
+                isinstance(sel, Selector)
+                and sel.zones
+                and all(z.kind is ZoneKind.GRAVEYARD for z in sel.zones)
+                and _filter_is_self_referential(sel.filter)
+            ):
+                return True
+    return False
+
+
 class TriggerBinder:
     """The (handle, ability-idx) trigger registry + event matcher + APNAP
     fire loop. Owned by one :class:`~MTG_bot.core.executor.Executor`."""
@@ -333,6 +361,10 @@ class TriggerBinder:
         self.executor = executor
         self.records: dict[str, CardRecord] = {}
         self.attached: dict[tuple[Handle, int], TriggeredAbility] = {}
+        # V30 (CR 113.6m): the triggers of cards IN A GRAVEYARD whose ability
+        # functions only there (functions_from_graveyard). Kept apart from
+        # ``attached`` so a battlefield departure's detach never drops them.
+        self.attached_graveyard: dict[tuple[Handle, int], TriggeredAbility] = {}
         self.handle_record: dict[Handle, CardRecord] = {}
         # 13c: emblem synthetic handles -> their OWNER. Emblems are not
         # world cards, so ``world.controller_of`` cannot answer "who is
@@ -372,6 +404,11 @@ class TriggerBinder:
         # queued the firing. Non-death departures (bounce/exile/hand) have
         # no dies row and detach on the spot, exactly as before.
         self._pending_dies_detach: set[Handle] = set()
+        # V37 (CR 724.1c): while an effect ends the turn, state-based actions
+        # are checked but no triggered ability is put onto the stack; the
+        # firings stay queued for the cleanup step (724.1f). Set and cleared
+        # inside one Executor call, so never set between ops.
+        self.hold = False
 
     # ------------------------------------------------------------ attach
 
@@ -482,7 +519,21 @@ class TriggerBinder:
             self.handle_record[card] = record
             if self.world.zone_of(card).kind == ZONE_BATTLEFIELD:
                 count += self._register(card, record)
+            elif self.world.zone_of(card).kind == ZONE_GRAVEYARD:
+                count += self._register_graveyard(card, record)
         return count
+
+    def _register_graveyard(self, handle: Handle, record: CardRecord) -> int:
+        """V30 (CR 113.6m): bind the record's graveyard-only triggers while the
+        card is in a graveyard."""
+        n = 0
+        for idx, ability in enumerate(record.abilities):
+            if functions_from_graveyard(ability):
+                assert isinstance(ability, TriggeredAbility)
+                self._check_event(ability.event, record.name)
+                self.attached_graveyard[(handle, idx)] = ability
+                n += 1
+        return n
 
     def _register(self, handle: Handle, record: CardRecord) -> int:
         """Bind the record's TriggeredAbility nodes at (handle, idx), and
@@ -496,6 +547,8 @@ class TriggerBinder:
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
                 self._check_event(ability.event, record.name)
+                if functions_from_graveyard(ability):
+                    continue  # V30, CR 113.6m: it does not function here
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
         for idx, ability in triggers:
@@ -585,21 +638,25 @@ class TriggerBinder:
 
     # ------------------------------------------------------------ matching
 
-    def on_events(self) -> None:
+    def on_events(self, upto: int | None = None) -> None:
         """Match every not-yet-seen journalled event against the attached
         triggers and the scheduled delayed triggers, queueing one
         TriggerInstance per match. The attach/detach lifecycle rides the
         same pass in journal order: a permanent ENTERING re-registers
         before matching (its own ETB trigger is live — IS_SOURCE sees it),
         a permanent LEAVING detaches only after matching (its own dies
-        trigger still fires)."""
+        trigger still fires). ``upto`` (V37) stops before that journal
+        position; it always falls between two atom boundaries, so it never
+        splits a zone change from its dies row."""
         events = self.executor.journal.events
-        while self._seen_journal_len < len(events):
+        end = len(events) if upto is None else min(upto, len(events))
+        while self._seen_journal_len < end:
             event = events[self._seen_journal_len]
             self._seen_journal_len += 1
             self._lifecycle(event, attach=True)
             for (handle, _idx), ability in sorted(
-                self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
+                [*self.attached.items(), *self.attached_graveyard.items()],
+                key=lambda kv: (str(kv[0][0]), kv[0][1]),
             ):
                 if self._match_node(
                     ability.event, event, handle, self._controller_of(handle)
@@ -647,7 +704,9 @@ class TriggerBinder:
                 if self._match_node(
                     entry.node.event, event, entry.source, entry.controller
                 ):
-                    self._queue(entry.source, entry.controller, entry.node, event)
+                    self._queue(
+                        entry.source, entry.controller, entry.node, event, delayed=True
+                    )
             self._lifecycle(event, attach=False)
         # r22a defensive flush: record_atom always journalled the pair, so
         # a pending handle should never outlive the pass. If a hand-built
@@ -676,6 +735,15 @@ class TriggerBinder:
             return
         from_state, to_state = event.data[0], event.data[1]
         handle = event.subject
+        if attach and to_state == ZONE_GRAVEYARD and from_state != ZONE_GRAVEYARD:
+            record = self.handle_record.get(handle)
+            if record is None and handle in self.world.cards:
+                record = self.records.get(self.world.cards[handle].identity.oracle_id)
+            if record is not None:
+                self._register_graveyard(handle, record)  # V30
+        if not attach and from_state == ZONE_GRAVEYARD and to_state != ZONE_GRAVEYARD:
+            for key in [k for k in self.attached_graveyard if k[0] == handle]:
+                del self.attached_graveyard[key]  # V30: it left the graveyard
         if attach:
             if to_state == ZONE_BATTLEFIELD:
                 record = self.handle_record.get(handle)
@@ -712,11 +780,18 @@ class TriggerBinder:
         node: _AnyTrigger,
         event: GameEvent,
         additional: bool = False,
+        delayed: bool = False,
     ) -> None:
         if source in self.quarantined:
             # r23a tripwire guard: a flagged loop source never queues
             # again this game (its firing was already recorded loudly in
             # executor.trigger_loops).
+            return
+        if not delayed and source in self.executor.phased_out:
+            # CR 702.26b: a phased-out permanent's triggered abilities (its
+            # printed, granted and keyword ones, and the AbilityTriggerEvent
+            # subscribers) do not trigger. A delayed trigger is not an
+            # ability of its source (CR 603.7) and still triggers.
             return
         if (
             not additional
@@ -913,8 +988,8 @@ class TriggerBinder:
             # 16b: the attack feed. The filter reads the DECLARED creature
             # (IS_SOURCE = "whenever this creature attacks"); the optional
             # ``attacked`` filter (R10-3) reads the attacker's ATTACKED
-            # object off the executor's attack record — v1: every attacker
-            # attacks the defending player (planeswalker attacks are 16c).
+            # object off the executor's attack record: the defending player
+            # or a planeswalker that player controls (V41, CR 508.1b).
             assert event.subject is not None  # the row names the attacker
             ctx = self._match_ctx(source, controller, event)
             if node.attacked is not None:
@@ -977,6 +1052,14 @@ class TriggerBinder:
             # FALSE outright, undecidable preds keep the 12c raise.
             assert event.subject is not None  # the row names its object
             ctx = self._match_ctx(source, controller, event)
+            # R5-6: the actor filter reads the targeting spell's or ability's
+            # controller, journalled as data[1] (events.emit_targeting) — "a
+            # spell or ability an opponent controls" (Warden of the Woods).
+            if node.actor is not None:
+                actor = event.data[1]
+                assert isinstance(actor, Handle)  # emit_targeting's (source, actor)
+                if not eval_filter(node.actor, actor, ctx):
+                    return False
             if event.subject.namespace == "player":
                 if _is_universal(node.filter):
                     return True
@@ -1014,9 +1097,9 @@ class TriggerBinder:
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
         whose controller ref scopes the caster, not the zone's owner: the
         cast came from the caster's zones). The filter reads the SPELL
-        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_IN over
-        it, which is exactly Quirion Dryad's compiled "colored spell"
-        filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
+        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_HAS over
+        it; Quirion Dryad's "a spell that's white, blue, black, or red" is
+        the FOr of COLOR_HAS W/U/B/R (V39: any of them, CR 105.2)."""
         caster, ordinal, _kind, from_zone, _x, _kicked = event.cast
         ctx = self._match_ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
@@ -1178,6 +1261,8 @@ class TriggerBinder:
         vocabulary-addressed decision channel (per-(vocab, what) FIFO /
         ask-time provider), so a trigger the op itself armed mid-drain is
         answerable exactly like one that was already pending."""
+        if self.hold:
+            return 0  # V37, CR 724.1c: no triggered ability is put onto the stack
         fired = 0
         per_source: dict[Handle, int] = {}
         while self.world.triggers:
@@ -1246,6 +1331,20 @@ class TriggerBinder:
         chosen = ordered[0]
         self.world.triggers.remove(chosen)
         return chosen
+
+    def cease_triggered_before(self, mark: int) -> int:
+        """V37, CR 724.1a: when an effect ends the turn, the abilities that
+        triggered before that process began and were never put onto the
+        stack cease to exist. The journal rows before ``mark`` (where the
+        END_TURN atom ran) are matched first, so the attach/detach lifecycle
+        still runs for them; then every queued firing is dropped, those and
+        any a drain had not reached yet. Returns how many ceased."""
+        self.on_events(upto=mark)
+        ceased = list(self.world.triggers)
+        for instance in ceased:
+            self.world.triggers.remove(instance)
+            self.firings.pop(instance.clock, None)
+        return len(ceased)
 
     def _fire(self, payload: _Firing) -> None:
         """One trigger resolution: the condition gate, the 18b TARGET-
@@ -1817,9 +1916,25 @@ class TriggerBinder:
             )
         )
         quarantined = tuple(sorted(map(str, self.quarantined)))
-        return (
+        dump: tuple[tuple[object, ...], ...] = (
             ("attached", attached),
             ("delayed", delayed),
             ("emblems", emblems),
             ("quarantined", quarantined),
         )
+        if self.attached_graveyard:
+            # V30: present only when a graveyard trigger is bound, so a game
+            # without one keeps its fingerprint bytes.
+            dump += (
+                (
+                    "graveyard",
+                    tuple(
+                        (str(handle), idx, repr(ability.event))
+                        for (handle, idx), ability in sorted(
+                            self.attached_graveyard.items(),
+                            key=lambda kv: (str(kv[0][0]), kv[0][1]),
+                        )
+                    ),
+                ),
+            )
+        return dump

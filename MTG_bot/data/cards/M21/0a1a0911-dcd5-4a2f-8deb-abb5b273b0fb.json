@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0a1a0911-dcd5-4a2f-8deb-abb5b273b0fb",
+ "name": "Staunch Shieldmate",
+ "text_sha": "5c1140e991446b2e23a7778de2f5c3055b8815d473cdf3847867147f893ee987",
+ "verified": {
+  "tree_sha": "c6c741237f3a3b0947f02f3661dd1bbdaf2cc7f8e748c271cb5e3662e23b9585",
+  "probe_sha": "3fb7882bdc6d6b1bf98c23d7944101cc2ed91e92fd87e28200eee9a0e564646b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Dwarf Soldier {W} 1/3, no rules text (vanilla)",
+    "status": "OK",
+    "evidence": "tree: no keywords, only SpellAbility(CREATURE); [cast]: P/T - -> 1/3, mana W-1; unblocked: opp 20 -> 19; blocked by the 4/4: deals 1, dies; no stimulus triggers anything",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

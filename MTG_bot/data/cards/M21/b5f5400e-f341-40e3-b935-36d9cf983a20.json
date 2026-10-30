@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b5f5400e-f341-40e3-b935-36d9cf983a20",
+ "name": "Adherent of Hope",
+ "text_sha": "95654ffb2d9f6bbc3c5770658828ddf1e345ff0f66b180137e44737466ec2168",
+ "verified": {
+  "tree_sha": "ce16d2c20c6a2609c8b3d6e804501988ab7f64e021d2784ea846956ffd7dcf7b",
+  "probe_sha": "a90b93c02d98fd1e8fddd4152471505f4a6d806ad85b8622ee162dc16ca106f0",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "At the beginning of combat on your turn, if you control a Basri planeswalker, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: the trigger fires at your combat ([stimulus: this creature attacks alone], [... you_bear attacks]) and, with no Basri on the board, puts no counter; it does not fire on the opponent's combat. The condition-true case is not on the board. Packs: adherent_of_hope_your_turns_only.json (your Basri Ket; your combat, the opponent's combat, your next combat -> exactly 2 counters, 4/3) PASS; adherent_of_hope_opponents_basri.json (the opponent's Basri Ket -> no counter, 2/1) PASS. Tree = compiler template B2a-adherent-of-hope.",
+    "issue": "'Basri planeswalker' is read as NAME_CONTAINS 'Basri' + TYPE_EQ Planeswalker rather than the planeswalker subtype; equivalent for every printed card."
+   },
+   {
+    "clause": "{1}{W} 2/1 creature",
+    "status": "OK",
+    "evidence": "[cast]: mana W-2; P/T - -> 2/1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/adherent_of_hope_1.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 2,
+   "score": 0.25,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "widen filter (drop part 2) at 1/0/condition/inner_filter",
+    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/who",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
+ }
+}

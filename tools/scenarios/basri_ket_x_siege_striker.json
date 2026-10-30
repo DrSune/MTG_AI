@@ -28,6 +28,9 @@
  ],
  "steps": [
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "activate",
    "key": "basri",
    "idx": 0,
@@ -35,6 +38,9 @@
    "targets": [
     "striker"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "combat",
@@ -72,5 +78,5 @@
   }
  },
  "adjudication": "H4 2026-10-04: NOT an engine expiry bug. The combat rig only had an attack answer for striker, so the generic script word 'grog' leaked into the undeclared attack:card:1 ask and made Grog attack (tapping it before the trigger resolved). The deterministic CHOOSE tap selector then found no untapped creature, so the trigger's +1/+1 quantity resolved from 0 tapped-this-way cards. Explicitly declining Grog's attack makes the engine record +1/+1, keep it after combat, and observe all expected lanes.",
- "notes": "HUNT H2 pair 1 (heat 3710, pt_layers). Enemy Basri Ket (seat 1) +1 designates the opposing Siege Striker - the printed +1 reads 'up to one target creature', NO controller restriction (compiled TARGET carries no CONTROLLER_IS YOU). Then Striker attacks and its own trigger taps Grog (+1/+1 until end of turn, Siege Striker's printed promise). CR expectation: printed 1/1 + counter (CR 122.1c, layer 7c) + EoT +1/+1 (layer 7c, timestamp) = 3/3; double strike (CR 702.7d) sends 3+3=6 to seat 1 (observed: life 14 CORRECT). Only the post-combat PT lanes diverge -> suspect."
+ "notes": "HUNT H2 pair 1 (heat 3710, pt_layers). Enemy Basri Ket (seat 1) +1 designates the opposing Siege Striker - the printed +1 reads 'up to one target creature', NO controller restriction (compiled TARGET carries no CONTROLLER_IS YOU). Then Striker attacks and its own trigger taps Grog (+1/+1 until end of turn, Siege Striker's printed promise). CR expectation: printed 1/1 + counter (CR 122.1c, layer 7c) + EoT +1/+1 (layer 7c, timestamp) = 3/3; double strike (CR 702.7d) sends 3+3=6 to seat 1 (observed: life 14 CORRECT). Only the post-combat PT lanes diverge -> suspect. Re-pinned 2026-10-29 (engine/phasing, CR 606.3): a loyalty ability is activated only during a main phase of its controller's own turn, and the legality oracle now enforces it, so the activation moved to its controller's turn (seat 1's turn), then seat 0's turn begins and it attacks. The expectations are unchanged."
 }

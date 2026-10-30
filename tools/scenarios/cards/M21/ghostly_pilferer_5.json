@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Discard Silk (the only card in hand): the Pilferer can't be blocked this turn, so the Wall's block is refused and the opponent takes 2. Next turn (the effect has worn off) the Wall can block it again.",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "silk", "name": "Silk", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0},
+  {"key": "wall", "name": "Wall", "type": "Creature", "power": 1, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "gp", "idx": 2, "seat": 0, "decisions": ["silk"]},
+  {"op": "combat", "seat": 0, "attack": {"gp": true}, "block": {"wall": "gp"}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"gp": true}, "block": {"wall": "gp"}}
+ ],
+ "expect": {
+  "zone": {"silk": "graveyard"},
+  "blocked": {"gp": ["wall"]},
+  "life": {"1": 18},
+  "damage": {"wall": 2}
+ }
+}

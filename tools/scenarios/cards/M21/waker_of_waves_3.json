@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "As waker_hand_activation, but the player keeps Beta: Beta goes to hand and Alpha to the graveyard (the split is the player's choice).",
+ "cards": [
+  {
+   "key": "w",
+   "real": "Waker of Waves",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Alpha",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Beta",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "name": "Top Card",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "w",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "b"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "w": "graveyard",
+   "a": "graveyard",
+   "b": "hand",
+   "top": "hand"
+  },
+  "graveyard": {
+   "0": [
+    "Waker of Waves",
+    "Alpha"
+   ]
+  },
+  "hand": {
+   "0": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

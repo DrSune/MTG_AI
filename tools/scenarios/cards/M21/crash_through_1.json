@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0},
+  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "real": "Crash Through", "key": "ct"},
+  {"op": "cast", "real": "Staunch Shieldmate", "key": "mate"}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Bear": ["TRAMPLE"], "Opp Bear": [], "Staunch Shieldmate": []},
+  "hand": {"0": 1}
+ },
+ "notes": "Printed Crash Through: 'Creatures you control gain trample until end of turn. Draw a card.' The creatures you control when it resolves gain trample (the Bear), not the opponent's; a creature that enters afterwards (Staunch Shieldmate) does not (CR 611.2c). You draw exactly one card."
+}

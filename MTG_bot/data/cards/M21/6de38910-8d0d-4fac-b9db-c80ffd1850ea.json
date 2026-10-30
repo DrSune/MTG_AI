@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6de38910-8d0d-4fac-b9db-c80ffd1850ea",
+ "name": "Bone Pit Brute",
+ "text_sha": "d8d796c1645e35271f626222bcd6c67ae7622f52a8560e9e4d809569b97840a6",
+ "verified": {
+  "tree_sha": "4a393e7fa31205005f0246c82dda88790f7b25b27d5e93c428789417c1a6f39d",
+  "probe_sha": "9bc480a85cd6514f4039a2a226c33d232d97608ea324c5e9b022154520ead930",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "Menace (This creature can't be blocked except by two or more creatures.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 4 combat damage (a lone blocker is refused); keywords +MENACE on entry",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, target creature gets +4/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast] variants: trigger fires on entry; target slot offers every creature on both sides incl. itself; you_bear 2/2 -> 6/2, opp_giant 4/4 -> 8/4, card 4/5 -> 8/5; 'after the turn ends' each reverts. Also fires when put onto the battlefield on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "{4}{R}{R} 4/5 creature",
+    "status": "OK",
+    "evidence": "[cast]: mana R-2 W-4 (6 total, two red); P/T - -> 4/5",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}
