@@ -749,7 +749,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     `teferi_timeless_voyager_phase_out_all`, `aven_gagglemaster_ignores_phased_out_flyer`,
     `feline_sovereign_*phase*`.
   - **Open, weaker than printed: Teferi, Timeless Voyager's "Until the end of your next turn, they
-    can't phase in."** The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
+    can't phase in."** Accepted as divergence D16 by ontology R5-9 (gate round 3 GO,
+    2026-10-30; `docs/ATOM_DIVERGENCES.md`). The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
     emits `PREVENT_EFFECT(event=ZoneChangeEvent(COMMAND/OPPONENT -> BATTLEFIELD/OPPONENT),
     condition=CONTROLLER_IS OPPONENT, duration=DurationUntilNextTurn)`. Phasing is not a zone
     change, so the record is inert and the creatures phase back in at their controller's next
