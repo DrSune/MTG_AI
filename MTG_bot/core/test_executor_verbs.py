@@ -359,26 +359,35 @@ class TestPtLedger(ExecutorCase):
         # layer-model work lands, so the move is a loud diff, not a
         # silent one). Flagged to the T4 ledger note in
         # KNOWLEDGE/2026-10-07/34.
+        # re-pinned 2026-10-30: V27 (CR 613.4) changes order A from 3/3 to 4/4:
+        # every set (7a/7b) now applies before every delta (7c), so both orders
+        # land at the CR oracle's 4/4 (the loud diff this pin was written for).
         from MTG_bot.core.ability_tree import DurationEot
 
-        for expect, ops in {
-            (3, 3): (
+        for expect, ops in (
+            (
+                (4, 4),
                 (
-                    Verb.MODIFY_PT,
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                ),
-                (Verb.SET_PT, QConst(3), QConst(3)),
-            ),
-            (4, 4): (
-                (Verb.SET_PT, QConst(3), QConst(3)),
-                (
-                    Verb.MODIFY_PT,
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                    (
+                        Verb.MODIFY_PT,
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                    ),
+                    (Verb.SET_PT, QConst(3), QConst(3)),
                 ),
             ),
-        }.items():
+            (
+                (4, 4),
+                (
+                    (Verb.SET_PT, QConst(3), QConst(3)),
+                    (
+                        Verb.MODIFY_PT,
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                    ),
+                ),
+            ),
+        ):
             self.ex.begin_turn(self.p0)  # opens a fresh EOT window per case
             for verb, first, second in ops:
                 self.ex.execute(

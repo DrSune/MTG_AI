@@ -124,8 +124,9 @@ class PtChange:
     """One recorded P/T modification.
 
     ``kind`` is ``"delta"`` (MODIFY_PT: additive) or ``"set"`` (SET_PT:
-    absolute, later sets win over earlier ones and over deltas in clock
-    order). The ``was_*`` pair is the C18 was-snapshot of the *effective*
+    absolute, later sets win over earlier ones). V27 (CR 613.4): every set
+    applies before every delta (sublayers 7a/7b before 7c), whatever the clock
+    order. The ``was_*`` pair is the C18 was-snapshot of the *effective*
     P/T at application time. ``record_id`` is the ledger's monotone id (0 =
     the legacy/verb path predating 12d bookkeeping — never linked to a
     layer; layer-materialized entries carry their ledger-assigned id).
@@ -335,6 +336,16 @@ class DurationLedger:
         power = parse_pt(identity.power)
         toughness = parse_pt(identity.toughness)
         stack = self._fold_stack(card)
+        # V27 (CR 613.4): within layer 7 the sublayers apply in order, and only
+        # WITHIN a sublayer does timestamp order decide: 7a characteristic-defining
+        # abilities and 7b "set" effects first, then 7c modifications and counters.
+        # A pure timestamp fold let a later set (Kinetic Augur's power CDA, as it
+        # entered) erase an earlier +1/+1 (Glorious Anthem). Sets keep their
+        # timestamp order among themselves (7a vs 7b is not told apart here: no
+        # dealt card pairs a CDA with a 7b effect), then every delta, then counters.
+        stack = [c for c in stack if c.kind != "delta"] + [
+            c for c in stack if c.kind == "delta"
+        ]
         for change in stack:
             if change.kind == "delta":
                 if power is not None or change.power_delta:

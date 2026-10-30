@@ -702,6 +702,10 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
   - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
     so the fold needs sublayers. Weaker than printed.
+  - **FIXED on branch `engine/verify-fixes-3` (V27, 2026-10-30)**: `DurationLedger._effective`
+    applies every set before every delta (then counters). 7a and 7b are still ordered by
+    timestamp between themselves (no dealt card pairs a CDA with a 7b set). Pack
+    `glorious_anthem_cda_creature`.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
   hand is payable with no cards. **FIXED on branch `engine/verify-fixes-3` (V33, 2026-10-29)**: an

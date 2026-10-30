@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Glorious Anthem, printed: 'Creatures you control get +1/+1.' It applies to every creature you control, including one whose power is defined by a characteristic-defining ability (CR 613.4: 7a CDA first, then the 7c +1/+1). With one instant in your graveyard, Kinetic Augur (*/4, * = instants and sorceries in your graveyard) enters as 1/4 and the Anthem makes it 2/5. Your plain bear is 3/3; the opponent's bear stays 2/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ga", "real": "Glorious Anthem", "zone": "battlefield", "controller": 0},
+  {"key": "k", "real": "Kinetic Augur", "zone": "hand", "controller": 0},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": []}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield"},
+  "power": {"k": 2, "bear": 3, "obear": 2},
+  "toughness": {"k": 5, "bear": 3, "obear": 2}
+ }
+}
