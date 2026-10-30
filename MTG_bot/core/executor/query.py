@@ -1548,9 +1548,10 @@ def verb_choose_options(
     options`` pins for Choose NODES (12d), extended to the atom.
 
     v1 scope is the corpus shape: a single pick (every compiled CHOOSE
-    atom carries ``count = QConst(1)``). An under-filled pool makes the
-    EMPTY row legal too (choosing nothing from fewer candidates than
-    demanded is the C17-clamp sibling); a MULTI-pick CHOOSE atom raises —
+    atom carries ``count = QConst(1)``). Only an under-filled pool makes the
+    EMPTY row legal (choosing nothing from fewer candidates than demanded is
+    the C17-clamp sibling; with count 1 that is the empty pool, returned as
+    the lone empty row); a MULTI-pick CHOOSE atom raises —
     combination-order for its tokens is a later round, and the corpus has
     zero rows needing it (flag, don't degrade)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
@@ -1583,5 +1584,10 @@ def verb_choose_options(
     if not pool:
         return ((),)
     rows: list[tuple[Handle, ...]] = [(h,) for h in pool]
-    rows.append(())  # the legal under-filled zero (C17 clamp sibling)
+    if len(pool) < want:
+        # the legal under-filled zero (C17 clamp sibling): only a pool that
+        # cannot fill the count may choose fewer. V19 (2026-10-29, B-51): the
+        # empty row was appended always, so Duress's mandatory "You choose a
+        # noncreature, nonland card from it" could choose nothing.
+        rows.append(())
     return tuple(rows)

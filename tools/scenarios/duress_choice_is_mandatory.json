@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "trick", "name": "Opp Trick", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "elf", "name": "Opp Spare Elf", "type": "Creature — Elf", "power": "3", "toughness": "3", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "key": "du", "real": "Duress", "controller": 0, "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"du": "graveyard", "trick": "graveyard", "elf": "hand"},
+  "hand": {"1": 1}
+ },
+ "notes": "Printed: 'You choose a noncreature, nonland card from it. That player discards that card.' The opponent's hand holds one legal card (an instant) and a creature: the choice is not optional, so the instant is discarded even when the caster answers the engine's empty row '1'. OBSERVED 2026-10-29: verb_choose_options always appends an empty row (query.py:1528-1529), and answering it discards nothing."
+}

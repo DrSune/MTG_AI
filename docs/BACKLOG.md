@@ -548,7 +548,9 @@ These are forks, not tasks. See the report that accompanied this audit.
     escape from a mandatory choice is exactly what a policy learns to use the day a CHOOSE feeds
     its own drawback.
   - **Fix.** Offer the empty row only when the pool is smaller than the count (the C17 clamp it
-    mirrors), and re-pin the M21 Duress and Kitesail packs.
+    mirrors), and re-pin the M21 Duress and Kitesail packs. **[FIXED on branch
+    `engine/verify-fixes-2` 2026-10-29 (V19); a lone legal card is taken without an ask. The Duress
+    and Kitesail packs needed no re-pin.]**
 - **B-52 [2026-10-29, mapper G1 + packs] A counted static P/T bonus freezes at its first value** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   (live in M21).
   - `layers._materialize_static` skips a target that already has a ledger entry, so a bonus that

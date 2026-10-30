@@ -998,7 +998,9 @@ class TestChooseVerb(StackCase):
             ),
         )
         rows = verb_choose_options(self.ex, probe, source=spell, controller=self.p0)
-        self.assertEqual(rows, ((first,), (second,), ()))  # ORDER contract
+        # re-pinned 2026-10-29: V19 (B-51): no empty row while a candidate
+        # exists ("You choose a ... card" is mandatory). ORDER contract.
+        self.assertEqual(rows, ((first,), (second,)))
         cast(self.ex, self.p0, spell, targets=(self.p1,), decisions=("1",))
         self.assertEqual(self.world.zone_of(second).kind, ZONE_GRAVEYARD)  # pick "1"
         self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)  # left alone

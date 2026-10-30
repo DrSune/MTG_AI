@@ -349,8 +349,11 @@ class ChooseAliasTest(StackCase):
         self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
 
     def test_word_not_in_any_lane_stays_loud(self):
+        # re-pinned 2026-10-29: V19 forces a one-candidate pick (no ask, no
+        # empty row), so the hand holds two cards to keep this a real ask.
         spell = self.duress("LoudDuress")
         self.world.add_card(card_id("HandOne", "1", "1"), self.p1, ZONE_HAND)
+        self.world.add_card(card_id("HandTwo", "1", "1"), self.p1, ZONE_HAND)
         with self.assertRaises(ValueError) as cm:
             cast(self.ex, self.p0, spell, targets=(self.p1,), decisions=("nonsense",))
         self.assertIn("not in", str(cm.exception))

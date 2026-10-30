@@ -62,6 +62,7 @@ from MTG_bot.core.ability_tree import (
     ZonePosition,
 )
 from MTG_bot.core.executor.decisions import site_digest
+from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_COUNTER,
@@ -1580,19 +1581,24 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
         return
     vocab = tuple(str(i) for i in range(len(rows)))
-    # r19c (Duress): ADDITIVE handle aliases. A provider that resolves a
-    # pack key ("prey") gets back a HANDLE string — which is not a
-    # positional index token, so the old vocabulary could never accept the
-    # resolution. Each singleton candidate row's own handle is therefore a
-    # legal token too; §8.3 identity holds because the aliases ARE members
-    # of the query's own enumeration (rows), appended after the ORDER
-    # tokens — the digest and the index lane stay byte-unchanged.
-    alias = {str(row[0]): str(i) for i, row in enumerate(rows) if len(row) == 1}
-    ask_vocab = vocab + tuple(a for a in alias if a not in vocab)
-    pick = ctx.take_decision(
-        ask_vocab, f"choose:{ctx.source}:{site_digest(tuple(rows))}"
-    )
-    pick = alias.get(pick, pick)
+    what = f"choose:{ctx.source}:{site_digest(tuple(rows))}"
+    if len(rows) == 1:
+        # V19: one legal pick is forced, never asked (the §10 phantom gate;
+        # the handle alias below would have made it a two-token ask).
+        pick = offer_or_autopick(ctx, vocab, what)
+    else:
+        # r19c (Duress): ADDITIVE handle aliases. A provider that resolves a
+        # pack key ("prey") gets back a HANDLE string — which is not a
+        # positional index token, so the old vocabulary could never accept
+        # the resolution. Each singleton candidate row's own handle is
+        # therefore a legal token too; §8.3 identity holds because the
+        # aliases ARE members of the query's own enumeration (rows),
+        # appended after the ORDER tokens — the digest and the index lane
+        # stay byte-unchanged.
+        alias = {str(row[0]): str(i) for i, row in enumerate(rows) if len(row) == 1}
+        ask_vocab = vocab + tuple(a for a in alias if a not in vocab)
+        pick = ctx.take_decision(ask_vocab, what)
+        pick = alias.get(pick, pick)
     chosen = rows[int(pick)]
     if len(chosen) < want:
         # the under-filled zero row picked when candidates ran out
