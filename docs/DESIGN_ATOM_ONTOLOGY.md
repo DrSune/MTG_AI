@@ -304,13 +304,20 @@ doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count he
 `tools/audit/r5_census.py`** (regex screen over the 19 set files, unique names;
 `reports/r5_census_2026-10-29.json`).
 
-### Status
+### Status (updated 2026-10-30 07:00; implementation lives on branch `cards/integration`)
 | Item | State |
 |---|---|
-| R5-1 `duration` on MOVE_ZONE (B-60c) | FIX-THEN-GO in rounds 1 and 2; **in implementation** with every round-2 fix (lane `engine/r5a-until-leaves`) |
-| R5-6 `actor` on TargetingEvent | GO in rounds 1 and 2; **in implementation** (same lane) |
-| R5-3 `lands`, R5-4 `new_targets` | GO in round 2; they land with R5-2 and the COPY handler |
-| R5-2, R5-5, R5-7, R5-8, R5-10, R5-11, R5-12 | v3 below, for gate round 3 |
+| R5-1 `duration` on MOVE_ZONE (B-60c) | **implemented** (lane r5a; FIX-THEN-GO in rounds 1 and 2, every round-2 fix applied): return registry `returns.py`, journal-provenance 400.7, 610.3a-d, returns through replacements, Aura host choice |
+| R5-6 `actor` on TargetingEvent | **implemented** (lane r5a) |
+| R5-7 `AbilityActivatedEvent` + `is_mana_ability` (605.1a) | **implemented** (lane r5b, round 3 GO). The B-90 payment witness skips locked mana abilities and journals its activations (lane vfix, B-109) |
+| R5-9 Teferi, Timeless Voyager stays weaker | **recorded** as D16 |
+| R5-10 `STACK_KIND_EQ` + counter-window mode ask | **implemented** (lane r5b) |
+| R5-11 `TokenSpec.colors` | **implemented** (lane r5b) |
+| `Choose(QAtLeast(1))`, fitting cast ordinal | **implemented** (lane r5b) |
+| R5-2, R5-5, R5-8, R5-12 | fix, then gate round 4 (round 3 findings in §9) |
+| R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` goes to round 4 |
+| R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | for round 4 |
+| R5-15 `ControllerRef.TARGET_OPPONENT` (lane vfix2, an identity fix) | implemented; post-hoc check in round 4 |
 | v2's `DurationUntil(event)`, `EXILED_BY_SOURCE`, PHASE_OUT `duration`, `GRANT_ABILITY(ReplacementAbility)` route | withdrawn (round 2) |
 
 ### R5-1 as implemented (for the record)
