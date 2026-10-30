@@ -953,6 +953,15 @@ These are forks, not tasks. See the report that accompanied this audit.
     is a `Choose` of three zone sets (library; graveyard; both), each `Seq[SEARCH, REVEAL]` plus
     SHUFFLE when the library is searched. It changes the 12 named tutors in 4 sets (5 in M21).
     Waiting for a go. Repro: `tools/scenarios/known_bugs/chandras_firemaw_graveyard_no_shuffle.json`.
+  - **[FIXED on `cards/m21-fidelity` 2026-10-30, coordinator go, existing components only.]**
+    `templates.and_or_zone_search` builds the visible Choose (option 0 both zones, the old
+    reading; 1 the library; 2 the graveyard), and `compiler._merge_search_shuffle` puts "If you
+    search your library this way, shuffle" only into the options that search a library. All 12
+    named tutors (M21 Basri's Aegis, Chandra's Firemaw, Garruk's Warsteed, Liliana's Scorn,
+    Teferi's Wavecaster; M20 Ethereal Elk, Goldmane Griffin, Sorin's Guide, Yanling's Harbinger;
+    ELD Rowan's Stalwarts; THB Ashiok's Forerunner, Elspeth's Devotee) and M21 Sanctum of All
+    (the same "library and/or graveyard" sentence, for a Shrine) change. No new node, role or
+    predicate. The repro passes and moved to `tools/scenarios/`. Five M21 stamps drop (B-111).
 - **B-79 [fixer A, m21-fidelity] Primal Might's fight partner is not a target and cannot be
   declined** (live in M21 and FDN; stronger and weaker than printed).
   - "Then it fights up to one target creature you don't control" compiles the foe as a
@@ -1292,6 +1301,11 @@ These are forks, not tasks. See the report that accompanied this audit.
   - re-verify after m21-fidelity wave 4 ruling (a) (2026-10-30: a mandatory "If you do" is
     gated by MAY_DONE, CR 118.12; the tail is now Conditional(MAY_DONE, GAIN_LIFE)): M21 Mazemind
     Tome. M21 verified 253 -> 252; its card packs still pass.
+  - re-verify after B-78's zone choice (m21-fidelity wave 4, 2026-10-30: "search your library
+    and/or graveyard" is a Choose over both / library / graveyard, the shuffle only where the
+    library is searched): M21 Basri's Aegis, Garruk's Warsteed, Liliana's Scorn, Sanctum of All
+    and Teferi's Wavecaster. M21 verified 252 -> 247; every card pack passes (two re-pinned to
+    answer the zone choice: garruk's_warsteed_4, teferi's_wavecaster_6).
 - **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
   engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
   - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at

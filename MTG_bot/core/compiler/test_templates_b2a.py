@@ -1886,7 +1886,18 @@ class TestB2aEffectStructure(unittest.TestCase):
                 "battlefield.",
             )
         )
-        atom = _atom_inner(_optional(ability))
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
+        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
+        # unchanged), option 1 the library only, option 2 the graveyard only.
+        choose = _optional(ability).inner
+        assert isinstance(choose, Choose)
+        self.assertEqual(len(choose.options), 3)
+        for idx, kinds in ((1, (ZoneKind.LIBRARY,)), (2, (ZoneKind.GRAVEYARD,))):
+            only = choose.options[idx]
+            assert isinstance(only, Atom)
+            self.assertEqual(tuple(z.kind for z in _selector(only, "cards").zones), kinds)
+        atom = choose.options[0]
+        assert isinstance(atom, Atom)
         self.assertIs(atom.verb, Verb.SEARCH)
         cards = _selector(atom, "cards")
         self.assertEqual(

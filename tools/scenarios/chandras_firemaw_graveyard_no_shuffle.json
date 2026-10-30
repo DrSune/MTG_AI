@@ -11,11 +11,11 @@
  ],
  "mana": {"0": {"R": 5}},
  "steps": [
-  {"op": "cast", "real": "Chandra's Firemaw", "key": "fm", "decisions": ["fire", "ch"]}
+  {"op": "cast", "real": "Chandra's Firemaw", "key": "fm", "decisions": ["fire", "2"]}
  ],
  "expect": {
   "zone": {"fm": "battlefield", "ch": "hand"},
   "library": {"0": ["Card C", "Card B", "Card A", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
  },
- "notes": "B-78 repro (fixer A wave 4, 2026-10-30). Printed: '... you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand. If you search your library this way, shuffle.' Chandra is in my graveyard, so I search only my graveyard: Chandra goes to my hand and the library is NOT shuffled; its order (Card C on top) stays exactly as it was."
+ "notes": "B-78, fixed 2026-10-30 (m21-fidelity wave 4): the and/or search is a Choose over the zone sets (0 both, 1 library, 2 graveyard), and decision 2 searches only the graveyard; promoted from known_bugs. Printed: '... you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand. If you search your library this way, shuffle.' Chandra is in my graveyard, so I search only my graveyard: Chandra goes to my hand and the library is NOT shuffled; its order (Card C on top) stays exactly as it was."
 }

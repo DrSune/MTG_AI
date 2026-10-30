@@ -1813,7 +1813,21 @@ class TestB2bEffectStructure(unittest.TestCase):
             )
         )
         option = _optional(ability)
-        seq = _seq_inner(option)
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
+        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
+        # unchanged), option 1 the library only, option 2 the graveyard only.
+        choose = option.inner
+        assert isinstance(choose, Choose)
+        self.assertEqual(choose.count, QConst(1))
+        self.assertEqual(len(choose.options), 3)
+        for idx, kinds in ((1, (ZoneKind.LIBRARY,)), (2, (ZoneKind.GRAVEYARD,))):
+            only = choose.options[idx]
+            assert isinstance(only, Seq)
+            self.assertEqual(
+                tuple(z.kind for z in _selector(_atom_step(only, 0), "cards").zones), kinds
+            )
+        seq = choose.options[0]
+        assert isinstance(seq, Seq)
         # re-pinned 2026-10-30 (G3 finisher): two steps. The third, MOVE_ZONE(this creature
         # from the top of your library to your hand), was unprinted ("put it into your hand"
         # is the SEARCH's destination) and moved the creature itself when it was on top.

@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "G3 spec (amount+1 on the search count). Printed: 'you may search your library and/or graveyard for A card named Garruk, Savage Herald, reveal it, and put it into your hand.' Two copies are findable, one in your graveyard and one in your library (legal: the legend rule only applies on the battlefield). The may is taken and the library copy is picked: it goes to your hand, the graveyard copy stays.",
+ "notes": "re-pinned 2026-10-30: m21-fidelity wave 4 (B-78) asks the and/or zone choice first (0 = both zones, the only reading before), then the pick. G3 spec (amount+1 on the search count). Printed: 'you may search your library and/or graveyard for A card named Garruk, Savage Herald, reveal it, and put it into your hand.' Two copies are findable, one in your graveyard and one in your library (legal: the legend rule only applies on the battlefield). The may is taken and the library copy is picked: it goes to your hand, the graveyard copy stays.",
  "cards": [
   {
    "key": "src",
@@ -44,6 +44,7 @@
    "key": "src",
    "decisions": [
     "fire",
+    "0",
     "in_lib"
    ]
   }

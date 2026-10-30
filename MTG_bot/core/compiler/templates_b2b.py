@@ -164,6 +164,7 @@ from MTG_bot.core.compiler.templates import (
     RuleReminderOutcome,
     SentenceOutcome,
     Template,
+    and_or_zone_search,
 )
 
 _BUCKET: Final[str] = "B2b"
@@ -1036,39 +1037,50 @@ def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#1/#2/#3: search library and/or graveyard for a named card, reveal, hand."""
+    """#1/#2/#3: search library and/or graveyard for a named card, reveal, hand.
+
+    m21-fidelity wave 4 (2026-10-30, B-78): "library and/or graveyard" is the
+    visible zone choice (templates.and_or_zone_search); the shuffle sentence
+    then joins only the options that search the library."""
     name = m.group("name")
-    search = Atom(
-        verb=Verb.SEARCH,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
-                        zones=(
-                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
-                            *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
+
+    def search_in(zones: tuple[Zone, ...]) -> Seq:
+        search = Atom(
+            verb=Verb.SEARCH,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "cards",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
+                            zones=zones,
                         ),
                     ),
-                ),
-                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
-            )
-        ),
-    )
-    reveal = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
-    )
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+                )
+            ),
+        )
+        reveal = Atom(
+            verb=Verb.REVEAL,
+            args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
+        )
+        return Seq(steps=(search, reveal))
+
     # "put it into your hand" is the SEARCH's own destination. m21-fidelity
     # (G3 finisher, 2026-10-30): a third step, MOVE_ZONE(this creature from the
     # top of your library to your hand), was unprinted; it moved the creature
     # itself when it was on top of the library as the trigger resolved.
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
-        OptionalEffect(inner=Seq(steps=(search, reveal))),
+        OptionalEffect(
+            inner=and_or_zone_search(
+                search_in,
+                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+            )
+        ),
     )
 
 

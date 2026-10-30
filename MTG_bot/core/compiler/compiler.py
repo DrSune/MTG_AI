@@ -1058,10 +1058,39 @@ def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
     """
     if isinstance(prev_effect, OptionalEffect):
         inner = prev_effect.inner
+        if isinstance(inner, Choose):
+            # m21-fidelity wave 4 (2026-10-30, B-78): "search your library
+            # and/or graveyard" is a Choose over the zone sets
+            # (templates.and_or_zone_search). "If you search your library
+            # this way, shuffle" joins exactly the options that search a
+            # library; the graveyard-only option keeps the library's order.
+            return OptionalEffect(
+                inner=Choose(
+                    count=inner.count,
+                    options=tuple(
+                        _append_mandatory_to_seq(option, shuffle)
+                        if _searches_a_library(option)
+                        else option
+                        for option in inner.options
+                    ),
+                )
+            )
         if isinstance(inner, Seq):
             return OptionalEffect(inner=Seq(steps=inner.steps + (shuffle,)))
         return OptionalEffect(inner=Seq(steps=(inner, shuffle)))
     return Seq(steps=(prev_effect, shuffle))
+
+
+def _searches_a_library(effect: object) -> bool:
+    """Does an effect hold a SEARCH whose ``cards`` selector looks in a library?"""
+    if isinstance(effect, Atom):
+        cards = effect.args.get("cards") if effect.verb is Verb.SEARCH else None
+        return isinstance(cards, Selector) and any(
+            z.kind is ZoneKind.LIBRARY for z in cards.zones
+        )
+    if isinstance(effect, Seq):
+        return any(_searches_a_library(step) for step in effect.steps)
+    return False
 
 
 def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:

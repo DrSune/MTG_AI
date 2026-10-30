@@ -111,6 +111,7 @@ from MTG_bot.core.compiler.templates import (
     EffectOutcome,
     SentenceOutcome,
     Template,
+    and_or_zone_search,
 )
 
 _BUCKET = "B4"
@@ -782,36 +783,48 @@ def _build_search_liliana(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_search_named_card(card_name: str) -> SentenceOutcome:
-    """Shared tutor builder: search library/graveyard for a named card,
-    reveal it, put it into hand."""
-    cards = Selector(
-        QConst(1),
-        SelectorMode.CHOOSE,
-        FAtom(pred=FAtomPred.NAME_EQ, string_value=card_name),
-        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU), *(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),)),
-    )
-    search_atom = Atom(
-        verb=Verb.SEARCH,
-        args=AtomArgs(
-            pairs=(
-                ("cards", cards),
-                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
-            )
-        ),
-    )
-    reveal_atom = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(
-            pairs=(
-                ("controller", ControllerRef.YOU),
-                ("count", QConst(1)),
-            )
-        ),
-    )
+    """Shared tutor builder: search library and/or graveyard for a named card,
+    reveal it, put it into hand.
+
+    m21-fidelity wave 4 (2026-10-30, B-78): "library and/or graveyard" is the
+    visible zone choice (templates.and_or_zone_search), as in the ETB twin;
+    the shuffle sentence joins only the options that search the library."""
+
+    def search_in(zones: tuple[Zone, ...]) -> Seq:
+        cards = Selector(
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAtom(pred=FAtomPred.NAME_EQ, string_value=card_name),
+            zones=zones,
+        )
+        search_atom = Atom(
+            verb=Verb.SEARCH,
+            args=AtomArgs(
+                pairs=(
+                    ("cards", cards),
+                    ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
+                )
+            ),
+        )
+        reveal_atom = Atom(
+            verb=Verb.REVEAL,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("count", QConst(1)),
+                )
+            ),
+        )
+        return Seq(steps=(search_atom, reveal_atom))
+
     # "put it into your hand" is the SEARCH's own destination; the unprinted
     # MOVE_ZONE(this card from the top of your library) step is gone (G3 finisher,
     # 2026-10-30), as in the ETB twin.
-    seq = Seq(steps=(search_atom, reveal_atom))
+    seq = and_or_zone_search(
+        search_in,
+        Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+    )
     # The sentence is part of the SORCERY's effect (Basri's Aegis, Liliana's
     # Scorn): it runs as the spell resolves, after the printed sentence before
     # it (CR 608.2c), and the compiler's search-shuffle tail joins this same

@@ -21,6 +21,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     ActivationWindow,
     Atom,
+    Choose,
     ControllerRef,
     Cost,
     CostDeltaIncreaseGeneric,
@@ -1184,7 +1185,20 @@ class TestB4IrStructure(unittest.TestCase):
         # search runs as the spell resolves), no longer a free ActivatedAbility(cost={}).
         outcome = _as_effect(_single_match(self.reg, sentence).outcome)
         optional = _as_optional(outcome.effect)
-        seq = _as_seq(optional.inner)
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
+        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
+        # unchanged), option 1 the library only, option 2 the graveyard only.
+        choose = optional.inner
+        assert isinstance(choose, Choose)
+        self.assertEqual(len(choose.options), 3)
+        for idx, kinds in ((1, (ZoneKind.LIBRARY,)), (2, (ZoneKind.GRAVEYARD,))):
+            only = _as_seq(choose.options[idx])
+            only_search = only.steps[0]
+            assert isinstance(only_search, Atom)
+            self.assertEqual(
+                tuple(z.kind for z in _selector(only_search, "cards").zones), kinds
+            )
+        seq = _as_seq(choose.options[0])
         # re-pinned 2026-10-30 (G3 finisher): SEARCH + REVEAL only; the third step, an
         # unprinted MOVE_ZONE of this card from the top of the library, is gone.
         self.assertEqual(len(seq.steps), 2)

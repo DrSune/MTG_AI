@@ -154,6 +154,10 @@ $PY tools/cards/cardtool.py --help
   - "You may X. If you do, Y" is `Seq(OptionalEffect(X), Conditional(MAY_DONE, Y))`, and a
     mandatory "X. If you do, Y" is `Seq(X, Conditional(MAY_DONE, Y))`: MAY_DONE asks whether the
     step before it was done (CR 118.12), whichever form it had.
+  - "search your library and/or graveyard for ..." is a `Choose(QConst(1), ...)` over the zone
+    sets, in this order: both zones, the library only, the graveyard only. "If you search your
+    library this way, shuffle." adds a SHUFFLE only to the options that search the library. See
+    `parse` on any named tutor, or `templates.and_or_zone_search`.
   - "its controller" is a `referent='target'` selector in the `controller` role.
   - Equip carries `timing=ActivationWindow.SORCERY` ("Equip only as a sorcery"). The compiler's
     equip template drops it (B-60), so add it.

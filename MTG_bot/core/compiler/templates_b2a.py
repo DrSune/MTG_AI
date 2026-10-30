@@ -115,6 +115,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     SentenceOutcome,
     Template,
+    and_or_zone_search,
 )
 
 _BUCKET: Final[str] = "B2a"
@@ -1773,29 +1774,42 @@ def _build_furious_rise(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_sanctum_of_all(m: re.Match[str]) -> SentenceOutcome:
+    """Sanctum of All: "At the beginning of your upkeep, you may search your
+    library and/or graveyard for a Shrine card and put it onto the
+    battlefield." m21-fidelity wave 4 (2026-10-30, B-78): the same visible
+    zone choice as the named tutors (templates.and_or_zone_search); the
+    shuffle sentence joins only the options that search the library."""
+
+    def search_in(zones: tuple[Zone, ...]) -> Atom:
+        return Atom(
+            verb=Verb.SEARCH,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "cards",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
+                            zones=zones,
+                        ),
+                    ),
+                    (
+                        "destination",
+                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                    ),
+                    ("controller", ControllerRef.YOU),
+                )
+            ),
+        )
+
     return _ability(
         _upkeep_event(),
         OptionalEffect(
-            inner=Atom(
-                verb=Verb.SEARCH,
-                args=AtomArgs(
-                    pairs=(
-                        (
-                            "cards",
-                            Selector(
-                                QConst(1),
-                                SelectorMode.CHOOSE,
-                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
-                                zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU), *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
-                            ),
-                        ),
-                        (
-                            "destination",
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-                        ),
-                        ("controller", ControllerRef.YOU),
-                    )
-                ),
+            inner=and_or_zone_search(
+                search_in,
+                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
             )
         ),
     )
