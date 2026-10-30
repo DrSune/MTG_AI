@@ -848,5 +848,59 @@ class TestSelflessSaviorAnotherTarget(unittest.TestCase):
         self.assertEqual(self.candidates(), (bear,))
 
 
+
+class TestAnotherTarget(unittest.TestCase):
+    """V13 (2026-10-29): "another target creature". Relative to the source
+    (Brash Taunter's "This creature fights another target creature") the
+    source is not a legal target; relative to another target (Rookie Mistake,
+    Garruk's -2) the two targets must differ (CR 115.3)."""
+
+    def test_brash_taunter_cannot_fight_itself(self):
+        from MTG_bot.core.ability_tree import ActivatedAbility
+        from MTG_bot.core.executor.games import get_supply, identity_of
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        supply = get_supply("all", "M21")
+        record = next(
+            supply.pool.results[o].card for o, m in supply.metas.items() if m.name == "Brash Taunter"
+        )
+        world = GameWorld(num_players=2, start_life=20, master_seed=13)
+        p0, p1 = world.player_order
+        taunter = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        ex = Executor(world)
+        ex.attach_card(taunter, record)
+        fight = next(a for a in record.abilities if isinstance(a, ActivatedAbility))
+
+        def candidates():
+            (slot,) = activation_target_slots(ex, fight.effect, source=taunter, seat=p0)
+            return slot.candidates
+
+        self.assertEqual(candidates(), ())
+        ogre = world.add_card(card_id("Ogre", "3", "3"), p1, ZONE_BATTLEFIELD)
+        self.assertEqual(candidates(), (ogre,))
+
+    def test_the_another_slot_must_differ_from_the_other_slot(self):
+        from types import SimpleNamespace
+
+        from MTG_bot.core.ability_tree import FAnd
+        from MTG_bot.core.executor.stack import another_target_reason
+        from MTG_bot.core.identity import Handle
+
+        creature = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+        first = SimpleNamespace(selector=Selector(QConst(1), SelectorMode.TARGET, creature, zones=(BF_YOU,)))
+        another = SimpleNamespace(
+            selector=Selector(
+                QConst(1),
+                SelectorMode.TARGET,
+                FAnd((creature, FAtom(FAtomPred.IS_ANY_TARGET))),
+                zones=(BF_YOU,),
+            )
+        )
+        a, b = Handle("card", 1), Handle("card", 2)
+        self.assertIsNone(another_target_reason([first, another], (a, b)))
+        self.assertIsNotNone(another_target_reason([first, another], (b, b)))
+        self.assertIsNone(another_target_reason([first, first], (b, b)))  # two plain "target"s may share
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

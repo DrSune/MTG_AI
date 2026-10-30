@@ -71,6 +71,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     FOr,
     Keyword,
     KeywordAbility,
@@ -165,9 +166,10 @@ def _up_to_two_target_creatures() -> Selector:
 
 
 def _up_to_one_other_target_creature() -> Selector:
-    """``up to one other target creature`` — "other" is the lossy
-    distinct-target convention (b5c: IS_ANY_TARGET never re-targets self
-    in practice; b5c ``another target`` precedent)."""
+    """``up to one other target creature`` (Cunning Geysermage). V13
+    (2026-10-29): "other" is FNot(IS_SOURCE), a creature other than this
+    one; IS_ANY_TARGET only says "is a target" and never excluded the
+    source."""
     return Selector(
         QAtMost(1),
         SelectorMode.TARGET,
@@ -175,6 +177,7 @@ def _up_to_one_other_target_creature() -> Selector:
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),

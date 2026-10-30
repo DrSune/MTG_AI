@@ -918,10 +918,12 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
     Taunter) — Verb.FIGHT as an effect verb (R7-9a; previously the verb
     existed only as a Keyword).  FIGHT's single ``target`` role is the
     *opponent* of the fight: the source creature is the implicit attacker
-    (no role for it), so "another" rides the IS_ANY_TARGET convention the
-    Selfless Savior precedent established for self-exclusion — the paired
-    damage rule ("each deals damage equal to its power to the other") is
-    FIGHT's rule reminder, never a sentence."""
+    (no role for it). V13 (2026-10-29): "another" is FNot(IS_SOURCE), the
+    Niambi / Subira encoding of "another target creature"; IS_ANY_TARGET only
+    says "is a target", so the Taunter could fight itself and its own "dealt
+    damage" trigger fired twice. The paired damage rule ("each deals damage
+    equal to its power to the other") is FIGHT's rule reminder, never a
+    sentence."""
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.FIGHT,
@@ -936,6 +938,7 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                                 FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                             )
                         ),
                         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),

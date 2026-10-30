@@ -48,6 +48,7 @@ the list still makes the ordering explicit and future-visible.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field, fields, is_dataclass
 from typing import TYPE_CHECKING
 
@@ -55,9 +56,12 @@ from MTG_bot.core.ability_tree import (
     Atom,
     BackFace,
     Cost,
+    FAtom,
+    FAtomPred,
     SpellAbility,
     SpellKind,
     Verb,
+    walk,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.events import (
@@ -361,6 +365,29 @@ def _validate_positional(
         reason = validate_target_selection(slot, (one,))
         if reason is not None:
             raise ValueError(f"executor: cast: illegal target selection: {reason}")
+    reason = another_target_reason(slots, targets)
+    if reason is not None:
+        raise ValueError(f"executor: cast: illegal target selection: {reason}")
+
+
+def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
+    """V13 (2026-10-29): "target creature ... and another target creature"
+    (Rookie Mistake, Garruk, Savage Herald's -2). The compiler marks the
+    "another" slot with FAtom(IS_ANY_TARGET) (templates_b5c: the documented
+    distinct-target encoding); its target must differ from every other slot's
+    (CR 115.3 lets one object fill several "target" words; "another" forbids
+    it here). None when the designation is legal."""
+    for i, slot in enumerate(slots):
+        marked = any(
+            isinstance(n, FAtom) and n.pred is FAtomPred.IS_ANY_TARGET
+            for n in walk(slot.selector.filter)
+        )
+        if not marked:
+            continue
+        others = {t for j, t in enumerate(targets) if j != i}
+        if targets[i] in others:
+            return f"another_target:{targets[i]} is already a target"
+    return None
 
 
 def _plan_cast_designation(

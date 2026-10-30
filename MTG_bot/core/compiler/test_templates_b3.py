@@ -523,6 +523,22 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(token.keywords, (Keyword.FLYING,))
         self.assertEqual(_qconst(atom, "count").value, 1)
 
+    def test_fight_another_target_excludes_the_source(self) -> None:
+        """V13 (2026-10-29): Brash Taunter's "This creature fights another
+        target creature" -- "another" is FNot(IS_SOURCE), as in Subira's
+        R11-4c above; IS_ANY_TARGET alone let the Taunter fight itself."""
+        ability = _ability(
+            _single_match(self.reg, "{2}{R}, {T}: This creature fights another target creature.")
+        )
+        atom = _atom(ability)
+        self.assertIs(atom.verb, Verb.FIGHT)
+        target = atom.args.get("target")
+        assert isinstance(target, Selector) and isinstance(target.filter, FAnd)
+        excl = [c for c in target.filter.children if isinstance(c, FNot)]
+        self.assertEqual(len(excl), 1)
+        assert isinstance(excl[0].inner, FAtom)
+        self.assertIs(excl[0].inner.pred, FAtomPred.IS_SOURCE)
+
     def test_target_cant_be_blocked_r6(self) -> None:
         """Round-6 R6-4: {1} activation → PREVENT_EFFECT with the blocked
         slot = FAnd(IS_ANY_TARGET, POWER_LE 2, FNot(IS_SOURCE)), condition =
