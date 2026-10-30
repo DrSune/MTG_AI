@@ -87,6 +87,7 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DurationEot,
     DurationPermanent,
+    DurationUntilLeaves,
     DurationWhileCondition,
     EachPlayer,
     FAnd,
@@ -1331,19 +1332,19 @@ def _equipped_creature() -> Selector:
 
 def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
     """``Exile that card until this creature leaves the battlefield.``
-    (Kitesail Freebooter s3) — EXILE of the result-referent card.
-    LOSSY (C11 verbatim): "until this creature leaves the battlefield"
-    — ``_VERB_ROLES[EXILE]`` has no duration role (grammar phase added
-    ``DurationUntilLeaves`` but only wired it to GAIN_CONTROL, per the
-    round-7 spec's R7-2 role row), so the temporary window is dropped;
-    the exiled card would never return. Flagged as an R8 grammar item
-    (EXILE duration role); the card CHOICE (result referent) is
-    preserved."""
+    (Kitesail Freebooter s3) — MOVE_ZONE to exile of the result-referent
+    card (the card the previous sentence chose), with
+    ``duration=DurationUntilLeaves()`` (ontology R5-1, 2026-10-29, CR
+    610.3): when Freebooter leaves the battlefield the card returns to its
+    previous zone, its owner's hand. The C11 loss this template used to
+    carry (no duration role on the move, so the exile was permanent) is
+    closed."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
                 ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("duration", DurationUntilLeaves()),
                 ("target", _result_selector()),
             )
         ),
@@ -2163,7 +2164,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
     Template(
         tid="B5a-exile-that-until-leaves",
-        name="exile that card (result referent; until-leaves window lossy)",
+        name="exile that card until this creature leaves the battlefield (result referent)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Exile that card until this creature leaves the battlefield\.$"

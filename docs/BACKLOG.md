@@ -614,7 +614,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The dispatch ledgers clear only when the creature leaves the battlefield.
   - So a one-turn lure keeps forcing blocks on later turns (FDN Joraga Invocation, checked by
     mapper B with a pack).
-- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter needs a design decision, see below]**
+- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter FIXED on branch `engine/r5a-until-leaves` 2026-10-29 by ontology R5-1, see B-60c and B-76]**
   `templates_b5a.py`).
   - Equip has no sorcery timing, so every Equipment can move at instant speed and mid-combat (M21
     Short Sword, Malefic Scythe).
@@ -686,6 +686,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     Emancipation with Nine Lives, or two Fiery Emancipations).
   - Repro script on the B-49 branch: `cr6161_repro.py`.
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
+  **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
+  branch `engine/r5a-until-leaves`; follow-ups in B-76]**
   - (1) Recommended: an optional `duration` role on MOVE_ZONE/EXILE taking `DurationUntilLeaves`.
     The executor keeps (card, previous zone, anchor) and returns the card when the anchor leaves
     (CR 610.3). If the anchor already left, the exile does not happen (CR 610.3a). The return table
@@ -766,6 +768,47 @@ These are forks, not tasks. See the report that accompanied this audit.
   - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
     a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
     permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
+- **B-76 [2026-10-29, branch `engine/r5a-until-leaves`] Ontology R5-1: zone moves "until" an event
+  (CR 610.3) are built; what is left.**
+  - Done: `MOVE_ZONE` takes an optional `duration` (`DurationUntilLeaves`, `DurationEot`,
+    `DurationUntilNextTurn` only; any other Duration is refused at construction). The executor's
+    return registry (`core/executor/returns.py`, `Executor._run_returns`, folded into
+    `state_fingerprint` while non-empty) keeps one row per moved object and returns it through
+    the normal MOVE_ZONE path when the duration ends: 610.3a/b (anchor already gone: nothing
+    moves), 610.3c (owner's control), 610.3d (one batch), 400.7 by journal provenance, tokens never
+    return (704.5d), Containment Priest applies (614), a returning Aura asks its owner for a host
+    (303.4f-g, V32 cherry-picked from `engine/verify-fixes-2`). The per-seat view (`returns_to`,
+    `returns_when`) and the G1 probe trace show every row. Templates: Kitesail Freebooter, Idol of
+    Endurance, and a general `B11-exile-np-until-leaves` clause that, behind the enters frame,
+    newly compiles Hieromancer's Cage (M19), Banishing Light (FDN, THB), Stasis Snare (FDN),
+    Banisher Priest (M14), Prison Realm (WAR) and Journey to Oblivion (ZNR), all unverified.
+  - **The training observation cannot see the rows** (`tools/training`, pinned, so not edited):
+    a policy trained on it does not know that killing Banishing Light returns its card (AGENTS
+    §10). Add the row (anchor, card, return zone) at the next observation-schema change.
+  - **"For as long as ~ remains on the battlefield" (CR 611.2b)** ends when the object phases out
+    (702.26f). It must not reuse `DurationUntilLeaves`; it needs its own node or a field.
+  - **Calix, Destiny's Hand [−3]** ("until target enchantment you control leaves the
+    battlefield"): the anchor is a second target, and `DurationUntilLeaves(source="target")` can
+    only name the spell's single target binding. Gap ledger; needs a per-slot referent.
+  - **Still unparsed** (each needs a clause the compiler lacks, not a new atom): Prayer of Binding
+    ("up to one target", ready for a mapper now), Seal Away ("tapped creature"), Glass Casket
+    ("with mana value 3 or less"), Sigrid, Colossal Whale, Glorious Protector, Grasping Giant,
+    Hixus, Constricting Sliver, Valki.
+  - **A return to a zone other than the battlefield consults no replacement effect.** The move
+    path asks `replacement_for_zone_change` only for battlefield entries (`verbs._v_move_zone`), so
+    Leyline of the Void would not exile Idol of Endurance's returning cards (B-72 family; general,
+    not specific to returns).
+  - **Tapped status survives zone changes (CR 110.5b/110.5d).** `CardState.tapped` is never
+    cleared when a card leaves the battlefield, so a creature exiled while tapped returns tapped,
+    and a tapped creature bounced and recast enters tapped. General engine gap.
+  - **Simultaneity is per destination zone.** One MOVE_ZONE per zone, in the fixed order
+    battlefield, hand, graveyard, exile; within a zone every object moves at once. V32 chooses
+    each entering Aura's host inside the move loop, so an Aura returning in the same batch as a
+    creature can pick that creature (strictly, 303.4f sees only objects already on the
+    battlefield).
+  - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
+    trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
+    consequence.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

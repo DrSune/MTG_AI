@@ -20,7 +20,6 @@ from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.legality import ctx_for, spell_record
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import eval_filter
-from MTG_bot.core.state import ZONE_BATTLEFIELD
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.executor import Executor
@@ -40,14 +39,16 @@ def _enchant_filter(executor: Executor, aura: Handle) -> Filter:
 def aura_entry_hosts(executor: Executor, aura: Handle, controller: Handle) -> list[Handle]:
     """The objects ``aura`` may enchant as it enters under ``controller`` (CR 303.4f): battlefield
     permanents passing its ENCHANT filter, judged with ``controller`` as "you", the Aura itself
-    excluded (303.4d). Handle-sorted."""
+    excluded (303.4d). A phased-out permanent is treated as though it does not exist (CR 702.26b),
+    so ``Executor.battlefield`` leaves it out (R5-1 branch, where phasing lives; agreed with V32's
+    author). Handle-sorted."""
     world = executor.world
     enchant = _enchant_filter(executor, aura)
     ctx = ctx_for(executor, source=aura, controller=controller)
     hosts = [
         card
         for player in world.player_order
-        for card in world.players[player].zone(ZONE_BATTLEFIELD).entries
+        for card in executor.battlefield(player)
         if card != aura and eval_filter(enchant, card, ctx)
     ]
     return sorted(hosts)

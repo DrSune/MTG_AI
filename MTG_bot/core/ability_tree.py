@@ -1655,11 +1655,19 @@ class DurationUntilNextStep:
 @dataclass(frozen=True)
 class DurationUntilLeaves:
     """Until the referenced permanent leaves the battlefield (Kitesail
-    Cabinet's "until this creature leaves the battlefield", Idol of
+    Freebooter's "until this creature leaves the battlefield", Idol of
     Endurance's exile window). ``source`` names the anchored object as a
     referent string from ``_QPROP_STR_REFERENTS`` — default "source" =
     the object that owns the ability (C12: structured referent, never an
-    English substring like "this creature")."""
+    English substring like "this creature").
+
+    Ontology R5-1 (2026-10-29) fixes the meaning: exactly "until the
+    anchor leaves the battlefield". It ends when that object (the same
+    object, CR 400.7) leaves the battlefield. Phasing out does NOT end it:
+    phasing is a status, not a zone change (CR 702.26d). A future "for as
+    long as ~ remains on the battlefield" duration (CR 611.2b) does end when
+    the object phases out (CR 702.26f), so it must not reuse this node; it
+    needs its own node or a field here."""
 
     source: str = "source"
 
@@ -1677,6 +1685,14 @@ Duration = (
     | DurationWhileCondition
     | DurationUntilNextStep
     | DurationUntilLeaves
+)
+
+#: Ontology R5-1 (CR 610.3): the durations a MOVE_ZONE "until …" may carry —
+#: each ends on an event, after which the object returns to its previous zone.
+_MOVE_ZONE_DURATIONS: tuple[type, ...] = (
+    DurationUntilLeaves,
+    DurationEot,
+    DurationUntilNextTurn,
 )
 
 
@@ -2678,6 +2694,23 @@ class Atom:
                 f"Atom: {self.verb.name} needs one of the cards/target/"
                 "amount object axes"
             )
+        # Ontology R5-1 (CR 610.3): a zone move "until" something returns the
+        # object when that event happens, so only durations that END ON AN
+        # EVENT are accepted. DurationPermanent would be a twin of leaving the
+        # role out (same meaning, different bytes: divergence class D12), and
+        # DurationWhileCondition can become true again, which would move the
+        # object a second time.
+        if self.verb is Verb.MOVE_ZONE and "duration" in roles:
+            duration = roles["duration"]
+            if not isinstance(duration, _MOVE_ZONE_DURATIONS):
+                raise ValueError(
+                    f"Atom: MOVE_ZONE duration must be one of "
+                    f"{', '.join(t.__name__ for t in _MOVE_ZONE_DURATIONS)} (a "
+                    f"duration that ends on an event, CR 610.3), got "
+                    f"{type(duration).__name__}; DurationPermanent means the same as "
+                    "leaving the role out, and DurationWhileCondition could start "
+                    "again and move the object a second time"
+                )
         # R10-4: per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -3817,6 +3850,11 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # knows it (mill/discard); `journal_kind` carries A2(ii)'s literal
     # journal row kind. Axes stay orthogonal (§9): operation × menu ×
     # count × journal kind, no fused special-case verb.
+    # duration (ontology R5-1, 2026-10-29, CR 610.3): "exile that card until
+    # this creature leaves the battlefield". The move happens; when the
+    # duration ends, a second one-shot effect returns the object to its
+    # previous zone. Only durations that end on an event are accepted
+    # (_MOVE_ZONE_DURATIONS, checked in Atom.__post_init__).
     Verb.MOVE_ZONE: {
         "destination": True,
         "cards": False,
@@ -3827,6 +3865,7 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
         "journal_kind": False,
         "pop_order": False,
         "tapped_on_enter": False,
+        "duration": False,
     },
     Verb.SEARCH: {
         "cards": True,

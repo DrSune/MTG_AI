@@ -31,6 +31,20 @@ Pack vocabulary (all keys required as noted):
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
+             {"op": "enter", "key": k, "hold_triggers": true}
+                                            2026-10-29 (R5-1): the triggers
+                                            the entry arms wait, unresolved,
+                                            until the NEXT step's settle —
+                                            the stand-in for "in response to
+                                            the trigger" (the engine has no
+                                            priority window for triggers),
+             {"op": "move", "key": k, "to": "hand"|"graveyard"|"exile"
+              |"battlefield"|"library"}     2026-10-29 (R5-1): a journalled
+                                            move by "another effect" (a
+                                            bounce, a destroy, an exile) to
+                                            the card's OWNER's zone; its
+                                            settle drains held triggers
+                                            after the move,
              {"op": "play", "key": k}       17a: the REAL land drop (CR
                                             305.1, legality + once-per-
                                             turn + EtBState entry hook),
@@ -96,7 +110,9 @@ Pack vocabulary (all keys required as noted):
              "graveyard": {"0": [names...]},          17a: exact bag
              "turn_seats": [0, 0, 1],  2026-10-29: the seat of every turn
                                         begun, in order (CR 500.7 extra turns)
-             "phased_out": {key: bool}}  2026-10-29: the CR 702.26 status
+             "phased_out": {key: bool},  2026-10-29: the CR 702.26 status
+             "controller": {key: 0|1}}  2026-10-29 (R5-1): the effective
+                                        controller's seat (CR 610.3c)
   setup cards may carry "counters": {"KIND": n}; an activate step's targets
   may name a player as "p0"/"p1".
 """
@@ -145,6 +161,14 @@ ZONE_OF_NAME = {
     "library": ZONE_LIBRARY,  # 17a: search/tutor assertions
 }
 UNIV = FAnd(())
+# R5-1 (2026-10-29): the "move" op's destinations.
+_MOVE_TO = {
+    "battlefield": ZoneKind.BATTLEFIELD,
+    "hand": ZoneKind.HAND,
+    "graveyard": ZoneKind.GRAVEYARD,
+    "exile": ZoneKind.EXILE,
+    "library": ZoneKind.LIBRARY,
+}
 
 
 class PackError(Exception):
@@ -403,6 +427,37 @@ class ScenarioRunner:
             )
         elif op == "enter":
             handle = self.handles[step["key"]]
+            atom = _atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    UNIV,
+                    zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                ),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                tapped_on_enter=bool(step.get("tapped", False)),
+            )
+            # R5-1 (2026-10-29): "hold_triggers" leaves the armed triggers queued; the
+            # next step's settle resolves them after its own action (a response).
+            binder = self.ex.binder
+            held = bool(step.get("hold_triggers"))
+            if held:
+                binder.fire_all = lambda: 0  # type: ignore[method-assign]
+            try:
+                self.ex.execute(
+                    atom,
+                    source=handle,
+                    controller=self.world.controller_of(handle),
+                    bindings={"cards": handle},
+                )
+            finally:
+                if held:
+                    del binder.fire_all  # the class method again
+        elif op == "move":
+            # R5-1 (2026-10-29): a journalled zone move by another effect, to the
+            # card's owner's zone (the destroy / bounce / exile stand-in).
+            handle = self.handles[step["key"]]
             self.ex.execute(
                 _atom(
                     Verb.MOVE_ZONE,
@@ -410,10 +465,9 @@ class ScenarioRunner:
                         QConst(1),
                         SelectorMode.TARGET,
                         UNIV,
-                        zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                        zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                     ),
-                    destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-                    tapped_on_enter=bool(step.get("tapped", False)),
+                    destination=Zone(_MOVE_TO[step["to"]], ControllerRef.OWNER),
                 ),
                 source=handle,
                 controller=self.world.controller_of(handle),
@@ -613,6 +667,12 @@ class ScenarioRunner:
             got_phased = self.handles[key] in self.ex.phased_out
             if got_phased != bool(want):
                 fails.append(f"phased_out[{key}]: expected {want}, got {got_phased}")
+        # 2026-10-29 CONTROLLER LANE (R5-1, CR 610.3c): the seat index of the card's
+        # effective controller (the control overlay included; off the battlefield, its owner).
+        for key, want in self.pack.get("expect", {}).get("controller", {}).items():
+            got_seat = self.seats.index(self.ex.controller_of(self.handles[key]))
+            if got_seat != int(want):
+                fails.append(f"controller[{key}]: expected {want}, got {got_seat}")
         # 2026-10-29 TURN_SEATS LANE (CR 500.7 extra turns): the seat index of every turn
         # begun so far, in order, read off the journal's UPKEEP markers (they carry the
         # active player). The setup's opening begin_turn is the first entry.

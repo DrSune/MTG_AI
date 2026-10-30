@@ -73,6 +73,7 @@ from MTG_bot.core.executor.quantity import (
     referent_handle,
     resolve,
 )
+from MTG_bot.core.executor.returns import anchor_unmoved, battlefield_entry_clock
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
@@ -367,6 +368,80 @@ def _attach_entering_aura(ctx: ExecCtx, card: Handle, host: Handle) -> None:
     assert ctx.executor is not None  # _aura_entry_host chose a host only with one
     ctx.executor.attach_aura(card, host)
     ctx.events.append((len(ctx.events), "ATTACH", str(card), str(host)))
+
+
+#: Ontology R5-1: the zones a move "until" may take an object from. The return puts it back there
+#: (CR 610.3); a library or the stack has no position rule for that here, so such a move raises.
+_RETURNABLE_ZONES = (ZONE_BATTLEFIELD, ZONE_HAND, ZONE_GRAVEYARD, ZONE_EXILE)
+
+
+def _zone_map(world) -> dict[Handle, tuple[Handle, str]]:
+    """card -> (zone owner, zone kind) over every zone, without opening a journal boundary."""
+    out: dict[Handle, tuple[Handle, str]] = {}
+    for player in world.player_order:
+        for kind, zone in world.players[player].zones.items():
+            for card in zone.entries:
+                out[card] = (player, kind)
+    return out
+
+
+def _v_move_zone_until(ctx: ExecCtx, atom: Atom) -> None:
+    """MOVE_ZONE's handler. Without a ``duration`` role it is :func:`_v_move_zone`, unchanged.
+
+    Ontology R5-1 (CR 610.3): with one, the move is the first of two one-shot effects ("exile that
+    card until this creature leaves the battlefield"). The objects move exactly as without it, and
+    each one that arrives gets a row in the executor's return registry (``returns.py``). When the
+    duration ends, the executor returns it to its previous zone (``Executor._run_returns``).
+    CR 610.3a/b: if the anchor already left the battlefield after the ability triggered or the
+    spell was cast, the event has happened and nothing moves."""
+    duration = atom.args.get("duration")
+    if duration is None:
+        _v_move_zone(ctx, atom)
+        return
+    executor = ctx.executor
+    if executor is None:
+        raise ValueError(
+            "executor: MOVE_ZONE with a duration needs an executor-backed ExecCtx "
+            "(the return registry)"
+        )
+    assert isinstance(duration, Duration)  # the role table types it
+    tag = duration_tag(duration)
+    anchor: Handle | None = None
+    anchor_clock = 0
+    if isinstance(duration, DurationUntilLeaves):
+        anchor = referent_handle(duration.source, ctx)
+        if not anchor_unmoved(ctx, anchor):
+            # CR 610.3a/b: "the specified event has already occurred": the object doesn't move.
+            if atom.args.get("cards") is not None:
+                ctx.bindings["result"] = []
+            ctx.events.append((len(ctx.events), "MOVE_UNTIL_ENDED", str(anchor), tag))
+            return
+        if ctx.journal is not None:
+            anchor_clock = battlefield_entry_clock(ctx.journal, anchor)
+    before = _zone_map(ctx.world)
+    _v_move_zone(ctx, atom)
+    after = _zone_map(ctx.world)
+    for card in sorted(after):
+        was = before.get(card)
+        now = after[card]
+        if was is None or was == now:
+            continue
+        if was[1] not in _RETURNABLE_ZONES:
+            raise NotImplementedError(
+                f"executor: MOVE_ZONE until … from the {was[1]}: returning an object to a "
+                "library or the stack has no position rule here (flag, don't degrade)"
+            )
+        executor.returns.stage(
+            card,
+            zone=now[1],
+            previous_zone=was[1],
+            owner=now[0],
+            tag=tag,
+            anchor=anchor,
+            anchor_clock=anchor_clock,
+            source=ctx.source,
+            controller=ctx.controller,
+        )
 
 
 def _to_graveyard(ctx: ExecCtx, atom: Atom) -> None:
@@ -2069,7 +2144,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
 
 
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
-    Verb.MOVE_ZONE: _v_move_zone,
+    Verb.MOVE_ZONE: _v_move_zone_until,  # R5-1: _v_move_zone plus the "until" duration
     Verb.SACRIFICE: _to_graveyard,
     Verb.DESTROY: _to_graveyard,
     Verb.GAIN_LIFE: _v_gain_life,
