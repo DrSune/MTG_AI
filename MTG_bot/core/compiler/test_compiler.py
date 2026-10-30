@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 import unittest
 from collections.abc import Callable
+from dataclasses import fields, is_dataclass
 from pathlib import Path
 
 from MTG_bot.core.ability_tree import (
@@ -2991,6 +2992,69 @@ class TestAdditionalCostM21(unittest.TestCase):
                     sentence.startswith("As an additional cost"),
                     f"{name}: {sentence!r} left unparsed",
                 )
+
+
+class TestDanglingContinuation(unittest.TestCase):
+    """m21-fidelity wave 4 (2026-10-30): a sentence that acts on what the sentence before it
+    produced (a REST complement, the ``result`` register) is unparsed when that sentence did not
+    parse. FDN Squad Rallier and Vivien Reid compiled their lone "Put the rest on the bottom of
+    your library in a random order." as the whole spell effect, so casting them moved the top
+    card of the library to the bottom (CR 608.2c: "the rest" has no antecedent)."""
+
+    REST = "Put the rest on the bottom of your library in a random order."
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = build_full_registry()
+
+    @staticmethod
+    def _rest_selectors(card) -> list:
+        out: list = []
+
+        def walk(node: object) -> None:
+            if isinstance(node, Selector) and node.mode is SelectorMode.REST:
+                out.append(node)
+            if isinstance(node, (list, tuple)):
+                for x in node:
+                    walk(x)
+            elif is_dataclass(node) and not isinstance(node, type):
+                for f in fields(node):
+                    walk(getattr(node, f.name))
+
+        walk(card.abilities)
+        return out
+
+    def test_rest_after_an_unparsed_look_is_unparsed(self) -> None:
+        raw = _raw_card(
+            "Rally Probe",
+            9101,
+            types=("Creature",),
+            mana_cost_raw="{3}{W}",
+            mana_value=4,
+            power_raw="3",
+            toughness_raw="4",
+            sentences=(
+                "{2}{W}: Look at the top four cards of your library.",
+                (
+                    "You may reveal a creature card with power 2 or less from among them and "
+                    "put it into your hand."
+                ),
+                self.REST,
+            ),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertIn(self.REST, [sentence for sentence, _hint in res.unparsed])
+        self.assertEqual(self._rest_selectors(res.card), [])
+        spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+        self.assertEqual(len(spells), 1)
+        self.assertIsNone(spells[0].effect)
+
+    def test_a_parsed_antecedent_keeps_the_sentence(self) -> None:
+        # Control: the rule reads only an UNPARSED previous sentence.
+        raw = _raw_card("Rest Control", 9102, sentences=("Draw a card.", self.REST))
+        res = compile_card(raw, self.reg)
+        self.assertNotIn(self.REST, [sentence for sentence, _hint in res.unparsed])
+        self.assertEqual(len(self._rest_selectors(res.card)), 1)
 
 
 if __name__ == "__main__":

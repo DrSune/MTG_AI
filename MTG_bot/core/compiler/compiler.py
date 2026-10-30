@@ -803,6 +803,38 @@ def _self_named_sentence(sentence: str, raw: RawCard) -> str | None:
     return out if out != sentence else None
 
 
+def _leans_on_previous_sentence(node: object) -> bool:
+    """Does an effect act on objects the previous sentence produced: the
+    REST complement of a pick, or the ``result`` register (the objects the
+    previous sentence acted on, C12)?"""
+    if isinstance(node, Selector) and (
+        node.mode is SelectorMode.REST or node.referent == "result"
+    ):
+        return True
+    if type(node) is tuple:
+        return any(_leans_on_previous_sentence(x) for x in node)
+    if is_dataclass(node) and not isinstance(node, type):
+        return any(_leans_on_previous_sentence(getattr(node, f.name)) for f in fields(node))
+    return False
+
+
+def _dangles_after_unparsed(outcomes: list, outcome: object) -> bool:
+    """m21-fidelity wave 4: is ``outcome`` a sentence that leans on the one
+    before it (:func:`_leans_on_previous_sentence`) while that sentence is
+    unparsed (a None slot; reminder text in between is skipped)? Such a
+    sentence has no antecedent (CR 608.2c reads the instructions in order,
+    and "the rest" / "it" name the previous instruction's objects)."""
+    if not isinstance(outcome, EffectOutcome) or not _leans_on_previous_sentence(
+        outcome.effect
+    ):
+        return False
+    for prev in reversed(outcomes):
+        if isinstance(prev, RuleReminderOutcome):
+            continue
+        return prev is None
+    return False
+
+
 def _is_continuation(sentence: str) -> bool:
     """Check if a sentence starts with a continuation prefix."""
     s = sentence.strip()
@@ -1786,6 +1818,18 @@ def compile_card(
                         note=f"{len(matches)} templates matched; highest priority used",
                     )
                 )
+
+        # m21-fidelity wave 4 (2026-10-30): a sentence that acts on what the
+        # sentence before it produced ("Put the rest on the bottom of your
+        # library", "That player discards that card", "It gains
+        # indestructible") has no antecedent when that sentence did not
+        # parse. Compiled alone it became an unprinted effect of its own
+        # (FDN Squad Rallier and Vivien Reid: the rest-to-bottom ran as the
+        # whole spell effect, moving the top card of the library), so it is
+        # unparsed too (flag, don't degrade).
+        if _dangles_after_unparsed(outcomes, best_match.outcome):
+            outcomes.append(None)
+            continue
 
         # Use highest-priority match (first in ordered tuple)
         outcomes.append(best_match.outcome)
