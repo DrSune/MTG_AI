@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ip", "real": "Indulging Patrician", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "real": "Blossoming Sands", "zone": "hand", "controller": 0},
+  {"key": "l2", "real": "Scoured Barrens", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "l1"},
+  {"op": "enter", "key": "l2"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"life": {"0": 22, "1": 20}},
+ "notes": "Printed: '... if you gained 3 or more life this turn ...'. Only 2 life is gained this turn (20 -> 22): the condition is false at your end step and the opponent loses nothing (stays 20)."}

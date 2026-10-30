@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c3ea33f4-17ac-41a4-8320-361b6f8aba0d",
+ "name": "Hellkite Punisher",
+ "text_sha": "b4c7b38c05537cf67765f2b44dc0b0e4209239b37eb7b171c945ea4f8ea17914",
+ "verified": {
+  "tree_sha": "a0fa50395a108ccb1f4499cc66d388f89ebc20dd9ed173869ee0b5b303887b04",
+  "probe_sha": "4145d91096c7520e8af9e526e60ec292263d152ec17d570572e6e072da1a1530",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] keywords +FLYING; static: card keywords FLYING; [attacks and opp_giant blocks it] the 4/4 non-flyer cannot block: opp dealt 6, life 20 -> 14",
+    "issue": ""
+   },
+   {
+    "clause": "{R}: This creature gets +1/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield] mana R-1, P/T 6/6 -> 7/6; after the turn ends 7/6 -> 6/6. No timing restriction (instant speed, as printed). Tree identical to parse template B3-modify-pt-self.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

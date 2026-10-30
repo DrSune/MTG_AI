@@ -782,7 +782,12 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
     """Barrin ETB: "return up to one other target creature or planeswalker"
     — TARGET + QAtMost(1) (grammar round 8, C17): a targeted "up to N" keeps
     SelectorMode.TARGET (legal designation range 1..N stays a target
-    decision; resolution clamps to 0..remaining)."""
+    decision; resolution clamps to 0..remaining).
+
+    "to its owner's hand" is Zone(HAND, OWNER) (CR 400.3: a card goes to its
+    owner's hand), the shape the other 35 owner's-hand returns compile to.
+    m21-fidelity (review batch C, 2026-10-29): Barrin, Niambi and Roaming
+    Ghostlight emitted Zone(HAND, ANY)."""
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
@@ -814,7 +819,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
-                    ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                 )
             ),
         ),
@@ -850,7 +855,7 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
                                 zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                             ),
                         ),
-                        ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                        ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                     )
                 ),
             )
@@ -1467,7 +1472,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
-                    ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                 )
             ),
         ),

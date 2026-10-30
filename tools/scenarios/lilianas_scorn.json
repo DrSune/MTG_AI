@@ -1,55 +1,70 @@
 {
-  "world": {
-    "life": 20,
-    "seed": 7
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ls",
+   "real": "Liliana's Scorn",
+   "zone": "hand",
+   "controller": 0
   },
-  "cards": [
-    {
-      "key": "ls",
-      "real": "Liliana's Scorn",
-      "zone": "hand",
-      "controller": 0
-    },
-    {
-      "key": "victim",
-      "name": "Doomed Beast",
-      "power": 2,
-      "toughness": 2,
-      "type": "Creature",
-      "zone": "battlefield",
-      "controller": 1
-    },
-    {
-      "key": "mage",
-      "name": "Liliana, Death Mage",
-      "type": "Creature",
-      "zone": "library",
-      "controller": 0
-    }
-  ],
-  "mana": {
-    "0": {
-      "B": 6
-    }
+  {
+   "key": "victim",
+   "name": "Doomed Beast",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
   },
-  "steps": [
-    {
-      "op": "cast",
-      "real": "Liliana's Scorn",
-      "key": "ls",
-      "targets": [
-        "victim"
-      ]
-    }
-  ],
-  "expect": {
-    "zone": {
-      "ls": "graveyard",
-      "victim": "graveyard",
-      "mage": "hand"
-    },
-    "life": {
-      "0": 20
-    }
+  {
+   "key": "mage",
+   "name": "Liliana, Death Mage",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "junk",
+   "name": "Top Junk",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
   }
+ ],
+ "mana": {
+  "0": {
+   "B": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Liliana's Scorn",
+   "key": "ls",
+   "targets": [
+    "victim"
+   ],
+   "decisions": [
+    "fire",
+    "mage"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ls": "graveyard",
+   "victim": "graveyard",
+   "mage": "hand",
+   "junk": "hand"
+  },
+  "life": {
+   "0": 20
+  }
+ },
+ "notes": "# re-pinned 2026-10-29: m21-fidelity makes the tutor part of the spell's resolution (it was a free activated row that never ran: this pack passed only because the opening draw put the named card, the sole library card, into the hand). Top Junk is now the card the opening draw takes, the cast answers the 'you may search' with fire and picks the named card, so the tutor itself must move it."
 }

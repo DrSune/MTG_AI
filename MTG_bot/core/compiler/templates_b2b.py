@@ -318,12 +318,17 @@ def _any_card_in_your_hand() -> Selector:
 
 
 def _target_opponent() -> Selector:
-    """Selector for ``target opponent``."""
+    """Selector for ``target opponent``: a TARGET over the opponents' seats,
+    Zone(PLAYER, OPPONENT) (CR 115.1, 102.2: a target opponent is an opponent
+    of the ability's controller). m21-fidelity (review batch D, 2026-10-29):
+    it was Zone(PLAYER, TARGET_PLAYER), which inside a damage firing reads the
+    binder's dealer anaphora, so Brash Taunter's echo hit the controller of the
+    damage's source (its own controller after its own fight)."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
         FAnd(children=()),
-        zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),),
     )
 
 
@@ -482,46 +487,46 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
 # ---------------------------------------------------------------------------
 
 
+def _named_search_one(name: str) -> Atom:
+    """One "a card named <name>" pick from your library into your hand: an
+    up-to-one CHOOSE, which the compiler's search-pick pass turns into the
+    asked ONE_OF channel."""
+    return Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
+                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+
+
 def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle."""
+    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle.
+
+    "a card named A and/or a card named B" is at most ONE card of each name
+    (m21-fidelity, review batch A, 2026-10-29): one pick per name, in printed
+    order. It was one up-to-two pick over FOr(NAME A, NAME B), which could
+    fetch two Alpine Watchdogs (stronger than printed). No IR node says
+    "distinct names", so the one search is written as two picks; nothing
+    observes the difference (no card in the pool triggers on searching).
+    """
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Seq(
                 steps=(
-                    Atom(
-                        verb=Verb.SEARCH,
-                        args=AtomArgs(
-                            pairs=(
-                                (
-                                    "cards",
-                                    Selector(
-                                        QConst(2),
-                                        SelectorMode.CHOOSE,
-                                        FOr(
-                                            children=(
-                                                FAtom(
-                                                    pred=FAtomPred.NAME_EQ,
-                                                    string_value="Alpine Watchdog",
-                                                ),
-                                                FAtom(
-                                                    pred=FAtomPred.NAME_EQ,
-                                                    string_value="Igneous Cur",
-                                                ),
-                                            )
-                                        ),
-                                        zones=(
-                                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
-                                        ),
-                                    ),
-                                ),
-                                (
-                                    "destination",
-                                    Zone(ZoneKind.HAND, ControllerRef.YOU),
-                                ),
-                            )
-                        ),
-                    ),
+                    _named_search_one("Alpine Watchdog"),
+                    _named_search_one("Igneous Cur"),
                     Atom(
                         verb=Verb.REVEAL,
                         args=AtomArgs(
@@ -1076,11 +1081,18 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_nine_lives_leave(m: re.Match[str]) -> SentenceOutcome:
-    """#9: this enchantment leaves the battlefield, you lose the game."""
+    """#9: this enchantment leaves the battlefield, you lose the game.
+
+    The mover is THIS enchantment (CR 603.6c leaves-the-battlefield
+    trigger): subject IS_SOURCE, the self-ETB shape. m21-fidelity (review
+    batch C, 2026-10-29): the subject was missing, so any permanent you
+    controlled leaving the battlefield made you lose the game.
+    """
     return _ability(
         ZoneChangeEvent(
             from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
             to_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+            subject=FAtom(pred=FAtomPred.IS_SOURCE),
         ),
         Atom(verb=Verb.LOSE_GAME, args=AtomArgs()),
     )
@@ -1336,12 +1348,17 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
                     )
                 ),
             ),
+            # "a 3/3 Sphinx creature ... in addition to its other types": the
+            # card type Creature AND the subtype Sphinx (CR 205.1b; the type
+            # overlay is the single TYPE_EQ/SUBTYPE_EQ oracle). m21-fidelity
+            # (review batch C, 2026-10-29): only "Sphinx" was granted, so the
+            # 3/3 flier was never a creature and could not attack or block.
             Atom(
                 verb=Verb.GRANT_TYPE,
                 args=AtomArgs(
                     pairs=(
                         ("target", _self_selector()),
-                        ("types", ("Sphinx",)),
+                        ("types", ("Creature", "Sphinx")),
                         ("duration", DurationEot()),
                     )
                 ),
@@ -2122,8 +2139,9 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #14: you draw your second card each turn, create a Cat
     token.
 
-    CardDrawnEvent.ordinal=2 (grammar round 4).  Lossy: the token's green
-    color is omitted — TokenSpec has no color field (bucket convention)."""
+    CardDrawnEvent.ordinal=2 (grammar round 4).  The token is green:
+    TokenSpec.color='G' (round 8, C-2 repair; the old note that the color
+    was omitted is stale, m21-fidelity item 3 census 2026-10-29)."""
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(

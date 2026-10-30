@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Same attack as the tap_pump pack, then the turn ends: the +1/+1 per tapped creature was until end of turn, so the Striker is back to 1/1.",
+ "cards": [
+  {"key": "ss", "real": "Siege Striker", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Giant", "type": "Creature", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ss": true, "bear": false, "giant": false}, "may": {"ss": true}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "power": {"ss": 1},
+  "toughness": {"ss": 1},
+  "life": {"1": 14}
+ }
+}

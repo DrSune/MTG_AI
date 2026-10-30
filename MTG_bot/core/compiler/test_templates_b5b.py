@@ -29,7 +29,9 @@ from MTG_bot.core.ability_tree import (
     Choose,
     Conditional,
     ControllerRef,
+    Cost,
     CostDeltaIncreaseGeneric,
+    CostManaGeneric,
     CostModifier,
     CostSacrifice,
     CostTap,
@@ -40,6 +42,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DurationEot,
     DurationPermanent,
+    EachPlayer,
     FAnd,
     FAtom,
     FAtomPred,
@@ -47,7 +50,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
-    LifeGainedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -80,6 +82,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     KeywordOutcome,
+    KickerEffectOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
     TemplateRegistry,
@@ -608,6 +611,11 @@ def _inner_node(outcome: SentenceOutcome) -> Any:
         # r8-C: directive/marker rows (Round-up, emblem-quote residue)
         # carry only their reason string — stable-identity by reason.
         return outcome.reason
+    if isinstance(outcome, KickerEffectOutcome):
+        # m21-fidelity item 4: a conditional "instead" arm (Life Goes On) is
+        # serialised as the gate it folds into.
+        assert outcome.pred is not None
+        return Conditional(pred=outcome.pred, then_effect=outcome.effect)
     raise TypeError(f"cannot extract inner node from {type(outcome)}")
 
 
@@ -1276,10 +1284,19 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(p["count"], QUnbounded)
 
     def test_sacr_flying(self) -> None:
-        """B5b-sacr-flying: SACRIFICE, CHOOSE, Creature+FLYING."""
+        """B5b-sacr-flying: the target opponent sacrifices one of THEIR fliers.
+
+        # re-pinned 2026-10-29: m21-fidelity (review batch J). The bare SACRIFICE had no
+        # player: one pick over every player's fliers. Now the Goremand edict shape with a
+        # target: EachPlayer(TARGET_PLAYER, SACRIFICE(CHOOSE, CONTROLLER_IS YOU + Creature +
+        # FLYING)).
+        """
         outcome = self._match_outcome("B5b-sacr-flying")
         eff = _as_effect(outcome)
-        atom = _as_atom(eff.effect)
+        each = eff.effect
+        assert isinstance(each, EachPlayer)
+        self.assertIs(each.ref, ControllerRef.TARGET_PLAYER)
+        atom = _as_atom(each.effect)
         self.assertEqual(atom.verb, Verb.SACRIFICE)
         p = _pairs_dict(atom)
         target = p["target"]
@@ -1287,6 +1304,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.CHOOSE)
         canon = canonical_json(target)
         self.assertIn("FLYING", canon)
+        self.assertIn(FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), target.filter.children)
 
     def test_discard_target_2(self) -> None:
         """B5b-discard-target-2: merged MOVE_ZONE (T4 P1a), TARGET_PLAYER,
@@ -1352,17 +1370,19 @@ class TestStructuralAssertions(unittest.TestCase):
     # -- Replacement effects (grammar round 5 — doc-07 batch, 8 tids) --
 
     def test_repl_died_gain_life(self) -> None:
-        """B5b-repl-died-gain-life: ReplacementAbility(LifeGainedEvent(YOU),
-        DIED_THIS_TURN, GAIN_LIFE 8)."""
+        """B5b-repl-died-gain-life: the "instead" arm on the spell's own gain,
+        KickerEffectOutcome(pred=DIED_THIS_TURN, replaces=True, GAIN_LIFE 8).
+
+        # re-pinned 2026-10-29: m21-fidelity item 4. It was a card-level
+        # ReplacementAbility(LifeGainedEvent(YOU), DIED_THIS_TURN, GAIN 8),
+        # registered for the rest of the turn, so every later life gain that
+        # turn became 8 (packs life_goes_on_gains_once / _died_then_other_gain).
+        """
         outcome = self._match_outcome("B5b-repl-died-gain-life")
-        ab = _as_replacement(_as_ability(outcome).ability)
-        event = ab.event
-        assert isinstance(event, LifeGainedEvent)
-        self.assertIs(event.actor.who, ControllerRef.YOU)
-        cond = ab.condition
-        assert isinstance(cond, FAtom)
-        self.assertEqual(cond.pred, FAtomPred.DIED_THIS_TURN)
-        atom = _as_atom(ab.action)
+        assert isinstance(outcome, KickerEffectOutcome)
+        self.assertTrue(outcome.replaces)
+        self.assertEqual(outcome.pred, FAtom(pred=FAtomPred.DIED_THIS_TURN))
+        atom = _as_atom(outcome.effect)
         self.assertEqual(atom.verb, Verb.GAIN_LIFE)
         p = _pairs_dict(atom)
         self.assertEqual(p["controller"], ControllerRef.YOU)
@@ -1513,40 +1533,36 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.referent, "event")
 
     def test_counter_unless_pays(self) -> None:
-        """B5b-counter-unless-pays: CostModifier on the spell's target,
-        controller_ref=Selector(referent='target'), delta +{3}, flying
-        gate (C7)."""
+        """B5b-counter-unless-pays: the conditional "instead" arm on the first sentence's
+        counter, KickerEffectOutcome(pred = you control a creature with flying,
+        replaces=True, COUNTER_SPELL unless {4}).
+
+        # re-pinned 2026-10-29: m21-fidelity item 5. It was a +{3} CostModifier on the unless
+        # cost whose flying condition was judged over the spell itself, so the {4} branch never
+        # applied (pack lofty_denial_with_flier).
+        """
         outcome = self._match_outcome("B5b-counter-unless-pays")
-        mod = _as_cost_modifier(_as_ability(outcome).ability)
-        flt = mod.filter
-        assert isinstance(flt, FAtom)
-        self.assertEqual(flt.pred, FAtomPred.IS_ANY_TARGET)
-        controller_ref = mod.controller_ref
-        assert isinstance(controller_ref, Selector)
-        self.assertEqual(controller_ref.referent, "target")
-        self.assertEqual(controller_ref.mode, SelectorMode.CHOOSE)
-        self.assertEqual(controller_ref.count, QConst(1))
-        self.assertEqual(controller_ref.zones[0].kind, ZoneKind.ANY)
-        self.assertEqual(controller_ref.zones[0].controller, ControllerRef.ANY)
-        delta = mod.delta
-        assert isinstance(delta, CostDeltaIncreaseGeneric)
-        self.assertEqual(delta.amount, QConst(3))
-        cond = mod.condition
-        assert isinstance(cond, FAnd)
-        # R1a canonicalization: FAnd children construction-sorted; all three
-        # conjuncts pinned by pred, order by the canonicalization law.
-        self.assertEqual(list(cond.children), sorted(cond.children, key=canonical_json))
-        by_pred = {c.pred: c for c in cond.children}
-        self.assertEqual(len(by_pred), 3)
-        type_leaf = by_pred[FAtomPred.TYPE_EQ]
-        keyword_leaf = by_pred[FAtomPred.KEYWORD_HAS]
-        controller_leaf = by_pred[FAtomPred.CONTROLLER_IS]
-        assert isinstance(type_leaf, FAtom)
-        self.assertEqual(type_leaf.string_value, "Creature")
-        assert isinstance(keyword_leaf, FAtom)
-        self.assertEqual(keyword_leaf.keyword, Keyword.FLYING)
-        assert isinstance(controller_leaf, FAtom)
-        self.assertEqual(controller_leaf.who, ControllerRef.YOU)
+        assert isinstance(outcome, KickerEffectOutcome)
+        self.assertTrue(outcome.replaces)
+        self.assertEqual(
+            outcome.pred,
+            FAtom(
+                pred=FAtomPred.CONTROLLER_COUNT_GE,
+                inner_filter=FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+                    )
+                ),
+                count=QConst(1),
+            ),
+        )
+        atom = _as_atom(outcome.effect)
+        self.assertEqual(atom.verb, Verb.COUNTER_SPELL)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["target"].mode, SelectorMode.TARGET)
+        self.assertEqual(p["target"].zones[0].kind, ZoneKind.STACK)
+        self.assertEqual(p["unless"], Cost(parts=(CostManaGeneric(amount=QConst(4)),)))
 
     def test_repl_draw_not_first(self) -> None:
         """B5b-repl-draw-not-first: CardDrawnEvent(YOU) with
@@ -1806,7 +1822,6 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
 
     def test_replacement_batch_cards_compile(self) -> None:
         cases = (
-            ("Life Goes On", "If a creature died this turn, you gain 8 life instead."),
             (
                 "Containment Priest",
                 (
@@ -1842,13 +1857,6 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
                 "If that spell would be put into your graveyard, exile it instead.",
             ),
             (
-                "Lofty Denial",
-                (
-                    "If you control a creature with flying, counter that spell "
-                    "unless its controller pays {4} instead."
-                ),
-            ),
-            (
                 "Teferi's Ageless Insight",
                 (
                     "If you would draw a card except the first one you draw in "
@@ -1862,6 +1870,58 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
             self.assertEqual(len(result.card.abilities), 1, f"{name}: ability count")
             self.assertEqual(len(result.unparsed), 0, f"{name}: unparsed")
             self.assertEqual(len(result.rule_reminders), 0, f"{name}: rule reminders")
+
+    def test_lofty_denial_is_one_conditional_counter(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 5 moved Lofty Denial out of the batch above.
+        # Its "instead" arm needs the first sentence it rewrites; the card is one SpellAbility:
+        # Conditional(you control a flier, COUNTER unless {4}, else=COUNTER unless {1}), both
+        # branches on the same target selector.
+        from MTG_bot.core.compiler.coverage import build_full_registry
+
+        raw = _raw(
+            "Lofty Denial",
+            (
+                "Counter target spell unless its controller pays {1}.",
+                (
+                    "If you control a creature with flying, counter that spell unless its "
+                    "controller pays {4} instead."
+                ),
+            ),
+        )
+        result = compile_card(raw, build_full_registry())
+        self.assertEqual(len(result.unparsed), 0)
+        (spell,) = result.card.abilities
+        assert isinstance(spell, SpellAbility)
+        effect = spell.effect
+        assert isinstance(effect, Conditional)
+        then_p = _pairs_dict(_as_atom(effect.then_effect))
+        assert effect.else_effect is not None
+        else_p = _pairs_dict(_as_atom(effect.else_effect))
+        self.assertEqual(then_p["target"], else_p["target"])
+        self.assertEqual(then_p["unless"], Cost(parts=(CostManaGeneric(amount=QConst(4)),)))
+        self.assertEqual(else_p["unless"], Cost(parts=(CostManaGeneric(amount=QConst(1)),)))
+
+    def test_life_goes_on_is_one_conditional_gain(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 4 moved Life Goes On out of the batch above.
+        # Its "instead" arm needs the base sentence it rewrites, and the whole card is one
+        # SpellAbility: Conditional(DIED_THIS_TURN, gain 8, else=gain 4), never a turn-long
+        # replacement of every life gain.
+        from MTG_bot.core.compiler.coverage import build_full_registry
+
+        raw = _raw(
+            "Life Goes On",
+            ("You gain 4 life.", "If a creature died this turn, you gain 8 life instead."),
+        )
+        result = compile_card(raw, build_full_registry())
+        self.assertEqual(len(result.unparsed), 0)
+        (spell,) = result.card.abilities
+        assert isinstance(spell, SpellAbility)
+        effect = spell.effect
+        assert isinstance(effect, Conditional)
+        self.assertEqual(effect.pred, FAtom(pred=FAtomPred.DIED_THIS_TURN))
+        self.assertEqual(_pairs_dict(_as_atom(effect.then_effect))["amount"], QConst(8))
+        assert effect.else_effect is not None
+        self.assertEqual(_pairs_dict(_as_atom(effect.else_effect))["amount"], QConst(4))
 
 
 # ---------------------------------------------------------------------------

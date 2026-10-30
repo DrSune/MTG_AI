@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tw", "real": "Twinblade Assassins", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "sr", "real": "Swift Response", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Swift Response", "key": "sr", "targets": ["victim"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"victim": "graveyard"},
+  "hand": {"0": 1, "1": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed Twinblade Assassins: 'At the beginning of your end step, if a creature died this turn, draw a card.' An opponent's creature died this turn, so at your end step you draw exactly one card (Library 5); the opponent draws nothing."
+}

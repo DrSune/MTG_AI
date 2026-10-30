@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b0af0c54-2a59-4075-8543-d41ff20c4c87",
+ "name": "Wind-Scarred Crag",
+ "text_sha": "6e08fc1a74dca4294d8af74c18b97d15b554f9e5579f068a286ede04d5639e91",
+ "verified": {
+  "tree_sha": "8a97383daf638b24266469c16dea3bc3df9249953c74a75199d20eaa1f17fc76",
+  "probe_sha": "5e3700f110c2014dc897ccbfeffe961a9b5ec260165771acd9fcb2454d0abd64",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'card's triggered ability [1] triggers', 'you gains 1 life (by card/GAIN_LIFE)', life 20 -> 21; [enters during the opponent's turn]: same, 20 -> 21",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose -> 0: tapped, you: mana R+1; [ask 1 -> 1]: tapped, you: mana W+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

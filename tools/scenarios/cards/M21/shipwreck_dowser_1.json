@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "d", "real": "Shipwreck Dowser", "zone": "battlefield", "controller": 0},
+  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "ct", "real": "Crash Through", "controller": 0},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "power": {"d": 3},
+  "toughness": {"d": 3}
+ },
+ "notes": "Printed: 'Prowess (... gets +1/+1 until end of turn.)' The G1 trace shows 3/3 -> 4/4 on the sorcery; after the turn ends it is 3/3 again."
+}

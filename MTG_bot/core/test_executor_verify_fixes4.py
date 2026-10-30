@@ -17,6 +17,7 @@ V39  Quirion Dryad: a spell "that's white, blue, black, or red" is a spell with 
 """
 
 import unittest
+from unittest import mock
 
 from MTG_bot.bench.router import SeatRouter
 from MTG_bot.bench.view import OracleIndex, SeatLens
@@ -44,6 +45,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor import MAX_HAND_SIZE, Executor
+from MTG_bot.core.executor import games as games_module
 from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
 from MTG_bot.core.executor.games import (
     RandomPolicy,
@@ -344,33 +346,44 @@ class ActWindowAfterTheTurnEndedTest(unittest.TestCase):
     """V37: once an effect has ended the turn, no player gets priority in it
     again (CR 724.1f), so the act windows offer nothing."""
 
-    def game_with_lands(self, seed):
+    def game_with_a_land(self):
+        """The first seeded deal whose opening hand holds a basic land, played: the
+        act menu then offers its mana ability."""
         supply = get_supply("castable", "M21")
-        game = _setup_game(seed, supply, deal_decks(seed, 1409, supply))
-        world = game.world
-        p0 = world.player_order[0]
-        game.executor.begin_turn(p0)
-        island = next(
-            h for h in world.players[p0].zone(ZONE_HAND).entries if world.cards[h].identity.name == "Island"
-        )
-        play_land(game.executor, p0, island)
-        self.assertTrue(legal_activations(world, game.executor, p0))  # the act menu is not empty
-        return game, supply, p0
+        basics = ("Plains", "Island", "Swamp", "Mountain", "Forest")
+        for seed in range(1, 40):
+            game = _setup_game(seed, supply, deal_decks(seed, 1409, supply))
+            world = game.world
+            p0 = world.player_order[0]
+            game.executor.begin_turn(p0)
+            hand = world.players[p0].zone(ZONE_HAND).entries
+            lands = [h for h in hand if world.cards[h].identity.name in basics]
+            if not lands:
+                continue
+            play_land(game.executor, p0, lands[0])
+            self.assertTrue(legal_activations(world, game.executor, p0))
+            return game, supply, p0
+        self.fail("no seed deals a basic land")
 
     def end_the_turn(self, game, p0):
         game.executor.execute(atom(Verb.END_TURN), source=p0, controller=p0)
         self.assertFalse(game.executor.turn_open)
 
     def test_the_engine_policy_takes_no_act(self):
-        game, _supply, p0 = self.game_with_lands(2)
-        policy = RandomPolicy(3)  # unfixed, this seed taps the Island after the turn ended
+        game, _supply, p0 = self.game_with_a_land()
+        policy = RandomPolicy(3)
         game.executor.decisions.provider = policy.answer
         self.end_the_turn(game, p0)
-        policy.take_acts(game, p0)
+        # A policy that never walks away and always taps mana when it can: with the
+        # window still open it would tap the land at once.
+        with mock.patch.object(games_module, "PASS_P", 0.0), mock.patch.object(
+            games_module, "TAP_MANA_P", 1.0
+        ):
+            policy.take_acts(game, p0)
         self.assertEqual(game.acts, 0)
 
     def test_the_bench_router_takes_no_act(self):
-        game, supply, p0 = self.game_with_lands(2)
+        game, supply, p0 = self.game_with_a_land()
         lenses = [SeatLens(0, OracleIndex.for_sets("M21")), SeatLens(1, OracleIndex.for_sets("M21"))]
         router = SeatRouter(game, [FirstActAgent(), FirstActAgent()], lenses, supply=supply)
         game.executor.decisions.provider = router.answer

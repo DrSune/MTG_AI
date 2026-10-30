@@ -1,0 +1,48 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "st",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "st",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "foe"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "foe": true
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "m21-fidelity item 5 (2026-10-29). Printed: '{5}{W}: Tap target creature. This ability costs {1} less to activate for each Shrine you control.' The Sanctum is the only Shrine, so the activation costs {4}{W}: a W:5 pool is spent to empty. Before the fix the activation-lane cost fold scanned the Sanctum twice (as the judged source and again as a battlefield permanent), so one Shrine cut {2} and W:1 was left over (stronger than printed); sanctum_tranquil_light.json only checked the tap."
+}

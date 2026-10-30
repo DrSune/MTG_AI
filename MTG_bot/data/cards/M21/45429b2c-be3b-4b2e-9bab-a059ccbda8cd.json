@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "45429b2c-be3b-4b2e-9bab-a059ccbda8cd",
+ "name": "Blossoming Sands",
+ "text_sha": "1e8290802626dd9cfddc0879f19b95e8720616be8d866f9c20ad43f34578b79f",
+ "verified": {
+  "tree_sha": "7e7920b610629a6db6f3ec094c35a322ac8ace0ca74d88073ccd520a75bd4dac",
+  "probe_sha": "895233ea4bf27326feec2d688f0a038806a55c0591ff7eda88f9818f94bdd9ab",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card: zone hand -> battlefield; tapped False -> True. Same when put onto the battlefield on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'you gains 1 life (by card/GAIN_LIFE)', you: life 20 -> 21; also on the MOVE_ZONE entry",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0, 1] -> 0: tapped, mana G+1; -> 1: tapped, mana W+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

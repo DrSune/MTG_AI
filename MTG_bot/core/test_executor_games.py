@@ -216,7 +216,11 @@ class DeckSupplyTest(unittest.TestCase):
         # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
         # Spirit Dragon leaves: a [−X] loyalty cost needs an X declaration the
         # activation lane does not have, so the shape gate marks it unsupported.
-        self.assertEqual(len(self.supply.engine_ids), 298)
+        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299 (Ugin is
+        # supported again: legality.activate announces X, CR 602.2b/606.6).
+        # re-pinned 2026-10-29: phasing (PHASE_OUT, CR 702.26) changes 299 -> 301,
+        # exactly Teferi, Master of Time and Teferi, Timeless Voyager.
+        self.assertEqual(len(self.supply.engine_ids), 301)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -255,8 +259,10 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
         # B-49 follow-up #1 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
         # Chandras whose duration permissions are suppressed).
         # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
-        self.assertEqual(len(m21.engine_ids), 298)
-        self.assertEqual(len(m21.deckable), 278)
+        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299, 278 -> 279 (Ugin back).
+        # re-pinned 2026-10-29: phasing changes 299 -> 301, 279 -> 281 (the two Teferis).
+        self.assertEqual(len(m21.engine_ids), 301)
+        self.assertEqual(len(m21.deckable), 281)
 
 
 class KickerLaneTest(unittest.TestCase):
@@ -2455,6 +2461,14 @@ class StallRuleTest(unittest.TestCase):
         # until its player slot existed; it now exiles player 1's graveyard.
         # Still crash-free and decisive, SAME loser, 36 turns (double-run
         # replay verified). Neither Chandra in these decks is cast.
+        # re-pinned 2026-10-29: m21-fidelity folds Liliana's Scorn's tutor into
+        # its resolution (it was a free activated row that never ran), and the
+        # seat casting Scorn (turns 13 and 25) now gets the may-search ask and
+        # its search/shuffle, so the seeded trajectory shifts. The game is no
+        # longer decisive: it runs to the 60-turn cap with no loser, crash-free,
+        # its world changing every round (141 acts), so the stall rule still
+        # must not and does not fire (double-run replay verified: same
+        # fingerprint, turns and reason).
         # re-pinned 2026-10-29: V36 changes the cleanup step: the active
         # player now discards down to seven (CR 514.1), asking the policy
         # which cards, so hands no longer grow without limit and the seeded
@@ -2464,6 +2478,10 @@ class StallRuleTest(unittest.TestCase):
         # casts Discontinuity here, which now skips the end step (it used to
         # run two) and closes that turn's act window. Still crash-free and
         # decisive, SAME loser, 50 turns (double-run replay verified, equal
+        # fingerprints).
+        # re-pinned 2026-10-29 (cards/integration merged into engine/verify-fixes-4):
+        # with m21-fidelity, V36 and V37 together the game is decisive again,
+        # SAME loser as before, 50 turns (double-run replay verified, equal
         # fingerprints).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)

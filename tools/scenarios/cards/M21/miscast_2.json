@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "miscast", "real": "Miscast", "zone": "hand", "controller": 1},
+  {"key": "rager", "name": "Rager", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 4}, "1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "shock", "targets": ["rager"], "decisions": ["miscast", "PAY"]}
+ ],
+ "expect": {
+  "zone": {"shock": "graveyard", "miscast": "graveyard", "rager": "graveyard"},
+  "mana_pool": {"0": {}, "1": {}},
+  "window_asks": {"1": ["miscast"]},
+  "kickback_asks": {"0": ["PAY"]}
+ },
+ "notes": "Printed Miscast {U}: 'Counter target instant or sorcery spell unless its controller pays {3}.' One target (Shock, an instant). Shock's controller has exactly {3} left after Shock and pays it: the pool ends empty (the price is exactly three), Shock is not countered and kills the 2/2. Miscast costs exactly {U}."
+}

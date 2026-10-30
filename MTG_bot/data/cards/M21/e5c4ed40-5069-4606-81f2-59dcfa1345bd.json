@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e5c4ed40-5069-4606-81f2-59dcfa1345bd",
+ "name": "Read the Tides",
+ "text_sha": "eb8cf027e59027fdc49aa8633d52ddcbd4b5fa18663e294169ded865d686be9b",
+ "verified": {
+  "tree_sha": "ec1b5266985b9997f6b11c9131400ab4162437afdc4107ecae9e20d28bdf6a90",
+  "probe_sha": "e1dd330f367a04d77a6abdaadf60ff7ad7ae84fc012df1fda430f3c7bc0c6cfd",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Sorcery {5}{U}; Choose one —",
+    "status": "OK",
+    "evidence": "Every variant pays mana U-1 W-5 and runs exactly one option (Choose count QConst(1)); card to graveyard",
+    "issue": "engine note: the mode is asked at resolution ('ask choose') and the cast's modes=[...] is ignored; targets are declared and 'is targeted' fires even when the draw mode is chosen (CR 700.2a/601.2c). Engine-wide modal handling, not this tree."
+   },
+   {
+    "clause": "• Draw three cards.",
+    "status": "OK",
+    "evidence": "[cast modes=[0] targets=['you_bear']] ask choose -> 0: three DRAW events, hand 6 -> 8, library 6 -> 3",
+    "issue": ""
+   },
+   {
+    "clause": "• Return up to two target creatures to their owners' hands.",
+    "status": "OK",
+    "evidence": "Target slot 1..2 of all six creatures (either side). [ask 1 -> 1] targets=['you_bear']: you_bear battlefield -> hand; targets=['opp_flier']: opp_flier -> hand, opp: hand 2 -> 3 (owner's hand); targets=['you_bear','you_giant']: both -> hand, you: hand 6 -> 7. Tree destination Zone(HAND, OWNER), count QAtMost(2)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

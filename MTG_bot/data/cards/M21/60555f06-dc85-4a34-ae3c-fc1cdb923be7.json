@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "60555f06-dc85-4a34-ae3c-fc1cdb923be7",
+ "name": "Bolt Hound",
+ "text_sha": "35d3dfa75c555d6665c5c782e0a5a6e0adcee22d6df20bdf1cad06f0f95c88ad",
+ "verified": {
+  "tree_sha": "38ade283716e84347cd529049e1fb70bed6d00d28822e6330eb24bdf9d58735e",
+  "probe_sha": "5ed55e2007e18bebc3d433b953d3f374b3d6649efe58a26b86b455bcafaa67db",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "Haste",
+    "status": "OK",
+    "evidence": "keywords[0] HASTE; [cast] 'keywords +HASTE'; pack bolt_hound_haste_pump (cast from hand, asked to attack and attacks the same turn, P1 20->18) passes",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, other creatures you control get +1/+0",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked] triggered ability [0] triggers; 'you_bear: P/T 2/2 -> 3/2', 'you_giant: P/T 4/4 -> 5/4'; the Hound itself deals 2 (not 'other'); opp creatures unchanged; [another creature you control (you_bear) attacks -> none]; [opp_bear attacks you -> none]",
+    "issue": ""
+   },
+   {
+    "clause": "... until end of turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "no attack variant shows the turn ending; pack bolt_hound_eot (after end_turn the bear is back to 2/2) passes",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/bolt_hound_1.json",
+   "tools/scenarios/cards/M21/bolt_hound_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 6,
+   "score": 0.75,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

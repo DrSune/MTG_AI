@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Sigiled Contender, printed 'This creature has lifelink as long as it has a +1/+1 counter on it.' Basri's Solidarity puts a +1/+1 counter on it (4/4); it then attacks unblocked. Expected: opponent 20 -> 16 and I gain 4 (20 -> 24).",
+ "cards": [
+  {"key": "sc", "real": "Sigiled Contender", "zone": "battlefield", "controller": 0},
+  {"key": "sol", "real": "Basri's Solidarity", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Basri's Solidarity", "key": "sol"},
+  {"op": "combat", "seat": 0, "attack": {"sc": true}}
+ ],
+ "expect": {"counters": {"sc": {"PLUS_1_PLUS_1": 1}}, "power": {"sc": 4}, "attackers": {"sc": true}, "life": {"0": 24, "1": 16}}}

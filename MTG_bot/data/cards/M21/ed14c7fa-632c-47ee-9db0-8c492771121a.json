@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ed14c7fa-632c-47ee-9db0-8c492771121a",
+ "name": "Burn Bright",
+ "text_sha": "44232f194e60ce9eccb891dced8fb2bb59ccd007524998b73599aa1fafba6928",
+ "verified": {
+  "tree_sha": "bef45ee39286f96eb6474d149b87abf0cec513b94a914aa571f74021316e549d",
+  "probe_sha": "0dde0db47a35639f371d45a7d57931ca81eec6d865ccae7875d89d91e9e70436",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {2}{R}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); [cast] 'mana R-1 W-2'",
+    "issue": ""
+   },
+   {
+    "clause": "Creatures you control get +2/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "MODIFY_PT ALL FAnd(CONTROLLER_IS YOU, Creature) +2/+0 DurationEot; [cast]: you_bear 2/2 -> 4/2, you_giant 4/4 -> 6/4, no opponent creature changes; 'after the turn ends' both revert. Locked set (CR 611.2c) not in the trace: pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P68df7dc000_burn_bright_locked_set.json (PASS): a creature entering after resolution stays 3/3, the opponent's creature stays 2/2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/burn_bright_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

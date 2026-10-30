@@ -1,0 +1,56 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a",
+ "name": "Short Sword",
+ "text_sha": "6489b153a069ae7675d6c7fff0b64ab956cb2307b953b8a662e263f54db87ef7",
+ "verified": {
+  "tree_sha": "ae834e650742ded76944ed8790305b87042756486924b79196fc2028eee254c2",
+  "probe_sha": "c3f86d68f098323aede61e1bca731622611223713d4b65a8029a8fc011700d31",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Artifact - Equipment {1} (cast)",
+    "status": "OK",
+    "evidence": "[cast]: card hand -> battlefield; mana W-1",
+    "issue": ""
+   },
+   {
+    "clause": "Equipped creature gets +1/+1.",
+    "status": "OK",
+    "evidence": "[activate [1] targets=['you_bear']]: you_bear 2/2 -> 3/3; targets=['you_giant']: 4/4 -> 5/5",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {1}",
+    "status": "OK",
+    "evidence": "[activate [1]]: you: mana W-1 (one generic)",
+    "issue": ""
+   },
+   {
+    "clause": "(Attach to target creature you control.)",
+    "status": "OK",
+    "evidence": "ability [1] target slot: 1..1 of [you_bear, you_giant] (no opponent creatures)",
+    "issue": ""
+   },
+   {
+    "clause": "(Equip only as a sorcery.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "tree carries timing=ActivationWindow.SORCERY; probe has no instant-speed attempt. Pack short_sword_equip_one_sorcery.json: refused on the opponent's turn (window:sorcery), then attaches on own turn, Bearer 2/2 -> 3/3, 1 of 3 colorless spent, PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/short_sword_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

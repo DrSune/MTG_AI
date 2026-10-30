@@ -1,0 +1,55 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d43463d2-4395-4616-acc3-c4f80ebe3242",
+ "name": "Watcher of the Spheres",
+ "text_sha": "6d21f1be35b77f61144edcfc01c0803ccc2e12ede2b0ec02630129169f4e4989",
+ "verified": {
+  "tree_sha": "ef828262dfcea23f474fa2cda0947cb019a7d065494c34e0457bed8c3da53c5c",
+  "probe_sha": "901873b10598c457383f02c013fdc961fdc575dace41f345745ab5be409e9fc6",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-A",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords[0] FLYING; [cast] keywords +FLYING; [this creature attacks and opp_giant blocks it] the block is not made and opp takes 2 (opp_giant has no flying/reach)",
+    "issue": ""
+   },
+   {
+    "clause": "Creature spells with flying you cast cost {1} less to cast.",
+    "status": "NOT_EXERCISED",
+    "evidence": "abilities[0] CostModifier(Creature AND KEYWORD_HAS FLYING, controller YOU, reduce generic 1) matches parse; the trace's only creature cast (Staunch Shieldmate, no flying) is unchanged. Packs watcher_of_the_spheres_flier.json (Mistral Singer {2}{U} cast with exactly 2 mana) and watcher_of_the_spheres_nonflier_full_cost.json (Mystic Skyfish, no flying, still costs 3: 'illegal cast: cost:mana_generic') PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "abilities[1] matches parse (B2b-flying-enters-self-boost); trace's non-flying entries ('a creature enters under your control') do not trigger. Packs watcher_of_the_spheres_flier.json (own flier enters -> Watcher 3/3, opponent's flier enters -> no extra boost) and watcher_of_the_spheres_eot.json (non-flier adds nothing; back to 2/2 after end_turn) PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_1.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_2.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 3,
+   "score": 0.23076923076923078,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/filter",
+    "widen filter (drop part 1) at 1/0/filter",
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "controller YOU->OPPONENT at 1/1/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/1/event/subject",
+    "widen filter (drop part 1) at 1/1/event/subject",
+    "controller YOU->OPPONENT at 1/1/event/subject/children/0/who",
+    "until-end-of-turn->permanent at 1/1/effect/args/duration",
+    "amount+1 at 1/1/effect/args/power/magnitude",
+    "amount+1 at 1/1/effect/args/toughness/magnitude"
+   ]
+  }
+ }
+}

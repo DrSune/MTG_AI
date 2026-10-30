@@ -1,0 +1,49 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "87e9065d-814a-47fa-9e92-19fb6fd6d78c",
+ "name": "Historian of Zhalfir",
+ "text_sha": "d62ee2021378b2280826dfffc08e4df31a60afc310a1fbdb4f6f50c1f7c57112",
+ "verified": {
+  "tree_sha": "efec540e7b7be288c7d0d0169ea51ee7963513fd39d767f08b77c798a0c602df",
+  "probe_sha": "a8324783dcd8d9783a0450b09ac08cd224bed96457fa23dd2d5ade629d94f41e",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks,",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [this creature attacks and opp_giant blocks it]: card's triggered ability [0] triggers on DECLARE_ATTACKERS card; [another creature you control (you_bear) attacks]: no trigger. Tree event DeclareAttackersEvent(IS_SOURCE).",
+    "issue": ""
+   },
+   {
+    "clause": "if you control a Teferi planeswalker,",
+    "status": "OK",
+    "evidence": "Trace: no Teferi on the standard board, and the attack draws nothing (false side right). Tree condition CONTROLLER_COUNT_GE 1 of NAME_CONTAINS 'Teferi' + TYPE_EQ Planeswalker, identical to parse (template B2b-attack-teferi-condition-draw); the name test stands in for the Teferi subtype, which every Teferi planeswalker carries. Pack historian_of_zhalfir_teferi_draw.json (you control Teferi, Master of Time: the attack draws 1) PASS; pack historian_of_zhalfir_opponent_teferi.json (only the opponent controls Teferi: no draw) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "draw a card.",
+    "status": "OK",
+    "evidence": "Tree DRAW amount 1 controller YOU; pack historian_of_zhalfir_teferi_draw.json: your hand 0 -> 1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/historian_of_zhalfir_1.json",
+   "tools/scenarios/cards/M21/historian_of_zhalfir_2.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

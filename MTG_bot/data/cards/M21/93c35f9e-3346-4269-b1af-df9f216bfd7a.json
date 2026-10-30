@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "93c35f9e-3346-4269-b1af-df9f216bfd7a",
+ "name": "Concordia Pegasus",
+ "text_sha": "354be33f63d1b5f6efc60652e4ef61481227e80bf781a07fb6161cb7259b1836",
+ "verified": {
+  "tree_sha": "254c4fd59bf414899c49833a5b4b9a1a37ac5bff2b0f9b9579ada538b623a69d",
+  "probe_sha": "d430b9fea43fe67f1f6ff62fc52595a62fc6e080ae1f0373878e3e6d0a414ab4",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Pegasus {1}{W} 1/3",
+    "status": "OK",
+    "evidence": "[cast]: P/T 1/3, mana W-2; survives 1 damage, dies to lethal; attacks unblocked for 1 (opp 20 -> 19)",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; static: card keywords FLYING; [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp 20 -> 19 (the non-flying, non-reach 4/4 cannot block it)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

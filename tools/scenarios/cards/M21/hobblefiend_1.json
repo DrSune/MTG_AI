@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hob", "real": "Hobblefiend", "zone": "battlefield", "controller": 0},
+  {"key": "fod", "name": "Fodder", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "chump", "name": "Chump", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "activate", "key": "hob", "idx": 0, "seat": 0, "decisions": ["fod"]},
+  {"op": "combat", "seat": 0, "attack": {"hob": true}, "block": {"chump": "hob"}, "trample": {"hob": [0]}}
+ ],
+ "expect": {
+  "counters": {"hob": {"PLUS_1_PLUS_1": 1}},
+  "power": {"hob": 3},
+  "toughness": {"hob": 2},
+  "blocked": {"hob": ["chump"]},
+  "life": {"1": 18},
+  "damage": {"hob": 1},
+  "zone": {"fod": "graveyard", "chump": "graveyard", "hob": "battlefield"}
+ },
+ "notes": "Printed: {1}, Sacrifice another creature: put a +1/+1 counter on this creature; Trample. Sacrificing Fodder makes Hobblefiend 3/2. Blocked by a 1/1, lethal is 1; answering 0 extra to the blocker sends the 2 excess to the player (20 -> 18). Hobblefiend takes 1 and survives at 2 toughness."
+}

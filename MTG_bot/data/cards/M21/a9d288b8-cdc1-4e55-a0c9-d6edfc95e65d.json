@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d",
+ "name": "Shock",
+ "text_sha": "167d797523e0a8c9bb3282293fc0ccf564b3d2e6fd3cfe5af0a5db34920267e1",
+ "verified": {
+  "tree_sha": "fa437a14e957ade86c4efe88137ca2dd2eb0ee0780675888654ea317fb8e5011",
+  "probe_sha": "864e6d4f0b55c3939b78af21d230b9d4cb4f751ac93e41d34b1d09fe86349668",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {R}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); every cast 'mana R-1'",
+    "issue": ""
+   },
+   {
+    "clause": "Shock deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "DEAL_DAMAGE 2 to FOr(Creature, Planeswalker, Player), the canonical B5b-damage-any parse; target slot (cast): 1..1 of all six creatures + you + opp; 2/2s and the 1/1 flier die, 4/4s and the 3/3 take 2 (cleared after the turn), you 20 -> 18, opp 20 -> 18. Planeswalker branch not on the board: pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P5db3707c57_shock_planeswalker.json (PASS) removes 2 loyalty from an opponent's Basri Ket (3 -> 1)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/shock_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

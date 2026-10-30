@@ -1,0 +1,10 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Sanctum of Stone Fangs", "zone": "battlefield", "controller": 0},
+  {"key": "t", "real": "Sanctum of Tranquil Light", "zone": "battlefield", "controller": 0},
+  {"key": "h", "real": "Sanctum of Shattered Heights", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [{"op": "advance_turn"}, {"op": "advance_turn"}],
+ "expect": {"life": {"0": 24, "1": 16}, "zone": {"s": "battlefield", "t": "battlefield", "h": "battlefield"}},
+ "notes": "Printed: 'At the beginning of your first main phase, each opponent loses X life and you gain X life, where X is the number of Shrines you control.' You control two Shrines (Stone Fangs + Tranquil Light), so X = 2; the opponent's Shrine (Shattered Heights) does not count. It fires in your first main phase of the opening turn and of your next turn, not on the opponent's turn: 20+2+2 = 24, 20-2-2 = 16. Kills a frozen/one-Shrine count (22/18), a dropped 'you control' (26/14), and a trigger on every first main phase."}

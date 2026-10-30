@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "865a2194-fca0-446e-aae3-ca475cd66e00",
+ "name": "Dismal Backwater",
+ "text_sha": "e2f632869385364279c868c379cc0b8d5e0df19324e408c07678407ce8f47cf6",
+ "verified": {
+  "tree_sha": "c8787305b3e886a34a7b22ebe013fab05e9269711aeecfd81f213dbf8dd34b4a",
+  "probe_sha": "fcebc34c0c3cb7e0501359bb6ba947bb4a0eba7e66984965f17f2a646fd4de52",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True (tree abilities[0] EtBState(tapped=True)); same on the opponent's-turn entry.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: card's triggered ability [1] triggers, you gains 1 life, life 20 -> 21; [from your hand, the card enters during the opponent's turn]: same, life 20 -> 21. Tree equals parse (template B2b-temple-etb-gain-life).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), mana U+1; branch -> 1: card becomes tapped, mana B+1. Tree cost Cost(parts=(CostTap(),)) with a Choose of ADD_MANA U / B, the shape of parse '{T}: Add {B} or {G}.' (template B3-add-mana-choose).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -35,6 +35,7 @@ are neutral; each one is teaching the agent something.
 | **Observation zone caps 6/8/12 and a 1024-token window** (registered 2026-10-24) | `tools/training/bc_data_v2.py:67-69`; `ab_duel.py:270-278` | 15,407 of 17,270 asks were truncated in the anchor run. Remove with the IR card tokenizer and a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: `TAP_ALL_MANA`, X always 0, multi-slot rows hidden, one act window, stateless prompts, conservative hidden-card labels** (2026-10-24) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each mirrors an engine limit or is a harness simplification. Remove with the corresponding engine rung (payment, X asks, multi-slot designation, priority) and with tool mode (`notes` memory). |
+| **Teferi, Master of Time's instant-speed window has no window to use** (registered 2026-10-29, branch `engine/phasing`) | `core/executor/legality.py` `ability_playable` (CR 606.3 loyalty window; the GRANT_ACTIVATION relaxation); `core/executor/games.py` and `MTG_bot/bench/router.py` (one act window per turn) | The legality oracle honours "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant" (for Teferi itself only, CR 201.5c). The drivers ask for activations only in the active player's first main phase, so the opponent's-turn half and the own-turn combat half never get a window, and Teferi plays as a sorcery-speed planeswalker: weaker than printed (its [−3] can never remove an attacker or a blocker). Remove with the priority rung: an activation window for the non-active seat and inside each step. |
 
 ---
 
@@ -521,6 +522,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     on branch `cards/castable-permanents`. It changes M21's goldens, its castable pool and every
     replay pin, so adopt it at an RL-pilot era boundary with a re-smoke and a re-pin, with B-43
     and B-47.
+  - **Follow-up #4 (Ugin's [−X] gated) FIXED on branch `engine/phasing` 2026-10-29.** An
+    activation whose cost carries X announces it before paying (CR 602.2b -> 601.2b, 107.3a):
+    `legality.activate` takes `x=` or asks it through the decision channel over `0..x_max`
+    (tag `x:<seat>:<source>:<digest>`; the bench registers the kind), with `x_max` the loyalty
+    counters (CR 606.6). The query row (`ActivationOption.x_max`) carries the live bound and its
+    payment is the X = 0 witness. The effect reads the announced X, and a [−0] still uses the
+    turn's loyalty activation (CR 606.3). The compiler gate now keeps only a non-bare X delta
+    unsupported. M21 castable 278 -> 279. Packs: `ugin_minus_x_*`, `ugin_minus_ten`.
 - **B-50 [2026-10-29, found by a mapper's G1 trace] A resolved ability's "until end of turn" grant
   ends when its source leaves the battlefield.**
   - `verbs._v_grant_or_lose` registers every GRANT/LOSE layer with the ability's source
@@ -566,6 +575,13 @@ These are forks, not tasks. See the report that accompanied this audit.
     creature" raised `KeyError 'unknown card player:1'`.
   - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
     seat-routing gap.
+  - [m21-fidelity, 2026-10-29] The engine cannot fix the population alone: "target player" (Peer
+    into the Abyss, Mind Rot, Tormod's Crypt, Sublime Epiphany) and "target opponent" (Duress,
+    Kitesail Freebooter, Liliana's Steward, Necromentia, Vito) compile to the same bare
+    `ControllerRef.TARGET_PLAYER`, so the IR needs one more bit (a design decision: for example a
+    `TARGET_OPPONENT` reference, or an explicit player-zone TARGET selector). Repro:
+    `tools/scenarios/known_bugs/peer_into_the_abyss_self_target.json`. With Peer's life loss now
+    compiled, Peer on an opponent is printed play; the self-target is the weaker-than-printed part.
 - **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
@@ -712,6 +728,143 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+  - [2026-10-29, branch `engine/phasing`] Loyalty abilities had no window at all in the legality
+    oracle: they compile with no `timing`, so `ability_playable` accepted them on any turn, in any
+    step, with a non-empty stack. Only the drivers' one main-phase act batch kept them at sorcery
+    speed (four packs activated an opponent's planeswalker on the wrong turn). CR 606.3 is now
+    enforced there (`window:loyalty:*`: own turn, empty stack, either main phase); the
+    first-main-only limit above still holds for casts, land drops and `timing=SORCERY`
+    activations.
+- **B-75 [2026-10-29, branch `engine/phasing`] Phasing (CR 702.26) is implemented as a status; one
+  printed clause still has no ontology.**
+  - Done: `Executor.phase_out` / the CR 502.1 step in `_untap_step`, `Executor.phased_out`
+    (folded into `state_fingerprint` when non-empty). The card keeps its zone, so there are no
+    zone-change events, tokens and counters stay, attachments and control stay (702.26d). The
+    readers leave it out: `selectors.enumerate_zone` / `existing` (targets, "each" populations,
+    counts, costs, static scopes), `legality._zone_handles`, `role_handles`' bound designations,
+    `Executor.battlefield` (the three SBA sweeps), the untap loop, `ability_playable`
+    (`window:phased_out`), cost modifiers, attack/block legality, `layers._layer_live` (its own
+    statics go dormant, `LayerRecord.from_static`), `binder._queue` (its triggers; delayed
+    triggers still fire), `replacements._source_alive`, the quantity census loops. It is removed
+    from combat (506.4); Auras/Equipment phase out and in with it (702.26g/h). Packs:
+    `teferi_master_of_time_phase*`, `teferi_master_of_time_phased_out_*`,
+    `teferi_timeless_voyager_phase_out_all`, `aven_gagglemaster_ignores_phased_out_flyer`,
+    `feline_sovereign_*phase*`.
+  - **Open, weaker than printed: Teferi, Timeless Voyager's "Until the end of your next turn, they
+    can't phase in."** The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
+    emits `PREVENT_EFFECT(event=ZoneChangeEvent(COMMAND/OPPONENT -> BATTLEFIELD/OPPONENT),
+    condition=CONTROLLER_IS OPPONENT, duration=DurationUntilNextTurn)`. Phasing is not a zone
+    change, so the record is inert and the creatures phase back in at their controller's next
+    untap step. Repro: `tools/scenarios/known_bugs/teferi_timeless_voyager_cant_phase_in.json`.
+    What the clause needs, for the next gated ontology round:
+    - an event: a phasing event shaped like `TapStateEvent`, e.g. `PhasingEvent(phased_in: bool,
+      filter: Filter)`, that the phasing step offers to the prevention registry before each
+      phase-in (the consumer: `Executor._phasing_step`);
+    - "they": the creatures the preceding PHASE_OUT phased out. PHASE_OUT writes the `result`
+      register, so either a filter referent for it or the `_v_prevent` convention of materialising
+      the affected set at registration (today it reads the `target` binding, here the targeted
+      player). `CONTROLLER_IS OPPONENT` is broader than "they" (it would also hold a creature
+      phased out earlier by another effect, stronger than printed);
+    - the duration: `DurationUntilNextTurn` ends as your next turn begins, the printed text at
+      its end. Phase-ins happen only in their controller's untap step, so no reachable game tells
+      them apart today; a PHASE_IN effect during that turn would.
+  - Also open: the policy observations (`tools/training/packrec.py`, `ab_duel.py` obs rows) list a
+    phased-out permanent as an ordinary battlefield card (AGENTS §10). The menus never offer it;
+    the bench seat view marks it. Add a `phased_out` row word (like `tapped`) at the next
+    observation-schema change.
+  - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
+    a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
+    permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
+- **B-82 [fixer A, m21-fidelity item 3; renumbered from B-75 at the merge, which phasing took] A multicoloured token is colourless** (live in M21).
+  - Experimental Overload's "X/X blue and red Weird" compiles with `TokenSpec.color=None`
+    (`templates_b5a.py`, B5a-weird-token): `color` holds one colour letter.
+  - Census 2026-10-29: of the 152 TokenSpecs compiled in the 19 sets (and 5 in FDN records), 150
+    single-colour tokens carry their printed colour and Gadrak's Treasure is rightly colourless;
+    the Weird is the only miss. The executor gives a token its spec colour (pinned in
+    `test_executor_verbs.py`: COLOR_HAS, COLOR_COUNT_GE, protection).
+  - Effect: Basri's Lieutenant's protection from multicolored and Feat of Resistance's protection
+    from blue or red do not stop the Weird (stronger than printed for its controller).
+  - Design decision, an ontology change: (a) `TokenSpec.colors: tuple[str, ...]`, WUBRG-sorted
+    like `CardRecord.colors` (SET-R1a), replacing `color`, so every token golden is re-baked and
+    the model sees each colour as its own token. Recommended. (b) Let `color` hold a WUBRG string
+    ("UR") and split it in the executor (`verbs._v_create_token`): no schema change and one golden,
+    but "UR" fuses two colours into one token (AGENTS §9) and breaks the IR's `color` (one) /
+    `colors` (several) convention that `FAtom` follows.
+- **B-76 [fixer A, found 2026-10-29] A creature with defender can never block** (live in M21,
+  weaker than printed).
+  - `legality.block_pair_blocked_reason` (`executor/legality.py` ~1878) and `blocker_askable`
+    (~1925) refuse every blocker with DEFENDER, citing "CR 702.4a". Defender only forbids attacking
+    (CR 702.3b), and 702.4 is double strike.
+  - So every wall is a dead card: 59 set entries list Defender in the 19 sets; in M21 Drowsing
+    Tyrannodon, Portcullis Vine, Wall of Runes and Warded Battlements. The pack
+    `block_defender_and_tapped.json` pins the bug (its wall is `not_asked_to_block`).
+  - **Fix.** Drop the two DEFENDER checks, re-pin that pack, and re-run the corpus games.
+- **B-77 [fixer A, m21-fidelity item 4] A spell's "would die this turn, exile it instead" has no
+  duration in the tree** (play is right; the encoding is implicit).
+  - Scorching Dragonfire (M21, ELD, FDN), Obliterating Bolt (FDN) and Blitz of the Thunder-Raptor
+    (IKO) compile a card-level `ReplacementAbility` with no duration (the IR node has no such
+    field). The executor registers a resolving instant's or sorcery's ReplacementAbility until end
+    of turn, scoped to the cast's designation (`stack.py`, `replacements.register_ephemeral_
+    replacements`), which is the printed "this turn" for all five. Packs
+    `scorching_dragonfire_late_damage_creature` and `scorching_dragonfire_expires_next_turn` pin it.
+  - So the model's static view of these cards does not show "this turn", and a future spell whose
+    replacement has another duration would be played wrong without a compile error.
+  - Options: (a) an optional `duration` on `ReplacementAbility` (ontology change, the R5-1 sibling
+    for replacements; the Dragonfire family re-bakes with `DurationEot`); (b) keep the executor rule
+    and write it into the ontology doc as the meaning of a ReplacementAbility on an instant or
+    sorcery (no IR change; the gap stays implicit).
+  - The spell-side death replacement is still skipped by DESTROY and other direct graveyard moves
+    (B-72).
+- **B-78 [fixer A, m21-fidelity] "Search your library and/or graveyard" always searches both.**
+  - The named tutors (Basri's Aegis, Liliana's Scorn, Garruk's Warsteed, Chandra's Firemaw and
+    their siblings) compile to one SEARCH over Zone(GRAVEYARD) and Zone(LIBRARY), and "If you
+    search your library this way, shuffle" joins the same OptionalEffect, so accepting the search
+    always shuffles.
+  - Printed, "and/or" lets the player search only the graveyard (CR 701.23a: a search looks at
+    the zone searched), and then there is no shuffle, keeping a known library order (after a
+    scry, say). Slightly weaker than printed, no exploit.
+  - Fix needs a way to say "choose which of these zones to search" (a design decision; today
+    the zone set is fixed by the selector). Not done.
+- **B-79 [fixer A, m21-fidelity] Primal Might's fight partner is not a target and cannot be
+  declined** (live in M21 and FDN; stronger and weaker than printed).
+  - "Then it fights up to one target creature you don't control" compiles the foe as a
+    resolution-time ONE_OF pick (`templates_b5c.py` `_build_then_it_fights_up_to_one`), so a
+    hexproof creature can be fought and the fight cannot be skipped. Review packs
+    `primal_might_fight_optional` and `primal_might_hexproof_not_fought` (m21v batch A) fail.
+  - The tree fix is one line (TARGET with `QAtMost(1)`), but it needs two engine changes first:
+    a TARGET "up to N" slot whose minimum is 0 (the C17 clamp below, every "up to N target"
+    card), and positional multi-slot designation that accepts an empty trailing optional slot
+    (`stack._validate_positional` raises on any non-exactly-one slot). The games policy also
+    skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
+- **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
+  component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
+  - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
+    the Tyrannodon stops having defender (Portcullis Vine cannot sacrifice it as "a creature with
+    defender"). Review pack `tyrannodon_still_has_defender_for_portcullis_vine` (batch B) fails.
+  - The attack legality reads DEFENDER directly (`legality.py`, "no 'can attack as though it
+    didn't' carrier in the corpus"). Options for the gated ontology round: (a) an attack
+    permission atom (a "may attack despite defender" policy, the MANA_POLICY/GRANT_ACTIVATION
+    family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
+    "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
+    though" cards; recommended.
+- **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
+  AGENTS §11 (alters legal options or state outcomes).
+  - Fixed: Lofty Denial (the {4} branch never applied; now a conditional arm, pack
+    `lofty_denial_with_flier`); Sanctum of Tranquil Light (the activation cost fold counted the
+    source twice, one Shrine cut {2}; pack `sanctum_tranquil_light_exact_cost`).
+  - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
+    hand, put each of those cards into your hand instead" runs as an extra step that returns one
+    card, not all three. It is unreachable until something lets you cast it from elsewhere
+    (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
+    replacing the one-and-rest split, once a pack can cast it from the graveyard.
+  - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
+    information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
+    Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
+    Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
+    Equipment); Barrin's unconstrained "a permanent" (anything moving from the battlefield is
+    one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
+    printed; only the docstring's reading is off).
+  - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
 - **B-96 [fixer 4, 2026-10-29] "You have no maximum hand size" compiles nowhere.** Since V36 the
   cleanup step discards down to seven (CR 514.1, 402.2: `executor.MAX_HAND_SIZE`, read only by
   `Executor._discard_to_hand_size`). The sentence is UNPARSED on Reliquary Tower (M13), Spellbook
@@ -727,6 +880,15 @@ These are forks, not tasks. See the report that accompanied this audit.
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
   - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
     bind the spell's targets (FDN Gnarlback Rhino).
+  - [2026-10-29, Ugin] Ugin's [−10] "put up to seven permanent cards from your hand onto the
+    battlefield" puts min(7, n): the CHOOSE count clamp (C17) never offers fewer, and with more
+    than seven it asks which seven. Fewer options than printed, never more.
+  - [2026-10-29, Ugin] An Aura put onto the battlefield by an effect (Ugin's [−10]) enters
+    unattached and the CR 704.5m sweep buries it. CR 303.4f lets its controller choose what it
+    enchants as it enters, and 303.4g keeps it in hand when nothing is legal.
+  - [2026-10-29, the activation X lane] The folded `activate` takes its targets before it asks X,
+    so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No carrier
+    has both: Ugin's [−X] has no target.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
   plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
 

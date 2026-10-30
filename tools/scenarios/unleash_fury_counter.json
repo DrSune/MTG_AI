@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Unleash Fury, printed 'Double the power of target creature until end of turn.' CR 701.10a/b: doubling MODIFIES (gets +X/+0, X = its power as the spell resolves), it never SETS P/T. A 2/2 with a +1/+1 counter (Basri's Solidarity) is 3/3; doubled it must be 6/3 (+3/+0), with the counter still on it. A set-to-(2*P)/T effect folded before the counter layer would read 7/4.",
+ "cards": [
+  {"key": "bear", "name": "Plain Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "sol", "real": "Basri's Solidarity", "zone": "hand", "controller": 0},
+  {"key": "uf", "real": "Unleash Fury", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2, "R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Basri's Solidarity", "key": "sol"},
+  {"op": "cast", "real": "Unleash Fury", "key": "uf", "targets": ["bear"]}
+ ],
+ "expect": {"counters": {"bear": {"PLUS_1_PLUS_1": 1}}, "power": {"bear": 6}, "toughness": {"bear": 3},
+  "zone": {"uf": "graveyard", "sol": "graveyard"}}}

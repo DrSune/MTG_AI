@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hm", "real": "Alpine Houndmaster", "zone": "hand", "controller": 0},
+  {"key": "dog1", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
+  {"key": "dog2", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
+  {"key": "cur", "real": "Igneous Cur", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "key": "hm", "real": "Alpine Houndmaster", "decisions": ["fire", "dog1", "dog2"]}
+ ],
+ "expect": {
+  "zone": {"hm": "battlefield", "dog1": "hand", "dog2": "library", "drawn": "hand"}
+ },
+ "notes": "M21 G2 spec: Alpine Houndmaster. 'search your library for a card named Alpine Watchdog and/or a card named Igneous Cur': at most ONE card of each name. With two Watchdogs in the library, taking the first leaves the second unavailable; the answer 'dog2' for the second pick must not be honoured."
+}

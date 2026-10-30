@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Shock, printed 'Shock deals 2 damage to any target.' 'Any target' includes planeswalkers (CR 115.4); damage to a planeswalker removes that many loyalty counters (CR 120.3c). An opponent's Basri Ket at loyalty 3 takes 2 and stays at 1; its controller loses no life.",
+ "cards": [
+  {"key": "pw", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+  {"key": "sh", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 3},
+  {"op": "cast", "real": "Shock", "key": "sh", "targets": ["pw"]}
+ ],
+ "expect": {"counters": {"pw": {"LOYALTY": 1}}, "zone": {"pw": "battlefield", "sh": "graveyard"}, "life": {"0": 20, "1": 20}}}

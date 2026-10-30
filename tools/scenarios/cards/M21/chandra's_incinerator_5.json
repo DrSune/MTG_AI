@@ -1,0 +1,62 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Chandra's Incinerator (M21): the trigger may hit a planeswalker that player controls. Shock deals 2 to seat 1, whose only creature-or-planeswalker is Basri Ket, seeded to loyalty 4: the Incinerator deals 2 to it, loyalty 4 -> 2 (CR 120.3c). A real planeswalker is used: the engine's walker damage lane keys off a printed loyalty, which a synthetic card lacks.",
+ "cards": [
+  {
+   "key": "inc",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Chandra's Incinerator"
+  },
+  {
+   "key": "s1",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Shock"
+  },
+  {
+   "key": "pw",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Basri Ket"
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "pw",
+   "set": 4
+  },
+  {
+   "op": "cast",
+   "key": "s1",
+   "decisions": [
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "s1": "graveyard",
+   "pw": "battlefield"
+  },
+  "counters": {
+   "pw": {
+    "LOYALTY": 2
+   }
+  }
+ }
+}

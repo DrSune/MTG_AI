@@ -515,6 +515,55 @@ class TestTokens(ExecutorCase):
             (1, 1),
         )
 
+    def test_token_colour_reaches_colour_filters_and_protection(self):
+        # m21-fidelity item 3 (2026-10-29): a token is the colour its spec prints (CR 111.4,
+        # 105.2), and every colour consumer reads it from the minted identity: COLOR_HAS,
+        # COLOR_COUNT_GE (Ugin's "one or more colors") and protection, whose attacker cannot
+        # be blocked by a creature of the stated quality (CR 702.16f).
+        from MTG_bot.core.ability_tree import DurationEot, Keyword, KeywordAbility
+        from MTG_bot.core.executor.legality import block_pair_blocked_reason
+        from MTG_bot.core.executor.quantity import eval_filter
+
+        cat = TokenSpec(
+            name="Cat",
+            type_line="Token Creature — Cat",
+            types=("Creature",),
+            subtypes=("Cat",),
+            power=QConst(2),
+            toughness=QConst(2),
+            keywords=(),
+            abilities=(),
+            color="G",
+        )
+        before = set(self.world.players[self.p1].zone(ZONE_BATTLEFIELD).entries)
+        self.ex.execute(
+            atom(Verb.CREATE_TOKEN, tokens=cat, count=QConst(1)),
+            source=self.beta,
+            controller=self.p1,
+        )
+        (token,) = set(self.world.players[self.p1].zone(ZONE_BATTLEFIELD).entries) - before
+        self.assertEqual(self.world.cards[token].identity.colors, ("G",))
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        self.assertTrue(eval_filter(FAtom(FAtomPred.COLOR_HAS, color="G"), token, ctx))
+        self.assertFalse(eval_filter(FAtom(FAtomPred.COLOR_HAS, color="W"), token, ctx))
+        self.assertTrue(eval_filter(FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(1)), token, ctx))
+        self.assertFalse(eval_filter(FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(2)), token, ctx))
+        self.assertIsNone(block_pair_blocked_reason(self.ex, token, self.alpha))
+        green = FAtom(FAtomPred.COLOR_HAS, color="G")
+        self.ex.apply_effect(
+            atom(
+                Verb.GRANT_ABILITY,
+                target=target_sel(),
+                ability=KeywordAbility(Keyword.PROTECTION, (green,)),
+                duration=DurationEot(),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [self.alpha]},
+        )
+        self.assertIsNotNone(block_pair_blocked_reason(self.ex, token, self.alpha))
+        self.assertIsNone(block_pair_blocked_reason(self.ex, self.beta, self.alpha))
+
     def test_token_oracle_id_shape_and_distinct(self):
         a, b = token_oracle_id("Treasure"), token_oracle_id("Goblin")
         self.assertRegex(a, r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
@@ -981,8 +1030,12 @@ class TestDispatchRaises(ExecutorCase):
         # verb has a real handler (kickback ask included); off-stack
         # counters still raise loudly, pinned by
         # test_counter_spell_off_stack_raises in test_executor_stack.py.
+        # AMENDED 2026-10-29 (phasing, CR 702.26): PHASE_OUT left the raise
+        # list — it has a real handler (Executor.phase_out, covered in
+        # test_executor_phasing.py and the Teferi packs). PHASE_IN has no
+        # carrier in the pools and no handler, so it is the probe now.
         probes = {
-            Verb.PHASE_OUT: {"target": target_sel()},
+            Verb.PHASE_IN: {"cards": target_sel(), "controller": ControllerRef.YOU},
         }
         for verb, roles in probes.items():  # DRAW deliberately outside v1
             with self.subTest(verb=verb.name):

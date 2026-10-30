@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Chandra's Incinerator (M21): the trigger needs noncombat damage dealt to an OPPONENT. Shock deals 2 to seat 1's Bear (a creature, not a player): no trigger, so seat 1's Giant takes no damage.",
+ "cards": [
+  {"key": "inc", "zone": "battlefield", "controller": 0, "real": "Chandra's Incinerator"},
+  {"key": "s1", "zone": "hand", "controller": 0, "real": "Shock"},
+  {"key": "obear", "zone": "battlefield", "controller": 1, "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "ogiant", "zone": "battlefield", "controller": 1, "name": "Opp Giant", "type": "Creature — Giant", "power": 4, "toughness": 4}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s1", "targets": ["obear"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "zone": {"s1": "graveyard", "obear": "graveyard", "ogiant": "battlefield"}, "damage_received": {"ogiant": 0, "obear": 2}}}

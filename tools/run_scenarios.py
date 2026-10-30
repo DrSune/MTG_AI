@@ -49,7 +49,9 @@ Pack vocabulary (all keys required as noted):
              {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
              {"op": "activate", "key": k, "idx": i,   the folded ACTIVATE
               "seat": 0|1, "targets": [k...],         move (legality+pay+run),
-              "decisions": [str...]},
+              "decisions": [str...], "x": int?},      x: the announced X of an
+                                            X-cost activation (CR 602.2b);
+                                            absent, the X ask takes a word
              {"op": "combat", "seat": 0|1, "attack": {key: bool},
               "may": {key: bool},
               "block": {blockerKey: attackerKey|null}, 16c per-blocker pick
@@ -78,6 +80,8 @@ Pack vocabulary (all keys required as noted):
              "tapped": {key: bool},
              "attached": {key: hostKey|null},  B-49 follow-up #2: the attachment table
              "hand": {"0": int},
+             "lost": {"0": bool},          m21-fidelity 2026-10-29: the seat is
+                                            in executor.lost_players (LOSE_GAME),
              "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
                                             totals (frozen _v_add_mana write;
                                             zero-equivalence both sides)
@@ -91,7 +95,12 @@ Pack vocabulary (all keys required as noted):
              "power": {key: int},             17a: ledger effective_pt,
              "toughness": {key: int},         17a: (base->timestamp fold),
              "library": {"0": [names...TOP-first]},   17a: exact order,
-             "graveyard": {"0": [names...]}}          17a: exact bag
+             "graveyard": {"0": [names...]},          17a: exact bag
+             "turn_seats": [0, 0, 1],  2026-10-29: the seat of every turn
+                                        begun, in order (CR 500.7 extra turns)
+             "phased_out": {key: bool}}  2026-10-29: the CR 702.26 status
+  setup cards may carry "counters": {"KIND": n}; an activate step's targets
+  may name a player as "p0"/"p1".
 """
 
 from __future__ import annotations
@@ -222,6 +231,10 @@ class ScenarioRunner:
             # carry a "tapped" key this runner never honoured (B-63), and honouring it changes them.
             if card.get("start_tapped"):
                 self.world.cards[self.handles[card["key"]]].tapped = True
+            # 2026-10-29 (phasing packs): counters a setup card starts with, e.g.
+            # {"PLUS_1_PLUS_1": 1}. Absent keys are byte-identical.
+            for kind, n in card.get("counters", {}).items():
+                self.world.cards[self.handles[card["key"]]].counters[kind] = int(n)
         # The real cards' triggers/abilities register from the compiled pool.
         self.registered = self.ex.attach_pool(supply.pool)
         for seat, colors in pack.get("mana", {}).items():
@@ -457,8 +470,16 @@ class ScenarioRunner:
                 self.handles[step["key"]],
                 int(step.get("idx", 0)),
                 seat=self.seats[int(step.get("seat", 0))],
-                targets=tuple(self.handles[k] for k in step.get("targets", ())),
+                # 2026-10-29: "p0"/"p1" designate a player (Teferi, Timeless
+                # Voyager's "target opponent"), any other word a pack key.
+                targets=tuple(
+                    self.seats[int(k[1])] if k in ("p0", "p1") else self.handles[k]
+                    for k in step.get("targets", ())
+                ),
                 decisions=tuple(step.get("decisions", ())),
+                # 2026-10-29 activation X lane (CR 602.2b -> 601.2b): an explicit
+                # announcement; absent, X is asked through the decision channel.
+                x=step.get("x"),
             )
             self.ex.fire_triggers()
         elif op == "combat":
@@ -589,6 +610,23 @@ class ScenarioRunner:
             got_host = self.ex.attachments.get(self.handles[key])
             if got_host != (self.handles[host] if host is not None else None):
                 fails.append(f"attached[{key}]: expected {host}, got {got_host}")
+        # 2026-10-29 PHASED_OUT LANE (CR 702.26): the executor's phased-out status.
+        for key, want in self.pack.get("expect", {}).get("phased_out", {}).items():
+            got_phased = self.handles[key] in self.ex.phased_out
+            if got_phased != bool(want):
+                fails.append(f"phased_out[{key}]: expected {want}, got {got_phased}")
+        # 2026-10-29 TURN_SEATS LANE (CR 500.7 extra turns): the seat index of every turn
+        # begun so far, in order, read off the journal's UPKEEP markers (they carry the
+        # active player). The setup's opening begin_turn is the first entry.
+        if "turn_seats" in self.pack.get("expect", {}):
+            got_seats = [
+                self.seats.index(e.data[1])
+                for e in self.ex.journal.events
+                if e.kind == "TURN_PHASE" and e.data[0] == "UPKEEP"
+            ]
+            want_seats = list(self.pack["expect"]["turn_seats"])
+            if got_seats != want_seats:
+                fails.append(f"turn_seats: expected {want_seats}, got {got_seats}")
         want = {
             self.handles[k]: n
             for k, n in self.pack.get("expect", {}).get("damage", {}).items()
@@ -719,6 +757,10 @@ class ScenarioRunner:
             got = len(self.world.players[self.seats[int(seat)]].zone(ZONE_HAND).entries)
             if got != size:
                 fails.append(f"hand[{seat}]: expected {size}, got {got}")
+        for seat, want_lost in expect.get("lost", {}).items():
+            got_lost = self.seats[int(seat)] in self.ex.lost_players
+            if got_lost != bool(want_lost):
+                fails.append(f"lost[{seat}]: expected {want_lost}, got {got_lost}")
         # r24a MANA-POOL LANE (treasure_token_activation; the gap documented
         # since chromatic_orrery's note): assert the ADD_MANA totals directly
         # on PlayerState.mana_pool — the frozen totals write _v_add_mana is,

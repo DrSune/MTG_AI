@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "84ec7820-6608-459c-b172-80e8e3750cf4",
+ "name": "Sigiled Contender",
+ "text_sha": "cf77b2eb51c32c81bb6d98e856f7bd5659f45139f3b4f6d7643fd4816b5052bf",
+ "verified": {
+  "tree_sha": "3a9474d96cfe45ac3a46afd4f05fc078719e1d25fc0eea97bf72a56ec98dada0",
+  "probe_sha": "b721b48f2c2b1b3a6958df5c961419d50d58e3fef16524df0c2aba968d0db863",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Human Warrior {3}{W} 3/3",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 3/3, mana W-4; dies to the 4/4 blocker, deals 3",
+    "issue": ""
+   },
+   {
+    "clause": "This creature has lifelink as long as it has a +1/+1 counter on it.",
+    "status": "OK",
+    "evidence": "StaticAbility GRANT_ABILITY LIFELINK to IS_SOURCE, DurationWhileCondition(HAS_COUNTER >= 1 PLUS_1_PLUS_1). Trace (no counter): [attacks alone, unblocked] opp 20 -> 17 and no life gained, no keyword in the static section. Counter case NOT_EXERCISED there; packs PASS: /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pe0b1642524_contender_counter_lifelink.json (a counter from Basri's Solidarity: 4/4, deals 4, I gain 4) and /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pe0b1642524_contender_other_counter.json (a counter only on another creature of mine: no lifelink)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sigiled_contender_1.json",
+   "tools/scenarios/cards/M21/sigiled_contender_2.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "amount+1 at 1/0/effect/args/duration/filter/count"
+   ]
+  }
+ }
+}

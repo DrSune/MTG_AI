@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1758e102-22da-4cb3-98d5-76f7501d026d",
+ "name": "Gale Swooper",
+ "text_sha": "9db716febcfc74da788673c750b7c9d20def4bc75f9b97122e2d888b2acb0902",
+ "verified": {
+  "tree_sha": "7fa4b39eca6a5de3d4c7f12aa238ce3475e7bc2715d5426d1aca9b91db2bf00f",
+  "probe_sha": "415edb91830cd86924b1791b6ad2bc20b61f443ca06ca5b9933aa49664c940cf",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING on the card; [this creature attacks and opp_giant blocks it]: the non-flying giant does not block, opp 20 -> 17.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, target creature gains flying until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [0] triggers; 'ask target: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card]' (every creature, either side, the Swooper itself included; no noncreature); the target gains FLYING (you_bear, you_giant, opp_tapped, opp_bear, opp_giant: keywords +FLYING) and 'after the turn ends' loses it (-FLYING). [enters during the opponent's turn]: triggers and targets. mana W-4 = {3}{W}. Tree identical to parse (template B2a-gale-swooper).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

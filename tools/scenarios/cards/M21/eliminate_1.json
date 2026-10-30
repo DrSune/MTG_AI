@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "pw3", "name": "Test Walker Three", "type": "Legendary Planeswalker — Testwalker", "cmc": 3, "zone": "battlefield", "controller": 1},
+    {"key": "pw4", "name": "Test Walker Four", "type": "Legendary Planeswalker — Testwalker", "cmc": 4, "zone": "battlefield", "controller": 1},
+    {"key": "cr4", "name": "Test Beast Four", "type": "Creature — Beast", "power": "4", "toughness": "4", "cmc": 4, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 4, "C": 4}},
+  "steps": [
+    {"op": "cast", "key": "elim", "real": "Eliminate", "targets": ["pw4"], "expect_raise": "illegal target selection"},
+    {"op": "cast", "key": "elim", "real": "Eliminate", "targets": ["cr4"], "expect_raise": "illegal target selection"},
+    {"op": "cast", "key": "elim", "real": "Eliminate", "targets": ["pw3"]}
+  ],
+  "expect": {
+    "zone": {"elim": "graveyard", "pw3": "graveyard", "pw4": "battlefield", "cr4": "battlefield"},
+    "life": {"0": 20, "1": 20}
+  }
+}

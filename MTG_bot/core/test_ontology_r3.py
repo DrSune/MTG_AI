@@ -120,6 +120,27 @@ def _record(set_name: str, card_name: str):
     raise KeyError((set_name, card_name))
 
 
+def _one_of_selectors(root) -> list:
+    """Every ONE_OF-mode Selector reachable from ``root`` (dataclass walk)."""
+    out: list = []
+
+    def walk(x):
+        if isinstance(x, (list, tuple)):
+            for y in x:
+                walk(y)
+            return
+        if not (dataclasses.is_dataclass(x) and not isinstance(x, type)):
+            return
+        if isinstance(x, Selector) and x.mode is SelectorMode.ONE_OF:
+            out.append(x)
+            return
+        for f in dataclasses.fields(x):
+            walk(getattr(x, f.name))
+
+    walk(root)
+    return out
+
+
 def _choose_selectors(root):
     """(holder_class_name, verb-name-or-None, zones-spec, count-value) for
     every CHOOSE-mode Selector reachable from ``root``."""
@@ -182,6 +203,24 @@ class LedgerGroundTruth(unittest.TestCase):
             shapes = _choose_selectors(rec)
             want_count = json.loads(n["count"])
             self.assertEqual(want_count["tag"], "QConst")
+            if key == ("M21", "Alpine Houndmaster"):
+                # re-pinned 2026-10-29: m21-fidelity replaced this up-to-two CHOOSE ("a card
+                # named Alpine Watchdog and/or a card named Igneous Cur") by one up-to-one pick
+                # per name, which the compiler routes to the asked ONE_OF channel. The ledger row
+                # stays the R3 evidence; the decision is still asked (no blindness): one ONE_OF
+                # pick over the row's zones per name, as many picks as the row's count.
+                picks = [
+                    sel
+                    for sel in _one_of_selectors(rec)
+                    if tuple(
+                        f"{z.kind.name}:{z.controller.name if z.controller else None}"
+                        for z in sel.zones
+                    )
+                    == tuple(n["zones"])
+                    and sel.count == QConst(1)
+                ]
+                self.assertEqual(len(picks), want_count["value"], (key, picks))
+                continue
             hits = [
                 s
                 for s in shapes

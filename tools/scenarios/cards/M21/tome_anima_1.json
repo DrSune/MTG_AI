@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Tome Anima, printed 'This creature can't be blocked as long as you've drawn two or more cards this turn.' I draw two cards this turn (Revitalize twice), then attack; the opponent's wall tries to block. Expected: no block is declared, the opponent takes 3 (20 -> 17); I gained 6.",
+ "cards": [
+  {"key": "anima", "real": "Tome Anima", "zone": "battlefield", "controller": 0},
+  {"key": "rv1", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "rv2", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "wall", "name": "Their Wall", "power": "0", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 4}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv1"},
+  {"op": "cast", "real": "Revitalize", "key": "rv2"},
+  {"op": "combat", "seat": 0, "attack": {"anima": true}, "block": {"wall": "anima"}}
+ ],
+ "expect": {"attackers": {"anima": true}, "blocked": {"anima": []}, "life": {"0": 26, "1": 17}, "zone": {"anima": "battlefield", "wall": "battlefield"}}}
