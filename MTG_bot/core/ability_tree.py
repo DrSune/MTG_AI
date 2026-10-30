@@ -2007,14 +2007,28 @@ class DamageDealtEvent:
 class TargetingEvent:
     """The subject was targeted by a spell or ability (filter over the
     targeted object — Warden of the Woods; the event hexproof/protection
-    preventions attach to)."""
+    preventions attach to).
+
+    ``actor`` (ontology R5-6, 2026-10-29): a Filter over the CONTROLLER of
+    the targeting spell or ability, the player journalled on the TARGETING
+    row (None = any). "Becomes the target of a spell or ability an opponent
+    controls" is ``actor=FAtom(CONTROLLER_IS, OPPONENT)``: the single
+    direction encoding (E1, /65) of CastSpellEvent, CardDrawnEvent,
+    LifeGainedEvent and LoyaltyActivatedEvent. "Can't be the target of
+    spells or abilities your opponents control" is HEXPROOF (CR 702.11),
+    never a PREVENT_EFFECT over this event."""
 
     filter: Filter
+    actor: Filter | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"TargetingEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.actor is not None and not _is_filter(self.actor):
+            raise ValueError(
+                f"TargetingEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
@@ -4248,7 +4262,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("source", "opt:filter"),
         ("combat", "opt:bool"),
     ),
-    "TargetingEvent": (("filter", "filter"),),
+    # actor (ontology R5-6): the targeting spell or ability's controller; omitted
+    # when None (_OMIT_IF_EMPTY row), so every pre-R5-6 TargetingEvent keeps its bytes.
+    "TargetingEvent": (("filter", "filter"), ("actor", "opt:filter")),
     "CardDrawnEvent": (
         ("actor", "opt:filter"),
         ("ordinal", "opt:int"),
@@ -4563,6 +4579,7 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "LifeGainedEvent": frozenset({"actor"}),
     "SacrificeEvent": frozenset({"actor"}),
     "LoyaltyActivatedEvent": frozenset({"actor"}),
+    "TargetingEvent": frozenset({"actor"}),  # R5-6
     # count (grammar round 5, R5-2): omit when None.
     "CounterPlacedEvent": frozenset({"count"}),
     # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every

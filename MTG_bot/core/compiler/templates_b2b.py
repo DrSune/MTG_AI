@@ -17,8 +17,8 @@ Coverage (62 shapes = 58 template-covered + 4 uncovered):
     shape (Solemn Simulacrum, Garruk's Uprising, Historian of Zhalfir,
     Ornery Dilophosaur, Tide Skimmer, Vito).
   - *Round 5* (15 templates, 2026-09-25): 14 new shapes and 14 concrete rows
-    — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; lossy:
-    "an opponent controls"), Jeskai Elder (DamageDealtEvent combat=True +
+    — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; "an
+    opponent controls" is the event's actor since R5-6), Jeskai Elder (DamageDealtEvent combat=True +
     OptionalEffect
     DRAW; lossy: "to a player"), Chandra's Incinerator / Pyreling
     (DamageDealtEvent ``combat=False`` + source filter; the Incinerator deals
@@ -1713,15 +1713,28 @@ def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
 # ---------------------------------------------------------------------------
 
 
+def _targeted_by_an_opponent(subject: Filter) -> TargetingEvent:
+    """"Whenever <subject> becomes the target of a spell or ability an opponent
+    controls" (ontology R5-6, 2026-10-29): ``filter`` reads the targeted
+    object, ``actor`` the controller of the targeting spell or ability — the
+    single direction encoding (E1) CastSpellEvent's actor uses. Shared by the
+    Warden template and the targeted frame (frames.py), so both build the same
+    bytes."""
+    return TargetingEvent(
+        filter=subject,
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+    )
+
+
 def _build_warden_of_the_woods(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #1: becomes the target of an opponent's spell/ability,
     you may draw two cards.
 
-    Lossy: "an opponent controls" is dropped — TargetingEvent constrains
-    only the targeted object (IS_SOURCE), never the spell's controller
-    (doc-05 row #1)."""
+    R5-6 closes the old loss: "an opponent controls" is the event's
+    ``actor`` (the targeting spell's controller), so the Warden's own
+    spells no longer draw (doc-05 row #1)."""
     return _ability(
-        TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+        _targeted_by_an_opponent(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Atom(
                 verb=Verb.DRAW,

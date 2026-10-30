@@ -809,6 +809,25 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
     trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
     consequence.
+- **B-77 [2026-10-29, branch `engine/r5a-until-leaves`] Ontology R5-6: `TargetingEvent.actor`
+  ("becomes the target of a spell or ability an opponent controls") is built; the rest of the
+  census needs other pieces.**
+  - Done: the optional `actor` Filter over the targeting spell's or ability's controller (the
+    TARGETING row's journalled actor), read by `binding._match_node`. Warden of the Woods (M21) no
+    longer draws off its controller's own spells; Thorn Lieutenant (M19) compiles through the new
+    `B13-targeted` frame. Mapper rule: "can't be the target of spells or abilities your opponents
+    control" stays HEXPROOF (MAPPER_GUIDE).
+  - Not compiled, each for a reason outside R5-6 (11 cards, 8 sets, by the oracle census):
+    - Frost Titan (M11, M12), Diffusion Sliver (M15), Reidane (KHM): "counter that spell or ability
+      unless its controller pays": abilities never sit on the stack, so an ability cannot be
+      countered (R5 gate round 2).
+    - Ward (Cackling Prowler, Tolarian Terror, Zul Ashur; FDN): the IR has no WARD keyword, and
+      ward (CR 702.21a) also counters abilities, which cannot be countered here.
+    - Battle Mammoth (KHM): its clause "you may draw a card" does not parse on its own.
+    - Shield Mare (M19): "When this creature enters or becomes the target ...", a trigger on either
+      of two events, which no template composes.
+    - Leyline of Combustion (M20): "you and/or at least one permanent you control" triggers once per
+      spell, not per targeted object, and "that player" needs a referent for the event's actor.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

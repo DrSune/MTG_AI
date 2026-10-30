@@ -92,6 +92,14 @@ $PY tools/cards/cardtool.py --help
   who=ControllerRef.YOU|OPPONENT)` in an `FAnd`.
   - See `parse "Destroy target creature an opponent controls."`.
 - **"you may ..."** is `OptionalEffect(inner=...)`.
+- **"Whenever this creature becomes the target of a spell or ability an opponent controls"**
+  (ontology R5-6) is `TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE),
+  actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT))`: `filter` reads the
+  targeted object, `actor` the controller of the targeting spell or ability. See `parse "Whenever
+  this creature becomes the target of a spell or ability an opponent controls, create a 1/1 green
+  Elf Warrior creature token."`.
+- **"Can't be the target of spells or abilities your opponents control"** stays the HEXPROOF
+  keyword (CR 702.11), never a `PREVENT_EFFECT` over a `TargetingEvent`, with or without `actor`.
 - **"until end of turn"** is `duration=DurationEot()`. A static effect is `DurationPermanent()`, or
   the static ability itself.
 - **"Exile X until this <permanent> leaves the battlefield"** (ontology R5-1, CR 610.3) is one
