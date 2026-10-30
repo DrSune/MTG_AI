@@ -1149,19 +1149,6 @@ def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
     return _append_optional_to_seq(prev_effect, continuation)
 
 
-def _ends_with_optional(effect: Effect) -> bool:
-    """r18a: does the continuation SEAM end in an ``OptionalEffect`` — the
-    may-action a printed "If you do" anaphorically refers to (CR 611.1)?
-    True for a bare optional and for a Seq whose last step is one (through
-    nested Seqs); False means the antecedent was mandatory — the tail's
-    condition already rode the mandatory action, keep today's append."""
-    if isinstance(effect, OptionalEffect):
-        return True
-    if isinstance(effect, Seq) and effect.steps:
-        return _ends_with_optional(effect.steps[-1])
-    return False
-
-
 def _merge_if_do_continuation(
     prev_effect: Effect, continuation: Effect, sentence: str
 ) -> Effect:
@@ -1172,26 +1159,25 @@ def _merge_if_do_continuation(
     against the phantom second ask, but it left "If you do" tails running
     as free riders when the player answered ``skip`` (the wave-1b ledger's
     crypt_lurker_skip class: skip Crypt Lurker's sacrifice and the draw
-    still landed). The correct gate is the may-decision's OUTCOME, so the
-    tail joins the sequence as ``Conditional(MAY_DONE, Y)`` — the executor
-    answers MAY_DONE from the 14b channel's logged may-offer (consumes the
-    outcome, never re-asks). A "may"-bearing tail ("If you do, you may Z")
-    keeps its own inner optional INSIDE the gate. A non-optional seam
-    (mandatory antecedent, e.g. Archfiend's Vessel's condition-gated exile,
-    Mazemind Tome's counter-ability) keeps today's plain append: its "if
-    you do" is the mandatory action the sequence already performed.
+    still landed). The correct gate is the antecedent's OUTCOME, so the
+    tail joins the sequence as ``Conditional(MAY_DONE, Y)``. A "may"-bearing
+    tail ("If you do, you may Z") keeps its own inner optional INSIDE the
+    gate.
+
+    m21-fidelity wave 4 (2026-10-30, coordinator ruling (a)): a MANDATORY
+    antecedent is gated the same way. CR 118.12 reads "[Do something]. If
+    you do, [effect]" exactly as it reads "You may [do something]. If you
+    do": did the player do it. So it is one meaning with one encoding, and
+    the executor records whether the step before the gate actually happened
+    (Archfiend's Vessel's "exile it. If you do, create a Demon" makes no
+    Demon when the Vessel left the battlefield first; Mazemind Tome and
+    Fire Prophecy likewise). Before, the mandatory seam was a plain append.
     """
-    if _ends_with_optional(prev_effect):
-        inner = continuation
-        if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
-            inner = OptionalEffect(inner=inner)
-        gated = Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=inner)
-        return _append_mandatory_to_seq(prev_effect, gated)
-    return (
-        _append_optional_to_seq(prev_effect, continuation)
-        if _MAY_RE.search(sentence)
-        else _append_mandatory_to_seq(prev_effect, continuation)
-    )
+    inner = continuation
+    if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
+        inner = OptionalEffect(inner=inner)
+    gated = Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=inner)
+    return _append_mandatory_to_seq(prev_effect, gated)
 
 
 def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:

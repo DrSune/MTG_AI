@@ -151,7 +151,9 @@ $PY tools/cards/cardtool.py --help
   - "equipped creature" is `IS_ATTACHED_TO_SOURCE` in triggers, plus `TYPE_EQ 'Creature'` in statics.
   - Tribal nouns ("target Pirate", "Goblins you control") are `SUBTYPE_EQ` plus `TYPE_EQ 'Creature'`.
   - A filter with one part is written bare: no one-part `FAnd`.
-  - "You may X. If you do, Y" is `Seq(OptionalEffect(X), Conditional(MAY_DONE, Y))`.
+  - "You may X. If you do, Y" is `Seq(OptionalEffect(X), Conditional(MAY_DONE, Y))`, and a
+    mandatory "X. If you do, Y" is `Seq(X, Conditional(MAY_DONE, Y))`: MAY_DONE asks whether the
+    step before it was done (CR 118.12), whichever form it had.
   - "its controller" is a `referent='target'` selector in the `controller` role.
   - Equip carries `timing=ActivationWindow.SORCERY` ("Equip only as a sorcery"). The compiler's
     equip template drops it (B-60), so add it.

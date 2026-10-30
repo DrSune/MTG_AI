@@ -435,6 +435,18 @@ def _tests_characteristics_only(pred: object) -> bool:
     return isinstance(pred, FAtom) and pred.pred in _CHARACTERISTIC_PREDS
 
 
+def _ends_in_optional(effect: object) -> bool:
+    """Does a Seq step end in an ``OptionalEffect`` (a bare optional, or a Seq
+    whose last step is one, through nested Seqs)? Such a step's may-offer
+    keeps its own "If you do" record (V12); any other step is a mandatory
+    antecedent whose record the Seq runner writes."""
+    if isinstance(effect, OptionalEffect):
+        return True
+    if isinstance(effect, Seq) and effect.steps:
+        return _ends_in_optional(effect.steps[-1])
+    return False
+
+
 def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
     """What a bare Conditional's predicate is judged on (V11): the object the
     previous sentence acted on (the result register, written by the atom just
@@ -920,13 +932,20 @@ class Executor:
         try:
             for step in steps:
                 depth = self.journal.open_depth()
+                before = (len(self.events), len(self.journal.events))
                 try:
                     self._run_effect(step, ctx)
+                    self._note_step_done(step, before, ctx)
                 except (NotImplementedError, ValueError) as exc:
                     if not (referent_absent(exc) or face_cast_absent(exc)):
                         raise
                     # V23: the skipped step's atom boundary never closes.
                     self.journal.drop_open(depth)
+                    # A skipped step was not done (an "If you do" after it
+                    # must not read an older step's record).
+                    self._note_step_done(
+                        step, (len(self.events), len(self.journal.events)), ctx
+                    )
                     src = ctx.source
                     name = (
                         self.world.cards[src].identity.name
@@ -944,6 +963,24 @@ class Executor:
         finally:
             ctx.search_partition = saved_partition
             ctx.search_found = saved_found
+
+    def _note_step_done(
+        self, step: Effect, before: tuple[int, int], ctx: ExecCtx
+    ) -> None:
+        """m21-fidelity wave 4 (2026-10-30, coordinator ruling (a)): "[Do
+        something]. If you do, [effect]" (CR 118.12) asks whether a MANDATORY
+        step actually happened, exactly as V12 asks it of an optional one.
+        After each step of a sequence, a step that does not end in an
+        OptionalEffect records whether it changed anything (journal or event
+        rows) under the ability's may-site, which MAY_DONE reads; an optional
+        step keeps the record its own OptionalEffect branch wrote. A step
+        that changed nothing was not done (Archfiend's Vessel's "exile it"
+        after the Vessel left the battlefield, CR 400.7)."""
+        if not _ends_in_optional(step):
+            ctx.may_done[f"may:{ctx.source}"] = (
+                len(self.events),
+                len(self.journal.events),
+            ) != before
 
     def _run_effect(self, effect: Effect, ctx: ExecCtx) -> None:
         if isinstance(effect, Atom):
@@ -1055,7 +1092,9 @@ class Executor:
             ctx.search_partition = saved or partition
             try:
                 for step in effect.steps:
+                    before = (len(self.events), len(self.journal.events))
                     self._run_effect(step, ctx)
+                    self._note_step_done(step, before, ctx)
             finally:
                 ctx.search_partition = saved
                 ctx.search_found = saved_found

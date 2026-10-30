@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-112, fixed 2026-10-30 (m21-fidelity wave 4, ruling (a): MAY_DONE also gates a mandatory antecedent, CR 118.12); promoted from known_bugs. Printed: '... exile it. IF YOU DO, create a 5/5 black Demon ...' The opponent controls Kaervek, the Spiteful ('Other creatures get -1/-1'). Rise Again returns the 1/1 Vessel from seat 0's graveyard: it enters as 0/0 and dies to the state-based action (CR 704.5f) before its trigger resolves (CR 704.3: SBAs are checked before triggers go on the stack). The trigger cannot exile it (it is no longer on the battlefield), so you did not exile it and NO Demon is created. The Vessel stays in the graveyard.",
+ "cards": [
+  {"key": "kaervek", "real": "Kaervek, the Spiteful", "zone": "battlefield", "controller": 1},
+  {"key": "vessel", "real": "Archfiend's Vessel", "zone": "graveyard", "controller": 0},
+  {"key": "rise", "real": "Rise Again", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 4}},
+ "steps": [{"op": "cast", "real": "Rise Again", "key": "rise", "targets": ["vessel"]}],
+ "expect": {"zone": {"vessel": "graveyard", "rise": "graveyard", "kaervek": "battlefield"}, "tokens": {"Demon": 0}}}

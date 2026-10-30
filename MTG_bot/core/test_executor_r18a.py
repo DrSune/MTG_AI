@@ -45,6 +45,7 @@ from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.query import MAY_VOCAB, optional_offer
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
@@ -62,6 +63,20 @@ from MTG_bot.core.test_executor_query import atom, record
 
 def _gain(n: int):
     return atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(n))
+
+
+def _this() -> Selector:
+    """ "it" / "~": the source on the battlefield (the compiler's self-reference)."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAtom(FAtomPred.IS_SOURCE),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+    )
+
+
+def _exile() -> Zone:
+    return Zone(ZoneKind.EXILE, ControllerRef.OWNER)
 
 
 class IfDoGateTest(unittest.TestCase):
@@ -116,6 +131,33 @@ class IfDoGateTest(unittest.TestCase):
         # first optional skipped (0), second fired (+3), tail gated on the
         # LATEST answer 'fire' (+5).
         self.assertEqual(self.life(), 20 + 3 + 5)
+
+    def test_a_mandatory_step_that_happened_runs_the_tail(self):
+        # m21-fidelity wave 4 (ruling (a), CR 118.12): "[Do something]. If you do" asks
+        # whether the mandatory step actually happened. Exiling the source changes the game.
+        plan = Seq(
+            steps=(
+                atom(Verb.MOVE_ZONE, target=_this(), destination=_exile()),
+                Conditional(FAtom(FAtomPred.MAY_DONE), _gain(4)),
+            )
+        )
+        self.ex.apply_effect(plan, source=self.src, controller=self.p0)
+        self.assertEqual(self.world.zone_of(self.src).kind, ZONE_EXILE)
+        self.assertEqual(self.life(), 20 + 4)
+
+    def test_a_mandatory_step_that_did_nothing_gates_the_tail(self):
+        # The source already left the battlefield (Archfiend's Vessel bounced before its
+        # trigger resolved, CR 400.7): "exile it" does nothing, so the tail does not run.
+        self.world.move_card(self.src, self.world.players[self.p0].zone(ZONE_HAND))
+        plan = Seq(
+            steps=(
+                atom(Verb.MOVE_ZONE, target=_this(), destination=_exile()),
+                Conditional(FAtom(FAtomPred.MAY_DONE), _gain(4)),
+            )
+        )
+        self.ex.apply_effect(plan, source=self.src, controller=self.p0)
+        self.assertEqual(self.world.zone_of(self.src).kind, ZONE_HAND)
+        self.assertEqual(self.life(), 20)
 
     def test_may_done_without_an_antecedent_is_loud(self):
         # Unanswered question — flagged, never guessed False (FLIP_WON
@@ -329,7 +371,7 @@ class CompilerMergeTest(unittest.TestCase):
         self.assertIs(gate.pred.pred, FAtomPred.MAY_DONE)
         self.assertIs(gate.else_effect, None)
 
-    def test_mandatory_seam_keeps_the_plain_append(self):
+    def test_mandatory_seam_is_gated_too(self):
         from MTG_bot.core.compiler.compiler import _merge_if_do_continuation
 
         merged = _merge_if_do_continuation(
@@ -338,10 +380,18 @@ class CompilerMergeTest(unittest.TestCase):
             "If you do, gain 4 life.",
         )
         assert isinstance(merged, Seq)
-        # Mandatory antecedent: the tail stays the plain sibling (its "if
-        # you do" names the mandatory action the sequence always ran).
-        self.assertNotIsInstance(merged.steps[-1], Conditional)
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a). CR 118.12 reads a
+        # mandatory "[Do something]. If you do" as it reads the "may" form (did the player do
+        # it), so the tail is the same Conditional(MAY_DONE, tail): one meaning, one encoding.
+        # It was the plain sibling, which ran even when the antecedent could not be done
+        # (Archfiend's Vessel's Demon after the Vessel left the battlefield).
         self.assertEqual(len(merged.steps), 2)
+        gate = merged.steps[-1]
+        assert isinstance(gate, Conditional)
+        assert isinstance(gate.pred, FAtom)
+        self.assertIs(gate.pred.pred, FAtomPred.MAY_DONE)
+        self.assertEqual(gate.then_effect, _gain(4))
+        self.assertIs(gate.else_effect, None)
 
     def test_may_bearing_tail_keeps_its_inner_optional(self):
         from MTG_bot.core.compiler.compiler import _merge_if_do_continuation

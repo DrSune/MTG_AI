@@ -1194,7 +1194,10 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         site = f"may:{ctx.source}"
         if site in ctx.may_done:
             # V12 (CR 118.12): the optional action's outcome in this
-            # resolution: "fire" and the action changed something.
+            # resolution: "fire" and the action changed something. Since
+            # m21-fidelity wave 4 (ruling (a)) the Seq runners also record a
+            # MANDATORY step here (Executor._note_step_done): "[Do something].
+            # If you do" reads whether it actually happened.
             return ctx.may_done[site]
 
         def at_site(what: str) -> bool:

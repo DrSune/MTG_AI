@@ -1289,6 +1289,9 @@ These are forks, not tasks. See the report that accompanied this audit.
     Keral Keep Disciples (stamped by the G3 finisher on `cards/integration`).
   - After the merge of `cards/integration` d955f67: M21 verified 159 -> 156, FDN 59 -> 55; every
     card pack of these cards still passes.
+  - re-verify after m21-fidelity wave 4 ruling (a) (2026-10-30: a mandatory "If you do" is
+    gated by MAY_DONE, CR 118.12; the tail is now Conditional(MAY_DONE, GAIN_LIFE)): M21 Mazemind
+    Tome. M21 verified 253 -> 252; its card packs still pass.
 - **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
   engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
   - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at
@@ -1305,6 +1308,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     `archfiends_vessel_no_demon_if_not_exiled` still fail on the Demon count only; their zone
     halves pass (`archfiends_vessel_reanimated_as_0_0_dies_first`,
     `archfiends_vessel_recast_from_hand_same_turn`).
+    - **[FIXED on `cards/m21-fidelity` 2026-10-30, coordinator ruling (a).]** MAY_DONE means
+      "the step before the gate was done" for the "may" and the mandatory form alike: the
+      compiler gates every "If you do" tail (`compiler._merge_if_do_continuation`), and both Seq
+      runners record whether a mandatory step changed anything (`Executor._note_step_done`).
+      Trees changed: Archfiend's Vessel and Mazemind Tome (M21; the Tome's stamp drops, see
+      B-111), Mazemind Tome (FDN), Fire Prophecy (IKO), and Incinerating Blast (FDN, compiler
+      tree only; its card record's own tree already had the gate). Both repros now pass and
+      moved to `tools/scenarios/`.
     - Fixer A, 2026-10-30: a design decision, so not done. CR 118.12 reads "[Do something].
       If you do, [effect]" and "You may [do something]. If you do" the same way: did the player
       do it. The compiler gates only the "may" form (`compiler._merge_if_do_continuation`,
@@ -1318,9 +1329,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     - (b) A new predicate for the mandatory form.
     - (c) Template only: count the Demon by THAT_MANY_COUNT of the exile (0 or 1) and the
       Tome's life by 4 times it. Exact, but a contortion that does not generalise.
-    - Repros (failing on the Demon count only):
-      `tools/scenarios/known_bugs/archfiends_vessel_if_you_do.json` and
-      `.../archfiends_vessel_no_demon_if_not_exiled.json`.
+    - Repros (failing on the Demon count only, before the fix):
+      `archfiends_vessel_if_you_do.json` and `archfiends_vessel_no_demon_if_not_exiled.json`.
   - Engine: CR 111.8 (a token that has left the battlefield can't change zones) is not enforced.
     W4-4 runs state-based actions before triggers, and keeps a token that a queued firing names
     in the world as its last-known information until that firing resolves, so a trigger that

@@ -701,7 +701,10 @@ class TestContinuation(unittest.TestCase):
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
         # R11-1: "If you do, …" without "may" merges MANDATORILY.
-        self.assertEqual(steps.steps[1], _draw_atom(2))
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        self.assertEqual(steps.steps[1], Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2)))
 
     def test_continuation_without_previous_effect(self) -> None:
         raw = _raw_card("I", 1, sentences=("If you do, draw another.",))
@@ -728,7 +731,10 @@ class TestContinuation(unittest.TestCase):
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
         # R11-1: "If you do, …" without "may" merges MANDATORILY.
-        self.assertEqual(steps.steps[1], _draw_atom(2))
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        self.assertEqual(steps.steps[1], Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2)))
 
     def test_merges_into_previous_ability(self) -> None:
         raw = _raw_card(
@@ -756,10 +762,13 @@ class TestContinuation(unittest.TestCase):
         # The continuation was consumed into the static ability; no spell
         # effect is left to fold (C4: the creature still carries its
         # effect-less cast-lane carrier).
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
         self.assertEqual(
             res.card.abilities,
             (
-                StaticAbility(effect=Seq(steps=(_draw_atom(1), _draw_atom(2)))),
+                StaticAbility(effect=Seq(steps=(_draw_atom(1), Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2))))),
                 SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
@@ -783,7 +792,15 @@ class TestContinuation(unittest.TestCase):
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
-        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        self.assertEqual(
+            steps.steps[1],
+            Conditional(
+                pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=OptionalEffect(_draw_atom(2))
+            ),
+        )
 
     def test_loyalty_trailing_text_merges_mandatory(self) -> None:
         """R11-1 (Basri Ket): plain text after a loyalty bullet is that
