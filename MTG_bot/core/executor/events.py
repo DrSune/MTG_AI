@@ -112,13 +112,15 @@ KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
 # reads it, IS_SOURCE = "whenever THIS becomes the target"); data carries
 # (source_object, actor) for the audit trail.
 KIND_TARGETING = "TARGETING"
-# r22c (Keral Keep Disciples): the loyalty feed. ONE row per activation
-# whose cost PAID a loyalty symbol (CR 606.2b's loyalty ability), emitted
-# at the payment point in legality.activate. Subject = the permanent
-# activated (the LoyaltyActivatedEvent filter reads it — Keral's "a
-# Chandra planeswalker"); cause = the activating player (the node's
-# controller scope); data carries the paid delta for the audit trail.
-KIND_LOYALTY_ACTIVATED = "LOYALTY_ACTIVATED"
+# R5-7 (it replaces r22c's LOYALTY_ACTIVATED feed): the activation feed. ONE
+# row per activated ability activated, mana abilities included (CR 602.2,
+# 605.3b), emitted at the payment point in legality.activate. Subject = the
+# object whose ability it is (the AbilityActivatedEvent ``source`` filter
+# reads it — Keral's "a Chandra planeswalker"); cause = the activating player
+# (the node's ``actor``); data = (ability index, the 605.1a mana-ability
+# verdict, the paid loyalty delta or None when it is not a loyalty ability),
+# which the node's ``kind`` reads.
+KIND_ABILITY_ACTIVATED = "ABILITY_ACTIVATED"
 # T5-D (Sanctum of All family): an ability TRIGGERED. SYNTHETIC-ONLY
 # kind — never journalled (the matcher feeds AbilityTriggerEvent nodes
 # from _queue at firing-queue time), so no golden/fingerprint bytes move.
@@ -197,9 +199,11 @@ class GameEvent:
         chosen set for branch coverage but intentionally do not fire
         TargetingEvent triggers, because "choose one of them" is not a
         target designation (CR 115.4).
-      * LOYALTY_ACTIVATED — ``(delta,)``, subject the permanent whose
-        loyalty ability was activated, cause the activating player
-        (r22c, the LoyaltyActivatedEvent feed).
+      * ABILITY_ACTIVATED — ``(ability_idx, mana, loyalty)``, subject the
+        object whose activated ability was activated, cause the activating
+        player; ``mana`` is the CR 605.1a verdict, ``loyalty`` the paid
+        loyalty delta or None for a non-loyalty ability (R5-7, the
+        AbilityActivatedEvent feed; one row per activation, mana included).
       * WINDOW_OPEN   — ``(vocab,)``, subject the framed spell, cause the
         asked seat (RUNG-1, the response-window audit; one row per seat
         actually asked).
@@ -293,10 +297,11 @@ class GameEvent:
         return cast("tuple[tuple[tuple[int, Handle], ...]]", self.data)
 
     @property
-    def loyalty(self) -> int:
-        """LOYALTY_ACTIVATED payload: the paid loyalty delta (signed —
-        CR 606.2b's ``+N``/``-N`` symbol; r22c)."""
-        return cast(int, self.data[0])
+    def activation(self) -> tuple[int, bool, int | None]:
+        """ABILITY_ACTIVATED payload (R5-7): (ability index, the 605.1a
+        mana-ability verdict, the paid loyalty delta — signed, CR 606.4 — or
+        None when the ability is not a loyalty ability)."""
+        return cast("tuple[int, bool, int | None]", self.data)
 
 
 @dataclass
@@ -432,14 +437,26 @@ class EventJournal:
                 (source_object, actor),
             )
 
-    def emit_loyalty_activation(
-        self, permanent: Handle, actor: Handle, delta: int
+    def emit_ability_activation(
+        self,
+        source: Handle,
+        actor: Handle,
+        ability_idx: int,
+        *,
+        mana: bool,
+        loyalty: int | None,
     ) -> GameEvent:
-        """The LOYALTY_ACTIVATED row (r22c, the LoyaltyActivatedEvent
-        feed): one per activation that PAID a loyalty symbol — legality.
-        activate calls this exactly where CR 606.2b's loyalty ability is
-        bought. Subject = the permanent, cause = the activating player."""
-        return self._emit(KIND_LOYALTY_ACTIVATED, permanent, actor, "LOYALTY", (delta,))
+        """The ABILITY_ACTIVATED row (R5-7, the AbilityActivatedEvent feed):
+        one per activation, mana abilities included — legality.activate calls
+        this right after the costs are paid. Subject = the object whose
+        ability it is, cause = the activating player."""
+        return self._emit(
+            KIND_ABILITY_ACTIVATED,
+            source,
+            actor,
+            "ACTIVATE",
+            (ability_idx, bool(mana), loyalty),
+        )
 
     def begin_turn(self, player: Handle) -> None:
         """Reset per-turn event trackers for a new turn (12b skeleton)."""

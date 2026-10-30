@@ -863,6 +863,29 @@ These are forks, not tasks. See the report that accompanied this audit.
     one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
     printed; only the docstring's reading is off).
   - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
+- **B-105 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-7: `AbilityActivatedEvent` and
+  one CR 605.1a classifier.**
+  - Done: `AbilityActivatedEvent(source, kind, actor)` replaces `LoyaltyActivatedEvent`; `kind`
+    (ANY / NON_MANA / LOYALTY) is required. `ability_tree.is_mana_ability` implements 605.1a's four
+    criteria (no target, a reachable ADD_MANA, not a loyalty ability, no card moved to or from a
+    library by cost or effect) and is the one classifier the games driver, `bench/router.py`, the
+    activation journal row and the NON_MANA lock read. The lock gate is in
+    `legality.ability_playable` (`prohibited:activation_lock`, CR 602.5). One `ABILITY_ACTIVATED`
+    journal row per activation, mana abilities included. `CostLoyalty(0)` is legal. Faith's
+    Fetters' third clause and Keral Keep Disciples re-baked; packs `faiths_fetters_activation_lock`,
+    `faiths_fetters_locks_loyalty`.
+  - Gap ledger: "whenever you activate a boast ability" (KHM Frenzied Raider) has no kind (boast
+    has no IR component). Expressible but not compiled: the trigger users Runic Armasaur and
+    Kurkesh (NON_MANA), Sarkhan's Whelp (ANY), Chandra's Regulator (LOYALTY); the locks Bound in
+    Gold, Pithing Needle, Sorcerous Spyglass (NON_MANA) and the twelve "can't be activated" cards
+    (ANY; `reports/r5_census_2026-10-29.json`). Pithing Needle, Spyglass and Phyrexian Revoker
+    also need their named source (`CHOOSE_NAME` + `NAME_CHOSEN`).
+  - "[0]:" abilities are expressible now but no template parses them (`frames.py` B13-loyalty and
+    the `templates_b5c.py` loyalty patterns take only `+N`/`−N`): 12 cards in 11 sets, none in
+    M21.
+  - After `engine/verify-fixes` merges: its B-90 payment witness picks mana sources through
+    `ability_playable` and taps them through `activate()`, so an ANY lock already skips a locked
+    mana source and each tap journals its row. Pin that with a test at the merge.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

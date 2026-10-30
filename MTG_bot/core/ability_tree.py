@@ -74,7 +74,9 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   by the controller this turn; mirrors CastSpellEvent.ordinal — Jolrael,
   Mystic Skyfish), the new ``LoyaltyActivatedEvent(controller, filter)``
   ("Whenever you activate a loyalty ability of a Chandra planeswalker, ..."
-  — Keral Keep Disciples), ``CastSpellEvent.from_zone_not`` ("from anywhere
+  — Keral Keep Disciples; ontology R5-7 replaced it with
+  ``AbilityActivatedEvent(source, kind, actor)``, kind LOYALTY),
+  ``CastSpellEvent.from_zone_not`` ("from anywhere
   other than their hand" — Ghostly Pilferer; mutually exclusive with
   ``from_zone``), three ``FAtom`` zone slots (``zone`` / ``from_zone`` /
   ``to_zone``) with the condition predicates
@@ -831,6 +833,24 @@ class ActivationWindow(Enum):
 
     SORCERY = "SORCERY"
     INSTANT = "INSTANT"
+
+
+class AbilityKind(Enum):
+    """Which activations an :class:`AbilityActivatedEvent` covers (ontology
+    R5-7). Required on the event, never defaulted: "activated abilities
+    can't be activated" (Arachnus Web) and "... unless they're mana
+    abilities" (Faith's Fetters) are different locks, so an absent kind
+    would be a silent pick of one of them.
+
+    ANY = every activated ability; NON_MANA = every activated ability that
+    is not a mana ability (CR 605.1a, decided by :func:`is_mana_ability`;
+    a loyalty ability is never a mana ability, so a NON_MANA lock covers
+    it); LOYALTY = an ability whose cost has a loyalty symbol (CR 606.2,
+    :func:`is_loyalty_ability`, a [0] ability included)."""
+
+    ANY = "ANY"
+    NON_MANA = "NON_MANA"
+    LOYALTY = "LOYALTY"
 
 
 # ---- Quantity — "Quantity on every numeric field, without exception" ----
@@ -2071,30 +2091,42 @@ class SacrificeEvent:
 
 
 @dataclass(frozen=True)
-class LoyaltyActivatedEvent:
-    """A loyalty ability was activated on a planeswalker (grammar
-    round 4: Keral Keep Disciples' "whenever you activate a loyalty ability
-    of a Chandra planeswalker"). ``filter`` selects the planeswalker whose
-    loyalty ability was activated (e.g. subtype Chandra + type Planeswalker);
-    it is required — a bare "any loyalty ability" trigger is never expressible.
-    Convention C5: loyalty triggers compile as the EFFECT of the
-    ActivatedAbility whose cost is the loyalty part, not as a standalone
-    TriggeredAbility, so this event tags that activation. E1 (/65): the
-    ``actor`` Filter is evaluated over the ACTIVATOR journalled as the
-    event's cause (CR 606.3: only the controller may activate — the cause
-    handle is the activator's seat). The old ``controller`` field is gone."""
+class AbilityActivatedEvent:
+    """An activated ability was activated (ontology R5-7; it replaces the
+    grammar-round-4 ``LoyaltyActivatedEvent``, which was this event with
+    ``kind=LOYALTY`` built in).
 
-    filter: Filter
+    - ``source`` (required) selects the object whose ability was activated:
+      Keral Keep Disciples' "a Chandra planeswalker" (subtype Chandra + type
+      Planeswalker), Faith's Fetters' enchanted permanent
+      (IS_ATTACHED_TO_SOURCE).
+    - ``kind`` (required, no default) says which activations count:
+      :class:`AbilityKind` ANY / NON_MANA (CR 605.1a) / LOYALTY (CR 606.2).
+    - ``actor`` (E1, /65) is evaluated over the ACTIVATOR, journalled as the
+      event's cause (CR 602.2: the activating player controls the ability).
+
+    Two consumers read it: a TriggeredAbility ("whenever you activate a
+    loyalty ability of a Chandra planeswalker") and PREVENT_EFFECT, the
+    activation lock ("its activated abilities can't be activated unless
+    they're mana abilities", CR 602.5), which legality's
+    ``ability_playable`` consults before anything is paid."""
+
+    source: Filter
+    kind: AbilityKind
     actor: Filter | None = None
 
     def __post_init__(self) -> None:
-        if not _is_filter(self.filter):
+        if not _is_filter(self.source):
             raise ValueError(
-                f"LoyaltyActivatedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+                f"AbilityActivatedEvent: source must be a Filter, got {type(self.source).__name__}"
+            )
+        if not isinstance(self.kind, AbilityKind):
+            raise ValueError(  # noqa: TRY004 — the grammar's validation contract is ValueError
+                f"AbilityActivatedEvent: kind must be an AbilityKind, got {self.kind!r}"
             )
         if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
-                f"LoyaltyActivatedEvent: actor must be a Filter, got {type(self.actor).__name__}"
+                f"AbilityActivatedEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
@@ -2114,7 +2146,7 @@ EventSpec = (
     | CardDrawnEvent
     | LifeGainedEvent
     | SacrificeEvent
-    | LoyaltyActivatedEvent
+    | AbilityActivatedEvent
 )
 
 
@@ -2379,7 +2411,13 @@ class CostLoyalty:
 
     ``delta`` is a literal int or a Quantity (T3 round 2, item 6: Ugin's
     "[−X]" — a DYNAMIC loyalty cost); a dynamic delta is still always a
-    reduction (loyalty is never gained as a cost)."""
+    reduction (loyalty is never gained as a cost).
+
+    R5-7: ``delta=0`` is legal. A [0] ability is a loyalty ability (CR
+    606.2: the symbol is in its cost) that adds and removes no counter
+    (CR 606.4), so the once-per-turn clock and the main-phase window still
+    apply. The int 0 is its only spelling: ``QConst(0)`` would mean "remove
+    0", the same cost in other bytes, so it stays refused."""
 
     delta: int | Quantity
 
@@ -2389,11 +2427,13 @@ class CostLoyalty:
                 f"CostLoyalty: delta must be an int or Quantity, got {self.delta!r}"
             )
         if isinstance(self.delta, int):
-            if self.delta == 0:
-                raise ValueError("CostLoyalty: delta must be non-zero")
+            pass  # any signed literal, [0] included (R5-7, CR 606.2/606.4)
         elif _is_quantity(self.delta):
             if isinstance(self.delta, QConst) and self.delta.value == 0:
-                raise ValueError("CostLoyalty: delta must be non-zero")
+                raise ValueError(
+                    "CostLoyalty: a [0] cost is the int 0, never QConst(0) "
+                    "(one meaning, one spelling)"
+                )
         else:
             raise ValueError(
                 "CostLoyalty: delta must be an int or Quantity, got "
@@ -3440,7 +3480,7 @@ _EV_CLASSES = (
     CardDrawnEvent,
     LifeGainedEvent,
     SacrificeEvent,
-    LoyaltyActivatedEvent,
+    AbilityActivatedEvent,
 )
 _D_CLASSES = (
     DurationEot,
@@ -3991,6 +4031,7 @@ _ENUMS: dict[str, type[Enum]] = {
     "Phase": Phase,
     "Step": Step,
     "ActivationWindow": ActivationWindow,
+    "AbilityKind": AbilityKind,
 }
 
 _DATACLASSES: tuple[type, ...] = (
@@ -4033,7 +4074,7 @@ _DATACLASSES: tuple[type, ...] = (
     CardDrawnEvent,
     LifeGainedEvent,
     SacrificeEvent,
-    LoyaltyActivatedEvent,
+    AbilityActivatedEvent,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -4216,8 +4257,10 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "LifeGainedEvent": (("actor", "opt:filter"),),
     "SacrificeEvent": (("actor", "opt:filter"),),
-    "LoyaltyActivatedEvent": (
-        ("filter", "filter"),
+    # R5-7: replaces LoyaltyActivatedEvent; kind is required (no default).
+    "AbilityActivatedEvent": (
+        ("source", "filter"),
+        ("kind", "enum:AbilityKind"),
         ("actor", "opt:filter"),
     ),
     "LiteralName": (("name", "str"),),
@@ -4404,7 +4447,7 @@ _EVENT_TAGS = frozenset(
         "CardDrawnEvent",
         "LifeGainedEvent",
         "SacrificeEvent",
-        "LoyaltyActivatedEvent",
+        "AbilityActivatedEvent",
     }
 )
 _COST_DELTA_TAGS = frozenset(
@@ -4523,7 +4566,7 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "TurnPhaseEvent": frozenset({"actor"}),
     "LifeGainedEvent": frozenset({"actor"}),
     "SacrificeEvent": frozenset({"actor"}),
-    "LoyaltyActivatedEvent": frozenset({"actor"}),
+    "AbilityActivatedEvent": frozenset({"actor"}),
     # count (grammar round 5, R5-2): omit when None.
     "CounterPlacedEvent": frozenset({"count"}),
     # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every
@@ -4842,3 +4885,161 @@ def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]
     elif isinstance(value, frozenset):
         for item in value:
             yield from _walk_value(item, skip)
+
+
+# ---- Ability classification (ontology R5-7: one 605.1a classifier) ----
+
+#: Nodes whose subtree belongs to ANOTHER ability: a granted ability, a
+#: keyword, a token's own abilities, and a delayed trigger (created when the
+#: ability resolves, it triggers and resolves later as its own ability, CR
+#: 603.7). CR 605.1a judges the activated ability itself, so none of its
+#: criteria look inside them.
+_FOREIGN_ABILITY_NODES: tuple[type, ...] = (*_A_CLASSES, TokenSpec, DelayedTrigger)
+
+#: Verbs that always take cards from a library (CR 121.1 draw, 701.17a mill).
+_LIBRARY_POP_VERBS = frozenset({Verb.DRAW, Verb.MILL})
+#: Verbs that move the objects their roles name. They touch a library when a
+#: zone they name is a library, or ZoneKind.ANY (which includes the library).
+_ZONE_MOVING_VERBS = frozenset(
+    {
+        Verb.MOVE_ZONE,
+        Verb.SEARCH,
+        Verb.CAST,
+        Verb.EXILE,
+        Verb.DISCARD,
+        Verb.SACRIFICE,
+        Verb.DESTROY,
+        Verb.COUNTER_SPELL,
+    }
+)
+
+
+def is_loyalty_ability(ability: object) -> bool:
+    """CR 606.2: an activated ability with a loyalty symbol in its cost is a
+    loyalty ability. A [0] symbol counts (``CostLoyalty(0)``)."""
+    return isinstance(ability, ActivatedAbility) and any(
+        isinstance(part, CostLoyalty) for part in ability.cost.parts
+    )
+
+
+def _own_nodes(effect: Any) -> list[Any]:
+    """The nodes of ``effect`` that belong to this ability (foreign ability
+    subtrees are neither descended nor returned)."""
+    return [
+        node
+        for node in walk(effect, skip=_FOREIGN_ABILITY_NODES)
+        if not isinstance(node, _FOREIGN_ABILITY_NODES)
+    ]
+
+
+def _leaf_values(node: Any) -> Iterator[Any]:
+    """The non-node field values of one node (enums, strings, ints), with
+    tuples flattened. Dataclass children are skipped: ``walk`` yields them."""
+    stack = [getattr(node, f.name) for f in dataclasses.fields(node)]
+    while stack:
+        value = stack.pop()
+        if isinstance(value, tuple):
+            stack.extend(value)
+        elif not dataclasses.is_dataclass(value):
+            yield value
+
+
+def _requires_target(nodes: list[Any]) -> bool:
+    """CR 115.1c/115.6: the ability says "target": a TARGET-mode selector, or
+    the target-player coordinate anywhere (a role, a zone's controller, a
+    filter's ``who``, an EachPlayer ref). The IR has no other way to bind
+    TARGET_PLAYER than a designation, so any reference to it is a target."""
+    for node in nodes:
+        if isinstance(node, Selector) and node.mode is SelectorMode.TARGET:
+            return True
+        if any(value is ControllerRef.TARGET_PLAYER for value in _leaf_values(node)):
+            return True
+    return False
+
+
+def _zone_holds_library(zone: Zone) -> bool:
+    return zone.kind in (ZoneKind.LIBRARY, ZoneKind.ANY)
+
+
+def _atom_moves_library_card(atom: Atom) -> bool:
+    """Does this atom move a card to or from a library (CR 605.1a's fourth
+    criterion)? A draw or mill always does. A zone-moving verb does when its
+    destination is a library, or its departure (``from``, the mill shape's
+    top-of-library pop, or the zones of the selector naming what moves) may
+    be one. A referent selector ("it", "that card") carries the neutral zone
+    of convention C2, not a departure zone, so it is not read: the atom that
+    produced the referent is judged on its own. Scry and shuffle keep the
+    cards in the library (701.22a, 701.24a), reveal and look move nothing."""
+    if atom.verb in _LIBRARY_POP_VERBS:
+        return True
+    if atom.verb not in _ZONE_MOVING_VERBS:
+        return False
+    return any(_role_touches_library(role, value) for role, value in atom.args.pairs)
+
+
+def _role_touches_library(role: str, value: object) -> bool:
+    """One role of a zone-moving atom, judged for :func:`_atom_moves_library_card`."""
+    if role == "destination":
+        return isinstance(value, Zone) and value.kind is ZoneKind.LIBRARY
+    if role == "from":
+        return isinstance(value, Zone) and _zone_holds_library(value)
+    if role in ("pop_order", "journal_kind"):
+        return value in ("TOP", "MILL")  # the mill shape's top-of-library pop
+    return (
+        role in ("cards", "target", "source")
+        and isinstance(value, Selector)
+        and value.referent is None
+        and any(_zone_holds_library(zone) for zone in value.zones)
+    )
+
+
+def _cost_moves_library_card(cost: Cost) -> bool:
+    """CR 605.1a's fourth criterion on the cost side. Of the closed CostPart
+    union only sacrifice and discard move cards (to the graveyard, CR 701.21a,
+    701.9a); they touch a library only if their selector's zone is one. A new
+    card-moving cost part must be added here."""
+    return any(
+        isinstance(part, (CostSacrifice, CostDiscard))
+        and any(_zone_holds_library(zone) for zone in part.target.zones)
+        for part in cost.parts
+    )
+
+
+def is_mana_ability(ability: object) -> bool:
+    """CR 605.1a, every criterion: an activated ability is a mana ability iff
+    (i) it doesn't require a target (115.6), (ii) it could add mana when it
+    resolves (any ADD_MANA atom reachable in its own effect, whatever else the
+    effect does and whatever the board allows, 605.2), (iii) it isn't a
+    loyalty ability (606), and (iv) its cost and effect don't move any card
+    to or from a library. Replacement effects other than the ability's own
+    are not consulted (605.1a's last sentence): an outside replacement never
+    sits in the ability's tree, and a self-replacement does.
+
+    This is the engine's one classifier: the act-window drivers
+    (``games.RandomPolicy``, ``bench.router``), the activation journal row
+    and the NON_MANA activation lock all read it."""
+    if not isinstance(ability, ActivatedAbility):
+        return False
+    if is_loyalty_ability(ability) or _cost_moves_library_card(ability.cost):
+        return False
+    nodes = _own_nodes(ability.effect)
+    if not any(isinstance(node, Atom) and node.verb is Verb.ADD_MANA for node in nodes):
+        return False
+    if _requires_target(nodes):
+        return False
+    return not any(
+        isinstance(node, Atom) and _atom_moves_library_card(node) for node in nodes
+    )
+
+
+def activation_matches_kind(ability: object, kind: AbilityKind) -> bool:
+    """Does an activation of ``ability`` count for an AbilityActivatedEvent
+    of ``kind``? ANY: every activated ability; NON_MANA: not a mana ability
+    (605.1a; a loyalty ability is never one); LOYALTY: a loyalty ability."""
+    if kind is AbilityKind.ANY:
+        return True
+    if kind is AbilityKind.NON_MANA:
+        return not is_mana_ability(ability)
+    if kind is AbilityKind.LOYALTY:
+        return is_loyalty_ability(ability)
+    raise ValueError(f"activation_matches_kind: unknown AbilityKind {kind!r}")

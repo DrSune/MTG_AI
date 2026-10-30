@@ -18,6 +18,8 @@ import uuid
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     ActivatedAbility,
     ActivationWindow,
     Atom,
@@ -1692,8 +1694,10 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertNotIn("duration", p)
 
     def test_enchant_cant_attack_block_structure(self) -> None:
-        """C11: Seq of two PREVENT atoms (attack + block) on
-        IS_ATTACHED_TO_SOURCE; mana-abilities clause dropped (lossy)."""
+        """C11: Seq of PREVENT atoms (attack + block + the activation lock)
+        on IS_ATTACHED_TO_SOURCE. re-pinned 2026-10-30: R5-7 encodes the
+        mana-abilities clause (it was dropped, lossy) as the third atom,
+        PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted, NON_MANA))."""
         outcome = self._match_outcome("B5a-enchant-cant-attack-block")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1703,9 +1707,19 @@ class TestStructuralAssertions(unittest.TestCase):
         eff = ab.effect
         if not isinstance(eff, Seq):
             self.fail(f"expected Seq effect, got {type(eff)}")
-        self.assertEqual(len(eff.steps), 2)
-        attack, block = eff.steps
+        self.assertEqual(len(eff.steps), 3)
+        attack, block, lock = eff.steps
         assert isinstance(attack, Atom) and isinstance(block, Atom)
+        assert isinstance(lock, Atom) and lock.verb is Verb.PREVENT_EFFECT
+        lp = _pairs_dict(lock)
+        self.assertEqual(lp["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        self.assertEqual(
+            lp["event"],
+            AbilityActivatedEvent(
+                source=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
+                kind=AbilityKind.NON_MANA,
+            ),
+        )
         ap = _pairs_dict(attack)
         bp = _pairs_dict(block)
         self.assertEqual(ap["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))

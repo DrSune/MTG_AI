@@ -1,13 +1,15 @@
-"""r22c — wave-5 fix batch C: the LoyaltyActivatedEvent feed + falsifiability
+"""r22c — wave-5 fix batch C: the loyalty-activation feed + falsifiability
 pins for the batch's three STOP verdicts.
 
 THE FIX (Keral Keep Disciples, promoted to tools/scenarios, 282 packs):
-the journal ships a LOYALTY_ACTIVATED feed — one row per activation that
-PAID a loyalty symbol (CR 606.2b's loyalty ability), emitted at the
-payment point of legality.activate — and :class:`TriggerBinder`
-subscribes ``LoyaltyActivatedEvent`` nodes: CONTROLLER scope over the
-activating player (the row's cause), FILTER over the permanent (the
-row's subject — Keral's "a Chandra planeswalker").
+the journal ships an activation feed, emitted at the payment point of
+legality.activate — since ontology R5-7 one ABILITY_ACTIVATED row per
+activation, mana abilities included, carrying the paid loyalty delta (None
+for a non-loyalty ability) — and :class:`TriggerBinder` subscribes
+``AbilityActivatedEvent`` nodes (r22c's LoyaltyActivatedEvent is the
+node with ``kind=LOYALTY``): actor over the activating player (the row's
+cause), source over the permanent (the row's subject — Keral's "a
+Chandra planeswalker").
 
 THE PINS (campaign law: a STOP must be falsifiable, not fatalistic —
 each proves the EXECUTOR lane honest, locating the defect on the
@@ -35,6 +37,8 @@ compiler/grammar side where the IR/goldens are frozen):
 import unittest
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -46,7 +50,6 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
-    LoyaltyActivatedEvent,
     QConst,
     QCount,
     QUnbounded,
@@ -56,7 +59,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
 )
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.binding import KIND_LOYALTY_ACTIVATED
+from MTG_bot.core.executor.binding import KIND_ABILITY_ACTIVATED
 from MTG_bot.core.executor.events import KIND_DAMAGE
 from MTG_bot.core.executor.legality import activate, ctx_for
 from MTG_bot.core.executor.quantity import eval_filter
@@ -107,7 +110,9 @@ def add_mana_atom(color="R", n=1) -> Atom:
 
 
 class LoyaltyFeedCase(unittest.TestCase):
-    """r22c: the LOYALTY_ACTIVATED row + the Keral-style subscription."""
+    """r22c: the activation row of a loyalty ability + the Keral-style
+    subscription (R5-7: ABILITY_ACTIVATED rows, AbilityActivatedEvent of
+    kind LOYALTY)."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -130,9 +135,10 @@ class LoyaltyFeedCase(unittest.TestCase):
             record_of(
                 [
                     TriggeredAbility(
-                        event=LoyaltyActivatedEvent(
+                        event=AbilityActivatedEvent(
+                            source=FAtom(FAtomPred.SUBTYPE_EQ, string_value="Chandra"),
+                            kind=AbilityKind.LOYALTY,
                             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                            filter=FAtom(FAtomPred.SUBTYPE_EQ, string_value="Chandra"),
                         ),
                         condition=None,
                         effect=gain(1),
@@ -149,7 +155,12 @@ class LoyaltyFeedCase(unittest.TestCase):
         self.ex.attach_card(self.basri, record_of([plus], oid=_oid(705)))
 
     def loyalty_rows(self):
-        return [e for e in self.ex.journal.events if e.kind == KIND_LOYALTY_ACTIVATED]
+        """The activation rows of LOYALTY abilities (a paid delta journalled)."""
+        return [
+            e
+            for e in self.ex.journal.events
+            if e.kind == KIND_ABILITY_ACTIVATED and e.activation[2] is not None
+        ]
 
     def test_loyalty_symbol_paid_journals_one_row(self):
         activate(self.ex, self.chandra, 0, seat=self.p0)
@@ -158,7 +169,7 @@ class LoyaltyFeedCase(unittest.TestCase):
         row = rows[0]
         self.assertEqual(row.subject, self.chandra)  # the permanent
         self.assertEqual(row.cause, self.p0)  # the activating player
-        self.assertEqual(row.loyalty, 1)  # the paid delta
+        self.assertEqual(row.activation, (0, False, 1))  # idx, not mana (606), paid +1
 
     def test_chandra_activation_fires_the_keral_trigger(self):
         activate(self.ex, self.chandra, 0, seat=self.p0)
@@ -175,10 +186,12 @@ class LoyaltyFeedCase(unittest.TestCase):
         self.assertEqual(rows[0].subject, self.basri)
         self.assertEqual(self.world.players[self.p0].life, 20)
 
-    def test_tap_activation_emits_no_loyalty_row(self):
-        # CR 606.2b: no loyalty symbol PAID, no loyalty ability, no row —
-        # the feed keys on the payment, never on the permanent's type. A
-        # plain tap activation on a fresh card must journal nothing.
+    def test_tap_activation_journals_a_non_loyalty_row(self):
+        # re-pinned 2026-10-30: R5-7 journals ONE row per activation, mana
+        # abilities included (the old feed journalled loyalty payments only).
+        # CR 606.2: no loyalty symbol in the cost, so the row carries no
+        # delta, and the LOYALTY-kind Keral trigger stays silent — the kind
+        # keys on the cost, never on the permanent's type.
         spare = self.world.add_card(card_id("Spare"), self.p0, ZONE_BATTLEFIELD)
         self.ex.attach_card(
             spare,
@@ -194,6 +207,12 @@ class LoyaltyFeedCase(unittest.TestCase):
         )
         activate(self.ex, spare, 0, seat=self.p0)
         self.assertEqual(self.loyalty_rows(), [])
+        rows = [e for e in self.ex.journal.events if e.kind == KIND_ABILITY_ACTIVATED]
+        self.assertEqual([(r.subject, r.cause, r.activation) for r in rows], [
+            (spare, self.p0, (0, True, None))  # a mana ability (605.1a)
+        ])
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.players[self.p0].life, 20)
 
 
 class ShrineCensusCase(unittest.TestCase):

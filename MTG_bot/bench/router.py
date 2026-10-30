@@ -40,7 +40,7 @@ from MTG_bot.bench.protocol import (
     executor_text,
     resolve_ask_seat,
 )
-from MTG_bot.core.ability_tree import Atom, Verb, walk
+from MTG_bot.core.ability_tree import is_mana_ability
 from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP, Act
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.executor.query import (
@@ -218,17 +218,15 @@ class SeatRouter:
 
     @staticmethod
     def _is_mana(executor: Any, seat: Handle, option: Any) -> bool:
-        """A mana ability adds mana and targets nothing.
-
-        ``RandomPolicy.is_mana_activation`` also accepts effects made only of TAP atoms, so it
-        counts "Tap target creature you don't control" (Shacklegeist) as tapping for mana. Behind
-        TAP_ALL_MANA that activation went out with no target and crashed the engine (found
-        2026-10-24, BACKLOG B-34).
+        """A mana ability by CR 605.1a: no target, could add mana, not a loyalty ability, and
+        no card moved to or from a library. R5-7: the engine's one classifier decides
+        (:func:`~MTG_bot.core.ability_tree.is_mana_ability`), the same one the games driver,
+        the activation journal and the NON_MANA activation lock read. A mana ability never
+        targets, so TAP_ALL_MANA's ``targets=()`` is always a legal designation (the B-34
+        crash, "Tap target creature you don't control" behind TAP_ALL_MANA, cannot recur).
         """
-        verbs = {node.verb for node in walk(option.ability.effect) if isinstance(node, Atom)}
-        if Verb.ADD_MANA not in verbs or not verbs <= {Verb.ADD_MANA, Verb.TAP}:
-            return False
-        return not activation_target_slots(executor, option.ability.effect, source=option.source, seat=seat)
+        del executor, seat  # the classification is a property of the ability itself
+        return is_mana_ability(option.ability)
 
     def _targets(self, game: Game, slots: Sequence[Any], i: int, source: Handle) -> tuple[Handle, ...] | None:
         chosen: list[Handle] = []

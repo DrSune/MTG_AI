@@ -22,8 +22,8 @@ Coverage (90 = 64 template + 23 rule-reminder + 3 uncovered):
   (Miscast, Lofty Denial), round-6 batch: ZONE_COUNT_GE conditional static
   (Thieves' Guild Enforcer), TURN_OF static grant (Radha) and TURN_OF
   CostModifier (Discontinuity), blocked-side PREVENT_EFFECT
-  (Ghostly Pilferer discard, Faith's Fetters attack+block Seq — C11
-  lossy), untap-prevention on enchanted creature (Capture Sphere, lossy),
+  (Ghostly Pilferer discard, Faith's Fetters attack+block+activation-lock
+  Seq — C11, the lock since R5-7), untap-prevention on enchanted creature (Capture Sphere, lossy),
   and grammar round 11 C3: the each-opponent "who can't" life-loss gate
   (Waker +1 tail — Conditional + EachPlayer over a post-discard hand
   count, payment-failure row retired).
@@ -67,6 +67,8 @@ import re
 from typing import Callable, Final
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     Atom,
     AtomArgs,
     ActivatedAbility,
@@ -1238,17 +1240,18 @@ def _build_enchant_no_untap(m: re.Match[str]) -> SentenceOutcome:
 def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
     """Enchanted permanent can't attack or block, and its activated
     abilities can't be activated unless they're mana abilities.
-    (Faith's Fetters; decision C11 — Seq of two PREVENT_EFFECT atoms on
+    (Faith's Fetters; decision C11 — Seq of PREVENT_EFFECT atoms on
     the enchanted permanent (IS_ATTACHED_TO_SOURCE), the attack atom over
     DeclareAttackersEvent, the block atom over DeclareBlockersEvent
     following the B4 cant-block idiom (filter selects the restricted
     participant).)
 
-    LOSSY (verbatim, per C11): "and its activated abilities can't be
-    activated unless they're mana abilities" is DROPPED — needs an
-    ability-activation event class + ability-kind predicate
-    (ability-introspection family, 2026-09-28 decision doc deferred
-    family 1).
+    Ontology R5-7 (2026-10-30): the third clause, "its activated abilities
+    can't be activated unless they're mana abilities" (CR 602.5), is the
+    activation lock PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted,
+    kind=NON_MANA)). Loyalty abilities are never mana abilities (CR
+    605.1a), so the lock covers them too. It was dropped (lossy C11) until
+    the event existed.
     """
     enchanted = FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
     attack = Atom(
@@ -1269,7 +1272,19 @@ def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block))))
+    lock = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", enchanted),
+                (
+                    "event",
+                    AbilityActivatedEvent(source=enchanted, kind=AbilityKind.NON_MANA),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block, lock))))
 
 
 def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
@@ -2148,7 +2163,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5a-enchant-cant-attack-block",
-        name="enchanted permanent can't attack or block (mana-abilities clause dropped, C11)",
+        name="enchanted permanent can't attack or block; non-mana activations locked (R5-7)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Enchanted permanent can't attack or block, and its activated "
