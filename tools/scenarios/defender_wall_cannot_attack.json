@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Onakke Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "real": "Warded Battlements",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "ogre"
+  },
+  {
+   "op": "enter",
+   "key": "wall"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ogre": true,
+    "wall": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "ogre": true
+  },
+  "not_asked": [
+   "wall"
+  ],
+  "life": {
+   "1": 15
+  }
+ },
+ "notes": "V40, CR 702.3b: a creature with defender can't attack. Warded Battlements is never asked to attack (the attack map's 'wall: true' is never consulted); Onakke Ogre (4/2) attacks alone and gets +1/+0 from the wall's 'Attacking creatures you control get +1/+0', so the defending player takes 5."
+}

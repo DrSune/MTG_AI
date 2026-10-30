@@ -14,6 +14,7 @@ V37  "End the turn" (CR 724.1). Triggers that triggered before the process cease
 V39  Quirion Dryad: a spell "that's white, blue, black, or red" is a spell with at least one of
      those colors (CR 105.2, 105.2b), so a green-blue spell counts. The compiler wrote a subset
      test (COLOR_IN); it now writes the canonical FOr of COLOR_HAS.
+V40  Defender only forbids attacking (CR 702.3b): a creature with defender blocks.
 """
 
 import unittest
@@ -30,6 +31,7 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     FAtom,
     FAtomPred,
+    Keyword,
     LifeGainedEvent,
     Phase,
     PtDelta,
@@ -52,6 +54,12 @@ from MTG_bot.core.executor.games import (
     _setup_game,
     deal_decks,
     get_supply,
+    identity_of,
+)
+from MTG_bot.core.executor.legality import (
+    attack_blocked_reason,
+    block_pair_blocked_reason,
+    blocker_askable,
 )
 from MTG_bot.core.executor.quantity import eval_filter
 from MTG_bot.core.executor.query import legal_activations
@@ -417,6 +425,26 @@ class QuirionDryadColorTest(unittest.TestCase):
                 card_id("Spell" + "".join(colors), type_line="Instant", colors=colors), p0, ZONE_HAND
             )
             self.assertEqual(eval_filter(trigger.event.filter, spell, ctx), fires, colors)
+
+
+class DefenderBlocksTest(unittest.TestCase):
+    """V40 (CR 702.3b)."""
+
+    def test_a_wall_blocks_and_does_not_attack(self):
+        supply = get_supply("all", "M21")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        p0, p1 = world.player_order
+        records = {r.card.name: r.card for r in supply.pool.results.values()}
+        wall = world.add_card(identity_of(records["Warded Battlements"]), p1, ZONE_BATTLEFIELD)
+        bear = world.add_card(identity_of(records["Walking Corpse"]), p0, ZONE_BATTLEFIELD)
+        ex = Executor(world)
+        ex.attach_pool(supply.pool)
+        ex.begin_turn(p0)
+        self.assertTrue(ex.layers.keyword_of(wall, Keyword.DEFENDER))
+        self.assertIsNone(block_pair_blocked_reason(ex, wall, bear))
+        self.assertTrue(blocker_askable(ex, wall, [bear]))
+        self.assertEqual(attack_blocked_reason(ex, p1, wall), "defender (CR 702.3b)")
 
 
 if __name__ == "__main__":

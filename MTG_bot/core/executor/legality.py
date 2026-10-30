@@ -1860,8 +1860,9 @@ def attack_blocked_reason(
     """Why ``creature`` may not attack for ``seat`` right now, or ``None``
     when the declaration is legal. Encoded restrictions (CR 508.1 pre-
     check): creature-ness (the LIVE type line — GRANT_TYPE overlay aware),
-    controller, DEFENDER (CR 702.4a — no "can attack as though it didn't"
-    carrier in the corpus), summoning sickness (CR 302.6) unless the
+    controller, DEFENDER (CR 702.3b; Drowsing Tyrannodon's "can attack as
+    though it didn't have defender" lifts it through a LOSE_ABILITY static),
+    summoning sickness (CR 302.6) unless the
     creature has HASTE (CR 702.10a), and the PREVENT_EFFECT attack veto
     (16c — Faith's Fetters' "enchanted permanent can't attack", consumed
     through the prevention registry). TAPPED creatures are legal attackers
@@ -1878,7 +1879,7 @@ def attack_blocked_reason(
     if not eval_filter(_IS_CREATURE, creature, ctx):
         return "not a creature"
     if executor.layers.keyword_of(creature, Keyword.DEFENDER):
-        return "defender (CR 702.4a)"
+        return "defender (CR 702.3b)"
     if not executor.layers.keyword_of(creature, Keyword.HASTE) and not (
         _controlled_since_turn_start(executor, creature)
     ):
@@ -1968,8 +1969,8 @@ def block_pair_blocked_reason(
     (CR 702.113 "except by two or more creatures", Bone Pit Brute) is a
     property of the WHOLE assignment, so the ask loop applies it beside
     this reason, never buried inside it. Consumers:
-      * DEFENDER keyword (CR 702.4a) and creature-ness (only creatures
-        block);
+      * creature-ness (only creatures block). DEFENDER is no veto: it
+        only forbids attacking (CR 702.3b), so a wall blocks (V40);
       * REACH (CR 509.1b): a flying attacker is unblockable without reach
         (Snarespinner, Elder Gargaroth carry it for themselves);
       * PROTECTION (CR 702.16c): either side's live protection filter
@@ -1997,8 +1998,6 @@ def block_pair_blocked_reason(
         return "not a creature (CR 509.1)"
     if world.cards[blocker].tapped:
         return "tapped (CR 509.1a)"
-    if executor.layers.keyword_of(blocker, Keyword.DEFENDER):
-        return "defender (CR 702.4a)"
     # CR 702.7b: a flyer is blocked only by a creature with FLYING or REACH
     if executor.layers.keyword_of(attacker, Keyword.FLYING) and not (
         executor.layers.keyword_of(blocker, Keyword.REACH)
@@ -2026,11 +2025,12 @@ def blocker_askable(
     executor: Executor, blocker: Handle, attackers: Sequence[Handle]
 ) -> bool:
     """Pre-filter for the block-ask candidate list: could ``blocker`` have
-    ANY legal declaration against the current attackers? Creature-ness,
-    tap state and DEFENDER are attacker-independent; the pair vetoes are
-    checked against each attacker. A blocker legal against nothing is
-    never asked (no decision exists); tapped and defender creatures fall
-    out here — the "tapped creatures cannot block" face of CR 509.1a."""
+    ANY legal declaration against the current attackers? Creature-ness
+    and tap state are attacker-independent; the pair vetoes are checked
+    against each attacker. A blocker legal against nothing is never asked
+    (no decision exists); tapped creatures fall out here — the "tapped
+    creatures cannot block" face of CR 509.1a. A creature with defender
+    blocks like any other (CR 702.3b forbids only attacking; V40)."""
     world = executor.world
     if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
         return False
@@ -2045,8 +2045,6 @@ def blocker_askable(
     if not eval_filter(_IS_CREATURE, blocker, ctx_blocker):
         return False
     if world.cards[blocker].tapped:
-        return False
-    if executor.layers.keyword_of(blocker, Keyword.DEFENDER):
         return False
     return any(
         block_pair_blocked_reason(executor, blocker, attacker) is None

@@ -791,7 +791,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     but "UR" fuses two colours into one token (AGENTS §9) and breaks the IR's `color` (one) /
     `colors` (several) convention that `FAtom` follows.
 - **B-76 [fixer A, found 2026-10-29] A creature with defender can never block** (live in M21,
-  weaker than printed).
+  weaker than printed). **[FIXED on branch `engine/verify-fixes-4` 2026-10-30 (V40): both block-side checks dropped;
+  the attack-side reason now cites CR 702.3b.]**
   - `legality.block_pair_blocked_reason` (`executor/legality.py` ~1878) and `blocker_askable`
     (~1925) refuse every blocker with DEFENDER, citing "CR 702.4a". Defender only forbids attacking
     (CR 702.3b), and 702.4 is double strike.
