@@ -76,9 +76,12 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # its power" names its creature as the DEAL_DAMAGE dealer, an anaphoric CHOOSE(referent=
 # 'result') selector (no decision: the register names it): ANAPHORIC_REFERENT 34 -> 35,
 # TOTAL 143 -> 144. Nothing else moved.
-TOTAL_SURFACES = 144
+# re-pinned 2026-10-30 (m21-fidelity wave 4, Experimental Overload): "Exile ~" is the
+# self-reference CHOOSE (IS_SOURCE on the stack) instead of a TARGET: SELF_DESIGNATION
+# 50 -> 51, TOTAL 144 -> 145. Nothing else moved.
+TOTAL_SURFACES = 145
 CORE_LIFTABLE = 22
-SELF_DESIGNATION = 50
+SELF_DESIGNATION = 51
 ANAPHORIC_REFERENT = 35
 COST_VICTIM = 26
 COUNT_NOT_ONE = 11

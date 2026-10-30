@@ -1089,6 +1089,14 @@ class TestStructuralAssertions(unittest.TestCase):
             )
             target = p["target"]
             self.assertIsInstance(target, Selector, f"{tid}")
+            if tid == "B5a-exile-self":
+                # re-pinned 2026-10-30: m21-fidelity wave 4, a spell exiling itself takes no
+                # target (CR 115.1a): the self-reference CHOOSE over the stack it resolves
+                # from. The TARGET over the battlefield made the card uncastable in games.
+                self.assertEqual(target.mode, SelectorMode.CHOOSE, f"{tid}")
+                self.assertEqual(target.zones, (Zone(ZoneKind.STACK, ControllerRef.ANY),))
+                self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+                continue
             self.assertEqual(target.mode, SelectorMode.TARGET, f"{tid}")
 
     def test_discard_tap_self(self) -> None:

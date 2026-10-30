@@ -1056,12 +1056,34 @@ def _build_equipped_pt(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_exile_self(m: re.Match[str]) -> SentenceOutcome:
-    # "Exile Experimental Overload" — self-reference by name, encoded
-    # semantically as IS_SOURCE (no hardcoded name).
-    return _build_exile_target(
-        m,
-        FAtom(pred=FAtomPred.IS_SOURCE),  # type: ignore[arg-type]
+    """"Exile Experimental Overload" — self-reference by name, encoded
+    semantically as IS_SOURCE (no hardcoded name).
+
+    m21-fidelity (wave 4, 2026-10-30): the spell exiles ITSELF as its last
+    instruction, which takes no target (CR 115.1a: only "target" makes a
+    target; CR 608.2n: the resolving spell is on the stack until its last
+    step). It was a TARGET selector over the battlefield, so the cast query
+    demanded a target nothing could fill and games never cast the card. Now
+    the self-reference convention ("~" = CHOOSE IS_SOURCE, as Archfiend's
+    Vessel's "exile it") over the STACK zone the spell resolves from."""
+    atom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_SOURCE),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+                    ),
+                ),
+            )
+        ),
     )
+    return EffectOutcome(effect=atom)
 
 
 # +1/+1 counter kind alias
