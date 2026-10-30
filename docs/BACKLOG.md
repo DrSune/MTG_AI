@@ -563,7 +563,10 @@ These are forks, not tasks. See the report that accompanied this audit.
 - **B-53 [2026-10-29] "Target player" only ever offers opponents, and a player binding takes over
   any role named `target`.**
   - The synthetic target-player slot lists opponents only, so "target player draws two cards" can
-    never target yourself.
+    never target yourself. **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V21): "target
+    opponent" compiles to the new `ControllerRef.TARGET_OPPONENT`; `TARGET_PLAYER` names any player
+    (CR 115.1). Unverified FDN records still writing TARGET_PLAYER for "target opponent": Pilfer
+    (re-map it); Gatekeeper of Malakir's "target player" is now right.]**
   - A target-player binding overrides an atom's own `target` role: "target player sacrifices a
     creature" raised `KeyError 'unknown card player:1'`. **[FIXED on branch
     `engine/verify-fixes-2` 2026-10-29 (V10): a CHOOSE menu over cards ignores a player-only

@@ -286,7 +286,8 @@ class TestTwinLaneDivergence(unittest.TestCase):
         find(ab)
         self.assertIsNotNone(choose_sel)
         # canonical order pin: GRAVEYARD < HAND < LIBRARY, one controller.
-        tp = ControllerRef.TARGET_PLAYER
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        tp = ControllerRef.TARGET_OPPONENT
         self.assertEqual(
             choose_sel.zones,
             (

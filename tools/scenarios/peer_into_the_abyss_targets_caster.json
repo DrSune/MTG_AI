@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Peer into the Abyss", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 7}},
+ "steps": [
+  {"op": "cast", "real": "Peer into the Abyss", "key": "sp", "targets": ["p0"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard"},
+  "hand": {"0": 3, "1": 0}
+ },
+ "notes": "V21 (2026-10-29). Printed Peer into the Abyss: 'Target player draws cards equal to half the number of cards in their library and loses half their life. Round up each time.' 'Target player' may be the caster (CR 115.1): seat 0's library holds the runner's 6 filler cards, so it draws 3. The life half is not asserted here: this branch's tree predates cards/integration 13c169a, which compiles it (the m21-fidelity repro peer_into_the_abyss_self_target.json covers both and should move from known_bugs to tools/scenarios at the merge)."
+}

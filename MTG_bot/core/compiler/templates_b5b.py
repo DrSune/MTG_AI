@@ -1004,7 +1004,7 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.REVEAL,
         args=AtomArgs(
             pairs=(
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("controller", ControllerRef.TARGET_OPPONENT),
                 ("count", QUnbounded()),
             )
         ),
@@ -1014,7 +1014,7 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
     # V10 (2026-10-29): "target opponent sacrifices ... of their choice" — the
-    # menu is the TARGET player's fliers (CONTROLLER_IS TARGET_PLAYER, which
+    # menu is the target opponent's fliers (CONTROLLER_IS TARGET_OPPONENT, which
     # also makes the player the spell's designation). Without it the menu was
     # every flier on the battlefield, the caster's included.
     atom = Atom(
@@ -1030,7 +1030,7 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
                             children=(
                                 FAtom(
                                     pred=FAtomPred.CONTROLLER_IS,
-                                    who=ControllerRef.TARGET_PLAYER,
+                                    who=ControllerRef.TARGET_OPPONENT,
                                 ),
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                                 FAtom(
@@ -1662,14 +1662,14 @@ def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
                         QUnbounded(),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.NAME_CHOSEN),
-                        zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER), *(
-                            Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
-                            Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT), *(
+                            Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT),
+                            Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
                         )),
                     ),
                 ),
-                ("destination", Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER)),
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.TARGET_OPPONENT)),
+                ("controller", ControllerRef.TARGET_OPPONENT),
             )
         ),
     )

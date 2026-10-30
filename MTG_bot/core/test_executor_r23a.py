@@ -150,10 +150,12 @@ class TestActivationTargetPlayerSlots(R23ACase):
     opponent-seat slot the spell lane synthesizes."""
 
     def test_target_player_coordinate_synthesizes_the_opponent_slot(self):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT; a
+        # TARGET_PLAYER designation may now name either seat, so it is no longer forced.
         effect = atom(
             Verb.DISCARD,
             cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,)),
-            controller=ControllerRef.TARGET_PLAYER,
+            controller=ControllerRef.TARGET_OPPONENT,
         )
         slots = activation_target_slots(self.ex, effect, source=self.urn, seat=self.p0)
         self.assertEqual(len(slots), 1)

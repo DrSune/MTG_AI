@@ -1538,7 +1538,7 @@ def _build_kitesail_freebooter(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.REVEAL,
             args=AtomArgs(
                 pairs=(
-                    ("controller", ControllerRef.TARGET_PLAYER),
+                    ("controller", ControllerRef.TARGET_OPPONENT),
                     ("count", QUnbounded()),
                 )
             ),

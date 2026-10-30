@@ -23,6 +23,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     Atom,
     ControllerRef,
     Cost,
@@ -120,7 +121,9 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
         return _opponents(ctx)
     if ref is ControllerRef.ANY:
         return list(ctx.world.player_order)
-    if ref is ControllerRef.TARGET_PLAYER:
+    if ref in DESIGNATED_PLAYER_REFS:
+        # V21: "target player" and "target opponent" read the same binding;
+        # they differ only in who could be designated (query/binding slots).
         bound = ctx.binding_one("target")
         if bound is None:
             raise ValueError(
@@ -150,7 +153,7 @@ def controller_matches(
         return actual == ctx.controller
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
-    if who is ControllerRef.TARGET_PLAYER:
+    if who in DESIGNATED_PLAYER_REFS:
         bound = ctx.binding_one("target")
         expected: Handle | None = bound
         if bound is not None and bound.namespace == "card":
@@ -175,22 +178,33 @@ def filter_reads_bound_player(filter_: object) -> bool:
     graveyard" is not a container read. "target player" is a target (CR 115.1),
     so the query cast/activation lanes open its player slot from the selector's
     zones (query._names_target_player); binding._designate is unchanged."""
+    return bool(filter_bound_player_refs(filter_))
+
+
+def filter_bound_player_refs(filter_: object) -> set[ControllerRef]:
+    """V21: the designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a Filter
+    reads through ``CONTROLLER_IS`` — :func:`filter_reads_bound_player`'s answer
+    with the ref kept, so a designation slot knows whether it is "target
+    player" (any player) or "target opponent"."""
     if isinstance(filter_, FAtom):
+        found: set[ControllerRef] = set()
         if (
             filter_.pred is FAtomPred.CONTROLLER_IS
-            and filter_.who is ControllerRef.TARGET_PLAYER
+            and filter_.who in DESIGNATED_PLAYER_REFS
         ):
-            return True
-        return any(
-            filter_reads_bound_player(inner)
-            for inner in (filter_.inner_filter, filter_.right_inner_filter)
-            if inner is not None
-        )
+            found.add(filter_.who)  # type: ignore[arg-type]
+        for inner in (filter_.inner_filter, filter_.right_inner_filter):
+            if inner is not None:
+                found |= filter_bound_player_refs(inner)
+        return found
     if isinstance(filter_, (FAnd, FOr)):
-        return any(filter_reads_bound_player(c) for c in filter_.children)
+        out: set[ControllerRef] = set()
+        for child in filter_.children:
+            out |= filter_bound_player_refs(child)
+        return out
     if isinstance(filter_, FNot):
-        return filter_reads_bound_player(filter_.inner)
-    return False
+        return filter_bound_player_refs(filter_.inner)
+    return set()
 
 
 def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
@@ -202,7 +216,7 @@ def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
         return owner
     if ref is ControllerRef.YOU:
         return ctx.controller
-    if ref in (ControllerRef.ANY, ControllerRef.TARGET_PLAYER):
+    if ref is ControllerRef.ANY or ref in DESIGNATED_PLAYER_REFS:
         return players_for_ref(ref, ctx)[0]
     raise NotImplementedError(
         f"executor: zone controller ref {ref.name} needs multiple owners (12b)"
@@ -998,7 +1012,7 @@ def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
         and isinstance(value.filter, FAnd)
         and not value.filter.children
         and any(
-            z.kind is ZoneKind.GRAVEYARD and z.controller is ControllerRef.TARGET_PLAYER
+            z.kind is ZoneKind.GRAVEYARD and z.controller in DESIGNATED_PLAYER_REFS
             for z in value.zones
         )
     )

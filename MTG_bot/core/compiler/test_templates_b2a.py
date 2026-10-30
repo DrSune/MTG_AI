@@ -1558,7 +1558,8 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.REVEAL)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertIsInstance(atom.args.get("count"), QUnbounded)
 
     def test_aven_gagglemaster_gain_life_qbin_mul_flying(self) -> None:

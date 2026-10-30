@@ -258,7 +258,9 @@ class DeciderRoutingTest(unittest.TestCase):
         rot = self.real("Mind Rot", self.p0, ZONE_HAND)
         self.world.players[self.p0].mana_pool.update({"B": 3})
         self.answer_with(toss1, toss2)
-        cast(self.ex, self.p0, rot)
+        # re-pinned 2026-10-29: V21 lets "target player" designate either seat, so the
+        # opponent is named explicitly (it was the only, forced candidate).
+        cast(self.ex, self.p0, rot, targets=(self.p1,))
         self.assertEqual([self.zone(h) for h in (keep, toss1, toss2)], [ZONE_HAND, ZONE_GRAVEYARD, ZONE_GRAVEYARD])
         self.assertEqual([seat for _w, _v, seat in self.asks], [self.p1, self.p1])
         self.assertTrue(all(w.startswith(f"discard:{self.p1}:") for w, _v, _s in self.asks), self.asks)

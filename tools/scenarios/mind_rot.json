@@ -35,7 +35,8 @@
    "key": "mr",
    "decisions": [
     "c1",
-    "c2"
+    "c2",
+    "player:1"
    ]
   }
  ],
@@ -55,5 +56,6 @@
   "life": {
    "0": 20
   }
- }
+ },
+ "notes": "re-pinned 2026-10-29: V21 makes 'target player' any player (CR 115.1), so the opponent is no longer the only, forced choice and the step designates it ('player:1', listed last so the step's other answers keep their order)."
 }

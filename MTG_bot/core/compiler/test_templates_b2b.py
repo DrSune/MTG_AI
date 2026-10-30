@@ -2094,15 +2094,16 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         # T4 P1a: the mill shape is the merged MOVE_ZONE atom — the milled
-        # player's own library and graveyard carry TARGET_PLAYER.
+        # player's own library and graveyard carry the designated player.
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertEqual(
             atom.args.get("destination"),
-            Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT),
         )
         self.assertEqual(
-            atom.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)
+            atom.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT)
         )
         self.assertEqual(atom.args.get("journal_kind"), "MILL")
         amount = _qconst(atom, "amount")
@@ -2262,7 +2263,8 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.LOSE_LIFE)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         amount = _qprop(atom, "amount")
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.AMOUNT)

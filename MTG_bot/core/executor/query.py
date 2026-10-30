@@ -71,6 +71,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     ActivatedAbility,
     Atom,
     Choose,
@@ -105,7 +106,7 @@ from MTG_bot.core.executor.legality import (
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
-from MTG_bot.core.executor.selectors import filter_reads_bound_player
+from MTG_bot.core.executor.selectors import filter_bound_player_refs
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
@@ -1045,26 +1046,54 @@ def _designation_selector(selector: Selector) -> Selector:
     return replace(selector, filter=stripped)
 
 
-def _names_target_player(value: object) -> bool:
-    """Does this atom role read the designated TARGET_PLAYER coordinate? A bare
-    ControllerRef (Duress's "target opponent"), a Zone it controls, a filter
-    that reads the bound player (E1 FIX-2), or (B-49 follow-up #3, 2026-10-29)
-    a Selector over zones it controls. Tormod's Crypt's "Exile target player's
-    graveyard" selects ALL cards in Zone(GRAVEYARD, TARGET_PLAYER). The word "target"
+def _designated_player_refs(value: object) -> set[ControllerRef]:
+    """Which designated-player refs this atom role reads (V21: "target player"
+    TARGET_PLAYER, "target opponent" TARGET_OPPONENT). A bare ControllerRef
+    (Duress's "target opponent"), a Zone it controls, a filter that reads the
+    bound player (E1 FIX-2), or (B-49 follow-up #3, 2026-10-29) a Selector over
+    zones it controls. Tormod's Crypt's "Exile target player's graveyard"
+    selects ALL cards in Zone(GRAVEYARD, TARGET_PLAYER). The word "target"
     makes the player a target (CR 115.1), so it needs the player slot. Without
     it the activation resolved with nothing bound and raised "TARGET_PLAYER
     needs a bound target". The spell and activation lanes share this one
     predicate; trigger designation (binding._designate) is unchanged."""
-    return (
-        value is ControllerRef.TARGET_PLAYER
-        or isinstance(value, Zone)
-        and value.controller is ControllerRef.TARGET_PLAYER
-        or isinstance(value, Selector)
-        and (
-            filter_reads_bound_player(value.filter)
-            or any(zone.controller is ControllerRef.TARGET_PLAYER for zone in value.zones)
-        )
-        or filter_reads_bound_player(value)
+    if isinstance(value, ControllerRef):
+        return {value} if value in DESIGNATED_PLAYER_REFS else set()
+    if isinstance(value, Zone):
+        return {value.controller} if value.controller in DESIGNATED_PLAYER_REFS else set()
+    if isinstance(value, Selector):
+        refs = filter_bound_player_refs(value.filter)
+        refs |= {z.controller for z in value.zones if z.controller in DESIGNATED_PLAYER_REFS}
+        return refs
+    return filter_bound_player_refs(value)
+
+
+def player_target_slot(
+    executor: Executor, seat: Handle, refs: set[ControllerRef]
+) -> TargetSlot:
+    """The synthesized designation slot of a designated player (V21). CR 115.1:
+    "target player" names any player, the caster included; "target opponent"
+    an opponent of the caster (CR 102.2, 102.3). A tree reading TARGET_OPPONENT
+    anywhere names an opponent: "that player" anaphora after "Target opponent
+    reveals their hand" read TARGET_PLAYER, and the designating word decides.
+    Before V21 both meant opponents only, so "target player" could not target
+    you (B-53)."""
+    players = executor.world.player_order
+    opponent_only = ControllerRef.TARGET_OPPONENT in refs
+    candidates = tuple(sorted(h for h in players if not (opponent_only and h == seat)))
+    ref = ControllerRef.TARGET_OPPONENT if opponent_only else ControllerRef.TARGET_PLAYER
+    return TargetSlot(
+        selector=Selector(
+            count=QConst(1),
+            mode=SelectorMode.TARGET,
+            filter=FAnd(()),
+            zones=(Zone(ZoneKind.PLAYER, ref),),
+        ),
+        candidates=candidates,
+        min_count=1,
+        max_count=1,
+        forced=len(candidates) == 1,
+        synthetic=True,
     )
 
 
@@ -1166,13 +1195,12 @@ def spell_target_slots(
         # targetless spell and stack.py's resolution invariant fired.
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
         return [aura] if aura is not None else slots
-    reads_target_player = False
+    player_refs: set[ControllerRef] = set()
     for inner in walk(node.effect):
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
-            if _names_target_player(value):
-                reads_target_player = True
+            player_refs |= _designated_player_refs(value)
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue
             key = repr(value)
@@ -1201,7 +1229,7 @@ def spell_target_slots(
                 executor, inner, _role, slot, spell_handle, seat
             )
             slots.append(slot)
-    if not slots and not reads_target_player:
+    if not slots and not player_refs:
         # 16e (CR 702.5a): an AURA spell carries no TARGET-mode selector
         # (its effect reads IS_ATTACHED_TO_SOURCE, not a designation) —
         # yet the cast REQUIRES an enchant target (CR 601.2c). The slot is
@@ -1211,27 +1239,11 @@ def spell_target_slots(
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
         if aura is not None:
             slots.append(aura)
-    if reads_target_player:
+    if player_refs:
         # 14b (B-8/B-5): the TARGET_PLAYER coordinate's designation slot —
-        # the CR population the runtime REQUIRES (an opponent seat of the
-        # caster, the same rule _validate_spell_targets re-checks), now
-        # answered by the query so no caller mirrors the rule.
-        opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
-        slots.append(
-            TargetSlot(
-                selector=Selector(
-                    count=QConst(1),
-                    mode=SelectorMode.TARGET,
-                    filter=FAnd(()),
-                    zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
-                ),
-                candidates=opponents,
-                min_count=1,
-                max_count=1,
-                forced=len(opponents) == 1,
-                synthetic=True,
-            )
-        )
+        # the CR population the runtime REQUIRES, now answered by the query
+        # so no caller mirrors the rule (V21: by which ref the tree reads).
+        slots.append(player_target_slot(executor, seat, player_refs))
     return slots
 
 
@@ -1260,13 +1272,12 @@ def activation_target_slots(
     seen: set[str] = set()
     if effect is None:
         return slots
-    reads_target_player = False
+    player_refs: set[ControllerRef] = set()
     for inner in walk(effect):
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
-            if _names_target_player(value):
-                reads_target_player = True
+            player_refs |= _designated_player_refs(value)
             if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
                 continue
             key = repr(value)
@@ -1288,26 +1299,10 @@ def activation_target_slots(
                 slot = widened
             slot = _clamp_cast_target_slot(executor, inner, _role, slot, source, seat)
             slots.append(slot)
-    if reads_target_player:
-        # Same synthesized opponent-seat slot as the spell lane (CR
-        # 601.2c's population rule is coordinate-agnostic: an activation
-        # asking for "target opponent" designates an opponent seat).
-        opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
-        slots.append(
-            TargetSlot(
-                selector=Selector(
-                    count=QConst(1),
-                    mode=SelectorMode.TARGET,
-                    filter=FAnd(()),
-                    zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
-                ),
-                candidates=opponents,
-                min_count=1,
-                max_count=1,
-                forced=len(opponents) == 1,
-                synthetic=True,
-            )
-        )
+    if player_refs:
+        # Same synthesized player slot as the spell lane (CR 601.2c's
+        # population rule is coordinate-agnostic).
+        slots.append(player_target_slot(executor, seat, player_refs))
     return slots
 
 

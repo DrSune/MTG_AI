@@ -1272,7 +1272,8 @@ class TestStructuralAssertions(unittest.TestCase):
         atom = _as_atom(eff.effect)
         self.assertEqual(atom.verb, Verb.REVEAL)
         p = _pairs_dict(atom)
-        self.assertEqual(p["controller"], ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertEqual(p["controller"], ControllerRef.TARGET_OPPONENT)
         self.assertIsInstance(p["count"], QUnbounded)
 
     def test_sacr_flying(self) -> None:
@@ -2021,10 +2022,10 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         # R0 zone-fold: graveyard+hand+library is ONE 3-element set.
         self.assertEqual(
             sel.zones,
-            (
-                Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
-                Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
-                Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+            (  # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT),
+                Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT),
+                Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
             ),
         )
         exile = _as_atom(seq.steps[1])

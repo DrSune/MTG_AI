@@ -330,7 +330,7 @@ def _target_opponent_creatures() -> Selector:
         FAnd(
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_OPPONENT),
             )
         ),
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
@@ -1219,7 +1219,7 @@ def _build_loyalty_lose_per_creature(m: re.Match[str]) -> SentenceOutcome:
             QUnbounded(),
             SelectorMode.ALL,
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),),
+            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_OPPONENT),),
         )
     )
     amount = QBin(
@@ -1231,7 +1231,7 @@ def _build_loyalty_lose_per_creature(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.LOSE_LIFE,
         args=AtomArgs(
             pairs=(
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("controller", ControllerRef.TARGET_OPPONENT),
                 ("amount", amount),
             )
         ),
@@ -1772,9 +1772,9 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
-                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)),
-                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)),
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT)),
+                ("controller", ControllerRef.TARGET_OPPONENT),
                 (
                     "cards",
                     Selector(
@@ -1782,7 +1782,7 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
                         zones=(Zone(
-                            kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER
+                            kind=ZoneKind.HAND, controller=ControllerRef.TARGET_OPPONENT
                         ),),
                     ),
                 ),

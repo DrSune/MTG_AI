@@ -382,6 +382,8 @@ class TestTargetPlayerRouting(DesignationCase):
         self.assertEqual(self.world.players[self.p1].life, 18)
 
     def test_self_fire_designates_the_opponent_seat(self):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
+        # now names any player, so this IR would ask over both seats).
         # Tutelage's twin: "whenever YOU draw a card, target opponent mills
         # one" — a self-origin firing has no anaphoric antecedent, so the
         # opponent seat is designated (duel: one seat → auto-fill, no ask).
@@ -396,12 +398,12 @@ class TestTargetPlayerRouting(DesignationCase):
                 effect=atom(
                     Verb.MOVE_ZONE,
                     amount=QConst(1),
-                    controller=ControllerRef.TARGET_PLAYER,
+                    controller=ControllerRef.TARGET_OPPONENT,
                     **{
                         "destination": Zone(
-                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT
                         ),
-                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
                         "journal_kind": "MILL",
                         "pop_order": "TOP",
                     },
@@ -718,6 +720,8 @@ class TestTargetPlayerNestedFilter(DesignationCase):
     is designated and the filter-bound selector enumerates through it."""
 
     def _tp_wrapped(self, mode):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
+        # now names any player, so this IR would ask over both seats).
         dower = self.carrier(self.p0)
         theirs = self.world.add_card(
             card_id("Theirs", "1", "1"), self.p1, ZONE_BATTLEFIELD
@@ -733,7 +737,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                     amount=QConst(1),
                     **{
                         "destination": Zone(
-                            ZoneKind.EXILE, ControllerRef.TARGET_PLAYER
+                            ZoneKind.EXILE, ControllerRef.TARGET_OPPONENT
                         ),
                     },
                     cards=Selector(
@@ -744,7 +748,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                                 CREATURE_ONLY,
                                 FAtom(
                                     FAtomPred.CONTROLLER_IS,
-                                    who=ControllerRef.TARGET_PLAYER,
+                                    who=ControllerRef.TARGET_OPPONENT,
                                 ),
                             )
                         ),

@@ -2279,8 +2279,8 @@ class TormodsCryptTargetPlayerTest(unittest.TestCase):
     the policy designated nothing, and the activation raised "TARGET_PLAYER
     needs a bound target" once the B-49 carrier made the Crypt castable (14% of
     stress and 24% of coherent castable games). "target player" is a target
-    (CR 115.1). The slot is the existing synthesized one, so it offers opponents
-    only (BACKLOG B-53, not fixed here)."""
+    (CR 115.1). The slot is the existing synthesized one; since V21 (2026-10-29)
+    it offers every player, the caster included (B-53)."""
 
     def _armed(self):
         supply = get_supply("all", "M21")
@@ -2307,12 +2307,15 @@ class TormodsCryptTargetPlayerTest(unittest.TestCase):
         (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
         self.assertTrue(slot.synthetic)
         self.assertEqual((slot.min_count, slot.max_count), (1, 1))
-        self.assertEqual(slot.candidates, (p1,))
+        # re-pinned 2026-10-29: V21 fixes B-53: "target player" is any player (CR 115.1).
+        self.assertEqual(slot.candidates, (p0, p1))
 
     def test_the_designated_activation_exiles_exactly_that_graveyard(self) -> None:
         world, executor, p0, _p1, record, crypt, mine, theirs = self._armed()
         (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
-        activate(executor, crypt, 0, seat=p0, targets=slot.candidates)
+        # re-pinned 2026-10-29: V21: the slot names both seats now; designate the opponent.
+        self.assertIn(_p1, slot.candidates)
+        activate(executor, crypt, 0, seat=p0, targets=(_p1,))
         self.assertEqual([world.zone_of(h).kind for h in theirs], [ZONE_EXILE, ZONE_EXILE])
         self.assertEqual(world.zone_of(mine).kind, ZONE_GRAVEYARD)
         self.assertEqual(world.zone_of(crypt).kind, ZONE_GRAVEYARD)  # sacrificed as the cost

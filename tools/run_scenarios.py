@@ -29,6 +29,7 @@ Pack vocabulary (all keys required as noted):
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
+                                            (a target may be "p0"/"p1": a player)
               "decisions": [str...]},
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
@@ -363,7 +364,7 @@ class ScenarioRunner:
             spell_key = step.get("key") or f"cast_{step['real']}"
             if spell_key not in self.handles:
                 raise PackError(f"no hand card {spell_key!r} — add it under cards")
-            targets = [self.handles[k] for k in step.get("targets", ())]
+            targets = [self._target_handle(k) for k in step.get("targets", ())]
             # r22b: a cast step's "player:N" decision token is a PLAYER
             # designation for the spell's target slot. The ASK channel never
             # answers CAST-time multi-candidate targeting (that stays loud by
@@ -462,7 +463,7 @@ class ScenarioRunner:
                 self.handles[step["key"]],
                 int(step.get("idx", 0)),
                 seat=self.seats[int(step.get("seat", 0))],
-                targets=tuple(self.handles[k] for k in step.get("targets", ())),
+                targets=tuple(self._target_handle(k) for k in step.get("targets", ())),
                 decisions=tuple(step.get("decisions", ())),
             )
             self.ex.fire_triggers()
@@ -470,6 +471,15 @@ class ScenarioRunner:
             self._combat(step)
         else:
             raise PackError(f"unknown op {op!r}")
+
+    def _target_handle(self, key: str):
+        """A ``targets`` entry: a pack key, or (V21, 2026-10-29) ``p0``/``p1`` for a
+        player, so a "target player" slot can name the caster in a cast or an
+        activate step. Pack keys never start with a seat literal, so every
+        existing pack resolves byte-identically."""
+        if key in ("p0", "p1") and key not in self.handles:
+            return self.seats[int(key[1])]
+        return self.handles[key]
 
     def _resolve_word(self, word: str) -> str:
         """18b pack-key resolution, RUNG-2-extended: a word (or either

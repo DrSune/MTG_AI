@@ -323,7 +323,7 @@ def _target_opponent() -> Selector:
         QConst(1),
         SelectorMode.TARGET,
         FAnd(children=()),
-        zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_OPPONENT),),
     )
 
 
@@ -1422,12 +1422,12 @@ def _build_teferis_tutelage_draw_mill(m: re.Match[str]) -> SentenceOutcome:
                 pairs=(
                     (
                         "destination",
-                        Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+                        Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT),
                     ),
-                    ("from", Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)),
+                    ("from", Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT)),
                     ("journal_kind", "MILL"),
                     ("pop_order", "TOP"),
-                    ("controller", ControllerRef.TARGET_PLAYER),
+                    ("controller", ControllerRef.TARGET_OPPONENT),
                     ("amount", QConst(2)),
                 )
             ),
@@ -1696,7 +1696,7 @@ def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.LOSE_LIFE,
             args=AtomArgs(
                 pairs=(
-                    ("controller", ControllerRef.TARGET_PLAYER),
+                    ("controller", ControllerRef.TARGET_OPPONENT),
                     (
                         "amount",
                         QProp(referent="event", field=QPropField.AMOUNT),
