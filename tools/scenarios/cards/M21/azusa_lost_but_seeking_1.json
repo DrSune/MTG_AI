@@ -1,0 +1,27 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 11},
+  "cards": [
+    {"key": "azusa", "real": "Azusa, Lost but Seeking", "zone": "battlefield", "controller": 0},
+    {"key": "f1", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "f2", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "f3", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "f4", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "o1", "real": "Forest", "zone": "hand", "controller": 1},
+    {"key": "o2", "real": "Forest", "zone": "hand", "controller": 1}
+  ],
+  "steps": [
+    {"op": "play", "key": "f1"},
+    {"op": "play", "key": "f2"},
+    {"op": "play", "key": "f3"},
+    {"op": "play", "key": "f4", "expect_raise": "land:used_this_turn"},
+    {"op": "advance_turn"},
+    {"op": "play", "key": "o1", "seat": 1},
+    {"op": "play", "key": "o2", "seat": 1, "expect_raise": "land:used_this_turn"}
+  ],
+  "expect": {
+    "zone": {"f1": "battlefield", "f2": "battlefield", "f3": "battlefield", "f4": "hand",
+             "o1": "battlefield", "o2": "hand"}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'You may play two additional lands on each of your turns.' Expectation from the text (CR 305.2): Azusa's controller may make 1 + 2 = 3 land drops in a turn, so f1-f3 land and f4 is refused; 'you' is Azusa's controller only, so the opponent, on their own turn, gets the normal single land drop (o2 refused)."
+}

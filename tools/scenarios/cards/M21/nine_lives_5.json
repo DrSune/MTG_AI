@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount-1 on the nine-counter threshold). Printed: 'When there are NINE or more incarnation counters on this enchantment, exile it.' Nine Lives has 7 counters; the opponent's Shock at seat 0 is prevented (life stays 20) and adds the 8th counter. Eight is not nine or more: Nine Lives stays and nobody loses.",
+ "cards": [
+  {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0, "counters": {"INCARNATION": 7}},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [{"op": "cast", "real": "Shock", "key": "shock", "controller": 1, "targets": ["p0"]}],
+ "expect": {"zone": {"nl": "battlefield"}, "counters": {"nl": {"INCARNATION": 8}}, "life": {"0": 20}, "lost": {"0": false, "1": false}}}

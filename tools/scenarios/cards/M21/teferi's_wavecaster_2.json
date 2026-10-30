@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
+  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["fire", "tef"]}
+ ],
+ "expect": {"zone": {"wc": "battlefield", "tef": "hand", "top": "hand"}},
+ "notes": "Printed: '... search your library and/or graveyard for a card named Teferi, Timeless Voyager ... put it into your hand. If you search your library this way, shuffle.' Teferi is in your library (Top Card is drawn by the opening draw); the ETB finds it and puts it into your hand."}

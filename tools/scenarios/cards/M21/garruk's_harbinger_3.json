@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "h", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 0},
+  {"key": "inst", "name": "Some Instant", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "library", "controller": 0},
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "library", "controller": 0},
+  {"key": "art", "name": "Some Artifact", "type": "Artifact", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn Card", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"h": true}, "may": {"h": true}}
+ ],
+ "expect": {"life": {"1": 16}, "zone": {"garruk": "hand", "basri": "library", "inst": "library", "art": "library", "drawn": "hand"}, "hand": {"0": 2}},
+ "notes": "Printed: 'Whenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library. You may reveal a creature card or GARRUK planeswalker card from among them and put it into your hand. Put the rest on the bottom ...'. 4 combat damage: look at the top four (Some Artifact, Garruk Unleashed, Basri Ket, Some Instant; Drawn Card went to hand in the opening draw). The only legal reveal is Garruk, Unleashed (Basri Ket is a non-Garruk planeswalker; the artifact and instant are not creature cards); it goes to hand, the other three stay in the library."}

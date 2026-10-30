@@ -1,19 +1,16 @@
 {
  "set": "M21",
- "notes": "Keral Keep Disciples, printed: 'Whenever YOU activate a loyalty ability of a Chandra planeswalker'. On the opponent's turn the opponent activates their own Chandra, Flame's Catalyst +1 (3 damage to each of their opponents): P0 20 -> 17. The Disciples (controlled by P0) must not trigger, so P1 stays at 20.",
+ "notes": "Keral Keep Disciples, printed: 'Whenever you activate a loyalty ability of a CHANDRA planeswalker, this creature deals 1 damage to each opponent.' You activate Basri Ket's +1 (a Basri planeswalker; it puts a +1/+1 counter on the Disciples): the Disciples do not trigger, the opponent stays at 20.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "ke", "real": "Keral Keep Disciples", "zone": "battlefield", "controller": 0},
-  {"key": "ocat", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 1}
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
  ],
  "steps": [
-  {"op": "end_turn"},
-  {"op": "advance_turn"},
-  {"op": "loyalty", "key": "ocat", "set": 5},
-  {"op": "activate", "key": "ocat", "idx": 0, "seat": 1, "decisions": ["player:0"]}
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["ke"], "decisions": ["player:1"]}
  ],
  "expect": {
-  "life": {"0": 17, "1": 20},
-  "zone": {"ke": "battlefield"}
+  "life": {"0": 20, "1": 20},
+  "counters": {"ke": {"PLUS_1_PLUS_1": 1}}
  }
 }

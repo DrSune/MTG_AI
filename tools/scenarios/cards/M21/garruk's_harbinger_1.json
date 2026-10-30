@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 0},
+  {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 1},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"B": 2, "R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "elim", "real": "Eliminate", "controller": 1, "targets": ["h"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "shock", "real": "Shock", "controller": 1, "targets": ["h"]}
+ ],
+ "expect": {"zone": {"h": "battlefield", "elim": "hand", "shock": "graveyard"}, "damage": {"h": 2}},
+ "notes": "Printed: 'Hexproof from black' (CR 702.11d: can't be the target of BLACK spells or abilities your opponents control). The opponent's black Eliminate cannot target it; the opponent's red Shock can (2 damage, the 4/3 survives)."}

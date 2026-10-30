@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Fiery Emancipation, printed: 'If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead.' Your Shock (a spell you control) at the opponent: 2 becomes 6 (20 -> 14). Your second Shock at your own 5/5 Golem: 2 becomes 6, lethal (a permanent, any controller). The opponent's Shock at you is not your source: 2 (20 -> 18).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fe", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 0},
+  {"key": "golem", "name": "My Golem", "type": "Creature — Golem", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "s2", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "os", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2}, "1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "s1", "targets": ["p1"]},
+  {"op": "cast", "real": "Shock", "key": "s2", "targets": ["golem"]},
+  {"op": "cast", "real": "Shock", "key": "os", "controller": 1, "targets": ["p0"]}
+ ],
+ "expect": {
+  "life": {"0": 18, "1": 14},
+  "zone": {"golem": "graveyard", "fe": "battlefield"}
+ }
+}

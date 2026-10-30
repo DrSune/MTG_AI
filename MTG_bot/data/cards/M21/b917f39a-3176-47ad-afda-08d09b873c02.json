@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b917f39a-3176-47ad-afda-08d09b873c02",
+ "name": "Fungal Rebirth",
+ "text_sha": "316e91c12bdd83f7f84153d952cf42773250b7f1bc03a9d23f98539debd220e2",
+ "verified": {
+  "tree_sha": "2e2f101ff6a249dab1c60ac9c3d49fd786de69a2d639a79b837c166b902eb634",
+  "probe_sha": "ecc827f3bb753a3c5fb07db62d277c4929364d6042bc72a273340b4b7c37d988",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Return target permanent card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "Target slot (cast): 1..1 of [you_fallen] (your creature card; your sorcery you_used and the opponent's opp_fallen are not offered). [cast targets=['you_fallen']]: you_fallen moves graveyard -> hand (yours: the hand count nets 6 -> 5 -> 6). Pack fungal_rebirth_your_graveyard_only.json (opponent's card and an instant refused) PASS.",
+    "issue": "engine-limit: no priority, so the instant is cast only in its controller's action window"
+   },
+   {
+    "clause": "If a creature died this turn, create two 1/1 green Saproling creature tokens.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No creature died in the probe, so no tokens. Tree: Conditional(DIED_THIS_TURN, CREATE_TOKEN 2 x Saproling 1/1 colors ('G',)). Packs: fungal_rebirth_opp_creature_died.json (opponent's creature died -> 2 Saprolings) PASS; fungal_rebirth_noncreature_died.json (only artifacts went to the graveyard -> 0) PASS; fungal_rebirth_died_last_turn.json (death on an earlier turn -> 0) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/fungal_rebirth_1.json",
+   "tools/scenarios/cards/M21/fungal_rebirth_2.json",
+   "tools/scenarios/cards/M21/fungal_rebirth_3.json",
+   "tools/scenarios/cards/M21/fungal_rebirth_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 5,
+   "score": 0.625,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/1/then_effect/args/count",
+    "amount-1 at 1/0/effect/steps/1/then_effect/args/count"
+   ]
+  }
+ }
+}

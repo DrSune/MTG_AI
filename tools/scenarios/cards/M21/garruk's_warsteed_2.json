@@ -1,0 +1,58 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 89
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Garruk's Warsteed",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gsh",
+   "real": "Garruk, Savage Herald",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "decoy",
+   "name": "Garruk Decoy",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "ogsh",
+   "real": "Garruk, Savage Herald",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w",
+   "decisions": [
+    "fire",
+    "card:1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "w": "battlefield",
+   "gsh": "hand",
+   "decoy": "graveyard",
+   "ogsh": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Verifier K, wave 4. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand. If you search your library this way, shuffle.' Expectation from the text: the named card in YOUR graveyard is found and put into your hand; the opponent's copy in their graveyard stays there."
+}

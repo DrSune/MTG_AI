@@ -1,0 +1,20 @@
+{"set": "M21", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "G3 spec (controller YOU->OPPONENT on the scry). Printed: '{2}{U}: Scry 1.' Scry is the controller's own library (CR 701.22a). Your library from the top: Upper Card, Lower Card, then the six fillers. Answering 'bottom' puts Upper Card on the bottom of YOUR library; the opponent's library is untouched.",
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "lower", "name": "Lower Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "upper", "name": "Upper Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "opener", "name": "Opening Draw", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "activate", "key": "rf", "idx": 1, "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"rf": "battlefield", "opener": "hand"},
+  "mana_pool": {"0": {}},
+  "library": {
+   "0": ["Lower Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Upper Card"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }}

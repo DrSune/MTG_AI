@@ -17,6 +17,7 @@ for _p in (HERE.parents[1], HERE, HERE.parent):
         sys.path.insert(0, str(_p))
 
 import gates
+from irpy import A
 from run_scenarios import ScenarioRunner
 
 from MTG_bot.core.ability_tree import (
@@ -24,10 +25,15 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     ControllerRef,
     Cost,
+    FAnd,
     Keyword,
     QConst,
     QUnbounded,
+    Selector,
     SelectorMode,
+    Verb,
+    Zone,
+    ZoneKind,
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor.games import compile_supply
@@ -76,11 +82,14 @@ def _at(card: Any, where: str) -> Any:
     return node
 
 
-def _game(pack: dict, card: Any = None) -> tuple:
-    """The whole observable game after the pack's steps, with ``card`` (a mutant) swapped in."""
+def _game(pack: dict, card: Any = None, setup: Any = None) -> tuple:
+    """The whole observable game after the pack's steps, with ``card`` (a mutant) swapped in;
+    ``setup`` may adjust the world before the steps run."""
     sup = _supply()
     with gates.swapped(sup, _oid(card.name), card) if card is not None else _Null():
         r = ScenarioRunner(pack, sup)
+        if setup is not None:
+            setup(r)
         refused = None
         for step in pack["steps"]:
             try:
@@ -349,3 +358,188 @@ def test_target_to_all_on_a_twin_designation_is_dead() -> None:
     assert gates._twin_targets(ability, (1, 0)) == set()
     assert gates._twin_targets(strike.abilities[0], (1, 0)) == {(1, 0, "effect", "steps", i, "args", "target")
                                                                 for i in (0, 1)}
+
+
+# ------------------------------------------------- second pass (wave 4, the merged engine)
+def test_owner_zone_destination_controller_is_dead() -> None:
+    """A card moved to a hand, library, graveyard or exile goes to its OWNER's zone (CR 400.3,
+    selectors.move_destination): a SEARCH to hand, a targeted return to hand, and a ONE_OF/REST
+    partition to hand and graveyard all play the same game with the destination naming the
+    opponent. A battlefield destination names a controller and stays live."""
+    tutor, rebirth, waker = _card("Grim Tutor"), _card("Fungal Rebirth"), _card("Waker of Waves")
+    t_dest, r_dest = "1/0/effect/steps/0/steps/0/args/destination", "1/0/effect/steps/0/args/destination"
+    w_hand, w_grave = "1/1/effect/steps/1/steps/0/args/destination", "1/1/effect/steps/1/steps/1/args/destination"
+    for card, where in ((tutor, t_dest), (rebirth, r_dest), (waker, w_hand), (waker, w_grave)):
+        assert ("controller YOU->OPPONENT", f"{where}/controller") not in _where(card), where
+    cultivate = _card("Cultivate")
+    assert ("controller YOU->OPPONENT", "1/0/effect/steps/2/args/destination/controller") in _where(cultivate)
+    tutor_pack = _pack([{"key": "gt", "real": "Grim Tutor", "zone": "hand", "controller": 0},
+                        {"key": "prize", "name": "Prize", "type": "Instant", "zone": "library", "controller": 0},
+                        *_library(0, "Yours", 2), *_library(1, "Theirs", 2)],
+                       [{"op": "cast", "key": "gt", "decisions": ["prize"]}], {"0": {"B": 1, "C": 2}})
+    rebirth_pack = _pack([{"key": "fr", "real": "Fungal Rebirth", "zone": "hand", "controller": 0},
+                          {"key": "relic", "name": "Old Relic", "type": "Artifact", "zone": "graveyard", "controller": 0}],
+                         [{"op": "cast", "key": "fr", "targets": ["relic"]}], {"0": {"G": 1, "C": 1}})
+    waker_pack = _pack([{"key": "waker", "real": "Waker of Waves", "zone": "hand", "controller": 0},
+                        {"key": "b", "name": "Second", "type": "Instant", "zone": "library", "controller": 0},
+                        {"key": "a", "name": "First", "type": "Instant", "zone": "library", "controller": 0},
+                        {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "library", "controller": 0}],
+                       [{"op": "activate", "key": "waker", "idx": 1, "seat": 0, "decisions": ["b"]}],
+                       {"0": {"U": 1, "C": 1}})
+    for card, where, pack, moved in ((tutor, t_dest, tutor_pack, "Prize"), (rebirth, r_dest, rebirth_pack, "Old Relic"),
+                                     (waker, w_hand, waker_pack, "Second"), (waker, w_grave, waker_pack, "First")):
+        real = _game(pack)
+        assert next(o for o in real[0].values() if o[0] == moved)[2] == "player:0"  # its owner's zone
+        dest = _at(card, where)
+        assert _game(pack, _mutant(card, where, dataclasses.replace(dest, controller=ControllerRef.OPPONENT))) == real
+
+
+def test_owner_zone_rule_leaves_the_top_n_draw_idiom_live() -> None:
+    """The draw idiom ("put the top card of your library into your hand") is the one move lane
+    whose destination names a player (zone_owner picks whose library is drawn), so the rule leaves
+    it out; no M21 card carries it, so a bare atom shows the field is live there."""
+    draw = A(Verb.MOVE_ZONE, {
+        "cards": Selector(count=QConst(value=1), mode=SelectorMode.CHOOSE, filter=FAnd(children=()),
+                          zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),)),
+        "destination": Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)})
+    assert gates._draw_idiom(draw)
+    tutor = _card("Grim Tutor")
+    assert not gates._draw_idiom(tutor.abilities[0].effect.steps[0].steps[0])
+    outcomes = []
+    for who in (ControllerRef.YOU, ControllerRef.OPPONENT):
+        atom = A(Verb.MOVE_ZONE, {"cards": draw.args.get("cards"),
+                                  "destination": Zone(kind=ZoneKind.HAND, controller=who)})
+        r = ScenarioRunner(_pack([{"key": "bear", "name": "Bear", "type": "Creature", "power": "2",
+                                   "toughness": "2", "zone": "battlefield", "controller": 0}], []), _supply())
+        try:
+            r.ex.execute(atom, source=r.handles["bear"], controller=r.p0, bindings={})
+            outcomes.append(tuple(len(r.world.players[p].zone("hand").entries) for p in r.world.player_order))
+        except NotImplementedError as exc:  # zone_owner reads the destination's player
+            outcomes.append(str(exc))
+    assert outcomes[0] == (1, 0)  # you draw the top card
+    assert outcomes[1] == "executor: zone controller ref OPPONENT needs multiple owners (12b)"
+
+
+AUGUR_DISCARD = "1/1/effect/steps/0/args/cards/zones/0/controller"
+
+
+def test_discard_selector_zones_are_dead_outside_a_may() -> None:
+    """A CHOOSE/RANDOM/ALL discard takes its picks from the discarding player's own hand
+    (verbs.py _discard_picks reads filter, mode and count): Kinetic Augur's discard plays the same
+    with its cards selector naming the opponent's hand. Under a "you may" the offer enumerates
+    those zones (query.optional_offer), so Crypt Lurker's stays live."""
+    augur = _card("Kinetic Augur")
+    assert ("controller YOU->OPPONENT", AUGUR_DISCARD) not in _where(augur)
+    lurker = "1/0/effect/steps/0/inner/options/1/args/cards/zones/0/controller"
+    assert ("controller YOU->OPPONENT", lurker) in _where(_card("Crypt Lurker"))
+    pack = _pack([{"key": "aug", "real": "Kinetic Augur", "zone": "hand", "controller": 0},
+                  {"key": "junk", "name": "Junk", "type": "Sorcery", "zone": "hand", "controller": 0},
+                  {"key": "keep", "name": "Keep", "type": "Instant", "zone": "hand", "controller": 0},
+                  {"key": "ojunk", "name": "Opp Junk", "type": "Sorcery", "zone": "hand", "controller": 1},
+                  *_library(0, "Yours", 3), *_library(1, "Theirs", 3)],
+                 [{"op": "cast", "key": "aug", "decisions": ["junk", "NONE"]}], {"0": {"R": 1, "C": 3}})
+    real = _game(pack)
+    assert next(o for o in real[0].values() if o[0] == "Junk")[1] == "graveyard"
+    assert next(o for o in real[0].values() if o[0] == "Opp Junk")[1] == "hand"
+    assert _game(pack, _mutant(augur, AUGUR_DISCARD, ControllerRef.OPPONENT)) == real
+
+
+def test_static_permission_may_is_dead() -> None:
+    """A static permission's "you may" is the use: layers._new_static strips the OptionalEffect
+    before parsing the payload. Azusa's three land drops play the same with the wrapper gone, and
+    a trigger's "you may" (an ask) stays live."""
+    azusa = _card("Azusa, Lost but Seeking")
+    assert ("optional->mandatory", "1/0/effect") not in _where(azusa)
+    assert ("optional->mandatory", "1/0/effect") not in _where(_card("Chromatic Orrery"))
+    assert ("optional->mandatory", "1/0/effect") not in _where(_card("Teferi, Master of Time"))
+    assert ("optional->mandatory", "1/0/effect") in _where(_card("Solemn Simulacrum"))  # a trigger's may
+    lands = [{"key": f"l{i}", "real": "Forest", "zone": "hand", "controller": 0} for i in range(4)]
+    pack = _pack([{"key": "az", "real": "Azusa, Lost but Seeking", "zone": "battlefield", "controller": 0},
+                  *lands], [{"op": "play", "key": f"l{i}"} for i in range(3)])
+    real = _game(pack)
+    assert sum(o[0] == "Forest" and o[1] == "battlefield" for o in real[0].values()) == 3
+    assert _game(pack, _mutant(azusa, "1/0/effect", azusa.abilities[0].effect.inner)) == real
+    fourth = _pack(pack["cards"], [*pack["steps"], {"op": "play", "key": "l3"}])
+    assert _game(fourth)[3] == _game(fourth, _mutant(azusa, "1/0/effect", azusa.abilities[0].effect.inner))[3]
+
+
+def test_damage_replacement_action_dealer_is_dead() -> None:
+    """Fiery Emancipation's action is a DEAL_DAMAGE whose amount rewrites the event's; the lane
+    never runs the action (replacements.replacement_for_damage), so its dealer is never read."""
+    fiery = _card("Fiery Emancipation")
+    assert ("controller YOU->OPPONENT", "1/0/action/args/dealer/who") not in _where(fiery)
+    pack = _pack([{"key": "fe", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 0},
+                  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2",
+                   "zone": "battlefield", "controller": 0},
+                  {"key": "giant", "name": "Opp Giant", "type": "Creature", "power": "7", "toughness": "7",
+                   "zone": "battlefield", "controller": 1}],
+                 [{"op": "deal_damage", "source": "bear", "target": "giant", "amount": 2},
+                  {"op": "deal_damage", "source": "giant", "target": "bear", "amount": 1, "controller": 1}])
+    real = _game(pack)
+    assert {o[0]: o[7] for o in real[0].values() if o[0] in ("Bear", "Opp Giant")} == {"Bear": 1, "Opp Giant": 6}
+    who = _at(fiery, "1/0/action/args/dealer")
+    assert _game(pack, _mutant(fiery, "1/0/action/args/dealer", dataclasses.replace(
+        who, who=ControllerRef.OPPONENT))) == real
+
+
+LOFTY = "1/0/effect/{}/args/target"
+
+
+def test_target_to_all_on_a_twin_stack_designation_is_dead() -> None:
+    """Lofty Denial's two branches counter the same designated spell; COUNTER_SPELL reads it
+    through role_handles, so an ALL selector over the stack in either branch counters exactly the
+    designated spell (with and without the flier that picks the {4} branch)."""
+    lofty = _card("Lofty Denial")
+    assert not {w for op, w in _where(lofty) if op == "target->all"}
+    for flier in (False, True):
+        cards = [{"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+                 {"key": "lofty", "real": "Lofty Denial", "zone": "hand", "controller": 1}]
+        if flier:
+            cards.append({"key": "bird", "name": "Sky Bird", "type": "Creature — Bird", "power": "1",
+                          "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1})
+        pack = _pack(cards, [{"op": "cast", "key": "mate", "decisions": ["lofty", "PAY"]}],
+                     {"0": {"W": 1, "R": 2}, "1": {"U": 2}})
+        real = _game(pack)
+        assert next(o for o in real[0].values() if o[0] == "Staunch Shieldmate")[1] == (
+            "graveyard" if flier else "battlefield")
+        for branch in ("then_effect", "else_effect"):
+            sel = _at(lofty, LOFTY.format(branch))
+            everyone = dataclasses.replace(sel, mode=SelectorMode.ALL, count=QUnbounded())
+            assert _game(pack, _mutant(lofty, LOFTY.format(branch), everyone)) == real, (flier, branch)
+
+
+HARBINGER_REVEAL = "1/0/effect/steps/1/inner/steps/0/args"
+
+
+def test_reveal_from_a_look_window_is_dead() -> None:
+    """Garruk's Harbinger: "look at that many cards ... You may reveal a creature card ... from
+    among them and put it into your hand. Put the rest on the bottom." The REVEAL right after the
+    LOOK_AT reads that window (verbs.py _look, prior-window branch): with cards in the library the
+    controller and count change nothing; with an empty library the mutant reveals the opponent's
+    top card, and the library-top partitions, which keep only cards in your library, ignore it."""
+    harb = _card("Garruk's Harbinger")
+    offered = _where(harb)
+    assert not {w for _op, w in offered if w.startswith(HARBINGER_REVEAL)}
+    assert ("amount+1", "1/0/effect/steps/1/inner/steps/1/args/cards/count") in offered  # the pick stays live
+    pack = _pack([{"key": "gh", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 0},
+                  {"key": "beast", "name": "Beast", "type": "Creature", "power": "3", "toughness": "3",
+                   "zone": "library", "controller": 0},
+                  {"key": "spell", "name": "Spell", "type": "Instant", "zone": "library", "controller": 0},
+                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "library", "controller": 0},
+                  *_library(1, "Theirs", 2)],
+                 [{"op": "combat", "seat": 0, "attack": {"gh": True}, "may": {"gh": True}, "decisions": ["beast"]}])
+
+    def empty_library(r: ScenarioRunner) -> None:
+        for h in list(r.world.players[r.p0].zone("library").entries):
+            r.world.move_to_zone(h, r.p0, "exile")
+
+    mutants = (_mutant(harb, f"{HARBINGER_REVEAL}/controller", ControllerRef.OPPONENT),
+               _mutant(harb, f"{HARBINGER_REVEAL}/count", QConst(2)))
+    real = _game(pack)
+    assert next(o for o in real[0].values() if o[0] == "Beast")[1] == "hand"  # the pick from the window
+    assert real[1]["player:1"][0] == 16  # 4 combat damage
+    for mutant in mutants:
+        assert _game(pack, mutant) == real
+    real_empty = _game(pack, setup=empty_library)
+    for mutant in mutants:
+        assert _game(pack, mutant, setup=empty_library) == real_empty

@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "notes": "Riddleform, printed: '... become a 3/3 Sphinx creature with flying in addition to its other types until end of turn.' Animate it with your Shock (fire), then the turn ends: on the opponent's turn it is an enchantment again (no flying, not a creature), so it is never offered a block and the opponent's 2/2 connects: seat 0 20 -> 18. Opponent took the Shock's 2 (18).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "s", "targets": ["p1"], "decisions": ["fire"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"obear": true}, "block": {"rf": "obear"}}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Riddleform": []},
+  "not_asked_to_block": ["rf"],
+  "attackers": {"obear": true},
+  "zone": {"rf": "battlefield", "obear": "battlefield"},
+  "life": {"0": 18, "1": 18}
+ }
+}

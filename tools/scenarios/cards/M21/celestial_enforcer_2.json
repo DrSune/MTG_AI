@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "enf", "real": "Celestial Enforcer", "zone": "hand", "controller": 0},
+  {"key": "bird", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "enter", "key": "enf"},
+  {"op": "activate", "key": "enf", "idx": 0, "seat": 0, "targets": ["ox"], "expect_raise": "illegal activation"}
+ ],
+ "expect": {
+  "tapped": {"ox": false, "enf": false},
+  "mana_pool": {"0": {"W": 2}}
+ },
+ "notes": "Pfe4e53aa9d G4: the {T} cost of a creature's ability cannot be paid the turn it came under your control (CR 302.6). The Enforcer entered this turn: the activation is refused even with a flier out; nothing is paid or tapped."
+}

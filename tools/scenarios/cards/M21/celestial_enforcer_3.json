@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (target->all on the tap). Printed: '{1}{W}, {T}: Tap TARGET creature. Activate only if you control a creature with flying.' You control a flier, so the ability can be activated, but it taps one targeted creature only: activated without designating a target it cannot resolve (CR 601.2c, 602.2b), and the engine refuses it at resolution ('TARGET selector has no designation'). No creature gets tapped: neither the opponent's two creatures nor your flier. (activate() validates passed targets, V8; with none passed it leaves the check to resolution.)",
+ "cards": [
+  {"key": "ce", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+  {"key": "bird", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "elk", "name": "Opp Elk", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "ce", "idx": 0, "seat": 0, "expect_raise": "TARGET selector has no designation"}
+ ],
+ "expect": {"tapped": {"ox": false, "elk": false, "bird": false}}}

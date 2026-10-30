@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "idol", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "c3", "name": "Three Drop", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "c4", "name": "Four Drop", "type": "Creature", "power": "4", "toughness": "4", "cmc": 4, "zone": "graveyard", "controller": 0},
+  {"key": "inst", "name": "Cheap Instant", "type": "Instant", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "oc2", "name": "Opp Two Drop", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "idol"},
+  {"op": "move", "key": "idol", "to": "graveyard"}
+ ],
+ "expect": {"zone": {"idol": "graveyard", "c3": "graveyard", "c4": "graveyard", "inst": "graveyard", "oc2": "graveyard"}},
+ "notes": "Printed: 'When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.' On entry only Three Drop is exiled (Four Drop has mana value 4, the instant is not a creature card, Opp Two Drop is in the opponent's graveyard). When the Idol leaves, Three Drop returns to the graveyard (CR 610.3). Pairs with idol_of_endurance_exile_filter_mid.json, which asserts the exile state before the Idol leaves."}

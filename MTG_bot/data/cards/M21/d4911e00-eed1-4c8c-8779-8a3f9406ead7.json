@@ -1,0 +1,65 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d4911e00-eed1-4c8c-8779-8a3f9406ead7",
+ "name": "Garruk's Warsteed",
+ "text_sha": "305225305eb65f20e5a8c63a0434c17d868cdff9c49901ccfc934cc6a7ac406d",
+ "verified": {
+  "tree_sha": "abe6f7c6a57af59043bc55f5ce1a80cb0cebe41680143593bafabd675d12db2d",
+  "probe_sha": "1f877b4142d78d5d875df7b73790850da53eb485c248c5d9c399e01339f22a2d",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Rhino {3}{G}{G} 3/5",
+    "status": "OK",
+    "evidence": "[cast]: mana G-2 W-3, P/T 3/5, +VIGILANCE",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: DECLARE_ATTACKERS with no 'card becomes tapped' event",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, ... and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: the ETB triggers (also on the opponent's turn) with 'ask may: [fire, skip]'; the standard board has no Garruk, so nothing is found either way. Tree: OptionalEffect(Seq(SEARCH ONE_OF NAME_EQ 'Garruk, Savage Herald' in GRAVEYARD(YOU)+LIBRARY(YOU) -> HAND(YOU), REVEAL, SHUFFLE)). Packs PASS on this packet's tree (run as a draft) and on the live tree: K_garruks_warsteed_finds_garruk_in_library.json (found in your library -> hand; a differently named card stays), K_garruks_warsteed_finds_garruk_in_graveyard.json (found in your graveyard -> hand; the opponent's copy in their graveyard is never taken), K_garruks_warsteed_declined_search.json ('skip' leaves Garruk in the library).",
+    "issue": "minor, weaker only: the compiler's sentence tree (`similar` B2b-named-card-search) uses mode=CHOOSE, this tree ONE_OF, so after choosing to search the player cannot fail to find (CR 701.23b allows it in the library). No strength gain."
+   },
+   {
+    "clause": "reveal it",
+    "status": "OK",
+    "evidence": "a debug replay of the library pack shows the row ('REVEAL', 'player:0', ('card:10',)): the top card of the library, not the found Garruk (card:1).",
+    "issue": "engine quirk (not stronger or weaker in play): REVEAL is a recorded no-op with the top-N-of-library convention (verbs.py _look), so 'reveal it' records the library's top card instead of the searched card; the per-seat view does not track revealed cards at all (bench/view.py module note), so no seat gains or loses information. Same REVEAL atom in the canonical compile of every 'search for a card named X, reveal it' card (Teferi's Wavecaster, Goldmane Griffin)."
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no pack lane can assert a shuffle; debug replay of the packs on this packet's tree: after 'fire' a ('SHUFFLE', 'player:0', 'library') row follows the search and the library order changes; after 'skip' no shuffle and the order is unchanged. Every 'fire' searches the library, so shuffling then is right.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/garruk's_warsteed_1.json",
+   "tools/scenarios/cards/M21/garruk's_warsteed_2.json",
+   "tools/scenarios/cards/M21/garruk's_warsteed_3.json",
+   "tools/scenarios/cards/M21/garruk's_warsteed_4.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 4,
+   "score": 0.36363636363636365,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "drop step 2 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination"
+   ]
+  }
+ }
+}

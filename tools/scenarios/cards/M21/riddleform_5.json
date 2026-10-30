@@ -1,0 +1,55 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (until-end-of-turn->permanent on the 3/3). Printed: 'Whenever you cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying in addition to its other types UNTIL END OF TURN.' You cast Crash Through and take the may: Riddleform is a 3/3 flier for the turn. After the turn ends it is a plain enchantment again: no creature, no 3/3, no flying. A noncreature permanent has no power or toughness (CR 208.3): both read null.",
+ "cards": [
+  {
+   "key": "rf",
+   "real": "Riddleform",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Crash Through",
+   "key": "ct",
+   "decisions": [
+    "fire"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rf": "battlefield",
+   "ct": "graveyard"
+  },
+  "power": {
+   "rf": null
+  },
+  "toughness": {
+   "rf": null
+  },
+  "battlefield_keywords": {
+   "Riddleform": []
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Riddleform, printed: 'Whenever you cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying in addition to its other types until end of turn.' You cast Shock (an instant) at the opponent and answer the may with fire: Riddleform is a 3/3 creature with flying this turn and attacks (it has been under your control since the turn began). Opponent 20 - 2 (Shock) - 3 = 15.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "s", "targets": ["p1"], "decisions": ["fire"]},
+  {"op": "combat", "seat": 0, "attack": {"rf": true}}
+ ],
+ "expect": {
+  "zone": {"s": "graveyard", "rf": "battlefield"},
+  "power": {"rf": 3},
+  "toughness": {"rf": 3},
+  "battlefield_keywords": {"Riddleform": ["FLYING"]},
+  "attackers": {"rf": true},
+  "life": {"0": 20, "1": 15}
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount +-1 and controller YOU->OPPONENT on the attack trigger's life mode). Printed: 'Whenever this creature attacks or blocks, choose one - ... You gain 3 life. ...' Elder Gargaroth (6/6 trample, vigilance) attacks alone, unblocked, and its controller chooses 'You gain 3 life': you go 20 -> 23; the opponent takes 6 (20 -> 14) and gains nothing.",
+ "cards": [
+  {"key": "eg", "real": "Elder Gargaroth", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"eg": true}, "decisions": ["1"]}
+ ],
+ "expect": {
+  "life": {"0": 23, "1": 14},
+  "tokens": {"Beast": 0},
+  "tapped": {"eg": false}
+ }
+}

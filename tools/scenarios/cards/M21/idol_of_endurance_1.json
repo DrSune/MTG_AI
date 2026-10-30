@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "idol", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "c3", "name": "Three Drop", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "c1", "name": "One Drop", "type": "Creature", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "c4", "name": "Four Drop", "type": "Creature", "power": "4", "toughness": "4", "cmc": 4, "zone": "graveyard", "controller": 0},
+  {"key": "inst", "name": "Cheap Instant", "type": "Instant", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "oc2", "name": "Opp Two Drop", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "idol"}
+ ],
+ "expect": {"zone": {"idol": "battlefield", "c3": "exile", "c1": "exile", "c4": "graveyard", "inst": "graveyard", "oc2": "graveyard"}},
+ "notes": "Printed: 'exile ALL creature cards with mana value 3 or less from YOUR graveyard'. Both of your creature cards with mana value 1 and 3 are exiled; the mana value 4 creature, the instant and the opponent's creature card stay."}
