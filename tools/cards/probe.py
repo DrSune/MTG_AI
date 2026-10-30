@@ -288,6 +288,16 @@ class Probe:
             # carries it; a card that never phases keeps its trace bytes.
             if h in getattr(ex, "phased_out", ()):
                 zone = "battlefield (phased out)"
+            # Ontology R5-1 (CR 610.3): an object moved "until" an event carries its return row
+            # (what ends it, and the zone it goes back to); objects without one keep their bytes.
+            rows = [r for r in ex.returns.rows_for(h) if ex.returns.still_there(ex, r)]
+            if rows:
+                row = rows[-1]
+                until = (f"until {name(row.anchor)} leaves the battlefield"
+                         if row.tag == "UntilLeaves" and row.anchor is not None
+                         else "until end of turn" if row.tag == "Eot"
+                         else f"until {_seat_name(world, row.controller)}'s next turn")
+                zone = f"{zone} ({until}, then back to the {row.previous_zone})"
             objs[name(h)] = (zone, _seat_name(world, world.controller_of(h)), bool(c.tapped),
                              tuple(sorted(dict(c.counters).items())), pt, kws, ex.damage.get(h, 0))
         players = {}

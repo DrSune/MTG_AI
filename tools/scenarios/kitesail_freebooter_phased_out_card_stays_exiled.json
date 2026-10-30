@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "k", "real": "Kitesail Freebooter", "zone": "hand", "controller": 1},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "salve", "name": "Salve", "type": "Sorcery", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": ["zap"]},
+  {"op": "loyalty", "key": "teferi", "set": 5},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["k"]},
+  {"op": "deal_damage", "source": "bear", "target": "k", "amount": 2}
+ ],
+ "expect": {
+  "phased_out": {"k": true},
+  "zone": {"k": "battlefield", "zap": "exile", "salve": "hand"},
+  "damage": {},
+  "hand": {"0": 1}
+ },
+ "notes": "R5-1, CR 702.26d: phasing is not a zone change, so 'until this creature leaves the battlefield' does not end when seat 1's Freebooter phases out (Teferi, Master of Time [-3]); Zap stays exiled. The 2 damage aimed at the phased-out Freebooter does nothing (702.26b). A 'for as long as' duration would end here instead (702.26f); DurationUntilLeaves does not mean that."
+}

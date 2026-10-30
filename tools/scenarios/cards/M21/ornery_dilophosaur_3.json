@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount-1 on the power threshold). Printed: 'Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn.' You control a 3/3 (power 3 is not 4 or greater) besides the 2/2 Dilophosaur: it attacks alone, gets no +2/+2 and deals 2.",
+ "cards": [
+  {"key": "d", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "three", "name": "Three Power", "type": "Creature", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"d": true, "three": false}}
+ ],
+ "expect": {
+  "power": {"d": 2},
+  "toughness": {"d": 2},
+  "life": {"1": 18}
+ }
+}

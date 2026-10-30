@@ -992,6 +992,14 @@ class TriggerBinder:
             # FALSE outright, undecidable preds keep the 12c raise.
             assert event.subject is not None  # the row names its object
             ctx = self._match_ctx(source, controller, event)
+            # R5-6: the actor filter reads the targeting spell's or ability's
+            # controller, journalled as data[1] (events.emit_targeting) — "a
+            # spell or ability an opponent controls" (Warden of the Woods).
+            if node.actor is not None:
+                actor = event.data[1]
+                assert isinstance(actor, Handle)  # emit_targeting's (source, actor)
+                if not eval_filter(node.actor, actor, ctx):
+                    return False
             if event.subject.namespace == "player":
                 if _is_universal(node.filter):
                     return True

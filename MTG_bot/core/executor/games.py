@@ -838,7 +838,7 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         }
         for f in executor.stack.frames
     ]
-    return {
+    snapshot: dict[str, Any] = {
         "turn": world.turn,
         "phase": executor.phase,
         "active": str(world.active_player) if world.active_player else None,
@@ -848,6 +848,11 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         "stack_dump": [repr(row) for row in executor.stack.dump()],
         "land_plays": {str(seat): list(v) for seat, v in executor.land_ledger.items()},
     }
+    if executor.returns.rows:
+        # Ontology R5-1 (CR 610.3): the return registry, as state_fingerprint folds it
+        # (only while a row exists, so traces without one keep their bytes).
+        snapshot["returns"] = [repr(row) for row in executor.returns.dump()]
+    return snapshot
 
 
 def game_name(world: GameWorld, handle: object) -> str:

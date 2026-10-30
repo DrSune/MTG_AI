@@ -170,6 +170,7 @@ from MTG_bot.core.executor.replacements import (
     ReplacementRecord,
     ReplacementRegistry,
 )
+from MTG_bot.core.executor.returns import ReturnRegistry, ReturnRow
 from MTG_bot.core.executor.selectors import (
     atom_target_slot_key as _atom_target_slot_key,
 )
@@ -316,6 +317,16 @@ _CARD_TARGET = Selector(
     zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
 )
 
+# Ontology R5-1 (CR 610.3): the zones an "until" return goes back to, in the
+# fixed order the batch moves them (one MOVE_ZONE per zone), and their IR kinds.
+_RETURN_ZONES = (ZONE_BATTLEFIELD, ZONE_HAND, ZONE_GRAVEYARD, ZONE_EXILE)
+_RETURN_ZONE_KIND = {
+    ZONE_BATTLEFIELD: ZoneKind.BATTLEFIELD,
+    ZONE_HAND: ZoneKind.HAND,
+    ZONE_GRAVEYARD: ZoneKind.GRAVEYARD,
+    ZONE_EXILE: ZoneKind.EXILE,
+}
+
 
 def _combat_damage_atom(amount: int, recipient: object) -> Atom:
     """One DEAL_DAMAGE atom of ``amount`` to the announced recipient. A
@@ -457,6 +468,9 @@ class Executor:
         self.unresolved_effects: list[str] = []
         self.unresolved_effect_counts: dict[str, int] = {}
         self.journal = EventJournal(world, self.ledger)
+        # Ontology R5-1 (CR 610.3): objects moved "until" an event, waiting to
+        # return. Replayed state, folded into state_fingerprint while non-empty.
+        self.returns = ReturnRegistry()
         # 12d registries (built BEFORE the binder: the binder's lifecycle
         # hooks reach them during attach).
         self.layers = LayerRegistry(self)
@@ -1072,7 +1086,14 @@ class Executor:
         """UNTIL_LEAVES expiry: a tracked anchor leaving the battlefield
         terminal-expires every duration anchored on it (ledger entries,
         layer records, prevention records). Deterministic: the journal's
-        emit order."""
+        emit order.
+
+        Ontology R5-1 (CR 610.3): the rows a MOVE_ZONE "until" staged in this
+        boundary get their entry clocks first; then every row anchored on a
+        permanent that left the battlefield here ends, and those objects
+        return together after the whole batch is processed (610.3d)."""
+        self.returns.complete(events)
+        due: list[ReturnRow] = []
         for event in events:
             if event.kind != KIND_ZONE_CHANGE or event.subject is None:
                 continue
@@ -1112,6 +1133,61 @@ class Executor:
             # aura/source whose leaving ends the effect, CR 611.3's duration
             # reading for Enthralling Hold's missing Duration node).
             self._expire_control(creature=anchor, anchor=anchor)
+            if event.zone_move[1] != ZONE_BATTLEFIELD:
+                # R5-1, CR 610.3: "until ~ leaves the battlefield" ends.
+                due.extend(self.returns.end_leaves(anchor))
+        if due:
+            self._run_returns(due)
+
+    def _run_returns(self, rows: list[ReturnRow]) -> None:
+        """Ontology R5-1, CR 610.3: the second one-shot effect of a zone move
+        "until" an event, created immediately after that event.
+
+        Each row whose object is still the object the move put there returns
+        it to its previous zone, its owner's: a card that left that zone since
+        is a new object and stays where it is (400.7), and a token has ceased
+        to exist (704.5d). It goes onto the battlefield under its owner's
+        control (610.3c: ``Zone(..., OWNER)``). The rows that ended together
+        return together (610.3d): one MOVE_ZONE per destination zone moves all
+        of that zone's objects at once, through the normal move path, so
+        replacement effects apply (614: Containment Priest exiles a returning
+        creature instead) and a returning Aura's owner chooses what it
+        enchants as it enters, or it stays in exile (303.4f-g, V32 in
+        ``_v_move_zone``)."""
+        live = [
+            row
+            for row in sorted(rows, key=lambda r: r.seq)
+            if self.returns.still_there(self, row)
+        ]
+        for zone in _RETURN_ZONES:
+            group = [row for row in live if row.previous_zone == zone]
+            if not group:
+                continue
+            first = group[0]
+            atom = Atom(
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        (
+                            "cards",
+                            Selector(
+                                QConst(len(group)),
+                                SelectorMode.TARGET,
+                                FAnd(()),
+                                zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                            ),
+                        ),
+                        ("destination", Zone(_RETURN_ZONE_KIND[zone], ControllerRef.OWNER)),
+                    )
+                ),
+            )
+            ctx = self._ctx(
+                source=first.source,
+                controller=first.controller,
+                bindings={"cards": [row.card for row in group]},
+                decisions=(),
+            )
+            self._run_effect(atom, ctx)
 
     def _apply_etb_state(self, card: Handle) -> None:
         """Stamp the compiled EtBState node on a permanent the journal
@@ -1570,6 +1646,10 @@ class Executor:
         self.ledger.expire_until_next_turn(player)
         self.layers.expire_until_next_turn(player)
         self.replacements.expire_until_next_turn(player)
+        # R5-1 (CR 610.3): zone moves "until your next turn" return now.
+        returning = self.returns.end_next_turn(player)
+        if returning:
+            self._run_returns(returning)
         self.journal.record_turn_phase(Phase.UPKEEP.name)
         self.phase = Phase.UPKEEP.name
         # 14a: the DRAW step (CR 504.5-c), journalled INSIDE the skeleton so
@@ -2480,7 +2560,8 @@ class Executor:
         (:meth:`_discard_to_hand_size`). 514.2: the end-of-turn expiry sweep:
         Eot ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
         grants die here) and Eot-tagged PREVENTION records, the turn-window
-        delayed triggers (C22), and marked damage. 514.3a: then state-based
+        delayed triggers (C22), marked damage, and the zone moves "until end
+        of turn" return (R5-1, CR 610.3). 514.3a: then state-based
         actions and the triggers waiting (a discard's, say) are handled; when
         anything happened another cleanup step begins. The discard runs no
         settle of its own, so its triggers resolve after the 514.2 sweep, as
@@ -2494,6 +2575,14 @@ class Executor:
             self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
             self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
             self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
+            # R5-1 (CR 514.2, 610.3): zone moves "until end of turn" return in the
+            # cleanup step, and what their return triggers resolves (514.3a).
+            returned = 0
+            returning = self.returns.end_eot()
+            if returning:
+                self._run_returns(returning)
+                returned = self._settle()
+            fired += returned
             self.binder.expire_delayed()
             # Rebuild the oracles after the sweep — a granted keyword that
             # expired at end of turn must not survive into next turn's
@@ -2507,7 +2596,7 @@ class Executor:
                 # step; 724.1a-c, then a new cleanup step begins.
                 self._end_the_turn_process()
                 continue
-            if not settled and len(self.journal.events) == journalled:
+            if not (settled or returned) and len(self.journal.events) == journalled:
                 return fired
 
     def _discard_to_hand_size(self) -> None:
@@ -2822,6 +2911,11 @@ class Executor:
                     )
                 ).encode()
             )
+        # Ontology R5-1 (CR 610.3): the return registry is replayed state.
+        # Folded only while a row exists, so every replay without an "until"
+        # zone move keeps its fingerprint bytes.
+        if self.returns.rows:
+            h.update(repr(self.returns.dump()).encode())
         # r23a: the cast-declared X ledger rides the same fold.
         h.update(repr(sorted(map(str, self.etb_x.items()))).encode())
         # 16c: the deathtouch flag rides the same fold (CR 702.2b kills).

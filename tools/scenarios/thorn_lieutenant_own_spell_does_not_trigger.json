@@ -1,0 +1,18 @@
+{
+ "set": "M19",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "thorn", "real": "Thorn Lieutenant", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["thorn"]}
+ ],
+ "expect": {
+  "zone": {"thorn": "battlefield", "tg": "graveyard"},
+  "power": {"thorn": 6},
+  "tokens": {"Elf Warrior": 0}
+ },
+ "notes": "R5-6: the Lieutenant's own controller targets it with Titanic Growth. That spell is not one an opponent controls, so no Elf Warrior token is created; the spell resolves (2/3 -> 6/7)."
+}

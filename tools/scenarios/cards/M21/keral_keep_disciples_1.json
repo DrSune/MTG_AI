@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Keral Keep Disciples, printed: 'Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.' Your Chandra, Flame's Catalyst +1 (3 damage to each opponent) triggers it once: P1 20-3-1 = 16, P0 untouched. Your Basri Ket +1 (not a Chandra) must not trigger it: P1 stays 16 and the Disciples get Basri's counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ke", "real": "Keral Keep Disciples", "zone": "battlefield", "controller": 0},
+  {"key": "cat", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "cat", "set": 5},
+  {"op": "activate", "key": "cat", "idx": 0, "seat": 0, "decisions": ["player:1"]},
+  {"op": "loyalty", "key": "basri", "set": 7},
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["ke"], "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 16},
+  "counters": {"ke": {"PLUS_1_PLUS_1": 1}}
+ }
+}

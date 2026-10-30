@@ -92,8 +92,23 @@ $PY tools/cards/cardtool.py --help
   who=ControllerRef.YOU|OPPONENT)` in an `FAnd`.
   - See `parse "Destroy target creature an opponent controls."`.
 - **"you may ..."** is `OptionalEffect(inner=...)`.
+- **"Whenever this creature becomes the target of a spell or ability an opponent controls"**
+  (ontology R5-6) is `TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE),
+  actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT))`: `filter` reads the
+  targeted object, `actor` the controller of the targeting spell or ability. See `parse "Whenever
+  this creature becomes the target of a spell or ability an opponent controls, create a 1/1 green
+  Elf Warrior creature token."`.
+- **"Can't be the target of spells or abilities your opponents control"** stays the HEXPROOF
+  keyword (CR 702.11), never a `PREVENT_EFFECT` over a `TargetingEvent`, with or without `actor`.
 - **"until end of turn"** is `duration=DurationEot()`. A static effect is `DurationPermanent()`, or
   the static ability itself.
+- **"Exile X until this <permanent> leaves the battlefield"** (ontology R5-1, CR 610.3) is one
+  `MOVE_ZONE` with `destination=Zone(EXILE, OWNER)` and `duration=DurationUntilLeaves()`; the
+  engine returns X to the zone it came from when the source leaves. See `parse "When this
+  enchantment enters, exile target creature an opponent controls until this enchantment leaves
+  the battlefield."`. Never add a separate "when this leaves, return it" trigger: that is the older
+  Oblivion Ring wording and plays differently (CR 610.3a/b). A MOVE_ZONE duration may only be
+  `DurationUntilLeaves`, `DurationEot` or `DurationUntilNextTurn`.
 - **"At the beginning of your end step / upkeep".**
   `TurnPhaseEvent(phase=Phase.END_TURN|UPKEEP, actor=FAtom(pred=FAtomPred.CONTROLLER_IS,
   who=ControllerRef.YOU))`.
@@ -123,8 +138,11 @@ $PY tools/cards/cardtool.py --help
   stronger than printed.
 - **Equip** (on `cards/integration`): the compiled equip already carries
   `timing=ActivationWindow.SORCERY` (B-60). Keep it.
-- **Ability words** (Threshold, Raid, Morbid, Landfall) are not keywords. Write the trigger and its
-  condition. G0's warning "MTGJSON keywords with no Keyword atom" is expected for them.
+- **Ability words** (Threshold, Raid, Morbid, Landfall, Battalion) are not keywords and have no
+  rules meaning (CR 207.2c). Write the trigger and its condition. G0 ignores ability words
+  (`gates.ABILITY_WORDS`), so it neither fails nor warns on them.
+- **Keyword actions** written as the merged MOVE atom satisfy G0 through its `journal_kind`: a mill
+  (`journal_kind='MILL'`, `pop_order='TOP'`) satisfies a printed "Mill".
 - **More shapes the compiler uses** (mapper B, FDN round 1):
   - "permanent" is `IS_PERMANENT`; "nonland permanent" is `FAnd(IS_PERMANENT, FNot(TYPE_EQ Land))`.
   - "a spell" (any) is `CastSpellEvent(filter=FAnd(()))`.

@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. If you search your library this way, shuffle.' Sanctum of Tranquil Light is in the library under Decoy (the opening draw takes Decoy). Sanctum of All enters; on the opponent's upkeep nothing is asked; on your next upkeep 'fire' puts Tranquil Light onto the battlefield and the library is shuffled.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tl",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "tl"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tl": "battlefield",
+   "soa": "battlefield",
+   "dc": "hand"
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

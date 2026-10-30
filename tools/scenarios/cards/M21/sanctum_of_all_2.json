@@ -1,0 +1,51 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: '... search your library and/or graveyard for a Shrine card and put it onto the battlefield.' Sanctum of Tranquil Light is in your graveyard; the opponent's graveyard Shrine (Sanctum of Stone Fangs) is not yours to search. On your next upkeep 'fire' returns your Tranquil Light to the battlefield; the opponent's Shrine stays in its graveyard.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tl",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "osf",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "tl"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tl": "battlefield",
+   "osf": "graveyard",
+   "soa": "battlefield"
+  }
+ }
+}

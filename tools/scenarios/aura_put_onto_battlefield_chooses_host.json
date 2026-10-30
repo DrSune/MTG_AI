@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sphere", "real": "Capture Sphere", "zone": "hand", "controller": 0},
+  {"key": "small", "name": "Opp Small", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "big", "name": "Opp Big", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sphere", "decisions": ["big"]}
+ ],
+ "expect": {
+  "zone": {"sphere": "battlefield"},
+  "attached": {"sphere": "big"},
+  "tapped": {"big": true, "small": false}
+ },
+ "notes": "V32 (2026-10-29). CR 303.4f: an Aura put onto the battlefield other than by resolving as an Aura spell enters attached to what the player it enters under chooses (not targeting). Capture Sphere enters from hand through an effect move; its controller picks the 5/5 (not the lower handle), and its 'When this Aura enters, tap enchanted creature' taps it. Before V32 it entered unattached, tapped nothing and died to 704.5q."
+}
