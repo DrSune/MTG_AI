@@ -834,6 +834,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     card), and positional multi-slot designation that accepts an empty trailing optional slot
     (`stack._validate_positional` raises on any non-exactly-one slot). The games policy also
     skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
+  - Re-checked on `cards/integration` 18afa85 (2026-10-30): tree unchanged in M21 and FDN, both
+    review packs still fail the same way, `_validate_positional` still exactly-one only.
 - **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
   component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
   - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
@@ -845,6 +847,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
     "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
     though" cards; recommended.
+  - Re-checked on 18afa85 (2026-10-30): tree unchanged; the Portcullis Vine pack still fails, the
+    two attack packs pass.
 - **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
   AGENTS §11 (alters legal options or state outcomes).
   - Fixed: Lofty Denial (the {4} branch never applied; now a conditional arm, pack
@@ -854,7 +858,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     hand, put each of those cards into your hand instead" runs as an extra step that returns one
     card, not all three. It is unreachable until something lets you cast it from elsewhere
     (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
-    replacing the one-and-rest split, once a pack can cast it from the graveyard.
+    replacing the one-and-rest split, once a pack can cast it from the graveyard. Re-checked on
+    18afa85 (2026-10-30): tree unchanged, still unreachable.
   - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
     information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
@@ -863,6 +868,23 @@ These are forks, not tasks. See the report that accompanied this audit.
     one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
     printed; only the docstring's reading is off).
   - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
+- **B-82 [fixer A, found 2026-10-30] Protection (CR 702.16) works only against blocking.**
+  - `layers.protections_of` has one consumer, block legality. Nothing makes a protected
+    permanent or player an illegal target for sources of the quality (702.16b), prevents their
+    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros, all failing today:
+    `tools/scenarios/known_bugs/feat_of_resistance_protection_targeting.json`,
+    `.../feat_of_resistance_protection_damage.json`, `.../runed_halo_protects_player.json`.
+  - Player protection does not even land: Runed Halo's static GRANT_ABILITY(PROTECTION
+    (NAME_CHOSEN)) to Zone(PLAYER, YOU) leaves `protections_of(player)` empty (the layer
+    keyword map is built over card handles only), and `protections_of` ignores static-layer
+    grants for cards too (it reads keyword/grant layers and `_granted`).
+  - Not small, so not done in the template lane. Plan: (1) `protections_of` covers static grants
+    and player handles; (2) a targeting veto beside `_hexproof_vetoes_target` (both cards and
+    players; quality judged against the targeting source, NAME_CHOSEN in the granting
+    permanent's coordinates, i.e. Runed Halo's chosen name); (3) damage prevention in the
+    noncombat and combat damage lanes; (4) the 704.5m/n attachment SBAs. Every protection card
+    changes play (Baneslayer Angel, Basri's Lieutenant, Feat of Resistance, Runed Halo, other
+    sets), so it belongs to an era boundary. Engine lane.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
