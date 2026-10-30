@@ -189,7 +189,14 @@ from MTG_bot.core.executor.stack import (
 )
 from MTG_bot.core.executor.verbs import HANDLERS, run_atom, token_oracle_id
 from MTG_bot.core.identity import Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, GameWorld
+from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_EXILE,
+    ZONE_GRAVEYARD,
+    ZONE_HAND,
+    ZONE_STACK,
+    GameWorld,
+)
 
 # The v1 capability CONTRACT — the round-12 24-verb set every v1 golden and
 # the round-12 cross-check were measured against.  Deliberately a literal
@@ -463,6 +470,9 @@ class Executor:
         self.last_flip_won_by: Handle | None = None
         # END_TURN's deferred close (consumed by the op loop).
         self.end_turn_requested = False
+        # V37 (CR 724.1a): the journal length when the first END_TURN atom of
+        # the request ran; folded into the fingerprint while a request is open.
+        self.end_turn_mark = 0
         self._closing_turn = False
         # ------------------------------------------------- 13b stack + mana
         # The spell stack (LIFO frames, CR 405): no-interaction v1 pushes
@@ -689,8 +699,7 @@ class Executor:
         )
         start = len(self.events)
         self._run_effect(atom, ctx)
-        self._settle()
-        self._consume_end_turn()
+        self._finish_op()
         return tuple(self.events[start:])
 
     def apply_effect(
@@ -735,8 +744,7 @@ class Executor:
         )
         start = len(self.events)
         self._run_effect(effect, ctx)
-        self._settle()
-        self._consume_end_turn()
+        self._finish_op()
         return tuple(self.events[start:])
 
     @staticmethod
@@ -1361,25 +1369,94 @@ class Executor:
         self.layers.recompute()
         return fired
 
-    def _consume_end_turn(self) -> None:
+    def _finish_op(self) -> None:
+        """The end of a public op. V37 (CR 724.1): when the op's own effect
+        ended the turn, the turn ends BEFORE any settle, so the abilities
+        its resolution triggered cease to exist (724.1a) instead of
+        resolving; otherwise the settle runs, then any request a trigger
+        made during it."""
+        if not self._consume_end_turn():
+            self._settle()
+            self._consume_end_turn()
+
+    def _consume_end_turn(self) -> bool:
         """13a: an END_TURN atom only SETS the request flag (mid-op state
-        must not change under the atoms still running); the close happens at
-        the op boundary through the ONE turn skeleton, so there is exactly
-        one end-of-turn path (markers, sweeps, delayed-trigger expiry). A
-        nested apply_effect (payment step, replacement action) consuming the
-        flag first is harmless — the flag is single-shot."""
-        if not self.end_turn_requested:
-            return
+        must not change under the atoms still running); the turn ends at the
+        op boundary (:meth:`_finish_op`) through :meth:`_end_the_turn`.
+        Returns whether the turn ended here. While the end or cleanup step
+        runs (``_closing_turn``) the request is left to that step, which
+        ends the turn its own way (CR 724.1a-d); outside an open turn there
+        is no turn to end and the request is dropped."""
+        if not self.end_turn_requested or self._closing_turn:
+            return False
         self.end_turn_requested = False
-        if self.turn_open and not self._closing_turn:
-            # Re-entrancy guard: a trigger fired BY the close may itself
-            # request END_TURN; the turn is already closing, so that request
-            # is consumed as a no-op rather than recursing.
-            self._closing_turn = True
-            try:
-                self.end_turn()
-            finally:
-                self._closing_turn = False
+        if not self.turn_open:
+            return False
+        self._end_the_turn()
+        return True
+
+    def _end_the_turn(self) -> int:
+        """V37, CR 724.1: an effect ends the turn. 724.1a-d run first
+        (:meth:`_end_the_turn_process`); then the game skips straight to the
+        cleanup step (724.1d). The end step is skipped, so no END_TURN
+        marker is journalled and "at the beginning of the end step"
+        abilities do not trigger (724.1e). The triggers from the process
+        resolve in the cleanup step, and another cleanup step follows
+        (724.1f, the 514.3a loop of :meth:`_cleanup_step`). Returns the
+        firing count."""
+        self.phase = Phase.END_TURN.name  # the ending phase: no sorcery window
+        self.turn_open = False
+        self._closing_turn = True
+        try:
+            self._end_the_turn_process()
+            return self._cleanup_step()
+        finally:
+            self._closing_turn = False
+
+    def _end_the_turn_process(self) -> None:
+        """CR 724.1a-d, the part of ending the turn before its cleanup step.
+        724.1a: the abilities that triggered before the process began and
+        were never put onto the stack cease to exist. 724.1b: every object
+        on the stack is exiled. 724.1c: state-based actions are checked, and
+        no triggered ability is put onto the stack (the binder holds the
+        firings for the cleanup step). 724.1d: the current step ends; every
+        creature leaves combat."""
+        self.end_turn_requested = False
+        self.binder.cease_triggered_before(self.end_turn_mark)
+        self._exile_the_stack()
+        self.binder.hold = True
+        try:
+            self._state_checks()
+        finally:
+            self.binder.hold = False
+        self.attackers = []
+        self.attacked = {}
+        self.blocked_by = {}
+
+    def _exile_the_stack(self) -> None:
+        """CR 724.1b: every object on the stack is exiled, the resolving one
+        included. A resolving spell goes to exile at its own put
+        (stack.cast). A spell still waiting on the stack below it is exiled
+        here and its frame flagged, so the cast that pushed it never
+        resolves it; no compiled card reaches this lane today (the response
+        and combat windows never offer an END_TURN spell). Abilities are not
+        stack objects in this engine: a triggered ability resolves as it
+        fires."""
+        frames = list(self.stack.frames)
+        if not frames:
+            return
+        before = self.journal.snapshot()
+        start = len(self.events)
+        for frame in frames:
+            frame.countered = True  # removed from the stack: never resolves
+            if self.world.zone_of(frame.handle).kind == ZONE_STACK:
+                self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
+                self.events.append(
+                    (len(self.events), "MOVE", str(frame.handle), "stack->exile")
+                )
+        self._on_zone_changes(
+            self.journal.record_atom(before, None, "END_TURN", self.events[start:])
+        )
 
     def _while_eval(self, change: object, meta: object) -> bool:
         """The ledger WHILE evaluator: the condition (a state predicate,
@@ -2226,12 +2303,26 @@ class Executor:
     def end_turn(self) -> int:
         """The end step, then the cleanup step. END_TURN marker FIRST
         (end-step triggers see the pre-expiry state), trigger drain, THEN
-        :meth:`_cleanup_step`. Returns the firing count."""
+        :meth:`_cleanup_step`. Returns the firing count.
+
+        V37: a turn that is already over does nothing: an effect ended it
+        (CR 724.1 skipped its end step and ran its cleanup step), or its end
+        step already ran. Drivers call this once per turn whatever happened
+        in it. An effect that ends the turn during the end step skips the
+        rest of that step (CR 724.1a-c) before the cleanup step."""
+        if self._turn_started and not self.turn_open:
+            return 0
         self.phase = Phase.END_TURN.name
         self.turn_open = False
-        self.journal.record_turn_phase(Phase.END_TURN.name)
-        fired = self._settle()
-        return fired + self._cleanup_step()
+        self._closing_turn = True
+        try:
+            self.journal.record_turn_phase(Phase.END_TURN.name)
+            fired = self._settle()
+            if self.end_turn_requested:
+                self._end_the_turn_process()
+            return fired + self._cleanup_step()
+        finally:
+            self._closing_turn = False
 
     def _cleanup_step(self) -> int:
         """The cleanup step (CR 514), repeated while 514.3a finds work.
@@ -2262,6 +2353,11 @@ class Executor:
             journalled = len(self.journal.events)
             settled = self._settle()  # CR 514.3a
             fired += settled
+            if self.end_turn_requested:
+                # V37, CR 724.1d: an effect ended the turn during the cleanup
+                # step; 724.1a-c, then a new cleanup step begins.
+                self._end_the_turn_process()
+                continue
             if not settled and len(self.journal.events) == journalled:
                 return fired
 
@@ -2492,7 +2588,9 @@ class Executor:
                     tuple(self.lost_players),
                     tuple(sorted(self.loyalty_clock.items())),
                     self.last_flip_won_by,
-                    self.end_turn_requested,
+                    # V37: the CR 724.1a mark rides the flag while a request
+                    # is open; with none open the bytes are the old False.
+                    self.end_turn_mark if self.end_turn_requested else False,
                 )
             ).encode()
         )

@@ -2460,9 +2460,14 @@ class StallRuleTest(unittest.TestCase):
         # which cards, so hands no longer grow without limit and the seeded
         # trajectory shifts. Still crash-free and decisive, SAME loser,
         # 58 turns (double-run replay verified, equal fingerprints).
+        # re-pinned 2026-10-29: V37 changes "end the turn" (CR 724.1): player 1
+        # casts Discontinuity here, which now skips the end step (it used to
+        # run two) and closes that turn's act window. Still crash-free and
+        # decisive, SAME loser, 50 turns (double-run replay verified, equal
+        # fingerprints).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 58)
+        self.assertEqual(game.turns, 50)
         self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

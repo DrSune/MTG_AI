@@ -722,6 +722,8 @@ class RandomPolicy:
         for _ in range(self.max_acts):
             if game.over_reason() is not None:
                 return
+            if not executor.turn_open:
+                break  # V37 (CR 724.1): an effect ended the turn; no one acts in it again
             rows = legal_casts(world, executor, seat)
             lands = [row for row in rows if row.land]
             spells = [

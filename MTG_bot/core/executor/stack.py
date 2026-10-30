@@ -933,10 +933,9 @@ def cast(
     start_put = len(executor.events)
     dest = ZONE_GRAVEYARD if node.kind not in _PERMANENT_KINDS else ZONE_BATTLEFIELD
     if dest == ZONE_GRAVEYARD and executor.end_turn_requested:
-        # r19b (Discontinuity, CR 716.4a's self-exile clause): the grammar
-        # compiles "Take an extra turn after this one. Exile Discontinuity"
-        # as the single Atom(END_TURN) — the card-named exile has no slot
-        # of its own, so the extra-turn REQUEST itself is the witness:
+        # r19b (Discontinuity), CR 724.1b: ending the turn exiles every object
+        # on the stack, the resolving spell included, so the spell whose
+        # effect just ended the turn is put into exile, not the graveyard.
         # _v_end_turn (verbs.py) is the only setter of the flag, it fires
         # from THIS spell's effect step just above, and the flag is not
         # consumed until the op closes (_consume_end_turn), so no other
@@ -991,8 +990,7 @@ def cast(
     executor._on_zone_changes(entered)
     if aura and node.effect is not None:
         executor._run_guarded_effect(node.effect, ctx, "cast")
-    executor._settle()
-    executor._consume_end_turn()
+    executor._finish_op()  # V37: an effect that ended the turn goes first (CR 724.1)
     return frame
 
 

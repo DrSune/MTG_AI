@@ -5,26 +5,61 @@ V36  The cleanup step (CR 514). The active player discards down to their maximum
      (CR 701.9b); then damage and "until end of turn" effects end (514.2); then
      state-based actions and waiting triggers are handled, and if anything happened
      another cleanup step follows (514.3a).
+V37  "End the turn" (CR 724.1). Triggers that triggered before the process cease to exist
+     (724.1a); the stack is exiled (724.1b); state-based actions are checked with no trigger
+     put on the stack (724.1c); the end step is skipped, so "at the beginning of the end
+     step" abilities do not trigger (724.1d-e); the turn goes straight to its cleanup step,
+     where the triggers from the process resolve before another cleanup step (724.1f). Nothing
+     acts after the turn has ended: Executor.end_turn and the act windows do nothing.
 """
 
 import unittest
 
+from MTG_bot.bench.router import SeatRouter
+from MTG_bot.bench.view import OracleIndex, SeatLens
 from MTG_bot.core.ability_tree import (
     ControllerRef,
+    Cost,
+    CostManaColor,
+    CounterKind,
+    CreatureDiesEvent,
     DurationEot,
+    FAtom,
+    FAtomPred,
+    LifeGainedEvent,
+    Phase,
     PtDelta,
     PtDirection,
     QConst,
+    Seq,
+    SpellKind,
     TriggeredAbility,
+    TurnPhaseEvent,
     Verb,
     Zone,
     ZoneChangeEvent,
     ZoneKind,
 )
 from MTG_bot.core.executor import MAX_HAND_SIZE, Executor
-from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, GameWorld
+from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
+from MTG_bot.core.executor.games import (
+    RandomPolicy,
+    _setup_game,
+    deal_decks,
+    get_supply,
+)
+from MTG_bot.core.executor.query import legal_activations
+from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_EXILE,
+    ZONE_GRAVEYARD,
+    ZONE_HAND,
+    GameWorld,
+)
 from MTG_bot.core.test_executor_binding import (
+    IS_SOURCE,
     atom,
     card_id,
     gain,
@@ -32,6 +67,9 @@ from MTG_bot.core.test_executor_binding import (
     referent_sel,
     reset_oracle_ids,
 )
+from MTG_bot.core.test_executor_stack import any_target, spell_rec
+
+YOU = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
 
 
 class Case(unittest.TestCase):
@@ -173,6 +211,168 @@ class CleanupDiscardTest(Case):
         first, second = run(), run()
         self.assertEqual(first, second)
         self.assertEqual(len(first[1]), 3)
+
+
+class EndTheTurnTest(Case):
+    """V37 (CR 724.1, all subrules)."""
+
+    def setUp(self):
+        super().setUp()
+        self.ex.begin_turn(self.p0)
+
+    def spell(self, name, effect):
+        """An instant costing {U} in p0's hand, with {U} in p0's pool to cast it."""
+        rec = spell_rec(name, SpellKind.INSTANT, cost=Cost((CostManaColor("U", QConst(1)),)), effect=effect)
+        handle = self.world.add_card(
+            CardIdentity(oracle_id=rec.oracle_id, name=name, type_line="Instant", cmc=1),
+            self.p0,
+            ZONE_HAND,
+        )
+        self.ex.attach_card(handle, rec)
+        pool = self.world.players[self.p0].mana_pool
+        pool["U"] = pool.get("U", 0) + 1
+        return handle
+
+    def end_steps(self):
+        return [e for e in self.ex.journal.events if e.kind == KIND_TURN_PHASE and e.data[0] == "END_TURN"]
+
+    def test_the_end_step_is_skipped(self):
+        # 724.1d-e: "at the beginning of the end step" abilities do not trigger.
+        self.attach_new(
+            "Assassin",
+            TriggeredAbility(event=TurnPhaseEvent(Phase.END_TURN, YOU), condition=None, effect=gain(1)),
+        )
+        disc = self.spell("Discontinuity", atom(Verb.END_TURN))
+        cast(self.ex, self.p0, disc)
+        self.assertEqual(self.world.players[self.p0].life, 20)
+        self.assertEqual(self.end_steps(), [])
+        self.assertFalse(self.ex.turn_open)
+        self.assertEqual(self.zone(disc), ZONE_EXILE)  # 724.1b: the resolving spell is exiled
+        # The turn is over: a driver's end_turn (the game loop calls it) does nothing.
+        self.assertEqual(self.ex.end_turn(), 0)
+        self.assertEqual(self.end_steps(), [])
+        self.assertEqual(self.world.players[self.p0].life, 20)
+        self.ex.advance_turn()
+        self.assertIs(self.world.active_player, self.p1)
+        self.assertEqual(self.end_steps(), [])
+
+    def test_the_cleanup_step_still_happens(self):
+        # 724.1d: straight to the cleanup step: damage wears off, "until end of
+        # turn" effects end, and the active player discards down to seven.
+        bear = self.attach_new("Bear")
+        self.ex.execute(
+            atom(
+                Verb.MODIFY_PT,
+                target=referent_sel("source"),
+                power=PtDelta(PtDirection.INCREASE, QConst(3)),
+                duration=DurationEot(),
+            ),
+            source=bear,
+            controller=self.p0,
+        )
+        self.ex.mark_damage(bear, 1)
+        cards = self.hand(self.p0, 8)  # eight cards stay in hand once the spell is cast
+        disc = self.spell("Discontinuity", atom(Verb.END_TURN))
+        self.script = [str(cards[3])]
+        cast(self.ex, self.p0, disc)
+        power, _toughness = self.ex.ledger.effective_pt(self.world.cards[bear].identity, bear)
+        self.assertEqual(power, 2)
+        self.assertEqual(self.ex.damage.get(bear, 0), 0)
+        discards = [a for a in self.asks if a[0].startswith(f"discard:{self.p0}:cleanup:")]
+        self.assertEqual(len(discards), 1)
+        self.assertEqual(self.zone(cards[3]), ZONE_GRAVEYARD)
+        self.assertEqual(len(self.world.players[self.p0].zone(ZONE_HAND).entries), 7)
+        self.assertEqual(self.end_steps(), [])
+
+    def test_triggers_from_before_the_process_cease_to_exist(self):
+        # 724.1a: the life gain happens during the resolution, before "end the
+        # turn"; the ability it triggered was never put onto the stack, so it
+        # ceases to exist.
+        pridemate = self.attach_new(
+            "Pridemate",
+            TriggeredAbility(
+                event=LifeGainedEvent(actor=YOU),
+                condition=None,
+                effect=atom(
+                    Verb.PUT_COUNTER,
+                    target=referent_sel("source"),
+                    counter_kind=CounterKind.PLUS_1_PLUS_1,
+                    count=QConst(1),
+                ),
+            ),
+        )
+        spell = self.spell("Time Out", Seq((gain(1), atom(Verb.END_TURN))))
+        cast(self.ex, self.p0, spell)
+        self.assertEqual(self.world.players[self.p0].life, 21)
+        self.assertEqual(self.world.cards[pridemate].counters.get("PLUS_1_PLUS_1", 0), 0)
+        self.assertFalse(self.ex.turn_open)
+
+    def test_state_based_actions_then_the_process_triggers_in_cleanup(self):
+        # 724.1c: the creature the spell dealt lethal damage dies before the
+        # cleanup step removes damage; its dies trigger, triggered during the
+        # process, resolves in the cleanup step (724.1f).
+        victim = self.attach_new(
+            "Victim",
+            TriggeredAbility(
+                event=CreatureDiesEvent(IS_SOURCE), condition=None, effect=gain(3)
+            ),
+        )
+        spell = self.spell(
+            "Burn Out",
+            Seq((atom(Verb.DEAL_DAMAGE, target=any_target(), amount=QConst(2)), atom(Verb.END_TURN))),
+        )
+        cast(self.ex, self.p0, spell, targets=(victim,))
+        self.assertEqual(self.zone(victim), ZONE_GRAVEYARD)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+        self.assertEqual(self.end_steps(), [])
+
+
+class FirstActAgent:
+    """Takes the first option that is not PASS whenever there is one."""
+
+    name = "first-act"
+
+    def decide(self, ask, obs):
+        return 1 if len(ask.options) > 1 else 0
+
+
+class ActWindowAfterTheTurnEndedTest(unittest.TestCase):
+    """V37: once an effect has ended the turn, no player gets priority in it
+    again (CR 724.1f), so the act windows offer nothing."""
+
+    def game_with_lands(self, seed):
+        supply = get_supply("castable", "M21")
+        game = _setup_game(seed, supply, deal_decks(seed, 1409, supply))
+        world = game.world
+        p0 = world.player_order[0]
+        game.executor.begin_turn(p0)
+        island = next(
+            h for h in world.players[p0].zone(ZONE_HAND).entries if world.cards[h].identity.name == "Island"
+        )
+        play_land(game.executor, p0, island)
+        self.assertTrue(legal_activations(world, game.executor, p0))  # the act menu is not empty
+        return game, supply, p0
+
+    def end_the_turn(self, game, p0):
+        game.executor.execute(atom(Verb.END_TURN), source=p0, controller=p0)
+        self.assertFalse(game.executor.turn_open)
+
+    def test_the_engine_policy_takes_no_act(self):
+        game, _supply, p0 = self.game_with_lands(2)
+        policy = RandomPolicy(3)  # unfixed, this seed taps the Island after the turn ended
+        game.executor.decisions.provider = policy.answer
+        self.end_the_turn(game, p0)
+        policy.take_acts(game, p0)
+        self.assertEqual(game.acts, 0)
+
+    def test_the_bench_router_takes_no_act(self):
+        game, supply, p0 = self.game_with_lands(2)
+        lenses = [SeatLens(0, OracleIndex.for_sets("M21")), SeatLens(1, OracleIndex.for_sets("M21"))]
+        router = SeatRouter(game, [FirstActAgent(), FirstActAgent()], lenses, supply=supply)
+        game.executor.decisions.provider = router.answer
+        self.end_the_turn(game, p0)
+        router.take_acts(game, p0)
+        self.assertEqual(game.acts, 0)
 
 
 if __name__ == "__main__":

@@ -1328,15 +1328,18 @@ def _v_flip_coin(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_end_turn(ctx: ExecCtx, atom: Atom) -> None:
-    """END_TURN (13a, Discontinuity): the request flag is set here; the
-    actual close (marker + Eot sweeps) runs in the executor loop after the
-    current op's settle, so the turn still closes through the ONE turn
-    skeleton (:meth:`Executor.end_turn`) — no second end-of-turn path."""
+    """END_TURN (13a, Discontinuity): the request flag is set here; the turn
+    ends at the op boundary through the CR 724.1 procedure
+    (:meth:`Executor._end_the_turn`: no end step, straight to the cleanup
+    step). V37: the journal position is recorded as the process start, so
+    the abilities that triggered before it cease to exist (724.1a)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
+    if not executor.end_turn_requested:
+        executor.end_turn_mark = len(executor.journal.events)
     executor.end_turn_requested = True
     # The clock moves ahead of the close: an activation attempted later in
     # the SAME op is already out of the sorcery window (legality reads
-    # ``executor.phase``), and :meth:`Executor.end_turn` re-stamps it.
+    # ``executor.phase``), and the end of the turn re-stamps it.
     executor.phase = "END_TURN"
     ctx.events.append((len(ctx.events), "END_TURN", str(ctx.controller)))
 
