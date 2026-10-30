@@ -1020,9 +1020,9 @@ class TriggerBinder:
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
         whose controller ref scopes the caster, not the zone's owner: the
         cast came from the caster's zones). The filter reads the SPELL
-        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_IN over
-        it, which is exactly Quirion Dryad's compiled "colored spell"
-        filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
+        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_HAS over
+        it; Quirion Dryad's "a spell that's white, blue, black, or red" is
+        the FOr of COLOR_HAS W/U/B/R (V39: any of them, CR 105.2)."""
         caster, ordinal, _kind, from_zone, _x, _kicked = event.cast
         ctx = self._match_ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):

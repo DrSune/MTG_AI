@@ -11,6 +11,9 @@ V37  "End the turn" (CR 724.1). Triggers that triggered before the process cease
      step" abilities do not trigger (724.1d-e); the turn goes straight to its cleanup step,
      where the triggers from the process resolve before another cleanup step (724.1f). Nothing
      acts after the turn has ended: Executor.end_turn and the act windows do nothing.
+V39  Quirion Dryad: a spell "that's white, blue, black, or red" is a spell with at least one of
+     those colors (CR 105.2, 105.2b), so a green-blue spell counts. The compiler wrote a subset
+     test (COLOR_IN); it now writes the canonical FOr of COLOR_HAS.
 """
 
 import unittest
@@ -48,6 +51,7 @@ from MTG_bot.core.executor.games import (
     deal_decks,
     get_supply,
 )
+from MTG_bot.core.executor.quantity import eval_filter
 from MTG_bot.core.executor.query import legal_activations
 from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity
@@ -373,6 +377,33 @@ class ActWindowAfterTheTurnEndedTest(unittest.TestCase):
         self.end_the_turn(game, p0)
         router.take_acts(game, p0)
         self.assertEqual(game.acts, 0)
+
+
+class QuirionDryadColorTest(unittest.TestCase):
+    """V39 (CR 105.2, 105.2b)."""
+
+    def test_the_compiled_trigger_reads_any_of_the_four_colors(self):
+        supply = get_supply("all", "M21")
+        record = next(r.card for r in supply.pool.results.values() if r.card.name == "Quirion Dryad")
+        trigger = next(a for a in record.abilities if isinstance(a, TriggeredAbility))
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        p0 = world.player_order[0]
+        ex = Executor(world)
+        ctx = ex._ctx(source=p0, controller=p0, bindings=None, decisions=())
+        expected = {
+            ("G", "U"): True,  # green AND blue: a spell that's blue
+            ("U",): True,
+            ("B", "W"): True,
+            ("G", "R"): True,
+            ("G",): False,
+            (): False,  # colorless
+        }
+        for colors, fires in expected.items():
+            spell = world.add_card(
+                card_id("Spell" + "".join(colors), type_line="Instant", colors=colors), p0, ZONE_HAND
+            )
+            self.assertEqual(eval_filter(trigger.event.filter, spell, ctx), fires, colors)
 
 
 if __name__ == "__main__":

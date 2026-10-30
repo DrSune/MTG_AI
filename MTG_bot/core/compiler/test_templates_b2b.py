@@ -978,11 +978,15 @@ class TestB2bTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, CastSpellEvent)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        assert isinstance(event.filter, FAtom)
-        self.assertIs(event.filter.pred, FAtomPred.COLOR_IN)
-        # R1a canonicalization (ontology §3 SET-R1a): FAtom.colors is a
-        # membership set, construction-sorted; the SET is the pinned fact.
-        self.assertEqual(event.filter.colors, ("B", "R", "U", "W"))
+        # re-pinned 2026-10-29: V39 changes the filter from COLOR_IN (a subset
+        # test: a green-blue spell failed it) to "has any of the four colors",
+        # the FOr of COLOR_HAS (CR 105.2). FOr children are construction-
+        # sorted (ontology §3 SET-R1a); the SET of colors is the pinned fact.
+        assert isinstance(event.filter, FOr)
+        self.assertTrue(all(c.pred is FAtomPred.COLOR_HAS for c in event.filter.children))
+        self.assertEqual(
+            sorted(c.color for c in event.filter.children), ["B", "R", "U", "W"]
+        )
 
     def test_draw_counter_is_card_drawn_you(self) -> None:
         ability = _ability(

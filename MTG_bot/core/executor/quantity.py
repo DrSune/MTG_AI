@@ -840,9 +840,11 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
         # 13b (the cast-trigger feed reads these over SPELL cards): COLOR_IN
         # is the grammar's SUBSET reading ("colours are a non-empty subset
-        # of the given set" — Quirion Dryad's compiled blue), COLOR_HAS the
-        # single-colour membership ("hexproof from black"). Identity data —
-        # works for a card in any zone, incl. the stack.
+        # of the given set"), COLOR_HAS the single-colour membership
+        # ("hexproof from black"; a spell "that's white or blue" is the FOr
+        # of COLOR_HAS, CR 105.2 — V39 moved Quirion Dryad off COLOR_IN,
+        # which no compiled card writes now). Identity data — works for a
+        # card in any zone, incl. the stack.
         if handle.namespace != "card":
             return False
         card_colors = set(world.cards[handle].identity.colors)

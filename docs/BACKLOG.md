@@ -573,6 +573,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     but `DEAL_DAMAGE` does not check the recipient's type.
   - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
     trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
+    **[FIXED on branch `engine/verify-fixes-4` 2026-10-29 (V39): the template writes the FOr of
+    `COLOR_HAS`; no compiled card writes `COLOR_IN` now.]**
 
 **Engine findings from mapper B's FDN batch and the FDN soak (2026-10-29).**
 - Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds the outcome the

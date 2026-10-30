@@ -1371,10 +1371,21 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_quirion_dryad_colored(m: re.Match[str]) -> SentenceOutcome:
-    """#53: cast a W/U/B/R spell, put a +1/+1 counter on this creature."""
+    """#53: cast a W/U/B/R spell, put a +1/+1 counter on this creature.
+
+    V39 (CR 105.2, 105.2b): a spell "that's white, blue, black, or red" is
+    one with at least one of those colors, a green-blue spell included, so
+    the filter is the FOr of COLOR_HAS (MAPPER_GUIDE "Colours"). COLOR_IN,
+    written here before, is a subset test that a gold spell with green
+    failed."""
     return _ability(
         CastSpellEvent(
-            filter=FAtom(pred=FAtomPred.COLOR_IN, colors=("W", "U", "B", "R")),
+            filter=FOr(
+                children=tuple(
+                    FAtom(pred=FAtomPred.COLOR_HAS, color=color)
+                    for color in ("W", "U", "B", "R")
+                )
+            ),
             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         ),
         Atom(
