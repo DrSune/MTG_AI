@@ -58,10 +58,8 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     TargetingEvent,
-    TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
     canonical_json,
@@ -428,15 +426,17 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-cast-graveyard-recost",
         "ability",
     ),
+    # re-pinned 2026-10-29: m21-fidelity, the sorcery tutors are part of the spell's effect
+    # (they were free activated rows that never ran on resolution).
     "You may search your library and/or graveyard for a card named "
     "Basri, Devoted Paladin, reveal it, and put it into your hand.": (
         "B4-tutor-basri",
-        "ability",
+        "effect",
     ),
     "You may search your library and/or graveyard for a card named "
     "Liliana, Death Mage, reveal it, and put it into your hand.": (
         "B4-tutor-liliana",
-        "ability",
+        "effect",
     ),
     "This spell costs {2}{U} less to cast if you've cast an instant or "
     "sorcery spell this turn.": ("B4-stormwing-cost", "ability"),
@@ -1175,10 +1175,10 @@ class TestB4IrStructure(unittest.TestCase):
         )
 
     def _assert_tutor_structure(self, sentence: str, card_name: str) -> None:
-        outcome = _as_ability(_single_match(self.reg, sentence).outcome)
-        ability = _as_activated(outcome.ability)
-        self.assertEqual(ability.cost.parts, ())
-        optional = _as_optional(ability.effect)
+        # re-pinned 2026-10-29: m21-fidelity, an EffectOutcome of the sorcery (the optional
+        # search runs as the spell resolves), no longer a free ActivatedAbility(cost={}).
+        outcome = _as_effect(_single_match(self.reg, sentence).outcome)
+        optional = _as_optional(outcome.effect)
         seq = _as_seq(optional.inner)
         self.assertEqual(len(seq.steps), 3)
         search_atom, reveal_atom, move_atom = seq.steps
@@ -1291,29 +1291,12 @@ class TestB4IrStructure(unittest.TestCase):
             ).outcome
         )
         ability = outcome.ability
-        assert isinstance(ability, TriggeredAbility), (
-            f"expected TriggeredAbility, got {type(ability).__name__}"
+        # re-pinned 2026-10-29: m21-fidelity (review batch B). "enters with X counters" is an
+        # entering-state replacement (CR 614.1c), EtBState with (+1/+1, X); it was an ETB
+        # trigger putting X counters on the event subject, so the creature entered as a 0/0.
+        self.assertEqual(
+            ability, EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
         )
-        self.assertIsNone(ability.condition)
-        event = ability.event
-        assert isinstance(event, ZoneChangeEvent), (
-            f"expected ZoneChangeEvent, got {type(event).__name__}"
-        )
-        self.assertIs(event.from_zone.kind, ZoneKind.ANY)
-        self.assertIs(event.to_zone.kind, ZoneKind.BATTLEFIELD)
-        assert event.subject is not None
-        self.assertIs(_as_fatom(event.subject).pred, FAtomPred.IS_SOURCE)
-        atom = _as_atom(ability.effect)
-        self.assertIs(atom.verb, Verb.PUT_COUNTER)
-        target = _selector(atom, "target")
-        # Convention C2: referent selector — CHOOSE + QConst(1) + neutral zone.
-        self.assertEqual(target.referent, "event")
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(_qconst(target.count).value, 1)
-        self.assertIs(target.zones[0].kind, ZoneKind.ANY)
-        self.assertEqual(target.filter, FAnd(children=()))
-        self.assertIs(_pairs(atom).get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
-        self.assertIsInstance(_pairs(atom).get("count"), QX)
 
 
 class TestB4Round7AnaphoraIr(unittest.TestCase):

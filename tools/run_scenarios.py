@@ -94,6 +94,8 @@ Pack vocabulary (all keys required as noted):
              "tapped": {key: bool},
              "attached": {key: hostKey|null},  B-49 follow-up #2: the attachment table
              "hand": {"0": int},
+             "lost": {"0": bool},          m21-fidelity 2026-10-29: the seat is
+                                            in executor.lost_players (LOSE_GAME),
              "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
                                             totals (frozen _v_add_mana write;
                                             zero-equivalence both sides)
@@ -815,6 +817,10 @@ class ScenarioRunner:
             got = len(self.world.players[self.seats[int(seat)]].zone(ZONE_HAND).entries)
             if got != size:
                 fails.append(f"hand[{seat}]: expected {size}, got {got}")
+        for seat, want_lost in expect.get("lost", {}).items():
+            got_lost = self.seats[int(seat)] in self.ex.lost_players
+            if got_lost != bool(want_lost):
+                fails.append(f"lost[{seat}]: expected {want_lost}, got {got_lost}")
         # r24a MANA-POOL LANE (treasure_token_activation; the gap documented
         # since chromatic_orrery's note): assert the ADD_MANA totals directly
         # on PlayerState.mana_pool — the frozen totals write _v_add_mana is,

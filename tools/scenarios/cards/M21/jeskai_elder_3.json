@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Jeskai Elder deals combat damage to the opponent but the 'you may draw' is declined: no draw and, since you did not, no discard (hand stays 2, graveyard empty).",
+ "cards": [
+  {"key": "je", "real": "Jeskai Elder", "zone": "battlefield", "controller": 0},
+  {"key": "keep", "name": "Keep", "type": "Creature", "power": 5, "toughness": 5, "zone": "hand", "controller": 0},
+  {"key": "junk", "name": "Junk", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"je": true}, "may": {"je": false}}
+ ],
+ "expect": {
+  "life": {"1": 19},
+  "hand": {"0": 2},
+  "graveyard": {"0": []}
+ }
+}

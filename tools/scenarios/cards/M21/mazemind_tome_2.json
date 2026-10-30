@@ -1,0 +1,70 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Control for 'When there are four or more page counters on this artifact, exile it. If you do, you gain 4 life.': three scry activations on three own turns leave the Tome on the battlefield with 3 page counters and no life gained.",
+ "cards": [
+  {
+   "key": "tome",
+   "real": "Mazemind Tome",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "tome",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "top"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "tome",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "top"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "tome",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "top"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tome": "battlefield"
+  },
+  "counters": {
+   "tome": {
+    "PAGE": 3
+   }
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

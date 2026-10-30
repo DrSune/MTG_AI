@@ -1397,30 +1397,26 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(preds[0].count.value, 4)
 
     def test_double_power(self) -> None:
-        """B5a-double-power: EffectOutcome, SET_PT verb, QBin MUL."""
+        """B5a-double-power: EffectOutcome, MODIFY_PT +X/+0, X = the target's power.
+
+        # re-pinned 2026-10-29: m21-fidelity (review batch I). CR 701.10a/b: doubling gives
+        # +X/+0, it never sets P/T. It was SET_PT(QBin(MUL, 2, power), toughness), which made a
+        # 2/2 with a +1/+1 counter 7/4 instead of 6/3 (pack unleash_fury_counter).
+        """
         outcome = self._match_outcome("B5a-double-power")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
-        self.assertEqual(atom.verb, Verb.SET_PT)
+        self.assertEqual(atom.verb, Verb.MODIFY_PT)
         p = _pairs_dict(atom)
-        # Power should be QBin(MUL, QConst(2), QProp(target, POWER))
         power = p["power"]
-        if not isinstance(power, QBin):
-            self.fail(f"expected QBin, got {type(power)}")
-        self.assertEqual(power.op, QBinOp.MUL)
-        self.assertIsInstance(power.left, QConst)
-        if not isinstance(power.left, QConst):
-            self.fail(f"expected QConst, got {type(power.left)}")
-        self.assertEqual(power.left.value, 2)
-        self.assertIsInstance(power.right, QProp)
-        if not isinstance(power.right, QProp):
-            self.fail(f"expected QProp, got {type(power.right)}")
-        self.assertEqual(power.right.field, QPropField.POWER)
-        # Toughness should be QProp(target, TOUGHNESS)
-        self.assertIsInstance(p["toughness"], QProp)
-        if not isinstance(p["toughness"], QProp):
-            self.fail(f"expected QProp, got {type(p['toughness'])}")
-        self.assertEqual(p["toughness"].field, QPropField.TOUGHNESS)
+        if not isinstance(power, PtDelta):
+            self.fail(f"expected PtDelta, got {type(power)}")
+        self.assertIs(power.direction, PtDirection.INCREASE)
+        if not isinstance(power.magnitude, QProp):
+            self.fail(f"expected QProp, got {type(power.magnitude)}")
+        self.assertEqual(power.magnitude.referent, "target")
+        self.assertEqual(power.magnitude.field, QPropField.POWER)
+        self.assertEqual(p["toughness"], PtDelta(PtDirection.INCREASE, QConst(0)))
         # Duration should be DurationEot
         self.assertIsInstance(p["duration"], DurationEot)
 

@@ -1190,13 +1190,43 @@ class Executor:
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:
-                if not isinstance(quantity, QConst):
-                    raise NotImplementedError(
-                        "executor: EtBState dynamic initial counters are "
-                        "12c query surface"
+                # m21-fidelity (2026-10-29): "enters with X +1/+1 counters"
+                # (Wildwood Scourge, the X hydras) — CR 614.1c, the count is
+                # part of the entering state. X is the value the spell was cast
+                # with (stack.cast records it in etb_x as the spell lands); an
+                # object that entered without being cast has X 0 (CR 107.3g). A
+                # negative result gives no counters (107.1b).
+                from MTG_bot.core.executor.legality import ctx_for
+                from MTG_bot.core.executor.quantity import resolve
+
+                qctx = ctx_for(
+                    self,
+                    source=card,
+                    controller=self.world.controller_of(card),
+                    x_value=self.etb_x.get(card, 0),
+                )
+                n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
+                if not n:
+                    continue
+                # CR 122.6: counters an object is given as it enters ARE counters
+                # put on it, so a counter-placement replacement applies (Conclave
+                # Mentor: "that many plus one"). Same consult and action run as the
+                # PUT_COUNTER lane's drain (the action's referent is the entering
+                # card, its COUNTER_COUNT register the entering count).
+                repl = self.replacements.replacement_for_counter_placement(qctx, card, kind, n)
+                if repl is not None:
+                    inner = self._ctx(
+                        source=repl.source,
+                        controller=repl.controller,
+                        bindings={"event": [card]},
+                        decisions=(),
                     )
+                    inner.event_counter_count = n
+                    inner.replaced_seq = qctx.replaced_seq | {repl.seq}
+                    self._run_effect(repl.action, inner)
+                    continue
                 counters = self.world.cards[card].counters
-                counters[kind.name] = counters.get(kind.name, 0) + quantity.value
+                counters[kind.name] = counters.get(kind.name, 0) + n
 
     # -------------------------------------------------------- 12b: triggers
 

@@ -567,13 +567,15 @@ class TestKeywordDedup(unittest.TestCase):
         self.assertEqual(res.card.keywords, (KeywordAbility(Keyword.FLYING, ()),))
 
     def test_parametrized_distinct_from_bare(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 1 builds a bare keyword only if the face
+        # prints it, so the card now prints both abilities; the dedup still keeps them apart.
         filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
         raw = _raw_card(
             "C",
             1,
             types=("Creature", "Card"),
             keywords=("Hexproof",),
-            sentences=("Hexproof from black.",),
+            sentences=("Hexproof", "Hexproof from black."),
         )
         reg = TemplateRegistry()
         reg.register(
@@ -590,6 +592,54 @@ class TestKeywordDedup(unittest.TestCase):
                 KeywordAbility(Keyword.HEXPROOF, ()),
                 KeywordAbility(Keyword.HEXPROOF, (filt,)),
             ),
+        )
+
+    def test_bare_keyword_needs_the_face_to_print_it(self) -> None:
+        # m21-fidelity item 1 (2026-10-29). MTGJSON lists "Hexproof" next to "Hexproof from"
+        # for "Hexproof from black" (Garruk's Harbinger): only the variant is printed, so no
+        # bare HEXPROOF, which would be full hexproof (CR 702.11b, 702.11d). Likewise a
+        # keyword listed for the other face of a modal DFC (CR 712.8f).
+        filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "hexblack",
+                r"^Hexproof from black$",
+                lambda m: KeywordOutcome(keyword=Keyword.HEXPROOF, params=(filt,)),
+            )
+        )
+        harbinger = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("Hexproof", "Hexproof from"),
+            sentences=("Hexproof from black",),
+        )
+        self.assertEqual(
+            compile_card(harbinger, reg).card.keywords,
+            (KeywordAbility(Keyword.HEXPROOF, (filt,)),),
+        )
+        listed_for_other_face = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("Flying", "Reach"),
+            sentences=("Reach (This creature can block creatures with flying.)",),
+        )
+        self.assertEqual(
+            compile_card(listed_for_other_face, TemplateRegistry()).card.keywords,
+            (KeywordAbility(Keyword.REACH, ()),),
+        )
+        keyword_line = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("First strike", "Lifelink"),
+            sentences=("First strike, lifelink",),
+        )
+        self.assertEqual(
+            {ka.keyword for ka in compile_card(keyword_line, TemplateRegistry()).card.keywords},
+            {Keyword.FIRST_STRIKE, Keyword.LIFELINK},
         )
 
     def test_unbuildable_keywords_reported(self) -> None:

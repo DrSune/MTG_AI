@@ -133,17 +133,22 @@ class ActivationGateOutcome:
 
 @dataclass(frozen=True)
 class KickerEffectOutcome:
-    """A "If this spell/it was kicked, [instead] X" sentence (ZNR).
+    """A conditional arm on the previous effect: "If this spell/it was kicked,
+    [instead] X" (ZNR), or any "If <condition>, X instead." that rewrites
+    the spell's own previous instruction (``pred`` set: Life Goes On, "If a
+    creature died this turn, you gain 8 life instead"; CR 608.2c, later
+    text modifies earlier text).
 
     The compiler folds it onto the previous effect-bearing slot:
-    ``replaces=False`` appends ``Conditional(WAS_KICKED, X)`` to the base
+    ``replaces=False`` appends ``Conditional(pred, X)`` to the base
     effect (additive kicker); ``replaces=True`` makes the arm replace the
-    base effect: ``Conditional(WAS_KICKED, X, else=base)`` (CR 601.2f
-    alternative resolution).
+    base effect: ``Conditional(pred, X, else=base)`` (CR 601.2f
+    alternative resolution). ``pred`` None is WAS_KICKED.
     """
 
     effect: Effect
     replaces: bool = False
+    pred: Filter | None = None
 
 
 SentenceOutcome = Union[

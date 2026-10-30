@@ -1,0 +1,68 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Control for the six-Shrine threshold: with five Shrines (Sanctum of All, Stone Fangs, three synthetic) Stone Fangs triggers once with X = 5: opponent 20 -> 15, you 20 -> 25.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sf",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s0",
+   "name": "Shrine 0",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "name": "Shrine 1",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Shrine 2",
+   "type": "Enchantment \u2014 Shrine",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "enter",
+   "key": "sf"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 25,
+   "1": 15
+  }
+ }
+}

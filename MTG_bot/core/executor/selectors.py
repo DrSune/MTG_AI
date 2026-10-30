@@ -1050,6 +1050,21 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # into the sweep exemption).
     _dest = atom.args.get("destination")
     graveyard_sweep = graveyard_sweep_shape(value, atom.verb, _dest)
+    # m21-fidelity (2026-10-29, B-53 second half): a designation made of PLAYER
+    # handles (the spell's TARGET_PLAYER coordinate, Run Afoul's target opponent)
+    # is never a member of a CARD population, so it must not take over a role
+    # whose non-TARGET selector (a resolution-time CHOOSE/ALL pick) can hold only
+    # cards (no PLAYER/ANY zone): "target opponent sacrifices a creature" raised
+    # KeyError 'unknown card player:1'. The role resolves its own selector
+    # instead, in the rotated coordinates. TARGET mode stays the designation lane.
+    player_into_cards = (
+        bound is not None
+        and bool(bound)
+        and all(h.namespace == "player" for h in bound)
+        and isinstance(value, Selector)
+        and value.mode is not SelectorMode.TARGET
+        and all(z.kind not in (ZoneKind.PLAYER, ZoneKind.ANY) for z in value.zones)
+    )
     if (
         bound is not None
         and not anaphoric
@@ -1057,6 +1072,7 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not population
         and not self_ref
         and not graveyard_sweep
+        and not player_into_cards
     ):
         # CR 702.26b / 608.2b: a designated permanent that has phased out
         # since it was designated does not exist, so the verb skips it.

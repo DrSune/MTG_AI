@@ -575,6 +575,13 @@ These are forks, not tasks. See the report that accompanied this audit.
     creature" raised `KeyError 'unknown card player:1'`.
   - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
     seat-routing gap.
+  - [m21-fidelity, 2026-10-29] The engine cannot fix the population alone: "target player" (Peer
+    into the Abyss, Mind Rot, Tormod's Crypt, Sublime Epiphany) and "target opponent" (Duress,
+    Kitesail Freebooter, Liliana's Steward, Necromentia, Vito) compile to the same bare
+    `ControllerRef.TARGET_PLAYER`, so the IR needs one more bit (a design decision: for example a
+    `TARGET_OPPONENT` reference, or an explicit player-zone TARGET selector). Repro:
+    `tools/scenarios/known_bugs/peer_into_the_abyss_self_target.json`. With Peer's life loss now
+    compiled, Peer on an opponent is printed play; the self-target is the weaker-than-printed part.
 - **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
@@ -614,7 +621,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The dispatch ledgers clear only when the creature leaves the battlefield.
   - So a one-turn lure keeps forcing blocks on later turns (FDN Joraga Invocation, checked by
     mapper B with a pack).
-- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter FIXED on branch `engine/r5a-until-leaves` 2026-10-29 by ontology R5-1, see B-60c and B-76]**
+- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter FIXED on branch `engine/r5a-until-leaves` 2026-10-29 by ontology R5-1, see B-60c and B-97]**
   `templates_b5a.py`).
   - Equip has no sorcery timing, so every Equipment can move at instant speed and mid-combat (M21
     Short Sword, Malefic Scythe).
@@ -687,7 +694,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Repro script on the B-49 branch: `cr6161_repro.py`.
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
   **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
-  branch `engine/r5a-until-leaves`; follow-ups in B-76]**
+  branch `engine/r5a-until-leaves`; follow-ups in B-97]**
   - (1) Recommended: an optional `duration` role on MOVE_ZONE/EXILE taking `DurationUntilLeaves`.
     The executor keeps (card, previous zone, anchor) and returns the card when the anchor leaves
     (CR 610.3). If the anchor already left, the exile does not happen (CR 610.3a). The return table
@@ -768,7 +775,97 @@ These are forks, not tasks. See the report that accompanied this audit.
   - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
     a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
     permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
-- **B-76 [2026-10-29, branch `engine/r5a-until-leaves`] Ontology R5-1: zone moves "until" an event
+- **B-82 [fixer A, m21-fidelity item 3; renumbered from B-75 at the merge, which phasing took] A multicoloured token is colourless** (live in M21).
+  - Experimental Overload's "X/X blue and red Weird" compiles with `TokenSpec.color=None`
+    (`templates_b5a.py`, B5a-weird-token): `color` holds one colour letter.
+  - Census 2026-10-29: of the 152 TokenSpecs compiled in the 19 sets (and 5 in FDN records), 150
+    single-colour tokens carry their printed colour and Gadrak's Treasure is rightly colourless;
+    the Weird is the only miss. The executor gives a token its spec colour (pinned in
+    `test_executor_verbs.py`: COLOR_HAS, COLOR_COUNT_GE, protection).
+  - Effect: Basri's Lieutenant's protection from multicolored and Feat of Resistance's protection
+    from blue or red do not stop the Weird (stronger than printed for its controller).
+  - Design decision, an ontology change: (a) `TokenSpec.colors: tuple[str, ...]`, WUBRG-sorted
+    like `CardRecord.colors` (SET-R1a), replacing `color`, so every token golden is re-baked and
+    the model sees each colour as its own token. Recommended. (b) Let `color` hold a WUBRG string
+    ("UR") and split it in the executor (`verbs._v_create_token`): no schema change and one golden,
+    but "UR" fuses two colours into one token (AGENTS §9) and breaks the IR's `color` (one) /
+    `colors` (several) convention that `FAtom` follows.
+- **B-76 [fixer A, found 2026-10-29] A creature with defender can never block** (live in M21,
+  weaker than printed).
+  - `legality.block_pair_blocked_reason` (`executor/legality.py` ~1878) and `blocker_askable`
+    (~1925) refuse every blocker with DEFENDER, citing "CR 702.4a". Defender only forbids attacking
+    (CR 702.3b), and 702.4 is double strike.
+  - So every wall is a dead card: 59 set entries list Defender in the 19 sets; in M21 Drowsing
+    Tyrannodon, Portcullis Vine, Wall of Runes and Warded Battlements. The pack
+    `block_defender_and_tapped.json` pins the bug (its wall is `not_asked_to_block`).
+  - **Fix.** Drop the two DEFENDER checks, re-pin that pack, and re-run the corpus games.
+- **B-77 [fixer A, m21-fidelity item 4] A spell's "would die this turn, exile it instead" has no
+  duration in the tree** (play is right; the encoding is implicit).
+  - Scorching Dragonfire (M21, ELD, FDN), Obliterating Bolt (FDN) and Blitz of the Thunder-Raptor
+    (IKO) compile a card-level `ReplacementAbility` with no duration (the IR node has no such
+    field). The executor registers a resolving instant's or sorcery's ReplacementAbility until end
+    of turn, scoped to the cast's designation (`stack.py`, `replacements.register_ephemeral_
+    replacements`), which is the printed "this turn" for all five. Packs
+    `scorching_dragonfire_late_damage_creature` and `scorching_dragonfire_expires_next_turn` pin it.
+  - So the model's static view of these cards does not show "this turn", and a future spell whose
+    replacement has another duration would be played wrong without a compile error.
+  - Options: (a) an optional `duration` on `ReplacementAbility` (ontology change, the R5-1 sibling
+    for replacements; the Dragonfire family re-bakes with `DurationEot`); (b) keep the executor rule
+    and write it into the ontology doc as the meaning of a ReplacementAbility on an instant or
+    sorcery (no IR change; the gap stays implicit).
+  - The spell-side death replacement is still skipped by DESTROY and other direct graveyard moves
+    (B-72).
+- **B-78 [fixer A, m21-fidelity] "Search your library and/or graveyard" always searches both.**
+  - The named tutors (Basri's Aegis, Liliana's Scorn, Garruk's Warsteed, Chandra's Firemaw and
+    their siblings) compile to one SEARCH over Zone(GRAVEYARD) and Zone(LIBRARY), and "If you
+    search your library this way, shuffle" joins the same OptionalEffect, so accepting the search
+    always shuffles.
+  - Printed, "and/or" lets the player search only the graveyard (CR 701.23a: a search looks at
+    the zone searched), and then there is no shuffle, keeping a known library order (after a
+    scry, say). Slightly weaker than printed, no exploit.
+  - Fix needs a way to say "choose which of these zones to search" (a design decision; today
+    the zone set is fixed by the selector). Not done.
+- **B-79 [fixer A, m21-fidelity] Primal Might's fight partner is not a target and cannot be
+  declined** (live in M21 and FDN; stronger and weaker than printed).
+  - "Then it fights up to one target creature you don't control" compiles the foe as a
+    resolution-time ONE_OF pick (`templates_b5c.py` `_build_then_it_fights_up_to_one`), so a
+    hexproof creature can be fought and the fight cannot be skipped. Review packs
+    `primal_might_fight_optional` and `primal_might_hexproof_not_fought` (m21v batch A) fail.
+  - The tree fix is one line (TARGET with `QAtMost(1)`), but it needs two engine changes first:
+    a TARGET "up to N" slot whose minimum is 0 (the C17 clamp below, every "up to N target"
+    card), and positional multi-slot designation that accepts an empty trailing optional slot
+    (`stack._validate_positional` raises on any non-exactly-one slot). The games policy also
+    skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
+- **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
+  component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
+  - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
+    the Tyrannodon stops having defender (Portcullis Vine cannot sacrifice it as "a creature with
+    defender"). Review pack `tyrannodon_still_has_defender_for_portcullis_vine` (batch B) fails.
+  - The attack legality reads DEFENDER directly (`legality.py`, "no 'can attack as though it
+    didn't' carrier in the corpus"). Options for the gated ontology round: (a) an attack
+    permission atom (a "may attack despite defender" policy, the MANA_POLICY/GRANT_ACTIVATION
+    family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
+    "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
+    though" cards; recommended.
+- **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
+  AGENTS §11 (alters legal options or state outcomes).
+  - Fixed: Lofty Denial (the {4} branch never applied; now a conditional arm, pack
+    `lofty_denial_with_flier`); Sanctum of Tranquil Light (the activation cost fold counted the
+    source twice, one Shrine cut {2}; pack `sanctum_tranquil_light_exact_cost`).
+  - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
+    hand, put each of those cards into your hand instead" runs as an extra step that returns one
+    card, not all three. It is unreachable until something lets you cast it from elsewhere
+    (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
+    replacing the one-and-rest split, once a pack can cast it from the graveyard.
+  - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
+    information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
+    Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
+    Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
+    Equipment); Barrin's unconstrained "a permanent" (anything moving from the battlefield is
+    one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
+    printed; only the docstring's reading is off).
+  - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
+- **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
   (CR 610.3) are built; what is left.**
   - Done: `MOVE_ZONE` takes an optional `duration` (`DurationUntilLeaves`, `DurationEot`,
     `DurationUntilNextTurn` only; any other Duration is refused at construction). The executor's
@@ -809,7 +906,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
     trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
     consequence.
-- **B-77 [2026-10-29, branch `engine/r5a-until-leaves`] Ontology R5-6: `TargetingEvent.actor`
+- **B-98 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-77 at the integration merge] Ontology R5-6: `TargetingEvent.actor`
   ("becomes the target of a spell or ability an opponent controls") is built; the rest of the
   census needs other pieces.**
   - Done: the optional `actor` Filter over the targeting spell's or ability's controller (the

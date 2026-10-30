@@ -587,10 +587,17 @@ def _build_destroy_power_ge(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
-    # SET_PT with power = 2 * target.power, toughness = target.toughness,
-    # duration = DurationEot.
+    """``Double the power of target creature until end of turn.`` (Unleash Fury).
+
+    CR 701.10a/b: doubling MODIFIES, it never sets: the creature gets +X/+0
+    until end of turn, X = its power as the spell resolves. So MODIFY_PT with
+    power PtDelta(INCREASE, QProp(target, POWER)) and the printed-+0 toughness
+    convention (shape #42). m21-fidelity (review batch I, 2026-10-29): this was
+    SET_PT(2 * power, toughness), a set effect that later layers stack on, so a
+    2/2 with a +1/+1 counter became 7/4 instead of 6/3 (stronger than printed).
+    """
     atom = Atom(
-        verb=Verb.SET_PT,
+        verb=Verb.MODIFY_PT,
         args=AtomArgs(
             pairs=(
                 (
@@ -604,15 +611,14 @@ def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
                 ),
                 (
                     "power",
-                    QBin(
-                        op=QBinOp.MUL,
-                        left=QConst(2),
-                        right=QProp(referent="target", field=QPropField.POWER),
+                    PtDelta(
+                        direction=PtDirection.INCREASE,
+                        magnitude=QProp(referent="target", field=QPropField.POWER),
                     ),
                 ),
                 (
                     "toughness",
-                    QProp(referent="target", field=QPropField.TOUGHNESS),
+                    PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(0)),
                 ),
                 ("duration", DurationEot()),
             )
