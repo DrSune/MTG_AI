@@ -595,9 +595,13 @@ These are forks, not tasks. See the report that accompanied this audit.
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
   - Damage marked on a non-creature land through a forced binding: only reachable from harness ops,
-    but `DEAL_DAMAGE` does not check the recipient's type.
+    but `DEAL_DAMAGE` does not check the recipient's type. **[FIXED on branch
+    `engine/verify-fixes-4` 2026-10-30: CR 120.1a, no damage to anything but a battle, a creature or
+    a planeswalker.]**
   - M21 Quirion Dryad's trigger uses `COLOR_IN` (a subset test), so a green-white spell would not
     trigger it. The text needs "any of white, blue, black or red" (an FOr of `COLOR_HAS`).
+    **[FIXED on branch `engine/verify-fixes-4` 2026-10-29 (V39): the template writes the FOr of
+    `COLOR_HAS`; no compiled card writes `COLOR_IN` now.]**
 
 **Engine findings from mapper B's FDN batch and the FDN soak (2026-10-29).**
 - Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds the outcome the
@@ -815,7 +819,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     but "UR" fuses two colours into one token (AGENTS §9) and breaks the IR's `color` (one) /
     `colors` (several) convention that `FAtom` follows.
 - **B-76 [fixer A, found 2026-10-29] A creature with defender can never block** (live in M21,
-  weaker than printed).
+  weaker than printed). **[FIXED on branch `engine/verify-fixes-4` 2026-10-30 (V40): both block-side checks dropped;
+  the attack-side reason now cites CR 702.3b.]**
   - `legality.block_pair_blocked_reason` (`executor/legality.py` ~1878) and `blocker_askable`
     (~1925) refuse every blocker with DEFENDER, citing "CR 702.4a". Defender only forbids attacking
     (CR 702.3b), and 702.4 is double strike.
@@ -894,6 +899,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
     printed; only the docstring's reading is off).
   - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
+- **B-96 [fixer 4, 2026-10-29] "You have no maximum hand size" compiles nowhere.** Since V36 the
+  cleanup step discards down to seven (CR 514.1, 402.2: `executor.MAX_HAND_SIZE`, read only by
+  `Executor._discard_to_hand_size`). The sentence is UNPARSED on Reliquary Tower (M13), Spellbook
+  (10E), Niv-Mizzet, Visionary and Finale of Revelation (FDN), Folio of Fancies and The Magic Mirror
+  (ELD) and Sea Gate Restoration (ZNR), so these partly compiled cards are now weaker than printed
+  in the pool modes that deal partly compiled cards. No M21 card and no FDN record is affected.
+  Needs a component for a player's maximum hand size (a static over the player, and "for the rest of
+  the game" on a resolving effect): an ontology decision for a gated round.
 - **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
   (CR 610.3) are built; what is left.**
   - Done: `MOVE_ZONE` takes an optional `duration` (`DurationUntilLeaves`, `DurationEot`,

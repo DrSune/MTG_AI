@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "real": "Warded Battlements",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "corpse"
+  },
+  {
+   "op": "enter",
+   "key": "wall"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "corpse": true
+   },
+   "block": {
+    "wall": "corpse"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "corpse": true
+  },
+  "block_asks": {
+   "wall": "<corpse>,NONE"
+  },
+  "blocked": {
+   "corpse": [
+    "wall"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "wall": "battlefield",
+   "corpse": "battlefield"
+  },
+  "damage_received": {
+   "wall": 2
+  },
+  "damage": {
+   "wall": 2
+  }
+ },
+ "notes": "V40, CR 702.3b: defender only forbids attacking. Warded Battlements (0/3, Defender) is asked to block Walking Corpse (2/2) and blocks it: no damage to its controller, 2 damage marked on the wall, which survives."
+}

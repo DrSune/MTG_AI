@@ -66,7 +66,9 @@ Pack vocabulary (all keys required as noted):
               "decisions": [str...], "x": int?},      x: the announced X of an
                                             X-cost activation (CR 602.2b);
                                             absent, the X ask takes a word
-             {"op": "combat", "seat": 0|1, "attack": {key: bool},
+             {"op": "combat", "seat": 0|1, "attack": {key: bool|pwKey},
+                                            (V41: a planeswalker's pack key
+                                            attacks that planeswalker)
               "may": {key: bool},
               "block": {blockerKey: attackerKey|null}, 16c per-blocker pick
               "order": {attackerKey: [slot...]},        16c order asks
@@ -594,7 +596,13 @@ class ScenarioRunner:
         answers: dict[str, str] = {}
         queues: dict[str, list[str]] = {}
         for key, go in step.get("attack", {}).items():
-            answers[f"attack:{self.handles[key]}"] = "ATTACK" if go else "DECLINE"
+            # V41: a pack key names the planeswalker the creature attacks
+            # (its handle is the ask word); true/false keep their meaning.
+            if isinstance(go, str):
+                word = str(self.handles[go])
+            else:
+                word = "ATTACK" if go else "DECLINE"
+            answers[f"attack:{self.handles[key]}"] = word
         for key, go in step.get("may", {}).items():
             answers[f"may:{self.handles[key]}"] = "fire" if go else "skip"
         for key, go in step.get("block", {}).items():

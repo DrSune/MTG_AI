@@ -104,6 +104,8 @@ from MTG_bot.core.ability_tree import (
     Effect,
     EtBState,
     FAnd,
+    FAtom,
+    FAtomPred,
     Keyword,
     OptionalEffect,
     Phase,
@@ -259,6 +261,35 @@ _TURN_DRAW = Atom(
     args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
 )
 
+# V36 (CR 402.2): a player's maximum hand size, "normally seven". The rule
+# itself, not a tuning knob: no compiled card changes it today ("You have no
+# maximum hand size" compiles nowhere; BACKLOG B-96).
+MAX_HAND_SIZE = 7
+
+# V36 (CR 514.1, 701.9a): the cleanup step's discard, the same hand-to-
+# graveyard MOVE_ZONE shape a discard cost pays (legality.pay_costs). The
+# cards the active player chose ride in through the ``cards`` binding, so the
+# placeholder selector is never resolved.
+_CLEANUP_DISCARD = Atom(
+    verb=Verb.MOVE_ZONE,
+    args=AtomArgs(
+        pairs=(
+            (
+                "cards",
+                Selector(
+                    QConst(1),
+                    SelectorMode.TARGET,
+                    FAnd(()),
+                    zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                ),
+            ),
+            ("controller", ControllerRef.YOU),
+            ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+            ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+        )
+    ),
+)
+
 # 16b: the player-side target of one combat-damage atom — the same
 # PLAYER-zone TARGET Selector shape the player-damage tests use
 # (test_executor_verbs L200); the dealer rides ctx.source (the journal's
@@ -271,6 +302,9 @@ _PLAYER_TARGET = Selector(
     FAnd(children=()),
     zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),),
 )
+
+# V41: "a planeswalker", the live type-line test the attack options read.
+_IS_PLANESWALKER = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker")
 
 # 16c: the CARD lane of the combat-damage atom. A player-zone selector is
 # deliberately BLIND to a binding (the 16a Brash rule in role_handles), so
@@ -310,6 +344,7 @@ def _combat_damage_atom(amount: int, recipient: object) -> Atom:
 
 
 __all__ = [
+    "MAX_HAND_SIZE",
     "MAX_TRIGGER_FIRES",
     "SUPPORTED_VERBS_V1",
     "SUPPORTED_VERBS_V2",
@@ -471,6 +506,9 @@ class Executor:
         self.last_flip_won_by: Handle | None = None
         # END_TURN's deferred close (consumed by the op loop).
         self.end_turn_requested = False
+        # V37 (CR 724.1a): the journal length when the first END_TURN atom of
+        # the request ran; folded into the fingerprint while a request is open.
+        self.end_turn_mark = 0
         self._closing_turn = False
         # ------------------------------------------------- 13b stack + mana
         # The spell stack (LIFO frames, CR 405): no-interaction v1 pushes
@@ -709,8 +747,7 @@ class Executor:
         )
         start = len(self.events)
         self._run_effect(atom, ctx)
-        self._settle()
-        self._consume_end_turn()
+        self._finish_op()
         return tuple(self.events[start:])
 
     def apply_effect(
@@ -770,8 +807,7 @@ class Executor:
             )
         start = len(self.events)
         self._run_effect(effect, ctx)
-        self._settle()
-        self._consume_end_turn()
+        self._finish_op()
         return tuple(self.events[start:])
 
     @staticmethod
@@ -1566,25 +1602,94 @@ class Executor:
         self.layers.recompute()
         return fired
 
-    def _consume_end_turn(self) -> None:
+    def _finish_op(self) -> None:
+        """The end of a public op. V37 (CR 724.1): when the op's own effect
+        ended the turn, the turn ends BEFORE any settle, so the abilities
+        its resolution triggered cease to exist (724.1a) instead of
+        resolving; otherwise the settle runs, then any request a trigger
+        made during it."""
+        if not self._consume_end_turn():
+            self._settle()
+            self._consume_end_turn()
+
+    def _consume_end_turn(self) -> bool:
         """13a: an END_TURN atom only SETS the request flag (mid-op state
-        must not change under the atoms still running); the close happens at
-        the op boundary through the ONE turn skeleton, so there is exactly
-        one end-of-turn path (markers, sweeps, delayed-trigger expiry). A
-        nested apply_effect (payment step, replacement action) consuming the
-        flag first is harmless — the flag is single-shot."""
-        if not self.end_turn_requested:
-            return
+        must not change under the atoms still running); the turn ends at the
+        op boundary (:meth:`_finish_op`) through :meth:`_end_the_turn`.
+        Returns whether the turn ended here. While the end or cleanup step
+        runs (``_closing_turn``) the request is left to that step, which
+        ends the turn its own way (CR 724.1a-d); outside an open turn there
+        is no turn to end and the request is dropped."""
+        if not self.end_turn_requested or self._closing_turn:
+            return False
         self.end_turn_requested = False
-        if self.turn_open and not self._closing_turn:
-            # Re-entrancy guard: a trigger fired BY the close may itself
-            # request END_TURN; the turn is already closing, so that request
-            # is consumed as a no-op rather than recursing.
-            self._closing_turn = True
-            try:
-                self.end_turn()
-            finally:
-                self._closing_turn = False
+        if not self.turn_open:
+            return False
+        self._end_the_turn()
+        return True
+
+    def _end_the_turn(self) -> int:
+        """V37, CR 724.1: an effect ends the turn. 724.1a-d run first
+        (:meth:`_end_the_turn_process`); then the game skips straight to the
+        cleanup step (724.1d). The end step is skipped, so no END_TURN
+        marker is journalled and "at the beginning of the end step"
+        abilities do not trigger (724.1e). The triggers from the process
+        resolve in the cleanup step, and another cleanup step follows
+        (724.1f, the 514.3a loop of :meth:`_cleanup_step`). Returns the
+        firing count."""
+        self.phase = Phase.END_TURN.name  # the ending phase: no sorcery window
+        self.turn_open = False
+        self._closing_turn = True
+        try:
+            self._end_the_turn_process()
+            return self._cleanup_step()
+        finally:
+            self._closing_turn = False
+
+    def _end_the_turn_process(self) -> None:
+        """CR 724.1a-d, the part of ending the turn before its cleanup step.
+        724.1a: the abilities that triggered before the process began and
+        were never put onto the stack cease to exist. 724.1b: every object
+        on the stack is exiled. 724.1c: state-based actions are checked, and
+        no triggered ability is put onto the stack (the binder holds the
+        firings for the cleanup step). 724.1d: the current step ends; every
+        creature leaves combat."""
+        self.end_turn_requested = False
+        self.binder.cease_triggered_before(self.end_turn_mark)
+        self._exile_the_stack()
+        self.binder.hold = True
+        try:
+            self._state_checks()
+        finally:
+            self.binder.hold = False
+        self.attackers = []
+        self.attacked = {}
+        self.blocked_by = {}
+
+    def _exile_the_stack(self) -> None:
+        """CR 724.1b: every object on the stack is exiled, the resolving one
+        included. A resolving spell goes to exile at its own put
+        (stack.cast). A spell still waiting on the stack below it is exiled
+        here and its frame flagged, so the cast that pushed it never
+        resolves it; no compiled card reaches this lane today (the response
+        and combat windows never offer an END_TURN spell). Abilities are not
+        stack objects in this engine: a triggered ability resolves as it
+        fires."""
+        frames = list(self.stack.frames)
+        if not frames:
+            return
+        before = self.journal.snapshot()
+        start = len(self.events)
+        for frame in frames:
+            frame.countered = True  # removed from the stack: never resolves
+            if self.world.zone_of(frame.handle).kind == ZONE_STACK:
+                self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
+                self.events.append(
+                    (len(self.events), "MOVE", str(frame.handle), "stack->exile")
+                )
+        self._on_zone_changes(
+            self.journal.record_atom(before, None, "END_TURN", self.events[start:])
+        )
 
     def _while_eval(self, change: object, meta: object) -> bool:
         """The ledger WHILE evaluator: the condition (a state predicate,
@@ -1740,10 +1845,9 @@ class Executor:
     # the CR 704.3 honesty is the SBA sweep at every settle point between
     # the damage steps and the phase hand-off. 16c ships the blocker step
     # (CR 509), the damage-assignment asks (CR 510), TRAMPLE, DEATHTOUCH
-    # and the Herald AS_UNBLOCKED policy; the remaining documented v1
-    # limit: planeswalker attack assignment (players only — the binary
-    # attack ask names no attacked object and no corpus card needs a PW
-    # attack, doc 14).
+    # and the Herald AS_UNBLOCKED policy. V41 (2026-10-30): each attacker
+    # attacks the defending player or a planeswalker that player controls
+    # (CR 506.2, 508.1b); the attack ask names the choice.
     # v1 limits, documented per the R16-1 mandate: no chain spells, no
     # flash responses.
 
@@ -1843,16 +1947,32 @@ class Executor:
         world = self.world
         candidates = legal_attackers(self, seat)
         mandated = mandated_attackers(self, seat) & set(candidates)
+        defender = self.defending_player
+        assert defender is not None  # combat_step opens the phase with one
+        # V41 (CR 506.2, 508.1b): when the defending player controls
+        # planeswalkers, the active player announces what each attacker
+        # attacks: ATTACK is the defending player, a planeswalker's handle
+        # is that planeswalker. With none, the ask keeps its binary shape.
+        walkers = self._attackable_walkers()
         chosen: list[Handle] = []
+        attacking: dict[Handle, Handle] = {}
         for card in candidates:
             # T5-F1 (§10): a MANDATED attacker (furor/must-attack) has a
             # one-word surface — not a decision. The phantom gate consumes
             # ATTACK silently and journals it; the pack/provider cannot
-            # decline what CR forces, and no 1-candidate ask is billed.
-            vocab = ("ATTACK",) if card in mandated else ("ATTACK", "DECLINE")
+            # decline what CR forces, and no 1-candidate ask is billed. It
+            # still chooses what it attacks (CR 508.1d).
+            vocab = ("ATTACK",) + tuple(str(w) for w in walkers)
+            if card not in mandated:
+                vocab += ("DECLINE",)
             ctx = self._ctx(source=card, controller=seat, bindings=None, decisions=())
-            if offer_or_autopick(ctx, vocab, f"attack:{card}:{world.turn}") == "ATTACK":
-                chosen.append(card)
+            answer = offer_or_autopick(ctx, vocab, f"attack:{card}:{world.turn}")
+            if answer == "DECLINE":
+                continue
+            chosen.append(card)
+            attacking[card] = next(
+                (w for w in walkers if str(w) == answer), defender
+            )
         # Whole-set validation of the ASSEMBLED set. The asks mutate no
         # state, so re-deriving legality is a re-check and the mandate
         # inclusion was narrowed at the ask - either failure here is an
@@ -1872,11 +1992,9 @@ class Executor:
             )
         if not chosen:
             return
-        defender = self.defending_player
-        assert defender is not None  # combat_step opens the phase with one
         for card in chosen:
             self.attackers.append(card)
-            self.attacked[card] = defender
+            self.attacked[card] = attacking[card]
             if self.layers.keyword_of(card, Keyword.VIGILANCE):
                 continue
             world.cards[card].tapped = True
@@ -2114,7 +2232,22 @@ class Executor:
         if self.defending_player is None or creature in self.attackers:
             return
         self.attackers.append(creature)
-        self.attacked[creature] = self.defending_player
+        # V41, CR 508.4: its controller chooses what it attacks, the
+        # defending player or a planeswalker that player controls (the
+        # corpus' "tapped and attacking" effects never say which).
+        walkers = self._attackable_walkers()
+        target = self.defending_player
+        if walkers:
+            ctx = self._ctx(
+                source=creature,
+                controller=self.controller_of(creature),
+                bindings=None,
+                decisions=(),
+            )
+            vocab = ("ATTACK",) + tuple(str(w) for w in walkers)
+            answer = offer_or_autopick(ctx, vocab, f"attack:{creature}:{self.world.turn}")
+            target = next((w for w in walkers if str(w) == answer), target)
+        self.attacked[creature] = target
         self.journal.emit(
             KIND_DECLARE_ATTACKERS,
             creature,
@@ -2122,6 +2255,29 @@ class Executor:
             "ATTACK_STEP",
             (self._declare_group,),
         )
+
+    def _attackable_walkers(self) -> list[Handle]:
+        """V41 (CR 506.2, 506.3): the planeswalkers a creature may attack this
+        combat, Handle-sorted: those the defending player controls."""
+        return sorted(
+            card
+            for player in self.world.player_order
+            for card in self.world.players[player].zone(ZONE_BATTLEFIELD).entries
+            if self._attacked_walker_live(card)
+        )
+
+    def _attacked_walker_live(self, card: Handle) -> bool:
+        """Is ``card`` a planeswalker the defending player controls, on the
+        battlefield and phased in? A planeswalker being attacked that stops
+        being one is removed from combat (CR 506.4): it left the battlefield,
+        changed controller, phased out or stopped being a planeswalker."""
+        world = self.world
+        if card not in world.cards or world.zone_of(card).kind != ZONE_BATTLEFIELD:
+            return False
+        if card in self.phased_out or self.controller_of(card) != self.defending_player:
+            return False
+        ctx = self._ctx(source=card, controller=self.controller_of(card), bindings=None, decisions=())
+        return eval_filter(_IS_PLANESWALKER, card, ctx)
 
     def _live_attackers(self, seat: Handle) -> list[Handle]:
         """The attack record minus anything that left or changed sides -
@@ -2192,9 +2348,11 @@ class Executor:
     ) -> tuple[tuple[int, Handle], ...]:
         """CR 510.1 v1 (16c): one dealer's legal assignment announcement.
 
-        * UNBLOCKED: everything to the ATTACKED object (v1: the defending
-          player — planeswalker attacking is the documented players-only
-          boundary, doc 14).
+        * UNBLOCKED: everything to the ATTACKED object, the defending player
+          or a planeswalker (V41, CR 510.1b). A creature whose planeswalker
+          was removed from combat attacks nothing (CR 506.4c) and, unblocked,
+          assigns no combat damage; with trample its excess can only go to
+          its blockers (CR 702.19b, 702.19f).
         * BLOCKED, but every blocker has left combat (B-61): the creature
           is still blocked (CR 509.1h), so it assigns NO combat damage
           (CR 510.1c), unless it has trample, which assigns all of it to
@@ -2244,9 +2402,15 @@ class Executor:
             ):
                 return ()
             return ((power, blocked),)
-        attacked = self.attacked.get(dealer, defender)
+        attacked: Handle | None = self.attacked.get(dealer, defender)
+        if (
+            attacked is not None
+            and attacked.namespace == "card"
+            and not self._attacked_walker_live(attacked)
+        ):
+            attacked = None  # V41, CR 506.4c: attacking nothing now
         if dealer not in self.blocked_by:
-            return ((power, attacked),)  # unblocked
+            return ((power, attacked),) if attacked is not None else ()  # unblocked
         # B-61, CR 509.1h: the blocked_by entry outlives its blockers (a
         # departing blocker is removed from the list, the key stays), so an
         # empty live list here still means BLOCKED.
@@ -2256,7 +2420,8 @@ class Executor:
             if b in world.cards and world.zone_of(b).kind == ZONE_BATTLEFIELD
         ]
         if not blockers and self.layers.keyword_of(dealer, Keyword.TRAMPLE):
-            return ((power, attacked),)  # CR 702.19e: all of it tramples over
+            # CR 702.19d: all of it tramples over (nothing left: no damage)
+            return ((power, attacked),) if attacked is not None else ()
         as_unblocked = (
             self.layers.policy_as_unblocked(dealer)
             or self.damage_policies.get(dealer) == "AS_UNBLOCKED"
@@ -2274,7 +2439,7 @@ class Executor:
                 )
                 == "UNBLOCKED"
             ):
-                return ((power, attacked),)
+                return ((power, attacked),) if attacked is not None else ()
         if not blockers:
             # B-61, CR 510.1c: blocked with no creature blocking it, no
             # trample: it assigns no combat damage. Before the fix this
@@ -2358,8 +2523,18 @@ class Executor:
                 else:
                     plan.append((give, b))
                 excess -= give
-        if excess:
+        if excess and attacked is not None:
             plan.append((excess, attacked))
+        elif excess:
+            # V41, CR 702.19b/f: its planeswalker left combat, so the excess
+            # can only go to the blockers: the last one in order takes it.
+            last = ordered[-1]
+            for i, (a, h) in enumerate(plan):
+                if h == last:
+                    plan[i] = (a + excess, last)
+                    break
+            else:
+                plan.append((excess, last))
         # CR 510.1: damage assignment is simultaneous within the step; the
         # canonical row order keeps the journal deterministic.
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
@@ -2461,33 +2636,104 @@ class Executor:
         return self.begin_turn(nxt)
 
     def end_turn(self) -> int:
-        """END_TURN marker FIRST (end-step triggers see the pre-expiry
-        state), trigger drain, THEN the end-of-turn expiry sweep: Eot
-        ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
-        grants die here) and Eot-tagged PREVENTION records, and the
-        turn-window delayed triggers (C22). Returns the firing count."""
+        """The end step, then the cleanup step. END_TURN marker FIRST
+        (end-step triggers see the pre-expiry state), trigger drain, THEN
+        :meth:`_cleanup_step`. Returns the firing count.
+
+        V37: a turn that is already over does nothing: an effect ended it
+        (CR 724.1 skipped its end step and ran its cleanup step), or its end
+        step already ran. Drivers call this once per turn whatever happened
+        in it. An effect that ends the turn during the end step skips the
+        rest of that step (CR 724.1a-c) before the cleanup step."""
+        if self._turn_started and not self.turn_open:
+            return 0
         self.phase = Phase.END_TURN.name
         self.turn_open = False
-        self.journal.record_turn_phase(Phase.END_TURN.name)
-        fired = self._settle()
-        self.ledger.sweep_at_eot()
-        self.layers.sweep_at_eot()
-        self.replacements.sweep_at_eot()
-        self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
-        self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
-        self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
-        # R5-1 (CR 514.2, 610.3): zone moves "until end of turn" return in the
-        # cleanup step, and what their return triggers resolves (514.3a).
-        returning = self.returns.end_eot()
-        if returning:
-            self._run_returns(returning)
-            fired += self._settle()
-        self.binder.expire_delayed()
-        # Rebuild the oracles after the sweep — a granted keyword that
-        # expired at end of turn must not survive into next turn's
-        # keyword_of/legal_activations.
-        self.layers.recompute()
-        return fired
+        self._closing_turn = True
+        try:
+            self.journal.record_turn_phase(Phase.END_TURN.name)
+            fired = self._settle()
+            if self.end_turn_requested:
+                self._end_the_turn_process()
+            return fired + self._cleanup_step()
+        finally:
+            self._closing_turn = False
+
+    def _cleanup_step(self) -> int:
+        """The cleanup step (CR 514), repeated while 514.3a finds work.
+
+        514.1: the active player discards down to their maximum hand size
+        (:meth:`_discard_to_hand_size`). 514.2: the end-of-turn expiry sweep:
+        Eot ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
+        grants die here) and Eot-tagged PREVENTION records, the turn-window
+        delayed triggers (C22), marked damage, and the zone moves "until end
+        of turn" return (R5-1, CR 610.3). 514.3a: then state-based
+        actions and the triggers waiting (a discard's, say) are handled; when
+        anything happened another cleanup step begins. The discard runs no
+        settle of its own, so its triggers resolve after the 514.2 sweep, as
+        514.3a orders. Returns the firing count."""
+        fired = 0
+        while True:
+            self._discard_to_hand_size()
+            self.ledger.sweep_at_eot()
+            self.layers.sweep_at_eot()
+            self.replacements.sweep_at_eot()
+            self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
+            self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
+            self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
+            # R5-1 (CR 514.2, 610.3): zone moves "until end of turn" return in the
+            # cleanup step, and what their return triggers resolves (514.3a).
+            returned = 0
+            returning = self.returns.end_eot()
+            if returning:
+                self._run_returns(returning)
+                returned = self._settle()
+            fired += returned
+            self.binder.expire_delayed()
+            # Rebuild the oracles after the sweep — a granted keyword that
+            # expired at end of turn must not survive into next turn's
+            # keyword_of/legal_activations.
+            self.layers.recompute()
+            journalled = len(self.journal.events)
+            settled = self._settle()  # CR 514.3a
+            fired += settled
+            if self.end_turn_requested:
+                # V37, CR 724.1d: an effect ended the turn during the cleanup
+                # step; 724.1a-c, then a new cleanup step begins.
+                self._end_the_turn_process()
+                continue
+            if not (settled or returned) and len(self.journal.events) == journalled:
+                return fired
+
+    def _discard_to_hand_size(self) -> None:
+        """CR 514.1 (a turn-based action, no stack): the active player
+        discards down to :data:`MAX_HAND_SIZE` (CR 402.2). The player
+        chooses the cards (CR 701.9b): one ask per excess card over the rest
+        of the hand, under the discard cost's key shape
+        ``discard:<seat>:cleanup:<digest>`` (legality.pay_costs). Every ask
+        offers at least eight cards, so none is a forced pick. The chosen
+        cards then go to the graveyard together (CR 701.9a) as one journalled
+        atom boundary; the triggers they cause wait for the 514.3a settle."""
+        player = self.world.active_player
+        if player is None:
+            return
+        hand = self.world.players[player].zone(ZONE_HAND).entries
+        excess = len(hand) - MAX_HAND_SIZE
+        if excess <= 0:
+            return
+        ctx = self._ctx(source=player, controller=player, bindings=None, decisions=())
+        remaining = sorted(hand)
+        chosen: list[Handle] = []
+        for _pick in range(excess):
+            vocab = tuple(str(card) for card in remaining)
+            answer = ctx.take_decision(
+                vocab, f"discard:{player}:cleanup:{site_digest(vocab)}"
+            )
+            pick = next(card for card in remaining if str(card) == answer)
+            chosen.append(pick)
+            remaining.remove(pick)
+        ctx.bindings["cards"] = sorted(chosen)
+        self._run_effect(_CLEANUP_DISCARD, ctx)
 
     # ---------------------------------------------------- 13c emblem / attach
 
@@ -2817,7 +3063,9 @@ class Executor:
                     tuple(self.lost_players),
                     tuple(sorted(self.loyalty_clock.items())),
                     self.last_flip_won_by,
-                    self.end_turn_requested,
+                    # V37: the CR 724.1a mark rides the flag while a request
+                    # is open; with none open the bytes are the old False.
+                    self.end_turn_mark if self.end_turn_requested else False,
                 )
             ).encode()
         )

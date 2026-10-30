@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Quirion Dryad, printed 'Whenever you cast a spell that's white, blue, black, or red, put a +1/+1 counter on this creature.' Lorescale Coatl ({1}{G}{U}) is green AND blue, so it is a spell that's blue. Expected: the Dryad gets one +1/+1 counter (2/2). A subset colour test (COLOR_IN) rejects it because of the green.",
+ "cards": [
+  {"key": "dryad", "real": "Quirion Dryad", "zone": "battlefield", "controller": 0},
+  {"key": "coatl", "real": "Lorescale Coatl", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Lorescale Coatl", "key": "coatl"}
+ ],
+ "expect": {"zone": {"coatl": "battlefield"}, "counters": {"dryad": {"PLUS_1_PLUS_1": 1}}, "power": {"dryad": 2}, "toughness": {"dryad": 2}}}

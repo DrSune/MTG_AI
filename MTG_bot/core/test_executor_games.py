@@ -2469,10 +2469,24 @@ class StallRuleTest(unittest.TestCase):
         # its world changing every round (141 acts), so the stall rule still
         # must not and does not fire (double-run replay verified: same
         # fingerprint, turns and reason).
+        # re-pinned 2026-10-29: V36 changes the cleanup step: the active
+        # player now discards down to seven (CR 514.1), asking the policy
+        # which cards, so hands no longer grow without limit and the seeded
+        # trajectory shifts. Still crash-free and decisive, SAME loser,
+        # 58 turns (double-run replay verified, equal fingerprints).
+        # re-pinned 2026-10-29: V37 changes "end the turn" (CR 724.1): player 1
+        # casts Discontinuity here, which now skips the end step (it used to
+        # run two) and closes that turn's act window. Still crash-free and
+        # decisive, SAME loser, 50 turns (double-run replay verified, equal
+        # fingerprints).
+        # re-pinned 2026-10-29 (cards/integration merged into engine/verify-fixes-4):
+        # with m21-fidelity, V36 and V37 together the game is decisive again,
+        # SAME loser as before, 50 turns (double-run replay verified, equal
+        # fingerprints).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 60)
-        self.assertEqual(game.reason, "turn cap 60 reached (no loser)")
+        self.assertEqual(game.turns, 50)
+        self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

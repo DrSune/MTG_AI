@@ -426,14 +426,18 @@ class TestEndTurn(LibraryCase):
         self._do(atom(Verb.END_TURN))
         self.assertFalse(self.ex.turn_open)
         self.assertEqual(self.ex.phase, "END_TURN")
-        self.assertEqual(self._markers().count("END_TURN"), 1)
+        # re-pinned 2026-10-29: V37 changes "end the turn": the game skips the
+        # end step (CR 724.1d-e), so no END_TURN marker is journalled (was 1).
+        self.assertEqual(self._markers().count("END_TURN"), 0)
         self.assertFalse(self.ex.end_turn_requested)  # consumed at the op edge
 
     def test_advance_turn_after_early_end_turn_no_duplicate_marker(self):
         self.ex.begin_turn(self.p0)
         self._do(atom(Verb.END_TURN))
         self.ex.advance_turn()
-        self.assertEqual(self._markers().count("END_TURN"), 1)
+        # re-pinned 2026-10-29: V37 changes "end the turn": no end step, so no
+        # END_TURN marker at all (was 1), and advance_turn adds none.
+        self.assertEqual(self._markers().count("END_TURN"), 0)
         self.assertIs(self.world.active_player, self.p1)
         self.assertEqual(self.ex.phase, "FIRST_MAIN")
 

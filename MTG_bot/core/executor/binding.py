@@ -402,6 +402,11 @@ class TriggerBinder:
         # queued the firing. Non-death departures (bounce/exile/hand) have
         # no dies row and detach on the spot, exactly as before.
         self._pending_dies_detach: set[Handle] = set()
+        # V37 (CR 724.1c): while an effect ends the turn, state-based actions
+        # are checked but no triggered ability is put onto the stack; the
+        # firings stay queued for the cleanup step (724.1f). Set and cleared
+        # inside one Executor call, so never set between ops.
+        self.hold = False
 
     # ------------------------------------------------------------ attach
 
@@ -631,16 +636,19 @@ class TriggerBinder:
 
     # ------------------------------------------------------------ matching
 
-    def on_events(self) -> None:
+    def on_events(self, upto: int | None = None) -> None:
         """Match every not-yet-seen journalled event against the attached
         triggers and the scheduled delayed triggers, queueing one
         TriggerInstance per match. The attach/detach lifecycle rides the
         same pass in journal order: a permanent ENTERING re-registers
         before matching (its own ETB trigger is live — IS_SOURCE sees it),
         a permanent LEAVING detaches only after matching (its own dies
-        trigger still fires)."""
+        trigger still fires). ``upto`` (V37) stops before that journal
+        position; it always falls between two atom boundaries, so it never
+        splits a zone change from its dies row."""
         events = self.executor.journal.events
-        while self._seen_journal_len < len(events):
+        end = len(events) if upto is None else min(upto, len(events))
+        while self._seen_journal_len < end:
             event = events[self._seen_journal_len]
             self._seen_journal_len += 1
             self._lifecycle(event, attach=True)
@@ -978,8 +986,8 @@ class TriggerBinder:
             # 16b: the attack feed. The filter reads the DECLARED creature
             # (IS_SOURCE = "whenever this creature attacks"); the optional
             # ``attacked`` filter (R10-3) reads the attacker's ATTACKED
-            # object off the executor's attack record — v1: every attacker
-            # attacks the defending player (planeswalker attacks are 16c).
+            # object off the executor's attack record: the defending player
+            # or a planeswalker that player controls (V41, CR 508.1b).
             assert event.subject is not None  # the row names the attacker
             ctx = self._match_ctx(source, controller, event)
             if node.attacked is not None:
@@ -1087,9 +1095,9 @@ class TriggerBinder:
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
         whose controller ref scopes the caster, not the zone's owner: the
         cast came from the caster's zones). The filter reads the SPELL
-        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_IN over
-        it, which is exactly Quirion Dryad's compiled "colored spell"
-        filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
+        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_HAS over
+        it; Quirion Dryad's "a spell that's white, blue, black, or red" is
+        the FOr of COLOR_HAS W/U/B/R (V39: any of them, CR 105.2)."""
         caster, ordinal, _kind, from_zone, _x, _kicked = event.cast
         ctx = self._match_ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
@@ -1251,6 +1259,8 @@ class TriggerBinder:
         vocabulary-addressed decision channel (per-(vocab, what) FIFO /
         ask-time provider), so a trigger the op itself armed mid-drain is
         answerable exactly like one that was already pending."""
+        if self.hold:
+            return 0  # V37, CR 724.1c: no triggered ability is put onto the stack
         fired = 0
         per_source: dict[Handle, int] = {}
         while self.world.triggers:
@@ -1319,6 +1329,20 @@ class TriggerBinder:
         chosen = ordered[0]
         self.world.triggers.remove(chosen)
         return chosen
+
+    def cease_triggered_before(self, mark: int) -> int:
+        """V37, CR 724.1a: when an effect ends the turn, the abilities that
+        triggered before that process began and were never put onto the
+        stack cease to exist. The journal rows before ``mark`` (where the
+        END_TURN atom ran) are matched first, so the attach/detach lifecycle
+        still runs for them; then every queued firing is dropped, those and
+        any a drain had not reached yet. Returns how many ceased."""
+        self.on_events(upto=mark)
+        ceased = list(self.world.triggers)
+        for instance in ceased:
+            self.world.triggers.remove(instance)
+            self.firings.pop(instance.clock, None)
+        return len(ceased)
 
     def _fire(self, payload: _Firing) -> None:
         """One trigger resolution: the condition gate, the 18b TARGET-

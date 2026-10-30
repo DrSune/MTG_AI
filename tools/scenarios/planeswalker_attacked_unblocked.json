@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lili",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "corpse"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "corpse": "lili"
+   }
+  }
+ ],
+ "expect": {
+  "asks": {
+   "corpse": "ATTACK,<lili>,DECLINE"
+  },
+  "attackers": {
+   "corpse": true
+  },
+  "counters": {
+   "lili": {
+    "LOYALTY": 2
+   }
+  },
+  "zone": {
+   "lili": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "V41, CR 506.2, 508.1b: the defending player controls Liliana, Waker of the Dead (loyalty 4), so the attack ask names what Walking Corpse attacks: the player (ATTACK) or Liliana. It attacks Liliana unblocked; its 2 combat damage removes 2 loyalty counters (CR 120.3c, 510.1b) and the player loses no life."
+}

@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tw", "real": "Twinblade Assassins", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "sr", "real": "Swift Response", "zone": "hand", "controller": 0},
+  {"key": "disc", "real": "Discontinuity", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2, "U": 2}},
+ "steps": [
+  {"op": "cast", "real": "Swift Response", "key": "sr", "targets": ["victim"]},
+  {"op": "cast", "real": "Discontinuity", "key": "disc"}
+ ],
+ "expect": {
+  "zone": {"victim": "graveyard", "disc": "exile"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed Discontinuity: 'End the turn.' CR 724.1d-e: the game skips straight to the cleanup step, so 'at the beginning of the end step' abilities do not trigger. A creature died this turn, but Twinblade Assassins ('At the beginning of your end step, if a creature died this turn, draw a card') must not draw: hand stays empty, library untouched."
+}
