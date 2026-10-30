@@ -179,6 +179,10 @@ _DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
 # union check is complete at AtomArgs level.
 _MOVE_JOURNAL_KINDS = ("MOVE", "MILL")
 _MOVE_POP_ORDERS = ("TOP",)
+# _STACK_KINDS (ontology R5-10): the closed string vocabulary of
+# FAtomPred.STACK_KIND_EQ — the three kinds of stack object (CR 405.1: spells,
+# activated abilities, triggered abilities).
+_STACK_KINDS = ("ACTIVATED", "SPELL", "TRIGGERED")
 
 
 # ---- Closed vocabularies (enums) ----
@@ -718,6 +722,14 @@ class FAtomPred(Enum):
         # Chronicler, /95 G2). No slots (precedent: WAS_KICKED). Registered
         # this round; its template consumers arrive with the reveal-menu
         # shapes (gap ledger). CR 608.2f: distinct from WAS_KICKED.
+    )
+    STACK_KIND_EQ = (
+        "STACK_KIND_EQ"  # ontology R5-10: what a stack object is — "counter
+        # target SPELL" vs "counter target ACTIVATED or TRIGGERED ability"
+        # (CR 405.1, 113.7a: abilities on the stack are not spells). The
+        # required string_value is the closed vocabulary _STACK_KINDS
+        # (SPELL / ACTIVATED / TRIGGERED); validated per predicate
+        # (_FATOM_STRING_VOCAB).
     )
 
 
@@ -1526,6 +1538,14 @@ class FAtom:
                 f"FAtom: referent must be one of _QPROP_STR_REFERENTS, got {self.referent!r}"
             )
 
+        vocab = _FATOM_STRING_VOCAB.get(self.pred)
+        if vocab is not None and self.string_value is not None and self.string_value not in vocab:
+            # R5-10: a closed-vocabulary predicate's string_value is a token of
+            # its vocabulary, never free text (TYPE_EQ/NAME_EQ stay open data).
+            raise ValueError(
+                f"FAtom: {self.pred.name} string_value must be one of {vocab}, "
+                f"got {self.string_value!r}"
+            )
         required, allowed = _FATOM_RULES[self.pred]
         for slot in (
             "string_value",
@@ -3583,6 +3603,8 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.WAS_KICKED: (frozenset(), frozenset()),
     # HAS_KICKER (ZND-1 G2, /95): the card HAS a kicker cost. No slots.
     FAtomPred.HAS_KICKER: (frozenset(), frozenset()),
+    # STACK_KIND_EQ (ontology R5-10): string_value from _STACK_KINDS only.
+    FAtomPred.STACK_KIND_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
     FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
     FAtomPred.POWER_LE: (frozenset({"count"}), frozenset({"count"})),
     FAtomPred.POWER_GE: (frozenset({"count"}), frozenset({"count"})),
@@ -3716,6 +3738,15 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
 # (data); "color" is a WUBRG string plus colourless "C" and (grammar round
 # 8, R8-3) "ANY" = "mana of any one color" — a choice among WUBRG, distinct
 # from colourless "C" (validated in AtomArgs.__post_init__).
+# Per-predicate closed vocabularies for FAtom.string_value (ontology R5-10).
+# A predicate listed here takes only these tokens; every other string_value
+# predicate (TYPE_EQ, SUBTYPE_EQ, SUPERTYPE_EQ, NAME_EQ, NAME_CONTAINS) reads
+# open card data (type, subtype and card names).
+_FATOM_STRING_VOCAB: dict[FAtomPred, tuple[str, ...]] = {
+    FAtomPred.STACK_KIND_EQ: _STACK_KINDS,
+}
+
+
 _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "target": (Selector,),
     "source": (Selector,),

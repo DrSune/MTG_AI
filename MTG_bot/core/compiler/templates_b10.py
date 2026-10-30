@@ -92,6 +92,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b5a import target_spell
 from MTG_bot.core.compiler.templates_b6 import _draw_a_card, _self_selector
 
 _BUCKET: Final[str] = "B10"
@@ -308,15 +309,8 @@ def _build_counter_unless_cw_pw(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.COUNTER_SPELL,
             args=AtomArgs(
                 pairs=(
-                    (
-                        "target",
-                        Selector(
-                            QConst(1),
-                            SelectorMode.TARGET,
-                            filter_,
-                            zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                        ),
-                    ),
+                    # R5-10: STACK_KIND_EQ SPELL ANDed with the type restriction.
+                    ("target", target_spell(filter_)),
                     (
                         "unless",
                         Cost(

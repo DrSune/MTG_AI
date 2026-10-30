@@ -886,6 +886,22 @@ These are forks, not tasks. See the report that accompanied this audit.
   - After `engine/verify-fixes` merges: its B-90 payment witness picks mana sources through
     `ability_playable` and taps them through `activate()`, so an ANY lock already skips a locked
     mana source and each tap journals its row. Pin that with a test at the merge.
+- **B-106 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: abilities never sit on the
+  stack, so "counter target activated or triggered ability" has no legal target** (engine gap).
+  - Done: `FAtom(STACK_KIND_EQ, string_value)` with the closed vocabulary SPELL / ACTIVATED /
+    TRIGGERED (validated per predicate, `ability_tree._FATOM_STRING_VOCAB`); every compiled "counter
+    target … spell" carries SPELL (26 cards in the 19 sets, 5 M21 goldens); the counter window
+    asks a Choose-based counterspell's mode set, then its targets (`stack._declare_modal_counter`).
+  - Gap: `activate()` and the trigger drain resolve abilities at once (CR 602.2 and 603.3 put
+    them on the stack), so STACK_KIND_EQ ACTIVATED/TRIGGERED holds for nothing. Sublime Epiphany's
+    second mode and Tale's End's ability half are never offered (CR 700.2a), which is weaker than
+    printed. Remove with the priority and stack rung: abilities as stack objects.
+  - Not done (outside R5-10's registered blast radius): M21 Unsubstantiate's "Return target spell
+    or creature" compiles the spell half as `FNot(IS_PERMANENT)` over the stack, so it cannot take
+    an artifact, enchantment or planeswalker spell (weaker than printed, latent: no window offers it
+    with a spell on the stack). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature)`, one golden.
+  - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
+    bullets only when every option set is one mode); it is representable but not described.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

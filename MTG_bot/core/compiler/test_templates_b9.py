@@ -493,10 +493,14 @@ class TestB9Trees(unittest.TestCase):
         self.assertIs(atom_.verb, Verb.COUNTER_SPELL)
         selector = _pairs(atom_)["target"]
         self.assertIs(selector.zones[0].kind, ZoneKind.STACK)
-        # R1a canonicalization (emission-side unwrap, ontology §6 V2′): the
-        # lone negation is emitted BARE — the filter IS the FNot, no 1-child
-        # FAnd wrapper around it (a stronger pin than children[0] was).
-        neg = selector.filter
+        # R1a canonicalization (emission-side unwrap, ontology §6 V2′): no
+        # 1-child FAnd wrapper. re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ
+        # SPELL with the negation, so the filter is a real 2-child FAnd and
+        # the negation inside it is bare.
+        self.assertIsInstance(selector.filter, FAnd)
+        self.assertEqual(len(selector.filter.children), 2)
+        kind, neg = sorted(selector.filter.children, key=lambda c: isinstance(c, FNot))
+        self.assertEqual(kind, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"))
         self.assertIsInstance(neg, FNot)
         self.assertIs(neg.inner.pred, FAtomPred.TYPE_EQ)
         self.assertEqual(neg.inner.string_value, "Creature")

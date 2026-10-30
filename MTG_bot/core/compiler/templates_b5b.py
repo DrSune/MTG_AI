@@ -175,6 +175,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b5a import target_spell
 
 _BUCKET = "B5b"
 _PRIORITY = 100
@@ -1338,15 +1339,8 @@ def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(
             pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
+                # R5-10: the first sentence's "target spell" (STACK_KIND_EQ SPELL)
+                ("target", target_spell()),
                 ("unless", Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),))),
             )
         ),

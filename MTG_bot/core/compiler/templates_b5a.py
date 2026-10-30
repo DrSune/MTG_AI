@@ -274,22 +274,47 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
 
+#: Ontology R5-10: "spell" names a stack object's kind (CR 405.1, 111.1/112.1).
+SPELL_ON_STACK: Final = FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
+
+
+def target_spell(filter_: Filter | None = None) -> Selector:
+    """"target [filter] spell": the one STACK-zone TARGET selector every
+    counterspell template builds (ontology R5-10). The spell kind is an
+    explicit STACK_KIND_EQ SPELL atom, ANDed with the printed restriction
+    ("noncreature", "instant or sorcery"); a bare "target spell" is the lone
+    atom (a one-child FAnd is a phantom wrapper, ontology §6 V2′)."""
+    if filter_ is None or filter_ == FAnd(children=()):
+        kind: Filter = SPELL_ON_STACK
+    else:
+        kind = FAnd(children=(SPELL_ON_STACK, filter_))
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        kind,
+        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+    )
+
+
+def target_stack_ability(*kinds: str) -> Selector:
+    """"target activated or triggered ability" (ontology R5-10): a STACK-zone
+    TARGET selector whose object is an ability of one of ``kinds``
+    ("ACTIVATED", "TRIGGERED"). This engine never puts an ability on the
+    stack, so the selector has no legal candidate today (BACKLOG B-106)."""
+    atoms = tuple(FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value=k) for k in kinds)
+    kind: Filter = atoms[0] if len(atoms) == 1 else FOr(children=atoms)
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        kind,
+        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+    )
+
+
 def _build_counter_spell(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
-            )
-        ),
+        args=AtomArgs(pairs=(("target", target_spell()),)),
     )
     return EffectOutcome(effect=atom)
 
@@ -360,15 +385,7 @@ def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(
             pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        target_filter,
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
+                ("target", target_spell(target_filter)),
                 (
                     "unless",
                     Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)),
