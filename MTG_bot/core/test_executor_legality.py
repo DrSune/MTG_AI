@@ -809,5 +809,44 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.assertFalse(any(self.world.cards[h].tapped for h in self.world.cards))
 
 
+
+class TestSelflessSaviorAnotherTarget(unittest.TestCase):
+    """V5 (2026-10-29): Selfless Savior's "Sacrifice this creature: Another
+    target creature you control gains indestructible until end of turn."
+    "Another" excludes the Savior itself, so alone it has no legal target and
+    its ability is not a free sacrifice outlet (CR 601.2c, 602.2b)."""
+
+    def setUp(self):
+        from MTG_bot.core.executor.games import get_supply, identity_of
+
+        supply = get_supply("all", "M21")
+        record = next(
+            supply.pool.results[o].card
+            for o, m in supply.metas.items()
+            if m.name == "Selfless Savior"
+        )
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=13)
+        self.p0 = self.world.player_order[0]
+        self.savior = self.world.add_card(identity_of(record), self.p0, ZONE_BATTLEFIELD)
+        self.ex = Executor(self.world)
+        self.ex.attach_card(self.savior, record)
+        self.ability = record.abilities[0]
+
+    def candidates(self):
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        (slot,) = activation_target_slots(
+            self.ex, self.ability.effect, source=self.savior, seat=self.p0
+        )
+        return slot.candidates
+
+    def test_alone_it_has_no_legal_target(self):
+        self.assertEqual(self.candidates(), ())
+
+    def test_another_creature_you_control_is_the_target(self):
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.assertEqual(self.candidates(), (bear,))
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

@@ -696,6 +696,12 @@ def _build_return_spell_creature_owner_hand(m: re.Match[str]) -> SentenceOutcome
 
 
 def _build_sacr_grant(m: re.Match[str]) -> SentenceOutcome:
+    """Selfless Savior: "Sacrifice this creature: Another target creature you
+    control gains indestructible until end of turn." V5 (2026-10-29):
+    "Another" is FNot(IS_SOURCE), the Niambi encoding of "another target
+    creature you control"; without it the Savior could target itself, so alone
+    it was a free sacrifice outlet (CR 601.2c, 602.2b: only an appropriate
+    target can be chosen)."""
     effect = Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -711,6 +717,7 @@ def _build_sacr_grant(m: re.Match[str]) -> SentenceOutcome:
                                 FAtom(
                                     pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
                                 ),
+                                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                             )
                         ),
                         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),

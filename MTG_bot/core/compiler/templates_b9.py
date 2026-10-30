@@ -131,8 +131,8 @@ def _target_creature() -> Selector:
 
 
 def _target_creature_you_control() -> Selector:
-    """``target creature you control`` — verbatim the executed
-    B5b-sacr-grant selector (carrier: templates_b5b._build_sacr_grant)."""
+    """``target creature you control`` — the executed B5b-sacr-grant selector
+    without its "Another" clause (carrier: templates_b5b._build_sacr_grant)."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
