@@ -1,0 +1,18 @@
+{"set": "M21", "world": {"life": 20, "seed": 11},
+ "notes": "G2 wave 5, packet P1625e1e6ed. Printed: 'Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.' Seat 0's library holds a Forest, an Island, a nonbasic land and a creature; seat 1's library holds a Forest. I find the Forest and the Island and put the Island onto the battlefield: it enters TAPPED and the Forest goes to my hand. The nonbasic land, the creature and the opponent's Forest stay in their libraries. Top Junk is listed last so the runner's opening draw puts it in hand (the cultivate_four_basics convention): hand after = Top Junk + Forest = 2.",
+ "cards": [
+  {"key": "cv", "real": "Cultivate", "zone": "hand", "controller": 0},
+  {"key": "fo", "name": "Forest", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "is", "name": "Island", "type": "Basic Land — Island", "zone": "library", "controller": 0},
+  {"key": "nb", "name": "Temple of Nothing", "type": "Land", "zone": "library", "controller": 0},
+  {"key": "cr", "name": "Library Beast", "power": "2", "toughness": "2", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "opp_fo", "name": "Forest", "type": "Basic Land — Forest", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [{"op": "cast", "real": "Cultivate", "key": "cv", "decisions": ["is"]}],
+ "expect": {
+  "zone": {"cv": "graveyard", "is": "battlefield", "fo": "hand", "nb": "library", "cr": "library", "opp_fo": "library", "junk": "hand"},
+  "tapped": {"is": true},
+  "hand": {"0": 2, "1": 0}
+ }}

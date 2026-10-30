@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (the searched graveyard's controller, option 0). Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand.' The controller chooses to search your library AND graveyard. Your graveyard holds a copy and so does the opponent's; your copy is found and goes to your hand, the opponent's stays in their graveyard.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Chandra's Firemaw",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "src",
+   "decisions": [
+    "fire",
+    "0",
+    "mine"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "battlefield",
+   "mine": "hand",
+   "theirs": "graveyard"
+  }
+ }
+}

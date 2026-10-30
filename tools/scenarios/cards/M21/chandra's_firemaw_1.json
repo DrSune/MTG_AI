@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet Pa890036926. Printed: 'Haste'. The Firemaw (4/2) enters from my hand this turn (journalled, so the summoning-sickness clock sees it; I decline the may search) and attacks in the same turn: haste lets it attack, nobody blocks, and seat 1 takes 4 (20 -> 16). A control creature that also entered this turn without haste is not asked to attack (and deals nothing).",
+ "cards": [
+  {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
+  {"key": "slow", "name": "Fresh Ox", "type": "Creature — Ox", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "fm", "decisions": ["skip"]},
+  {"op": "enter", "key": "slow"},
+  {"op": "combat", "seat": 0, "attack": {"fm": true, "slow": true}}
+ ],
+ "expect": {"zone": {"fm": "battlefield", "slow": "battlefield"}, "attackers": {"fm": true, "slow": false}, "not_asked": ["slow"], "life": {"0": 20, "1": 16}}}

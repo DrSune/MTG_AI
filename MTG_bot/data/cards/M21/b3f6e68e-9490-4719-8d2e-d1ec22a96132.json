@@ -5,28 +5,28 @@
  "name": "Teferi's Wavecaster",
  "text_sha": "f43f72c787c31129b63b23de06f3c3eec381fa4a07fa218c0f1f83f2a5e46d74",
  "verified": {
-  "tree_sha": "b9ef718e1fc5efea785611dc604871e38c6d5bab7460b898a84291daec5b471c",
-  "probe_sha": "1ff0b925c6dd0b1a832679d9069900a7892ab8fdb34c7e48fb87a0b8ca5e229f",
+  "tree_sha": "394091e007e9eee980ef5455a0eb45aeb18aac4dbee91d2063be5b44434c0a95",
+  "probe_sha": "62fe091e438d2ed7bb371d3aba6ec76cdaee9f979f12b6820b4fd41bc786f57a",
   "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4L",
+  "reviewer": "claude-verifier-m21-w5R",
   "clauses": [
    {
     "clause": "Flash",
-    "status": "OK",
-    "evidence": "keywords +FLASH.",
-    "issue": "engine-limit: no priority, so flash is used only in its controller's own action window"
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords [KeywordAbility(FLASH)]; the probe casts only in your main phase. Pack wavecaster_flash_cast_on_opponents_turn: cast by seat 0 on the opponent's turn, enters as 3/3: PASS",
+    "issue": "engine-limit: no priority; in real play flash is usable only in its controller's own action window (weaker, not wrong)"
    },
    {
     "clause": "When this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand.",
-    "status": "OK",
-    "evidence": "Tree [0]: ZoneChangeEvent to BATTLEFIELD controller YOU, subject IS_SOURCE. [cast]: trigger [0] and 'ask may: [fire, skip]'; the skip variant does nothing; the entry on the opponent's turn triggers too. No Teferi on the probe board, so nothing moves. Packs: teferis_wavecaster_etb_graveyard.json (from the graveyard) PASS; teferis_wavecaster_etb_library.json (from the library) PASS; teferis_wavecaster_opp_entry_no_trigger.json (an opponent's Wavecaster searches its controller's zones only) PASS; teferis_wavecaster_decline_no_shuffle.json (decline: Teferi stays) PASS.",
-    "issue": ""
+    "status": "NOT_EXERCISED",
+    "evidence": "trace [cast]: 'ask may: [fire, skip] -> fire' then 'ask choose: [0, 1, 2]'; [cast | ask 1 -> skip]: no zone ask, nothing happens; [cast | ask 2 -> 1] / [-> 2]: the library-only and graveyard-only options; the opponent's-turn entry also triggers it (any entry). No Teferi on the probe board, so the find is not shown. Tree = OptionalEffect(Choose(both / library / graveyard)), SEARCH NAME_EQ 'Teferi, Timeless Voyager' to your HAND + REVEAL: identical to the canonical [B2b-named-card-search] shape apart from the selector mode. Packs: graveyard option finds Teferi into hand (PASS); library option finds Teferi into hand (PASS).",
+    "issue": "engine-limit: the SEARCH selectors are ONE_OF (canonical CHOOSE); both are exactly-one QConst(1) picks, so a present Teferi is always found and the library search can never fail (CR 701.23b); BACKLOG 'Weaker than printed' records this for every tutor except Alpine Houndmaster. Weaker, not stronger. Note: REVEAL is the engine's recorded no-op over the top library card (verbs.py _look), not the found card; nothing moves and no view consumes it."
    },
    {
     "clause": "If you search your library this way, shuffle.",
     "status": "NOT_EXERCISED",
-    "evidence": "Tree: SHUFFLE of your library as the last step of the accepted may. Pack teferis_wavecaster_library_search_shuffles.json (seed-pinned: after the library search the known top card is no longer the next draw) PASS; its decline twin (no search, the known card is drawn) PASS.",
-    "issue": "Simplification: the engine always searches both zones and always shuffles once the may is accepted, so 'graveyard only, no shuffle' is not available (weaker side: only matters when the library top is known)."
+    "evidence": "tree: SHUFFLE(your library) closes options 0 and 1 only, none after the graveyard-only option, matching the text; not visible in the trace. Pack wavecaster_finds_teferi_in_graveyard: graveyard-only search leaves the library order exactly (PASS); wavecaster_finds_teferi_in_library: library option (PASS) All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "issue": ""
    }
   ],
   "packs": [
@@ -35,20 +35,33 @@
    "tools/scenarios/cards/M21/teferi's_wavecaster_3.json",
    "tools/scenarios/cards/M21/teferi's_wavecaster_4.json",
    "tools/scenarios/cards/M21/teferi's_wavecaster_5.json",
-   "tools/scenarios/cards/M21/teferi's_wavecaster_6.json"
+   "tools/scenarios/cards/M21/teferi's_wavecaster_6.json",
+   "tools/scenarios/cards/M21/teferi's_wavecaster_7.json"
   ],
   "mutation": {
-   "mutants": 11,
-   "killed": 4,
-   "score": 0.36363636363636365,
+   "mutants": 24,
+   "killed": 5,
+   "score": 0.20833333333333334,
    "survived": [
-    "drop step 0 at 1/0/effect/inner",
-    "drop step 1 at 1/0/effect/inner",
-    "drop step 2 at 1/0/effect/inner",
-    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/1/controller",
-    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination"
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
    ]
   }
  }

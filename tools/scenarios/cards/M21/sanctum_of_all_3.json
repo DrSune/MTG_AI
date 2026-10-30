@@ -1,75 +1,19 @@
 {
  "set": "M21",
- "world": {
-  "life": 20,
-  "seed": 7
- },
- "notes": "Printed: 'If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.' You control six Shrines: Sanctum of All, Sanctum of Stone Fangs and four synthetic Shrines. On your next turn (upkeep search skipped) Stone Fangs' precombat-main trigger ('each opponent loses X life and you gain X life, X = Shrines you control') triggers twice with X = 6: opponent 20 -> 8, you 20 -> 32.",
+ "world": {"life": 20, "seed": 7},
  "cards": [
-  {
-   "key": "soa",
-   "real": "Sanctum of All",
-   "zone": "hand",
-   "controller": 0
-  },
-  {
-   "key": "sf",
-   "real": "Sanctum of Stone Fangs",
-   "zone": "hand",
-   "controller": 0
-  },
-  {
-   "key": "s0",
-   "name": "Shrine 0",
-   "type": "Enchantment \u2014 Shrine",
-   "zone": "battlefield",
-   "controller": 0
-  },
-  {
-   "key": "s1",
-   "name": "Shrine 1",
-   "type": "Enchantment \u2014 Shrine",
-   "zone": "battlefield",
-   "controller": 0
-  },
-  {
-   "key": "s2",
-   "name": "Shrine 2",
-   "type": "Enchantment \u2014 Shrine",
-   "zone": "battlefield",
-   "controller": 0
-  },
-  {
-   "key": "s3",
-   "name": "Shrine 3",
-   "type": "Enchantment \u2014 Shrine",
-   "zone": "battlefield",
-   "controller": 0
-  }
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "sh", "real": "Sanctum of Shattered Heights", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
  "steps": [
-  {
-   "op": "enter",
-   "key": "soa"
-  },
-  {
-   "op": "enter",
-   "key": "sf"
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "advance_turn",
-   "decisions": [
-    "skip"
-   ]
-  }
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["skip"]}
  ],
  "expect": {
-  "life": {
-   "0": 32,
-   "1": 8
-  }
- }
+  "zone": {"a": "battlefield", "sh": "graveyard"},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed: 'you may search ...'. The controller declines (skip): the Shrine stays in the graveyard and the library is neither searched nor shuffled."
 }

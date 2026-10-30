@@ -1,14 +1,17 @@
-{"set": "M21",
+{
+ "set": "M21",
  "world": {"life": 20, "seed": 7},
  "cards": [
-  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 1},
-  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "graveyard", "controller": 0},
-  {"key": "otef", "real": "Teferi, Timeless Voyager", "zone": "graveyard", "controller": 1}
+  {"key": "w", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
+  {"key": "tva", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
  "steps": [
-  {"op": "advance_turn"},
-  {"op": "mana", "seat": 1, "add": {"U": 2, "C": 3}},
-  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "controller": 1, "decisions": ["fire", "otef"]}
+  {"op": "enter", "key": "w", "decisions": ["fire", "1", "tva"]}
  ],
- "expect": {"zone": {"wc": "battlefield", "tef": "graveyard", "otef": "hand"}, "controller": {"wc": 1}},
- "notes": "Printed: 'When this creature enters, YOU may search YOUR library and/or graveyard ...'. The opponent casts its own Wavecaster: the trigger is its controller's, so it searches the opponent's graveyard (their Teferi to their hand); seat 0's Teferi stays in seat 0's graveyard."}
+ "expect": {
+  "zone": {"w": "battlefield", "tva": "hand", "drawn": "hand"},
+  "hand": {"0": 2}
+ },
+ "notes": "Printed: search your library (option 1, library only) for a card named Teferi, Timeless Voyager, reveal it, put it into your hand; then shuffle (If you search your library this way, shuffle). Teferi leaves the library for the hand."
+}

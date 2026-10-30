@@ -5,40 +5,34 @@
  "name": "Mazemind Tome",
  "text_sha": "61302c3676b38656179a9139601acbe17de91417cca4253c4c1829b367dd4ecd",
  "verified": {
-  "tree_sha": "7a4a2ebf9183e8ce23650b49b3e6d4e0edce8198b42fd296d1d20cfe2927bd28",
-  "probe_sha": "78325137fd58bf0a4ea22b27feb4eb44e149908e357ca34ebead694241e7094c",
+  "tree_sha": "0a607a5d244bee7986db0e7a175d19b69f944f53f06d9df8cd1b20ec2409a99b",
+  "probe_sha": "84a401a8bdf588b5117fb06e9625047a011ad556f29da853735be57593468e81",
   "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-C",
+  "reviewer": "claude-verifier-m21-w5R",
   "clauses": [
-   {
-    "clause": "Artifact {2} (cast)",
-    "status": "OK",
-    "evidence": "[cast]: hand -> battlefield; mana W-2",
-    "issue": ""
-   },
    {
     "clause": "{T}, Put a page counter on this artifact: Scry 1.",
     "status": "OK",
-    "evidence": "[activate [0]] (top / bottom): card becomes tapped, gets 1 PAGE counter, ask scry: [top, bottom]; no mana spent",
+    "evidence": "[activate [0] from battlefield] and [| ask 1 -> bottom]: card tapped, counters {} -> {'PAGE': 1}, scry ask [top, bottom] answered both ways, no mana spent; tree [0] CostPutCounter(PAGE, source)+CostTap, SCRY count 1 YOU",
     "issue": ""
    },
    {
     "clause": "{2}, {T}, Put a page counter on this artifact: Draw a card.",
     "status": "OK",
-    "evidence": "[activate [1]]: tapped, 1 PAGE counter, you draws you:Library 5#1; mana W-2",
+    "evidence": "[activate [1] from battlefield]: mana W-2, tapped, PAGE 1, you draws Library 5#1 (hand 5 -> 6); tree [1] CostManaGeneric 2 + page + tap, DRAW 1 YOU",
     "issue": ""
    },
    {
     "clause": "When there are four or more page counters on this artifact, exile it.",
     "status": "NOT_EXERCISED",
-    "evidence": "the probe reaches only 1 counter (ability [2] triggers, condition false); pack mazemind_tome_four_pages_exile_gain.json: the fourth page counter exiles the Tome, PASS (control mazemind_tome_three_pages_stays.json: three activations keep it on the battlefield with PAGE 3, PASS)",
+    "evidence": "trace only reaches 1 page counter (trigger [2] matches, condition false, no exile: correct below threshold). Tree [2] CounterPlacedEvent(PAGE, IS_SOURCE) + HAS_COUNTER count 4 (executor quantity.py:1036-1070 reads counters >= threshold) + MOVE_ZONE source to EXILE(OWNER), identical to the compiler's canonical [B2a-mazemind-tome]. Packs: 3 counters + scry activation -> exiled; 2 counters + activation -> stays with PAGE 3. Both PASS.",
     "issue": ""
    },
    {
     "clause": "If you do, you gain 4 life.",
     "status": "NOT_EXERCISED",
-    "evidence": "pack mazemind_tome_four_pages_exile_gain.json: life 20 -> 24 with the exile, PASS; the control gains nothing",
-    "issue": "The tree runs GAIN_LIFE unconditionally after the exile (no 'if you do' check, matching the compiler's own B5b-cont-gain-4 piece). Without priority nothing can remove the Tome before its trigger resolves, so the exile always happens and the difference is not observable in this engine."
+    "evidence": "Conditional(MAY_DONE, GAIN_LIFE 4 YOU) after the exile; pack mazemind_tome_fourth_page_exiles_gain4 expects life 24/20 after the 4th counter: PASS; the 3-counter pack expects 20/20: PASS All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "issue": ""
    }
   ],
   "packs": [
@@ -59,9 +53,9 @@
     "drop step 0 at 1/2/effect",
     "drop step 1 at 1/2/effect",
     "zone EXILE->GRAVEYARD at 1/2/effect/steps/0/args/destination",
-    "amount+1 at 1/2/effect/steps/1/args/amount",
-    "amount-1 at 1/2/effect/steps/1/args/amount",
-    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/controller"
+    "amount+1 at 1/2/effect/steps/1/then_effect/args/amount",
+    "amount-1 at 1/2/effect/steps/1/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/then_effect/args/controller"
    ]
   }
  }

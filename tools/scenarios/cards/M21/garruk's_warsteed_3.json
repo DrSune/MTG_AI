@@ -1,67 +1,11 @@
-{
- "set": "M21",
- "world": {
-  "life": 20,
-  "seed": 89
- },
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P6b33d56e4e. Printed: 'you may search your library and/or graveyard for A card named Garruk, Savage Herald, reveal IT, and put IT into your hand.' One Herald is in my library and another in my graveyard. I search both zones (option 0) and take the one in the library: exactly ONE Herald comes to my hand and the other stays in the graveyard. hand after = drawn + one Herald = 2.",
  "cards": [
-  {
-   "key": "w",
-   "real": "Garruk's Warsteed",
-   "zone": "hand",
-   "controller": 0
-  },
-  {
-   "key": "gsh",
-   "real": "Garruk, Savage Herald",
-   "zone": "library",
-   "controller": 0
-  },
-  {
-   "key": "decoy",
-   "name": "Garruk Decoy",
-   "type": "Creature",
-   "power": "1",
-   "toughness": "1",
-   "zone": "library",
-   "controller": 0
-  },
-  {
-   "key": "ogsh",
-   "real": "Garruk, Savage Herald",
-   "zone": "graveyard",
-   "controller": 1
-  },
-  {
-   "key": "filler",
-   "name": "Opening Draw",
-   "type": "Creature",
-   "power": "1",
-   "toughness": "1",
-   "zone": "library",
-   "controller": 0
-  }
+  {"key": "w", "real": "Garruk's Warsteed", "zone": "hand", "controller": 0},
+  {"key": "hg_lib", "real": "Garruk, Savage Herald", "zone": "library", "controller": 0},
+  {"key": "hg_gy", "real": "Garruk, Savage Herald", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
- "steps": [
-  {
-   "op": "enter",
-   "key": "w",
-   "decisions": [
-    "skip"
-   ]
-  }
- ],
- "expect": {
-  "zone": {
-   "w": "battlefield",
-   "gsh": "library",
-   "decoy": "library",
-   "ogsh": "graveyard",
-   "filler": "hand"
-  },
-  "hand": {
-   "0": 1
-  }
- },
- "notes": "Verifier K, wave 4. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand. If you search your library this way, shuffle.' Expectation from the text: the search is optional; declining leaves Garruk in the library and the hand empty. (The last-listed library card, 'Opening Draw', is the runner's opening draw and is counted in the hand.)"
-}
+ "steps": [{"op": "enter", "key": "w", "decisions": ["fire", "0", "hg_lib"]}],
+ "expect": {"zone": {"w": "battlefield", "hg_lib": "hand", "hg_gy": "graveyard", "drawn": "hand"},
+            "hand": {"0": 2}}}

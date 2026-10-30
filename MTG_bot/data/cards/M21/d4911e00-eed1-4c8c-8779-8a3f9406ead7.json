@@ -5,39 +5,33 @@
  "name": "Garruk's Warsteed",
  "text_sha": "305225305eb65f20e5a8c63a0434c17d868cdff9c49901ccfc934cc6a7ac406d",
  "verified": {
-  "tree_sha": "abe6f7c6a57af59043bc55f5ce1a80cb0cebe41680143593bafabd675d12db2d",
-  "probe_sha": "1f877b4142d78d5d875df7b73790850da53eb485c248c5d9c399e01339f22a2d",
+  "tree_sha": "c9d00b495da966f8a9b0c2ae25a5309f6ccb20627cfca1c2c5e6c11ba8bc6a30",
+  "probe_sha": "e1a61bea061b883e35aaef25ea6a236df6fb777ecf0c0d30f6075927b066ce5c",
   "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4K",
+  "reviewer": "claude-verifier-m21-w5Q",
   "clauses": [
-   {
-    "clause": "(card body) Creature - Rhino {3}{G}{G} 3/5",
-    "status": "OK",
-    "evidence": "[cast]: mana G-2 W-3, P/T 3/5, +VIGILANCE",
-    "issue": ""
-   },
    {
     "clause": "Vigilance",
     "status": "OK",
-    "evidence": "[stimulus: this creature attacks alone, unblocked]: DECLARE_ATTACKERS with no 'card becomes tapped' event",
+    "evidence": "[this creature attacks alone, unblocked]: DECLARE_ATTACKERS with no 'card becomes tapped' event (other packets' attacks show one), and it deals 3. [attacks and opp_giant blocks it]: same, no tap. Static: keywords VIGILANCE.",
     "issue": ""
    },
    {
-    "clause": "When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, ... and put it into your hand.",
-    "status": "NOT_EXERCISED",
-    "evidence": "trace: the ETB triggers (also on the opponent's turn) with 'ask may: [fire, skip]'; the standard board has no Garruk, so nothing is found either way. Tree: OptionalEffect(Seq(SEARCH ONE_OF NAME_EQ 'Garruk, Savage Herald' in GRAVEYARD(YOU)+LIBRARY(YOU) -> HAND(YOU), REVEAL, SHUFFLE)). Packs PASS on this packet's tree (run as a draft) and on the live tree: K_garruks_warsteed_finds_garruk_in_library.json (found in your library -> hand; a differently named card stays), K_garruks_warsteed_finds_garruk_in_graveyard.json (found in your graveyard -> hand; the opponent's copy in their graveyard is never taken), K_garruks_warsteed_declined_search.json ('skip' leaves Garruk in the library).",
-    "issue": "minor, weaker only: the compiler's sentence tree (`similar` B2b-named-card-search) uses mode=CHOOSE, this tree ONE_OF, so after choosing to search the player cannot fail to find (CR 701.23b allows it in the library). No strength gain."
+    "clause": "When this creature enters, you may search your library and/or graveyard (the may and the choice of zones)",
+    "status": "OK",
+    "evidence": "[cast]: ask may [fire, skip] -> fire, then ask choose [0, 1, 2] (library+graveyard / library / graveyard). [cast | ask 1 -> skip]: declinable. [cast | ask 2 -> 1] and [ask 2 -> 2]: each zone option is offered. [from your hand, the card enters during the opponent's turn]: trigger [0] fires on any entry. Tree: ETB of IS_SOURCE, OptionalEffect(Choose(1, three Seqs)).",
+    "issue": ""
    },
    {
-    "clause": "reveal it",
-    "status": "OK",
-    "evidence": "a debug replay of the library pack shows the row ('REVEAL', 'player:0', ('card:10',)): the top card of the library, not the found Garruk (card:1).",
-    "issue": "engine quirk (not stronger or weaker in play): REVEAL is a recorded no-op with the top-N-of-library convention (verbs.py _look), so 'reveal it' records the library's top card instead of the searched card; the per-seat view does not track revealed cards at all (bench/view.py module note), so no seat gains or loses information. Same REVEAL atom in the canonical compile of every 'search for a card named X, reveal it' card (Teferi's Wavecaster, Goldmane Griffin)."
+    "clause": "for a card named Garruk, Savage Herald, reveal it, and put it into your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe zones hold no Herald. Pack P6b33d56e4e_warsteed_library_only.json (option 1: Herald library -> hand). Pack P6b33d56e4e_warsteed_graveyard_only_no_shuffle.json (option 2: Herald graveyard -> hand). Pack P6b33d56e4e_warsteed_both_zones_one_card.json (option 0, one Herald in each zone: the one_of ask offers both, exactly one comes to hand and the other stays in the graveyard). All PASS. Tree: SEARCH count 1 NAME_EQ 'Garruk, Savage Herald' -> your hand.",
+    "issue": "The REVEAL count=1 idiom reveals the top card of the library (a filler in the pack runs: card:9 / card:10), not the Herald found (verbs.py:1414 _look, top-N convention). Information only: nothing reads REVEAL events, and it can only tell the opponent more."
    },
    {
     "clause": "If you search your library this way, shuffle.",
     "status": "NOT_EXERCISED",
-    "evidence": "no pack lane can assert a shuffle; debug replay of the packs on this packet's tree: after 'fire' a ('SHUFFLE', 'player:0', 'library') row follows the search and the library order changes; after 'skip' no shuffle and the order is unchanged. Every 'fire' searches the library, so shuffling then is right.",
+    "evidence": "Pack P6b33d56e4e_warsteed_graveyard_only_no_shuffle.json: only the graveyard is searched, and the library keeps its exact setup order (no shuffle). PASSES. In the debug log of the library_only and both_zones packs a SHUFFLE of player:0's library follows the search. Tree: SHUFFLE in the two options that include the library, none in the graveyard-only option.",
     "issue": ""
    }
   ],
@@ -45,20 +39,34 @@
    "tools/scenarios/cards/M21/garruk's_warsteed_1.json",
    "tools/scenarios/cards/M21/garruk's_warsteed_2.json",
    "tools/scenarios/cards/M21/garruk's_warsteed_3.json",
-   "tools/scenarios/cards/M21/garruk's_warsteed_4.json"
+   "tools/scenarios/cards/M21/garruk's_warsteed_4.json",
+   "tools/scenarios/cards/M21/garruk's_warsteed_5.json",
+   "tools/scenarios/cards/M21/garruk's_warsteed_6.json"
   ],
   "mutation": {
-   "mutants": 11,
-   "killed": 4,
-   "score": 0.36363636363636365,
+   "mutants": 24,
+   "killed": 5,
+   "score": 0.20833333333333334,
    "survived": [
-    "drop step 0 at 1/0/effect/inner",
-    "drop step 1 at 1/0/effect/inner",
-    "drop step 2 at 1/0/effect/inner",
-    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/1/controller",
-    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination"
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
    ]
   }
  }

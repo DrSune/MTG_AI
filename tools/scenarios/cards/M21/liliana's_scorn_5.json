@@ -1,0 +1,72 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count, option 1). Printed: '... you may search your library and/or graveyard for A card named Liliana, Death Mage ...' The controller chooses to search your library only, where two copies wait. Copy A (pool word card:2, its handle) is found and goes to your hand; copy B stays in your library.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Liliana's Scorn",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Opp Ox",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "copy_a",
+   "real": "Liliana, Death Mage",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "copy_b",
+   "real": "Liliana, Death Mage",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "src",
+   "targets": [
+    "ox"
+   ],
+   "decisions": [
+    "fire",
+    "1",
+    "card:2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "graveyard",
+   "copy_a": "hand",
+   "copy_b": "library",
+   "ox": "graveyard"
+  }
+ },
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 3
+  }
+ }
+}

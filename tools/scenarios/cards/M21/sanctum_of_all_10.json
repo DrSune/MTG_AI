@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count, option 1). Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for A Shrine card and put it ONTO THE BATTLEFIELD.' The controller chooses to search your library only, where two Sanctums of Tranquil Light wait. Copy A is found and enters; copy B stays in your library.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "copy_a",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "copy_b",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "1",
+    "copy_a"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "soa": "battlefield",
+   "copy_a": "battlefield",
+   "copy_b": "library"
+  }
+ }
+}

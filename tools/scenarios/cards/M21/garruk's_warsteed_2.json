@@ -1,58 +1,13 @@
-{
- "set": "M21",
- "world": {
-  "life": 20,
-  "seed": 89
- },
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P6b33d56e4e. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand. If you search your library this way, shuffle.' I accept the may and search only my graveyard (option 2): the Herald goes from the graveyard to my hand. I did not search my library, so it is NOT shuffled: it keeps its setup order (the runner's six fillers on top, then Keep Two, Keep One). 'drawn' is listed last so the runner's opening draw puts it in hand: hand after = drawn + Herald = 2.",
  "cards": [
-  {
-   "key": "w",
-   "real": "Garruk's Warsteed",
-   "zone": "hand",
-   "controller": 0
-  },
-  {
-   "key": "gsh",
-   "real": "Garruk, Savage Herald",
-   "zone": "graveyard",
-   "controller": 0
-  },
-  {
-   "key": "decoy",
-   "name": "Garruk Decoy",
-   "type": "Creature",
-   "power": "1",
-   "toughness": "1",
-   "zone": "graveyard",
-   "controller": 0
-  },
-  {
-   "key": "ogsh",
-   "real": "Garruk, Savage Herald",
-   "zone": "graveyard",
-   "controller": 1
-  }
+  {"key": "w", "real": "Garruk's Warsteed", "zone": "hand", "controller": 0},
+  {"key": "hg", "real": "Garruk, Savage Herald", "zone": "graveyard", "controller": 0},
+  {"key": "k1", "name": "Keep One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "k2", "name": "Keep Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
- "steps": [
-  {
-   "op": "enter",
-   "key": "w",
-   "decisions": [
-    "fire",
-    "card:1"
-   ]
-  }
- ],
- "expect": {
-  "zone": {
-   "w": "battlefield",
-   "gsh": "hand",
-   "decoy": "graveyard",
-   "ogsh": "graveyard"
-  },
-  "hand": {
-   "0": 1
-  }
- },
- "notes": "Verifier K, wave 4. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand. If you search your library this way, shuffle.' Expectation from the text: the named card in YOUR graveyard is found and put into your hand; the opponent's copy in their graveyard stays there."
-}
+ "steps": [{"op": "enter", "key": "w", "decisions": ["fire", "2"]}],
+ "expect": {"zone": {"w": "battlefield", "hg": "hand", "drawn": "hand", "k1": "library", "k2": "library"},
+            "hand": {"0": 2},
+            "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Keep Two", "Keep One"]}}}

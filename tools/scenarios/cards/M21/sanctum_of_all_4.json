@@ -4,50 +4,69 @@
   "life": 20,
   "seed": 7
  },
- "notes": "Control for the six-Shrine threshold: with five Shrines (Sanctum of All, Stone Fangs, three synthetic) Stone Fangs triggers once with X = 5: opponent 20 -> 15, you 20 -> 25.",
  "cards": [
   {
-   "key": "soa",
+   "key": "a",
    "real": "Sanctum of All",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "sf",
+   "key": "fangs",
    "real": "Sanctum of Stone Fangs",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "s0",
-   "name": "Shrine 0",
-   "type": "Enchantment \u2014 Shrine",
-   "zone": "battlefield",
-   "controller": 0
-  },
-  {
    "key": "s1",
-   "name": "Shrine 1",
-   "type": "Enchantment \u2014 Shrine",
+   "name": "Shrine One",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
    "zone": "battlefield",
    "controller": 0
   },
   {
    "key": "s2",
-   "name": "Shrine 2",
-   "type": "Enchantment \u2014 Shrine",
+   "name": "Shrine Two",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
    "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Shrine Three",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s4",
+   "name": "Shrine Four",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "drawn",
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
    "controller": 0
   }
  ],
  "steps": [
   {
    "op": "enter",
-   "key": "soa"
+   "key": "a"
   },
   {
    "op": "enter",
-   "key": "sf"
+   "key": "fangs"
   },
   {
    "op": "advance_turn"
@@ -60,9 +79,14 @@
   }
  ],
  "expect": {
+  "zone": {
+   "a": "battlefield",
+   "fangs": "battlefield"
+  },
   "life": {
-   "0": 25,
-   "1": 15
+   "0": 32,
+   "1": 8
   }
- }
+ },
+ "notes": "Printed: 'If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.' Seat 0 controls six Shrines (Sanctum of All, Sanctum of Stone Fangs, four plain Shrines). Stone Fangs enters mid-turn (no trigger this turn). On seat 0's next turn, Sanctum of All's own upkeep may is skipped; Stone Fangs ('At the beginning of your first main phase, each opponent loses X life and you gain X life, where X is the number of Shrines you control', X = 6) triggers an additional time: two resolutions, 20+12 = 32 and 20-12 = 8. Sanctum of All enters by step too (its upkeep may would otherwise ask during the runner's opening turn)."
 }

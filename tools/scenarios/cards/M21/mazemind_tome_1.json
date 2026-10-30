@@ -1,81 +1,16 @@
 {
  "set": "M21",
- "world": {
-  "life": 20,
-  "seed": 7
- },
- "notes": "Printed: '{T}, Put a page counter on this artifact: Scry 1. ... When there are four or more page counters on this artifact, exile it. If you do, you gain 4 life.' The scry ability is activated once on each of four own turns (the Tome untaps in between). The fourth page counter exiles the Tome and you gain 4 life (20 -> 24).",
+ "world": {"life": 20, "seed": 7},
  "cards": [
-  {
-   "key": "tome",
-   "real": "Mazemind Tome",
-   "zone": "battlefield",
-   "controller": 0
-  }
+  {"key": "tome", "zone": "battlefield", "controller": 0, "real": "Mazemind Tome", "counters": {"PAGE": 3}},
+  {"key": "drawn", "zone": "library", "controller": 0, "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1"}
  ],
  "steps": [
-  {
-   "op": "activate",
-   "key": "tome",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "top"
-   ]
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "activate",
-   "key": "tome",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "top"
-   ]
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "activate",
-   "key": "tome",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "top"
-   ]
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "activate",
-   "key": "tome",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "top"
-   ]
-  }
+  {"op": "activate", "key": "tome", "idx": 0, "seat": 0, "decisions": ["top"]}
  ],
  "expect": {
-  "zone": {
-   "tome": "exile"
-  },
-  "life": {
-   "0": 24,
-   "1": 20
-  }
- }
+  "zone": {"tome": "exile"},
+  "life": {"0": 24, "1": 20}
+ },
+ "notes": "Printed: 'When there are four or more page counters on this artifact, exile it. If you do, you gain 4 life.' Tome starts with 3 page counters; the {T}+page scry puts the 4th: the Tome is exiled and its controller gains exactly 4 (opponent unchanged)."
 }

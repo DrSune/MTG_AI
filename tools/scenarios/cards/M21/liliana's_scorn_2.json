@@ -1,20 +1,16 @@
-{
- "set": "M21",
- "notes": "Liliana's Scorn, printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle.' The search is optional, the destroy is not, and there is no shuffle without a library search. Library (top first, after the opening draw takes Top Junk): Liliana, Death Mage, Deep Card, then the six filler cards. Cast Scorn on the opponent's 2/2 and answer the may with skip: the creature is destroyed, Liliana stays in the library, and the library order is exactly unchanged.",
- "world": {"life": 20, "seed": 7, "library_top": true},
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P9d981708aa. Printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle.' I destroy the opponent's creature (it goes to its owner's graveyard), accept the may and search only my graveyard (option 2): Liliana goes from the graveyard to my hand. I did not search my library, so it is NOT shuffled: it keeps its setup order (the runner's six fillers on top, then Keep Two, Keep One). hand after = drawn + Liliana = 2.",
  "cards": [
   {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
-  {"key": "victim", "name": "Doomed Beast", "type": "Creature — Beast", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
-  {"key": "deep", "name": "Deep Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
-  {"key": "lil", "real": "Liliana, Death Mage", "zone": "library", "controller": 0},
-  {"key": "junk", "name": "Top Junk", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "victim", "name": "Their Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "lil", "real": "Liliana, Death Mage", "zone": "graveyard", "controller": 0},
+  {"key": "k1", "name": "Keep One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "k2", "name": "Keep Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
- "mana": {"0": {"B": 5}},
- "steps": [
-  {"op": "cast", "real": "Liliana's Scorn", "key": "ls", "targets": ["victim"], "decisions": ["skip"]}
- ],
- "expect": {
-  "zone": {"ls": "graveyard", "victim": "graveyard", "lil": "library", "junk": "hand"},
-  "library": {"0": ["Liliana, Death Mage", "Deep Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
- }
-}
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [{"op": "cast", "key": "ls", "real": "Liliana's Scorn", "targets": ["victim"], "decisions": ["fire", "2"]}],
+ "expect": {"zone": {"ls": "graveyard", "victim": "graveyard", "lil": "hand", "drawn": "hand", "k1": "library", "k2": "library"},
+            "graveyard": {"0": ["Liliana's Scorn"], "1": ["Their Beast"]},
+            "hand": {"0": 2},
+            "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Keep Two", "Keep One"]}}}

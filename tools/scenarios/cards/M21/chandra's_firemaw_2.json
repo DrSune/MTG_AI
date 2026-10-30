@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet Pa890036926. Printed: '... you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand. If you search your library this way, shuffle.' Chandra is in my library and another card is in my graveyard. I accept the may and search only my library (option 1): Chandra goes to my hand and the graveyard card stays. hand after = drawn + Chandra = 2.",
+ "cards": [
+  {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
+  {"key": "ch", "real": "Chandra, Flame's Catalyst", "zone": "library", "controller": 0},
+  {"key": "gyc", "name": "Graveyard Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "fm", "decisions": ["fire", "1"]}],
+ "expect": {"zone": {"fm": "battlefield", "ch": "hand", "gyc": "graveyard", "drawn": "hand"}, "hand": {"0": 2}}}

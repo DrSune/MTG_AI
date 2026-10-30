@@ -5,48 +5,74 @@
  "name": "Basri's Aegis",
  "text_sha": "d3140ad3ca4ccae8c195c40dd20586342369bc3a2f0c57265821a2d6858c8874",
  "verified": {
-  "tree_sha": "ca559440eeeec9efd5c53febbdeef6ff813dea73b7400afe10f100fa2d944bed",
-  "probe_sha": "00acaca7c7fdea75b136b96f3c22d3a64d6881d7ba6b9eacc511619ef5a6b7d4",
+  "tree_sha": "443b598215db33b4b9624b068a8af275f8585d7d750fb0527e1d561c7817ef16",
+  "probe_sha": "128300b79a7e7f5be01c28f34043eac2e1213f798bd4781db0321de00a0f5e2d",
   "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4O",
+  "reviewer": "claude-verifier-m21-w5Q",
   "clauses": [
    {
-    "clause": "Put a +1/+1 counter on each of up to two target creatures.",
+    "clause": "Sorcery {2}{W}{W}",
     "status": "OK",
-    "evidence": "'target slot (cast): 0..2 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]'. One target (any creature, either side): exactly one PLUS_1_PLUS_1 on it. [cast targets=['you_bear', 'you_giant']]: one counter on each. [cast] with no target: no counters. Cost {2}{W}{W} (W-4), sorcery. Canonical B5b-put-counter.",
+    "evidence": "Every [cast] variant pays mana W-4 and the card goes stack -> graveyard. Tree: SpellAbility kind=SORCERY.",
     "issue": ""
    },
    {
-    "clause": "You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand.",
+    "clause": "Put a +1/+1 counter on each of up to two target creatures.",
+    "status": "OK",
+    "evidence": "Target slot: 0..2 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (any creature, either side, up to two). [cast targets=['you_bear']]: you_bear gets 1 PLUS_1_PLUS_1, 2/2 -> 3/3. [targets=['opp_giant']]: 4/4 -> 5/5. [targets=['you_bear','you_giant']]: one counter on each. [cast] with no target: no counter, the spell still resolves. Tree identical to the compiler's parse (B5b-put-counter).",
+    "issue": ""
+   },
+   {
+    "clause": "You may search your library and/or graveyard (the may and the choice of zones)",
+    "status": "OK",
+    "evidence": "Every cast: ask may [fire, skip] (declinable: '| ask 1 -> skip'), then ask choose [0, 1, 2] (library+graveyard / library / graveyard), each option played ('| ask 2 -> 1', '| ask 2 -> 2'). Tree: OptionalEffect(Choose(1, three Seqs)).",
+    "issue": ""
+   },
+   {
+    "clause": "for a card named Basri, Devoted Paladin, reveal it, and put it into your hand",
     "status": "NOT_EXERCISED",
-    "evidence": "Trace shows the optional ('ask may: [fire, skip]') but no Basri, Devoted Paladin on the board. Packs: basris_aegis_finds_basri_in_library (fire: Basri library -> hand, 7 cards remain) PASS; basris_aegis_finds_basri_in_graveyard (fire: graveyard -> hand) PASS; basris_aegis_decline_search_no_shuffle (skip: Basri stays in the library, the counter still lands) PASS.",
-    "issue": "SEARCH uses ONE_OF (exactly one) where the compiler's B4-tutor-basri uses CHOOSE (up to one, CR 701.19b fail-to-find); inside an optional search this only removes an option. Same convention as this wave's Liliana's Scorn packet."
+    "evidence": "The probe zones hold no Paladin. Pack P79cfec2ff7_aegis_library_only.json (option 1: Paladin library -> hand; with two targets, mine and the opponent's, each gets exactly one counter). Pack P79cfec2ff7_aegis_graveyard_only_no_shuffle.json (option 2: Paladin graveyard -> hand; the target becomes 2/2 with one counter). Pack P79cfec2ff7_aegis_both_zones_one_card.json (option 0, one Paladin in each zone, no target: the one_of offers both, exactly one comes to hand and the other stays in the library). All PASS. Tree: SEARCH count 1 NAME_EQ 'Basri, Devoted Paladin' -> your hand.",
+    "issue": "The REVEAL count=1 idiom reveals the library's top card (card:9 / 10 / 11 in the pack runs), not the Paladin found. Information only (nothing reads REVEAL events). With one candidate the search auto-picks it and offers no 'find nothing'; that is never stronger."
    },
    {
     "clause": "If you search your library this way, shuffle.",
     "status": "NOT_EXERCISED",
-    "evidence": "SHUFFLE(your library) is inside the optional search. Pack basris_aegis_decline_search_no_shuffle PASS: without a search the library order is exactly unchanged. A shuffled order cannot be asserted from the text; the same SHUFFLE shape reorders the library on a search (Liliana's Scorn control, this wave).",
-    "issue": "Searching always covers both zones, so 'graveyard only, no shuffle' is not available: weaker only."
+    "evidence": "Pack P79cfec2ff7_aegis_graveyard_only_no_shuffle.json: only the graveyard is searched, and the library keeps its exact setup order. PASSES. Debug log of the library_only and both_zones packs: SHUFFLE of player:0's library follows the search (both_zones shuffles even though the Paladin came from the graveyard, which is right: the library was searched). Tree: SHUFFLE in options 0 and 1 only.",
+    "issue": ""
    }
   ],
   "packs": [
    "tools/scenarios/cards/M21/basri's_aegis_1.json",
    "tools/scenarios/cards/M21/basri's_aegis_2.json",
    "tools/scenarios/cards/M21/basri's_aegis_3.json",
-   "tools/scenarios/cards/M21/basri's_aegis_4.json"
+   "tools/scenarios/cards/M21/basri's_aegis_4.json",
+   "tools/scenarios/cards/M21/basri's_aegis_5.json",
+   "tools/scenarios/cards/M21/basri's_aegis_6.json"
   ],
   "mutation": {
-   "mutants": 13,
-   "killed": 6,
-   "score": 0.46153846153846156,
+   "mutants": 26,
+   "killed": 7,
+   "score": 0.2692307692307692,
    "survived": [
-    "drop step 0 at 1/0/effect/steps/1/inner",
-    "drop step 1 at 1/0/effect/steps/1/inner",
-    "drop step 2 at 1/0/effect/steps/1/inner",
-    "amount+1 at 1/0/effect/steps/1/inner/steps/0/args/cards/count",
-    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/steps/0/args/cards/zones/0/controller",
-    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/steps/0/args/cards/zones/1/controller",
-    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/inner/steps/0/args/destination"
+    "amount+1 at 1/0/effect/steps/1/inner/count",
+    "drop step 0 at 1/0/effect/steps/1/inner/options/0",
+    "drop step 1 at 1/0/effect/steps/1/inner/options/0",
+    "drop step 2 at 1/0/effect/steps/1/inner/options/0",
+    "amount+1 at 1/0/effect/steps/1/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/steps/1/inner/options/1",
+    "drop step 1 at 1/0/effect/steps/1/inner/options/1",
+    "drop step 2 at 1/0/effect/steps/1/inner/options/1",
+    "amount+1 at 1/0/effect/steps/1/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/steps/1/inner/options/2",
+    "drop step 1 at 1/0/effect/steps/1/inner/options/2",
+    "amount+1 at 1/0/effect/steps/1/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/inner/options/2/steps/0/args/destination"
    ]
   }
  }

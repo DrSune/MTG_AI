@@ -1,0 +1,86 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "name": "Shrine One",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Shrine Two",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Shrine Three",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s4",
+   "name": "Shrine Four",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s5",
+   "name": "Shrine Five",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ofangs",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "drawn",
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 19,
+   "1": 21
+  }
+ },
+ "notes": "Printed: 'If an ability of another Shrine YOU CONTROL triggers ...'. Seat 0 controls six Shrines; the opponent controls Sanctum of Stone Fangs. On the opponent's first main phase its Stone Fangs triggers once (X = 1, the opponent's own Shrine count): seat 0 loses 1, the opponent gains 1. Not doubled by seat 0's Sanctum of All."
+}

@@ -1,51 +1,20 @@
 {
  "set": "M21",
- "world": {
-  "life": 20,
-  "seed": 7
- },
- "notes": "Printed: '... search your library and/or graveyard for a Shrine card and put it onto the battlefield.' Sanctum of Tranquil Light is in your graveyard; the opponent's graveyard Shrine (Sanctum of Stone Fangs) is not yours to search. On your next upkeep 'fire' returns your Tranquil Light to the battlefield; the opponent's Shrine stays in its graveyard.",
+ "world": {"life": 20, "seed": 7},
  "cards": [
-  {
-   "key": "soa",
-   "real": "Sanctum of All",
-   "zone": "hand",
-   "controller": 0
-  },
-  {
-   "key": "tl",
-   "real": "Sanctum of Tranquil Light",
-   "zone": "graveyard",
-   "controller": 0
-  },
-  {
-   "key": "osf",
-   "real": "Sanctum of Stone Fangs",
-   "zone": "graveyard",
-   "controller": 1
-  }
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "sh", "real": "Sanctum of Shattered Heights", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
  "steps": [
-  {
-   "op": "enter",
-   "key": "soa"
-  },
-  {
-   "op": "advance_turn"
-  },
-  {
-   "op": "advance_turn",
-   "decisions": [
-    "fire",
-    "tl"
-   ]
-  }
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["fire", "1", "sh"]}
  ],
  "expect": {
-  "zone": {
-   "tl": "battlefield",
-   "osf": "graveyard",
-   "soa": "battlefield"
-  }
- }
+  "zone": {"a": "battlefield", "sh": "battlefield", "drawn": "hand"},
+  "hand": {"0": 2},
+  "library": {"0": ["*", "*", "*", "*", "*"]}
+ },
+ "notes": "Printed: search your library (option 1) for a Shrine card and put it onto the battlefield, then shuffle. The Shrine (under the six fillers) goes to the battlefield; the turn's draw takes one card after the upkeep, leaving five in the library (order unknown after the shuffle: '*'). Hand = the opening draw + this turn's draw."
 }

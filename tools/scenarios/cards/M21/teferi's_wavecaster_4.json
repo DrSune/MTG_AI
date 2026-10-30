@@ -1,16 +1,53 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7, "library_top": true},
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (option 0: search count, the searched library's controller, the destination hand). Printed: 'When this creature enters, you may search your library and/or graveyard for A card named Teferi, Timeless Voyager, reveal it, and put it INTO YOUR HAND.' The controller chooses to search your library and graveyard; one copy waits in each. The library copy is picked: it goes to your hand, the graveyard copy stays.",
  "cards": [
-  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
-  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
-  {"key": "top", "name": "Known Top Card", "type": "Sorcery", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Sorcery", "zone": "library", "controller": 0}
+  {
+   "key": "src",
+   "real": "Teferi's Wavecaster",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "lib",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"U": 2, "C": 3}},
  "steps": [
-  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["fire", "tef"]},
-  {"op": "advance_turn"},
-  {"op": "advance_turn"}
+  {
+   "op": "enter",
+   "key": "src",
+   "decisions": [
+    "fire",
+    "0",
+    "lib"
+   ]
+  }
  ],
- "expect": {"zone": {"wc": "battlefield", "tef": "hand", "drawn": "hand", "top": "library"}},
- "notes": "Printed: '... search your library and/or graveyard for a card named Teferi, Timeless Voyager ... If you search your library this way, shuffle.' Known Top Card sits on top of the library (Opening Draw went to hand in the opening draw), Teferi under it. The ETB finds Teferi in the library and the library is shuffled, so seat 0's next draw (turn 3) is no longer the known card. Seed-pinned (seed 7; also holds at 3 and 11): without the shuffle the known card is drawn, see the decline twin teferis_wavecaster_decline_no_shuffle.json."}
+ "expect": {
+  "zone": {
+   "src": "battlefield",
+   "lib": "hand",
+   "gy": "graveyard"
+  }
+ }
+}

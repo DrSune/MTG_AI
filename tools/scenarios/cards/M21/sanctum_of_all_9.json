@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (option 0: search count, the searched zones' controllers, the battlefield destination and its controller). Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for A Shrine card and put it ONTO THE BATTLEFIELD.' The controller chooses to search your library and graveyard; a Sanctum of Tranquil Light waits in each. The graveyard copy is picked: it enters under your control; the other stays where it was.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sg",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sl",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "0",
+    "sg"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "soa": "battlefield",
+   "sg": "battlefield",
+   "sl": "library"
+  }
+ }
+}

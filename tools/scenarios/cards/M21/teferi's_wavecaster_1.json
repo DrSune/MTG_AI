@@ -1,12 +1,18 @@
-{"set": "M21",
+{
+ "set": "M21",
  "world": {"life": 20, "seed": 7},
  "cards": [
-  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
-  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "graveyard", "controller": 0}
+  {"key": "w", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0}
  ],
- "mana": {"0": {"U": 2, "C": 3}},
  "steps": [
-  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["fire", "tef"]}
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 3}},
+  {"op": "cast", "key": "w", "controller": 0, "decisions": ["skip"]}
  ],
- "expect": {"zone": {"wc": "battlefield", "tef": "hand"}},
- "notes": "Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand.' Cast under your control, the Wavecaster's ETB fires; accepting, Teferi, Timeless Voyager in your graveyard goes to your hand."}
+ "expect": {
+  "zone": {"w": "battlefield"},
+  "power": {"w": 3},
+  "toughness": {"w": 3}
+ },
+ "notes": "Printed: Flash (CR 702.8a: may be cast any time you could cast an instant). After advance_turn it is the opponent's turn; Teferi's Wavecaster ({3}{U}{U}) is cast by seat 0 and enters as a 3/3."
+}

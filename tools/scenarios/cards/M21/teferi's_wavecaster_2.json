@@ -1,13 +1,18 @@
-{"set": "M21",
+{
+ "set": "M21",
  "world": {"life": 20, "seed": 7},
  "cards": [
-  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
-  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
-  {"key": "top", "name": "Top Card", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "w", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
+  {"key": "tva", "real": "Teferi, Timeless Voyager", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
- "mana": {"0": {"U": 2, "C": 3}},
  "steps": [
-  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["fire", "tef"]}
+  {"op": "enter", "key": "w", "decisions": ["fire", "2", "tva"]}
  ],
- "expect": {"zone": {"wc": "battlefield", "tef": "hand", "top": "hand"}},
- "notes": "Printed: '... search your library and/or graveyard for a card named Teferi, Timeless Voyager ... put it into your hand. If you search your library this way, shuffle.' Teferi is in your library (Top Card is drawn by the opening draw); the ETB finds it and puts it into your hand."}
+ "expect": {
+  "zone": {"w": "battlefield", "tva": "hand", "drawn": "hand"},
+  "hand": {"0": 2},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed: 'you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand. If you search your library this way, shuffle.' Teferi is in the graveyard; the controller fires the may, searches the graveyard only (option 2) and puts Teferi into hand. The library was not searched, so it is NOT shuffled: the six filler cards keep their order. Hand = the runner's opening draw + Teferi."
+}

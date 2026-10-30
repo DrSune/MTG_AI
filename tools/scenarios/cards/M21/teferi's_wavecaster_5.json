@@ -1,16 +1,53 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7, "library_top": true},
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (the searched graveyard's controller, option 0). Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand.' The controller chooses to search your library AND graveyard. Your graveyard holds a copy and so does the opponent's; your copy is found and goes to your hand, the opponent's stays in their graveyard.",
  "cards": [
-  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
-  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
-  {"key": "top", "name": "Known Top Card", "type": "Sorcery", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Sorcery", "zone": "library", "controller": 0}
+  {
+   "key": "src",
+   "real": "Teferi's Wavecaster",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"U": 2, "C": 3}},
  "steps": [
-  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["skip"]},
-  {"op": "advance_turn"},
-  {"op": "advance_turn"}
+  {
+   "op": "enter",
+   "key": "src",
+   "decisions": [
+    "fire",
+    "0",
+    "mine"
+   ]
+  }
  ],
- "expect": {"zone": {"wc": "battlefield", "tef": "library", "drawn": "hand", "top": "hand"}},
- "notes": "Printed: 'you MAY search ...'. Declining: no search, Teferi stays in the library, and there is no shuffle, so the known top card is seat 0's next draw (turn 3)."}
+ "expect": {
+  "zone": {
+   "src": "battlefield",
+   "mine": "hand",
+   "theirs": "graveyard"
+  }
+ }
+}

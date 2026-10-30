@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count, option 1). Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand.' The controller chooses to search your library only, where two copies wait (legal: the legend rule only applies on the battlefield). One is found (copy A, the pick) and goes to your hand; copy B stays in your library.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Garruk's Warsteed",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "copy_a",
+   "real": "Garruk, Savage Herald",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "copy_b",
+   "real": "Garruk, Savage Herald",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "src",
+   "decisions": [
+    "fire",
+    "1",
+    "copy_a"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "battlefield",
+   "copy_a": "hand",
+   "copy_b": "library"
+  }
+ }
+}

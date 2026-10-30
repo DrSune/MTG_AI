@@ -5,39 +5,27 @@
  "name": "Sanctum of All",
  "text_sha": "87ceef25f7abc5d7cd8c9fb26de53a45601c4f65b4f134f232f4bca8932e507d",
  "verified": {
-  "tree_sha": "620c4bb63ff9fe3f48314745fbdccb21470b56904b4c7d3cf69dd71b2d4b9dc6",
-  "probe_sha": "8df421581f29ab3cf1088b38e0a8caef9b80ef25521712dcb2452a7830b1b797",
+  "tree_sha": "07fe48b91d09f702764e01af82ce80523422993716094165c6b336e41baca9e5",
+  "probe_sha": "d14d65b20ce263cbab73e830f02801368d9ce0d8ddafbda197464823f47ea2d4",
   "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-C",
+  "reviewer": "claude-verifier-m21-w5R",
   "clauses": [
    {
-    "clause": "Legendary Enchantment {W}{U}{B}{R}{G} (cast)",
-    "status": "OK",
-    "evidence": "[cast]: hand -> battlefield; mana B-1 G-1 R-1 U-1 W-1",
-    "issue": ""
-   },
-   {
-    "clause": "At the beginning of your upkeep, you may ...",
-    "status": "OK",
-    "evidence": "[stimulus: turns pass: your end step, the opponent's turn, your next upkeep]: ability [0] triggers once (your upkeep only, not the opponent's), ask may: [fire, skip]",
-    "issue": ""
-   },
-   {
-    "clause": "... search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
+    "clause": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
     "status": "NOT_EXERCISED",
-    "evidence": "the probe board has no Shrine card to find. Pack sanctum_of_all_upkeep_library.json: Sanctum of Tranquil Light from the library onto the battlefield, PASS; pack sanctum_of_all_upkeep_graveyard.json: from your graveyard onto the battlefield, the opponent's graveyard Shrine untouched, PASS",
-    "issue": "The filter is TYPE_EQ 'Shrine' (a subtype word), as in the compiler's template B2a-sanctum-of-all; the engine's TYPE_EQ matches it (the packs find real Shrines)."
+    "evidence": "trace [stimulus: turns pass ... your next upkeep]: trigger [0] fires once, 'ask may: [fire, skip]' then 'ask choose: [0, 1, 2]' (both / library / graveyard); no Shrine on the probe board, so nothing is found. Tree: TurnPhaseEvent(UPKEEP, actor YOU), OptionalEffect(Choose(...)), SEARCH TYPE_EQ 'Shrine' (type-line word match, quantity.py:818-832, subtypes included) to your BATTLEFIELD. Packs: graveyard option fetches the Shrine under your control (..._from_graveyard_no_shuffle PASS), library option fetches it (..._from_library PASS), skip leaves it (..._skip_does_nothing PASS).",
+    "issue": "engine-limit: the find can never fail when a Shrine is present (CR 701.23b allows failing in the library). Selectors are ONE_OF where today's compiler writes CHOOSE (similar [B2a-sanctum-of-all]); both are exactly-one QConst(1) picks, and BACKLOG 'Weaker than printed' records that every tutor except Alpine Houndmaster still finds when it can. The live tree behaves the same (a fail-to-find pack fails, kept out of the verdict). Weaker, not stronger."
    },
    {
     "clause": "If you search your library this way, shuffle.",
     "status": "NOT_EXERCISED",
-    "evidence": "pack sanctum_of_all_upkeep_library.json: after the search the remaining library cards are reordered (seen as L0..L5 before, L1,L2,L3,L0,L4 after the draw), PASS",
-    "issue": "As with Firemaw, the shuffle runs on every 'fire', including a graveyard-only find; never stronger than printed."
+    "evidence": "tree: SHUFFLE(your library) closes options 0 and 1 only; option 2 (graveyard only) has none, matching the text; a shuffle is not visible in the trace. Packs: graveyard-only fetch and skip keep the library order exactly (PASS); library fetch leaves the shuffled remainder (set asserted with '*', PASS)",
+    "issue": ""
    },
    {
     "clause": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
     "status": "NOT_EXERCISED",
-    "evidence": "pack sanctum_of_all_six_shrines_extra_trigger.json: six Shrines, Sanctum of Stone Fangs' main-phase trigger resolves twice with X = 6 (opponent 20 -> 8, you 20 -> 32), PASS; control sanctum_of_all_five_shrines_no_extra.json: five Shrines, one trigger with X = 5 (15 / 25), PASS. Tree identical to template B5b-sanctum-all-extra-trigger",
+    "evidence": "no other Shrine on the probe board. Tree [1] AbilityTriggerEvent(FAnd(CONTROLLER_IS YOU, SUBTYPE_EQ Shrine, FNot(IS_SOURCE))), condition CONTROLLER_COUNT_GE 6 Shrines, TRIGGER_ADDITIONAL 1: identical to canonical [B5b-sanctum-all-extra-trigger]. Packs: six Shrines make Sanctum of Stone Fangs (X = 6) trigger twice, 32/8 (PASS); five Shrines plus an opponent's Shrine: once, 25/15 (PASS); Sanctum of All's own upkeep trigger is not doubled (PASS); the opponent's Stone Fangs is not doubled, 19/21 (PASS) All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
     "issue": ""
    }
   ],
@@ -46,20 +34,38 @@
    "tools/scenarios/cards/M21/sanctum_of_all_2.json",
    "tools/scenarios/cards/M21/sanctum_of_all_3.json",
    "tools/scenarios/cards/M21/sanctum_of_all_4.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_5.json"
+   "tools/scenarios/cards/M21/sanctum_of_all_5.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_6.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_7.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_8.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_9.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_10.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_11.json"
   ],
   "mutation": {
-   "mutants": 18,
+   "mutants": 30,
    "killed": 4,
-   "score": 0.2222222222222222,
+   "score": 0.13333333333333333,
    "survived": [
-    "drop step 0 at 1/0/effect/inner",
-    "drop step 1 at 1/0/effect/inner",
-    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/1/controller",
-    "zone BATTLEFIELD->HAND at 1/0/effect/inner/steps/0/args/destination",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/destination/controller",
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/destination/controller",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/destination/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/1/args/zone/controller",
+    "amount+1 at 1/0/effect/inner/options/2/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/options/2/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/args/destination/controller",
     "widen filter (drop part 0) at 1/1/event/filter",
     "widen filter (drop part 1) at 1/1/event/filter",
     "widen filter (drop part 2) at 1/1/event/filter",

@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "re-pinned 2026-10-30: m21-fidelity wave 4 (B-78) asks the and/or zone choice first (0 = both zones, the only reading before), then the pick. G3 spec (amount+1 on the search count). Printed: 'you may search your library and/or graveyard for A card named Teferi, Timeless Voyager, reveal it, and put it into your hand.' Two copies are findable, one in your graveyard and one in your library (legal: the legend rule only applies on the battlefield). The may is taken and the library copy is picked: it goes to your hand, the graveyard copy stays.",
+ "notes": "G3 spec (amount+1 on the search count, option 1). Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand.' The controller chooses to search your library only, where two copies wait (legal: the legend rule only applies on the battlefield). One is found (copy A, the pick) and goes to your hand; copy B stays in your library.",
  "cards": [
   {
    "key": "src",
@@ -13,13 +13,13 @@
    "controller": 0
   },
   {
-   "key": "in_gy",
+   "key": "copy_a",
    "real": "Teferi, Timeless Voyager",
-   "zone": "graveyard",
+   "zone": "library",
    "controller": 0
   },
   {
-   "key": "in_lib",
+   "key": "copy_b",
    "real": "Teferi, Timeless Voyager",
    "zone": "library",
    "controller": 0
@@ -32,32 +32,22 @@
    "controller": 0
   }
  ],
- "mana": {
-  "0": {
-   "U": 2,
-   "C": 3
-  }
- },
  "steps": [
   {
-   "op": "cast",
+   "op": "enter",
    "key": "src",
    "decisions": [
     "fire",
-    "0",
-    "in_lib"
+    "1",
+    "copy_a"
    ]
   }
  ],
  "expect": {
   "zone": {
    "src": "battlefield",
-   "in_lib": "hand",
-   "in_gy": "graveyard",
-   "opener": "hand"
-  },
-  "hand": {
-   "0": 2
+   "copy_a": "hand",
+   "copy_b": "library"
   }
  }
 }

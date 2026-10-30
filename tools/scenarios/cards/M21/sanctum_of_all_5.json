@@ -4,32 +4,57 @@
   "life": 20,
   "seed": 7
  },
- "notes": "G3 spec (amount+1 on the search count). Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for A Shrine card and put it onto the battlefield.' Sanctum of All enters; two Shrines are findable: Sanctum of Tranquil Light in the library and Sanctum of Stone Fangs in your graveyard. On your next upkeep the may is taken and Tranquil Light is picked: it enters; Stone Fangs stays in the graveyard.",
  "cards": [
   {
-   "key": "soa",
+   "key": "a",
    "real": "Sanctum of All",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "tl",
-   "real": "Sanctum of Tranquil Light",
-   "zone": "library",
-   "controller": 0
-  },
-  {
-   "key": "sf",
+   "key": "fangs",
    "real": "Sanctum of Stone Fangs",
-   "zone": "graveyard",
+   "zone": "hand",
    "controller": 0
   },
   {
-   "key": "dc",
-   "name": "Decoy",
-   "power": 1,
-   "toughness": 1,
+   "key": "s1",
+   "name": "Shrine One",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Shrine Two",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Shrine Three",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Shrine",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "drawn",
+   "name": "Drawn",
    "type": "Creature",
+   "power": "1",
+   "toughness": "1",
    "zone": "library",
    "controller": 0
   }
@@ -37,7 +62,11 @@
  "steps": [
   {
    "op": "enter",
-   "key": "soa"
+   "key": "a"
+  },
+  {
+   "op": "enter",
+   "key": "fangs"
   },
   {
    "op": "advance_turn"
@@ -45,16 +74,19 @@
   {
    "op": "advance_turn",
    "decisions": [
-    "fire",
-    "tl"
+    "skip"
    ]
   }
  ],
  "expect": {
   "zone": {
-   "soa": "battlefield",
-   "tl": "battlefield",
-   "sf": "graveyard"
+   "a": "battlefield",
+   "fangs": "battlefield"
+  },
+  "life": {
+   "0": 25,
+   "1": 15
   }
- }
+ },
+ "notes": "Printed: '... while you control six or more Shrines ...'. Seat 0 controls five Shrines (Sanctum of All, Sanctum of Stone Fangs, three plain Shrines); the opponent's Shrine does not count (you control). Stone Fangs triggers once on seat 0's next first main phase with X = 5: 25 / 15. Sanctum of All enters by step too (its upkeep may would otherwise ask during the runner's opening turn)."
 }

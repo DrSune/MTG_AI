@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet Pa890036926. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand. If you search your library this way, shuffle.' I accept the may and search only my graveyard (option 2): Chandra goes from the graveyard to my hand. I did not search my library, so it is NOT shuffled: it keeps its setup order (the runner's six fillers on top, then Keep Two, Keep One). hand after = drawn + Chandra = 2.",
+ "cards": [
+  {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
+  {"key": "ch", "real": "Chandra, Flame's Catalyst", "zone": "graveyard", "controller": 0},
+  {"key": "k1", "name": "Keep One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "k2", "name": "Keep Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "fm", "decisions": ["fire", "2"]}],
+ "expect": {"zone": {"fm": "battlefield", "ch": "hand", "drawn": "hand", "k1": "library", "k2": "library"},
+            "hand": {"0": 2},
+            "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Keep Two", "Keep One"]}}}

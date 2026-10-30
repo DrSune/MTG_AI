@@ -1,93 +1,14 @@
-{
- "set": "M21",
- "notes": "Basri's Aegis, printed: 'Put a +1/+1 counter on each of up to two target creatures. You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand. If you search your library this way, shuffle.' Library after the opening draw takes Top Junk (top first): Basri, Devoted Paladin, Deep Card, then the six filler cards. Cast Aegis on your Bear (one counter) and answer the may with fire, picking Basri: Basri goes library -> hand; the library keeps its other 7 cards (shuffled, order not asserted).",
- "world": {
-  "life": 20,
-  "seed": 7,
-  "library_top": true
- },
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P79cfec2ff7. Printed: '... You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand. If you search your library this way, shuffle.' The Paladin is in my library. I cast the Aegis with two targets, my creature and an opponent's: each gets exactly one +1/+1 counter. I accept the may and search only my library (option 1): the Paladin goes to my hand. hand after = drawn + Paladin = 2.",
  "cards": [
-  {
-   "key": "aegis",
-   "real": "Basri's Aegis",
-   "zone": "hand",
-   "controller": 0
-  },
-  {
-   "key": "bear",
-   "name": "My Bear",
-   "type": "Creature — Bear",
-   "power": "2",
-   "toughness": "2",
-   "zone": "battlefield",
-   "controller": 0
-  },
-  {
-   "key": "deep",
-   "name": "Deep Card",
-   "type": "Creature",
-   "power": "1",
-   "toughness": "1",
-   "zone": "library",
-   "controller": 0
-  },
-  {
-   "key": "bdp",
-   "real": "Basri, Devoted Paladin",
-   "zone": "library",
-   "controller": 0
-  },
-  {
-   "key": "junk",
-   "name": "Top Junk",
-   "type": "Creature",
-   "power": "1",
-   "toughness": "1",
-   "zone": "library",
-   "controller": 0
-  }
+  {"key": "ba", "real": "Basri's Aegis", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Guard One", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Their Guard", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pal", "real": "Basri, Devoted Paladin", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
  ],
- "mana": {
-  "0": {
-   "W": 4
-  }
- },
- "steps": [
-  {
-   "op": "cast",
-   "real": "Basri's Aegis",
-   "key": "aegis",
-   "targets": [
-    "bear"
-   ],
-   "decisions": [
-    "fire",
-    "bdp"
-   ]
-  }
- ],
- "expect": {
-  "zone": {
-   "aegis": "graveyard",
-   "bdp": "hand",
-   "deep": "library",
-   "junk": "hand"
-  },
-  "counters": {
-   "bear": {
-    "PLUS_1_PLUS_1": 1
-   }
-  },
-  "library": {
-   "0": [
-    "*",
-    "*",
-    "*",
-    "*",
-    "*",
-    "*",
-    "*"
-   ]
-  }
- }
-}
+ "mana": {"0": {"W": 4}},
+ "steps": [{"op": "cast", "key": "ba", "real": "Basri's Aegis", "targets": ["c1", "o1"], "decisions": ["fire", "1"]}],
+ "expect": {"zone": {"ba": "graveyard", "pal": "hand", "drawn": "hand"},
+            "counters": {"c1": {"PLUS_1_PLUS_1": 1}, "o1": {"PLUS_1_PLUS_1": 1}},
+            "hand": {"0": 2}}}
