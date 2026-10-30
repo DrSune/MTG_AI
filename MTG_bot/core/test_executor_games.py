@@ -2061,6 +2061,10 @@ class Round16eControlTest(unittest.TestCase):
             p1,
             ZONE_BATTLEFIELD,
         )
+        # re-pinned 2026-10-29: V20 (B-66) applies the Aura's "You can't choose
+        # an untapped creature as this spell's target as you cast it", so the
+        # victim must be tapped to be a legal target.
+        world.cards[victim].tapped = True
         cast(executor, p0, aura, targets=(victim,))
         self.assertEqual(world.zone_of(aura).kind, ZONE_BATTLEFIELD)
         self.assertEqual(executor.attachments.get(aura), victim)
@@ -2283,8 +2287,8 @@ class TormodsCryptTargetPlayerTest(unittest.TestCase):
     the policy designated nothing, and the activation raised "TARGET_PLAYER
     needs a bound target" once the B-49 carrier made the Crypt castable (14% of
     stress and 24% of coherent castable games). "target player" is a target
-    (CR 115.1). The slot is the existing synthesized one, so it offers opponents
-    only (BACKLOG B-53, not fixed here)."""
+    (CR 115.1). The slot is the existing synthesized one; since V21 (2026-10-29)
+    it offers every player, the caster included (B-53)."""
 
     def _armed(self):
         supply = get_supply("all", "M21")
@@ -2311,12 +2315,15 @@ class TormodsCryptTargetPlayerTest(unittest.TestCase):
         (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
         self.assertTrue(slot.synthetic)
         self.assertEqual((slot.min_count, slot.max_count), (1, 1))
-        self.assertEqual(slot.candidates, (p1,))
+        # re-pinned 2026-10-29: V21 fixes B-53: "target player" is any player (CR 115.1).
+        self.assertEqual(slot.candidates, (p0, p1))
 
     def test_the_designated_activation_exiles_exactly_that_graveyard(self) -> None:
         world, executor, p0, _p1, record, crypt, mine, theirs = self._armed()
         (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
-        activate(executor, crypt, 0, seat=p0, targets=slot.candidates)
+        # re-pinned 2026-10-29: V21: the slot names both seats now; designate the opponent.
+        self.assertIn(_p1, slot.candidates)
+        activate(executor, crypt, 0, seat=p0, targets=(_p1,))
         self.assertEqual([world.zone_of(h).kind for h in theirs], [ZONE_EXILE, ZONE_EXILE])
         self.assertEqual(world.zone_of(mine).kind, ZONE_GRAVEYARD)
         self.assertEqual(world.zone_of(crypt).kind, ZONE_GRAVEYARD)  # sacrificed as the cost
@@ -2463,6 +2470,10 @@ class StallRuleTest(unittest.TestCase):
         # until its player slot existed; it now exiles player 1's graveyard.
         # Still crash-free and decisive, SAME loser, 36 turns (double-run
         # replay verified). Neither Chandra in these decks is cast.
+        # re-pinned 2026-10-29: V10 changes Kinetic Augur's discard (seat 0,
+        # card:7) from the engine's lowest-handle pick to two asks of the
+        # discarding player (CR 701.9b), which draw policy RNG. Still
+        # decisive, SAME loser, 32 turns (double-run replay verified).
         # re-pinned 2026-10-29: m21-fidelity folds Liliana's Scorn's tutor into
         # its resolution (it was a free activated row that never ran), and the
         # seat casting Scorn (turns 13 and 25) now gets the may-search ask and
@@ -2485,6 +2496,11 @@ class StallRuleTest(unittest.TestCase):
         # with m21-fidelity, V36 and V37 together the game is decisive again,
         # SAME loser as before, 50 turns (double-run replay verified, equal
         # fingerprints).
+        # re-pinned 2026-10-30 (cards/integration 6c10726 merged into
+        # engine/verify-fixes-2): with V10's 32 turns above superseded by every
+        # lane together, the final state differs from integration's (another
+        # fingerprint) but the game is still decisive, SAME loser, 50 turns and
+        # 97 acts (double-run replay verified, equal fingerprints).
         # re-pinned 2026-10-29 (on engine/verify-fixes, before its merge): V2 (mana empties as each step and phase ends,
         # CR 500.5; no more banked mana) changes the trajectory: still
         # decisive, SAME loser, 48 turns. B-90 (a) (response windows tap mana
@@ -2499,6 +2515,8 @@ class StallRuleTest(unittest.TestCase):
         # fire (double-run replay verified: same fingerprint, turns and
         # reason). Measured on the two parents: integration alone 50 turns,
         # decisive (97 acts); engine/verify-fixes alone 46 turns, decisive (87).
+        # Re-measured 2026-10-30 after cards/integration 9553ae1 (vfix2's lane) merged in:
+        # the same 60-turn cap, no loser, 95 acts (double-run verified).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
         self.assertEqual(game.turns, 60)

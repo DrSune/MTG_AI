@@ -112,12 +112,14 @@ from MTG_bot.core.executor.query import (
     CastOption,
     TargetSlot,
     activation_target_slots,
+    cast_mode_options,
     legal_activations,
     legal_casts,
+    modal_choose,
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.stack import cast, cast_modes, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -636,7 +638,16 @@ class RandomPolicy:
         assert isinstance(node, SpellAbility)  # a non-land legal_casts row has one
         name = game.name_of(row.handle)
         game.attempted = f"cast:{name}"
-        slots = spell_target_slots(executor, node, spell_handle=row.handle, seat=seat)
+        # V17 (CR 601.2b-c): a modal spell's modes are announced first, through
+        # the decision channel (the provider answers, as it did at resolution),
+        # and only the chosen modes' targets are designated.
+        modes: tuple[int, ...] | None = None
+        if modal_choose(node) is not None:
+            if not cast_mode_options(executor, node, spell_handle=row.handle, seat=seat):
+                game.infeasible_skips += 1  # no mode can be chosen (CR 700.2a)
+                return
+            _token, modes, _rest = cast_modes(executor, seat, row.handle, node)
+        slots = spell_target_slots(executor, node, spell_handle=row.handle, seat=seat, modes=modes)
         if len(slots) > 1:
             # v1 has ONE designation tuple per cast, so a multi-slot spell cannot
             # be designated (``stack._validate_spell_targets`` raises
@@ -661,6 +672,7 @@ class RandomPolicy:
             seat,
             row.handle,
             kicked=row.kicked,
+            mode_choices=modes or (),
             targets=tuple(targets),
         )
         self._log(game, "cast", name, f"{len(targets)}t")

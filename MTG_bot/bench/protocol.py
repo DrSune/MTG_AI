@@ -62,8 +62,11 @@ class AskRoutingError(RuntimeError):
 
 #: Engine ask kinds whose tag's second field is the deciding player.
 #: ``x`` (2026-10-29): an activation's X announcement, ``x:<seat>:<source>:<digest>``
-#: (CR 602.2b -> 601.2b; the menu is 0..the live bound).
-SEAT_IN_TAG = frozenset({"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "x"})
+#: (CR 602.2b -> 601.2b; the menu is 0..the live bound). ``legend`` (V22, 2026-10-29): the
+#: legend rule's keep choice, ``legend:<seat>:<digest>`` (CR 704.5j).
+SEAT_IN_TAG = frozenset(
+    {"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "legend", "x"}
+)
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 OBJECT_IN_TAG = frozenset(
     {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name", "enchant"}
@@ -201,6 +204,7 @@ def engine_ask(
         "cw": "Combat: cast an instant now, or pass?",
         "sacrifice": f"{about}: choose what to sacrifice.",
         "discard": f"{about}: choose what to discard.",
+        "legend": "Legend rule: you control legendary permanents with the same name. Choose the one to keep; the others go to the graveyard.",
         "enchant": f"{about} enters the battlefield: choose what it enchants.",
         "tap": f"{about}: choose what to tap.",
         "name": "Choose a card name.",

@@ -540,9 +540,10 @@ class TestPreventionExposure(DurationCase):
         )
         self.world.cards[self.beta].tapped = True
         self.ex.begin_turn(self.p1)
-        # No consumer for the targetless step family yet (the designated-
-        # set freeze above is the live consumer): Beta untaps — EXPOSED.
-        self.assertFalse(self.world.cards[self.beta].tapped)
+        # re-pinned 2026-10-29: V16 gives the targetless family its consumer
+        # (CR 502.3): the record's filter is the affected set, so Beta, a
+        # creature, does not untap (it used to: EXPOSED).
+        self.assertTrue(self.world.cards[self.beta].tapped)
         self.assertEqual(len(self.ex.replacements.dump()), 1)
         self.assertEqual(self.ex.replacements.dump()[0][5], "live")
         self.ex.end_turn()

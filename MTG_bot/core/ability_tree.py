@@ -454,11 +454,20 @@ class ControllerRef(Enum):
     YOU = "YOU"
     OPPONENT = "OPPONENT"
     TARGET_PLAYER = (
-        "TARGET_PLAYER"  # "the target player" — the spell's target, when it is a player
+        "TARGET_PLAYER"  # "target player" — the spell's target, when it is a player (any player)
     )
     ANY = "ANY"
     ALL_OPPONENTS = "ALL_OPPONENTS"
     OWNER = "OWNER"  # "its owner" — owner-scoped zones ("return to its owner's hand")
+    # V21 (2026-10-29): "target opponent" — the same designated player, restricted to an
+    # opponent of the controller (CR 102.2, 102.3). It shared TARGET_PLAYER's bytes before,
+    # so "target player" could never designate you.
+    TARGET_OPPONENT = "TARGET_OPPONENT"
+
+
+#: The refs naming the player a spell or ability designated (V21): "target player" and
+#: "target opponent" read the same binding and differ only in who may be designated.
+DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
 
 
 class QPropField(Enum):
@@ -1608,6 +1617,7 @@ class FAtom:
                 ControllerRef.YOU,
                 ControllerRef.OPPONENT,
                 ControllerRef.TARGET_PLAYER,
+                ControllerRef.TARGET_OPPONENT,
             )
             and not (isinstance(self.who, Selector) and self.who.referent is not None)
         ):

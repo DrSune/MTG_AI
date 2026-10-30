@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "old", "real": "Azusa, Lost but Seeking", "zone": "battlefield", "controller": 0},
+  {"key": "new", "real": "Azusa, Lost but Seeking", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "new", "decisions": ["new"]}
+ ],
+ "expect": {
+  "zone": {"old": "graveyard", "new": "battlefield"}
+ },
+ "notes": "V22 (2026-10-29). CR 704.5j, the legend rule: a player who controls two or more legendary permanents with the same name chooses one, and the rest go to their owners' graveyards (a state-based action). The second Azusa enters; its controller keeps the new one, so the first (the lower handle) is put into the graveyard. Before V22 both stayed."
+}

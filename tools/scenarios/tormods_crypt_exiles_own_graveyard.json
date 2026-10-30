@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "crypt", "real": "Tormod's Crypt", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Dead", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "mine2", "name": "My Spent", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their Dead", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "crypt", "idx": 0, "seat": 0, "targets": ["p0"]}
+ ],
+ "expect": {
+  "zone": {"crypt": "exile", "mine": "exile", "mine2": "exile", "theirs": "graveyard"}
+ },
+ "notes": "V21 (2026-10-29). Printed Tormod's Crypt: '{T}, Sacrifice this artifact: Exile target player's graveyard.' 'Target player' is any player (CR 115.1), so its controller may exile their own graveyard, which by then holds the sacrificed Crypt too (the cost is paid first). Before V21 the slot offered opponents only."
+}

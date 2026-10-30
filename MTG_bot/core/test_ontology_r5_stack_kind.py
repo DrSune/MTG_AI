@@ -192,11 +192,16 @@ class TestModalCounterWindow(ModalWindowCase):
             seen["modes"] = tuple(vocab)
             return self.set_token(chosen)
 
-        self.script(str(self.epiphany), mode_answer, str(self.giant))
+        # re-pinned 2026-10-30: V21 (merged from engine/verify-fixes-2) makes "target
+        # player" any player, the caster included (CR 115.1), so mode 3's player is
+        # now a real target ask (it was the lone opponent, forced). It names p0, the
+        # pin's drawer.
+        self.script(str(self.epiphany), mode_answer, str(self.giant), str(self.p0))
         book = self.give("Book", SpellKind.SORCERY, zone=ZONE_LIBRARY, seat=self.p0)
         frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
         kinds = [what.split(":", 1)[0] for _vocab, what in self.asks]
-        self.assertEqual(kinds, ["counter", "choose", "target"])
+        self.assertEqual(kinds, ["counter", "choose", "target", "target"])
+        self.assertEqual(self.asks[3][0], tuple(sorted((str(self.p0), str(self.p1)))))
         # CR 700.2a: no offered set holds mode 1 (no ability is on the stack),
         # and every offered set counters the frame (mode 0) — no phantom.
         offered = [self.option_sets()[int(t)] for t in seen["modes"]]
@@ -208,7 +213,8 @@ class TestModalCounterWindow(ModalWindowCase):
         # the bounce ask offered both nonland permanents
         self.assertEqual(self.asks[2][0], tuple(sorted((str(self.bear), str(self.giant)))))
         # resolution: the Shock is countered, the Giant bounced, p0 drew
-        # (the engine's "target player" is an opponent seat, B-53)
+        # (designated above; before V21 the engine's "target player" was an
+        # opponent seat only, B-53)
         self.assertTrue(frame.countered)
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.world.zone_of(self.shock_card).kind, ZONE_GRAVEYARD)
@@ -216,7 +222,7 @@ class TestModalCounterWindow(ModalWindowCase):
         self.assertEqual(self.world.zone_of(self.bear).kind, ZONE_BATTLEFIELD)
         self.assertEqual(self.world.zone_of(book).kind, ZONE_HAND)
         # the runtime Choose honoured the declaration: no resolution re-ask
-        self.assertEqual(len(self.asks), 3)
+        self.assertEqual(len(self.asks), 4)
 
     def test_a_mode_without_legal_targets_is_not_offered(self) -> None:
         # CR 700.2a: with no nonland permanent, the bounce mode can't be chosen.

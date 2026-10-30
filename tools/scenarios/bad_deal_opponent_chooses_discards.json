@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bad Deal", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Opp Card A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "c2", "name": "Opp Card B", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "c3", "name": "Opp Card C", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 6}},
+ "steps": [
+  {"op": "cast", "key": "bd", "real": "Bad Deal", "controller": 0, "decisions": ["c2", "c3"]}
+ ],
+ "expect": {
+  "zone": {"bd": "graveyard", "c1": "hand", "c2": "graveyard", "c3": "graveyard"},
+  "hand": {"0": 2, "1": 1},
+  "life": {"0": 18, "1": 18}
+ },
+ "notes": "Printed: 'each opponent discards two cards' with CR 701.9b: the discarding player chooses. The opponent holds three cards and chooses to discard B and C, keeping A. You draw two (hand 0 -> 2), each player loses 2. OBSERVED 2026-10-29: no one is asked; the engine discards the two lowest-handle cards (verbs.py:174-189)."
+}

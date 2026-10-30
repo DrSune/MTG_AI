@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dog", "real": "Alpine Watchdog", "zone": "hand", "controller": 0},
+  {"key": "uns", "real": "Unsubstantiate", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "W": 2}},
+ "steps": [
+  {"op": "enter", "key": "dog", "tapped": true},
+  {"op": "cast", "real": "Unsubstantiate", "key": "uns", "targets": ["dog"]},
+  {"op": "cast", "real": "Alpine Watchdog", "key": "dog"}
+ ],
+ "expect": {
+  "zone": {"dog": "battlefield", "uns": "graveyard"},
+  "tapped": {"dog": false}
+ },
+ "notes": "V43 (2026-10-29). A tapped Alpine Watchdog (it entered tapped after the turn's untap step) is returned to its owner's hand by Unsubstantiate and cast again. CR 400.7: it is a new object; 110.5d: a card in hand is neither tapped nor untapped; 110.5b: it enters untapped. Before V43 the one CardState kept tapped=True through the hand, so it re-entered tapped."
+}

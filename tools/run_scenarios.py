@@ -22,11 +22,14 @@ Pack vocabulary (all keys required as noted):
                                             — addressed by name through the
                                             pool fallback; is_token records
                                             only), OR
-              "name"/"power"/"toughness"/"type" (synthetic)}]
+              "name"/"power"/"toughness"/"type" (synthetic; optional
+                                            "colors", "keywords", and
+                                            "token": true for a token)}]
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
+                                            (a target may be "p0"/"p1": a player)
               "decisions": [str...]},
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
@@ -264,6 +267,9 @@ class ScenarioRunner:
                     # for synthetic cards; absent keys are the dataclass defaults (byte-identical).
                     colors=tuple(card.get("colors", ())),
                     keywords=_keyword_tuple(card),
+                    # V22 (2026-10-29): a synthetic TOKEN ("token": true), e.g. a token
+                    # copy of a legendary creature; absent = a card, byte-identical.
+                    is_token=bool(card.get("token", False)),
                     # Fixer 3 (2026-10-30): a synthetic planeswalker may declare its printed
                     # loyalty, so damage removes loyalty (CR 120.3c) instead of marking it
                     # like creature damage; absent stays None (byte-identical).
@@ -421,7 +427,7 @@ class ScenarioRunner:
             spell_key = step.get("key") or f"cast_{step['real']}"
             if spell_key not in self.handles:
                 raise PackError(f"no hand card {spell_key!r} — add it under cards")
-            targets = [self.handles[k] for k in step.get("targets", ())]
+            targets = [self._target_handle(k) for k in step.get("targets", ())]
             # r22b: a cast step's "player:N" decision token is a PLAYER
             # designation for the spell's target slot. The ASK channel never
             # answers CAST-time multi-candidate targeting (that stays loud by
@@ -559,11 +565,9 @@ class ScenarioRunner:
                 int(step.get("idx", 0)),
                 seat=self.seats[int(step.get("seat", 0))],
                 # 2026-10-29: "p0"/"p1" designate a player (Teferi, Timeless
-                # Voyager's "target opponent"), any other word a pack key.
-                targets=tuple(
-                    self.seats[int(k[1])] if k in ("p0", "p1") else self.handles[k]
-                    for k in step.get("targets", ())
-                ),
+                # Voyager's "target opponent"; V21's "target player" may be the
+                # caster), any other word a pack key.
+                targets=tuple(self._target_handle(k) for k in step.get("targets", ())),
                 decisions=tuple(step.get("decisions", ())),
                 # 2026-10-29 activation X lane (CR 602.2b -> 601.2b): an explicit
                 # announcement; absent, X is asked through the decision channel.
@@ -574,6 +578,15 @@ class ScenarioRunner:
             self._combat(step)
         else:
             raise PackError(f"unknown op {op!r}")
+
+    def _target_handle(self, key: str):
+        """A ``targets`` entry: a pack key, or (V21, 2026-10-29) ``p0``/``p1`` for a
+        player, so a "target player" slot can name the caster in a cast or an
+        activate step. Pack keys never start with a seat literal, so every
+        existing pack resolves byte-identically."""
+        if key in ("p0", "p1") and key not in self.handles:
+            return self.seats[int(key[1])]
+        return self.handles[key]
 
     def _resolve_word(self, word: str) -> str:
         """18b pack-key resolution, RUNG-2-extended: a word (or either

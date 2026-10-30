@@ -1567,7 +1567,8 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.REVEAL)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertIsInstance(atom.args.get("count"), QUnbounded)
 
     def test_aven_gagglemaster_gain_life_qbin_mul_flying(self) -> None:
@@ -2084,9 +2085,10 @@ class TestB2aRound7Batch(unittest.TestCase):
             Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
         )
         cards = _selector(discard, "cards")
-        # C15: "up to two" stays CHOOSE + QConst(2) — never TARGET.
+        # re-pinned 2026-10-29: V15 changes "up to two" to CHOOSE + QAtMost(2),
+        # the player's 0..2 (QConst(2) discarded exactly two); never TARGET.
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
-        self.assertEqual(cards.count, QConst(2))
+        self.assertEqual(cards.count, QAtMost(2))
         draw = _atom_step(seq, 1)
         self.assertIs(draw.verb, Verb.DRAW)
         amount = dict(draw.args.pairs).get("amount")

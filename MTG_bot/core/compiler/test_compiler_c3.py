@@ -80,9 +80,11 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- waker: loyalty-+1 tail "Each opponent who can't loses 3 life." ----
 
     def test_waker_tail_merges_into_plus_one_ability(self) -> None:
-        """The can't-clause is APPENDED (R11-1 loyalty-trailing path), not
-        dropped and not a standalone sentence-outcome: the +1 ability's
-        effect is a Seq whose LAST step is the EachPlayer gate."""
+        """The can't-clause merges into the +1 ability (R11-1 loyalty-trailing
+        path), not dropped and not a standalone sentence-outcome.
+        re-pinned 2026-10-29: V10 changes its place: the gate is the FIRST
+        step, before the discard it is about (docs/ATOM_DIVERGENCES.md D17),
+        so an opponent who discards their last card does not lose life."""
         res = self._compile(_WAKER)
         gated = [
             ab
@@ -93,7 +95,8 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertEqual(len(gated), 1, "expected exactly one loyalty-+1 ability")
         ability = gated[0]
         assert isinstance(ability.effect, Seq)
-        self.assertIsInstance(ability.effect.steps[-1], EachPlayer)
+        self.assertEqual(len(ability.effect.steps), 2)
+        self.assertIsInstance(ability.effect.steps[0], EachPlayer)
 
     def test_waker_each_player_gate_shape(self) -> None:
         """EachPlayer(ALL_OPPONENTS, Conditional(pred=FNot(
@@ -131,7 +134,9 @@ class TestC3CompilerPins(unittest.TestCase):
 
     def test_waker_discard_head_preserved(self) -> None:
         """The pre-existing "discard a card" step of the +1 ability is
-        untouched — the tail is an append, the head is not rewritten."""
+        untouched — the tail is inserted, the discard is not rewritten.
+        re-pinned 2026-10-29: V10 moves the who-can't gate before the discard
+        (D17), so the discard is now the LAST step."""
         res = self._compile(_WAKER)
         ability = next(
             ab
@@ -140,7 +145,7 @@ class TestC3CompilerPins(unittest.TestCase):
             and any(isinstance(p, CostLoyalty) and p.delta == 1 for p in ab.cost.parts)
         )
         assert isinstance(ability.effect, Seq)
-        head = ability.effect.steps[0]
+        head = ability.effect.steps[-1]
         assert isinstance(head, Atom)
         # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
         self.assertIs(head.verb, Verb.MOVE_ZONE)

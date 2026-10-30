@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mr", "real": "Mind Rot", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "My Card A", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "b", "name": "My Card B", "type": "Sorcery", "zone": "hand", "controller": 0},
+  {"key": "theirs", "name": "Their Card", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Mind Rot", "key": "mr", "targets": ["p0"]}
+ ],
+ "expect": {
+  "zone": {"mr": "graveyard", "a": "graveyard", "b": "graveyard", "theirs": "hand"},
+  "hand": {"0": 0, "1": 1}
+ },
+ "notes": "V21 (2026-10-29). Printed Mind Rot: 'Target player discards two cards.' Any player may be targeted (CR 115.1), the caster too: it discards its own two cards (exactly two, so no choice). Before V21 only an opponent could be targeted."
+}

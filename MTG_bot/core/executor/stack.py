@@ -75,6 +75,7 @@ from MTG_bot.core.executor.events import (
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
     build_payment_plan,
+    ctx_for,
     pay_costs,
     plan_mana_taps,
     protected_from,
@@ -82,6 +83,7 @@ from MTG_bot.core.executor.legality import (
     spell_record,
     tap_for_payment,
 )
+from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import Binding
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -399,6 +401,51 @@ def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
     return None
 
 
+def cast_modes(
+    executor: Executor,
+    seat: Handle,
+    handle: Handle,
+    node: SpellAbility,
+    *,
+    mode_choices: tuple[int, ...] = (),
+    decisions: tuple[str, ...] = (),
+) -> tuple[int, tuple[int, ...], tuple[str, ...]]:
+    """V17 (CR 601.2b, 700.2a): announce a modal spell's modes as it is cast.
+
+    Returns ``(token, option indices, decisions left)``; ``token`` is the
+    runtime Choose's decision token for that set (``query.choose_options``
+    order), which the resolution consumes instead of asking again. The modes
+    come from ``mode_choices`` (option indices, as the act windows and the
+    probe pass them), else from a leading decision token naming a legal set
+    (the pack lane; the same token the resolution ask used to take), else
+    from an ask of the caster over the legal sets, ``choose:<spell>:<digest>``
+    (forced when only one is legal, never a phantom). A set whose modes need
+    a target that cannot be chosen is not legal (700.2a); with no legal set
+    the spell cannot be cast. An act window calls this before choosing
+    targets, then designates through ``spell_target_slots(..., modes=)``."""
+    from MTG_bot.core.executor.query import cast_mode_options
+
+    legal = cast_mode_options(executor, node, spell_handle=handle, seat=seat)
+    remaining = tuple(decisions)
+    if mode_choices:
+        wanted = tuple(sorted(int(m) for m in mode_choices))
+        for token, idxs in legal:
+            if idxs == wanted:
+                return token, idxs, remaining
+        raise ValueError(
+            f"executor: illegal cast: modes {wanted} are not a legal choice (CR 700.2a)"
+        )
+    if not legal:
+        raise ValueError("executor: illegal cast: no mode can be chosen (CR 700.2a)")
+    vocab = tuple(str(token) for token, _idxs in legal)
+    if remaining and remaining[0] in vocab:
+        pick, remaining = remaining[0], remaining[1:]
+    else:
+        ctx = ctx_for(executor, source=handle, controller=seat)
+        digest = site_digest(tuple(idxs for _token, idxs in legal))
+        pick = offer_or_autopick(ctx, vocab, f"choose:{handle}:{digest}")
+    token = int(pick)
+    return token, dict(legal)[token], remaining
 def _option_sets(executor: Executor, node: SpellAbility, handle: Handle, seat: Handle):
     """The legal option sets of a Choose spell, in ``query.choose_options``'
     canonical order (the runtime Choose's own token contract: token = the
@@ -432,12 +479,14 @@ def _plan_cast_designation(
     """r19c: the CR 601.2b/2c DECLARATION lane — modes, then targets, with
     the three machinery gaps the suspects pinned, each closing a loud raise:
 
-    * **modes before targets** (601.2b): a Choose spell whose options carry
-      more than one TARGET slot cannot be validated option-blind — the
-      chosen mode decides WHICH slots exist at all. The mode arrives as
-      ``mode_choices[0]`` or, when absent, as the leading index token of
-      ``decisions`` (the pack's scripted answer, consumed HERE so the
-      runtime Choose never re-asks a decision already made);
+    * **modes before targets** (601.2b): a modal spell cannot be validated
+      option-blind — the chosen modes decide WHICH slots exist at all. V17:
+      every modal spell announces its mode set here (:func:`cast_modes`):
+      from ``mode_choices`` (the set's option indices; R5-10: several for
+      "choose one or more"), else from the leading token of ``decisions``
+      naming a legal set (the pack's scripted answer, consumed HERE so the
+      runtime Choose never re-asks a decision already made), else from an
+      ask of the caster over the legal sets;
     * **forced auto-designation** (601.2c, the 18b trigger-lane convention
       mirrored): when the spell designated nothing and EVERY slot has one
       single legal filler — a lone-opponent TARGET_PLAYER population
@@ -457,47 +506,35 @@ def _plan_cast_designation(
     Returns ``(designated_targets, slot_designations, remaining_decisions,
     declared_modes)``. Validation of the finished designation happens
     HERE — :func:`cast` must not re-validate mode-blind."""
-    from MTG_bot.core.ability_tree import Choose, FAtomPred
-    from MTG_bot.core.executor.query import filter_has_pred, spell_target_slots
+    from MTG_bot.core.ability_tree import FAtomPred
+    from MTG_bot.core.executor.query import (
+        filter_has_pred,
+        modal_choose,
+        spell_target_slots,
+        with_modes,
+    )
 
-    slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
     remaining = tuple(decisions)
     modes: tuple[int, ...] = ()
 
     # --- modes before targets (601.2b) ------------------------------------
-    # R5-10: a declaration may name a mode SET ("choose one or more", CR
-    # 700.2d: each mode at most once); ``mode_choices`` with more than one
-    # entry is that set, and the chosen modes' slots are designated in
-    # walk order (the r19c positional rule) as one combined effect.
-    if isinstance(node.effect, Choose) and (len(slots) > 1 or len(mode_choices) > 1):
-        if mode_choices:
-            chosen = tuple(sorted({int(m) for m in mode_choices}))
-        elif remaining and remaining[0].lstrip("-").isdigit():
-            chosen = (int(remaining[0]),)
-            remaining = remaining[1:]
-        else:
-            raise ValueError(
-                "executor: cast: a multi-target Choose spell must declare "
-                "its mode (mode_choices= or a leading index decision token)"
-            )
-        for mode in chosen:
-            if not 0 <= mode < len(node.effect.options):
-                raise ValueError(
-                    f"executor: cast: Choose mode {mode} outside "
-                    f"0..{len(node.effect.options) - 1}"
-                )
-        if len(chosen) > 1 and not any(
-            o.option_idxs == chosen for o in _option_sets(executor, node, handle, seat)
-        ):
-            raise ValueError(
-                f"executor: cast: mode set {chosen} is not a legal choice of "
-                "the spell's Choose (its count, CR 700.2)"
-            )
-        from dataclasses import replace
-
-        active = replace(node, effect=_chosen_effect(node.effect, chosen))
-        slots = spell_target_slots(executor, active, spell_handle=handle, seat=seat)
-        modes = chosen
+    # V17 (2026-10-29): EVERY modal spell announces its modes as it is cast,
+    # and only the chosen modes' targets exist (CR 601.2c, 700.2a). Before,
+    # only a multi-slot Choose did, so a one-target mode was required on
+    # every cast (Destructive Tampering's mode 2 was uncastable without an
+    # artifact) and the mode was asked at resolution. R5-10 (merged
+    # 2026-10-30): a declaration may name a mode SET ("choose one or more",
+    # CR 700.2d), as ``mode_choices`` with more than one entry; cast_modes
+    # matches it against the legal sets, and the chosen modes' slots are
+    # designated in walk order (the r19c positional rule) as one combined
+    # effect. ``modes`` carries the set's token, the runtime Choose's own.
+    if modal_choose(node) is not None:
+        token, chosen, remaining = cast_modes(
+            executor, seat, handle, node, mode_choices=mode_choices, decisions=remaining
+        )
+        node = with_modes(node, chosen)
+        modes = (token,)
+    slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
 
     if not slots:
         # targetless / TARGET_PLAYER-only legacy shapes: the original
@@ -1133,22 +1170,12 @@ def cast(
         ctx.slot_designations = slot_designations
         ctx.designation_union = tuple(sorted(set(targets)))
     if declared_modes and isinstance(node.effect, Choose):
-        # R5-10: the declared mode SET rides on as the runtime Choose's own
-        # token, the set's index in choose_options' canonical order. For a
-        # "choose one" the index of (m,) is m, the bytes the 19c lane wrote;
-        # a "choose one or more" (Sublime Epiphany) now keeps its declared
+        # V17: every modal spell's announced set (any count) is consumed by
+        # its top-level Choose at resolution (CR 601.2b: chosen once, as cast).
+        # The token is the set's index in choose_options' canonical order, so
+        # a "choose one or more" (Sublime Epiphany, R5-10) keeps its declared
         # set instead of being asked again at resolution.
-        sets = _option_sets(executor, node, handle, seat)
-        pick = next(
-            (str(i) for i, o in enumerate(sets) if o.option_idxs == tuple(declared_modes)),
-            None,
-        )
-        if pick is None:
-            raise ValueError(
-                f"executor: cast: declared modes {declared_modes} are not an "
-                "option set of the spell's Choose"
-            )
-        ctx.prechosen_modes = [pick]
+        ctx.prechosen_modes = [str(m) for m in declared_modes]
     from MTG_bot.core.executor.query import is_aura_spell
 
     # 16e (CR 303.4a/608.2a): an aura enters the battlefield ATTACHED, and
@@ -1342,7 +1369,17 @@ def cast_card(
             f"executor: CAST {record.name}: casting a card the caster does not own "
             "needs the owner to survive the stack (V24)"
         )
-    _validate_spell_targets(executor, caster, handle, node, targets)
+    # V17: a modal spell cast by an effect announces its modes too (CR 608.2g
+    # runs 601.2a-i), and only those modes' targets are validated.
+    from MTG_bot.core.executor.query import modal_choose, with_modes
+
+    declared_modes: tuple[int, ...] = ()
+    target_node = node
+    if modal_choose(node) is not None:
+        token, chosen_modes, _rest = cast_modes(executor, caster, handle, node)
+        target_node = with_modes(node, chosen_modes)
+        declared_modes = (token,)
+    _validate_spell_targets(executor, caster, handle, target_node, targets)
     # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then
     # journal the designation rows before payment.
     executor.journal.emit_targeting(handle, caster, targets)
@@ -1362,6 +1399,7 @@ def cast_card(
         spell_kind=node.kind.name,
         x_value=x,
         declared_targets=tuple(sorted(targets)),
+        mode_choices=declared_modes,
         payment=plan,
         declared_clock=executor.journal.clock,
         from_zone=world.zone_of(handle).kind,
@@ -1388,6 +1426,8 @@ def cast_card(
     if chosen:
         bindings["target"] = chosen
     ctx = executor._cast_ctx(handle, caster, bindings, (), x)
+    if declared_modes:
+        ctx.prechosen_modes = [str(m) for m in declared_modes]
     from MTG_bot.core.executor.query import is_aura_spell
 
     aura = is_aura_spell(world, handle)

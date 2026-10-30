@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mine", "name": "My Flier", "power": "2", "toughness": "2", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Their Big Flier", "power": "4", "toughness": "4", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "small", "name": "Their Small Flier", "power": "1", "toughness": "1", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "ra", "real": "Run Afoul", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Run Afoul", "key": "ra", "decisions": ["small"]}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield", "big": "battlefield", "small": "graveyard", "ra": "graveyard"}
+ },
+ "notes": "V10 (2026-10-29). Printed Run Afoul: 'Target opponent sacrifices a creature of their choice with flying.' The opponent has two fliers and chooses the small one, so the big one (its lowest handle) stays; the caster's flier is never in the menu (CR 701.21a: a player sacrifices only what they control)."
+}

@@ -1280,7 +1280,8 @@ class TestStructuralAssertions(unittest.TestCase):
         atom = _as_atom(eff.effect)
         self.assertEqual(atom.verb, Verb.REVEAL)
         p = _pairs_dict(atom)
-        self.assertEqual(p["controller"], ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertEqual(p["controller"], ControllerRef.TARGET_OPPONENT)
         self.assertIsInstance(p["count"], QUnbounded)
 
     def test_sacr_flying(self) -> None:
@@ -1290,12 +1291,15 @@ class TestStructuralAssertions(unittest.TestCase):
         # player: one pick over every player's fliers. Now the Goremand edict shape with a
         # target: EachPlayer(TARGET_PLAYER, SACRIFICE(CHOOSE, CONTROLLER_IS YOU + Creature +
         # FLYING)).
+        # re-pinned 2026-10-30: V21 (merged from engine/verify-fixes-2) changes the ref: "target
+        # opponent" is ControllerRef.TARGET_OPPONENT, so the slot offers opponents only;
+        # TARGET_PLAYER now names any player, the caster included (CR 115.1).
         """
         outcome = self._match_outcome("B5b-sacr-flying")
         eff = _as_effect(outcome)
         each = eff.effect
         assert isinstance(each, EachPlayer)
-        self.assertIs(each.ref, ControllerRef.TARGET_PLAYER)
+        self.assertIs(each.ref, ControllerRef.TARGET_OPPONENT)
         atom = _as_atom(each.effect)
         self.assertEqual(atom.verb, Verb.SACRIFICE)
         p = _pairs_dict(atom)
@@ -2081,10 +2085,10 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         # R0 zone-fold: graveyard+hand+library is ONE 3-element set.
         self.assertEqual(
             sel.zones,
-            (
-                Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
-                Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
-                Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+            (  # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT),
+                Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT),
+                Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
             ),
         )
         exile = _as_atom(seq.steps[1])

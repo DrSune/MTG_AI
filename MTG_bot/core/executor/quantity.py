@@ -249,9 +249,11 @@ class ExecCtx:
         this method process-wide at import with the old ``(self, vocab,
         what)`` signature (packrec, packrec_v2, dagger_rollout_v3,
         puzzle_cert; BACKLOG B-35), so a caller passing ``seat=`` would
-        crash whenever one of them is loaded. The scry site therefore relies
-        on its controller being the scrying player, and the bench router's
-        tag check raises loudly if a card ever breaks that.
+        crash whenever one of them is loaded. A site whose decider is not
+        the controller asks through :meth:`take_decision_of` instead (V10,
+        2026-10-29). The scry site relies on its controller being the
+        scrying player, and the bench router's tag check raises loudly if a
+        card ever breaks that.
         """
         decider = self.controller if seat is None else seat
         if self.decision_idx < len(self.decisions):
@@ -283,6 +285,24 @@ class ExecCtx:
             f"executor: {what} needs a decision from {vocab}, "
             f"got only {len(self.decisions)} supplied"
         )
+
+    def take_decision_of(self, player: Handle, vocab: tuple[str, ...], what: str) -> str:
+        """:meth:`take_decision`, asked of ``player``: the player the rules say makes this choice
+        when it is not this context's controller (CR 701.9b: the discarding player picks the
+        cards; CR 701.21a with 101.4: a player sacrifices only what they control, so they pick).
+
+        For the length of the ask the context's controller IS that player. ``take_decision`` then
+        names them as the stream's ``asking_seat``, and the tools/training wrappers that replace
+        ``take_decision`` process-wide (BACKLOG B-35; they drop a ``seat=`` keyword, which is why
+        no call site may pass one) read the same field. Nothing else runs while it is swapped."""
+        if player == self.controller:
+            return self.take_decision(vocab, what)
+        outer = self.controller
+        self.controller = player
+        try:
+            return self.take_decision(vocab, what)
+        finally:
+            self.controller = outer
 
     def binding_handles(self, role: str) -> list[Handle] | None:
         """The caller-supplied handles for a role, Handle-sorted (ruling 5)."""

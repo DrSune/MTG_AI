@@ -48,6 +48,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     AbilityActivatedEvent,
     AbilityKind,
     AbilityTriggerEvent,
@@ -125,6 +126,7 @@ from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
+    filter_bound_player_refs,
     filter_reads_bound_player,
     players_for_ref,
 )
@@ -1665,29 +1667,33 @@ class TriggerBinder:
 
         Cardinality follows the frozen slot contract: ``QConst(1)``
         designates exactly one (forced when one candidate);
-        ``QAtMost(n)`` asks pick-by-pick, the first pick mandatory (C17:
-        TARGET designation range 1..n, the pinned contract the query lane
-        already enforces), later picks carry the ``"NONE"`` stop token the
-        block-ask lane established; ``QConst(n>1)`` asks n picks without
+        ``QAtMost(n)`` asks pick-by-pick, every pick carrying the ``"NONE"``
+        stop token the block-ask lane established (V15, CR 601.2c/115.6: the
+        range is 0..n, the query lane's contract; zero picks = not targeted,
+        and one candidate is still a choice of it or none); ``QConst(n>1)`` asks n picks without
         the stop token and clamps at exhaustion (C17's 0..remaining
         sibling); ``QAtLeast``/QX-in-TARGET stays the flag it always was.
         """
         selectors: list[Selector] = []
         seen: set[str] = set()
         reads_target_player = False
+        opponent_only = False  # V21: a "target opponent" read narrows the slot
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
-                if (
-                    value is ControllerRef.TARGET_PLAYER
-                    or isinstance(value, Zone)
-                    and value.controller is ControllerRef.TARGET_PLAYER
-                    or isinstance(value, Selector)
-                    and filter_reads_bound_player(value.filter)
-                    or filter_reads_bound_player(value)
-                ):
+                refs: set[ControllerRef] = set()
+                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
+                    refs.add(value)
+                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
+                    refs.add(value.controller)
+                elif isinstance(value, Selector):
+                    refs |= filter_bound_player_refs(value.filter)
+                else:
+                    refs |= filter_bound_player_refs(value)
+                if refs:
                     reads_target_player = True
+                    opponent_only |= ControllerRef.TARGET_OPPONENT in refs
                 if (
                     isinstance(value, Selector)
                     and value.mode is SelectorMode.TARGET
@@ -1709,17 +1715,22 @@ class TriggerBinder:
         if reads_target_player:
             # The synthetic player slot (spell_target_slots' 14b twin): the
             # candidate population is the ENGINE's player rule — the ability
-            # controller's opponents — and the cross-seat ruling is CR
-            # 603.1's: the ABILITY's controller designates, so an opponent's
-            # trigger asks the OPPONENT's seat (ctx.controller IS that seat,
-            # the firing context was built from payload.controller).
+            # controller's opponents for "target opponent", every player for
+            # "target player" (V21, CR 115.1, 102.2) — and the cross-seat
+            # ruling is CR 603.1's: the ABILITY's controller designates, so an
+            # opponent's trigger asks the OPPONENT's seat (ctx.controller IS
+            # that seat, the firing context was built from payload.controller).
             from MTG_bot.core.executor.legality import protected_from
 
-            # V44 (CR 702.16b): an opponent with protection from the source of the
+            # V44 (CR 702.16b): a player with protection from the source of the
             # ability can't be its target (Runed Halo naming the trigger's card).
             opponents = [
                 h
-                for h in players_for_ref(ControllerRef.OPPONENT, ctx)
+                for h in (
+                    players_for_ref(ControllerRef.OPPONENT, ctx)
+                    if opponent_only
+                    else list(ctx.world.player_order)
+                )
                 if not protected_from(self.executor, h, ctx.source)
             ]
             if not opponents:
@@ -1802,7 +1813,9 @@ class TriggerBinder:
         # Asking over fewer than stated (the old unclamped loop running
         # the menu dry) was the third divergent answer of the legality
         # triad.
-        optional_stop = isinstance(count, QAtMost)  # C17 first mandatory
+        # V15 (CR 601.2c, 115.6): "up to N" may designate zero, so the stop
+        # word is offered from the first pick on (C17 had made it mandatory).
+        optional_stop = isinstance(count, QAtMost)
         announceable, wanted = count_semantics(count, len(candidates))
         if not announceable:
             if required:
@@ -1812,11 +1825,11 @@ class TriggerBinder:
         picks: list[Handle] = []
         pool = list(candidates)
         for pick_no in range(wanted):
-            if len(pool) == 1 and not (optional_stop and pick_no > 0):
+            if len(pool) == 1 and not optional_stop:
                 picks.append(pool[0])  # §1.4 auto-fill: one legal filler
                 break
             vocab = tuple(str(h) for h in pool)
-            if optional_stop and pick_no > 0:
+            if optional_stop:
                 vocab = vocab + ("NONE",)
             answer = ctx.take_decision(
                 vocab,

@@ -708,8 +708,19 @@ class TestSelectors(ExecutorCase):
             self.assertEqual(self.world.zone_of(c).kind, ZONE_GRAVEYARD)
 
     def test_choose_mode_c17_clamp(self):
-        # "discard up to two" with one card in hand: legal designation
-        # 1..2, executor clamps to the 1 handle actually available.
+        # "discard up to two" with one card in hand: the executor clamps the
+        # menu to the 1 handle actually available.
+        # re-pinned 2026-10-29: V10 changes the discard lane: the discarding
+        # player chooses (CR 701.9b) and "up to two" names 0, 1 or 2, so the
+        # one card is a real ask with a NONE stop; the old silent 1..2 clamp
+        # discarded it with no decision.
+        asks: list[tuple[tuple[str, ...], object]] = []
+
+        def provider(vocab: tuple[str, ...], _what: str) -> str:
+            asks.append((vocab, self.ex.decisions.asking_seat))
+            return str(self.h1)
+
+        self.ex.decisions.provider = provider
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
@@ -724,6 +735,7 @@ class TestSelectors(ExecutorCase):
             controller=self.p0,
         )
         self.assertEqual(self.world.zone_of(self.h1).kind, ZONE_GRAVEYARD)
+        self.assertEqual(asks, [((str(self.h1), "NONE"), self.p0)])
 
     def test_target_mode_without_binding_raises(self):
         with self.assertRaises(ValueError):

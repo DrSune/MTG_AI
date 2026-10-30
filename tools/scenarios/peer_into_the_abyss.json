@@ -33,7 +33,10 @@
   {
    "op": "cast",
    "real": "Peer into the Abyss",
-   "key": "sp"
+   "key": "sp",
+   "decisions": [
+    "player:1"
+   ]
   }
  ],
  "expect": {
@@ -45,5 +48,5 @@
    "1": 4
   }
  },
- "notes": "r24a (2026-10-02) ENGINE LANE \u2014 promoted from suspects. History: C3 ruled the card COMPILER-blocked \u2014 the frozen golden carries ONLY the DRAW ((library+1)//2, round-up); the print's second clause \"that player loses half their life. Round up\" has no LOSE_LIFE atom because QCount counts zone objects and no QPropField read a LIFE total, so the amount was not compilable (C3 STOP; KNOWLEDGE/2026-10-02/05, 02-compiler-roadmap line 47). Batch 24a landed the engine half: QPropField.LIFE (additive + byte-stable, R3 law) + the quantity._prop_value lane, pinned end-to-end in test_executor_r24a (LOSE_LIFE (LIFE+1)//2: 20->10; 13 loses 7). DOCUMENTED DEVIATION: the life-half of the print is NOT verified here \u2014 the frozen compiler still drops the clause, so expect.life {0:20,1:20} records that gap and the emit lands with the compiler batch. \"Extra Page\" pads p1's library to 7 so the draw-half witness discriminates round-up (4) from floor (3). # re-pinned 2026-10-29: m21-fidelity item 2 compiles the life loss (EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE/2)))), so the deviation is closed: the targeted seat 1 now loses half its 20 life, rounded up (10), and the caster keeps 20."
+ "notes": "r24a (2026-10-02) ENGINE LANE \u2014 promoted from suspects. History: C3 ruled the card COMPILER-blocked \u2014 the frozen golden carries ONLY the DRAW ((library+1)//2, round-up); the print's second clause \"that player loses half their life. Round up\" has no LOSE_LIFE atom because QCount counts zone objects and no QPropField read a LIFE total, so the amount was not compilable (C3 STOP; KNOWLEDGE/2026-10-02/05, 02-compiler-roadmap line 47). Batch 24a landed the engine half: QPropField.LIFE (additive + byte-stable, R3 law) + the quantity._prop_value lane, pinned end-to-end in test_executor_r24a (LOSE_LIFE (LIFE+1)//2: 20->10; 13 loses 7). DOCUMENTED DEVIATION: the life-half of the print is NOT verified here \u2014 the frozen compiler still drops the clause, so expect.life {0:20,1:20} records that gap and the emit lands with the compiler batch. \"Extra Page\" pads p1's library to 7 so the draw-half witness discriminates round-up (4) from floor (3). # re-pinned 2026-10-29: m21-fidelity item 2 compiles the life loss (EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE/2)))), so the deviation is closed: the targeted seat 1 now loses half its 20 life, rounded up (10), and the caster keeps 20. # re-pinned 2026-10-29: V21 makes 'target player' any player (CR 115.1), so the opponent is no longer the only, forced choice and the step designates it ('player:1', listed last so the step's other answers keep their order)."
 }

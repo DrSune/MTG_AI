@@ -307,8 +307,9 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(self.world.players[self.p0].life, 23)
 
     def test_up_to_multi_pick_carries_the_none_token(self):
-        # C17 contract (the pinned TARGET+QAtMost range 1..n): the FIRST
-        # pick is mandatory, later picks offer the "NONE" stop token.
+        # re-pinned 2026-10-29: V15 changes the TARGET+QAtMost range to 0..n
+        # (CR 601.2c, 115.6), so EVERY pick offers the "NONE" stop token, the
+        # first included (C17 had made the first pick mandatory).
         acolyte = self.carrier(self.p0, "Basri's Acolyte")
         d1 = self.world.add_card(
             card_id("Dummy One", "2", "2"), self.p0, ZONE_BATTLEFIELD
@@ -335,7 +336,7 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(dict(self.world.cards[d2].counters), {"PLUS_1_PLUS_1": 1})
         self.assertEqual(dict(self.world.cards[d1].counters), {})
         first_vocab, second_vocab = self.asks[0][0], self.asks[1][0]
-        self.assertNotIn("NONE", first_vocab)
+        self.assertEqual(first_vocab, (str(acolyte), str(d1), str(d2), "NONE"))
         # pool minus the first pick, stop token appended; the acolyte
         # itself is a legal creature candidate all along.
         self.assertEqual(second_vocab, (str(acolyte), str(d1), "NONE"))
@@ -381,6 +382,8 @@ class TestTargetPlayerRouting(DesignationCase):
         self.assertEqual(self.world.players[self.p1].life, 18)
 
     def test_self_fire_designates_the_opponent_seat(self):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
+        # now names any player, so this IR would ask over both seats).
         # Tutelage's twin: "whenever YOU draw a card, target opponent mills
         # one" — a self-origin firing has no anaphoric antecedent, so the
         # opponent seat is designated (duel: one seat → auto-fill, no ask).
@@ -395,12 +398,12 @@ class TestTargetPlayerRouting(DesignationCase):
                 effect=atom(
                     Verb.MOVE_ZONE,
                     amount=QConst(1),
-                    controller=ControllerRef.TARGET_PLAYER,
+                    controller=ControllerRef.TARGET_OPPONENT,
                     **{
                         "destination": Zone(
-                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT
                         ),
-                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
                         "journal_kind": "MILL",
                         "pop_order": "TOP",
                     },
@@ -716,6 +719,8 @@ class TestTargetPlayerNestedFilter(DesignationCase):
     is designated and the filter-bound selector enumerates through it."""
 
     def _tp_wrapped(self, mode):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
+        # now names any player, so this IR would ask over both seats).
         dower = self.carrier(self.p0)
         theirs = self.world.add_card(
             card_id("Theirs", "1", "1"), self.p1, ZONE_BATTLEFIELD
@@ -731,7 +736,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                     amount=QConst(1),
                     **{
                         "destination": Zone(
-                            ZoneKind.EXILE, ControllerRef.TARGET_PLAYER
+                            ZoneKind.EXILE, ControllerRef.TARGET_OPPONENT
                         ),
                     },
                     cards=Selector(
@@ -742,7 +747,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                                 CREATURE_ONLY,
                                 FAtom(
                                     FAtomPred.CONTROLLER_IS,
-                                    who=ControllerRef.TARGET_PLAYER,
+                                    who=ControllerRef.TARGET_OPPONENT,
                                 ),
                             )
                         ),

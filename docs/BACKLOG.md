@@ -568,7 +568,9 @@ These are forks, not tasks. See the report that accompanied this audit.
     escape from a mandatory choice is exactly what a policy learns to use the day a CHOOSE feeds
     its own drawback.
   - **Fix.** Offer the empty row only when the pool is smaller than the count (the C17 clamp it
-    mirrors), and re-pin the M21 Duress and Kitesail packs.
+    mirrors), and re-pin the M21 Duress and Kitesail packs. **[FIXED on branch
+    `engine/verify-fixes-2` 2026-10-29 (V19); a lone legal card is taken without an ask. The Duress
+    and Kitesail packs needed no re-pin.]**
 - **B-52 [2026-10-29, mapper G1 + packs] A counted static P/T bonus freezes at its first value** **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   (live in M21).
   - `layers._materialize_static` skips a target that already has a ledger entry, so a bonus that
@@ -581,11 +583,24 @@ These are forks, not tasks. See the report that accompanied this audit.
 - **B-53 [2026-10-29] "Target player" only ever offers opponents, and a player binding takes over
   any role named `target`.**
   - The synthetic target-player slot lists opponents only, so "target player draws two cards" can
-    never target yourself.
+    never target yourself. **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V21): "target
+    opponent" compiles to the new `ControllerRef.TARGET_OPPONENT`; `TARGET_PLAYER` names any player
+    (CR 115.1). Unverified FDN records still writing TARGET_PLAYER for "target opponent": Pilfer
+    (re-map it); Gatekeeper of Malakir's "target player" is now right.]**
   - A target-player binding overrides an atom's own `target` role: "target player sacrifices a
-    creature" raised `KeyError 'unknown card player:1'`.
+    creature" raised `KeyError 'unknown card player:1'`. **[FIXED on branch
+    `engine/verify-fixes-2` 2026-10-29 (V10): a CHOOSE menu over cards ignores a player-only
+    binding (`selectors.role_handles`).]**
   - Related: the deciding player of an edict is always the caster (no chooser role), the L-27
-    seat-routing gap.
+    seat-routing gap. **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V10).]** A sacrifice
+    menu is asked of the player who controls it (`sacrifice:<seat>:...`), a discard of the
+    discarding player (`discard:<seat>:...`, every player the controller role names, APNAP), via
+    `ExecCtx.take_decision_of`. Consumers that still attribute asks without
+    `DecisionStream.asking_seat`, so they hand a non-active player's choice to the active player's
+    policy: `tools/training/ab_duel.py` and `collector.py` (every ask goes to
+    `world.active_player`, blocks included) and `tools/eval/gameplay_eval_v2.py`
+    (`resolve_seat` parses the tag: right for seat-in-tag kinds, wrong for an EachPlayer-rotated
+    `may:`/`choose:`). Each needs to read `executor.decisions.asking_seat` in its provider.
   - [m21-fidelity, 2026-10-29] The engine cannot fix the population alone: "target player" (Peer
     into the Abyss, Mind Rot, Tormod's Crypt, Sublime Epiphany) and "target opponent" (Duress,
     Kitesail Freebooter, Liliana's Steward, Necromentia, Vito) compile to the same bare
@@ -593,6 +608,9 @@ These are forks, not tasks. See the report that accompanied this audit.
     `TARGET_OPPONENT` reference, or an explicit player-zone TARGET selector). Repro:
     `tools/scenarios/known_bugs/peer_into_the_abyss_self_target.json`. With Peer's life loss now
     compiled, Peer on an opponent is printed play; the self-target is the weaker-than-printed part.
+    **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V21): the `TARGET_OPPONENT` reference.
+    At the merge of `cards/integration` into that branch (2026-10-30) the repro passes; it moved to
+    `tools/scenarios/peer_into_the_abyss_self_target.json`.]**
 - **B-54 [2026-10-29] Minor engine findings from the first mapping batch:**
   - `legal_casts` offers a spell whose required target has no legal candidate (CR 601.2c), and casting
     it raises. The bench router hides such rows; the probe now skips them.
@@ -707,13 +725,17 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The first half is being fixed on branch `cards/castable-permanents` (B-49 follow-up #2).
 - **B-66 [B-49 follow-up sweep] Enthralling Hold's "You can't choose an untapped creature as this
   Aura's target" is not applied to its target slot** (live in M21, stronger than printed): the Aura
-  can steal an untapped creature.
+  can steal an untapped creature. **[FIXED on branch `engine/verify-fixes-2` 2026-10-29 (V20):
+  `legality.enumerate_candidates` applies the source's own TargetingEvent prevention while it is
+  cast (CR 113.6e).]**
 - **B-67 [same] The journal records any card put from library into hand as a draw (`CARD_DRAWN`).**
   - So a tutor can satisfy "whenever you draw a card" triggers and draw counts.
   - Probably stronger than printed. Write the pack first: a search-to-hand with a draw-trigger card
     on the battlefield.
 - **B-68 [same] "Doesn't untap during its controller's untap step" is not applied** (Capture Sphere,
-  Bubble Snare; weaker than printed, true before B-49 too).
+  Bubble Snare; weaker than printed, true before B-49 too). **[FIXED on branch
+  `engine/verify-fixes-2` 2026-10-29 (V16): `replacements.prevents_untap` judges a static carrier's
+  event filter over the card (CR 502.3).]**
 - **B-69 [same] Two damage replacements on one event raise `NotImplementedError`.**
   - `replacements.py:424-425` does not model the affected player's ordering choice (CR 616.1).
   - About 0.25% of coherent M21 games crash on it (seeds 1176, 1356, 1439, 1603, 2230: Fiery
@@ -739,6 +761,56 @@ These are forks, not tasks. See the report that accompanied this audit.
     applies every set before every delta (then counters). 7a and 7b are still ordered by
     timestamp between themselves (no dealt card pairs a CDA with a 7b set). Pack
     `glorious_anthem_cda_creature`.
+- **B-106 [vfix2, V14, 2026-10-29; numbered B-81 in a6c7740, renumbered 2026-10-30 because the
+  m21-fidelity lane's B-81 took the number on `cards/integration`] Per-object attack triggers fire
+  once per declaration (weaker than printed; gated as R5-14).**
+  - `DeclareAttackersEvent` is (filter, attacked). The same bytes carry "Whenever you attack" / "one
+    or more creatures you control attack" (CR 508.3d: once per declaration; MAPPER_GUIDE prescribes
+    it, `binding._queue` dedups by (source, node, declare_group)) and "Whenever a creature you control
+    [with deathtouch] attacks" (CR 508.3a with 603.2c: once for EACH such attacker, the event subject
+    being that attacker). M21 Hooded Blightfang drains once; Basri, Devoted Paladin's −1 grant
+    ("Whenever a creature attacks this turn, put a +1/+1 counter on it") counters only the first
+    attacker.
+  - Options sent to the gate: (1) an optional field (absent = once per event, so existing trees stay
+    byte-identical) that the per-object templates set, the binder skipping the dedup for it and
+    binding the subject per row; (2) flip the default to per object and mark "one or more"; (3)
+    encode "one or more" as a QAtLeast condition. The coordinator recommends a GENERAL form of (1):
+    once-per-event vs once-per-object is one trigger axis (dies, enters, damage too), so an
+    attack-only field would become a second encoding of it (AGENTS §9).
+- **B-107 [vfix2, V15 residue, 2026-10-29; numbered B-80 in 6ec0078, renumbered 2026-10-30 for the
+  same reason] Untargeted "up to N" still compiles as an exact count.**
+  - V15 made "up to N target ..." 0..N (CR 601.2c, 115.6) and Kinetic Augur's "discard up to two"
+    QAtMost(2). Three more M21 untargeted choices are QConst: Rewind "Untap up to four lands",
+    Cultivate "Search your library for up to two basic land cards", Ugin −10 "put up to seven
+    permanent cards from your hand onto the battlefield". The player must take the full count when
+    it is available (weaker than printed; rarely matters).
+  - **Fix.** Write QAtMost in those templates and give `selectors.resolve_selector`'s CHOOSE lift a
+    QAtMost lane with a NONE stop (the discard lane's shape, `verbs._discard_picks`); today a
+    QAtMost CHOOSE is not lifted at all and would fall to the silent slice.
+- **B-108 [vfix2, V42, 2026-10-30] Opponent refs with three or more seats: one acting player is
+  loud when it would stand for several.**
+  - Measured on a three-seat world (`MTG_bot/core/test_executor_multiplayer_opponents.py`, real
+    M21 cards). These play as printed: turn rotation; "each opponent discards" (Bad Deal, through
+    V10's per-player discard lane; before V10 only the first opponent discarded); damage to each
+    opponent (Storm Caller); each opponent mills (Thieves' Guild Enforcer); Massacre Wurm's -2/-2
+    and its per-controller life loss; "as long as an opponent has eight or more cards in their
+    graveyard", read from the second opponent; "target opponent" offering every opponent and
+    "target player" offering every player (V21); and Teferi's Ageless Insight's draw-step
+    exception across the other players' turns.
+  - The one wrong answer was `selectors.role_player`. It took the FIRST player a ControllerRef
+    denotes as the one acting player of DRAW, SCRY, LOOK_AT/REVEAL, ADD_MANA and MOVE
+    `pop_order=TOP`. It now raises when the ref denotes several. This is a hard stop where a silent
+    pick used to be, not a cap. No M21 tree reaches it: a scan of every castable and refused M21
+    tree finds no singular verb that carries OPPONENT, ALL_OPPONENTS or ANY. Two seats never
+    denote several opponents. The suite and a 60-game castable soak stay green.
+  - **What would remove the raise:**
+    - ALL_OPPONENTS ("each opponent") in those verbs should iterate in APNAP order (CR 101.4), as
+      `role_players` does.
+    - A non-targeted singular OPPONENT ("an opponent") with several candidates needs a chooser
+      ask. Who chooses, and under which tag kind, is a design decision. It is not taken here.
+  - Two-seat consumers: `games.py:1157` deals `GameWorld(num_players=2)`. tools/training
+    `ab_duel.py` and `collector.py` route every ask to `world.active_player`, not
+    `executor.decisions.asking_seat`.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
   hand is payable with no cards. **FIXED on branch `engine/verify-fixes-3` (V33, 2026-10-29)**: an

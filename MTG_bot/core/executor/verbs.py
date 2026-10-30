@@ -49,6 +49,7 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     PtDelta,
     PtDirection,
+    QAtMost,
     QConst,
     Quantity,
     QUnbounded,
@@ -62,6 +63,7 @@ from MTG_bot.core.ability_tree import (
     ZonePosition,
 )
 from MTG_bot.core.executor.decisions import site_digest
+from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_COUNTER,
@@ -78,6 +80,7 @@ from MTG_bot.core.executor.returns import anchor_unmoved, battlefield_entry_cloc
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
+    apnap_order,
     existing,
     move_destination,
     resolve_selector,
@@ -118,6 +121,46 @@ def _move_to(
     src = ctx.world.zone_of(card)
     ctx.world.move_to_zone(card, player, kind)
     ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
+
+
+def _discard_picks(ctx: ExecCtx, sel: Selector, player: Handle) -> list[Handle]:
+    """The cards ``player`` discards for one discard instruction.
+
+    14c (B-18): a discard moves cards from the discarding player's OWN hand (CR 701.9a), so the
+    pool is that hand re-read at take time and filtered through the Selector (the raw Selector
+    population of Bad Deal spans both hands). C17 clamp: fewer cards than the count simply
+    discards fewer. CR 701.9b: by default the discarding player chooses which cards; a CHOOSE
+    discard asks THAT player (V10, 2026-10-29: the engine used to take the lowest handles, and
+    an opponent's discard was effectively the caster's pick), one card per ask over the shrinking
+    hand, the cost lane's ``discard:<seat>:<source>:<digest>`` shape (legality.pay_costs). A
+    count no smaller than the pool leaves no choice and asks nothing (§1.4 forced). "Up to N"
+    (QAtMost) lets the player stop at any pick, the first included: "up to N" names every number
+    from zero to N. RANDOM keeps the executor-seeded draw; QUnbounded takes the whole pool.
+    """
+    live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
+    pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
+    if sel.mode is SelectorMode.RANDOM:
+        rng = ctx.rng("RANDOM")
+        rng.shuffle(pool)  # seeded: replay-identical
+    if isinstance(sel.count, QUnbounded):
+        return pool
+    want = resolve(sel.count, ctx)
+    optional = isinstance(sel.count, QAtMost)
+    if sel.mode is not SelectorMode.CHOOSE or want <= 0 or (want >= len(pool) and not optional):
+        return pool[:want]
+    picks: list[Handle] = []
+    remaining = list(pool)
+    for _pick in range(min(want, len(pool))):
+        vocab = tuple(str(h) for h in remaining) + (("NONE",) if optional else ())
+        answer = ctx.take_decision_of(
+            player, vocab, f"discard:{player}:{ctx.source}:{site_digest(vocab)}"
+        )
+        if answer == "NONE":
+            break
+        pick = next(h for h in remaining if str(h) == answer)
+        picks.append(pick)
+        remaining.remove(pick)
+    return picks
 
 
 def _enter_under_control(ctx: ExecCtx, card: Handle, controller: Handle) -> None:
@@ -174,9 +217,12 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             )
         return
     if isinstance(frm, Zone) and frm.kind is ZoneKind.HAND:
-        # The discard shape (old _v_discard, verbatim — B-18 live-hand
-        # re-read, C17 clamp, not-in-hand raise, A2(i) moved-set register).
-        player = role_player(ctx, atom)
+        # The discard shape (old _v_discard — B-18 live-hand re-read, C17
+        # clamp, not-in-hand raise, A2(i) moved-set register). V10
+        # (2026-10-29): EVERY player the controller role denotes discards
+        # ("each player discards a card" made only the first one discard),
+        # and each discarding player chooses their own cards (CR 701.9b).
+        players = role_players(ctx, atom)
         cards = ctx.binding_handles("cards")
         if cards is None:
             sel = atom.args.get("cards")
@@ -190,7 +236,7 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                 # designation / anaphora / partition paths all self-resolve
                 # (the 13b 'result' register, the B-15 designation, the
                 # B-13 channel ask) — the hand scoping below is only for
-                # the raw engine-side CHOOSE/RANDOM/ALL stand-ins.
+                # the CHOOSE/RANDOM/ALL discards.
                 cards = resolve_selector(
                     sel,
                     ctx,
@@ -198,31 +244,22 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     in (SelectorMode.ONE_OF, SelectorMode.REST),
                 )
             else:
-                # 14c (B-18): CR 701.8a — a discard moves cards from the
-                # ACTOR'S OWN hand, so the selection pool is the actor's
-                # LIVE hand re-read at take time, filtered through the
-                # Selector (Bad Deal: the discarding player lives in the
-                # controller role; the raw Selector population spans both
-                # hands). C17 clamp: fewer cards than the ceiling simply
-                # discards fewer.
-                live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
-                pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
-                if sel.mode is SelectorMode.RANDOM:
-                    rng = ctx.rng("RANDOM")
-                    rng.shuffle(pool)  # seeded: replay-identical
-                cards = (
-                    pool
-                    if isinstance(sel.count, QUnbounded)
-                    else pool[: resolve(sel.count, ctx)]
-                )
-        hand = ctx.world.players[player].zone(ZONE_HAND).entries
+                # CR 608.2e / 101.4: the discarding players choose in APNAP
+                # order, then the cards are discarded simultaneously (below).
+                cards = []
+                for player in apnap_order(ctx.world, players):
+                    cards.extend(_discard_picks(ctx, sel, player))
+        hands = {p: ctx.world.players[p].zone(ZONE_HAND).entries for p in players}
         moved: list = []
         for card in sorted(cards):
-            if card not in hand:
+            owner = next((p for p, hand in hands.items() if card in hand), None)
+            if owner is None:
                 raise ValueError(
-                    f"executor: MOVE_ZONE discard card {card} is not in {player}'s hand"
+                    f"executor: MOVE_ZONE discard card {card} is not in the hand of "
+                    f"{', '.join(str(p) for p in players) or 'any discarding player'}"
                 )
-            _move_to(ctx, card, player, dest_kind, journal_kind)
+            # CR 701.9a: from its owner's hand to that player's graveyard.
+            _move_to(ctx, card, owner, dest_kind, journal_kind)
             moved.append(card)
         # 18b (R7 THAT_MANY_COUNT pairing): the DISCARDED SET is the
         # register — written even when empty (0 honestly, not a missing
@@ -1798,19 +1835,24 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
         return
     vocab = tuple(str(i) for i in range(len(rows)))
-    # r19c (Duress): ADDITIVE handle aliases. A provider that resolves a
-    # pack key ("prey") gets back a HANDLE string — which is not a
-    # positional index token, so the old vocabulary could never accept the
-    # resolution. Each singleton candidate row's own handle is therefore a
-    # legal token too; §8.3 identity holds because the aliases ARE members
-    # of the query's own enumeration (rows), appended after the ORDER
-    # tokens — the digest and the index lane stay byte-unchanged.
-    alias = {str(row[0]): str(i) for i, row in enumerate(rows) if len(row) == 1}
-    ask_vocab = vocab + tuple(a for a in alias if a not in vocab)
-    pick = ctx.take_decision(
-        ask_vocab, f"choose:{ctx.source}:{site_digest(tuple(rows))}"
-    )
-    pick = alias.get(pick, pick)
+    what = f"choose:{ctx.source}:{site_digest(tuple(rows))}"
+    if len(rows) == 1:
+        # V19: one legal pick is forced, never asked (the §10 phantom gate;
+        # the handle alias below would have made it a two-token ask).
+        pick = offer_or_autopick(ctx, vocab, what)
+    else:
+        # r19c (Duress): ADDITIVE handle aliases. A provider that resolves a
+        # pack key ("prey") gets back a HANDLE string — which is not a
+        # positional index token, so the old vocabulary could never accept
+        # the resolution. Each singleton candidate row's own handle is
+        # therefore a legal token too; §8.3 identity holds because the
+        # aliases ARE members of the query's own enumeration (rows),
+        # appended after the ORDER tokens — the digest and the index lane
+        # stay byte-unchanged.
+        alias = {str(row[0]): str(i) for i, row in enumerate(rows) if len(row) == 1}
+        ask_vocab = vocab + tuple(a for a in alias if a not in vocab)
+        pick = ctx.take_decision(ask_vocab, what)
+        pick = alias.get(pick, pick)
     chosen = rows[int(pick)]
     if len(chosen) < want:
         # the under-filled zero row picked when candidates ran out

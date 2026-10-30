@@ -150,7 +150,8 @@ class TestUpToTwoTargets(QueryCase):
         self.assertEqual(
             self.slot.candidates, tuple(sorted([self.a, self.b, self.c, self.d]))
         )
-        self.assertEqual((self.slot.min_count, self.slot.max_count), (1, 2))
+        # re-pinned 2026-10-29: V15 makes "up to two" 0..2 (CR 601.2c, 115.6).
+        self.assertEqual((self.slot.min_count, self.slot.max_count), (0, 2))
         self.assertFalse(self.slot.forced)
 
     def test_zone_and_controller_restrict_candidates(self):
@@ -161,16 +162,15 @@ class TestUpToTwoTargets(QueryCase):
         self.assertEqual(slot.candidates, tuple(sorted([self.a, self.b, self.c])))
 
     def test_legal_selections_are_sizes_one_and_two_never_zero(self):
-        # C17 PIN: at DECLARATION the range is 1..n — every size-{1,2}
-        # subset validates (C(4,1)+C(4,2) = 10 legal completions), the
-        # EMPTY selection is ILLEGAL (still targeted), size 3 is over.
+        # re-pinned 2026-10-29: V15 changes the C17 pin. At DECLARATION the
+        # range is 0..n (CR 601.2c, 115.6): the EMPTY selection is legal (the
+        # spell is then not targeted), every size-{1,2} subset validates
+        # (C(4,1)+C(4,2) = 10 completions), size 3 is over.
         legal = self.subsets(self.slot.candidates, (1, 2))
         self.assertEqual(len(legal), 10)
         for chosen in legal:
             self.assertIsNone(validate_target_selection(self.slot, chosen))
-        reason = validate_target_selection(self.slot, [])
-        assert reason is not None
-        self.assertIn("count_below_min", reason)
+        self.assertIsNone(validate_target_selection(self.slot, []))
         reason = validate_target_selection(self.slot, [self.a, self.b, self.c])
         assert reason is not None
         self.assertIn("count_above_max", reason)
@@ -196,8 +196,10 @@ class TestUpToTwoTargets(QueryCase):
         slot = legal_targets(
             self.world, self.ex, self.selector, source=self.a, controller=self.p0
         )
-        self.assertGreater(slot.min_count, slot.max_count)  # min 1 > max 0
-        assert validate_target_selection(slot, []) is not None
+        # re-pinned 2026-10-29: V15: an empty population is no longer
+        # infeasible for "up to": zero targets is the one legal choice.
+        self.assertEqual((slot.min_count, slot.max_count), (0, 0))
+        self.assertIsNone(validate_target_selection(slot, []))
 
 
 class TestMayOffer(QueryCase):
@@ -455,7 +457,8 @@ class TestGoldenSurface(unittest.TestCase):
     def test_activate_the_crypt_exiles_the_target_graveyard(self):
         # hand-derived: pay {T}+sacrifice-it (tap=(crypt), sac=(crypt)),
         # designate the two p1 graveyard cards as the TARGET: list →
-        # both to p1's exile, the crypt tapped in p0's graveyard.
+        # both to p1's exile, the crypt in p0's graveyard.
+        from MTG_bot.core.executor.events import KIND_TAP_STATE
         from MTG_bot.core.executor.legality import activate
 
         events_before = len(self.ex.events)
@@ -475,7 +478,11 @@ class TestGoldenSurface(unittest.TestCase):
             self.assertEqual(zone.kind, ZONE_EXILE)
             self.assertEqual(zone.controller, self.p1)
         self.assertEqual(self.world.zone_of(self.crypt).kind, ZONE_GRAVEYARD)
-        self.assertTrue(self.world.cards[self.crypt].tapped)
+        # re-pinned 2026-10-29: V43 changes the flag the graveyard card carries. CR 110.5d: a
+        # card off the battlefield is neither tapped nor untapped; the {T} payment is its row.
+        self.assertFalse(self.world.cards[self.crypt].tapped)
+        tap_rows = [r for r in self.ex.journal.dump() if r[1] == KIND_TAP_STATE and r[2] == str(self.crypt)]
+        self.assertEqual([r[-1] for r in tap_rows], ["(True,)"])
         # costs are journalled: more executor events than we started with
         self.assertGreater(len(self.ex.events), events_before)
 

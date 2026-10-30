@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "old", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "new", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 4}},
+ "steps": [
+  {"op": "loyalty", "key": "old", "set": 6},
+  {"op": "cast", "real": "Liliana, Waker of the Dead", "key": "new", "decisions": ["old"]}
+ ],
+ "expect": {
+  "zone": {"old": "battlefield", "new": "graveyard"},
+  "counters": {"old": {"LOYALTY": 6}}
+ },
+ "notes": "V22 (2026-10-29). CR 704.5j applies to planeswalkers like any legendary permanent (two Lilianas with the same name). The controller keeps the one with 6 loyalty, so the newly cast copy goes to the graveyard. Before V22 both stayed and could both activate each turn."
+}

@@ -1014,7 +1014,7 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.REVEAL,
         args=AtomArgs(
             pairs=(
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("controller", ControllerRef.TARGET_OPPONENT),
                 ("count", QUnbounded()),
             )
         ),
@@ -1031,10 +1031,14 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
     SACRIFICE pick is YOU-relative (CONTROLLER_IS YOU), so only that player's
     creatures are candidates and that player is the one choosing (CR 701.21a:
     a player can sacrifice only a permanent they control). Here the player is
-    the spell's target opponent, EachPlayer(TARGET_PLAYER, ...); the query
+    the spell's target opponent, EachPlayer(TARGET_OPPONENT, ...); the query
     gives the spell its player target slot from that ref.
     m21-fidelity (review batch J, 2026-10-29): it had no player at all, a
     pick over every player's fliers, so the caster's own flier could go.
+    V21 (merged 2026-10-30): the ref is TARGET_OPPONENT, "target opponent",
+    so the slot offers opponents only (CR 102.2); TARGET_PLAYER now names any
+    player, the caster included (CR 115.1). V10 fixed the same flier menu on
+    its branch with CONTROLLER_IS TARGET_OPPONENT; this edict shape replaces it.
     """
     atom = Atom(
         verb=Verb.SACRIFICE,
@@ -1060,7 +1064,7 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return EffectOutcome(effect=EachPlayer(ref=ControllerRef.TARGET_PLAYER, effect=atom))
+    return EffectOutcome(effect=EachPlayer(ref=ControllerRef.TARGET_OPPONENT, effect=atom))
 
 
 def _build_discard_target_2(m: re.Match[str]) -> SentenceOutcome:
@@ -1693,14 +1697,14 @@ def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
                         QUnbounded(),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.NAME_CHOSEN),
-                        zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER), *(
-                            Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
-                            Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT), *(
+                            Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT),
+                            Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
                         )),
                     ),
                 ),
-                ("destination", Zone(ZoneKind.EXILE, ControllerRef.TARGET_PLAYER)),
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.TARGET_OPPONENT)),
+                ("controller", ControllerRef.TARGET_OPPONENT),
             )
         ),
     )

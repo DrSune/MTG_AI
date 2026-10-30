@@ -111,6 +111,8 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     SpellAbility,
     SpellKind,
+    StaticAbility,
+    TargetingEvent,
     Verb,
     Zone,
     ZoneKind,
@@ -500,6 +502,45 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     return any(row is None or eval_filter(row, ctx.source, ctx) for row in rows)
 
 
+def _own_targeting_restrictions(ctx: ExecCtx) -> list[Filter]:
+    """V20 (2026-10-29, B-66): the targets the SOURCE's own static abilities
+    forbid it to choose as it is cast. Enthralling Hold's "You can't choose an
+    untapped creature as this spell's target as you cast it" compiles to
+    ``StaticAbility(PREVENT_EFFECT(event=TargetingEvent(filter=untapped
+    creature), condition=IS_ANY_TARGET))``, the condition naming the spell's
+    own target choice (templates_b4 ``_build_enthralling_target_choice``).
+    CR 113.6e: an object's ability that restricts how that object can be cast
+    functions in the zones it can be cast from and on the stack, so it is read
+    off the record while the source is anywhere but the battlefield, and only
+    at the choice (resolution never re-checks it: "as you cast it"). Nothing
+    consumed the record before, so the Aura could steal an untapped creature."""
+    ex = ctx.executor
+    source = ctx.source
+    if ex is None or source.namespace != "card" or source not in ctx.world.cards:
+        return []
+    if ctx.world.zone_of(source).kind == ZONE_BATTLEFIELD:
+        return []
+    record = spell_record(ex, source)
+    if record is None:
+        return []
+    out: list[Filter] = []
+    for ability in record.abilities:
+        if not isinstance(ability, StaticAbility):
+            continue
+        effect = ability.effect
+        if not (isinstance(effect, Atom) and effect.verb is Verb.PREVENT_EFFECT):
+            continue
+        event = effect.args.get("event")
+        condition = effect.args.get("condition")
+        if (
+            isinstance(event, TargetingEvent)
+            and isinstance(condition, FAtom)
+            and condition.pred is FAtomPred.IS_ANY_TARGET
+        ):
+            out.append(event.filter)
+    return out
+
+
 def protected_from(executor: Executor | None, holder: Handle, source: Handle | None) -> bool:
     """V44 (CR 702.16): does ``holder``, a permanent on the battlefield or a player,
     have protection from ``source``? The one oracle every protection consumer reads:
@@ -577,7 +618,10 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         # identity, §10 blindness audit). TARGET-only by mode: ALL/CHOOSE/
         # ONE_OF selections never TARGET, so sweepers are untouched.
         handles = [h for h in handles if not _hexproof_vetoes_target(h, ctx)]
-        # V44 (CR 702.16b): protection is the same chokepoint's second veto.
+        # V20: and the source's own "you can't choose ... as you cast it".
+        for forbidden in _own_targeting_restrictions(ctx):
+            handles = [h for h in handles if not eval_filter(forbidden, h, ctx)]
+        # V44 (CR 702.16b): protection is another veto at the same chokepoint.
         handles = [h for h in handles if not _protection_vetoes_target(h, ctx)]
     return handles
 

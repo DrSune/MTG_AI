@@ -1241,6 +1241,14 @@ class Executor:
             self.etb_x.pop(anchor, None)  # r23a: cast-X leaves with it
             self.damage.pop(anchor, None)  # 16a: CR 120.6, marks leave with it
             self.damage_deathtouch.discard(anchor)  # 16c: the flag rides along
+            # V43 (2026-10-29): status leaves with the permanent. CR 110.5d: cards
+            # not on the battlefield are neither tapped nor untapped; 110.5b: a
+            # permanent enters untapped unless something says otherwise (an
+            # "enters tapped" stamp lands after the move). One CardState spans
+            # every zone, so a tapped creature bounced, exiled or reanimated
+            # came back tapped.
+            if anchor in self.world.cards:
+                self.world.cards[anchor].tapped = False
             # 16c: a departing permanent leaves no trace in the block record
             # (a dead blocker stops blocking, a dead attacker forgets).
             self.blocked_by.pop(anchor, None)
@@ -1541,6 +1549,45 @@ class Executor:
                     out.append(card)
         return sorted(out)
 
+    def _legend_rule_groups(self) -> list[tuple[Handle, list[Handle]]]:
+        """V22 (CR 704.5j, the legend rule): every ``(player, permanents)``
+        where that player controls two or more legendary permanents with the
+        same name, Handle-sorted inside, in APNAP order of the choosing
+        players (CR 101.4) and then by name. Legendary is the printed
+        supertype word plus any live GRANT_TYPE overlay (the SUPERTYPE_EQ
+        reading); control is the effective one (the GAIN_CONTROL overlay).
+        A token copy is a legendary permanent like any other."""
+        from MTG_bot.core.executor.quantity import _type_line_tokens
+        from MTG_bot.core.executor.selectors import apnap_order
+
+        world = self.world
+        named: dict[tuple[Handle, str], list[Handle]] = {}
+        for zone_player in world.player_order:
+            for card in world.players[zone_player].zone(ZONE_BATTLEFIELD).entries:
+                identity = world.cards[card].identity
+                words = set(_type_line_tokens(identity.type_line))
+                words.update(self.layers.type_overlay(card))
+                if "Legendary" not in words:
+                    continue
+                named.setdefault((self.controller_of(card), identity.name), []).append(card)
+        groups = [(p, name, sorted(cards)) for (p, name), cards in named.items() if len(cards) > 1]
+        order = apnap_order(world, sorted({p for p, _name, _cards in groups}))
+        groups.sort(key=lambda g: (order.index(g[0]), g[1]))
+        return [(p, cards) for p, _name, cards in groups]
+
+    def _legend_rule_losers(self, groups: list[tuple[Handle, list[Handle]]]) -> list[Handle]:
+        """V22 (CR 704.5j): the player chooses which one stays, asked under
+        ``legend:<seat>:<digest>`` over the same-name permanents (the
+        vocabulary is the live group, two or more, so never a phantom); the
+        rest are returned, to be put into their owners' graveyards."""
+        losers: list[Handle] = []
+        for player, cards in groups:
+            vocab = tuple(str(h) for h in cards)
+            ctx = self._ctx(source=player, controller=player, bindings=None, decisions=())
+            kept = ctx.take_decision(vocab, f"legend:{player}:{site_digest(vocab)}")
+            losers.extend(h for h in cards if str(h) != kept)
+        return sorted(losers)
+
     def _state_checks(self) -> int:
         """The 16a state-based action sweep (CR 704.3: repeat until the
         table is stable), run at every settle point — the end of each
@@ -1552,7 +1599,9 @@ class Executor:
         those firings drain before the next scan. r21a: the sweep is also
         the zero-loyalty planeswalker lane (CR 704.5h) — damage-driven
         walkers are buried here, the same graveyard-move SBA reading the
-        frozen-world stand-in already uses for the other lanes."""
+        frozen-world stand-in already uses for the other lanes. V22: and
+        the legend rule (CR 704.5j); its choices are made before anything
+        moves, because every action of one check happens at once (704.3)."""
         fired = 0
         while True:
             # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
@@ -1563,9 +1612,22 @@ class Executor:
             dying = self._lethal_creatures()
             unattached = self._unattached_auras()  # 16e, CR 704.5m (V44: protection)
             walkers = self._zero_loyalty_walkers()  # r21a CR 704.5h
+            legends = self._legend_rule_groups()  # V22 CR 704.5j
             freed = self._protected_equipment()  # V44, CR 704.5n
-            if not dying and not unattached and not walkers and not freed:
+            if (
+                not dying
+                and not unattached
+                and not walkers
+                and not legends
+                and not freed
+            ):
                 return fired
+            # A permanent another lane of this check already removes is not
+            # moved twice (a lethally damaged copy the player did not keep).
+            taken = set(dying) | set(unattached) | set(walkers)
+            legend_losers = [
+                h for h in self._legend_rule_losers(legends) if h not in taken
+            ]
             before = self.journal.snapshot()
             start = len(self.events)
             # V44 (CR 704.5n): checked in the same snapshot as the other actions
@@ -1644,6 +1706,28 @@ class Executor:
                 )
                 self.events.append(
                     (len(self.events), "STATE_CHECK", str(card), "ZERO_LOYALTY")
+                )
+            for card in legend_losers:
+                # V22, CR 704.5j: the ones not kept go to their owners'
+                # graveyards. From the battlefield to a graveyard is dying
+                # (CR 700.4), so the dies-window replacements apply as in the
+                # lanes above. A walker's loyalty key goes with it (a new
+                # object on re-entry, the zero-loyalty lane's convention).
+                self.world.cards[card].counters.pop("LOYALTY", None)
+                repl = self.replacements.replacement_for_death(card)
+                if repl is not None:
+                    replaced.append((card, repl))
+                    self.events.append(
+                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
+                    )
+                    continue
+                self.damage.pop(card, None)
+                self.damage_deathtouch.discard(card)
+                self.world.move_to_zone(
+                    card, self.world.controller_of(card), ZONE_GRAVEYARD
+                )
+                self.events.append(
+                    (len(self.events), "STATE_CHECK", str(card), "LEGEND_RULE")
                 )
             new_events = self.journal.record_atom(
                 before, None, "STATE_CHECK", self.events[start:]

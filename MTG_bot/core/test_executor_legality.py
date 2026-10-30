@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
 )
 from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.events import KIND_TAP_STATE, KIND_ZONE_CHANGE
 from MTG_bot.core.executor.legality import (
     ability_playable,
     activate,
@@ -502,7 +503,16 @@ class TestActivateFold(LegalityCase):
         self.attach([ability(cost(CostTap(), CostSacrifice(sel)))])
         activate(self.ex, self.alpha, 0, seat=self.p0)
         self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
-        self.assertTrue(self.world.cards[self.alpha].tapped)
+        # re-pinned 2026-10-29: V43 changes the flag the graveyard card carries. CR 110.5d: a card
+        # off the battlefield is neither tapped nor untapped, so the tap cost's payment is pinned
+        # by its journal row, ahead of the sacrifice, instead of by a stale flag.
+        self.assertFalse(self.world.cards[self.alpha].tapped)
+        rows = [
+            r[1]
+            for r in self.ex.journal.dump()
+            if r[2] == str(self.alpha) and r[1] in (KIND_TAP_STATE, KIND_ZONE_CHANGE)
+        ]
+        self.assertEqual(rows, [KIND_TAP_STATE, KIND_ZONE_CHANGE])
 
 
 SICK = "summoning sickness (CR 302.6) without haste"
@@ -1023,10 +1033,9 @@ class TestAnotherTarget(unittest.TestCase):
         # another target creature." Exactly two target slots, designated in walk
         # order, and the DEAL_DAMAGE dealer is the first slot (CR 120.2b): the
         # creature deals the damage, not Garruk.
-        from MTG_bot.core.ability_tree import ActivatedAbility, CostLoyalty
+        from MTG_bot.core.ability_tree import ActivatedAbility, CostLoyalty, walk
         from MTG_bot.core.executor.games import get_supply, identity_of
         from MTG_bot.core.executor.query import activation_target_slots
-        from MTG_bot.core.ability_tree import walk
 
         supply = get_supply("all", "M21")
         record = next(
