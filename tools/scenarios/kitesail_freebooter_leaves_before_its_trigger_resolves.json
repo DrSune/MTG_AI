@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "real": "Kitesail Freebooter", "zone": "hand", "controller": 0},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "salve", "name": "Salve", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "hold_triggers": true},
+  {"op": "move", "key": "k", "to": "hand", "decisions": ["zap"]}
+ ],
+ "expect": {
+  "zone": {"k": "hand", "zap": "hand", "salve": "hand"},
+  "hand": {"0": 1, "1": 2}
+ },
+ "notes": "R5-1, CR 610.3b: the enters trigger is waiting when Freebooter is returned to its owner's hand (hold_triggers + move = 'in response'). The trigger still resolves (the opponent reveals, you choose Zap), but the specified event, Freebooter leaving the battlefield, already happened after the ability triggered, so nothing is exiled. The older Oblivion Ring wording would have exiled Zap for good here; the 'until' wording exiles nothing."
+}

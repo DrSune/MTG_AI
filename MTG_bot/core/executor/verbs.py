@@ -73,6 +73,7 @@ from MTG_bot.core.executor.quantity import (
     referent_handle,
     resolve,
 )
+from MTG_bot.core.executor.returns import anchor_unmoved, battlefield_entry_clock
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
@@ -309,11 +310,13 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     bottom_dest = dest_ir.position is ZonePosition.BOTTOM or (
         dest_ir.position is None and dest_kind == ZONE_LIBRARY
     )
+    stayed: set[Handle] = set()
     for card in sorted(cards, reverse=True) if bottom_dest else cards:
         # V24: the owner's zone always (CR 400.3); a battlefield controller other
         # than the owner becomes a control entry below, never a zone (CR 108.3).
         target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
+        host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
             # r20b (Containment Priest): C24 replacement-before-apply for
             # the ENTER move itself — a live ZoneChangeEvent replacement
@@ -334,6 +337,12 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     (len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source))
                 )
                 continue
+            # V24 x V32 (CR 303.4f): the player the Aura enters under chooses its host,
+            # which is the controller when that is not the owner (whose zone it joins).
+            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
+            if not enters:
+                stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
+                continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
         if new_controller is not None:
@@ -346,13 +355,112 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append(
             (len(ctx.events), "MOVE", str(card), f"{src.kind}->{dest_kind}")
         )
+        if host is not None:
+            _attach_entering_aura(ctx, card, host)
     # 14e (B-9) producer: the MOVED cards are the register ("…put it onto
     # the battlefield…. It gains haste" — the Liliana, Waker of the Dead
     # emblem tail 14b-1 attached; inside a firing the seed was the event
     # subject, but the ACTION's object is the honest antecedent). The
     # top-n draw-idiom early-returns above write nothing: no object was
     # chosen, and an unset register stays a loud read.
-    ctx.bindings["result"] = list(cards)
+    ctx.bindings["result"] = [c for c in cards if c not in stayed]
+
+
+def _aura_entry_host(ctx: ExecCtx, card: Handle, player: Handle) -> tuple[bool, Handle | None]:
+    """V32 (CR 303.4f-g): an Aura an effect puts onto the battlefield (not
+    resolving as an Aura spell) enters attached to what ``player``, the
+    player it enters under, chooses; with nothing legal it does not enter.
+    Returns (enters, host); host is None for a card that is not an Aura (the
+    ENCHANT keyword marker, query.is_aura_spell's test)."""
+    ex = ctx.executor
+    if ex is None or "ENCHANT" not in ctx.world.cards[card].identity.keywords:
+        return True, None
+    from MTG_bot.core.executor.aura_entry import choose_aura_host
+
+    host = choose_aura_host(ex, card, player)
+    return host is not None, host
+
+
+def _attach_entering_aura(ctx: ExecCtx, card: Handle, host: Handle) -> None:
+    """V32: the attachment edge of an Aura that just entered (the cast lane's
+    ATTACH row, stack.py), so the 704.5q sweep sees it attached."""
+    assert ctx.executor is not None  # _aura_entry_host chose a host only with one
+    ctx.executor.attach_aura(card, host)
+    ctx.events.append((len(ctx.events), "ATTACH", str(card), str(host)))
+
+
+#: Ontology R5-1: the zones a move "until" may take an object from. The return puts it back there
+#: (CR 610.3); a library or the stack has no position rule for that here, so such a move raises.
+_RETURNABLE_ZONES = (ZONE_BATTLEFIELD, ZONE_HAND, ZONE_GRAVEYARD, ZONE_EXILE)
+
+
+def _zone_map(world) -> dict[Handle, tuple[Handle, str]]:
+    """card -> (zone owner, zone kind) over every zone, without opening a journal boundary."""
+    out: dict[Handle, tuple[Handle, str]] = {}
+    for player in world.player_order:
+        for kind, zone in world.players[player].zones.items():
+            for card in zone.entries:
+                out[card] = (player, kind)
+    return out
+
+
+def _v_move_zone_until(ctx: ExecCtx, atom: Atom) -> None:
+    """MOVE_ZONE's handler. Without a ``duration`` role it is :func:`_v_move_zone`, unchanged.
+
+    Ontology R5-1 (CR 610.3): with one, the move is the first of two one-shot effects ("exile that
+    card until this creature leaves the battlefield"). The objects move exactly as without it, and
+    each one that arrives gets a row in the executor's return registry (``returns.py``). When the
+    duration ends, the executor returns it to its previous zone (``Executor._run_returns``).
+    CR 610.3a/b: if the anchor already left the battlefield after the ability triggered or the
+    spell was cast, the event has happened and nothing moves."""
+    duration = atom.args.get("duration")
+    if duration is None:
+        _v_move_zone(ctx, atom)
+        return
+    executor = ctx.executor
+    if executor is None:
+        raise ValueError(
+            "executor: MOVE_ZONE with a duration needs an executor-backed ExecCtx "
+            "(the return registry)"
+        )
+    assert isinstance(duration, Duration)  # the role table types it
+    tag = duration_tag(duration)
+    anchor: Handle | None = None
+    anchor_clock = 0
+    if isinstance(duration, DurationUntilLeaves):
+        anchor = referent_handle(duration.source, ctx)
+        if not anchor_unmoved(ctx, anchor):
+            # CR 610.3a/b: "the specified event has already occurred": the object doesn't move.
+            if atom.args.get("cards") is not None:
+                ctx.bindings["result"] = []
+            ctx.events.append((len(ctx.events), "MOVE_UNTIL_ENDED", str(anchor), tag))
+            return
+        if ctx.journal is not None:
+            anchor_clock = battlefield_entry_clock(ctx.journal, anchor)
+    before = _zone_map(ctx.world)
+    _v_move_zone(ctx, atom)
+    after = _zone_map(ctx.world)
+    for card in sorted(after):
+        was = before.get(card)
+        now = after[card]
+        if was is None or was == now:
+            continue
+        if was[1] not in _RETURNABLE_ZONES:
+            raise NotImplementedError(
+                f"executor: MOVE_ZONE until … from the {was[1]}: returning an object to a "
+                "library or the stack has no position rule here (flag, don't degrade)"
+            )
+        executor.returns.stage(
+            card,
+            zone=now[1],
+            previous_zone=was[1],
+            owner=now[0],
+            tag=tag,
+            anchor=anchor,
+            anchor_clock=anchor_clock,
+            source=ctx.source,
+            controller=ctx.controller,
+        )
 
 
 def _to_graveyard(ctx: ExecCtx, atom: Atom) -> None:
@@ -1328,10 +1436,18 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         for card in cards:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return
+    stayed: set[Handle] = set()
     for card in cards:
         # V24: the owner's zone, a non-owner controller as a control entry.
         target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
+        host: Handle | None = None
+        if dest_kind == ZONE_BATTLEFIELD:
+            # V32, chosen by the player it enters under (V24: the controller if not the owner)
+            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
+            if not enters:
+                stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
+                continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
         if new_controller is not None:
@@ -1341,12 +1457,14 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append(
             (len(ctx.events), "SEARCH", str(card), f"{src.kind}->{dest_kind}")
         )
+        if host is not None:
+            _attach_entering_aura(ctx, card, host)
     # 14c (B-16 lineage): the found cards land in the ability's ``result``
     # register — the same 13b read-back convention the CHOOSE atom pins
     # ("the follow-up atom's referent='result' Selector reads it"). The
     # compiler emits that referent after SEARCH (Necromentia's EXILE);
     # without this write the anaphora died B-9-style outside a firing.
-    ctx.bindings["result"] = list(cards)
+    ctx.bindings["result"] = [c for c in cards if c not in stayed]
 
 
 def _executor_or_raise(ctx: ExecCtx, verb: str):
@@ -2088,7 +2206,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
 
 
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
-    Verb.MOVE_ZONE: _v_move_zone,
+    Verb.MOVE_ZONE: _v_move_zone_until,  # R5-1: _v_move_zone plus the "until" duration
     Verb.SACRIFICE: _to_graveyard,
     Verb.DESTROY: _to_graveyard,
     Verb.GAIN_LIFE: _v_gain_life,

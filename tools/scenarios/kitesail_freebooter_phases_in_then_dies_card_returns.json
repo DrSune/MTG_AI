@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "k", "real": "Kitesail Freebooter", "zone": "hand", "controller": 1},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "salve", "name": "Salve", "type": "Sorcery", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": ["zap"]},
+  {"op": "loyalty", "key": "teferi", "set": 5},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["k"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "bear", "target": "k", "amount": 2}
+ ],
+ "expect": {
+  "phased_out": {"k": false},
+  "zone": {"k": "graveyard", "zap": "hand", "salve": "hand"}
+ },
+ "notes": "R5-1, CR 702.26d + 610.3: seat 1's Freebooter phases out (Teferi [-3]) and Zap stays exiled; it phases in during seat 1's untap step (502.1), is still the same object, and when it then dies the exile ends and Zap returns to seat 0's hand."
+}

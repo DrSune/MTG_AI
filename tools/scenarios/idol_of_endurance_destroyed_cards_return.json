@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "i", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "tb", "real": "Thrashing Brontodon", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Small Creature", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "c3", "name": "Medium Creature", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "c6", "name": "Big Creature", "type": "Creature", "power": "5", "toughness": "5", "cmc": 6, "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "enter", "key": "i"},
+  {"op": "activate", "key": "tb", "idx": 0, "seat": 0, "targets": ["i"]}
+ ],
+ "expect": {
+  "zone": {"i": "graveyard", "tb": "graveyard", "c2": "graveyard", "c3": "graveyard", "c6": "graveyard"},
+  "graveyard": {"0": ["Small Creature", "Medium Creature", "Big Creature", "Idol of Endurance", "Thrashing Brontodon"]}
+ },
+ "notes": "R5-1, CR 610.3: 'exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.' Thrashing Brontodon destroys the Idol; the second one-shot effect returns both exiled creature cards to their previous zone, their owner's graveyard. Before R5-1 they stayed in exile forever (weaker than printed)."
+}

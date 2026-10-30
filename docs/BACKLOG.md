@@ -630,7 +630,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - The dispatch ledgers clear only when the creature leaves the battlefield.
   - So a one-turn lure keeps forcing blocks on later turns (FDN Joraga Invocation, checked by
     mapper B with a pack).
-- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter needs a design decision, see below]**
+- **B-60 Compiler drops that make M21 cards stronger than printed** (the templates mark them LOSSY, **[equip and Speaker FIXED on `cards/integration` 2026-10-29; Kitesail Freebooter FIXED on branch `engine/r5a-until-leaves` 2026-10-29 by ontology R5-1, see B-60c and B-97]**
   `templates_b5a.py`).
   - Equip has no sorcery timing, so every Equipment can move at instant speed and mid-combat (M21
     Short Sword, Malefic Scythe).
@@ -710,6 +710,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     Emancipation with Nine Lives, or two Fiery Emancipations).
   - Repro script on the B-49 branch: `cr6161_repro.py`.
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
+  **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
+  branch `engine/r5a-until-leaves`; follow-ups in B-97]**
   - (1) Recommended: an optional `duration` role on MOVE_ZONE/EXILE taking `DurationUntilLeaves`.
     The executor keeps (card, previous zone, anchor) and returns the card when the anchor leaves
     (CR 610.3). If the anchor already left, the exile does not happen (CR 610.3a). The return table
@@ -887,7 +889,67 @@ These are forks, not tasks. See the report that accompanied this audit.
     one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
     printed; only the docstring's reading is off).
   - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
-- **B-97 [fixer 3, 2026-10-29; renumbered from B-75 at the integration merge, which phasing took] Chandra, Flame's Catalyst's "If that spell would be put into your
+- **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
+  (CR 610.3) are built; what is left.**
+  - Done: `MOVE_ZONE` takes an optional `duration` (`DurationUntilLeaves`, `DurationEot`,
+    `DurationUntilNextTurn` only; any other Duration is refused at construction). The executor's
+    return registry (`core/executor/returns.py`, `Executor._run_returns`, folded into
+    `state_fingerprint` while non-empty) keeps one row per moved object and returns it through
+    the normal MOVE_ZONE path when the duration ends: 610.3a/b (anchor already gone: nothing
+    moves), 610.3c (owner's control), 610.3d (one batch), 400.7 by journal provenance, tokens never
+    return (704.5d), Containment Priest applies (614), a returning Aura asks its owner for a host
+    (303.4f-g, V32 cherry-picked from `engine/verify-fixes-2`). The per-seat view (`returns_to`,
+    `returns_when`) and the G1 probe trace show every row. Templates: Kitesail Freebooter, Idol of
+    Endurance, and a general `B11-exile-np-until-leaves` clause that, behind the enters frame,
+    newly compiles Hieromancer's Cage (M19), Banishing Light (FDN, THB), Stasis Snare (FDN),
+    Banisher Priest (M14), Prison Realm (WAR) and Journey to Oblivion (ZNR), all unverified.
+  - **The training observation cannot see the rows** (`tools/training`, pinned, so not edited):
+    a policy trained on it does not know that killing Banishing Light returns its card (AGENTS
+    §10). Add the row (anchor, card, return zone) at the next observation-schema change.
+  - **"For as long as ~ remains on the battlefield" (CR 611.2b)** ends when the object phases out
+    (702.26f). It must not reuse `DurationUntilLeaves`; it needs its own node or a field.
+  - **Calix, Destiny's Hand [−3]** ("until target enchantment you control leaves the
+    battlefield"): the anchor is a second target, and `DurationUntilLeaves(source="target")` can
+    only name the spell's single target binding. Gap ledger; needs a per-slot referent.
+  - **Still unparsed** (each needs a clause the compiler lacks, not a new atom): Prayer of Binding
+    ("up to one target", ready for a mapper now), Seal Away ("tapped creature"), Glass Casket
+    ("with mana value 3 or less"), Sigrid, Colossal Whale, Glorious Protector, Grasping Giant,
+    Hixus, Constricting Sliver, Valki.
+  - **A return to a zone other than the battlefield consults no replacement effect.** The move
+    path asks `replacement_for_zone_change` only for battlefield entries (`verbs._v_move_zone`), so
+    Leyline of the Void would not exile Idol of Endurance's returning cards (B-72 family; general,
+    not specific to returns).
+  - **Tapped status survives zone changes (CR 110.5b/110.5d).** `CardState.tapped` is never
+    cleared when a card leaves the battlefield, so a creature exiled while tapped returns tapped,
+    and a tapped creature bounced and recast enters tapped. General engine gap.
+  - **Simultaneity is per destination zone.** One MOVE_ZONE per zone, in the fixed order
+    battlefield, hand, graveyard, exile; within a zone every object moves at once. V32 chooses
+    each entering Aura's host inside the move loop, so an Aura returning in the same batch as a
+    creature can pick that creature (strictly, 303.4f sees only objects already on the
+    battlefield).
+  - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
+    trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
+    consequence.
+- **B-98 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-77 at the integration merge] Ontology R5-6: `TargetingEvent.actor`
+  ("becomes the target of a spell or ability an opponent controls") is built; the rest of the
+  census needs other pieces.**
+  - Done: the optional `actor` Filter over the targeting spell's or ability's controller (the
+    TARGETING row's journalled actor), read by `binding._match_node`. Warden of the Woods (M21) no
+    longer draws off its controller's own spells; Thorn Lieutenant (M19) compiles through the new
+    `B13-targeted` frame. Mapper rule: "can't be the target of spells or abilities your opponents
+    control" stays HEXPROOF (MAPPER_GUIDE).
+  - Not compiled, each for a reason outside R5-6 (11 cards, 8 sets, by the oracle census):
+    - Frost Titan (M11, M12), Diffusion Sliver (M15), Reidane (KHM): "counter that spell or ability
+      unless its controller pays": abilities never sit on the stack, so an ability cannot be
+      countered (R5 gate round 2).
+    - Ward (Cackling Prowler, Tolarian Terror, Zul Ashur; FDN): the IR has no WARD keyword, and
+      ward (CR 702.21a) also counters abilities, which cannot be countered here.
+    - Battle Mammoth (KHM): its clause "you may draw a card" does not parse on its own.
+    - Shield Mare (M19): "When this creature enters or becomes the target ...", a trigger on either
+      of two events, which no template composes.
+    - Leyline of Combustion (M20): "you and/or at least one permanent you control" triggers once per
+      spell, not per targeted object, and "that player" needs a referent for the event's actor.
+- **B-99 [fixer 3, 2026-10-29; renumbered from B-75 (phasing took it) and then B-97 (R5-1 took it) at the integration merges] Chandra, Flame's Catalyst's "If that spell would be put into your
   graveyard, exile it instead" is not applied.** Her -2 casts a red instant or sorcery from your
   graveyard through `stack.cast_card`; the rider's replacement (`B5b-repl-graveyard-exile`) is never
   registered for that cast, so the spell resolves into the graveyard and can be recast. Stronger than
@@ -895,7 +957,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
   should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
   redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
-- **B-98 [fixer 3, 2026-10-30; renumbered from B-76 at the integration merge, which the defender entry took] Two permission rows do nothing until the R5 permission lane.**
+- **B-100 [fixer 3, 2026-10-30; renumbered from B-76 (the defender entry took it) and then B-98 (R5-6 took it) at the integration merges] Two permission rows do nothing until the R5 permission lane.**
   Weaker than printed; never a crash and never a phantom option.
   - Radha, Heart of Keld's "you may play lands from the top of your library" compiles to a free
     row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
