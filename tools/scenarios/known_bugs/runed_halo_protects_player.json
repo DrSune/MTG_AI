@@ -10,5 +10,5 @@
     {"op": "cast", "real": "Shock", "key": "s", "controller": 1, "decisions": ["player:0"], "expect_raise": "illegal"}
   ],
   "expect": {"life": {"0": 20}, "zone": {"s": "hand"}},
-  "notes": "B-82 repro (m21-fidelity, 2026-10-30). Printed: 'As this enchantment enters, choose a card name. You have protection from the chosen card name.' With Shock named, the opponent's Shock cannot target seat 0 (CR 702.16b; protection on a player, 702.16a). FAILS today: the static grant never reaches the player (layers.protections_of(player) is empty) and no targeting or damage consumer reads protection at all."
+  "notes": "B-83 repro (m21-fidelity, 2026-10-30). Printed: 'As this enchantment enters, choose a card name. You have protection from the chosen card name.' With Shock named, the opponent's Shock cannot target seat 0 (CR 702.16b; protection on a player, 702.16a). FAILS today: the static grant never reaches the player (layers.protections_of(player) is empty) and no targeting or damage consumer reads protection at all."
 }

@@ -868,7 +868,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
     printed; only the docstring's reading is off).
   - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
-- **B-82 [fixer A, found 2026-10-30] Protection (CR 702.16) works only against blocking.**
+- **B-83 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd, a duplicate of the
+  multicoloured-token entry's merge number] Protection (CR 702.16) works only against blocking.**
   - `layers.protections_of` has one consumer, block legality. Nothing makes a protected
     permanent or player an illegal target for sources of the quality (702.16b), prevents their
     damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros, all failing today:
@@ -885,6 +886,48 @@ These are forks, not tasks. See the report that accompanied this audit.
     noncombat and combat damage lanes; (4) the 704.5m/n attachment SBAs. Every protection card
     changes play (Baneslayer Angel, Basri's Lieutenant, Feat of Resistance, Runed Halo, other
     sets), so it belongs to an era boundary. Engine lane.
+- **B-84 [fixer A, found 2026-10-30] Attack triggers can see a creature put onto the battlefield
+  attacking** (latent: no M21 card misfires today).
+  - `Executor.join_attack` (`executor/__init__.py` ~1915) journals the same DECLARE_ATTACKERS
+    row, in the same declare group, as a declared attacker, and `binding._match_node` (~919)
+    matches every such row. CR 508.3a and 508.4: a creature put onto the battlefield attacking
+    never "attacked", so no "whenever ... attacks" trigger may see it. Falconer Adept's Bird
+    (80a895f) and Basri Ket's -2 Soldiers take this path.
+  - Hidden today by two accidents. The joined row is journalled before the token's own
+    ZONE_CHANGE row, so at match time the token's keywords are not yet in the layer map (a
+    flying filter misses the Bird). And the per-declaration dedup (`binding._queue` ~728, one
+    instance per ability per declare group) has already queued any trigger the declared
+    creature matched. Probes 2026-10-30 (Tide Skimmer + Falconer Adept, and a per-creature
+    flying filter with only the Adept declared): no extra trigger. A filter on type, subtype,
+    token-ness or controller that the token matches and no declared creature does would fire.
+  - Coupling: that dedup is itself wrong for per-creature triggers (B-85). Whoever fixes B-85
+    must exclude joined rows in the same change, or the Bird and the Soldiers start
+    triggering. `_group_size` (battalion) and the `declare_attackers` register
+    (THAT_MANY_COUNT) count joined rows as well.
+  - Fix: mark the joined row (its own payload, or an `entered_attacking` set folded into the
+    replay hash) and skip it in the DeclareAttackersEvent match, the group size and the
+    register. Engine lane.
+- **B-85 [fixer A, found 2026-10-30] "Whenever a creature ... attacks" fires once per
+  declaration, not once per attacker** (live in M21, weaker than printed).
+  - `binding._queue` (~728) queues one instance per ability per declare group for every
+    DeclareAttackersEvent. That is right for "one or more" and "attack with two or more"
+    (Basri Ket's -2, Tide Skimmer, Mangara) and wrong for a per-creature trigger, which
+    CR 603.2c fires once per matching attacker. Repro, failing today:
+    `tools/scenarios/known_bugs/hooded_blightfang_each_deathtouch_attacker.json` (two
+    Blightfangs attack: four triggers are due, two fire, so the life totals end 22/16, not
+    24/14).
+  - Live in M21: Basri, Devoted Paladin's -1 puts its counter on one attacker per declaration,
+    and Hooded Blightfang drains once however many deathtouch creatures attack. Across the 19
+    sets these two, Basri Ket, Tide Skimmer and Mangara are the only compiled attack triggers
+    not keyed on IS_SOURCE (snapshot 2026-10-30).
+  - Design decision, an IR change: `DeclareAttackersEvent` cannot tell "a creature attacks"
+    from "one or more creatures attack" (Basri Ket's -2 and the Paladin's -1 differ only in
+    their filters). (a) A `batch: bool = False` field, omitted when False so per-creature trees
+    stay byte-identical, set by the compiler on "one or more", "attack with N or more" and
+    "you attack"; the dedup then applies to batch triggers only. Three goldens re-bake (Basri
+    Ket, Tide Skimmer, Mangara). Recommended. (b) Infer batching in the engine from a
+    CONTROLLER_COUNT_GE condition: no schema change, but it cannot separate Basri Ket's -2
+    from the Paladin's -1, so it is not enough. Either way it lands with B-84's exclusion.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
