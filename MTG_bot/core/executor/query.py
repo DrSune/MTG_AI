@@ -639,9 +639,9 @@ def _cast_option_payable(
     """Can the effect-CAST of ``handle`` be PAID right now — the exact fold
     :func:`~MTG_bot.core.executor.stack.cast_card` performs at resolution:
     the atom's ``cost`` role when present (an EMPTY Cost is the corpus
-    cost-waiver idiom, CR 498.2 "without paying its mana cost" — nothing
-    to fold, always payable; a real Cost REPLACES the printed cost), else
-    the card's printed cost, plus the spell's additional costs (V36:
+    cost-waiver idiom, CR 118.9 "without paying its mana cost"; a Cost
+    with parts is paid ON TOP of the printed cost, CR 601.2f), else the
+    card's printed cost, plus the spell's additional costs (V36:
     legality.effect_cast_cost). The fold runs with cast_card's own context
     shape (source=the card, the effect cast's declared X default 0, CR
     107.4) and the same ``mana_use`` restriction read. One source of

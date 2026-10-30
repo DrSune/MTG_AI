@@ -1053,10 +1053,11 @@ def cast_card(
 ) -> bool:
     """The effect-side CAST verb's engine (``verbs._v_cast``): cast a
     DESIGNATED card from wherever it sits, with the spell's printed cost
-    paid as normal when ``cost_override is None``, otherwise with that
-    Cost object as the entire cost (an empty Cost = the corpus' cost-
-    waiver idiom, CR 498.2 "without paying its mana cost"), plus the spell's
-    own additional costs either way (V36, CR 601.2f, 118.9d). No window
+    paid as normal when ``cost_override is None``; an EMPTY Cost is the
+    corpus' cost-waiver idiom (CR 118.9 "without paying its mana cost"),
+    and a Cost WITH parts is paid on top of the printed cost (additional
+    costs, CR 601.2f; legality.effect_cast_cost), plus the spell's own
+    additional costs either way (V36, CR 118.9d). No window
     check (effects cast outside the normal timing — CR 601.2b exemptions;
     v1 documents no further exemption bookkeeping), no response.
     Returns ``True`` when the spell was cast and resolved.

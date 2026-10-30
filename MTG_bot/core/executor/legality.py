@@ -1185,16 +1185,28 @@ def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
 def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> Cost | None:
     """V36 (CR 601.2f, 118.9d): the total cost of a spell an effect casts
     (stack.cast_card, and the offer oracle query._cast_option_payable, so the two
-    can never disagree). It is the spell's mana cost, or the alternative cost the
-    effect names (an empty Cost: "without paying its mana cost", 118.9), plus every
-    additional cost the spell lists ("As an additional cost to cast this spell,
-    discard a card"): 118.9d applies additional costs to an alternative cost too.
-    None or an empty Cost means nothing to pay."""
-    base = cost_override if cost_override is not None else record.mana_cost
-    if not node.additional_costs:
+    can never disagree). The CAST atom's ``cost`` role means (the documented 13b
+    convention, ``verbs._v_cast``; DESIGN_ATOM_ONTOLOGY R5-2):
+    - absent: the spell's mana cost;
+    - an EMPTY Cost: "without paying its mana cost", an alternative cost (118.9);
+    - a Cost WITH parts: additional costs paid on top of the mana cost ("by
+      paying 3 life and discarding a card in addition to paying its other costs",
+      Demonic Embrace). It never replaces the mana cost.
+    Every additional cost the spell itself lists is added in all three cases
+    ("As an additional cost to cast this spell, discard a card"): 118.9d applies
+    additional costs to an alternative cost too. None or an empty Cost means
+    nothing to pay."""
+    if cost_override is not None and not cost_override.parts:
+        base: Cost | None = cost_override  # the alternative cost: no mana cost
+    else:
+        base = record.mana_cost
+    extras: list[Cost] = list(node.additional_costs)
+    if cost_override is not None and cost_override.parts:
+        extras.insert(0, cost_override)  # additional costs, CR 601.2f
+    if not extras:
         return base
     parts: list = list(base.parts) if base is not None else []
-    for extra in node.additional_costs:
+    for extra in extras:
         parts.extend(extra.parts)
     return Cost(parts=tuple(parts))
 

@@ -32,6 +32,8 @@ V28  A CHOOSE selector is never handed a TARGET designation it could not select
      (Rewind's "untap up to four lands" was handed the countered spell; CR 608.2c).
 V30  A trigger whose effect moves its own card out of the graveyard functions only in
      the graveyard (CR 113.6m): Silversmote Ghoul's end-step return.
+CAST cost role (coordinator, 2026-10-30): a CAST atom's Cost WITH parts is paid on top
+     of the mana cost (CR 601.2f); only an EMPTY Cost waives the mana cost (118.9).
 """
 
 from __future__ import annotations
@@ -818,6 +820,54 @@ class TestV30GraveyardTriggers(unittest.TestCase):
             bindings={"target": [g]},
         )
         self.assertIn((g, 0), r.ex.binder.attached_graveyard)
+
+
+class TestCastCostRoleIsAdditional(unittest.TestCase):
+    def setUp(self):
+        from MTG_bot.core.ability_tree import (
+            Cost,
+            CostManaColor,
+            CostManaGeneric,
+            SpellKind,
+        )
+        from MTG_bot.core.test_executor_stack import StackCase
+
+        self.case = StackCase()
+        self.case.setUp()
+        self.spell = self.case.give(
+            "Embracey",
+            SpellKind.SORCERY,
+            cost=Cost((CostManaColor("B", QConst(1)), CostManaGeneric(QConst(1)))),
+            effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)),
+            zone=ZONE_GRAVEYARD,
+        )
+
+    def cast(self, cost_override):
+        from MTG_bot.core.executor.stack import cast_card
+
+        cast_card(self.case.ex, self.case.p0, self.spell, cost_override=cost_override)
+
+    def test_a_cost_with_parts_is_paid_on_top_of_the_mana_cost(self):
+        from MTG_bot.core.ability_tree import Cost, CostLife
+
+        self.case.mana(self.case.p0, B=2)
+        self.cast(Cost((CostLife(QConst(3)),)))
+        # {1}{B} AND 3 life (then the sorcery's own +1).
+        self.assertEqual(self.case.world.players[self.case.p0].mana_pool, {})
+        self.assertEqual(self.case.world.players[self.case.p0].life, 20 - 3 + 1)
+
+    def test_a_cost_with_parts_cannot_skip_the_mana_cost(self):
+        from MTG_bot.core.ability_tree import Cost, CostLife
+
+        with self.assertRaises(ValueError):
+            self.cast(Cost((CostLife(QConst(3)),)))  # no mana in the pool
+        self.assertEqual(self.case.world.players[self.case.p0].life, 20)
+
+    def test_an_empty_cost_still_waives_the_mana_cost(self):
+        from MTG_bot.core.ability_tree import Cost
+
+        self.cast(Cost(()))
+        self.assertEqual(self.case.world.players[self.case.p0].life, 21)
 
 
 if __name__ == "__main__":
