@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Rain of Revelation, printed 'Draw three cards, then discard a card.' CR 701.8a: the discarding player chooses the card. The caster draws 3, then names 'dump' (the hand card with the HIGHEST handle, so an engine stand-in that takes the first sorted card would discard 'keep1' instead). Expected: exactly dump in the graveyard; keep1 and keep2 stay in hand; hand 4 -1 (cast) +3 -1 = 5; library 6 -> 3.",
+ "cards": [
+  {"key": "rain", "real": "Rain of Revelation", "zone": "hand", "controller": 0},
+  {"key": "keep1", "name": "Keep One", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "keep2", "name": "Keep Two", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "dump", "name": "Dump Me", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 4}},
+ "steps": [
+  {"op": "cast", "real": "Rain of Revelation", "key": "rain", "decisions": ["dump"]}
+ ],
+ "expect": {"zone": {"rain": "graveyard", "dump": "graveyard", "keep1": "hand", "keep2": "hand"}, "hand": {"0": 5},
+  "library": {"0": ["Library 2", "Library 1", "Library 0"]}, "graveyard": {"0": ["Rain of Revelation", "Dump Me"]}}}

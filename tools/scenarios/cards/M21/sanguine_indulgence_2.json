@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "si", "real": "Sanguine Indulgence", "zone": "hand", "controller": 0},
+  {"key": "rv", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "g1", "name": "Grave One", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2, "B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "cast", "real": "Sanguine Indulgence", "key": "si", "targets": ["g1"]}
+ ],
+ "expect": {
+  "life": {"0": 23},
+  "zone": {"g1": "hand", "si": "graveyard"},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed: '... if you've gained 3 or more life THIS TURN.' The 3 life was gained on an earlier turn, so on your next turn the spell costs the full {3}{B}: all six mana (Revitalize {1}{W} + {3}{B}) are spent; the reduction would have left three."
+}

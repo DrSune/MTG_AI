@@ -1,0 +1,118 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.' The Enforcer is already on the battlefield (1/1) while the opponent has 6 graveyard cards. Another Rogue you control enters and the trigger mills two, making 8: the Enforcer becomes 3/2 with deathtouch from then on (continuous, not fixed at entry), so 1 damage it deals destroys a 5/5.",
+ "cards": [
+  {
+   "key": "tge",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rogue",
+   "name": "Sneak",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature \u2014 Human Rogue",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "big",
+   "name": "Big Lug",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "g0",
+   "name": "Old Card 0",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g1",
+   "name": "Old Card 1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g2",
+   "name": "Old Card 2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g3",
+   "name": "Old Card 3",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g4",
+   "name": "Old Card 4",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g5",
+   "name": "Old Card 5",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "rogue"
+  },
+  {
+   "op": "deal_damage",
+   "source": "tge",
+   "target": "big",
+   "amount": 1
+  }
+ ],
+ "expect": {
+  "power": {
+   "tge": 3
+  },
+  "toughness": {
+   "tge": 2
+  },
+  "battlefield_keywords": {
+   "Thieves' Guild Enforcer": [
+    "DEATHTOUCH"
+   ]
+  },
+  "zone": {
+   "big": "graveyard",
+   "tge": "battlefield",
+   "rogue": "battlefield"
+  }
+ }
+}

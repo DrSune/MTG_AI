@@ -1,0 +1,13 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the scry count). Printed: 'Whenever this creature attacks, scry 1.' Scry 1 looks at ONE card (CR 701.22a). The Megalodon attacks alone; the first scry answer is 'bottom' (Library 5 goes to the bottom). A second 'bottom' word is queued but scry 1 never asks again, so Library 4 stays on top. The 5/7 deals 5.",
+ "cards": [
+  {"key": "md", "real": "Spined Megalodon", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"md": true}, "decisions": ["bottom", "bottom"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 15}, "attackers": {"md": true}, "zone": {"md": "battlefield"},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}}
+}

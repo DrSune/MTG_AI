@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "fe168bf1-f626-460c-890b-1ce758af01fc",
+ "name": "Ghostly Pilferer",
+ "text_sha": "ba26be43e3fc9978e3b8facc596077a2dc85022500e632b988da5129656939fb",
+ "verified": {
+  "tree_sha": "6c227cbba9bb71bcd1a7d9298b3cbca74bd7655eafa9a86401b991468fe4090b",
+  "probe_sha": "1978a26fe673c63e5be1424691af138a0783e14c11ef8b6fb7f1fb58338891bb",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Whenever this creature becomes untapped, you may pay {2}. If you do, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No probe stimulus untaps the card. Tree: TapStateEvent(tapped=False, IS_SOURCE) -> Seq(OptionalEffect(PAY {2}), Conditional(MAY_DONE, DRAW 1 YOU)). Pack untap_pay_draw: after attacking, it untaps on its controller's next turn; paying {2} draws one extra card and empties the pool (pass). Pack untap_decline: no mana spent, no extra card (pass)",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever an opponent casts a spell from anywhere other than their hand, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe casts only your own spells ('you cast an instant or sorcery' / 'a creature' -> none, correct since they are yours). Tree: CastSpellEvent(actor CONTROLLER_IS OPPONENT, from_zone_not HAND OPPONENT) -> DRAW 1 YOU, identical to the compiler's B2b-ghostly-pilferer-cast. Pack opponent_casts_from_hand: an opponent's cast from hand draws nothing (pass)",
+    "issue": "The positive case cannot be staged: the pack cast op is hand-only and M21 has no live cast-from-exile or graveyard lane (Chandra, Heart of Fire's permissions are suppressed). In M21 play the trigger therefore never fires, which can only make the card weaker, not stronger"
+   },
+   {
+    "clause": "Discard a card: This creature can't be blocked this turn.",
+    "status": "OK",
+    "evidence": "Cost CostDiscard(1 card from your hand), the same as the compiler's B5a-discard-cant-be-blocked. [activate [2] from battlefield]: 'ask discard: [you_spare, you_trick, you_land_drop, you_cast_spell, you_cast_creature]'; the chosen card goes hand -> graveyard, hand 5 -> 4. Pack discard_cost_required: refused with an empty hand and the Wall still blocks (pass). Pack discard_unblockable_this_turn: the Wall's block is refused this turn (opp takes 2), and next turn the Wall blocks again (pass)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/ghostly_pilferer_1.json",
+   "tools/scenarios/cards/M21/ghostly_pilferer_2.json",
+   "tools/scenarios/cards/M21/ghostly_pilferer_3.json",
+   "tools/scenarios/cards/M21/ghostly_pilferer_4.json",
+   "tools/scenarios/cards/M21/ghostly_pilferer_5.json",
+   "tools/scenarios/cards/M21/ghostly_pilferer_6.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 4,
+   "score": 0.25,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "optional->mandatory at 1/0/effect/steps/0",
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/steps/0/inner/args/cost",
+    "amount+1 at 1/0/effect/steps/0/inner/args/cost/parts/0/amount",
+    "amount-1 at 1/0/effect/steps/0/inner/args/cost/parts/0/amount",
+    "amount+1 at 1/0/effect/steps/1/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/then_effect/args/controller",
+    "controller OPPONENT->YOU at 1/1/event/from_zone_not/controller",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller",
+    "until-end-of-turn->permanent at 1/2/effect/args/duration"
+   ]
+  }
+ }
+}
