@@ -10,5 +10,5 @@
   "expect": {
     "life": {"0": 24, "1": 14}
   },
-  "notes": "B-85 repro (m21-fidelity, 2026-10-30). Printed: 'Whenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.' Two Blightfangs attack: each Blightfang's ability triggers once per deathtouch attacker (CR 603.2c), so four triggers: seat 1 loses 4 plus 2 combat damage (14), seat 0 gains 4 (24). FAILS today: the per-declaration dedup (binding._queue) fires each ability once, so seat 1 ends at 16 and seat 0 at 22."
+  "notes": "B-103 repro (m21-fidelity, 2026-10-30). Printed: 'Whenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.' Two Blightfangs attack: each Blightfang's ability triggers once per deathtouch attacker (CR 603.2c), so four triggers: seat 1 loses 4 plus 2 combat damage (14), seat 0 gains 4 (24). FAILS today: the per-declaration dedup (binding._queue) fires each ability once, so seat 1 ends at 16 and seat 0 at 22."
 }

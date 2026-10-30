@@ -11,5 +11,5 @@
     {"op": "cast", "real": "Unleash Fury", "key": "fury", "controller": 1, "targets": ["bear"], "expect_raise": "illegal"}
   ],
   "expect": {"zone": {"fury": "hand"}},
-  "notes": "B-83 repro (m21-fidelity, 2026-10-30). Feat of Resistance gives the Bear protection from red (decision 3 = R, WUBRG): a red spell cannot target it (CR 702.16b). FAILS today: protection is read only by block legality."
+  "notes": "B-101 repro (m21-fidelity, 2026-10-30). Feat of Resistance gives the Bear protection from red (decision 3 = R, WUBRG): a red spell cannot target it (CR 702.16b). FAILS today: protection is read only by block legality."
 }

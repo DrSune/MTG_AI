@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k1", "real": "Kitesail Freebooter", "zone": "hand", "controller": 0},
+  {"key": "k2", "real": "Kitesail Freebooter", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "salve", "name": "Salve", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k1", "decisions": ["zap"]},
+  {"op": "enter", "key": "k2", "decisions": ["salve"]},
+  {"op": "deal_damage", "source": "ogre", "target": "k1", "amount": 2}
+ ],
+ "expect": {
+  "zone": {"k1": "graveyard", "k2": "battlefield", "zap": "hand", "salve": "exile"},
+  "hand": {"1": 1}
+ },
+ "notes": "R5-1, CR 610.3: each exile is anchored to the Freebooter whose ability made it. The first Freebooter exiles Zap, the second exiles Salve; only the first one dies, so only Zap returns to seat 1's hand and Salve stays exiled under the living Freebooter."
+}

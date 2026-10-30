@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V31b, CR 122.2: Invigorating Surge leaves two +1/+1 counters on Concordia Pegasus (3/5). It dies to 5 damage and becomes a graveyard card without counters, so Rise Again returns it to the battlefield as the printed 1/3, never the 3/5 it died as.",
+ "cards": [
+  {"key": "peg", "zone": "battlefield", "controller": 0, "real": "Concordia Pegasus"},
+  {"key": "surge", "zone": "hand", "controller": 0, "real": "Invigorating Surge"},
+  {"key": "rise", "zone": "hand", "controller": 0, "real": "Rise Again"},
+  {"key": "zap", "zone": "battlefield", "controller": 1, "name": "Zapper", "type": "Creature", "power": 1, "toughness": 1}
+ ],
+ "mana": {"0": {"G": 3, "B": 5}},
+ "steps": [
+  {"op": "cast", "key": "surge", "real": "Invigorating Surge", "targets": ["peg"]},
+  {"op": "deal_damage", "source": "zap", "target": "peg", "amount": 5, "controller": 1},
+  {"op": "cast", "key": "rise", "real": "Rise Again", "targets": ["peg"]}
+ ],
+ "expect": {
+  "zone": {"peg": "battlefield", "rise": "graveyard", "surge": "graveyard"},
+  "counters": {"peg": {}},
+  "power": {"peg": 1},
+  "toughness": {"peg": 3}
+ }
+}

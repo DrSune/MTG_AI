@@ -66,7 +66,7 @@ class AskRoutingError(RuntimeError):
 SEAT_IN_TAG = frozenset({"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "x"})
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 OBJECT_IN_TAG = frozenset(
-    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name"}
+    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name", "enchant"}
 )
 SITE_KINDS = SEAT_IN_TAG | OBJECT_IN_TAG
 REFUSE_TOKENS = ("PASS", "NONE", "DECLINE", "skip")
@@ -197,6 +197,7 @@ def engine_ask(
         "cw": "Combat: cast an instant now, or pass?",
         "sacrifice": f"{about}: choose what to sacrifice.",
         "discard": f"{about}: choose what to discard.",
+        "enchant": f"{about} enters the battlefield: choose what it enchants.",
         "tap": f"{about}: choose what to tap.",
         "name": "Choose a card name.",
         "order": f"{about}: choose the damage assignment order.",

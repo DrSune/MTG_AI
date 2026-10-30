@@ -413,6 +413,11 @@ def identity_of(record: CardRecord) -> CardIdentity:
         # never ran and every cast planeswalker entered with an empty
         # counters map. One field, one path — the seed itself is unchanged.
         loyalty=str(record.loyalty) if record.loyalty is not None else None,
+        # Fixer 3 (2026-10-30): a token record (the scenario runner's by-name token
+        # lane, "real": "Treasure") stays a token in the world, so the token rules
+        # see it (CR 704.5d ceasing to exist, IS_TOKEN filters). Dealt decks never
+        # hold token records (compile_supply filters them), so dealing is unchanged.
+        is_token=bool(record.is_token),
     )
 
 
@@ -836,7 +841,7 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         }
         for f in executor.stack.frames
     ]
-    return {
+    snapshot: dict[str, Any] = {
         "turn": world.turn,
         "phase": executor.phase,
         "active": str(world.active_player) if world.active_player else None,
@@ -846,6 +851,11 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         "stack_dump": [repr(row) for row in executor.stack.dump()],
         "land_plays": {str(seat): list(v) for seat, v in executor.land_ledger.items()},
     }
+    if executor.returns.rows:
+        # Ontology R5-1 (CR 610.3): the return registry, as state_fingerprint folds it
+        # (only while a row exists, so traces without one keep their bytes).
+        snapshot["returns"] = [repr(row) for row in executor.returns.dump()]
+    return snapshot
 
 
 def game_name(world: GameWorld, handle: object) -> str:

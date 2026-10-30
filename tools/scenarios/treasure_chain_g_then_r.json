@@ -76,8 +76,8 @@
  ],
  "expect": {
   "zone": {
-   "t1": "graveyard",
-   "t2": "graveyard",
+   "t1": "ceased",
+   "t2": "ceased",
    "v": "battlefield",
    "sk": "graveyard"
   },
@@ -85,5 +85,5 @@
    "foe": 2
   }
  },
- "notes": "TRAIN mana-atom, TWO independent color decisions on one board: t1 gold G -> Vine, t2 gold R -> Shock. Two corpus items; each null individually falsified (respective spell unpayable). Teaches per-tap color choice, not a single memorized answer."
+ "notes": "TRAIN mana-atom, TWO independent color decisions on one board: t1 gold G -> Vine, t2 gold R -> Shock. Two corpus items; each null individually falsified (respective spell unpayable). Teaches per-tap color choice, not a single memorized answer. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token (games.identity_of kept is_token), so a sacrificed Treasure ceases to exist (CR 704.5d, V35) instead of lying in the graveyard: its zone expectation is 'ceased' (was 'graveyard', which encoded the token-in-graveyard gap)."
 }

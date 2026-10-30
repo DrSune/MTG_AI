@@ -112,6 +112,11 @@ class CardView:
     #: CR 702.26 (2026-10-29): a phased-out permanent is still on the table and public, but it is
     #: treated as though it does not exist; the engine's menus never offer it.
     phased_out: bool = False
+    #: Ontology R5-1 (CR 610.3): this object was moved "until" an event and goes back when it
+    #: happens: ``returns_to`` is the zone it returns to (its owner's), ``returns_when`` the event
+    #: ("o3 leaves the battlefield", "end of turn", "seat 1's next turn"). None when it has no row.
+    returns_to: str | None = None
+    returns_when: str | None = None
 
 
 @dataclass(frozen=True)
@@ -236,6 +241,7 @@ class SeatLens:
                 power, toughness = _printed(ident.power), _printed(ident.toughness)
         keywords = tuple(sorted(executor.layers.keywords(handle))) if on_bf else tuple(sorted(ident.keywords))
         host = executor.attachments.get(handle) if on_bf else None
+        returns_to, returns_when = self._returns(executor, handle)
         return CardView(
             oid=self.oid(handle),
             name=self.name(ident.name),
@@ -259,7 +265,24 @@ class SeatLens:
                 else None
             ),
             phased_out=handle in executor.phased_out,
+            returns_to=returns_to,
+            returns_when=returns_when,
         )
+
+    def _returns(self, executor: Executor, handle: Handle) -> tuple[str | None, str | None]:
+        """Ontology R5-1 (CR 610.3): where and when an object moved "until" an event goes back,
+        from the executor's return registry; (None, None) when it has no live row."""
+        rows = [r for r in executor.returns.rows_for(handle) if executor.returns.still_there(executor, r)]
+        if not rows:
+            return None, None
+        row = rows[-1]
+        if row.tag == "UntilLeaves" and row.anchor is not None:
+            when = f"{self.describe(executor, row.anchor)} leaves the battlefield"
+        elif row.tag == "UntilNextTurn":
+            when = f"seat {self.seat_of(executor, row.controller)}'s next turn begins"
+        else:
+            when = "end of turn"
+        return row.previous_zone, when
 
     def view(self, executor: Executor) -> SeatView:
         world = executor.world
@@ -351,6 +374,9 @@ def _card_line(card: CardView) -> str:
         bits.append("keywords " + ",".join(k.lower() for k in card.keywords))
     if card.zone == ZONE_BATTLEFIELD and card.controller_seat != card.owner_seat:
         bits.append(f"controlled by seat {card.controller_seat}")
+    if card.returns_to is not None:
+        # R5-1 (CR 610.3): an object moved "until" an event, and where it goes back.
+        bits.append(f"returns to its owner's {card.returns_to} when {card.returns_when}")
     return " ".join(bits)
 
 

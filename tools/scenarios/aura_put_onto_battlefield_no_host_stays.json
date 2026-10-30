@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sphere", "real": "Capture Sphere", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sphere"}
+ ],
+ "expect": {
+  "zone": {"sphere": "hand", "relic": "battlefield"}
+ },
+ "notes": "V32 (2026-10-29). CR 303.4g: an Aura entering the battlefield with nothing legal to enchant stays in its current zone. Capture Sphere is 'Enchant creature' and the only permanent is an artifact, so it stays in hand (no ask: the step has no decisions). Before V32 it entered unattached and went to the graveyard."
+}

@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     DurationWhileCondition,
     FAnd,
     FAtom,
@@ -1773,9 +1774,8 @@ class TestRound7Structures(unittest.TestCase):
         return matches[0].outcome
 
     def test_exile_that_until_leaves(self) -> None:
-        """Merged MOVE_ZONE (exile shape) on the result referent; the
-        until-leaves window is the documented lossy drop (no move duration
-        role)."""
+        """Merged MOVE_ZONE (exile shape) on the result referent, with the
+        until-leaves window as its duration (ontology R5-1, CR 610.3)."""
         outcome = self._match_one(
             "Exile that card until this creature leaves the battlefield."
         )
@@ -1788,7 +1788,9 @@ class TestRound7Structures(unittest.TestCase):
         target = _pairs_dict(atom)["target"]
         self.assertEqual(target.referent, "result")
         self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertNotIn("duration", _pairs_dict(atom))
+        # re-pinned 2026-10-29: R5-1 changes the missing duration (the old
+        # assertNotIn encoded the C11 gap) into DurationUntilLeaves().
+        self.assertEqual(_pairs_dict(atom)["duration"], DurationUntilLeaves())
 
     def test_etb_choose_name(self) -> None:
         outcome = self._match_one("As this enchantment enters, choose a card name.")
