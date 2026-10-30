@@ -43,6 +43,8 @@ V44  Protection (CR 702.16) on a permanent or a player, from any quality (a colo
      of its own damage (CR 701.12b). End to end in the protection packs (Baneslayer
      Angel, Basri's Lieutenant, Feat of Resistance, Feline Sovereign, Runed Halo,
      Sparkhunter Masticore).
+W4-6 A search's ONE_OF/REST partition divides the cards the search found (Cultivate:
+     one onto the battlefield, the other into your hand; CR 701.23a).
 """
 
 from __future__ import annotations
@@ -63,6 +65,7 @@ from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_GRAVEYARD,
     ZONE_HAND,
+    ZONE_LIBRARY,
     GameWorld,
 )
 from MTG_bot.core.test_executor_verbs import (
@@ -1100,6 +1103,69 @@ class TestV44Protection(FixerCase):
         )
         self.assertEqual(self.world.zone_of(self.red).kind, ZONE_GRAVEYARD)
         self.assertNotIn(self.alpha, self.ex.damage)
+
+
+class TestW46SearchPartitionDividesTheFoundCards(FixerCase):
+    def setUp(self):
+        super().setUp()
+        self.basics = [
+            self.world.add_card(
+                card_id(name, type_line=f"Basic Land — {name}"), self.p0, ZONE_LIBRARY
+            )
+            for name in ("Forest", "Plains", "Island", "Swamp")
+        ]
+
+    def partition(self, mode, ctx):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, Selector
+        from MTG_bot.core.executor.selectors import resolve_selector
+
+        basic = FAtom(FAtomPred.SUPERTYPE_EQ, string_value="Basic")
+        sel = Selector(QConst(1), mode, basic, zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),))
+        return resolve_selector(sel, ctx)
+
+    def test_the_one_of_and_the_rest_read_only_the_found_cards(self):
+        from MTG_bot.core.ability_tree import SelectorMode
+
+        _forest, plains, island, _swamp = self.basics
+        ctx = self.ex._ctx(
+            source=self.alpha, controller=self.p0, bindings=None, decisions=(str(island),)
+        )
+        ctx.search_partition = True
+        ctx.search_found = (plains, island)
+        self.assertEqual(self.partition(SelectorMode.ONE_OF, ctx), [island])
+        self.assertEqual(self.partition(SelectorMode.REST, ctx), [plains])
+
+    def test_without_a_partition_search_the_rest_is_unchanged(self):
+        from MTG_bot.core.ability_tree import SelectorMode
+
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        self.assertEqual(self.partition(SelectorMode.REST, ctx), sorted(self.basics))
+
+    def test_cultivate_puts_one_found_land_in_play_and_the_other_in_hand(self):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        lands = [
+            {"key": k, "name": n, "type": f"Basic Land — {n}", "zone": "library", "controller": 0}
+            for k, n in (("fo", "Forest"), ("pl", "Plains"), ("is", "Island"), ("sw", "Swamp"))
+        ]
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [{"key": "cv", "real": "Cultivate", "zone": "hand", "controller": 0},
+                      *lands,
+                      {"key": "junk", "name": "Top Junk", "type": "Creature", "power": "1",
+                       "toughness": "1", "zone": "library", "controller": 0}],
+            "mana": {"0": {"G": 3}},
+            "steps": [{"op": "cast", "real": "Cultivate", "key": "cv",
+                       "decisions": ["sw", "fo", "sw"]}],
+            "expect": {},
+        }
+        r = ScenarioRunner(pack, get_supply("all", "M21"))
+        for step in pack["steps"]:
+            r.run_step(step)
+        zone = {k: r.world.zone_of(r.handles[k]).kind for k in ("fo", "pl", "is", "sw")}
+        self.assertEqual(zone, {"fo": "hand", "pl": "library", "is": "library", "sw": "battlefield"})
 
 
 if __name__ == "__main__":

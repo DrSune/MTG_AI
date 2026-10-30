@@ -909,6 +909,7 @@ class Executor:
 
         steps = effect.steps if isinstance(effect, Seq) else (effect,)
         saved_partition = ctx.search_partition
+        saved_found = ctx.search_found  # W4-6: the found set is Seq-scoped too
         if isinstance(effect, Seq):
             # the Seq branch's SEARCH-designation context, reproduced so
             # the guarded per-step lane behaves identically to a raw
@@ -942,6 +943,7 @@ class Executor:
                         self.unresolved_effect_counts[flag] += 1
         finally:
             ctx.search_partition = saved_partition
+            ctx.search_found = saved_found
 
     def _run_effect(self, effect: Effect, ctx: ExecCtx) -> None:
         if isinstance(effect, Atom):
@@ -1049,12 +1051,14 @@ class Executor:
             # SEARCH/REVEAL/MOVE/MOVE/SHUFFLE as direct steps).
             partition = any(self._partition_step(step) for step in effect.steps)
             saved = ctx.search_partition
+            saved_found = ctx.search_found  # W4-6: the found set is Seq-scoped too
             ctx.search_partition = saved or partition
             try:
                 for step in effect.steps:
                     self._run_effect(step, ctx)
             finally:
                 ctx.search_partition = saved
+                ctx.search_found = saved_found
         elif isinstance(effect, OptionalEffect):
             # 14b (B-5, query/runtime identity): the ASK vocabulary is the
             # query surface's own narrowed optional_offer — the policy gets

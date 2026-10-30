@@ -1556,6 +1556,9 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         # stay put, the REVEAL atom sees them in the library, and the
         # 'result' register below is the found-set record.
         ctx.bindings["result"] = list(cards)
+        # W4-6: the partition's population. 'result' is rewritten by the ONE_OF
+        # MOVE_ZONE before the REST reads it, so the found set has its own slot.
+        ctx.search_found = tuple(cards)
         for card in cards:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return

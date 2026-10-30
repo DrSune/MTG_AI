@@ -185,6 +185,12 @@ class ExecCtx:
     # the Seq walker's pre-scan so the SEARCH atom knows its found cards
     # must stay put for the partition atoms to re-find.
     search_partition: bool = False
+    # W4-6 (Cultivate, 2026-10-30): the cards a partition SEARCH found, in the
+    # order it found them. The sibling ONE_OF/REST atoms choose among THESE
+    # (CR 701.23a: "put one onto the battlefield tapped and the other into
+    # your hand" divides the found cards), not among every card in the zone
+    # that passes the filter. None when no partition search has run.
+    search_found: tuple[Handle, ...] | None = None
     # r19b (Track Down / See the Truth): the cards LOOK_AT/REVEAL showed
     # THIS resolution, top-first — the compiler's documented register
     # convention for the following sentence (templates_b5b
