@@ -1022,9 +1022,10 @@ class TriggerBinder:
         journalled tuple (``GameEvent.cast``) carries (caster, per-turn
         ordinal, spell kind, from-zone, X): ``controller`` scopes whose
         cast (OPPONENT = "an opponent casts" — Mangara, Ghostly Pilferer),
-        ``ordinal`` is the Nth cast by THAT caster this turn (journal-
-        counted, reset at begin_turn — "whenever you cast your second
-        spell", Double Vision's first-cast ordinal 1), and the zone pair
+        ``ordinal`` is the Nth cast by THAT caster this turn among the
+        spells the node describes (:meth:`_fitting_cast_ordinal` — "whenever
+        you cast your second spell", Double Vision's first instant or sorcery
+        ordinal 1), and the zone pair
         is mutually exclusive in the grammar (R4-3): ``from_zone`` must
         equal the cast's source zone, ``from_zone_not`` EXCLUDES it
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
@@ -1033,12 +1034,23 @@ class TriggerBinder:
         card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_IN over
         it, which is exactly Quirion Dryad's compiled "colored spell"
         filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
-        caster, ordinal, _kind, from_zone, _x, _kicked = event.cast
+        caster = event.cast[0]
         ctx = self._match_ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
             return False
-        if node.ordinal is not None and node.ordinal != ordinal:
+        if not self._cast_fits(node, event, source, controller):
             return False
+        return node.ordinal is None or node.ordinal == self._fitting_cast_ordinal(
+            node, event, source, controller
+        )
+
+    def _cast_fits(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> bool:
+        """Does one CAST row's spell fit the node's spell description: its
+        from-zone pair and its filter (the SPELL card is the row's subject)?"""
+        caster, _ordinal, _kind, from_zone, _x, _kicked = event.cast
+        ctx = self._match_ctx(source, controller, event)
         if node.from_zone is not None and not self._cast_zone_matches(
             node.from_zone, caster, from_zone, ctx
         ):
@@ -1049,6 +1061,29 @@ class TriggerBinder:
             return False
         assert event.subject is not None  # the CAST row names the spell card
         return eval_filter(node.filter, event.subject, ctx)
+
+    def _fitting_cast_ordinal(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> int:
+        """The ordinal a CastSpellEvent's ``ordinal`` compares with (ontology
+        R5 engine item, Double Vision): the number of spells THIS caster cast
+        this turn that fit the node's description, up to and including this
+        one. "Your first instant or sorcery spell each turn" is the first
+        instant or sorcery, so a creature cast before it does not use it up;
+        the journal row's own ordinal counts every spell, which is exactly
+        this count for an unfiltered node (Mangara's "second spell"). The
+        journal's turn window holds every CAST row since the turn began,
+        including casts made before this permanent arrived, which the count
+        must see. Earlier rows are judged now: the pool's ordinal filters read
+        the spell's types and colours, which do not change as it resolves."""
+        caster = event.cast[0]
+        count = 0
+        for row in self.executor.journal.turn_window():
+            if row.kind != KIND_CAST or row.clock > event.clock or row.cast[0] != caster:
+                continue
+            if self._cast_fits(node, row, source, controller):
+                count += 1
+        return count
 
     def _cast_zone_matches(
         self, zone_ir: Zone, caster: Handle, from_zone: str | None, ctx: ExecCtx
