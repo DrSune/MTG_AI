@@ -323,6 +323,34 @@ class DelayedBinding:
     controller: Handle
 
 
+def functions_from_graveyard(ability: object) -> bool:
+    """V30 (CR 113.6m: "An ability whose cost or effect specifies that it moves
+    the object it's on out of a particular zone functions only in that zone"): a
+    triggered ability whose effect moves its own source out of a graveyard
+    ("return this card from your graveyard to the battlefield tapped", Silversmote
+    Ghoul) functions only while that card is in a graveyard."""
+    from MTG_bot.core.executor.selectors import _filter_is_self_referential
+
+    if not isinstance(ability, TriggeredAbility):
+        return False
+    for node in walk(ability.effect):
+        if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
+            continue
+        dest = node.args.get("destination")
+        if isinstance(dest, Zone) and dest.kind is ZoneKind.GRAVEYARD:
+            continue
+        for role in ("cards", "target"):
+            sel = node.args.get(role)
+            if (
+                isinstance(sel, Selector)
+                and sel.zones
+                and all(z.kind is ZoneKind.GRAVEYARD for z in sel.zones)
+                and _filter_is_self_referential(sel.filter)
+            ):
+                return True
+    return False
+
+
 class TriggerBinder:
     """The (handle, ability-idx) trigger registry + event matcher + APNAP
     fire loop. Owned by one :class:`~MTG_bot.core.executor.Executor`."""
@@ -331,6 +359,10 @@ class TriggerBinder:
         self.executor = executor
         self.records: dict[str, CardRecord] = {}
         self.attached: dict[tuple[Handle, int], TriggeredAbility] = {}
+        # V30 (CR 113.6m): the triggers of cards IN A GRAVEYARD whose ability
+        # functions only there (functions_from_graveyard). Kept apart from
+        # ``attached`` so a battlefield departure's detach never drops them.
+        self.attached_graveyard: dict[tuple[Handle, int], TriggeredAbility] = {}
         self.handle_record: dict[Handle, CardRecord] = {}
         # 13c: emblem synthetic handles -> their OWNER. Emblems are not
         # world cards, so ``world.controller_of`` cannot answer "who is
@@ -485,7 +517,21 @@ class TriggerBinder:
             self.handle_record[card] = record
             if self.world.zone_of(card).kind == ZONE_BATTLEFIELD:
                 count += self._register(card, record)
+            elif self.world.zone_of(card).kind == ZONE_GRAVEYARD:
+                count += self._register_graveyard(card, record)
         return count
+
+    def _register_graveyard(self, handle: Handle, record: CardRecord) -> int:
+        """V30 (CR 113.6m): bind the record's graveyard-only triggers while the
+        card is in a graveyard."""
+        n = 0
+        for idx, ability in enumerate(record.abilities):
+            if functions_from_graveyard(ability):
+                assert isinstance(ability, TriggeredAbility)
+                self._check_event(ability.event, record.name)
+                self.attached_graveyard[(handle, idx)] = ability
+                n += 1
+        return n
 
     def _register(self, handle: Handle, record: CardRecord) -> int:
         """Bind the record's TriggeredAbility nodes at (handle, idx), and
@@ -499,6 +545,8 @@ class TriggerBinder:
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
                 self._check_event(ability.event, record.name)
+                if functions_from_graveyard(ability):
+                    continue  # V30, CR 113.6m: it does not function here
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
         for idx, ability in triggers:
@@ -605,7 +653,8 @@ class TriggerBinder:
             self._seen_journal_len += 1
             self._lifecycle(event, attach=True)
             for (handle, _idx), ability in sorted(
-                self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
+                [*self.attached.items(), *self.attached_graveyard.items()],
+                key=lambda kv: (str(kv[0][0]), kv[0][1]),
             ):
                 if self._match_node(
                     ability.event, event, handle, self._controller_of(handle)
@@ -684,6 +733,15 @@ class TriggerBinder:
             return
         from_state, to_state = event.data[0], event.data[1]
         handle = event.subject
+        if attach and to_state == ZONE_GRAVEYARD and from_state != ZONE_GRAVEYARD:
+            record = self.handle_record.get(handle)
+            if record is None and handle in self.world.cards:
+                record = self.records.get(self.world.cards[handle].identity.oracle_id)
+            if record is not None:
+                self._register_graveyard(handle, record)  # V30
+        if not attach and from_state == ZONE_GRAVEYARD and to_state != ZONE_GRAVEYARD:
+            for key in [k for k in self.attached_graveyard if k[0] == handle]:
+                del self.attached_graveyard[key]  # V30: it left the graveyard
         if attach:
             if to_state == ZONE_BATTLEFIELD:
                 record = self.handle_record.get(handle)
@@ -1845,9 +1903,25 @@ class TriggerBinder:
             )
         )
         quarantined = tuple(sorted(map(str, self.quarantined)))
-        return (
+        dump: tuple[tuple[object, ...], ...] = (
             ("attached", attached),
             ("delayed", delayed),
             ("emblems", emblems),
             ("quarantined", quarantined),
         )
+        if self.attached_graveyard:
+            # V30: present only when a graveyard trigger is bound, so a game
+            # without one keeps its fingerprint bytes.
+            dump += (
+                (
+                    "graveyard",
+                    tuple(
+                        (str(handle), idx, repr(ability.event))
+                        for (handle, idx), ability in sorted(
+                            self.attached_graveyard.items(),
+                            key=lambda kv: (str(kv[0][0]), kv[0][1]),
+                        )
+                    ),
+                ),
+            )
+        return dump

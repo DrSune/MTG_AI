@@ -411,9 +411,14 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.offer(cost=_cost()), MAY_VOCAB)
 
     def test_real_cost_role_replaces_the_printed_cost(self):
-        # cast_card folds the ROLE as the whole cost, not printed+role:
-        # printed {1} with role {5} is NOT payable at {C:1} (the engine
-        # would owe {5}); printed {5} with role {1} IS payable at {C:1}.
+        # re-pinned 2026-10-30: the coordinator's cast-lane item changes what a
+        # CAST cost role WITH parts means: additional costs on top of the printed
+        # cost (CR 601.2f; the documented 13b convention in verbs._v_cast and
+        # DESIGN_ATOM_ONTOLOGY R5-2), never a replacement; only an EMPTY Cost
+        # waives the mana cost. The old pin said "the ROLE as the whole cost".
+        # printed {1} with role {5} owes {6}: NOT payable at {C:1}; printed {5}
+        # with role {1} owes {6}: NOT payable at {C:1} either (it was, when the
+        # role replaced the {5}); printed {5} with role {1} IS payable at {C:6}.
         self.spell_in_library("Cheap Print", _cost(1))
         self.world.players[self.p0].mana_pool = {"C": 1}
         self.assertEqual(self.offer(cost=_cost(5)), MAY_VOCAB[1:])
@@ -441,6 +446,10 @@ class CastPayabilityCase(unittest.TestCase):
                 cost=_cost(1),
             )
         )
+        self.assertEqual(
+            optional_offer(ex2, may, source=host, controller=p0), MAY_VOCAB[1:]
+        )
+        self.world2.players[p0].mana_pool = {"C": 6}
         self.assertEqual(
             optional_offer(ex2, may, source=host, controller=p0), MAY_VOCAB
         )

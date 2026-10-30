@@ -551,6 +551,18 @@ class Executor:
         # state replayed from the same detaches, so it is NOT part of the
         # replay fingerprint (pin-stable).
         self.detach_lki: dict[Handle, tuple[Handle, ...]] = {}
+        # V31b follow-up (CR 603.10a: leaves-the-battlefield abilities look back
+        # in time): the departed permanent's last known (power, toughness,
+        # counters), captured as it leaves the battlefield and before its
+        # counters cease to exist (CR 122.2), so "When this creature dies, you
+        # gain life equal to its power" (Conclave Mentor) and "if it had a +1/+1
+        # counter on it" (Basri's Lieutenant) read the object as it last existed.
+        # Dropped when the card re-enters (a new object, CR 400.7). Derived state
+        # replayed from the same departures, NOT in the fingerprint (the
+        # detach_lki precedent above).
+        self.departed_lki: dict[
+            Handle, tuple[int | None, int | None, dict[str, int]]
+        ] = {}
         # r20c (Speaker of the Heavens): the game's STARTING life per seat,
         # snapshotted at executor construction — the fact the frozen world
         # takes as a ``start_life`` parameter but never stores. LIFE_LEAD_-
@@ -745,6 +757,7 @@ class Executor:
         controller: Handle,
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
+        slot_designations: dict[str, tuple[Handle, ...]] | None = None,
         x_value: int | None = None,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
@@ -784,6 +797,13 @@ class Executor:
             decisions=decisions,
             x_value=x_value,
         )
+        if slot_designations:
+            # V25: an activation's per-target designations (legality.activate),
+            # the same per-slot map the cast lane sets on a multi-target spell.
+            ctx.slot_designations = slot_designations
+            ctx.designation_union = tuple(
+                sorted({h for one in slot_designations.values() for h in one})
+            )
         start = len(self.events)
         self._run_effect(effect, ctx)
         self._finish_op()
@@ -842,11 +862,14 @@ class Executor:
             )
         try:
             for step in steps:
+                depth = self.journal.open_depth()
                 try:
                     self._run_effect(step, ctx)
                 except (NotImplementedError, ValueError) as exc:
                     if not (referent_absent(exc) or face_cast_absent(exc)):
                         raise
+                    # V23: the skipped step's atom boundary never closes.
+                    self.journal.drop_open(depth)
                     src = ctx.source
                     name = (
                         self.world.cards[src].identity.name
@@ -1098,6 +1121,25 @@ class Executor:
             if event.kind != KIND_ZONE_CHANGE or event.subject is None:
                 continue
             from_state = event.zone_move[0]
+            if (
+                from_state == ZONE_BATTLEFIELD
+                and event.zone_move[1] != ZONE_BATTLEFIELD
+                and event.subject in self.world.cards
+            ):
+                state = self.world.cards[event.subject]
+                power, toughness = self.ledger.effective_pt(
+                    state.identity, event.subject, state.counters
+                )
+                self.departed_lki[event.subject] = (power, toughness, dict(state.counters))
+            elif event.zone_move[1] == ZONE_BATTLEFIELD:
+                self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
+            if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
+                # V31b, CR 122.2: "Counters on an object are not retained if that
+                # object moves from one zone to another ... they simply cease to
+                # exist." The journal row above was emitted first, so a dies row's
+                # was-P/T still folds them (the C18 snapshot). A battlefield entry
+                # keeps what its entry stamped (the loyalty seed, EtBState counters).
+                self.world.cards[event.subject].counters.clear()
             if from_state != ZONE_BATTLEFIELD:
                 if event.zone_move[1] == ZONE_BATTLEFIELD:
                     # 17a: the symmetric ENTER branch — the compiled
@@ -1327,6 +1369,30 @@ class Executor:
                     dying.append(card)
         return sorted(dying)
 
+    def _cease_tokens(self) -> list[Handle]:
+        """V35 (CR 704.5d: "If a token is in a zone other than the battlefield, it
+        ceases to exist"; 111.7, 111.8). A dead, bounced or exiled token is not a
+        card in a graveyard, hand or exile: it leaves the world, so graveyard counts
+        and "target creature card from your graveyard" never see it. A token on the
+        stack is not a thing in this engine (spell copies are not tokens). No journal
+        row: ceasing to exist is not a zone change and triggers nothing. Returns the
+        tokens removed (Handle-sorted)."""
+        world = self.world
+        gone: list[Handle] = []
+        for player in world.player_order:
+            for kind, zone in world.players[player].zones.items():
+                if kind in (ZONE_BATTLEFIELD, ZONE_STACK):
+                    continue
+                for card in list(zone.entries):
+                    if world.cards[card].identity.is_token:
+                        zone.entries.remove(card)
+                        gone.append(card)
+        for card in gone:
+            del world.cards[card]
+            self.binder.handle_record.pop(card, None)
+            self.attachments.pop(card, None)
+        return sorted(gone)
+
     def _unattached_auras(self) -> list[Handle]:
         """CR 704.5q (16e): an Aura on the battlefield that isn't attached
         is put into its owner's graveyard. Attachment state is the
@@ -1359,7 +1425,9 @@ class Executor:
         ment path (which still runs its own immediate check in legality,
         because the generic counter verb deletes a zeroed key); a missing
         ledger key therefore reads the printed loyalty, never 0 — the
-        13a ``_loyalty_of`` twin."""
+        13a ``_loyalty_of`` twin. V31 (CR 704.5i): the counter verb now keeps
+        a zeroed LOYALTY key, so counter removal (Pestilent Haze) and a loyalty
+        cost paid down to 0 reach this check too."""
         from MTG_bot.core.executor.legality import _loyalty_of
 
         world = self.world
@@ -1387,6 +1455,10 @@ class Executor:
         frozen-world stand-in already uses for the other lanes."""
         fired = 0
         while True:
+            # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
+            # Its leave triggers already fired (the drain before this sweep, or the
+            # previous iteration's), as 111.7 says they do.
+            self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
             unattached = self._unattached_auras()  # 16e CR 704.5q
@@ -1822,6 +1894,13 @@ class Executor:
         self.attacked = {}
         self.blocked_by = {}
         self.defending_player = None
+        # V26 (CR 511.3: as the end of combat step ends, all creatures are removed
+        # from combat): re-read the statics that select attacking or blocking
+        # creatures ("Attacking creatures you control get +1/+0", Warded
+        # Battlements) now that nothing is attacking; the last recompute ran inside
+        # the settle above, while the attack record still stood.
+        self.ledger.settle_while(self._while_eval)
+        self.layers.recompute()
         # The frozen grammar's Phase vocab has no SECOND_MAIN member, so
         # the marker is executor-clock-only: the legality gates read the
         # phase string and correctly stop offering FIRST_MAIN activations.

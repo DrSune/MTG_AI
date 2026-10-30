@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "notes": "Rewind, printed: 'Counter target spell. Untap up to four lands.' P0 casts Shock at P1's Rager; P1 answers the window with Rewind: the Shock is countered (to the graveyard, the Rager lives, no damage), Rewind goes to the graveyard, and P1 untaps its three tapped Plains (fewer than four lands exist, so all three).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "rewind", "real": "Rewind", "zone": "hand", "controller": 1},
+  {"key": "rager", "name": "Rager", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "l1", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "l2", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "l3", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"R": 2}, "1": {"U": 6}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "shock", "targets": ["rager"], "decisions": ["rewind"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"shock": "graveyard", "rewind": "graveyard", "rager": "battlefield"},
+  "damage": {},
+  "tapped": {"l1": false, "l2": false, "l3": false},
+  "window_asks": {"1": ["rewind"]}
+ }
+}

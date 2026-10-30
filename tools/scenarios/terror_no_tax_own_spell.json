@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Terror's controller casts Shock targeting their own Terror: only OPPONENTS' spells pay the extra 3 life, so seat 0 stays at 20.",
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["t"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"t": "battlefield"},
+  "damage": {"t": 2}
+ }
+}

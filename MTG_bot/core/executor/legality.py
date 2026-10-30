@@ -372,10 +372,10 @@ def _loyalty_of(world: GameWorld, handle: Handle) -> int:
     planeswalker paying a loyalty cost is illegal, and
     :func:`build_payment_plan` flags it).
 
-    Note: the generic counter verb deletes a zeroed counter key.  A payment
-    that brings loyalty to exactly 0 therefore passes the resulting ledger
-    value to :func:`_loyalty_death_check` directly rather than rereading it
-    here.
+    Note (V31, 2026-10-29): the counter verb keeps a zeroed LOYALTY key (every
+    other counter kind is deleted at 0), so a walker brought to 0 reads 0 here,
+    never its printed loyalty. The key is dropped when the walker leaves the
+    battlefield (CR 122.2).
     """
     state = world.cards.get(handle)
     if state is None:
@@ -538,12 +538,20 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     return handles
 
 
-def _required_count(count: Quantity, ctx: ExecCtx) -> int:
+def _required_count(sel: Selector, ctx: ExecCtx, available: int) -> int:
     """How many objects a cost's selector demands (costs pay in full —
-    CR 117.3). QUnbounded in a cost position is the degenerate "any
-    number"; the resource floor is one (paying zero is not paying)."""
+    CR 118.3). QUnbounded in a cost position is the degenerate "any
+    number"; the resource floor is one (paying zero is not paying).
+
+    V33 (2026-10-29): an ALL selector with no bound is "all of them" ("Discard
+    your hand", Subira, Tulzidi Caravanner): it demands every one of the
+    ``available`` candidates, and none when there are none. Discarding an empty
+    hand pays that cost in full (CR 118.3; 701.9a), as paying 0 mana or 0 life
+    does (118.3a/b). The old floor of one discarded a single card and refused
+    an empty hand."""
+    count = sel.count
     if isinstance(count, QUnbounded):
-        return 1
+        return available if sel.mode is SelectorMode.ALL else 1
     return max(1, resolve(count, ctx))
 
 
@@ -703,7 +711,9 @@ def build_payment_plan(
             else:
                 mod_ctx = ex._ctx(
                     source=host,
-                    controller=world.controller_of(host),
+                    # V29: "your opponents" is relative to the host's controller
+                    # (the control overlay), not its owner's zone.
+                    controller=ex.controller_of(host),
                     bindings=dict(ctx.bindings),
                     decisions=(),
                     x_value=ctx.x_value,
@@ -801,7 +811,7 @@ def build_payment_plan(
                     if not world.cards[h].tapped
                     and world.controller_of(h) == ctx.controller
                 ]
-                need = _required_count(part.target.count, ctx)
+                need = _required_count(part.target, ctx, len(cands))
                 if len(cands) < need:
                     return None, (
                         f"cost:tap:insufficient_candidates:{len(cands)}<{need}"
@@ -831,7 +841,7 @@ def build_payment_plan(
                 for h in enumerate_candidates(part.target, ctx)
                 if world.controller_of(h) == ctx.controller
             ]
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:sacrifice:insufficient_candidates:{len(cands)}<{need}"
@@ -866,7 +876,7 @@ def build_payment_plan(
 
             if not _filter_is_self_referential(part.target.filter):
                 cands = [h for h in cands if h != ctx.source]
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:discard:insufficient_candidates:{len(cands)}<{need}"
@@ -880,7 +890,7 @@ def build_payment_plan(
             discard.extend(cands[:need])
         elif isinstance(part, CostPutCounter):
             cands = enumerate_candidates(part.target, ctx)
-            need = _required_count(part.target.count, ctx)
+            need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, (
                     f"cost:put_counter:insufficient_candidates:{len(cands)}<{need}"
@@ -1208,6 +1218,35 @@ def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
     return Cost(parts=tuple(parts))
 
 
+def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> Cost | None:
+    """V36 (CR 601.2f, 118.9d): the total cost of a spell an effect casts
+    (stack.cast_card, and the offer oracle query._cast_option_payable, so the two
+    can never disagree). The CAST atom's ``cost`` role means (the documented 13b
+    convention, ``verbs._v_cast``; DESIGN_ATOM_ONTOLOGY R5-2):
+    - absent: the spell's mana cost;
+    - an EMPTY Cost: "without paying its mana cost", an alternative cost (118.9);
+    - a Cost WITH parts: additional costs paid on top of the mana cost ("by
+      paying 3 life and discarding a card in addition to paying its other costs",
+      Demonic Embrace). It never replaces the mana cost.
+    Every additional cost the spell itself lists is added in all three cases
+    ("As an additional cost to cast this spell, discard a card"): 118.9d applies
+    additional costs to an alternative cost too. None or an empty Cost means
+    nothing to pay."""
+    if cost_override is not None and not cost_override.parts:
+        base: Cost | None = cost_override  # the alternative cost: no mana cost
+    else:
+        base = record.mana_cost
+    extras: list[Cost] = list(node.additional_costs)
+    if cost_override is not None and cost_override.parts:
+        extras.insert(0, cost_override)  # additional costs, CR 601.2f
+    if not extras:
+        return base
+    parts: list = list(base.parts) if base is not None else []
+    for extra in extras:
+        parts.extend(extra.parts)
+    return Cost(parts=tuple(parts))
+
+
 def _cost_has_x(cost: Cost) -> bool:
     for part in cost.parts:
         if isinstance(part, (CostManaColor, CostManaGeneric, CostManaHybrid)):
@@ -1349,6 +1388,7 @@ def spell_castable(
     *,
     x: int | None = None,
     kicked: bool = False,
+    targets: tuple[Handle, ...] = (),
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
     (§8.3: same answer as the one ``legal_casts`` gave, until the world
@@ -1364,7 +1404,13 @@ def spell_castable(
     fold into an ordinary ``cost:mana`` SHORTAGE — an illegal-cast reason,
     never a raise: X is enumerated at 0-floor by ``legal_casts``) and the
     spell handle as the mana-USE subject (THIS_MANA restrictions read
-    their filter over the spell being cast)."""
+    their filter over the spell being cast).
+
+    V29 (2026-10-29): ``targets`` binds the declared targets into the fold, so a
+    target-dependent cost increase ("Spells your opponents cast that target this
+    creature cost {3} more", Pursued Whale; "... an additional 3 life", Terror of
+    the Peaks) is part of the total. CR 601.2f determines the total cost after
+    601.2c's targets; ``stack.cast`` re-folds with them before paying."""
     world = executor.world
     if handle not in world.cards:
         return f"cast:unknown_card:{handle}", None, None, None
@@ -1421,7 +1467,13 @@ def spell_castable(
         # The declaration is the caller's; X=0 is legal (CR 107.1) — the
         # SURFACE enumerates at 0, an explicit x reaches the fold.
         x = 0
-    ctx = ctx_for(executor, source=handle, controller=seat, x_value=x)
+    ctx = ctx_for(
+        executor,
+        source=handle,
+        controller=seat,
+        bindings={"target": list(targets)} if targets else None,
+        x_value=x,
+    )
     plan, reason = build_payment_plan(world, ctx, cost, mana_use=handle)
     if plan is None:
         return reason, None, None, None
@@ -1471,7 +1523,12 @@ def _loyalty_death_check(
     It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
     the documented stand-in for the SBZA's graveyard replacement; destroy
     *replacement* effects (Rest in Peace) would see it as a destroy, a
-    corner the frozen corpus has no golden for."""
+    corner the frozen corpus has no golden for.
+
+    V31 (2026-10-29): the counter verb now keeps a zeroed LOYALTY key, so the
+    settle that closes the payment's own atom (apply_effect) already buries a
+    walker paid down to 0 through the state check (CR 704.5i), and this call
+    finds it gone. It stays as the backstop for a caller without that settle."""
     world = executor.world
     state = world.cards.get(source)
     if state is None or state.identity.loyalty is None:
@@ -1797,12 +1854,28 @@ def activate(
         executor.journal.emit_targeting(handle, seat, chosen)
     effect = ability.effect
     assert effect is not None  # ActivatedAbility.effect is a required field
+    # V25 (CR 602.2b, 601.2c): an ability with several targets ("Target creature
+    # you control deals damage equal to its power to another target creature",
+    # Garruk, Savage Herald's -2) designates one object per target, in slot order,
+    # exactly as the cast lane threads them (stack._plan_cast_designation); each
+    # TARGET selector then reads its own designation, not the union.
+    slot_designations = None
+    if len(targets) > 1:
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        slots = activation_target_slots(executor, effect, source=handle, seat=seat)
+        if len(slots) == len(targets) > 1:
+            slot_designations = {
+                repr(slot.selector): (one,)
+                for slot, one in zip(slots, targets, strict=True)
+            }
     return executor.apply_effect(
         effect,
         source=handle,
         controller=seat,
         bindings=bindings,
         decisions=decisions,
+        slot_designations=slot_designations,
         x_value=x_value,  # CR 107.3a: every X in the ability is the announced X
     )
 

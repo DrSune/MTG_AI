@@ -795,6 +795,17 @@ def cast(
         decisions=decisions,
         mode_choices=mode_choices,
     )
+    if targets:
+        # V29 (CR 601.2f): the total cost is determined AFTER the targets are
+        # chosen, so a cost increase for spells that target a permanent (Terror of
+        # the Peaks' 3 life, Pursued Whale's {3}) is folded now; the plan above was
+        # priced before any target existed. An unpayable total is an illegal cast
+        # (601.2h), refused before anything is paid.
+        reason, _node, _record, plan = spell_castable(
+            executor, seat, handle, x=x, kicked=kicked, targets=tuple(targets)
+        )
+        if reason is not None or plan is None:
+            raise ValueError(f"executor: illegal cast: {reason}")
 
     # r20b: the TARGETING feed (CR 601.2c). Designation IS an event — one
     # row per designated object, Handle-sorted — emitted the moment the
@@ -1042,9 +1053,11 @@ def cast_card(
 ) -> bool:
     """The effect-side CAST verb's engine (``verbs._v_cast``): cast a
     DESIGNATED card from wherever it sits, with the spell's printed cost
-    paid as normal when ``cost_override is None``, otherwise with that
-    Cost object as the entire cost (an empty Cost = the corpus' cost-
-    waiver idiom, CR 498.2 "without paying its mana cost"). No window
+    paid as normal when ``cost_override is None``; an EMPTY Cost is the
+    corpus' cost-waiver idiom (CR 118.9 "without paying its mana cost"),
+    and a Cost WITH parts is paid on top of the printed cost (additional
+    costs, CR 601.2f; legality.effect_cast_cost), plus the spell's own
+    additional costs either way (V36, CR 118.9d). No window
     check (effects cast outside the normal timing — CR 601.2b exemptions;
     v1 documents no further exemption bookkeeping), no response.
     Returns ``True`` when the spell was cast and resolved.
@@ -1063,7 +1076,7 @@ def cast_card(
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
     triggers see it (CR 601.2m)."""
-    from MTG_bot.core.executor.legality import ctx_for
+    from MTG_bot.core.executor.legality import ctx_for, effect_cast_cost
 
     world = executor.world
     record = spell_record(executor, handle)
@@ -1081,11 +1094,23 @@ def cast_card(
             # guard lane skips + ledgers it); never fabricate a face cast.
             raise FaceCastAbsentError(record.name)
         raise ValueError(f"executor: CAST {record.name}: no SpellAbility on the card")
+    if world.controller_of(handle) != caster:
+        # V24 (CR 108.3, 400.3): a spell waits in its caster's stack slot (park), and
+        # the frozen world reads a card's owner off its zone, so a card cast by a
+        # player who does not own it would come off the stack as the caster's. No
+        # card in the dealt pools casts a card it does not own (every CAST source is
+        # a YOU zone); refuse loudly rather than change an owner.
+        raise NotImplementedError(
+            f"executor: CAST {record.name}: casting a card the caster does not own "
+            "needs the owner to survive the stack (V24)"
+        )
     _validate_spell_targets(executor, caster, handle, node, targets)
     # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then
     # journal the designation rows before payment.
     executor.journal.emit_targeting(handle, caster, targets)
-    cost = cost_override if cost_override is not None else record.mana_cost
+    # V36 (CR 601.2f): the total cost adds the spell's own additional costs to the
+    # mana cost or the effect's alternative cost; an unpayable total refuses below.
+    cost = effect_cast_cost(record, node, cost_override)
     plan = None
     if cost is not None and cost.parts:
         ctx = ctx_for(executor, source=handle, controller=caster, x_value=x)

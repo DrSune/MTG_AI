@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '[-2]: Target creature you control deals damage equal to its power to another target creature.' Targets: your 4/4 Brute (the source) and the opponent's 3/3 Victim. The Brute deals 4 to the Victim, which dies; the Brute takes nothing (one-sided, not a fight). Loyalty 5 -> 3.",
+ "cards": [
+  {"key": "gsh", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Brute", "power": 4, "toughness": 4, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "gsh", "set": 5},
+  {"op": "activate", "key": "gsh", "idx": 1, "seat": 0, "targets": ["brute", "victim"]}
+ ],
+ "expect": {
+  "zone": {"victim": "graveyard", "brute": "battlefield", "gsh": "battlefield"},
+  "counters": {"gsh": {"LOYALTY": 3}}
+ }}

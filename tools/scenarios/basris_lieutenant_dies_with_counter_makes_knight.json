@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 603.10a (leaves-the-battlefield abilities look back in time) with CR 122.2 (counters cease to exist when the object leaves): Basri's Lieutenant, 'Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.' Your Bear with one +1/+1 counter (a 3/3) dies to 3 damage: it HAD the counter, so a Knight is created, although the card in the graveyard has none. A Bear without a counter that dies makes no Knight.",
+ "cards": [
+  {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "plain", "name": "Plain Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "zap", "name": "Zapper", "type": "Creature", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "zap", "target": "bear", "amount": 3, "controller": 1},
+  {"op": "deal_damage", "source": "zap", "target": "plain", "amount": 2, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "plain": "graveyard", "lt": "battlefield"},
+  "counters": {"bear": {}},
+  "tokens": {"Knight": 1}
+ }
+}

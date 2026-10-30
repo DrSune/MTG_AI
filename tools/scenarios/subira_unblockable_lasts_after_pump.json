@@ -1,0 +1,89 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Subira, Tulzidi Caravanner (M21): '{1}: Another target creature with power 2 or less can't be blocked this turn.' Power 2 or less is a TARGETING requirement (checked on activation and resolution, CR 601.2c/608.2b); once the ability resolves, the creature can't be blocked this turn even if it grows. Target the 1/1 Runner, then Burn Bright gives creatures seat 0 controls +2/+0 (Runner 3/1). The Runner still can't be blocked: the Wall has nothing it may block, so it is never asked (a one-word NONE ask would be phantom, AGENTS \u00a710), and the Runner deals 3. (Expectation adjusted by fixer 3 from the reviewer's 'block ask offers NONE only' to the engine's no-phantom-ask rule; the rules content is the same.)",
+ "cards": [
+  {
+   "key": "sub",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Subira, Tulzidi Caravanner"
+  },
+  {
+   "key": "runner",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Runner",
+   "type": "Creature \u2014 Human",
+   "power": 1,
+   "toughness": 1
+  },
+  {
+   "key": "bb",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Burn Bright"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Opp Wall",
+   "type": "Creature \u2014 Wall",
+   "power": 0,
+   "toughness": 9
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "sub",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "runner"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "bb"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "runner": true,
+    "sub": false
+   },
+   "block": {
+    "wall": "runner"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "runner": true,
+   "sub": false
+  },
+  "power": {
+   "runner": 3
+  },
+  "blocked": {
+   "runner": []
+  },
+  "life": {
+   "1": 17
+  },
+  "not_asked_to_block": [
+   "wall"
+  ]
+ }
+}

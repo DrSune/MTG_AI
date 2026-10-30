@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '[+1]: Reveal the top card of your library. If it's a creature card, put it into your hand.' Putting a revealed card into your hand is not drawing it (CR 121.1). With your Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') on the battlefield, the +1 moves the creature on top (Library 5) into your hand and the opponent mills nothing.",
+ "cards": [
+  {"key": "gsh", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},
+  {"key": "tut", "real": "Teferi's Tutelage", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "gsh", "set": 5},
+  {"op": "activate", "key": "gsh", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "counters": {"gsh": {"LOYALTY": 6}},
+  "hand": {"0": 1},
+  "graveyard": {"1": []}
+ }}

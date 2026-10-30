@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ra", "real": "Rise Again", "zone": "hand", "controller": 1},
+  {"key": "bs", "real": "Basri's Solidarity", "zone": "hand", "controller": 1},
+  {"key": "corpse", "name": "Corpse", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 1},
+  {"key": "mine", "name": "Seat Zero Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"1": {"B": 1, "W": 6}},
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "cast", "real": "Rise Again", "key": "ra", "controller": 1, "targets": ["corpse"]},
+  {"op": "cast", "real": "Basri's Solidarity", "key": "bs", "controller": 1}
+ ],
+ "expect": {
+  "zone": {"corpse": "battlefield", "ra": "graveyard"},
+  "counters": {"corpse": {"PLUS_1_PLUS_1": 1}, "mine": {}}
+ },
+ "notes": "Printed Rise Again: 'Return target creature card from your graveyard to the battlefield.' Cast by the second seat on its own turn, the card returns under ITS CASTER's control (CR 110.2a). Proof: that player's Basri's Solidarity ('Put a +1/+1 counter on each creature you control') then puts a counter on the returned Corpse, and none on the first seat's Bear."
+}

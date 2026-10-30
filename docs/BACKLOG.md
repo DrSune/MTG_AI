@@ -455,6 +455,15 @@ These are forks, not tasks. See the report that accompanied this audit.
   Fix: the three builders → `Zone(HAND, OWNER)`, three goldens re-baked, a pack that bounces an
   opponent's creature, and an owner field if GAIN_CONTROL cards are dealt. Schedule it at an RL
   pilot era boundary: it changes M21 episodes.
+  - **Engine half FIXED on branch `engine/verify-fixes-3` (V24, 2026-10-29).** A moving card lands
+    in its owner's hand, library, graveyard or exile whatever player the destination names (CR
+    400.3; `selectors.move_destination`), and `zone_owner` resolves ANY to the owner. A permanent
+    put onto the battlefield under another player's control stays in its owner's zone with a
+    control entry (CR 110.2a), so the World's zone owner is the card's owner even after
+    GAIN_CONTROL: no owner field is needed. `cast_card` refuses a card the caster does not own
+    (no dealt card does that). The template half landed separately on `cards/m21-fidelity`
+    (`Zone(HAND, OWNER)` for Barrin, Niambi and Roaming Ghostlight); both halves meet at the
+    integration merge (2026-10-30). B-42's identity fold is still open.
 - **B-44 One-card predicates**: `LIFE_LEAD_OVER_START_GE`, `NAME_PARTITION_COUNT_GE`,
   `ATTACK_AGAINST_COUNT_GE`, `NOT_FIRST_DRAW_THIS_STEP`, `INSTANT_OR_SORCERY_CAST_THIS_TURN` read as
   single cards. Decompose them into general atoms (e.g. a QThisTurn count of CastSpell events with
@@ -664,8 +673,16 @@ These are forks, not tasks. See the report that accompanied this audit.
   - With the key honoured, `rewind.json` FAILS: its three tapped Plains stay tapped. Its own note
     says Rewind "untaps them all", so either Rewind's untap step or the pack's premise is wrong.
     The others still pass.
+  - **Settled 2026-10-29 (V28, branch `engine/verify-fixes-3`): the untap step was wrong.**
+    `selectors.role_handles` handed the UNTAP's CHOOSE selector the spell's TARGET designation
+    (the countered spell). A CHOOSE selector now ignores a designation it could not select
+    (packs `rewind_counters_and_untaps`, `rewind_untap_choice`).
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
+  - **FIXED on branch `engine/verify-fixes-3` (fixer 3, 2026-10-30).** The runner honours `tapped`
+    as well as `start_tapped`, and applies both after the opening `begin_turn` (whose untap step
+    used to undo `start_tapped` on seat 0). All eight packs pass with the key honoured (Rewind's
+    untap was the engine bug, V28).
 - **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
   empty hand** (stronger than printed).
   - The may-offer is not narrowed when there is nothing to discard. `MAY_DONE`
@@ -712,9 +729,16 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
   - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
     so the fold needs sublayers. Weaker than printed.
+  - **FIXED on branch `engine/verify-fixes-3` (V27, 2026-10-30)**: `DurationLedger._effective`
+    applies every set before every delta (then counters). 7a and 7b are still ordered by
+    timestamp between themselves (no dealt card pairs a CDA with a 7b set). Pack
+    `glorious_anthem_cda_creature`.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
-  hand is payable with no cards.
+  hand is payable with no cards. **FIXED on branch `engine/verify-fixes-3` (V33, 2026-10-29)**: an
+  unbounded ALL cost selector demands every candidate and none when there are none, and Subira's
+  cost now discards the whole hand instead of one card (packs `subira_discard_whole_hand`,
+  `subira_discard_empty_hand_pays`).
 - **B-72 [fixer A] DESTROY and other direct graveyard moves never check the dies replacements**
   (`verbs._to_graveyard` → `_move_to`). A creature hit by Scorching Dragonfire, then destroyed later
   the same turn, goes to the graveyard instead of exile. Weaker than printed.
@@ -938,11 +962,34 @@ These are forks, not tasks. See the report that accompanied this audit.
       of two events, which no template composes.
     - Leyline of Combustion (M20): "you and/or at least one permanent you control" triggers once per
       spell, not per targeted object, and "that player" needs a referent for the event's actor.
+- **B-99 [fixer 3, 2026-10-29; renumbered from B-75 (phasing took it) and then B-97 (R5-1 took it) at the integration merges] Chandra, Flame's Catalyst's "If that spell would be put into your
+  graveyard, exile it instead" is not applied.** Her -2 casts a red instant or sorcery from your
+  graveyard through `stack.cast_card`; the rider's replacement (`B5b-repl-graveyard-exile`) is never
+  registered for that cast, so the spell resolves into the graveyard and can be recast. Stronger than
+  printed, but Chandra, Flame's Catalyst is not castable yet, so nothing exploits it today. Repro:
+  `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
+  should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
+  redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
+- **B-100 [fixer 3, 2026-10-30; renumbered from B-76 (the defender entry took it) and then B-98 (R5-6 took it) at the integration merges] Two permission rows do nothing until the R5 permission lane.**
+  Weaker than printed; never a crash and never a phantom option.
+  - Radha, Heart of Keld's "you may play lands from the top of your library" compiles to a free
+    row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
+    action), so the row can do nothing: the CAST head refuses with a cast-gap ledger row, the
+    may-offer narrows to skip, and `query.legal_activations` no longer offers the row
+    (`query.inert_free_row`). R5-3's `play_lands` makes it playable.
+  - Demonic Embrace's "You may cast this card from your graveyard ..." row is an activated
+    ability, and activations need the source on the battlefield (`window:not_on_battlefield`), so
+    the graveyard cast is never available. R5-2's permission lane (a StaticAbility CAST) fixes it.
+  - Also: a CAST whose designation is empty (a nonland on top for Radha, a non-Goblin for
+    Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
   - M21 Subira, ZNR Sneaking Guide and FDN Goblin Smuggler's "target creature can't be blocked"
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
+    **FIXED on branch `engine/verify-fixes-3` (V34, 2026-10-29)**: a synthesized one-creature slot
+    from the IS_ANY_TARGET combat filter, and the targeting restriction is checked at resolution
+    and locked in (CR 608.2b).
   - A cast trigger filtered by `TARGETS_SOURCE` never fires, because the CAST match context does not
     bind the spell's targets (FDN Gnarlback Rhino).
   - [2026-10-29, Ugin] Ugin's [−10] "put up to seven permanent cards from your hand onto the

@@ -1,0 +1,20 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Subira, Tulzidi Caravanner (M21): '{1}: Another target creature with power 2 or less can't be blocked this turn.' Seat 0 pays {1} targeting its 1/1 Runner, then attacks with the Runner and a 2/2 Scout. Seat 1's untapped 0/9 Wall may block only the Scout (its block ask offers the Scout and NONE, never the Runner); the Wall blocks the Scout and the Runner's 1 damage goes through.",
+ "cards": [
+  {"key": "sub", "zone": "battlefield", "controller": 0, "real": "Subira, Tulzidi Caravanner"},
+  {"key": "runner", "zone": "battlefield", "controller": 0, "name": "Runner", "type": "Creature — Human", "power": 1, "toughness": 1},
+  {"key": "scout", "zone": "battlefield", "controller": 0, "name": "Scout", "type": "Creature — Human", "power": 2, "toughness": 2},
+  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 0, "seat": 0, "targets": ["runner"]},
+  {"op": "combat", "seat": 0, "attack": {"runner": true, "scout": true, "sub": false}, "block": {"wall": "scout"}}
+ ],
+ "expect": {
+  "attackers": {"runner": true, "scout": true, "sub": false},
+  "block_asks": {"wall": "<scout>,NONE"},
+  "blocked": {"scout": ["wall"], "runner": []},
+  "life": {"0": 20, "1": 19},
+  "damage": {"wall": 2}
+ }}

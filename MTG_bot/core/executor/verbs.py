@@ -79,6 +79,7 @@ from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
     existing,
+    move_destination,
     resolve_selector,
     role_handles,
     role_player,
@@ -113,6 +114,19 @@ def _move_to(
     src = ctx.world.zone_of(card)
     ctx.world.move_to_zone(card, player, kind)
     ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
+
+
+def _enter_under_control(ctx: ExecCtx, card: Handle, controller: Handle) -> None:
+    """V24 (CR 110.2, 110.2a): a card put onto the battlefield under the control of a
+    player other than its owner sits in its owner's zone (the frozen world reads the
+    owner off the zone) and gets a control entry for that player, which ends when it
+    leaves the battlefield (Executor._on_zone_changes)."""
+    if ctx.executor is None:
+        raise ValueError(
+            "executor: a permanent entering under a non-owner's control needs an "
+            "executor-backed ExecCtx (the control overlay)"
+        )
+    ctx.executor.gain_control(card, controller, "Permanent", None)
 
 
 def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
@@ -299,8 +313,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     )
     stayed: set[Handle] = set()
     for card in sorted(cards, reverse=True) if bottom_dest else cards:
-        owner = ctx.world.controller_of(card)
-        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        # V24: the owner's zone always (CR 400.3); a battlefield controller other
+        # than the owner becomes a control entry below, never a zone (CR 108.3).
+        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
@@ -323,12 +338,16 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     (len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source))
                 )
                 continue
-            enters, host = _aura_entry_host(ctx, card, target_player)
+            # V24 x V32 (CR 303.4f): the player the Aura enters under chooses its host,
+            # which is the controller when that is not the owner (whose zone it joins).
+            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
             if not enters:
                 stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
                 continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if new_controller is not None:
+            _enter_under_control(ctx, card, new_controller)
         if bottom_dest:
             zone.entries.remove(card)
             zone.entries.insert(0, card)
@@ -544,7 +563,10 @@ def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
         p = ctx.world.players[player]
-        p.life = max(0, p.life - n)  # life clamps at 0; deaths are 12b state-checks
+        # CR 119.3/119.6: the life total is adjusted, and may go below 0; a player at
+        # 0 or less loses as a state-based action (games' loss check reads <= 0).
+        # The old clamp at 0 also capped the journal's life-loss amount.
+        p.life = p.life - n
         ctx.events.append((len(ctx.events), "LOSE_LIFE", str(player), p.life))
 
 
@@ -601,7 +623,10 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
                 )
                 n_i = new_n
             p = ctx.world.players[target]
-            p.life = max(0, p.life - n_i)
+            # CR 120.3a, 119.3: damage to a player is that much life lost, below 0 too.
+            # The old clamp at 0 recorded 99 damage as 20 (the journal's DAMAGE row is
+            # the life difference), undercounting "that much damage" readers.
+            p.life = p.life - n_i
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
             _lifelink_gain(ctx, n_i)  # r20a: lifelink reads ANY damage dealt
             continue
@@ -861,7 +886,29 @@ def _v_remove_counter(ctx: ExecCtx, atom: Atom) -> None:
     assert isinstance(kind, CounterKind)
     n = amount(ctx, atom, "count")
     for card in role_handles(ctx, atom, "target"):
-        counters = ctx.world.cards[card].counters
+        state = ctx.world.cards[card]
+        counters = state.counters
+        if kind is CounterKind.LOYALTY and (
+            kind.name in counters
+            or (
+                state.identity.loyalty is not None
+                and ctx.world.zone_of(card).kind == ZONE_BATTLEFIELD
+            )
+        ):
+            # V31 (CR 306.5c, 704.5i): the LOYALTY key IS the loyalty, and an absent
+            # key means an unseeded ledger that reads the printed loyalty
+            # (legality._loyalty_of). So 0 stays a value: popping it reset a walker
+            # brought to 0 to its printed loyalty instead of letting the state check
+            # put it into its owner's graveyard. Same read and write as the damage
+            # lane (CR 120.3c); the key leaves with the walker (_on_zone_changes).
+            have = counters.get(kind.name)
+            if have is None:
+                have = int(str(state.identity.loyalty))
+            counters[kind.name] = max(0, have - n)
+            ctx.events.append(
+                (len(ctx.events), "REMOVE_COUNTER", str(card), kind.name, n)
+            )
+            continue
         remaining = max(0, counters.get(kind.name, 0) - n)
         if remaining:
             counters[kind.name] = remaining
@@ -1038,7 +1085,19 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
     if ctx.replacements is None:
         raise ValueError("executor: PREVENT_EFFECT needs an executor-backed ExecCtx")
     designated = ctx.binding_handles("target") or []
-    targets = tuple(h for h in designated if eval_filter(condition, h, ctx))
+    # V34 (CR 608.2b): the targeting restrictions written beside IS_ANY_TARGET in
+    # a combat slot ("another target creature with power 2 or less") are checked
+    # as the ability resolves; the creatures that pass are locked in, and the
+    # record reads only that set afterwards (replacements._slot_holds), so a
+    # pump after resolution does not undo "can't be blocked this turn".
+    from MTG_bot.core.executor.query import combat_target_filters
+
+    bound = combat_target_filters(event)
+    targets = tuple(
+        h
+        for h in designated
+        if eval_filter(condition, h, ctx) and all(eval_filter(f, h, ctx) for f in bound)
+    )
     ctx.replacements.register_prevention(
         ctx.source, ctx.controller, condition, event, step, duration, targets
     )
@@ -1369,7 +1428,7 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
     The compiler's documented debt is CARD-level divergence (the ONE_OF/
     REST split re-searches the library in sibling atoms); per-ATOM
     faithfulness is what this handler owns. The destination is role-based
-    (``zone_owner`` resolves the Zone's ControllerRef), ``tapped_on_enter``
+    (``move_destination``: the owner's zone, V24), ``tapped_on_enter``
     is honored on battlefield entry, and every move gets its journal row."""
     dest_ir = atom.args.get("destination")
     assert isinstance(dest_ir, Zone)  # Atom validation guarantees it
@@ -1395,17 +1454,20 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         return
     stayed: set[Handle] = set()
     for card in cards:
-        owner = ctx.world.controller_of(card)
-        target_player = zone_owner(ctx, dest_ir, owner=owner)
+        # V24: the owner's zone, a non-owner controller as a control entry.
+        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
-            enters, host = _aura_entry_host(ctx, card, target_player)  # V32
+            # V32, chosen by the player it enters under (V24: the controller if not the owner)
+            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
             if not enters:
                 stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
                 continue
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
+        if new_controller is not None:
+            _enter_under_control(ctx, card, new_controller)
         if tapped_on_enter and dest_kind == ZONE_BATTLEFIELD:
             ctx.world.cards[card].tapped = True
         ctx.events.append(
