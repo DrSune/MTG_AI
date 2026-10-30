@@ -1,0 +1,62 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16a, 702.16e). Printed: 'Protection from planeswalkers.' A card-type quality applies to permanents of that type: 3 damage from a planeswalker is prevented, 1 from a red creature is dealt (the 3/4 lives with 1 mark). Before V44 both landed and it died.",
+ "cards": [
+  {
+   "key": "mc",
+   "real": "Sparkhunter Masticore",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "name": "Test Walker",
+   "type": "Legendary Planeswalker — Test",
+   "loyalty": 5,
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "imp",
+   "name": "Red Imp",
+   "power": "1",
+   "toughness": "1",
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "pw",
+   "target": "mc",
+   "amount": 3,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "imp",
+   "target": "mc",
+   "amount": 1,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mc": "battlefield"
+  },
+  "damage": {
+   "mc": 1
+  }
+ }
+}

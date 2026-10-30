@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 control for feat_of_resistance_black_aura_falls_off: protection from RED (decision 3) does not touch the black Infernal Scarring, which stays attached.",
+ "cards": [
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fr",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "scar",
+   "real": "Infernal Scarring",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "scar",
+   "host": "bear"
+  },
+  {
+   "op": "cast",
+   "real": "Feat of Resistance",
+   "key": "fr",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "scar": "battlefield",
+   "bear": "battlefield"
+  },
+  "attached": {
+   "scar": "bear"
+  }
+ }
+}

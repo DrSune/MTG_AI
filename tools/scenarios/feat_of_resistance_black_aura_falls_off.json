@@ -1,0 +1,69 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16c, 704.5m). Feat of Resistance gives the enchanted Bear protection from BLACK (decision 2, WUBRG): the black Infernal Scarring is now attached to an illegal object and goes to the graveyard as a state-based action. Before V44 it stayed attached.",
+ "cards": [
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fr",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "scar",
+   "real": "Infernal Scarring",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "scar",
+   "host": "bear"
+  },
+  {
+   "op": "cast",
+   "real": "Feat of Resistance",
+   "key": "fr",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "scar": "graveyard",
+   "bear": "battlefield",
+   "fr": "graveyard"
+  },
+  "attached": {
+   "scar": null
+  },
+  "counters": {
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ }
+}

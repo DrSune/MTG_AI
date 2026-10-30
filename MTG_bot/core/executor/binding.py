@@ -1645,7 +1645,15 @@ class TriggerBinder:
             # 603.1's: the ABILITY's controller designates, so an opponent's
             # trigger asks the OPPONENT's seat (ctx.controller IS that seat,
             # the firing context was built from payload.controller).
-            opponents = players_for_ref(ControllerRef.OPPONENT, ctx)
+            from MTG_bot.core.executor.legality import protected_from
+
+            # V44 (CR 702.16b): an opponent with protection from the source of the
+            # ability can't be its target (Runed Halo naming the trigger's card).
+            opponents = [
+                h
+                for h in players_for_ref(ControllerRef.OPPONENT, ctx)
+                if not protected_from(self.executor, h, ctx.source)
+            ]
             if not opponents:
                 ctx.bindings["target"] = []  # resolves without a player (a
                 # duel always has an opponent; the empty read is the honest
@@ -1698,7 +1706,7 @@ class TriggerBinder:
             # lane was the last caller not passing it.
             bindings=ctx.bindings,
         )
-        slot = _widen_any_target(self.executor, selector, slot) or slot
+        slot = _widen_any_target(self.executor, selector, slot, ctx.source) or slot
         candidates = sorted(slot.candidates)
         count = selector.count
         # B-55, CR 603.3d: an exact-count slot the ability needs in every

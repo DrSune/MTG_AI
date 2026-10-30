@@ -69,6 +69,7 @@ from MTG_bot.core.executor.legality import (
     PaymentPlan,
     build_payment_plan,
     pay_costs,
+    protected_from,
     spell_castable,
     spell_record,
 )
@@ -311,6 +312,11 @@ def _validate_spell_targets(
                 raise ValueError(
                     "executor: cast: TARGET_PLAYER designation is the "
                     "caster themselves — not an opponent"
+                )
+            if protected_from(executor, t, handle):
+                raise ValueError(
+                    "executor: cast: illegal target selection: the player has "
+                    "protection from this spell (CR 702.16b)"
                 )
         return
     if len(slots) > 1:
