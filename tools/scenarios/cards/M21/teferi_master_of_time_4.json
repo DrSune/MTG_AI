@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "tef", "set": 10},
+  {"op": "activate", "key": "tef", "idx": 3, "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"tef": "graveyard"},
+  "turn_seats": [0, 0, 0, 1]
+ },
+ "notes": "Printed: '[-10]: Take two extra turns after this one.' Loyalty 10 -> 0 (Teferi dies); after my turn I take exactly two extra turns, then the opponent's turn comes."
+}

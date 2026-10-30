@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment. When there are nine or more incarnation counters on this enchantment, exile it. When this enchantment leaves the battlefield, you lose the game.' Nine Lives has 8 counters; the opponent's Shock at seat 0 is prevented (life stays 20) and adds the 9th counter, so Nine Lives is exiled and seat 0 loses the game.",
+ "cards": [
+  {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0, "counters": {"INCARNATION": 8}},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [{"op": "cast", "real": "Shock", "key": "shock", "controller": 1, "targets": ["p0"]}],
+ "expect": {"zone": {"nl": "exile"}, "life": {"0": 20}, "lost": {"0": true, "1": false}}}

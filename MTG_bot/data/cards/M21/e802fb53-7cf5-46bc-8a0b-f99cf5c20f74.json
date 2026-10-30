@@ -1,0 +1,54 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e802fb53-7cf5-46bc-8a0b-f99cf5c20f74",
+ "name": "Teferi, Master of Time",
+ "text_sha": "5ece4495b168e0f236a8c8936c914ad4447380bc831fc8bf43359f9099c19593",
+ "verified": {
+  "tree_sha": "34b67b0cac92ad4bd8fc6bd3cfdcdb9c912c203f102aeffd1dc8a552f6ca9ed1",
+  "probe_sha": "cd0a643a24340797ff2f391b6cb1e8981b9bcfc4c6b56c197fade06fa7a53129",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.",
+    "status": "OK",
+    "evidence": "Tree StaticAbility GRANT_ACTIVATION IS_SOURCE window INSTANT (compiler's parse), only Teferi's own abilities. Pack P1cb15ad032_teferi_once_per_turn.json PASSES: the grant does not lift the once-per-turn loyalty limit (a second +1 in the same turn is refused).",
+    "issue": "engine-limit: no priority; the non-active player has no action window, so Teferi's loyalty abilities are used only in his controller's own action window (sorcery-like). Weaker than printed, never stronger."
+   },
+   {
+    "clause": "[+1]: Draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "[activate [1]] variants: LOYALTY 3 -> 4, you draw Library 5#1, then 'ask one_of' over the whole hand including the drawn card; the chosen card goes to the graveyard (every option honoured).",
+    "issue": ""
+   },
+   {
+    "clause": "[-3]: Target creature you don't control phases out. (Treat it and anything attached to it as though they don't exist until its controller's next turn.)",
+    "status": "OK",
+    "evidence": "'ability [2] target slot: 1..1 of [opp_flier, opp_tapped, opp_bear, opp_giant]' (opponent's creatures only); each variant: LOYALTY 3 -> 0 (Teferi to the graveyard) and the target 'battlefield -> battlefield (phased out)'. Pack P1cb15ad032_teferi_phase_out_my_turn.json PASSES (it cannot block and is still phased out at the end of my turn); pack P1cb15ad032_teferi_phase_in_next_turn.json PASSES (phased in on the opponent's next turn).",
+    "issue": ""
+   },
+   {
+    "clause": "[-10]: Take two extra turns after this one.",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [3] not activatable: cost:loyalty:3<10'. Tree EXTRA_TURN count 2 (compiler's parse). Pack P1cb15ad032_teferi_two_extra_turns.json PASSES: turn_seats [0, 0, 0, 1].",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/teferi_master_of_time_1.json",
+   "tools/scenarios/cards/M21/teferi_master_of_time_2.json",
+   "tools/scenarios/cards/M21/teferi_master_of_time_3.json",
+   "tools/scenarios/cards/M21/teferi_master_of_time_4.json"
+  ],
+  "mutation": {
+   "mutants": 18,
+   "killed": 16,
+   "score": 0.8888888888888888,
+   "survived": [
+    "amount+1 at 1/3/effect/args/count",
+    "amount-1 at 1/3/effect/args/count"
+   ]
+  }
+ }
+}

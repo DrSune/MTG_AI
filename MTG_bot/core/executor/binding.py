@@ -44,6 +44,7 @@ answerable — pinned deterministic by the replay test.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -1293,7 +1294,7 @@ class TriggerBinder:
 
     # -------------------------------------------------------------- fire
 
-    def fire_all(self) -> int:
+    def fire_all(self, between: Callable[[], object] | None = None) -> int:
         """Drain the world's trigger queue: APNAP order_key, then
         ``str(source)`` then bind-seq (Handle-sort within a seat, ruling 5).
         Every firing runs through the 12a effect runner, whose journalled
@@ -1304,7 +1305,11 @@ class TriggerBinder:
         — every demand a firing makes reaches the executor's
         vocabulary-addressed decision channel (per-(vocab, what) FIFO /
         ask-time provider), so a trigger the op itself armed mid-drain is
-        answerable exactly like one that was already pending."""
+        answerable exactly like one that was already pending.
+        W4-4 (CR 117.5, 704.3): ``between`` runs after each firing. The
+        settle passes the state-based-action check, so the next trigger
+        resolves only after the actions the last one made necessary (a
+        creature it dealt lethal damage dies first)."""
         if self.hold:
             return 0  # V37, CR 724.1c: no triggered ability is put onto the stack
         fired = 0
@@ -1360,7 +1365,22 @@ class TriggerBinder:
             per_source[instance.source] = per_source.get(instance.source, 0) + 1
             fired += 1
             self.on_events()  # the firing's own events queue the next batch
+            if between is not None:
+                between()
         return fired
+
+    def pending_references(self) -> frozenset[Handle]:
+        """W4-4: the objects the queued firings still name: their source and their
+        event's subject and cause. A token that left the battlefield stays in the
+        world (as its own last-known information) until the triggers its leaving
+        caused have resolved; see ``Executor._cease_tokens``."""
+        out: set[Handle] = set()
+        for payload in self.firings.values():
+            out.add(payload.source)
+            for handle in (payload.event.subject, payload.event.cause):
+                if isinstance(handle, Handle):
+                    out.add(handle)
+        return frozenset(out)
 
     def _pop_next(self):
         ordered = sorted(
@@ -1409,12 +1429,22 @@ class TriggerBinder:
         # already relies on that ordering), so the group is complete here.
         if event.kind == KIND_DECLARE_ATTACKERS and event.subject is not None:
             group = event.declare_group
+            spec = payload.node.event
+            # W4-1 (CR 603.2c): "Whenever one or more NONTOKEN creatures attack
+            # this turn, create that many ..." (Basri Ket's -2): the antecedent
+            # is the attackers the trigger's own event spec names, matched like
+            # the row that fired it (filter and attacked object), not every
+            # creature in the declaration. Two Bears and a token make 2.
             ctx.bindings["declare_attackers"] = [
                 e.subject
                 for e in self.executor.journal.turn_window()
                 if e.kind == KIND_DECLARE_ATTACKERS
                 and e.declare_group == group
                 and e.subject is not None
+                and (
+                    not isinstance(spec, DeclareAttackersEvent)
+                    or self._match_node(spec, e, payload.source, payload.controller)
+                )
             ]
         node = payload.node
         if node.condition is not None:

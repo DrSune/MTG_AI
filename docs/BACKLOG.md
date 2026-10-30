@@ -1260,6 +1260,21 @@ These are forks, not tasks. See the report that accompanied this audit.
     Keral Keep Disciples (stamped by the G3 finisher on `cards/integration`).
   - After the merge of `cards/integration` d955f67: M21 verified 159 -> 156, FDN 59 -> 55; every
     card pack of these cards still passes.
+- **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
+  engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
+  - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at
+    sentences are unparsed; the dangling "Put the rest on the bottom of your library in a random
+    order." compiled as the whole spell effect (a REST over the top of the library with no look
+    window), so casting either moves the top card of the library to the bottom.
+  - Compiler lane: Archfiend's Vessel's "If you do, create a 5/5 black Demon" is an unconditional
+    CREATE_TOKEN (template B5b-token-demon). The review packs `archfiends_vessel_if_you_do` and
+    `archfiends_vessel_no_demon_if_not_exiled` still fail on the Demon count only; their zone
+    halves pass (`archfiends_vessel_reanimated_as_0_0_dies_first`,
+    `archfiends_vessel_recast_from_hand_same_turn`).
+  - Engine: CR 111.8 (a token that has left the battlefield can't change zones) is not enforced.
+    W4-4 runs state-based actions before triggers, and keeps a token that a queued firing names
+    in the world as its last-known information until that firing resolves, so a trigger that
+    moves "it" could still move such a token, as before W4-4.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

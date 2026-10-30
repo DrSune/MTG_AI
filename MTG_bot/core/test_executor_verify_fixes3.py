@@ -43,6 +43,13 @@ V44  Protection (CR 702.16) on a permanent or a player, from any quality (a colo
      of its own damage (CR 701.12b). End to end in the protection packs (Baneslayer
      Angel, Basri's Lieutenant, Feat of Resistance, Feline Sovereign, Runed Halo,
      Sparkhunter Masticore).
+W4-6 A search's ONE_OF/REST partition divides the cards the search found (Cultivate:
+     one onto the battlefield, the other into your hand; CR 701.23a).
+W4-1 "Create that many" after "whenever one or more nontoken creatures attack" counts
+     the attackers the trigger's own filter names (Basri Ket's -2; CR 603.2c).
+W4-4 State-based actions are performed, repeatedly, before triggered abilities
+     resolve, and again after each one (CR 117.5, 704.3).
+W4-5 "If it entered from your graveyard" reads this object's own entry (CR 400.7).
 """
 
 from __future__ import annotations
@@ -63,6 +70,7 @@ from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_GRAVEYARD,
     ZONE_HAND,
+    ZONE_LIBRARY,
     GameWorld,
 )
 from MTG_bot.core.test_executor_verbs import (
@@ -1100,6 +1108,238 @@ class TestV44Protection(FixerCase):
         )
         self.assertEqual(self.world.zone_of(self.red).kind, ZONE_GRAVEYARD)
         self.assertNotIn(self.alpha, self.ex.damage)
+
+
+class TestW46SearchPartitionDividesTheFoundCards(FixerCase):
+    def setUp(self):
+        super().setUp()
+        self.basics = [
+            self.world.add_card(
+                card_id(name, type_line=f"Basic Land — {name}"), self.p0, ZONE_LIBRARY
+            )
+            for name in ("Forest", "Plains", "Island", "Swamp")
+        ]
+
+    def partition(self, mode, ctx):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, Selector
+        from MTG_bot.core.executor.selectors import resolve_selector
+
+        basic = FAtom(FAtomPred.SUPERTYPE_EQ, string_value="Basic")
+        sel = Selector(QConst(1), mode, basic, zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),))
+        return resolve_selector(sel, ctx)
+
+    def test_the_one_of_and_the_rest_read_only_the_found_cards(self):
+        from MTG_bot.core.ability_tree import SelectorMode
+
+        _forest, plains, island, _swamp = self.basics
+        ctx = self.ex._ctx(
+            source=self.alpha, controller=self.p0, bindings=None, decisions=(str(island),)
+        )
+        ctx.search_partition = True
+        ctx.search_found = (plains, island)
+        self.assertEqual(self.partition(SelectorMode.ONE_OF, ctx), [island])
+        self.assertEqual(self.partition(SelectorMode.REST, ctx), [plains])
+
+    def test_without_a_partition_search_the_rest_is_unchanged(self):
+        from MTG_bot.core.ability_tree import SelectorMode
+
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        self.assertEqual(self.partition(SelectorMode.REST, ctx), sorted(self.basics))
+
+    def test_cultivate_puts_one_found_land_in_play_and_the_other_in_hand(self):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        lands = [
+            {"key": k, "name": n, "type": f"Basic Land — {n}", "zone": "library", "controller": 0}
+            for k, n in (("fo", "Forest"), ("pl", "Plains"), ("is", "Island"), ("sw", "Swamp"))
+        ]
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [{"key": "cv", "real": "Cultivate", "zone": "hand", "controller": 0},
+                      *lands,
+                      {"key": "junk", "name": "Top Junk", "type": "Creature", "power": "1",
+                       "toughness": "1", "zone": "library", "controller": 0}],
+            "mana": {"0": {"G": 3}},
+            "steps": [{"op": "cast", "real": "Cultivate", "key": "cv",
+                       "decisions": ["sw", "fo", "sw"]}],
+            "expect": {},
+        }
+        r = ScenarioRunner(pack, get_supply("all", "M21"))
+        for step in pack["steps"]:
+            r.run_step(step)
+        zone = {k: r.world.zone_of(r.handles[k]).kind for k in ("fo", "pl", "is", "sw")}
+        self.assertEqual(zone, {"fo": "hand", "pl": "library", "is": "library", "sw": "battlefield"})
+
+
+class TestW41ThatManyCountsTheTriggersAttackers(unittest.TestCase):
+    def soldiers_after_attack(self, attackers):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        def creature(key, name, token):
+            return {"key": key, "name": name, "type": "Creature — Bear", "power": 2,
+                    "toughness": 2, "token": token, "zone": "battlefield", "controller": 0}
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [{"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+                      creature("bear", "Bear", False),
+                      creature("t1", "Spirit", True),
+                      creature("t2", "Spirit", True)],
+            "steps": [{"op": "loyalty", "key": "basri", "set": 3},
+                      {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+                      {"op": "combat", "seat": 0, "attack": {k: True for k in attackers}}],
+            "expect": {},
+        }
+        r = ScenarioRunner(pack, get_supply("all", "M21"))
+        for step in pack["steps"]:
+            r.run_step(step)
+        return sum(
+            1
+            for state in r.world.cards.values()
+            if state.identity.is_token and state.identity.name == "Soldier"
+        )
+
+    def test_one_nontoken_and_two_tokens_make_one_soldier(self):
+        self.assertEqual(self.soldiers_after_attack(("bear", "t1", "t2")), 1)
+
+    def test_tokens_alone_make_none(self):
+        self.assertEqual(self.soldiers_after_attack(("t1", "t2")), 0)
+
+
+class TestW44StateBasedActionsBeforeTriggers(unittest.TestCase):
+    def setUp(self):
+        from MTG_bot.core.test_executor_stack import StackCase
+
+        self.case = StackCase()
+        self.case.setUp()
+
+    def saver(self):
+        """A permanent with "Whenever a creature is dealt damage, put a +1/+1
+        counter on it": resolved before the state-based check, it would save a
+        creature dealt exactly lethal damage."""
+        from MTG_bot.core.ability_tree import (
+            DamageDealtEvent,
+            FAtom,
+            FAtomPred,
+            Selector,
+            SelectorMode,
+            SpellKind,
+            TriggeredAbility,
+        )
+
+        trigger = TriggeredAbility(
+            event=DamageDealtEvent(QConst(1), FAtom(FAtomPred.TYPE_EQ, string_value="Creature")),
+            condition=None,
+            effect=atom(
+                Verb.PUT_COUNTER,
+                count=QConst(1),
+                counter_kind=CounterKind.PLUS_1_PLUS_1,
+                target=Selector(
+                    QConst(1),
+                    SelectorMode.CHOOSE,
+                    UNIV,
+                    zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                    referent="event",
+                ),
+            ),
+        )
+        return self.case.give(
+            "Medic",
+            SpellKind.CREATURE,
+            zone=ZONE_BATTLEFIELD,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(trigger,),
+        )
+
+    def test_a_lethally_damaged_creature_dies_before_a_trigger_resolves(self):
+        case = self.case
+        medic = self.saver()
+        bear = case.world.add_card(card_id("Bear", "2", "2"), case.p1, ZONE_BATTLEFIELD)
+        case.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(2)),
+            source=medic,
+            controller=case.p0,
+            bindings={"target": [bear]},
+        )
+        self.assertEqual(case.world.zone_of(bear).kind, ZONE_GRAVEYARD)
+        kinds = [e.kind for e in case.ex.journal.events if e.subject == bear]
+        self.assertIn("CREATURE_DIES", kinds)
+        self.assertNotIn("COUNTER_PLACED", kinds[: kinds.index("CREATURE_DIES")])
+
+    def test_the_check_queues_triggers_and_does_not_resolve_them(self):
+        from MTG_bot.core.ability_tree import (
+            CreatureDiesEvent,
+            FAtom,
+            FAtomPred,
+            SpellKind,
+            TriggeredAbility,
+        )
+
+        case = self.case
+        mourner = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature")),
+            condition=None,
+            effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(3)),
+        )
+        case.give(
+            "Mourner",
+            SpellKind.CREATURE,
+            zone=ZONE_BATTLEFIELD,
+            type_line="Creature",
+            types=("Creature",),
+            power="1",
+            toughness="1",
+            extra_abilities=(mourner,),
+        )
+        bear = case.world.add_card(card_id("Bear", "2", "2"), case.p1, ZONE_BATTLEFIELD)
+        case.ex.mark_damage(bear, 2)
+        life = case.world.players[case.p0].life
+        case.ex._state_checks()
+        self.assertEqual(case.world.zone_of(bear).kind, ZONE_GRAVEYARD)
+        self.assertTrue(case.world.triggers)  # queued, not yet resolved
+        self.assertEqual(case.world.players[case.p0].life, life)
+        case.ex.fire_triggers()
+        self.assertEqual(case.world.players[case.p0].life, life + 3)
+
+
+class TestW45EnteredFromIsPerObject(FixerCase):
+    def move(self, card, frm, to):
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, Zone(frm, ControllerRef.YOU)),
+                destination=Zone(to, ControllerRef.YOU),
+            ),
+            source=card,
+            controller=self.p0,
+            bindings={"cards": [card]},
+        )
+
+    def entered_from_graveyard(self, card):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+        from MTG_bot.core.executor.quantity import eval_filter
+
+        pred = FAtom(
+            FAtomPred.ENTERED_THIS_TURN_FROM, zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
+        )
+        ctx = self.ex._ctx(source=card, controller=self.p0, bindings=None, decisions=())
+        return eval_filter(pred, card, ctx)
+
+    def test_only_this_objects_entry_answers(self):
+        card = self.world.add_card(card_id("Vessel", "1", "1"), self.p0, ZONE_GRAVEYARD)
+        self.move(card, ZoneKind.GRAVEYARD, ZoneKind.BATTLEFIELD)
+        self.assertTrue(self.entered_from_graveyard(card))
+        self.move(card, ZoneKind.BATTLEFIELD, ZoneKind.HAND)
+        self.move(card, ZoneKind.HAND, ZoneKind.BATTLEFIELD)
+        # A new object (CR 400.7) that entered from the hand.
+        self.assertFalse(self.entered_from_graveyard(card))
 
 
 if __name__ == "__main__":

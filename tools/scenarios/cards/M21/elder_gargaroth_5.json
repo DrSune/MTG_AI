@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 and controller YOU->OPPONENT on the block trigger's draw mode). Printed: 'Whenever this creature attacks or blocks, choose one - ... Draw a card.' On the opponent's turn Elder Gargaroth blocks the opponent's 2/2 and its controller chooses 'Draw a card': seat 0 draws exactly one (hand 1 -> 2: the opening draw plus this one); seat 1 keeps only its own draw-step card (1). No Beast token.",
+ "cards": [
+  {"key": "eg", "real": "Elder Gargaroth", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opener", "name": "Opening Draw", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"ob": true}, "block": {"eg": "ob"}, "decisions": ["2"]}
+ ],
+ "expect": {
+  "hand": {"0": 2, "1": 1},
+  "tokens": {"Beast": 0},
+  "zone": {"ob": "graveyard", "eg": "battlefield", "opener": "hand"},
+  "damage": {"eg": 2}
+ }
+}

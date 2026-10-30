@@ -1387,10 +1387,12 @@ class TestEtBSeedPTFold(StackCase):
     order the Malefic Scythe equip lane rides."""
 
     def scourge_shape(self, name="Wild Hydra"):
-        """The corpus Wildwood Scourge compiled shape: printed 0/0 Hydra
-        whose ETB TriggeredAbility puts QX +1/+1 counters on the entering
-        object (frozen IR: EtBState dynamic counters are a compiler
-        follow-up, so the X seed rides the etb_x cast ledger)."""
+        """The OLD corpus Wildwood Scourge stand-in: printed 0/0 Hydra whose
+        ETB TriggeredAbility puts QX +1/+1 counters on the entering object.
+        The corpus now compiles the printed replacement ("enters with X
+        +1/+1 counters", CR 614.1c) as EtBState(QX), :meth:`etb_state_x_shape`;
+        this trigger shape stays as the CR 117.5 control: a 0/0 dies to the
+        state-based check before its enter trigger can resolve."""
         etb_x = TriggeredAbility(
             event=ZoneChangeEvent(ANY_ZONE, BF_ANY, subject=FAtom(FAtomPred.IS_SOURCE)),
             condition=None,
@@ -1413,17 +1415,44 @@ class TestEtBSeedPTFold(StackCase):
             extra_abilities=(etb_x,),
         )
 
+    def etb_state_x_shape(self, name="Wild Hydra"):
+        """The corpus Wildwood Scourge shape today: printed 0/0 with
+        EtBState(PLUS_1_PLUS_1 x QX), the cast X seeding the counters as it
+        enters (CR 614.1c), so no state-based check sees it as a 0/0."""
+        return self.give(
+            name,
+            SpellKind.CREATURE,
+            type_line="Creature — Hydra",
+            types=("Creature",),
+            power="0",
+            toughness="0",
+            extra_abilities=(
+                EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),)),
+            ),
+        )
+
     def pt(self, handle):
         state = self.world.cards[handle]
         return self.ex.ledger.effective_pt(state.identity, handle, dict(state.counters))
 
     def test_etb_x_seed_folds_into_effective_pt(self):
+        # re-pinned 2026-10-30: W4-4 changes the trigger stand-in's outcome (see
+        # the next test), so the fold is pinned on the corpus's EtBState shape.
         # cast X=2 -> 2 counters, and the P/T layer SEES them: 0 + 2.
-        hydra = self.scourge_shape()
+        hydra = self.etb_state_x_shape()
         cast(self.ex, self.p0, hydra, x=2)
         self.assertEqual(self.world.zone_of(hydra).kind, ZONE_BATTLEFIELD)
         self.assertEqual(self.world.cards[hydra].counters["PLUS_1_PLUS_1"], 2)
         self.assertEqual(self.pt(hydra), (2, 2))
+
+    def test_a_zero_toughness_creature_dies_before_its_enter_trigger(self):
+        # W4-4 (CR 117.5, 704.5f): state-based actions are performed before a
+        # triggered ability resolves, so the trigger stand-in's 0/0 is put into
+        # the graveyard first, X=2 or not. The settle used to resolve the
+        # trigger first, and the counters saved it.
+        hydra = self.scourge_shape()
+        cast(self.ex, self.p0, hydra, x=2)
+        self.assertEqual(self.world.zone_of(hydra).kind, ZONE_GRAVEYARD)
 
     def test_etb_state_seed_folds_into_effective_pt(self):
         # the EtBState CONSTANT-counter shape (the suspect's named lane):

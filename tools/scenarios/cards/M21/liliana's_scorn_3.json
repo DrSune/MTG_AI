@@ -1,0 +1,82 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count; the searched library's controller). Printed: 'Destroy target creature. You may search YOUR library and/or graveyard for A card named Liliana, Death Mage, reveal it, and put it into your hand.' The opponent's Ox is destroyed. Two copies of Liliana, Death Mage are findable, one in your graveyard and one in your library; the may is taken and the LIBRARY copy is picked: it goes to your hand, the graveyard copy stays. A copy in the opponent's library is not yours to find. The search pick is the pool word card:3, the library copy's handle (pack-card order: src, ox, in_gy, in_lib, theirs, opener), the convention cultivate.json uses, because the spell's own may consumes the first pool word.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Liliana's Scorn",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Opp Ox",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "in_gy",
+   "real": "Liliana, Death Mage",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "in_lib",
+   "real": "Liliana, Death Mage",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "real": "Liliana, Death Mage",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "src",
+   "targets": [
+    "ox"
+   ],
+   "decisions": [
+    "fire",
+    "card:3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "graveyard",
+   "ox": "graveyard",
+   "in_lib": "hand",
+   "in_gy": "graveyard",
+   "theirs": "library",
+   "opener": "hand"
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

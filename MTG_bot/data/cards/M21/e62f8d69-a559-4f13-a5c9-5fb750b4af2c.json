@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e62f8d69-a559-4f13-a5c9-5fb750b4af2c",
+ "name": "Grim Tutor",
+ "text_sha": "107018b23a229216c94aae901ffdf846b73b9d5329042768aca9aef5f6a319d3",
+ "verified": {
+  "tree_sha": "8a30b343d7674744650e75c982648b463956de971c53825734293ba69dbbe9a3",
+  "probe_sha": "bb95d190d876ecc4ee68f96d2f405fc7bc8b07ed540c744d9d4b683ff7066f07",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Search your library for a card, put that card into your hand, then shuffle.",
+    "status": "OK",
+    "evidence": "SEARCH 1 card, no filter, LIBRARY(YOU) -> HAND(YOU), then SHUFFLE LIBRARY(YOU). Every [cast] variant: 'ask one_of' over all six of your library cards (no other zone), the pick 'moves library -> hand (by card/SEARCH)', library 6 -> 5. The shuffle is not journalled in the trace; _v_shuffle (verbs.py:1389) shuffles the owner's library. Pack P833647fcdf_grim_tutor_any_card_one_card_lose_3.json PASS",
+    "issue": "Tree uses SelectorMode.ONE_OF where the canonical B5b-search-shuffle has CHOOSE. Both are a player ask in SEARCH (ask_choose=True, verbs.py:1525); ONE_OF only adds 'targeted (by card/ONE_OF)' journal rows for the library card. No behavioural difference."
+   },
+   {
+    "clause": "You lose 3 life.",
+    "status": "OK",
+    "evidence": "LOSE_LIFE 3 YOU (= canonical B4-lose-life-n); every variant 'you loses 3 life', you 20 -> 17, opponent unchanged",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/grim_tutor_1.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "drop step 1 at 1/0/effect/steps/0"
+   ]
+  }
+ }
+}

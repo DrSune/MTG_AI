@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wm", "real": "Dire Fleet Warmonger", "zone": "battlefield", "controller": 0},
+  {"key": "fod", "name": "Fodder", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "opp_c", "name": "Opp Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"wm": true, "fod": false}, "may": {"wm": true}, "decisions": ["fod"], "block": {"opp_c": "wm"}, "trample": {"wm": [0]}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"wm": "battlefield", "fod": "graveyard", "opp_c": "graveyard"},
+  "blocked": {"wm": ["opp_c"]},
+  "life": {"0": 20, "1": 18},
+  "power": {"wm": 3},
+  "toughness": {"wm": 3},
+  "battlefield_keywords": {"Dire Fleet Warmonger": []},
+  "damage": {}
+ },
+ "notes": "Printed: 'At the beginning of combat on your turn, you may sacrifice another creature. If you do, this creature gets +2/+2 and gains trample until end of turn.' I sacrifice Fodder: the Warmonger is 5/5 trample, a 3/3 blocks it, 3 lethal to the blocker and 2 trample over (opponent 20 -> 18). At end of turn the +2/+2 and trample end and its 3 damage wears off at the same time (CR 514.2): it is a 3/3 with no trample and survives."
+}

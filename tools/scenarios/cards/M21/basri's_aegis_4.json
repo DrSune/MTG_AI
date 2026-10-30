@@ -1,0 +1,79 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count). Printed: 'Put a +1/+1 counter on each of up to two target creatures. You may search your library and/or graveyard for A card named Basri, Devoted Paladin, reveal it, and put it into your hand.' One target (your Bear) gets the counter. Two copies of Basri are findable (one in your graveyard, one in your library); the may is taken and the library copy is picked: it goes to your hand, the graveyard copy stays. The search pick is the pool word card:3, the library copy's handle (pack-card order: src, bear, in_gy, in_lib, opener), the convention cultivate.json uses, because the spell's own may consumes the first pool word.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Basri's Aegis",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "in_gy",
+   "real": "Basri, Devoted Paladin",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "in_lib",
+   "real": "Basri, Devoted Paladin",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "src",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "fire",
+    "card:3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "graveyard",
+   "in_lib": "hand",
+   "in_gy": "graveyard",
+   "opener": "hand"
+  },
+  "counters": {
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

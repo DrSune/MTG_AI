@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d799a2c4-628a-45da-b9ca-0337c46e3e14",
+ "name": "Lofty Denial",
+ "text_sha": "8f0d3f1d1fc252527aff6b85b672f1e891b0abc3c8299499c77c9cdd76c15d6b",
+ "verified": {
+  "tree_sha": "ce253e8e54294f9969d21326a76164fe3512e328205c5e88a407ef90e6576c05",
+  "probe_sha": "98a40e66f0acea96a425fac201dae7d9e83cb58f5b2615d91aedca3baf140b9e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Counter target spell unless its controller pays {1}.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: 'cast skipped: a target slot needs 1, the board offers 0' (no spell on the stack). Pack lofty_denial_casters_flier_does_not_raise_tax PASS: seat 1 (no flier) casts Lofty Denial in the counter window ('window_asks' lofty) against Staunch Shieldmate; the caster pays exactly {1} (R 4 -> 3, 'kickback_asks' PAY) and the spell resolves. Tree else-branch: COUNTER_SPELL target STACK SPELL unless {1}, the compiler's B5a-counter-unless-spell.",
+    "issue": "engine-limit: no priority; the instant is usable in the counterspell response window or its controller's own action window."
+   },
+   {
+    "clause": "If you control a creature with flying, counter that spell unless its controller pays {4} instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Packs: lofty_denial_flier_tax_unpaid_counters PASS (seat 1 controls a flier; seat 0 has only {R}{R}{R}, so no pay offer is made and the Shieldmate is countered, R3 unspent); lofty_denial_casters_flier_does_not_raise_tax PASS (a flier controlled by the spell's caster, not by Lofty Denial's controller, leaves the tax at {1}). Tree: Conditional(CONTROLLER_COUNT_GE 1 of Creature with FLYING, counted under the ability controller only, quantity.py:1206; then unless {4}, else unless {1}): a true 'instead'.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/lofty_denial_1.json",
+   "tools/scenarios/cards/M21/lofty_denial_2.json",
+   "tools/scenarios/cards/M21/lofty_denial_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 1,
+   "score": 0.1,
+   "survived": [
+    "amount+1 at 1/0/effect/pred/count",
+    "widen filter (drop part 0) at 1/0/effect/pred/inner_filter",
+    "widen filter (drop part 1) at 1/0/effect/pred/inner_filter",
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/then_effect/args/unless",
+    "amount+1 at 1/0/effect/then_effect/args/unless/parts/0/amount",
+    "amount-1 at 1/0/effect/then_effect/args/unless/parts/0/amount",
+    "amount+1 at 1/0/effect/else_effect/args/target/count",
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/else_effect/args/unless",
+    "amount+1 at 1/0/effect/else_effect/args/unless/parts/0/amount"
+   ]
+  }
+ }
+}

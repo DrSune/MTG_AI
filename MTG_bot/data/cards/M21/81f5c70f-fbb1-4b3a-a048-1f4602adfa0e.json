@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "81f5c70f-fbb1-4b3a-a048-1f4602adfa0e",
+ "name": "Celestial Enforcer",
+ "text_sha": "490730d1d421e608fa370e2f19d64f8bacb74d5b728709e36cd017a1db0fa2a0",
+ "verified": {
+  "tree_sha": "da74f047b6762c89314abc90337c2a63bfe49b842a90f6265255cd9af8640127",
+  "probe_sha": "f0410bacbf7484b8822201f4862a6b4774bff36c49caeaa98e649afc952bf25b",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "{1}{W}, {T}: Tap target creature.",
+    "status": "OK",
+    "evidence": "abilities[0] (= canonical B3-tap-target-creature): cost W + 1 generic + CostTap; TAP TARGET Creature (any controller). Not activated in the trace (gate false). Packs Pfe4e53aa9d_enforcer_taps_with_your_flier.json PASS (pays {1}{W}, taps itself and the target) and Pfe4e53aa9d_enforcer_summoning_sick.json PASS ({T} refused the turn it enters)",
+    "issue": "engine-limit: no priority, so this instant-speed ability is used only in its controller's own action window (weaker only)."
+   },
+   {
+    "clause": "Activate only if you control a creature with flying.",
+    "status": "OK",
+    "evidence": "abilities[0].condition (= canonical B5a-activate-only-flying) CONTROLLER_COUNT_GE 1 (Creature, KEYWORD_HAS FLYING). Standard board: only the opponent has a flier (opp_flier), and the trace shows 'ability [0] not activatable from battlefield: condition:false'. With your own flier: pack Pfe4e53aa9d_enforcer_taps_with_your_flier.json PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/celestial_enforcer_1.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_2.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 1,
+   "score": 0.1,
+   "survived": [
+    "drop cost part 0 (CostManaColor) at 1/0/cost",
+    "drop cost part 1 (CostManaGeneric) at 1/0/cost",
+    "drop cost part 2 (CostTap) at 1/0/cost",
+    "amount+1 at 1/0/cost/parts/0/amount",
+    "amount+1 at 1/0/cost/parts/1/amount",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter"
+   ]
+  }
+ }
+}

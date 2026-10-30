@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scorn, printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand.' Liliana, Death Mage is in your GRAVEYARD (not the library). Cast Scorn on the opponent's 2/2: it is destroyed; answer the may with fire and pick Liliana: she moves graveyard -> hand. Top Junk (the only library card besides the filler) is taken by the opening draw, so hand holds Top Junk and Liliana.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
+  {"key": "victim", "name": "Doomed Beast", "type": "Creature — Beast", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "lil", "real": "Liliana, Death Mage", "zone": "graveyard", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "cast", "real": "Liliana's Scorn", "key": "ls", "targets": ["victim"], "decisions": ["fire", "lil"]}
+ ],
+ "expect": {
+  "zone": {"ls": "graveyard", "victim": "graveyard", "lil": "hand", "junk": "hand"}
+ }
+}

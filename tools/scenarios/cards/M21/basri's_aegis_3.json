@@ -1,0 +1,92 @@
+{
+ "set": "M21",
+ "notes": "Basri's Aegis, printed: 'Put a +1/+1 counter on each of up to two target creatures. You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand. If you search your library this way, shuffle.' Library after the opening draw takes Top Junk (top first): Basri, Devoted Paladin, Deep Card, then the six filler cards. Cast Aegis on your Bear and answer the may with skip: the Bear still gets its counter, Basri stays in the library, and with no search there is no shuffle, so the library order is exactly unchanged.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "aegis",
+   "real": "Basri's Aegis",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "deep",
+   "name": "Deep Card",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "bdp",
+   "real": "Basri, Devoted Paladin",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "junk",
+   "name": "Top Junk",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Basri's Aegis",
+   "key": "aegis",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aegis": "graveyard",
+   "bdp": "library",
+   "junk": "hand"
+  },
+  "counters": {
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "library": {
+   "0": [
+    "Basri, Devoted Paladin",
+    "Deep Card",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

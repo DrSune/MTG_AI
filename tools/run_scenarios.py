@@ -474,10 +474,14 @@ class ScenarioRunner:
             )
             # R5-1 (2026-10-29): "hold_triggers" leaves the armed triggers queued; the
             # next step's settle resolves them after its own action (a response).
+            # W4-4 (2026-10-30): through the binder's own hold flag (fire_all then
+            # resolves nothing), not a monkeypatched fire_all, whose signature the
+            # settle's state-based-action hook changed.
             binder = self.ex.binder
             held = bool(step.get("hold_triggers"))
+            was_holding = binder.hold
             if held:
-                binder.fire_all = lambda: 0  # type: ignore[method-assign]
+                binder.hold = True
             try:
                 self.ex.execute(
                     atom,
@@ -486,8 +490,7 @@ class ScenarioRunner:
                     bindings={"cards": handle},
                 )
             finally:
-                if held:
-                    del binder.fire_all  # the class method again
+                binder.hold = was_holding
         elif op == "move":
             # R5-1 (2026-10-29): a journalled zone move by another effect, to the
             # card's owner's zone (the destroy / bounce / exile stand-in).

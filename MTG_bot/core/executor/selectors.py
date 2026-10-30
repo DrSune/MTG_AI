@@ -672,6 +672,20 @@ def resolve_selector(
                     break
                 if partition_window is not None:
                     candidates = list(partition_window)
+        elif (
+            sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+            and ctx.search_partition
+            and ctx.search_found is not None
+        ):
+            # W4-6 (Cultivate, CR 701.23a): "Search your library for up to two
+            # basic land cards ... put one onto the battlefield tapped and the
+            # other into your hand." The partition divides the cards the
+            # search FOUND. The re-search idiom enumerated the whole zone, so
+            # the ONE_OF could pick an unfound basic and the REST took every
+            # basic left in the library (one land in, all the others to hand).
+            # A found card that left the zone since the search drops out.
+            found = set(ctx.search_found)
+            candidates = [h for h in candidates if h in found]
     if partition_window is not None and sel.mode is SelectorMode.ONE_OF:
         ctx.one_of_window = tuple(partition_window)
     candidates = [h for h in candidates if eval_filter(sel.filter, h, ctx)]

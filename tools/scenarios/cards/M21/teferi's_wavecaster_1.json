@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
+  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["fire", "tef"]}
+ ],
+ "expect": {"zone": {"wc": "battlefield", "tef": "hand"}},
+ "notes": "Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Teferi, Timeless Voyager, reveal it, and put it into your hand.' Cast under your control, the Wavecaster's ETB fires; accepting, Teferi, Timeless Voyager in your graveyard goes to your hand."}

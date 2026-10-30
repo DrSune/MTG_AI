@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Riddleform, printed: 'Whenever YOU cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying ...'. The opponent casts Shock (a noncreature spell) at seat 0, with 'fire' offered in case anything asks: Riddleform does not trigger, so it stays a non-creature with no flying and cannot attack. Seat 0 takes only the Shock's 2 (20 -> 18), the opponent stays at 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "os", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "os", "controller": 1, "targets": ["p0"], "decisions": ["fire"]},
+  {"op": "combat", "seat": 0, "attack": {"rf": true}}
+ ],
+ "expect": {
+  "zone": {"os": "graveyard", "rf": "battlefield"},
+  "battlefield_keywords": {"Riddleform": []},
+  "attackers": {"rf": false},
+  "life": {"0": 18, "1": 20}
+ }
+}

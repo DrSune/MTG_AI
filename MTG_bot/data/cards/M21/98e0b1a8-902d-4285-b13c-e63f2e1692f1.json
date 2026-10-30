@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "98e0b1a8-902d-4285-b13c-e63f2e1692f1",
+ "name": "Kinetic Augur",
+ "text_sha": "325164f3ca63bd14b4749f3fa86aa8e87150be7b819696451f888d39e9c970d3",
+ "verified": {
+  "tree_sha": "89d041c5881ae3cf0642e436c007f0132d64d9a7a45f28d60058bb6bb50a6bd4",
+  "probe_sha": "286d5bcad9326773a646ed04e6a7c3ed2557851ab573377664aef330fec5395e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "keywords[0] TRAMPLE; [cast] 'keywords +TRAMPLE'. Excess damage not in the trace (the only block is by a 4/4): pack P4f2d52370f_kinetic_augur_tramples_over.json PASS (3/4 blocked by a 1/1, 2 tramples over)",
+    "issue": ""
+   },
+   {
+    "clause": "Kinetic Augur's power is equal to the number of instant and sorcery cards in your graveyard.",
+    "status": "OK",
+    "evidence": "abilities[0] SET_PT power QCount(Instant or Sorcery in GRAVEYARD(YOU)) on self (= canonical B5b-set-pt-power-gy-instant-sorcery). Static: 1/4 on the standard board (you_used counted, the opponent's graveyard not); continuous: [you cast Crash Through] 'card: P/T 1/4 -> 2/4'; ETB discards of an instant or sorcery give 2/4, of a creature or land 1/4. Pack P4f2d52370f_kinetic_augur_discard_one_draw_one.json PASS (opponent's instant and sorcery ignored, power 1, toughness 4)",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, discard up to two cards, then draw that many cards.",
+    "status": "OK",
+    "evidence": "abilities[1] (= canonical B2a-draw-that-many): MOVE_ZONE up to 2 HAND(YOU) -> GRAVEYARD, DRAW THAT_MANY_COUNT. [cast] variants: two 'ask discard' asks with NONE offered, 2 discarded -> 2 drawn; [ask 1 -> NONE] nothing discarded, nothing drawn; fires on entering during the opponent's turn too. Exactly one discard not in the trace: pack P4f2d52370f_kinetic_augur_discard_one_draw_one.json PASS (discard 1, draw 1)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/kinetic_augur_1.json",
+   "tools/scenarios/cards/M21/kinetic_augur_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

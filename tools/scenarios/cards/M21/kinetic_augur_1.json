@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "aug", "real": "Kinetic Augur", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "c2", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "oppinst", "name": "Opp Shock", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "oppsorc", "name": "Opp Rites", "type": "Sorcery", "zone": "graveyard", "controller": 1},
+  {"key": "l1", "zone": "library", "controller": 0, "name": "LibA", "power": 1, "toughness": 1, "type": "Creature"},
+  {"key": "l2", "zone": "library", "controller": 0, "name": "LibB", "power": 1, "toughness": 1, "type": "Creature"},
+  {"key": "drawn", "zone": "library", "controller": 0, "name": "Drawn", "power": 1, "toughness": 1, "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "aug", "decisions": ["c1", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"aug": "battlefield", "c1": "graveyard", "c2": "hand", "l2": "hand", "l1": "library"},
+  "power": {"aug": 1},
+  "toughness": {"aug": 4}
+ },
+ "notes": "P4f2d52370f G4: 'discard up to two cards, then draw that many cards': you discard only Zap, so you draw exactly one (LibB; the opening draw took Drawn). Power = instant and sorcery cards in YOUR graveyard = 1 (Zap); the opponent's graveyard instant and sorcery do not count. Toughness stays 4."
+}

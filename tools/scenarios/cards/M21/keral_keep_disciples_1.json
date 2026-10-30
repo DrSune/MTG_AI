@@ -1,20 +1,22 @@
 {
  "set": "M21",
- "notes": "Keral Keep Disciples, printed: 'Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.' Your Chandra, Flame's Catalyst +1 (3 damage to each opponent) triggers it once: P1 20-3-1 = 16, P0 untouched. Your Basri Ket +1 (not a Chandra) must not trigger it: P1 stays 16 and the Disciples get Basri's counter.",
+ "notes": "Keral Keep Disciples, printed: 'Whenever YOU activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.' On the opponent's turn THEY activate their Chandra, Flame's Catalyst's +1 (3 damage to each of their opponents): your Disciples do not trigger, you 20 -> 17, opponent stays 20. On your turn you activate your own Chandra, Flame's Catalyst's +1: 3 from Chandra plus 1 from the Disciples, opponent 20 -> 16. You never take Disciples damage.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "ke", "real": "Keral Keep Disciples", "zone": "battlefield", "controller": 0},
-  {"key": "cat", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
-  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+  {"key": "mycat", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "oppcat", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "loyalty", "key": "cat", "set": 5},
-  {"op": "activate", "key": "cat", "idx": 0, "seat": 0, "decisions": ["player:1"]},
-  {"op": "loyalty", "key": "basri", "set": 7},
-  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["ke"], "decisions": ["player:1"]}
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "oppcat", "idx": 0, "seat": 1, "decisions": ["player:0"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "mycat", "idx": 0, "seat": 0, "decisions": ["player:1"]}
  ],
  "expect": {
-  "life": {"0": 20, "1": 16},
-  "counters": {"ke": {"PLUS_1_PLUS_1": 1}}
+  "life": {"0": 17, "1": 16},
+  "zone": {"ke": "battlefield", "mycat": "battlefield", "oppcat": "battlefield"}
  }
 }

@@ -37,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     Conditional,
     ControllerRef,
     Cost,
+    DamageDealtEvent,
     DurationEot,
     DurationPermanent,
     FAnd,
@@ -49,10 +50,12 @@ from MTG_bot.core.ability_tree import (
     QProp,
     QPropField,
     QUnbounded,
+    ReplacementAbility,
     Selector,
     SelectorMode,
     Seq,
     SpellAbility,
+    StaticAbility,
     TokenSpec,
     TriggeredAbility,
     TurnPhaseEvent,
@@ -267,13 +270,55 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
     return {"count"} if any(isinstance(n, Conditional) for n in nodes) else {"controller", "count"}
 
 
+def _window_reveal(ability: Any) -> Atom | None:
+    """The REVEAL of "look at N cards ... you may reveal one from among them" whose controller and
+    count no game state can observe (see ``mutants``), or None. It runs right after the ability's
+    one LOOK_AT, so ``_look`` takes its prior-window branch whenever that window holds a card:
+    the controller is not read, the count only slices the window, the window is kept and nothing
+    is written to ``result``. The window is empty only when the LOOK_AT's library is: its count
+    is a constant >= 1 or a damage trigger's AMOUNT (no damage event deals 0, CR 120.8). Then the
+    mutant reveals another library's cards, which no reader here can see: no Conditional, no
+    ``result`` reader and only partitions over your own library top, which drop cards not in it.
+    Both look atoms name you, and no mode or condition reorders the atoms."""
+    if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
+        return None
+    nodes = list(walk(ability))
+    atoms = [n for n in nodes if isinstance(n, Atom)]
+    looks = [n for n in atoms if n.verb in (Verb.REVEAL, Verb.LOOK_AT)]
+    if len(looks) != 2 or looks[0].verb is not Verb.LOOK_AT or looks[1].verb is not Verb.REVEAL:
+        return None
+    look, reveal = looks
+    if atoms.index(reveal) != atoms.index(look) + 1 or any(a.args.get("duration") is not None for a in looks):
+        return None
+    if any(a.args.get("controller") is not ControllerRef.YOU for a in looks):
+        return None
+    if not (isinstance(reveal.args.get("count"), QConst) and reveal.args.get("count").value >= 1):
+        return None
+    count = look.args.get("count")
+    damage_amount = (isinstance(count, QProp) and count.referent == "event" and count.field is QPropField.AMOUNT
+                     and isinstance(ability, TriggeredAbility) and isinstance(ability.event, DamageDealtEvent))
+    if not (isinstance(count, QConst) and count.value >= 1) and not damage_amount:
+        return None
+    for n in nodes:
+        if isinstance(n, (Conditional, Choose)) or getattr(n, "referent", None) == "result" or (
+                isinstance(n, QProp) and n.field is QPropField.THAT_MANY_COUNT) or (
+                isinstance(n, Atom) and n.verb is Verb.FIGHT):
+            return None
+        if isinstance(n, Selector) and n.mode in (SelectorMode.ONE_OF, SelectorMode.REST) and any(
+                z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP and z.controller is not ControllerRef.YOU
+                for z in n.zones):
+            return None
+    return reveal
+
+
 def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     """Paths of the TARGET selectors in ``ability`` that "target->all" cannot change (see
     ``mutants``): a spell (the cast lane refuses a cast whose slot is not designated, so the
     designation always binds; ``activate`` validates no targets, V8, so activations stay out)
     where two or more atoms carry the same TARGET selector in their ``target`` role and nothing
     else is a TARGET selector or a mode, so there is one designation slot; an exact count >= 1,
-    battlefield zones and no referent anywhere in it, so none of role_handles' self-resolving
+    battlefield or stack zones (a counterspell's COUNTER_SPELL reads its target through
+    role_handles too) and no referent anywhere in it, so none of role_handles' self-resolving
     shapes (anaphora, referent-filtered population, player side, graveyard sweep) applies."""
     if not isinstance(ability, SpellAbility) or any(isinstance(n, Choose) for n in walk(ability)):
         return set()
@@ -283,9 +328,29 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     sel = sels[0][1]
     if not (isinstance(sel.count, QConst) and sel.count.value >= 1) or sel.referent is not None \
             or any(getattr(n, "referent", None) is not None for n in walk(sel.filter)) \
-            or not all(z.kind is ZoneKind.BATTLEFIELD for z in sel.zones):
+            or not all(z.kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK) for z in sel.zones):
         return set()
     return {p for p, _ in sels}
+
+
+# Zones a moving card always enters as its OWNER's (CR 400.3; selectors.move_destination, V24).
+_OWNER_ZONES = (ZoneKind.HAND, ZoneKind.LIBRARY, ZoneKind.GRAVEYARD, ZoneKind.EXILE)
+# Static permissions whose "you may" is the use, not a layer gate: layers._new_static strips the
+# OptionalEffect before it parses the payload (the MAY belongs to the USE side).
+_PERMISSION_VERBS = (Verb.ADD_LAND_PLAY, Verb.MANA_POLICY, Verb.GRANT_ACTIVATION)
+
+
+def _draw_idiom(atom: Atom) -> bool:
+    """MOVE_ZONE's top-n draw idiom (verbs.py _v_move_zone: "move THE top n of your library to
+    hand"), the one move lane whose destination names a player: zone_owner picks whose library is
+    drawn. The idiom is an unpartitioned, referent-free, unfiltered selector over one library."""
+    sel = atom.args.get("cards")
+    dest = atom.args.get("destination")
+    return (atom.verb is Verb.MOVE_ZONE and isinstance(sel, Selector) and isinstance(dest, Zone)
+            and dest.kind is ZoneKind.HAND
+            and sel.mode not in (SelectorMode.ONE_OF, SelectorMode.REST) and sel.referent is None
+            and len(sel.zones) == 1 and sel.zones[0].kind is ZoneKind.LIBRARY
+            and isinstance(sel.filter, FAnd) and not sel.filter.children)
 
 
 _FLIP = {ControllerRef.YOU: ControllerRef.OPPONENT, ControllerRef.OPPONENT: ControllerRef.YOU,
@@ -315,6 +380,11 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
     in_cost: set[tuple] = set()
     generic = sum(getattr(getattr(p, "amount", None), "value", 0) for p in (card.mana_cost.parts if card.mana_cost else ())
                   if type(p).__name__ == "CostManaGeneric")
+    nodes = dict(_paths(root))
+
+    def under(path: tuple, cls: type) -> bool:
+        return any(isinstance(nodes.get(path[:k]), cls) for k in range(len(path)))
+
     for path, node in _paths(root):
         if isinstance(node, Atom) and node.verb is Verb.SEARCH:
             dead.add((*path, "args", "controller"))
@@ -348,16 +418,49 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
                 and not any(path[: len(c)] == c for c in in_cost)):
             dead.add((*path, "count"))
+        # G3 finisher, second pass (wave 4, 2026-10-30), proven in test_gates.py like the above:
+        # - SEARCH and MOVE_ZONE put a card into its OWNER's hand, library, graveyard or exile,
+        #   whatever player the destination names (CR 400.3; selectors.move_destination, V24):
+        #   only a battlefield destination names a player. MOVE_ZONE's top-n draw idiom reads it
+        #   (zone_owner picks whose library is drawn) and is left out;
+        # - a discard takes its CHOOSE/RANDOM/ALL picks from the discarding players' own hands,
+        #   reading the cards selector's filter, mode and count only (verbs.py _discard_picks): its
+        #   zones are dead, unless a "you may" above it enumerates them for its offer
+        #   (query.optional_offer);
+        # - a damage replacement whose action is a DEAL_DAMAGE rewrites the event's amount and never
+        #   runs the action (replacements.replacement_for_damage): the action's dealer is dead.
+        if isinstance(node, Atom) and node.verb in (Verb.SEARCH, Verb.MOVE_ZONE):
+            dest = node.args.get("destination")
+            if isinstance(dest, Zone) and dest.kind in _OWNER_ZONES and not _draw_idiom(node):
+                dead.add((*path, "args", "destination", "controller"))
+        if isinstance(node, Atom) and node.verb is Verb.MOVE_ZONE and node.args.get("pop_order") != "TOP" \
+                and getattr(node.args.get("from"), "kind", None) is ZoneKind.HAND and not under(path, OptionalEffect):
+            sel = node.args.get("cards")
+            if isinstance(sel, Selector) and sel.referent is None \
+                    and sel.mode in (SelectorMode.CHOOSE, SelectorMode.RANDOM, SelectorMode.ALL):
+                dead |= {(*path, "args", "cards", "zones", i, "controller") for i in range(len(sel.zones))}
+        if isinstance(node, ReplacementAbility) and isinstance(node.event, DamageDealtEvent) \
+                and isinstance(node.action, Atom) and node.action.verb is Verb.DEAL_DAMAGE:
+            dead.add((*path, "action", "args", "dealer"))
     # Two ability-level rules (their docstrings carry the argument): a REVEAL nothing reads, and a
     # TARGET selector whose twin keeps the one designation slot (role_handles gives a referent-free
     # ALL selector in the bound role the designation itself, the documented 12a convention).
     twins: set[tuple] = set()
+    # A static permission's "you may" is stripped before its payload is parsed (layers._new_static),
+    # and nothing else reads a static's top-level OptionalEffect: optional->mandatory is dead there.
+    permissions = {(1, i, "effect") for i, ability in enumerate(card.abilities)
+                   if isinstance(ability, StaticAbility) and isinstance(ability.effect, OptionalEffect)
+                   and isinstance(ability.effect.inner, Atom) and ability.effect.inner.verb in _PERMISSION_VERBS}
     for i, ability in enumerate(card.abilities):
         twins |= _twin_targets(ability, (1, i))
         roles = _reveal_dead_roles(ability)
         for path, node in _paths(ability, (1, i)) if roles else ():
             if isinstance(node, Atom) and node.verb is Verb.REVEAL:
                 dead |= {(*path, "args", role) for role in roles}
+        window_reveal = _window_reveal(ability)
+        for path, node in _paths(ability, (1, i)) if window_reveal is not None else ():
+            if node is window_reveal:
+                dead |= {(*path, "args", "controller"), (*path, "args", "count")}
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
         if isinstance(node, QConst) and path in self_counts:
@@ -391,7 +494,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
             for i in range(len(node.steps)):
                 rest = node.steps[:i] + node.steps[i + 1:]
                 cands.append((f"drop step {i}", rest[0] if len(rest) == 1 else Seq(steps=rest)))
-        elif isinstance(node, OptionalEffect):
+        elif isinstance(node, OptionalEffect) and path not in permissions:
             cands.append(("optional->mandatory", node.inner))
         elif isinstance(node, FAnd) and len(node.children) >= 2:
             for i in range(len(node.children)):
