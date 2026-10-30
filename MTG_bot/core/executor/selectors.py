@@ -1186,7 +1186,18 @@ def role_player(ctx: ExecCtx, atom: Atom, role: str = "controller") -> Handle:
         return bound
     value = atom.args.get(role)
     if isinstance(value, ControllerRef):
-        return players_for_ref(value, ctx)[0]
+        players = players_for_ref(value, ctx)
+        if len(players) > 1:
+            # V42 (2026-10-30): one acting player cannot stand for several. With three or more
+            # seats OPPONENT ("an opponent") names one of several, and somebody must choose which;
+            # ALL_OPPONENTS ("each opponent") means every one of them. Taking the first was a
+            # silent wrong answer, so it is loud until the verb iterates or the tree wraps it in
+            # EachPlayer (BACKLOG B-108). Two seats never reach this with an opponent ref.
+            raise NotImplementedError(
+                f"executor: {atom.verb.name} {role!r} is one player, but ControllerRef."
+                f"{value.name} denotes {len(players)} here (B-108)"
+            )
+        return players[0]
     raise NotImplementedError(
         f"executor: {atom.verb.name} {role!r} referent-selector player is 12b's"
     )

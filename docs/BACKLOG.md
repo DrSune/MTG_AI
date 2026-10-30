@@ -709,8 +709,9 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
   - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
     so the fold needs sublayers. Weaker than printed.
-- **B-81 [vfix2, V14, 2026-10-29] Per-object attack triggers fire once per declaration (weaker than
-  printed; gated as R5-14).**
+- **B-106 [vfix2, V14, 2026-10-29; numbered B-81 in a6c7740, renumbered 2026-10-30 because the
+  m21-fidelity lane's B-81 took the number on `cards/integration`] Per-object attack triggers fire
+  once per declaration (weaker than printed; gated as R5-14).**
   - `DeclareAttackersEvent` is (filter, attacked). The same bytes carry "Whenever you attack" / "one
     or more creatures you control attack" (CR 508.3d: once per declaration; MAPPER_GUIDE prescribes
     it, `binding._queue` dedups by (source, node, declare_group)) and "Whenever a creature you control
@@ -724,7 +725,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     encode "one or more" as a QAtLeast condition. The coordinator recommends a GENERAL form of (1):
     once-per-event vs once-per-object is one trigger axis (dies, enters, damage too), so an
     attack-only field would become a second encoding of it (AGENTS §9).
-- **B-80 [vfix2, V15 residue, 2026-10-29] Untargeted "up to N" still compiles as an exact count.**
+- **B-107 [vfix2, V15 residue, 2026-10-29; numbered B-80 in 6ec0078, renumbered 2026-10-30 for the
+  same reason] Untargeted "up to N" still compiles as an exact count.**
   - V15 made "up to N target ..." 0..N (CR 601.2c, 115.6) and Kinetic Augur's "discard up to two"
     QAtMost(2). Three more M21 untargeted choices are QConst: Rewind "Untap up to four lands",
     Cultivate "Search your library for up to two basic land cards", Ugin −10 "put up to seven
@@ -733,6 +735,30 @@ These are forks, not tasks. See the report that accompanied this audit.
   - **Fix.** Write QAtMost in those templates and give `selectors.resolve_selector`'s CHOOSE lift a
     QAtMost lane with a NONE stop (the discard lane's shape, `verbs._discard_picks`); today a
     QAtMost CHOOSE is not lifted at all and would fall to the silent slice.
+- **B-108 [vfix2, V42, 2026-10-30] Opponent refs with three or more seats: one acting player is
+  loud when it would stand for several.**
+  - Measured on a three-seat world (`MTG_bot/core/test_executor_multiplayer_opponents.py`, real
+    M21 cards). These play as printed: turn rotation; "each opponent discards" (Bad Deal, through
+    V10's per-player discard lane; before V10 only the first opponent discarded); damage to each
+    opponent (Storm Caller); each opponent mills (Thieves' Guild Enforcer); Massacre Wurm's -2/-2
+    and its per-controller life loss; "as long as an opponent has eight or more cards in their
+    graveyard", read from the second opponent; "target opponent" offering every opponent and
+    "target player" offering every player (V21); and Teferi's Ageless Insight's draw-step
+    exception across the other players' turns.
+  - The one wrong answer was `selectors.role_player`. It took the FIRST player a ControllerRef
+    denotes as the one acting player of DRAW, SCRY, LOOK_AT/REVEAL, ADD_MANA and MOVE
+    `pop_order=TOP`. It now raises when the ref denotes several. This is a hard stop where a silent
+    pick used to be, not a cap. No M21 tree reaches it: a scan of every castable and refused M21
+    tree finds no singular verb that carries OPPONENT, ALL_OPPONENTS or ANY. Two seats never
+    denote several opponents. The suite and a 60-game castable soak stay green.
+  - **What would remove the raise:**
+    - ALL_OPPONENTS ("each opponent") in those verbs should iterate in APNAP order (CR 101.4), as
+      `role_players` does.
+    - A non-targeted singular OPPONENT ("an opponent") with several candidates needs a chooser
+      ask. Who chooses, and under which tag kind, is a design decision. It is not taken here.
+  - Two-seat consumers: `games.py:1157` deals `GameWorld(num_players=2)`. tools/training
+    `ab_duel.py` and `collector.py` route every ask to `world.active_player`, not
+    `executor.decisions.asking_seat`.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
   hand is payable with no cards.
