@@ -118,6 +118,14 @@ class ReturnRegistryTest(unittest.TestCase):
         finally:
             self.ex.returns.rows = rows
 
+    def test_the_trace_snapshot_carries_the_rows_while_they_exist(self) -> None:
+        from MTG_bot.core.executor.games import world_snapshot
+
+        self.assertNotIn("returns", world_snapshot(self.ex))
+        zap = self.world.add_card(card_id("Zap", type_line="Instant"), self.p1, ZONE_HAND)
+        self._exile_until(zap)
+        self.assertEqual(world_snapshot(self.ex)["returns"], [repr(r) for r in self.ex.returns.dump()])
+
     def test_a_card_that_left_exile_and_came_back_is_a_new_object(self) -> None:
         # CR 400.7: Handles survive zone moves, the object does not.
         zap = self.world.add_card(card_id("Zap", type_line="Instant"), self.p1, ZONE_HAND)
