@@ -133,3 +133,41 @@ needs three things:
 - **Snoop's "has all activated abilities of that card".**
 - **Teferi, Master of Time has no window on the opponent's turn** (scaffold).
 - **The batch-Magic limits:** no priority; one act window per turn.
+
+## Final state, 2026-10-30 ~10:00 (`cards/integration` 221e400)
+- **Review waves 4 and 5, on the merged engine.**
+  - Wave 4: 126 real cards, 21 WRONG (17%, down from 29% before the fixes). The new findings were fixed:
+    - Cultivate's split;
+    - Basri Ket's −2 counting tokens;
+    - state-based actions before triggers (CR 117.5, 704.3);
+    - entered-this-turn per object;
+    - Archfiend's Vessel's "if you do" (one MAY_DONE meaning);
+    - Necromentia's tokens to the opponent;
+    - Primal Might as an up-to-one target;
+    - Speaker of the Heavens' Angel is a creature;
+    - Experimental Overload castable;
+    - Rin and Seri's life gain;
+    - Ugin's "up to seven";
+    - Alpine Houndmaster's optional find;
+    - "library and/or graveyard" as a zone choice.
+  - Wave 5 re-reviewed the 17 fixed cards: 17/17 OK.
+  - Planted faults over all five waves: 85/85 caught.
+- **Gates:** suite 2 failed (D3/D11) / **4583 passed**; packs **668/668**, plus card packs in the suite.
+- **Counts:** M21 castable **281**; **verified 263**; FDN verified 55.
+- **The 18 unverified castable M21 cards:**
+  - **Waiting on R5 round 4 or engine limits** (all weaker than printed, except one):
+    - **Feline Sovereign is STRONGER than printed:** it fires once per Cat, where "one or more" means once (the R5-14 batching axis);
+    - Basri, Devoted Paladin; Hooded Blightfang (per-attacker triggers);
+    - Conspicuous Snoop;
+    - Demonic Embrace; Radha (inert permission rows, R5-2);
+    - Drowsing Tyrannodon (B-80);
+    - Furious Rise (R5-8);
+    - Teferi, Timeless Voyager (D16);
+    - Transmogrify (REVEAL.until).
+  - **The tooling can't fully check them; they play right in every reachable state reviewed:**
+    - Archfiend's Vessel, See the Truth (an unreachable branch);
+    - Mangara, Teferi's Ageless Insight (differ only with 3+ players);
+    - Tolarian Kraken (needs a response window);
+    - Garruk, Savage Herald, Rookie Mistake, Runed Halo (probe limits).
+- **Not castable:** Chandra ×2, Double Vision and Sublime Epiphany, which wait on R5 round 4 (permissions, copies,
+  REPLACE).
