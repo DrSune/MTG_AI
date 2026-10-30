@@ -971,11 +971,19 @@ class Executor:
                 controller=ctx.controller,
                 bindings=ctx.bindings,
             )
+            done = False
             if (
                 offer_or_autopick(ctx, offer, f"may:{ctx.source}:{site_digest(effect)}")
                 == "fire"
             ):
+                before = (len(self.events), len(self.journal.events))
                 self._run_effect(effect.inner, ctx)
+                # V12 (CR 118.12): "If you do" asks whether the optional
+                # action was carried out, not what was answered: an action
+                # that changed nothing (a discard with no legal card, a
+                # sacrifice with nothing to sacrifice) was not done.
+                done = (len(self.events), len(self.journal.events)) != before
+            ctx.may_done[f"may:{ctx.source}"] = done
         elif isinstance(effect, Conditional):
             # r19b (Track Down): the compiler's sentence convention
             # (templates_b5b _build_if_it_type_then: "Conditional whose

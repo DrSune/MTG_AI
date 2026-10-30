@@ -1294,5 +1294,51 @@ class TestConditionalSubject(ExecutorCase):
         self.assertEqual(_conditional_subject(CREATURE, ctx), self.alpha)
 
 
+
+class TestIfYouDo(ExecutorCase):
+    """V12 (2026-10-29): "You may <action>. If you do, <effect>" (MAY_DONE)
+    asks whether the optional action was carried out (CR 118.12: a cost the
+    player could not pay was not paid), not whether "fire" was answered."""
+
+    def sacrifice_then_gain(self, answer, victims):
+        from MTG_bot.core.ability_tree import OptionalEffect
+
+        effect = Seq(
+            steps=(
+                OptionalEffect(
+                    inner=atom(
+                        Verb.SACRIFICE,
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.ONE_OF,
+                            FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), CREATURE)),
+                            zones=(BF_ANY,),
+                        ),
+                    )
+                ),
+                Conditional(
+                    pred=FAtom(FAtomPred.MAY_DONE),
+                    then_effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)),
+                ),
+            )
+        )
+        for card in [self.alpha, self.gamma]:
+            if card not in victims:
+                self.world.move_to_zone(card, self.p0, ZONE_GRAVEYARD)
+        self.ex.decisions.provider = lambda vocab, what: answer if answer in vocab else vocab[0]
+        self.ex.apply_effect(effect, source=self.beta, controller=self.p0)
+        return self.world.players[self.p0].life
+
+    def test_fire_with_nothing_to_sacrifice_is_not_done(self):
+        self.assertEqual(self.sacrifice_then_gain("fire", victims=[]), 20)
+
+    def test_fire_and_a_sacrifice_is_done(self):
+        self.assertEqual(self.sacrifice_then_gain("fire", victims=[self.alpha]), 21)
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
+
+    def test_skip_is_not_done(self):
+        self.assertEqual(self.sacrifice_then_gain("skip", victims=[self.alpha]), 20)
+
+
 if __name__ == "__main__":
     unittest.main()

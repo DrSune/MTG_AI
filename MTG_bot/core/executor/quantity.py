@@ -219,6 +219,10 @@ class ExecCtx:
     # Choose CONSUMES the declaration instead of re-asking for a choice
     # the caster already made. Consumed in ask order; empty elsewhere.
     prechosen_modes: list[str] = field(default_factory=list)
+    # V12 (2026-10-29): per may-offer site (``may:<source>``) of this
+    # resolution, whether the optional action was carried out (CR 118.12);
+    # MAY_DONE reads it. Transient, per resolution, like look_window.
+    may_done: dict[str, bool] = field(default_factory=dict)
 
     def take_decision(
         self, vocab: tuple[str, ...], what: str, *, seat: Handle | None = None
@@ -1113,6 +1117,10 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # without a journal row); consulted only when the journal holds
         # nothing for the site.
         site = f"may:{ctx.source}"
+        if site in ctx.may_done:
+            # V12 (CR 118.12): the optional action's outcome in this
+            # resolution: "fire" and the action changed something.
+            return ctx.may_done[site]
 
         def at_site(what: str) -> bool:
             return what == site or what.startswith(f"{site}:")

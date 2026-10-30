@@ -649,7 +649,11 @@ These are forks, not tasks. See the report that accompanied this audit.
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
 - **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
-  empty hand** (stronger than printed).
+  empty hand** (stronger than printed). **[MAY_DONE half FIXED by V12 on `engine/verify-fixes`
+  2026-10-29: "if you do" now reads whether the optional action changed anything (CR 118.12), so
+  nothing done means no draw. Still open, weaker side only: the may-offer and a Choose inside it
+  still offer an action that cannot be done (Crypt Lurker's discard with no creature card), a
+  phantom option (AGENTS §10).]**
   - The may-offer is not narrowed when there is nothing to discard. `MAY_DONE`
     (`executor/quantity.py:1081`) only checks that the answer was "fire", so "yes" draws a card and
     discards nothing.
