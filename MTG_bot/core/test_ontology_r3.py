@@ -207,18 +207,15 @@ class LedgerGroundTruth(unittest.TestCase):
             if key == ("M21", "Alpine Houndmaster"):
                 # re-pinned 2026-10-29: m21-fidelity replaced this up-to-two CHOOSE ("a card
                 # named Alpine Watchdog and/or a card named Igneous Cur") by one up-to-one pick
-                # per name, which the compiler routes to the asked ONE_OF channel. The ledger row
-                # stays the R3 evidence; the decision is still asked (no blindness): one ONE_OF
-                # pick over the row's zones per name, as many picks as the row's count.
+                # per name. The ledger row stays the R3 evidence; the decision is still asked
+                # (no blindness): one pick over the row's zones per name, as many picks as the
+                # row's count.
+                # re-pinned 2026-10-30: m21-fidelity wave 4 makes each pick QAtMost(1) (CR
+                # 701.23b, a hidden-zone search may fail to find). The pick stays a CHOOSE and
+                # is asked through the resolve-time QAtMost lane (with a NONE stop) instead of
+                # the exactly-one ONE_OF channel.
                 picks = [
-                    sel
-                    for sel in _one_of_selectors(rec)
-                    if tuple(
-                        f"{z.kind.name}:{z.controller.name if z.controller else None}"
-                        for z in sel.zones
-                    )
-                    == tuple(n["zones"])
-                    and sel.count == QConst(1)
+                    s for s in shapes if s[2] == tuple(n["zones"]) and s[3] == repr(QAtMost(1))
                 ]
                 self.assertEqual(len(picks), want_count["value"], (key, picks))
                 continue
@@ -228,6 +225,11 @@ class LedgerGroundTruth(unittest.TestCase):
                 # up to two" from the ledger's QConst(2) to QAtMost(2) (the
                 # player's 0..2); the ledger row is the R3 record.
                 want = repr(QAtMost(2))
+            if key == ("M21", "Ugin, the Spirit Dragon"):
+                # re-pinned 2026-10-30: m21-fidelity wave 4 changes Ugin's [-10] "put up to
+                # seven permanent cards" from the ledger's QConst(7) to QAtMost(7) (0..7, asked
+                # pick by pick with a NONE stop); the ledger row is the R3 record.
+                want = repr(QAtMost(7))
             hits = [s for s in shapes if s[2] == tuple(n["zones"]) and s[3] == want]
             self.assertTrue(hits, (key, n["zones"], want_count, shapes))
             holder = hits[0][0]

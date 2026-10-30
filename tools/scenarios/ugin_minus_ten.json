@@ -8,7 +8,7 @@
  ],
  "steps": [
   {"op": "loyalty", "key": "ugin", "set": 10},
-  {"op": "activate", "key": "ugin", "idx": 2, "seat": 0}
+  {"op": "activate", "key": "ugin", "idx": 2, "seat": 0, "decisions": ["plains"]}
  ],
  "expect": {
   "life": {"0": 27, "1": 20},
@@ -16,5 +16,5 @@
   "hand": {"0": 1},
   "battlefield_pt": {"Library 0": [1, 1], "Library 5": [1, 1]}
  },
- "notes": "Ugin's [-10]: 'You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.' 10 loyalty -> 0, Ugin dies to the state-based action and the ability resolves: +7 life; the library holds the runner's six 1/1 filler creatures, so the draw takes six; the hand then holds seven permanent cards (the Plains and the six creatures) and one instant, so all seven permanents go onto the battlefield and the instant stays in hand."
+ "notes": "Ugin's [-10]: 'You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.' 10 loyalty -> 0, Ugin dies to the state-based action and the ability resolves: +7 life; the library holds the runner's six 1/1 filler creatures, so the draw takes six; the hand then holds seven permanent cards (the Plains and the six creatures) and one instant, so all seven permanents go onto the battlefield and the instant stays in hand. # re-pinned 2026-10-30: m21-fidelity wave 4 makes 'up to seven' a real choice (QAtMost(7): each pick is asked, NONE stops), so the step answers the picks: the Plains first, then the runner's first-legal-word default takes each creature; the outcome is unchanged."
 }

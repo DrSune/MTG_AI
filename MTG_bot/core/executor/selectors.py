@@ -21,6 +21,7 @@ takes min(count, candidates)); C12 referents are the closed strings.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
@@ -761,6 +762,39 @@ def resolve_selector(
         # V10: who picks. A sacrifice menu is its controller's (CR 701.21a);
         # any other menu is the effect controller's (CR 608.2d).
         decider = sacrificing_player(ctx, ordered) if sacrifice else ctx.controller
+        if (
+            ask_choose
+            and ok is None
+            and isinstance(sel.count, QAtMost)
+            and k > 0
+            and ordered
+            and _choose_lift_allowed(replace(sel, count=QConst(sel.count.n)), ctx)
+        ):
+            # B-107 (m21-fidelity wave 4, 2026-10-30): "up to N" names every
+            # number from zero to N (the untargeted twin of V15's 0..N target
+            # count, CR 115.6), so each pick may stop with
+            # NONE, the first included (the discard lane's shape,
+            # verbs._discard_picks): Ugin's -10 can keep a permanent card in
+            # hand, a named library search can fail to find (CR 701.23b).
+            # The other lift rules are the QConst lane's own (same zones,
+            # same referent and self-reference refusals). Before this lane
+            # a QAtMost CHOOSE fell to the silent slice below.
+            picks = []
+            pool = list(ordered)
+            for pick_no in range(min(k, len(pool))):
+                vocab = tuple(str(h) for h in sorted(pool)) + ("NONE",)
+                if sacrifice:
+                    what = f"sacrifice:{decider}:{ctx.source}:{site_digest(vocab)}"
+                else:
+                    mid = f"{pick_no + 1}of{k}:" if k > 1 else ""
+                    what = f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
+                answer = ctx.take_decision_of(decider, vocab, what)
+                if answer == "NONE":
+                    break
+                pick = next(h for h in pool if str(h) == answer)
+                picks.append(pick)
+                pool.remove(pick)
+            return picks
         if (
             ask_choose
             and ok is None

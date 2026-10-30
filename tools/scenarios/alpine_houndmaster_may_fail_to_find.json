@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "m21-fidelity wave 4 (2026-10-30). Printed: 'you may search your library for a card named Alpine Watchdog and/or a card named Igneous Cur, reveal them, put them into your hand, then shuffle.' CR 701.23b: searching a hidden zone for a card with a stated quality, the player need not find it. Both named cards are in the library; the controller fires the may, takes the Watchdog and declines to find the Cur (NONE), so the Cur stays in the library. Before the fix each named find was an exactly-one pick, so a present card was always found.",
+ "cards": [
+  {"key": "h", "real": "Alpine Houndmaster", "zone": "hand", "controller": 0},
+  {"key": "wd", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
+  {"key": "cur", "real": "Igneous Cur", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "h", "decisions": ["fire", "wd", "NONE"]}],
+ "expect": {"zone": {"h": "battlefield", "wd": "hand", "cur": "library", "drawn": "hand"}, "hand": {"0": 2}}}

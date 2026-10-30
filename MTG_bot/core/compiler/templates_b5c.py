@@ -1222,6 +1222,13 @@ def _build_loyalty_lose_per_creature(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_gain_draw_put(m: re.Match[str]) -> SentenceOutcome:
+    """Ugin, the Spirit Dragon [-10]: "You gain 7 life, draw seven cards, then
+    put up to seven permanent cards from your hand onto the battlefield."
+
+    m21-fidelity (wave 4, 2026-10-30): "up to seven" is QAtMost(7), any
+    number from zero to seven (the resolve-time CHOOSE lane asks each pick
+    with a NONE stop). It was QConst(7), so every permanent card in hand,
+    up to seven, had to go onto the battlefield."""
     seq = Seq(
         steps=(
             Atom(
@@ -1249,7 +1256,7 @@ def _build_loyalty_gain_draw_put(m: re.Match[str]) -> SentenceOutcome:
                         (
                             "cards",
                             Selector(
-                                QConst(7),
+                                QAtMost(7),
                                 SelectorMode.CHOOSE,
                                 _PERMANENT_CARD_FILTER,
                                 zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),

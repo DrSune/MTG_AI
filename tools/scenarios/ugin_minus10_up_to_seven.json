@@ -1,0 +1,27 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "keep", "name": "Keep In Hand", "power": "5", "toughness": "5", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "want", "name": "Wanted", "power": "2", "toughness": "2", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "s1", "name": "Sorcery One", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s2", "name": "Sorcery Two", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s3", "name": "Sorcery Three", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s4", "name": "Sorcery Four", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s5", "name": "Sorcery Five", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s6", "name": "Sorcery Six", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s7", "name": "Sorcery Seven", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s8", "name": "Sorcery Eight", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "ugin", "set": 10},
+  {"op": "activate", "key": "ugin", "idx": 2, "seat": 0, "decisions": ["want", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"ugin": "graveyard", "want": "battlefield", "keep": "hand", "s1": "hand", "s7": "hand"},
+  "life": {"0": 27},
+  "hand": {"0": 9}
+ },
+ "notes": "Printed Ugin [-10]: 'You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.' Loyalty 10 -> 0 (Ugin dies). I gain 7 (27) and draw my seven sorceries (s8 was the runner's opening draw). Up to seven: I choose to put only Wanted onto the battlefield and keep the 5/5 in hand. Hand = Keep In Hand + 8 sorceries = 9."
+}

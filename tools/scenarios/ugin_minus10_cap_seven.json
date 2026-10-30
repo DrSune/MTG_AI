@@ -1,0 +1,196 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "ugin",
+   "real": "Ugin, the Spirit Dragon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Permanent 1",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Permanent 2",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c3",
+   "name": "Permanent 3",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c4",
+   "name": "Permanent 4",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c5",
+   "name": "Permanent 5",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c6",
+   "name": "Permanent 6",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c7",
+   "name": "Permanent 7",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c8",
+   "name": "Permanent 8",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c9",
+   "name": "Permanent 9",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "name": "Sorcery 1",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Sorcery 2",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Sorcery 3",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s4",
+   "name": "Sorcery 4",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s5",
+   "name": "Sorcery 5",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s6",
+   "name": "Sorcery 6",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s7",
+   "name": "Sorcery 7",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "s8",
+   "name": "Sorcery 8",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ugin",
+   "set": 10
+  },
+  {
+   "op": "activate",
+   "key": "ugin",
+   "idx": 2,
+   "seat": 0,
+   "decisions": [
+    "c3",
+    "c4",
+    "c5",
+    "c6",
+    "c7",
+    "c8",
+    "c9"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ugin": "graveyard",
+   "c3": "battlefield",
+   "c4": "battlefield",
+   "c5": "battlefield",
+   "c6": "battlefield",
+   "c7": "battlefield",
+   "c8": "battlefield",
+   "c9": "battlefield",
+   "c1": "hand",
+   "c2": "hand"
+  },
+  "life": {
+   "0": 27
+  },
+  "hand": {
+   "0": 10
+  }
+ },
+ "notes": "Printed Ugin [-10]: 'You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.' Nine permanent cards in hand: I choose seven (Permanent 3..9); Permanent 1 and 2 stay in hand. Life 20 -> 27. Hand after: 2 creatures + 8 sorceries (s8 opening draw + 7 drawn) = 10."
+}

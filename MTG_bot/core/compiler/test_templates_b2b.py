@@ -57,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QAgg,
+    QAtMost,
     QConst,
     QCount,
     QProp,
@@ -1466,8 +1467,10 @@ class TestB2bEffectStructure(unittest.TestCase):
             search = _atom_step(seq, idx)
             self.assertIs(search.verb, Verb.SEARCH)
             sel = _selector(search, "cards")
-            assert isinstance(sel.count, QConst)
-            self.assertEqual(sel.count.value, 1)
+            # re-pinned 2026-10-30: m21-fidelity wave 4, each named find is up to one
+            # (QAtMost(1)): CR 701.23b lets a hidden-zone search fail to find.
+            assert isinstance(sel.count, QAtMost)
+            self.assertEqual(sel.count.n, 1)
             self.assertIs(sel.mode, SelectorMode.CHOOSE)
             assert isinstance(sel.filter, FAtom)
             self.assertEqual(sel.filter.string_value, name)

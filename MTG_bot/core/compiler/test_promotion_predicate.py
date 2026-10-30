@@ -79,12 +79,16 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # re-pinned 2026-10-30 (m21-fidelity wave 4, Experimental Overload): "Exile ~" is the
 # self-reference CHOOSE (IS_SOURCE on the stack) instead of a TARGET: SELF_DESIGNATION
 # 50 -> 51, TOTAL 144 -> 145. Nothing else moved.
-TOTAL_SURFACES = 145
+# re-pinned 2026-10-30 (m21-fidelity wave 4, Alpine Houndmaster): its two named finds are
+# up-to-one CHOOSEs (QAtMost(1), CR 701.23b), which the search-pick pass leaves as CHOOSE:
+# COUNT_NOT_ONE 11 -> 13, TOTAL 145 -> 147. Ugin's [-10] QConst(7) -> QAtMost(7) stays in
+# COUNT_NOT_ONE. Nothing else moved.
+TOTAL_SURFACES = 147
 CORE_LIFTABLE = 22
 SELF_DESIGNATION = 51
 ANAPHORIC_REFERENT = 35
 COST_VICTIM = 26
-COUNT_NOT_ONE = 11
+COUNT_NOT_ONE = 13
 
 # (card, verb) rows the predicate matches but the encoder keeps silent —
 # must stay in lockstep with compiler.PICK_ASK_FORCE_SILENT (L-27..L-29).

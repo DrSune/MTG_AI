@@ -678,7 +678,11 @@ def optional_offer(
                 SelectorMode.RANDOM,
             ):
                 continue  # ALL / ONE_OF / REST: no exact-count gate here
-            if isinstance(value.count, QUnbounded):
+            if isinstance(value.count, (QUnbounded, QAtMost)):
+                # m21-fidelity wave 4 (2026-10-30): "up to N" includes zero,
+                # so an empty population never makes it unactionable (Alpine
+                # Houndmaster's "a card named A and/or a card named B" with
+                # only A in the library is still a search worth firing).
                 continue
             if tail_of_search or value.referent in ("event", "result"):
                 continue  # produced mid-effect: not a pre-execution gate

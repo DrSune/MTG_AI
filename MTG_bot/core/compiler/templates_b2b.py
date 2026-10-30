@@ -490,9 +490,14 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
 
 
 def _named_search_one(name: str) -> Atom:
-    """One "a card named <name>" pick from your library into your hand: an
-    up-to-one CHOOSE, which the compiler's search-pick pass turns into the
-    asked ONE_OF channel."""
+    """One "a card named <name>" pick from your library into your hand.
+
+    m21-fidelity (wave 4, 2026-10-30): an up-to-one CHOOSE (QAtMost(1)).
+    CR 701.23b: a player searching a hidden zone for a card with a stated
+    quality need not find it, so each named find may come up empty (the
+    resolve-time QAtMost lane offers NONE). It was QConst(1), which the
+    search-pick pass turns into the exactly-one ONE_OF ask: a mandatory
+    find whenever the card was there."""
     return Atom(
         verb=Verb.SEARCH,
         args=AtomArgs(
@@ -500,7 +505,7 @@ def _named_search_one(name: str) -> Atom:
                 (
                     "cards",
                     Selector(
-                        QConst(1),
+                        QAtMost(1),
                         SelectorMode.CHOOSE,
                         FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
                         zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
