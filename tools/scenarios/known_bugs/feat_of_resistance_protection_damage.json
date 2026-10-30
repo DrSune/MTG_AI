@@ -1,0 +1,15 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+    {"key": "imp", "name": "Red Imp", "power": "1", "toughness": "1", "type": "Creature", "colors": ["R"], "zone": "battlefield", "controller": 1},
+    {"key": "fr", "real": "Feat of Resistance", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"W": 2}},
+  "steps": [
+    {"op": "cast", "real": "Feat of Resistance", "key": "fr", "targets": ["bear"], "decisions": ["3"]},
+    {"op": "deal_damage", "source": "imp", "target": "bear", "amount": 2, "controller": 1}
+  ],
+  "expect": {"zone": {"bear": "battlefield"}, "damage": {}},
+  "notes": "B-101 repro (m21-fidelity, 2026-10-30). With protection from red, damage from a red source is prevented (CR 702.16e). FAILS today: the Bear gets 2 damage marks."
+}

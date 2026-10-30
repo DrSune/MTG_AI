@@ -73,7 +73,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
-    ZonePosition,
     canonical_json,
     fingerprint,
 )
@@ -1805,7 +1804,10 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         option = _optional(ability)
         seq = _seq_inner(option)
-        self.assertEqual(len(seq.steps), 3)
+        # re-pinned 2026-10-30 (G3 finisher): two steps. The third, MOVE_ZONE(this creature
+        # from the top of your library to your hand), was unprinted ("put it into your hand"
+        # is the SEARCH's destination) and moved the creature itself when it was on top.
+        self.assertEqual(len(seq.steps), 2)
         # SEARCH
         search = _atom_step(seq, 0)
         self.assertIs(search.verb, Verb.SEARCH)
@@ -1834,20 +1836,6 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
         reveal_count = _qconst(reveal, "count")
         self.assertEqual(reveal_count.value, 1)
-        # MOVE_ZONE
-        move = _atom_step(seq, 2)
-        self.assertIs(move.verb, Verb.MOVE_ZONE)
-        move_sel = _selector(move, "cards")
-        assert isinstance(move_sel.filter, FAtom)
-        self.assertIs(move_sel.filter.pred, FAtomPred.IS_SOURCE)
-        self.assertEqual(
-            move_sel.zones[0],
-            Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=ZonePosition.TOP),
-        )
-        self.assertEqual(
-            move.args.get("destination"),
-            Zone(ZoneKind.HAND, ControllerRef.YOU),
-        )
 
     def test_nine_lives_lose_game(self) -> None:
         ability = _ability(

@@ -102,6 +102,7 @@ sentences share one template and match only it); verified in tests.
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from typing import Final
 
 from MTG_bot.core.ability_tree import (
@@ -154,7 +155,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
-    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -805,17 +805,21 @@ def _build_wildwood_scorge(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_falconer_adept(m: re.Match[str]) -> SentenceOutcome:
-    """#28: create 1/1 white Bird with flying, tapped and attacking."""
-    # color="W" populated (round 8 / C-2 repair).  GAP: "that's tapped and
-    # attacking" token state stays dropped in 8-B (TokenSpec.enters_tapped/
-    # enters_attacking rows are 8-C coverage work, not this flip pass).
+    """#28: create 1/1 white Bird with flying, tapped and attacking.
+
+    "that's tapped and attacking" is TokenSpec.enters_tapped/enters_attacking
+    (R8-4, the Basri Ket [-2] Soldier shape; CR 508.4: put onto the battlefield
+    attacking, never declared). m21-fidelity (fixer 4, 2026-10-30): both flags
+    were left unset (an 8-B gap note), so the Bird entered untapped and out of
+    combat: no attack row, no damage (weaker than printed)."""
+    bird = replace(_bird_token(1, 1), enters_tapped=True, enters_attacking=True)
     return _ability(
         _attack_event(),
         Atom(
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(
                 pairs=(
-                    ("tokens", _bird_token(1, 1)),
+                    ("tokens", bird),
                     ("count", QConst(1)),
                 )
             ),
@@ -1051,32 +1055,13 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.REVEAL,
         args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
     )
-    move = Atom(
-        verb=Verb.MOVE_ZONE,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_SOURCE),
-                        zones=(
-                            Zone(
-                                ZoneKind.LIBRARY,
-                                ControllerRef.YOU,
-                                position=ZonePosition.TOP,
-                            ),
-                        ),
-                    ),
-                ),
-                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
-            )
-        ),
-    )
+    # "put it into your hand" is the SEARCH's own destination. m21-fidelity
+    # (G3 finisher, 2026-10-30): a third step, MOVE_ZONE(this creature from the
+    # top of your library to your hand), was unprinted; it moved the creature
+    # itself when it was on top of the library as the trigger resolved.
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
-        OptionalEffect(inner=Seq(steps=(search, reveal, move))),
+        OptionalEffect(inner=Seq(steps=(search, reveal))),
     )
 
 

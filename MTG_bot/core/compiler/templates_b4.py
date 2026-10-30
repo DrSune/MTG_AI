@@ -800,28 +800,10 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
             )
         ),
     )
-    move_atom = Atom(
-        verb=Verb.MOVE_ZONE,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_SOURCE),
-                        zones=(Zone(
-                            kind=ZoneKind.LIBRARY,
-                            controller=ControllerRef.YOU,
-                            position=ZonePosition.TOP,
-                        ),),
-                    ),
-                ),
-                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
-            )
-        ),
-    )
-    seq = Seq(steps=(search_atom, reveal_atom, move_atom))
+    # "put it into your hand" is the SEARCH's own destination; the unprinted
+    # MOVE_ZONE(this card from the top of your library) step is gone (G3 finisher,
+    # 2026-10-30), as in the ETB twin.
+    seq = Seq(steps=(search_atom, reveal_atom))
     # The sentence is part of the SORCERY's effect (Basri's Aegis, Liliana's
     # Scorn): it runs as the spell resolves, after the printed sentence before
     # it (CR 608.2c), and the compiler's search-shuffle tail joins this same
