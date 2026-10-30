@@ -518,6 +518,14 @@ These are forks, not tasks. See the report that accompanied this audit.
   other token carrier, and B11, writes "Creature — <subtypes>". Same meaning, different bytes,
   so it breaks the identity law. `types` and `subtypes` agree. Fixing it re-bakes one M21 golden,
   so schedule it at a pilot era boundary with B-43.
+  - **[FIXED on `cards/m21-fidelity` 2026-10-30 (a5c6dfb), fixer A wave 4.]** It was not
+    cosmetic. The executor mints a token's identity from `type_line` alone
+    (`verbs._v_create_token`), so the Angel was not a creature: it could not attack or block
+    (pack `speaker_of_the_heavens_angel_is_a_creature`). Census: of 153 compiled TokenSpecs in
+    the 19 sets and 5 in card records, this was the only type line missing a card type.
+  - Still open (ontology or engine lane): nothing keeps `type_line` and `types`/`subtypes`
+    in step. Either `TokenSpec.__post_init__` checks that the line equals the composed fields,
+    or the executor mints from the fields.
 - **B-49 [2026-10-29, found by the G1 probe] Noncreature permanents with no spell effect cannot be **[FIXED on branch `cards/integration` 2026-10-29, pending the era-boundary merge]**
   cast** (live in M21).
   - An enchantment, artifact or planeswalker whose text is all static, triggered or activated
@@ -787,6 +795,12 @@ These are forks, not tasks. See the report that accompanied this audit.
   - **Fix.** Write QAtMost in those templates and give `selectors.resolve_selector`'s CHOOSE lift a
     QAtMost lane with a NONE stop (the discard lane's shape, `verbs._discard_picks`); today a
     QAtMost CHOOSE is not lifted at all and would fall to the silent slice.
+  - **[Engine lane and Ugin FIXED on `cards/m21-fidelity` 2026-10-30 (f80c7d4), fixer A wave 4.]**
+    `resolve_selector`'s CHOOSE has a QAtMost lane: each pick is asked with NONE, the first
+    included, under the QConst lane's own lift rules. Ugin's −10 is QAtMost(7), and Alpine
+    Houndmaster's two named finds are QAtMost(1) (CR 701.23b). A may-offer no longer narrows to
+    skip on an up-to choice with no candidates (`query.optional_offer`). Still QConst: Rewind's
+    "Untap up to four lands" and Cultivate's "up to two basic land cards".
 - **B-108 [vfix2, V42, 2026-10-30] Opponent refs with three or more seats: one acting player is
   loud when it would stand for several.**
   - Measured on a three-seat world (`MTG_bot/core/test_executor_multiplayer_opponents.py`, real
@@ -933,6 +947,12 @@ These are forks, not tasks. See the report that accompanied this audit.
     scry, say). Slightly weaker than printed, no exploit.
   - Fix needs a way to say "choose which of these zones to search" (a design decision; today
     the zone set is fixed by the selector). Not done.
+  - 2026-10-30 (wave 4 asked for Chandra's Firemaw's shuffle to be conditional): this entry is
+    the cause. The engine always searches both zones, so the library is always searched and the
+    unconditional shuffle is right for that search. Option with existing IR: an "and/or" search
+    is a `Choose` of three zone sets (library; graveyard; both), each `Seq[SEARCH, REVEAL]` plus
+    SHUFFLE when the library is searched. It changes the 12 named tutors in 4 sets (5 in M21).
+    Waiting for a go. Repro: `tools/scenarios/known_bugs/chandras_firemaw_graveyard_no_shuffle.json`.
 - **B-79 [fixer A, m21-fidelity] Primal Might's fight partner is not a target and cannot be
   declined** (live in M21 and FDN; stronger and weaker than printed).
   - "Then it fights up to one target creature you don't control" compiles the foe as a
@@ -946,6 +966,15 @@ These are forks, not tasks. See the report that accompanied this audit.
     skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
   - Re-checked on `cards/integration` 18afa85 (2026-10-30): tree unchanged in M21 and FDN, both
     review packs still fail the same way, `_validate_positional` still exactly-one only.
+  - **[FIXED on `cards/m21-fidelity` 2026-10-30 (3858ac3), fixer A wave 4.]** The foe is a
+    TARGET with QAtMost(1) in M21 and FDN. `stack._validate_positional` accepts up-to-one slots
+    that come after every required slot; an omitted slot designates nothing
+    (`positional_slot_designations`). A FIGHT whose fighter the preceding atom could not act on
+    is no fight (CR 701.14b), not a raise. Packs `primal_might_hexproof_not_fought` and
+    `primal_might_up_to_one_declined` pass.
+  - **Still open:** the games policy (`games.play_cast`) and the bench router skip every
+    multi-slot cast, as they do for every two-target spell. So Primal Might, now a two-target
+    spell, is no longer cast in corpus games (`multi_target_skips` counts it). Policy lane.
 - **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
   component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
   - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
@@ -1266,11 +1295,32 @@ These are forks, not tasks. See the report that accompanied this audit.
     sentences are unparsed; the dangling "Put the rest on the bottom of your library in a random
     order." compiled as the whole spell effect (a REST over the top of the library with no look
     window), so casting either moves the top card of the library to the bottom.
+    **[FIXED on `cards/m21-fidelity` 2026-10-30 (38979c2), fixer A.]** A sentence that leans on
+    the previous one (a REST complement or the `result` register) is unparsed when that sentence
+    is (`compiler._dangles_after_unparsed`). Of 50 such fragments in 14 sets (none in M21), 12
+    instants and sorceries had only the fragment compiled and lose their SpellAbility; the
+    commit lists them.
   - Compiler lane: Archfiend's Vessel's "If you do, create a 5/5 black Demon" is an unconditional
     CREATE_TOKEN (template B5b-token-demon). The review packs `archfiends_vessel_if_you_do` and
     `archfiends_vessel_no_demon_if_not_exiled` still fail on the Demon count only; their zone
     halves pass (`archfiends_vessel_reanimated_as_0_0_dies_first`,
     `archfiends_vessel_recast_from_hand_same_turn`).
+    - Fixer A, 2026-10-30: a design decision, so not done. CR 118.12 reads "[Do something].
+      If you do, [effect]" and "You may [do something]. If you do" the same way: did the player
+      do it. The compiler gates only the "may" form (`compiler._merge_if_do_continuation`,
+      Conditional(MAY_DONE)); the mandatory form is a plain append by design, and MAY_DONE has
+      no answer without a may-offer. Mazemind Tome (M21, stamped; FDN) "exile it. If you do, you
+      gain 4 life" has the same shape. In the 19 sets these three are the only compiled cards
+      with it; four more do not parse yet.
+    - (a) Recommended: MAY_DONE means "the antecedent was done" for both forms. The compiler
+      emits Conditional(MAY_DONE, Y) after a mandatory antecedent too, and the executor records
+      whether that step changed anything (the V12 rule). One encoding for one rule.
+    - (b) A new predicate for the mandatory form.
+    - (c) Template only: count the Demon by THAT_MANY_COUNT of the exile (0 or 1) and the
+      Tome's life by 4 times it. Exact, but a contortion that does not generalise.
+    - Repros (failing on the Demon count only):
+      `tools/scenarios/known_bugs/archfiends_vessel_if_you_do.json` and
+      `.../archfiends_vessel_no_demon_if_not_exiled.json`.
   - Engine: CR 111.8 (a token that has left the battlefield can't change zones) is not enforced.
     W4-4 runs state-based actions before triggers, and keeps a token that a queued firing names
     in the world as its last-known information until that firing resolves, so a trigger that
@@ -1278,6 +1328,8 @@ These are forks, not tasks. See the report that accompanied this audit.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
+    [2026-10-30: V15 made "up to N target" 0..N. Alpine Houndmaster's named finds can now fail
+    (B-107's QAtMost lane, CR 701.23b); every other tutor still finds when it can.]
   - M21 Subira, ZNR Sneaking Guide and FDN Goblin Smuggler's "target creature can't be blocked"
     activations get no target slot (`query.activation_target_slots`), so they do nothing.
     **FIXED on branch `engine/verify-fixes-3` (V34, 2026-10-29)**: a synthesized one-creature slot
@@ -1288,6 +1340,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - [2026-10-29, Ugin] Ugin's [−10] "put up to seven permanent cards from your hand onto the
     battlefield" puts min(7, n): the CHOOSE count clamp (C17) never offers fewer, and with more
     than seven it asks which seven. Fewer options than printed, never more.
+    **[FIXED on `cards/m21-fidelity` 2026-10-30 (f80c7d4): QAtMost(7) with a NONE stop, B-107.]**
   - [2026-10-29, Ugin] An Aura put onto the battlefield by an effect (Ugin's [−10]) enters
     unattached and the CR 704.5m sweep buries it. CR 303.4f lets its controller choose what it
     enchants as it enters, and 303.4g keeps it in hand when nothing is legal.

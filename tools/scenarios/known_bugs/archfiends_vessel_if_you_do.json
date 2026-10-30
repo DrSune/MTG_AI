@@ -1,0 +1,5 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-112 repro (fixer A wave 4, 2026-10-30; the Archfiend's Vessel compiler item). Printed: '... exile it. IF YOU DO, create a 5/5 black Demon creature token with flying.' The Vessel enters from seat 0's graveyard (the enter op binds the card where it is) with its trigger held; in response (the runner's stand-in, R5-1) another effect returns the Vessel to its owner's hand. When the trigger resolves the Vessel is not on the battlefield, so it is not exiled: you did not exile it, and no Demon may be created.",
+ "cards": [{"key": "vessel", "real": "Archfiend's Vessel", "zone": "graveyard", "controller": 0}],
+ "steps": [{"op": "enter", "key": "vessel", "hold_triggers": true}, {"op": "move", "key": "vessel", "to": "hand"}],
+ "expect": {"zone": {"vessel": "hand"}, "tokens": {"Demon": 0}}}
