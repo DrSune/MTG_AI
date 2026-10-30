@@ -105,6 +105,7 @@ from MTG_bot.core.executor.legality import (
     activation_x_max,
     build_payment_plan,
     ctx_for,
+    protected_from,
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
@@ -1148,7 +1149,11 @@ def _designated_player_refs(value: object) -> set[ControllerRef]:
 
 
 def player_target_slot(
-    executor: Executor, seat: Handle, refs: set[ControllerRef]
+    executor: Executor,
+    seat: Handle,
+    refs: set[ControllerRef],
+    *,
+    source: Handle | None = None,
 ) -> TargetSlot:
     """The synthesized designation slot of a designated player (V21). CR 115.1:
     "target player" names any player, the caster included; "target opponent"
@@ -1156,10 +1161,18 @@ def player_target_slot(
     anywhere names an opponent: "that player" anaphora after "Target opponent
     reveals their hand" read TARGET_PLAYER, and the designating word decides.
     Before V21 both meant opponents only, so "target player" could not target
-    you (B-53)."""
+    you (B-53). V44 (CR 702.16b, merged 2026-10-30): a player with protection
+    from ``source`` (the spell, or the ability's source) can't be its target."""
     players = executor.world.player_order
     opponent_only = ControllerRef.TARGET_OPPONENT in refs
-    candidates = tuple(sorted(h for h in players if not (opponent_only and h == seat)))
+    candidates = tuple(
+        sorted(
+            h
+            for h in players
+            if not (opponent_only and h == seat)
+            and not protected_from(executor, h, source)
+        )
+    )
     ref = ControllerRef.TARGET_OPPONENT if opponent_only else ControllerRef.TARGET_PLAYER
     return TargetSlot(
         selector=Selector(
@@ -1271,7 +1284,7 @@ def _spell_slot(
     )
     if enum_value is not value:
         slot = replace(slot, selector=value)
-    widened = _widen_any_target(executor, value, slot)
+    widened = _widen_any_target(executor, value, slot, source)
     if widened is not None:
         slot = widened
     return _clamp_cast_target_slot(executor, inner, role, slot, source, seat)
@@ -1365,8 +1378,9 @@ def spell_target_slots(
     if player_refs:
         # 14b (B-8/B-5): the TARGET_PLAYER coordinate's designation slot —
         # the CR population the runtime REQUIRES, now answered by the query
-        # so no caller mirrors the rule (V21: by which ref the tree reads).
-        slots.append(player_target_slot(executor, seat, player_refs))
+        # so no caller mirrors the rule (V21: by which ref the tree reads;
+        # V44: a player with protection from the spell is no candidate).
+        slots.append(player_target_slot(executor, seat, player_refs, source=spell_handle))
     return _affordable_target_slots(executor, slots, spell_handle, seat)
 
 
@@ -1531,8 +1545,9 @@ def activation_target_slots(
             slots.append(bound)
     if player_refs:
         # Same synthesized player slot as the spell lane (CR 601.2c's
-        # population rule is coordinate-agnostic).
-        slots.append(player_target_slot(executor, seat, player_refs))
+        # population rule is coordinate-agnostic; V44: protection from the
+        # ability's source removes a player).
+        slots.append(player_target_slot(executor, seat, player_refs, source=source))
     return slots
 
 
@@ -1621,17 +1636,25 @@ def _player_widening_applies(selector: Selector) -> bool:
 
 
 def _widen_any_target(
-    executor: Executor, selector: Selector, slot: TargetSlot
+    executor: Executor,
+    selector: Selector,
+    slot: TargetSlot,
+    source: Handle | None = None,
 ) -> TargetSlot | None:
     """Players join a "any target" population — the legacy universal
     ANY-zone shape or the r17-2 battlefield idiom (see
-    :func:`spell_target_slots`); None means "no widening applies"."""
+    :func:`spell_target_slots`); None means "no widening applies".
+    V44 (CR 702.16b): a player with protection from ``source`` (the spell, or
+    the source of the ability, doing the targeting) is not added; the cards
+    already faced the same veto in ``enumerate_candidates``. Runed Halo naming
+    Shock keeps its controller out of Shock's "any target"."""
     if not _player_widening_applies(selector):
         return None
     world = executor.world
     players = {h for h in world.players}
     if players & set(slot.candidates):
         return None
+    players = {h for h in players if not protected_from(executor, h, source)}
     candidates = tuple(sorted(set(slot.candidates) | players))
     forced = slot.forced
     if isinstance(selector.count, QConst):

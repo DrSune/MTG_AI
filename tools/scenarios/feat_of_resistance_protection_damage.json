@@ -11,5 +11,5 @@
     {"op": "deal_damage", "source": "imp", "target": "bear", "amount": 2, "controller": 1}
   ],
   "expect": {"zone": {"bear": "battlefield"}, "damage": {}},
-  "notes": "B-101 repro (m21-fidelity, 2026-10-30). With protection from red, damage from a red source is prevented (CR 702.16e). FAILS today: the Bear gets 2 damage marks."
+  "notes": "B-101 repro (m21-fidelity, 2026-10-30). With protection from red, damage from a red source is prevented (CR 702.16e). Fixed by V44 (engine/verify-fixes-3): verbs._protection_prevents prevents it; no mark, no DAMAGE row."
 }

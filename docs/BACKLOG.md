@@ -1061,12 +1061,38 @@ These are forks, not tasks. See the report that accompanied this audit.
     Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
 - **B-101 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd (a duplicate of the
   multicoloured-token entry's number), then B-83, renumbered at the integration merge]
-  Protection (CR 702.16) works only against blocking.**
+  Protection (CR 702.16) works only against blocking.** **[FIXED on branch
+  `engine/verify-fixes-3` 2026-10-30 (fixer 3, V44), pending the era-boundary merge]**
+  - Fix: one oracle, `legality.protected_from(executor, holder, source)`, over
+    `layers.protection_rows` (printed and granted keywords, static grants to cards AND
+    players, each quality judged in the coordinates of the ability that gives it, so
+    Runed Halo's NAME_CHOSEN reads the Halo's name). Consumers: the TARGET chokepoint
+    `enumerate_candidates`, the "any target" player widening, the synthetic
+    target-opponent slots of spells, activations and triggers (702.16b); the Aura
+    SBA and the enter-without-cast host choice (702.16c, 704.5m); an Equipment SBA
+    that unattaches it (702.16d, 704.5n); damage prevention for players and
+    permanents with a DAMAGE_PREVENTED row (702.16e); block legality reads only the
+    ATTACKER's protection (702.16f), so a protected creature may now block the
+    quality (the old blocker-side veto was wrong). A universal quality is
+    protection from everything (702.16j). Each fighting creature is now the source
+    of its own damage (CR 701.12b), so protection, deathtouch and lifelink read it.
+  - The three repros below now pass and live in `tools/scenarios/`, with 11 more
+    protection packs (Baneslayer, Basri's Lieutenant, Feat of Resistance, Feline
+    Sovereign, Runed Halo, Sparkhunter Masticore). No verified card pack changed.
+  - Residues: (1) no CR 608.2b re-check at resolution, for protection or anything
+    else (a target that gains protection after it was chosen stays a target);
+    reachable only through trigger order today, since the response window offers
+    counterspells only. (2) 702.16n/p ("this effect doesn't remove Auras") has no
+    IR; no compiled card needs it (M15 Spectra Ward does not compile). (3) The
+    compiler has no general "Protection from <quality>" line: only the printed M21
+    forms compile, and an unseen "Protection from black" stays unparsed
+    (`compiler._is_keyword_line`); 702.16k (from a player) has no compiled shape.
+    (4) A fight's DAMAGE journal rows still name the fight's source as the cause.
   - `layers.protections_of` has one consumer, block legality. Nothing makes a protected
     permanent or player an illegal target for sources of the quality (702.16b), prevents their
-    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros, all failing today:
-    `tools/scenarios/known_bugs/feat_of_resistance_protection_targeting.json`,
-    `.../feat_of_resistance_protection_damage.json`, `.../runed_halo_protects_player.json`.
+    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros (failing before
+    V44, now moved to `tools/scenarios/`): `feat_of_resistance_protection_targeting.json`,
+    `feat_of_resistance_protection_damage.json`, `runed_halo_protects_player.json`.
   - Player protection does not even land: Runed Halo's static GRANT_ABILITY(PROTECTION
     (NAME_CHOSEN)) to Zone(PLAYER, YOU) leaves `protections_of(player)` empty (the layer
     keyword map is built over card handles only), and `protections_of` ignores static-layer

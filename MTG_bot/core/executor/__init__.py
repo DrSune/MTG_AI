@@ -144,6 +144,7 @@ from MTG_bot.core.executor.legality import (
     mandated_attackers,
     mandated_to_be_blocked,
     pay_costs,
+    protected_from,
     spell_castable,
     spell_record,
 )
@@ -1423,9 +1424,26 @@ class Executor:
                     host is None
                     or host not in world.cards
                     or world.zone_of(host).kind != ZONE_BATTLEFIELD
+                    # V44 (CR 702.16c, 704.5m): an Aura attached to a permanent with
+                    # protection from it is attached to an illegal object.
+                    or protected_from(self, host, card)
                 ):
                     out.append(card)
         return sorted(out)
+
+    def _protected_equipment(self) -> list[Handle]:
+        """V44 (CR 702.16d, 704.5n): the Equipment attached to a permanent with
+        protection from it (Handle-sorted). The sweep unattaches them; they stay
+        on the battlefield, and the next recompute ends the equipped bonuses."""
+        world = self.world
+        return sorted(
+            card
+            for card, host in self.attachments.items()
+            if card in world.cards
+            and "EQUIP" in world.cards[card].identity.keywords
+            and world.zone_of(card).kind == ZONE_BATTLEFIELD
+            and protected_from(self, host, card)
+        )
 
     def _zero_loyalty_walkers(self) -> list[Handle]:
         """r21a (CR 704.5h): planeswalkers on the battlefield with 0 or
@@ -1510,10 +1528,17 @@ class Executor:
             self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
-            unattached = self._unattached_auras()  # 16e CR 704.5q
+            unattached = self._unattached_auras()  # 16e, CR 704.5m (V44: protection)
             walkers = self._zero_loyalty_walkers()  # r21a CR 704.5h
             legends = self._legend_rule_groups()  # V22 CR 704.5j
-            if not dying and not unattached and not walkers and not legends:
+            freed = self._protected_equipment()  # V44, CR 704.5n
+            if (
+                not dying
+                and not unattached
+                and not walkers
+                and not legends
+                and not freed
+            ):
                 return fired
             # A permanent another lane of this check already removes is not
             # moved twice (a lethally damaged copy the player did not keep).
@@ -1523,6 +1548,14 @@ class Executor:
             ]
             before = self.journal.snapshot()
             start = len(self.events)
+            # V44 (CR 704.5n): checked in the same snapshot as the other actions
+            # (CR 704.3, simultaneous); the Equipment stays on the battlefield and
+            # the next pass, after the recompute, sees the equipped bonuses gone.
+            for card in freed:
+                host = self.attachments.pop(card)
+                self.events.append(
+                    (len(self.events), "STATE_CHECK", str(card), f"UNATTACHED:{host}")
+                )
             # r19b (Scorching Dragonfire): dies-window replacements consult
             # BEFORE the graveyard move (C24 replacement-before-apply, the
             # die-lane twin of the damage/life hooks in verbs.py). A matched

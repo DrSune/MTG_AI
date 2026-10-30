@@ -616,6 +616,8 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
     combat = bool(getattr(ctx.executor, "_combat_wave_open", False))
     for target in role_handles(ctx, atom, "target"):
         n_i = n
+        if target.namespace == "player" and _protection_prevents(ctx, target, n_i):
+            continue  # V44 (CR 702.16e): a player with protection from the source
         if target.namespace == "player":
             # 12d: C24 replacement-before-apply. r22b (Fiery Emancipation):
             # the unified damage consult serves both doctrines — a live
@@ -686,6 +688,23 @@ _DAMAGEABLE = FOr(
 )
 
 
+def _protection_prevents(ctx: ExecCtx, recipient: Handle, n: int) -> bool:
+    """V44 (CR 702.16e): "Any damage that would be dealt by sources that have the
+    stated quality to a permanent or player with protection is prevented." The
+    source is the damage's dealer (``ctx.source``: the spell, the ability's source,
+    the fighting or combat creature). Prevented damage is never dealt: no mark, no
+    life loss, no lifelink, no "is dealt damage" trigger; a DAMAGE_PREVENTED audit
+    row records it, the shape the PREVENT_EFFECT lane writes."""
+    from MTG_bot.core.executor.legality import protected_from
+
+    if n <= 0 or not protected_from(ctx.executor, recipient, ctx.source):
+        return False
+    ctx.events.append(
+        (len(ctx.events), "DAMAGE_PREVENTED", str(recipient), "PROTECTION", n)
+    )
+    return True
+
+
 def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
     """One card-side damage application: mark it, journal it, decide nothing.
     16c (CR 702.2b): when the SOURCE carries DEATHTOUCH the mark is flagged
@@ -703,6 +722,8 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
         # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
         # forced binding (a harness stimulus) did, and marked it (B-54).
         return
+    if _protection_prevents(ctx, target, n):
+        return  # V44 (CR 702.16e): a permanent with protection from the source
     # r20a (Pack Leader): prevention-before-apply for card damage. A live
     # DamageDealtEvent PreventionRecord (the PREVENT_EFFECT lane's first
     # damage consumer) vetoes the WHOLE mark (QUnbounded = "all"); the
@@ -842,7 +863,10 @@ def _v_fight(ctx: ExecCtx, atom: Atom) -> None:
     for a, b in ((attacker, foe), (foe, attacker)):
         power, _toughness = ctx.effective_pt(a)
         if power and power > 0:
-            _deal_damage_to_card(ctx, b, power)
+            # V44 (CR 701.12b, 120.1): each fighting creature deals its own damage, so
+            # the creature, not the spell or ability, is the source that protection
+            # (702.16e), deathtouch (702.2b) and lifelink (702.15b) read.
+            _deal_damage_to_card(replace(ctx, source=a), b, power)
 
 
 def _set_tapped(ctx: ExecCtx, atom: Atom, tapped: bool) -> None:
