@@ -394,7 +394,8 @@ def _bool_atom_value_nonbool() -> at.Atom:
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     return [
         ("cost_loyalty_bool", lambda: at.CostLoyalty(True)),
-        ("cost_loyalty_zero", lambda: at.CostLoyalty(0)),
+        # re-pinned 2026-10-30: R5-7 makes CostLoyalty(0) legal (a [0] loyalty
+        # ability); only the QConst(0) twin below stays a rejection.
         ("cost_loyalty_qconst_zero", lambda: at.CostLoyalty(at.QConst(0))),
         ("cost_loyalty_str", lambda: at.CostLoyalty("2")),  # type: ignore[arg-type]
         (

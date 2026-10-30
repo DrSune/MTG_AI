@@ -22,8 +22,8 @@ Coverage (90 = 64 template + 23 rule-reminder + 3 uncovered):
   (Miscast, Lofty Denial), round-6 batch: ZONE_COUNT_GE conditional static
   (Thieves' Guild Enforcer), TURN_OF static grant (Radha) and TURN_OF
   CostModifier (Discontinuity), blocked-side PREVENT_EFFECT
-  (Ghostly Pilferer discard, Faith's Fetters attack+block Seq — C11
-  lossy), untap-prevention on enchanted creature (Capture Sphere, lossy),
+  (Ghostly Pilferer discard, Faith's Fetters attack+block+activation-lock
+  Seq — C11, the lock since R5-7), untap-prevention on enchanted creature (Capture Sphere, lossy),
   and grammar round 11 C3: the each-opponent "who can't" life-loss gate
   (Waker +1 tail — Conditional + EachPlayer over a post-discard hand
   count, payment-failure row retired).
@@ -48,12 +48,12 @@ Conventions (documented build decisions):
   stays ``QConst(0)`` (lossless w.r.t. oracle text, shape #42).
 - ``Add two mana of any one color`` → ``ADD_MANA(color="ANY")`` (round 8 /
   C-3 repair; colorless "{C}" rows keep ``"C"`` — shape #34).
-- Token colors (round 8 / C-2): the red Goblin Wizard populates
-  ``color="R"``; the blue-and-red Weird stays dropped — ``TokenSpec.color``
-  is a single-color ``str`` (bichrome needs a color-set field, R9).
+- Token colors (round 8 / C-2; R5-11 made the field the WUBRG tuple
+  ``TokenSpec.colors``): the red Goblin Wizard is ``colors=("R",)``, the
+  blue-and-red Weird ``colors=("U", "R")``.
 - ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)`` (shape #72).
-- ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)``
-  carrying the "spell" semantics (shape #49).
+- ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)`` and
+  ``STACK_KIND_EQ SPELL`` (shape #49; the kind atom since ontology R5-10).
 - The Equip sentence (#83) is an ``ActivatedAbility`` with
   ``timing=ActivationWindow.SORCERY`` ("Equip only as a sorcery", B-60).
 
@@ -67,6 +67,8 @@ import re
 from typing import Callable, Final
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     Atom,
     AtomArgs,
     ActivatedAbility,
@@ -273,22 +275,47 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
 
+#: Ontology R5-10: "spell" names a stack object's kind (CR 405.1, 111.1/112.1).
+SPELL_ON_STACK: Final = FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
+
+
+def target_spell(filter_: Filter | None = None) -> Selector:
+    """"target [filter] spell": the one STACK-zone TARGET selector every
+    counterspell template builds (ontology R5-10). The spell kind is an
+    explicit STACK_KIND_EQ SPELL atom, ANDed with the printed restriction
+    ("noncreature", "instant or sorcery"); a bare "target spell" is the lone
+    atom (a one-child FAnd is a phantom wrapper, ontology §6 V2′)."""
+    if filter_ is None or filter_ == FAnd(children=()):
+        kind: Filter = SPELL_ON_STACK
+    else:
+        kind = FAnd(children=(SPELL_ON_STACK, filter_))
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        kind,
+        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+    )
+
+
+def target_stack_ability(*kinds: str) -> Selector:
+    """"target activated or triggered ability" (ontology R5-10): a STACK-zone
+    TARGET selector whose object is an ability of one of ``kinds``
+    ("ACTIVATED", "TRIGGERED"). This engine never puts an ability on the
+    stack, so the selector has no legal candidate today (BACKLOG B-110)."""
+    atoms = tuple(FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value=k) for k in kinds)
+    kind: Filter = atoms[0] if len(atoms) == 1 else FOr(children=atoms)
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        kind,
+        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+    )
+
+
 def _build_counter_spell(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
-            )
-        ),
+        args=AtomArgs(pairs=(("target", target_spell()),)),
     )
     return EffectOutcome(effect=atom)
 
@@ -359,15 +386,7 @@ def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(
             pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        target_filter,
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
+                ("target", target_spell(target_filter)),
                 (
                     "unless",
                     Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)),
@@ -442,12 +461,12 @@ def _build_weird_token(m: re.Match[str]) -> SentenceOutcome:
                         subtypes=("Weird",),
                         power=x,
                         toughness=x,
-                        # GAP (stays, 8-B skip): the Weird is blue AND red;
-                        # TokenSpec.color is a single-color str (C-2 scope),
-                        # so a bichrome token cannot be populated faithfully
-                        # without inventing a color-set format (R9 candidate).
                         keywords=(),
                         abilities=(),
+                        # R5-11 (B-82 fixed): "blue and red" — both colours,
+                        # WUBRG order. It was colourless while TokenSpec held
+                        # one colour letter.
+                        colors=("U", "R"),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -473,7 +492,7 @@ def _build_goblin_wizard_tokens(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.PROWESS,),
                         abilities=(),
-                        color="R",  # C-2 repair (round 8): printed "red"
+                        colors=("R",),  # C-2 repair (round 8): printed "red"
                     ),
                 ),
                 ("count", QConst(2)),
@@ -1239,17 +1258,18 @@ def _build_enchant_no_untap(m: re.Match[str]) -> SentenceOutcome:
 def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
     """Enchanted permanent can't attack or block, and its activated
     abilities can't be activated unless they're mana abilities.
-    (Faith's Fetters; decision C11 — Seq of two PREVENT_EFFECT atoms on
+    (Faith's Fetters; decision C11 — Seq of PREVENT_EFFECT atoms on
     the enchanted permanent (IS_ATTACHED_TO_SOURCE), the attack atom over
     DeclareAttackersEvent, the block atom over DeclareBlockersEvent
     following the B4 cant-block idiom (filter selects the restricted
     participant).)
 
-    LOSSY (verbatim, per C11): "and its activated abilities can't be
-    activated unless they're mana abilities" is DROPPED — needs an
-    ability-activation event class + ability-kind predicate
-    (ability-introspection family, 2026-09-28 decision doc deferred
-    family 1).
+    Ontology R5-7 (2026-10-30): the third clause, "its activated abilities
+    can't be activated unless they're mana abilities" (CR 602.5), is the
+    activation lock PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted,
+    kind=NON_MANA)). Loyalty abilities are never mana abilities (CR
+    605.1a), so the lock covers them too. It was dropped (lossy C11) until
+    the event existed.
     """
     enchanted = FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
     attack = Atom(
@@ -1270,7 +1290,19 @@ def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block))))
+    lock = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", enchanted),
+                (
+                    "event",
+                    AbilityActivatedEvent(source=enchanted, kind=AbilityKind.NON_MANA),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block, lock))))
 
 
 def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
@@ -2149,7 +2181,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5a-enchant-cant-attack-block",
-        name="enchanted permanent can't attack or block (mana-abilities clause dropped, C11)",
+        name="enchanted permanent can't attack or block; non-mana activations locked (R5-7)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Enchanted permanent can't attack or block, and its activated "

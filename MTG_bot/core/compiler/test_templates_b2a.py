@@ -2154,7 +2154,7 @@ class TestB2aRound9BWhaleToken(unittest.TestCase):
         self.assertEqual(token.name, "Pirate")
         self.assertEqual(token.power, QConst(1))
         self.assertEqual(token.toughness, QConst(1))
-        self.assertEqual(token.color, "R")
+        self.assertEqual(token.colors, ("R",))  # re-pinned 2026-10-30: R5-11 colors tuple
         self.assertEqual(token.subtypes, ("Pirate",))
         # C23: structured nodes, not strings — two embedded statics
         self.assertEqual(len(token.abilities), 2)
@@ -2235,7 +2235,8 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(token.subtypes, ("Construct",))
         self.assertEqual(token.power, QConst(4))
         self.assertEqual(token.toughness, QConst(4))
-        self.assertIsNone(token.color)  # colorless = None (Treasure precedent)
+        # re-pinned 2026-10-30: R5-11 — colourless is the empty colors tuple
+        self.assertEqual(token.colors, ())
 
 
 class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):

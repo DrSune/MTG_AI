@@ -205,7 +205,9 @@
          },
          "keywords": [],
          "abilities": [],
-         "color": "G"
+         "colors": [
+          "G"
+         ]
         }
        ]
       ]

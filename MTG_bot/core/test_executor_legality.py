@@ -828,6 +828,102 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.assertEqual(before, after)
         self.assertFalse(any(self.world.cards[h].tapped for h in self.world.cards))
 
+    # B-109 (R5-7, pinned at the cards/integration merge 2026-10-30): the planner
+    # picks sources through ability_playable, so the CR 602.5 activation lock binds
+    # it; and every tap it makes journals its ABILITY_ACTIVATED row (CR 602.2,
+    # 605.3b: one per activation, mana abilities included).
+
+    def lock(self, host, kind):
+        """An Aura carrying R5-7's activation lock of ``kind`` on ``host``
+        (Faith's Fetters' shape, test_ontology_r5_activation.aura_record)."""
+        from MTG_bot.core.test_ontology_r5_activation import aura_record
+
+        aura = self.world.add_card(
+            card_id("Lock Aura", type_line="Enchantment — Aura"), self.p1, ZONE_BATTLEFIELD
+        )
+        self.ex.attach_card(aura, aura_record(kind, self.world.cards[aura].identity.oracle_id))
+        self.ex.attach_aura(aura, host)
+
+    def activation_rows(self):
+        from MTG_bot.core.executor.events import KIND_ABILITY_ACTIVATED
+
+        return [
+            (e.subject, e.cause, e.activation)
+            for e in self.ex.journal.events
+            if e.kind == KIND_ABILITY_ACTIVATED
+        ]
+
+    def test_an_any_lock_keeps_the_locked_source_out_of_the_plan(self):
+        from MTG_bot.core.ability_tree import AbilityKind
+
+        f1 = self.land("Forest", add_mana("G"))
+        f2 = self.land("Forest", add_mana("G"))
+        self.lock(f1, AbilityKind.ANY)
+        self.assertEqual(
+            ability_playable(self.world, self.ex, f1, 0, seat=self.p0),
+            "prohibited:activation_lock",
+        )
+        (tap,) = self.plan(CostManaColor("G", QConst(1)))
+        self.assertEqual(tap.source, f2)  # the unlocked Forest pays
+        self.world.cards[f2].tapped = True
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(1))))  # only the locked one left
+
+    def test_a_non_mana_lock_spares_the_mana_source(self):
+        # Faith's Fetters' kind: a mana ability (CR 605.1a) is not locked.
+        from MTG_bot.core.ability_tree import AbilityKind
+
+        forest = self.land("Forest", add_mana("G"))
+        self.lock(forest, AbilityKind.NON_MANA)
+        (tap,) = self.plan(CostManaColor("G", QConst(1)))
+        self.assertEqual(tap.source, forest)
+
+    def test_each_window_tap_journals_its_activation_row(self):
+        # Top level (a response window): the tap is an ordinary activate().
+        f1 = self.land("Forest", add_mana("G"))
+        f2 = self.land("Forest", add_mana("G"))
+        taps = self.plan(CostManaColor("G", QConst(1)), CostManaGeneric(QConst(1)))
+        tap_for_payment(self.ex, self.p0, taps)
+        self.assertEqual(
+            self.activation_rows(),
+            [(f1, self.p0, (0, True, None)), (f2, self.p0, (0, True, None))],
+        )
+
+    def test_each_tap_inside_a_resolution_journals_its_activation_row(self):
+        # Inside a running atom ("you may pay {1}") the tap is made in place,
+        # and still journals the same row an activate() would.
+        from MTG_bot.core.ability_tree import OptionalEffect
+
+        forest = self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(1)))),)))
+        )
+        self.ex.apply_effect(effect, source=self.alpha, controller=self.p0, decisions=("fire",))
+        self.assertTrue(self.world.cards[forest].tapped)
+        self.assertEqual(self.activation_rows(), [(forest, self.p0, (0, True, None))])
+
+    def test_a_trigger_on_any_activation_sees_a_tap_made_while_paying(self):
+        # Sarkhan's Whelp's kind (ANY): the in-place tap is an activation.
+        from MTG_bot.core.ability_tree import (
+            AbilityActivatedEvent,
+            AbilityKind,
+            OptionalEffect,
+            TriggeredAbility,
+        )
+        from MTG_bot.core.test_executor_binding import gain
+
+        watcher = self.world.add_card(card_id("Watcher", "1", "1"), self.p1, ZONE_BATTLEFIELD)
+        self.attach(
+            [TriggeredAbility(event=AbilityActivatedEvent(source=UNIV, kind=AbilityKind.ANY), condition=None, effect=gain(1))],
+            watcher,
+        )
+        self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(1)))),)))
+        )
+        self.ex.apply_effect(effect, source=self.alpha, controller=self.p0, decisions=("fire",))
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.players[self.p1].life, 21)
+
 
 
 class TestSelflessSaviorAnotherTarget(unittest.TestCase):
@@ -920,6 +1016,41 @@ class TestAnotherTarget(unittest.TestCase):
         self.assertIsNone(another_target_reason([first, another], (a, b)))
         self.assertIsNotNone(another_target_reason([first, another], (b, b)))
         self.assertIsNone(another_target_reason([first, first], (b, b)))  # two plain "target"s may share
+
+    def test_garruk_savage_herald_minus_two_has_two_slots_and_the_first_deals(self):
+        # Pinned at the cards/integration merge (2026-10-30), V3 with vfix3's V25:
+        # "[-2]: Target creature you control deals damage equal to its power to
+        # another target creature." Exactly two target slots, designated in walk
+        # order, and the DEAL_DAMAGE dealer is the first slot (CR 120.2b): the
+        # creature deals the damage, not Garruk.
+        from MTG_bot.core.ability_tree import ActivatedAbility, CostLoyalty
+        from MTG_bot.core.executor.games import get_supply, identity_of
+        from MTG_bot.core.executor.query import activation_target_slots
+        from MTG_bot.core.ability_tree import walk
+
+        supply = get_supply("all", "M21")
+        record = next(
+            supply.pool.results[o].card for o, m in supply.metas.items() if m.name == "Garruk, Savage Herald"
+        )
+        world = GameWorld(num_players=2, start_life=20, master_seed=13)
+        p0, p1 = world.player_order
+        garruk = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        ex = Executor(world)
+        ex.attach_card(garruk, record)
+        bear = world.add_card(card_id("Bear", "2", "2"), p0, ZONE_BATTLEFIELD)
+        ogre = world.add_card(card_id("Ogre", "3", "3"), p1, ZONE_BATTLEFIELD)
+        minus_two = next(
+            a
+            for a in record.abilities
+            if isinstance(a, ActivatedAbility)
+            and any(isinstance(c, CostLoyalty) and c.delta == -2 for c in a.cost.parts)
+        )
+        slots = activation_target_slots(ex, minus_two.effect, source=garruk, seat=p0)
+        self.assertEqual(len(slots), 2)
+        self.assertEqual(slots[0].candidates, (bear,))  # "target creature you control"
+        self.assertEqual(slots[1].candidates, (bear, ogre))  # "another target creature"
+        (damage,) = [n for n in walk(minus_two.effect) if isinstance(n, Atom) and n.verb is Verb.DEAL_DAMAGE]
+        self.assertEqual(repr(damage.args.get("dealer")), repr(slots[0].selector))
 
 
 if __name__ == "__main__":  # pragma: no cover

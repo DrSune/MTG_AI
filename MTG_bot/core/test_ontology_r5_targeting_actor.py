@@ -3,7 +3,7 @@ targeting spell or ability ("becomes the target of a spell or ability an opponen
 
 Warden of the Woods must not trigger on its controller's own spells; it must on an opponent's. The
 actor is the single direction encoding (E1) CastSpellEvent, CardDrawnEvent, LifeGainedEvent and
-LoyaltyActivatedEvent use, and a TargetingEvent without it keeps its bytes.
+AbilityActivatedEvent (R5-7) use, and a TargetingEvent without it keeps its bytes.
 """
 
 from __future__ import annotations

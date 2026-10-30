@@ -55,9 +55,12 @@ from typing import TYPE_CHECKING
 from MTG_bot.core.ability_tree import (
     Atom,
     BackFace,
+    Choose,
     Cost,
     FAtom,
     FAtomPred,
+    Selector,
+    Seq,
     SpellAbility,
     SpellKind,
     Verb,
@@ -396,6 +399,24 @@ def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
     return None
 
 
+def _option_sets(executor: Executor, node: SpellAbility, handle: Handle, seat: Handle):
+    """The legal option sets of a Choose spell, in ``query.choose_options``'
+    canonical order (the runtime Choose's own token contract: token = the
+    set's index here)."""
+    from MTG_bot.core.executor.query import choose_options
+
+    assert isinstance(node.effect, Choose)
+    return choose_options(executor, node.effect, source=handle, controller=seat)
+
+
+def _chosen_effect(choose, chosen: tuple[int, ...]):
+    """The effect a declared mode set amounts to: the one option, or the
+    options in printed order (CR 700.2d; how the runtime Choose runs them)."""
+    if len(chosen) == 1:
+        return choose.options[chosen[0]]
+    return Seq(steps=tuple(choose.options[i] for i in chosen))
+
+
 def _plan_cast_designation(
     executor: Executor,
     seat: Handle,
@@ -444,27 +465,39 @@ def _plan_cast_designation(
     modes: tuple[int, ...] = ()
 
     # --- modes before targets (601.2b) ------------------------------------
-    if len(slots) > 1 and isinstance(node.effect, Choose):
+    # R5-10: a declaration may name a mode SET ("choose one or more", CR
+    # 700.2d: each mode at most once); ``mode_choices`` with more than one
+    # entry is that set, and the chosen modes' slots are designated in
+    # walk order (the r19c positional rule) as one combined effect.
+    if isinstance(node.effect, Choose) and (len(slots) > 1 or len(mode_choices) > 1):
         if mode_choices:
-            mode = int(mode_choices[0])
+            chosen = tuple(sorted({int(m) for m in mode_choices}))
         elif remaining and remaining[0].lstrip("-").isdigit():
-            mode = int(remaining[0])
+            chosen = (int(remaining[0]),)
             remaining = remaining[1:]
         else:
             raise ValueError(
                 "executor: cast: a multi-target Choose spell must declare "
                 "its mode (mode_choices= or a leading index decision token)"
             )
-        if not 0 <= mode < len(node.effect.options):
+        for mode in chosen:
+            if not 0 <= mode < len(node.effect.options):
+                raise ValueError(
+                    f"executor: cast: Choose mode {mode} outside "
+                    f"0..{len(node.effect.options) - 1}"
+                )
+        if len(chosen) > 1 and not any(
+            o.option_idxs == chosen for o in _option_sets(executor, node, handle, seat)
+        ):
             raise ValueError(
-                f"executor: cast: Choose mode {mode} outside "
-                f"0..{len(node.effect.options) - 1}"
+                f"executor: cast: mode set {chosen} is not a legal choice of "
+                "the spell's Choose (its count, CR 700.2)"
             )
         from dataclasses import replace
 
-        active = replace(node, effect=node.effect.options[mode])
+        active = replace(node, effect=_chosen_effect(node.effect, chosen))
         slots = spell_target_slots(executor, active, spell_handle=handle, seat=seat)
-        modes = (mode,)
+        modes = chosen
 
     if not slots:
         # targetless / TARGET_PLAYER-only legacy shapes: the original
@@ -577,9 +610,13 @@ def _counter_vocab(
       instant/sorcery filter is never offered at a creature spell — the
       seed-16 crash); ``spell_castable`` cannot see this because it is
       target-blind;
-    * **modeless declaration** — exactly one TARGET slot and no Choose
-      fan: the window lane casts with ``targets=(frame,)`` and declares
-      no mode, so a multi-slot/Choose counter is not offered (seed 96).
+    * **declaration** — a modeless counter has exactly one TARGET slot
+      and the frame passes it: the window casts it with
+      ``targets=(frame,)``. A Choose-based counter (R5-10, Sublime
+      Epiphany) is offered when some legal mode set counters the frame
+      (:func:`_modal_counter_sets`); answering it opens the visible mode
+      ask, then the target asks (:func:`_declare_modal_counter`), so no
+      mode is ever a silent pick (seed 96 was the old crash).
 
     Handle-sorted (ruling 5)."""
     from MTG_bot.core.executor.query import (
@@ -602,6 +639,10 @@ def _counter_vocab(
             continue
         if _window_taps(executor, seat, handle) is None:
             continue
+        if isinstance(node.effect, Choose):
+            if _modal_counter_sets(executor, seat, handle, node, frame_handle):
+                options.append(str(handle))
+            continue
         slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
         if len(slots) != 1 or validate_target_selection(slots[0], (frame_handle,)):
             continue
@@ -622,6 +663,134 @@ def _window_cast(executor: Executor, seat: Handle, handle: Handle, target: Handl
     ordinary :func:`cast` (which re-checks legality and pays from the pool)."""
     tap_for_payment(executor, seat, _window_taps(executor, seat, handle) or ())
     cast(executor, seat, handle, targets=(target,))
+
+
+def _counter_selectors(effect: object) -> set[str]:
+    """The ``repr`` of every COUNTER_SPELL atom's target selector in an IR
+    subtree (the slot identity the cast lane designates by)."""
+    out: set[str] = set()
+    if isinstance(effect, Atom):
+        if effect.verb is Verb.COUNTER_SPELL:
+            target = effect.args.get("target")
+            if isinstance(target, Selector):
+                out.add(repr(target))
+        return out
+    if is_dataclass(effect) and not isinstance(effect, Handle):
+        for f in fields(effect):
+            value = getattr(effect, f.name)
+            for item in value if isinstance(value, (list, tuple)) else (value,):
+                out |= _counter_selectors(item)
+    return out
+
+
+def _modal_counter_sets(
+    executor: Executor,
+    seat: Handle,
+    handle: Handle,
+    node: SpellAbility,
+    frame_handle: Handle,
+) -> list[tuple[int, tuple[int, ...], list]]:
+    """R5-10 (CR 601.2b, 700.2a): the mode sets a Choose-based counterspell
+    may declare in the counter window against ``frame_handle``, as
+    ``(option-set index, modes, target slots)`` in ``query.choose_options``'
+    canonical order (the runtime Choose's own token contract). A set is
+    offered when every one of its slots has a legal target (700.2a: a mode
+    that cannot choose legal targets can't be chosen; "counter target
+    activated or triggered ability" is never offered, as abilities never sit
+    on this engine's stack) and one of its COUNTER_SPELL slots accepts the
+    frame (the window answers this frame). Two engine limits narrow the
+    menu, never guessing past them: the cast lane threads several slots only
+    when each is exactly-one and their selectors differ (``_validate_positional``,
+    the repr-keyed slot map), so a set breaking that is left out."""
+    from dataclasses import replace
+
+    from MTG_bot.core.executor.query import (
+        spell_target_slots,
+        validate_target_selection,
+    )
+
+    assert isinstance(node.effect, Choose)
+    out: list[tuple[int, tuple[int, ...], list]] = []
+    for i, option_set in enumerate(_option_sets(executor, node, handle, seat)):
+        modes = option_set.option_idxs
+        if not modes:
+            continue  # the empty set counters nothing
+        effect = _chosen_effect(node.effect, modes)
+        slots = spell_target_slots(
+            executor, replace(node, effect=effect), spell_handle=handle, seat=seat
+        )
+        if any(len(slot.candidates) < slot.min_count for slot in slots):
+            continue
+        if len(slots) > 1 and (
+            any(slot.min_count != 1 or slot.max_count != 1 for slot in slots)
+            or len({repr(slot.selector) for slot in slots}) != len(slots)
+        ):
+            continue
+        counters = _counter_selectors(effect)
+        if not any(
+            repr(slot.selector) in counters
+            and validate_target_selection(slot, (frame_handle,)) is None
+            for slot in slots
+        ):
+            continue
+        out.append((i, modes, slots))
+    return out
+
+
+def _window_pick(executor: Executor, vocab: tuple[str, ...], what: str, seat: Handle) -> str:
+    """One counter-window declaration ask. A one-option surface is forced:
+    journalled, never asked (the shared phantom rule of
+    :func:`~MTG_bot.core.executor.offers.offer_or_autopick`)."""
+    if len(vocab) == 1:
+        executor.decisions.journal.append((what, vocab[0]))
+        return vocab[0]
+    return executor.decisions.take(vocab, what, seat=seat)
+
+
+def _declare_modal_counter(
+    executor: Executor,
+    seat: Handle,
+    handle: Handle,
+    node: SpellAbility,
+    frame_handle: Handle,
+) -> tuple[tuple[int, ...], tuple[Handle, ...]]:
+    """R5-10: the declaration of a Choose-based counterspell answering the
+    counter window, in CR 601.2b-c order. First the mode set (a ``choose``
+    ask whose tokens are the runtime Choose's option-set indices, offering
+    only the legal sets of :func:`_modal_counter_sets`), then the targets of
+    the chosen modes slot by slot in walk order (a ``target`` ask over each
+    slot's live candidates). The window's own frame is the target of the
+    first counter slot that accepts it: answering the window with this card
+    means countering that frame. Returns ``(modes, targets)`` for
+    :func:`cast`'s ``mode_choices``/``targets``."""
+    sets = _modal_counter_sets(executor, seat, handle, node, frame_handle)
+    if not sets:
+        raise ValueError(f"executor: counter window: {handle} has no legal mode set")
+    vocab = tuple(str(i) for i, _modes, _slots in sets)
+    digest = site_digest(("counter-modes", str(frame_handle), tuple(m for _i, m, _s in sets)))
+    pick = _window_pick(executor, vocab, f"choose:{handle}:{digest}", seat)
+    _i, modes, slots = next(row for row in sets if str(row[0]) == pick)
+    counters = _counter_selectors(_chosen_effect(node.effect, modes))
+    from MTG_bot.core.executor.query import validate_target_selection
+
+    targets: list[Handle] = []
+    frame_taken = False
+    for slot in slots:
+        if (
+            not frame_taken
+            and repr(slot.selector) in counters
+            and validate_target_selection(slot, (frame_handle,)) is None
+        ):
+            targets.append(frame_handle)
+            frame_taken = True
+            continue
+        candidates = tuple(sorted(slot.candidates))
+        words = tuple(str(c) for c in candidates)
+        answer = _window_pick(
+            executor, words, f"target:{seat}:{handle}:{site_digest(words)}", seat
+        )
+        targets.append(next(c for c in candidates if str(c) == answer))
+    return modes, tuple(targets)
 
 
 #: RUNG-2 (2026-10-05 combat-window arc): the effect atoms that make an
@@ -916,7 +1085,25 @@ def cast(
         if answer == "PASS":
             executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
             continue
-        _window_cast(executor, responder, parse_handle_tag(answer), handle)
+        counter = parse_handle_tag(answer)
+        counter_record = spell_record(executor, counter)
+        counter_node = next(
+            (a for a in counter_record.abilities if isinstance(a, SpellAbility)), None
+        ) if counter_record is not None else None
+        if counter_node is not None and isinstance(counter_node.effect, Choose):
+            # R5-10 (CR 601.2b-c): a modal counter declares its mode set, then
+            # its targets, through visible asks; the window never picks a mode.
+            modes, chosen = _declare_modal_counter(
+                executor, responder, counter, counter_node, handle
+            )
+            # B-90 (a), CR 601.2g: the mana abilities are activated after the
+            # declaration (601.2b-c), while the cost is paid.
+            tap_for_payment(
+                executor, responder, _window_taps(executor, responder, counter) or ()
+            )
+            cast(executor, responder, counter, mode_choices=modes, targets=chosen)
+            continue
+        _window_cast(executor, responder, counter, handle)
 
     # 7: resolution. The effect runs WITHOUT an intervening settle — the
     # spell leaves the stack and the PUT happens before anything its
@@ -945,15 +1132,23 @@ def cast(
     if slot_designations:
         ctx.slot_designations = slot_designations
         ctx.designation_union = tuple(sorted(set(targets)))
-    if declared_modes:
-        from MTG_bot.core.ability_tree import Choose, QConst
-
-        if (
-            isinstance(node.effect, Choose)
-            and isinstance(node.effect.count, QConst)
-            and node.effect.count.value == 1
-        ):
-            ctx.prechosen_modes = [str(m) for m in declared_modes]
+    if declared_modes and isinstance(node.effect, Choose):
+        # R5-10: the declared mode SET rides on as the runtime Choose's own
+        # token, the set's index in choose_options' canonical order. For a
+        # "choose one" the index of (m,) is m, the bytes the 19c lane wrote;
+        # a "choose one or more" (Sublime Epiphany) now keeps its declared
+        # set instead of being asked again at resolution.
+        sets = _option_sets(executor, node, handle, seat)
+        pick = next(
+            (str(i) for i, o in enumerate(sets) if o.option_idxs == tuple(declared_modes)),
+            None,
+        )
+        if pick is None:
+            raise ValueError(
+                f"executor: cast: declared modes {declared_modes} are not an "
+                "option set of the spell's Choose"
+            )
+        ctx.prechosen_modes = [pick]
     from MTG_bot.core.executor.query import is_aura_spell
 
     # 16e (CR 303.4a/608.2a): an aura enters the battlefield ATTACHED, and

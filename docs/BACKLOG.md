@@ -785,7 +785,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     `teferi_timeless_voyager_phase_out_all`, `aven_gagglemaster_ignores_phased_out_flyer`,
     `feline_sovereign_*phase*`.
   - **Open, weaker than printed: Teferi, Timeless Voyager's "Until the end of your next turn, they
-    can't phase in."** The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
+    can't phase in."** Accepted as divergence D16 by ontology R5-9 (gate round 3 GO,
+    2026-10-30; `docs/ATOM_DIVERGENCES.md`). The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
     emits `PREVENT_EFFECT(event=ZoneChangeEvent(COMMAND/OPPONENT -> BATTLEFIELD/OPPONENT),
     condition=CONTROLLER_IS OPPONENT, duration=DurationUntilNextTurn)`. Phasing is not a zone
     change, so the record is inert and the creatures phase back in at their controller's next
@@ -809,7 +810,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
     a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
     permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
-- **B-82 [fixer A, m21-fidelity item 3; renumbered from B-75 at the merge, which phasing took] A multicoloured token is colourless** (live in M21).
+- **B-82 [fixer A, m21-fidelity item 3; renumbered from B-75 at the merge, which phasing took] A multicoloured token is colourless** (FIXED 2026-10-30 by ontology R5-11, branch `engine/r5b-go-items`: option (a) below. `TokenSpec.colors` holds WUBRG letters in WUBRG order and is omitted when colourless; the Weird is `("U", "R")`; 22 M21 goldens and 138 compiled entries in the 19 sets re-baked, each proven to be the rename only; test `MTG_bot/core/test_ontology_r5_token_colors.py`.)
   - Experimental Overload's "X/X blue and red Weird" compiles with `TokenSpec.color=None`
     (`templates_b5a.py`, B5a-weird-token): `color` holds one colour letter.
   - Census 2026-10-29: of the 152 TokenSpecs compiled in the 19 sets (and 5 in FDN records), 150
@@ -1127,6 +1128,66 @@ These are forks, not tasks. See the report that accompanied this audit.
     Ket, Tide Skimmer, Mangara). Recommended. (b) Infer batching in the engine from a
     CONTROLLER_COUNT_GE condition: no schema change, but it cannot separate Basri Ket's -2
     from the Paladin's -1, so it is not enough. Either way it lands with B-102's exclusion.
+- **B-109 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-7: `AbilityActivatedEvent` and
+  one CR 605.1a classifier.**
+  - Done: `AbilityActivatedEvent(source, kind, actor)` replaces `LoyaltyActivatedEvent`; `kind`
+    (ANY / NON_MANA / LOYALTY) is required. `ability_tree.is_mana_ability` implements 605.1a's four
+    criteria (no target, a reachable ADD_MANA, not a loyalty ability, no card moved to or from a
+    library by cost or effect) and is the one classifier the games driver, `bench/router.py`, the
+    activation journal row and the NON_MANA lock read. The lock gate is in
+    `legality.ability_playable` (`prohibited:activation_lock`, CR 602.5). One `ABILITY_ACTIVATED`
+    journal row per activation, mana abilities included. `CostLoyalty(0)` is legal. Faith's
+    Fetters' third clause and Keral Keep Disciples re-baked; packs `faiths_fetters_activation_lock`,
+    `faiths_fetters_locks_loyalty`.
+  - Gap ledger: "whenever you activate a boast ability" (KHM Frenzied Raider) has no kind (boast
+    has no IR component). Expressible but not compiled: the trigger users Runic Armasaur and
+    Kurkesh (NON_MANA), Sarkhan's Whelp (ANY), Chandra's Regulator (LOYALTY); the locks Bound in
+    Gold, Pithing Needle, Sorcerous Spyglass (NON_MANA) and the twelve "can't be activated" cards
+    (ANY; `reports/r5_census_2026-10-29.json`). Pithing Needle, Spyglass and Phyrexian Revoker
+    also need their named source (`CHOOSE_NAME` + `NAME_CHOSEN`).
+  - "[0]:" abilities are expressible now but no template parses them (`frames.py` B13-loyalty and
+    the `templates_b5c.py` loyalty patterns take only `+N`/`−N`): 12 cards in 11 sets, none in
+    M21.
+  - After `engine/verify-fixes` merges: its B-90 payment witness picks mana sources through
+    `ability_playable` and taps them through `activate()`, so an ANY lock already skips a locked
+    mana source and each tap journals its row. Pin that with a test at the merge.
+    **[PINNED at the merge, 2026-10-30: five tests in `test_executor_legality.py`
+    `TestManaAbilitiesWhilePaying` (an ANY lock keeps the locked source out of the plan; a
+    NON_MANA lock spares it; a window tap and an in-resolution tap each journal one row; an ANY
+    trigger sees a tap made while paying). One correction: inside a running atom ("you may
+    pay", "unless its controller pays") the witness taps in place, not through `activate()`,
+    because a nested activation would settle triggers in the middle of the resolution. That
+    path now writes the same `ABILITY_ACTIVATED` row (`legality.tap_for_payment`). The witness
+    also asks `is_mana_ability` (605.1a) for every source it considers.]**
+- **B-110 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: abilities never sit on the
+  stack, so "counter target activated or triggered ability" has no legal target** (engine gap).
+  - Done: `FAtom(STACK_KIND_EQ, string_value)` with the closed vocabulary SPELL / ACTIVATED /
+    TRIGGERED (validated per predicate, `ability_tree._FATOM_STRING_VOCAB`); every compiled "counter
+    target … spell" carries SPELL (26 cards in the 19 sets, 5 M21 goldens); the counter window
+    asks a Choose-based counterspell's mode set, then its targets (`stack._declare_modal_counter`).
+  - Gap: `activate()` and the trigger drain resolve abilities at once (CR 602.2 and 603.3 put
+    them on the stack), so STACK_KIND_EQ ACTIVATED/TRIGGERED holds for nothing. Sublime Epiphany's
+    second mode and Tale's End's ability half are never offered (CR 700.2a), which is weaker than
+    printed. Remove with the priority and stack rung: abilities as stack objects.
+  - Not done (outside R5-10's registered blast radius): M21 Unsubstantiate's "Return target spell
+    or creature" compiles the spell half as `FNot(IS_PERMANENT)` over the stack, so it cannot take
+    an artifact, enchantment or planeswalker spell (weaker than printed, latent: no window offers it
+    with a spell on the stack). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature)`, one golden.
+  - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
+    bullets only when every option set is one mode); it is representable but not described.
+- **B-111 [2026-10-30, branch `engine/r5b-go-items`] Verified records to re-verify after the R5
+  items** (their tree changed, their `verified` block was not edited, so they are out of the
+  verified supply until a verifier passes them again):
+  - re-verify after R5-11 (schema rename only, `color` -> `colors`): FDN Imperious Perfect and
+    Stroke of Midnight (agent-mapped `ir`, the key renamed in the record by coordinator ruling (a);
+    FDN Regal Caracal, unverified, was renamed too), FDN Prideful Parent and Release the Dogs
+    (compiler trees). FDN verified 59 -> 55.
+  - re-verify after R5-10 (STACK_KIND_EQ SPELL added to the counter target): M21 Cancel and
+    Miscast.
+  - re-verify after R5-7 (the trigger's event node is AbilityActivatedEvent, kind LOYALTY): M21
+    Keral Keep Disciples (stamped by the G3 finisher on `cards/integration`).
+  - After the merge of `cards/integration` d955f67: M21 verified 159 -> 156, FDN 59 -> 55; every
+    card pack of these cards still passes.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

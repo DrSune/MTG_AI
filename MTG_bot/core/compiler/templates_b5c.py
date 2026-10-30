@@ -134,6 +134,7 @@ from MTG_bot.core.compiler.templates import (
     Template,
 )
 from MTG_bot.core.compiler.templates_b2b import _to_a_player
+from MTG_bot.core.compiler.templates_b5a import target_spell, target_stack_ability
 
 _BUCKET = "B5c"
 _PRIORITY = 100
@@ -371,16 +372,6 @@ def _each_opponent_player() -> Selector:
         SelectorMode.ALL,
         FAnd(children=()),
         zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ALL_OPPONENTS),),
-    )
-
-
-def _stack_target() -> Selector:
-    """A spell/ability on the stack (for COUNTER_SPELL)."""
-    return Selector(
-        QConst(1),
-        SelectorMode.TARGET,
-        FAnd(children=()),
-        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
     )
 
 
@@ -874,7 +865,7 @@ def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(3))),
                         keywords=(),
                         abilities=(),
-                        color="G",  # C-2 repair (round 8)
+                        colors=("G",),  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1904,17 +1895,19 @@ def _build_bullet_all_pt(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_counter_ability(m: re.Match[str]) -> SentenceOutcome:
+    # R5-10: an ability, not a spell (STACK_KIND_EQ ACTIVATED or TRIGGERED).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(pairs=(("target", _stack_target()),)),
+        args=AtomArgs(pairs=(("target", target_stack_ability("ACTIVATED", "TRIGGERED")),)),
     )
     return EffectOutcome(effect=atom)
 
 
 def _build_bullet_counter_spell(m: re.Match[str]) -> SentenceOutcome:
+    # R5-10: "target spell" (STACK_KIND_EQ SPELL).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(pairs=(("target", _stack_target()),)),
+        args=AtomArgs(pairs=(("target", target_spell()),)),
     )
     return EffectOutcome(effect=atom)
 
@@ -1937,7 +1930,7 @@ def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
-                        color="G",  # C-2 repair (round 8)
+                        colors=("G",),  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -2461,7 +2454,7 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
                             toughness=QConst(t),
                             keywords=(),
                             abilities=(),
-                            color="W",
+                            colors=("W",),
                             enters_tapped=True,
                             enters_attacking=True,
                         ),

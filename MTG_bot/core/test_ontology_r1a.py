@@ -423,9 +423,17 @@ class TestUnwrapExecution(Rung1Case):
 
     # ------------------------------------------------- static halves of the pin
     def test_negate_filter_is_the_bare_unwrapped_fnot(self):
+        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into Negate's
+        # target, so the filter is a 2-child FAnd; the pin's purpose stands:
+        # no 1-child wrapper, and the negation inside is the bare FNot.
         sel = _target_selector(_compiled_znr("Negate"))
-        self.assertIsInstance(sel.filter, at.FNot)  # NOT FAnd[FNot]
-        self.assertEqual(sel.filter.inner.pred, at.FAtomPred.TYPE_EQ)
+        self.assertIsInstance(sel.filter, at.FAnd)
+        self.assertEqual(len(sel.filter.children), 2)  # NOT FAnd[FNot]
+        neg = next(c for c in sel.filter.children if isinstance(c, at.FNot))
+        self.assertEqual(neg.inner.pred, at.FAtomPred.TYPE_EQ)
+        self.assertIn(
+            at.FAtom(at.FAtomPred.STACK_KIND_EQ, string_value="SPELL"), sel.filter.children
+        )
 
     def test_dauntless_filter_is_the_bare_unwrapped_fatom(self):
         sel = _target_selector(_compiled_znr("Dauntless Survivor"))

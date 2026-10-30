@@ -43,6 +43,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     OptionalEffect,
+    QAtLeast,
     QConst,
     QUnbounded,
     Selector,
@@ -2665,7 +2666,7 @@ class TestChooseOpener(unittest.TestCase):
         choose = _choose(_spell(res.card.abilities[0]).effect)
         self.assertEqual(choose.count, QConst(3))
 
-    def test_spell_choose_one_or_more_uses_unbounded(self) -> None:
+    def test_spell_choose_one_or_more_is_at_least_one(self) -> None:
         raw = _raw_card(
             "I",
             1,
@@ -2682,7 +2683,9 @@ class TestChooseOpener(unittest.TestCase):
         self.assertEqual(res.unparsed, ())
         ab = _spell(res.card.abilities[0])
         choose = _choose(ab.effect)
-        self.assertEqual(choose.count, QUnbounded())
+        # re-pinned 2026-10-30: R5 engine item — "one or more" is at least one
+        # mode (it was QUnbounded, which also allowed none)
+        self.assertEqual(choose.count, QAtLeast(1))
         self.assertEqual(
             choose.options, (_draw_atom(1), _destroy_atom(), _draw_atom(1))
         )
@@ -2904,7 +2907,7 @@ class TestChooseOpenerM21(unittest.TestCase):
         self.assertEqual(len(res.card.abilities), 1)
         ab = _spell(res.card.abilities[0])
         choose = _choose(ab.effect)
-        self.assertEqual(choose.count, QUnbounded())
+        self.assertEqual(choose.count, QAtLeast(1))  # re-pinned 2026-10-30: R5 engine item
         self.assertEqual(len(choose.options), 5)
 
     def test_etb_shape(self) -> None:
