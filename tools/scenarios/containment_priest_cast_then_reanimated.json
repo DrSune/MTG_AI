@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cp", "real": "Containment Priest", "zone": "hand", "controller": 0},
+  {"key": "x", "real": "Concordia Pegasus", "zone": "hand", "controller": 0},
+  {"key": "el", "real": "Eliminate", "zone": "hand", "controller": 0},
+  {"key": "ra", "real": "Rise Again", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 10, "B": 10, "C": 10}},
+ "steps": [
+  {"op": "enter", "key": "cp"},
+  {"op": "cast", "key": "x", "real": "Concordia Pegasus", "controller": 0},
+  {"op": "cast", "key": "el", "real": "Eliminate", "controller": 0, "targets": ["x"]},
+  {"op": "cast", "key": "ra", "real": "Rise Again", "controller": 0, "targets": ["x"]}
+ ],
+ "expect": {"zone": {"cp": "battlefield", "x": "exile", "el": "graveyard", "ra": "graveyard"}},
+ "notes": "Printed: 'If a nontoken creature would enter and it wasn't cast, exile it instead.' Concordia Pegasus is CAST (spared), destroyed by Eliminate, then returned by Rise Again in the same turn. The returning card is a new object that was not cast (CR 400.7), so the Priest exiles it. Kills a 'wasn't cast THIS TURN' reading, which spares it."}

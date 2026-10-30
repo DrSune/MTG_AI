@@ -1407,17 +1407,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # replacement judges it: the Priest spares its own casting spell
         # and every other cast creature, but not a put-onto-the-battlefield
         # creature — which never passed through the stack).
-        from MTG_bot.core.executor.events import KIND_CAST
+        # V6 (2026-10-29, CR 400.7): the cast must be THIS object's. A card
+        # cast earlier this turn that died and was returned is a new object
+        # that was not cast, so a turn-wide search for its CAST row was wrong
+        # (the Priest spared a reanimated creature). _object_cast_row follows
+        # the object across its own zone changes.
         from MTG_bot.core.executor.selectors import controller_matches
 
         assert atom.who is not None
-        for e in _turn_rows(ctx, pred.name):
-            if e.kind != KIND_CAST or e.subject != handle:
-                continue
-            caster = e.cast[0]
-            if controller_matches(atom.who, caster, ctx):
-                return True
-        return False
+        row = _object_cast_row(ctx, handle)
+        if row is None or row not in _turn_rows(ctx, pred.name):
+            return False
+        return controller_matches(atom.who, row.cast[0], ctx)
     if pred is FAtomPred.WAS_KICKED:
         # ZND-1e (CR 702.27a), three reader lanes over ONE carrier: the
         # CAST row's trailing kicked column (journal.emit_cast) is the
@@ -1750,6 +1751,46 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )
+
+
+def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
+    """The CAST row of the object ``handle`` is now, or None when this object
+    was not cast (V6, CR 400.7: a card that changes zones becomes a new
+    object). On the stack, the CAST row after its move onto the stack; on the
+    battlefield, the CAST row inside the stack residency its last entry came
+    from (a resolving permanent spell is the object that was cast, the
+    WAS_KICKED permanent-lane reading); in any other zone, None. The whole
+    journal is read: the object's cast may be older than this turn."""
+    from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
+    from MTG_bot.core.state import ZONE_STACK
+
+    jrn = ctx.journal
+    if jrn is None:
+        raise NotImplementedError(
+            "executor: a was-cast read needs the journalled zone history "
+            "(this ExecCtx has no journal)"
+        )
+    zone = ctx.world.zone_of(handle).kind
+    if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
+        return None
+    rows = [
+        e
+        for e in jrn.events
+        if e.subject == handle and e.kind in (KIND_ZONE_CHANGE, KIND_CAST)
+    ]
+    need_entry = zone == ZONE_BATTLEFIELD
+    for e in reversed(rows):
+        if need_entry:
+            if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] == ZONE_BATTLEFIELD:
+                if e.zone_move[0] != ZONE_STACK:
+                    return None  # put onto the battlefield, never cast
+                need_entry = False
+            continue
+        if e.kind == KIND_CAST:
+            return e
+        if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] == ZONE_STACK:
+            return None  # the stack residency began without a cast
+    return None
 
 
 def _permanent_was_kicked(ctx: ExecCtx, handle: Handle) -> bool:

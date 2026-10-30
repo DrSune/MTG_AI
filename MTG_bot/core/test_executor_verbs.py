@@ -1340,5 +1340,31 @@ class TestIfYouDo(ExecutorCase):
         self.assertEqual(self.sacrifice_then_gain("skip", victims=[self.alpha]), 20)
 
 
+
+class TestObjectWasCast(ExecutorCase):
+    """V6 (2026-10-29, CR 400.7): "it wasn't cast" (Containment Priest) asks
+    about the entering OBJECT; a card put onto the battlefield, or returned
+    after it was cast, is a new object that was not cast. (The cast and the
+    reanimated branches run end to end in the containment_priest packs.)"""
+
+    def test_a_card_put_onto_the_battlefield_was_not_cast(self):
+        from MTG_bot.core.executor.quantity import _object_cast_row, eval_filter
+
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, HAND_YOU),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=self.h1,
+            controller=self.p0,
+            bindings={"cards": self.h1},
+        )
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        self.assertIsNone(_object_cast_row(ctx, self.h1))
+        was_cast = FAtom(FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY)
+        self.assertFalse(eval_filter(was_cast, self.h1, ctx))
+
+
 if __name__ == "__main__":
     unittest.main()
