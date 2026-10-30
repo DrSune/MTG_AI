@@ -1238,5 +1238,61 @@ class TestReplayDeterminism(unittest.TestCase):
         self.assertNotEqual(mid, after)  # the ledger IS replayed state
 
 
+
+class TestConditionalSubject(ExecutorCase):
+    """V11 (2026-10-29): a bare Conditional whose predicate tests only an
+    object's characteristics ("If it was a creature card", Scavenging Ooze)
+    judges the object the previous sentence acted on (the result register,
+    CR 608.2h), not the ability's source; no such object means false."""
+
+    def exile_then_gain(self, card, pred=CREATURE):
+        gy = Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
+        effect = Seq(
+            steps=(
+                atom(
+                    Verb.MOVE_ZONE,
+                    target=target_sel(UNIV, gy),
+                    destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+                ),
+                Conditional(
+                    pred=pred,
+                    then_effect=atom(
+                        Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)
+                    ),
+                ),
+            )
+        )
+        self.ex.apply_effect(
+            effect, source=self.alpha, controller=self.p0, bindings={"target": card}
+        )
+        return self.world.players[self.p0].life
+
+    def test_it_is_the_exiled_card_not_the_source(self):
+        sorcery = self.world.add_card(card_id("Used", type_line="Sorcery"), self.p1, ZONE_GRAVEYARD)
+        self.assertEqual(self.exile_then_gain(sorcery), 20)  # Alpha is a creature; "it" is not
+
+    def test_an_exiled_creature_card_satisfies_it(self):
+        dead = self.world.add_card(card_id("Dead", "2", "2"), self.p1, ZONE_GRAVEYARD)
+        self.assertEqual(self.exile_then_gain(dead), 21)
+
+    def test_no_object_means_false(self):
+        self.assertEqual(self.exile_then_gain([]), 20)
+
+    def test_a_history_predicate_still_judges_the_source(self):
+        # Not a characteristic test: the source keeps the subject (See the
+        # Truth's "if this spell was cast from ..."), whatever the register.
+        from MTG_bot.core.executor import _conditional_subject
+
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        ctx.bindings["result"] = [self.beta]
+        ctx.result_fresh = True  # the previous atom wrote it
+        self.assertEqual(_conditional_subject(FAtom(FAtomPred.DIED_THIS_TURN), ctx), self.alpha)
+        self.assertEqual(_conditional_subject(CREATURE, ctx), self.beta)
+        # One sentence wide (the r19b look-window discipline): a register an
+        # earlier sentence wrote is not "it".
+        ctx.result_fresh = False
+        self.assertEqual(_conditional_subject(CREATURE, ctx), self.alpha)
+
+
 if __name__ == "__main__":
     unittest.main()

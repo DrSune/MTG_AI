@@ -196,6 +196,10 @@ class ExecCtx:
     # bare Conditional after any other atom keeps the old ctx.source
     # subject, byte-unchanged. Empty (the default) everywhere else.
     look_window: tuple[Handle, ...] = ()
+    # V11 (2026-10-29): did the last atom run write the ``result`` register?
+    # The one-sentence width of "it" for a bare Conditional (run_atom sets
+    # it after every atom; transient per resolution, like look_window).
+    result_fresh: bool = False
     # r19c (Rookie Mistake / Hunter's Edge): MULTI-slot spell designation —
     # per-TARGET-selector designations keyed by the Selector's ``repr()``
     # (the same identity key ``spell_target_slots`` dedupes on). None for

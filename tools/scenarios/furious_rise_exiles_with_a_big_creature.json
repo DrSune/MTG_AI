@@ -1,0 +1,64 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "rise",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Furious Rise"
+  },
+  {
+   "key": "big",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Big",
+   "power": 5,
+   "toughness": 5,
+   "type": "Creature"
+  },
+  {
+   "key": "l1",
+   "zone": "library",
+   "controller": 0,
+   "name": "LibA",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  },
+  {
+   "key": "l2",
+   "zone": "library",
+   "controller": 0,
+   "name": "LibB",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  },
+  {
+   "key": "l3",
+   "zone": "library",
+   "controller": 0,
+   "name": "LibC",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l2": "exile",
+   "l1": "library"
+  }
+ },
+ "notes": "V11 (2026-10-29). Printed: 'At the beginning of your end step, if you control a creature with power 4 or greater, exile the top card of your library.' The intervening-if is an existence test over your creatures (CR 603.4), so with a 5/5 on board the top card (LibB: the opening draw took LibC, and library_top keeps the pack's cards above the runner's filler) is exiled. Before the fix the condition was judged on the enchantment itself and never held."
+}

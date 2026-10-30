@@ -1749,12 +1749,19 @@ def _build_furious_rise(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            )
+        # V11 (2026-10-29): "if you control a creature with power N or
+        # greater" is an existence test over your creatures (CR 603.4), the
+        # Ornery Dilophosaur encoding. As a filter it was judged on this
+        # enchantment, so the trigger never did anything.
+        condition=FAtom(
+            pred=FAtomPred.CONTROLLER_COUNT_GE,
+            count=QConst(1),
+            inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+                )
+            ),
         ),
     )
 

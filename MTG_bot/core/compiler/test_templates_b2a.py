@@ -814,9 +814,16 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
+        # re-pinned 2026-10-29: V11 makes "if you control a creature with power
+        # 4 or greater" an existence test (CONTROLLER_COUNT_GE >= 1 over
+        # Creature AND POWER_GE 4), the Ornery Dilophosaur encoding; as a bare
+        # filter it was judged on the enchantment and never held.
         condition = ability.condition
-        assert isinstance(condition, FAnd)
-        self.assertEqual(_find_atom(condition, FAtomPred.POWER_GE).count, QConst(4))
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(condition.count, QConst(1))
+        assert condition.inner_filter is not None
+        self.assertEqual(_find_atom(condition.inner_filter, FAtomPred.POWER_GE).count, QConst(4))
 
     def test_sanctum_of_all_is_upkeep_turn_phase(self) -> None:
         ability = _ability(

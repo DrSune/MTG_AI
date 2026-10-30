@@ -104,6 +104,10 @@ from MTG_bot.core.ability_tree import (
     Effect,
     EtBState,
     FAnd,
+    FAtom,
+    FAtomPred,
+    FNot,
+    FOr,
     Keyword,
     OptionalEffect,
     Phase,
@@ -346,6 +350,51 @@ __all__ = [
     "validate_target_selection",
     "verb_choose_options",
 ]
+
+
+# V11 (2026-10-29): predicates that test an object's own characteristics.
+_CHARACTERISTIC_PREDS = frozenset(
+    {
+        FAtomPred.TYPE_EQ,
+        FAtomPred.SUBTYPE_EQ,
+        FAtomPred.SUPERTYPE_EQ,
+        FAtomPred.COLOR_HAS,
+        FAtomPred.COLOR_IN,
+        FAtomPred.COLOR_COUNT_GE,
+        FAtomPred.CMC_LE,
+        FAtomPred.CMC_GE,
+        FAtomPred.NAME_EQ,
+        FAtomPred.IS_PERMANENT,
+        FAtomPred.IS_TOKEN,
+        FAtomPred.POWER_LE,
+        FAtomPred.POWER_GE,
+    }
+)
+
+
+def _tests_characteristics_only(pred: object) -> bool:
+    """Every leaf of the filter is a characteristic test (FAnd/FOr/FNot)."""
+    if isinstance(pred, (FAnd, FOr)):
+        return bool(pred.children) and all(
+            _tests_characteristics_only(c) for c in pred.children
+        )
+    if isinstance(pred, FNot):
+        return _tests_characteristics_only(pred.inner)
+    return isinstance(pred, FAtom) and pred.pred in _CHARACTERISTIC_PREDS
+
+
+def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
+    """What a bare Conditional's predicate is judged on (V11): the object the
+    previous sentence acted on (the result register, written by the atom just
+    before: ``ctx.result_fresh``) when the predicate only tests an object's
+    characteristics; None when that register names no single object; the
+    ability's source otherwise (a history predicate such as See the Truth's
+    "if this spell was cast from anywhere other than your hand", or no object
+    in the previous sentence)."""
+    if _tests_characteristics_only(pred) and ctx.result_fresh:
+        handles = ctx.binding_handles("result") or []
+        return handles[0] if len(handles) == 1 else None
+    return ctx.source
 
 
 class Executor:
@@ -936,8 +985,18 @@ class Executor:
             # never match "is a creature or land" and silently killed the
             # DRAW tail). run_atom cleared the window on every other verb,
             # so every bare Conditional keeps the ctx.source subject.
-            subj = ctx.look_window[0] if ctx.look_window else ctx.source
-            if eval_filter(effect.pred, subj, ctx):
+            # V11 (2026-10-29): ... unless the predicate tests only an
+            # object's characteristics ("If it was a creature card",
+            # Scavenging Ooze): then, as the B5b if-it-type templates
+            # document, "it" is the object the previous sentence acted on,
+            # the result register, read as it last existed (CR 608.2h). No
+            # such object means the condition is false (CR 608.2b).
+            subj = (
+                ctx.look_window[0]
+                if ctx.look_window
+                else _conditional_subject(effect.pred, ctx)
+            )
+            if subj is not None and eval_filter(effect.pred, subj, ctx):
                 self._run_effect(effect.then_effect, ctx)
             elif effect.else_effect is not None:
                 self._run_effect(effect.else_effect, ctx)

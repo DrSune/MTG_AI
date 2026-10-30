@@ -219,8 +219,12 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         if sel is None:
             # A2(iv): the designation lane (old _v_exile verbatim) — the
             # objects ride `target`, NOT cards, so the r19c spell-
-            # designation shadowing still finds the key; the result
-            # register is written NOTHING (exile wrote none pre-merge).
+            # designation shadowing still finds the key. V11 (2026-10-29):
+            # the moved set is the result register, as in every other lane,
+            # so "Exile target card from a graveyard. If it was a creature
+            # card, ..." (Scavenging Ooze) judges the exiled card. In the 19
+            # sets nothing else reads the register after this lane.
+            moved_targets: list = []
             for card in role_handles(ctx, atom, "target"):
                 _move_to(
                     ctx,
@@ -229,6 +233,8 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     dest_kind,
                     journal_kind,
                 )
+                moved_targets.append(card)
+            ctx.bindings["result"] = moved_targets
             return
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
@@ -2152,6 +2158,12 @@ def run_atom(atom: Atom, ctx: ExecCtx) -> None:
     # idiom) and CLOSES it on completion, so a later Conditional after any
     # other atom keeps the old ctx.source subject and a stale library
     # window can never leak forward. A look verb keeps/refreshes it.
+    before = ctx.bindings.get("result")
     handler(ctx, atom)
     if atom.verb not in (Verb.LOOK_AT, Verb.REVEAL):
         ctx.look_window = ()
+    # V11 (2026-10-29): the same one-sentence width for "it" = the result
+    # register: fresh only when THIS atom wrote it (producers assign a new
+    # list), so a Conditional reads the previous sentence's object and never
+    # one from further back.
+    ctx.result_fresh = ctx.bindings.get("result") is not before

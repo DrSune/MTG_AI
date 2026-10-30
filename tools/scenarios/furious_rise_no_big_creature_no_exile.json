@@ -1,0 +1,64 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "rise",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Furious Rise"
+  },
+  {
+   "key": "big",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Small",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature"
+  },
+  {
+   "key": "l1",
+   "zone": "library",
+   "controller": 0,
+   "name": "LibA",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  },
+  {
+   "key": "l2",
+   "zone": "library",
+   "controller": 0,
+   "name": "LibB",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  },
+  {
+   "key": "l3",
+   "zone": "library",
+   "controller": 0,
+   "name": "LibC",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature"
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l2": "library",
+   "l1": "library"
+  }
+ },
+ "notes": "V11 (2026-10-29). Furious Rise with only a 3/3: no creature with power 4 or greater, so the end-step trigger does nothing (CR 603.4) and the top card stays in the library."
+}
