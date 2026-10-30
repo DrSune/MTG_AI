@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'At the beginning of your end step, if you gained 3 or more life this turn, return this card from your graveyard to the battlefield tapped.' The Ghoul is in seat 0's graveyard; seat 0's lifelink creature deals 3 damage, so seat 0 gains 3. At seat 0's end step the Ghoul returns to the battlefield tapped, under seat 0.",
+ "cards": [
+  {"key": "ghoul", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "ll", "name": "Lifelinker", "type": "Creature — Cleric", "power": 3, "toughness": 3, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "dummy", "name": "Dummy", "type": "Creature — Golem", "power": 0, "toughness": 9, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "dummy", "amount": 3},
+  {"op": "end_turn"}
+ ],
+ "expect": {"zone": {"ghoul": "battlefield"}, "tapped": {"ghoul": true}, "controller": {"ghoul": 0}, "life": {"0": 23, "1": 20}}}

@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d6a9746c-eba5-4735-aec1-e70edba2c686",
+ "name": "Secure the Scene",
+ "text_sha": "cb3a65cc36c4bce61383409e50d5a4294d103681ceb0e5f70b0f0e76fadbb043",
+ "verified": {
+  "tree_sha": "a1ee7c5ad9fd02d95a4f2425fe20ef159b1f6694e4695a6af858379c4b65f4ce",
+  "probe_sha": "c1ccd337f695c4b5e0bb55d3539cf9a1e564301817697405aeac07871bf5bc4b",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Exile target nonland permanent.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of all creatures, artifacts and enchantments of both sides (you_bear .. opp_charm). Each variant: '<target> moves battlefield -> exile'. Sorcery carrier. The probe board has no land permanents, so 'nonland' is covered by pack secure_the_scene_nonland.json (a land on either side is refused; PASS).",
+    "issue": ""
+   },
+   {
+    "clause": "Its controller creates a 1/1 white Soldier creature token.",
+    "status": "OK",
+    "evidence": "you_* targets: '+ you:Soldier (battlefield, you, 1/1)'; opp_* targets: '+ opp:Soldier (battlefield, opp, 1/1)'. TokenSpec 1/1 Creature - Soldier colors ('W',); controller = referent 'target'.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/secure_the_scene_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
+ }
+}

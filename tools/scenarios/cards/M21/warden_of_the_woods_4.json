@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Warden of the Woods", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["w"], "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"w": "battlefield", "s": "graveyard"}, "hand": {"0": 0}, "damage": {"w": 2}},
+ "notes": "Printed: '... a spell or ability AN OPPONENT controls ...'. The Warden's own controller Shocks it: no trigger, no cards drawn."}

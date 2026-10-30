@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Vodalian Arcanist, printed: '{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.' Tap the Arcanist for {C}; with {R} also in the pool, cast Scorching Dragonfire ({1}{R}, an instant): the {C} pays its generic part. The Dragonfire deals 3 to the opponent's 2/2, which is exiled instead of dying. Both mana spent, the Arcanist is tapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "va", "real": "Vodalian Arcanist", "zone": "battlefield", "controller": 0},
+  {"key": "sd", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "activate", "key": "va", "idx": 0, "seat": 0},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "sd", "targets": ["obear"]}
+ ],
+ "expect": {
+  "tapped": {"va": true},
+  "zone": {"sd": "graveyard", "obear": "exile"},
+  "mana_pool": {"0": {}}
+ }
+}

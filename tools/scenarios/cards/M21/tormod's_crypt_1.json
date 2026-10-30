@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "crypt", "real": "Tormod's Crypt", "zone": "hand", "controller": 0},
+  {"key": "o1", "name": "Opp Dead", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1},
+  {"key": "o2", "name": "Opp Spent", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "m1", "name": "My Dead", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "real": "Tormod's Crypt", "key": "crypt"},
+  {"op": "activate", "key": "crypt", "idx": 0, "seat": 0, "targets": ["p1"]}
+ ],
+ "expect": {
+  "zone": {"o1": "exile", "o2": "exile", "m1": "graveyard", "crypt": "graveyard"}
+ },
+ "notes": "Pb48d586bd6 G4: '{T}, Sacrifice this artifact: Exile target player's graveyard.' A noncreature artifact has no summoning sickness, so it works the turn it is cast (free, {0}). Targeting the opponent exiles their whole graveyard; your graveyard (My Dead, and the sacrificed Crypt) is untouched."
+}

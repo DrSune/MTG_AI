@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "81674138-08d0-4126-9e6d-27f6e7dd2403",
+ "name": "Tavern Swindler",
+ "text_sha": "a2141bbf146e08717652de1291bc91b4958346a12bcaa2255e46a719a952dc96",
+ "verified": {
+  "tree_sha": "7bf3b7f766d19ab615610802431b5065805aa73c03294c371bba350d8c57b6d6",
+  "probe_sha": "416798fe8ec7c324d7ac3400973e877fd10490848a2fab59682b42f3bbe34c7e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "{T}, Pay 3 life:",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped; you loses 3 life; you life 20 -> 17. Tree: Cost(CostLife(3), CostTap()), no timing restriction (instant-speed ability).",
+    "issue": "engine-limit: no priority, so the instant-speed ability is used only in its controller's action window"
+   },
+   {
+    "clause": "Flip a coin.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's activation shows no flip outcome (no gain, so the flip was lost or not shown). Packs: seeds 2/4/5/6 win, seeds 1/3/8/9 lose, so the flip is a real seeded coin.",
+    "issue": ""
+   },
+   {
+    "clause": "If you win the flip, you gain 6 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: Conditional(FLIP_WON who=YOU, GAIN_LIFE 6 controller YOU). Pack tavern_swindler_flip_won.json (seed 2): life 0 = 23, life 1 = 20, PASS. Pack tavern_swindler_flip_lost.json (seed 1): life 0 = 17, life 1 = 20, PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/tavern_swindler_1.json",
+   "tools/scenarios/cards/M21/tavern_swindler_2.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 6,
+   "score": 0.6,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/1/then_effect/args/amount",
+    "amount-1 at 1/0/effect/steps/1/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/then_effect/args/controller"
+   ]
+  }
+ }
+}

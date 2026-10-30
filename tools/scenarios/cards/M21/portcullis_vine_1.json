@@ -1,0 +1,18 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Defender. {2}, {T}, Sacrifice a creature with defender: Draw a card.' Turn 1: the Vine is cast, so its {T} ability is refused (CR 302.6). Turn 3: the Vine taps and sacrifices ANOTHER creature with defender (Wall Two) as the cost: Wall Two goes to the graveyard, the Vine stays on the battlefield tapped, and seat 0 draws one card (hand: Vine cast -> 0, turn 3 draw -> 1, ability draw -> 2).",
+ "cards": [
+  {"key": "vine", "real": "Portcullis Vine", "zone": "hand", "controller": 0},
+  {"key": "wall2", "name": "Wall Two", "type": "Creature — Wall", "power": 0, "toughness": 4, "keywords": ["DEFENDER"], "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Portcullis Vine", "key": "vine"},
+  {"op": "activate", "key": "vine", "idx": 0, "seat": 0, "decisions": ["wall2"], "expect_raise": "summoning sickness"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "vine", "idx": 0, "seat": 0, "decisions": ["wall2"]}
+ ],
+ "expect": {"zone": {"vine": "battlefield", "wall2": "graveyard"}, "tapped": {"vine": true}, "hand": {"0": 2}, "mana_pool": {"0": {}}}}

@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ff", "real": "Faith's Fetters", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 4}},
+ "steps": [
+  {"op": "cast", "real": "Faith's Fetters", "key": "ff", "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"mine": true}, "block": {"bear": "mine"}},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "attached": {"ff": "bear"},
+  "not_asked_to_block": ["bear"],
+  "not_asked": ["bear"],
+  "life": {"0": 24, "1": 18}
+ },
+ "notes": "P64acd861b2 G4: 'When this Aura enters, YOU gain 4 life' (you 20 -> 24, the opponent unchanged). 'Enchanted permanent can't attack or block': the fettered Opp Bear is never offered a block (My Bear connects for 2) and on its controller's turn is never asked to attack (you stay at 24)."
+}

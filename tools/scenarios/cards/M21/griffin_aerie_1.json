@@ -1,0 +1,34 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ae", "real": "Griffin Aerie", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "real": "Radiant Fountain", "zone": "hand", "controller": 0},
+  {"key": "c1", "real": "Bloodfell Caves", "zone": "hand", "controller": 0},
+  {"key": "f2", "real": "Radiant Fountain", "zone": "hand", "controller": 0},
+  {"key": "c2", "real": "Bloodfell Caves", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "f1"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "enter", "key": "c1"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "enter", "key": "f2"},
+  {"op": "enter", "key": "c2"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 26},
+  "tokens": {"Griffin": 1},
+  "battlefield_pt": {"Griffin": [2, 2]},
+  "battlefield_keywords": {"Griffin": ["FLYING"]},
+  "turn_seats": [0, 1, 0, 1, 0]
+ },
+ "notes": "Printed Griffin Aerie: 'At the beginning of your end step, if you gained 3 or more life this turn, create a 2/2 white Griffin creature token with flying.' Turn 1: gain 2 (Radiant Fountain), end step -> no token (2 < 3). Turn 3: gain 1 (Bloodfell Caves); 3 gained across turns but only 1 this turn -> no token. Turn 5: gain 2 + 1 = exactly 3 this turn -> one 2/2 flying Griffin. Life 20+2+1+2+1 = 26. Opponent end steps (turns 2, 4) make nothing."
+}

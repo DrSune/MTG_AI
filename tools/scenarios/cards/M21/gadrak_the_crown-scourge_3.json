@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed type line: 'Legendary Creature — Dragon'. A second Gadrak, the Crown-Scourge cast under the same controller triggers the legend rule (CR 704.5j); the controller keeps the old one, so the new copy goes to the graveyard.",
+ "cards": [
+  {"key": "old", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+  {"key": "new", "real": "Gadrak, the Crown-Scourge", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [{"op": "cast", "real": "Gadrak, the Crown-Scourge", "key": "new", "decisions": ["old"]}],
+ "expect": {"zone": {"old": "battlefield", "new": "graveyard"}}}

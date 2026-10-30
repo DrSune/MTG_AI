@@ -1,0 +1,58 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7a1e4880-9abb-4018-84bd-91b5ec702c51",
+ "name": "Shacklegeist",
+ "text_sha": "4c2de32f70d5b66882205e369b9bd32df3583114598e5d5db6246edff4349509",
+ "verified": {
+  "tree_sha": "18caca333b8b0b1bc8098b4f216ece5ea78fed3e7a8d365859260b16637a18ed",
+  "probe_sha": "d8f39cbd4b8f10f3c19d9baf2ebdb09893c791b5243efa7ed350e74542efd064",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Shacklegeist {1}{U} Creature — Spirit 2/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 2/2, paid U-1 plus 1 generic",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "static: keywords FLYING; [this creature attacks and opp_giant blocks it]: no block declared (a non-flier cannot block it), 2 damage to opp",
+    "issue": ""
+   },
+   {
+    "clause": "This creature can block only creatures with flying.",
+    "status": "OK",
+    "evidence": "not in the trace (it never blocks). Tree = parse template B4-block-only-flying. Pack shacklegeist_blocks_only_fliers.json (a ground Ape and a flying Bird attack: block ask vocabulary is exactly '<bird>,NONE'; it blocks and kills the Bird, the Ape is unblocked) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Tap two untapped Spirits you control: Tap target creature you don't control.",
+    "status": "OK",
+    "evidence": "trace: 'ability [1] not activatable: cost:tap:insufficient_candidates:1<2' (only one Spirit on the standard board) - correct refusal. Tree = parse template B5b-tap-spirits. Packs: shacklegeist_tap_two_spirits.json (two Spirits that entered this turn tap, the non-Spirit Bear does not, the opponent's Ape is tapped) - PASS; shacklegeist_cannot_target_own_creature.json (targeting your own Bear refused, nothing tapped) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/shacklegeist_1.json",
+   "tools/scenarios/cards/M21/shacklegeist_2.json",
+   "tools/scenarios/cards/M21/shacklegeist_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 6,
+   "score": 0.46153846153846156,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/cost/parts/0/target/filter",
+    "widen filter (drop part 1) at 1/1/cost/parts/0/target/filter",
+    "target->all at 1/1/effect/args/target",
+    "amount+1 at 1/1/effect/args/target/count",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/1/effect/args/target/filter/children/1/inner/who"
+   ]
+  }
+ }
+}

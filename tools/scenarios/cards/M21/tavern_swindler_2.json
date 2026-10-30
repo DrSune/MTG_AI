@@ -1,0 +1,6 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 1},
+ "cards": [{"key": "t", "zone": "battlefield", "controller": 0, "real": "Tavern Swindler"}],
+ "steps": [{"op": "activate", "key": "t", "idx": 0, "seat": 0}],
+ "expect": {"life": {"0": 17, "1": 20}, "tapped": {"t": true}},
+ "notes": "Printed: '{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life.' At master_seed 1 the controller LOSES the flip: pays 3 (20 -> 17) and gains nothing; the opponent gains nothing either."}

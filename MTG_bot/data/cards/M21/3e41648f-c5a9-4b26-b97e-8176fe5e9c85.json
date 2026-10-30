@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3e41648f-c5a9-4b26-b97e-8176fe5e9c85",
+ "name": "Brash Taunter",
+ "text_sha": "6d250d50b4a5af98cc10987c2e59ba00854f82816e1eb058d6933f077c7b7c6a",
+ "verified": {
+  "tree_sha": "a73857c1137a69f436a8d0fbfe45dcdbfd1074698b0266a210eb7a5d02b9dc8a",
+  "probe_sha": "5c3c6b16c382194a8819119ce85c0a202ac97e2ca66bc46c77b64671f5c4952d",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Indestructible",
+    "status": "OK",
+    "evidence": "[stimulus: this card is dealt lethal damage]: card is dealt 99 damage, damage 0 -> 99, stays on the battlefield (no move to graveyard). Fight vs you_giant/opp_giant: dealt 4 with toughness 1, survives.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature is dealt damage, it deals that much damage to target opponent.",
+    "status": "OK",
+    "evidence": "[stimulus: this card is dealt 1 damage]: trigger, opp is dealt 1 (by card), life 20 -> 19; dealt 99 -> opp dealt 99; blocked by opp_giant: dealt 4 combat -> opp dealt 4, life 20 -> 16; fights: dealt 2/4/1/3 -> opp dealt 2/4/1/3. Unblocked attack (no damage to it): no trigger. Damage to you_bear in the fight does not trigger it. Target zone PLAYER controller OPPONENT ('opp is targeted').",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{R}, {T}: This creature fights another target creature.",
+    "status": "OK",
+    "evidence": "Ability [1] target slot: 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (itself excluded, either controller). [activate targets=['you_bear']]: card tapped, mana R-1 W-2, you_bear dealt 1, card dealt 2 (each deals its power). opp_flier dies to 1. No timing restriction (instant speed). Pack brash_taunter_fights_one_target.json (one other creature: the fight happens with one target) PASS.",
+    "issue": "engine-limit: no priority, so the instant-speed ability is used only in its controller's action window"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/brash_taunter_1.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 15,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

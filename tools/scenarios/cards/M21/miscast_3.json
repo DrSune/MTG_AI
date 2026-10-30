@@ -1,17 +1,54 @@
 {
  "set": "M21",
- "world": {"life": 20, "seed": 7},
+ "world": {
+  "life": 20,
+  "seed": 109
+ },
  "cards": [
-  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
-  {"key": "miscast", "real": "Miscast", "zone": "hand", "controller": 1}
+  {
+   "key": "cre",
+   "real": "Staunch Shieldmate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "miscast",
+   "real": "Miscast",
+   "zone": "hand",
+   "controller": 1
+  }
  ],
- "mana": {"0": {"W": 1}, "1": {"U": 1}},
+ "mana": {
+  "0": {
+   "W": 1
+  },
+  "1": {
+   "U": 1
+  }
+ },
  "steps": [
-  {"op": "cast", "real": "Staunch Shieldmate", "key": "mate", "decisions": ["miscast"]}
+  {
+   "op": "cast",
+   "real": "Staunch Shieldmate",
+   "key": "cre",
+   "decisions": [
+    "miscast"
+   ]
+  }
  ],
  "expect": {
-  "zone": {"mate": "battlefield", "miscast": "hand"},
-  "window_asks": {"1": []}
+  "zone": {
+   "cre": "battlefield",
+   "miscast": "hand"
+  },
+  "window_asks": {
+   "1": []
+  },
+  "mana_pool": {
+   "1": {
+    "U": 1
+   }
+  }
  },
- "notes": "Printed Miscast: 'Counter target instant or sorcery spell ...'. A creature spell is not a legal target, so Miscast is never offered against Staunch Shieldmate, which resolves; Miscast stays in hand."
+ "notes": "Verifier K, wave 4. Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Expectation from the text: a creature spell is not an instant or sorcery spell, so Miscast cannot target it; the opponent is offered no Miscast response, keeps Miscast and its {U}, and the creature resolves."
 }

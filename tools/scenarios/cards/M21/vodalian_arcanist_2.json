@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Vodalian Arcanist, printed: '{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.' Tap the Arcanist for {C}; with {B} also in the pool, try to cast Walking Corpse ({1}{B}, a creature spell): the {C} may not be spent on it, so the total {1}{B} cannot be paid and the cast is refused. Walking Corpse stays in hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "va", "real": "Vodalian Arcanist", "zone": "battlefield", "controller": 0},
+  {"key": "wc", "real": "Walking Corpse", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "activate", "key": "va", "idx": 0, "seat": 0},
+  {"op": "cast", "real": "Walking Corpse", "key": "wc", "expect_raise": "cost:mana_generic"}
+ ],
+ "expect": {
+  "tapped": {"va": true},
+  "zone": {"wc": "hand"}
+ }
+}

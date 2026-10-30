@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 101},
+  "cards": [
+    {"key": "stew", "real": "Liliana's Steward", "zone": "battlefield", "controller": 0},
+    {"key": "h1", "name": "Opp Card A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "activate", "key": "stew", "idx": 0, "seat": 0, "targets": ["p1"], "expect_raise": "illegal activation"}
+  ],
+  "expect": {
+    "zone": {"stew": "battlefield", "h1": "hand"},
+    "tapped": {"stew": false}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{T}, Sacrifice this creature: Target opponent discards a card. Activate only as a sorcery.' Expectation from the text (CR 602.5d, 307.1): on the opponent's turn the ability cannot be activated; nothing is paid (the Steward stays on the battlefield, untapped) and the opponent's card stays in hand."
+}

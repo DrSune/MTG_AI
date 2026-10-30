@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bsa", "real": "Baneslayer Angel", "zone": "battlefield", "controller": 0},
+  {"key": "dragon", "name": "Opp Dragon", "type": "Creature — Dragon", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "demon", "name": "Opp Demon", "type": "Creature — Demon", "power": "6", "toughness": "6", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "demon", "target": "bsa", "amount": 6},
+  {"op": "combat", "seat": 0, "attack": {"bsa": true}, "block": {"dragon": "bsa"}}
+ ],
+ "expect": {
+  "damage_received": {"bsa": 0},
+  "zone": {"bsa": "battlefield"},
+  "blocked": {"bsa": []},
+  "life": {"0": 25, "1": 15}
+ },
+ "notes": "P7c3f9186fa G4: 'protection from Demons and from Dragons' (CR 702.16). The Demon's 6 damage is prevented; the flying Dragon cannot block it, so the Angel connects for 5 and lifelink gains you 5."
+}

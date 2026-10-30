@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f0cbf361-d7dc-4556-a654-71c08785095a",
+ "name": "Crypt Lurker",
+ "text_sha": "77dc3446f37d5b5ac264b6428af33211d652abc4818860c12e2d94012ace76f6",
+ "verified": {
+  "tree_sha": "3aa817b346d5edd445c787776aadd2761cecf61a6e0084de7ad99a8769a3ecaf",
+  "probe_sha": "86f9dc8fbec0becdee5204fe286bf12044b4eb056e2c27ebb1f1da200434d4aa",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may sacrifice a creature or discard a creature card.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask may: [fire, skip]'; skip -> nothing happens; fire -> 'ask choose: [0, 1]'; 0 -> 'ask one_of: [you_bear, you_giant, card]' (only my creatures, itself included) and the pick is sacrificed (you_bear, you_giant, or the Lurker itself); 1 -> 'ask one_of: [you_spare, you_cast_creature]' (creature cards in hand only, the instant excluded) and the pick moves hand -> graveyard. Also triggers when it enters on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, draw a card.",
+    "status": "OK",
+    "evidence": "Every fire variant that sacrificed or discarded draws exactly one card (you:Library 5#1 to hand); skip draws nothing. Pack P9d5b1baa20_crypt_lurker_nothing_to_discard.json PASSES: picking 'discard' with no creature card in hand discards nothing and draws nothing.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/crypt_lurker_1.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 15,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

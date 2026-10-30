@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Tap two untapped Spirits you control: Tap target creature you don't control.' Shacklegeist and a second Spirit both enter this turn (the cost is not {T}, so summoning sickness does not matter, CR 302.6). Seat 0 also controls a non-Spirit Bear. Activating taps the two Spirits (not the Bear) and taps the opponent's Ape.",
+ "cards": [
+  {"key": "sg", "real": "Shacklegeist", "zone": "hand", "controller": 0},
+  {"key": "sp2", "name": "Spirit Two", "type": "Creature — Spirit", "power": 1, "toughness": 1, "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Opp Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sg"},
+  {"op": "enter", "key": "sp2"},
+  {"op": "activate", "key": "sg", "idx": 1, "seat": 0, "targets": ["ape"]}
+ ],
+ "expect": {"tapped": {"sg": true, "sp2": true, "bear": false, "ape": true}}}

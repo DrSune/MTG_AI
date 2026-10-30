@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 1, "targets": ["t"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 17}, "zone": {"t": "battlefield", "s": "graveyard"}, "damage": {"t": 2}},
+ "notes": "Printed: 'Spells your opponents cast that target this creature cost an additional 3 life to cast.' The opponent's Shock at Terror costs {R} plus 3 life (20 -> 17); Terror (5/4) takes 2."}

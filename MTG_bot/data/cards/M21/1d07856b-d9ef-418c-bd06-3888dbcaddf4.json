@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1d07856b-d9ef-418c-bd06-3888dbcaddf4",
+ "name": "Vodalian Arcanist",
+ "text_sha": "77b791ffa9b44772261c0d8dbf4bb5ebe0f422b4a95e35ffb3aa6e8849f7844c",
+ "verified": {
+  "tree_sha": "3abbd4c6a1b26447c2ed269c288489221ca306a48e41c9e53ed8a6f9e4bfaee7",
+  "probe_sha": "c085f418a596367ad54e0cab5c1d9584b5bf168f77eca7165ae4c908f669d319",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', 'you: mana C+1' (one colourless). Tree is the canonical B3-add-mana-colorless.",
+    "issue": ""
+   },
+   {
+    "clause": "Spend this mana only to cast an instant or sorcery spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No trace variant spends the {C}. Packs: vodalian_arcanist_mana_pays_instant (the {C} plus {R} pay Scorching Dragonfire's {1}{R}, it exiles the opp 2/2, pool empty) PASS; vodalian_arcanist_mana_cannot_cast_creature (the {C} plus {B} cannot pay Walking Corpse's {1}{B}: 'illegal cast: cost:mana_generic:0<1', it stays in hand) PASS. Control: Walking Corpse is castable with {B}{B}. Tree is the canonical B5b-spend-this-mana-is-or-sorcery (THIS_MANA, Instant OR Sorcery).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/vodalian_arcanist_1.json",
+   "tools/scenarios/cards/M21/vodalian_arcanist_2.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

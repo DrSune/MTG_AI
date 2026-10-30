@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1818b0b1-0104-4673-9be8-acfc773ef87d",
+ "name": "Sanctum of Tranquil Light",
+ "text_sha": "099753c64ca8a49be6202512d9b88aa913f7f0c2dcf1fd13dcc702e2ef66c9b8",
+ "verified": {
+  "tree_sha": "bff5f6285dc419f31978a0ef4621652beb8173efd287e94c6d32548bf0057068",
+  "probe_sha": "c3e27a960a8a73aeba25b3e6f83cae13469ce66e8968f09432eed1837a959caf",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Sanctum of Tranquil Light {W} Legendary Enchantment — Shrine (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, paid W-1; SpellAbility ENCHANTMENT carrier",
+    "issue": ""
+   },
+   {
+    "clause": "{5}{W}: Tap target creature.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (any creature, no non-creatures); each activation taps the target (opp_tapped already tapped: no change). Tree = parse template B3-tap-target-creature",
+    "issue": ""
+   },
+   {
+    "clause": "This ability costs {1} less to activate for each Shrine you control.",
+    "status": "OK",
+    "evidence": "[activate [0]]: paid W-5 = {4}{W}, i.e. {5}{W} less 1 for the Sanctum itself (a Shrine you control). Tree = parse template B5c-shrine-activation-cost. Packs: sanctum_tranquil_light_counts_your_shrines.json (3 own Shrines, 2 opponent Shrines, 1 non-Shrine enchantment -> exactly {2}{W}, pool empty) - PASS; sanctum_tranquil_light_reduction_floor.json (6 own Shrines -> exactly {W}, the coloured part not reduced) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sanctum_of_tranquil_light_1.json",
+   "tools/scenarios/cards/M21/sanctum_of_tranquil_light_2.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/delta/amount/right/selector/filter"
+   ]
+  }
+ }
+}

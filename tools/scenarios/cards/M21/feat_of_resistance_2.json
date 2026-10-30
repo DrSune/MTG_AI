@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "fr", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+  {"key": "ds", "real": "Defiant Strike", "zone": "hand", "controller": 1},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}, "1": {"W": 1, "R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Feat of Resistance", "key": "fr", "targets": ["bear"], "decisions": ["0"]},
+  {"op": "cast", "real": "Defiant Strike", "key": "ds", "controller": 1, "targets": ["bear"], "expect_raise": "illegal"},
+  {"op": "cast", "real": "Shock", "key": "shock", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {"zone": {"fr": "graveyard", "ds": "hand", "shock": "graveyard", "bear": "battlefield"}, "damage": {"bear": 2}, "counters": {"bear": {"PLUS_1_PLUS_1": 1}}},
+ "notes": "Printed: '... protection from the color of your choice ...'. Choice 0 of WUBRG = white: the opponent's white Defiant Strike cannot target the bear; the opponent's red Shock can (2 damage to the 3/3, it survives)."}

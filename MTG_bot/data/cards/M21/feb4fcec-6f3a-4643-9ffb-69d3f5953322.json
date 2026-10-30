@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "feb4fcec-6f3a-4643-9ffb-69d3f5953322",
+ "name": "Prismite",
+ "text_sha": "90a263065c5db8090b818101f7fef3d0e6880af770ca27fa49b1a3595bc7d5a0",
+ "verified": {
+  "tree_sha": "a1ba0a3b8d27b49b19be4e5046b1dd169e775beafd6086a16b7a5fe3ec14b4dc",
+  "probe_sha": "8308ce15424e4156feabc3142a31c86abc68be6cecbba3d00b08efdbf2c08cad",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "{2}:",
+    "status": "OK",
+    "evidence": "Tree: CostManaGeneric(2), no tap. Trace: [-> U] 'you: mana U+1 W-2'; [-> W] 'mana W-1' (two W paid, one W added). Pack prismite_two_for_one.json (two colorless pay for it, Prismite stays untapped) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "Add one mana of any color.",
+    "status": "OK",
+    "evidence": "'ask mana: [W, U, B, R, G]' (five colours, no colorless); the chosen colour +1 in each variant.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/prismite_1.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

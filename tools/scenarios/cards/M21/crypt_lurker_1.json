@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cl", "real": "Crypt Lurker", "zone": "hand", "controller": 0},
+  {"key": "trick", "name": "Trick", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 4}},
+ "steps": [
+  {"op": "cast", "real": "Crypt Lurker", "key": "cl", "decisions": ["fire", "1"]}
+ ],
+ "expect": {
+  "zone": {"cl": "battlefield", "trick": "hand", "junk": "hand"},
+  "hand": {"0": 2}
+ },
+ "notes": "Printed Crypt Lurker: 'When this creature enters, you may sacrifice a creature or discard a creature card. If you do, draw a card.' My hand holds no creature card (only an instant). I take the may and pick 'discard a creature card': nothing can be discarded, so I did not do it and draw nothing. Hand = Trick + Top Junk (the runner's opening draw) = 2; the Lurker stays."
+}

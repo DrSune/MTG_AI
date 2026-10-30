@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sts", "real": "Secure the Scene", "zone": "hand", "controller": 0},
+  {"key": "oland", "real": "Plains", "zone": "battlefield", "controller": 1},
+  {"key": "myland", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Secure the Scene", "key": "sts", "targets": ["oland"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Secure the Scene", "key": "sts", "targets": ["myland"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Secure the Scene", "key": "sts", "targets": ["ob"]}
+ ],
+ "expect": {"zone": {"sts": "graveyard", "ob": "exile", "oland": "battlefield", "myland": "battlefield"}, "tokens": {"Soldier": 1}, "battlefield_pt": {"Soldier": [1, 1]}},
+ "notes": "Printed: 'Exile target nonland permanent. Its controller creates a 1/1 white Soldier creature token.' A land (either side) is not a legal target; the opponent's creature is exiled and one 1/1 Soldier is created."}

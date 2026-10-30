@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "2f94cb83-1f48-4293-b219-67830c074aeb",
+ "name": "Enthralling Hold",
+ "text_sha": "998b48d383d29764e722bcecbe828930575a28473a7902574518bd65638ad432",
+ "verified": {
+  "tree_sha": "9e066045df712932dd49c90f0b16fb5057c469b68388115c975ab9b4207f9780",
+  "probe_sha": "d7a13681ea7ce653ed08602efd0a8b50f397c56c1815f3429c635d00a37c3279",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "keywords[0] ENCHANT(TYPE_EQ Creature). Stimulus 'from your hand, the card enters during the opponent's turn': 'ask enchant: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' offers creatures only (no relic/charm).",
+    "issue": ""
+   },
+   {
+    "clause": "You can't choose an untapped creature as this spell's target as you cast it.",
+    "status": "OK",
+    "evidence": "[cast]: 'target slot (cast): 1..1 of [opp_tapped]', the only tapped creature; every untapped creature (yours and the opponent's) is excluded. In the non-cast entry stimulus untapped creatures are offered, which is correct (not cast, so no target, CR 303.4f). Tree matches the canonical template B4-enthralling-target-choice; the engine reads it only off the battlefield at the target choice (legality.py:505), and no consumer treats the battlefield copy as a global targeting veto.",
+    "issue": ""
+   },
+   {
+    "clause": "You control enchanted creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's snapshot reads world.controller_of (zone owner, probe.py:302), not the executor's control overlay, so no trace line can show a control change. Packs: enthralling_hold_you_control_enchanted (cast on tapped opp 3/3: attached to it, effective controller seat 0, the other opp creature stays seat 1) PASS; enthralling_hold_control_ends_when_aura_leaves (Aura moved to the graveyard: control back to seat 1) PASS.",
+    "issue": "Represented as the canonical durationless GAIN_CONTROL on the Aura's carrier, anchored to the Aura (verbs.py:2197). Weaker-only gap: an Enthralling Hold put onto the battlefield without being cast would not take control. Not stronger."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/enthralling_hold_1.json",
+   "tools/scenarios/cards/M21/enthralling_hold_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/event/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

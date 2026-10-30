@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5cfd73ab-8509-4e4b-9704-68d8dad3b301",
+ "name": "Discontinuity",
+ "text_sha": "2bbc57a18ab32ee1f8dddc203493d68038a94ba549fd7593840db9777bfc3e7d",
+ "verified": {
+  "tree_sha": "a6d2ec14cf7c2ebca02ac988d662d883472ee3f102c3cb4e7be50bd740bdbc60",
+  "probe_sha": "b7eac15fcd921c1a2498571006d4f72564640681e99b5309bc7e5205c9989ac3",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "During your turn, this spell costs {2}{U}{U} less to cast.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace cannot show the payment (every pool empties when the turn ends). Tree abilities[0] CostModifier IS_SOURCE, TURN_OF YOU, reduce generic 2 + U 2, identical to the compiler's parse. Pack P1f817bec07_discontinuity_cost.json PASSES: on its controller's turn 1 U is refused, 2 U cast it; the opponent casting it on seat 0's turn is refused at 5 U (a 6 U throwaway variant succeeds, so the refusal is the full {3}{U}{U}{U} cost, not timing).",
+    "issue": ""
+   },
+   {
+    "clause": "End the turn.",
+    "status": "OK",
+    "evidence": "[cast]: card hand->stack, then stack->exile (CR 724.1b, the resolving spell is exiled, not graveyarded); both players' mana pools empty in the same action (724.1d); 'after the turn ends: (nothing changes)'. Pack also shows damage wearing off (damage {}).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/discontinuity_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/delta/amount",
+    "amount-1 at 1/0/delta/amount",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "amount+1 at 1/0/extra_deltas/0/amount",
+    "amount-1 at 1/0/extra_deltas/0/amount"
+   ]
+  }
+ }
+}

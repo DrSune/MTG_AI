@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "met", "real": "Meteorite", "zone": "hand", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 5}},
+ "steps": [
+  {"op": "cast", "real": "Meteorite", "key": "met", "decisions": ["lili"]}
+ ],
+ "expect": {
+  "zone": {"met": "battlefield", "lili": "battlefield"},
+  "counters": {"lili": {"LOYALTY": 2}},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Meteorite: 'When this artifact enters, it deals 2 damage to any target.' A planeswalker is a legal 'any target': Liliana, Waker of the Dead (loyalty 4) takes 2 and is left with 2 loyalty (CR 120.3c); no player loses life. {5} paid from five colorless."
+}

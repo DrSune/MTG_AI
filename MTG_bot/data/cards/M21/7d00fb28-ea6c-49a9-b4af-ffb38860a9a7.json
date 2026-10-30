@@ -5,16 +5,22 @@
  "name": "Cancel",
  "text_sha": "0a01df8f6a8d4b850d50b3c234f94c0bab70fb83f3df3c36213e056ffbbf223a",
  "verified": {
-  "tree_sha": "a11107c15f87151b656d54ad8d2047e2ad8848898867c2c40dc89edc181a11a6",
+  "tree_sha": "7f9a93c5e78c508a3b06fa4f7f869f399e32e9207aa3a179a7f3133a1fcee3e0",
   "probe_sha": "89d0e496cfa621724ab650171b88d846f913108e6fb7903ef21d5feb4f7f3223",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-J",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
   "clauses": [
    {
-    "clause": "Counter target spell. (Instant {1}{U}{U})",
-    "status": "NOT_EXERCISED",
-    "evidence": "Probe: 'cast skipped: a target slot needs 1, the board offers 0' (no spell on the stack). Tree: COUNTER_SPELL, target Selector count 1 TARGET, filter FAnd(()) (any spell), zone STACK controller ANY; identical to `parse \"Counter target spell.\"` (template B5a-counter-spell). Pack cancel_counters_creature_spell.json: opponent counters Staunch Shieldmate in the response window; the creature spell goes to the graveyard, Cancel to the graveyard, U:3 pool fully spent: PASS",
-    "issue": "engine-limit: no priority; Cancel is only castable in the counterspell response window or its controller's own action window (weaker, not stronger)"
+    "clause": "Cancel {1}{U}{U} Instant",
+    "status": "OK",
+    "evidence": "SpellKind.INSTANT; pack: paid with seat 1's U3 in the response window, pool empty after",
+    "issue": "engine-limit: no priority; a counterspell is cast only in the response window the engine opens"
+   },
+   {
+    "clause": "Counter target spell.",
+    "status": "OK",
+    "evidence": "Trace: 'cast skipped: a target slot needs 1, the board offers 0' (no spell on the stack: NOT_EXERCISED in the trace). Tree = parse template B5a-counter-spell (1 target, STACK_KIND_EQ SPELL). Pack cancel_counters_a_creature_spell.json: the opponent's Cancel counters Valorous Steed (creature spell) -> Steed to graveyard, no Knight token, Cancel to graveyard, window vocab [PASS, cancel] - PASS",
+    "issue": ""
    }
   ],
   "packs": [

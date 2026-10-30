@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vito", "real": "Vito, Thorn of the Dusk Rose", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Big", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "small", "name": "Small", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "guard", "name": "Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [
+  {"op": "activate", "key": "vito", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"big": true, "small": true}, "block": {"guard": "small"}}
+ ],
+ "expect": {
+  "life": {"0": 26, "1": 10},
+  "zone": {"small": "graveyard", "guard": "battlefield"},
+  "damage": {"guard": 2}
+ },
+ "notes": "P7111e87bf7 G4: Vito's {3}{B}{B} gives YOUR creatures lifelink until end of turn. Big (4) is unblocked, Small (2) is blocked by the opponent's Guard. You gain 4 + 2 = 6 (26) and Vito makes the target opponent lose that much: 20 - 4 combat - 6 = 10. The Guard (no lifelink: it is not yours) gains the opponent nothing; Small dies to it."
+}

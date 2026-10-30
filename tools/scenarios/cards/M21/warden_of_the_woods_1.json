@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Warden of the Woods", "zone": "battlefield", "controller": 0},
+  {"key": "rs", "real": "Rin and Seri, Inseparable", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1, "G": 1, "W": 1}},
+ "steps": [
+  {"op": "activate", "key": "rs", "idx": 2, "seat": 1, "targets": ["w"], "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"w": "battlefield"}, "hand": {"0": 2, "1": 0}, "damage": {"w": 1}},
+ "notes": "Printed: 'Whenever this creature becomes the target of a spell OR ABILITY an opponent controls, you may draw two cards.' The opponent activates Rin and Seri's damage ability targeting the Warden: the trigger fires and the Warden's controller draws two (accepting the may). Rin and Seri deals 1 (one Dog)."}

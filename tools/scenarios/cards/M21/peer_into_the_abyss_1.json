@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "peer", "real": "Peer into the Abyss", "zone": "hand", "controller": 0},
+  {"key": "olib", "name": "Opp Deep Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"B": 7}},
+ "steps": [
+  {"op": "life", "seat": 1, "set": 15},
+  {"op": "cast", "real": "Peer into the Abyss", "key": "peer", "targets": ["p1"]}
+ ],
+ "expect": {
+  "zone": {"peer": "graveyard"},
+  "hand": {"1": 4, "0": 0},
+  "life": {"0": 20, "1": 7},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Peer into the Abyss: 'Target player draws cards equal to half the number of cards in their library and loses half their life. Round up each time.' The opponent's library holds 7 cards (6 filler + 1): they draw ceil(7/2) = 4. Their life is 15: they lose ceil(15/2) = 8, down to 7. The caster draws and loses nothing."
+}

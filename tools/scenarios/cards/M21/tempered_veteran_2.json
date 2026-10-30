@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 73},
+  "cards": [
+    {"key": "vet", "real": "Tempered Veteran", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"W": 5}},
+  "steps": [
+    {"op": "activate", "key": "vet", "idx": 1, "seat": 0, "targets": ["bear"], "expect_raise": "illegal activation"},
+    {"op": "mana", "seat": 0, "add": {"W": 1}},
+    {"op": "activate", "key": "vet", "idx": 1, "seat": 0, "targets": ["bear"]}
+  ],
+  "expect": {
+    "tapped": {"vet": true},
+    "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{4}{W}{W}, {T}: Put a +1/+1 counter on target creature.' Expectation from the text: the cost is six mana including two white; with only five white mana in pool the activation is refused (nothing tapped, no counter); with the sixth it resolves, spends all six and taps the Veteran, one counter on the Bear."
+}

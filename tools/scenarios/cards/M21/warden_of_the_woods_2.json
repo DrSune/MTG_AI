@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Warden of the Woods", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 1, "targets": ["w"], "decisions": ["skip"]}
+ ],
+ "expect": {"zone": {"w": "battlefield", "s": "graveyard"}, "hand": {"0": 0, "1": 0}, "damage": {"w": 2}},
+ "notes": "Printed: '... you MAY draw two cards.' The opponent's Shock targets the Warden; its controller declines the may, so no cards are drawn (the draw is optional, not mandatory)."}

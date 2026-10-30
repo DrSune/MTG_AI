@@ -1,0 +1,24 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 113},
+  "cards": [
+    {"key": "cre", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+    {"key": "rewind", "real": "Rewind", "zone": "hand", "controller": 1},
+    {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true},
+    {"key": "p2", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true},
+    {"key": "p3", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true},
+    {"key": "p4", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true},
+    {"key": "p5", "real": "Plains", "zone": "battlefield", "controller": 1, "start_tapped": true}
+  ],
+  "mana": {"0": {"W": 1}, "1": {"U": 4}},
+  "steps": [
+    {"op": "cast", "real": "Staunch Shieldmate", "key": "cre", "decisions": ["rewind", "p1", "p2", "p3", "p4"]}
+  ],
+  "expect": {
+    "zone": {"cre": "graveyard", "rewind": "graveyard"},
+    "window_asks": {"1": ["rewind"]},
+    "tapped": {"p1": false, "p2": false, "p3": false, "p4": false, "p5": true},
+    "mana_pool": {"0": {}, "1": {}}
+  },
+  "notes": "Verifier K, wave 4. Printed Rewind: 'Counter target spell. Untap up to four lands.' Expectation from the text: 'target spell' is any single spell, so the opponent can answer a creature spell with Rewind and counter it (it goes to its owner's graveyard, never the battlefield); then Rewind's controller untaps at most four lands of their choice (p1-p4 untap, p5 stays tapped). Rewind's {2}{U}{U} is paid from seat 1's four blue."
+}

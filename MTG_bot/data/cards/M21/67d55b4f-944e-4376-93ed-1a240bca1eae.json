@@ -1,0 +1,54 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "67d55b4f-944e-4376-93ed-1a240bca1eae",
+ "name": "Silversmote Ghoul",
+ "text_sha": "3331505f5cc20c18537a0ec33d61cd21106ba76eb28f3a958a952a5a165067d3",
+ "verified": {
+  "tree_sha": "e75c108a9f198ea8192fc49c93110023a50b3ed5c32cb96572e5cd6a94bc95c9",
+  "probe_sha": "0b56a6dad052bbb8affd3ac7e401bfaf9c7cc1fbbdf0329ad87fb45930e06ef8",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Silversmote Ghoul {2}{B} Creature — Zombie Vampire 3/1 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 3/1, paid B-1 plus 2 generic",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, if you gained 3 or more life this turn, return this card from your graveyard to the battlefield tapped.",
+    "status": "OK",
+    "evidence": "Trace: every stimulus has the card on the battlefield ([you gain 3 life] -> none, correct since it is not in the graveyard). Tree = parse template B2a-silversmote-ghoul. Packs: silversmote_ghoul_returns_tapped.json (in graveyard, gain 3 -> returns at your end step, tapped, under you) - PASS; silversmote_ghoul_condition_scope.json (gain 2 / opponent gains 5 / gain 3 on the opponent's turn with their end step / your next turn with no gain -> never returns) - PASS; silversmote_ghoul_cumulative_gain.json (2 + 1 in one turn -> returns tapped) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{B}, Sacrifice this creature: Draw a card.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: card battlefield -> graveyard (SACRIFICE), mana B-1 W-1, one draw (hand 5 -> 6), no tap. Tree = parse template B5c-cost-b-sacrifice-draw",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/silversmote_ghoul_1.json",
+   "tools/scenarios/cards/M21/silversmote_ghoul_2.json",
+   "tools/scenarios/cards/M21/silversmote_ghoul_3.json"
+  ],
+  "mutation": {
+   "mutants": 18,
+   "killed": 9,
+   "score": 0.5,
+   "survived": [
+    "trigger scope: your turn -> each turn at 1/0/event",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/args/destination/controller",
+    "widen filter (drop part 0) at 1/1/cost/parts/2/target/filter"
+   ]
+  }
+ }
+}

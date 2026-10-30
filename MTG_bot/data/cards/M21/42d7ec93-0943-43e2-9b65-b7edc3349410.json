@@ -1,0 +1,61 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "42d7ec93-0943-43e2-9b65-b7edc3349410",
+ "name": "Gadrak, the Crown-Scourge",
+ "text_sha": "9749845242bfa08e7622daa300bd56754569b0e65c1103b777c976d9e1da3f13",
+ "verified": {
+  "tree_sha": "34df80f31e08b6d2fa887b367549c88fef39f766f4c230688dbf2145f143db19",
+  "probe_sha": "cf84549b0a01cad5120ecaaac614933e92194b3c7e6578b750492dae3bed86f7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Gadrak, the Crown-Scourge {2}{R} Legendary Creature — Dragon 5/4 (cast; legendary)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 5/4, paid R-1 plus 2 generic. Legend rule: pack gadrak_legend_rule.json (second copy cast, old kept, new to graveyard) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "static: card keywords FLYING (keywords[0])",
+    "issue": ""
+   },
+   {
+    "clause": "Gadrak can't attack unless you control four or more artifacts.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: event (none), no declaration with 1 artifact (you_relic). Tree = parse template B5b-gadrak-cant-attack-unless-artifacts. Pack gadrak_attack_needs_four_artifacts_you_control.json: 3 yours + 3 opponent's artifacts -> no attack; 4th of yours enters -> attacks for 5 (opp life 15) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, create a Treasure token for each nontoken creature that died this turn.",
+    "status": "OK",
+    "evidence": "[turns pass]: ability [1] triggers once (your end step only, not the opponent's), 0 Treasures with no deaths. Tree = parse template B2a-gadrak-treasures. Count NOT_EXERCISED in the trace; pack gadrak_end_step_treasures.json: your nontoken + opponent's nontoken + your token creature die -> 2 Treasures at your end step; a death on the opponent's turn and the opponent's end step -> none; your next end step with no deaths this turn -> none (total 2) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "(It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\") [reminder]",
+    "status": "OK",
+    "evidence": "TokenSpec: colorless Artifact named Treasure, keywords (TREASURE,) = the engine's Treasure artifact-type marker (ability_tree.py:807), ActivatedAbility {T} + sacrifice self -> ADD_MANA 1 ANY to YOU, matching CR 111.10a. Engine-minted tokens have no pack address, so it cannot be activated from a pack; the same ability on the Treasure golden is exercised by tools/scenarios/treasure_token_activation.json",
+    "issue": "note: the Treasure type is carried as Keyword.TREASURE, not as subtypes=('Treasure',) (type_line 'Artifact'); nothing in the 19 sets reads either. Gadrak itself also carries Keyword.TREASURE (from the MTGJSON keyword list, compiler.py:118); no engine code reads that keyword, so it is inert, but Gadrak is not a Treasure and a future Treasure-counting filter keyed on it would miscount"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_1.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_2.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 5,
+   "score": 0.5555555555555556,
+   "survived": [
+    "amount+1 at 1/0/condition/inner/count",
+    "amount-1 at 1/0/condition/inner/count",
+    "widen filter (drop part 1) at 1/1/effect/args/count/selector/filter",
+    "widen filter (drop part 2) at 1/1/effect/args/count/selector/filter"
+   ]
+  }
+ }
+}

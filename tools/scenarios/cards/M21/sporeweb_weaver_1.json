@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "weaver", "real": "Sporeweb Weaver", "zone": "battlefield", "controller": 1},
+  {"key": "frost", "real": "Frost Breath", "zone": "hand", "controller": 0},
+  {"key": "fire", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 3, "R": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Breath", "key": "frost", "targets": ["weaver"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "fire", "targets": ["weaver"]}
+ ],
+ "expect": {
+  "zone": {"weaver": "battlefield", "frost": "hand", "fire": "graveyard"},
+  "tapped": {"weaver": false},
+  "damage": {"weaver": 3},
+  "life": {"1": 21, "0": 20},
+  "tokens": {"Saproling": 1}
+ },
+ "notes": "Pea85a00b72 G4: 'hexproof from blue' (CR 702.11d): the opponent's blue Frost Breath cannot target the Weaver, but the opponent's red Scorching Dragonfire can. Its 3 damage triggers 'Whenever this creature is dealt damage, you gain 1 life and create a 1/1 green Saproling' ONCE for its controller: seat 1 gains 1 and gets one Saproling."
+}

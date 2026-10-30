@@ -1,0 +1,79 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 139
+ },
+ "cards": [
+  {
+   "key": "ga",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "lb",
+   "name": "Library Beast",
+   "type": "Creature \u2014 Beast",
+   "power": "5",
+   "toughness": "5",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "ls",
+   "name": "Library Sorcery",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "filler",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ga",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "ga",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "end_turn",
+   "decisions": [
+    "fire",
+    "card:1"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ga": "graveyard",
+   "lb": "battlefield",
+   "ls": "library",
+   "filler": "hand"
+  },
+  "battlefield_pt": {
+   "Library Beast": [
+    5,
+    5
+   ]
+  }
+ },
+ "notes": "Verifier K, wave 4. Printed: '[-7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"' Expectation from the text: at 7 loyalty the -7 leaves Garruk at 0 (to the graveyard) and gives you the emblem; at YOUR end step you may search and you put the chosen creature card (card:1 = Library Beast) onto the battlefield; the sorcery is not a creature card and stays. At the OPPONENT's end step the emblem does not trigger (that end_turn step carries no decisions, so any may-ask would fail the step). 'Opening Draw' is the runner's opening draw."
+}

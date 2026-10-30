@@ -1,0 +1,6 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 2},
+ "cards": [{"key": "t", "zone": "battlefield", "controller": 0, "real": "Tavern Swindler"}],
+ "steps": [{"op": "activate", "key": "t", "idx": 0, "seat": 0}],
+ "expect": {"life": {"0": 23, "1": 20}, "tapped": {"t": true}},
+ "notes": "Printed: '{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life.' At master_seed 2 the controller WINS the flip: pays 3 (20 -> 17), then gains 6 -> 23. The opponent gains nothing. Pairs with tavern_swindler_flip_lost.json (seed 1) so an unconditional gain or a who=OPPONENT flip test is killed."}

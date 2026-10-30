@@ -1,0 +1,18 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Gadrak can't attack unless you control four or more artifacts.' Combat #1: seat 0 controls 3 artifacts and seat 1 controls 3 (6 on the battlefield, but only 3 are YOURS): Gadrak can't attack, so no damage. Then a 4th artifact enters under seat 0 and combat #2 lets Gadrak attack for 5. Final opponent life 15 only if combat #1 was refused and combat #2 allowed.",
+ "cards": [
+  {"key": "g", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+  {"key": "a1", "name": "Cog One", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "a2", "name": "Cog Two", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "a3", "name": "Cog Three", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "a4", "name": "Cog Four", "type": "Artifact", "zone": "hand", "controller": 0},
+  {"key": "o1", "name": "Opp Cog One", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Cog Two", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "o3", "name": "Opp Cog Three", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"g": true}},
+  {"op": "enter", "key": "a4"},
+  {"op": "combat", "seat": 0, "attack": {"g": true}}
+ ],
+ "expect": {"attackers": {"g": true}, "life": {"0": 20, "1": 15}, "tapped": {"g": true}}}

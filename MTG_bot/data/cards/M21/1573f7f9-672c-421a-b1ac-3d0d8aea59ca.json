@@ -1,0 +1,32 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1573f7f9-672c-421a-b1ac-3d0d8aea59ca",
+ "name": "Tormod's Crypt",
+ "text_sha": "b1c96488f845d601015c9401d49443d24c57439939d79ab474b620d3648e55cf",
+ "verified": {
+  "tree_sha": "3c4de8b0f5cf81a30fbe68e10904ae82fe37af3492dab456d800b938346ed445",
+  "probe_sha": "b1b97b727236d22905e7e5cddd3f22c984766c1921c0a17f0a5216d26a68ac25",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "{T}, Sacrifice this artifact: Exile target player's graveyard.",
+    "status": "OK",
+    "evidence": "abilities[0] (= canonical B5c-cost-sacrifice-exile): cost CostSacrifice(self) + CostTap; MOVE_ZONE ALL of GRAVEYARD(TARGET_PLAYER) -> EXILE(OWNER). 'target slot: 1..1 of [you, opp]'. [targets you] tapped, sacrificed, then you_fallen, you_used and the sacrificed Crypt itself exiled (costs are paid first, CR 602.2); [targets opp] opp_fallen, opp_used exiled, the Crypt stays in your graveyard. Same-turn use (no summoning sickness on a noncreature artifact): pack Pb48d586bd6_tormods_crypt_same_turn_opponent_graveyard.json PASS",
+    "issue": "engine-limit: no priority, so the instant-speed activation is usable only in its controller's own action window (weaker only)."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/tormod's_crypt_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter"
+   ]
+  }
+ }
+}

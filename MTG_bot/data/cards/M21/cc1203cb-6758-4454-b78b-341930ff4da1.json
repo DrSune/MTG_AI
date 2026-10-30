@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "cc1203cb-6758-4454-b78b-341930ff4da1",
+ "name": "Liliana's Steward",
+ "text_sha": "bd3fabea215a1085a8a4b5080587576a741d2803db2e86c21f2872e5e5b04aed",
+ "verified": {
+  "tree_sha": "8c8c987db87471b31e40dfda0abe670cb46a72883f5e3cc96234acd8d0367417",
+  "probe_sha": "31cb838f16146debb11e96a880a05ead4d23e9e92b6826033a16b689b45ffabd",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Zombie {B} 1/2",
+    "status": "OK",
+    "evidence": "[cast]: mana B-1, P/T 1/2",
+    "issue": ""
+   },
+   {
+    "clause": "{T}, Sacrifice this creature: Target opponent discards a card.",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of [opp] (you are not offered). [activate [0] targets=['opp']]: 'card becomes tapped (by card/TAP)', 'card moves battlefield -> graveyard (by card/SACRIFICE)', then 'ask discard: [opp_spare, opp_trick]' (only the opponent's hand) and exactly one card goes hand -> graveyard (opp: hand 2 -> 1); either pick works. Tree = `similar` B5c-cost-sacrifice-discard. Pack K_lilianas_steward_discards_one_chosen.json PASSES on this packet's tree (draft) and the live tree: the opponent picks the last of three cards and only that one is discarded; the debug replay shows the ask tag 'discard:player:1:...' (the opponent decides, CR 701.9b) offering only their 3 cards.",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only as a sorcery.",
+    "status": "NOT_EXERCISED",
+    "evidence": "timing=ActivationWindow.SORCERY in the tree; the trace only activates on your own turn. Pack K_lilianas_steward_sorcery_only.json PASSES on both trees: on the opponent's turn the activation is refused, the Steward stays on the battlefield untapped, the opponent keeps the card.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana's_steward_1.json",
+   "tools/scenarios/cards/M21/liliana's_steward_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter"
+   ]
+  }
+ }
+}

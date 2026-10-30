@@ -1,0 +1,85 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Create two 1/1 red Goblin Wizard creature tokens with prowess. (Whenever you cast a noncreature spell, they get +1/+1 until end of turn.)' After Goblin Wizardry, seat 0 casts Shock (at seat 1) and then Pestilent Haze (all creatures -2/-2): each token gets +1/+1 twice, so 1/1 +2/+2 -2/-2 = 1/1 and both survive. Without working prowess they would be -1/-1 and die.",
+ "cards": [
+  {
+   "key": "wiz",
+   "real": "Goblin Wizardry",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "haze",
+   "real": "Pestilent Haze",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Goblin Wizardry",
+   "key": "wiz"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Pestilent Haze",
+   "key": "haze",
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wiz": "graveyard",
+   "shock": "graveyard",
+   "haze": "graveyard"
+  },
+  "tokens": {
+   "Goblin Wizard": 2
+  },
+  "life": {
+   "1": 18
+  }
+ }
+}

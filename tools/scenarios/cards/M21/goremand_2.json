@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 83},
+  "cards": [
+    {"key": "gm", "real": "Goremand", "zone": "battlefield", "controller": 0},
+    {"key": "spider", "name": "Net Spider", "type": "Creature — Spider", "power": "1", "toughness": "2", "keywords": ["REACH"], "zone": "battlefield", "controller": 1},
+    {"key": "walker", "name": "Ground Walker", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"gm": true}, "block": {"spider": "gm", "walker": "gm"}}
+  ],
+  "expect": {
+    "attackers": {"gm": true},
+    "blocked": {"gm": ["spider"]},
+    "zone": {"spider": "graveyard", "gm": "battlefield", "walker": "battlefield"},
+    "damage": {"gm": 1},
+    "life": {"0": 20, "1": 17}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Flying / Trample'. Expectation from the text: flying means the opponent's 5/5 without flying or reach cannot block it (CR 702.9b), while the 1/2 reach spider can; trample lets the 5/5 Goremand assign lethal 2 to the spider and the excess 3 to the defending player (CR 702.19b): opponent 20 -> 17, spider dies, Goremand takes 1."
+}

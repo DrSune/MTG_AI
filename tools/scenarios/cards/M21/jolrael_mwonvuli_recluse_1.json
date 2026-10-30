@@ -1,0 +1,23 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 53},
+  "cards": [
+    {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+    {"key": "rt", "real": "Read the Tides", "zone": "hand", "controller": 0},
+    {"key": "opt1", "real": "Opt", "zone": "hand", "controller": 0},
+    {"key": "opt2", "real": "Opt", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"U": 7}},
+  "steps": [
+    {"op": "cast", "real": "Read the Tides", "key": "rt", "decisions": ["0"]},
+    {"op": "advance_turn"},
+    {"op": "mana", "seat": 0, "add": {"U": 2}},
+    {"op": "cast", "real": "Opt", "key": "opt1", "controller": 0, "decisions": ["top"]},
+    {"op": "cast", "real": "Opt", "key": "opt2", "controller": 0, "decisions": ["top"]}
+  ],
+  "expect": {
+    "zone": {"rt": "graveyard", "opt1": "graveyard", "opt2": "graveyard"},
+    "tokens": {"Cat": 2}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Whenever you draw your second card each turn, create a 2/2 green Cat creature token.' Expectation from the text: on your turn Read the Tides draws three cards; only the second card drawn that turn triggers (one Cat, the third and fourth draws do not). 'Each turn' includes the opponent's turn: there you cast two Opts and draw your first and second card of that turn, so a second Cat. Total exactly 2."
+}

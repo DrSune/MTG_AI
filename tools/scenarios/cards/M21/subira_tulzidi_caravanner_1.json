@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Subira, Tulzidi Caravanner", "key": "sub"},
+  {"op": "combat", "seat": 0, "attack": {"sub": true}}
+ ],
+ "expect": {"attackers": {"sub": true}, "life": {"1": 18}},
+ "notes": "Printed: 'Haste'. Subira attacks the turn it is cast and deals 2."}

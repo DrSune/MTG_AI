@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "a217f386-11b5-48f0-b173-3b0700ba295f",
+ "name": "Portcullis Vine",
+ "text_sha": "d02bc26469d11ac025434f77cca40993b72114d4d7104384ef1ab1e1dec38e92",
+ "verified": {
+  "tree_sha": "8662b7015c0ead7f2aab573a8077560eaf48222af72130861dc4e9de098fca02",
+  "probe_sha": "18db568a8ee1a39bae4c74b3dac4188507794a81cf50bfbd59bc0dd89b169fc7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Portcullis Vine {G} Creature — Plant Wall 0/3 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 0/3, paid G-1",
+    "issue": ""
+   },
+   {
+    "clause": "Defender",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: event (none), never declared; static: keywords DEFENDER",
+    "issue": ""
+   },
+   {
+    "clause": "{2}, {T}, Sacrifice a creature with defender: Draw a card.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card tapped, sacrificed itself (the only creature with defender), mana W-2 (generic 2), one draw (hand 5 -> 6). Tree = parse template B5c-cost-sacrifice-defender. Packs: portcullis_vine_sac_other_defender.json (refused while summoning sick; next turn sacrifices another creature with defender, Vine stays tapped, one draw) - PASS; portcullis_vine_no_nondefender_sac.json (your non-defender Bear not accepted) - PASS; portcullis_vine_no_opponent_defender_sac.json (opponent's defender creature not accepted) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/portcullis_vine_1.json",
+   "tools/scenarios/cards/M21/portcullis_vine_2.json",
+   "tools/scenarios/cards/M21/portcullis_vine_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 11,
+   "score": 0.8461538461538461,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter",
+    "widen filter (drop part 1) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

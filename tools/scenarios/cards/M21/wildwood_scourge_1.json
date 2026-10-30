@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ws", "real": "Wildwood Scourge", "zone": "hand", "controller": 0},
+  {"key": "bs", "real": "Basri's Solidarity", "zone": "hand", "controller": 0},
+  {"key": "b1", "name": "Bear One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "b2", "name": "Bear Two", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "hy", "name": "Other Hydra", "type": "Creature — Hydra", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "foe", "name": "Foe", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3, "W": 3}},
+ "steps": [
+  {"op": "cast", "key": "ws", "real": "Wildwood Scourge", "x": 1},
+  {"op": "cast", "key": "bs", "real": "Basri's Solidarity"}
+ ],
+ "expect": {
+  "counters": {"ws": {"PLUS_1_PLUS_1": 4}, "b1": {"PLUS_1_PLUS_1": 1}, "b2": {"PLUS_1_PLUS_1": 1}, "hy": {"PLUS_1_PLUS_1": 1}, "foe": {}},
+  "power": {"ws": 4}
+ },
+ "notes": "P649da1d5b6 G4: Scourge enters with X=1 counter. Basri's Solidarity puts a +1/+1 counter on each creature you control: the counter on the Scourge itself does not trigger ('another'), the one on Other Hydra does not ('non-Hydra'), and each of the two Bears triggers once. Scourge: 1 + 1 + 2 = 4."
+}

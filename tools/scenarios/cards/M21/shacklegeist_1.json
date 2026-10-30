@@ -1,0 +1,78 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'This creature can block only creatures with flying.' On seat 1's turn a ground Ape and a flying Bird attack seat 0. Shacklegeist's block ask offers only the Bird (and NONE); it blocks the Bird (2 damage kills the 1/1), the Ape is unblocked (seat 0 at 18). Shacklegeist keeps the Bird's 1 damage mark until cleanup.",
+ "cards": [
+  {
+   "key": "sg",
+   "real": "Shacklegeist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ape",
+   "name": "Ground Ape",
+   "type": "Creature \u2014 Ape",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bird",
+   "name": "Opp Bird",
+   "type": "Creature \u2014 Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "ape": true,
+    "bird": true
+   },
+   "block": {
+    "sg": "bird"
+   }
+  }
+ ],
+ "expect": {
+  "block_asks": {
+   "sg": "<bird>,NONE"
+  },
+  "blocked": {
+   "bird": [
+    "sg"
+   ],
+   "ape": []
+  },
+  "zone": {
+   "bird": "graveyard",
+   "sg": "battlefield",
+   "ape": "battlefield"
+  },
+  "life": {
+   "0": 18
+  },
+  "damage": {
+   "sg": 1
+  }
+ }
+}

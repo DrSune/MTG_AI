@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "uf", "real": "Unleash Fury", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Unleash Fury", "key": "uf", "targets": ["bear"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {"power": {"bear": 2}, "toughness": {"bear": 2}, "zone": {"uf": "graveyard"}},
+ "notes": "Printed: 'Double the power of target creature UNTIL END OF TURN.' The bear is 4/2 during the turn; after the turn ends (cleanup, CR 514.2) it is 2/2 again."}

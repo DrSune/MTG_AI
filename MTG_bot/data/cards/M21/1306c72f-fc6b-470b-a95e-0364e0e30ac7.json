@@ -1,0 +1,54 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1306c72f-fc6b-470b-a95e-0364e0e30ac7",
+ "name": "Sparkhunter Masticore",
+ "text_sha": "ecc93f4f5170d69c501ee42c639c0253bbff692a1d6d771e7cdb98aeb57992d7",
+ "verified": {
+  "tree_sha": "1474b5966e68fa2f31f98deb6fa1cf4ac41ff58c1bc2c54a606b89846b12adac",
+  "probe_sha": "1e3144e41efb2155efdd9920de186eb7493d74e20245cb3e9263719bb46b7244",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "As an additional cost to cast this spell, discard a card.",
+    "status": "OK",
+    "evidence": "Every [cast] variant: 'ask discard: [you_spare, you_trick, you_land_drop, you_cast_spell, you_cast_creature]', and the chosen card goes hand -> graveyard BEFORE 'card moves hand -> stack'; hand 6 -> 4 (Masticore + the discard), mana W-3 for {3}. Tree: SpellAbility additional_costs CostDiscard 1 (canonical B5a-addl-cost-discard).",
+    "issue": ""
+   },
+   {
+    "clause": "Protection from planeswalkers",
+    "status": "NOT_EXERCISED",
+    "evidence": "Keyword shown ('keywords +PROTECTION'), but no planeswalker on the standard board. Pack sparkhunter_masticore_protection_from_planeswalkers PASS: Basri Ket's +1 cannot target the Masticore ('target:selection:off_population'), it then targets your Bear normally. Tree keywords[0] PROTECTION(TYPE_EQ Planeswalker), canonical B1-kw-protection-planeswalkers.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}: This creature deals 1 damage to target planeswalker.",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [0] skipped: a target slot needs 1, the board offers 0' (no planeswalker; creatures and players are correctly not offered). Pack sparkhunter_masticore_pings_planeswalker_only PASS: targeting the opponent's creature is refused (off_population); targeting the opponent's Basri Ket deals 1 (loyalty 3 -> 2), one {C} spent.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}: This creature gains indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: mana W-3, 'card: keywords +INDESTRUCTIBLE', then 'after the turn ends: card: keywords -INDESTRUCTIBLE'. Only the Masticore gains it. Canonical B3-grant-kw-self.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sparkhunter_masticore_1.json",
+   "tools/scenarios/cards/M21/sparkhunter_masticore_2.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 12,
+   "score": 0.75,
+   "survived": [
+    "drop cost part 0 (CostManaGeneric) at 1/0/cost",
+    "amount+1 at 1/0/cost/parts/0/amount",
+    "amount+1 at 1/0/effect/args/amount",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

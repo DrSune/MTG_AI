@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0f80f061-6304-4c7b-ab53-f406385e39df",
+ "name": "Goremand",
+ "text_sha": "b702060326af2aa7a21ad1a0efc6dc4a8f1fae55b6a14f8943bd2e849a2134eb",
+ "verified": {
+  "tree_sha": "80ee7e62db62b61a47c4a7e07ecb50ae217f39a12e5b71fdb805b58c2d9aef27",
+  "probe_sha": "40ed7be3e75b0426a2c24f1e09f5d63b12745fa6c52e396bef50a8503aacb568",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Demon {4}{B}{B} 5/5",
+    "status": "OK",
+    "evidence": "[cast]: mana B-2 W-4 (6 mana, two black), P/T 5/5, +FLYING +TRAMPLE",
+    "issue": ""
+   },
+   {
+    "clause": "As an additional cost to cast this spell, sacrifice a creature.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask sacrifice: [you_bear, you_giant]' (only your creatures; not the Goremand itself, not the opponent's) and the pick goes battlefield -> graveyard (by card/SACRIFICE) before the spell resolves. Cost = `parse` B5a-addl-cost-sacrifice. The no-creature case was NOT_EXERCISED by the trace: pack K_goremand_needs_a_sacrifice.json PASSES (with only an opposing creature on the battlefield the cast is refused, 'cost:sacrifice:insufficient_candidates', nothing paid).",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block is declared (the giant has neither flying nor reach), opp 20 -> 15",
+    "issue": ""
+   },
+   {
+    "clause": "Trample",
+    "status": "NOT_EXERCISED",
+    "evidence": "never blocked in the trace. Pack K_goremand_tramples_over_reach_blocker.json PASSES: a 1/2 reach spider blocks (the 5/5 walker cannot), lethal 2 to the spider and 3 to the player (opp 20 -> 17)",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, each opponent sacrifices a creature.",
+    "status": "OK",
+    "evidence": "every cast: 'ask sacrifice: [opp_flier, opp_tapped, opp_bear, opp_giant]' (only the opponent's creatures) and exactly one of them is sacrificed; also triggers when it enters on the opponent's turn. Tree = `parse` B2a-goremand (EachPlayer ALL_OPPONENTS, the sacrifice filter YOU-relative to each opponent).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/goremand_1.json",
+   "tools/scenarios/cards/M21/goremand_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/additional_costs/0/parts/0/target/filter"
+   ]
+  }
+ }
+}

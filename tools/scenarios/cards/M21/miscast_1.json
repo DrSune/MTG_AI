@@ -1,19 +1,78 @@
 {
  "set": "M21",
- "world": {"life": 20, "seed": 7},
+ "world": {
+  "life": 20,
+  "seed": 107
+ },
  "cards": [
-  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
-  {"key": "miscast", "real": "Miscast", "zone": "hand", "controller": 1},
-  {"key": "rager", "name": "Rager", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "miscast",
+   "real": "Miscast",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rager",
+   "name": "Rager",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
  ],
- "mana": {"0": {"R": 4}, "1": {"U": 1}},
+ "mana": {
+  "0": {
+   "R": 4
+  },
+  "1": {
+   "U": 1
+  }
+ },
  "steps": [
-  {"op": "cast", "real": "Shock", "key": "shock", "targets": ["rager"], "decisions": ["miscast", "PASS"]}
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "rager"
+   ],
+   "decisions": [
+    "miscast",
+    "PAY"
+   ]
+  }
  ],
  "expect": {
-  "zone": {"shock": "graveyard", "miscast": "graveyard", "rager": "battlefield"},
-  "mana_pool": {"0": {"R": 3}, "1": {}},
-  "kickback_asks": {"0": ["PASS"]}
+  "zone": {
+   "shock": "graveyard",
+   "miscast": "graveyard",
+   "rager": "graveyard"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  },
+  "window_asks": {
+   "1": [
+    "miscast"
+   ]
+  },
+  "kickback_asks": {
+   "0": [
+    "PAY"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
  },
- "notes": "Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Shock's controller could pay but declines: Shock is countered (the 2/2 lives), the payer keeps the three mana, Miscast's {U} is spent."
+ "notes": "Verifier K, wave 4. Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Expectation from the text: the opponent counters Shock with Miscast; Shock's controller has exactly {3} left after Shock's {R} and pays it, so Shock is not countered and kills the 2/2 Rager; the pool is empty afterwards."
 }

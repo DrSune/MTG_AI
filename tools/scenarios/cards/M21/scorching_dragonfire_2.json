@@ -1,0 +1,23 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 43},
+  "cards": [
+    {"key": "sd1", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+    {"key": "sd2", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+    {"key": "pw", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+    {"key": "ox", "name": "Ox", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+    {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"R": 4}},
+  "steps": [
+    {"op": "cast", "real": "Scorching Dragonfire", "key": "sd1", "targets": ["pw"]},
+    {"op": "cast", "real": "Scorching Dragonfire", "key": "sd2", "targets": ["ox"]},
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "deal_damage", "source": "pinger", "target": "ox", "amount": 4}
+  ],
+  "expect": {
+    "zone": {"sd1": "graveyard", "sd2": "graveyard", "pw": "exile", "ox": "graveyard"}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Scorching Dragonfire deals 3 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead.' Expectation from the text: a planeswalker is a legal target; Basri Ket (loyalty 3) loses 3 loyalty and its zero-loyalty death (CR 700.4, 704.5i) is replaced by exile. The second copy's 4/4 Ox survives its 3 damage; it dies on the NEXT turn, after 'this turn' ended, so it goes to the graveyard."
+}

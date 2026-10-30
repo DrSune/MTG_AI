@@ -1,0 +1,94 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dt",
+   "real": "Destructive Tampering",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "atk",
+   "name": "Ram",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "grunt",
+   "name": "Grunt",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sky",
+   "name": "Sky Beast",
+   "power": "2",
+   "toughness": "3",
+   "type": "Creature",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "dt",
+   "real": "Destructive Tampering",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "atk": true
+   },
+   "block": {
+    "sky": "atk"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dt": "graveyard",
+   "grunt": "battlefield",
+   "sky": "battlefield",
+   "atk": "graveyard"
+  },
+  "blocked": {
+   "atk": [
+    "sky"
+   ]
+  },
+  "not_asked_to_block": [
+   "grunt"
+  ],
+  "life": {
+   "1": 20
+  },
+  "damage": {
+   "sky": 2
+  }
+ },
+ "notes": "Printed: 'Choose one \u2014 ... \u2022 Creatures WITHOUT FLYING can't block this turn.' After mode 2, the opponent's non-flying Grunt is never offered a block, but its flying Sky Beast may still block the Ram (and does). The 2/3 flier deals 2 to the 2/2 Ram (it dies) and takes 2."
+}

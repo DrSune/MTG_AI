@@ -5,26 +5,27 @@
  "name": "Vito, Thorn of the Dusk Rose",
  "text_sha": "cd166aad56e2ca9b6baba4b3dfd352abd77bd1a810b4c21f43f70b619ee23b97",
  "verified": {
-  "tree_sha": "f3713ec4b4d4bcac5137a8dcabd794fa03c3704207e2b2b1dbe059dd962cab7c",
-  "probe_sha": "ee20ae2f190941ce7855f73b5b0c9d29d6bce5d45c90ff7706c53f17f7fc5cd0",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-A",
+  "tree_sha": "0b42e85c85d12460111db954b2bd7fddefa056fbd5df0b891046b89ffe133643",
+  "probe_sha": "be079ac2545aaa1a0554fb754e38be3bc80acea5bda8a8d616faed9e9ee63bb7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
   "clauses": [
    {
     "clause": "Whenever you gain life, target opponent loses that much life.",
     "status": "OK",
-    "evidence": "abilities[0] matches parse (B2b-gain-life-target-opponent); [stimulus: you gain 3 life] triggers, opp is targeted, opp loses 3 (20 -> 17); 'you lose 2 life' -> none. Pack vito_lifelink_locked_set.json: a 2-point lifelink gain drains exactly 2",
+    "evidence": "abilities[0] (= canonical B2b-gain-life-target-opponent): LifeGainedEvent actor YOU, LOSE_LIFE event AMOUNT, TARGET_OPPONENT. [stimulus: you gain 3 life] 'opp is targeted', 'opp loses 3 life', opp 20 -> 17, you 20 -> 23; [you lose 2 life] no trigger. Opponent's lifegain not in the trace: pack P7111e87bf7_vito_opponent_lifegain_no_trigger.json PASS (no trigger). Lifelink amounts: pack P7111e87bf7_vito_lifelink_combat_drain.json PASS",
     "issue": ""
    },
    {
     "clause": "{3}{B}{B}: Creatures you control gain lifelink until end of turn.",
     "status": "OK",
-    "evidence": "abilities[1] matches parse (B3-grant-kw-all-you); [activate [1] from battlefield] mana B-2 W-3 (five), card/you_bear/you_giant +LIFELINK, opponent's creatures untouched, all -LIFELINK after the turn ends. Pack vito_lifelink_locked_set.json PASSES: a creature entering after resolution does not gain lifelink (locked set, CR 611.2c), and the lifelinked attacker's gain triggers the drain (you 22, opp 16)",
+    "evidence": "abilities[1] (= canonical B3-grant-kw-all-you): cost B, B, 3 generic; GRANT LIFELINK to CONTROLLER_IS YOU creatures, DurationEot. [activate [1]] mana B-2 W-3; card, you_bear, you_giant +LIFELINK (no opponent creature); 'after the turn ends: ... -LIFELINK' on all three. Pack P7111e87bf7_vito_lifelink_combat_drain.json PASS (your attackers gain you 6, the opponent's blocker gains nothing)",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/vito_thorn_of_the_dusk_rose_1.json"
+   "tools/scenarios/cards/M21/vito_thorn_of_the_dusk_rose_1.json",
+   "tools/scenarios/cards/M21/vito_thorn_of_the_dusk_rose_2.json"
   ],
   "mutation": {
    "mutants": 10,

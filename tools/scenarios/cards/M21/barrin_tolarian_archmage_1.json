@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Barrin, Tolarian Archmage, printed: 'When Barrin enters, return up to one other target creature or PLANESWALKER to its owner's hand. At the beginning of your end step, if a permanent was put into YOUR hand from the battlefield this turn, draw a card.' Barrin's entry returns the opponent's Basri Ket to the opponent's hand. At your end step nothing went to YOUR hand, so you draw nothing: your library keeps all six cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "barrin", "real": "Barrin, Tolarian Archmage", "zone": "hand", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Barrin, Tolarian Archmage", "key": "barrin", "decisions": ["basri"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"barrin": "battlefield", "basri": "hand"},
+  "hand": {"1": 1},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

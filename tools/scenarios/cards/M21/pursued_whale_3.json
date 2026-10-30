@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Pursued Whale, printed: 'Spells your OPPONENTS cast that target this creature cost {3} more to cast.' Your own Shock at your Whale costs just {R}: it resolves (2 damage). The opponent's Shock at your Whale costs {3}{R}: with only {R} it cannot be cast at the Whale; once the opponent has {3}{R} it resolves (2 more damage, 4 total) and the pool is spent.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "whale", "real": "Pursued Whale", "zone": "battlefield", "controller": 0},
+  {"key": "s0", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "s1", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "s0", "targets": ["whale"]},
+  {"op": "cast", "real": "Shock", "key": "s1", "controller": 1, "targets": ["whale"], "expect_raise": "selection:off_population"},
+  {"op": "mana", "seat": 1, "add": {"C": 3}},
+  {"op": "cast", "real": "Shock", "key": "s1", "controller": 1, "targets": ["whale"]}
+ ],
+ "expect": {
+  "damage": {"whale": 4},
+  "zone": {"s0": "graveyard", "s1": "graveyard", "whale": "battlefield"},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

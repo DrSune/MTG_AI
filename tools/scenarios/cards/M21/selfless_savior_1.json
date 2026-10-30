@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sav", "real": "Selfless Savior", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Other Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "og", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "sav", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "deal_damage", "source": "og", "target": "bear", "amount": 5},
+  {"op": "deal_damage", "source": "og", "target": "bear2", "amount": 5}
+ ],
+ "expect": {"zone": {"sav": "graveyard", "bear": "battlefield", "bear2": "graveyard", "og": "battlefield"}, "damage": {"bear": 5}},
+ "notes": "Printed: 'Sacrifice this creature: Another target creature you control gains indestructible until end of turn.' The Savior is sacrificed as the cost; the targeted bear survives 5 damage (indestructible: lethal damage does not destroy it, CR 702.12b); the untargeted bear dies (only the target gains it)."}

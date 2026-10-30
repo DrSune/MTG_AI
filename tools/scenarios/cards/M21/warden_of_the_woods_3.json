@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Warden of the Woods", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 1, "targets": ["bear"], "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"w": "battlefield", "bear": "graveyard"}, "hand": {"0": 0, "1": 0}},
+ "notes": "Printed: 'Whenever THIS CREATURE becomes the target ...'. The opponent's Shock targets another creature the Warden's controller controls: no trigger, no cards drawn."}

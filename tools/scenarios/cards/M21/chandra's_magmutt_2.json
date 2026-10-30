@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 97},
+  "cards": [
+    {"key": "mutt", "real": "Chandra's Magmutt", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "activate", "key": "mutt", "idx": 0, "seat": 0, "targets": ["p1"]},
+    {"op": "activate", "key": "mutt", "idx": 0, "seat": 0, "targets": ["p1"], "expect_raise": "illegal activation"}
+  ],
+  "expect": {
+    "tapped": {"mutt": true},
+    "life": {"0": 20, "1": 19}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{T}: This creature deals 1 damage to target player or planeswalker.' Expectation from the text: the {T} cost taps the Magmutt, so after one activation (opponent 20 -> 19) a second activation the same turn cannot be paid and is refused; the opponent ends at 19, not 18."
+}

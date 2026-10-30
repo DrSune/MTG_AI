@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "57d0c688-6206-4c83-9fcb-27fd29e2a9ed",
+ "name": "Basri's Lieutenant",
+ "text_sha": "870adb6af62ac690e582cca6d77ce081082247b6518069189cf224db7a330b5a",
+ "verified": {
+  "tree_sha": "273e79a3f6ff6384cbda08e75167d5fa579c380c854d3d0dc3d6986cbcbf32c5",
+  "probe_sha": "b1650ed2543a89adad0460774759b437b5d873f06814cfeaca6c3dd46f4bafbb",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Human Knight {3}{W} 3/4",
+    "status": "OK",
+    "evidence": "[cast]: mana W-4, P/T 3/4, keywords +PROTECTION +VIGILANCE",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: DECLARE_ATTACKERS with no 'card becomes tapped' event (a non-vigilant attacker shows one); pack K_basris_lieutenant_multicolored_cannot_block.json also asserts tapped lt=false after attacking",
+    "issue": ""
+   },
+   {
+    "clause": "protection from multicolored",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows only the keyword. Tree param FAtom(COLOR_COUNT_GE, count=2) = `parse` of the line (B5c-remind-vigilance-protection), so not widened to any colour. Pack K_basris_lieutenant_multicolored_cannot_block.json PASSES: a white-blue creature is never offered a block, a mono-red one may block and its 1 damage is dealt (damage lt=1).",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, put a +1/+1 counter on target creature you control.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask target: [you_bear, you_giant, card]' = only your creatures, itself included; one PLUS_1_PLUS_1 counter on the chosen one (you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, card 3/4 -> 4/5); also fires when it enters on the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace covers only the negative side: you_bear (no counter) dies and the card (no counter) dies -> no token; opp_bear dies -> no trigger. The positive case is not in the trace. Tree = `parse` (B2b-basris-lieutenant); TokenSpec Knight 2/2, colors ('W',), VIGILANCE. Pack K_basris_lieutenant_knight_reads_dying_creature.json PASSES: your counterless creature dying while the Lieutenant itself has a counter makes no Knight (the condition reads the dying creature), the opponent's counter-bearing creature dying makes none, and the Lieutenant dying with its counter makes exactly one 2/2 Knight with VIGILANCE.",
+    "issue": "minor engine note, no observable effect here: the probe logs 'triggered ability [1] triggers' for counterless deaths, i.e. the intervening-if (CR 603.4) is checked at resolution, not at trigger time; the result is the same for this card."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/basri's_lieutenant_1.json",
+   "tools/scenarios/cards/M21/basri's_lieutenant_2.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 12,
+   "score": 0.75,
+   "survived": [
+    "amount+1 at 0/0/params/0/count",
+    "widen filter (drop part 1) at 1/1/event/filter",
+    "amount+1 at 1/1/condition/count",
+    "amount+1 at 1/1/effect/args/count"
+   ]
+  }
+ }
+}

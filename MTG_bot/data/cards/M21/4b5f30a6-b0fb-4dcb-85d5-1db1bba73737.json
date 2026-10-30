@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4b5f30a6-b0fb-4dcb-85d5-1db1bba73737",
+ "name": "Valorous Steed",
+ "text_sha": "7363c9fe5972fe960c0e9fa8b5d67b7b05d1a68b1802d10a620ab7dba4d766d4",
+ "verified": {
+  "tree_sha": "ffe1ce77356150578f3f7963fa989f46b74fa497992109945ed4aff75a7deacc",
+  "probe_sha": "6e6e14c1e8342b9eaebbd268a586a662eeec3cb19bd12f82040d665c30861dcc",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Valorous Steed {4}{W} Creature — Unicorn 3/3 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 3/3, paid W-5",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: DECLARE_ATTACKERS with no 'card becomes tapped' event; static: keywords VIGILANCE",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create a 2/2 white Knight creature token with vigilance.",
+    "status": "OK",
+    "evidence": "[cast]: triggered ability [0] triggers, + you:Knight (battlefield, you, 2/2, VIGILANCE); [enters during the opponent's turn]: Knight created under you; other creatures entering: none. Tree identical to parse of the printed sentence (template B2a), TokenSpec colors ('W',)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

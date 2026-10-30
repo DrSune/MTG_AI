@@ -1,0 +1,23 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 41},
+  "cards": [
+    {"key": "sd", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+    {"key": "ox", "name": "Ox", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+    {"key": "bull", "name": "Bull", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+    {"key": "mine", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"R": 2}},
+  "steps": [
+    {"op": "cast", "real": "Scorching Dragonfire", "key": "sd", "targets": ["ox"]},
+    {"op": "deal_damage", "source": "pinger", "target": "bull", "amount": 2},
+    {"op": "deal_damage", "source": "pinger", "target": "mine", "amount": 2},
+    {"op": "deal_damage", "source": "pinger", "target": "ox", "amount": 1}
+  ],
+  "expect": {
+    "zone": {"sd": "graveyard", "ox": "exile", "bull": "graveyard", "mine": "graveyard", "pinger": "battlefield"},
+    "damage_received": {"ox": 4}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Scorching Dragonfire deals 3 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead.' Expectation from the text: the 4/4 Ox takes exactly 3 and survives; later the same turn it dies to 1 more damage and is exiled instead (CR 614.1a). The replacement covers only 'that creature': the opponent's untargeted Bull and your own untargeted Bear die the same turn and go to the graveyard."
+}

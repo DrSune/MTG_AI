@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "weaver", "real": "Sporeweb Weaver", "zone": "battlefield", "controller": 0},
+  {"key": "frost", "real": "Frost Breath", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Breath", "key": "frost", "targets": ["weaver"]}
+ ],
+ "expect": {
+  "zone": {"frost": "graveyard"},
+  "tapped": {"weaver": true}
+ },
+ "notes": "Pea85a00b72 G4: hexproof from blue only stops spells and abilities an OPPONENT controls; your own blue Frost Breath may target your Weaver (it becomes tapped)."
+}

@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e6ae536a-95c0-495d-98b8-200b3564dd79",
+ "name": "Destructive Tampering",
+ "text_sha": "be702e9ce7ebc2f2d1309e0be450a0ab8a4b777a4aa68e75ad973f773055184f",
+ "verified": {
+  "tree_sha": "42a253f2746d5660305d83f2ffe81c4a392a469ad537971f0cedbf64b8484cb4",
+  "probe_sha": "35b108940c84511f3dcb716c7854635d557db23b4c34ce0559b04cbba2dace77",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "Choose(count 1) of two options; the probe casts modes=[0] (with a target) and modes=[1] (no target). Sorcery carrier.",
+    "issue": ""
+   },
+   {
+    "clause": "• Destroy target artifact.",
+    "status": "OK",
+    "evidence": "Target slot (cast modes=[0]): 1..1 of [you_relic, opp_relic] (artifacts only, no creatures or enchantments). '<relic> moves battlefield -> graveyard (by card/DESTROY)', 'dies'.",
+    "issue": ""
+   },
+   {
+    "clause": "• Creatures without flying can't block this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast modes=[1]] shows no combat. Tree: PREVENT_EFFECT DeclareBlockersEvent(creature AND NOT FLYING), DurationEot. Packs: destructive_tampering_flier_still_blocks.json (non-flier never offered a block, the flier blocks) PASS; destructive_tampering_this_turn_only.json (next turn a non-flier blocks again) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/destructive_tampering_1.json",
+   "tools/scenarios/cards/M21/destructive_tampering_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/options/1/args/duration",
+    "widen filter (drop part 0) at 1/0/effect/options/1/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/options/1/args/event/filter"
+   ]
+  }
+ }
+}

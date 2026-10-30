@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0b4925d7-e2bb-4b74-a538-80fe759799ad",
+ "name": "Malefic Scythe",
+ "text_sha": "d304094aefdf5865c1a44b7744627a4635293b39a049cbafcb34bbd397850b43",
+ "verified": {
+  "tree_sha": "4911023cd9cc821797c989ae296cba59cb2880bdd1129ad8e56a28956bb0888a",
+  "probe_sha": "cedd069e2b15499066bf2afa3807fc234369605a053c7acf5a95e623e8f146bf",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Artifact - Equipment {1}{B}",
+    "status": "OK",
+    "evidence": "[cast]: mana B-1 W-1, enters the battlefield, +EQUIP; 'card on the battlefield: not a creature'",
+    "issue": ""
+   },
+   {
+    "clause": "This Equipment enters with a soul counter on it.",
+    "status": "OK",
+    "evidence": "[cast]: 'card: ... counters {} -> {'SOUL': 1}'; also when it enters on the opponent's turn. EtBState = `parse` B5c-etb-soul-counter",
+    "issue": ""
+   },
+   {
+    "clause": "Equipped creature gets +1/+1 for each soul counter on this Equipment.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the activation variants equip a probe-placed Scythe, which has no soul counter (a debug replay: a Scythe declared on the battlefield at setup has counters {}; equipping a 2/2 attaches it and leaves it 2/2), so the trace shows no P/T change, consistent with the text. Tree = `parse` B5a-equipped-per-soul-counter. Pack K_malefic_scythe_soul_counters_grow.json PASSES on this packet's tree (draft) and the live tree: cast (1 soul counter), equipped Bear 2/2 is 3/3 and dies to 3 damage, after it dies the Scythe has 2 and the re-equipped 4/4 Giant is 6/6 (the count is read live, not frozen at attach).",
+    "issue": "IR/engine gap, not reachable in M21: QProp(source, COUNTER_COUNT) sums ALL counter kinds on the Scythe (executor/quantity.py, COUNTER_COUNT branch: sum(counters.values())), not only soul counters. In M21 nothing but the Scythe itself puts counters on it (every other counter-placer targets creatures), so it plays as printed here; a cross-set effect putting a non-soul counter on it would make it stronger than printed."
+   },
+   {
+    "clause": "Whenever equipped creature dies, put a soul counter on this Equipment.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: 'your creature (you_bear) dies -> none' with the Scythe unattached (correct: only the equipped creature counts). Tree = `parse` B2b-malefic-scythe. Same pack PASSES: the opponent's unequipped creature dying adds nothing; the equipped Bear dying adds one soul counter (1 -> 2).",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {1}",
+    "status": "OK",
+    "evidence": "ability [3] target slot: 1..1 of [you_bear, you_giant] (only your creatures); cost W-1 (one generic). Pack K_malefic_scythe_soul_counters_grow.json: an opponent's creature is refused as equip target; the debug replay confirms the attach. Sorcery timing NOT_EXERCISED by the trace: pack K_malefic_scythe_equip_sorcery_only.json PASSES on both trees (on the opponent's turn the equip is refused, nothing paid, unattached).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/malefic_scythe_1.json",
+   "tools/scenarios/cards/M21/malefic_scythe_2.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 10,
+   "score": 0.7142857142857143,
+   "survived": [
+    "amount+1 at 1/1/effect/args/power/magnitude/left",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter",
+    "amount+1 at 1/1/effect/args/toughness/magnitude/left",
+    "amount+1 at 1/2/effect/args/count"
+   ]
+  }
+ }
+}

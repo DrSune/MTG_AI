@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
+ "name": "Duress",
+ "text_sha": "42e705d21a23530af4e00d70670eabb6fadf742de8b8f3c5694c20b9d1edb9d4",
+ "verified": {
+  "tree_sha": "d5829e3a5887ae82c131a49d207dbca774e020857cd0ed8bedd076ea58250040",
+  "probe_sha": "9fb0c5b98a14165c95f1056b61c2802aee5910f60879d81560ef9323abe35d31",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "Target opponent reveals their hand.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [opp]' (the caster is not targetable); tree REVEAL of the target opponent's hand (compiler's parse).",
+    "issue": ""
+   },
+   {
+    "clause": "You choose a noncreature, nonland card from it.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp']]: of the opponent's hand (opp_spare creature, opp_trick instant) only the instant is taken; the creature stays. Tree CHOOSE 1 of FNot Creature, FNot Land in the target player's hand (compiler's parse). Pack Pa36875ab3e_duress_choice.json PASSES (I pick the sorcery over the instant; land and creature never taken); pack Pa36875ab3e_duress_no_legal_card.json PASSES (only a land and a creature: nothing discarded).",
+    "issue": ""
+   },
+   {
+    "clause": "That player discards that card.",
+    "status": "OK",
+    "evidence": "opp_trick moves hand -> graveyard (opponent's own graveyard), opp hand 2 -> 1; paid B-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/duress_1.json",
+   "tools/scenarios/cards/M21/duress_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
+ }
+}

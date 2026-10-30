@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e2106eba-15f5-42b5-b797-6582ae94f3de",
+ "name": "Falconer Adept",
+ "text_sha": "9de62577ea5e621d8867cf00fe4925ac0e846a98104e62641db8e065a099ba5c",
+ "verified": {
+  "tree_sha": "6b056590ab1be38836f57540fcca00dea6441d96890bd5d29f6d9185b0f94736",
+  "probe_sha": "eed3fc2c3d02e6953d9df8a8d9f7b2298b82696c06fce36cf23575bea7792634",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, create a 1/1 white Bird creature token with flying that's tapped and attacking.",
+    "status": "OK",
+    "evidence": "Stimulus 'this creature attacks alone, unblocked': 'card's triggered ability [0] triggers', 'DECLARE_ATTACKERS you:Bird 2', '+ you:Bird (battlefield, you, 1/1, FLYING, tapped)', and the Bird deals 1 combat damage (opp 20 -> 17 with the Adept's 2). Same when opp_giant blocks the Adept (the Bird is unblocked, 1 damage). 'another creature you control (you_bear) attacks -> none': only this creature's attack triggers it. White is not printed by the probe: pack falconer_adept_bird_is_white PASS (a protection-from-white blocker takes no damage from the Bird; control with protection from green marks 1). Tree: DeclareAttackersEvent IS_SOURCE, one Bird token, colors ('W',), FLYING, enters_tapped and enters_attacking.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/falconer_adept_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

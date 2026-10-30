@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Life Goes On, printed: 'You gain 4 life. If a CREATURE died this turn, you gain 8 life instead.' Only a non-creature permanent (the opponent's artifact) goes from the battlefield to the graveyard this turn; no creature died, so you gain 4 (20 -> 24).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "move", "key": "relic", "to": "graveyard"},
+  {"op": "cast", "real": "Life Goes On", "key": "lgo"}
+ ],
+ "expect": {
+  "zone": {"relic": "graveyard", "lgo": "graveyard"},
+  "life": {"0": 24, "1": 20}
+ }
+}

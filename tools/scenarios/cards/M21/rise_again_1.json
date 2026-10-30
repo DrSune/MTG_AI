@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ra", "real": "Rise Again", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "Fallen Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Fallen Troll", "type": "Creature", "power": "4", "toughness": "4", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "cast", "real": "Rise Again", "key": "ra", "targets": ["mine"]}
+ ],
+ "expect": {
+  "zone": {"ra": "graveyard", "mine": "battlefield", "theirs": "graveyard"},
+  "controller": {"mine": 0},
+  "tapped": {"mine": false}
+ },
+ "notes": "P60de851cbf G4: 'Return target creature card from your graveyard to the battlefield.' Your Fallen Ogre returns under your control, untapped; the opponent's graveyard creature is not touched."
+}

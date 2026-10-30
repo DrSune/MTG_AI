@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "haze", "real": "Pestilent Haze", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "late", "name": "Latecomer", "type": "Creature", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["0"]},
+  {"op": "enter", "key": "late"}
+ ],
+ "expect": {
+  "power": {"giant": 2, "late": 2},
+  "toughness": {"giant": 2, "late": 2},
+  "zone": {"late": "battlefield", "giant": "battlefield"}
+ },
+ "notes": "Pbae93a856e G4: first mode, 'All creatures get -2/-2 until end of turn' (CR 611.2c): only the creatures on the battlefield when it resolves are affected. The Giant becomes 2/2; the Latecomer (2/2) that enters afterwards the same turn is unaffected and survives."
+}

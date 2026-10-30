@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "777b8ec4-a783-4297-96b7-4f200d0eb734",
+ "name": "Return to Nature",
+ "text_sha": "1537d41a8229ad8b059cf654208715a051afb41bdfc43e8e0c3ef129db368a68",
+ "verified": {
+  "tree_sha": "96fbdff32997d7255b9d3de1795baee8ef06627e760900016decbaa0fc2190d4",
+  "probe_sha": "0d0842dad731d73ec0bb47d3fe8053b8f2be652b54eee7f42f8facc06599e7dd",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Instant {1}{G}",
+    "status": "OK",
+    "evidence": "every cast pays G-1 W-1 (2 mana, one green); card goes stack -> graveyard",
+    "issue": "engine-limit: no priority, so the instant is only cast in its controller's own action window"
+   },
+   {
+    "clause": "Choose one -",
+    "status": "OK",
+    "evidence": "Choose(count=QConst(1)) with the three options in printed order; the probe casts modes=[0], [1], [2] one at a time",
+    "issue": ""
+   },
+   {
+    "clause": "Destroy target artifact.",
+    "status": "OK",
+    "evidence": "target slot (cast modes=[0]): 1..1 of [you_relic, opp_relic] (artifacts only, both sides); [cast modes=[0] targets=['opp_relic']]: opp_relic battlefield -> graveyard (by card/DESTROY). Atom = `parse` B11-destroy-np",
+    "issue": ""
+   },
+   {
+    "clause": "Destroy target enchantment.",
+    "status": "OK",
+    "evidence": "target slot (cast modes=[1]): 1..1 of [you_charm, opp_charm]; [cast modes=[1] targets=['opp_charm']]: opp_charm battlefield -> graveyard (by card/DESTROY)",
+    "issue": ""
+   },
+   {
+    "clause": "Exile target card from a graveyard.",
+    "status": "OK",
+    "evidence": "target slot (cast modes=[2]): 1..1 of [you_fallen, you_used, opp_fallen, opp_used] (any card in any graveyard); each variant moves the target graveyard -> exile (by card/MOVE_ZONE). Atom = `similar` B5c-bullet-exile-graveyard for this exact bullet",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 13},
+  "cards": [
+    {"key": "gr", "real": "Traitorous Greed", "zone": "hand", "controller": 0},
+    {"key": "ogre", "name": "Turncoat Ogre", "power": "3", "toughness": "3", "type": "Creature",
+     "zone": "battlefield", "controller": 1, "start_tapped": true}
+  ],
+  "mana": {"0": {"R": 4}},
+  "steps": [
+    {"op": "cast", "real": "Traitorous Greed", "key": "gr", "targets": ["ogre"], "decisions": ["R"]},
+    {"op": "combat", "seat": 0, "attack": {"ogre": true}},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "attackers": {"ogre": true},
+    "life": {"0": 20, "1": 17},
+    "zone": {"gr": "graveyard", "ogre": "battlefield"},
+    "controller": {"ogre": 1}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn.' Expectation from the text: the caster controls the (tapped) opposing creature, it untaps and has haste, so seat 0 can attack the opponent with it this turn (opponent 20 -> 17); control lasts until end of turn, so once the turn ends its owner controls it again (CR 611.2a, 514.2)."
+}

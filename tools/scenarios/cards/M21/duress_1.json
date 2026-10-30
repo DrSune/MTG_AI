@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "elf", "name": "Opp Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+  {"key": "land", "name": "Opp Land", "type": "Land", "zone": "hand", "controller": 1},
+  {"key": "inst", "name": "Opp Instant", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "sorc", "name": "Opp Sorcery", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Duress", "key": "du", "targets": ["p1"], "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"du": "graveyard", "sorc": "graveyard", "inst": "hand", "elf": "hand", "land": "hand"},
+  "hand": {"1": 3},
+  "graveyard": {"1": ["Opp Sorcery"]}
+ },
+ "notes": "Printed Duress: 'Target opponent reveals their hand. You choose a noncreature, nonland card from it. That player discards that card.' The opponent holds a creature, a land, an instant and a sorcery: only the instant and the sorcery are choosable (rows 0 and 1 in handle order); I choose the sorcery and only it is discarded."
+}

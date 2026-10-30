@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'it wasn't cast' is about THIS entry. Seat 0 casts Silversmote Ghoul (cast: it enters). Then an effect exiles it and another returns it to the battlefield the same turn: the returning object is a new object that was not cast (CR 400.7), so the Priest exiles it instead.",
+ "cards": [
+  {"key": "priest", "real": "Containment Priest", "zone": "battlefield", "controller": 0},
+  {"key": "ghoul", "real": "Silversmote Ghoul", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Silversmote Ghoul", "key": "ghoul"},
+  {"op": "move", "key": "ghoul", "to": "exile"},
+  {"op": "move", "key": "ghoul", "to": "battlefield"}
+ ],
+ "expect": {"zone": {"ghoul": "exile", "priest": "battlefield"}}}

@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Pursued Whale, printed: '... each opponent creates a 1/1 red Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"' The Whale enters on your turn; the opponent gets the Pirate. Your 3/3 attacks; the opponent's Opp Bear is told not to block and the Pirate can't block (a spare decision word would make an offered Pirate block), so 3 damage: opponent 20 -> 17. On the opponent's turn the token's controller's creatures must attack: Opp Bear attacks even though the pack declines it, and so does the Pirate; nobody blocks: you 20 - 2 - 1 = 17. The mandate is the token controller's, so it never forced your creatures.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "whale", "real": "Pursued Whale", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Brute", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "whale"},
+  {"op": "combat", "seat": 0, "attack": {"mine": true}, "block": {"obear": null}, "decisions": ["first-legal"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"obear": false}, "block": {"whale": null, "mine": null}}
+ ],
+ "expect": {
+  "attackers": {"obear": true},
+  "tokens": {"Pirate": 1},
+  "zone": {"whale": "battlefield", "mine": "battlefield", "obear": "battlefield"},
+  "life": {"0": 17, "1": 17}
+ }
+}

@@ -1,0 +1,29 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 127},
+  "cards": [
+    {"key": "sc", "real": "Malefic Scythe", "zone": "hand", "controller": 0},
+    {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "giant", "name": "Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+    {"key": "zap", "name": "Zapper", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 1, "C": 3}},
+  "steps": [
+    {"op": "cast", "real": "Malefic Scythe", "key": "sc"},
+    {"op": "activate", "key": "sc", "idx": 3, "seat": 0, "targets": ["obear"], "expect_raise": "target"},
+    {"op": "activate", "key": "sc", "idx": 3, "seat": 0, "targets": ["bear"]},
+    {"op": "deal_damage", "source": "zap", "target": "obear", "amount": 2, "controller": 1},
+    {"op": "deal_damage", "source": "zap", "target": "bear", "amount": 3, "controller": 1},
+    {"op": "activate", "key": "sc", "idx": 3, "seat": 0, "targets": ["giant"]}
+  ],
+  "expect": {
+    "zone": {"sc": "battlefield", "bear": "graveyard", "obear": "graveyard", "giant": "battlefield"},
+    "counters": {"sc": {"SOUL": 2}},
+    "attached": {"sc": "giant"},
+    "power": {"giant": 6},
+    "toughness": {"giant": 6},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier K, wave 4. Printed Malefic Scythe: 'This Equipment enters with a soul counter on it. Equipped creature gets +1/+1 for each soul counter on this Equipment. Whenever equipped creature dies, put a soul counter on this Equipment. Equip {1}'. Expectation from the text: cast, it enters with 1 soul counter; equip cannot target an opponent's creature; equipped to your 2/2 Bear it is 3/3, so 3 damage kills it (2 would not); the opponent's unequipped creature dying adds nothing; the equipped Bear dying adds a soul counter (2); re-equipped (Equip {1}) to your 4/4 Giant it is 6/6. Mana: {1}{B} + {1} + {1} = the four supplied."
+}

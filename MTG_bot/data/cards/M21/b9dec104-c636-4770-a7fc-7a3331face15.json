@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
+ "name": "Wildwood Scourge",
+ "text_sha": "fda2e6f871d68a00e26db1b5dd82cd237e456edcb442dfd64368d958ac8f08d0",
+ "verified": {
+  "tree_sha": "b9651e3aeaaf8264e01b61fd8aabb7dda1fa440264c9210e4630369ff38768b4",
+  "probe_sha": "c09ba8d9ce45af89daa2761ee05723d836719213ae6d960cc39af45bc785f699",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "This creature enters with X +1/+1 counters on it.",
+    "status": "OK",
+    "evidence": "abilities[0] EtBState initial_counters +1/+1 x QX (= canonical B4-enters-with-x-counters). [cast X=0] enters and dies as a 0/0; [cast X=1] 'counters {} -> {PLUS_1_PLUS_1: 1}; P/T 1/1'; [cast X=3] 3 counters, 3/3",
+    "issue": "Probe artifact only: the stimulus section places the card without counters and lists it as 'not a creature' surviving 99 damage. A real counterless entry dies (tools/scenarios/rise_again_x_wildwood_scourge.json PASS), so this is not a card or engine fault."
+   },
+   {
+    "clause": "Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "abilities[1] (= canonical B2b-wildwood-scorge): CounterPlacedEvent +1/+1 over CONTROLLER_IS YOU, Creature, not IS_SOURCE, not Hydra; PUT_COUNTER 1 on self. No counter is placed on the standard board, so not in the trace. Packs: P649da1d5b6_scourge_solidarity_per_creature_not_hydra.json PASS (one trigger per other non-Hydra creature; none for itself or another Hydra), P649da1d5b6_scourge_two_counters_at_once_one_trigger.json PASS (two counters at once with Conclave Mentor: one trigger), P649da1d5b6_scourge_ignores_opponents_creature.json PASS (counter on the opponent's creature: no trigger)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/wildwood_scourge_1.json",
+   "tools/scenarios/cards/M21/wildwood_scourge_2.json",
+   "tools/scenarios/cards/M21/wildwood_scourge_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/event/filter",
+    "widen filter (drop part 1) at 1/1/event/filter",
+    "widen filter (drop part 2) at 1/1/event/filter",
+    "widen filter (drop part 3) at 1/1/event/filter",
+    "controller YOU->OPPONENT at 1/1/event/filter/children/0/who",
+    "amount+1 at 1/1/effect/args/count"
+   ]
+  }
+ }
+}

@@ -1,0 +1,53 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "2dc59566-10cb-468a-b6a2-17d6c0186e6d",
+ "name": "Capture Sphere",
+ "text_sha": "dd63a87f68c6d26dda7607a3ba23ea4e04cb26cdc218101e172c2b6f50bd4005",
+ "verified": {
+  "tree_sha": "2b6e884733760a49115c0dd96149afe5dfcfbc2deb1f91fcabe2abbcc0b4a98a",
+  "probe_sha": "25764ea8beede5a306453c1fad87043d8a4bf3eaa65949bac2eed30a246fdfab",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "OK",
+    "evidence": "keywords +FLASH; the spell is cast in the probe's action window.",
+    "issue": "engine-limit: no priority, so flash is used only in its controller's own action window (the combat window offers instants only)"
+   },
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "KeywordAbility(ENCHANT, params=(TYPE_EQ Creature,)). Target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: creatures of both sides, no artifact or enchantment. Opponent's-turn entry: 'ask enchant' over the same six creatures.",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, tap enchanted creature.",
+    "status": "OK",
+    "evidence": "Each cast: trigger [0], '<host> becomes tapped (by card/TAP)', 'tapped False -> True'; the already-tapped opp_tapped shows no change. Entry on the opponent's turn: you_bear tapped.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature doesn't untap during its controller's untap step.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No untap step with an enchanted host in the probe. Tree = the compiler's canonical B5a-enchant-no-untap; the engine consults it only in the untap step of the host's controller (replacements.prevents_untap via the untap step), not for UNTAP effects. Packs: capture_sphere_no_untap.json (host stays tapped through two of its controller's untap steps; another tapped creature untaps) PASS; capture_sphere_leaves_then_untaps.json (after the Sphere leaves, the host untaps) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/capture_sphere_1.json",
+   "tools/scenarios/cards/M21/capture_sphere_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 4,
+   "score": 0.5714285714285714,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/event/filter"
+   ]
+  }
+ }
+}

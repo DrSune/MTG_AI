@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 23},
+  "cards": [
+    {"key": "mutt", "real": "Chandra's Magmutt", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+    {"key": "pw", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "activate", "key": "mutt", "idx": 0, "seat": 0, "targets": ["bear"], "expect_raise": "target"},
+    {"op": "activate", "key": "mutt", "idx": 0, "seat": 0, "targets": ["pw"]}
+  ],
+  "expect": {
+    "tapped": {"mutt": true},
+    "counters": {"pw": {"LOYALTY": 3}},
+    "zone": {"bear": "battlefield", "pw": "battlefield"},
+    "damage": {},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{T}: This creature deals 1 damage to target player or planeswalker.' Expectation from the text: a creature is not a legal target (refused, nothing tapped); the opposing planeswalker is, and 1 damage removes 1 loyalty (CR 120.3c): Basri, Devoted Paladin 4 -> 3; the {T} cost taps the Magmutt; no player loses life."
+}

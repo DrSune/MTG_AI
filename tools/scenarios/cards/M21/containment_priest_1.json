@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'If a nontoken creature would enter and it wasn't cast, exile it instead.' With the Priest out, seat 0 casts Valorous Steed: the Steed was cast, so it enters; its ETB Knight token is a token, so it enters too.",
+ "cards": [
+  {"key": "priest", "real": "Containment Priest", "zone": "battlefield", "controller": 0},
+  {"key": "steed", "real": "Valorous Steed", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "C": 4}},
+ "steps": [{"op": "cast", "real": "Valorous Steed", "key": "steed"}],
+ "expect": {"zone": {"steed": "battlefield", "priest": "battlefield"}, "tokens": {"Knight": 1}}}

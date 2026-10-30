@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Sparkhunter Masticore, printed: 'Protection from planeswalkers.' It can't be the target of abilities from planeswalker sources (CR 702.16b). Basri Ket's +1 ('Put a +1/+1 counter on up to one target creature...') aimed at the Masticore is refused; aimed at your Bear it resolves (Bear gets the counter, Basri 3 -> 4). The Masticore gets no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mc", "real": "Sparkhunter Masticore", "zone": "battlefield", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 3},
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["mc"], "decisions": ["player:1"], "expect_raise": "target:selection:off_population"},
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["bear"], "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}, "mc": {}, "basri": {"LOYALTY": 4}},
+  "zone": {"mc": "battlefield", "bear": "battlefield"}
+ }
+}

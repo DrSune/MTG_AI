@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "a2c4537e-70a6-416d-9e8b-f549ad535147",
+ "name": "Chandra's Magmutt",
+ "text_sha": "eec2274d54fcc24795282601b6938f63aa9bffa824fb43f4def99437a541ea83",
+ "verified": {
+  "tree_sha": "8173a598292af540bf846d4abf51588229d38025a5d96d30a437048401e319b1",
+  "probe_sha": "556c54d1f2509ebb37418de01a06804ee844f52c0a6373daf1fca21eed092c0f",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Elemental Dog {1}{R} 2/2",
+    "status": "OK",
+    "evidence": "[cast]: mana R-1 W-1, P/T 2/2",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: This creature deals 1 damage to target player or planeswalker.",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of [you, opp] (no creature offered; the standard board has no planeswalker). [activate [0] targets=['opp']]: card tapped False -> True, opp life 20 -> 19; targets=['you']: you 20 -> 19. Tree = `parse` (B3-deal-dmg-const-player-or-planeswalker). The planeswalker half was NOT_EXERCISED by the trace: pack K_chandras_magmutt_planeswalker_not_creature.json PASSES (a creature target is refused; the opponent's Basri, Devoted Paladin goes 4 -> 3 loyalty and the Magmutt taps). Pack K_chandras_magmutt_once_per_untap.json also PASSES on this packet's tree (run as a draft) and the live tree: after one ping the tapped Magmutt cannot activate again the same turn (opponent ends at 19).",
+    "issue": "engine-limit: no priority, so the {T} ability is used only in its controller's own action window"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chandra's_magmutt_1.json",
+   "tools/scenarios/cards/M21/chandra's_magmutt_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

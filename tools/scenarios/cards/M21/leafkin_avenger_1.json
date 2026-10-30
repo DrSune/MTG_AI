@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '{7}{R}: This creature deals damage equal to its power to target player or planeswalker.' Leafkin Avenger carries a +1/+1 counter (power 5) and targets the opponent's Garruk, Unleashed at 6 loyalty: 5 damage removes 5 loyalty (CR 120.3c), leaving 1. {7}{R} is paid from exactly R1 C7.",
+ "cards": [
+  {"key": "leaf", "real": "Leafkin Avenger", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "pw", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 7}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 6},
+  {"op": "activate", "key": "leaf", "idx": 1, "seat": 0, "targets": ["pw"]}
+ ],
+ "expect": {"counters": {"pw": {"LOYALTY": 1}, "leaf": {"PLUS_1_PLUS_1": 1}}, "life": {"0": 20, "1": 20}, "mana_pool": {"0": {}}, "zone": {"pw": "battlefield"}}}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mine", "name": "My Flier", "power": "2", "toughness": "2", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "ground", "name": "Their Walker", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "big", "name": "Their Big Flier", "power": "4", "toughness": "4", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "small", "name": "Their Small Flier", "power": "1", "toughness": "1", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "ra", "real": "Run Afoul", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Run Afoul", "key": "ra", "targets": ["p1"], "decisions": ["small"]}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield", "ground": "battlefield", "big": "battlefield", "small": "graveyard", "ra": "graveyard"},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Run Afoul {G}: 'Target opponent sacrifices a creature of their choice with flying.' The opponent has two fliers and a ground creature and chooses the small flier: only it is sacrificed. The ground creature (no flying) and the caster's own flier are never sacrificed."
+}

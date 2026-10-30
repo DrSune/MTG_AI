@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "notes": "Falconer Adept, printed: 'Whenever this creature attacks, create a 1/1 WHITE Bird creature token with flying that's tapped and attacking.' Your Feat of Resistance gives the Adept a +1/+1 counter and protection from blue (colour word 1 = U), so the opponent's blue flier Opp Hawk cannot block it. The opponent's Feat of Resistance gives Opp Hawk a +1/+1 counter and protection from white (word 0 = W). The Adept attacks; the Bird token enters tapped and attacking; the Hawk blocks the Bird (its only legal block; the step's spare word goes to its unmapped block ask). The white Bird's 1 damage to the Hawk is prevented (CR 702.16e), the 2/2 Hawk kills the Bird, the 3/4 Adept deals 3: opponent 20 -> 17, no damage marked anywhere. A non-white Bird would mark 1 on the Hawk.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adept", "real": "Falconer Adept", "zone": "battlefield", "controller": 0},
+  {"key": "feat0", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+  {"key": "hawk", "name": "Opp Hawk", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "colors": ["U"], "zone": "battlefield", "controller": 1},
+  {"key": "feat1", "real": "Feat of Resistance", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}, "1": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Feat of Resistance", "key": "feat0", "targets": ["adept"], "decisions": ["1"]},
+  {"op": "cast", "real": "Feat of Resistance", "key": "feat1", "controller": 1, "targets": ["hawk"], "decisions": ["0"]},
+  {"op": "combat", "seat": 0, "attack": {"adept": true}, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "attackers": {"adept": true},
+  "tokens": {"Bird": 0},
+  "damage": {},
+  "zone": {"adept": "battlefield", "hawk": "battlefield"},
+  "life": {"0": 20, "1": 17}
+ }
+}

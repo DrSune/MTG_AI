@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7b600c0e-5ad2-48a2-a147-346ca78c8629",
+ "name": "Liliana's Standard Bearer",
+ "text_sha": "951d897539cad8aab9700b72e75918018ac40ae3ab68c79a400d9edadc841c31",
+ "verified": {
+  "tree_sha": "2da7744a69f04bb8199e4d00a0f4cf8233383947eaff905c055ff55f8dbab400",
+  "probe_sha": "efee1c68c3dabad116ded51c500ecabc9af335ca1f9777b22c5e4363f938f090",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "OK",
+    "evidence": "keywords +FLASH on the card (Static section). Paid {2}{B} (B-1 W-2), 3/1.",
+    "issue": "engine-limit: no priority; flash spells are cast only in the controller's own action window (the combat window offers only targeted instants), so Flash plays weaker than printed, never stronger."
+   },
+   {
+    "clause": "When this creature enters, draw X cards, where X is the number of creatures that died under your control this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast] and 'enters during the opponent's turn': ability [0] triggers and draws 0 (no creature died that turn); 'your creature (you_bear) dies' with it already on the battlefield -> none (an ETB, not a death trigger). Tree DRAW QCount(ALL Creature, DIED_THIS_TURN, CONTROLLER_IS YOU), identical to the compiler's parse, answered by the death-row census (quantity.py). Pack Pf20bf7d319_standard_bearer_count.json PASSES: X = 3 (a creature, a creature token that ceased to exist, a creature later exiled from the graveyard), not counting an artifact put into the graveyard, a discarded creature card, or the opponent's dead creature. Pack Pf20bf7d319_standard_bearer_this_turn.json PASSES: a death on an earlier turn does not count.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana's_standard_bearer_1.json",
+   "tools/scenarios/cards/M21/liliana's_standard_bearer_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 3,
+   "score": 0.42857142857142855,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/amount/selector/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/amount/selector/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/amount/selector/filter/children/0/who",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

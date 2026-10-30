@@ -1,19 +1,10 @@
-{
- "set": "M21",
- "world": {"life": 20, "seed": 7},
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Counter target spell.' Seat 0 casts Valorous Steed (a creature spell); in the response window seat 1 casts Cancel targeting it. The Steed is countered: it goes to its owner's graveyard and never enters, so its ETB Knight token is never made; Cancel goes to the graveyard and seat 1's {1}{U}{U} is spent. The one spell on the stack is enough for Cancel's single target.",
  "cards": [
-  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+  {"key": "steed", "real": "Valorous Steed", "zone": "hand", "controller": 0},
   {"key": "cancel", "real": "Cancel", "zone": "hand", "controller": 1}
  ],
- "mana": {"0": {"W": 1}, "1": {"U": 3}},
- "steps": [
-  {"op": "cast", "real": "Staunch Shieldmate", "key": "mate", "decisions": ["cancel"]}
- ],
- "expect": {
-  "zone": {"mate": "graveyard", "cancel": "graveyard"},
-  "hand": {"1": 0},
-  "mana_pool": {"1": {}},
-  "window_asks": {"1": ["cancel"]}
- },
- "notes": "Printed Cancel {1}{U}{U}: 'Counter target spell.' Any spell is a legal target, a creature spell included: the opponent counters Staunch Shieldmate, which goes to the graveyard and never reaches the battlefield; Cancel goes to the graveyard; exactly the three mana {1}{U}{U} is spent (U:3 -> empty pool)."
-}
+ "mana": {"0": {"W": 1, "C": 4}, "1": {"U": 3}},
+ "steps": [{"op": "cast", "real": "Valorous Steed", "key": "steed", "decisions": ["cancel"]}],
+ "expect": {"zone": {"steed": "graveyard", "cancel": "graveyard"}, "tokens": {"Knight": 0}, "hand": {"1": 0}, "mana_pool": {"1": {}},
+            "window_asks": {"1": ["cancel"]}, "window_vocab": [["PASS", "cancel"]]}}

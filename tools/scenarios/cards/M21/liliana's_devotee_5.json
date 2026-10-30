@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dev", "real": "Liliana's Devotee", "zone": "battlefield", "controller": 0},
+  {"key": "sw1", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "sw2", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "src", "name": "My Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "src", "target": "ob", "amount": 2},
+  {"op": "end_turn", "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"ob": "graveyard"}, "tokens": {"Zombie": 0}, "tapped": {"sw1": false, "sw2": false}},
+ "notes": "Printed: 'At the beginning of YOUR end step ...'. A creature dies on the opponent's turn; the opponent's end step does not trigger the Devotee, so nothing is paid and no Zombie is created."}

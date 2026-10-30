@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "2038f505-7b03-4c63-bc44-c5139729dd05",
+ "name": "Feat of Resistance",
+ "text_sha": "771227a2e5d3edaec6d14a2f857c2a902a3d5d7ce9d4d5c307c9c893761b5543",
+ "verified": {
+  "tree_sha": "f3ff81a3635c5d0fdb586e17fce5233bfa6e8704fc536e72a216fc507e429c0f",
+  "probe_sha": "ea984de2fae0fd2197ceefbb6021321f90a0643bb0b707d5054ea4733467f8d1",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on target creature you control.",
+    "status": "OK",
+    "evidence": "Target slot (cast): 1..1 of [you_bear, you_giant] (own creatures only). you_bear: counters {} -> {'PLUS_1_PLUS_1': 1}, 2/2 -> 3/3; you_giant 4/4 -> 5/5.",
+    "issue": "engine-limit: no priority, so the instant is cast only in its controller's action window"
+   },
+   {
+    "clause": "It gains protection from the color of your choice until end of turn.",
+    "status": "OK",
+    "evidence": "'ask choose: [0, 1, 2, 3, 4]' (five options = W, U, B, R, G, each once in the tree); the same creature gets 'keywords +PROTECTION', and 'after the turn ends: ... keywords -PROTECTION'. The colour itself is not visible in the trace: packs feat_of_resistance_pro_red.json (choice 3: opponent's red Shock refused, blue Capture Sphere allowed) PASS and feat_of_resistance_pro_white.json (choice 0: white Defiant Strike refused, red Shock allowed) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/feat_of_resistance_1.json",
+   "tools/scenarios/cards/M21/feat_of_resistance_2.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 14,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

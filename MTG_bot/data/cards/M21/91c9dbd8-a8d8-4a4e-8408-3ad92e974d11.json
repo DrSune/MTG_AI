@@ -1,0 +1,67 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "91c9dbd8-a8d8-4a4e-8408-3ad92e974d11",
+ "name": "Niambi, Esteemed Speaker",
+ "text_sha": "9397eaf3bbbee603a65e6a25ce122c8640aa1dfdba382e92ceda528f0a02fb22",
+ "verified": {
+  "tree_sha": "719a5e2146591257aa885a1777fb9a1cc5e6e1cbc6e56f42ece6554a0ce05af4",
+  "probe_sha": "7b9f646594b7864a1cf3295e26c7a846fd3c0a960d320e2a948790abe6a4e62d",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Niambi, Esteemed Speaker {W}{U} Legendary Creature — Human Cleric 2/1 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 2/1, paid U-1 W-1",
+    "issue": ""
+   },
+   {
+    "clause": "Flash",
+    "status": "OK",
+    "evidence": "keywords[0] FLASH; static: card keywords FLASH",
+    "issue": "engine-limit: no priority, so flash is used only in its controller's own action window (weaker only)"
+   },
+   {
+    "clause": "When Niambi enters, you may return another target creature you control to its owner's hand.",
+    "status": "OK",
+    "evidence": "[cast]: ask target [you_bear, you_giant] (own creatures only, Niambi excluded), ask may [fire, skip]; fire -> target battlefield -> hand; [cast | ask 2 -> skip]: no move",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, you gain life equal to that creature's mana value.",
+    "status": "OK",
+    "evidence": "you_bear (MV 2): +2 (20 -> 22); you_giant (MV 5): +5 (20 -> 25); skip: no gain (Conditional MAY_DONE)",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{W}{U}, {T}, Discard a legendary card: Draw two cards.",
+    "status": "OK",
+    "evidence": "Trace: 'ability [1] not activatable from battlefield: cost:discard:insufficient_candidates:0<1' (no legendary card in the standard hand) - correct refusal. Tree = parse template B5c-cost-wu-discard-draw. Packs: niambi_discard_legendary_draw_two.json (Gadrak discarded, Bear kept, Niambi tapped, two draws, mana spent) - PASS; niambi_needs_a_legendary_card.json (only a non-legendary card in hand -> refused, nothing tapped or drawn) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/niambi_esteemed_speaker_1.json",
+   "tools/scenarios/cards/M21/niambi_esteemed_speaker_2.json"
+  ],
+  "mutation": {
+   "mutants": 26,
+   "killed": 15,
+   "score": 0.5769230769230769,
+   "survived": [
+    "drop cost part 0 (CostManaColor) at 1/1/cost",
+    "drop cost part 1 (CostManaColor) at 1/1/cost",
+    "drop cost part 2 (CostManaGeneric) at 1/1/cost",
+    "drop cost part 4 (CostTap) at 1/1/cost",
+    "amount+1 at 1/1/cost/parts/0/amount",
+    "amount+1 at 1/1/cost/parts/1/amount",
+    "amount+1 at 1/1/cost/parts/2/amount",
+    "controller YOU->OPPONENT at 1/1/cost/parts/3/target/zones/0/controller",
+    "amount+1 at 1/1/effect/args/amount",
+    "amount-1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

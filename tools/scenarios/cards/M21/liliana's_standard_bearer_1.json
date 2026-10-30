@@ -1,0 +1,31 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sb", "real": "Liliana's Standard Bearer", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Doomed A", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "tok", "name": "Doomed Token", "power": "1", "toughness": "1", "type": "Creature", "token": true, "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Doomed B", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "art", "name": "Trinket", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "disc", "name": "Discarded Beast", "power": "3", "toughness": "3", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "oc", "name": "Opp Doomed", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "c1", "amount": 1, "controller": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "tok", "amount": 1, "controller": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "c2", "amount": 1, "controller": 1},
+  {"op": "move", "key": "c2", "to": "exile"},
+  {"op": "move", "key": "art", "to": "graveyard"},
+  {"op": "move", "key": "disc", "to": "graveyard"},
+  {"op": "deal_damage", "source": "pinger", "target": "oc", "amount": 1, "controller": 1},
+  {"op": "cast", "real": "Liliana's Standard Bearer", "key": "sb"}
+ ],
+ "expect": {
+  "zone": {"sb": "battlefield", "c1": "graveyard", "tok": "ceased", "c2": "exile", "art": "graveyard", "disc": "graveyard", "oc": "graveyard"},
+  "hand": {"0": 4}
+ },
+ "notes": "Printed Liliana's Standard Bearer: 'When this creature enters, draw X cards, where X is the number of creatures that died under your control this turn.' This turn three of my creatures died: Doomed A, a creature token (it ceased to exist, CR 704.5d, but it died), and Doomed B (later exiled from the graveyard; it still died). Not counted: my artifact Trinket going to the graveyard (not a creature), a creature card discarded from hand (did not die), and the opponent's creature (not under my control). X = 3: hand = Top Junk (opening draw) + 3 = 4."
+}

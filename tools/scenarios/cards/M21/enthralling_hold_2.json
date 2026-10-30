@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Enthralling Hold, printed: 'Enchant creature / You can't choose an untapped creature as this spell's target as you cast it. / You control enchanted creature.' Cast on the opponent's TAPPED 3/3: seat 0 controls it while the Aura is attached. The control is the Aura's static effect, so when the Aura leaves the battlefield (destroyed by another effect) control goes back to the owner (CR 611.2, 704.5q). Checked by a second runpack of the same setup that stops before the move (controller 0).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hold", "real": "Enthralling Hold", "zone": "hand", "controller": 0},
+  {"key": "thrall", "name": "Thralldom", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 5}},
+ "steps": [
+  {"op": "cast", "real": "Enthralling Hold", "key": "hold", "targets": ["thrall"]},
+  {"op": "move", "key": "hold", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"hold": "graveyard", "thrall": "battlefield"},
+  "controller": {"thrall": 1}
+ }
+}

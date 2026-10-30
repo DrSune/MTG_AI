@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f98f7cb7-90ca-41e7-9f1d-8054931ecf0e",
+ "name": "Barrin, Tolarian Archmage",
+ "text_sha": "5bc6438ff4aa37685af4b67fac319f4d3c2b505734fb96f34929c19707a46c8a",
+ "verified": {
+  "tree_sha": "f28084322e9ce456a26172bd1b8c200682ba5f72f33b0357d62b7efabbdfb602",
+  "probe_sha": "fe41de6ece2cb6a53cf01bc87bc7b6559579937c2df6cd7734bd713e01a0e153",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "When Barrin enters, return up to one other target creature or planeswalker to its owner's hand.",
+    "status": "OK",
+    "evidence": "Every [cast] variant: 'ask target: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, NONE]': creatures of both sides, not Barrin itself ('other'), not the relic/charm, NONE allowed ('up to one'). The target goes to its OWNER's hand (you_bear -> your hand; opp_flier -> 'opp: hand 2 -> 3'); NONE returns nothing. The planeswalker half is unseen (no planeswalker on the board): pack barrin_bounces_opponents_planeswalker_no_draw (the opponent's Basri Ket returns to the opponent's hand) PASS. Canonical B2a-barrin-etb.",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, if a permanent was put into your hand from the battlefield this turn, draw a card.",
+    "status": "OK",
+    "evidence": "[cast] bouncing you_bear or you_giant: 'after the turn ends: + you:Library 5#1 (hand, you)', 'you: hand 6 -> 7' (one draw). Bouncing an opponent's creature or choosing NONE: no draw at the end step. Turn-pass stimulus (nothing returned): trigger [1] is reported but no extra card is drawn (hand 5 -> 6 is the draw step). Packs: barrin_any_permanent_to_your_hand_draws (your artifact returned by another effect: one draw) PASS; barrin_your_end_step_this_turn_only (returned on the opponent's turn: no draw at their end step nor at your next end step) PASS; barrin_bounces_opponents_planeswalker_no_draw (to the opponent's hand: no draw) PASS. Canonical B2a-barrin-end-step.",
+    "issue": "The engine reports the trigger even when the intervening 'if' is false and suppresses the effect instead (CR 603.4 says it does not trigger); outcome identical. MOVED_TO_ZONE_THIS_TURN's from_zone is Zone(BATTLEFIELD, YOU), so a card you own but an opponent controlled might not count: weaker-only edge."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/barrin_tolarian_archmage_1.json",
+   "tools/scenarios/cards/M21/barrin_tolarian_archmage_2.json",
+   "tools/scenarios/cards/M21/barrin_tolarian_archmage_3.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 12,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

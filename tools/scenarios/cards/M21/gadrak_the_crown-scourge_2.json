@@ -1,0 +1,24 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'At the beginning of your end step, create a Treasure token for each nontoken creature that died this turn.' Turn 1 (seat 0): seat 0's nontoken Bear, seat 1's nontoken Bear and seat 0's creature TOKEN die: at seat 0's end step, 2 Treasures (both nontoken deaths count, whoever controlled them; the token does not). Turn 2 (seat 1): seat 1's Elk dies; seat 1's end step is not 'your end step', so nothing. Turn 3 (seat 0): nothing died THIS turn, so seat 0's end step makes none. Total 2 Treasures.",
+ "cards": [
+  {"key": "g", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+  {"key": "src", "name": "Pinger", "type": "Creature — Wizard", "power": 1, "toughness": 9, "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "oppbear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1},
+  {"key": "tok", "name": "Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "token": true, "zone": "battlefield", "controller": 0},
+  {"key": "elk", "name": "Opp Elk", "type": "Creature — Elk", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "src", "target": "mybear", "amount": 2},
+  {"op": "deal_damage", "source": "src", "target": "oppbear", "amount": 2},
+  {"op": "deal_damage", "source": "src", "target": "tok", "amount": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "src", "target": "elk", "amount": 3},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"zone": {"mybear": "graveyard", "oppbear": "graveyard", "elk": "graveyard", "tok": "ceased", "g": "battlefield"},
+            "tokens": {"Treasure": 2},
+            "turn_seats": [0, 1, 0]}}

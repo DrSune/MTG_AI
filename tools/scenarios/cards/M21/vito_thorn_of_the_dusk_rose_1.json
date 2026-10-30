@@ -3,20 +3,15 @@
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "vito", "real": "Vito, Thorn of the Dusk Rose", "zone": "battlefield", "controller": 0},
-  {"key": "early", "name": "Early Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
-  {"key": "late", "name": "Late Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
-  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+  {"key": "ff", "real": "Faith's Fetters", "zone": "hand", "controller": 1},
+  {"key": "mine", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
  ],
- "mana": {"0": {"B": 5}},
  "steps": [
-  {"op": "activate", "key": "vito", "idx": 1, "seat": 0},
-  {"op": "enter", "key": "late"},
-  {"op": "combat", "seat": 0, "attack": {"early": true, "vito": false}, "block": {"opp_bear": null}}
+  {"op": "enchant", "aura": "ff", "host": "mine"}
  ],
  "expect": {
-  "life": {"0": 22, "1": 16},
-  "battlefield_keywords": {"Early Bear": ["LIFELINK"], "Late Bear": [], "Opp Bear": [], "Vito, Thorn of the Dusk Rose": ["LIFELINK"]},
-  "mana_pool": {"0": {}}
+  "attached": {"ff": "mine"},
+  "life": {"0": 20, "1": 24}
  },
- "notes": "M21 G2 spec: Vito. '{3}{B}{B}: Creatures you control gain lifelink until end of turn' affects the creatures you control when it resolves (CR 611.2c): a creature entering afterwards does not gain it, and the opponent's creature never does. The lifelinked 2/2 deals 2 combat damage (you gain 2), and 'Whenever you gain life, target opponent loses that much life' drains 2 more: you 22, opponent 20-2-2 = 16."
+ "notes": "P7111e87bf7 G4: 'Whenever YOU gain life'. The opponent's Faith's Fetters makes the opponent gain 4: Vito does not trigger, so neither player loses life."
 }

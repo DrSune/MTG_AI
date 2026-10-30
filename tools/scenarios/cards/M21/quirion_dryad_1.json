@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Quirion Dryad, printed: 'Whenever YOU cast a spell that's white, blue, black, or red, put a +1/+1 counter on this creature.' Your green Titanic Growth on the Dryad: no counter (it is +4/+4 until end of turn only). The opponent's red Shock at you: not your spell, no counter (you 20 -> 18). Your blue Opt: exactly one counter. End: one +1/+1 counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "qd", "real": "Quirion Dryad", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 0},
+  {"key": "os", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 1}, "1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["qd"]},
+  {"op": "cast", "real": "Shock", "key": "os", "controller": 1, "targets": ["p0"]},
+  {"op": "mana", "seat": 0, "add": {"U": 1}},
+  {"op": "cast", "real": "Opt", "key": "opt", "decisions": ["top"]}
+ ],
+ "expect": {
+  "counters": {"qd": {"PLUS_1_PLUS_1": 1}},
+  "zone": {"tg": "graveyard", "os": "graveyard", "opt": "graveyard", "qd": "battlefield"},
+  "life": {"0": 18, "1": 20}
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Barrin, Tolarian Archmage, printed: 'At the beginning of YOUR end step, if a permanent was put into your hand from the battlefield THIS TURN, draw a card.' Your artifact is returned to your hand on the OPPONENT's turn: the opponent's end step is not yours (no draw), and on your next turn nothing was returned that turn (no draw at your end step). The only card you draw is your draw step's: Library 5. Your library ends at five cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "barrin", "real": "Barrin, Tolarian Archmage", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "move", "key": "relic", "to": "hand"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"barrin": "battlefield", "relic": "hand"},
+  "hand": {"0": 2},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

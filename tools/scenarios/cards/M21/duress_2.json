@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "elf", "name": "Opp Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+  {"key": "land", "name": "Opp Land", "type": "Land", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Duress", "key": "du", "targets": ["p1"], "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"du": "graveyard", "elf": "hand", "land": "hand"},
+  "hand": {"1": 2},
+  "graveyard": {"1": []}
+ },
+ "notes": "Printed Duress: 'You choose a noncreature, nonland card from it.' The opponent holds only a creature and a land: there is no legal card, so nothing is discarded."
+}

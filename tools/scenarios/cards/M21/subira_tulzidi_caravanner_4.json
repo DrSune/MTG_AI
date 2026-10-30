@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "power": "0", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"wall": "bear"}}
+ ],
+ "expect": {"blocked": {"bear": ["wall"]}, "life": {"1": 20}, "damage": {"wall": 2}},
+ "notes": "Printed: '... can't be blocked THIS TURN.' On seat 0's next turn the wall may block the bear again."}
