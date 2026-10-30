@@ -995,6 +995,14 @@ def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
     )
 
 
+def _in_population(sel: Selector, handle: Handle, ctx: ExecCtx) -> bool:
+    """V28: could ``handle`` be one of the objects ``sel`` selects (in one of its
+    zones and passing its filter)?"""
+    if not any(handle in enumerate_zone(ctx, zone) for zone in sel.zones):
+        return False
+    return eval_filter(sel.filter, handle, ctx)
+
+
 def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     """The handles a target/cards/equipment role acts on, Handle-sorted.
 
@@ -1089,6 +1097,20 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # into the sweep exemption).
     _dest = atom.args.get("destination")
     graveyard_sweep = graveyard_sweep_shape(value, atom.verb, _dest)
+    # V28 (Rewind, CR 608.2c): a CHOOSE selector is a choice its controller makes
+    # as the effect resolves, not a designation. It shares the role NAME
+    # ``target`` with the spell's TARGET designation only by the compiler's
+    # naming ("Counter target spell. Untap up to four lands." handed the
+    # countered spell to the untap). When none of the bound objects can be in
+    # this selector's population, the designation is not for it, and it
+    # resolves itself. A binding that does fit keeps the binding-first lane.
+    foreign = (
+        bound is not None
+        and isinstance(value, Selector)
+        and value.mode is SelectorMode.CHOOSE
+        and value.referent is None
+        and not any(_in_population(value, h, ctx) for h in bound)
+    )
     if (
         bound is not None
         and not anaphoric
@@ -1096,6 +1118,7 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not population
         and not self_ref
         and not graveyard_sweep
+        and not foreign
     ):
         return bound
     if isinstance(value, Selector):

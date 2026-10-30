@@ -28,6 +28,8 @@ V25  A target nested in a quantity ("deals damage equal to its power", where "it
 V34  An ability whose only trace of its target is IS_ANY_TARGET in a combat slot gets a
      target slot (Subira's {1}), and the targeting restriction is checked at resolution
      and not re-read afterwards (CR 608.2b; pack subira_unblockable_lasts_after_pump).
+V28  A CHOOSE selector is never handed a TARGET designation it could not select
+     (Rewind's "untap up to four lands" was handed the countered spell; CR 608.2c).
 """
 
 from __future__ import annotations
@@ -732,6 +734,46 @@ class TestV34DesignationOnlyTargetSlot(unittest.TestCase):
             set(slots[0].candidates), {runner.handles["runner"], runner.handles["obear"]}
         )
         self.assertEqual((slots[0].min_count, slots[0].max_count), (1, 1))
+
+
+class TestV28ChooseIgnoresAForeignDesignation(FixerCase):
+    def lands_selector(self):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, Selector, SelectorMode
+
+        return Selector(
+            QConst(4),
+            SelectorMode.CHOOSE,
+            FAtom(FAtomPred.TYPE_EQ, string_value="Land"),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+        )
+
+    def test_a_foreign_designation_does_not_hijack_the_choice(self):
+        from MTG_bot.core.executor.selectors import role_handles
+
+        land = self.world.add_card(
+            card_id("Plains", type_line="Basic Land — Plains"), self.p0, ZONE_BATTLEFIELD
+        )
+        spell = self.world.add_card(card_id("Shocky", type_line="Instant"), self.p1, ZONE_GRAVEYARD)
+        ctx = self.ex._ctx(
+            source=self.alpha, controller=self.p0, bindings={"target": [spell]}, decisions=()
+        )
+        untap = atom(Verb.UNTAP, target=self.lands_selector())
+        self.assertEqual(role_handles(ctx, untap, "target"), [land])
+
+    def test_a_designation_that_fits_still_binds(self):
+        from MTG_bot.core.executor.selectors import role_handles
+
+        land = self.world.add_card(
+            card_id("Plains", type_line="Basic Land — Plains"), self.p0, ZONE_BATTLEFIELD
+        )
+        self.world.add_card(
+            card_id("Island", type_line="Basic Land — Island"), self.p0, ZONE_BATTLEFIELD
+        )
+        ctx = self.ex._ctx(
+            source=self.alpha, controller=self.p0, bindings={"target": [land]}, decisions=()
+        )
+        untap = atom(Verb.UNTAP, target=self.lands_selector())
+        self.assertEqual(role_handles(ctx, untap, "target"), [land])
 
 
 if __name__ == "__main__":

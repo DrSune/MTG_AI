@@ -652,6 +652,10 @@ These are forks, not tasks. See the report that accompanied this audit.
   - With the key honoured, `rewind.json` FAILS: its three tapped Plains stay tapped. Its own note
     says Rewind "untaps them all", so either Rewind's untap step or the pack's premise is wrong.
     The others still pass.
+  - **Settled 2026-10-29 (V28, branch `engine/verify-fixes-3`): the untap step was wrong.**
+    `selectors.role_handles` handed the UNTAP's CHOOSE selector the spell's TARGET designation
+    (the countered spell). A CHOOSE selector now ignores a designation it could not select
+    (packs `rewind_counters_and_untaps`, `rewind_untap_choice`).
   - **Fix.** Honour the key, find out why Rewind does not untap, and re-run the suite.
   - The card tooling uses its own `start_tapped` key meanwhile, so the 429 packs stay byte-identical.
 - **B-64 [verifier, FDN round 2] "You may discard a card. If you do, draw a card" draws with an
