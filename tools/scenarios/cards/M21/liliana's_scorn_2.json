@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scorn, printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle.' The search is optional, the destroy is not, and there is no shuffle without a library search. Library (top first, after the opening draw takes Top Junk): Liliana, Death Mage, Deep Card, then the six filler cards. Cast Scorn on the opponent's 2/2 and answer the may with skip: the creature is destroyed, Liliana stays in the library, and the library order is exactly unchanged.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
+  {"key": "victim", "name": "Doomed Beast", "type": "Creature — Beast", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "deep", "name": "Deep Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "lil", "real": "Liliana, Death Mage", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "cast", "real": "Liliana's Scorn", "key": "ls", "targets": ["victim"], "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"ls": "graveyard", "victim": "graveyard", "lil": "library", "junk": "hand"},
+  "library": {"0": ["Liliana, Death Mage", "Deep Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Blocker", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "tef", "set": 4},
+  {"op": "activate", "key": "tef", "idx": 2, "seat": 0, "targets": ["ob"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "phased_out": {"ob": false},
+  "zone": {"ob": "battlefield"},
+  "turn_seats": [0, 1]
+ },
+ "notes": "Printed: '[-3]: Target creature you don't control phases out.' It phases back in as its controller's next turn begins (CR 702.26b, its untap step): on the opponent's turn 2 it is back."
+}

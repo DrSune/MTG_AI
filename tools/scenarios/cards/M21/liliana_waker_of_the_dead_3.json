@@ -1,0 +1,26 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "ob1", "name": "Opp Beast", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"ob1": true}},
+  {"op": "deal_damage", "source": "ob1", "target": "ob1", "amount": 2, "controller": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"lil": "graveyard", "ob1": "graveyard"},
+  "attackers": {"ob1": true},
+  "life": {"0": 20, "1": 18},
+  "graveyard": {"1": ["Opp Beast"]},
+  "turn_seats": [0, 1]
+ },
+ "notes": "Printed -7 emblem: 'At the beginning of combat on your turn, ...'. Turn 1 (mine): the opponent's Opp Beast returns under my control with haste and attacks for 2 (20 -> 18), then dies back to its owner's graveyard. Turn 2 is the opponent's: their beginning of combat must NOT trigger my emblem, so Opp Beast is still in their graveyard at the end of their turn."
+}

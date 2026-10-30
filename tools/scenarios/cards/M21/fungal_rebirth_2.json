@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fr", "real": "Fungal Rebirth", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "move", "key": "relic", "to": "graveyard"},
+  {"op": "move", "key": "orelic", "to": "graveyard"},
+  {"op": "cast", "real": "Fungal Rebirth", "key": "fr", "targets": ["relic"]}
+ ],
+ "expect": {"zone": {"fr": "graveyard", "relic": "hand", "orelic": "graveyard"}, "tokens": {"Saproling": 0}},
+ "notes": "Printed: 'If a CREATURE died this turn, create two ... Saproling ... tokens.' Only non-creature permanents (two artifacts) went from the battlefield to a graveyard this turn, so no Saprolings. The artifact card (a permanent card) is a legal target and returns to hand."}

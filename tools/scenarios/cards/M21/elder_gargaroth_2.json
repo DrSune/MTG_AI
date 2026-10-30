@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 61},
+  "cards": [
+    {"key": "g", "real": "Elder Gargaroth", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"g": true}, "decisions": ["2"]}
+  ],
+  "expect": {
+    "attackers": {"g": true},
+    "tapped": {"g": false},
+    "hand": {"0": 1},
+    "life": {"0": 20, "1": 14},
+    "tokens": {"Beast": 0}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Whenever this creature attacks or blocks, choose one - ... / Draw a card.' Expectation from the text: attacking triggers the choose-one; choosing the third mode draws exactly one card (empty hand -> 1), no Beast and no life gain; vigilance keeps it untapped and the unblocked 6/6 deals 6 (20 -> 14)."
+}

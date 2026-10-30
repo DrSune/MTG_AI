@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the toughness magnitude). Printed: 'Attacking creatures you control get +1/+0.' Your 2/2 Bear attacks and becomes 3/2 (power only); the opponent's 2/2 blocks. Each deals lethal damage to the other: the 3/2 Bear takes 2 and dies (its toughness is still 2), the blocker takes 3 and dies. Warded Battlements (defender) stays home.",
+ "cards": [
+  {"key": "wb", "real": "Warded Battlements", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"ob": "bear"}}
+ ],
+ "expect": {"zone": {"bear": "graveyard", "ob": "graveyard", "wb": "battlefield"}, "life": {"0": 20, "1": 20},
+            "damage_received": {"bear": 2, "ob": 3}}}

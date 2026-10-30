@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Riddleform, printed: '... you MAY have this enchantment become a 3/3 Sphinx creature with flying ...'. You cast Shock at the opponent and answer the may with skip: Riddleform stays a non-creature enchantment with no flying and cannot attack. Opponent takes only the Shock's 2 (20 -> 18).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "s", "targets": ["p1"], "decisions": ["skip"]},
+  {"op": "combat", "seat": 0, "attack": {"rf": true}}
+ ],
+ "expect": {
+  "zone": {"s": "graveyard", "rf": "battlefield"},
+  "battlefield_keywords": {"Riddleform": []},
+  "attackers": {"rf": false},
+  "life": {"0": 20, "1": 18}
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "52159875-354c-47f9-bb1c-cd65395fcc68",
+ "name": "Fiery Emancipation",
+ "text_sha": "6b8bfe52a88c9805a80a9922b08ef723149965ef36238187dae128929fdfc424",
+ "verified": {
+  "tree_sha": "66488065b53e11fe67c556c46cdd2c248be725b7da702972c9b8d7f5a248c57a",
+  "probe_sha": "504f8cc7abaf3dcd51f59a2a26a13e885047322085dfab1ce1587c6b7e4ade5e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "If a source you control would deal damage to a permanent or player, it deals triple that damage to that permanent or player instead.",
+    "status": "OK",
+    "evidence": "Stimulus 'an opponent's creature (opp_bear) dies' (probe deals 10 from you_giant): 'opp_bear is dealt 30 damage (by you_giant)'. Stimulus 'you_bear attacks': 'opp is dealt 6 damage (combat) (by you_bear)', opp 20 -> 14 from a 2/2. Stimulus 'on the opponent's turn, opp_bear attacks you': same as without the card (opponent's source not tripled). Replacement, not addition: the one damage event carries the tripled amount. Tree is the canonical B5b-repl-triple-damage. Pack fiery_emancipation_spell_source_tripled_opponents_not PASS: your Shock deals 6 to the opponent and 6 to your own 5/5 (dies), the opponent's Shock deals 2 to you.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/fiery_emancipation_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

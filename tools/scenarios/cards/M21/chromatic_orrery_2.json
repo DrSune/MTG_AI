@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "shock", "targets": ["p1"], "expect_raise": "cost:mana"}
+ ],
+ "expect": {"zone": {"shock": "hand"}, "life": {"1": 20}},
+ "notes": "Control for chromatic_orrery_spend_any_color.json: without the Orrery, green mana cannot pay Shock's {R}."}

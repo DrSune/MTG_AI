@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Lofty Denial, printed: '... If you control a creature with flying, counter that spell unless its controller pays {4} instead.' Seat 1 controls a flier and responds to Staunch Shieldmate with Lofty Denial. Seat 0 has only {R}{R}{R} left after casting, so it cannot pay {4}: the Shieldmate is countered and goes to the graveyard; seat 0's {R}{R}{R} stays unspent.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+  {"key": "lofty", "real": "Lofty Denial", "zone": "hand", "controller": 1},
+  {"key": "bird", "name": "Sky Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "R": 3}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "real": "Staunch Shieldmate", "key": "mate", "decisions": ["lofty", "PAY"]}
+ ],
+ "expect": {
+  "zone": {"mate": "graveyard", "lofty": "graveyard"},
+  "mana_pool": {"0": {"R": 3}, "1": {}}
+ }
+}

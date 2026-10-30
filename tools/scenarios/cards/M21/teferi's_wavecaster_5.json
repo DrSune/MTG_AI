@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "wc", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
+  {"key": "tef", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Known Top Card", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Teferi's Wavecaster", "key": "wc", "decisions": ["skip"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"zone": {"wc": "battlefield", "tef": "library", "drawn": "hand", "top": "hand"}},
+ "notes": "Printed: 'you MAY search ...'. Declining: no search, Teferi stays in the library, and there is no shuffle, so the known top card is seat 0's next draw (turn 3)."}

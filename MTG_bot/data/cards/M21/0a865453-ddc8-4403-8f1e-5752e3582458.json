@@ -5,28 +5,29 @@
  "name": "Keral Keep Disciples",
  "text_sha": "f52a13704fc86e1ae825e31d0b4c02ae1dc89dcef98945255b8a9fa18f6e6161",
  "verified": {
-  "tree_sha": "e5257edfe220b95a6b8a45e532a8021fc29439368cddfc1dbc617bee210280e1",
-  "probe_sha": "546e24c1469168f8b6c247799b4ce5c38d389e5eebc19ac9c10ddf1ea45224e7",
+  "tree_sha": "abd1a708401b03bf11a7faaeaf46993b3c71a4011403c1de4e5b80dde7efceac",
+  "probe_sha": "5fef549769162501df7a97c1b446e1f0b0ad80effd29b1c1f40ceb8cdcd0337d",
   "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-E",
+  "reviewer": "claude-verifier-m21-w4O",
   "clauses": [
    {
     "clause": "Whenever you activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.",
     "status": "NOT_EXERCISED",
-    "evidence": "no stimulus activates a loyalty ability (every listed stimulus gives 'none' or no change from the card); the tree (LoyaltyActivatedEvent filter SUBTYPE_EQ Chandra + TYPE_EQ Planeswalker, actor CONTROLLER_IS YOU; EachPlayer ALL_OPPONENTS DEAL_DAMAGE 1) is identical to the compiler's parse of the sentence. Packs keral_keep_chandra_trigger (your Chandra +1: P1 20-3-1=16; your Basri Ket +1 adds nothing) and keral_keep_opp_chandra (the opponent's own Chandra activation does not trigger it) pass",
+    "evidence": "No trace stimulus activates a planeswalker loyalty ability (the probe's you_chandra is a synthetic 'Creature — Chandra' 2/2, probe.py:159, which is why Crash Through gives it trample). Packs: keral_keep_disciples_only_your_chandra (the opponent's Chandra, Flame's Catalyst +1 does not trigger it: you 17, opp 20 after it; your own Catalyst +1 then deals 3 + 1: opp 16) PASS; keral_keep_disciples_non_chandra_no_trigger (your Basri Ket +1: no damage) PASS. Tree is the canonical B2b-keral-keep-disciples (AbilityActivatedEvent: Chandra Planeswalker source, LOYALTY kind, actor YOU; EachPlayer ALL_OPPONENTS DEAL_DAMAGE 1).",
     "issue": ""
    }
   ],
   "packs": [
    "tools/scenarios/cards/M21/keral_keep_disciples_1.json",
-   "tools/scenarios/cards/M21/keral_keep_disciples_2.json"
+   "tools/scenarios/cards/M21/keral_keep_disciples_2.json",
+   "tools/scenarios/cards/M21/keral_keep_disciples_3.json"
   ],
   "mutation": {
    "mutants": 6,
    "killed": 1,
    "score": 0.16666666666666666,
    "survived": [
-    "widen filter (drop part 1) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/event/source",
     "controller YOU->OPPONENT at 1/0/event/actor/who",
     "controller ALL_OPPONENTS->YOU at 1/0/effect/ref",
     "amount+1 at 1/0/effect/effect/args/amount",

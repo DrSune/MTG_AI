@@ -1,0 +1,68 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 89
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Garruk's Warsteed",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gsh",
+   "real": "Garruk, Savage Herald",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "decoy",
+   "name": "Garruk Decoy",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "ogsh",
+   "real": "Garruk, Savage Herald",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "filler",
+   "name": "Opening Draw",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "w",
+   "decisions": [
+    "fire",
+    "card:1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "w": "battlefield",
+   "gsh": "hand",
+   "decoy": "library",
+   "ogsh": "graveyard",
+   "filler": "hand"
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "notes": "Verifier K, wave 4. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Garruk, Savage Herald, reveal it, and put it into your hand. If you search your library this way, shuffle.' Expectation from the text: choosing to search finds the named card in YOUR library and puts it into your hand (hand 0 -> 1); a differently named card stays, and the opponent's Garruk in their graveyard is never a candidate. (The last-listed library card, 'Opening Draw', is the runner's opening draw and is counted in the hand.)"
+}

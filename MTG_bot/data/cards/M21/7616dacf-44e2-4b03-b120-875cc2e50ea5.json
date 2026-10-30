@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7616dacf-44e2-4b03-b120-875cc2e50ea5",
+ "name": "Warded Battlements",
+ "text_sha": "8cd5d712212f16f014a653cfc24c6702b288aebae78799fe374d4362ad2b080c",
+ "verified": {
+  "tree_sha": "58dffc72c4d9e9828b5018abc75388fe901b9ccda05441acdb09f43a17e16962",
+  "probe_sha": "db17d999a78a020623739389ab70c1855f413514519ef1943bfa5d9767144ed8",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "Defender (This creature can't attack.)",
+    "status": "OK",
+    "evidence": "keywords +DEFENDER; 'this creature attacks alone, unblocked' and 'attacks and opp_giant blocks it': event (none), no attack declared.",
+    "issue": ""
+   },
+   {
+    "clause": "Attacking creatures you control get +1/+0.",
+    "status": "OK",
+    "evidence": "'another creature you control (you_bear) attacks': the 2/2 deals 3 combat damage (opp 20 -> 17), and its P/T is unchanged after combat (bonus only while attacking); 'on the opponent's turn, opp_bear attacks you' same as without the card (opponent's attackers get nothing); Static section shows no change to non-attacking creatures. Tree identical to the compiler's parse.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/warded_battlements_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 5,
+   "score": 0.7142857142857143,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
+ }
+}

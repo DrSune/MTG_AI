@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "2359db1c-6029-4748-9f09-d57bb0ae92e9",
+ "name": "Liliana's Scorn",
+ "text_sha": "f56f4505d8105c155da5bebc7fc93bb2251f3d79f01e5b8f272de9e347e36968",
+ "verified": {
+  "tree_sha": "d36ab1be7a514be0cfb6a45da31e0ea7286c344d14d40d7afbb9a34466f7edc2",
+  "probe_sha": "fee67747412068dfc6421439819c547d65ab6a19b98f565e2609c4fa2163e168",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Destroy target creature.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' (any creature). Every [cast targets=[X]] variant, with the may answered fire or skip: 'X moves battlefield -> graveyard (by card/DESTROY)', 'X dies'. Sorcery carrier.",
+    "issue": ""
+   },
+   {
+    "clause": "You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows the optional ('ask may: [fire, skip]') but no Liliana, Death Mage exists on the standard board. Packs: lilianas_scorn_finds_liliana_in_graveyard (fire: Liliana graveyard -> hand, the target destroyed) PASS; lilianas_scorn_decline_search_still_destroys (skip: target destroyed, Liliana stays in the library) PASS. The library half is already covered by tools/scenarios/lilianas_scorn_cast_destroys_and_searches.json.",
+    "issue": "SEARCH uses SelectorMode.ONE_OF (exactly one) where the compiler's B4-tutor-liliana uses CHOOSE (up to one): a hidden-zone search may fail to find (CR 701.19b), so this removes an option only; the whole search is already optional, so not stronger. Same convention as this wave's Basri's Aegis packet."
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "SHUFFLE(your library) sits inside the optional search, after SEARCH and REVEAL. Pack lilianas_scorn_decline_search_still_destroys PASS: with the search declined the library order is exactly unchanged (no shuffle without a search). Scratch control (not a spec pack): with fire the library order changes, so the shuffle runs when you search. A shuffled order cannot be asserted from the text, so no pack checks the permutation.",
+    "issue": "The engine always searches both zones when you search, so 'graveyard only, no shuffle' is not available: weaker only."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana's_scorn_1.json",
+   "tools/scenarios/cards/M21/liliana's_scorn_2.json",
+   "tools/scenarios/cards/M21/liliana's_scorn_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 6,
+   "score": 0.46153846153846156,
+   "survived": [
+    "drop step 0 at 1/0/effect/steps/1/inner",
+    "drop step 1 at 1/0/effect/steps/1/inner",
+    "drop step 2 at 1/0/effect/steps/1/inner",
+    "amount+1 at 1/0/effect/steps/1/inner/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/inner/steps/0/args/destination"
+   ]
+  }
+ }
+}

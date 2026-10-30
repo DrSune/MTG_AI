@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Card One", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "c2", "name": "Card Two", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "tef", "idx": 1, "seat": 0, "decisions": ["c1"]},
+  {"op": "activate", "key": "tef", "idx": 1, "seat": 0, "decisions": ["c2"], "expect_raise": "illegal activation"}
+ ],
+ "expect": {
+  "counters": {"tef": {"LOYALTY": 4}},
+  "zone": {"c1": "graveyard", "c2": "hand"}
+ },
+ "notes": "Printed Teferi, Master of Time: 'You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.' It changes only the timing: a loyalty ability of a planeswalker can still be activated only once each turn (CR 606.3), so a second +1 in the same turn is refused. Loyalty 3 -> 4."
+}
