@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "nc", "real": "Necromentia", "zone": "hand", "controller": 0},
+  {"key": "w", "real": "Massacre Wurm", "zone": "hand", "controller": 0},
+  {"key": "h1", "name": "Gloom", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 6}},
+ "steps": [
+  {"op": "cast", "real": "Necromentia", "key": "nc", "decisions": ["Gloom"]},
+  {"op": "enter", "key": "w"}
+ ],
+ "expect": {
+  "zone": {"h1": "exile", "w": "battlefield"},
+  "tokens": {"Zombie": 0},
+  "life": {"1": 18, "0": 20}
+ },
+ "notes": "P4e22e070e6 G4: 'That player shuffles, then creates a 2/2 black Zombie creature token': the TARGET OPPONENT creates (and controls) the Zombie. Massacre Wurm then enters under you: creatures your opponents control get -2/-2, so the opponent's 2/2 Zombie dies and that player loses 2 life (Wurm's second ability). Were the Zombie yours, it would survive and nobody would lose life."
+}

@@ -1728,9 +1728,11 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
     target this turn), NOT the R7-5 THIS_WAY_COUNT tally (which counted
     graveyard/hand/library exiles alike).
     Faithful since round 8: TokenSpec.colorss=("B",) carries "black" (C-2
-    repair).  Remaining lossy (verbatim): the creating player ("that
-    player") has no CREATE_TOKEN controller role, so the creator is
-    implicit."""
+    repair).  m21-fidelity (wave 4, 2026-10-30): "that player ... creates"
+    is the CREATE_TOKEN ``controller`` role (R11-2) = TARGET_PLAYER, the
+    target opponent (CR 111.2: the player who creates a token owns and
+    controls it). Without the role the caster got the Zombies (stronger
+    than printed)."""
     token = TokenSpec(
         name="Zombie",
         type_line="Creature — Zombie",
@@ -1775,6 +1777,8 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 ("tokens", token),
                 ("count", QCount(hand_exiles)),
+                # CR 111.2: "that player" (the target opponent) creates them.
+                ("controller", ControllerRef.TARGET_PLAYER),
             )
         ),
     )
