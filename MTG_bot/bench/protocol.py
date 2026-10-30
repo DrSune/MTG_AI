@@ -172,7 +172,11 @@ def engine_ask(
                 )
         handle = _handle_token(token)
         if handle is not None:
+            if kind == "attack":  # V41: a planeswalker this creature may attack
+                return f"attack {lens.describe(executor, handle, offered=True)}"
             return lens.describe(executor, handle, offered=True)
+        if kind == "attack" and token == "ATTACK" and any(_handle_token(t) for t in vocab):
+            return "attack the defending player"
         if kind == "mana" and token in _COLORS:
             return f"{_COLORS[token]} mana"
         if kind == "x" and token.isdigit():

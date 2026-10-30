@@ -928,8 +928,8 @@ class TriggerBinder:
             # 16b: the attack feed. The filter reads the DECLARED creature
             # (IS_SOURCE = "whenever this creature attacks"); the optional
             # ``attacked`` filter (R10-3) reads the attacker's ATTACKED
-            # object off the executor's attack record — v1: every attacker
-            # attacks the defending player (planeswalker attacks are 16c).
+            # object off the executor's attack record: the defending player
+            # or a planeswalker that player controls (V41, CR 508.1b).
             assert event.subject is not None  # the row names the attacker
             ctx = self._match_ctx(source, controller, event)
             if node.attacked is not None:

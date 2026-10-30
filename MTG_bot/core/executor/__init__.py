@@ -104,6 +104,8 @@ from MTG_bot.core.ability_tree import (
     Effect,
     EtBState,
     FAnd,
+    FAtom,
+    FAtomPred,
     Keyword,
     OptionalEffect,
     Phase,
@@ -298,6 +300,9 @@ _PLAYER_TARGET = Selector(
     FAnd(children=()),
     zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),),
 )
+
+# V41: "a planeswalker", the live type-line test the attack options read.
+_IS_PLANESWALKER = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker")
 
 # 16c: the CARD lane of the combat-damage atom. A player-zone selector is
 # deliberately BLIND to a binding (the 16a Brash rule in role_handles), so
@@ -1661,10 +1666,9 @@ class Executor:
     # the CR 704.3 honesty is the SBA sweep at every settle point between
     # the damage steps and the phase hand-off. 16c ships the blocker step
     # (CR 509), the damage-assignment asks (CR 510), TRAMPLE, DEATHTOUCH
-    # and the Herald AS_UNBLOCKED policy; the remaining documented v1
-    # limit: planeswalker attack assignment (players only — the binary
-    # attack ask names no attacked object and no corpus card needs a PW
-    # attack, doc 14).
+    # and the Herald AS_UNBLOCKED policy. V41 (2026-10-30): each attacker
+    # attacks the defending player or a planeswalker that player controls
+    # (CR 506.2, 508.1b); the attack ask names the choice.
     # v1 limits, documented per the R16-1 mandate: no chain spells, no
     # flash responses.
 
@@ -1757,16 +1761,32 @@ class Executor:
         world = self.world
         candidates = legal_attackers(self, seat)
         mandated = mandated_attackers(self, seat) & set(candidates)
+        defender = self.defending_player
+        assert defender is not None  # combat_step opens the phase with one
+        # V41 (CR 506.2, 508.1b): when the defending player controls
+        # planeswalkers, the active player announces what each attacker
+        # attacks: ATTACK is the defending player, a planeswalker's handle
+        # is that planeswalker. With none, the ask keeps its binary shape.
+        walkers = self._attackable_walkers()
         chosen: list[Handle] = []
+        attacking: dict[Handle, Handle] = {}
         for card in candidates:
             # T5-F1 (§10): a MANDATED attacker (furor/must-attack) has a
             # one-word surface — not a decision. The phantom gate consumes
             # ATTACK silently and journals it; the pack/provider cannot
-            # decline what CR forces, and no 1-candidate ask is billed.
-            vocab = ("ATTACK",) if card in mandated else ("ATTACK", "DECLINE")
+            # decline what CR forces, and no 1-candidate ask is billed. It
+            # still chooses what it attacks (CR 508.1d).
+            vocab = ("ATTACK",) + tuple(str(w) for w in walkers)
+            if card not in mandated:
+                vocab += ("DECLINE",)
             ctx = self._ctx(source=card, controller=seat, bindings=None, decisions=())
-            if offer_or_autopick(ctx, vocab, f"attack:{card}:{world.turn}") == "ATTACK":
-                chosen.append(card)
+            answer = offer_or_autopick(ctx, vocab, f"attack:{card}:{world.turn}")
+            if answer == "DECLINE":
+                continue
+            chosen.append(card)
+            attacking[card] = next(
+                (w for w in walkers if str(w) == answer), defender
+            )
         # Whole-set validation of the ASSEMBLED set. The asks mutate no
         # state, so re-deriving legality is a re-check and the mandate
         # inclusion was narrowed at the ask - either failure here is an
@@ -1786,11 +1806,9 @@ class Executor:
             )
         if not chosen:
             return
-        defender = self.defending_player
-        assert defender is not None  # combat_step opens the phase with one
         for card in chosen:
             self.attackers.append(card)
-            self.attacked[card] = defender
+            self.attacked[card] = attacking[card]
             if self.layers.keyword_of(card, Keyword.VIGILANCE):
                 continue
             world.cards[card].tapped = True
@@ -2028,7 +2046,22 @@ class Executor:
         if self.defending_player is None or creature in self.attackers:
             return
         self.attackers.append(creature)
-        self.attacked[creature] = self.defending_player
+        # V41, CR 508.4: its controller chooses what it attacks, the
+        # defending player or a planeswalker that player controls (the
+        # corpus' "tapped and attacking" effects never say which).
+        walkers = self._attackable_walkers()
+        target = self.defending_player
+        if walkers:
+            ctx = self._ctx(
+                source=creature,
+                controller=self.controller_of(creature),
+                bindings=None,
+                decisions=(),
+            )
+            vocab = ("ATTACK",) + tuple(str(w) for w in walkers)
+            answer = offer_or_autopick(ctx, vocab, f"attack:{creature}:{self.world.turn}")
+            target = next((w for w in walkers if str(w) == answer), target)
+        self.attacked[creature] = target
         self.journal.emit(
             KIND_DECLARE_ATTACKERS,
             creature,
@@ -2036,6 +2069,29 @@ class Executor:
             "ATTACK_STEP",
             (self._declare_group,),
         )
+
+    def _attackable_walkers(self) -> list[Handle]:
+        """V41 (CR 506.2, 506.3): the planeswalkers a creature may attack this
+        combat, Handle-sorted: those the defending player controls."""
+        return sorted(
+            card
+            for player in self.world.player_order
+            for card in self.world.players[player].zone(ZONE_BATTLEFIELD).entries
+            if self._attacked_walker_live(card)
+        )
+
+    def _attacked_walker_live(self, card: Handle) -> bool:
+        """Is ``card`` a planeswalker the defending player controls, on the
+        battlefield and phased in? A planeswalker being attacked that stops
+        being one is removed from combat (CR 506.4): it left the battlefield,
+        changed controller, phased out or stopped being a planeswalker."""
+        world = self.world
+        if card not in world.cards or world.zone_of(card).kind != ZONE_BATTLEFIELD:
+            return False
+        if card in self.phased_out or self.controller_of(card) != self.defending_player:
+            return False
+        ctx = self._ctx(source=card, controller=self.controller_of(card), bindings=None, decisions=())
+        return eval_filter(_IS_PLANESWALKER, card, ctx)
 
     def _live_attackers(self, seat: Handle) -> list[Handle]:
         """The attack record minus anything that left or changed sides -
@@ -2106,9 +2162,11 @@ class Executor:
     ) -> tuple[tuple[int, Handle], ...]:
         """CR 510.1 v1 (16c): one dealer's legal assignment announcement.
 
-        * UNBLOCKED: everything to the ATTACKED object (v1: the defending
-          player — planeswalker attacking is the documented players-only
-          boundary, doc 14).
+        * UNBLOCKED: everything to the ATTACKED object, the defending player
+          or a planeswalker (V41, CR 510.1b). A creature whose planeswalker
+          was removed from combat attacks nothing (CR 506.4c) and, unblocked,
+          assigns no combat damage; with trample its excess can only go to
+          its blockers (CR 702.19b, 702.19f).
         * BLOCKED, but every blocker has left combat (B-61): the creature
           is still blocked (CR 509.1h), so it assigns NO combat damage
           (CR 510.1c), unless it has trample, which assigns all of it to
@@ -2158,9 +2216,15 @@ class Executor:
             ):
                 return ()
             return ((power, blocked),)
-        attacked = self.attacked.get(dealer, defender)
+        attacked: Handle | None = self.attacked.get(dealer, defender)
+        if (
+            attacked is not None
+            and attacked.namespace == "card"
+            and not self._attacked_walker_live(attacked)
+        ):
+            attacked = None  # V41, CR 506.4c: attacking nothing now
         if dealer not in self.blocked_by:
-            return ((power, attacked),)  # unblocked
+            return ((power, attacked),) if attacked is not None else ()  # unblocked
         # B-61, CR 509.1h: the blocked_by entry outlives its blockers (a
         # departing blocker is removed from the list, the key stays), so an
         # empty live list here still means BLOCKED.
@@ -2170,7 +2234,8 @@ class Executor:
             if b in world.cards and world.zone_of(b).kind == ZONE_BATTLEFIELD
         ]
         if not blockers and self.layers.keyword_of(dealer, Keyword.TRAMPLE):
-            return ((power, attacked),)  # CR 702.19e: all of it tramples over
+            # CR 702.19d: all of it tramples over (nothing left: no damage)
+            return ((power, attacked),) if attacked is not None else ()
         as_unblocked = (
             self.layers.policy_as_unblocked(dealer)
             or self.damage_policies.get(dealer) == "AS_UNBLOCKED"
@@ -2188,7 +2253,7 @@ class Executor:
                 )
                 == "UNBLOCKED"
             ):
-                return ((power, attacked),)
+                return ((power, attacked),) if attacked is not None else ()
         if not blockers:
             # B-61, CR 510.1c: blocked with no creature blocking it, no
             # trample: it assigns no combat damage. Before the fix this
@@ -2272,8 +2337,18 @@ class Executor:
                 else:
                     plan.append((give, b))
                 excess -= give
-        if excess:
+        if excess and attacked is not None:
             plan.append((excess, attacked))
+        elif excess:
+            # V41, CR 702.19b/f: its planeswalker left combat, so the excess
+            # can only go to the blockers: the last one in order takes it.
+            last = ordered[-1]
+            for i, (a, h) in enumerate(plan):
+                if h == last:
+                    plan[i] = (a + excess, last)
+                    break
+            else:
+                plan.append((excess, last))
         # CR 510.1: damage assignment is simultaneous within the step; the
         # canonical row order keeps the journal deterministic.
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))

@@ -15,11 +15,15 @@ V39  Quirion Dryad: a spell "that's white, blue, black, or red" is a spell with 
      those colors (CR 105.2, 105.2b), so a green-blue spell counts. The compiler wrote a subset
      test (COLOR_IN); it now writes the canonical FOr of COLOR_HAS.
 V40  Defender only forbids attacking (CR 702.3b): a creature with defender blocks.
+V41  Creatures attack planeswalkers (CR 506.2, 508.1b): the attack ask names what each attacker
+     attacks; combat damage to a planeswalker removes loyalty (CR 120.3c, 510.1b); a creature
+     whose planeswalker left combat attacks nothing and deals no damage (CR 506.4c).
 """
 
 import unittest
 from unittest import mock
 
+from MTG_bot.bench.protocol import engine_ask
 from MTG_bot.bench.router import SeatRouter
 from MTG_bot.bench.view import OracleIndex, SeatLens
 from MTG_bot.core.ability_tree import (
@@ -445,6 +449,71 @@ class DefenderBlocksTest(unittest.TestCase):
         self.assertIsNone(block_pair_blocked_reason(ex, wall, bear))
         self.assertTrue(blocker_askable(ex, wall, [bear]))
         self.assertEqual(attack_blocked_reason(ex, p1, wall), "defender (CR 702.3b)")
+
+
+class PlaneswalkerAttackTest(unittest.TestCase):
+    """V41 (CR 506.2, 506.4c, 508.1b, 510.1b, 120.3c)."""
+
+    def setUp(self):
+        supply = get_supply("all", "M21")
+        records = {r.card.name: r.card for r in supply.pool.results.values()}
+        reset_oracle_ids()
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        self.p0, self.p1 = self.world.player_order
+        self.corpse = self.world.add_card(
+            identity_of(records["Walking Corpse"]), self.p0, ZONE_BATTLEFIELD
+        )
+        self.lili = self.world.add_card(
+            identity_of(records["Liliana, Waker of the Dead"]), self.p1, ZONE_BATTLEFIELD
+        )
+        self.ex = Executor(self.world)
+        self.ex.attach_pool(supply.pool)
+        self.ex.begin_turn(self.p0)
+        self.asks: list[tuple[str, tuple[str, ...]]] = []
+
+    def combat(self, attack_word):
+        def provider(vocab, what):
+            self.asks.append((what, tuple(vocab)))
+            return attack_word if what.startswith("attack:") else vocab[0]
+
+        self.ex.decisions.provider = provider
+        self.ex.combat_step(self.p0)
+
+    def loyalty(self):
+        return self.world.cards[self.lili].counters.get("LOYALTY")
+
+    def test_the_attack_ask_names_the_planeswalker(self):
+        self.combat(str(self.lili))
+        self.assertEqual(
+            self.asks, [(f"attack:{self.corpse}:{self.world.turn}", ("ATTACK", str(self.lili), "DECLINE"))]
+        )
+        self.assertEqual(self.loyalty(), 2)  # 2 combat damage, 2 loyalty counters
+        self.assertEqual(self.world.players[self.p1].life, 20)
+
+    def test_attack_still_means_the_defending_player(self):
+        self.combat("ATTACK")
+        self.assertEqual(self.loyalty(), 4)
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def test_a_planeswalker_removed_from_combat_takes_no_damage(self):
+        ex = self.ex
+        ex.defending_player = self.p1
+        ex.attackers = [self.corpse]
+        ex.attacked = {self.corpse: self.lili}
+        self.assertEqual(ex._assign_damage(self.corpse, 2, self.p0), ((2, self.lili),))
+        self.world.move_to_zone(self.lili, self.p1, ZONE_GRAVEYARD)  # it left combat
+        self.assertEqual(ex._assign_damage(self.corpse, 2, self.p0), ())  # CR 510.1b
+
+    def test_the_bench_labels_say_what_each_option_attacks(self):
+        lens = SeatLens(0, OracleIndex.for_sets("M21"))
+        vocab = ("ATTACK", str(self.lili), "DECLINE")
+        ask = engine_ask(lens, self.ex, vocab, f"attack:{self.corpse}:1", 0)
+        labels = [option.label for option in ask.options]
+        self.assertEqual(labels[0], "attack the defending player")
+        self.assertTrue(labels[1].startswith("attack "), labels[1])
+        self.assertEqual(labels[2], "do not attack")
+        plain = engine_ask(lens, self.ex, ("ATTACK", "DECLINE"), f"attack:{self.corpse}:1", 0)
+        self.assertEqual([o.label for o in plain.options], ["attack", "do not attack"])
 
 
 if __name__ == "__main__":
