@@ -88,6 +88,7 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    Seq,
     SpellAbility,
     Verb,
     Zone,
@@ -220,6 +221,38 @@ class OptionChoice:
 # ------------------------------------------------------------ activations
 
 
+_NO_OP_VERBS = (Verb.LOOK_AT, Verb.REVEAL)
+
+
+def inert_free_row(
+    executor: Executor, ability: ActivatedAbility, source: Handle, seat: Handle
+) -> bool:
+    """A free activated ability (no cost) that cannot do anything right now: every
+    step is either a recorded no-op (LOOK_AT / REVEAL: the engine is omniscient,
+    looking changes nothing) or a "you may" whose offer is narrowed to skip
+    (CR 117.3: nothing it could do is possible). The compiler's permission-row
+    idiom ("you may play lands from the top of your library", Radha, Heart of
+    Keld) is such a row whenever nothing is castable through it, and for a land
+    it never is until the permission lane (DESIGN_ATOM_ONTOLOGY R5-2/R5-3). Offering
+    it would be a phantom option (AGENTS §10), so legal_activations leaves it out.
+    A row with a real cost or any unconditional step is never inert here."""
+    if ability.cost.parts:
+        return False
+    effect = ability.effect
+    steps = effect.steps if isinstance(effect, Seq) else (effect,)
+    for step in steps:
+        if isinstance(step, Atom) and step.verb in _NO_OP_VERBS:
+            continue
+        if not isinstance(step, OptionalEffect):
+            return False
+        inner = step.inner
+        if isinstance(inner, Atom) and inner.verb in _NO_OP_VERBS:
+            continue
+        if optional_offer(executor, step, source=source, controller=seat) != MAY_VOCAB[1:]:
+            return False
+    return True
+
+
 def legal_activations(
     world: GameWorld, executor: Executor, seat: Handle
 ) -> list[ActivationOption]:
@@ -256,6 +289,8 @@ def legal_activations(
                 continue
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
+            if inert_free_row(executor, ability, handle, seat):
+                continue  # a phantom option: it could do nothing (Radha's land row)
             ctx = ctx_for(executor, source=handle, controller=seat)
             plan, _ = build_payment_plan(world, ctx, ability.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
@@ -869,9 +904,14 @@ def _cast_effect_actionable(
                 f"cast-gap {host}: CAST population "
                 f"admits {dropped} non-spell designees sel={sel!r}",
             )
-        return all(ok(c) for c in carriers)
+        # 2026-10-30 (coordinator, Radha/Snoop): casting NOTHING is not an
+        # action (CR 117.3); an empty population offered "fire" for a no-op.
+        return bool(carriers) and all(ok(c) for c in carriers)
     designees = sorted(cands)[: resolve(sel.count, ctx)]  # mirror the stand-in
-    return all(ok(c) for c in designees)
+    # An empty designation casts nothing (a nonland on top for Radha's land row,
+    # a non-Goblin for Conspicuous Snoop's): not an action (CR 117.3), so the
+    # may-offer narrows to skip instead of a phantom "fire".
+    return bool(designees) and all(ok(c) for c in designees)
 
 
 # ------------------------------------------------------------------ casting

@@ -34,6 +34,8 @@ V30  A trigger whose effect moves its own card out of the graveyard functions on
      the graveyard (CR 113.6m): Silversmote Ghoul's end-step return.
 CAST cost role (coordinator, 2026-10-30): a CAST atom's Cost WITH parts is paid on top
      of the mana cost (CR 601.2f); only an EMPTY Cost waives the mana cost (118.9).
+Radha's land row (coordinator, 2026-10-30): a free row that can do nothing is not
+     offered (no phantom option), and running it with a land on top never raises.
 """
 
 from __future__ import annotations
@@ -868,6 +870,55 @@ class TestCastCostRoleIsAdditional(unittest.TestCase):
 
         self.cast(Cost(()))
         self.assertEqual(self.case.world.players[self.case.p0].life, 21)
+
+
+class TestInertFreeRows(unittest.TestCase):
+    def runner(self, top):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7, "library_top": True},
+            "cards": [
+                {"key": "radha", "real": "Radha, Heart of Keld", "zone": "battlefield",
+                 "controller": 0},
+                {"key": "snoop", "real": "Conspicuous Snoop", "zone": "battlefield",
+                 "controller": 0},
+                {"key": "top", "real": top, "zone": "library", "controller": 0},
+                {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library",
+                 "controller": 0},
+            ],
+            "mana": {"0": {"R": 1}},
+            "steps": [],
+            "expect": {},
+        }
+        return ScenarioRunner(pack, get_supply("all", "M21"))
+
+    def offered(self, r, key):
+        from MTG_bot.core.executor.query import legal_activations
+
+        return [
+            o.ability_idx
+            for o in legal_activations(r.world, r.ex, r.p0)
+            if o.source == r.handles[key]
+        ]
+
+    def test_radha_land_row_is_not_offered_and_never_raises(self):
+        r = self.runner("Mountain")
+        self.assertEqual(r.world.cards[r.world.players[r.p0].zone("library").entries[-1]].identity.name, "Mountain")
+        self.assertNotIn(1, self.offered(r, "radha"))  # nothing castable: phantom
+        # Running the row anyway (a direct activation) casts nothing and raises
+        # nothing: the land stays on top (weaker than printed until R5-3).
+        from MTG_bot.core.executor.legality import activate
+
+        activate(r.ex, r.handles["radha"], 1, seat=r.p0, decisions=("fire", "fire"))
+        self.assertEqual(r.world.zone_of(r.handles["top"]).kind, "library")
+
+    def test_snoop_row_is_offered_when_a_goblin_on_top_can_be_cast(self):
+        r = self.runner("Goblin Arsonist")
+        self.assertTrue(self.offered(r, "snoop"))
+        self.assertNotIn(1, self.offered(r, "radha"))
 
 
 if __name__ == "__main__":

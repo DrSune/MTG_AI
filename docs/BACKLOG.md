@@ -733,6 +733,18 @@ These are forks, not tasks. See the report that accompanied this audit.
   `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
   should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
   redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
+- **B-76 [fixer 3, 2026-10-30] Two permission rows do nothing until the R5 permission lane.**
+  Weaker than printed; never a crash and never a phantom option.
+  - Radha, Heart of Keld's "you may play lands from the top of your library" compiles to a free
+    row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
+    action), so the row can do nothing: the CAST head refuses with a cast-gap ledger row, the
+    may-offer narrows to skip, and `query.legal_activations` no longer offers the row
+    (`query.inert_free_row`). R5-3's `play_lands` makes it playable.
+  - Demonic Embrace's "You may cast this card from your graveyard ..." row is an activated
+    ability, and activations need the source on the battlefield (`window:not_on_battlefield`), so
+    the graveyard cast is never available. R5-2's permission lane (a StaticAbility CAST) fixes it.
+  - Also: a CAST whose designation is empty (a nonland on top for Radha, a non-Goblin for
+    Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).
