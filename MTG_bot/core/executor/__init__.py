@@ -1029,6 +1029,14 @@ class Executor:
             self.etb_x.pop(anchor, None)  # r23a: cast-X leaves with it
             self.damage.pop(anchor, None)  # 16a: CR 120.6, marks leave with it
             self.damage_deathtouch.discard(anchor)  # 16c: the flag rides along
+            # V43 (2026-10-29): status leaves with the permanent. CR 110.5d: cards
+            # not on the battlefield are neither tapped nor untapped; 110.5b: a
+            # permanent enters untapped unless something says otherwise (an
+            # "enters tapped" stamp lands after the move). One CardState spans
+            # every zone, so a tapped creature bounced, exiled or reanimated
+            # came back tapped.
+            if anchor in self.world.cards:
+                self.world.cards[anchor].tapped = False
             # 16c: a departing permanent leaves no trace in the block record
             # (a dead blocker stops blocking, a dead attacker forgets).
             self.blocked_by.pop(anchor, None)

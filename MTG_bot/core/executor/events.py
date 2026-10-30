@@ -543,6 +543,11 @@ class EventJournal:
 
         # --- tapped flags: TapStateEvent feed.
         for card, tapped in after.tapped.items():
+            # V43 (2026-10-29): CR 110.5d, only a permanent is tapped or untapped. A card that
+            # left the battlefield had its flag cleared on the way out; a window spanning that
+            # departure (the CAST atom around pay_costs) must not read it as an untap.
+            if after.zones.get(card, (None, None))[1] != ZONE_BATTLEFIELD:
+                continue
             if card in before.tapped and before.tapped[card] != tapped:
                 self._emit(KIND_TAP_STATE, card, cause, cause_verb, (tapped,))
 

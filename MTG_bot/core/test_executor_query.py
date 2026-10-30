@@ -457,7 +457,8 @@ class TestGoldenSurface(unittest.TestCase):
     def test_activate_the_crypt_exiles_the_target_graveyard(self):
         # hand-derived: pay {T}+sacrifice-it (tap=(crypt), sac=(crypt)),
         # designate the two p1 graveyard cards as the TARGET: list →
-        # both to p1's exile, the crypt tapped in p0's graveyard.
+        # both to p1's exile, the crypt in p0's graveyard.
+        from MTG_bot.core.executor.events import KIND_TAP_STATE
         from MTG_bot.core.executor.legality import activate
 
         events_before = len(self.ex.events)
@@ -473,7 +474,11 @@ class TestGoldenSurface(unittest.TestCase):
             self.assertEqual(zone.kind, ZONE_EXILE)
             self.assertEqual(zone.controller, self.p1)
         self.assertEqual(self.world.zone_of(self.crypt).kind, ZONE_GRAVEYARD)
-        self.assertTrue(self.world.cards[self.crypt].tapped)
+        # re-pinned 2026-10-29: V43 changes the flag the graveyard card carries. CR 110.5d: a
+        # card off the battlefield is neither tapped nor untapped; the {T} payment is its row.
+        self.assertFalse(self.world.cards[self.crypt].tapped)
+        tap_rows = [r for r in self.ex.journal.dump() if r[1] == KIND_TAP_STATE and r[2] == str(self.crypt)]
+        self.assertEqual([r[-1] for r in tap_rows], ["(True,)"])
         # costs are journalled: more executor events than we started with
         self.assertGreater(len(self.ex.events), events_before)
 
