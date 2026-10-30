@@ -65,7 +65,7 @@ Conventions (documented build decisions):
 - ``+N/+N`` → ``PtDelta(INCREASE, QConst(N))``; ``-N/-N`` →
   ``PtDelta(DECREASE, QConst(N))``; ``+X/+X`` →
   ``PtDelta(INCREASE, QX())`` (shapes #25, #75, #77, #78, #79, #80).
-- Token colors: the printed color word populates ``TokenSpec.color``
+- Token colors: the printed color word populates ``TokenSpec.colors``
   (shapes #21, #22 — round 8 / C-2 repair).
 - ``that creature's mana value`` → ``QProp("target", MANA_VALUE, FIRST)``
   — best-effort; the sacrificed creature has no clean grammar referent
@@ -388,7 +388,7 @@ def _build_token_demon(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.FLYING,),
                         abilities=(),
-                        color="B",  # C-2 repair (round 8): printed "black"
+                        colors=("B",),  # C-2 repair (round 8): printed "black"
                     ),
                 ),
                 ("count", QConst(1)),
@@ -414,7 +414,7 @@ def _build_token_zombie(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
-                        color="B",  # C-2 repair (round 8): printed "black"
+                        colors=("B",),  # C-2 repair (round 8): printed "black"
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1716,7 +1716,7 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
     QCount(exiled cards named <chosen> that moved HAND→EXILE under the
     target this turn), NOT the R7-5 THIS_WAY_COUNT tally (which counted
     graveyard/hand/library exiles alike).
-    Faithful since round 8: TokenSpec.color="B" carries "black" (C-2
+    Faithful since round 8: TokenSpec.colorss=("B",) carries "black" (C-2
     repair).  Remaining lossy (verbatim): the creating player ("that
     player") has no CREATE_TOKEN controller role, so the creator is
     implicit."""
@@ -1729,7 +1729,7 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(int(m.group("t"))),
         keywords=(),
         abilities=(),
-        color="B",  # C-2 repair (round 8)
+        colors=("B",),  # C-2 repair (round 8)
     )
     shuffle = Atom(
         verb=Verb.SHUFFLE,
@@ -2199,7 +2199,7 @@ def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
     the number regex, so the count is word-pinned ``QConst(2)`` (Gnarled
     Sage house idiom).  The sentence carries no continuation prefix, so
     the instant's effect fold appends it as the sibling step after s1
-    (already landed).  Faithful since round 8: TokenSpec.color="G" carries
+    (already landed).  Faithful since round 8: TokenSpec.colorss=("G",) carries
     ``green`` (C-2 repair).  C16: none — fully forced."""
     token = TokenSpec(
         name="Saproling",
@@ -2210,7 +2210,7 @@ def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(1),
         keywords=(),
         abilities=(),
-        color="G",  # C-2 repair (round 8)
+        colors=("G",),  # C-2 repair (round 8)
     )
     return EffectOutcome(
         effect=Conditional(
@@ -2365,7 +2365,7 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
     with a TARGET selector; the non-continuation s2 folds into the same
     SpellAbility Seq, so the antecedent is the ability's own target —
     executor-side referent binding per R4).
-    Faithful since round 8: TokenSpec.color="W" carries ``white`` (C-2
+    Faithful since round 8: TokenSpec.colorss=("W",) carries ``white`` (C-2
     repair — the row's pattern pins the word "white" for both Angel and
     Soldier sentences).  FAITHFUL since grammar round 11 (R11-2, batch 6
     ruling /10): ``Its controller`` lands as the CREATE_TOKEN ``controller``
@@ -2401,7 +2401,7 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
                             toughness=QConst(int(m.group("t"))),
                             keywords=(Keyword.FLYING,) if m.group("fly") else (),
                             abilities=(),
-                            color="W",  # C-2 repair (round 8)
+                            colors=("W",),  # C-2 repair (round 8)
                         ),
                     ),
                 )

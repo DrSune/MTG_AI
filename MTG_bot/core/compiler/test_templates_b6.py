@@ -253,7 +253,7 @@ def _drake_token(count: int) -> Atom:
                         toughness=QConst(2),
                         keywords=(Keyword.FLYING,),
                         abilities=(),
-                        color="U",
+                        colors=("U",),
                     ),
                 ),
                 ("count", QConst(count)),

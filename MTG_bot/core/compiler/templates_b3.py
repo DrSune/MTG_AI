@@ -846,7 +846,7 @@ def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
         toughness=QConst(t),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        color="W",  # C-2 repair (round 8)
+        colors=("W",),  # C-2 repair (round 8)
     )
     effect = Atom(
         verb=Verb.CREATE_TOKEN,

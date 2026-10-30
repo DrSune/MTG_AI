@@ -57,7 +57,7 @@ Conventions (documented build decisions):
 - ``any target`` is ``Selector(QConst(1), TARGET, universal filter, ANY zone)``.
 - ``X is the number of other attacking creatures`` is a ``QCount`` over a
   selector for other attacking creatures on the battlefield.
-- Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2).
+- Token color words populate ``TokenSpec.colors`` (grammar round 8 / C-2).
 - ``REVEAL`` after ``SEARCH`` cannot reference the searched cards; it reveals
   an unbounded count of cards from the controller's perspective.
 - ``+N/+N`` on a token and counter can differ (e.g. +1/+1 counter, 2/2 token);
@@ -435,7 +435,7 @@ def _bird_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -450,7 +450,7 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.VIGILANCE,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -465,7 +465,7 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="G",
+        colors=("G",),
     )
 
 
@@ -480,7 +480,7 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="G",
+        colors=("G",),
     )
 
 
@@ -1273,7 +1273,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
         t = int(m.group("t"))
         tok = m.group("tok")
         # printed color word = un-named capture group 3 (white|green) of both
-        # registrations — C-2 repair: populate TokenSpec.color (round 8).
+        # registrations — C-2 repair: populate TokenSpec.colors (round 8).
         col = "W" if m.group(3) == "white" else "G"
         return _ability(
             CastSpellEvent(
@@ -1300,7 +1300,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
                                 toughness=QConst(t),
                                 keywords=(),
                                 abilities=(),
-                                color=col,
+                                colors=(col,),
                             ),
                         ),
                         ("count", QConst(1)),
@@ -2131,7 +2131,7 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
     token.
 
     CardDrawnEvent.ordinal=2 (grammar round 4).  The token is green:
-    TokenSpec.color='G' (round 8, C-2 repair; the old note that the color
+    TokenSpec.colorss=("G",) (round 8, C-2 repair; the old note that the color
     was omitted is stale, m21-fidelity item 3 census 2026-10-29)."""
     p = _n(m, 1)
     t = _n(m, 2)

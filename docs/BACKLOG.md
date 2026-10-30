@@ -773,7 +773,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
     a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
     permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
-- **B-82 [fixer A, m21-fidelity item 3; renumbered from B-75 at the merge, which phasing took] A multicoloured token is colourless** (live in M21).
+- **B-82 [fixer A, m21-fidelity item 3; renumbered from B-75 at the merge, which phasing took] A multicoloured token is colourless** (FIXED 2026-10-30 by ontology R5-11, branch `engine/r5b-go-items`: option (a) below. `TokenSpec.colors` holds WUBRG letters in WUBRG order and is omitted when colourless; the Weird is `("U", "R")`; 22 M21 goldens and 138 compiled entries in the 19 sets re-baked, each proven to be the rename only; test `MTG_bot/core/test_ontology_r5_token_colors.py`.)
   - Experimental Overload's "X/X blue and red Weird" compiles with `TokenSpec.color=None`
     (`templates_b5a.py`, B5a-weird-token): `color` holds one colour letter.
   - Census 2026-10-29: of the 152 TokenSpecs compiled in the 19 sets (and 5 in FDN records), 150
@@ -902,6 +902,15 @@ These are forks, not tasks. See the report that accompanied this audit.
     with a spell on the stack). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature)`, one golden.
   - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
     bullets only when every option set is one mode); it is representable but not described.
+- **B-107 [2026-10-30, branch `engine/r5b-go-items`] Verified records to re-verify after the R5
+  items** (their tree changed, their `verified` block was not edited, so they are out of the
+  verified supply until a verifier passes them again):
+  - re-verify after R5-11 (schema rename only, `color` -> `colors`): FDN Imperious Perfect and
+    Stroke of Midnight (agent-mapped `ir`, the key renamed in the record by coordinator ruling (a);
+    FDN Regal Caracal, unverified, was renamed too), FDN Prideful Parent and Release the Dogs
+    (compiler trees). FDN verified 59 -> 55.
+  - re-verify after R5-10 (STACK_KIND_EQ SPELL added to the counter target): M21 Cancel and
+    Miscast. M21 verified 135 -> 133.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

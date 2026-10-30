@@ -43,8 +43,8 @@ Conventions (documented build decisions):
   tribe noun "Shrine" is a type-line word test — the same audited idiom as
   the green ``sanctum_of_all_search_fire`` ``TYPE_EQ("Shrine")`` search;
   ``NAME_EQ`` is the grammar's closed-card-name pred and matches no card).
-- Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2;
-  ``Treasure`` artifact tokens stay colorless/None).
+- Token color words populate ``TokenSpec.colors`` (grammar round 8 / C-2;
+  ``Treasure`` artifact tokens stay colorless, ``()``; R5-11 made the field a WUBRG tuple).
 - ``add X mana of any one color`` is encoded as ``ADD_MANA(color="ANY")``
   (round 8 / C-3); concrete-color and colorless "{C}" rows keep their letter.
 - ``each opponent`` for life gain/loss uses ``ControllerRef.ALL_OPPONENTS``;
@@ -353,7 +353,7 @@ def _soldier_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -368,7 +368,7 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="G",
+        colors=("G",),
     )
 
 
@@ -383,7 +383,7 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.VIGILANCE,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -398,7 +398,7 @@ def _griffin_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -2198,7 +2198,7 @@ def _build_pursued_whale_token(m: re.Match[str]) -> SentenceOutcome:
             StaticAbility(effect=cant_block),
             StaticAbility(effect=attack_if_able),
         ),
-        color="R",  # printed red in the sentence (C-2 repair convention)
+        colors=("R",),  # printed red in the sentence (C-2 repair convention)
     )
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -2224,8 +2224,8 @@ def _build_chrome_replicator_etb(m: re.Match[str]) -> SentenceOutcome:
     house FNot IS_TOKEN ``nontoken`` idiom), count=2 the threshold; the
     executor groups the matched permanents by EXACT name and tests the
     largest group — no pairwise name-equality vocabulary is needed (the
-    retired b2a UNCOVERED diagnosis).  Colorless token = ``color`` left
-    None, the Treasure precedent ("colorless/None", module docstring).
+    retired b2a UNCOVERED diagnosis).  Colorless token = ``colors`` left
+    empty, the Treasure precedent (module docstring).
 
     C16: none — fully forced (no may, no choice, no targets)."""
     p, t = _n(m, 1), _n(m, 2)

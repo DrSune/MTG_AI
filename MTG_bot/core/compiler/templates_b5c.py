@@ -865,7 +865,7 @@ def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(3))),
                         keywords=(),
                         abilities=(),
-                        color="G",  # C-2 repair (round 8)
+                        colors=("G",),  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1924,7 +1924,7 @@ def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
-                        color="G",  # C-2 repair (round 8)
+                        colors=("G",),  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -2439,7 +2439,7 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
                             toughness=QConst(t),
                             keywords=(),
                             abilities=(),
-                            color="W",
+                            colors=("W",),
                             enters_tapped=True,
                             enters_attacking=True,
                         ),

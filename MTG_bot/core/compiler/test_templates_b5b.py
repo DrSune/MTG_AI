@@ -2410,7 +2410,8 @@ class TestRound7BTopUps(unittest.TestCase):
             assert isinstance(spec, TokenSpec)
             self.assertEqual((spec.power, spec.toughness), pt)
             self.assertEqual(spec.keywords, (Keyword.FLYING,) if flying else ())
-            self.assertEqual(spec.color, "W")  # C-2 repair (round 8)
+            # C-2 repair (round 8); re-pinned 2026-10-30: R5-11 colors tuple
+            self.assertEqual(spec.colors, ("W",))
 
     def test_its_controller_loses_life(self) -> None:
         """Death Mage [−3] s2: LOSE_LIFE controller role = referent-target

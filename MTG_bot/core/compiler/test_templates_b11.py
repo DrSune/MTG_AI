@@ -124,8 +124,9 @@ def test_tokens_are_named_by_their_subtypes(registry) -> None:
     pairs = dict(effect.args.pairs)
     assert effect.verb is Verb.CREATE_TOKEN and pairs["count"] == QConst(2)
     spec = pairs["tokens"]
-    assert (spec.name, spec.type_line, spec.color) == (
-        "Angel Warrior", "Creature — Angel Warrior", "W")
+    # re-pinned 2026-10-30: R5-11 colors tuple (was the scalar color "W")
+    assert (spec.name, spec.type_line, spec.colors) == (
+        "Angel Warrior", "Creature — Angel Warrior", ("W",))
     assert spec.keywords == (Keyword.FLYING,)
 
 

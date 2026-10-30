@@ -48,12 +48,12 @@ Conventions (documented build decisions):
   stays ``QConst(0)`` (lossless w.r.t. oracle text, shape #42).
 - ``Add two mana of any one color`` → ``ADD_MANA(color="ANY")`` (round 8 /
   C-3 repair; colorless "{C}" rows keep ``"C"`` — shape #34).
-- Token colors (round 8 / C-2): the red Goblin Wizard populates
-  ``color="R"``; the blue-and-red Weird stays dropped — ``TokenSpec.color``
-  is a single-color ``str`` (bichrome needs a color-set field, R9).
+- Token colors (round 8 / C-2; R5-11 made the field the WUBRG tuple
+  ``TokenSpec.colors``): the red Goblin Wizard is ``colors=("R",)``, the
+  blue-and-red Weird ``colors=("U", "R")``.
 - ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)`` (shape #72).
-- ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)``
-  carrying the "spell" semantics (shape #49).
+- ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)`` and
+  ``STACK_KIND_EQ SPELL`` (shape #49; the kind atom since ontology R5-10).
 - The Equip sentence (#83) is an ``ActivatedAbility`` with
   ``timing=ActivationWindow.SORCERY`` ("Equip only as a sorcery", B-60).
 
@@ -460,12 +460,12 @@ def _build_weird_token(m: re.Match[str]) -> SentenceOutcome:
                         subtypes=("Weird",),
                         power=x,
                         toughness=x,
-                        # GAP (stays, 8-B skip): the Weird is blue AND red;
-                        # TokenSpec.color is a single-color str (C-2 scope),
-                        # so a bichrome token cannot be populated faithfully
-                        # without inventing a color-set format (R9 candidate).
                         keywords=(),
                         abilities=(),
+                        # R5-11 (B-82 fixed): "blue and red" — both colours,
+                        # WUBRG order. It was colourless while TokenSpec held
+                        # one colour letter.
+                        colors=("U", "R"),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -491,7 +491,7 @@ def _build_goblin_wizard_tokens(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.PROWESS,),
                         abilities=(),
-                        color="R",  # C-2 repair (round 8): printed "red"
+                        colors=("R",),  # C-2 repair (round 8): printed "red"
                     ),
                 ),
                 ("count", QConst(2)),

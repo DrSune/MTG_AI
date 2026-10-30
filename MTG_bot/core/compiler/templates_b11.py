@@ -258,7 +258,7 @@ _TOKEN_RE: Final[str] = (
 
 def _build_create_tokens(m: re.Match[str]) -> SentenceOutcome:
     """Mirrors the token carriers (b2a ``_soldier_token``, B5b-token-demon): CREATE_TOKEN with
-    ``count`` and a TokenSpec named by its subtypes, a one-letter color or None (colorless)."""
+    ``count`` and a TokenSpec named by its subtypes, a one-letter colors tuple or () (colorless)."""
     subtypes = tuple(m.group("subs").split(" "))
     artifact = bool(m.group("art"))
     spec = TokenSpec(
@@ -270,7 +270,7 @@ def _build_create_tokens(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(int(m.group("t"))),
         keywords=_keyword_list(m.group("kws")) if m.group("kws") else (),
         abilities=(),
-        color=_COLOR_LETTER[m.group("color")] if m.group("color") else None,
+        colors=(_COLOR_LETTER[m.group("color")],) if m.group("color") else (),
     )
     atom = Atom(
         verb=Verb.CREATE_TOKEN,

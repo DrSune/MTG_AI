@@ -113,7 +113,8 @@ Design decisions (each pinned by tests in test_ability_tree.py):
 - **grammar round 8 / phase 8-A (decision-surface vocabulary, KNOWLEDGE
   2026-09-28/08)**, pinned by test_ability_tree_r9.py: ``QAtMost(n)``
   (convention C17 — TARGET-mode "up to n" designation), ``TokenSpec``
-  trailing ``color`` / ``enters_tapped`` / ``enters_attacking`` optionals,
+  trailing ``color`` / ``enters_tapped`` / ``enters_attacking`` optionals
+  (ontology R5-11 replaced ``color`` with the WUBRG tuple ``colors``),
   the AtomArgs ``color`` vocabulary widened with ``"ANY"`` ("mana of any
   one color" — distinct from colourless ``"C"``), optional ``dealer`` /
   ``recipient`` roles on DEAL_DAMAGE, ``FAtomPred.
@@ -2222,14 +2223,16 @@ class TokenSpec:
     toughness: Quantity | None
     keywords: tuple[Keyword, ...]
     abilities: tuple[Ability, ...]
-    # color / enters_tapped / enters_attacking (grammar round 8, R8-2/R8-4):
-    # token color words ("Treasure" artifact tokens are colourless, a Basri
-    # Ket soldier is white), "put those tokens onto the battlefield tapped"
-    # and "…that's attacking" (Basri Ket [-2]). All three default to None —
-    # absent (unknown/unstated) — and serialize by OMITTING the key, so
-    # every pre-round-8 token golden stays byte-identical (dual
-    # registration: _SPECS opt-tags + _OMIT_IF_EMPTY row).
-    color: str | None = None
+    # colors (ontology R5-11, replacing grammar round 8's one-letter
+    # ``color``): the token's printed colour words, each a WUBRG letter, in
+    # WUBRG order (CR 105.1) — "a 1/1 white Soldier" is ("W",), Experimental
+    # Overload's "blue and red Weird" ("U", "R"), a colourless Treasure ().
+    # enters_tapped / enters_attacking (R8-4): "put those tokens onto the
+    # battlefield tapped" and "…that's attacking" (Basri Ket [-2]). All three
+    # serialize by OMITTING the key at their empty default (dual
+    # registration: _SPECS + _OMIT_IF_EMPTY row), so a colourless token's
+    # bytes are unchanged.
+    colors: tuple[str, ...] = ()
     enters_tapped: bool | None = None
     enters_attacking: bool | None = None
 
@@ -2259,12 +2262,14 @@ class TokenSpec:
                 raise ValueError(
                     f"TokenSpec: abilities must be Ability, got {type(ability).__name__}"
                 )
-        if self.color is not None and (
-            not isinstance(self.color, str) or not self.color.strip()
+        if not isinstance(self.colors, tuple) or any(
+            c not in _COLORS for c in self.colors
         ):
             raise ValueError(
-                f"TokenSpec: color must be a non-empty str, got {self.color!r}"
+                f"TokenSpec: colors must be a tuple of {_COLORS} letters, got {self.colors!r}"
             )
+        if len(set(self.colors)) != len(self.colors):
+            raise ValueError(f"TokenSpec: colors must be distinct, got {self.colors!r}")
         for flag in ("enters_tapped", "enters_attacking"):
             value = getattr(self, flag)
             if value is not None and not isinstance(value, bool):
@@ -2278,6 +2283,12 @@ class TokenSpec:
             value = _set_sorted(getattr(self, fld))
             if value != getattr(self, fld):
                 object.__setattr__(self, fld, value)
+        # R5-11: the colour set is canonical in WUBRG order (CR 105.1), the
+        # order mana costs and colour identities print in, so "blue and red"
+        # and "red and blue" are the same bytes.
+        colors = tuple(sorted(self.colors, key=_COLORS.index))
+        if colors != self.colors:
+            object.__setattr__(self, "colors", colors)
 
 
 # ---- Costs ----
@@ -4305,9 +4316,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("toughness", "opt:quantity"),
         ("keywords", "tup:enum:Keyword"),
         ("abilities", "tup:ability"),
-        # grammar round 8, R8-2/R8-4: trailing opt-in fields; omitted at
-        # the None default (_OMIT_IF_EMPTY row) — byte-stable.
-        ("color", "opt:str"),
+        # R5-11: colors replaces round 8's ("color", "opt:str"); omitted at
+        # the () default like the R8-4 flags (_OMIT_IF_EMPTY row).
+        ("colors", "tup:str"),
         ("enters_tapped", "opt:bool"),
         ("enters_attacking", "opt:bool"),
     ),
@@ -4614,7 +4625,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # TokenSpec had NO row before round 8 — without it, every existing
     # token golden would byte-diff on regeneration (dual-registration
     # rule, PITFALLS 2026-09-28; pinned in test_ability_tree_r9.py).
-    "TokenSpec": frozenset({"color", "enters_tapped", "enters_attacking"}),
+    # R5-11: ``colors`` (omitted at ()) replaced ``color``.
+    "TokenSpec": frozenset({"colors", "enters_tapped", "enters_attacking"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),
