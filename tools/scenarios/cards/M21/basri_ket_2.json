@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P802f38f3c2. Printed: '[-2]: ... create that many 1/1 white Soldier creature tokens that are tapped and attacking.' One nontoken 2/2 attacks: one Soldier, a 1/1 with no keywords, enters tapped and attacking, so seat 1 takes 2 + 1 = 3 (20 -> 17). After combat the Soldier is still tapped (it entered tapped and has no vigilance).",
+ "cards": [
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "n2", "name": "Nontoken Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 3},
+  {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"n2": true}}
+ ],
+ "expect": {"tokens": {"Soldier": 1}, "life": {"1": 17}, "battlefield_pt": {"Soldier": [1, 1]}, "battlefield_keywords": {"Soldier": []}}}

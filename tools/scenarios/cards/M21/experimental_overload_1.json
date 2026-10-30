@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet Pa2358581ac. Printed: 'Create an X/X blue and red Weird creature token, where X is the number of instant and sorcery cards in your graveyard. Then you may return an instant or sorcery card from your graveyard to your hand. Exile Experimental Overload.' My graveyard holds two instants, one sorcery and one creature card; the opponent's graveyard holds two instants. X = 3 (my instants and sorceries only; the creature and the opponent's cards do not count, and the Overload is on the stack, not in my graveyard). Then I return my sorcery: X was fixed when the token was created (ruling 2020-06-23), so the Weird stays 3/3. The Overload ends in exile.",
+ "cards": [
+  {"key": "eo", "real": "Experimental Overload", "zone": "hand", "controller": 0},
+  {"key": "i1", "name": "Spark One", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "i2", "name": "Spark Two", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "s1", "name": "Ritual One", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "c1", "name": "Dead Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "oi1", "name": "Their Spark One", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "oi2", "name": "Their Spark Two", "type": "Instant", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1, "R": 1, "C": 2}},
+ "steps": [{"op": "cast", "key": "eo", "real": "Experimental Overload", "decisions": ["fire", "card:3"]}],
+ "expect": {"tokens": {"Weird": 1}, "battlefield_pt": {"Weird": [3, 3]}, "battlefield_keywords": {"Weird": []},
+            "zone": {"eo": "exile", "s1": "hand", "i1": "graveyard", "i2": "graveyard", "c1": "graveyard", "oi1": "graveyard", "oi2": "graveyard"}}}

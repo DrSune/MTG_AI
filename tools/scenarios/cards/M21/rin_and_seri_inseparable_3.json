@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "r", "real": "Rin and Seri, Inseparable", "zone": "battlefield", "controller": 0},
+  {"key": "d", "real": "Alpine Watchdog", "zone": "hand", "controller": 1},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"W": 1, "C": 1}},
+  {"op": "cast", "key": "d", "controller": 1}
+ ],
+ "expect": {
+  "zone": {"d": "battlefield"},
+  "tokens": {"Cat": 0, "Dog": 0}
+ },
+ "notes": "Printed: 'Whenever YOU cast a Dog spell ...'. The opponent casts Alpine Watchdog on their turn: Rin and Seri's controller gets no Cat token (and nobody else does)."
+}

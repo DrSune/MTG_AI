@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pm", "real": "Primal Might", "zone": "hand", "controller": 0},
+  {"key": "leech", "name": "Leech", "type": "Creature", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 2}},
+  {"op": "cast", "key": "pm", "controller": 0, "x": 2, "targets": ["leech", "ogre"]}
+ ],
+ "expect": {
+  "zone": {"pm": "graveyard", "leech": "battlefield", "ogre": "graveyard"},
+  "power": {"leech": 4},
+  "toughness": {"leech": 4},
+  "damage": {"leech": 3},
+  "life": {"0": 24, "1": 20}
+ },
+ "notes": "Printed: 'Target creature you control gets +X/+X until end of turn. Then it fights up to one target creature you don't control. (Each deals damage equal to its power to the other.)' X = 2: the lifelink 2/2 becomes 4/4 and fights the 3/3: each creature deals damage equal to its power (CR 701.12a), so the Leech deals 4 (the Ogre dies) and its lifelink gains its controller 4 (CR 702.15b: any damage dealt by a lifelink source); the Ogre deals 3 to the 4/4 Leech, which survives with 3 damage marked."
+}

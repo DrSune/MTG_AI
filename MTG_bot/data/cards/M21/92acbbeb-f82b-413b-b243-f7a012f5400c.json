@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
+ "name": "Necromentia",
+ "text_sha": "5ba2f2a9ff5e5098359877a809f40708c89c1c48683bae57e3e063496ec98ac9",
+ "verified": {
+  "tree_sha": "0c3fa6cdd8e5efdbae98c3226472f26aa4267095159e2fa55b97d22f964cb24f",
+  "probe_sha": "f7ccb0ef1a2456aee3d6f3e5775b493e534138ad234397c8aa129cc30ce3ae1d",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5R",
+  "clauses": [
+   {
+    "clause": "Choose a card name other than a basic land card name.",
+    "status": "OK",
+    "evidence": "trace: 'ask name: [Crash Through, Library 0..5, Necromentia, Opp Bear, Opp Charm ...]'; tree CHOOSE_NAME FNot(FAnd(SUPERTYPE_EQ Basic, TYPE_EQ Land)) = canonical [B5a-choose-name-not-basic]. Pack necromentia_basic_land_name_cannot_be_chosen (this packet's tree via --draft, and live): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
+    "status": "OK",
+    "evidence": "target slot 1..1 of [opp] (opponent only). Trace [cast targets=['opp'] | ask 1 -> Library 0..5]: 'opp:Library N#2 moves library -> exile (by card/SEARCH)', opp library 6 -> 5; names with no copy in the opponent's zones (Crash Through, Necromentia) do nothing. Hand and graveyard not tried by the probe: pack necromentia_exiles_named_cards_all_zones_zombies_per_hand_card (this packet's tree via --draft, and live): all four opposing copies (2 hand, library, graveyard) exiled, the opponent's other card and my own copy untouched: PASS. Tree = canonical [B5b-search-name-exile].",
+    "issue": "engine-limit: every matching copy is taken (no 'any number' pick; BACKLOG 'Weaker than printed': searches find when they can), so the caster cannot leave hand copies to deny the opponent Zombies. Weaker, not stronger."
+   },
+   {
+    "clause": "That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.",
+    "status": "NOT_EXERCISED",
+    "evidence": "tree = canonical [B5b-token-per-exiled-this-way]: SHUFFLE target player's library, CREATE_TOKEN controller TARGET_PLAYER, 2/2 black Zombie, count = cards of the chosen name moved HAND -> EXILE this turn. Packs (this packet's tree via --draft, and live): two hand copies -> exactly 2 Zombies, opponent's six-card library set intact after the shuffle (PASS); one hand copy + one library copy -> exactly 1 Zombie, 2/2 (PASS). Zombie colour B and controller from the tree (no pack lane).",
+    "issue": "minor approximation, non-blocking: 'this way' is read as 'moved from that player's hand to exile this turn with the chosen name', so a second same-name exile from their hand earlier in the turn would also count (more Zombies for the opponent; weaker for the caster)."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/necromentia_1.json",
+   "tools/scenarios/cards/M21/necromentia_2.json",
+   "tools/scenarios/cards/M21/necromentia_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 6,
+   "score": 0.46153846153846156,
+   "survived": [
+    "drop step 2 at 1/0/effect",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/name_filter/inner",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/name_filter/inner",
+    "drop step 1 at 1/0/effect/steps/1",
+    "drop step 0 at 1/0/effect/steps/2",
+    "drop step 1 at 1/0/effect/steps/2",
+    "widen filter (drop part 1) at 1/0/effect/steps/2/steps/1/args/count/selector/filter"
+   ]
+  }
+ }
+}

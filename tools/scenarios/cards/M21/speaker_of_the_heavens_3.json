@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Speaker of the Heavens", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 30},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "sp", "idx": 0, "seat": 0, "expect_raise": "window"}
+ ],
+ "expect": {
+  "tokens": {"Angel": 0},
+  "tapped": {"sp": false}
+ },
+ "notes": "Printed: 'Activate only ... and only as a sorcery.' Seat 0 has a lead of 10 (condition holds), but it is the opponent's turn: the activation is refused for its timing (CR 602.5d / 307.1), no Angel, the Speaker stays untapped."
+}

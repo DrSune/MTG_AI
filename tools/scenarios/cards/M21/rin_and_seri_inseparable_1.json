@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "r", "real": "Rin and Seri, Inseparable", "zone": "battlefield", "controller": 0},
+  {"key": "d", "real": "Alpine Watchdog", "zone": "hand", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
+  {"op": "cast", "key": "d", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"d": "battlefield"},
+  "tokens": {"Cat": 1, "Dog": 0},
+  "battlefield_pt": {"Cat": [1, 1]},
+  "battlefield_keywords": {"Cat": []}
+ },
+ "notes": "Printed: 'Whenever you cast a Dog spell, create a 1/1 green Cat creature token.' Casting Alpine Watchdog (a Dog) creates exactly one 1/1 Cat token with no keywords, and no Dog token (green: tree only, no pack lane)."
+}

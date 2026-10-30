@@ -1,0 +1,59 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "28c46eb7-bdfc-44b9-b7e9-b073260851f0",
+ "name": "Rin and Seri, Inseparable",
+ "text_sha": "66f1c12a2435a8a7d5cb5967fdedab9fb123102c1a4b217dffa6005848c3012c",
+ "verified": {
+  "tree_sha": "c2bab658c12af760f1ea5d250ecd87fdac980d50db14bf0a0d2d850fc06e14e5",
+  "probe_sha": "525087c6273bba922c680430dc691ee30327b363a349af496d37f88419a50251",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5R",
+  "clauses": [
+   {
+    "clause": "Whenever you cast a Dog spell, create a 1/1 green Cat creature token.",
+    "status": "NOT_EXERCISED",
+    "evidence": "probe casts only Crash Through and Staunch Shieldmate (no Dog or Cat): no trigger, correct. Tree [0] CastSpellEvent(SUBTYPE_EQ Dog + TYPE_EQ Creature, actor YOU) -> CREATE_TOKEN 1 Cat 1/1 colors G = canonical [B2b-cast-dog-create-cat]. Packs (live and this packet's tree via --draft): Alpine Watchdog cast -> exactly one 1/1 Cat, no Dog (PASS); the opponent's Watchdog -> no token (PASS)",
+    "issue": "non-blocking: 'Dog spell' is read as a Dog CREATURE spell (the compiler's tribal-noun convention), so a Kindred Dog noncreature spell would not trigger it (none in M21; narrower, not stronger)"
+   },
+   {
+    "clause": "Whenever you cast a Cat spell, create a 1/1 white Dog creature token.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree [1] CastSpellEvent(SUBTYPE_EQ Cat + TYPE_EQ Creature, actor YOU) -> CREATE_TOKEN 1 Dog 1/1 colors W = canonical [B2b-cast-cat-create-dog]. Pack rin_and_seri_cat_spell_makes_one_dog (live and --draft): Pridemalkin cast -> exactly one 1/1 Dog, no Cat: PASS",
+    "issue": ""
+   },
+   {
+    "clause": "{R}{G}{W}, {T}: Rin and Seri deals damage to any target equal to the number of Dogs you control.",
+    "status": "OK",
+    "evidence": "target slot 1..1 of every creature, Rin and Seri itself and both players (no artifact/enchantment). Each variant: mana G-1 R-1 W-1, card tapped, 2 damage = Dogs you control (you_dog + Rin and Seri, a Dog Cat; opp_dog not counted): you_bear/opp_flier/opp_bear/cats/dogs die, giants damage 2, Rin and Seri damage 2, you 20-2+2",
+    "issue": ""
+   },
+   {
+    "clause": "You gain life equal to the number of Cats you control.",
+    "status": "OK",
+    "evidence": "every variant: 'you gains 2 life' = Cats you control (you_cat + Rin and Seri; opp_cat not counted), counted at resolution before state-based actions (targeting you_cat still gains 2, the cat dies after); tree GAIN_LIFE QCount(YOU, Cat creatures) = canonical [B4-gain-life-qcount-cats]",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/rin_and_seri_inseparable_1.json",
+   "tools/scenarios/cards/M21/rin_and_seri_inseparable_2.json",
+   "tools/scenarios/cards/M21/rin_and_seri_inseparable_3.json"
+  ],
+  "mutation": {
+   "mutants": 28,
+   "killed": 20,
+   "score": 0.7142857142857143,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/args/count",
+    "widen filter (drop part 1) at 1/1/event/filter",
+    "controller YOU->OPPONENT at 1/1/event/actor/who",
+    "amount+1 at 1/1/effect/args/count",
+    "widen filter (drop part 2) at 1/2/effect/steps/0/args/amount/selector/filter",
+    "widen filter (drop part 2) at 1/2/effect/steps/1/args/amount/selector/filter"
+   ]
+  }
+ }
+}

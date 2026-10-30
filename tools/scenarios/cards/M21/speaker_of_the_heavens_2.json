@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Speaker of the Heavens", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 26},
+  {"op": "activate", "key": "sp", "idx": 0, "seat": 0, "expect_raise": "condition"}
+ ],
+ "expect": {
+  "tokens": {"Angel": 0},
+  "tapped": {"sp": false},
+  "life": {"0": 26}
+ },
+ "notes": "Printed: 'Activate only if you have at least 7 life more than your starting life total'. Starting life 20, life 26: the lead is 6 < 7, so the activation is refused before the {T} cost is paid; no Angel, the Speaker stays untapped."
+}

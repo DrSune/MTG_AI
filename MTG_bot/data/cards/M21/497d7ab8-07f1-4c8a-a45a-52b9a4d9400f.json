@@ -1,0 +1,72 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "497d7ab8-07f1-4c8a-a45a-52b9a4d9400f",
+ "name": "Basri Ket",
+ "text_sha": "96f0890587b9cb8234b3df29d05ef91d4686a1853b3d9d6faa5057dfcb434157",
+ "verified": {
+  "tree_sha": "a681e855d95e222fb2717583c6b734b6bc3fd4704547752b9f771020048bfb28",
+  "probe_sha": "d7fa7d61ee32d9043d0b205e3bef2ad9ecbd60d616fd45866c9b6f57ffc9bddd",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5Q",
+  "clauses": [
+   {
+    "clause": "Planeswalker {1}{W}{W}, loyalty 3",
+    "status": "OK",
+    "evidence": "[cast]: mana W-3, enters with 3 LOYALTY counters. [this card is dealt 1 damage]: loyalty 3 -> 2. [lethal damage]: it goes to the graveyard.",
+    "issue": ""
+   },
+   {
+    "clause": "[+1]: Put a +1/+1 counter on up to one target creature.",
+    "status": "OK",
+    "evidence": "Ability [0] target slot: 0..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]. [activate [0] targets=['you_bear']]: loyalty 3 -> 4, you_bear gets 1 PLUS_1_PLUS_1 (2/2 -> 3/3). The same holds for each opponent creature. [activate [0]] with no target: only loyalty +1.",
+    "issue": ""
+   },
+   {
+    "clause": "It gains indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "Every targeted +1: 'keywords +INDESTRUCTIBLE' on the creature that got the counter, then 'after the turn ends: keywords -INDESTRUCTIBLE'. With no target nothing is granted. Tree: GRANT_ABILITY INDESTRUCTIBLE DurationEot, referent='result'.",
+    "issue": ""
+   },
+   {
+    "clause": "[-2]: (loyalty cost)",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: LOYALTY 3 -> 1.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No probe variant attacks after -2. Pack P802f38f3c2_basri_minus2_nontoken_that_many.json: two nontoken creatures and one token attack, giving 2 Soldiers (not 3), and seat 1 goes 20 -> 12 (3+2+1+1+1). PASSES. Pack P802f38f3c2_basri_minus2_one_attacker_soldier_is_tapped_1_1.json: one Soldier, 1/1, no keywords, 20 -> 17. PASSES. Its debug run shows the Soldier is a white token under seat 0, tapped after combat. Tree identical to the compiler template _build_loyalty_soldier_attack_tokens (templates_b5c.py:2418): DelayedTrigger DurationEot, DeclareAttackersEvent(Creature and not IS_TOKEN), count QProp(THAT_MANY_COUNT), colors W, enters_tapped and enters_attacking.",
+    "issue": ""
+   },
+   {
+    "clause": "... attack THIS TURN (the delayed trigger ends with the turn)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack P802f38f3c2_basri_minus2_this_turn_only.json: -2, no attack, two turns pass, then my 2/2 attacks on my next turn. No Soldier, 20 -> 18. PASSES.",
+    "issue": ""
+   },
+   {
+    "clause": "[-6]: You get an emblem with 'At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.'",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe cannot pay it ('ability [2] not activatable from battlefield: cost:loyalty:3<6', correct). The tree is a role-less GET_EMBLEM. The emblem's own abilities are a separately compiled record (verbs.py:1962 _v_get_emblem), not shown in the packet, so only a run can judge them. Pack P802f38f3c2_basri_emblem_my_combats_only.json: loyalty 6 -> 0, Basri goes to the graveyard and the emblem stays. Combat on my turn, the opponent's turn, then my next turn give exactly 2 Soldiers (none on the opponent's combat). The Wolf has 2 counters (4/4), the opponent's Cat none (2/2). PASSES. Debug run: both Soldiers are white untapped tokens of seat 0 with 2 and 1 counters (the new Soldier gets its counter: create, THEN counters).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/basri_ket_1.json",
+   "tools/scenarios/cards/M21/basri_ket_2.json",
+   "tools/scenarios/cards/M21/basri_ket_3.json",
+   "tools/scenarios/cards/M21/basri_ket_4.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 9,
+   "score": 0.8181818181818182,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/event/filter",
+    "widen filter (drop part 1) at 1/1/effect/event/filter"
+   ]
+  }
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "r", "real": "Rin and Seri, Inseparable", "zone": "battlefield", "controller": 0},
+  {"key": "c", "real": "Pridemalkin", "zone": "hand", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 2}},
+  {"op": "cast", "key": "c", "controller": 0, "decisions": ["r"]}
+ ],
+ "expect": {
+  "zone": {"c": "battlefield"},
+  "tokens": {"Dog": 1, "Cat": 0},
+  "battlefield_pt": {"Dog": [1, 1]},
+  "battlefield_keywords": {"Dog": []}
+ },
+ "notes": "Printed: 'Whenever you cast a Cat spell, create a 1/1 white Dog creature token.' Casting Pridemalkin (a Cat; its own ETB counter goes on Rin and Seri) creates exactly one 1/1 Dog token with no keywords, and no Cat token (white: tree only)."
+}

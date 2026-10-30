@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P802f38f3c2. Printed: '[-2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.' Loyalty 3 -> 1. Two nontoken creatures (3/3 and 2/2) and one creature token (1/1) attack: that many = 2 nontoken attackers, so 2 Soldiers enter tapped and attacking. Nobody blocks: seat 1 takes 3 + 2 + 1 + 1 + 1 = 8 (20 -> 12).",
+ "cards": [
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "n1", "name": "Nontoken Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "n2", "name": "Nontoken Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "tok", "name": "Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "token": true, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 3},
+  {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"n1": true, "n2": true, "tok": true}}
+ ],
+ "expect": {"tokens": {"Soldier": 2, "Spirit": 1}, "life": {"0": 20, "1": 12}, "counters": {"basri": {"LOYALTY": 1}}}}

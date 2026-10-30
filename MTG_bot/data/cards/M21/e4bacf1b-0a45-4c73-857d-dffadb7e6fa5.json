@@ -1,0 +1,61 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e4bacf1b-0a45-4c73-857d-dffadb7e6fa5",
+ "name": "Speaker of the Heavens",
+ "text_sha": "9694a93596beb8c150511ed77b66da4fa904eda9951dc035111015a3298ceefb",
+ "verified": {
+  "tree_sha": "2213de6d794670429427632c6b607a45e9f6d20ccae8023e4a237685428d203a",
+  "probe_sha": "e33a9e2db7e5e39a229c740dcc8740752fa2a306947e81062f18ba29385dfc3e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5R",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked] and [... opp_giant blocks it]: DECLARE_ATTACKERS card with no 'card becomes tapped' event (a non-vigilant attacker shows it)",
+    "issue": ""
+   },
+   {
+    "clause": "lifelink",
+    "status": "OK",
+    "evidence": "unblocked: opp dealt 1, 'you gains 1 life (by card/DEAL_DAMAGE)', you 20 -> 21; blocked by opp_giant: 1 dealt to the giant and you 20 -> 21",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Create a 4/4 white Angel creature token with flying.",
+    "status": "NOT_EXERCISED",
+    "evidence": "probe: 'ability [0] not activatable from battlefield: condition:false' (life lead 0). Tree [0] CostTap, CREATE_TOKEN count 1 TokenSpec(Angel, Creature - Angel, 4/4, FLYING, colors W). Pack speaker_angel_at_exactly_seven_lead: Speaker taps, one Angel, battlefield_pt [4,4], keywords [FLYING]: PASS (colour W only checkable in the tree: no pack lane)",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only if you have at least 7 life more than your starting life total",
+    "status": "OK",
+    "evidence": "trace: refused at lead 0 (condition:false). Tree condition LIFE_LEAD_OVER_START_GE 7 (quantity.py:1719: current life minus executor starting_life >= 7, for the controller). Packs: lead exactly 7 activates (PASS); lead 6 refused, untapped, no Angel (speaker_refused_at_six_lead: PASS)",
+    "issue": ""
+   },
+   {
+    "clause": "and only as a sorcery.",
+    "status": "NOT_EXERCISED",
+    "evidence": "tree timing=ActivationWindow.SORCERY. Pack speaker_refused_on_opponents_turn: lead 10 but the opponent's turn: refused with a window error, no Angel, Speaker untapped: PASS All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/speaker_of_the_heavens_1.json",
+   "tools/scenarios/cards/M21/speaker_of_the_heavens_2.json",
+   "tools/scenarios/cards/M21/speaker_of_the_heavens_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 2,
+   "score": 0.3333333333333333,
+   "survived": [
+    "drop cost part 0 (CostTap) at 1/0/cost",
+    "amount+1 at 1/0/effect/args/count",
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count"
+   ]
+  }
+ }
+}

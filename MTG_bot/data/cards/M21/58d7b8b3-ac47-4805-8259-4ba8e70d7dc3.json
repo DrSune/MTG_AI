@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "58d7b8b3-ac47-4805-8259-4ba8e70d7dc3",
+ "name": "Primal Might",
+ "text_sha": "cd9789ca480ad8a3e1fc279ea87e272fb8a55336476461c526f98d9f42343f41",
+ "verified": {
+  "tree_sha": "54da0ccce8cb7526e4c9430a6802f863403a18893c0f4a622165653b45fb15b4",
+  "probe_sha": "ad9c63cb04f3785bf5dc58806adea6736a7c367b11fccb4cea722a405b0f2a04",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5R",
+  "clauses": [
+   {
+    "clause": "Target creature you control gets +X/+X until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast) 1..1 of [you_bear, you_giant] (own creatures only); [cast X=1/X=3 targets=['you_bear']]: P/T 2/2 -> 3/3 / 5/5, 'after the turn ends: you_bear: P/T 3/3 -> 2/2'; X=0 no change; mana G-1 plus W-X ({X}{G}); sorcery carrier; tree MODIFY_PT +QX/+QX DurationEot, canonical [B5b-modpt-x]",
+    "issue": ""
+   },
+   {
+    "clause": "Then it fights up to one target creature you don't control.",
+    "status": "OK",
+    "evidence": "target slot (cast) 0..1 of [opp_flier, opp_tapped, opp_bear, opp_giant] (only creatures you don't control, optional). Every pair: the pumped creature deals its power and takes the other's (e.g. X=0 you_bear vs opp_tapped: 2 dealt, 3 taken, bear dies; X=3 you_bear vs opp_giant: 5 dealt, giant dies, bear 5/5 takes 4 and survives); one-target variants only pump. Tree FIGHT QAtMost(1) TARGET FAnd(Creature, FNot(CONTROLLER_IS YOU)), canonical [B5c-then-it-fights]",
+    "issue": ""
+   },
+   {
+    "clause": "(Each deals damage equal to its power to the other.)",
+    "status": "OK",
+    "evidence": "amounts in every trace pair; the source identity is not shown ('by card/FIGHT'), so pack primal_might_fight_damage_is_dealt_by_the_creatures: X=2 lifelink 2/2 -> 4/4 fights a 3/3: Ogre dies, Leech survives with 3 damage, controller gains 4 (the creature is the damage source): PASS All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/primal_might_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "drop keyword FIGHT at 0"
+   ]
+  }
+ }
+}

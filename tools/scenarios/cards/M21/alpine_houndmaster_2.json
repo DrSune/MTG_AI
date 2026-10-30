@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P574fa6c4c2. Printed: 'Whenever this creature attacks, it gets +X/+0 until end of turn, where X is the number of other attacking creatures.' The Houndmaster attacks with two others and nobody blocks: after combat, still in that turn, it is a 4/2 (+2/+0, toughness unchanged).",
+ "cards": [
+  {"key": "hm", "real": "Alpine Houndmaster", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature — Ox", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "combat", "seat": 0, "attack": {"hm": true, "bear": true, "ox": true}}],
+ "expect": {"life": {"1": 13}, "power": {"hm": 4}, "toughness": {"hm": 2}}}
