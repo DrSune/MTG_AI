@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "You control no creature with power 4 or greater (only a 2/2 Bear); the OPPONENT controls a 5/5, which does not count. The Dilophosaur attacks: no +2/+2, so it deals 2.",
+ "cards": [
+  {"key": "d", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Big", "type": "Creature", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"d": true, "bear": false}}
+ ],
+ "expect": {
+  "power": {"d": 2},
+  "toughness": {"d": 2},
+  "life": {"1": 18}
+ }
+}

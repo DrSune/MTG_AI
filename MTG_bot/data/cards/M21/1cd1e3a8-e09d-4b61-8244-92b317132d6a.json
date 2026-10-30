@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1cd1e3a8-e09d-4b61-8244-92b317132d6a",
+ "name": "Sanctum of Calm Waters",
+ "text_sha": "575f36857da1e62f5135db6036b03893e48c45a3d1cc3686df15bb8df771a49c",
+ "verified": {
+  "tree_sha": "0f25df96cb002eb16d3bdc80f11edabd3c338937eb922438006e22cb336961cb",
+  "probe_sha": "6d62f10a56fa85aab9b363c6b39d7077c0870fc5a020e089ed3ff3a273624da7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "At the beginning of your first main phase, you may draw X cards, where X is the number of Shrines you control.",
+    "status": "OK",
+    "evidence": "[turns pass: your end step, the opponent's turn, your next upkeep]: triggered ability [0] fires once (your turn only, not on the opponent's first main), 'ask may: [fire, skip] -> fire', one extra draw 'by card/DRAW' (X = 1: the Sanctum is your only Shrine). Cast: U-1 W-3 = {3}{U}. Tree's first step equal to parse template B2a-sanctum-calm-waters. Packs sanctum_calm_waters_x_counts_your_shrines (two own Shrines + one opponent Shrine: draws exactly 2; no trigger on the opponent's turn) and sanctum_calm_waters_may_decline (skip: no draw, no discard) PASS on the live tree and on this packet's tree.",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, discard a card.",
+    "status": "OK",
+    "evidence": "Same variant: after the draw 'ask one_of' over the whole hand, you_trick moves hand -> graveyard. Conditional(MAY_DONE) per the guide's 'You may X. If you do, Y' shape; pack sanctum_calm_waters_may_decline: declining means no discard; sanctum_calm_waters_x_counts_your_shrines: the chosen Junk is discarded.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sanctum_of_calm_waters_1.json",
+   "tools/scenarios/cards/M21/sanctum_of_calm_waters_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/0/inner/args/amount/selector/filter"
+   ]
+  }
+ }
+}

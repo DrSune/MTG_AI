@@ -1,0 +1,65 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count). Printed: 'Search your library for A basic land card, put it onto the battlefield tapped, then shuffle.' The library holds two basic lands (Forest, Swamp). Exactly one is fetched: the player picks the Swamp (the second word of the ask), which enters tapped; the Forest stays in the library. You control 2 lands afterwards (Plains + Swamp), so the Swamp is not untapped.",
+ "cards": [
+  {
+   "key": "fp",
+   "real": "Fabled Passage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "swamp",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "name": "Top Card",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "fp",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "swamp"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fp": "graveyard",
+   "forest": "library",
+   "swamp": "battlefield",
+   "p1": "battlefield"
+  },
+  "tapped": {
+   "swamp": true
+  }
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scrounger, printed: 'At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker YOU CONTROL.' Your bear dies on your turn; at your end step you take the may and name the opponent's Liliana: that is not a legal choice, so the counter goes on your Liliana (3 -> 4) and the opponent's stays 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sc", "real": "Liliana's Scrounger", "zone": "battlefield", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "olili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 1},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "lili"},
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "enter", "key": "olili"},
+  {"op": "loyalty", "key": "olili", "set": 3},
+  {"op": "deal_damage", "source": "sc", "target": "bear", "amount": 99},
+  {"op": "end_turn", "decisions": ["fire", "olili"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "lili": "battlefield", "olili": "battlefield"},
+  "counters": {"lili": {"LOYALTY": 4}, "olili": {"LOYALTY": 3}}
+ }
+}

@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c54b375d-a456-4886-96f2-8dc7a0024a5b",
+ "name": "Carrion Grub",
+ "text_sha": "4d41d7c00ef3992cafe0d295bd6b62218909a8f22b189059689c18729e303e75",
+ "verified": {
+  "tree_sha": "05ec54ab6ac58eaa940f5c2777c36a12ed5525881870f9995ae74a772181af5b",
+  "probe_sha": "04652f2570792565258e6c55d65eb72f8361029bc1e40729c061c2336f85e659",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-A",
+  "clauses": [
+   {
+    "clause": "This creature gets +X/+0, where X is the greatest power among creature cards in your graveyard.",
+    "status": "OK",
+    "evidence": "abilities[0] matches parse (B4-modify-pt-qprop-graveyard); [cast] Grub is 2/5 (your graveyard's best creature card is you_fallen 2/2; the milled 1/1s and noncreature you_used do not raise it). Packs carrion_grub_continuous_up.json (your 6/6 dies -> 6/5; the opponent's 7/7 dying changes nothing) and carrion_grub_continuous_down.json (the 6/6 leaves the graveyard -> back to 2/5, not frozen) PASS",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, mill four cards.",
+    "status": "OK",
+    "evidence": "abilities[1] matches parse (B2a-carrion-grub); [cast] triggers, you:Library 5#1, 4#1, 3#1, 2#1 move library -> graveyard (top four), library 6 -> 2; same when it enters on the opponent's turn",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/carrion_grub_1.json",
+   "tools/scenarios/cards/M21/carrion_grub_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/effect/args/power/magnitude/referent/zones/0/controller"
+   ]
+  }
+ }
+}

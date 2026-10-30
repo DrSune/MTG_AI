@@ -1,0 +1,73 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "63f60dfc-2bc4-411f-ae53-504156fe0102",
+ "name": "Sanctum of All",
+ "text_sha": "87ceef25f7abc5d7cd8c9fb26de53a45601c4f65b4f134f232f4bca8932e507d",
+ "verified": {
+  "tree_sha": "620c4bb63ff9fe3f48314745fbdccb21470b56904b4c7d3cf69dd71b2d4b9dc6",
+  "probe_sha": "8df421581f29ab3cf1088b38e0a8caef9b80ef25521712dcb2452a7830b1b797",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Legendary Enchantment {W}{U}{B}{R}{G} (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> battlefield; mana B-1 G-1 R-1 U-1 W-1",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your upkeep, you may ...",
+    "status": "OK",
+    "evidence": "[stimulus: turns pass: your end step, the opponent's turn, your next upkeep]: ability [0] triggers once (your upkeep only, not the opponent's), ask may: [fire, skip]",
+    "issue": ""
+   },
+   {
+    "clause": "... search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe board has no Shrine card to find. Pack sanctum_of_all_upkeep_library.json: Sanctum of Tranquil Light from the library onto the battlefield, PASS; pack sanctum_of_all_upkeep_graveyard.json: from your graveyard onto the battlefield, the opponent's graveyard Shrine untouched, PASS",
+    "issue": "The filter is TYPE_EQ 'Shrine' (a subtype word), as in the compiler's template B2a-sanctum-of-all; the engine's TYPE_EQ matches it (the packs find real Shrines)."
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "pack sanctum_of_all_upkeep_library.json: after the search the remaining library cards are reordered (seen as L0..L5 before, L1,L2,L3,L0,L4 after the draw), PASS",
+    "issue": "As with Firemaw, the shuffle runs on every 'fire', including a graveyard-only find; never stronger than printed."
+   },
+   {
+    "clause": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
+    "status": "NOT_EXERCISED",
+    "evidence": "pack sanctum_of_all_six_shrines_extra_trigger.json: six Shrines, Sanctum of Stone Fangs' main-phase trigger resolves twice with X = 6 (opponent 20 -> 8, you 20 -> 32), PASS; control sanctum_of_all_five_shrines_no_extra.json: five Shrines, one trigger with X = 5 (15 / 25), PASS. Tree identical to template B5b-sanctum-all-extra-trigger",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sanctum_of_all_1.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_2.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_3.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_4.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_5.json"
+  ],
+  "mutation": {
+   "mutants": 18,
+   "killed": 4,
+   "score": 0.2222222222222222,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/1/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/destination/controller",
+    "widen filter (drop part 0) at 1/1/event/filter",
+    "widen filter (drop part 1) at 1/1/event/filter",
+    "widen filter (drop part 2) at 1/1/event/filter",
+    "controller YOU->OPPONENT at 1/1/event/filter/children/0/who",
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count",
+    "amount+1 at 1/1/effect/args/count"
+   ]
+  }
+ }
+}

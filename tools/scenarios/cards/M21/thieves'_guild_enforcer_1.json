@@ -1,0 +1,79 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever this creature or another Rogue you control enters, each opponent mills two cards.' With the Enforcer already on the battlefield: your Rogue entering mills the opponent's top two (Library 5, Library 4); your non-Rogue entering and the opponent's Rogue entering mill nothing; you never mill.",
+ "cards": [
+  {
+   "key": "tge",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rogue",
+   "name": "Sneak",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature \u2014 Human Rogue",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "plain",
+   "name": "Plain Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature \u2014 Bear",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "orogue",
+   "name": "Opp Sneak",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature \u2014 Human Rogue",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "rogue"
+  },
+  {
+   "op": "enter",
+   "key": "plain"
+  },
+  {
+   "op": "enter",
+   "key": "orogue"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rogue": "battlefield",
+   "plain": "battlefield",
+   "orogue": "battlefield"
+  },
+  "graveyard": {
+   "0": [],
+   "1": [
+    "Library 5",
+    "Library 4"
+   ]
+  },
+  "library": {
+   "1": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}
