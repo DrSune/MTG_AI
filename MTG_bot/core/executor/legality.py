@@ -498,6 +498,45 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     return any(row is None or eval_filter(row, ctx.source, ctx) for row in rows)
 
 
+def protected_from(executor: Executor | None, holder: Handle, source: Handle | None) -> bool:
+    """V44 (CR 702.16): does ``holder``, a permanent on the battlefield or a player,
+    have protection from ``source``? The one oracle every protection consumer reads:
+    targeting (702.16b), Auras and Equipment (702.16c-d), damage (702.16e) and
+    blocking (702.16f).
+
+    The quality is judged on the SOURCE object: a permanent, a spell, or a card in
+    another zone (702.16a; 609.7c), through ``eval_filter``. It is judged in the
+    coordinates of the ability that gives the protection (``protection_rows``), so a
+    quality that reads its own source answers for that ability: Runed Halo's
+    NAME_CHOSEN is the name the Halo chose. A universal quality (``FAnd(())``) is
+    protection from everything (702.16j). Only a card can be a source with
+    qualities here (an emblem or a player is not), and a card off the battlefield
+    has no protection that functions (113.6)."""
+    if executor is None or source is None or source.namespace != "card":
+        return False
+    world = executor.world
+    if source not in world.cards:
+        return False
+    if holder.namespace == "card":
+        if holder not in world.cards or world.zone_of(holder).kind != ZONE_BATTLEFIELD:
+            return False
+    elif holder.namespace != "player":
+        return False
+    for quality, granter, controller in executor.layers.protection_rows(holder):
+        ctx = executor._ctx(source=granter, controller=controller, bindings=None, decisions=())
+        if eval_filter(quality, source, ctx):
+            return True
+    return False
+
+
+def _protection_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
+    """V44 (CR 702.16b): "A permanent or player with protection can't be targeted
+    by spells with the stated quality and can't be targeted by abilities from a
+    source with the stated quality." ``ctx.source`` is the spell, or the source of
+    the ability, doing the targeting."""
+    return protected_from(ctx.executor, candidate, ctx.source)
+
+
 def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     """The legal candidate set of one Selector IR node in ``ctx`` —
     Handle-sorted (§5.5). This is the per-slot candidate list the query
@@ -536,6 +575,8 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         # identity, §10 blindness audit). TARGET-only by mode: ALL/CHOOSE/
         # ONE_OF selections never TARGET, so sweepers are untouched.
         handles = [h for h in handles if not _hexproof_vetoes_target(h, ctx)]
+        # V44 (CR 702.16b): protection is the same chokepoint's second veto.
+        handles = [h for h in handles if not _protection_vetoes_target(h, ctx)]
     return handles
 
 
@@ -2373,9 +2414,9 @@ def block_pair_blocked_reason(
         only forbids attacking (CR 702.3b), so a wall blocks (V40);
       * REACH (CR 509.1b): a flying attacker is unblockable without reach
         (Snarespinner, Elder Gargaroth carry it for themselves);
-      * PROTECTION (CR 702.16c): either side's live protection filter
-        matching the OTHER side vetoes the pair (Baneslayer Angel's
-        "protection from red and from black");
+      * PROTECTION (CR 702.16f, V44): the ATTACKER's protection from the
+        blocker vetoes the pair (Baneslayer Angel's "protection from red and
+        from black"); a protected blocker may block (``protected_from``);
       * the PREVENT_EFFECT block veto (16c): Tome Anima / Ghostly Pilferer
         "can't be blocked" (blocked-side slots), Pirate "can't block" and
         Shacklegeist "can block only creatures with flying" (blocker-side
@@ -2404,18 +2445,13 @@ def block_pair_blocked_reason(
         or executor.layers.keyword_of(blocker, Keyword.FLYING)
     ):
         return "flying attacker, neither flying nor reach (CR 509.1b)"
-    ctx_attacker = executor._ctx(
-        source=attacker,
-        controller=executor.controller_of(attacker),
-        bindings=None,
-        decisions=(),
-    )
-    for quality in executor.layers.protections_of(attacker):
-        if eval_filter(quality, blocker, ctx_attacker):
-            return "attacker's protection (CR 702.16c)"
-    for quality in executor.layers.protections_of(blocker):
-        if eval_filter(quality, attacker, ctx_blocker):
-            return "blocker's protection (CR 702.16c)"
+    # V44 (CR 702.16f): "Attacking creatures with protection can't be blocked by
+    # creatures that have the stated quality." Only the ATTACKER's protection
+    # restricts the pair: a creature with protection from red may block a red
+    # attacker (its damage to the blocker is prevented instead, 702.16e). The old
+    # blocker-side veto kept every protected creature from blocking that quality.
+    if protected_from(executor, attacker, blocker):
+        return "attacker's protection (CR 702.16f)"
     if executor.replacements.prevents_block_declaration(blocker, attacker):
         return "block prevented (PREVENT_EFFECT)"
     return None

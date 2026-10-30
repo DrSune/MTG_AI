@@ -1,0 +1,56 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16f). Printed: 'Flying, first strike, lifelink, protection from Demons and from Dragons.' Attacking, the Angel can't be blocked by a Dragon: the flying Dragon's block ask never carries it, the Angel's 5 lifelink damage lands in the player (seat 1 at 15, seat 0 at 25). Guards the attacker-side veto that V44 moved onto legality.protected_from.",
+ "cards": [
+  {
+   "key": "angel",
+   "real": "Baneslayer Angel",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "drake",
+   "name": "Opp Dragon",
+   "type": "Creature — Dragon",
+   "power": "4",
+   "toughness": "4",
+   "keywords": [
+    "FLYING"
+   ],
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "angel": true
+   },
+   "block": {
+    "drake": "angel"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 25,
+   "1": 15
+  },
+  "blocked": {
+   "angel": []
+  },
+  "zone": {
+   "drake": "battlefield",
+   "angel": "battlefield"
+  }
+ }
+}

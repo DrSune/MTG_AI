@@ -1269,9 +1269,22 @@ class LayerRegistry:
         """16c (CR 702.16c): the live PROTECTION quality filters on
         ``handle`` — printed KeywordAbility rows and granted rows alike
         (Baneslayer Angel's "protection from red and from black" compiles
-        as one PROTECTION keyword whose params carry the quality filters;
-        the pair-legality consumer evaluates each against the OTHER side
-        of the combat pair — "can't be blocked by [quality]")."""
+        as one PROTECTION keyword whose params carry the quality filters).
+        V44: the qualities of :meth:`protection_rows`, without their
+        coordinates; the consumers judge through ``legality.protected_from``."""
+        return tuple(quality for quality, _src, _ctrl in self.protection_rows(handle))
+
+    def protection_rows(self, handle: Handle) -> tuple[tuple[Filter, Handle, Handle], ...]:
+        """V44 (CR 702.16a): the live protection qualities on a permanent OR A PLAYER,
+        each with the coordinates its quality is judged in: (quality filter, the
+        source of the ability that gives the protection, that source's controller).
+        Rows come from printed PROTECTION keywords and one-shot grants (the keyword /
+        grant records: Basri's Lieutenant, Feat of Resistance), from static grants
+        (an anthem or an Aura giving protection, and Runed Halo's "You have protection
+        from the chosen card name", whose target is a PLAYER), and from granted keyword
+        nodes. A card whose PROTECTION was lost (LOSE_ABILITY strips the name from the
+        keyword map) has none. The coordinates matter for qualities that read their
+        source: NAME_CHOSEN is the Halo's chosen name."""
 
         def params_of(node: object) -> tuple[Filter, ...]:
             if not isinstance(node, KeywordAbility):
@@ -1282,16 +1295,50 @@ class LayerRegistry:
                 p for p in node.params if isinstance(p, (FAnd, FOr, FNot, FAtom))
             )
 
-        found: list[Filter] = []
+        is_card = handle.namespace == "card"
+        if is_card and _keyword_name(Keyword.PROTECTION) not in self._keywords.get(handle, ()):
+            return ()
+        found: list[tuple[Filter, Handle, Handle]] = []
         for layer in self.records:
-            if layer.status != "live" or layer.kind not in ("keyword", "grant"):
+            if layer.status != "live":
                 continue
-            if handle not in layer.targets:
+            if layer.kind in ("keyword", "grant"):
+                if handle in layer.targets:
+                    found.extend(
+                        (q, layer.source, layer.controller) for q in params_of(layer.payload)
+                    )
                 continue
-            found.extend(params_of(layer.payload))
+            if layer.kind != "static" or layer.selector is None:
+                continue
+            grants = [
+                q
+                for atom in layer.atoms
+                if atom.verb == Verb.GRANT_ABILITY
+                for q in params_of(atom.args.get("ability"))
+            ]
+            if grants and handle in self._static_grant_targets(layer):
+                found.extend((q, layer.source, layer.controller) for q in grants)
         for granted in self._granted.get(handle, ()):
-            found.extend(params_of(granted.node))
+            if granted.granter not in self.world.cards:
+                continue
+            controller = self.executor.controller_of(granted.granter)
+            found.extend((q, granted.granter, controller) for q in params_of(granted.node))
         return tuple(found)
+
+    def _static_grant_targets(self, layer: LayerRecord) -> tuple[Handle, ...]:
+        """V44: a static grant's targets including PLAYERS ("You have protection
+        from ...", Runed Halo); _static_targets keeps battlefield cards only, which
+        is what the P/T and keyword maps are keyed on."""
+        from MTG_bot.core.executor.legality import enumerate_candidates
+
+        assert layer.selector is not None
+        ctx = self._ctx(layer.source, layer.controller)
+        return tuple(
+            h
+            for h in enumerate_candidates(layer.selector, ctx)
+            if h.namespace == "player"
+            or (h.namespace == "card" and self.world.zone_of(h).kind == "battlefield")
+        )
 
     def hexproof_of(self, handle: Handle) -> tuple[Filter | None, ...]:
         """T4-P1c (CR 702.11b, gap L-4): the live HEXPROOF rows on

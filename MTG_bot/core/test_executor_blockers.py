@@ -5,7 +5,7 @@ Every one of these runs the REAL executor against compiled pool cards:
 the per-blocker ask contract (site ``block:<card>:<turn>``, vocabulary =
 the attackers that permanent may legally block + NONE, C15 narrowing for
 the must-be-blocked mandate and the menace repair), the CR 509.1 pair
-legality consumers (tapped, defender, flying/reach, two-sided protection,
+legality consumers (tapped, defender, flying/reach, attacker-side protection,
 static AND runtime PREVENT_EFFECT records, the live draw clock), the
 DECLARE_BLOCKERS pair-row feed (DeclareBlockersEvent slots over
 blocker/attacker; the anchored BecomesBlockedEvent — Gloom Sower's life
@@ -189,27 +189,52 @@ class TestPairLegality(BlockerCase):
         self.assertEqual(self.damage_plan(spider), ((3, flyer),))
         self.assertEqual(self.world.zone_of(flyer).kind, ZONE_GRAVEYARD)  # 3 on a 2/2
 
-    def test_two_sided_protection_rejects_the_matching_blocker(self):
-        # Baneslayer Angel's printed quality pair (Demons/Dragons) reads
-        # through the KeywordAbility params; a Demon blocker is vetoed.
+    def test_a_protected_blocker_may_block_the_quality(self):
+        # re-pinned 2026-10-30: V44 changes the blocker side of protection. CR
+        # 702.16f restricts only the protected ATTACKER ("can't be blocked by
+        # creatures that have the stated quality"), so Baneslayer Angel
+        # (protection from Demons and from Dragons) may block a Demon, and the
+        # Demon's damage to it is prevented (702.16e). The old pin had the Angel
+        # vetoed from the pair and never asked.
         attacker = self.world.add_card(
-            card_id("Test Demon", "2", "2", type_line="Creature — Demon"),
+            card_id("Test Demon", "6", "6", type_line="Creature — Demon"),
             self.p0,
             ZONE_BATTLEFIELD,
         )
         baneslayer = self.real("Baneslayer Angel", self.p1)
-        vanilla = self.synth("Vanilla", 2, 2, self.p1)
         self.begin()
-        self.answers[f"block:{vanilla}"] = str(attacker)
+        self.answers[f"block:{baneslayer}"] = str(attacker)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # protection was the ONLY pair for Baneslayer: legal against
-        # nothing, the engine honestly does not ask at all (C15)
-        self.assertEqual(
-            [a for a in self.seen_asks if a[1].startswith(f"block:{baneslayer}")], []
+        self.assertEqual(self.vocab_for(baneslayer), (str(attacker), "NONE"))
+        self.assertEqual(self.blocked_map(), {str(attacker): [str(baneslayer)]})
+        # 5 first-strike lifelink damage marks the 6/6; its 6 back is prevented
+        self.assertEqual(self.ex.damage.get(attacker), 5)
+        self.assertNotIn(baneslayer, self.ex.damage)
+        self.assertEqual(self.world.zone_of(baneslayer).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.players[self.p1].life, 25)
+
+    def test_attacker_protection_rejects_the_matching_blocker(self):
+        # Baneslayer Angel's printed quality pair (Demons/Dragons) reads through
+        # the KeywordAbility params: attacking, it can't be blocked by a Demon.
+        baneslayer = self.real("Baneslayer Angel", self.p0)
+        demon = self.world.add_card(  # it flies, so only protection stops the block
+            dataclasses.replace(
+                card_id("Test Demon", "2", "2", type_line="Creature — Demon"),
+                keywords=("FLYING",),
+            ),
+            self.p1,
+            ZONE_BATTLEFIELD,
         )
-        self.assertEqual(self.blocked_map(), {str(attacker): [str(vanilla)]})
-        self.assertEqual(self.world.players[self.p1].life, 20)
+        self.begin()
+        self.answers[f"block:{demon}"] = str(baneslayer)
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        # protection was the ONLY pair for the Demon: legal against nothing,
+        # the engine honestly does not ask at all (C15)
+        self.assertEqual([a for a in self.seen_asks if a[1].startswith(f"block:{demon}")], [])
+        self.assertEqual(self.blocked_map(), {})
+        self.assertEqual(self.world.players[self.p1].life, 15)
 
     def test_static_prevention_draw_clock_tome_anima(self):
         # Tome Anima (attacking for P0): "can't be blocked as long as

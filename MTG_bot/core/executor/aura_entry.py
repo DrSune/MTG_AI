@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import FAnd, Filter, Keyword
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.legality import ctx_for, spell_record
+from MTG_bot.core.executor.legality import ctx_for, protected_from, spell_record
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import eval_filter
 
@@ -49,7 +49,11 @@ def aura_entry_hosts(executor: Executor, aura: Handle, controller: Handle) -> li
         card
         for player in world.player_order
         for card in executor.battlefield(player)
-        if card != aura and eval_filter(enchant, card, ctx)
+        if card != aura
+        and eval_filter(enchant, card, ctx)
+        # V44 (CR 702.16c): a permanent with protection from the Aura can't be
+        # enchanted by it, so it is not a legal choice (303.4f).
+        and not protected_from(executor, card, aura)
     ]
     return sorted(hosts)
 

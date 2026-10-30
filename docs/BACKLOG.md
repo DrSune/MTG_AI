@@ -932,15 +932,26 @@ These are forks, not tasks. See the report that accompanied this audit.
   creature you control dies", not the thief's. Since V7 every CREATURE_DIES row carries the
   controller and the token flag as of death (`events.py`, data[5:7]); the matcher can read them, as
   the died-this-turn census does (`quantity._died_this_turn_census`). Rare in M21 (needs a steal).
-- **B-92 [vfix V8, 2026-10-29] A fight journals both directions with the fight's source as the
-  damage cause** (CR 701.12b: each creature deals damage equal to its power to the other).
-  `verbs._v_fight` marks both blows through one ctx whose source is the ability's source, and the
-  journal's one-cause-per-atom diff names that source for both DAMAGE rows. Live in M21: Brash
-  Taunter fighting an Ogre is "dealt damage" by itself, so its echo ("it deals that much damage to
-  target opponent") hits its own controller (weaker); a fighting creature's deathtouch or lifelink
-  follows the ability's source, not the creature (Primal Might: neither applies). The V3 dealer
-  lane (`verbs.damage_source`) is the model: per-direction source, and a per-row cause in the
-  journal.
+- **B-92 [vfix V8, 2026-10-29; updated at the d955f67 merge, 2026-10-30] A fight's two DAMAGE
+  journal rows both name the fight's source as the cause** (CR 701.12b: each creature deals damage
+  equal to its power to the other). **[Half FIXED by V44 (fixer 3, in `cards/integration`
+  d955f67): `verbs._v_fight` applies each blow with the fighting creature as `ctx.source`, so
+  protection (702.16e), deathtouch, lifelink and source-keyed replacements (Fiery Emancipation)
+  read the creature. The rest is B-101's residue (4).]**
+  - Still open: the journal's one-cause-per-atom diff (`Journal.record_atom`, called by the
+    executor's Atom lane with the atom's cause) names the fight's source as the dealer of both
+    rows, so a damage trigger with a dealer filter (`binding._match_damage` reads `event.cause`
+    for `DamageDealtEvent.source`) sees the wrong dealer.
+  - Latent in M21 (census 2026-10-30): the four dealer-filtered damage nodes are Hooded
+    Blightfang, Chandra's Incinerator, Chandra's Pyreling and Fiery Emancipation. The first three
+    read damage to players or planeswalkers, which a fight never deals. Fiery Emancipation is a
+    replacement and reads the per-blow source since V44.
+  - Correction: this entry used to say that Brash Taunter's echo hits its own controller after a
+    fight. It does not. The echo's opponent is chosen in the trigger controller's coordinates and
+    its filter reads the recipient (`brash_taunter_fight_redirects_to_opponent` passes, with and
+    without the decision).
+  - Fix: a per-row cause. The V3 dealer lane (`verbs.damage_source`, the Atom lane's DEAL_DAMAGE
+    cause) is the one-dealer model; FIGHT needs two.
 - **B-96 [fixer 4, 2026-10-29] "You have no maximum hand size" compiles nowhere.** Since V36 the
   cleanup step discards down to seven (CR 514.1, 402.2: `executor.MAX_HAND_SIZE`, read only by
   `Executor._discard_to_hand_size`). The sentence is UNPARSED on Reliquary Tower (M13), Spellbook
@@ -1031,12 +1042,38 @@ These are forks, not tasks. See the report that accompanied this audit.
     Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
 - **B-101 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd (a duplicate of the
   multicoloured-token entry's number), then B-83, renumbered at the integration merge]
-  Protection (CR 702.16) works only against blocking.**
+  Protection (CR 702.16) works only against blocking.** **[FIXED on branch
+  `engine/verify-fixes-3` 2026-10-30 (fixer 3, V44), pending the era-boundary merge]**
+  - Fix: one oracle, `legality.protected_from(executor, holder, source)`, over
+    `layers.protection_rows` (printed and granted keywords, static grants to cards AND
+    players, each quality judged in the coordinates of the ability that gives it, so
+    Runed Halo's NAME_CHOSEN reads the Halo's name). Consumers: the TARGET chokepoint
+    `enumerate_candidates`, the "any target" player widening, the synthetic
+    target-opponent slots of spells, activations and triggers (702.16b); the Aura
+    SBA and the enter-without-cast host choice (702.16c, 704.5m); an Equipment SBA
+    that unattaches it (702.16d, 704.5n); damage prevention for players and
+    permanents with a DAMAGE_PREVENTED row (702.16e); block legality reads only the
+    ATTACKER's protection (702.16f), so a protected creature may now block the
+    quality (the old blocker-side veto was wrong). A universal quality is
+    protection from everything (702.16j). Each fighting creature is now the source
+    of its own damage (CR 701.12b), so protection, deathtouch and lifelink read it.
+  - The three repros below now pass and live in `tools/scenarios/`, with 11 more
+    protection packs (Baneslayer, Basri's Lieutenant, Feat of Resistance, Feline
+    Sovereign, Runed Halo, Sparkhunter Masticore). No verified card pack changed.
+  - Residues: (1) no CR 608.2b re-check at resolution, for protection or anything
+    else (a target that gains protection after it was chosen stays a target);
+    reachable only through trigger order today, since the response window offers
+    counterspells only. (2) 702.16n/p ("this effect doesn't remove Auras") has no
+    IR; no compiled card needs it (M15 Spectra Ward does not compile). (3) The
+    compiler has no general "Protection from <quality>" line: only the printed M21
+    forms compile, and an unseen "Protection from black" stays unparsed
+    (`compiler._is_keyword_line`); 702.16k (from a player) has no compiled shape.
+    (4) A fight's DAMAGE journal rows still name the fight's source as the cause (B-92).
   - `layers.protections_of` has one consumer, block legality. Nothing makes a protected
     permanent or player an illegal target for sources of the quality (702.16b), prevents their
-    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros, all failing today:
-    `tools/scenarios/known_bugs/feat_of_resistance_protection_targeting.json`,
-    `.../feat_of_resistance_protection_damage.json`, `.../runed_halo_protects_player.json`.
+    damage (702.16e), or stops their Auras and Equipment (702.16c/d). Repros (failing before
+    V44, now moved to `tools/scenarios/`): `feat_of_resistance_protection_targeting.json`,
+    `feat_of_resistance_protection_damage.json`, `runed_halo_protects_player.json`.
   - Player protection does not even land: Runed Halo's static GRANT_ABILITY(PROTECTION
     (NAME_CHOSEN)) to Zone(PLAYER, YOU) leaves `protections_of(player)` empty (the layer
     keyword map is built over card handles only), and `protections_of` ignores static-layer

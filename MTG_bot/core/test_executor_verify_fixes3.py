@@ -36,6 +36,13 @@ CAST cost role (coordinator, 2026-10-30): a CAST atom's Cost WITH parts is paid 
      of the mana cost (CR 601.2f); only an EMPTY Cost waives the mana cost (118.9).
 Radha's land row (coordinator, 2026-10-30): a free row that can do nothing is not
      offered (no phantom option), and running it with a land on top never raises.
+V44  Protection (CR 702.16) on a permanent or a player, from any quality (a colour, a
+     type, a name, everything): it can't be targeted (b), enchanted or equipped (c-d,
+     SBAs 704.5m-n), dealt damage (e) or blocked (f) by a source with the quality. A
+     protected creature may block such a creature. Each fighting creature is the source
+     of its own damage (CR 701.12b). End to end in the protection packs (Baneslayer
+     Angel, Basri's Lieutenant, Feat of Resistance, Feline Sovereign, Runed Halo,
+     Sparkhunter Masticore).
 """
 
 from __future__ import annotations
@@ -921,6 +928,178 @@ class TestInertFreeRows(unittest.TestCase):
         r = self.runner("Goblin Arsonist")
         self.assertTrue(self.offered(r, "snoop"))
         self.assertNotIn(1, self.offered(r, "radha"))
+
+
+class TestV44Protection(FixerCase):
+    """p1 also controls a red and a blue 1/1."""
+
+    def setUp(self):
+        super().setUp()
+        self.red = self.world.add_card(self.ident("Red Imp", ("R",)), self.p1, ZONE_BATTLEFIELD)
+        self.blue = self.world.add_card(self.ident("Blue Imp", ("U",)), self.p1, ZONE_BATTLEFIELD)
+
+    @staticmethod
+    def ident(name, colors, type_line="Creature", keywords=()):
+        creature = type_line == "Creature"
+        return CardIdentity(
+            oracle_id=card_id(name).oracle_id,
+            name=name,
+            type_line=type_line,
+            power="1" if creature else None,
+            toughness="1" if creature else None,
+            cmc=1,
+            colors=colors,
+            keywords=keywords,
+        )
+
+    def protect(self, holder, quality, zone=None):
+        from MTG_bot.core.ability_tree import DurationEot, Keyword, KeywordAbility
+
+        sel = target_sel(UNIV) if zone is None else target_sel(UNIV, zone)
+        self.ex.execute(
+            atom(
+                Verb.GRANT_ABILITY,
+                target=sel,
+                ability=KeywordAbility(Keyword.PROTECTION, (quality,)),
+                duration=DurationEot(),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [holder]},
+        )
+
+    def damage(self, source, target, n):
+        from MTG_bot.core.ability_tree import Selector, SelectorMode
+
+        sel = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),))
+        return self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=sel, amount=QConst(n)),
+            source=source,
+            controller=self.world.controller_of(source),
+            bindings={"target": [target]},
+        )
+
+    @staticmethod
+    def red_quality():
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+
+        return FAtom(FAtomPred.COLOR_HAS, color="R")
+
+    def test_damage_from_a_source_with_the_quality_is_prevented(self):
+        self.protect(self.alpha, self.red_quality())
+        events = self.damage(self.red, self.alpha, 2)
+        self.assertNotIn(self.alpha, self.ex.damage)
+        self.assertIn(("DAMAGE_PREVENTED", str(self.alpha), "PROTECTION", 2), [e[1:] for e in events])
+        self.damage(self.blue, self.alpha, 1)
+        self.assertEqual(self.ex.damage.get(self.alpha), 1)
+
+    def test_it_cannot_be_targeted_by_a_source_with_the_quality(self):
+        from MTG_bot.core.executor.legality import enumerate_candidates
+
+        self.protect(self.alpha, self.red_quality())
+        sel = target_sel()
+        red_ctx = self.ex._ctx(source=self.red, controller=self.p1, bindings=None, decisions=())
+        blue_ctx = self.ex._ctx(source=self.blue, controller=self.p1, bindings=None, decisions=())
+        self.assertNotIn(self.alpha, enumerate_candidates(sel, red_ctx))
+        self.assertIn(self.alpha, enumerate_candidates(sel, blue_ctx))
+        # Its own controller's red source can't target it either (no "opponent" clause).
+        own_red = self.world.add_card(self.ident("Own Red", ("R",)), self.p0, ZONE_BATTLEFIELD)
+        own_ctx = self.ex._ctx(source=own_red, controller=self.p0, bindings=None, decisions=())
+        self.assertNotIn(self.alpha, enumerate_candidates(sel, own_ctx))
+
+    def test_only_the_attackers_protection_restricts_a_block(self):
+        from MTG_bot.core.executor.legality import block_pair_blocked_reason
+
+        self.protect(self.alpha, self.red_quality())
+        # A red creature can't block Alpha (702.16f) ...
+        self.assertIsNotNone(block_pair_blocked_reason(self.ex, self.red, self.alpha))
+        # ... but Alpha may block a red creature, and the red damage is prevented (702.16e).
+        self.assertIsNone(block_pair_blocked_reason(self.ex, self.alpha, self.red))
+
+    def test_protection_from_everything(self):
+        from MTG_bot.core.executor.legality import (
+            block_pair_blocked_reason,
+            protected_from,
+        )
+
+        self.protect(self.alpha, UNIV)
+        for source in (self.red, self.blue, self.beta):  # beta is colourless
+            self.assertTrue(protected_from(self.ex, self.alpha, source))
+            self.assertIsNotNone(block_pair_blocked_reason(self.ex, source, self.alpha))
+        self.damage(self.beta, self.alpha, 3)
+        self.assertNotIn(self.alpha, self.ex.damage)
+
+    def test_protection_functions_only_on_the_battlefield(self):
+        from MTG_bot.core.executor.legality import protected_from
+
+        self.protect(self.alpha, UNIV)
+        self.assertTrue(protected_from(self.ex, self.alpha, self.red))
+        self.world.move_to_zone(self.alpha, self.p0, ZONE_GRAVEYARD)
+        self.assertFalse(protected_from(self.ex, self.alpha, self.red))
+
+    def test_a_player_with_protection(self):
+        from MTG_bot.core.ability_tree import Selector, SelectorMode
+        from MTG_bot.core.executor.legality import enumerate_candidates
+        from MTG_bot.core.executor.query import TargetSlot, _widen_any_target
+
+        self.protect(self.p0, self.red_quality(), zone=Zone(ZoneKind.PLAYER, ControllerRef.ANY))
+        life = self.world.players[self.p0].life
+        self.damage(self.red, self.p0, 3)
+        self.assertEqual(self.world.players[self.p0].life, life)  # prevented (702.16e)
+        self.damage(self.blue, self.p0, 1)
+        self.assertEqual(self.world.players[self.p0].life, life - 1)
+        players = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),))
+        red_ctx = self.ex._ctx(source=self.red, controller=self.p1, bindings=None, decisions=())
+        self.assertNotIn(self.p0, enumerate_candidates(players, red_ctx))
+        # "Any target": the widening leaves the protected player out for a red source only.
+        any_target = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),))
+        slot = TargetSlot(selector=any_target, candidates=(self.beta,), min_count=1, max_count=1, forced=True)
+        self.assertNotIn(self.p0, _widen_any_target(self.ex, any_target, slot, self.red).candidates)
+        self.assertIn(self.p0, _widen_any_target(self.ex, any_target, slot, self.blue).candidates)
+
+    def test_auras_fall_off_and_equipment_unattaches(self):
+        aura = self.world.add_card(
+            self.ident("Red Aura", ("R",), "Enchantment — Aura", ("ENCHANT",)), self.p1, ZONE_BATTLEFIELD
+        )
+        gear = self.world.add_card(
+            self.ident("Red Gear", ("R",), "Artifact — Equipment", ("EQUIP",)), self.p1, ZONE_BATTLEFIELD
+        )
+        blue_aura = self.world.add_card(
+            self.ident("Blue Aura", ("U",), "Enchantment — Aura", ("ENCHANT",)), self.p1, ZONE_BATTLEFIELD
+        )
+        for card in (aura, gear, blue_aura):
+            self.ex.attach_aura(card, self.alpha)
+        self.protect(self.alpha, self.red_quality())
+        self.assertEqual(self.world.zone_of(aura).kind, ZONE_GRAVEYARD)  # 704.5m
+        self.assertNotIn(aura, self.ex.attachments)
+        self.assertEqual(self.world.zone_of(gear).kind, ZONE_BATTLEFIELD)  # 704.5n: stays
+        self.assertNotIn(gear, self.ex.attachments)
+        self.assertEqual(self.ex.attachments.get(blue_aura), self.alpha)  # other colour stays
+
+    def test_an_aura_entering_without_being_cast_cannot_choose_a_protected_host(self):
+        from MTG_bot.core.executor.aura_entry import aura_entry_hosts
+
+        aura = self.world.add_card(
+            self.ident("Red Aura", ("R",), "Enchantment — Aura", ("ENCHANT",)), self.p1, ZONE_HAND
+        )
+        before = aura_entry_hosts(self.ex, aura, self.p1)
+        self.protect(self.alpha, self.red_quality())
+        after = aura_entry_hosts(self.ex, aura, self.p1)
+        self.assertIn(self.alpha, before)
+        self.assertEqual(set(before) - set(after), {self.alpha})
+
+    def test_each_fighting_creature_deals_its_own_damage(self):
+        self.protect(self.alpha, self.red_quality())
+        # Alpha (the ability's source) fights the red 1/1: Alpha's 2 kills it; the
+        # red creature's 1 comes from the red creature, so protection prevents it.
+        self.ex.execute(
+            atom(Verb.FIGHT, target=target_sel()),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [self.red]},
+        )
+        self.assertEqual(self.world.zone_of(self.red).kind, ZONE_GRAVEYARD)
+        self.assertNotIn(self.alpha, self.ex.damage)
 
 
 if __name__ == "__main__":
