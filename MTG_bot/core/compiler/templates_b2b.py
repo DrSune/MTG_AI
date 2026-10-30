@@ -2128,8 +2128,9 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #14: you draw your second card each turn, create a Cat
     token.
 
-    CardDrawnEvent.ordinal=2 (grammar round 4).  Lossy: the token's green
-    color is omitted — TokenSpec has no color field (bucket convention)."""
+    CardDrawnEvent.ordinal=2 (grammar round 4).  The token is green:
+    TokenSpec.color='G' (round 8, C-2 repair; the old note that the color
+    was omitted is stale, m21-fidelity item 3 census 2026-10-29)."""
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(

@@ -29,7 +29,9 @@ from MTG_bot.core.ability_tree import (
     Choose,
     Conditional,
     ControllerRef,
+    Cost,
     CostDeltaIncreaseGeneric,
+    CostManaGeneric,
     CostModifier,
     CostSacrifice,
     CostTap,
@@ -1531,40 +1533,36 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.referent, "event")
 
     def test_counter_unless_pays(self) -> None:
-        """B5b-counter-unless-pays: CostModifier on the spell's target,
-        controller_ref=Selector(referent='target'), delta +{3}, flying
-        gate (C7)."""
+        """B5b-counter-unless-pays: the conditional "instead" arm on the first sentence's
+        counter, KickerEffectOutcome(pred = you control a creature with flying,
+        replaces=True, COUNTER_SPELL unless {4}).
+
+        # re-pinned 2026-10-29: m21-fidelity item 5. It was a +{3} CostModifier on the unless
+        # cost whose flying condition was judged over the spell itself, so the {4} branch never
+        # applied (pack lofty_denial_with_flier).
+        """
         outcome = self._match_outcome("B5b-counter-unless-pays")
-        mod = _as_cost_modifier(_as_ability(outcome).ability)
-        flt = mod.filter
-        assert isinstance(flt, FAtom)
-        self.assertEqual(flt.pred, FAtomPred.IS_ANY_TARGET)
-        controller_ref = mod.controller_ref
-        assert isinstance(controller_ref, Selector)
-        self.assertEqual(controller_ref.referent, "target")
-        self.assertEqual(controller_ref.mode, SelectorMode.CHOOSE)
-        self.assertEqual(controller_ref.count, QConst(1))
-        self.assertEqual(controller_ref.zones[0].kind, ZoneKind.ANY)
-        self.assertEqual(controller_ref.zones[0].controller, ControllerRef.ANY)
-        delta = mod.delta
-        assert isinstance(delta, CostDeltaIncreaseGeneric)
-        self.assertEqual(delta.amount, QConst(3))
-        cond = mod.condition
-        assert isinstance(cond, FAnd)
-        # R1a canonicalization: FAnd children construction-sorted; all three
-        # conjuncts pinned by pred, order by the canonicalization law.
-        self.assertEqual(list(cond.children), sorted(cond.children, key=canonical_json))
-        by_pred = {c.pred: c for c in cond.children}
-        self.assertEqual(len(by_pred), 3)
-        type_leaf = by_pred[FAtomPred.TYPE_EQ]
-        keyword_leaf = by_pred[FAtomPred.KEYWORD_HAS]
-        controller_leaf = by_pred[FAtomPred.CONTROLLER_IS]
-        assert isinstance(type_leaf, FAtom)
-        self.assertEqual(type_leaf.string_value, "Creature")
-        assert isinstance(keyword_leaf, FAtom)
-        self.assertEqual(keyword_leaf.keyword, Keyword.FLYING)
-        assert isinstance(controller_leaf, FAtom)
-        self.assertEqual(controller_leaf.who, ControllerRef.YOU)
+        assert isinstance(outcome, KickerEffectOutcome)
+        self.assertTrue(outcome.replaces)
+        self.assertEqual(
+            outcome.pred,
+            FAtom(
+                pred=FAtomPred.CONTROLLER_COUNT_GE,
+                inner_filter=FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+                    )
+                ),
+                count=QConst(1),
+            ),
+        )
+        atom = _as_atom(outcome.effect)
+        self.assertEqual(atom.verb, Verb.COUNTER_SPELL)
+        p = _pairs_dict(atom)
+        self.assertEqual(p["target"].mode, SelectorMode.TARGET)
+        self.assertEqual(p["target"].zones[0].kind, ZoneKind.STACK)
+        self.assertEqual(p["unless"], Cost(parts=(CostManaGeneric(amount=QConst(4)),)))
 
     def test_repl_draw_not_first(self) -> None:
         """B5b-repl-draw-not-first: CardDrawnEvent(YOU) with
@@ -1859,13 +1857,6 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
                 "If that spell would be put into your graveyard, exile it instead.",
             ),
             (
-                "Lofty Denial",
-                (
-                    "If you control a creature with flying, counter that spell "
-                    "unless its controller pays {4} instead."
-                ),
-            ),
-            (
                 "Teferi's Ageless Insight",
                 (
                     "If you would draw a card except the first one you draw in "
@@ -1879,6 +1870,36 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
             self.assertEqual(len(result.card.abilities), 1, f"{name}: ability count")
             self.assertEqual(len(result.unparsed), 0, f"{name}: unparsed")
             self.assertEqual(len(result.rule_reminders), 0, f"{name}: rule reminders")
+
+    def test_lofty_denial_is_one_conditional_counter(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 5 moved Lofty Denial out of the batch above.
+        # Its "instead" arm needs the first sentence it rewrites; the card is one SpellAbility:
+        # Conditional(you control a flier, COUNTER unless {4}, else=COUNTER unless {1}), both
+        # branches on the same target selector.
+        from MTG_bot.core.compiler.coverage import build_full_registry
+
+        raw = _raw(
+            "Lofty Denial",
+            (
+                "Counter target spell unless its controller pays {1}.",
+                (
+                    "If you control a creature with flying, counter that spell unless its "
+                    "controller pays {4} instead."
+                ),
+            ),
+        )
+        result = compile_card(raw, build_full_registry())
+        self.assertEqual(len(result.unparsed), 0)
+        (spell,) = result.card.abilities
+        assert isinstance(spell, SpellAbility)
+        effect = spell.effect
+        assert isinstance(effect, Conditional)
+        then_p = _pairs_dict(_as_atom(effect.then_effect))
+        assert effect.else_effect is not None
+        else_p = _pairs_dict(_as_atom(effect.else_effect))
+        self.assertEqual(then_p["target"], else_p["target"])
+        self.assertEqual(then_p["unless"], Cost(parts=(CostManaGeneric(amount=QConst(4)),)))
+        self.assertEqual(else_p["unless"], Cost(parts=(CostManaGeneric(amount=QConst(1)),)))
 
     def test_life_goes_on_is_one_conditional_gain(self) -> None:
         # re-pinned 2026-10-29: m21-fidelity item 4 moved Life Goes On out of the batch above.

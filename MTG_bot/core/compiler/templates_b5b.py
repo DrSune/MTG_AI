@@ -119,6 +119,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     CostDeltaIncreaseGeneric,
+    CostManaGeneric,
     CostModifier,
     CostSacrifice,
     CostTap,
@@ -1321,35 +1322,46 @@ def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
     """Lofty Denial: "If you control a creature with flying, counter that
     spell unless its controller pays {4} instead."
 
-    Convention C7: the modifier's ``controller_ref`` referent Selector
-    means the controller of the targeted spell pays the {1}→{4}
-    unless-cost.
-
-    Lossy (verbatim): "{4} instead" = +3 delta (relies on s1's {1}; same
-    card) — a captured {N} compiles to the delta N-1, = 3 for the only
-    concrete row.
+    The "instead" rewrites the spell's own previous instruction ("Counter
+    target spell unless its controller pays {1}."; CR 608.2c), the Life
+    Goes On shape: the conditional arm KickerEffectOutcome(pred, replaces=
+    True), folded into Conditional(you control a creature with flying,
+    COUNTER unless {4}, else=COUNTER unless {1}). "that spell" is the same
+    TARGET selector as the first sentence, so both branches share the one
+    target slot. The pred is the "Activate only if you control a creature
+    with flying" bytes (CONTROLLER_COUNT_GE over Creature + flying).
+    m21-fidelity (2026-10-29): this was a +{N-1} CostModifier on the unless
+    cost whose condition was judged over the spell itself, so it never
+    applied: the {4} branch never happened (weaker than printed).
     """
-    n = int(m.group(1))
-    return AbilityOutcome(
-        ability=CostModifier(
-            filter=FAtom(pred=FAtomPred.IS_ANY_TARGET),
-            controller_ref=Selector(
-                QConst(1),
-                SelectorMode.CHOOSE,
-                FAnd(children=()),
-                zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
-                referent="target",
-            ),
-            delta=CostDeltaIncreaseGeneric(amount=QConst(n - 1)),
-            condition=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
-            ),
-        )
+    counter = Atom(
+        verb=Verb.COUNTER_SPELL,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAnd(children=()),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+                    ),
+                ),
+                ("unless", Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),))),
+            )
+        ),
     )
+    you_control_a_flier = FAtom(
+        pred=FAtomPred.CONTROLLER_COUNT_GE,
+        inner_filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
+        ),
+        count=QConst(1),
+    )
+    return KickerEffectOutcome(effect=counter, replaces=True, pred=you_control_a_flier)
 
 
 def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
@@ -2161,11 +2173,12 @@ def _build_keyword_list_params(m: re.Match[str]) -> SentenceOutcome:
     complete.  Baneslayer's protection filter is the OR of the two named
     creature subtypes (SUBTYPE_EQ is singular, Equipment precedent);
     Sporeweb's hexproof filter is COLOR_HAS blue (Feat-of-Resistance
-    param shape).  Lossy (verbatim): Scryfall's keyword field lists bare
-    'Hexproof' beside 'Hexproof from' for Sporeweb Weaver, so the card
-    also carries the parameterless HEXPROOF the bare path builds — a
-    keyword-field artifact, not a template choice.  C16: none — forced
-    static grants."""
+    param shape).  Scryfall's keyword field lists bare 'Hexproof' beside
+    'Hexproof from' for Sporeweb Weaver; since m21-fidelity item 1
+    (2026-10-29) the bare keyword path builds a whole-ability keyword only
+    if the face prints it (compiler._face_prints_keyword), so the card no
+    longer carries a parameterless HEXPROOF.  C16: none — forced static
+    grants."""
     if m.group("form").startswith("Flying"):
         return KeywordOutcome(
             keyword=Keyword.PROTECTION,

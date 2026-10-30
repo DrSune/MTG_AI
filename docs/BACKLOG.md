@@ -767,6 +767,46 @@ These are forks, not tasks. See the report that accompanied this audit.
     scry, say). Slightly weaker than printed, no exploit.
   - Fix needs a way to say "choose which of these zones to search" (a design decision; today
     the zone set is fixed by the selector). Not done.
+- **B-79 [fixer A, m21-fidelity] Primal Might's fight partner is not a target and cannot be
+  declined** (live in M21 and FDN; stronger and weaker than printed).
+  - "Then it fights up to one target creature you don't control" compiles the foe as a
+    resolution-time ONE_OF pick (`templates_b5c.py` `_build_then_it_fights_up_to_one`), so a
+    hexproof creature can be fought and the fight cannot be skipped. Review packs
+    `primal_might_fight_optional` and `primal_might_hexproof_not_fought` (m21v batch A) fail.
+  - The tree fix is one line (TARGET with `QAtMost(1)`), but it needs two engine changes first:
+    a TARGET "up to N" slot whose minimum is 0 (the C17 clamp below, every "up to N target"
+    card), and positional multi-slot designation that accepts an empty trailing optional slot
+    (`stack._validate_positional` raises on any non-exactly-one slot). The games policy also
+    skips multi-slot casts, so Primal Might would stop being cast in corpus games. Engine lane.
+- **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
+  component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
+  - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
+    the Tyrannodon stops having defender (Portcullis Vine cannot sacrifice it as "a creature with
+    defender"). Review pack `tyrannodon_still_has_defender_for_portcullis_vine` (batch B) fails.
+  - The attack legality reads DEFENDER directly (`legality.py`, "no 'can attack as though it
+    didn't' carrier in the corpus"). Options for the gated ontology round: (a) an attack
+    permission atom (a "may attack despite defender" policy, the MANA_POLICY/GRANT_ACTIVATION
+    family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
+    "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
+    though" cards; recommended.
+- **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
+  AGENTS §11 (alters legal options or state outcomes).
+  - Fixed: Lofty Denial (the {4} branch never applied; now a conditional arm, pack
+    `lofty_denial_with_flier`); Sanctum of Tranquil Light (the activation cost fold counted the
+    source twice, one Shrine cut {2}; pack `sanctum_tranquil_light_exact_cost`).
+  - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
+    hand, put each of those cards into your hand instead" runs as an extra step that returns one
+    card, not all three. It is unreachable until something lets you cast it from elsewhere
+    (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
+    replacing the one-and-rest split, once a pack can cast it from the graveyard.
+  - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
+    information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
+    Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
+    Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
+    Equipment); Barrin's unconstrained "a permanent" (anything moving from the battlefield is
+    one); Chandra's Incinerator (the engine sums noncombat damage dealt TO opponent seats, as
+    printed; only the docstring's reading is off).
+  - Stale notes refreshed: Jolrael's token colour, the Sporeweb/Baneslayer keyword-list note.
 - **Weaker than printed (lower priority):**
   - "Up to N target" cannot be cast with zero targets (the C17 clamp). A library search can never
     fail to find (CR 701.19b).

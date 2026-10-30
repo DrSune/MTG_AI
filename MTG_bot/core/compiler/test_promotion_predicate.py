@@ -65,10 +65,13 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # Paladin's [-1] are DelayedTriggers now (CR 603.7); each GRANT_ABILITY's
 # self-designation CHOOSE (target = this planeswalker) left the census:
 # SELF_DESIGNATION 57 -> 55, TOTAL 151 -> 149. No other surface moved.
-TOTAL_SURFACES = 149
+# re-pinned 2026-10-29 (m21-fidelity item 5): Lofty Denial's "{4} instead" is a
+# conditional arm now; the old CostModifier's controller_ref (a referent='target'
+# CHOOSE) left the census: ANAPHORIC_REFERENT 35 -> 34, TOTAL 149 -> 148.
+TOTAL_SURFACES = 148
 CORE_LIFTABLE = 22
 SELF_DESIGNATION = 55
-ANAPHORIC_REFERENT = 35
+ANAPHORIC_REFERENT = 34
 COST_VICTIM = 26
 COUNT_NOT_ONE = 11
 
