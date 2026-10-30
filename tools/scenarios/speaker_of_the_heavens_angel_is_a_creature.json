@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 37},
+  "cards": [
+    {"key": "sp", "real": "Speaker of the Heavens", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "life", "seat": 0, "set": 27},
+    {"op": "activate", "key": "sp", "idx": 0, "seat": 0},
+    {"op": "advance_turn"},
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 0, "attack": {"sp": false}, "decisions": ["ATTACK"]}
+  ],
+  "expect": {
+    "tokens": {"Angel": 1},
+    "life": {"0": 27, "1": 16}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{T}: Create a 4/4 white Angel creature token with flying.' Expectation from the text: the token is a CREATURE (CR 111.4: it has the types the effect names), so on its controller's next turn (no longer summoning sick) it can attack; unblocked, the 4/4 deals 4 (opponent 20 -> 16). The Speaker is told not to attack so its lifelink does not move the life totals."
+}

@@ -23,9 +23,12 @@ from MTG_bot.core.compiler.templates import AbilityOutcome
 
 DATA = Path(__file__).resolve().parents[2] / "data"
 SETS = ("M21", "ZNR", "M20", "KHM")
-#: B-47: B3 writes the Angel token's type line as "Angel"; B11 and every other carrier write
-#: "Creature — Angel". Speaker of the Heavens parses through B3, so no compile is affected.
-B47 = {"{T}: Create a 4/4 white Angel creature token with flying."}
+#: B-47 was the one known difference: B3 wrote the Angel token's type line as "Angel" where B11
+#: and every other carrier write "Creature — Angel".
+# re-pinned 2026-10-30: m21-fidelity wave 4 fixes B-47 in B3 (the executor mints a token from its
+# type line, so Speaker of the Heavens' Angel was not a creature); frames and templates now agree
+# on every framed ability, so no difference is allowed.
+B47: set[str] = set()
 
 
 @pytest.fixture(scope="module")

@@ -834,12 +834,19 @@ def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOut
 
 
 def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
+    """``{cost}: Create a P/T white Angel creature token with flying.``
+    (Speaker of the Heavens). m21-fidelity (wave 4, 2026-10-30): the type
+    line is "Creature — Angel" (CR 205.1: the type line carries the card type
+    and the subtypes; CR 111.3: the creating text defines the token's
+    characteristics). It was "Angel", and the executor mints a token's
+    identity from the type line, so the 4/4 flier was not a creature (it
+    could not attack or block)."""
     cost = _parse_cost(m)
     p = int(m.group("p"))
     t = int(m.group("t"))
     token = TokenSpec(
         name="Angel",
-        type_line="Angel",
+        type_line="Creature — Angel",
         types=("Creature",),
         subtypes=("Angel",),
         power=QConst(p),

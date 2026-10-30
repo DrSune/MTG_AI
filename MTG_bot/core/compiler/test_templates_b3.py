@@ -511,7 +511,9 @@ class TestB3EffectStructure(unittest.TestCase):
         token = atom.args.get("tokens")
         assert isinstance(token, TokenSpec)
         self.assertEqual(token.name, "Angel")
-        self.assertEqual(token.type_line, "Angel")
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-47), the type line carries the card
+        # type, as every other token carrier writes it; the executor mints from it.
+        self.assertEqual(token.type_line, "Creature — Angel")
         self.assertEqual(token.types, ("Creature",))
         self.assertEqual(token.subtypes, ("Angel",))
         power = token.power
