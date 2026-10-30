@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "master", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "voyager", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 0},
+  {"key": "foe", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "foe", "idx": 0, "seat": 1, "expect_raise": "window:loyalty:not_own_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "voyager", "idx": 0, "seat": 0, "expect_raise": "window:loyalty:not_own_turn"}
+ ],
+ "expect": {
+  "counters": {"voyager": {"LOYALTY": 4}, "foe": {"LOYALTY": 4}, "master": {"LOYALTY": 3}},
+  "hand": {"0": 0}
+ },
+ "notes": "Negative case for Teferi, Master of Time's static. 'Loyalty abilities of Teferi' names this permanent only (CR 201.5, 201.5c: a shortened name means that object). CR 606.3 keeps every other loyalty ability in its controller's main phase: the opponent's Teferi, Timeless Voyager cannot activate on seat 0's turn, and seat 0's own Teferi, Timeless Voyager cannot activate on seat 1's turn, although Teferi, Master of Time is on the battlefield."
+}

@@ -44,7 +44,7 @@ from MTG_bot.core.ability_tree import (
     count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, phased_out, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
@@ -243,7 +243,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         for player in ctx.world.player_order:
             for any_kind in PLAYER_ZONES:
                 handles_all.extend(ctx.world.players[player].zone(any_kind).entries)
-        return handles_all
+        return existing(ctx, handles_all)
     ref = zone_ir.controller
     if kind is ZoneKind.STACK:
         # 14d (B-19): B-2's RUNTIME twin. ZONE_KIND_TO_STATE has no STACK
@@ -291,7 +291,19 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
             handles.extend(entries[:1])
         else:
             handles.extend(entries)
-    return handles
+    return existing(ctx, handles)
+
+
+def existing(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
+    """CR 702.26b: a phased-out permanent is treated as though it does not
+    exist, so no zone enumeration yields it: not a target, not an "each"
+    population, not counted, not a cost candidate, not a static's scope.
+    The ONE chokepoint every selector and query enumeration passes
+    (``enumerate_zone`` here, ``legality._zone_handles`` for its own
+    OWNER/ANY lanes). Order-preserving; free when nothing is phased out."""
+    if ctx.executor is None or not getattr(ctx.executor, "phased_out", None):
+        return handles
+    return [h for h in handles if not phased_out(ctx, h)]
 
 
 def _is_any_target_idiom(filter_: object) -> bool:
@@ -1111,6 +1123,21 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and value.referent is None
         and not any(_in_population(value, h, ctx) for h in bound)
     )
+    # m21-fidelity (2026-10-29, B-53 second half): a designation made of PLAYER
+    # handles (the spell's TARGET_PLAYER coordinate, Run Afoul's target opponent)
+    # is never a member of a CARD population, so it must not take over a role
+    # whose non-TARGET selector (a resolution-time CHOOSE/ALL pick) can hold only
+    # cards (no PLAYER/ANY zone): "target opponent sacrifices a creature" raised
+    # KeyError 'unknown card player:1'. The role resolves its own selector
+    # instead, in the rotated coordinates. TARGET mode stays the designation lane.
+    player_into_cards = (
+        bound is not None
+        and bool(bound)
+        and all(h.namespace == "player" for h in bound)
+        and isinstance(value, Selector)
+        and value.mode is not SelectorMode.TARGET
+        and all(z.kind not in (ZoneKind.PLAYER, ZoneKind.ANY) for z in value.zones)
+    )
     if (
         bound is not None
         and not anaphoric
@@ -1119,8 +1146,11 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not self_ref
         and not graveyard_sweep
         and not foreign
+        and not player_into_cards
     ):
-        return bound
+        # CR 702.26b / 608.2b: a designated permanent that has phased out
+        # since it was designated does not exist, so the verb skips it.
+        return existing(ctx, bound)
     if isinstance(value, Selector):
         if (
             atom.verb is Verb.CAST

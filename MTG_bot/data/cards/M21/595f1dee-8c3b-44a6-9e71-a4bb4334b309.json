@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "595f1dee-8c3b-44a6-9e71-a4bb4334b309",
+ "name": "Liliana's Scrounger",
+ "text_sha": "1dda5eaa3711563050440cf7127974198d84c864e5bad6ca32c1bf3a29179b56",
+ "verified": {
+  "tree_sha": "3ac417bd9c39939fcd7cacf2fdce633e4264493a530a588abad880a6727599ca",
+  "probe_sha": "2652fb1eba35e685201a07d0a21cac5d7d837479910b8a8241e03bf0c3efa38e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "At the beginning of each end step, if a creature died this turn, you may put a loyalty counter on a Liliana planeswalker you control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe board has no Liliana planeswalker, so every firing ([turns pass ...] fires at both end steps; [opp_bear attacks you]) does nothing visible. Tree: TurnPhaseEvent(END_TURN) with no actor (each end step), condition DIED_THIS_TURN, OptionalEffect(PUT_COUNTER 1 LOYALTY on a CONTROLLER_IS YOU + NAME_CONTAINS Liliana + Planeswalker), same as the compiler's parse except the slot mode ONE_OF (an asked pick of exactly one) instead of CHOOSE: same candidates, the controller picks, not a rules difference. Packs, run against the live tree AND the packet's own tree (runpack --draft), all pass: lilianas_scrounger_creature_died (3 -> 4; the opponent's Liliana is not a legal pick), lilianas_scrounger_noncreature_died (only a planeswalker died: no counter), lilianas_scrounger_decline (may declined: no counter), lilianas_scrounger_this_turn_scope (a death last turn does not count at the next end step), lilianas_scrounger_opp_end_step (fires at the opponent's end step)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana's_scrounger_1.json",
+   "tools/scenarios/cards/M21/liliana's_scrounger_2.json",
+   "tools/scenarios/cards/M21/liliana's_scrounger_3.json",
+   "tools/scenarios/cards/M21/liliana's_scrounger_4.json",
+   "tools/scenarios/cards/M21/liliana's_scrounger_5.json",
+   "tools/scenarios/cards/M21/liliana's_scrounger_6.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 1,
+   "score": 0.125,
+   "survived": [
+    "optional->mandatory at 1/0/effect",
+    "amount+1 at 1/0/effect/inner/args/count",
+    "amount+1 at 1/0/effect/inner/args/target/count",
+    "widen filter (drop part 0) at 1/0/effect/inner/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/inner/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/inner/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/inner/args/target/filter/children/0/who"
+   ]
+  }
+ }
+}

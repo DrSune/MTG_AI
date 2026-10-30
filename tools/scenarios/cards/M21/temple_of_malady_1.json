@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Temple of Malady, printed 'This land enters tapped. When this land enters, scry 1.' Real land drop, scry answered 'bottom'. Expected from the text: the land is on the battlefield tapped, and exactly the top card (Library 5) went to the bottom.",
+ "cards": [
+  {"key": "tm", "real": "Temple of Malady", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "tm", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {"zone": {"tm": "battlefield"}, "tapped": {"tm": true},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}}}

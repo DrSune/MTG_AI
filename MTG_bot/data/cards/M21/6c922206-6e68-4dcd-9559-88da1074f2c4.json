@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6c922206-6e68-4dcd-9559-88da1074f2c4",
+ "name": "Rugged Highlands",
+ "text_sha": "9d4dbb27f0e2933bdd01fa41a809057eed19659b7b65dc41402bc6caa326a826",
+ "verified": {
+  "tree_sha": "740ac183362cd0633f7e8d10b3d334914b95fd8315b6ba4533e76e6687a7c461",
+  "probe_sha": "3ea71bde208fbdc571817d355f75c1e76e8b84903d5efb2aad1b880308e832fb",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] 'card: zone hand -> battlefield; tapped False -> True'; same on the MOVE_ZONE entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land] triggered ability [1] triggers, 'you gains 1 life', life 20 -> 21; [you play a land -> none] (another land does not trigger it)",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose [0, 1]: 0 -> 'mana R+1', 1 -> 'mana G+1'; the land taps each time",
+    "issue": "engine-limit: the mana pool does not empty between steps (B-12). Measured here: it does not empty across turns either (R tapped on turn 1 is still in the pool on turn 3), so any mana source can bank mana. Engine-wide, not this card's text."
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

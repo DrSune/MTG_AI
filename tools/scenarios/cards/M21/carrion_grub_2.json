@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grub", "real": "Carrion Grub", "zone": "battlefield", "controller": 0},
+  {"key": "gy2", "name": "Old Bones", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "big", "name": "Big Beast", "type": "Creature", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 0},
+  {"key": "stitch", "real": "Obsessive Stitcher", "zone": "battlefield", "controller": 0},
+  {"key": "opp_huge", "name": "Opp Huge", "type": "Creature", "power": "7", "toughness": "7", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1, "B": 1, "C": 2}},
+ "steps": [
+  {"op": "deal_damage", "source": "opp_huge", "target": "big", "amount": 6},
+  {"op": "activate", "key": "stitch", "idx": 1, "seat": 0, "targets": ["big"]}
+ ],
+ "expect": {
+  "zone": {"big": "battlefield", "stitch": "graveyard", "grub": "battlefield"},
+  "power": {"grub": 2},
+  "toughness": {"grub": 5}
+ },
+ "notes": "M21 G2 spec: Carrion Grub. The bonus follows the graveyard down as well: the 6/6 dies (Grub 6/5), then Obsessive Stitcher returns it to the battlefield; the graveyard's greatest creature power is now 2 (the 2/2; the Stitcher itself is 0/3), so Grub is 2/5. A frozen bonus would stay at 6."
+}

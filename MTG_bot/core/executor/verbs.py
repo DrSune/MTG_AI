@@ -76,6 +76,7 @@ from MTG_bot.core.executor.quantity import (
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
+    existing,
     move_destination,
     resolve_selector,
     role_handles,
@@ -224,6 +225,8 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         return
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = ctx.binding_handles("cards")
+    if cards is not None:
+        cards = existing(ctx, cards)  # CR 702.26b: a phased-out designation is skipped
     if cards is None:
         sel = atom.args.get("cards")
         if sel is None:
@@ -1401,19 +1404,37 @@ def _v_end_turn(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
-    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): enqueue the controller
-    ``count`` times — :meth:`Executor.advance_turn` pops the queue before
-    rotating, which is exactly CR 500.7's "next turn belongs to that
-    player" for consecutive grants (documented simplification: nested
-    extra turns from DIFFERENT players resolve queue-order, not the full
-    CR 500.7 dependency ordering)."""
+    """EXTRA_TURN (13a, Teferi's -10 / Extra Turns): the controller takes
+    ``count`` extra turns after this one. CR 500.7: the turns are added
+    directly after the current turn, one at a time, and the most recently
+    created turn is taken first, so they go to the FRONT of the queue
+    (:meth:`Executor.advance_turn` pops index 0), ahead of any extra turn
+    created earlier. The normal turn order resumes after the queue drains
+    (``advance_turn`` keeps that rotation)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
     count_q = atom.args.get("count")
     assert count_q is None or isinstance(count_q, Quantity)
     n = 1 if count_q is None else resolve(count_q, ctx)
-    for _ in range(n):
-        executor.extra_turn_queue.append(ctx.controller)
+    executor.extra_turn_queue[0:0] = [ctx.controller] * n
     ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
+
+
+def _v_phase_out(ctx: ExecCtx, atom: Atom) -> None:
+    """PHASE_OUT (CR 702.26; Teferi, Master of Time's [−3], Teferi, Timeless
+    Voyager's [−8]): the permanents the ``target`` role names phase out
+    (:meth:`Executor.phase_out`: the status, indirect phasing, removal from
+    combat). The role's Selector resolves itself: a TARGET selector reads
+    the designation (only targets still legal, CR 608.2b), an ALL selector
+    ("each creature target opponent controls") its population, whose
+    filter reads the designated player. ``role_handles``' binding-first
+    lane would hand that designated PLAYER to the verb instead. The
+    permanents that phased out directly are the ``result`` register (the
+    anaphora "they" of a following instruction)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    sel = atom.args.get("target")
+    assert isinstance(sel, Selector)  # role table: PHASE_OUT target is a Selector
+    cards = [h for h in resolve_selector(sel, ctx) if h.namespace == "card"]
+    ctx.bindings["result"] = executor.phase_out(cards)
 
 
 def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
@@ -2097,6 +2118,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.FLIP_COIN: _v_flip_coin,
     Verb.END_TURN: _v_end_turn,
     Verb.EXTRA_TURN: _v_extra_turn,
+    Verb.PHASE_OUT: _v_phase_out,  # CR 702.26 (2026-10-29)
     Verb.LOSE_GAME: _v_lose_game,
     # 13b: the cast-side verbs — the gate-flip five (PAY, CAST, CHOOSE,
     # CHOOSE_NAME, MANA_POLICY). SUPPORTED_VERBS_V2 derives from THIS

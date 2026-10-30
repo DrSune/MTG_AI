@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Wildwood Patrol (4/2 trample) attacks; a 1/1 blocks. Printed Trample: lethal damage (1) to the blocker, the excess (3) may go to the player; answer 0 extra to the blocker. Expected: blocker dies, defending player 20 -> 17, Patrol takes 1 and survives.",
+ "cards": [
+  {"key": "p", "real": "Wildwood Patrol", "zone": "battlefield", "controller": 0},
+  {"key": "chump", "name": "Chump", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"p": true}, "block": {"chump": "p"}, "trample": {"p": [0]}}
+ ],
+ "expect": {"life": {"0": 20, "1": 17}, "blocked": {"p": ["chump"]}, "damage": {"p": 1},
+  "zone": {"p": "battlefield", "chump": "graveyard"}, "power": {"p": 4}, "toughness": {"p": 2}}}

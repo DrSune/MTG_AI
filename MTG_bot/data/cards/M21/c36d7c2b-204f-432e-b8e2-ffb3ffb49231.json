@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c36d7c2b-204f-432e-b8e2-ffb3ffb49231",
+ "name": "Gnarled Sage",
+ "text_sha": "48e4d859eb105b9cb26c41177edc29f81e5b639658f486c384f46898b36b5880",
+ "verified": {
+  "tree_sha": "29aaeaba67d6471fad0d89f112627db4e2357e985edea93c623f64afc8b78bd8",
+  "probe_sha": "6a4fdd904c0bbc4ed47e2231d2f64e48715eb27bc6c33ead5c84bb34831dce5a",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "OK",
+    "evidence": "[cast] keywords +REACH; static: card keywords REACH",
+    "issue": ""
+   },
+   {
+    "clause": "As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.",
+    "status": "OK",
+    "evidence": "[you draw a card] (one draw): no change; [you draw two cards, one after the other]: P/T 4/4 -> 4/6, keywords +VIGILANCE. Tree identical to parse template B5a-gnarled-sage (CARDS_DRAWN_THIS_TURN_GE 2, who YOU).",
+    "issue": ""
+   },
+   {
+    "clause": "(same clause) the 'this turn' scope and 'you' (only the controller's draws count)",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace never passes the turn after two draws, and the opponent only draws one card. Packs: gnarled_sage_two_draws_positive (4/6 + vigilance after Thrill of Possibility), gnarled_sage_this_turn_scope (back to 4/4, reach only, on the next turn), gnarled_sage_only_your_draws (opponent draws three on its turn: Sage stays 4/4). All PASS on the live tree and on this packet's tree (--draft); a who=ANY mutant fails gnarled_sage_only_your_draws.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/gnarled_sage_1.json",
+   "tools/scenarios/cards/M21/gnarled_sage_2.json",
+   "tools/scenarios/cards/M21/gnarled_sage_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

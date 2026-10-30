@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "skim", "real": "Tide Skimmer", "zone": "battlefield", "controller": 0},
+    {"key": "ox", "name": "Test Ox", "type": "Creature — Ox", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"skim": true, "ox": true}}
+  ],
+  "expect": {
+    "attackers": {"skim": true, "ox": true},
+    "hand": {"0": 0},
+    "life": {"0": 20, "1": 16}
+  }
+}

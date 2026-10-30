@@ -1,0 +1,18 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Gnarled Sage (M21) positive control. Printed: 'As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.' Seat 0 casts Thrill of Possibility (discard the fuel card, draw two): two cards drawn this turn, so the Sage is 4/6 with reach and vigilance. This makes the scope packs non-vacuous.",
+ "cards": [
+  {"key": "sage", "zone": "battlefield", "controller": 0, "real": "Gnarled Sage"},
+  {"key": "sp", "zone": "hand", "controller": 0, "real": "Thrill of Possibility"},
+  {"key": "fuel", "zone": "hand", "controller": 0, "name": "Fuel", "type": "Instant"}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "sp"}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "fuel": "graveyard"},
+  "hand": {"0": 2},
+  "power": {"sage": 4},
+  "toughness": {"sage": 6},
+  "battlefield_keywords": {"Gnarled Sage": ["REACH", "VIGILANCE"]}
+ }}

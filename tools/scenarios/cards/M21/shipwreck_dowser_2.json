@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "d", "real": "Shipwreck Dowser", "zone": "hand", "controller": 0},
+  {"key": "zombie", "name": "Your Fallen Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "trick", "name": "Opp Trick", "type": "Instant", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "d"}
+ ],
+ "expect": {
+  "zone": {"d": "battlefield", "zombie": "graveyard", "trick": "graveyard"},
+  "hand": {"0": 0, "1": 0},
+  "graveyard": {"0": ["Your Fallen Zombie"], "1": ["Opp Trick"]}
+ },
+ "notes": "Printed: 'return target instant or sorcery card from YOUR graveyard to your hand.' My graveyard holds only a creature card and the only instant is in the opponent's graveyard, so the trigger has no legal target and nothing moves."
+}

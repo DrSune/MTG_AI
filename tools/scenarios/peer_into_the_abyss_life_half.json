@@ -1,0 +1,19 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sp", "real": "Peer into the Abyss", "zone": "hand", "controller": 0},
+    {"key": "pg", "name": "Extra Page", "power": "1", "toughness": "1", "type": "Creature",
+     "zone": "library", "controller": 1}
+  ],
+  "mana": {"0": {"B": 7}},
+  "steps": [
+    {"op": "life", "seat": 1, "set": 13},
+    {"op": "cast", "real": "Peer into the Abyss", "key": "sp", "decisions": ["player:1"]}
+  ],
+  "expect": {
+    "life": {"0": 20, "1": 6},
+    "hand": {"1": 4},
+    "zone": {"sp": "graveyard"}
+  },
+  "notes": "m21-fidelity item 2 (2026-10-29). Printed: 'Target player draws cards equal to half the number of cards in their library and loses half their life. Round up each time.' The target (seat 1) has 7 library cards (6 runner filler + Extra Page) and 13 life; the caster has 20. Round up each time (CR 107.1a): it draws 4 (not 3) and loses 7 (not 6), to 6. The life read is the TARGET's: reading the caster's 20 would take 10. Before the fix the compiler dropped the life loss (B5b-peer-half-library, LOSSY), so seat 1 stayed at 13."
+}

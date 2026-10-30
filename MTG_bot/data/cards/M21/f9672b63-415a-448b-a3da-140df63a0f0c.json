@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f9672b63-415a-448b-a3da-140df63a0f0c",
+ "name": "Pridemalkin",
+ "text_sha": "7e4b3a1e1565107aee6b5077b7f86c0dc9f3861c44775a680c77f46da933eef6",
+ "verified": {
+  "tree_sha": "4f4ac68966e15768782d32d1c021b0d02b2375f61ab2d33f6e38ca9402ec2237",
+  "probe_sha": "fdfd8965ab8d163d305115b482ddf3adf335d7f3b80bf9e6f90c603ca8e2926b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "When this creature enters, put a +1/+1 counter on target creature you control.",
+    "status": "OK",
+    "evidence": "[cast] and its two alternatives: 'ask target: [you_bear, you_giant, card]' (your creatures only, itself included; no opponent creature offered); the chosen one gets 1 PLUS_1_PLUS_1 (you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, card 3/2); the counter stays after the turn ends. Also fires when put onto the battlefield on the opponent's turn. Cost G-1 W-2 = {2}{G}. Tree equal to parse template B2a-basris-lieutenant.",
+    "issue": ""
+   },
+   {
+    "clause": "Each creature you control with a +1/+1 counter on it has trample.",
+    "status": "OK",
+    "evidence": "Each cast variant: the countered creature gets keywords +TRAMPLE (including Pridemalkin itself); uncountered ones do not. Tree equal to parse template B5a-trample-counter. Pack pridemalkin_trample_only_your_countered (Tempered Veteran counters on your Ox and the opponent's Bear: Ox has trample, your uncountered Bear and the opponent's countered Bear do not) PASSES on the live tree and on this packet's tree.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/pridemalkin_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 10,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

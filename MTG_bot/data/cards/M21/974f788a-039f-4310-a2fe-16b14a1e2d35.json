@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "974f788a-039f-4310-a2fe-16b14a1e2d35",
+ "name": "Skyscanner",
+ "text_sha": "b4d3d3fbb47dc9812943ee918f7f96b2aadcb104b29b73707334714d7a164b88",
+ "verified": {
+  "tree_sha": "d4c9ac911a9e283b86043df3931e158ef324ae4f93652b977d17528e86405c5a",
+  "probe_sha": "019d65c361d016795a34a58b4ad4606afe4924890195137a8f235832ac7a9d59",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Artifact Creature - Thopter {3} 1/1",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 1/1, mana W-3 (3 generic)",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp dealt 1 (20 -> 19): the non-flying, non-reach giant cannot block",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, draw a card.",
+    "status": "OK",
+    "evidence": "trigger ZoneChangeEvent(ANY -> BATTLEFIELD YOU, IS_SOURCE) -> DRAW 1 YOU; [cast]: triggered ability [0] triggers, 'you draws you:Library 5#1', library 6 -> 5; also on the MOVE_ZONE entry in the opponent's turn (you draw, not the opponent); not fired by other creatures entering",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

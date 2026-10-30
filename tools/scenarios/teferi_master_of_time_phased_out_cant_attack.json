@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 1, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "phased_out": {"bear": true},
+  "not_asked": ["bear"],
+  "attackers": {"bear": false},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Seat 1 uses Teferi, Master of Time's static to activate [-3] on seat 0's turn and phases out seat 0's Bear before combat. A phased-out creature does not exist (CR 702.26b), so it is never asked to attack and no damage is dealt."
+}

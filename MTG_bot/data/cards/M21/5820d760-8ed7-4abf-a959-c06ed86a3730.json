@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5820d760-8ed7-4abf-a959-c06ed86a3730",
+ "name": "Swift Response",
+ "text_sha": "c778618ce1b98aca059ffb83be34b099e1c6c88654d65d88765da139bc69767f",
+ "verified": {
+  "tree_sha": "03497a8d828480f7a1c43719fe718cbf1b90238080ca54ccaca3625cc5a01485",
+  "probe_sha": "30ccc27fc04abf10f126e0ada5477bcbf4e7d520964c965822cace2f6e57d287",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Destroy target tapped creature. (Instant {1}{W})",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [opp_tapped] only (untapped creatures not offered); [cast targets=['opp_tapped']]: opp_tapped moves battlefield -> graveyard (by card/DESTROY), dies; mana W-2. Tree filter FAnd(IS_TAPPED, TYPE_EQ Creature), any controller",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

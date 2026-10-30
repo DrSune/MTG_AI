@@ -61,7 +61,9 @@ class AskRoutingError(RuntimeError):
 
 
 #: Engine ask kinds whose tag's second field is the deciding player.
-SEAT_IN_TAG = frozenset({"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw"})
+#: ``x`` (2026-10-29): an activation's X announcement, ``x:<seat>:<source>:<digest>``
+#: (CR 602.2b -> 601.2b; the menu is 0..the live bound).
+SEAT_IN_TAG = frozenset({"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "x"})
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 OBJECT_IN_TAG = frozenset(
     {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name"}
@@ -173,6 +175,8 @@ def engine_ask(
             return lens.describe(executor, handle, offered=True)
         if kind == "mana" and token in _COLORS:
             return f"{_COLORS[token]} mana"
+        if kind == "x" and token.isdigit():
+            return f"X = {token}"
         if kind == "choose" and token.isdigit() and subject is not None:
             modes = _bullets(lens.text(executor_text(lens, executor, subject)))
             if len(modes) == len(vocab):
@@ -197,6 +201,7 @@ def engine_ask(
         "name": "Choose a card name.",
         "order": f"{about}: choose the damage assignment order.",
         "trample": f"{about}: choose how much excess damage to assign.",
+        "x": f"{about}: announce the value of X for the ability.",
         "policy": f"{about}: choose how to assign its combat damage.",
     }
     prompt = prompts.get(kind, f"The engine asks ({kind}): choose one.")

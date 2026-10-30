@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'When this creature enters, you gain 2 life for each creature you control with flying.' With two own synthetic fliers already out, Gagglemaster enters as the third flier you control: 2 x 3 = 6 life (20 -> 26). The opponent's flier and the own non-flier are not counted; the opponent's life is unchanged.",
+ "cards": [
+  {"key": "gm", "real": "Aven Gagglemaster", "zone": "hand", "controller": 0},
+  {"key": "f1", "name": "Gull One", "power": 1, "toughness": 1, "type": "Creature — Bird", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "f2", "name": "Gull Two", "power": 1, "toughness": 1, "type": "Creature — Bird", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "g1", "name": "Grounded", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "of", "name": "Opp Gull", "power": 1, "toughness": 1, "type": "Creature — Bird", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "gm"}
+ ],
+ "expect": {"life": {"0": 26, "1": 20}, "zone": {"gm": "battlefield"}}}

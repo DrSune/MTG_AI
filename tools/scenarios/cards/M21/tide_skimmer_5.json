@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "skim", "real": "Tide Skimmer", "zone": "battlefield", "controller": 0},
+    {"key": "obird", "name": "Opp Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+    {"key": "obat", "name": "Opp Bat", "type": "Creature — Bat", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 1, "attack": {"obird": true, "obat": true}, "block": {"skim": null}}
+  ],
+  "expect": {
+    "attackers": {"obird": true, "obat": true},
+    "hand": {"0": 0},
+    "life": {"0": 18, "1": 20}
+  }
+}

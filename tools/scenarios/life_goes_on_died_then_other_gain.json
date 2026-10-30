@@ -1,0 +1,19 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+    {"key": "fountain", "real": "Radiant Fountain", "zone": "hand", "controller": 0},
+    {"key": "lamb", "name": "Lamb", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"G": 1}},
+  "steps": [
+    {"op": "deal_damage", "source": "lamb", "target": "lamb", "amount": 1},
+    {"op": "cast", "real": "Life Goes On", "key": "lgo"},
+    {"op": "play", "key": "fountain"}
+  ],
+  "expect": {
+    "zone": {"lgo": "graveyard", "lamb": "graveyard", "fountain": "battlefield"},
+    "life": {"0": 30}
+  },
+  "notes": "m21-fidelity item 4 (2026-10-29). A creature died this turn, so Life Goes On gains 8 instead of 4 (20 -> 28). The 'instead' modifies only the spell's own life gain (CR 608.2c): Radiant Fountain's later 2 life stays 2, so 30. Before the fix the turn-long replacement made it 8 as well (36)."
+}

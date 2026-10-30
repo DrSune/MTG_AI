@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6f0d94d9-64bb-4175-83bc-301e8f79f54f",
+ "name": "Temple of Triumph",
+ "text_sha": "e3a329eecae11ea9952ea54542eed34daf194280bc30fdcd703f3d1591094b5e",
+ "verified": {
+  "tree_sha": "aad160374ab01f1f4d1a908c0f1e40d94ccd9ef0367f551fc8b15aa5936c4778",
+  "probe_sha": "031a09aeb1e36aed9bf652297663956657595117f5a6f4382b26e2ecb1fd33bc",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on entry during the opponent's turn. Tree EtBState(tapped=True)",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "[play land]: 'card's triggered ability [1] triggers', ask scry: [top, bottom]; fires on entry during the opponent's turn. Tree identical to template B2b-temple-etb-scry. Bottom branch: pack temple_of_triumph_play_scry_bottom.json (land drop, answer bottom, Library 5 under the other five, land tapped): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose -> 0: tapped, you: mana R+1; [ask 1 -> 1]: tapped, you: mana W+1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/temple_of_triumph_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

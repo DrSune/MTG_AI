@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Mistral Singer, printed 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' I cast two noncreature spells (Revitalize twice): 2/2 -> 4/4 this turn; the bonus ends with the turn. Expected after end_turn: 2/2 again; I gained 6 life and drew 2.",
+ "cards": [
+  {"key": "ms", "real": "Mistral Singer", "zone": "battlefield", "controller": 0},
+  {"key": "rv1", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "rv2", "real": "Revitalize", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 4}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv1"},
+  {"op": "cast", "real": "Revitalize", "key": "rv2"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"zone": {"rv1": "graveyard", "rv2": "graveyard"}, "power": {"ms": 2}, "toughness": {"ms": 2}, "life": {"0": 26}}}

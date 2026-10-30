@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1ef73b3b-ab4a-494b-b969-dcde995cee34",
+ "name": "Soul Sear",
+ "text_sha": "84d3de88051cb8382d8e03370496c0627be6ea7ab2a765601e4b2713419418d0",
+ "verified": {
+  "tree_sha": "6bb9388a432b7d595089f5c6fb8bcc90103c912e02b6cb2f465a8b9c20e80683",
+  "probe_sha": "fef59d64bf948eb3bba30b6d330503af97ff1f545ec31782953ad7996361c55f",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Soul Sear deals 5 damage to target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' (every creature, no player, no artifact/enchantment); each [cast targets=[X]]: 'X is dealt 5 damage (by card/DEAL_DAMAGE)' and X dies; the instant goes to the graveyard, cost R-1 plus 2 generic. Tree equals the compiler's parse (B5b-named-damage). Planeswalker target (none on the probe board): pack soul_sear_planeswalker, Basri Ket at loyalty 7 is left at 2: PASS.",
+    "issue": "engine-limit: no priority; the instant is cast only in its controller's own action window (weaker only)."
+   },
+   {
+    "clause": "That permanent loses indestructible until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No indestructible permanent on the probe board. Tree: LOSE_ABILITY INDESTRUCTIBLE, DurationEot, on referent 'target' (equals B5b-loses-kw-eot). Packs: soul_sear_indestructible_dies (a 4/4 indestructible dies to it) PASS; soul_sear_loses_indestructible_rest_of_turn (a 6/8 indestructible survives the 5, then dies to 3 more damage the same turn) PASS; soul_sear_indestructible_returns_after_turn (after the turn ends it is indestructible again and survives 9 damage) PASS. The packs kill a mutant without the lose step and a permanent-duration mutant.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/soul_sear_1.json",
+   "tools/scenarios/cards/M21/soul_sear_2.json",
+   "tools/scenarios/cards/M21/soul_sear_3.json",
+   "tools/scenarios/cards/M21/soul_sear_4.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 5,
+   "score": 0.7142857142857143,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration"
+   ]
+  }
+ }
+}

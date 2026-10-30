@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "notes": "Predatory Wurm, printed: 'Vigilance' and 'This creature gets +2/+2 as long as you control a Garruk planeswalker.' Your Garruk, Unleashed enters: the Wurm is 6/6, attacks for 6 (P1 20->14) and stays untapped (vigilance).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Predatory Wurm", "zone": "battlefield", "controller": 0},
+  {"key": "g", "real": "Garruk, Unleashed", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "g"},
+  {"op": "loyalty", "key": "g", "set": 4},
+  {"op": "combat", "seat": 0, "attack": {"w": true}}
+ ],
+ "expect": {
+  "power": {"w": 6},
+  "toughness": {"w": 6},
+  "life": {"1": 14},
+  "tapped": {"w": false},
+  "attackers": {"w": true}
+ }
+}

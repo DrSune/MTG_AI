@@ -1,0 +1,84 @@
+{
+ "set": "M21",
+ "notes": "Chrome Replicator, printed: 'if you control two or more NONLAND, NONTOKEN permanents with the same name'. You control two Plains (lands) and two Saproling tokens, minted by the engine (Sporeweb Weaver is dealt 1 damage twice: +1 life and a Saproling each time); no two nonland nontoken permanents share a name. Casting the Replicator creates no Construct token.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cr",
+   "real": "Chrome Replicator",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pl1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pl2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "web",
+   "real": "Sporeweb Weaver",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ogiant",
+   "target": "web",
+   "amount": 1,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "ogiant",
+   "target": "web",
+   "amount": 1,
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "real": "Chrome Replicator",
+   "key": "cr"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cr": "battlefield",
+   "web": "battlefield"
+  },
+  "life": {
+   "0": 22
+  },
+  "tokens": {
+   "Saproling": 2,
+   "Construct": 0
+  },
+  "damage": {
+   "web": 2
+  }
+ }
+}

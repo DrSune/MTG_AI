@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5d641bf6-0f93-4189-8dc1-ec7ea446dade",
+ "name": "Tranquil Cove",
+ "text_sha": "8d5a89d65e7553da540ada75f8e7a152d02995b7f1e03bfc44dc081e17c430ee",
+ "verified": {
+  "tree_sha": "bc65fc72096e8e5c3a361a90844b3a404d2688fbcaee157b320d127c95c22d6e",
+  "probe_sha": "1379bf17f9a6ee145a333c409e6e63f0d18a6669cb5eb9944fc5d1ae3c9429c4",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'card's triggered ability [1] triggers', 'you gains 1 life (by card/GAIN_LIFE)', life 20 -> 21; [enters during the opponent's turn]: same trigger, 20 -> 21",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose -> 0: tapped, you: mana W+1; [ask 1 -> 1]: tapped, you: mana U+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

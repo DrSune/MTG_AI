@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Predatory Wurm, printed: '+2/+2 as long as YOU control a GARRUK planeswalker.' The only Garruk planeswalker is the opponent's Garruk, Unleashed, and your planeswalker is Basri Ket (not a Garruk): the Wurm stays 4/4 and attacks for 4 (P1 20->16).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Predatory Wurm", "zone": "battlefield", "controller": 0},
+  {"key": "og", "real": "Garruk, Unleashed", "zone": "hand", "controller": 1},
+  {"key": "basri", "real": "Basri Ket", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "og"},
+  {"op": "loyalty", "key": "og", "set": 4},
+  {"op": "enter", "key": "basri"},
+  {"op": "loyalty", "key": "basri", "set": 3},
+  {"op": "combat", "seat": 0, "attack": {"w": true}}
+ ],
+ "expect": {
+  "zone": {"og": "battlefield", "basri": "battlefield"},
+  "power": {"w": 4},
+  "toughness": {"w": 4},
+  "life": {"1": 16}
+ }
+}

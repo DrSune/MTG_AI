@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "From hand: {1}{U}, discard Waker of Waves: look at the top two cards (Alpha, Beta), put the chosen one (Alpha) into your hand and the other (Beta) into your graveyard. Hand: Waker + opening draw = 2 -> Waker discarded, Alpha added = 2.",
+ "cards": [
+  {"key": "w", "real": "Waker of Waves", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Alpha", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
+  {"key": "b", "name": "Beta", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "w", "idx": 1, "seat": 0, "decisions": ["a"]}
+ ],
+ "expect": {
+  "zone": {"w": "graveyard", "a": "hand", "b": "graveyard", "top": "hand"},
+  "graveyard": {"0": ["Waker of Waves", "Beta"]},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {}}
+ }
+}

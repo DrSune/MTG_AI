@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jes", "real": "Havoc Jester", "zone": "battlefield", "controller": 0},
+  {"key": "c", "real": "Tormod's Crypt", "zone": "battlefield", "controller": 0},
+  {"key": "w", "real": "Walking Corpse", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "c", "idx": 0, "seat": 0, "targets": ["w"], "decisions": ["player:1"]}
+ ],
+ "expect": {"zone": {"c": "graveyard", "w": "exile", "jes": "battlefield"}, "life": {"0": 20, "1": 19}},
+ "notes": "Printed: 'Whenever you sacrifice a permanent, this creature deals 1 damage to any target.' You sacrifice a NONCREATURE permanent (Tormod's Crypt, as its activation cost): the Jester triggers and deals 1 damage to the opponent (a player is a legal 'any target'): 20 -> 19."}

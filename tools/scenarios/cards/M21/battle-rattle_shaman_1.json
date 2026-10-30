@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sh", "real": "Battle-Rattle Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "may": {"sh": true}, "decisions": ["bear"], "attack": {"bear": true}}
+ ],
+ "expect": {"power": {"bear": 4}, "toughness": {"bear": 2}, "life": {"0": 20, "1": 16}, "attackers": {"bear": true}},
+ "notes": "Printed: 'At the beginning of combat on your turn, you may have target creature get +2/+0 until end of turn.' Accepting the may on your Bear: it is a 4/2 for the rest of the turn and deals 4 combat damage (20 -> 16)."}

@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "cdb68656-633d-436e-ad56-0fdb4814bd19",
+ "name": "Fetid Imp",
+ "text_sha": "15e29a00ffb4e82bbfd70131220bd397fdfb4945f18aabfc796acb33a7b278be",
+ "verified": {
+  "tree_sha": "92d0990f67ccd73668aaa24efeabac3ae3423b695b95f29c39e2ec4e8b29eb13",
+  "probe_sha": "5ad57bce3a41e05c5ffbf32b10587ead8aced35a36aee1f4981f5f8cdda92019",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "Static: card keywords FLYING. [this creature attacks and opp_giant blocks it]: the non-flying giant cannot block, no DECLARE_BLOCKERS row, opp is dealt 1 (20 -> 19).",
+    "issue": ""
+   },
+   {
+    "clause": "{B}: This creature gains deathtouch until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: cost 'mana B-1', 'card: keywords +DEATHTOUCH'; 'after the turn ends: card: keywords -DEATHTOUCH'. Only the card changes. Tree equals the compiler's parse (B3-grant-kw-self).",
+    "issue": "engine-limit: no priority; the instant-speed deathtouch grant is usable only in its controller's own action window (weaker only)."
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

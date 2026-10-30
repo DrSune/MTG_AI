@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Rousing Read (M21): 'Enchant creature. When this Aura enters, draw two cards, then discard a card. Enchanted creature gets +1/+1 and has flying.' Cast on seat 0's Bear; the ETB draws two and the controller chooses to discard Junk (not the lowest-handle card, Keeper). Then Thrashing Brontodon destroys the Aura: the Bear is a 2/2 without flying again. Hand: Keeper + Junk, cast -> 2, draw 2 -> 4, discard Junk -> 3.",
+ "cards": [
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "bron", "zone": "battlefield", "controller": 0, "real": "Thrashing Brontodon"},
+  {"key": "keeper", "zone": "hand", "controller": 0, "name": "Keeper", "type": "Instant"},
+  {"key": "rr", "zone": "hand", "controller": 0, "real": "Rousing Read"},
+  {"key": "junk", "zone": "hand", "controller": 0, "name": "Junk", "type": "Sorcery"}
+ ],
+ "mana": {"0": {"U": 4}},
+ "steps": [
+  {"op": "cast", "key": "rr", "targets": ["bear"], "decisions": ["junk"]},
+  {"op": "activate", "key": "bron", "idx": 0, "seat": 0, "targets": ["rr"]}
+ ],
+ "expect": {"zone": {"rr": "graveyard", "junk": "graveyard", "keeper": "hand", "bron": "graveyard", "bear": "battlefield"},
+            "hand": {"0": 3}, "power": {"bear": 2}, "toughness": {"bear": 2}, "battlefield_keywords": {"Your Bear": []}}}

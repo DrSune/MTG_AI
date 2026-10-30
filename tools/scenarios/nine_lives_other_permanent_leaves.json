@@ -1,0 +1,15 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+    {"key": "lamb", "name": "Lamb", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "deal_damage", "source": "lamb", "target": "lamb", "amount": 1}
+  ],
+  "expect": {
+    "zone": {"lamb": "graveyard", "nl": "battlefield"},
+    "lost": {"0": false, "1": false}
+  },
+  "notes": "m21-fidelity (review batch C, 2026-10-29). Printed: 'When this enchantment leaves the battlefield, you lose the game.' Another permanent of yours leaving the battlefield (the Lamb dies) is not Nine Lives leaving: nobody loses. Before the fix the compiled leaves-the-battlefield trigger had no subject, so any permanent you controlled leaving made you lose the game."
+}

@@ -1,0 +1,17 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Prowess. {R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker.' Casting Short Sword (a noncreature spell) pumps the Immolator to 3/3 until end of turn. Sacrificing it then deals damage equal to its last-known power, 3, to the 5/5 Big Lug (damage mark 3, survives). Both red are spent (one for Short Sword, one for the activation).",
+ "cards": [
+  {"key": "hi", "real": "Heartfire Immolator", "zone": "battlefield", "controller": 0},
+  {"key": "sw", "real": "Short Sword", "zone": "hand", "controller": 0},
+  {"key": "big", "name": "Big Lug", "power": 5, "toughness": 5, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "sw", "real": "Short Sword"},
+  {"op": "activate", "key": "hi", "idx": 0, "seat": 0, "targets": ["big"]}
+ ],
+ "expect": {
+  "zone": {"hi": "graveyard", "big": "battlefield", "sw": "battlefield"},
+  "damage": {"big": 3},
+  "mana_pool": {"0": {}}
+ }}

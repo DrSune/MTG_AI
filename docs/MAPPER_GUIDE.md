@@ -123,8 +123,11 @@ $PY tools/cards/cardtool.py --help
   stronger than printed.
 - **Equip** (on `cards/integration`): the compiled equip already carries
   `timing=ActivationWindow.SORCERY` (B-60). Keep it.
-- **Ability words** (Threshold, Raid, Morbid, Landfall) are not keywords. Write the trigger and its
-  condition. G0's warning "MTGJSON keywords with no Keyword atom" is expected for them.
+- **Ability words** (Threshold, Raid, Morbid, Landfall, Battalion) are not keywords and have no
+  rules meaning (CR 207.2c). Write the trigger and its condition. G0 ignores ability words
+  (`gates.ABILITY_WORDS`), so it neither fails nor warns on them.
+- **Keyword actions** written as the merged MOVE atom satisfy G0 through its `journal_kind`: a mill
+  (`journal_kind='MILL'`, `pop_order='TOP'`) satisfies a printed "Mill".
 - **More shapes the compiler uses** (mapper B, FDN round 1):
   - "permanent" is `IS_PERMANENT`; "nonland permanent" is `FAnd(IS_PERMANENT, FNot(TYPE_EQ Land))`.
   - "a spell" (any) is `CastSpellEvent(filter=FAnd(()))`.

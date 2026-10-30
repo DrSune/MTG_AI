@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0}
+ ],
+ "expect": {"counters": {"adh": {"PLUS_1_PLUS_1": 2}}, "power": {"adh": 4}, "toughness": {"adh": 3}, "zone": {"adh": "battlefield", "basri": "battlefield"}},
+ "notes": "Printed: 'At the beginning of combat on your turn, if you control a Basri planeswalker, put a +1/+1 counter on this creature.' You control Basri Ket. Your combat -> 1 counter; the opponent's combat -> none (not your turn); your next combat -> 2 counters: a 4/3."}

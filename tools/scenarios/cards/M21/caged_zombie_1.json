@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "zombie", "real": "Caged Zombie", "zone": "battlefield", "controller": 0},
+  {"key": "sr", "real": "Swift Response", "zone": "hand", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"W": 2, "B": 2}},
+ "steps": [
+  {"op": "cast", "real": "Swift Response", "key": "sr", "targets": ["victim"]},
+  {"op": "activate", "key": "zombie", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"victim": "graveyard", "zombie": "battlefield"},
+  "life": {"0": 20, "1": 18},
+  "tapped": {"zombie": true},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Caged Zombie: '{1}{B}, {T}: Each opponent loses 2 life. Activate only if a creature died this turn.' A creature died this turn (destroyed by Swift Response), so the ability is legal: paying {1}{B} and tapping, the opponent loses exactly 2 and the controller loses nothing. All four mana are spent (Swift Response {1}{W} plus {1}{B})."
+}

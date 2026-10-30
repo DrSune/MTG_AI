@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gu", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "opp_big", "name": "Opp Big", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "gu", "real": "Garruk's Uprising"}
+ ],
+ "expect": {
+  "zone": {"gu": "battlefield"},
+  "hand": {"0": 0}
+ },
+ "notes": "M21 G2 spec: Garruk's Uprising. 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card': you control only a 3/3 (the opponent's 5/5 does not count), so no card is drawn."
+}

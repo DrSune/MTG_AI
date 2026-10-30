@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Chandra's Incinerator (M21): 'This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.' Shock deals 2 to seat 1, so the Incinerator ({5}{R}) costs {3}{R}: seat 0's remaining R1 C3 pays it exactly and the pool ends empty.",
+ "cards": [
+  {"key": "s1", "zone": "hand", "controller": 0, "real": "Shock"},
+  {"key": "inc", "zone": "hand", "controller": 0, "real": "Chandra's Incinerator"}
+ ],
+ "mana": {"0": {"R": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "s1", "decisions": ["player:1"]},
+  {"op": "cast", "key": "inc"}
+ ],
+ "expect": {"life": {"0": 20, "1": 18}, "zone": {"s1": "graveyard", "inc": "battlefield"}, "mana_pool": {"0": {}}}}

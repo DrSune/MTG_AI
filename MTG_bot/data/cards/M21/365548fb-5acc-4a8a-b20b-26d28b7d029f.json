@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "365548fb-5acc-4a8a-b20b-26d28b7d029f",
+ "name": "Village Rites",
+ "text_sha": "8502f2eae025fe2498b017908551ecacca68c9c6341867bc087d94c7b601070d",
+ "verified": {
+  "tree_sha": "b107d1a0e3e6f7e8f2dcc630b65b2fc39b54097874ab7e02c3c09ee16b4dbf4b",
+  "probe_sha": "ab36992e2f33ce123de7f387f76ba0599861a954ae59107b3ee32585b1db1c01",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "As an additional cost to cast this spell, sacrifice a creature. (Instant {B})",
+    "status": "OK",
+    "evidence": "[cast]: 'ask sacrifice: [you_bear, you_giant]' (only your creatures), the chosen one moves battlefield -> graveyard and dies, paid before the spell goes on the stack; [ask 1 -> you_giant] likewise; mana B-1. Tree CostSacrifice FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature), as `parse` template B5a-addl-cost-sacrifice. Pack village_rites_sacrifice_dies_once.json (sacrificing Spirit of Malevolence fires its dies trigger once: you 21, opp 19; two cards drawn): PASS",
+    "issue": "engine observation: the probe journals the sacrificed creature's move and 'dies' twice ('by card/SACRIFICE' and again 'by card/CAST'); the pack shows a self-dies trigger still fires once, but other death watchers that count journal rows could double-count."
+   },
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "Both variants: two DRAW events (Library 5#1, 4#1), library 6 -> 4, hand 6 -> 7",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/village_rites_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/additional_costs/0/parts/0/target/filter"
+   ]
+  }
+ }
+}

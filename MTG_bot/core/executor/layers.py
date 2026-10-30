@@ -256,6 +256,12 @@ class LayerRecord:
     status: str = "live"
     ledger_ids: dict[Handle, int] = field(default_factory=dict)
     resolved: bool = False
+    # CR 702.26b (2026-10-29): the record IS one of its source's own static
+    # or keyword abilities (attach_source registered it), so it does not
+    # function while the source is phased out. Effects a resolved spell or
+    # ability created are not abilities of the source and keep applying.
+    # Not in dump(): the flag is a function of the attach history.
+    from_static: bool = False
 
     @property
     def atoms(self) -> tuple[Atom, ...]:
@@ -305,6 +311,7 @@ class LayerRegistry:
         resolve. ``None`` = the ordinary battlefield resolution."""
         self.detach_source(handle)
         count = 0
+        first_new = len(self.records)
         if controller is None:
             controller = self.executor.controller_of(handle)  # 16e overlay
         for kw in record.keywords:
@@ -336,6 +343,8 @@ class LayerRegistry:
                     sink = getattr(self.executor, "unparseable_statics", None)
                     if sink is not None and flag not in sink:
                         sink.append(flag)
+        for layer in self.records[first_new:]:
+            layer.from_static = True  # CR 702.26b: see LayerRecord.from_static
         return count
 
     def detach_source(self, handle: Handle) -> int:
@@ -628,6 +637,40 @@ class LayerRegistry:
                 )
             )
             return records
+        if any(atom.verb == Verb.ADD_LAND_PLAY for atom in atoms):
+            # m21-fidelity (2026-10-29): Azusa's "You may play two additional
+            # lands on each of your turns" is a STATIC ability (CR 604.1): a
+            # continuous effect that raises its controller's land allowance
+            # while the permanent is on the battlefield (CR 305.2). Same
+            # selector-less "land_play" record the runtime handler registers
+            # (verbs._v_add_land_play), so land_play_bonus sums both; its
+            # liveness is the anchor permanent's, like mana_policy. The "you
+            # may" was unwrapped above: it is the use, playing the land.
+            if any(atom.verb != Verb.ADD_LAND_PLAY for atom in atoms):
+                raise NotImplementedError(
+                    "executor: StaticAbility mixing ADD_LAND_PLAY with other "
+                    "payload verbs is not parseable"
+                )
+            for atom in atoms:
+                count_q = atom.args.get("count")
+                if count_q is None:
+                    count_q = QConst(1)  # "an additional land" (role optional)
+                if not isinstance(count_q, QConst) or count_q.value < 0:
+                    raise NotImplementedError(
+                        f"executor: static ADD_LAND_PLAY count {count_q!r} is not "
+                        "layer-parseable (a constant is the only shape in the pool)"
+                    )
+                records.append(
+                    self._new(
+                        "land_play",
+                        handle,
+                        controller,
+                        (QConst(count_q.value),),
+                        condition=static.condition,
+                        duration=_static_while_duration([atom]),
+                    )
+                )
+            return records
         for atom in atoms:
             if atom.verb not in _LAYER_PAYLOAD_VERBS:
                 raise NotImplementedError(
@@ -794,6 +837,10 @@ class LayerRegistry:
         if layer.source not in world.cards and (
             layer.source not in self.executor.emblems.values()
         ):
+            return False
+        if layer.from_static and layer.source in self.executor.phased_out:
+            # CR 702.26b: a phased-out permanent's static abilities do not
+            # function (dormant, not expired: they resume when it phases in).
             return False
         if layer.condition is not None and not eval_filter(
             layer.condition, layer.source, self._ctx(layer.source, layer.controller)

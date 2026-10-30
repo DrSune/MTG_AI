@@ -1,0 +1,68 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "800fb917-8898-4eba-9f94-aec6e9d75236",
+ "name": "Mazemind Tome",
+ "text_sha": "61302c3676b38656179a9139601acbe17de91417cca4253c4c1829b367dd4ecd",
+ "verified": {
+  "tree_sha": "7a4a2ebf9183e8ce23650b49b3e6d4e0edce8198b42fd296d1d20cfe2927bd28",
+  "probe_sha": "78325137fd58bf0a4ea22b27feb4eb44e149908e357ca34ebead694241e7094c",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Artifact {2} (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> battlefield; mana W-2",
+    "issue": ""
+   },
+   {
+    "clause": "{T}, Put a page counter on this artifact: Scry 1.",
+    "status": "OK",
+    "evidence": "[activate [0]] (top / bottom): card becomes tapped, gets 1 PAGE counter, ask scry: [top, bottom]; no mana spent",
+    "issue": ""
+   },
+   {
+    "clause": "{2}, {T}, Put a page counter on this artifact: Draw a card.",
+    "status": "OK",
+    "evidence": "[activate [1]]: tapped, 1 PAGE counter, you draws you:Library 5#1; mana W-2",
+    "issue": ""
+   },
+   {
+    "clause": "When there are four or more page counters on this artifact, exile it.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe reaches only 1 counter (ability [2] triggers, condition false); pack mazemind_tome_four_pages_exile_gain.json: the fourth page counter exiles the Tome, PASS (control mazemind_tome_three_pages_stays.json: three activations keep it on the battlefield with PAGE 3, PASS)",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, you gain 4 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "pack mazemind_tome_four_pages_exile_gain.json: life 20 -> 24 with the exile, PASS; the control gains nothing",
+    "issue": "The tree runs GAIN_LIFE unconditionally after the exile (no 'if you do' check, matching the compiler's own B5b-cont-gain-4 piece). Without priority nothing can remove the Tome before its trigger resolves, so the exile always happens and the difference is not observable in this engine."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/mazemind_tome_1.json",
+   "tools/scenarios/cards/M21/mazemind_tome_2.json",
+   "tools/scenarios/cards/M21/mazemind_tome_3.json"
+  ],
+  "mutation": {
+   "mutants": 27,
+   "killed": 16,
+   "score": 0.5925925925925926,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller",
+    "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
+    "amount+1 at 1/2/condition/count",
+    "amount-1 at 1/2/condition/count",
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "zone EXILE->GRAVEYARD at 1/2/effect/steps/0/args/destination",
+    "amount+1 at 1/2/effect/steps/1/args/amount",
+    "amount-1 at 1/2/effect/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/controller"
+   ]
+  }
+ }
+}

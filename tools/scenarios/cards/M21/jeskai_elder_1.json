@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Jeskai Elder attacks unblocked and deals 1 combat damage to the opponent: you may draw a card (taken), and if you do, discard a card of YOUR choice (Junk is chosen, Keep stays). Hand: Keep + Junk = 2 -> draw 3 -> discard Junk = 2.",
+ "cards": [
+  {"key": "je", "real": "Jeskai Elder", "zone": "battlefield", "controller": 0},
+  {"key": "keep", "name": "Keep", "type": "Creature", "power": 5, "toughness": 5, "zone": "hand", "controller": 0},
+  {"key": "junk", "name": "Junk", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"je": true}, "may": {"je": true}, "decisions": ["junk"]}
+ ],
+ "expect": {
+  "life": {"1": 19},
+  "zone": {"keep": "hand", "junk": "graveyard"},
+  "hand": {"0": 2},
+  "graveyard": {"0": ["Junk"]}
+ }
+}

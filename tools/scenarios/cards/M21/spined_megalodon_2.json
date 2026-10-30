@@ -1,0 +1,17 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Spined Megalodon, printed 'Hexproof (This creature can't be the target of spells or abilities your opponents control.)'. Step 1: the opponent's Shock cannot target it (refused at target selection). Step 2 (control): the opponent's second Shock can target an ordinary creature. Step 3: its own controller's Shock CAN target it (hexproof, not shroud): 2 damage marked, it survives (5/7).",
+ "cards": [
+  {"key": "md", "real": "Spined Megalodon", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Plain Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "oshock1", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "oshock2", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "myshock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "oshock1", "controller": 1, "targets": ["md"], "expect_raise": "illegal target selection"},
+  {"op": "cast", "real": "Shock", "key": "oshock2", "controller": 1, "targets": ["bear"]},
+  {"op": "cast", "real": "Shock", "key": "myshock", "controller": 0, "targets": ["md"]}
+ ],
+ "expect": {"zone": {"md": "battlefield", "bear": "graveyard", "oshock1": "hand", "oshock2": "graveyard", "myshock": "graveyard"},
+  "damage": {"md": 2}}}

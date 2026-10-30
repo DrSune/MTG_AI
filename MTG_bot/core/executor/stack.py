@@ -925,11 +925,13 @@ def cast(
             "(_validate_spell_targets should have refused the cast first)"
         )
     if not aura and node.kind not in _PERMANENT_KINDS:
-        # r19a (Life Goes On): an instant/sorcery's own ReplacementAbility
-        # nodes go live AT RESOLUTION START — the spell never attaches, so
-        # this is the only lifecycle hook the turn-shaped corpus idiom
-        # ("…you'd gain 8 life instead") has; registering before the
-        # effect runs lets the spell replace its own event. Eot-expired.
+        # r19a: an instant/sorcery's own ReplacementAbility nodes go live
+        # AT RESOLUTION START — the spell never attaches, so this is the
+        # only lifecycle hook the turn-shaped corpus idiom ("…would die
+        # this turn, exile it instead", Scorching Dragonfire) has;
+        # registering before the effect runs lets the spell replace events
+        # its own effect causes. Eot-expired: the tree carries no duration,
+        # and "this turn" is the printed one for every such card (19 sets).
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
             # r19b (Scorching Dragonfire): the designation snapshot rides

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gu", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Big One", "type": "Creature", "power": "4", "toughness": "4", "zone": "hand", "controller": 0},
+  {"key": "small", "name": "Small One", "type": "Creature", "power": "3", "toughness": "5", "zone": "hand", "controller": 0},
+  {"key": "opp_big", "name": "Opp Big", "type": "Creature", "power": "6", "toughness": "6", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "big"},
+  {"op": "enter", "key": "small"},
+  {"op": "enter", "key": "opp_big"}
+ ],
+ "expect": {
+  "zone": {"big": "battlefield", "small": "battlefield", "opp_big": "battlefield"},
+  "hand": {"0": 1, "1": 0}
+ },
+ "notes": "M21 G2 spec: Garruk's Uprising. 'Whenever a creature you control with power 4 or greater enters, draw a card': your 4/4 entering draws one card; your 3/5 and the opponent's 6/6 entering draw nothing."
+}

@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Chandra's Incinerator (M21): the reduction counts noncombat damage dealt to your opponents THIS TURN. Shock deals 2 to seat 1, then the turn passes to seat 1 and back to seat 0. On the new turn no damage has been dealt, so the Incinerator costs the full {5}{R}: the remaining R1 C5 (this engine's mana pool persists between steps, BACKLOG B-12) pays it exactly and the pool ends empty; a stale reduction of 2 would leave 2 mana.",
+ "cards": [
+  {"key": "s1", "zone": "hand", "controller": 0, "real": "Shock"},
+  {"key": "inc", "zone": "hand", "controller": 0, "real": "Chandra's Incinerator"}
+ ],
+ "mana": {"0": {"R": 2, "C": 5}},
+ "steps": [
+  {"op": "cast", "key": "s1", "decisions": ["player:1"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "cast", "key": "inc"}
+ ],
+ "expect": {"life": {"0": 20, "1": 18}, "zone": {"s1": "graveyard", "inc": "battlefield"}, "mana_pool": {"0": {}}}}

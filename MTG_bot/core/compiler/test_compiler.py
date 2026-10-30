@@ -567,13 +567,15 @@ class TestKeywordDedup(unittest.TestCase):
         self.assertEqual(res.card.keywords, (KeywordAbility(Keyword.FLYING, ()),))
 
     def test_parametrized_distinct_from_bare(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 1 builds a bare keyword only if the face
+        # prints it, so the card now prints both abilities; the dedup still keeps them apart.
         filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
         raw = _raw_card(
             "C",
             1,
             types=("Creature", "Card"),
             keywords=("Hexproof",),
-            sentences=("Hexproof from black.",),
+            sentences=("Hexproof", "Hexproof from black."),
         )
         reg = TemplateRegistry()
         reg.register(
@@ -590,6 +592,54 @@ class TestKeywordDedup(unittest.TestCase):
                 KeywordAbility(Keyword.HEXPROOF, ()),
                 KeywordAbility(Keyword.HEXPROOF, (filt,)),
             ),
+        )
+
+    def test_bare_keyword_needs_the_face_to_print_it(self) -> None:
+        # m21-fidelity item 1 (2026-10-29). MTGJSON lists "Hexproof" next to "Hexproof from"
+        # for "Hexproof from black" (Garruk's Harbinger): only the variant is printed, so no
+        # bare HEXPROOF, which would be full hexproof (CR 702.11b, 702.11d). Likewise a
+        # keyword listed for the other face of a modal DFC (CR 712.8f).
+        filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "hexblack",
+                r"^Hexproof from black$",
+                lambda m: KeywordOutcome(keyword=Keyword.HEXPROOF, params=(filt,)),
+            )
+        )
+        harbinger = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("Hexproof", "Hexproof from"),
+            sentences=("Hexproof from black",),
+        )
+        self.assertEqual(
+            compile_card(harbinger, reg).card.keywords,
+            (KeywordAbility(Keyword.HEXPROOF, (filt,)),),
+        )
+        listed_for_other_face = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("Flying", "Reach"),
+            sentences=("Reach (This creature can block creatures with flying.)",),
+        )
+        self.assertEqual(
+            compile_card(listed_for_other_face, TemplateRegistry()).card.keywords,
+            (KeywordAbility(Keyword.REACH, ()),),
+        )
+        keyword_line = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("First strike", "Lifelink"),
+            sentences=("First strike, lifelink",),
+        )
+        self.assertEqual(
+            {ka.keyword for ka in compile_card(keyword_line, TemplateRegistry()).card.keywords},
+            {Keyword.FIRST_STRIKE, Keyword.LIFELINK},
         )
 
     def test_unbuildable_keywords_reported(self) -> None:
@@ -1579,11 +1629,16 @@ class TestDurationPermissionRows(unittest.TestCase):
 class TestDynamicLoyaltyCostGate(unittest.TestCase):
     """B-49 follow-up #4 (2026-10-29): Ugin, the Spirit Dragon's [−X]. X is
     announced as the ability is activated (CR 601.2b via 602.2b). The
-    activation lane has no X declaration, so once the B-49 carrier made Ugin
+    activation lane had no X declaration, so once the B-49 carrier made Ugin
     castable, legal_activations raised NotImplementedError ("QX has no declared
     X") on its controller's next scan. That was 58 of the 153 crashes in the
-    800-game castable sweep. The honest shape gate marks a Quantity loyalty
-    delta engine-unsupported until an ACTIVATE X lane exists."""
+    800-game castable sweep, and the shape gate marked a Quantity loyalty
+    delta engine-unsupported.
+
+    Re-pinned 2026-10-29: the activation X lane (legality.activation_x_max /
+    ask_activation_x, CR 606.6 caps X at the loyalty counters) supports a
+    bare X, so Ugin is engine-supported. Any other Quantity delta has no
+    announcement lane and stays gated."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1597,7 +1652,9 @@ class TestDynamicLoyaltyCostGate(unittest.TestCase):
     def _gated(self, name: str) -> CompileResult:
         return compile_card(self.raw[name], self.reg, supported_verbs=self.verbs)
 
-    def test_ugin_minus_x_makes_the_card_unsupported(self) -> None:
+    def test_ugin_minus_x_is_supported_by_the_x_lane(self) -> None:
+        # re-pinned 2026-10-29: the activation X lane changes Ugin from
+        # gated to supported (it asserted assertFalse before the lane).
         res = self._gated("Ugin, the Spirit Dragon")
         deltas = [
             part.delta
@@ -1607,7 +1664,27 @@ class TestDynamicLoyaltyCostGate(unittest.TestCase):
             if isinstance(part, CostLoyalty)
         ]
         self.assertEqual(deltas, [2, QX(), -10])
-        self.assertFalse(res.legality.engine_supported)
+        self.assertTrue(res.legality.engine_supported)
+
+    def test_a_non_bare_x_loyalty_delta_stays_unsupported(self) -> None:
+        from dataclasses import replace
+
+        from MTG_bot.core.ability_tree import QBin, QBinOp, QConst
+        from MTG_bot.core.compiler.compiler import _engine_supported
+
+        res = self._gated("Ugin, the Spirit Dragon")
+        minus_x = res.card.abilities[1]
+        assert isinstance(minus_x, ActivatedAbility)
+        crafted = replace(
+            minus_x,
+            cost=Cost(
+                parts=(CostLoyalty(delta=QBin(QBinOp.ADD, QX(), QConst(1))),)
+            ),
+        )
+        card = replace(
+            res.card, abilities=(res.card.abilities[0], crafted, *res.card.abilities[2:])
+        )
+        self.assertFalse(_engine_supported(card, self.verbs))
 
     def test_fixed_loyalty_costs_stay_supported(self) -> None:
         for name in ("Basri Ket", "Liliana, Death Mage", "Garruk, Savage Herald"):

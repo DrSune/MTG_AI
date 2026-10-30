@@ -1,0 +1,17 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Wildwood Scourge (M21): 'Whenever ONE OR MORE +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.' With Conclave Mentor ('If one or more +1/+1 counters would be put on a creature you control, that many plus one ... instead'): the Scourge cast with X=1 enters with 2 counters. Tempered Veteran puts one counter on the Bear, Mentor makes it two at once: ONE trigger, whose single counter Mentor also makes two. Scourge: 2 + 2 = 4 (a trigger per counter would give 6). Bear: 2.",
+ "cards": [
+  {"key": "ws", "zone": "hand", "controller": 0, "real": "Wildwood Scourge"},
+  {"key": "mentor", "zone": "battlefield", "controller": 0, "real": "Conclave Mentor"},
+  {"key": "vet", "zone": "battlefield", "controller": 0, "real": "Tempered Veteran"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {"0": {"G": 2, "W": 6}},
+ "steps": [
+  {"op": "cast", "key": "ws", "x": 1},
+  {"op": "activate", "key": "vet", "idx": 1, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"ws": "battlefield"},
+  "counters": {"ws": {"PLUS_1_PLUS_1": 4}, "bear": {"PLUS_1_PLUS_1": 2}, "mentor": {}, "vet": {}}
+ }}

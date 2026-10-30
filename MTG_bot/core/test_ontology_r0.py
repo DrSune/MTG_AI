@@ -98,11 +98,36 @@ L1_CARDS = (
 L5_TRIO = ("Chandra's Firemaw", "Teferi's Wavecaster", "Garruk's Warsteed")
 
 
+def search_atom_dict(card: str) -> dict:
+    """The first SEARCH atom dict of a battery golden.
+
+    # re-pinned 2026-10-29: m21-fidelity folds Basri's Aegis' and Liliana's Scorn's tutor into
+    # the sorcery's effect (it was a free activated row, abilities[0]), so the atom is found by
+    # walking the tree instead of by a fixed abilities[0]/steps[0] path. Same atom bytes."""
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("tag") == "Atom" and node["verb"]["name"] == "SEARCH":
+                return node
+            for value in node.values():
+                found = walk(value)
+                if found is not None:
+                    return found
+        elif isinstance(node, list):
+            for value in node:
+                found = walk(value)
+                if found is not None:
+                    return found
+        return None
+
+    atom = walk(golden(card)["abilities"])
+    assert atom is not None, f"{card}: no SEARCH atom"
+    return atom
+
+
 def search_selector_dict(card: str) -> dict:
     """The folded ONE_OF search selector dict out of a battery golden."""
-    eff = golden(card)["abilities"][0]["effect"]
-    steps = (eff.get("inner") or eff)["steps"]
-    return dict(steps[0]["args"]["pairs"])["cards"]
+    return dict(search_atom_dict(card)["args"]["pairs"])["cards"]
 
 
 # ---------------------------------------------------------------- schema
@@ -361,11 +386,8 @@ class LibraryProbe(unittest.TestCase):
         return lib_a, lib_b, lib_c, gv
 
     def run_search_step(self, card: str, pick: str):
-        steps = (
-            golden(card)["abilities"][0]["effect"].get("inner")
-            or golden(card)["abilities"][0]["effect"]
-        )["steps"]
-        atom0 = from_dict("Atom", steps[0])
+        # re-pinned 2026-10-29: the SEARCH atom is located by walking the tree (search_atom_dict).
+        atom0 = from_dict("Atom", search_atom_dict(card))
         return self.ex.execute(
             atom0,
             source=self.p0,
@@ -602,10 +624,8 @@ class TestSameSeedDeterminism(LibraryProbe):
         w.add_card(card_id("Decoy B"), p0, ZONE_LIBRARY)
         w.add_card(ident, p0, ZONE_LIBRARY)
         gv = w.add_card(ident, p0, ZONE_GRAVEYARD)
-        eff = golden(card)["abilities"][0]["effect"]
-        steps = (eff.get("inner") or eff)["steps"]
         ex.execute(
-            from_dict("Atom", steps[0]),
+            from_dict("Atom", search_atom_dict(card)),
             source=p0,
             controller=p0,
             decisions=(str(gv),),

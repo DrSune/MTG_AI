@@ -428,17 +428,19 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
             for seat in players_for_ref(zone.controller, ctx)
             for handle in stack_zone(world, seat).entries
         ]
+    from MTG_bot.core.executor.selectors import existing  # CR 702.26b
+
     owner = source_owner(world, ctx)
     if zone.controller is ControllerRef.OWNER:
         if zone.kind is ZoneKind.PLAYER:
             return [owner]
-        return list(world.players[owner].zone(_STATE_KIND[zone.kind]).entries)
+        return existing(ctx, list(world.players[owner].zone(_STATE_KIND[zone.kind]).entries))
     if zone.kind is ZoneKind.ANY:
         handles: list[Handle] = []
         for player in world.player_order:
             for kind in PLAYER_ZONES:
                 handles.extend(world.players[player].zone(kind).entries)
-        return handles
+        return existing(ctx, handles)
     # 12a path (PLAYER refs, positions, TOP/BOTTOM): identical semantics.
     from MTG_bot.core.executor.selectors import enumerate_zone
 
@@ -691,7 +693,12 @@ def build_payment_plan(
         activation_lane = mana_use is None
         mod_hosts: list[Handle] = [judge]
         for seat in world.player_order:
-            mod_hosts.extend(sorted(world.players[seat].zone(ZONE_BATTLEFIELD).entries))
+            # CR 702.26b: a phased-out permanent's modifier does not exist.
+            # m21-fidelity (2026-10-29): on the activation lane the judge IS a
+            # battlefield permanent, so it must not be scanned twice (Sanctum of
+            # Tranquil Light's "{1} less for each Shrine" folded twice: one Shrine
+            # cut {2}, stronger than printed). The cast lane's judge is on the stack.
+            mod_hosts.extend(h for h in sorted(ex.battlefield(seat)) if h != judge)
         for host in mod_hosts:
             rec = ex.binder.handle_record.get(host)
             if rec is None:
@@ -922,8 +929,12 @@ def build_payment_plan(
                 and src.identity.loyalty is None
             ):
                 return None, "cost:loyalty:not_planeswalker"
+            # A Quantity delta is Ugin's [−X]: always a REDUCTION of the
+            # resolved amount (CostLoyalty's own contract; CR 606.4 removes
+            # X counters). X is the activation's announced value (CR 602.2b
+            # -> 601.2b, 107.3a), bound on ``ctx.x_value`` by the X lane.
             delta = (
-                part.delta if isinstance(part.delta, int) else resolve(part.delta, ctx)
+                part.delta if isinstance(part.delta, int) else -resolve(part.delta, ctx)
             )
             have = _loyalty_of(world, ctx.source)
             if delta < 0 and have < -delta:
@@ -1094,9 +1105,32 @@ def ability_playable(
         )
     ):
         return f"window:not_on_battlefield:{handle}"
+    if handle in executor.phased_out:
+        # CR 702.26b: treated as though it does not exist (mana abilities too).
+        return f"window:phased_out:{handle}"
     if handle in world.cards and executor.controller_of(handle) != seat:
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
+    loyalty_ability = any(isinstance(p, CostLoyalty) for p in ability.cost.parts)
+    if (
+        loyalty_ability
+        and not executor.layers.instant_window_granted(handle)
+    ):
+        # CR 606.3: a loyalty ability is activated only by its permanent's
+        # controller, with priority and an empty stack, during a main phase
+        # of their own turn. The compiler gives loyalty abilities no
+        # ``timing`` (CR 606.3 is a rule of the ability type, not printed
+        # text), so the window lives here. Both main phases are main phases;
+        # Teferi, Master of Time's GRANT_ACTIVATION relaxes it to "any time
+        # you could cast an instant" for itself, and the once-per-turn clock
+        # below still holds. A world with no turn begun has no active player
+        # (bare test rigs): like ``phase is None`` below, it reads as inside.
+        if world.active_player is not None and world.active_player != seat:
+            return "window:loyalty:not_own_turn"
+        if not stack_empty:
+            return "window:loyalty:stack_nonempty"
+        if executor.phase not in (None, Phase.FIRST_MAIN.name, "SECOND_MAIN"):
+            return "window:loyalty:not_main_phase"
     if ability.timing is ActivationWindow.SORCERY and not (
         executor.layers.instant_window_granted(handle)
     ):
@@ -1119,17 +1153,19 @@ def ability_playable(
         # out of window. ``phase is None`` / FIRST_MAIN = inside.
         if executor.phase not in (None, Phase.FIRST_MAIN.name):
             return "window:sorcery:phase"
-    # CR 606.3 (13a): one loyalty ability per permanent per turn. The
-    # executor's simplification: the clock is keyed on the permanent and
-    # the turn number, with NO turn-ownership gate layered on top (the
-    # corpus' loyalty cards are all "activate only as a sorcery", which the
-    # timing gate above already covers; a non-sorcery loyalty window would
-    # additionally need the active-seat check — untested debt, documented).
-    if any(isinstance(p, CostLoyalty) for p in ability.cost.parts) and (
-        executor.loyalty_clock.get(handle) == world.turn
-    ):
+    # CR 606.3 (13a): one loyalty ability per permanent per turn, keyed on
+    # the permanent and the turn number. It holds inside Teferi, Master of
+    # Time's widened window too (the static changes when, never how often);
+    # the loyalty window itself is the gate above.
+    if loyalty_ability and executor.loyalty_clock.get(handle) == world.turn:
         return "window:loyalty:once_per_turn"
-    ctx = ctx_for(executor, source=handle, controller=seat)
+    # The X lane (CR 602.2b -> 601.2b): an activation whose cost carries X is
+    # legal iff some announcement is payable; X = 0 is the cheapest one (the
+    # witness ``legal_casts`` uses for X spells), so the cost folds at X = 0.
+    x_max = activation_x_max(world, handle, ability.cost)
+    ctx = ctx_for(
+        executor, source=handle, controller=seat, x_value=0 if x_max is not None else None
+    )
     if ability.condition is not None:
         subject = condition_ctx_source if condition_ctx_source is not None else handle
         if not eval_filter(ability.condition, subject, ctx):
@@ -1228,6 +1264,60 @@ def _qty_has_x(quantity: Quantity) -> bool:
     if isinstance(quantity, QBin):
         return _qty_has_x(quantity.left) or _qty_has_x(quantity.right)
     return False
+
+
+def activation_x_max(world: GameWorld, source: Handle, cost: Cost) -> int | None:
+    """The live bound of an activation's X announcement, or ``None`` when the
+    activation cost has no X.
+
+    CR 602.2b applies 601.2b to activations: the controller announces X as
+    the ability is activated (107.3a), and while the ability is on the stack
+    every X in it equals that value. The one carrier is a loyalty [−X]
+    (Ugin, the Spirit Dragon): CR 606.6 refuses a negative loyalty cost
+    larger than the permanent's loyalty counters, so X ranges over 0..loyalty
+    (X = 0 is a legal announcement: the ability removes no counters and is
+    still a loyalty ability, CR 606.3). An {X} mana activation cost has no
+    carrier in the pools and no lane here, so it is flagged, never guessed."""
+    loyalty_x = False
+    for part in cost.parts:
+        if isinstance(part, CostLoyalty) and not isinstance(part.delta, int):
+            if not isinstance(part.delta, QX):
+                raise NotImplementedError(
+                    f"executor: loyalty cost delta {part.delta!r} is not a bare X "
+                    "(no announcement lane for it)"
+                )
+            loyalty_x = True
+    if _cost_has_x(cost):
+        raise NotImplementedError(
+            "executor: an {X} mana activation cost has no X lane (only a loyalty [−X])"
+        )
+    if not loyalty_x:
+        return None
+    return max(0, _loyalty_of(world, source))
+
+
+def ask_activation_x(
+    executor: Executor,
+    source: Handle,
+    seat: Handle,
+    x_max: int,
+    decisions: Sequence[str] = (),
+) -> tuple[int, tuple[str, ...]]:
+    """Announce X for an activation (CR 602.2b -> 601.2b). The menu is the
+    live bounded range ``0..x_max`` (AGENTS §9/§10: every offered value is
+    payable, and the bound is the menu itself). With one legal value there
+    is no decision, so nothing is asked (§10: no single-candidate phantom).
+    The activation's explicit ``decisions`` pool answers first (ask order:
+    X, then the effect's own asks); the rest of the pool is returned for
+    the effect."""
+    if x_max <= 0:
+        return 0, tuple(decisions)
+    vocab = tuple(str(n) for n in range(x_max + 1))
+    ctx = executor._ctx(
+        source=source, controller=seat, bindings=None, decisions=decisions
+    )
+    answer = ctx.take_decision(vocab, f"x:{seat}:{source}:{site_digest(vocab)}")
+    return int(answer), tuple(decisions[ctx.decision_idx :])
 
 
 # SpellAbility windows: the frozen grammar gives SpellAbility NO timing
@@ -1674,6 +1764,7 @@ def activate(
     targets: Sequence[Handle] = (),
     decisions: Sequence[str] = (),
     stack_empty: bool = True,
+    x: int | None = None,
 ) -> tuple:
     """The folded ``ACTIVATE`` move (§1.3: legality, payment, effect — one
     engine call, no five micro-decisions to tap five lands): re-check
@@ -1682,7 +1773,14 @@ def activate(
     effect with ``targets`` designated as the ``target`` bindings the 12a
     role readers consume. The effect tree's own decisions
     (``OptionalEffect`` fire/skip, any-colour ADD_MANA) come through
-    ``decisions`` in tree order (C15). Returns the effect's event tuple."""
+    ``decisions`` in tree order (C15). Returns the effect's event tuple.
+
+    X lane (CR 602.2b -> 601.2b, 107.3a): an activation whose cost carries
+    X announces it before paying. ``x`` is the caller's announcement
+    (refused outside ``0..activation_x_max``); with ``x=None`` the X is
+    asked through the decision channel (:func:`ask_activation_x`; the
+    ``decisions`` pool answers first). The payment and the effect both read
+    the announced X. Passing ``x`` for a cost with no X is refused."""
     reason = ability_playable(
         executor.world,
         executor,
@@ -1710,15 +1808,34 @@ def activate(
         # ValueError, not TypeError: "illegal activation" is the documented
         # domain contract of activate(), whatever the wrong input was.
         raise ValueError("executor: illegal activation: ability:not_activated")
-    ctx = ctx_for(executor, source=handle, controller=seat)
+    # CR 602.2b -> 601.2b: X is announced before the cost is paid.
+    x_max = activation_x_max(executor.world, handle, ability.cost)
+    x_value: int | None = None
+    if x_max is not None:
+        if x is None:
+            x_value, decisions = ask_activation_x(
+                executor, handle, seat, x_max, decisions
+            )
+        elif x < 0:
+            raise ValueError(f"executor: illegal activation: x:{x}<0")
+        elif x > x_max:
+            # CR 606.6 (loyalty [−X]): X can't exceed the loyalty counters.
+            raise ValueError(f"executor: illegal activation: x:{x}>max:{x_max}")
+        else:
+            x_value = x
+    elif x is not None:
+        raise ValueError("executor: illegal activation: x:no_x_in_cost")
+    ctx = ctx_for(executor, source=handle, controller=seat, x_value=x_value)
     plan, plan_reason = build_payment_plan(
         executor.world, ctx, ability.cost, activation=handle
     )
     if plan is None:  # pragma: no cover - ability_playable just checked
         raise ValueError(f"executor: illegal activation: {plan_reason}")
     pay_costs(executor, plan, source=handle, controller=seat)
-    if plan.loyalty:
-        # CR 606.3 once-per-turn clock (13a), keyed on the permanent.
+    if any(isinstance(p, CostLoyalty) for p in ability.cost.parts):
+        # CR 606.3 once-per-turn clock (13a), keyed on the permanent. Keyed
+        # on the COST SHAPE, not the paid amount: a loyalty [−X] with X = 0
+        # removes no counter and is still the turn's loyalty ability.
         executor.loyalty_clock[handle] = executor.world.turn
         # r22c (Keral Keep Disciples): the LOYALTY_ACTIVATED feed — a
         # loyalty symbol was PAID, so this activation IS a loyalty
@@ -1759,6 +1876,7 @@ def activate(
         bindings=bindings,
         decisions=decisions,
         slot_designations=slot_designations,
+        x_value=x_value,  # CR 107.3a: every X in the ability is the announced X
     )
 
 
@@ -1825,6 +1943,8 @@ def attack_blocked_reason(
     world = executor.world
     if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
         return "not on the battlefield"
+    if creature in executor.phased_out:
+        return "phased out (CR 702.26b)"
     if executor.controller_of(creature) != seat:
         return "not controlled by the declaring player"
     ctx = executor._ctx(source=creature, controller=seat, bindings=None, decisions=())
@@ -1938,6 +2058,8 @@ def block_pair_blocked_reason(
         return "not on the battlefield"
     if world.zone_of(attacker).kind != ZONE_BATTLEFIELD:
         return "attacker not on the battlefield"
+    if blocker in executor.phased_out or attacker in executor.phased_out:
+        return "phased out (CR 702.26b)"
     ctx_blocker = executor._ctx(
         source=blocker,
         controller=executor.controller_of(blocker),
@@ -1984,6 +2106,8 @@ def blocker_askable(
     out here — the "tapped creatures cannot block" face of CR 509.1a."""
     world = executor.world
     if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
+        return False
+    if blocker in executor.phased_out:  # CR 702.26b
         return False
     ctx_blocker = executor._ctx(
         source=blocker,

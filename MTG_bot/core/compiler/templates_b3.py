@@ -918,10 +918,12 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
     Taunter) — Verb.FIGHT as an effect verb (R7-9a; previously the verb
     existed only as a Keyword).  FIGHT's single ``target`` role is the
     *opponent* of the fight: the source creature is the implicit attacker
-    (no role for it), so "another" rides the IS_ANY_TARGET convention the
-    Selfless Savior precedent established for self-exclusion — the paired
-    damage rule ("each deals damage equal to its power to the other") is
-    FIGHT's rule reminder, never a sentence."""
+    (no role for it). "another" excludes the source: FNot(IS_SOURCE), the
+    "other/another target" shape of Barrin, Niambi and Basri's Acolyte
+    (m21-fidelity, review batch D, 2026-10-29: it was IS_ANY_TARGET, which
+    is true of every designated target, so Brash Taunter could fight
+    itself) — the paired damage rule ("each deals damage equal to its power
+    to the other") is FIGHT's rule reminder, never a sentence."""
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.FIGHT,
@@ -935,7 +937,7 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
                         FAnd(
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                                FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                             )
                         ),
                         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),

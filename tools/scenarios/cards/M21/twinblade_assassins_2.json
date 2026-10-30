@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tw", "real": "Twinblade Assassins", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "sr", "real": "Swift Response", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Swift Response", "key": "sr", "targets": ["victim"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"victim": "graveyard"},
+  "hand": {"0": 2, "1": 1},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed: '... if a creature died THIS TURN, draw a card.' Turn 1: a creature dies, your end step draws one (Library 5). The opponent's end step is not yours (no draw). Your turn 3: the draw step draws Library 4, nothing died that turn, so the end step draws nothing: you hold exactly 2 cards."
+}
