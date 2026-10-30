@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Wildwood Scourge (M21): 'This creature enters with X +1/+1 counters on it.' is a replacement effect (CR 614.1c): the Scourge cast with X=4 enters the battlefield as a 4/4. Garruk's Uprising ('Whenever a creature with power 4 or greater enters the battlefield under your control, draw a card.') therefore triggers: seat 0 draws one card (hand 0 -> 1). Control pack: scourge_uprising_control_plain_44.json.",
+ "cards": [
+  {"key": "up", "zone": "battlefield", "controller": 0, "real": "Garruk's Uprising"},
+  {"key": "ws", "zone": "hand", "controller": 0, "real": "Wildwood Scourge"}
+ ],
+ "mana": {"0": {"G": 5}},
+ "steps": [
+  {"op": "cast", "key": "ws", "x": 4}
+ ],
+ "expect": {"zone": {"ws": "battlefield"}, "counters": {"ws": {"PLUS_1_PLUS_1": 4}}, "power": {"ws": 4}, "hand": {"0": 1}}}

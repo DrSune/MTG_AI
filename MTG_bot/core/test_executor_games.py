@@ -2461,10 +2461,18 @@ class StallRuleTest(unittest.TestCase):
         # until its player slot existed; it now exiles player 1's graveyard.
         # Still crash-free and decisive, SAME loser, 36 turns (double-run
         # replay verified). Neither Chandra in these decks is cast.
+        # re-pinned 2026-10-29: m21-fidelity folds Liliana's Scorn's tutor into
+        # its resolution (it was a free activated row that never ran), and the
+        # seat casting Scorn (turns 13 and 25) now gets the may-search ask and
+        # its search/shuffle, so the seeded trajectory shifts. The game is no
+        # longer decisive: it runs to the 60-turn cap with no loser, crash-free,
+        # its world changing every round (141 acts), so the stall rule still
+        # must not and does not fire (double-run replay verified: same
+        # fingerprint, turns and reason).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 36)
-        self.assertEqual(game.reason, "game over: player:0(life<=0)")
+        self.assertEqual(game.turns, 60)
+        self.assertEqual(game.reason, "turn cap 60 reached (no loser)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

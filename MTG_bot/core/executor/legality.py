@@ -686,7 +686,11 @@ def build_payment_plan(
         mod_hosts: list[Handle] = [judge]
         for seat in world.player_order:
             # CR 702.26b: a phased-out permanent's modifier does not exist.
-            mod_hosts.extend(sorted(ex.battlefield(seat)))
+            # m21-fidelity (2026-10-29): on the activation lane the judge IS a
+            # battlefield permanent, so it must not be scanned twice (Sanctum of
+            # Tranquil Light's "{1} less for each Shrine" folded twice: one Shrine
+            # cut {2}, stronger than printed). The cast lane's judge is on the stack.
+            mod_hosts.extend(h for h in sorted(ex.battlefield(seat)) if h != judge)
         for host in mod_hosts:
             rec = ex.binder.handle_record.get(host)
             if rec is None:

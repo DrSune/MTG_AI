@@ -637,6 +637,40 @@ class LayerRegistry:
                 )
             )
             return records
+        if any(atom.verb == Verb.ADD_LAND_PLAY for atom in atoms):
+            # m21-fidelity (2026-10-29): Azusa's "You may play two additional
+            # lands on each of your turns" is a STATIC ability (CR 604.1): a
+            # continuous effect that raises its controller's land allowance
+            # while the permanent is on the battlefield (CR 305.2). Same
+            # selector-less "land_play" record the runtime handler registers
+            # (verbs._v_add_land_play), so land_play_bonus sums both; its
+            # liveness is the anchor permanent's, like mana_policy. The "you
+            # may" was unwrapped above: it is the use, playing the land.
+            if any(atom.verb != Verb.ADD_LAND_PLAY for atom in atoms):
+                raise NotImplementedError(
+                    "executor: StaticAbility mixing ADD_LAND_PLAY with other "
+                    "payload verbs is not parseable"
+                )
+            for atom in atoms:
+                count_q = atom.args.get("count")
+                if count_q is None:
+                    count_q = QConst(1)  # "an additional land" (role optional)
+                if not isinstance(count_q, QConst) or count_q.value < 0:
+                    raise NotImplementedError(
+                        f"executor: static ADD_LAND_PLAY count {count_q!r} is not "
+                        "layer-parseable (a constant is the only shape in the pool)"
+                    )
+                records.append(
+                    self._new(
+                        "land_play",
+                        handle,
+                        controller,
+                        (QConst(count_q.value),),
+                        condition=static.condition,
+                        duration=_static_while_duration([atom]),
+                    )
+                )
+            return records
         for atom in atoms:
             if atom.verb not in _LAYER_PAYLOAD_VERBS:
                 raise NotImplementedError(

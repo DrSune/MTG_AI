@@ -75,6 +75,7 @@ from MTG_bot.core.ability_tree import (
     Choose,
     ControllerRef,
     Cost,
+    EachPlayer,
     Effect,
     FAnd,
     FAtom,
@@ -1091,6 +1092,15 @@ def _names_target_player(value: object) -> bool:
     )
 
 
+def _rotates_to_target_player(node: object) -> bool:
+    """m21-fidelity (2026-10-29): an EachPlayer whose ref is TARGET_PLAYER runs its effect as
+    the target player (Run Afoul's "Target opponent sacrifices a creature of their choice with
+    flying", the Goremand edict shape with a target). Its atoms are YOU-relative, so no atom role
+    names TARGET_PLAYER; the ref itself makes the player a target (CR 115.1) and needs the slot,
+    or the resolution raises "TARGET_PLAYER needs a bound target"."""
+    return isinstance(node, EachPlayer) and node.ref is ControllerRef.TARGET_PLAYER
+
+
 def spell_target_slots(
     executor: Executor,
     node: SpellAbility,
@@ -1134,6 +1144,8 @@ def spell_target_slots(
         return [aura] if aura is not None else slots
     reads_target_player = False
     for inner in walk(node.effect):
+        if _rotates_to_target_player(inner):
+            reads_target_player = True
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
@@ -1228,6 +1240,8 @@ def activation_target_slots(
         return slots
     reads_target_player = False
     for inner in walk(effect):
+        if _rotates_to_target_player(inner):
+            reads_target_player = True
         if not isinstance(inner, Atom):
             continue
         for _role, value in inner.args.pairs:
