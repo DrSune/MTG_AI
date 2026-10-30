@@ -57,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
     Selector,
+    SelectorMode,
     ThisTurnKind,
     ZonePosition,
 )
@@ -334,6 +335,9 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
             resolve_selector,
         )  # cycle-free at call time
 
+        deaths = _died_this_turn_census(quantity.selector, ctx)
+        if deaths is not None:
+            return deaths
         return len(resolve_selector(quantity.selector, ctx))
     if isinstance(quantity, QDistinctColorCount):
         from MTG_bot.core.executor.selectors import resolve_selector
@@ -1788,6 +1792,64 @@ def _permanent_was_kicked(ctx: ExecCtx, handle: Handle) -> bool:
     # (a residency with no cast row inside: a put-on-stack / copy entry —
     # was never cast, never kicked).
     return cast_kicked and cast_clock > stack_in_clock
+
+
+def _died_this_turn_census(sel: Selector, ctx: ExecCtx) -> int | None:
+    """V7 (2026-10-29): "the number of [nontoken] creatures that died [under
+    your control] this turn" (Liliana's Standard Bearer, Gadrak, Canopy
+    Stalker) counts this turn's DEATH EVENTS, never graveyard contents. To die
+    is to be put into a graveyard from the battlefield (CR 700.4); the count
+    reads each dead creature as it last existed on the battlefield (CR
+    603.10a): its type line, its controller, its token flag, all recorded on
+    the CREATURE_DIES row. So a card that left the graveyard since still
+    counts, a token that ceased to exist (CR 704.5d) counts, and the
+    controller is the one at death, not the graveyard's owner.
+
+    Applies to an ALL-mode census whose filter conjoins DIED_THIS_TURN; None
+    for every other selector (the ordinary zone census). A conjunct this
+    census cannot judge on the death row raises (flag, never guess)."""
+    if sel.mode is not SelectorMode.ALL or sel.referent is not None:
+        return None
+
+    def conjuncts(f: Filter) -> list[Filter]:
+        if isinstance(f, FAnd):
+            return [c for child in f.children for c in conjuncts(child)]
+        return [f]
+
+    parts = conjuncts(sel.filter)
+    if not any(isinstance(c, FAtom) and c.pred is FAtomPred.DIED_THIS_TURN for c in parts):
+        return None
+    from MTG_bot.core.executor.events import KIND_CREATURE_DIES
+    from MTG_bot.core.executor.selectors import controller_matches
+
+    def holds(part: Filter, row: GameEvent) -> bool:
+        negate = isinstance(part, FNot)
+        atom = part.inner if isinstance(part, FNot) else part
+        if not isinstance(atom, FAtom):
+            raise NotImplementedError(
+                f"executor: died-this-turn census cannot judge {type(atom).__name__}"
+            )
+        data = row.data
+        if atom.pred is FAtomPred.DIED_THIS_TURN:
+            got = True
+        elif atom.pred is FAtomPred.TYPE_EQ:
+            got = atom.string_value in _type_line_tokens(str(data[2]))
+        elif atom.pred is FAtomPred.IS_TOKEN:
+            got = bool(data[6])
+        elif atom.pred is FAtomPred.CONTROLLER_IS:
+            assert atom.who is not None
+            was_controller = data[5]
+            assert isinstance(was_controller, Handle)
+            got = controller_matches(atom.who, was_controller, ctx)
+        else:
+            raise NotImplementedError(
+                f"executor: died-this-turn census cannot judge {atom.pred.name} "
+                "on a death row"
+            )
+        return got != negate
+
+    rows = [e for e in _turn_rows(ctx, "DIED_THIS_TURN") if e.kind == KIND_CREATURE_DIES]
+    return sum(1 for row in rows if all(holds(part, row) for part in parts))
 
 
 def _turn_rows(ctx: ExecCtx, pred_name: str) -> list[GameEvent]:

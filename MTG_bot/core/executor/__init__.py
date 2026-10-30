@@ -410,6 +410,9 @@ class Executor:
         self.unresolved_effects: list[str] = []
         self.unresolved_effect_counts: dict[str, int] = {}
         self.journal = EventJournal(world, self.ledger)
+        # V7: dies rows record the controller as of death through the 16e
+        # control overlay (a bound method, so a deepcopy fork rebinds it).
+        self.journal.controller_override = self._overlay_controller
         # 12d registries (built BEFORE the binder: the binder's lifecycle
         # hooks reach them during attach).
         self.layers = LayerRegistry(self)
@@ -2297,6 +2300,11 @@ class Executor:
         self.layers.recompute()  # "equipped creature" scopes re-read the table
 
     # -------------------------------------------------- 16e control overlay
+
+    def _overlay_controller(self, handle: Handle) -> Handle | None:
+        """The 16e overlay's controller for ``handle``, None when the zone's
+        player controls it (the journal's V7 as-of-death read)."""
+        return self.control_overlay.get(handle)
 
     def controller_of(self, handle: Handle) -> Handle:
         """The EFFECTIVE controller of a card (16e): the GAIN_CONTROL

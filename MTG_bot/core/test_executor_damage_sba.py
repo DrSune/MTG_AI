@@ -343,5 +343,115 @@ class TestNamedDealer(ExecutorCase):
         self.assertEqual(self.damage_rows(), [])
 
 
+
+def _died_census(*extra):
+    """The compiled census shape (Liliana's Standard Bearer, Gadrak, Canopy
+    Stalker): ALL creature cards in a graveyard that died this turn."""
+    from MTG_bot.core.ability_tree import FAnd, FAtom, FAtomPred, QCount, QUnbounded
+
+    return QCount(
+        Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd(children=(FAtom(FAtomPred.DIED_THIS_TURN), CREATURE, *extra)),
+            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),),
+        )
+    )
+
+
+class TestDiedThisTurnCensus(ExecutorCase):
+    """V7 (2026-10-29): "creatures that died [under your control] this turn"
+    counts death events (CR 700.4), judged as each creature last existed on
+    the battlefield (CR 603.10a), never graveyard contents."""
+
+    def count(self, quantity, seat=None):
+        from MTG_bot.core.executor.quantity import resolve
+
+        seat = self.p0 if seat is None else seat
+        ctx = self.ex._ctx(source=self.alpha, controller=seat, bindings=None, decisions=())
+        return resolve(quantity, ctx)
+
+    def destroy(self, card):
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=self.gamma,
+            controller=self.p0,
+            bindings={"target": card},
+        )
+
+    def you(self):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+
+        return FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+
+    def test_a_dead_creature_that_left_the_graveyard_still_counts(self):
+        self.destroy(self.alpha)
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)),
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+            ),
+            source=self.gamma,
+            controller=self.p0,
+            bindings={"cards": self.alpha},
+        )
+        self.assertEqual(self.world.zone_of(self.alpha).kind, "exile")
+        self.assertEqual(self.count(_died_census(self.you())), 1)
+
+    def test_the_controller_at_death_counts_not_the_owner(self):
+        self.ex.gain_control(self.beta, self.p0, "Eot")  # p0 steals p1's Beta
+        self.destroy(self.beta)  # it dies under p0's control, into p1's graveyard
+        self.assertEqual(self.count(_died_census(self.you()), self.p0), 1)
+        self.assertEqual(self.count(_died_census(self.you()), self.p1), 0)
+
+    def test_a_token_counts_and_nontoken_excludes_it(self):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, FNot
+        from MTG_bot.core.identity import CardIdentity
+
+        token = self.world.add_card(
+            CardIdentity(
+                oracle_id="9a000001-1111-2222-3333-444444444444",
+                name="Knight",
+                type_line="Token Creature — Knight",
+                power="2",
+                toughness="2",
+                is_token=True,
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.destroy(token)
+        self.assertEqual(self.count(_died_census()), 1)
+        self.assertEqual(self.count(_died_census(FNot(FAtom(FAtomPred.IS_TOKEN)))), 0)
+
+    def test_a_noncreature_death_is_not_a_creature_death(self):
+        from MTG_bot.core.identity import CardIdentity
+
+        relic = self.world.add_card(
+            CardIdentity(
+                oracle_id="9a000002-1111-2222-3333-444444444444",
+                name="Relic",
+                type_line="Artifact",
+            ),
+            self.p0,
+            ZONE_BATTLEFIELD,
+        )
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel(UNIV)),
+            source=self.gamma,
+            controller=self.p0,
+            bindings={"target": relic},
+        )
+        self.assertEqual(self.count(_died_census()), 0)
+
+    def test_a_conjunct_the_death_row_cannot_judge_raises(self):
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+
+        self.destroy(self.alpha)
+        with self.assertRaises(NotImplementedError):
+            self.count(_died_census(FAtom(FAtomPred.POWER_GE, count=QConst(2))))
+
+
 if __name__ == "__main__":
     unittest.main()

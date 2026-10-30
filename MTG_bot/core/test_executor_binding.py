@@ -389,10 +389,13 @@ class TestEventKinds(BindingCase):
         self.assertEqual(self.life(self.p0), 24)
         dies = [e for e in self.ex.journal.events if e.kind == "CREATURE_DIES"]
         self.assertEqual(len(dies), 1)
-        _from, was_owner, was_type, was_p, was_t = dies[0].dies
+        # re-pinned 2026-10-29: V7 appends the controller and the token flag
+        # as of death (CR 603.10a) to the row.
+        _from, was_owner, was_type, was_p, was_t, was_controller, was_token = dies[0].data
         self.assertEqual((was_p, was_t), (4, 2))
         self.assertEqual(was_type, "Creature")
         self.assertEqual(was_owner, self.p0)
+        self.assertEqual((was_controller, was_token), (self.p0, False))
 
     def test_draw_ordinal_trigger(self):
         self.attach_trigger(  # second card drawn this turn -> +1

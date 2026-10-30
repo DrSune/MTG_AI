@@ -31,7 +31,7 @@ ordinal is event data; ``begin_turn`` resets them.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import cast
 
@@ -161,7 +161,10 @@ class GameEvent:
       * ZONE_CHANGE   — ``(from_state|None, to_state, owner_before,
         owner_after)``; ``from_state=None`` marks a created object (token).
       * CREATURE_DIES — ``(from_state, owner_before, was_type_line,
-        was_power, was_toughness)`` (C18 was-snapshot).
+        was_power, was_toughness, was_controller, was_token)`` (C18
+        was-snapshot; V7 2026-10-29 appended the controller and the token
+        flag as of death, CR 603.10a, for "creatures that died under your
+        control this turn" and "nontoken creature that died this turn").
       * COUNTER_PLACED— ``(counter_kind_name, n)``
       * TAP_STATE     — ``(tapped_bool,)``
       * CARD_DRAWN    — ``(drawer, ordinal_this_turn)``
@@ -228,8 +231,10 @@ class GameEvent:
         return cast("tuple[str | None, str, Handle | None, Handle]", self.data)
 
     @property
-    def dies(self) -> tuple[str, Handle, str, int | None, int | None]:
-        return cast("tuple[str, Handle, str, int | None, int | None]", self.data)
+    def dies(self) -> tuple[str, Handle, str, int | None, int | None, Handle, bool]:
+        return cast(
+            "tuple[str, Handle, str, int | None, int | None, Handle, bool]", self.data
+        )
 
     @property
     def counter(self) -> tuple[str, int]:
@@ -322,6 +327,10 @@ class EventJournal:
         # like the draw ordinal.
         self.cast_counts: dict[Handle, int] = {}
         self._clock = 0
+        # V7 (2026-10-29): the executor's control overlay (16e) — who
+        # controls a permanent the frozen zones do not say (a stolen
+        # creature sits in its owner's zone). None = the zone's player.
+        self.controller_override: Callable[[Handle], Handle | None] | None = None
 
     # ------------------------------------------------------------- emitting
 
@@ -527,6 +536,14 @@ class EventJournal:
                 was_power, was_toughness = self.ledger.effective_pt(
                     identity, card, world.cards[card].counters
                 )
+                # V7: the controller as of death (CR 603.10a): the overlay's
+                # entry is still in place here (it expires after the journal
+                # records the move), else the battlefield zone's player.
+                stolen_by = (
+                    self.controller_override(card)
+                    if self.controller_override is not None
+                    else None
+                )
                 self._emit(
                     KIND_CREATURE_DIES,
                     card,
@@ -538,6 +555,8 @@ class EventJournal:
                         identity.type_line,
                         was_power,
                         was_toughness,
+                        stolen_by if stolen_by is not None else (was[0] if was else owner),
+                        identity.is_token,
                     ),
                 )
 

@@ -1,0 +1,104 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "b",
+   "real": "Liliana's Standard Bearer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "eh",
+   "real": "Enthralling Hold",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Deleter",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "thrall",
+   "name": "Thralldom",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "start_tapped": true
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Enthralling Hold",
+   "key": "eh",
+   "targets": [
+    "thrall"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "thrall": true
+   }
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "thrall",
+   "amount": 3
+  },
+  {
+   "op": "enter",
+   "key": "b"
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "thrall": true
+  },
+  "life": {
+   "0": 20,
+   "1": 19
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "zone": {
+   "b": "battlefield",
+   "thrall": "graveyard",
+   "eh": "graveyard"
+  }
+ },
+ "notes": "Printed: '... X is the number of creatures that died under YOUR CONTROL this turn.' You steal the opponent's 1/1 with Enthralling Hold; two turns later it attacks for you (attackers + life 19 prove you control it), then dies this turn under your control (it goes to its OWNER's graveyard). The Bearer then enters: X = 1. Hand: Bearer + your turn-3 draw (Library 5) - Bearer + 1 drawn (Library 4) = 2; library Library 3..0."
+}

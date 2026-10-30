@@ -1,0 +1,84 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "b",
+   "real": "Liliana's Standard Bearer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Deleter",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vit",
+   "name": "Victim",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o",
+   "real": "Scavenging Ooze",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "vit",
+   "amount": 3
+  },
+  {
+   "op": "activate",
+   "key": "o",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "vit"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "b"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "zone": {
+   "b": "battlefield",
+   "vit": "exile"
+  }
+ },
+ "notes": "Printed: 'When this creature enters, draw X cards, where X is the number of creatures that died under your control this turn.' Victim (yours) dies this turn, then Scavenging Ooze exiles it from your graveyard. It still died under your control this turn, so X = 1: the Bearer draws one card (hand 0 -> 1, Library 5 drawn). Kills a count of creature cards that are STILL in a graveyard."
+}

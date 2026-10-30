@@ -712,6 +712,12 @@ These are forks, not tasks. See the report that accompanied this audit.
     class: detector gap or engine bug.
 - **B-74 Sorcery speed means the first main phase only.** No second-main window for casts, land
   drops or sorcery-speed activations.
+- **B-91 [vfix V7, 2026-10-29] A dies trigger judges "you control" after the death, not as of it**
+  (CR 603.10a). `CreatureDiesEvent` filters run when the binder matches, after the control overlay
+  has expired, so a creature stolen with Enthralling Hold that dies triggers its OWNER's "whenever a
+  creature you control dies", not the thief's. Since V7 every CREATURE_DIES row carries the
+  controller and the token flag as of death (`events.py`, data[5:7]); the matcher can read them, as
+  the died-this-turn census does (`quantity._died_this_turn_census`). Rare in M21 (needs a steal).
 - **B-90 [vfix V2, 2026-10-29] A payment outside the active player's main phase had no mana** **[option (a) BUILT
   on `engine/verify-fixes` 2026-10-29, owner decision; (b) stays the design target]**
   (weaker than printed, live in M21 until (a)). Since V2 the pool empties as each step and phase ends
