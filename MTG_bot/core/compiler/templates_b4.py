@@ -568,6 +568,14 @@ def _build_gain_life_n(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_gain_life_qcount_cats(m: re.Match[str]) -> SentenceOutcome:
+    """``You gain life equal to the number of Cats you control.`` (Rin and
+    Seri, Inseparable s4). m21-fidelity (wave 4, 2026-10-30): the sentence
+    is the second instruction of the {R}{G}{W}, {T} ability above it (CR
+    602.1: "[Cost]: [Effect.]", the effect is everything after the colon,
+    and CR 608.2c follows its instructions in order), so it is an EFFECT
+    the compiler's continuation fold appends to that ability. It was a
+    StaticAbility of its own, which never gains life (the executor skips it
+    as an unparseable static), so the activation only dealt damage."""
     atom = Atom(
         verb=Verb.GAIN_LIFE,
         args=AtomArgs(
@@ -577,7 +585,7 @@ def _build_gain_life_qcount_cats(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return AbilityOutcome(ability=StaticAbility(atom))
+    return EffectOutcome(effect=atom)
 
 
 def _build_lose_life_n(m: re.Match[str]) -> SentenceOutcome:

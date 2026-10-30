@@ -400,9 +400,11 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
     ),
     "You gain 4 life.": ("B4-gain-life-n", "effect"),
     "You gain 3 life.": ("B4-gain-life-n", "effect"),
+    # re-pinned 2026-10-30: m21-fidelity wave 4, an effect continuation (Rin and Seri's
+    # activated ability's second instruction), not a static.
     "You gain life equal to the number of Cats you control.": (
         "B4-gain-life-qcount-cats",
-        "ability",
+        "effect",
     ),
     "You lose 3 life.": ("B4-lose-life-n", "effect"),
     "Creature spells with flying you cast cost {1} less to cast.": (
@@ -933,12 +935,15 @@ class TestB4IrStructure(unittest.TestCase):
             self.assertEqual(_qconst(_pairs(atom).get("amount")).value, life, sentence)
 
     def test_gain_life_qcount_cats(self) -> None:
-        outcome = _as_ability(
+        # re-pinned 2026-10-30: m21-fidelity wave 4, the sentence is the second instruction of
+        # Rin and Seri's activated ability (CR 602.1), an EffectOutcome the continuation fold
+        # appends, not a StaticAbility of its own (which never gained life).
+        outcome = _as_effect(
             _single_match(
                 self.reg, "You gain life equal to the number of Cats you control."
             ).outcome
         )
-        atom = _as_atom(_as_static(outcome.ability).effect)
+        atom = _as_atom(outcome.effect)
         self.assertIs(atom.verb, Verb.GAIN_LIFE)
         self.assertIs(_pairs(atom).get("controller"), ControllerRef.YOU)
         amount = _as_qcount(_pairs(atom).get("amount"))
