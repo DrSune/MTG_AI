@@ -1180,11 +1180,12 @@ class TestB4IrStructure(unittest.TestCase):
         outcome = _as_effect(_single_match(self.reg, sentence).outcome)
         optional = _as_optional(outcome.effect)
         seq = _as_seq(optional.inner)
-        self.assertEqual(len(seq.steps), 3)
-        search_atom, reveal_atom, move_atom = seq.steps
+        # re-pinned 2026-10-30 (G3 finisher): SEARCH + REVEAL only; the third step, an
+        # unprinted MOVE_ZONE of this card from the top of the library, is gone.
+        self.assertEqual(len(seq.steps), 2)
+        search_atom, reveal_atom = seq.steps
         assert isinstance(search_atom, Atom)
         assert isinstance(reveal_atom, Atom)
-        assert isinstance(move_atom, Atom)
         # SEARCH
         self.assertIs(search_atom.verb, Verb.SEARCH)
         cards = _selector(search_atom, "cards")
@@ -1209,12 +1210,6 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(reveal_atom.verb, Verb.REVEAL)
         self.assertIs(_pairs(reveal_atom).get("controller"), ControllerRef.YOU)
         self.assertEqual(_qconst(_pairs(reveal_atom).get("count")).value, 1)
-        # MOVE_ZONE
-        self.assertIs(move_atom.verb, Verb.MOVE_ZONE)
-        move_dest = move_atom.args.get("destination")
-        assert isinstance(move_dest, Zone)
-        self.assertIs(move_dest.kind, ZoneKind.HAND)
-        self.assertIs(move_dest.controller, ControllerRef.YOU)
 
     # ------------------------------------------------------------------
     # Round-6 batch: blocked-side restrictions, MANDATE_BLOCK, ETB X-counters

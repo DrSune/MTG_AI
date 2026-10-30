@@ -154,7 +154,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
-    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -1051,32 +1050,13 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.REVEAL,
         args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
     )
-    move = Atom(
-        verb=Verb.MOVE_ZONE,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_SOURCE),
-                        zones=(
-                            Zone(
-                                ZoneKind.LIBRARY,
-                                ControllerRef.YOU,
-                                position=ZonePosition.TOP,
-                            ),
-                        ),
-                    ),
-                ),
-                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
-            )
-        ),
-    )
+    # "put it into your hand" is the SEARCH's own destination. m21-fidelity
+    # (G3 finisher, 2026-10-30): a third step, MOVE_ZONE(this creature from the
+    # top of your library to your hand), was unprinted; it moved the creature
+    # itself when it was on top of the library as the trigger resolved.
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
-        OptionalEffect(inner=Seq(steps=(search, reveal, move))),
+        OptionalEffect(inner=Seq(steps=(search, reveal))),
     )
 
 

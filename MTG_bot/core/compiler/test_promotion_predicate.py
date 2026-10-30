@@ -68,9 +68,13 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # re-pinned 2026-10-29 (m21-fidelity item 5): Lofty Denial's "{4} instead" is a
 # conditional arm now; the old CostModifier's controller_ref (a referent='target'
 # CHOOSE) left the census: ANAPHORIC_REFERENT 35 -> 34, TOTAL 149 -> 148.
-TOTAL_SURFACES = 148
+# re-pinned 2026-10-30 (G3 finisher): the five M21 named tutors (Garruk's
+# Warsteed, Teferi's Wavecaster, Chandra's Firemaw, Basri's Aegis, Liliana's
+# Scorn) lost their unprinted MOVE_ZONE(IS_SOURCE, library top) step, one
+# self-designation CHOOSE each: SELF_DESIGNATION 55 -> 50, TOTAL 148 -> 143.
+TOTAL_SURFACES = 143
 CORE_LIFTABLE = 22
-SELF_DESIGNATION = 55
+SELF_DESIGNATION = 50
 ANAPHORIC_REFERENT = 34
 COST_VICTIM = 26
 COUNT_NOT_ONE = 11
