@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     CostDiscard,
     CostTap,
     FAnd,
+    QAtMost,
     QConst,
     QUnbounded,
     Selector,
@@ -182,11 +183,13 @@ class LedgerGroundTruth(unittest.TestCase):
             shapes = _choose_selectors(rec)
             want_count = json.loads(n["count"])
             self.assertEqual(want_count["tag"], "QConst")
-            hits = [
-                s
-                for s in shapes
-                if s[2] == tuple(n["zones"]) and s[3] == want_count["value"]
-            ]
+            want = want_count["value"]
+            if key == ("M21", "Kinetic Augur"):
+                # re-pinned 2026-10-29: V15 changes Kinetic Augur's "discard
+                # up to two" from the ledger's QConst(2) to QAtMost(2) (the
+                # player's 0..2); the ledger row is the R3 record.
+                want = repr(QAtMost(2))
+            hits = [s for s in shapes if s[2] == tuple(n["zones"]) and s[3] == want]
             self.assertTrue(hits, (key, n["zones"], want_count, shapes))
             holder = hits[0][0]
             if n["rule_key"] == "firstn":

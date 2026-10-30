@@ -2064,10 +2064,12 @@ def _build_barrin_end_step(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, discard up to two cards, then draw
-    that many cards.`` (Kinetic Augur) — C15: "up to two" stays
-    CHOOSE + QConst(2) (the 0/1/2 sub-choice is open, never TARGET-
-    pinned); the anaphor "that many" is the R7-5 ``THAT_MANY_COUNT``
-    quantity reading the discarded count off the effect register."""
+    that many cards.`` (Kinetic Augur) — "up to two" is CHOOSE + QAtMost(2):
+    the discarding player picks 0, 1 or 2 cards (V15, 2026-10-29; QConst(2)
+    discarded exactly two whenever the hand held two, the C17 clamp only
+    shortening it on a short hand); the anaphor "that many" is the R7-5
+    ``THAT_MANY_COUNT`` quantity reading the discarded count off the effect
+    register."""
     discard = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -2078,7 +2080,7 @@ def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
                 (
                     "cards",
                     Selector(
-                        QConst(2),
+                        QAtMost(2),
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
                         zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),

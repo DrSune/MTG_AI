@@ -307,8 +307,9 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(self.world.players[self.p0].life, 23)
 
     def test_up_to_multi_pick_carries_the_none_token(self):
-        # C17 contract (the pinned TARGET+QAtMost range 1..n): the FIRST
-        # pick is mandatory, later picks offer the "NONE" stop token.
+        # re-pinned 2026-10-29: V15 changes the TARGET+QAtMost range to 0..n
+        # (CR 601.2c, 115.6), so EVERY pick offers the "NONE" stop token, the
+        # first included (C17 had made the first pick mandatory).
         acolyte = self.carrier(self.p0, "Basri's Acolyte")
         d1 = self.world.add_card(
             card_id("Dummy One", "2", "2"), self.p0, ZONE_BATTLEFIELD
@@ -335,7 +336,7 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(dict(self.world.cards[d2].counters), {"PLUS_1_PLUS_1": 1})
         self.assertEqual(dict(self.world.cards[d1].counters), {})
         first_vocab, second_vocab = self.asks[0][0], self.asks[1][0]
-        self.assertNotIn("NONE", first_vocab)
+        self.assertEqual(first_vocab, (str(acolyte), str(d1), str(d2), "NONE"))
         # pool minus the first pick, stop token appended; the acolyte
         # itself is a legal creature candidate all along.
         self.assertEqual(second_vocab, (str(acolyte), str(d1), "NONE"))

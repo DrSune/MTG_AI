@@ -37,7 +37,8 @@ schedule:
 C-contract pins encoded here:
 
 * **C17** — ``TARGET`` + :class:`QAtMost` is a legal *designation* range
-  ``1..n`` (still targeted; min 1), resolving to ``0..remaining``;
+  ``0..n`` (V15, 2026-10-29: CR 601.2c, 115.6; it was min 1), resolving to
+  ``0..remaining``;
   ``CHOOSE`` + up-to (and ``Choose`` + ``QAtMost``) is a resolution-time
   enumeration that DOES include the empty selection (``0..n``). The two
   zero-cards sit in different phases and the tests pin both.
@@ -167,8 +168,8 @@ class TargetSlot:
     Cardinality semantics (C17, Selector docstring):
 
     * ``TARGET`` + ``QConst(n)``   — exactly n (min = max = n);
-    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 1..n (min 1: it is
-      still targeted; C17), resolution clamps 0..remaining later;
+    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 0..n (V15: CR 601.2c,
+      115.6; zero chosen = not targeted), resolution clamps 0..remaining;
     * ``TARGET`` + ``QAtLeast(n)`` — n..candidates ("one or more");
     * ``CHOOSE`` (up-to)           — 0..min(n, candidates): a resolution-
       time choice, so the EMPTY selection is legal (contrast the C17 pin
@@ -372,10 +373,13 @@ def legal_targets(
             # the executor loops — see ability_tree.count_semantics.
             announceable, k = count_semantics(count, n)
             if isinstance(count, QAtMost):
-                # C17: the DESIGNATION range is 1..n — an empty population
-                # leaves the slot infeasible (min 1 > max 0), which is the
-                # whole point of the pin: 0 is NOT a legal TARGET declaration.
-                min_count = 1
+                # V15 (2026-10-29): "up to N targets" is 0..N. CR 601.2c: the
+                # player announces how many targets they will choose; 115.6:
+                # zero may be chosen, and the spell or ability is then not
+                # targeted. C17 had pinned min 1, so an "up to one" with no
+                # candidate was uncastable (Liliana, Death Mage's +1 on an
+                # empty graveyard).
+                min_count = 0
                 max_count = k
             elif isinstance(count, QAtLeast):
                 min_count, max_count = count.n, k

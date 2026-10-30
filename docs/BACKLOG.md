@@ -702,6 +702,15 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Kinetic Augur entering under Glorious Anthem loses the anthem's +1.
   - CR 613.4: characteristic-defining and setting effects (7a/7b) apply before modifications (7c),
     so the fold needs sublayers. Weaker than printed.
+- **B-80 [vfix2, V15 residue, 2026-10-29] Untargeted "up to N" still compiles as an exact count.**
+  - V15 made "up to N target ..." 0..N (CR 601.2c, 115.6) and Kinetic Augur's "discard up to two"
+    QAtMost(2). Three more M21 untargeted choices are QConst: Rewind "Untap up to four lands",
+    Cultivate "Search your library for up to two basic land cards", Ugin −10 "put up to seven
+    permanent cards from your hand onto the battlefield". The player must take the full count when
+    it is available (weaker than printed; rarely matters).
+  - **Fix.** Write QAtMost in those templates and give `selectors.resolve_selector`'s CHOOSE lift a
+    QAtMost lane with a NONE stop (the discard lane's shape, `verbs._discard_picks`); today a
+    QAtMost CHOOSE is not lifted at all and would fall to the silent slice.
 - **B-71 [fixer A] A "discard your hand" cost is refused with an empty hand**
   (`cost:discard:insufficient_candidates:0<1`). Weaker than printed: a cost of discarding the whole
   hand is payable with no cards.

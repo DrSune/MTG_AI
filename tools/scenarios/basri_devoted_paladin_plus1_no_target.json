@@ -1,0 +1,14 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "basri", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "counters": {"basri": {"LOYALTY": 5}}
+ },
+ "notes": "M21 G2 spec: Basri, Devoted Paladin [+1]: 'Put a +1/+1 counter on UP TO ONE target creature': with no creature on the battlefield the ability can still be activated with no target, and Basri goes to 5 loyalty."
+}

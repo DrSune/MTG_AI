@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lm", "real": "Liliana, Death Mage", "zone": "battlefield", "controller": 0},
+  {"key": "gs", "name": "Spent Sorcery", "type": "Sorcery", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lm", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "counters": {"lm": {"LOYALTY": 5}},
+  "zone": {"gs": "graveyard"}
+ },
+ "notes": "M21 G2 spec: Liliana, Death Mage [+1]: 'Return UP TO ONE target creature card from your graveyard to your hand': with no creature card in your graveyard the ability can still be activated with no target, and Liliana goes to 5 loyalty."
+}

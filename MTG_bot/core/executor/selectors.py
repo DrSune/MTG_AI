@@ -753,6 +753,10 @@ def resolve_selector(
         # still never guessed.
         bound = ctx.binding_handles("target")
         if bound is None:
+            if isinstance(sel.count, QAtMost):
+                # V15 (CR 601.2c, 115.6): "up to N" designated zero targets;
+                # the instruction acts on nothing (an exact count stays loud).
+                return []
             raise ValueError(
                 "executor: TARGET selector has no designation "
                 "(pass bindings={'target': ...})"

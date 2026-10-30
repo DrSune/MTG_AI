@@ -1522,10 +1522,10 @@ class TriggerBinder:
 
         Cardinality follows the frozen slot contract: ``QConst(1)``
         designates exactly one (forced when one candidate);
-        ``QAtMost(n)`` asks pick-by-pick, the first pick mandatory (C17:
-        TARGET designation range 1..n, the pinned contract the query lane
-        already enforces), later picks carry the ``"NONE"`` stop token the
-        block-ask lane established; ``QConst(n>1)`` asks n picks without
+        ``QAtMost(n)`` asks pick-by-pick, every pick carrying the ``"NONE"``
+        stop token the block-ask lane established (V15, CR 601.2c/115.6: the
+        range is 0..n, the query lane's contract; zero picks = not targeted,
+        and one candidate is still a choice of it or none); ``QConst(n>1)`` asks n picks without
         the stop token and clamps at exhaustion (C17's 0..remaining
         sibling); ``QAtLeast``/QX-in-TARGET stays the flag it always was.
         """
@@ -1651,7 +1651,9 @@ class TriggerBinder:
         # Asking over fewer than stated (the old unclamped loop running
         # the menu dry) was the third divergent answer of the legality
         # triad.
-        optional_stop = isinstance(count, QAtMost)  # C17 first mandatory
+        # V15 (CR 601.2c, 115.6): "up to N" may designate zero, so the stop
+        # word is offered from the first pick on (C17 had made it mandatory).
+        optional_stop = isinstance(count, QAtMost)
         announceable, wanted = count_semantics(count, len(candidates))
         if not announceable:
             if required:
@@ -1661,11 +1663,11 @@ class TriggerBinder:
         picks: list[Handle] = []
         pool = list(candidates)
         for pick_no in range(wanted):
-            if len(pool) == 1 and not (optional_stop and pick_no > 0):
+            if len(pool) == 1 and not optional_stop:
                 picks.append(pool[0])  # §1.4 auto-fill: one legal filler
                 break
             vocab = tuple(str(h) for h in pool)
-            if optional_stop and pick_no > 0:
+            if optional_stop:
                 vocab = vocab + ("NONE",)
             answer = ctx.take_decision(
                 vocab,
