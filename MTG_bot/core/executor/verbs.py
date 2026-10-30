@@ -852,13 +852,19 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
     _lifelink_gain(ctx, n)  # r20a: after the mark, on the dealt amount
 
 
-def _fight_attacker(ctx: ExecCtx) -> Handle:
+def _fight_attacker(ctx: ExecCtx) -> Handle | None:
     """The compiled FIGHT atom carries NO attacker role (the orphan-verb
     precedent, ability_tree R7-8): the attacker is the ability's SOURCE
     when that source is a battlefield permanent (Brash Taunter's
     {2}{R}{T} — "this creature fights"), else the PRECEDING atom's
     result register (Primal Might's "it also fights" anaphora, the
-    compiler's documented executor-side binding — _apply_pt writes it)."""
+    compiler's documented executor-side binding — _apply_pt writes it).
+
+    An EMPTY register (m21-fidelity wave 4, 2026-10-30) means the preceding
+    atom acted on nothing: Primal Might's own creature left or became an
+    illegal target while its fight target is still legal, so the spell
+    resolves. CR 701.14b: neither creature fights, so None, never a raise.
+    No register at all keeps the loud raise (no antecedent was compiled)."""
     if (
         ctx.source.namespace == "card"
         and ctx.source in ctx.world.cards
@@ -868,6 +874,8 @@ def _fight_attacker(ctx: ExecCtx) -> Handle:
     result = ctx.binding_handles("result")
     if result:
         return result[0]
+    if result is not None:
+        return None
     raise NotImplementedError(
         f"executor: FIGHT has no attacker — {ctx.source} is not a battlefield "
         "permanent and no preceding atom wrote the result register"
@@ -891,6 +899,10 @@ def _v_fight(ctx: ExecCtx, atom: Atom) -> None:
     "fights ANOTHER creature" into a self-punch). TARGET mode keeps the
     ordinary designation path (Brash's activation designated the foe)."""
     attacker = _fight_attacker(ctx)
+    if attacker is None:
+        # CR 701.14b: the creature told to fight is gone — no fight.
+        ctx.events.append((len(ctx.events), "FIGHT", None, None))
+        return
     sel = atom.args.get("target")
     if isinstance(sel, Selector) and sel.mode in (
         SelectorMode.CHOOSE,

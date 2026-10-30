@@ -1565,10 +1565,12 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.FIGHT)
         target = _pairs(atom)["target"]
         self.assertIsInstance(target, Selector)
-        # C15: resolution-time "up to one" = CHOOSE + QConst(1) (0..1),
-        # never TARGET — the C-1 collapse fix.
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(target.count, QConst(1))
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (was B-79), the printed "up to one
+        # target creature" is a TARGET designated as the spell is cast (CR 601.2c) that may
+        # be left empty (CR 115.6). The resolution-time CHOOSE + QConst(1) fought hexproof
+        # creatures and could not be declined.
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        self.assertEqual(target.count, QAtMost(1))
         self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
         children = [c for c in target.filter.children if isinstance(c, (FAtom, FNot))]
         self.assertEqual(len(children), 2)

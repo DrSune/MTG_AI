@@ -2351,12 +2351,18 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     """``Then it fights up to one target creature you don't control.``
     (Primal Might s2) — Verb.FIGHT (R7-8/R7-9a; the "Then " prefix makes
     this a continuation, merged after the +X/+X step).
-    C15: resolution-time "up to one" = CHOOSE + QConst(1) (0..1 open),
-    not TARGET — the C-1 collapse fix applies to new templates.
     The attacker ("it") is the prior sentence's +X/+X object: FIGHT has
     no attacker role (the r8 canonical documents the attacker as the
     source object), so the anaphoric attacker binds the result register
-    executor-side; documented."""
+    executor-side; documented.
+
+    m21-fidelity (wave 4, 2026-10-30; was B-79): the foe is a TARGET with
+    QAtMost(1), the spell's second target slot, designated as it is cast
+    (CR 601.2c) and allowed to be empty (CR 115.6). It was a resolution-time
+    pick of exactly one (CHOOSE + QConst(1), flipped to ONE_OF), so a
+    hexproof creature could be fought and the fight could not be declined.
+    The cast lane designates a trailing up-to-one slot positionally
+    (stack._validate_positional)."""
     atom = Atom(
         verb=Verb.FIGHT,
         args=AtomArgs(
@@ -2364,8 +2370,8 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
                 (
                     "target",
                     Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
+                        QAtMost(1),
+                        SelectorMode.TARGET,
                         FAnd(
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),

@@ -83,8 +83,11 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # up-to-one CHOOSEs (QAtMost(1), CR 701.23b), which the search-pick pass leaves as CHOOSE:
 # COUNT_NOT_ONE 11 -> 13, TOTAL 145 -> 147. Ugin's [-10] QConst(7) -> QAtMost(7) stays in
 # COUNT_NOT_ONE. Nothing else moved.
-TOTAL_SURFACES = 147
-CORE_LIFTABLE = 22
+# re-pinned 2026-10-30 (m21-fidelity wave 4, Primal Might): the fight partner is a TARGET
+# (QAtMost(1)), so its CHOOSE leaves the core: CORE_LIFTABLE 22 -> 21 (one promotion fewer),
+# TOTAL 147 -> 146. Nothing else moved.
+TOTAL_SURFACES = 146
+CORE_LIFTABLE = 21
 SELF_DESIGNATION = 51
 ANAPHORIC_REFERENT = 35
 COST_VICTIM = 26

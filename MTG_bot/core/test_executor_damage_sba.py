@@ -222,6 +222,19 @@ class TestFight(ExecutorCase):
         self.assertEqual(self.world.zone_of(self.gamma).kind, ZONE_BATTLEFIELD)
         self.assertEqual(self.ex.damage[self.gamma], 1)
 
+    def test_an_empty_result_register_is_no_fight(self):
+        # m21-fidelity wave 4 (2026-10-30): Primal Might's own creature left (its +X/+X
+        # atom acted on nothing, so the register is EMPTY) while its fight target is still
+        # legal, so the spell resolves. CR 701.14b: neither creature fights or deals damage.
+        self.ex.execute(
+            atom(Verb.FIGHT, target=target_sel()),
+            source=self.h1,  # the spell's card, not a battlefield fighter
+            controller=self.p0,
+            bindings={"target": self.beta, "result": []},
+        )
+        self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.ex.damage, {})
+
     def test_no_legal_foe_is_not_a_fight(self):
         # C17 clamp: an empty designation does not raise and touches nobody.
         before = len(self.ex.journal.events)

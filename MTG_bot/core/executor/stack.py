@@ -357,17 +357,19 @@ def _validate_positional(
     a second opinion invented here."""
     from MTG_bot.core.executor.query import validate_target_selection
 
-    if any(s.min_count != 1 or s.max_count != 1 for s in slots):
+    if any(s.max_count > 1 for s in slots) or not _optional_slots_trail(slots):
         raise NotImplementedError(
             "executor: cast: multi-slot designation supports exactly-one "
-            "TARGET selectors only (r19c)"
+            "TARGET selectors and trailing up-to-one ones only (r19c)"
         )
-    if len(targets) != len(slots):
+    required = sum(1 for s in slots if s.min_count >= 1)
+    if not required <= len(targets) <= len(slots):
+        need = f"{required} to {len(slots)}" if required < len(slots) else f"{len(slots)}"
         raise ValueError(
-            f"executor: cast: {len(slots)} TARGET slots need {len(slots)} "
+            f"executor: cast: {len(slots)} TARGET slots need {need} "
             f"designations, got {len(targets)}"
         )
-    for i, (slot, one) in enumerate(zip(slots, targets, strict=True)):
+    for i, (slot, one) in enumerate(zip(slots, targets)):
         if i in skip:
             # forced auto-designation (CR 115.4 self-clause): the handle IS
             # the spell, population enumeration cannot see it yet — the
@@ -376,9 +378,38 @@ def _validate_positional(
         reason = validate_target_selection(slot, (one,))
         if reason is not None:
             raise ValueError(f"executor: cast: illegal target selection: {reason}")
-    reason = another_target_reason(slots, targets)
+    reason = another_target_reason(slots[: len(targets)], targets)
     if reason is not None:
         raise ValueError(f"executor: cast: illegal target selection: {reason}")
+
+
+def _optional_slots_trail(slots: list) -> bool:
+    """m21-fidelity wave 4 (2026-10-30, Primal Might's "then it fights up to
+    one target creature you don't control"): an "up to one target" slot may
+    be left empty (CR 115.6, V15's 0..1 count), and positional designation
+    stays unambiguous only while every such slot comes after every required
+    one: the i-th designation fills the i-th slot, and the trailing slots
+    the designation does not reach are the empty ones. An optional slot
+    before a required one would need a split guess, so it stays loud."""
+    seen_optional = False
+    for slot in slots:
+        if slot.min_count == 0:
+            seen_optional = True
+        elif seen_optional:
+            return False
+    return True
+
+
+def positional_slot_designations(slots: list, targets: Sequence[Handle]) -> dict:
+    """The repr-keyed per-slot map for a validated positional designation:
+    the i-th handle designates the i-th slot, and a trailing up-to-one slot
+    the designation does not reach maps to () (no target chosen, CR 115.6),
+    so its TARGET selector resolves to nothing instead of falling back to
+    the spell-wide binding."""
+    return {
+        repr(slot.selector): ((targets[i],) if i < len(targets) else ())
+        for i, slot in enumerate(slots)
+    }
 
 
 def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
@@ -582,9 +613,7 @@ def _plan_cast_designation(
         return targets, {}, remaining, modes
 
     _validate_positional(slots, targets, skip=auto_skip)
-    slot_designations = {
-        repr(slot.selector): (one,) for slot, one in zip(slots, targets, strict=True)
-    }
+    slot_designations = positional_slot_designations(slots, targets)
     # a Choose-pruned multi-slot spell lands in the len==1 branch above;
     # a mode the caller supplied AND a multi-slot residue would mean the
     # option STILL fans slots — positional threading covers it unchanged.

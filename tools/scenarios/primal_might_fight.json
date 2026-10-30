@@ -1,6 +1,6 @@
 {
   "name": "primal_might_fight",
-  "note": "16a proof 2 (orphan FIGHT + the 16c X-closure together): cast the REAL Primal Might for x=2 on Squire. The +2/+X/+X atom writes the result register (B-9 producer), the FIGHT atom finds its attacker THERE (no battlefield source), CHOOSES the only opposing creature (the deterministic Handle-sorted stand-in, no decision ask), and the exchange kills the 1/1 Pup while the now-3/3 Squire walks away with 1 mark.",
+  "note": "16a proof 2 (orphan FIGHT + the 16c X-closure together): cast the REAL Primal Might for x=2 on Squire. The +2/+X/+X atom writes the result register (B-9 producer), the FIGHT atom finds its attacker THERE (no battlefield source), CHOOSES the only opposing creature (the deterministic Handle-sorted stand-in, no decision ask), and the exchange kills the 1/1 Pup while the now-3/3 Squire walks away with 1 mark. # re-pinned 2026-10-30: m21-fidelity wave 4 (B-79) makes the foe the spell's second target, designated as it is cast (CR 601.2c, up to one, CR 115.6), so the Pup is named in targets; the outcome is unchanged.",
   "world": {"life": 20, "seed": 7},
   "cards": [
     {"key": "might", "real": "Primal Might", "zone": "hand", "controller": 0},
@@ -9,7 +9,7 @@
   ],
   "mana": {"0": {"G": 5}},
   "steps": [
-    {"op": "cast", "real": "Primal Might", "key": "might", "x": 2, "targets": ["squire"]}
+    {"op": "cast", "real": "Primal Might", "key": "might", "x": 2, "targets": ["squire", "pup"]}
   ],
   "expect": {
     "life": {"0": 20, "1": 20},

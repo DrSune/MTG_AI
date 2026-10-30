@@ -1,6 +1,6 @@
 {
  "name": "primal_might_x",
- "note": "wave2b (the PT closure the arc-16 pack left open): cast for x=2 the printed '+X/+X' is ASSERTED \u2014 the buffed Squire's ledger PT reads 3/3 through the fight exchange (it carries 1 damage but 3 toughness keeps it breathing), the 1/1 Pup dies to the 3 power.",
+ "note": "wave2b (the PT closure the arc-16 pack left open): cast for x=2 the printed '+X/+X' is ASSERTED \u2014 the buffed Squire's ledger PT reads 3/3 through the fight exchange (it carries 1 damage but 3 toughness keeps it breathing), the 1/1 Pup dies to the 3 power. # re-pinned 2026-10-30: m21-fidelity wave 4 (B-79) makes the foe the spell's second target, designated as it is cast (CR 601.2c, up to one, CR 115.6), so the Pup is named in targets; the outcome is unchanged.",
  "world": {
   "life": 20,
   "seed": 7
@@ -47,7 +47,8 @@
    "key": "might",
    "x": 2,
    "targets": [
-    "sq"
+    "sq",
+    "pup"
    ]
   }
  ],

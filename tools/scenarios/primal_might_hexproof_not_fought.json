@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pm", "real": "Primal Might", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "hexer", "name": "Opp Hexer", "power": "1", "toughness": "1", "type": "Creature", "keywords": ["HEXPROOF"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 4}},
+ "steps": [
+  {"op": "cast", "real": "Primal Might", "key": "pm", "x": 3, "targets": ["bear"], "decisions": ["hexer"]}
+ ],
+ "expect": {
+  "zone": {"pm": "graveyard", "bear": "battlefield", "hexer": "battlefield"},
+  "power": {"bear": 5},
+  "damage": {}
+ },
+ "notes": "Printed: 'Then it fights up to one target creature you don't control.' The fight partner is a TARGET: the opponent's only creature has hexproof, so it cannot be chosen (CR 702.11) and there is no fight. The Bear still gets +3/+3 (5/5); Opp Hexer is untouched."
+}

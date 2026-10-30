@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pm", "real": "Primal Might", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Primal Might", "key": "pm", "x": 0, "targets": ["bear"], "decisions": ["NONE"]}
+ ],
+ "expect": {
+  "zone": {"pm": "graveyard", "bear": "battlefield", "giant": "battlefield"},
+  "damage": {}
+ },
+ "notes": "Printed Primal Might: 'Target creature you control gets +X/+X until end of turn. Then it fights up to one target creature you don't control.' 'Up to one' lets me choose no second target. With X=0 my 2/2 Bear would die fighting the 4/4, so I choose none: there is no fight, nothing is dealt damage, both survive."
+}
