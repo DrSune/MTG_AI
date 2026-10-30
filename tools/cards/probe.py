@@ -22,7 +22,7 @@ import itertools
 import re
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +42,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     Keyword,
     QConst,
+    Seq,
     SpellAbility,
     TriggeredAbility,
     walk,
@@ -487,6 +488,16 @@ class Probe:
             return list(itertools.combinations(range(len(eff.options)), eff.count.value))
         return [()]
 
+    @staticmethod
+    def _mode_node(node: SpellAbility, modes: tuple[int, ...]) -> SpellAbility:
+        """The spell narrowed to the chosen modes (V9): its target slots are then the chosen
+        modes' only. No modes: the spell itself."""
+        eff = node.effect
+        if not modes or not isinstance(eff, Choose):
+            return node
+        chosen = tuple(eff.options[i] for i in modes)
+        return replace(node, effect=chosen[0] if len(chosen) == 1 else Seq(steps=chosen))
+
     def _has_x(self) -> bool:
         cost = self.card.mana_cost
         return cost is not None and any(
@@ -508,32 +519,38 @@ class Probe:
                 variants += self.explore("hand", "play land",
                                          lambda rr: play_land(rr.ex, rr.p0, rr.handles["card"]))
                 continue
-            slots = list(spell_target_slots(r.ex, row.node, spell_handle=h, seat=r.p0))
-            short = [s for s in slots if s.min_count > len(s.candidates)]
-            if short:
-                # CR 601.2c: a spell that needs a target it cannot have is not cast; the query still
-                # lists it (B-54), the probe does not try.
-                notes.append(f"{'kicked ' if row.kicked else ''}cast skipped: a target slot needs "
-                             f"{short[0].min_count}, the board offers {len(short[0].candidates)}")
-                continue
-            for slot in slots:
-                notes.append(
-                    f"target slot ({'kicked ' if row.kicked else ''}cast): {slot.min_count}..{slot.max_count} of "
-                    f"[{', '.join(name(c) for c in sorted(slot.candidates))}]"
-                )
             xs = [0, 1, 3] if self._has_x() else [None]
-            for targets, x, modes in itertools.product(self._target_sets(slots) or [()], xs, self._modes(row.node)):
-                tnames = [name(t) for t in targets]
-                label = "cast" + (" kicked" if row.kicked else "") + (f" X={x}" if x is not None else "")
-                label += f" modes={list(modes)}" if modes else ""
-                label += f" targets={tnames}" if targets else ""
+            # V9 (2026-10-29): a modal spell is probed one mode set at a time, with only the chosen
+            # modes' target slots (CR 601.2b chooses the modes, then 601.2c only their targets); the
+            # union of every mode's targets is not a designation the engine accepts.
+            for modes in self._modes(row.node):
+                where = ("kicked " if row.kicked else "") + "cast" + (f" modes={list(modes)}" if modes else "")
+                slots = list(spell_target_slots(r.ex, self._mode_node(row.node, modes), spell_handle=h,
+                                                seat=r.p0))
+                short = [s for s in slots if s.min_count > len(s.candidates)]
+                if short:
+                    # CR 601.2c: a spell (or mode) that needs a target it cannot have is not cast; the
+                    # query still lists it (B-54), the probe does not try.
+                    notes.append(f"{where} skipped: a target slot needs "
+                                 f"{short[0].min_count}, the board offers {len(short[0].candidates)}")
+                    continue
+                for slot in slots:
+                    notes.append(
+                        f"target slot ({where}): {slot.min_count}..{slot.max_count} of "
+                        f"[{', '.join(name(c) for c in sorted(slot.candidates))}]"
+                    )
+                for targets, x in itertools.product(self._target_sets(slots) or [()], xs):
+                    tnames = [name(t) for t in targets]
+                    label = "cast" + (" kicked" if row.kicked else "") + (f" X={x}" if x is not None else "")
+                    label += f" modes={list(modes)}" if modes else ""
+                    label += f" targets={tnames}" if targets else ""
 
-                def act(rr: ScenarioRunner, t=tuple(tnames), x=x, kicked=row.kicked, modes=modes) -> None:
-                    hs = tuple(rr.p0 if n == "you" else rr.p1 if n == "opp" else rr.handles[n] for n in t)
-                    cast(rr.ex, rr.p0, rr.handles["card"], x=x, kicked=kicked,
-                         mode_choices=modes, targets=hs)
+                    def act(rr: ScenarioRunner, t=tuple(tnames), x=x, kicked=row.kicked, modes=modes) -> None:
+                        hs = tuple(rr.p0 if n == "you" else rr.p1 if n == "opp" else rr.handles[n] for n in t)
+                        cast(rr.ex, rr.p0, rr.handles["card"], x=x, kicked=kicked,
+                             mode_choices=modes, targets=hs)
 
-                variants += self.explore("hand", label, act)
+                    variants += self.explore("hand", label, act)
         return notes, variants
 
     def section_activate(self, where: str) -> tuple[list[str], list[Variant]]:

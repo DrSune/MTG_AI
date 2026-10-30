@@ -45,3 +45,18 @@ def test_the_probe_offers_only_legal_targets_and_shows_the_damage() -> None:
     assert "opp: life 20 -> 18" in text
     assert "opp_bear dies" in text
     assert rep.sha() == probe.Probe(sup, "M21", oid).report().sha()  # deterministic
+
+
+def test_the_probe_plays_a_modal_spell_one_mode_at_a_time() -> None:
+    # V9 (2026-10-29): Return to Nature's three modes each get their own target slot and their
+    # own variants (CR 601.2b: modes first, then only those modes' targets); the probe used to
+    # pass every mode's target at once, which the engine refuses (36 errors, nothing exercised).
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == "Return to Nature")
+    rep = probe.Probe(sup, "M21", oid).report()
+    text = rep.text()
+    assert not rep.errors
+    assert "target slot (cast modes=[0]): 1..1 of [you_relic, opp_relic]" in text
+    assert "target slot (cast modes=[1]): 1..1 of [you_charm, opp_charm]" in text
+    assert "[cast modes=[2] targets=['opp_fallen']]" in text
+    assert "opp_relic moves battlefield -> graveyard (by card/DESTROY)" in text
