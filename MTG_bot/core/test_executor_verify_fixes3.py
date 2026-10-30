@@ -30,6 +30,8 @@ V34  An ability whose only trace of its target is IS_ANY_TARGET in a combat slot
      and not re-read afterwards (CR 608.2b; pack subira_unblockable_lasts_after_pump).
 V28  A CHOOSE selector is never handed a TARGET designation it could not select
      (Rewind's "untap up to four lands" was handed the countered spell; CR 608.2c).
+V30  A trigger whose effect moves its own card out of the graveyard functions only in
+     the graveyard (CR 113.6m): Silversmote Ghoul's end-step return.
 """
 
 from __future__ import annotations
@@ -774,6 +776,48 @@ class TestV28ChooseIgnoresAForeignDesignation(FixerCase):
         )
         untap = atom(Verb.UNTAP, target=self.lands_selector())
         self.assertEqual(role_handles(ctx, untap, "target"), [land])
+
+
+class TestV30GraveyardTriggers(unittest.TestCase):
+    def runner(self, zone):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [
+                {"key": "g", "real": "Silversmote Ghoul", "zone": zone, "controller": 0}
+            ],
+            "steps": [],
+            "expect": {},
+        }
+        return ScenarioRunner(pack, get_supply("all", "M21"))
+
+    def test_the_ghoul_trigger_functions_from_the_graveyard_only(self):
+        from MTG_bot.core.executor.binding import functions_from_graveyard
+
+        r = self.runner("graveyard")
+        g = r.handles["g"]
+        record = r.ex.binder.handle_record[g]
+        self.assertTrue(functions_from_graveyard(record.abilities[0]))
+        self.assertFalse(functions_from_graveyard(record.abilities[1]))  # activated
+        self.assertIn((g, 0), r.ex.binder.attached_graveyard)
+        self.assertNotIn((g, 0), r.ex.binder.attached)
+
+    def test_on_the_battlefield_the_ghoul_trigger_does_not_function(self):
+        r = self.runner("battlefield")
+        g = r.handles["g"]
+        self.assertNotIn((g, 0), r.ex.binder.attached)
+        self.assertNotIn((g, 0), r.ex.binder.attached_graveyard)
+        # it dies: now the trigger functions (and leaves again with the card)
+        r.ex.execute(
+            atom(Verb.SACRIFICE, target=target_sel(UNIV)),
+            source=g,
+            controller=r.p0,
+            bindings={"target": [g]},
+        )
+        self.assertIn((g, 0), r.ex.binder.attached_graveyard)
 
 
 if __name__ == "__main__":

@@ -655,7 +655,13 @@ class EventJournal:
         sees those changes. Before this, a creature sacrificed as a spell's
         additional cost died twice (the SACRIFICE atom, then the cast's park
         boundary), and a spell cast by a CAST atom journalled its draws, moves and
-        damage twice (Teferi's Tutelage milled 8 for 2 draws)."""
+        damage twice (Teferi's Tutelage milled 8 for 2 draws).
+
+        Only the keys THIS boundary changed are folded, so an enclosing atom's own
+        change made before the nested atom (a mana ability tapped raw inside a PAY
+        atom) still shows in the enclosing diff. Not covered: the enclosing atom
+        changes an object and the nested atom then changes the same object again;
+        the enclosing change is folded away (no corpus atom does that)."""
         for i in range(len(self._open) - 1, -1, -1):
             if self._open[i] is before:
                 del self._open[i:]  # anything above it never closed (it raised)
