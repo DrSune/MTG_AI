@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "72dc807b-35fb-4d69-ae4c-04eed0646170",
+ "name": "Battle-Rattle Shaman",
+ "text_sha": "63d07a1f2e08eaafdc0498fd5c56860fee500d0a9f7975fed46e4cbb0a04a738",
+ "verified": {
+  "tree_sha": "3389efea270d6f2a3760111a21d9384cf10a30b0d745f36647cc8eb8d82c9c48",
+  "probe_sha": "a5e1120025229ed443b07ae432f8935760874184f9aa8aed70f05f9689c44ab5",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "At the beginning of combat on your turn, you may have target creature get +2/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: the trigger fires at YOUR beginning of combat only ([attacks alone], [opp_giant blocks], [you_bear attacks]; none on the opponent's turn) and targets you_bear, but the probe's combat answerer declines the may ('skip' default), so no +2/+0 appears (you_bear still deals 2): the decline path is shown, the accept path is not. Tree = compiler template B2a-battle-rattle-shaman (OptionalEffect around MODIFY_PT +2/+0 EOT, any creature). Packs: battle_rattle_shaman_accept_pump.json (accept on your Bear -> 4/2, deals 4) PASS; battle_rattle_shaman_pump_wears_off.json (2/2 again after end of turn) PASS; battle_rattle_shaman_target_opponents_creature.json (an opponent's creature is a legal target, gets +2/+0) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}{R} 2/2 creature",
+    "status": "OK",
+    "evidence": "[cast]: mana R-1 W-3; P/T - -> 2/2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/battle-rattle_shaman_1.json",
+   "tools/scenarios/cards/M21/battle-rattle_shaman_2.json",
+   "tools/scenarios/cards/M21/battle-rattle_shaman_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 5,
+   "score": 0.5555555555555556,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/inner/args/duration",
+    "amount+1 at 1/0/effect/inner/args/power/magnitude",
+    "amount-1 at 1/0/effect/inner/args/power/magnitude",
+    "amount+1 at 1/0/effect/inner/args/toughness/magnitude"
+   ]
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V31 (CR 606.6, 704.5i): Basri Ket at exactly 2 loyalty can activate his -2. Paying it leaves 0 loyalty counters, so he is put into his owner's graveyard, and his loyalty counters cease to exist (CR 122.2); he must never be reset to his printed 3. (The -2's 'this turn' attack trigger is compiled as a grant to Basri, so it dies with him; that is a separate, weaker-than-printed finding, not asserted here.)",
+ "cards": [
+  {"key": "basri", "zone": "battlefield", "controller": 0, "real": "Basri Ket"},
+  {"key": "tiger", "zone": "battlefield", "controller": 0, "name": "Tiger", "type": "Creature", "power": "5", "toughness": "5"}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 2},
+  {"op": "activate", "key": "basri", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"basri": "graveyard", "tiger": "battlefield"},
+  "counters": {"basri": {}}
+ }
+}

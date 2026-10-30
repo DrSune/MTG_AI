@@ -205,11 +205,10 @@ def mill_one() -> Atom:
 
 
 def draw_one() -> Atom:
-    return atom(
-        Verb.MOVE_ZONE,
-        cards=Selector(QConst(1), SelectorMode.ALL, UNIV, zones=(LIB_YOU,)),
-        destination=HAND_YOU,
-    )
+    # re-pinned 2026-10-29: V23 changes what counts as a draw: only a DRAW atom
+    # draws (CR 121.1, 121.5). This helper was a library-to-hand MOVE_ZONE, which
+    # the journal used to log as a draw; the tests using it mean a real draw.
+    return atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1))
 
 
 class BindingCase(unittest.TestCase):

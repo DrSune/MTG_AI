@@ -22,9 +22,10 @@ emblem attach is the payload):
   scry/reveal/look-at, per-creature life loss, ETB counter placement,
   loyalty discard-hand/exile-top-library, loyalty move-to-top-of-library,
   loyalty may-cast-from-graveyard, bullet return-to-owner-hand,
-  loyalty turn-scoped trigger grant (Basri [−1] — GRANT_ABILITY with
-  DurationEot wrapping a TriggeredAbility, round-4 convention C3; "it" =
-  the attacker via the event referent).
+  loyalty turn-scoped trigger (Basri [−1], Basri Ket [−2] — a
+  DelayedTrigger with DurationEot, CR 603.7, since m21-fidelity 2026-10-29;
+  it was the round-4 C3 GRANT_ABILITY to the planeswalker, which died with
+  it; "it" = the attacker via the event referent).
 - **2 uncovered shapes** — embedded replacement text, plus the phase-in
   built-in note.  Round 9-B landed Frost Breath's untap-step prevention
   (R9-4 step+DurationUntilNextStep) and Subira's delayed combat-damage
@@ -120,7 +121,6 @@ from MTG_bot.core.ability_tree import (
     Step,
     TapStateEvent,
     TokenSpec,
-    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -603,7 +603,7 @@ def _build_zombies_pt(m: re.Match[str]) -> SentenceOutcome:
 # --- Loyalty build functions ---
 
 
-def _loyalty_wrapper(effect: Atom | Seq, m: re.Match[str]) -> SentenceOutcome:
+def _loyalty_wrapper(effect: Atom | Seq | DelayedTrigger, m: re.Match[str]) -> SentenceOutcome:
     """Wrap an effect in ActivatedAbility with CostLoyalty."""
     return AbilityOutcome(
         ability=ActivatedAbility(
@@ -658,54 +658,39 @@ def _build_loyalty_basri_attack_counter(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #17: [−1] grant a turn-scoped triggered ability —
     whenever a creature attacks this turn, put a +N/+N counter on it.
 
-    GRANT_ABILITY(target=self, ability=TriggeredAbility(...),
-    duration=DurationEot) — the round-4 convention C3 (grant with
-    DurationEot); "it" = the attacker, the declare_attackers event
-    subject, bound via the event referent in the PUT_COUNTER target
-    role (convention C1: declare_attackers → the attacker; C2).  Lossy:
-    none."""
+    A DELAYED triggered ability (CR 603.7): DelayedTrigger(DurationEot,
+    DeclareAttackersEvent(Creature), PUT_COUNTER) — Subira's "this turn,
+    whenever" shape; it lives for the turn on its own, so it keeps working
+    if the planeswalker is gone (CR 603.7c). "it" = the attacker, the
+    declare_attackers event subject, bound via the event referent in the
+    PUT_COUNTER target role (convention C1: declare_attackers → the
+    attacker; C2). m21-fidelity (2026-10-29): it was GRANT_ABILITY(target=
+    this planeswalker, the trigger, DurationEot), which died with the
+    walker (a -1 at 1 loyalty did nothing). Lossy: none."""
     p = int(m.group("p"))
     t = int(m.group("t"))
     if p != t:
         raise ValueError(
             f"B5c-loyalty-basri-attack-counter expects equal P/T, got +{p}/+{t}"
         )
-    atom = Atom(
-        verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    _self_selector(
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU)
-                    ),
-                ),
-                (
-                    "ability",
-                    TriggeredAbility(
-                        event=DeclareAttackersEvent(
-                            filter=FAtom(
-                                pred=FAtomPred.TYPE_EQ, string_value="Creature"
-                            )
-                        ),
-                        condition=None,
-                        effect=Atom(
-                            verb=Verb.PUT_COUNTER,
-                            args=AtomArgs(
-                                pairs=(
-                                    ("target", _event_reference()),
-                                    ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-                                    ("count", QConst(p)),
-                                )
-                            ),
-                        ),
-                    ),
-                ),
-                ("duration", DurationEot()),
-            )
+    delayed = DelayedTrigger(
+        duration=DurationEot(),
+        event=DeclareAttackersEvent(
+            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        ),
+        condition=None,
+        effect=Atom(
+            verb=Verb.PUT_COUNTER,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _event_reference()),
+                    ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                    ("count", QConst(p)),
+                )
+            ),
         ),
     )
-    return _loyalty_wrapper(atom, m)
+    return _loyalty_wrapper(delayed, m)
 
 
 def _build_loyalty_draw_discard(m: re.Match[str]) -> SentenceOutcome:
@@ -2427,11 +2412,15 @@ def _build_get_emblem(m: re.Match[str]) -> SentenceOutcome:
 def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     """``[−2]: Whenever one or more nontoken creatures attack this turn,
     create that many 1/1 white Soldier creature tokens that are tapped and
-    attacking.`` (Basri Ket) — the round-4 C3 turn-scoped-trigger-grant
-    convention (_build_loyalty_basri_attack_counter precedent):
-    GRANT_ABILITY(target=self, ability=TriggeredAbility(...),
-    duration=DurationEot), so the loyalty PAY decision stays the single
-    activation vertex and the trigger fires once per attack declaration.
+    attacking.`` (Basri Ket) — a DELAYED triggered ability (CR 603.7):
+    DelayedTrigger(DurationEot, DeclareAttackersEvent(nontoken creature),
+    CREATE_TOKEN), the Subira "this turn, whenever" shape. It lives for the
+    turn on its own (CR 603.7c), so the loyalty PAY decision stays the
+    single activation vertex, the trigger fires once per attack
+    declaration, and it still works after Basri Ket is gone (a -2 at 2
+    loyalty kills him, CR 704.5i). m21-fidelity (2026-10-29): it was
+    GRANT_ABILITY(target=Basri, the trigger, DurationEot), which made no
+    Soldiers once Basri had died.
 
     Filter: FAnd(Creature, FNot(IS_TOKEN)) — "nontoken" via the Gadrak
     FAtomPred.IS_TOKEN (FNot precedent: b2b 'another' →
@@ -2446,67 +2435,46 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     attacker set (board-dynamic "that many")."""
     p = int(m.group("p"))
     t = int(m.group("t"))
-    atom = Atom(
-        verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    _self_selector(
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU)
-                    ),
-                ),
-                (
-                    "ability",
-                    TriggeredAbility(
-                        event=DeclareAttackersEvent(
-                            filter=FAnd(
-                                children=(
-                                    FAtom(
-                                        pred=FAtomPred.TYPE_EQ, string_value="Creature"
-                                    ),
-                                    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
-                                )
-                            )
-                        ),
-                        condition=None,
-                        effect=Atom(
-                            verb=Verb.CREATE_TOKEN,
-                            args=AtomArgs(
-                                pairs=(
-                                    (
-                                        "tokens",
-                                        TokenSpec(
-                                            name="Soldier",
-                                            type_line="Creature — Soldier",
-                                            types=("Creature",),
-                                            subtypes=("Soldier",),
-                                            power=QConst(p),
-                                            toughness=QConst(t),
-                                            keywords=(),
-                                            abilities=(),
-                                            color="W",
-                                            enters_tapped=True,
-                                            enters_attacking=True,
-                                        ),
-                                    ),
-                                    (
-                                        "count",
-                                        QProp(
-                                            referent="event",
-                                            field=QPropField.THAT_MANY_COUNT,
-                                        ),
-                                    ),
-                                )
-                            ),
-                        ),
-                    ),
-                ),
-                ("duration", DurationEot()),
+    delayed = DelayedTrigger(
+        duration=DurationEot(),
+        event=DeclareAttackersEvent(
+            filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
+                )
             )
         ),
+        condition=None,
+        effect=Atom(
+            verb=Verb.CREATE_TOKEN,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "tokens",
+                        TokenSpec(
+                            name="Soldier",
+                            type_line="Creature — Soldier",
+                            types=("Creature",),
+                            subtypes=("Soldier",),
+                            power=QConst(p),
+                            toughness=QConst(t),
+                            keywords=(),
+                            abilities=(),
+                            color="W",
+                            enters_tapped=True,
+                            enters_attacking=True,
+                        ),
+                    ),
+                    (
+                        "count",
+                        QProp(referent="event", field=QPropField.THAT_MANY_COUNT),
+                    ),
+                )
+            ),
+        ),
     )
-    return _loyalty_wrapper(atom, m)
+    return _loyalty_wrapper(delayed, m)
 
 
 def _build_waive_cast_from_hand(m: re.Match[str]) -> SentenceOutcome:

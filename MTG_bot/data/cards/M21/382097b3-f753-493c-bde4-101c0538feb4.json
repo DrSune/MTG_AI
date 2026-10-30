@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "382097b3-f753-493c-bde4-101c0538feb4",
+ "name": "Frost Breath",
+ "text_sha": "2016c047fe173ce57c6db618ee738f9acecaa79a0467d3c289ec4549cd04694c",
+ "verified": {
+  "tree_sha": "956f002237ad3af6c687da10811ebf349ec10eadf3b0568ce5a32a842897a769",
+  "probe_sha": "09bd56292d13d4f6b7e222c7755ab5e1c13cb0812469ed31269591bef0482e4d",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {2}{U}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); every cast 'mana U-1 W-2'",
+    "issue": ""
+   },
+   {
+    "clause": "Tap up to two target creatures.",
+    "status": "OK",
+    "evidence": "TAP target Selector(QAtMost(2), TARGET, Creature, any controller); target slot (cast): 1..2 of all six creatures; single-target variants tap the target; [cast targets=['you_bear', 'you_giant']] taps both; opp_tapped (already tapped) is a legal target and nothing changes",
+    "issue": "engine-limit: C17 (query.py:39/167) makes a TARGET + QAtMost designation 1..n; CR 115.6 allows choosing zero targets for 'up to two', so the engine cannot cast it with no targets (weaker only, engine-wide, not this card's tree)"
+   },
+   {
+    "clause": "Those creatures don't untap during their controller's next untap step.",
+    "status": "OK",
+    "evidence": "Not visible in the trace ('after the turn ends: (nothing changes)', no untap step reached): NOT_EXERCISED there. Tree PREVENT_EFFECT(TapStateEvent(tapped=False, IS_ANY_TARGET), step UNTAP, DurationUntilNextStep(UNTAP)). Packs PASS: /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P519c09710c_frost_breath_opp_untap.json (both opponent targets stay tapped through the opponent's untap step; an untargeted tapped control untaps), /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P519c09710c_frost_breath_wears_off.json (they untap at the following untap step), /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P519c09710c_frost_breath_own_creature.json (my own target stays tapped through MY next untap step, the opponent's untap step does not use it up)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/frost_breath_1.json",
+   "tools/scenarios/cards/M21/frost_breath_2.json",
+   "tools/scenarios/cards/M21/frost_breath_3.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 2,
+   "score": 0.6666666666666666,
+   "survived": [
+    "drop step 1 at 1/0/effect"
+   ]
+  }
+ }
+}

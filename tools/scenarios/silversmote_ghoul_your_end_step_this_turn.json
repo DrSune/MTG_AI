@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "The Ghoul's owner (seat 0) gains 4 life during the OPPONENT's turn. At the opponent's end step nothing happens (not 'your end step'). On seat 0's next turn no life is gained, so at seat 0's end step the condition ('this turn') is false: the Ghoul stays in the graveyard throughout. Re-pinned 2026-10-30 (V2, at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there.",
+ "cards": [
+  {"key": "g", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"G": 1}},
+  {"op": "cast", "key": "lgo", "real": "Life Goes On", "controller": 0},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 24},
+  "zone": {"g": "graveyard"}
+ }
+}

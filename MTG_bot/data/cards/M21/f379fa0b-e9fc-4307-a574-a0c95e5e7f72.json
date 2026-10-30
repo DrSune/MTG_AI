@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f379fa0b-e9fc-4307-a574-a0c95e5e7f72",
+ "name": "Chrome Replicator",
+ "text_sha": "e3226749f4ed4928a4a40f3cf68fec9a1c8650c5a3ab14f94f97e968f853d9fc",
+ "verified": {
+  "tree_sha": "23dca78597224c3bb5bc3205f4f3545d139b9c011ee3ca7b35b5f236a7402579",
+  "probe_sha": "a383ab30c66fa2a95ffaf5bab6080be7f0a8906af7ec973751eef5dbca953a5e",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another,",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast] and the MOVE_ZONE entry trigger ability [0], but the probe board has no same-name pair, so no token (right). Tree identical to the compiler's parse (NAME_PARTITION_COUNT_GE 2 over FNot(IS_TOKEN) + FNot(Land); the predicate counts only permanents the controller controls, quantity.py:1241). Packs pass on the live tree and this packet's tree: chrome_replicator_pair (a second Replicator: one token), chrome_replicator_lands_tokens_dont_count (two Plains and two engine-minted Saproling tokens: no token), chrome_replicator_opp_pair (the opponent's same-name pair: no token)",
+    "issue": "harness note: a pack-placed token golden ('real': 'Treasure') is NOT a token to IS_TOKEN, because games.identity_of drops is_token; use engine-minted tokens in packs"
+   },
+   {
+    "clause": "create a 4/4 colorless Construct artifact creature token.",
+    "status": "NOT_EXERCISED",
+    "evidence": "TokenSpec Construct, 'Artifact Creature — Construct', 4/4, no colours, no abilities; pack chrome_replicator_pair: exactly one 'Construct' token, battlefield_pt [4, 4]",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chrome_replicator_1.json",
+   "tools/scenarios/cards/M21/chrome_replicator_2.json",
+   "tools/scenarios/cards/M21/chrome_replicator_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 2,
+   "score": 0.3333333333333333,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
+ }
+}

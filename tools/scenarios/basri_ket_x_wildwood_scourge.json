@@ -49,6 +49,9 @@
    "x": 1
   },
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "activate",
    "key": "basri",
    "idx": 0,
@@ -81,5 +84,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H2 pair 3 (heat 3080, grant-vs-consumer across seats / trigger-event census). Seat 1's Wildwood Scourge enters with X=1 counters (r23a etb_x lane). ENEMY Basri (seat 0) +1 puts a +1/+1 counter on seat 1's OWN non-Hydra Prey. Scourge's printed trigger: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature' — CR 603.2 watches the EVENT (a counter was put), with NO requirement that you caused it; 'another' excludes only Scourge itself (CR 603.2/121.2). Expected: Scourge rides to 2 counters (3/3), Prey 3 power, Basri loyalty 4. If the engine gates the trigger on the counter-placer's identity it stays at 1 -> SUSPECT. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
+ "notes": "HUNT H2 pair 3 (heat 3080, grant-vs-consumer across seats / trigger-event census). Seat 1's Wildwood Scourge enters with X=1 counters (r23a etb_x lane). ENEMY Basri (seat 0) +1 puts a +1/+1 counter on seat 1's OWN non-Hydra Prey. Scourge's printed trigger: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature' — CR 603.2 watches the EVENT (a counter was put), with NO requirement that you caused it; 'another' excludes only Scourge itself (CR 603.2/121.2). Expected: Scourge rides to 2 counters (3/3), Prey 3 power, Basri loyalty 4. If the engine gates the trigger on the counter-placer's identity it stays at 1 -> SUSPECT. Re-pinned 2026-10-29 (engine/phasing, CR 606.3): a loyalty ability is activated only during a main phase of its controller's own turn, and the legality oracle now enforces it, so the activation moved to its controller's turn (seat 0's next turn, after seat 1 cast Scourge on its own). The expectations are unchanged. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

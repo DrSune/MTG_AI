@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "watcher", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "singer", "real": "Mistral Singer", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Plain Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "singer", "real": "Mistral Singer"},
+  {"op": "enter", "key": "spare"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"singer": "battlefield", "watcher": "battlefield", "spare": "battlefield"},
+  "power": {"watcher": 2},
+  "toughness": {"watcher": 2}
+ },
+ "notes": "M21 G2 spec: Watcher of the Spheres. The +1/+1 from a flier entering lasts until end of turn only, and a non-flying creature entering adds nothing: after end_turn Watcher is back to 2/2."
+}

@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pestilent Haze, second mode, on a walker with exactly 2 loyalty: the opponent's Chandra, Heart of Fire (seeded at 2) loses two loyalty counters, has 0 loyalty and is put into its owner's graveyard (CR 704.5i).",
+ "cards": [
+  {"key": "haze", "real": "Pestilent Haze", "zone": "hand", "controller": 0},
+  {"key": "ch", "real": "Chandra, Heart of Fire", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "loyalty", "key": "ch", "set": 2},
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"haze": "graveyard", "ch": "graveyard"}
+ }
+}

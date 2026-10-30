@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca",
+ "name": "Jungle Hollow",
+ "text_sha": "be67abcbf42e59a145b2e7a434e4c6975a2d21fc119b119c00379f3dcdc31e02",
+ "verified": {
+  "tree_sha": "dbaead56f378e72eb239770e8d9c4e472880c4b142df64ce63e8c0fddbeb4028",
+  "probe_sha": "2efc90172a235cb466cbed850dbe9e09302ca4aac41b3f373724beef4167c9c2",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True (tree abilities[0] EtBState(tapped=True)); same on the opponent's-turn entry.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: card's triggered ability [1] triggers, you gains 1 life, life 20 -> 21; [from your hand, the card enters during the opponent's turn]: same. Tree equals parse (template B2b-temple-etb-gain-life).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), mana B+1; branch -> 1: card becomes tapped, mana G+1. Tree identical to parse '{T}: Add {B} or {G}.' (template B3-add-mana-choose, cost Cost(parts=(CostTap(),))).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

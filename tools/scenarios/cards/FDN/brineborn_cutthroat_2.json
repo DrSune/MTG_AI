@@ -6,10 +6,11 @@
     {"key": "obc", "real": "Brineborn Cutthroat", "zone": "hand", "controller": 1},
     {"key": "ofb", "real": "Goblin Firebomb", "zone": "hand", "controller": 1}
   ],
-  "mana": {"0": {"U": 2}, "1": {"U": 6}},
   "steps": [
     {"op": "end_turn"},
     {"op": "advance_turn"},
+    {"op": "mana", "seat": 0, "add": {"U": 2}},
+    {"op": "mana", "seat": 1, "add": {"U": 6}},
     {"op": "cast", "key": "bc", "real": "Brineborn Cutthroat", "controller": 0},
     {"op": "cast", "key": "obc", "real": "Brineborn Cutthroat", "controller": 1},
     {"op": "cast", "key": "ofb", "real": "Goblin Firebomb", "controller": 1}
@@ -20,5 +21,5 @@
     "power": {"bc": 2, "obc": 2},
     "toughness": {"bc": 1, "obc": 1}
   },
-  "notes": "Brineborn Cutthroat: only spells YOU cast count. Your copy is out (cast with flash on the opponent's turn); the opponent then casts two spells on its own turn. Yours gets no counter (not your spells); theirs gets none (its controller's own turn is not an opponent's turn)."
+  "notes": "Brineborn Cutthroat: only spells YOU cast count. Your copy is out (cast with flash on the opponent's turn); the opponent then casts two spells on its own turn. Yours gets no counter (not your spells); theirs gets none (its controller's own turn is not an opponent's turn). Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there."
 }

@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7d00fb28-ea6c-49a9-b4af-ffb38860a9a7",
+ "name": "Cancel",
+ "text_sha": "0a01df8f6a8d4b850d50b3c234f94c0bab70fb83f3df3c36213e056ffbbf223a",
+ "verified": {
+  "tree_sha": "a11107c15f87151b656d54ad8d2047e2ad8848898867c2c40dc89edc181a11a6",
+  "probe_sha": "89d0e496cfa621724ab650171b88d846f913108e6fb7903ef21d5feb4f7f3223",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Counter target spell. (Instant {1}{U}{U})",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: 'cast skipped: a target slot needs 1, the board offers 0' (no spell on the stack). Tree: COUNTER_SPELL, target Selector count 1 TARGET, filter FAnd(()) (any spell), zone STACK controller ANY; identical to `parse \"Counter target spell.\"` (template B5a-counter-spell). Pack cancel_counters_creature_spell.json: opponent counters Staunch Shieldmate in the response window; the creature spell goes to the graveyard, Cancel to the graveyard, U:3 pool fully spent: PASS",
+    "issue": "engine-limit: no priority; Cancel is only castable in the counterspell response window or its controller's own action window (weaker, not stronger)"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/cancel_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

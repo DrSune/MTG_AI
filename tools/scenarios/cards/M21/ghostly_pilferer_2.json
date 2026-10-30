@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "As pilferer_untap_pay_draw, but the may is declined: no mana is spent and no extra card is drawn (hand = opening draw + turn-3 draw = 2). Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the {2} for the untap trigger comes from two untapped Islands, tapped while paying (CR 601.2g, 605.3a).",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gp": true}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "tapped": {"gp": false, "i1": false, "i2": false},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {}}
+ }
+}

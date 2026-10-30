@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+ "name": "Forest",
+ "text_sha": "e1d41b999f6b6076862e784fba0a49a8fcf5843d59bf9df49ac5cdc65b9b2863",
+ "verified": {
+  "tree_sha": "06a95859d71cacbc1b038e7d3bbe38f57caba5ce9e2f5fcb63a781533f5f8b83",
+  "probe_sha": "feafe8ce07602b5a051efb26593ed509db8dc2968de57dd7fd54a365f59c0602",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Basic Land - Forest (played as a land, untapped)",
+    "status": "OK",
+    "evidence": "[play land]: card moves hand -> battlefield (by card/PLAY_LAND), no tapped change; static: not a creature",
+    "issue": "engine quirk, not a card fault: [this card is dealt lethal damage] marks 'damage 0 -> 99' on the noncreature land; CR 120.1a says damage can't be dealt to an object that is not a battle, creature or planeswalker (reachable only through the probe's direct DEAL_DAMAGE stimulus; harmless unless the land later becomes a creature)"
+   },
+   {
+    "clause": "({T}: Add {G}.)",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped (by card/TAP), you: mana G+1; tree cost=CostTap only, ADD_MANA amount 1 color G controller YOU",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

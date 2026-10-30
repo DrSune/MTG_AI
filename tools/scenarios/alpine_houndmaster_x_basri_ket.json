@@ -28,6 +28,9 @@
  ],
  "steps": [
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "activate",
    "key": "basri",
    "idx": 0,
@@ -35,6 +38,9 @@
    "targets": [
     "h"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "combat",
@@ -61,9 +67,7 @@
    "h": 3
   },
   "battlefield_keywords": {
-   "Alpine Houndmaster": [
-    "INDESTRUCTIBLE"
-   ]
+   "Alpine Houndmaster": []
   },
   "life": {
    "0": 20,
@@ -74,5 +78,5 @@
    "boar": "battlefield"
   }
  },
- "notes": "HUNT H2 pair 4 (heat 2870, x_census x pt_layers). Enemy Basri (seat 1) +1 stamps the opposing Alpine Houndmaster with a counter (+ indestructible, printed clause). Houndmaster then attacks with exactly one other creature: its own trigger 'gets +X/+0 where X is the number of other attacking creatures' — the attacking-census must count Boar (X=1) and STACK onto the counter layer: 2 base + 1 counter (CR 122.1c) + 1 census static = power 4, toughness 3 (counter only, the census is +X/+0). Combat sends 4 + 2 = 6 to seat 1 (life 14). The counter must not perturb the X census (count is creatures, not power)."
+ "notes": "HUNT H2 pair 4 (heat 2870, x_census x pt_layers). Enemy Basri (seat 1) +1 stamps the opposing Alpine Houndmaster with a counter (+ indestructible, printed clause). Houndmaster then attacks with exactly one other creature: its own trigger 'gets +X/+0 where X is the number of other attacking creatures' — the attacking-census must count Boar (X=1) and STACK onto the counter layer: 2 base + 1 counter (CR 122.1c) + 1 census static = power 4, toughness 3 (counter only, the census is +X/+0). Combat sends 4 + 2 = 6 to seat 1 (life 14). The counter must not perturb the X census (count is creatures, not power). Re-pinned 2026-10-29 (engine/phasing, CR 606.3): a loyalty ability is activated only during a main phase of its controller's own turn, and the legality oracle now enforces it, so the activation moved to its controller's turn (seat 1's turn), then seat 0's turn begins and it attacks. The +1's 'gains indestructible until end of turn' ended with seat 1's turn (CR 514.2), so the keyword lane now expects none; the counter, the census and the damage are unchanged."
 }

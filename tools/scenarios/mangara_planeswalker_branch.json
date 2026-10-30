@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "c1",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lili",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "c1"
+  },
+  {
+   "op": "enter",
+   "key": "c2"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "c1": "lili",
+    "c2": "lili"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "c1": true,
+   "c2": true
+  },
+  "hand": {
+   "1": 2
+  },
+  "zone": {
+   "lili": "graveyard",
+   "mangara": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "V41: Mangara, the Diplomat's 'Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.' Both Walking Corpses attack Liliana, none attacks the player: the planeswalker branch alone makes two, so seat 1 draws (one card from its draw step plus this one). The 4 damage kills Liliana."
+}

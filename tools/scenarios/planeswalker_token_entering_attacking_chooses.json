@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "lili",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "corpse"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "corpse": "lili"
+   },
+   "decisions": [
+    "lili"
+   ]
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "corpse": true
+  },
+  "tokens": {
+   "Soldier": 1
+  },
+  "counters": {
+   "lili": {
+    "LOYALTY": 1
+   },
+   "basri": {
+    "LOYALTY": 1
+   }
+  },
+  "life": {
+   "1": 20
+  }
+ },
+ "notes": "V41, CR 508.4: Basri Ket's -2 ('Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking'). Walking Corpse attacks Liliana; the Soldier enters attacking and its controller chooses what it attacks (the effect does not say): Liliana. 2 + 1 combat damage, loyalty 4 -> 1; Basri 3 -> 1."
+}

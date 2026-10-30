@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Stormwing Entity", "zone": "hand", "controller": 0},
+  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "U": 2}},
+ "steps": [
+  {"op": "cast", "key": "ct", "real": "Crash Through", "controller": 0},
+  {"op": "cast", "key": "s", "real": "Stormwing Entity", "controller": 0, "decisions": ["top", "top"]}
+ ],
+ "expect": {
+  "zone": {"s": "battlefield", "ct": "graveyard"},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed: 'This spell costs {2}{U} less to cast if you've cast an instant or sorcery spell this turn.' After the sorcery Crash Through ({R}), {3}{U}{U} drops to {1}{U}: a U:2 pool pays it exactly and nothing is left (an over-reduction would leave U in the pool; no reduction cannot be paid)."
+}

@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c7c241f2-d3cc-4032-a9da-149de73c2539",
+ "name": "Vryn Wingmare",
+ "text_sha": "fecadea7fadf31ddb5da4c0813114c79f2b8236e58f801052f06cc1219b1308c",
+ "verified": {
+  "tree_sha": "5f188e0fec441a734650b57ebf71ca283897fd143ed01d29a2b10e40f853b0de",
+  "probe_sha": "7a00c13953c2b5fd8bd3d042c824870d62c4423283df5b2c0b5eaadd4e233285",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Pegasus {2}{W} 2/1",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 2/1, mana W-3; dies to 1 damage",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, opp 20 -> 18",
+    "issue": ""
+   },
+   {
+    "clause": "Noncreature spells cost {1} more to cast.",
+    "status": "OK",
+    "evidence": "CostModifier(FNot(TYPE_EQ Creature), controller_ref ANY, +{1} generic); [you cast an instant or sorcery (Crash Through)]: pays 'mana R-1 W-1' (printed {R} + 1); [you cast a creature (Staunch Shieldmate)]: same as without the card (no tax). Opponent's spells not in the trace: packs PASS /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pb3ed18e970_wingmare_taxes_opponent.json (opponent's Shock with only {R}: refused) and /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pb3ed18e970_wingmare_tax_is_one.json (with {R}{R}: resolves, both spent)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/vryn_wingmare_1.json",
+   "tools/scenarios/cards/M21/vryn_wingmare_2.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -166,17 +166,16 @@ def _up_to_two_target_creatures() -> Selector:
 
 
 def _up_to_one_other_target_creature() -> Selector:
-    """``up to one other target creature`` (Cunning Geysermage). V13
-    (2026-10-29): "other" is FNot(IS_SOURCE), a creature other than this
-    one; IS_ANY_TARGET only says "is a target" and never excluded the
-    source."""
+    """``up to one other target creature`` — "other" excludes the source:
+    FNot(IS_SOURCE), the Barrin/Niambi "other target" shape. m21-fidelity
+    (2026-10-29): it was IS_ANY_TARGET, which is true of every designated
+    target, so Cunning Geysermage could return itself."""
     return Selector(
         QAtMost(1),
         SelectorMode.TARGET,
         FAnd(
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.IS_ANY_TARGET),
                 FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
             )
         ),

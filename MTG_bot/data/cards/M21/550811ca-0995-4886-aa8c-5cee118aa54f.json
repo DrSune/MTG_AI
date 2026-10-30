@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "550811ca-0995-4886-aa8c-5cee118aa54f",
+ "name": "Spellgorger Weird",
+ "text_sha": "8fd8abbbab912228c87d16a23ed9451c8fbcaa3bbd4ffc0e27e04a0113a1229e",
+ "verified": {
+  "tree_sha": "b51d28ee5ae1f82e5f132686f78cff4f39fdb84a04b034e7e42fcb88cf3020d4",
+  "probe_sha": "458dd23e0d5fdbb925ac3d176f5fd09a468467a3c9795a5349f3fdaa849e0d50",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "Whenever you cast a noncreature spell, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Crash Through)]: card's triggered ability [0] triggers, card gets 1 PLUS_1_PLUS_1 counter, 2/2 -> 3/3 (a counter, so it stays: no end-of-turn change); [you cast a creature (Staunch Shieldmate)]: none. [cast]: mana R-1 W-2 = {2}{R}. Tree identical to parse (template B2b-noncreature-counter). The 'you' (actor) is not in the trace: pack spellgorger_weird_opponent_spell.json (the opponent's instant adds nothing, my sorcery adds one: exactly 1 counter) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/spellgorger_weird_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,20 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "azusa", "real": "Azusa, Lost but Seeking", "zone": "battlefield", "controller": 0},
+    {"key": "f1", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "f2", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "f3", "real": "Forest", "zone": "hand", "controller": 0},
+    {"key": "f4", "real": "Forest", "zone": "hand", "controller": 0}
+  ],
+  "steps": [
+    {"op": "play", "key": "f1"},
+    {"op": "play", "key": "f2"},
+    {"op": "play", "key": "f3"},
+    {"op": "play", "key": "f4", "expect_raise": "land"}
+  ],
+  "expect": {
+    "zone": {"f1": "battlefield", "f2": "battlefield", "f3": "battlefield", "f4": "hand"}
+  },
+  "notes": "m21-fidelity (adversarial gate, 2026-10-29). Printed: 'You may play two additional lands on each of your turns.' A static ability (CR 305.2: effects may allow additional land plays; 604.1): with Azusa on the battlefield the turn's land allowance is 1 + 2, so three land drops succeed and the fourth is refused, with no activation. Before the fix the sentence compiled to a free activated ability (cost {}), so nothing was granted until it was activated, and every activation added two more (the gate measured 0 -> 2 -> 4 -> 6)."
+}

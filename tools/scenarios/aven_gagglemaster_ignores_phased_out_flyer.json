@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 1},
+  {"key": "bird", "name": "Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "gaggle", "real": "Aven Gagglemaster", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 1, "targets": ["bird"]},
+  {"op": "enter", "key": "gaggle"}
+ ],
+ "expect": {
+  "phased_out": {"bird": true},
+  "zone": {"gaggle": "battlefield"},
+  "life": {"0": 22, "1": 20}
+ },
+ "notes": "CR 702.26b (the 'Draw a card for each creature you control' example): a phased-out permanent is not counted. Seat 1's Teferi, Master of Time phases out seat 0's flying Bird; then Aven Gagglemaster enters under seat 0 ('you gain 2 life for each creature you control with flying'): it counts only itself, so seat 0 gains 2, not 4."
+}

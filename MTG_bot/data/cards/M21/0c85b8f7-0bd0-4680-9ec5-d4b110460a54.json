@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0c85b8f7-0bd0-4680-9ec5-d4b110460a54",
+ "name": "Fabled Passage",
+ "text_sha": "d9f8854693eaa36c7a28b76860570591496c41e8fcc21a6972c4df6387f4e7b1",
+ "verified": {
+  "tree_sha": "18f576f996944ab2e9992d48b4bedc30068cff799c133136dde0829d294d0f5c",
+  "probe_sha": "01ee61c867ad3b08ed252c12b8ef49ef0982aa38e282e3ab113ca92194906cba",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "{T}, Sacrifice this land:",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', then 'card moves battlefield -> graveyard (by card/SACRIFICE)'. [play land] is an ordinary land drop",
+    "issue": ""
+   },
+   {
+    "clause": "Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe library holds no basic land, so the activation fetches nothing. Pack three_lands_stays_tapped: the basic Forest enters tapped, the nonbasic Bloodfell Caves stays in the library (pass). The shuffle cannot be observed (not journalled)",
+    "issue": "Tree note, no behaviour difference: the SEARCH selector is ONE_OF where the compiler's B5c-cost-sacrifice-search emits CHOOSE. For a count-1 search both resolve to one chosen candidate (selectors.py resolve_selector), so neither is stronger than printed."
+   },
+   {
+    "clause": "Then if you control four or more lands, untap that land.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Conditional(CONTROLLER_COUNT_GE 4 Land) -> UNTAP(referent='result'), the same as the B5c-then-if-lands-untap template. Pack four_lands_untaps: three other lands plus the Forest -> untapped (pass). Pack three_lands_stays_tapped: two other lands plus the Forest, with five opponent lands that must not count -> stays tapped (pass)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/fabled_passage_1.json",
+   "tools/scenarios/cards/M21/fabled_passage_2.json",
+   "tools/scenarios/cards/M21/fabled_passage_3.json"
+  ],
+  "mutation": {
+   "mutants": 17,
+   "killed": 5,
+   "score": 0.29411764705882354,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "drop step 2 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/destination/controller",
+    "amount+1 at 1/0/effect/steps/2/pred/count",
+    "amount-1 at 1/0/effect/steps/2/pred/count"
+   ]
+  }
+ }
+}

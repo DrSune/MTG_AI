@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V29 (CR 601.2f): Pursued Whale, 'Spells your opponents cast that target this creature cost {3} more to cast.' Seat 0's Titanic Growth ({1}{G}) targeting the opponent's Whale costs {4}{G}: the pool of exactly {C:4}{G:1} is spent to the last mana, and the Whale gets +4/+4 (8/8 -> 12/12). The shipped pack targets_source_cost_fold never checked the pool, and the tax was never charged.",
+ "cards": [
+  {"key": "whale", "real": "Pursued Whale", "zone": "battlefield", "controller": 1},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 4, "G": 1}},
+ "steps": [
+  {"op": "cast", "key": "tg", "controller": 0, "targets": ["whale"]}
+ ],
+ "expect": {
+  "power": {"whale": 12},
+  "zone": {"tg": "graveyard"},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Frost Breath at my OWN creature on my turn: 'don't untap during their controller's next untap step' means MY next untap step (my next turn), not the opponent's. Advance through the opponent's turn into my next turn. Expected: my creature is still tapped; my untargeted creature that started tapped untaps (control).",
+ "cards": [
+  {"key": "fb", "real": "Frost Breath", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Bear", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ctl", "name": "My Control", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 0, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Breath", "key": "fb", "targets": ["mine"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"zone": {"fb": "graveyard"}, "tapped": {"mine": true, "ctl": false}}}

@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Only 1 life gained this turn (Bloodfell Caves' enter trigger): fewer than 3, so the Ghoul stays in the graveyard at the end step.",
+ "cards": [
+  {"key": "g", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "caves", "real": "Bloodfell Caves", "zone": "hand", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "caves", "seat": 0},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 21},
+  "zone": {"g": "graveyard", "caves": "battlefield"}
+ }
+}

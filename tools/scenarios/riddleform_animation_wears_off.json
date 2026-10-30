@@ -1,0 +1,19 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... become a 3/3 Sphinx creature with flying ... until end of turn.' After the animation turn ends and the next own turn begins, Riddleform is a plain enchantment again: no flying, and it cannot be declared as an attacker (opponent stays at 20).",
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "sw", "real": "Short Sword", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "cast", "key": "sw", "real": "Short Sword", "decisions": ["fire"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"rf": true}}
+ ],
+ "expect": {
+  "zone": {"sw": "battlefield", "rf": "battlefield"},
+  "attackers": {"rf": false},
+  "life": {"1": 20},
+  "battlefield_keywords": {"Riddleform": []}
+ }}

@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Warden of the Woods", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "controller": 1, "targets": ["w"], "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"tg": "graveyard", "w": "battlefield"},
+  "hand": {"0": 2, "1": 0},
+  "power": {"w": 9}
+ },
+ "notes": "R5-6: 'Whenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards.' Seat 1 casts Titanic Growth on seat 0's Warden: the targeting spell is an opponent's, so the trigger fires and seat 0 (the Warden's controller) draws two. The spell still resolves (5/7 -> 9/11)."
+}

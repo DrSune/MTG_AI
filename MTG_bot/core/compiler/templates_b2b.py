@@ -17,8 +17,8 @@ Coverage (62 shapes = 58 template-covered + 4 uncovered):
     shape (Solemn Simulacrum, Garruk's Uprising, Historian of Zhalfir,
     Ornery Dilophosaur, Tide Skimmer, Vito).
   - *Round 5* (15 templates, 2026-09-25): 14 new shapes and 14 concrete rows
-    — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; lossy:
-    "an opponent controls"), Jeskai Elder (DamageDealtEvent combat=True +
+    — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; "an
+    opponent controls" is the event's actor since R5-6), Jeskai Elder (DamageDealtEvent combat=True +
     OptionalEffect
     DRAW; lossy: "to a player"), Chandra's Incinerator / Pyreling
     (DamageDealtEvent ``combat=False`` + source filter; the Incinerator deals
@@ -102,6 +102,7 @@ sentences share one template and match only it); verified in tests.
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from typing import Final
 
 from MTG_bot.core.ability_tree import (
@@ -154,7 +155,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
-    ZonePosition,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -318,12 +318,17 @@ def _any_card_in_your_hand() -> Selector:
 
 
 def _target_opponent() -> Selector:
-    """Selector for ``target opponent``."""
+    """Selector for ``target opponent``: a TARGET over the opponents' seats,
+    Zone(PLAYER, OPPONENT) (CR 115.1, 102.2: a target opponent is an opponent
+    of the ability's controller). m21-fidelity (review batch D, 2026-10-29):
+    it was Zone(PLAYER, TARGET_PLAYER), which inside a damage firing reads the
+    binder's dealer anaphora, so Brash Taunter's echo hit the controller of the
+    damage's source (its own controller after its own fight)."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
         FAnd(children=()),
-        zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.OPPONENT),),
     )
 
 
@@ -482,46 +487,46 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
 # ---------------------------------------------------------------------------
 
 
+def _named_search_one(name: str) -> Atom:
+    """One "a card named <name>" pick from your library into your hand: an
+    up-to-one CHOOSE, which the compiler's search-pick pass turns into the
+    asked ONE_OF channel."""
+    return Atom(
+        verb=Verb.SEARCH,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "cards",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.NAME_EQ, string_value=name),
+                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),),
+                    ),
+                ),
+                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
+            )
+        ),
+    )
+
+
 def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle."""
+    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle.
+
+    "a card named A and/or a card named B" is at most ONE card of each name
+    (m21-fidelity, review batch A, 2026-10-29): one pick per name, in printed
+    order. It was one up-to-two pick over FOr(NAME A, NAME B), which could
+    fetch two Alpine Watchdogs (stronger than printed). No IR node says
+    "distinct names", so the one search is written as two picks; nothing
+    observes the difference (no card in the pool triggers on searching).
+    """
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Seq(
                 steps=(
-                    Atom(
-                        verb=Verb.SEARCH,
-                        args=AtomArgs(
-                            pairs=(
-                                (
-                                    "cards",
-                                    Selector(
-                                        QConst(2),
-                                        SelectorMode.CHOOSE,
-                                        FOr(
-                                            children=(
-                                                FAtom(
-                                                    pred=FAtomPred.NAME_EQ,
-                                                    string_value="Alpine Watchdog",
-                                                ),
-                                                FAtom(
-                                                    pred=FAtomPred.NAME_EQ,
-                                                    string_value="Igneous Cur",
-                                                ),
-                                            )
-                                        ),
-                                        zones=(
-                                            Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
-                                        ),
-                                    ),
-                                ),
-                                (
-                                    "destination",
-                                    Zone(ZoneKind.HAND, ControllerRef.YOU),
-                                ),
-                            )
-                        ),
-                    ),
+                    _named_search_one("Alpine Watchdog"),
+                    _named_search_one("Igneous Cur"),
                     Atom(
                         verb=Verb.REVEAL,
                         args=AtomArgs(
@@ -800,17 +805,21 @@ def _build_wildwood_scorge(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_falconer_adept(m: re.Match[str]) -> SentenceOutcome:
-    """#28: create 1/1 white Bird with flying, tapped and attacking."""
-    # color="W" populated (round 8 / C-2 repair).  GAP: "that's tapped and
-    # attacking" token state stays dropped in 8-B (TokenSpec.enters_tapped/
-    # enters_attacking rows are 8-C coverage work, not this flip pass).
+    """#28: create 1/1 white Bird with flying, tapped and attacking.
+
+    "that's tapped and attacking" is TokenSpec.enters_tapped/enters_attacking
+    (R8-4, the Basri Ket [-2] Soldier shape; CR 508.4: put onto the battlefield
+    attacking, never declared). m21-fidelity (fixer 4, 2026-10-30): both flags
+    were left unset (an 8-B gap note), so the Bird entered untapped and out of
+    combat: no attack row, no damage (weaker than printed)."""
+    bird = replace(_bird_token(1, 1), enters_tapped=True, enters_attacking=True)
     return _ability(
         _attack_event(),
         Atom(
             verb=Verb.CREATE_TOKEN,
             args=AtomArgs(
                 pairs=(
-                    ("tokens", _bird_token(1, 1)),
+                    ("tokens", bird),
                     ("count", QConst(1)),
                 )
             ),
@@ -1046,41 +1055,29 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.REVEAL,
         args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
     )
-    move = Atom(
-        verb=Verb.MOVE_ZONE,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_SOURCE),
-                        zones=(
-                            Zone(
-                                ZoneKind.LIBRARY,
-                                ControllerRef.YOU,
-                                position=ZonePosition.TOP,
-                            ),
-                        ),
-                    ),
-                ),
-                ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
-            )
-        ),
-    )
+    # "put it into your hand" is the SEARCH's own destination. m21-fidelity
+    # (G3 finisher, 2026-10-30): a third step, MOVE_ZONE(this creature from the
+    # top of your library to your hand), was unprinted; it moved the creature
+    # itself when it was on top of the library as the trigger resolved.
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
-        OptionalEffect(inner=Seq(steps=(search, reveal, move))),
+        OptionalEffect(inner=Seq(steps=(search, reveal))),
     )
 
 
 def _build_nine_lives_leave(m: re.Match[str]) -> SentenceOutcome:
-    """#9: this enchantment leaves the battlefield, you lose the game."""
+    """#9: this enchantment leaves the battlefield, you lose the game.
+
+    The mover is THIS enchantment (CR 603.6c leaves-the-battlefield
+    trigger): subject IS_SOURCE, the self-ETB shape. m21-fidelity (review
+    batch C, 2026-10-29): the subject was missing, so any permanent you
+    controlled leaving the battlefield made you lose the game.
+    """
     return _ability(
         ZoneChangeEvent(
             from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
             to_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+            subject=FAtom(pred=FAtomPred.IS_SOURCE),
         ),
         Atom(verb=Verb.LOSE_GAME, args=AtomArgs()),
     )
@@ -1336,12 +1333,17 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
                     )
                 ),
             ),
+            # "a 3/3 Sphinx creature ... in addition to its other types": the
+            # card type Creature AND the subtype Sphinx (CR 205.1b; the type
+            # overlay is the single TYPE_EQ/SUBTYPE_EQ oracle). m21-fidelity
+            # (review batch C, 2026-10-29): only "Sphinx" was granted, so the
+            # 3/3 flier was never a creature and could not attack or block.
             Atom(
                 verb=Verb.GRANT_TYPE,
                 args=AtomArgs(
                     pairs=(
                         ("target", _self_selector()),
-                        ("types", ("Sphinx",)),
+                        ("types", ("Creature", "Sphinx")),
                         ("duration", DurationEot()),
                     )
                 ),
@@ -1371,10 +1373,21 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_quirion_dryad_colored(m: re.Match[str]) -> SentenceOutcome:
-    """#53: cast a W/U/B/R spell, put a +1/+1 counter on this creature."""
+    """#53: cast a W/U/B/R spell, put a +1/+1 counter on this creature.
+
+    V39 (CR 105.2, 105.2b): a spell "that's white, blue, black, or red" is
+    one with at least one of those colors, a green-blue spell included, so
+    the filter is the FOr of COLOR_HAS (MAPPER_GUIDE "Colours"). COLOR_IN,
+    written here before, is a subset test that a gold spell with green
+    failed."""
     return _ability(
         CastSpellEvent(
-            filter=FAtom(pred=FAtomPred.COLOR_IN, colors=("W", "U", "B", "R")),
+            filter=FOr(
+                children=tuple(
+                    FAtom(pred=FAtomPred.COLOR_HAS, color=color)
+                    for color in ("W", "U", "B", "R")
+                )
+            ),
             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
         ),
         Atom(
@@ -1713,15 +1726,28 @@ def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
 # ---------------------------------------------------------------------------
 
 
+def _targeted_by_an_opponent(subject: Filter) -> TargetingEvent:
+    """"Whenever <subject> becomes the target of a spell or ability an opponent
+    controls" (ontology R5-6, 2026-10-29): ``filter`` reads the targeted
+    object, ``actor`` the controller of the targeting spell or ability — the
+    single direction encoding (E1) CastSpellEvent's actor uses. Shared by the
+    Warden template and the targeted frame (frames.py), so both build the same
+    bytes."""
+    return TargetingEvent(
+        filter=subject,
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+    )
+
+
 def _build_warden_of_the_woods(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #1: becomes the target of an opponent's spell/ability,
     you may draw two cards.
 
-    Lossy: "an opponent controls" is dropped — TargetingEvent constrains
-    only the targeted object (IS_SOURCE), never the spell's controller
-    (doc-05 row #1)."""
+    R5-6 closes the old loss: "an opponent controls" is the event's
+    ``actor`` (the targeting spell's controller), so the Warden's own
+    spells no longer draw (doc-05 row #1)."""
     return _ability(
-        TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+        _targeted_by_an_opponent(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
             inner=Atom(
                 verb=Verb.DRAW,
@@ -2111,8 +2137,9 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #14: you draw your second card each turn, create a Cat
     token.
 
-    CardDrawnEvent.ordinal=2 (grammar round 4).  Lossy: the token's green
-    color is omitted — TokenSpec has no color field (bucket convention)."""
+    CardDrawnEvent.ordinal=2 (grammar round 4).  The token is green:
+    TokenSpec.color='G' (round 8, C-2 repair; the old note that the color
+    was omitted is stale, m21-fidelity item 3 census 2026-10-29)."""
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(

@@ -148,6 +148,8 @@ class SeatRouter:
         for _ in range(MAX_ACTS_PER_STEP):
             if game.over_reason() is not None:
                 return
+            if not game.executor.turn_open:
+                break  # an effect ended the turn (CR 724.1): the act window is over
             menu = self._act_menu(game, seat, i)
             if len(menu) == 1:  # PASS is the only legal act: not a decision
                 break

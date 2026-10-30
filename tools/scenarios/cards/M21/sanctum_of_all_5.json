@@ -1,0 +1,60 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count). Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for A Shrine card and put it onto the battlefield.' Sanctum of All enters; two Shrines are findable: Sanctum of Tranquil Light in the library and Sanctum of Stone Fangs in your graveyard. On your next upkeep the may is taken and Tranquil Light is picked: it enters; Stone Fangs stays in the graveyard.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tl",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "sf",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "tl"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "soa": "battlefield",
+   "tl": "battlefield",
+   "sf": "graveyard"
+  }
+ }
+}

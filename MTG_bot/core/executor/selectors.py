@@ -44,7 +44,7 @@ from MTG_bot.core.ability_tree import (
     count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, phased_out, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
@@ -164,9 +164,14 @@ def filter_reads_bound_player(filter_: object) -> bool:
 
 
 def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
-    """The single player who owns a destination/movement zone IR."""
+    """The single player who owns a destination/movement zone IR.
+
+    V24 (2026-10-29): ANY names no player, so it resolves to ``owner`` when the
+    caller has one, never to the first seat (B-43: a bounce to "its owner's hand"
+    compiled as Zone(HAND, ANY) handed an opponent's creature to seat 0). A
+    MOVING CARD's destination goes through :func:`move_destination`."""
     ref = zone_ir.controller
-    if ref is ControllerRef.OWNER:
+    if ref is ControllerRef.OWNER or (ref is ControllerRef.ANY and owner is not None):
         if owner is None:
             raise ValueError("executor: OWNER zone needs a card to own it")
         return owner
@@ -177,6 +182,39 @@ def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
     raise NotImplementedError(
         f"executor: zone controller ref {ref.name} needs multiple owners (12b)"
     )
+
+
+def move_destination(
+    ctx: ExecCtx, dest_ir: Zone, dest_kind: str, card: Handle
+) -> tuple[Handle, Handle | None]:
+    """V24 (CR 108.3, 400.3, 110.2a): where a moving card lands, as ``(the player
+    whose zone receives it, the player who controls it if that is not its owner)``.
+
+    The frozen world reads a card's owner off the zone that holds it, so filing a
+    card under another player's zone would change its owner, which never happens
+    (108.3). A card goes to its OWNER's hand, library or graveyard whatever player
+    the destination names (400.3), and to its owner's slice of exile. Only a
+    battlefield destination names a controller (110.2a): the player the effect puts
+    it under, which is the effect's controller (YOU, and ANY: "return it to the
+    battlefield" puts it under the instructed player's control), the designated
+    player (TARGET_PLAYER), or its owner (OWNER). A controller other than the owner
+    is the caller's control entry (Executor.gain_control), never a zone."""
+    owner = ctx.world.controller_of(card)  # the zone owner IS the card's owner
+    if dest_kind != ZONE_BATTLEFIELD:
+        return owner, None
+    ref = dest_ir.controller
+    if ref is ControllerRef.OWNER:
+        return owner, None
+    if ref in (ControllerRef.YOU, ControllerRef.ANY):
+        controller = ctx.controller
+    elif ref is ControllerRef.TARGET_PLAYER:
+        controller = players_for_ref(ref, ctx)[0]
+    else:
+        raise NotImplementedError(
+            f"executor: battlefield destination under {ref.name} names no single "
+            "controller (CR 110.2a)"
+        )
+    return owner, (None if controller == owner else controller)
 
 
 def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
@@ -205,7 +243,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         for player in ctx.world.player_order:
             for any_kind in PLAYER_ZONES:
                 handles_all.extend(ctx.world.players[player].zone(any_kind).entries)
-        return handles_all
+        return existing(ctx, handles_all)
     ref = zone_ir.controller
     if kind is ZoneKind.STACK:
         # 14d (B-19): B-2's RUNTIME twin. ZONE_KIND_TO_STATE has no STACK
@@ -253,7 +291,19 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
             handles.extend(entries[:1])
         else:
             handles.extend(entries)
-    return handles
+    return existing(ctx, handles)
+
+
+def existing(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
+    """CR 702.26b: a phased-out permanent is treated as though it does not
+    exist, so no zone enumeration yields it: not a target, not an "each"
+    population, not counted, not a cost candidate, not a static's scope.
+    The ONE chokepoint every selector and query enumeration passes
+    (``enumerate_zone`` here, ``legality._zone_handles`` for its own
+    OWNER/ANY lanes). Order-preserving; free when nothing is phased out."""
+    if ctx.executor is None or not getattr(ctx.executor, "phased_out", None):
+        return handles
+    return [h for h in handles if not phased_out(ctx, h)]
 
 
 def _is_any_target_idiom(filter_: object) -> bool:
@@ -712,7 +762,12 @@ def resolve_selector(
         # and drop out (CR 603.3's mode/targets rule, applied per handle).
         # UNDESIGNATED stays the loud raise — an unbound designation is
         # still never guessed.
-        bound = ctx.binding_handles("target")
+        # V25: with per-slot designations (a spell or ability with several
+        # targets), a TARGET selector means ITS OWN slot's designation, whatever
+        # role or quantity it sits in ("deals damage equal to its power" reads
+        # the first target, the damage goes to the second).
+        own = ctx.slot_designations.get(repr(sel)) if ctx.slot_designations else None
+        bound = list(own) if own is not None else ctx.binding_handles("target")
         if bound is None:
             raise ValueError(
                 "executor: TARGET selector has no designation "
@@ -906,15 +961,23 @@ def atom_target_slot_key(atom: Atom, slot_designations: dict[str, tuple]) -> str
     effect runtime uses to shadow ``bindings["target"]`` to the atom's own
     slot (ExecCtx.slot_designations). None when the atom designates nothing
     or its selector was not part of the spell's designation walk (the
-    shared union binding then stands, exactly as before)."""
-    for _role, value in atom.args.pairs:
-        if (
-            isinstance(value, Selector)
-            and value.mode is SelectorMode.TARGET
-            and repr(value) in slot_designations
-        ):
-            return repr(value)
-    return None
+    shared union binding then stands, exactly as before).
+
+    V25: the shadow is what the ``target`` ROLE reads (role_handles is
+    binding-first), so an atom whose ``target`` role is designated shadows that
+    slot even when another role sorts first (a ``dealer``); the other TARGET
+    selectors read their own slots (resolve_selector)."""
+    keys = [
+        (role, repr(value))
+        for role, value in atom.args.pairs
+        if isinstance(value, Selector)
+        and value.mode is SelectorMode.TARGET
+        and repr(value) in slot_designations
+    ]
+    for role, key in keys:
+        if role == "target":
+            return key
+    return keys[0][1] if keys else None
 
 
 def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
@@ -942,6 +1005,14 @@ def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
             for z in value.zones
         )
     )
+
+
+def _in_population(sel: Selector, handle: Handle, ctx: ExecCtx) -> bool:
+    """V28: could ``handle`` be one of the objects ``sel`` selects (in one of its
+    zones and passing its filter)?"""
+    if not any(handle in enumerate_zone(ctx, zone) for zone in sel.zones):
+        return False
+    return eval_filter(sel.filter, handle, ctx)
 
 
 def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
@@ -1038,6 +1109,35 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # into the sweep exemption).
     _dest = atom.args.get("destination")
     graveyard_sweep = graveyard_sweep_shape(value, atom.verb, _dest)
+    # V28 (Rewind, CR 608.2c): a CHOOSE selector is a choice its controller makes
+    # as the effect resolves, not a designation. It shares the role NAME
+    # ``target`` with the spell's TARGET designation only by the compiler's
+    # naming ("Counter target spell. Untap up to four lands." handed the
+    # countered spell to the untap). When none of the bound objects can be in
+    # this selector's population, the designation is not for it, and it
+    # resolves itself. A binding that does fit keeps the binding-first lane.
+    foreign = (
+        bound is not None
+        and isinstance(value, Selector)
+        and value.mode is SelectorMode.CHOOSE
+        and value.referent is None
+        and not any(_in_population(value, h, ctx) for h in bound)
+    )
+    # m21-fidelity (2026-10-29, B-53 second half): a designation made of PLAYER
+    # handles (the spell's TARGET_PLAYER coordinate, Run Afoul's target opponent)
+    # is never a member of a CARD population, so it must not take over a role
+    # whose non-TARGET selector (a resolution-time CHOOSE/ALL pick) can hold only
+    # cards (no PLAYER/ANY zone): "target opponent sacrifices a creature" raised
+    # KeyError 'unknown card player:1'. The role resolves its own selector
+    # instead, in the rotated coordinates. TARGET mode stays the designation lane.
+    player_into_cards = (
+        bound is not None
+        and bool(bound)
+        and all(h.namespace == "player" for h in bound)
+        and isinstance(value, Selector)
+        and value.mode is not SelectorMode.TARGET
+        and all(z.kind not in (ZoneKind.PLAYER, ZoneKind.ANY) for z in value.zones)
+    )
     if (
         bound is not None
         and not anaphoric
@@ -1045,8 +1145,12 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not population
         and not self_ref
         and not graveyard_sweep
+        and not foreign
+        and not player_into_cards
     ):
-        return bound
+        # CR 702.26b / 608.2b: a designated permanent that has phased out
+        # since it was designated does not exist, so the verb skips it.
+        return existing(ctx, bound)
     if isinstance(value, Selector):
         if (
             atom.verb is Verb.CAST

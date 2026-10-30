@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mine", "name": "My Flier", "power": "2", "toughness": "2", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Their Flier", "power": "1", "toughness": "1", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "ground", "name": "Their Walker", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "ra", "real": "Run Afoul", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Run Afoul", "key": "ra"}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield", "theirs": "graveyard", "ground": "battlefield", "ra": "graveyard"},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Run Afoul {G}: 'Target opponent sacrifices a creature of their choice with flying.' Only the target opponent's creatures can be sacrificed: their only flier goes to the graveyard; the caster's own flier and the opponent's non-flier stay."
+}

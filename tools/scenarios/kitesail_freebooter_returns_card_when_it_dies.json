@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "real": "Kitesail Freebooter", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "salve", "name": "Salve", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": ["zap"]},
+  {"op": "deal_damage", "source": "ogre", "target": "k", "amount": 2}
+ ],
+ "expect": {
+  "zone": {"k": "graveyard", "zap": "hand", "salve": "hand"},
+  "hand": {"1": 2}
+ },
+ "notes": "R5-1 (B-60c, CR 610.3): 'Exile that card until this creature leaves the battlefield.' Freebooter exiles Zap from seat 1's hand, then dies to 2 damage; the second one-shot effect returns Zap to its owner's hand (its previous zone). Before R5-1 the template dropped the until-clause and Zap stayed in exile forever (stronger than printed)."
+}

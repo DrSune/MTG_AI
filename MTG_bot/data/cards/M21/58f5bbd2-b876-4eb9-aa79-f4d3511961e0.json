@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "58f5bbd2-b876-4eb9-aa79-f4d3511961e0",
+ "name": "Havoc Jester",
+ "text_sha": "788da967a6f3d06474a4ccbf8397e6a9517a160aa2f17fe3cecd6182a46c5ec8",
+ "verified": {
+  "tree_sha": "b68fdf5c9cf3b3ab0be167e816623878f81456a1bc7d7a9ea91e00336324f80a",
+  "probe_sha": "2dfa2c126ec00619d9707642942bc6c298c7afad985291a2cfc29929a9e10157",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "Whenever you sacrifice a permanent, this creature deals 1 damage to any target.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus on the standard board sacrifices anything; tree = compiler template B2b-sacrifice-any-damage (SacrificeEvent actor YOU, 1 damage, Creature/Planeswalker/Player target). Packs: havoc_jester_noncreature_sac_player.json (you sacrifice Tormod's Crypt -> 1 damage to the opponent, 20 -> 19) PASS; havoc_jester_opponent_sac_no_trigger.json (the opponent sacrifices their Crypt -> no trigger, no damage) PASS. Existing tools/scenarios/havoc_jester.json + ladder_jester_double_sac.json cover creature sacrifices.",
+    "issue": ""
+   },
+   {
+    "clause": "{4}{R} 5/5 creature",
+    "status": "OK",
+    "evidence": "[cast]: mana R-1 W-4; P/T - -> 5/5; attacks for 5",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/havoc_jester_1.json",
+   "tools/scenarios/cards/M21/havoc_jester_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count"
+   ]
+  }
+ }
+}

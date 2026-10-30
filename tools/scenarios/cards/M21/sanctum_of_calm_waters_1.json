@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of Calm Waters (M21): 'At the beginning of your first main phase, you may draw X cards, where X is the number of Shrines you control. If you do, discard a card.' Seat 0 controls the Sanctum and one other Shrine; seat 1 controls a Shrine (not counted). The Sanctum enters on turn 1 (after that main phase began). Seat 1's turn: no trigger (no answer is scripted, so any ask would fail the step). Seat 0's next turn: draw step (+1), the trigger fires, the controller draws X = 2 and discards the chosen Junk. Hand: Junk 1 -> 2 -> 4 -> 3.",
+ "cards": [
+  {"key": "sanct", "zone": "hand", "controller": 0, "real": "Sanctum of Calm Waters"},
+  {"key": "junk", "zone": "hand", "controller": 0, "name": "Junk", "type": "Sorcery"},
+  {"key": "shrine2", "zone": "battlefield", "controller": 0, "name": "Other Shrine", "type": "Enchantment — Shrine"},
+  {"key": "oshrine", "zone": "battlefield", "controller": 1, "name": "Opp Shrine", "type": "Enchantment — Shrine"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sanct"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["fire", "junk"]}
+ ],
+ "expect": {"zone": {"sanct": "battlefield", "junk": "graveyard"}, "hand": {"0": 3}}}

@@ -1,0 +1,19 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Gnarled Sage (M21), only YOUR draws count. Printed: 'As long as you've drawn two or more cards this turn, ...'. The turn passes to seat 1, who draws for the turn and then casts Thrill of Possibility (draw two): seat 1 has drawn three cards this turn, seat 0 (the Sage's controller) none. The Sage stays 4/4 with reach only. Counting any player's draws, or the active player's, would make it 4/6 with vigilance. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there.",
+ "cards": [
+  {"key": "sage", "zone": "battlefield", "controller": 0, "real": "Gnarled Sage"},
+  {"key": "sp", "zone": "hand", "controller": 1, "real": "Thrill of Possibility"},
+  {"key": "fuel", "zone": "hand", "controller": 1, "name": "Fuel", "type": "Instant"}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"R": 2}},
+  {"op": "cast", "key": "sp", "controller": 1, "decisions": ["fuel"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "fuel": "graveyard"},
+  "hand": {"1": 3},
+  "power": {"sage": 4},
+  "toughness": {"sage": 4},
+  "battlefield_keywords": {"Gnarled Sage": ["REACH"]}
+ }}

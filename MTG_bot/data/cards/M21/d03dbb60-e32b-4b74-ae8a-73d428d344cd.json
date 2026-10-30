@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d03dbb60-e32b-4b74-ae8a-73d428d344cd",
+ "name": "Seasoned Hallowblade",
+ "text_sha": "3e3cb1256568a9b315954f2bc90228f07c554487ba759e292a8db4bbc29ae899",
+ "verified": {
+  "tree_sha": "79e627e5846decc1fd5e0fdd92e29fea30d80f4c50e58b8d553e7832061ecf6c",
+  "probe_sha": "6830aa22b92059625eb32d9002e09e7a6a4b9560d5e121bc8d3872591e086655",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Creature {1}{W} 3/1 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 3/1; mana W-2",
+    "issue": ""
+   },
+   {
+    "clause": "Discard a card:",
+    "status": "OK",
+    "evidence": "[activate [0]] variants: ask discard offers all five hand cards (any card), the chosen one moves hand -> graveyard; no mana spent",
+    "issue": ""
+   },
+   {
+    "clause": "Tap this creature.",
+    "status": "OK",
+    "evidence": "[activate [0]]: card becomes tapped (by card/TAP)",
+    "issue": ""
+   },
+   {
+    "clause": "It gains indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0]]: card keywords +INDESTRUCTIBLE; after the turn ends: -INDESTRUCTIBLE. Already-tapped case (the 'result' referent with nothing newly tapped): pack seasoned_hallowblade_tapped_indestructible.json, still gains indestructible and survives 5 damage, PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/seasoned_hallowblade_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

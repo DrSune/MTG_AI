@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e08c71aa-d35c-4c20-b4db-ae9d36ee3169",
+ "name": "Miscast",
+ "text_sha": "cfb67bf2c7a5f011b90368e47e7cfbe4fd0a8aa1085366f0e9ed63322b5496ba",
+ "verified": {
+  "tree_sha": "1cab66d045c9501fafda7b129a9e1a1b82f83ce4891ed4f37abb20754877bd20",
+  "probe_sha": "44fd6d04bb6a1771997978eb54f91ed6b02c71f7a423d7526afc0a22376eced0",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Counter target instant or sorcery spell (Instant {U})",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: 'cast skipped: a target slot needs 1, the board offers 0'. Tree COUNTER_SPELL target count QConst(1), FOr(Instant, Sorcery), zone STACK any controller: identical to `parse` template B5a-counter-unless-sps. Packs: miscast_declined_counters.json (Shock's controller declines: Shock countered, 2/2 lives, Miscast's {U} spent): PASS; miscast_cannot_target_creature_spell.json (never offered against a creature spell): PASS",
+    "issue": "engine-limit: no priority; castable only in the counterspell response window or its controller's own action window (weaker)"
+   },
+   {
+    "clause": "unless its controller pays {3}.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree 'unless': Cost(CostManaGeneric(3)). Packs: miscast_pay_exactly_three.json (payer has exactly 3 left after Shock, pays, Shock resolves, pool empty): PASS; miscast_declined_counters.json (declines, keeps R:3): PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/miscast_1.json",
+   "tools/scenarios/cards/M21/miscast_2.json",
+   "tools/scenarios/cards/M21/miscast_3.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 2,
+   "score": 0.4,
+   "survived": [
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/args/unless",
+    "amount+1 at 1/0/effect/args/unless/parts/0/amount",
+    "amount-1 at 1/0/effect/args/unless/parts/0/amount"
+   ]
+  }
+ }
+}

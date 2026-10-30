@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Solemn Simulacrum enters (cast for {4}); its may is taken: the only BASIC land in the library (Swamp) is put onto the battlefield tapped; the nonbasic Bloodfell Caves stays in the library.",
+ "cards": [
+  {"key": "ss", "real": "Solemn Simulacrum", "zone": "hand", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "library", "controller": 0},
+  {"key": "caves", "real": "Bloodfell Caves", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 4}},
+ "steps": [
+  {"op": "cast", "key": "ss", "real": "Solemn Simulacrum", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"ss": "battlefield", "swamp": "battlefield", "caves": "library"},
+  "tapped": {"swamp": true},
+  "mana_pool": {"0": {}}
+ }
+}

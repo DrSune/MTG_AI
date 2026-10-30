@@ -65,6 +65,9 @@
    "op": "advance_turn"
   },
   {
+   "op": "advance_turn"
+  },
+  {
    "op": "activate",
    "key": "lm",
    "idx": 1,
@@ -72,6 +75,9 @@
    "targets": [
     "bird"
    ]
+  },
+  {
+   "op": "advance_turn"
   },
   {
    "op": "advance_turn"
@@ -93,7 +99,7 @@
  ],
  "expect": {
   "hand": {
-   "0": 2
+   "0": 3
   },
   "life": {
    "1": 12
@@ -112,5 +118,5 @@
    "bird": "graveyard"
   }
  },
- "notes": "All three loyalty abilities. +1 returns Grizzly to hand. -3 destroys Skyscanner, its controller loses 2 (18). advance_turn before -7: CR 606.3 one loyalty ability per permanent per turn (window:loyalty:once_per_turn otherwise refuses idx 2); that rotation draws seat 0 one card (hand 2 = corpse + draw). -7: loyalty ledger-seeded to 7, opponent's graveyard now has 3 creature cards -> loses 6 more (12); 0-loyalty planeswalker sacrifices itself (graveyard lane)."
+ "notes": "All three loyalty abilities. +1 returns Grizzly to hand. -3 destroys Skyscanner, its controller loses 2 (18). advance_turn before -7: CR 606.3 one loyalty ability per permanent per turn (window:loyalty:once_per_turn otherwise refuses idx 2); that rotation draws seat 0 one card (hand 2 = corpse + draw). -7: loyalty ledger-seeded to 7, opponent's graveyard now has 3 creature cards -> loses 6 more (12); 0-loyalty planeswalker sacrifices itself (graveyard lane). Re-pinned 2026-10-29 (engine/phasing, CR 606.3): a loyalty ability is activated only during a main phase of its controller's own turn, and the legality oracle now enforces it, so the activation moved to its controller's turn: each later activation waits two rotations for seat 0's next turn, so seat 0 draws one more card (hand 3 = Grizzly + two draws). Life and graveyards are unchanged."
 }

@@ -301,6 +301,14 @@ class ExecCtx:
         return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
 
 
+def phased_out(ctx: ExecCtx, handle: Handle) -> bool:
+    """CR 702.26b: is ``handle`` a phased-out permanent, treated as though
+    it does not exist? The status lives on the executor; a bare ExecCtx (no
+    executor) has no phasing."""
+    executor = ctx.executor
+    return executor is not None and handle in getattr(executor, "phased_out", ())
+
+
 def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
     """Quantity IR -> a non-negative int, for the v1 subset.
 
@@ -470,7 +478,40 @@ def _referent_handle(referent: str, ctx: ExecCtx) -> Handle:
     )
 
 
+def departed_lki(
+    handle: Handle, ctx: ExecCtx
+) -> tuple[int | None, int | None, dict[str, int]] | None:
+    """CR 603.10a: a leaves-the-battlefield trigger "looks back in time". When the
+    firing event is the departure of ``handle`` from the battlefield (its dies row
+    or zone change) and the object is gone, its last known (power, toughness,
+    counters) answer for it (Executor.departed_lki, captured before the counters
+    ceased, CR 122.2). Anything else reads the live object, as before."""
+    event = ctx.event
+    ex = ctx.executor
+    if event is None or ex is None or getattr(event, "subject", None) != handle:
+        return None
+    kind = getattr(event, "kind", None)
+    from MTG_bot.core.executor.events import KIND_CREATURE_DIES, KIND_ZONE_CHANGE
+
+    if kind == KIND_ZONE_CHANGE:
+        if event.zone_move[0] != ZONE_BATTLEFIELD:
+            return None
+    elif kind != KIND_CREATURE_DIES:
+        return None
+    if handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+        return None
+    return ex.departed_lki.get(handle)
+
+
 def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
+    lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+    if lki is not None and field in (QPropField.POWER, QPropField.TOUGHNESS):
+        value = lki[0] if field is QPropField.POWER else lki[1]
+        if value is None:
+            raise ValueError(f"executor: {field.name} undefined on handle {handle}")
+        return value
+    if lki is not None and field is QPropField.COUNTER_COUNT and ctx.event_counter_count is None:
+        return sum(lki[2].values())
     if field in (QPropField.POWER, QPropField.TOUGHNESS):
         power, toughness = ctx.effective_pt(handle)
         value = power if field is QPropField.POWER else toughness
@@ -852,9 +893,11 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
         # 13b (the cast-trigger feed reads these over SPELL cards): COLOR_IN
         # is the grammar's SUBSET reading ("colours are a non-empty subset
-        # of the given set" — Quirion Dryad's compiled blue), COLOR_HAS the
-        # single-colour membership ("hexproof from black"). Identity data —
-        # works for a card in any zone, incl. the stack.
+        # of the given set"), COLOR_HAS the single-colour membership
+        # ("hexproof from black"; a spell "that's white or blue" is the FOr
+        # of COLOR_HAS, CR 105.2 — V39 moved Quirion Dryad off COLOR_IN,
+        # which no compiled card writes now). Identity data — works for a
+        # card in any zone, incl. the stack.
         if handle.namespace != "card":
             return False
         card_colors = set(world.cards[handle].identity.colors)
@@ -993,9 +1036,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "executor: filter pred HAS_COUNTER has no bound counter_kind "
                 "(12c query surface — which counter is asked for?)"
             )
-        if handle.namespace != "card" or handle not in world.cards:
+        if handle.namespace != "card":
             return False  # characteristic absent (the KEYWORD_HAS convention)
         threshold = 1 if atom.count is None else resolve(atom.count, ctx)
+        lki = departed_lki(handle, ctx)
+        if lki is not None:
+            # "if it had a +1/+1 counter on it" (Basri's Lieutenant): CR 603.10a
+            return lki[2].get(atom.counter_kind.name, 0) >= threshold
+        if handle not in world.cards:
+            return False
         return world.cards[handle].counters.get(atom.counter_kind.name, 0) >= threshold
     if pred is FAtomPred.CONTROLLER_IS:
         who = atom.who
@@ -1151,6 +1200,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and controller_of(ctx, card) == ctx.controller
                 and (
                     atom.inner_filter is None
@@ -1183,6 +1233,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 1
                 for card in sorted(world.cards)
                 if world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and eval_filter(filt, card, ctx)
             )
 
@@ -1270,6 +1321,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind != ZONE_BATTLEFIELD
+                or phased_out(ctx, card)  # CR 702.26b: not counted
                 or controller_of(ctx, card) != ctx.controller
                 or not eval_filter(atom.inner_filter, card, ctx)
             ):
@@ -1575,9 +1627,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # CURRENT attacker set whose ATTACKED object passes inner_filter.
         # The pred reads the executor's attack record (the R10-3 "game
         # record" reading), evaluated in the firing ability's coordinates:
-        # CONTROLLER_IS YOU = "attacking you", the Planeswalker child
-        # short-circuits behind it in v1 (all attackers attack the
-        # defending player — planeswalker attacking is 16c).
+        # CONTROLLER_IS YOU = "attacking you" (a player matches themself),
+        # and an attacked planeswalker matches through its controller
+        # (V41: creatures attack planeswalkers, CR 508.1b).
         if ctx.executor is None:
             raise NotImplementedError(
                 "executor: filter pred ATTACK_AGAINST_COUNT_GE reads the "

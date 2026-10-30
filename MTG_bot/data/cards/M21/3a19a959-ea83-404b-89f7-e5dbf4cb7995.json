@@ -1,0 +1,65 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3a19a959-ea83-404b-89f7-e5dbf4cb7995",
+ "name": "Waker of Waves",
+ "text_sha": "dfe5cd05d084722adbe3b536d3d79a09a26559243cfda83f288b244fcfa2ce6f",
+ "verified": {
+  "tree_sha": "faafb9f64aac38395dcd8e597bde448be68504d11e3a9aaa2dc684d58dcd8d18",
+  "probe_sha": "d0d95684c6528808d387164c907ee01cec4f0d58d86d215fdcae7802030e39ef",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Creatures your opponents control get -1/-0.",
+    "status": "OK",
+    "evidence": "[cast]: opp_bear 2/2 -> 1/2, opp_flier 1/1 -> 0/1, opp_giant 4/4 -> 3/4, opp_tapped 3/3 -> 2/3; your creatures unchanged; [a creature enters under the opponent's control]: opp_spare enters as 2/3 (continuous); [this card is dealt lethal damage]: when Waker dies every opponent creature returns to printed P/T. Tree matches B4-modify-pt-static-opponents. Pack waker_static_minus_one (pass)",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{U}, Discard this card: Look at the top two cards of your library.",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [1] not activatable from battlefield: cost:discard:insufficient_candidates:0<1' (correct: it is a hand ability). Pack waker_hand_activation: from hand it spends {1}{U}, discards the Waker and looks at the top two (pass)",
+    "issue": ""
+   },
+   {
+    "clause": "Put one of them into your hand and the other into your graveyard.",
+    "status": "NOT_EXERCISED",
+    "evidence": "ONE_OF -> hand, REST -> graveyard over the top of the library, the same as B5b-one-of-other. Packs waker_hand_activation (keep Alpha, Beta to the graveyard) and waker_hand_activation_other_pick (keep Beta, Alpha to the graveyard) both pass",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/waker_of_waves_1.json",
+   "tools/scenarios/cards/M21/waker_of_waves_2.json",
+   "tools/scenarios/cards/M21/waker_of_waves_3.json"
+  ],
+  "mutation": {
+   "mutants": 25,
+   "killed": 5,
+   "score": 0.2,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "drop cost part 0 (CostManaColor) at 1/1/cost",
+    "drop cost part 1 (CostManaGeneric) at 1/1/cost",
+    "amount+1 at 1/1/cost/parts/0/amount",
+    "amount+1 at 1/1/cost/parts/1/amount",
+    "controller YOU->OPPONENT at 1/1/cost/parts/2/target/zones/0/controller",
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "controller YOU->OPPONENT at 1/1/effect/steps/0/args/controller",
+    "amount+1 at 1/1/effect/steps/0/args/count",
+    "amount-1 at 1/1/effect/steps/0/args/count",
+    "drop step 0 at 1/1/effect/steps/1",
+    "drop step 1 at 1/1/effect/steps/1",
+    "amount+1 at 1/1/effect/steps/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/1/effect/steps/1/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/steps/0/args/destination/controller",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/steps/1/args/cards/zones/0/controller",
+    "zone GRAVEYARD->EXILE at 1/1/effect/steps/1/steps/1/args/destination",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/steps/1/args/destination/controller"
+   ]
+  }
+ }
+}

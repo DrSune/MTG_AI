@@ -1,0 +1,53 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "12dd664c-a279-4adc-b6cb-bec22eedca5c",
+ "name": "Siege Striker",
+ "text_sha": "0b83ea406e2c496ef654975b01c5e99f4497acebdca788b42c4774070822c801",
+ "verified": {
+  "tree_sha": "a44ba22dbd8e87c00e9d6517282bf0432082778447405effc6421552936ea908",
+  "probe_sha": "698c1466dfb82b66b9126d3fcb84023fec70a4718c2a4cc47616d025c50648ef",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Double strike",
+    "status": "OK",
+    "evidence": "keywords[0] DOUBLE_STRIKE; [stimulus: this creature attacks alone, unblocked] two COMBAT_DAMAGE rows of 1, opp 20 -> 18; [attacks and opp_giant blocks it] 1 first-strike damage, then 1 regular damage while the giant's 4 lands in the regular step",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, you may tap any number of untapped creatures you control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trigger: [attacks alone, unblocked] and [attacks and opp_giant blocks it] both show 'card's triggered ability [0] triggers'; [another creature you control (you_bear) attacks] -> none. The probe's combat declines the may, so no creature is tapped. Pack tap_pump: the may taps Bear and Giant (yours), not Opp Bear or the artifact (pass). The filter is CONTROLLER_IS YOU + IS_UNTAPPED + TYPE_EQ Creature, the same as the compiler's B2b-siege-striker template",
+    "issue": "'any number' is QUnbounded CHOOSE, which the executor resolves as every candidate, so the choice is all-or-none (fire/skip) rather than any subset. That removes options and is never stronger than printed."
+   },
+   {
+    "clause": "This creature gets +1/+1 until end of turn for each creature tapped this way.",
+    "status": "NOT_EXERCISED",
+    "evidence": "MODIFY_PT +1*THIS_WAY_COUNT / +1*THIS_WAY_COUNT on IS_SOURCE with DurationEot (the same as the compiler's B4-per-tapped-this-way). With the may declined the count is 0 (the trace's 1+1 damage). Pack tap_pump: 2 tapped -> 3/3, double strike deals 6 (opp 20 -> 14) (pass). Pack eot: after end_turn the Striker is 1/1 again (pass)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/siege_striker_1.json",
+   "tools/scenarios/cards/M21/siege_striker_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 2,
+   "score": 0.18181818181818182,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/inner/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/inner/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/steps/0/inner/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/inner/args/target/filter/children/0/who",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration",
+    "amount+1 at 1/0/effect/steps/1/args/power/magnitude/left",
+    "amount+1 at 1/0/effect/steps/1/args/toughness/magnitude/left"
+   ]
+  }
+ }
+}

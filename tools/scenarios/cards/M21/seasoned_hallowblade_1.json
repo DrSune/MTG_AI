@@ -1,0 +1,17 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Discard a card: Tap this creature. It gains indestructible until end of turn.' The second sentence does not depend on the tap: an already-tapped Hallowblade (as after attacking) still gains indestructible. Discard Junk (the hand also holds the drawn Library card), then 5 damage from Pinger does not destroy it; the damage stays marked.",
+ "cards": [
+  {"key": "hb", "real": "Seasoned Hallowblade", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "junk", "name": "Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "hb", "idx": 0, "seat": 0, "decisions": ["junk"]},
+  {"op": "deal_damage", "source": "pinger", "target": "hb", "amount": 5, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"hb": "battlefield", "junk": "graveyard"},
+  "tapped": {"hb": true},
+  "damage": {"hb": 5},
+  "battlefield_keywords": {"Seasoned Hallowblade": ["INDESTRUCTIBLE"]}
+ }}

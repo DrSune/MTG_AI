@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Skyway Sniper", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "f", "name": "Opp Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "colors": ["U"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {},
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"f": true}, "block": {"s": "f"}}
+ ],
+ "expect": {
+  "attackers": {"f": true},
+  "blocked": {"f": ["s"]},
+  "block_asks": {"s": "<f>,NONE"},
+  "zone": {"s": "battlefield", "f": "graveyard"},
+  "life": {"0": 20},
+  "damage": {"s": 1}
+ },
+ "notes": "Printed: 'Reach (This creature can block creatures with flying.)' The 1/1 flier attacks; the Sniper is offered the block and takes it, kills the flier (1 damage) and survives (1 damage on a 1/2); no damage reaches you."
+}

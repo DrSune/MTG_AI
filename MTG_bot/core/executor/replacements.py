@@ -209,15 +209,19 @@ class ReplacementRegistry:
         record: CardRecord,
         designated: tuple[Handle, ...] = (),
     ) -> int:
-        """r19a (Life Goes On): a RESOLVING INSTANT/SORCERY's ReplacementAbility
+        """r19a: a RESOLVING INSTANT/SORCERY's ReplacementAbility
         nodes. A spell never attaches (it hits the graveyard), so the
         battlefield lifecycle that normally registers replacements never
         sees it — yet the grammar carries the corpus' turn-shaped replacement
-        idiom ("If a creature died this turn, you'd gain 8 life instead") as
-        a card-level ReplacementAbility on the spell itself. Registering at
-        resolution start (stack.py) with an Eot tag is the honest home: the
-        effect is live from resolution to end of turn, expires in the EOT
-        sweep, and never survives the window its own text names."""
+        idiom ("If that creature or planeswalker would die this turn, exile
+        it instead": Scorching Dragonfire, Obliterating Bolt, Blitz of the
+        Thunder-Raptor) as a card-level ReplacementAbility on the spell
+        itself. Registering at resolution start (stack.py) with an Eot tag is
+        the honest home: the effect is live from resolution to end of turn,
+        expires in the EOT sweep, and never survives the window its own text
+        names. (Life Goes On, the r19a case, no longer comes here: its
+        "instead" rewrites only its own life gain, so it compiles to a
+        Conditional amount — m21-fidelity item 4, 2026-10-29.)"""
         count = 0
         for node in record.abilities:
             if isinstance(node, ReplacementAbility):
@@ -272,8 +276,15 @@ class ReplacementRegistry:
     # -------------------------------------------------------------- matching
 
     def _source_alive(self, source: Handle) -> bool:
+        """The battlefield-lifetime gate of a permanent's own replacement and
+        prevention records. A phased-out source does not exist (CR 702.26b),
+        so its static records do not apply until it phases in."""
         world = self.world
-        return source in world.cards and world.zone_of(source).kind == "battlefield"
+        return (
+            source in world.cards
+            and world.zone_of(source).kind == "battlefield"
+            and source not in self.executor.phased_out
+        )
 
     def _condition_holds(self, rec, subject: Handle, ctx: ExecCtx) -> bool:
         """A record's condition is judged over the EVENT SUBJECT (the
@@ -854,16 +865,18 @@ class ReplacementRegistry:
                 or eval_filter(rec.condition, blocked, ctx)
             ):
                 return False
-            if not eval_filter(event.filter, blocker, ctx):
+            if not self._slot_holds(rec, event.filter, blocker, ctx):
                 return False
-            if event.subject is not None and not eval_filter(
-                event.subject, blocker, ctx
+            if event.subject is not None and not self._slot_holds(
+                rec, event.subject, blocker, ctx
             ):
                 return False
             # the blocked slot must MATCH the attacker side (IS_SOURCE for
             # "can't be blocked" carriers, FNot(FLYING) for the block-only
             # restriction family - a matching slot vetoes the pair)
-            return event.blocked is None or eval_filter(event.blocked, blocked, ctx)
+            return event.blocked is None or self._slot_holds(
+                rec, event.blocked, blocked, ctx
+            )
         if isinstance(event, DeclareAttackersEvent):
             if event.attacked is not None:
                 raise NotImplementedError(
@@ -874,8 +887,21 @@ class ReplacementRegistry:
                 rec.condition, subject, ctx
             ):
                 return False
-            return eval_filter(event.filter, subject, ctx)
+            return self._slot_holds(rec, event.filter, subject, ctx)
         return False
+
+    @staticmethod
+    def _slot_holds(rec, filter_, handle: Handle, ctx: ExecCtx) -> bool:
+        """V34 (CR 608.2b): a combat slot that names the ability's target
+        (an IS_ANY_TARGET conjunct) means the creatures designated and checked
+        when the ability resolved (_v_prevent locked them into rec.targets); its
+        targeting restrictions are not read again. Any other slot is evaluated
+        live, as before."""
+        from MTG_bot.core.executor.query import designation_bound
+
+        if designation_bound(filter_):
+            return handle in rec.targets
+        return eval_filter(filter_, handle, ctx)
 
     def prevents_block_declaration(self, blocker: Handle, attacker: Handle) -> bool:
         """16c (CR 509 legality): does a live PREVENT_EFFECT veto the pair

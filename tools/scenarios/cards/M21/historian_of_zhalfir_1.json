@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Historian of Zhalfir", "zone": "battlefield", "controller": 0},
+  {"key": "t", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "t", "set": 3},
+  {"op": "combat", "seat": 0, "attack": {"h": true}}
+ ],
+ "expect": {
+  "attackers": {"h": true},
+  "zone": {"t": "battlefield"},
+  "hand": {"0": 1},
+  "life": {"1": 17}
+ },
+ "notes": "Printed: 'Whenever this creature attacks, if you control a Teferi planeswalker, draw a card.' With Teferi, Master of Time under your control the attack draws one card: hand 0 -> 1 (the runner deals the library after its opening begin_turn, so that turn draws nothing)."
+}

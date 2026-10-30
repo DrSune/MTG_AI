@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "spinner", "real": "Snarespinner", "zone": "battlefield", "controller": 1},
+    {"key": "flier", "name": "Test Drake", "type": "Creature — Drake", "power": "2", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"flier": true}, "block": {"spinner": "flier"}},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "zone": {"flier": "graveyard", "spinner": "battlefield"},
+    "power": {"spinner": 1},
+    "toughness": {"spinner": 3},
+    "life": {"0": 20, "1": 20}
+  }
+}

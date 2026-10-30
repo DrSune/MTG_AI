@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "big", "name": "Big Beast", "power": "6", "toughness": "6", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "gd", "real": "Grasp of Darkness", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "cast", "real": "Grasp of Darkness", "key": "gd", "targets": ["big"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"big": "battlefield"},
+  "power": {"big": 6},
+  "toughness": {"big": 6}
+ },
+ "notes": "Printed: '... gets -4/-4 UNTIL END OF TURN.' After the turn ends the 6/6 is back to 6/6."
+}

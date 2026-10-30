@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "An opponent casts Shock targeting a different creature (a Bear next to Terror of the Peaks): no additional life cost; the Bear dies.",
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"t": "battlefield", "bear": "graveyard"}
+ }
+}

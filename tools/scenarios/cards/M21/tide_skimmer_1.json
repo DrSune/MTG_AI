@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "skim", "real": "Tide Skimmer", "zone": "battlefield", "controller": 0},
+    {"key": "bird", "name": "Test Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"skim": true, "bird": true}}
+  ],
+  "expect": {
+    "attackers": {"skim": true, "bird": true},
+    "hand": {"0": 1},
+    "life": {"0": 20, "1": 17}
+  }
+}

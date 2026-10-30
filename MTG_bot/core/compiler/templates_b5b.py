@@ -119,6 +119,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     CostDeltaIncreaseGeneric,
+    CostManaGeneric,
     CostModifier,
     CostSacrifice,
     CostTap,
@@ -129,6 +130,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DurationEot,
     DurationPermanent,
+    EachPlayer,
     Effect,
     FAnd,
     FAtom,
@@ -139,7 +141,6 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     TriggeredAbility,
-    LifeGainedEvent,
     PtDelta,
     PtDirection,
     QAgg,
@@ -169,6 +170,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     KeywordOutcome,
+    KickerEffectOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
     Template,
@@ -1020,6 +1022,19 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
+    """Run Afoul: "Target opponent sacrifices a creature of their choice with
+    flying."
+
+    The edict shape of Goremand's "each opponent sacrifices a creature":
+    EachPlayer rotates the controller to the player who sacrifices, and the
+    SACRIFICE pick is YOU-relative (CONTROLLER_IS YOU), so only that player's
+    creatures are candidates and that player is the one choosing (CR 701.21a:
+    a player can sacrifice only a permanent they control). Here the player is
+    the spell's target opponent, EachPlayer(TARGET_PLAYER, ...); the query
+    gives the spell its player target slot from that ref.
+    m21-fidelity (review batch J, 2026-10-29): it had no player at all, a
+    pick over every player's fliers, so the caster's own flier could go.
+    """
     atom = Atom(
         verb=Verb.SACRIFICE,
         args=AtomArgs(
@@ -1031,6 +1046,7 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
                         SelectorMode.CHOOSE,
                         FAnd(
                             children=(
+                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                                 FAtom(
                                     pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING
@@ -1043,7 +1059,7 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return EffectOutcome(effect=atom)
+    return EffectOutcome(effect=EachPlayer(ref=ControllerRef.TARGET_PLAYER, effect=atom))
 
 
 def _build_discard_target_2(m: re.Match[str]) -> SentenceOutcome:
@@ -1103,25 +1119,30 @@ def _build_repl_died_gain_life(m: re.Match[str]) -> SentenceOutcome:
     """Life Goes On: "If a creature died this turn, you gain 8 life
     instead."
 
-    Lossy: event amount scoping dropped (LifeGainedEvent has no amount
-    field) — the replacement fires on any life gain this turn.
+    The "instead" is a replacement (CR 614.1a) of the spell's OWN previous
+    instruction only ("You gain 4 life."; CR 608.2c: later text modifies
+    earlier text), so it is the conditional arm
+    KickerEffectOutcome(pred=DIED_THIS_TURN, replaces=True), which the
+    compiler folds into Conditional(DIED_THIS_TURN, gain 8, else=gain 4):
+    one life gain, its amount chosen at resolution.
+    m21-fidelity item 4 (2026-10-29): until then this was a card-level
+    ReplacementAbility over every LifeGainedEvent, registered for the rest
+    of the turn, so every later life gain that turn became 8 (stronger than
+    printed). C6 (above) stays the rule for a replacement that watches
+    other events ("If that creature would die this turn, exile it instead").
     """
-    return AbilityOutcome(
-        ability=ReplacementAbility(
-            event=LifeGainedEvent(
-                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+    return KickerEffectOutcome(
+        effect=Atom(
+            verb=Verb.GAIN_LIFE,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("amount", QConst(int(m.group(1)))),
+                )
             ),
-            condition=FAtom(pred=FAtomPred.DIED_THIS_TURN),
-            action=Atom(
-                verb=Verb.GAIN_LIFE,
-                args=AtomArgs(
-                    pairs=(
-                        ("controller", ControllerRef.YOU),
-                        ("amount", QConst(int(m.group(1)))),
-                    )
-                ),
-            ),
-        )
+        ),
+        replaces=True,
+        pred=FAtom(pred=FAtomPred.DIED_THIS_TURN),
     )
 
 
@@ -1252,6 +1273,12 @@ def _build_repl_die_exile(m: re.Match[str]) -> SentenceOutcome:
 
     Lossy (verbatim): "this turn" scoping dropped (death is a moment;
     CreatureDiesEvent has no turn-scope slot).
+    Play is right (m21-fidelity item 4, packs scorching_dragonfire*,
+    2026-10-29): the executor gives a resolving instant's ReplacementAbility
+    an end-of-turn lifetime (stack.py), scoped to the cast's designation, so
+    the target that dies later this turn is exiled and one that dies next
+    turn is not. Only the tree is silent on the duration (no `duration` on
+    ReplacementAbility; recorded in docs/BACKLOG.md B-77).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1302,35 +1329,46 @@ def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
     """Lofty Denial: "If you control a creature with flying, counter that
     spell unless its controller pays {4} instead."
 
-    Convention C7: the modifier's ``controller_ref`` referent Selector
-    means the controller of the targeted spell pays the {1}→{4}
-    unless-cost.
-
-    Lossy (verbatim): "{4} instead" = +3 delta (relies on s1's {1}; same
-    card) — a captured {N} compiles to the delta N-1, = 3 for the only
-    concrete row.
+    The "instead" rewrites the spell's own previous instruction ("Counter
+    target spell unless its controller pays {1}."; CR 608.2c), the Life
+    Goes On shape: the conditional arm KickerEffectOutcome(pred, replaces=
+    True), folded into Conditional(you control a creature with flying,
+    COUNTER unless {4}, else=COUNTER unless {1}). "that spell" is the same
+    TARGET selector as the first sentence, so both branches share the one
+    target slot. The pred is the "Activate only if you control a creature
+    with flying" bytes (CONTROLLER_COUNT_GE over Creature + flying).
+    m21-fidelity (2026-10-29): this was a +{N-1} CostModifier on the unless
+    cost whose condition was judged over the spell itself, so it never
+    applied: the {4} branch never happened (weaker than printed).
     """
-    n = int(m.group(1))
-    return AbilityOutcome(
-        ability=CostModifier(
-            filter=FAtom(pred=FAtomPred.IS_ANY_TARGET),
-            controller_ref=Selector(
-                QConst(1),
-                SelectorMode.CHOOSE,
-                FAnd(children=()),
-                zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
-                referent="target",
-            ),
-            delta=CostDeltaIncreaseGeneric(amount=QConst(n - 1)),
-            condition=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
-            ),
-        )
+    counter = Atom(
+        verb=Verb.COUNTER_SPELL,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.TARGET,
+                        FAnd(children=()),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+                    ),
+                ),
+                ("unless", Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),))),
+            )
+        ),
     )
+    you_control_a_flier = FAtom(
+        pred=FAtomPred.CONTROLLER_COUNT_GE,
+        inner_filter=FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
+        ),
+        count=QConst(1),
+    )
+    return KickerEffectOutcome(effect=counter, replaces=True, pred=you_control_a_flier)
 
 
 def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
@@ -2142,11 +2180,12 @@ def _build_keyword_list_params(m: re.Match[str]) -> SentenceOutcome:
     complete.  Baneslayer's protection filter is the OR of the two named
     creature subtypes (SUBTYPE_EQ is singular, Equipment precedent);
     Sporeweb's hexproof filter is COLOR_HAS blue (Feat-of-Resistance
-    param shape).  Lossy (verbatim): Scryfall's keyword field lists bare
-    'Hexproof' beside 'Hexproof from' for Sporeweb Weaver, so the card
-    also carries the parameterless HEXPROOF the bare path builds — a
-    keyword-field artifact, not a template choice.  C16: none — forced
-    static grants."""
+    param shape).  Scryfall's keyword field lists bare 'Hexproof' beside
+    'Hexproof from' for Sporeweb Weaver; since m21-fidelity item 1
+    (2026-10-29) the bare keyword path builds a whole-ability keyword only
+    if the face prints it (compiler._face_prints_keyword), so the card no
+    longer carries a parameterless HEXPROOF.  C16: none — forced static
+    grants."""
     if m.group("form").startswith("Flying"):
         return KeywordOutcome(
             keyword=Keyword.PROTECTION,
@@ -2489,10 +2528,17 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
     each time.`` is consumed as the rounding directive
     (B5b-peer-round-up-each-time) and the tree shows Rounding.CEIL.
 
-    Lossy (C11 class, verbatim): the life-loss half — the grammar has NO
-    life-total quantity (no QPropField.LIFE; QCount counts zone objects,
-    players are not zone objects), so ``loses half their life`` has no
-    expressible amount (R9 grammar item: life-total Quantity field).
+    Life loss (m21-fidelity item 2, 2026-10-29; the clause was dropped
+    until then, so the spell was a free half-library draw): the second
+    step, ``EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE / 2)))``.
+    A life total is read only through QProp(controller, LIFE) (QCount
+    counts zone objects; QProp validates LIFE to the controller referent),
+    so the step rotates the controller to the target player (EachPlayer,
+    the "each opponent loses half their life" shape pinned in
+    test_executor_r24a) and reads THEIR life, never the caster's. The draw
+    step keeps its own TARGET_PLAYER reads, which give the spell its player
+    target slot. Printed order (O2): draw, then lose. Both halves round up
+    (CR 107.1a; "Round up each time").
     C16: open — which player is targeted (s1 TARGET selector lives with
     the covered target-prefix template); both halves are board-dynamic
     quantities, nothing controller-chosen is defaulted."""
@@ -2510,17 +2556,34 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
         right=QConst(2),
         rounding=Rounding.CEIL,
     )
-    return EffectOutcome(
+    draw = Atom(
+        verb=Verb.DRAW,
+        args=AtomArgs(
+            pairs=(
+                ("controller", ControllerRef.TARGET_PLAYER),
+                ("amount", half_rounded),
+            )
+        ),
+    )
+    half_life = QBin(
+        op=QBinOp.DIV,
+        left=QProp(referent="controller", field=QPropField.LIFE),
+        right=QConst(2),
+        rounding=Rounding.CEIL,
+    )
+    lose = EachPlayer(
+        ref=ControllerRef.TARGET_PLAYER,
         effect=Atom(
-            verb=Verb.DRAW,
+            verb=Verb.LOSE_LIFE,
             args=AtomArgs(
                 pairs=(
-                    ("controller", ControllerRef.TARGET_PLAYER),
-                    ("amount", half_rounded),
+                    ("controller", ControllerRef.YOU),
+                    ("amount", half_life),
                 )
             ),
-        )
+        ),
     )
+    return EffectOutcome(effect=Seq(steps=(draw, lose)))
 
 
 def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
@@ -2531,8 +2594,8 @@ def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
     The rounding itself is the s1 amount's policy: the DIV carries
     rounding=Rounding.CEIL (T5-D), so this row carries no residual
     payload and must NOT spawn a duplicate draw/lose step.  "each time" = both
-    half-computations of s1 (library draw; the life half is dropped
-    lossy — see _build_peer_half_library).
+    half-computations of s1 (library draw and life loss, each a CEIL DIV —
+    see _build_peer_half_library).
     C16: none — computation directive, fully forced."""
     return RuleReminderOutcome(reason="rounding_directive")
 
@@ -3475,7 +3538,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-peer-half-library",
-        name="target player draws round-up half their library (Peer; life-half lossy)",
+        name="target player draws round-up half their library, loses round-up half their life (Peer)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Target player draws cards equal to half the number of cards "

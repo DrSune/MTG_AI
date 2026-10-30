@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8c601628-b1ed-467b-ba92-8572343147f8",
+ "name": "Aven Gagglemaster",
+ "text_sha": "aa2ee896a10193d23f97dc8474dc8d173914ba3245eb4828083e99d33672e1ce",
+ "verified": {
+  "tree_sha": "9566e0cd7cce41a3bb5c936a1a9d4d807f890577dde215f094cedd5077725352",
+  "probe_sha": "163a92c2dfd4412d0fe8bdf9da202ef47fb8b65943d5d04471bf5b7ddb505a0f",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Creature {3}{W}{W} 4/3 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 4/3; mana W-5",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; [stimulus: this creature attacks and opp_giant blocks it]: no block is declared, opp is dealt 4",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you gain 2 life for each creature you control with flying.",
+    "status": "OK",
+    "evidence": "[cast] and [the card enters during the opponent's turn]: you gains 2 life with one own flier (the card), so opp_flier and your non-fliers are not counted. Pack aven_gagglemaster_three_fliers.json: three own fliers, one opposing flier, one own non-flier: +6 (20 -> 26), PASS (separates 'for each' from a flat 2)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/aven_gagglemaster_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 7,
+   "score": 0.7777777777777778,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/amount/right/selector/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/amount/right/selector/filter/children/0/who"
+   ]
+  }
+ }
+}

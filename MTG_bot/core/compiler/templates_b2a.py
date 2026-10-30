@@ -75,6 +75,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     EachPlayer,
     FAnd,
     FAtom,
@@ -782,7 +783,12 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
     """Barrin ETB: "return up to one other target creature or planeswalker"
     — TARGET + QAtMost(1) (grammar round 8, C17): a targeted "up to N" keeps
     SelectorMode.TARGET (legal designation range 1..N stays a target
-    decision; resolution clamps to 0..remaining)."""
+    decision; resolution clamps to 0..remaining).
+
+    "to its owner's hand" is Zone(HAND, OWNER) (CR 400.3: a card goes to its
+    owner's hand), the shape the other 35 owner's-hand returns compile to.
+    m21-fidelity (review batch C, 2026-10-29): Barrin, Niambi and Roaming
+    Ghostlight emitted Zone(HAND, ANY)."""
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
@@ -814,7 +820,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
-                    ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                 )
             ),
         ),
@@ -850,7 +856,7 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
                                 zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                             ),
                         ),
-                        ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                        ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                     )
                 ),
             )
@@ -1467,7 +1473,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
-                    ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                 )
             ),
         ),
@@ -2112,17 +2118,17 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
     """``When this artifact enters, exile all creature cards with mana
     value N or less from your graveyard until this artifact leaves the
     battlefield.`` (Idol of Endurance) — ALL+QUnbounded exile of the
-    filtered graveyard.
-    LOSSY (C11 verbatim): "until this artifact leaves the battlefield" —
-    ``_VERB_ROLES[EXILE]`` has no duration role (the round-7 grammar
-    added ``DurationUntilLeaves`` but wired the role only to
-    GAIN_CONTROL), so the temporary window is dropped; R8 grammar item.
-    The card SET choice (filter + ALL) is fully expressed."""
+    filtered graveyard, with ``duration=DurationUntilLeaves()`` (ontology
+    R5-1, 2026-10-29, CR 610.3): when the Idol leaves the battlefield the
+    cards still in exile return to their previous zone, their owner's
+    graveyard. The C11 loss this template used to carry (no duration role
+    on the move, so the cards never came back) is closed."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
                 ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("duration", DurationUntilLeaves()),
                 (
                     "target",
                     Selector(

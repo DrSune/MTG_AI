@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V25 (CR 115.1, 601.2c via 602.2b): Garruk, Savage Herald's -2, 'Target creature you control deals damage equal to its power to another target creature.' Two targets, one per 'target': the first is your 4/4 Brute, the second your own 3/3 Pal (another target creature may be yours). The Brute deals 4 to the Pal, which dies; the Brute is not damaged. Before V25 the ability had one target slot, both creatures were bound to the damage role, and the 4 damage hit both (the Brute died too).",
+ "cards": [
+  {"key": "gsh", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Brute", "power": 4, "toughness": 4, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "pal", "name": "Pal", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "gsh", "set": 5},
+  {"op": "activate", "key": "gsh", "idx": 1, "seat": 0, "targets": ["brute", "pal"]}
+ ],
+ "expect": {
+  "zone": {"pal": "graveyard", "brute": "battlefield", "gsh": "battlefield"},
+  "counters": {"gsh": {"LOYALTY": 3}}
+ }
+}

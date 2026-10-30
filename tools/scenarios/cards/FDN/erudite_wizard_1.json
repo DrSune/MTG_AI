@@ -8,7 +8,7 @@
     {"key": "ct3", "real": "Crash Through", "zone": "hand", "controller": 0},
     {"key": "ct4", "real": "Crash Through", "zone": "hand", "controller": 0}
   ],
-  "mana": {"0": {"R": 4}},
+  "mana": {"0": {"R": 3}},
   "steps": [
     {"op": "cast", "key": "ct1", "real": "Crash Through", "controller": 0},
     {"op": "cast", "key": "ct2", "real": "Crash Through", "controller": 0},
@@ -17,6 +17,7 @@
     {"op": "advance_turn"},
     {"op": "end_turn"},
     {"op": "advance_turn"},
+    {"op": "mana", "seat": 0, "add": {"R": 1}},
     {"op": "cast", "key": "ct4", "real": "Crash Through", "controller": 0}
   ],
   "expect": {
@@ -24,5 +25,5 @@
     "power": {"ew": 4},
     "toughness": {"ew": 5}
   },
-  "notes": "Erudite Wizard: 'Whenever you draw your second card each turn, put a +1/+1 counter on this creature.' Turn 1: three draws (three Crash Throughs) give exactly one counter (the second draw; the third does not trigger). The opponent's draw on its turn does nothing. Your next turn: the draw step is the first card, the Crash Through draw is the second: a second counter. 2/3 -> 4/5."
+  "notes": "Erudite Wizard: 'Whenever you draw your second card each turn, put a +1/+1 counter on this creature.' Turn 1: three draws (three Crash Throughs) give exactly one counter (the second draw; the third does not trigger). The opponent's draw on its turn does nothing. Your next turn: the draw step is the first card, the Crash Through draw is the second: a second counter. 2/3 -> 4/5. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there."
 }

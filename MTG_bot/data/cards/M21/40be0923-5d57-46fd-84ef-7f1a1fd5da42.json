@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "40be0923-5d57-46fd-84ef-7f1a1fd5da42",
+ "name": "Furor of the Bitten",
+ "text_sha": "32af8cc6bf2e96cffa6b6e964c0b2de76a701ab3f653c64910bc0c58ad2312c7",
+ "verified": {
+  "tree_sha": "46385d0738c38cca85ccc7bbe411eb8d7a5664851c483e44b81cb007625179c2",
+  "probe_sha": "12a312173d1be5fb8756fe634a1a428a35962592c218e064f7db04a07cd2d97f",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-A",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "keywords[0] ENCHANT(TYPE_EQ Creature); cast target slot 1..1 of the six creatures only (no relic/charm/land)",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +2/+2",
+    "status": "OK",
+    "evidence": "abilities[0] step 1 (matches parse B5a-enchant-pt-attacks); every cast variant: the host gets +2/+2 (you_bear 2/2 -> 4/4, opp_giant 4/4 -> 6/6), and it lasts past the end of turn",
+    "issue": ""
+   },
+   {
+    "clause": "and attacks each combat if able.",
+    "status": "NOT_EXERCISED",
+    "evidence": "abilities[0] step 2 MANDATE_ATTACK on the attached creature; no probe combat involves the host. Pack furor_of_the_bitten_must_attack.json PASSES: after casting Furor on a 2/2 it attacks although the pack declines (no decline offered), the other creature may stay home, opponent 20 -> 16",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/furor_of_the_bitten_1.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 7,
+   "score": 0.6363636363636364,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/cards/filter"
+   ]
+  }
+ }
+}

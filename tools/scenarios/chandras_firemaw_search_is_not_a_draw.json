@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand.' Putting a searched card into your hand is not drawing it (CR 121.1). With your Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') on the battlefield, Firemaw's search finds Chandra in the library and the opponent mills nothing. Top Junk is listed last so the runner's opening draw (before the filler exists, so no mill) takes it.",
+ "cards": [
+  {"key": "tut", "real": "Teferi's Tutelage", "zone": "battlefield", "controller": 0},
+  {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
+  {"key": "ch", "real": "Chandra, Flame's Catalyst", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "fm", "decisions": ["fire", "ch"]}
+ ],
+ "expect": {
+  "zone": {"ch": "hand", "fm": "battlefield"},
+  "graveyard": {"1": []}
+ }}

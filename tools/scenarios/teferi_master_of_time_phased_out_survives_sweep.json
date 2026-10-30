@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "teferi", "set": 5},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["ogre"]},
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "x": 3},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield", "bear": "exile", "teferi": "battlefield"},
+  "phased_out": {"ogre": false},
+  "counters": {"ugin": {"LOYALTY": 4}}
+ },
+ "notes": "CR 702.26b (the 'Destroy all creatures' example): a phased-out permanent is not in the population of an 'each' effect. Teferi's [-3] phases out the red 3-drop, then Ugin's [-X] with X = 3 exiles each colored permanent with mana value 3 or less: the green 2-drop goes, the phased-out Ogre does not (Teferi is a 4-drop, Ugin colorless). The Ogre phases in at seat 1's untap step."
+}

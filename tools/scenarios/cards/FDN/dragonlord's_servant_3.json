@@ -5,15 +5,15 @@
     {"key": "ds", "real": "Dragonlord's Servant", "zone": "battlefield", "controller": 0},
     {"key": "their_shivan", "real": "Shivan Dragon", "zone": "hand", "controller": 1}
   ],
-  "mana": {"1": {"R": 5}},
   "steps": [
     {"op": "end_turn"},
     {"op": "advance_turn"},
+    {"op": "mana", "seat": 1, "add": {"R": 5}},
     {"op": "cast", "key": "their_shivan", "real": "Shivan Dragon", "controller": 1, "expect_raise": "illegal cast: cost:mana_generic"}
   ],
   "expect": {
     "zone": {"their_shivan": "hand"},
     "mana_pool": {"1": {"R": 5}}
   },
-  "notes": "Dragonlord's Servant control: only Dragon spells YOU cast are cheaper. On its own turn the opponent cannot cast Shivan Dragon ({4}{R}{R}) with five mana while you control the Servant."
+  "notes": "Dragonlord's Servant control: only Dragon spells YOU cast are cheaper. On its own turn the opponent cannot cast Shivan Dragon ({4}{R}{R}) with five mana while you control the Servant. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there."
 }

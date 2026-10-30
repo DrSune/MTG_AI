@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Frantic Inventory, printed 'Draw a card, then draw cards equal to the number of cards named Frantic Inventory in your graveyard.' Two copies in MY graveyard, one in the OPPONENT's (not counted: 'your graveyard'), the resolving copy is on the stack (not yet in the graveyard). Expected: 1 + 2 = 3 cards drawn; library 6 -> 3; hand 1 -1 +3 = 3; my graveyard ends with three copies.",
+ "cards": [
+  {"key": "fi", "real": "Frantic Inventory", "zone": "hand", "controller": 0},
+  {"key": "g1", "real": "Frantic Inventory", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "real": "Frantic Inventory", "zone": "graveyard", "controller": 0},
+  {"key": "og", "real": "Frantic Inventory", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "cast", "real": "Frantic Inventory", "key": "fi"}
+ ],
+ "expect": {"zone": {"fi": "graveyard"}, "hand": {"0": 3},
+  "library": {"0": ["Library 2", "Library 1", "Library 0"]},
+  "graveyard": {"0": ["Frantic Inventory", "Frantic Inventory", "Frantic Inventory"]}}}

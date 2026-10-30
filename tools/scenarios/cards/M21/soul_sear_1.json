@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sear", "real": "Soul Sear", "zone": "hand", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"R": 3, "C": 3}},
+  "steps": [
+    {"op": "loyalty", "key": "basri", "set": 7},
+    {"op": "cast", "key": "sear", "real": "Soul Sear", "targets": ["basri"]}
+  ],
+  "expect": {
+    "zone": {"sear": "graveyard", "basri": "battlefield"},
+    "counters": {"basri": {"LOYALTY": 2}},
+    "life": {"0": 20, "1": 20}
+  }
+}

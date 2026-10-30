@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3a124fe5-f525-43e5-9746-501c68a98330",
+ "name": "Spined Megalodon",
+ "text_sha": "41bddadb28c74500d164e2b52ff7111d09b23282201b1f1ee0063ce9ed20432a",
+ "verified": {
+  "tree_sha": "afe8100b2ea5d47323eb90b4d04ff619a35649425642f64e740e889011953749",
+  "probe_sha": "2e6cb3f3f0e1cd77d2621790722756f7f7cc3901d49c191d51980a230fccce20",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Shark {5}{U}{U} 5/7",
+    "status": "OK",
+    "evidence": "[cast]: card hand -> battlefield, P/T - -> 5/7, mana U-2 W-5 (7 total)",
+    "issue": ""
+   },
+   {
+    "clause": "Hexproof",
+    "status": "OK",
+    "evidence": "tree keywords=[KeywordAbility(HEXPROOF)] with no 'from' params; [cast] keywords +HEXPROOF. Targeting not in the trace (NOT_EXERCISED there); covered by pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P2b58f299b8_megalodon_hexproof.json (PASS): opponent's Shock refused 'illegal target selection', opponent's Shock at another creature works, own controller's Shock targets it (2 damage)",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, scry 1.",
+    "status": "OK",
+    "evidence": "trigger DeclareAttackersEvent(IS_SOURCE), SCRY controller YOU count 1; [this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: 'card's triggered ability [0] triggers'; [another creature you control (you_bear) attacks -> none]. The scry outcome is invisible in the trace (no change when kept on top); pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P2b58f299b8_megalodon_attack_scry.json (PASS): answering 'bottom' moves exactly the top card (Library 5) to the bottom",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/spined_megalodon_1.json",
+   "tools/scenarios/cards/M21/spined_megalodon_2.json",
+   "tools/scenarios/cards/M21/spined_megalodon_3.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 1,
+   "score": 0.3333333333333333,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/effect/args/controller",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
+ }
+}
