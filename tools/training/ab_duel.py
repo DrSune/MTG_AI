@@ -464,7 +464,20 @@ class BcAsk:
             else:
                 os.environ[numlane.NUMTOK_ENV] = prev
 
-    def _forward_menu_enc(self, torch: Any, ctx: AskContext, grad: bool = False):
+    def prepare_ask(self, torch: Any, ctx: AskContext) -> dict[str, Any]:
+        """Encoding + stream advance for ONE ask, WITHOUT the model call —
+        the exact tensor inputs of :meth:`PointerBC.forward` for a 1-row
+        batch (all CPU tensors): ``tokens``/``pad_mask`` [1,T] (pad_mask all
+        False), ``gold_batch``=[0], ``gold_pos``=[sep], ``cand_ids``
+        [1,C,Lmax], ``cand_mask`` [1,C,Lmax], ``is_pass`` [1,C].
+
+        The stream mechanics (relevance ladder, truncation counting,
+        digit-lane env swap on the CALLER's side) are untouched — this is
+        byte-for-byte the encoding that :meth:`_forward_menu_enc` used to
+        run inline, split out so the RL-v2 offline trainer (PLAN Step 4,
+        2026-10-29) can batch many prepared asks into ONE padded
+        ``PointerBC.forward`` instead of one model call per ask.
+        ``_forward_menu_enc`` is now ``forward(**prepare_ask(...))``."""
         vocab = self.vocab
         unk = vocab[bc_data.UNK]
         v2 = self.schema == "v2"
@@ -524,9 +537,21 @@ class BcAsk:
             cand_mask[0, ci, : len(ids)] = True
             is_pass[0, ci] = cands[ci] == "PASS"
 
+        tokens = torch.tensor([self.seq], dtype=torch.long)
+        return {
+            "tokens": tokens,
+            "pad_mask": torch.zeros_like(tokens, dtype=torch.bool),
+            "gold_batch": torch.zeros(1, dtype=torch.long),
+            "gold_pos": torch.tensor([sep], dtype=torch.long),
+            "cand_ids": cand_ids,
+            "cand_mask": cand_mask,
+            "is_pass": is_pass,
+        }
+
+    def _forward_menu_enc(self, torch: Any, ctx: AskContext, grad: bool = False):
+        t = self.prepare_ask(torch, ctx)
         device = next(self.model.parameters()).device
-        tokens = torch.tensor([self.seq], dtype=torch.long, device=device)
-        if grad:  # REINFORCE trainer: graph-bearing logits (/134)
+        if grad:  # REINFORCE/PPO trainer: graph-bearing logits (/134)
             import contextlib
 
             ctx_mgr: Any = contextlib.nullcontext()
@@ -534,13 +559,7 @@ class BcAsk:
             ctx_mgr = torch.no_grad()
         with ctx_mgr:
             out = self.model.forward(
-                tokens,
-                torch.zeros_like(tokens, dtype=torch.bool),
-                torch.zeros(1, dtype=torch.long, device=device),
-                torch.tensor([sep], dtype=torch.long, device=device),
-                cand_ids.to(device),
-                cand_mask.to(device),
-                is_pass.to(device),
+                **{k: (v.to(device) if torch.is_tensor(v) else v) for k, v in t.items()}
             )
         return out
 
