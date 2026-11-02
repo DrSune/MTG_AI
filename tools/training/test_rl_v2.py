@@ -122,6 +122,9 @@ def fake_record(seed: int, t: int, menu: list[str], idx: int) -> dict:
         "logp_recorded": -0.5,
         "reward": 1.0,
         "outcome": "win",
+        "state_feats": torch.tensor(
+            [0.1 * i for i in range(T.STATE_FEAT_DIM)], dtype=torch.float32
+        ),
     }
 
 
@@ -229,6 +232,7 @@ def test_padded_batch_matches_single(device):
             b1["cand_ids"],
             b1["cand_mask"],
             b1["is_pass"],
+            b1["state_feats"],
         )
         lp1 = torch.log_softmax(logits1.float(), dim=-1)[0, r1["idx"]]
 
@@ -243,6 +247,7 @@ def test_padded_batch_matches_single(device):
             b2["cand_ids"],
             b2["cand_mask"],
             b2["is_pass"],
+            b2["state_feats"],
         )
         lp2 = torch.log_softmax(logits2.float(), dim=-1)[0, r1["idx"]]
 
@@ -262,6 +267,7 @@ def test_padded_batch_matches_single(device):
         b1["cand_ids"],
         b1["cand_mask"],
         b1["is_pass"],
+        b1["state_feats"],
     )
     g_s = torch.autograd.grad(v_s[0], model.value_head.weight, retain_graph=False)[0]
     model.zero_grad(set_to_none=True)
@@ -274,6 +280,7 @@ def test_padded_batch_matches_single(device):
         b2["cand_ids"],
         b2["cand_mask"],
         b2["is_pass"],
+        b2["state_feats"],
     )
     g_b = torch.autograd.grad(v_b[0], model.value_head.weight)[0]
     assert torch.allclose(g_s, g_b, atol=1e-5, rtol=1e-5)
@@ -294,6 +301,7 @@ def test_padded_batch_masked_slots_zero_gradient():
         b["cand_ids"],
         b["cand_mask"],
         b["is_pass"],
+        b["state_feats"],
     )
     logits = logits.float()
     lp = torch.log_softmax(logits, dim=-1)
@@ -314,6 +322,7 @@ def test_padded_batch_masked_slots_zero_gradient():
         b2["cand_ids"],
         b2["cand_mask"],
         b2["is_pass"],
+        b2["state_feats"],
     )
     lp2 = torch.log_softmax(logits2.float(), dim=-1)
     assert torch.allclose(lp[1, 0].detach(), lp2[1, 0], atol=1e-6, rtol=1e-6)
@@ -392,6 +401,8 @@ def test_bit_identity_wrapper_vs_anchor(blob, device):
         T.reenter_stash(ep["asks"][3])
         with T.numlane_scope(blob["vocab"]):
             t = a3.prepare_ask(torch, ctx)
+        sf = torch.tensor(T.state_feats_from_obs(ep["asks"][3]["obs"])).to(dev)
+        sf = sf.reshape(1, -1)
         _, v = wrapper.forward_with_value(
             t["tokens"].to(dev),
             t["pad_mask"].to(dev),
@@ -400,6 +411,7 @@ def test_bit_identity_wrapper_vs_anchor(blob, device):
             t["cand_ids"].to(dev),
             t["cand_mask"].to(dev),
             t["is_pass"].to(dev),
+            sf,
         )
     assert v.shape == (1,)
 
@@ -720,6 +732,7 @@ def test_bit_identity_small_synthetic():
                 cand,
                 mask,
                 is_pass,
+                torch.zeros(1, T.STATE_FEAT_DIM),
             )
         assert torch.equal(la, lw)
         assert v.shape == (1,)

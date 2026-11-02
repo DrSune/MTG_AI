@@ -9,8 +9,13 @@ code calls the functions listed under "ON-POLY HOOKS" at the bottom.
 
 Model (spec 1): policy = the anchor checkpoint bit-identically loaded
 into :class:`PointerBCValue`; the value head is ONE new scalar linear layer
-(``value_head: d -> 1``) on the encoder step state — the same ``h`` the
-pointer reads at the SEP position. ``forward()`` is inherited untouched,
+(``value_head: (d + STATE_FEAT_DIM) -> 1``) on the encoder step state — the
+same ``h`` the pointer reads at the SEP position, CONCATENATED with 5 raw
+state features (life diff / turn / board diff / hand size / turn
+direction) read from the ask's obs. Measured 2026-11-02: the encoder's ``h``
+alone carries ~no outcome signal (linear-probe holdout EV ~= 0) while the
+raw features carry ~0.26 — the value head must see the state directly; the
+policy path is untouched either way. ``forward()`` is inherited untouched,
 so with the value head untrained the policy output is BIT-IDENTICAL to the
 standalone anchor (load-bearing invariant, unit-tested on cuda AND cpu;
 the wrapper adds no ops to the policy path, so there is no float
@@ -123,6 +128,36 @@ DEFAULT_KL_STOP = 0.01
 DEFAULT_GRAD_CLIP = 5.0  # raw-norm p99 band on 1000g data, binds <5% of mbs
 VALUE_KEYS = ("value_head.weight", "value_head.bias")
 
+# Raw state features for the VALUE head input (learner perspective, from
+# the ask's obs snapshot). Rationale (measured, _diag_valuehead2 2026-11-02):
+# the BC encoder's SEP state h discards outcome information — a linear
+# probe on h alone measures holdout EV ~= 0 (10 epochs, 200g train / 100g
+# hold), while these raw features alone reach 0.26 (all decisions) /
+# 0.50 (late game) on the same pilot episodes (700g/300g). The value head
+# must see the state the way it actually is. Fixed normalization
+# constants — deterministic, no fitting. The POLICY path is untouched
+# (the bit-identity invariant holds: value_head is off that path).
+STATE_FEAT_DIM = 5
+_STATE_FEAT_SCALE = (20.0, 20.0, 5.0, 8.0)  # life_diff, turn, board, hand
+
+
+def state_feats_from_obs(obs: dict[str, Any]) -> list[float]:
+    """5 raw state features, learner perspective, scaled to ~[-1.6, 1.6]:
+    [life_diff, turn, board_diff, hand_size, is_active]."""
+    s = int(obs["seat"])
+    lives = obs["lives"]
+    bf = obs["battlefield"]
+    hand = obs["hand"]
+    hand_n = len(hand[s]) if isinstance(hand, (list, tuple)) else 0
+    return [
+        (float(lives[s]) - float(lives[1 - s])) / _STATE_FEAT_SCALE[0],
+        float(obs["turn"]) / _STATE_FEAT_SCALE[1],
+        (float(len(bf[s])) - float(len(bf[1 - s]))) / _STATE_FEAT_SCALE[2],
+        float(hand_n) / _STATE_FEAT_SCALE[3],
+        1.0 if int(obs["active"]) == s else -1.0,
+    ]
+
+
 _CKPT_KEY_CACHE: dict[str, str] = {}
 
 
@@ -169,18 +204,22 @@ def _ckpt_key(path_str: str) -> str:
 
 # ------------------------------------------------------------------ model
 class PointerBCValue(PointerBC):
-    """PointerBC + ONE new scalar value head on the encoder step state.
+    """PointerBC + ONE new scalar value head.
 
-    The value head reads the SAME ``h`` the pointer reads (the SEP-position
-    state out of ``ln_f``), so value and policy sit on one encoder. The
-    policy path (inherited ``forward``) is untouched: with the value head
-    unused, outputs are bit-identical to the standalone anchor — the
-    load-bearing invariant, unit-tested on cuda and cpu. New parameters
-    ONLY: ``value_head.{weight,bias}``."""
+    The value head reads the encoder SEP state ``h`` (the same ``h`` the
+    pointer reads) CONCATENATED with the raw state features
+    (:func:`state_feats_from_obs`, ``STATE_FEAT_DIM``-dim): the encoder's
+    decision-tuned readout alone carries ~no outcome information (measured
+    holdout EV ~= 0; see module note on STATE_FEAT_DIM), so the value head
+    sees the state directly as well. The policy path (inherited
+    ``forward``) is untouched: with the value head unused, outputs are
+    bit-identical to the standalone anchor — the load-bearing invariant,
+    unit-tested on cuda and cpu. New parameters ONLY:
+    ``value_head.{weight,bias}``."""
 
     def __init__(self, **cfg: Any) -> None:
         super().__init__(**cfg)
-        self.value_head = nn.Linear(self.d, 1)
+        self.value_head = nn.Linear(self.d + STATE_FEAT_DIM, 1)
 
     def forward_with_value(
         self,
@@ -191,13 +230,16 @@ class PointerBCValue(PointerBC):
         cand_ids: torch.Tensor,
         cand_mask: torch.Tensor,
         is_pass: torch.Tensor,
+        state_feats: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """One forward -> (pointer logits [G,Cmax], value [G])."""
+        """One forward -> (pointer logits [G,Cmax], value [G]).
+        ``state_feats`` is [G, STATE_FEAT_DIM] (the collated raw state
+        features; value path ONLY — the policy logits never touch it)."""
         hidden = self.encode(tokens, pad_mask)
         h = hidden[gold_batch, gold_pos]
         cand_emb = self.candidate_emb(cand_ids, cand_mask)
         logits = self.pointer_logits(h, cand_emb, cand_mask.any(-1), is_pass)
-        return logits, self.value_head(h).squeeze(-1)
+        return logits, self.value_head(torch.cat([h, state_feats], dim=-1)).squeeze(-1)
 
 
 def load_blob(ckpt: str | Path) -> dict[str, Any]:
@@ -406,6 +448,9 @@ def encode_episode(
                 "logp_recorded": float(a["logp"]),
                 "reward": REWARD[ep["outcome"]],
                 "outcome": ep["outcome"],
+                "state_feats": torch.tensor(
+                    state_feats_from_obs(a["obs"]), dtype=torch.float32
+                ),
             }
         )
     return out
@@ -432,6 +477,8 @@ def collate_decisions(
     cand_ids = torch.zeros(m, c_max, l_max, dtype=torch.long)
     cand_mask = torch.zeros(m, c_max, l_max, dtype=torch.bool)
     is_pass = torch.zeros(m, c_max, dtype=torch.bool)
+    k = int(items[0]["state_feats"].shape[0])
+    state_feats = torch.zeros(m, k)
     menus: list[int] = []
     for i, x in enumerate(items):
         t = int(x["tokens"].shape[0])
@@ -444,6 +491,7 @@ def collate_decisions(
         cand_ids[i, :c, :l] = x["cand_ids"]
         cand_mask[i, :c, :l] = x["cand_mask"]
         is_pass[i, :c] = x["is_pass"]
+        state_feats[i] = x["state_feats"]
     out = {
         "tokens": tokens.to(device),
         "pad_mask": pad_mask.to(device),
@@ -452,6 +500,7 @@ def collate_decisions(
         "cand_ids": cand_ids.to(device),
         "cand_mask": cand_mask.to(device),
         "is_pass": is_pass.to(device),
+        "state_feats": state_feats.to(device),
     }
     return out, menus
 
@@ -538,6 +587,7 @@ def batch_forward(
                 b["cand_ids"],
                 b["cand_mask"],
                 b["is_pass"],
+                b["state_feats"],
             )
             value = value.float()
         else:
@@ -617,6 +667,7 @@ def warm_start_value(
                     b["cand_ids"],
                     b["cand_mask"],
                     b["is_pass"],
+                    b["state_feats"],
                 )
                 loss = F.mse_loss(value.float(), targets[sl].to(dev))
                 opt.zero_grad(set_to_none=True)
@@ -638,6 +689,7 @@ def warm_start_value(
                             b["cand_ids"],
                             b["cand_mask"],
                             b["is_pass"],
+                            b["state_feats"],
                         )
                         vals.extend(value.float().cpu().tolist())
                     ev_train = explained_variance([d["reward"] for d in dec], vals)
@@ -686,6 +738,7 @@ def measure_value_ev(
                 b["cand_ids"],
                 b["cand_mask"],
                 b["is_pass"],
+                b["state_feats"],
             )
             vals.extend(value.float().cpu().tolist())
     return explained_variance([d["reward"] for d in dec], vals)
@@ -797,6 +850,7 @@ def ppo_update(
                 b["cand_ids"],
                 b["cand_mask"],
                 b["is_pass"],
+                b["state_feats"],
             )
             logits = logits.float()
             menu_logp = torch.log_softmax(logits, dim=-1)
