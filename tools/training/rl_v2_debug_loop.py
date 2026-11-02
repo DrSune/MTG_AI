@@ -44,6 +44,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+REPO = Path(__file__).resolve().parents[2]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
 from tools.training import train_rl_v2 as T
 
 MAIN_REPO = Path("/home/sune/Desktop/MTG_AI")
