@@ -265,10 +265,16 @@ def main(argv: list[str] | None = None) -> int:
             collect_out,
         )
         rows = T.load_episodes(epi, ckpt_collect, offline=False)
-        if len(rows) < args.games:
+        # Learner-seat filter: iteration 0 collects from the anchor on BOTH
+        # seats (mirror), so the policy-SHA guard alone would pass 2*G rows;
+        # the learner is policy-a, which plays physical seat 1-if-swap-else-0.
+        # For i>=1 the guard already excludes the anchor seat; this filter
+        # keeps every iteration at exactly G learner games (spec: G=50).
+        rows = [r for r in rows if int(r["seat"]) == (1 if r.get("swap") else 0)]
+        if len(rows) != args.games:
             raise RuntimeError(
-                f"rlv2dbg: iteration {i + 1}: only {len(rows)} learner rows "
-                f"after the episode guard (expected {args.games})"
+                f"rlv2dbg: iteration {i + 1}: {len(rows)} learner rows after "
+                f"guard + seat filter (expected exactly {args.games})"
             )
         dec: list[dict] = []
         offsets: list[int] = []
@@ -316,7 +322,7 @@ def main(argv: list[str] | None = None) -> int:
             "grad_norm_preclip": u["grad_norm_preclip"],
             "grad_norm_max": u["grad_norm_max"],
             "epochs_run": u["epochs_run"],
-            "epochs_planned": u["epochs"],
+            "epochs_planned": u["epochs_planned"],
             "early_stopped": u["early_stopped"],
             "chosen_dlogp_post": u["chosen_dlogp_post"],
         }
