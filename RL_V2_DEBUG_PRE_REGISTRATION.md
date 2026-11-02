@@ -55,3 +55,31 @@ prescribes:
 1. Value head explains nothing → fix it before tuning anything else.
 2. KL stays near 0 → the update is a no-op; check the pipeline.
 3. (Real run only) Mirror below 0.47 → stop and inspect games.
+
+## Amendments (mechanics changes, before the first loop run)
+
+**A1 (2026-11-02, worktree commit 7bad492): value head input is
+`[h ⊕ 5 raw state features]`, not `h` alone.** Trigger: triage rule #1
+fired in the first offline validation — warm-start held-out EV
+**-0.0002** ≤ 0. Root cause measured, not assumed:
+- linear probe on the encoder's SEP state `h` alone: holdout EV ≈ 0
+  (10 epochs, 200g train / 100g hold; independent of the trainer's
+  plumbing — the trainer's own warm-start agrees, ev_train 0.013).
+- raw obs features `[life_diff, turn, board_diff, hand_size]` alone:
+  holdout EV **0.256** (all decisions) / **0.499** (last third),
+  700g train / 300g hold.
+- Conclusion: the BC encoder's decision-tuned readout discards the
+  outcome signal; the raw state carries it. The value head now reads
+  `cat([h, life_diff/20, turn/20, board_diff/5, hand_size/8,
+  is_active])` (5 normalized features, learner perspective, fixed
+  constants). The **policy path is untouched** — bit-identity vs the
+  standalone anchor re-passes on the real checkpoint.
+
+Spec deviation note: the plan's spec item 1 says the value head is "one
+new scalar linear layer on the encoder step state". A1 keeps "one new
+scalar linear layer" but widens its input with raw state features —
+sanctioned by the spec's own triage rule #1 (a value head that
+explains nothing is a bug to fix). The success checklist above is
+UNCHANGED. For the REAL run post era-merge this design should be
+re-examined against the corrected engine's obs (owner call if a
+different value architecture is preferred, e.g. an MLP on h).
