@@ -250,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         tag = f"rlv2dbg_i{i + 1}"
         seed_base = args.seed_base + i * 1000
         seed_blocks.append(
-            f"{seed_base}-{seed_base + args.games - 1} (dps "
+            f"{seed_base + 1}-{seed_base + args.games} (dps "
             f"{args.dps_base + i}, rl-seed {args.rlseed_base + i})"
         )
         epi = args.out_dir / f"episodes_i{i + 1}.jsonl"
