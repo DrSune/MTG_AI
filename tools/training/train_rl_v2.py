@@ -1089,37 +1089,74 @@ def train(
     }
 
     if save:
-        out_dir = Path(out_dir or episodes.parent)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        torch.save(
-            {
-                "schema": schema,
-                "state": {k: v.cpu() for k, v in policy_model.state_dict().items()},
-                "config": blob["config"],
-                "vocab": vocab,
-                "seed": int(blob.get("seed", 0)),
-                "train_info": {
-                    "kind": "rl_v2",
-                    "iter": tag,
-                    "episodes": str(Path(episodes).resolve()),
-                    "diag": diag,
-                    "value_head": (
-                        "value_head.{weight,bias} — scalar linear on the "
-                        "encoder SEP state; load with "
-                        "train_rl_v2.load_policy or "
-                        "PointerBCValue.load_state_dict(strict=False)"
-                    ),
-                },
+        save_ckpt(policy_model, blob, tag, out_dir or episodes.parent, diag, schema)
+    return diag
+
+
+def save_ckpt(
+    policy_model: PointerBCValue,
+    blob: dict[str, Any],
+    tag: str,
+    out_dir: str | Path,
+    diag: dict[str, Any],
+    schema: str,
+) -> None:
+    """The checkpoint pair: <tag>.pt (FULL v2 state: policy + value head,
+    loaded by :func:`load_policy`) and <tag>_policy.pt (ON-POLY sidecar —
+    the collection rig (BcAsk.fresh) strict-loads a plain PointerBC, so
+    the inter-iteration checkpoint the next collect must use is the
+    POLICY-ONLY copy, value keys stripped, bit-identical policy weights).
+    Plus the <tag>_diag.json and <tag>_updates.jsonl when the diag carries
+    an 'updates' list."""
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    full_state = {k: v.cpu() for k, v in policy_model.state_dict().items()}
+    torch.save(
+        {
+            "schema": schema,
+            "state": full_state,
+            "config": blob["config"],
+            "vocab": blob["vocab"],
+            "seed": int(blob.get("seed", 0)),
+            "train_info": {
+                "kind": "rl_v2",
+                "iter": tag,
+                "diag": diag,
+                "value_head": (
+                    "value_head.{weight,bias} — scalar linear on the "
+                    "encoder SEP state; load with "
+                    "train_rl_v2.load_policy or "
+                    "PointerBCValue.load_state_dict(strict=False)"
+                ),
             },
-            out_dir / f"{tag}.pt",
-        )
-        (out_dir / f"{tag}_diag.json").write_text(
-            json.dumps(diag, indent=1), encoding="utf-8"
-        )
+        },
+        out_dir / f"{tag}.pt",
+    )
+    torch.save(
+        {
+            "schema": schema,
+            "state": {k: v for k, v in full_state.items() if k not in VALUE_KEYS},
+            "config": blob["config"],
+            "vocab": blob["vocab"],
+            "seed": int(blob.get("seed", 0)),
+            "train_info": {
+                "kind": "rl_v2_policy_sidecar",
+                "iter": tag,
+                "note": "PointerBC-format copy of the v2 policy for "
+                "BcAsk.fresh collection; the value head lives in "
+                "<tag>.pt only",
+            },
+        },
+        out_dir / f"{tag}_policy.pt",
+    )
+    (out_dir / f"{tag}_diag.json").write_text(
+        json.dumps(diag, indent=1), encoding="utf-8"
+    )
+    updates = diag.get("updates")
+    if isinstance(updates, list):
         with open(out_dir / f"{tag}_updates.jsonl", "w", encoding="utf-8") as f:
             for line in updates:
                 f.write(json.dumps(line) + "\n")
-    return diag
 
 
 def main(argv: list[str] | None = None) -> int:
