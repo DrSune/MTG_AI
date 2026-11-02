@@ -59,7 +59,7 @@ prescribes:
 ## Amendments (mechanics changes, before the first loop run)
 
 **A1 (2026-11-02, worktree commit 7bad492): value head input is
-`[h ⊕ 5 raw state features]`, not `h` alone.** Trigger: triage rule #1
+`[h ⊕ 5 raw state features]`.** Trigger: triage rule #1
 fired in the first offline validation — warm-start held-out EV
 **-0.0002** ≤ 0. Root cause measured, not assumed:
 - linear probe on the encoder's SEP state `h` alone: holdout EV ≈ 0
@@ -75,11 +75,14 @@ fired in the first offline validation — warm-start held-out EV
   constants). The **policy path is untouched** — bit-identity vs the
   standalone anchor re-passes on the real checkpoint.
 
-Spec deviation note: the plan's spec item 1 says the value head is "one
-new scalar linear layer on the encoder step state". A1 keeps "one new
-scalar linear layer" but widens its input with raw state features —
-sanctioned by the spec's own triage rule #1 (a value head that
-explains nothing is a bug to fix). The success checklist above is
+Spec note (re-read of plan Step 4 item 2, 2026-11-02): the owner spec
+says the value head is "a scalar head on the policy's encoder that
+predicts the game's outcome **from the board** at each decision". The
+first implementation over-narrowed "from the board" to "from the
+encoder's hidden state h" (module docstring: 'one scalar linear layer
+on the encoder step state'). A1 restores the spec's actual wording:
+the board's raw features are read directly alongside h. This is a
+spec-fidelity fix, not a deviation — the success checklist above is
 UNCHANGED. For the REAL run post era-merge this design should be
 re-examined against the corrected engine's obs (owner call if a
 different value architecture is preferred, e.g. an MLP on h).
