@@ -126,6 +126,33 @@ VALUE_KEYS = ("value_head.weight", "value_head.bias")
 _CKPT_KEY_CACHE: dict[str, str] = {}
 
 
+def get_available_memory_gib() -> float:
+    """Read available unified memory in GiB from /proc/meminfo."""
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) / (1024 * 1024)
+    except Exception:
+        pass
+    return 0.0
+
+
+def assert_cuda_headroom(required_gib: float = 25.0) -> None:
+    """Refuse CUDA allocations if available unified memory is too low (e.g. vLLM resident)."""
+    avail = get_available_memory_gib()
+    if avail > 0 and avail < required_gib:
+        raise RuntimeError(
+            f"DGX Spark Unified Memory Safety Guard: Available memory is only {avail:.1f} GiB "
+            f"(< {required_gib:.1f} GiB required for CUDA RL operations). "
+            f"The vLLM engine (qwen-nvfp4) is resident and occupies ~73 GiB of unified memory. "
+            f"Allocating CUDA tensors now would exhaust unified memory, causing NV_ERR_NO_MEMORY "
+            f"and a hard machine freeze/reboot. "
+            f"Either stop vLLM first ('docker stop qwen-nvfp4' / 'spark_ced.sh free-gpu docker:qwen-nvfp4') "
+            f"or run on CPU with device='cpu'."
+        )
+
+
 def _ckpt_key(path_str: str) -> str:
     """Checkpoint identity: SHA-256 when present, resolved-path fallback
     (v1 governance: evidence-by-SHA, never by path). Cached."""
@@ -213,6 +240,8 @@ def load_policy(
             f"{sorted(extra)} — checkpoint drift, refusing silent load"
         )
     model.load_state_dict(blob["state"], strict=False)
+    if str(device).startswith("cuda"):
+        assert_cuda_headroom(25.0)
     model.to(device)
     model.eval()  # v1 convention: the collected logp was computed in eval
     # mode (dropout=0.1 in cfg only bites in train mode), so every
@@ -227,6 +256,8 @@ def build_anchor(blob: dict[str, Any], device: str) -> PointerBC:
     trained, eval mode — the KL reference and tomorrow's opponent."""
     model = PointerBC(**blob["config"])
     model.load_state_dict(blob["state"])
+    if str(device).startswith("cuda"):
+        assert_cuda_headroom(25.0)
     model.to(device)
     model.eval()
     for p in model.parameters():
@@ -553,6 +584,8 @@ def warm_start_value(
     must not move the policy off the anchor). Target per decision = the
     game's outcome reward (the gamma=1 return). One Adam over the value
     head; loss is MSE. Returns train-set EV + diagnostics."""
+    if str(device).startswith("cuda"):
+        assert_cuda_headroom(25.0)
     dev = torch.device(device)
     dec: list[dict[str, Any]] = []
     for ep in episodes:
@@ -632,6 +665,8 @@ def measure_value_ev(
 ) -> float:
     """Explained variance of the current value head vs the outcome
     baseline on the given (held-out) episodes. Triage rule #1's number."""
+    if str(device).startswith("cuda"):
+        assert_cuda_headroom(25.0)
     dev = torch.device(device)
     dec: list[dict[str, Any]] = []
     for ep in episodes:
@@ -689,6 +724,8 @@ def ppo_update(
 
     Returns the per-update metric dict (the log line) plus raw grad
     norms. Raises on a non-finite loss."""
+    if str(device).startswith("cuda"):
+        assert_cuda_headroom(25.0)
     dev = torch.device(device)
     m = len(decisions)
     if m == 0:

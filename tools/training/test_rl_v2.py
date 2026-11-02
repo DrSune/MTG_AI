@@ -38,14 +38,19 @@ from tools.training.collector import AskContext
 EPISODES = Path("/tmp/opencode/rld_n1/episodes_iter1.jsonl")
 ANCHOR = Path("/home/sune/Desktop/MTG_AI/tools/training/bsh_S3a_s1_best.pt")
 HAS_CUDA = torch.cuda.is_available()
+HAS_SAFE_CUDA = HAS_CUDA and (T.get_available_memory_gib() >= 30.0)
 
 needs_inputs = pytest.mark.skipif(
     not (EPISODES.is_file() and ANCHOR.is_file()),
     reason="pilot episodes/anchor not present",
 )
 needs_cuda = pytest.mark.skipif(not HAS_CUDA, reason="no cuda")
+needs_safe_cuda = pytest.mark.skipif(
+    not HAS_SAFE_CUDA,
+    reason="insufficient unified memory headroom on DGX Spark (>=30 GiB needed while vLLM is resident)",
+)
 
-DEVICE = "cuda" if HAS_CUDA else "cpu"
+DEVICE = "cuda" if HAS_SAFE_CUDA else "cpu"
 
 
 # --------------------------------------------------------------- fixtures
@@ -205,7 +210,7 @@ def test_reward_semantics():
 
 
 # ------------------------------------------------- (e) padded batch == 1-row
-@pytest.mark.parametrize("device", ("cuda" if HAS_CUDA else "cpu", "cpu"))
+@pytest.mark.parametrize("device", ("cuda" if HAS_SAFE_CUDA else "cpu", "cpu"))
 def test_padded_batch_matches_single(device):
     model = build_small(device=device)
     r1 = fake_record(1, 10, ["PASS", "card:1", "card:2"], 1)
@@ -316,7 +321,7 @@ def test_padded_batch_masked_slots_zero_gradient():
 
 # ----------------------------------------------- (a) bit-identity, anchor
 @needs_inputs
-@pytest.mark.parametrize("device", ("cuda" if HAS_CUDA else "cpu", "cpu"))
+@pytest.mark.parametrize("device", ("cuda" if HAS_SAFE_CUDA else "cpu", "cpu"))
 def test_bit_identity_wrapper_vs_anchor(blob, device):
     """The v2 wrapper's policy output is BIT-IDENTICAL to the standalone
     anchor on the same asks (cuda and cpu) — the load-bearing invariant.
@@ -401,7 +406,7 @@ def test_bit_identity_wrapper_vs_anchor(blob, device):
 
 # ------------------------------------------------------- (c) warm-start EV
 @needs_inputs
-@needs_cuda
+@needs_safe_cuda
 def test_warm_start_ev_positive(blob, games300):
     """Warm-start the value head on 200 recorded games; the HELD-OUT
     explained variance on the next 100 games must be > 0 (triage rule
@@ -457,7 +462,7 @@ def test_warm_start_ev_positive(blob, games300):
 
 # ------------------------------------------------------------ (d) PPO update
 @needs_inputs
-@needs_cuda
+@needs_safe_cuda
 def test_ppo_update_50_games(blob):
     """One PPO update over a 50-game batch: KL > 0, no NaNs, loss
     decreases across epochs, and the update actually moved the
@@ -538,7 +543,7 @@ LOG_KEYS = (
 
 
 @needs_inputs
-@needs_cuda
+@needs_safe_cuda
 def test_logging_keys_and_cumulative_kl(blob, tmp_path, capsys):
     """Two iterations through train(): every spec-6 key present on each
     JSON line; cumulative KL monotone non-decreasing and >= 0."""
