@@ -114,10 +114,12 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
 class Searcher:
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, k: int = 4,
                  d: int = 2, skip_p: float = 0.97, draw_value: float = -1.0,
-                 seed: int = 0, rollout: str | None = None) -> None:
+                 seed: int = 0, rollout: str | None = None, value: str | None = None) -> None:
         self.slot = slot
         self.gid = gid
         self.spec = spec
+        # the network whose value head scores the leaves (default: the policy network)
+        self.value_spec = value or spec
         # the network that plays inside simulations; the leaf value and the root prior always
         # come from ``spec``
         self.rollout = rollout or spec
@@ -253,5 +255,5 @@ class Searcher:
         ask = Ask(seat=seat, kind="act", site=f"act:{me}:{clone.world.turn}", prompt="",
                   options=tuple(o for o, _ in menu), refuse=0)
         feats = FT.encode(clone.executor, seat, ask, self.table, FT.AskContext())
-        _, value = self.slot.infer((self.gid, seat, self.spec, True, False, feats, 1))
+        _, value = self.slot.infer((self.gid, seat, self.value_spec, True, False, feats, 1))
         return float(value)

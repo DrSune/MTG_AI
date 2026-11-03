@@ -149,6 +149,14 @@ class Learner:
                                  ff=args.ff, name_dropout=args.name_dropout).to(self.device)
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
+        if args.value_init:
+            # A separate value network scores the search's leaves: one network cannot take the
+            # policy's aggressive distillation without its value head collapsing (measured on
+            # 11,420 unseen positions: value MSE 0.565 -> 0.964 after r6's 3-epoch generations).
+            vnet, vtable, _ = M.load(args.value_init, self.device)
+            if vtable.oracle_ids != self.table.oracle_ids:
+                raise ValueError("--value-init: card table differs from the learner's")
+            self.models["value"] = vnet.eval()
         if args.rollout_init:
             # A small fast network plays the moves inside search simulations (the big one picks
             # the candidates and scores the leaves); trained on the same labels each generation.
@@ -423,7 +431,8 @@ class Learner:
     def search_opts(self) -> dict:
         a = self.args
         return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
-                "rollout": "rollout" if "rollout" in self.models else None}
+                "rollout": "rollout" if "rollout" in self.models else None,
+                "value": "value" if "value" in self.models else None}
 
     def curriculum_opponent(self) -> str:
         a = self.args
@@ -676,7 +685,7 @@ class Learner:
 
     def bc_train(self, epochs: int | None = None, lr: float | None = None,
                  model: torch.nn.Module | None = None, keep: bool = False,
-                 tag: str = "bc") -> dict:
+                 tag: str = "bc", value_only: bool = False) -> dict:
         """Supervised training on self.bc: cross-entropy on the recorded move + value MSE on the
         outcome. ``model`` defaults to the learner; ``keep`` leaves self.bc for another model."""
         a = self.args
@@ -693,6 +702,10 @@ class Learner:
         test = [x for x in data if x[3] in hold]
         self.log({"event": "bc_data", "model": tag, "samples": len(data), "train": len(train),
                   "test": len(test), "games": len(gids)})
+        before = self.bc_eval(test, net)[1] if value_only and test else None
+        saved = ({k: v.detach().clone() for k, v in net.state_dict().items()}
+                 if value_only else None)
+        vcoef = 1.0 if value_only else a.bc_vcoef
         net.train()
         opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=a.wd)
         steps_total = max(1, epochs * math.ceil(len(train) / a.mb))
@@ -715,7 +728,7 @@ class Learner:
                     logits, v = net(b)
                 ce = F.cross_entropy(logits, act, reduction="none")
                 pol = (ce * wp).sum() / wp.sum().clamp(min=1.0)
-                loss = pol + a.bc_vcoef * F.mse_loss(v, z)
+                loss = (0.0 if value_only else pol) + vcoef * F.mse_loss(v, z)
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(net.parameters(), a.max_grad)
@@ -729,6 +742,13 @@ class Learner:
             self.log(row)
             best = row
         net.eval()
+        if value_only and best is not None and before is not None:
+            best["before_vloss"] = before
+            if best["test_vloss"] > before:  # held-out value got worse: keep the old weights
+                net.load_state_dict(saved)
+                best["reverted"] = True
+                self.log({"event": "value_revert", "model": tag, "before": before,
+                          "after": best["test_vloss"]})
         if not keep:
             self.bc = []
         self.release_cache()
@@ -1032,6 +1052,13 @@ class Learner:
             n_window = len(self.bc)
             t1 = time.time()
             fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr, keep=True)
+            vfit: dict = {}
+            if "value" in self.models:
+                vfit = self.bc_train(epochs=a.value_epochs, lr=a.value_lr,
+                                     model=self.models["value"], keep=True, tag="value",
+                                     value_only=True)
+                M.save(str(self.run / "value.pt"), self.models["value"], self.table,
+                       {"it": self.it})
             rfit: dict = {}
             if "rollout" in self.models:
                 rfit = self.bc_train(epochs=a.rollout_epochs, lr=a.rollout_lr,
@@ -1041,6 +1068,9 @@ class Learner:
             self.bc = []
             self.log({"event": "iter", "it": self.it, "stage": self.stage, "adapt": "exit",
                       "rollout_acc": rfit.get("test_acc"),
+                      "value_net_mse": vfit.get("test_vloss"),
+                      "value_net_before": vfit.get("before_vloss"),
+                      "value_net_reverted": bool(vfit.get("reverted")),
                       "samples": len(window[-1]), "window": n_window,
                       "label_acc": fit.get("test_acc"), "value_mse": fit.get("test_vloss"),
                       "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
@@ -1281,6 +1311,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--exit-value-opp", action="store_true",
                    help="also record the opponent's positions (value targets only)")
     p.add_argument("--exit-eval-seats", default="eval,eval+search")
+    p.add_argument("--value-init", default="",
+                   help="checkpoint of a separate value network for the search's leaves")
+    p.add_argument("--value-epochs", type=int, default=1)
+    p.add_argument("--value-lr", type=float, default=5e-5)
     p.add_argument("--rollout-init", default="",
                    help="checkpoint of a small network that plays the moves inside simulations")
     p.add_argument("--rollout-epochs", type=int, default=3)
