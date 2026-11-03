@@ -27,6 +27,7 @@ from collections import deque
 from typing import Any
 
 from tools.selfplay import features as FT
+from tools.selfplay.features import _handle
 from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
 
@@ -84,7 +85,7 @@ class NetAgent:
             self.searcher = Searcher(slot, job["gid"], self.spec, table, k=opts.get("k", 4),
                                      d=opts.get("d", 2), skip_p=opts.get("skip_p", 0.97),
                                      seed=job["seed"] * 2 + seat, rollout=opts.get("rollout"),
-                                     value=opts.get("value"))
+                                     value=opts.get("value"), tau=opts.get("tau", 0.05))
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -100,20 +101,28 @@ class NetAgent:
             idx = plan_answer(ask, self.attack_plan)
             if idx is not None:
                 if self.label:
+                    target = None
+                    h = _handle(":".join(ask.site.split(":")[1:3]))
+                    pa = self.searcher.plan_targets.get(h) if self.searcher else None
+                    toks = [o.token for o in ask.options]
+                    if pa is not None and "ATTACK" in toks and "DECLINE" in toks:
+                        target = [(toks.index("ATTACK"), pa), (toks.index("DECLINE"), 1.0 - pa)]
                     self.samples.append(
                         (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx,
-                         self.wp))
+                         self.wp, target))
                 return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
         self.decisions += 1
+        target = None
         if self.searcher is not None and ask.kind == "act":
             idx = self.searcher.choose(ask, obs, feats)
+            target = self.searcher.last_target
         else:
             req = (self.job["gid"], self.seat, self.spec, self.greedy,
                    self.record and not self.label, feats)
             idx = int(self.slot.infer(req))
         if self.label:
-            self.samples.append((feats, idx, self.wp))
+            self.samples.append((feats, idx, self.wp, target))
         return idx
 
     def plan_combat(self, game: Any, seat: int) -> None:

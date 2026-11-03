@@ -27,6 +27,7 @@ from the chosen plan. Blocks happen inside the engine's combat call and stay wit
 
 from __future__ import annotations
 
+import math
 import random
 from typing import Any
 
@@ -111,10 +112,21 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
     return None
 
 
+def soft_target(prior: dict, scores: dict, tau: float) -> list[tuple]:
+    """Search target over candidates: prior x exp(score / tau), normalised (AlphaZero-style):
+    near-equal scores barely move the prior, a clear margin dominates it. tau = 0.05 makes a
+    0.1 value margin (~5 percentage points of win probability) a 7.4x preference."""
+    top = max(scores.values())
+    w = {c: prior[c] * math.exp((scores[c] - top) / max(tau, 1e-6)) for c in prior}
+    z = sum(w.values()) or 1.0
+    return [(c, w[c] / z) for c in prior]
+
+
 class Searcher:
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, k: int = 4,
                  d: int = 2, skip_p: float = 0.97, draw_value: float = -1.0,
-                 seed: int = 0, rollout: str | None = None, value: str | None = None) -> None:
+                 seed: int = 0, rollout: str | None = None, value: str | None = None,
+                 tau: float = 0.05) -> None:
         self.slot = slot
         self.gid = gid
         self.spec = spec
@@ -129,6 +141,9 @@ class Searcher:
         self.skip_p = skip_p
         self.draw_value = draw_value
         self.rng = random.Random(seed)
+        self.tau = tau
+        self.last_target: list | None = None
+        self.plan_targets: dict = {}
         self.supply = get_supply("castable")
         self.stats = {"searched": 0, "skipped": 0, "sims": 0, "changed": 0, "sim_errors": 0}
 
@@ -136,6 +151,7 @@ class Searcher:
         """The searched option index for one act ask (feats: its encoding)."""
         n = len(ask.options)
         a0, _, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
+        self.last_target = None
         if max(probs) >= self.skip_p or obs.game is None:
             self.stats["skipped"] += 1
             return int(a0)
@@ -150,6 +166,7 @@ class Searcher:
         best = max(order, key=lambda i: (scores[i], probs[i]))
         self.stats["searched"] += 1
         self.stats["changed"] += int(best != a0)
+        self.last_target = soft_target({i: probs[i] for i in order}, scores, self.tau)
         return int(best)
 
     def plan_attacks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
@@ -199,6 +216,15 @@ class Searcher:
         best = max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["plans"] = self.stats.get("plans", 0) + 1
         self.stats["plans_changed"] = self.stats.get("plans_changed", 0) + int(best != base)
+        # soft per-creature targets: P(attack c) under prior(plan) * exp(score / tau)
+        prior = {}
+        for pl in uniq:
+            pr = 1.0
+            for c in asked:
+                pr *= p_attack[c] if c in pl else (1.0 - p_attack[c])
+            prior[pl] = max(pr, 1e-6)
+        w = soft_target(prior, scores, self.tau)
+        self.plan_targets = {c: sum(wt for pl, wt in w if c in pl) for c in asked}
         return best | mandated
 
     def simulate(self, game: Any, seat: int, token: str | None,

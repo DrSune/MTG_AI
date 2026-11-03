@@ -472,6 +472,7 @@ class Learner:
     def search_opts(self) -> dict:
         a = self.args
         return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
+                "tau": a.search_tau,
                 "rollout": "rollout" if "rollout" in self.models else None,
                 "value": "value" if "value" in self.models else None}
 
@@ -675,7 +676,8 @@ class Learner:
                         z = self.reward(r["outcome"], r["winner"], seat)
                         for sample in r["bc"][seat] or []:
                             wp = sample[2] if len(sample) > 2 else 1.0
-                            self.bc.append((sample[0], sample[1], z, r["gid"], wp))
+                            target = sample[3] if len(sample) > 3 else None
+                            self.bc.append((sample[0], sample[1], z, r["gid"], wp, target))
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args
@@ -788,7 +790,16 @@ class Learner:
                                   device=self.device)
                 with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                     logits, v = net(b)
-                ce = F.cross_entropy(logits, act, reduction="none")
+                # hard label (the played move) unless the search left a soft target
+                tgt = torch.zeros_like(logits)
+                tgt[torch.arange(len(ch), device=self.device), act] = 1.0
+                for row, i in enumerate(ch):
+                    soft = train[i][5] if len(train[i]) > 5 else None
+                    if soft:
+                        tgt[row].zero_()
+                        for j, pj in soft:
+                            tgt[row, j] = pj
+                ce = -(tgt * torch.log_softmax(logits.float(), -1)).sum(-1)
                 pol = (ce * wp).sum() / wp.sum().clamp(min=1.0)
                 loss = (0.0 if value_only else pol) + vcoef * F.mse_loss(v, z)
                 opt.zero_grad(set_to_none=True)
@@ -1094,18 +1105,31 @@ class Learner:
         --p-heuristic), the network is trained on the moves the search chose and the outcomes
         (a window of --exit-keep generations), then the stage's gate runs."""
         a = self.args
-        v0 = self.freeze(self.model)
-        self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"], a.ladder_deals)
-        self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"], a.ladder_deals)
-        self._drain_evals()
-        self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
-        self.bc_seats = [a.exit_seat, a.exit_seat]
         window: deque = deque(maxlen=a.exit_keep)
         # generations that left the policy window stay as value-only data (policy weight 0):
         # the value head over-fits one window's ~1.5K games (r7 gen 1: held-out MSE 0.93 -> 1.05)
         vwindow: deque = deque(maxlen=max(0, a.exit_value_keep - a.exit_keep))
         vdata_window: deque = deque(maxlen=max(1, a.value_keep))
-        for self.it in range(1, a.iters + 1):
+        start = 1
+        if a.resume:
+            st = self.load_state(a.resume)
+            window.extend(st["window"])
+            vwindow.extend(st["vwindow"])
+            vdata_window.extend(st["vdata_window"])
+            start = st["it"] + 1
+            self.log({"event": "resume", "from": a.resume, "it": st["it"], "stage": self.stage,
+                      "versions": self.versions, "window": sum(map(len, window)),
+                      "value_window": sum(map(len, vdata_window))})
+        else:
+            v0 = self.freeze(self.model)
+            self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"],
+                            a.ladder_deals)
+            self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"],
+                            a.ladder_deals)
+            self._drain_evals()
+            self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
+        self.bc_seats = [a.exit_seat, a.exit_seat]
+        for self.it in range(start, a.iters + 1):
             t0 = time.time()
             self.bc, self.phase = [], "bc"
             self.bc_target, self.bc_issued, self.bc_done = a.exit_games, 0, 0
@@ -1175,6 +1199,45 @@ class Learner:
                                 a.gate_deals)
             self._drain_evals()
             self.save("last.pt", {"versions": self.versions, "stage": self.stage})
+            self.save_state(window, vwindow, vdata_window)
+
+    def save_state(self, window: deque, vwindow: deque, vdata_window: deque) -> None:
+        """Everything --resume needs besides the checkpoints: the data windows, the stage, the
+        version list and the rating games (written atomically after each generation)."""
+        import pickle
+
+        state = {"it": self.it, "stage": self.stage, "versions": self.versions,
+                 "elo_games": self.elo_games, "window": list(window), "vwindow": list(vwindow),
+                 "vdata_window": list(vdata_window)}
+        tmp = self.run / "state.pkl.tmp"
+        with tmp.open("wb") as fh:
+            pickle.dump(state, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        tmp.replace(self.run / "state.pkl")
+
+    def load_state(self, run_dir: str) -> dict:
+        """Restore a run saved by save_state: learner weights (last.pt), value net (value.pt),
+        every frozen version (v<k>.pt), stage, ratings and data windows."""
+        import pickle
+
+        src = Path(run_dir)
+        with (src / "state.pkl").open("rb") as fh:
+            st = pickle.load(fh)
+        model, _, _ = M.load(str(src / "last.pt"), self.device)
+        self.model.load_state_dict(model.state_dict())
+        self.weights_changed(self.model)
+        if (src / "value.pt").exists() and "value" in self.models:
+            vnet, _, _ = M.load(str(src / "value.pt"), self.device)
+            self.models["value"].load_state_dict(vnet.state_dict())
+            self.weights_changed(self.models["value"])
+        for name in st["versions"]:
+            net, _, _ = M.load(str(src / f"{name}.pt"), self.device)
+            self.models[name] = net.eval()
+            if src != self.run:
+                M.save(str(self.run / f"{name}.pt"), net, self.table, {"resumed_from": run_dir})
+        self.versions = list(st["versions"])
+        self.stage = st["stage"]
+        self.elo_games = list(st["elo_games"])
+        return st
 
     def run_eval(self, tag: str, seat: str) -> dict:
         self.start_eval(tag, seat=seat)
@@ -1368,6 +1431,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--curriculum", action="store_true")
+    p.add_argument("--resume", default="",
+                   help="--adapt exit: continue the run saved in this directory (state.pkl, "
+                        "last.pt, value.pt, v<k>.pt)")
     p.add_argument("--adapt", default="ppo", choices=("ppo", "exit"),
                    help="how the learner adapts in each stage: PPO, or expert iteration (search "
                         "distillation, generations of --exit-games)")
@@ -1410,6 +1476,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="checkpoint of a small network that plays the moves inside simulations")
     p.add_argument("--rollout-epochs", type=int, default=3)
     p.add_argument("--rollout-lr", type=float, default=3e-4)
+    p.add_argument("--search-tau", type=float, default=0.05,
+                   help="soft search targets: prior x exp(score / tau)")
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")
     p.add_argument("--search-d", type=int, default=2, help="sampled worlds per option")
     p.add_argument("--search-skip-p", type=float, default=0.97,
