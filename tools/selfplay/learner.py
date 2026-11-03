@@ -402,17 +402,27 @@ class Learner:
         self.model.train()
         stats = defaultdict(list)
         stop = False
+        # Minibatches are formed and collated ONCE per iteration and reused by every epoch (only
+        # their order is reshuffled): collation is ~70 us/decision of Python, the dominant
+        # update cost when redone per epoch.
+        batches = []
+        for ch in self._chunks(buf, a.mb, lambda x: x[0]["cards_i"].shape[0]
+                               + x[0]["opts_i"].shape[0]):
+            self.check_memory()
+            batches.append((
+                M.collate([buf[i][0] for i in ch], self.device),
+                torch.tensor([buf[i][1] for i in ch], device=self.device),
+                torch.tensor([buf[i][2] for i in ch], device=self.device),
+                torch.from_numpy(adv_n[ch]).to(self.device),
+                torch.from_numpy(ret[ch]).to(self.device),
+                torch.from_numpy(old_v[ch]).to(self.device),
+            ))
+        del buf
         for epoch in range(a.epochs):
             kls = []
-            for ch in self._chunks(buf, a.mb, lambda x: x[0]["cards_i"].shape[0]
-                                   + x[0]["opts_i"].shape[0]):
+            random.shuffle(batches)
+            for b, act, old_logp, A, R, V0 in batches:
                 self.check_memory()
-                b = M.collate([buf[i][0] for i in ch], self.device)
-                act = torch.tensor([buf[i][1] for i in ch], device=self.device)
-                old_logp = torch.tensor([buf[i][2] for i in ch], device=self.device)
-                A = torch.from_numpy(adv_n[ch]).to(self.device)
-                R = torch.from_numpy(ret[ch]).to(self.device)
-                V0 = torch.from_numpy(old_v[ch]).to(self.device)
                 with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                     logits, v = self.model(b)
                 logp_all = torch.log_softmax(logits, -1)
@@ -441,6 +451,7 @@ class Learner:
             if a.target_kl > 0 and float(np.mean(kls)) > a.target_kl:
                 stop = True
                 break
+        del batches
         self.model.eval()
         self.release_cache()
         out = {k: round(float(np.mean(v)), 5) for k, v in stats.items() if k != "epochs"}

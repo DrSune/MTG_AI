@@ -100,13 +100,13 @@ class Adapter:
         return int(logits.argmax(-1)[0])
 
 
-def _play(job: tuple[int, bool, str]) -> dict:
+def _play(job: tuple[int, bool, str, str]) -> dict:
     from MTG_bot.core.executor.games import get_supply
     from tools.eval import gameplay_eval_v2 as G
 
-    seed, swap, old = job
+    seed, swap, old, old_device = job
     supply = get_supply("castable")
-    r = G.run_v2_game(seed, swap, "NEW", old, supply, device="cpu")
+    r = G.run_v2_game(seed, swap, "NEW", old, supply, device=old_device)
     return {"seed": seed, "swap": swap, "outcome": r["outcome"], "turns": r["turns"],
             "crash": r.get("crash")}
 
@@ -119,9 +119,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--games", type=int, default=200, help="deals; each is played twice, seats swapped")
     ap.add_argument("--seed-base", type=int, default=991001)
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--old-device", default="cpu", choices=("cpu", "cuda"),
+                    help="device of a legacy checkpoint (its 1024-token stream is slow on 1 CPU thread)")
     ap.add_argument("--out", default="")
     args = ap.parse_args(argv)
-    jobs = [(args.seed_base + i, swap, args.old) for i in range(args.games) for swap in (False, True)]
+    jobs = [(args.seed_base + i, swap, args.old, args.old_device) for i in range(args.games)
+            for swap in (False, True)]
     # libgomp otherwise starts one spin-waiting thread per core in every worker: measured ~4.7x
     # the useful CPU burnt in idle spinning. Spawned workers inherit the environment.
     os.environ["OMP_NUM_THREADS"] = "1"
