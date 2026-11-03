@@ -60,6 +60,27 @@ def wilson(wins: float, n: int, z: float = 1.96) -> tuple[float, float]:
     return (round(c - h, 4), round(c + h, 4))
 
 
+def length_buckets(items: list, ratio: float = 1.4, min_n: int = 8) -> list[list]:
+    """Split one model's inference requests into length-sorted buckets, so a batch is not padded
+    to its single longest decision (measured: a 128-request batch with one 114-token outlier
+    against a mean of 25 took 78 ms as one batch, 43 ms as 5 buckets; no loss without outliers).
+    ``items`` are (message index, request index, request); the request's features are req[5]."""
+    def length(it: tuple) -> int:
+        f = it[2][5]
+        return f["cards_i"].shape[0] + f["opts_i"].shape[0]
+
+    out: list[list] = []
+    cur: list = []
+    for it in sorted(items, key=length):
+        if cur and len(cur) >= min_n and length(it) > ratio * max(length(cur[0]), 4):
+            out.append(cur)
+            cur = []
+        cur.append(it)
+    if cur:
+        out.append(cur)
+    return out
+
+
 def fit_elo(games: list[tuple[str, str, float]], anchor: str = "random",
             prior: float = 1.0, iters: int = 2000) -> dict[str, float]:
     """Bradley-Terry ratings in Elo points from ``(a, b, score_of_a)`` games, ``anchor`` = 0.
@@ -480,7 +501,11 @@ class Learner:
                 by_key[req[2]].append((mi, ri, req))
         stream_ctx = (torch.cuda.stream(self.infer_stream) if self.infer_stream is not None
                       else contextlib.nullcontext())
+        groups = []
         for key, items in by_key.items():
+            for bucket in length_buckets(items):
+                groups.append((key, bucket))
+        for key, items in groups:
             model = self.models[key]
             with stream_ctx:
                 b = M.collate([it[2][5] for it in items], self.device)
