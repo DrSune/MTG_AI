@@ -29,11 +29,44 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. No torch in workers. |
 | `learner.py` | GPU inference server (batches all workers' asks), BC, PPO (GAE, clipped policy + value, entropy, KL stop), league of frozen snapshots, duplicate-format evaluation vs the heuristic on fixed deals. |
 
+## Training paths
+
+**Curriculum (`--curriculum`, the owner's plan of 2026-11-03).**
+1. *Teacher inter-play*: heuristic-vs-heuristic games, behaviour cloning (`--bc-games`). The
+   result is frozen as `v0`.
+2. *Against the teacher*: PPO with the heuristic as the only opponent until a frozen copy of the
+   learner scores `--teacher-gate` against it (Wilson lower bound above 0.5) or
+   `--teacher-iters` pass. The evaluated weights become `v1`.
+3. *Gated frozen self-play*: PPO against the newest frozen version (plus a few games against
+   older versions and the heuristic). Every `--gate-every` iterations the learner plays a gate
+   match on `--gate-deals` fixed deals; `--gate-score` with the lower bound above 0.5 freezes the
+   evaluated weights as the next version. `--kl-anchor` pulls the learner toward the newest
+   frozen version.
+
+**Ratings.** Elo by Bradley-Terry over every game between frozen players (`fit_elo`), with
+**uniform random = 0** (a seat choosing uniformly among the offered options at every ask). One
+virtual draw per pair keeps lopsided results finite. Far from random, a 100% score only bounds a
+gap from below, so each new version is placed through its neighbours (previous version, the
+heuristic) and the chain carries the anchor; read gaps between neighbours as the precise part.
+
+**Decision-time search (`eval+search`, `learner+search`; `search.py`).** At main-phase asks and
+at the pre-combat boundary (whole attack plans), the top candidates are played forward in copies
+of the game whose hidden zones were re-sampled from public information, through the opponent's
+next turn, and scored by the outcome or the value head; candidates share sampled worlds.
+
+**Expert iteration (`--exit-gens`).** The searching network plays; its played moves (the search's
+choices) and the outcomes are distilled into the network; repeat.
+
 ## Run
 
 ```
-.venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --workers 18 --slots 8 \
-    --bc-games 20000 --iters 300 --steps 65536
+.venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --curriculum \
+    --workers 18 --slots 8 --d 512 --layers 8 --heads 8 --ff 2048 --bc-games 16000 \
+    --teacher-iters 40 --steps 98304 --mb 4096 --tok-budget 131072 --lr 1e-4 --kl-anchor 0.01
+.venv/bin/python -m tools.selfplay.learner --run runs/selfplay/EVAL --init CKPT --eval-only \
+    --eval-seat eval+search --eval-opponents heuristic,random
+.venv/bin/python -m tools.selfplay.paired A/eval_rows.jsonl B/eval_rows.jsonl
+.venv/bin/python -m tools.selfplay.vs_legacy --new CKPT --old teacher
 ```
 
 `runs/` is gitignored. Metrics: `runs/selfplay/NAME/metrics.jsonl` (events `bc_gen`,
