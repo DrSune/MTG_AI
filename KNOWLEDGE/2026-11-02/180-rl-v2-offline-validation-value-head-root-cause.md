@@ -92,7 +92,7 @@ spec.
   passes them. `load_policy` unchanged (anchor blobs lack the value
   keys by design; v2 checkpoints carry them).
 
-## 5. Offline re-run (IN FLIGHT at writing — numbers in the addendum)
+## 5. Offline re-run (first attempt FAILED on a new bug — see §7.1)
 
 Same command as §3, after the fix. Expected: warm-start EV > 0 on the
 200-game holdout (the raw-feature probe predicts ~0.1–0.3 at the
@@ -115,4 +115,51 @@ budget, checkpoint pair `<tag>.pt` + `<tag>_policy.pt` sidecar
 
 ## 7. Addendum (offline CLI + debug-loop numbers, appended below)
 
-_(pending)_
+### 7.1 First re-run: EV gate PASSED, new bug in `ppo_update` (2026-11-02 23:12 → 2026-11-03 01:16, wall 104 min)
+
+- Warm-start (500g, 3 epochs) + holdout EV measurement completed and the
+  **EV gate passed** — no triage-rule-#1 error; the run proceeded into
+  the PPO update (the value-head fix in §4 works). The gate's numeric
+  value is not logged (`train()` prints nothing before the gate);
+  passage is proven by the crash occurring after it.
+- **New failure (measured)**: `ppo_update` crashed at
+  `torch.cat(anchor_parts, 0)` — `RuntimeError: Sizes of tensors must
+  match except in dimension 0. Expected size 85 but got size 7`.
+  Root cause: the frozen-anchor logp cache assumed one global menu
+  width, but each collate chunk pads to its own `C_max` (per-chunk max
+  menu size) — chunk widths 85 vs 7 cannot concat. Escaped the suite
+  for the same reason as the warm-start bug: the PPO-update test is
+  cuda-only.
+- **Fix (worktree commit `be11cbe`)**: the anchor cache is now a
+  per-row list (row i = global decision i, width = its own chunk's
+  `C_max`). The KL minibatch writes each row's real-candidate prefix
+  (columns 0..c-1 always align with the policy's collate — same record,
+  same candidate order, collate fills from column 0) onto a clone of
+  `menu_logp`; padding mass is exactly zero on both sides, so no
+  padding columns contribute. The post-update chosen-logp check looks
+  up each row directly.
+- **Regression test (same commit)**:
+  `test_ppo_update_synthetic_cpu_chunked` — random small models, 9 fake
+  records with menu sizes 3..11, `minibatch=4` → chunks of widths
+  6/10/11; asserts finite metrics, KL vs anchor > 0, and a real policy
+  move. Runs on CPU with no anchor blob — this exact fault cannot
+  silently skip again. Suite: **15 passed, 3 skipped** (cuda-only), no
+  warnings.
+- Hygiene (same commit): `detach()` before `float()` on the metric
+  tensors in `ppo_update` (pre-existing `UserWarning` on every update).
+- In the same window the sidecar mechanism was verified standalone
+  (no training needed): `save_ckpt` → 4 artifacts; `BcAsk.fresh`
+  strict-loads the `_policy.pt` sidecar as plain PointerBC; full
+  checkpoint round-trips through `load_policy` (value head intact);
+  sidecar policy is bit-identical to the anchor pre-update.
+
+### 7.2 Second re-run (in flight at writing — numbers appended below)
+
+Same command as §5, after the `be11cbe` fix. Launched 2026-11-03 02:05
+(background; expected ~105–115 min wall: warm-start dominates).
+
+### 7.3 5-iteration on-policy debug loop (pending — after 7.2 lands)
+
+Launch: `/tmp/opencode/rlv2_debug_launch.sh` (OMP_NUM_THREADS=8 per the
+23:21 encode-peak memory measurement; fresh seed blocks 520002+ per the
+D9 registry).
