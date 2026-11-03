@@ -108,3 +108,15 @@ same 98 deals **+0.028** [-0.013, +0.071] (10 deals better, 6 worse). Searching 
 above its own raw network: distillation under-fit (1 epoch, lr 1e-4, ~4K-decision minibatches =
 ~35 optimizer steps for 137K samples). r6 restarts from r5's gen-2 net (last.pt, it 2) with 3
 epochs, lr 2e-4, minibatches <= 1024 (~400 steps per generation).
+
+## 9. r6 and the first significant gain; r7
+
+r6 (from r5's gen-2 net; 3 epochs lr 2e-4 mb 1024): gen 1 searching seat 0.610 vs heuristic (search
+on 49% of act asks, changing 30% of those; 33% of attack plans changed; 0.6% of simulations hit an
+engine error and score neutral); gen 2 0.592. Raw net after gen 2: **0.5357** [0.466, 0.604];
+paired vs the original BC net **+0.0638** [+0.0153, +0.1148]. Distillation curves in gen 2: policy
+agreement 0.886/0.888/0.888 per epoch while held-out value MSE rose 0.695/0.728/0.789 (value
+memorises game outcomes). Holdout made fixed per game id (it was re-sampled per generation).
+
+r7 (from r6's gen-2 net): + fast rollout network (m1 5.3M BC) for the moves inside simulations,
+length-bucketed inference, 2 epochs, value weight 0.25, 4-generation window.
