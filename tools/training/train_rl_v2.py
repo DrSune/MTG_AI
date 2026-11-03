@@ -787,7 +787,7 @@ def ppo_update(
     # ---- start-of-update reference forwards (no_grad, batched) ----
     old_logp = torch.zeros(m, dtype=torch.float32)
     v0 = torch.zeros(m, dtype=torch.float32)
-    anchor_parts: list[torch.Tensor] = []
+    anchor_rows: list[torch.Tensor] = []
     with torch.no_grad():
         for s in range(0, m, minibatch):
             items = decisions[s : s + minibatch]
@@ -804,8 +804,12 @@ def ppo_update(
                 b["cand_mask"],
                 b["is_pass"],
             )
-            anchor_parts.append(torch.log_softmax(anc.float(), dim=-1).cpu())
-    anchor_lps_t = torch.cat(anchor_parts, 0)
+            anchor_rows.extend(torch.log_softmax(anc.float(), dim=-1).cpu())
+    if len(anchor_rows) != m:
+        raise RuntimeError(
+            f"train_rl_v2: anchor logp rows {len(anchor_rows)} != "
+            f"decisions {m} — anchor cache is corrupt"
+        )
 
     # ---- GAE per game, then the update ----
     adv = gae_advantages(decisions, game_offsets, v0.tolist(), lam=gae_lambda)
@@ -841,7 +845,7 @@ def ppo_update(
             sl_cpu = torch.tensor(sl, dtype=torch.long)
             sl_t = sl_cpu.to(dev)
             items = [decisions[i] for i in sl]
-            b, _ = collate_decisions(items, dev)
+            b, menus_mb = collate_decisions(items, dev)
             logits, value = policy.forward_with_value(
                 b["tokens"],
                 b["pad_mask"],
@@ -871,26 +875,32 @@ def ppo_update(
             opt_policy.zero_grad(set_to_none=True)
             opt_value.zero_grad(set_to_none=True)
             loss.backward()
-            raw = float(torch.nn.utils.clip_grad_norm_(policy.parameters(), grad_clip))
+            raw = float(
+                torch.nn.utils.clip_grad_norm_(policy.parameters(), grad_clip).detach()
+            )
             opt_policy.step()
             opt_value.step()
             raw_norms.append(raw)
             # KL vs the frozen anchor for this minibatch (no extra forward:
-            # current menu logp vs the cached anchor logp, same padding)
-            kl_m = (
-                (menu_logp.exp() * (menu_logp - anchor_lps_t[sl_cpu].to(dev)))
-                .sum(-1)
-                .mean()
-            )
-            kl_sum += float(kl_m) * len(sl)
+            # current menu logp vs the cached anchor logp. A shuffled
+            # minibatch mixes rows from several anchor chunks, so each row's
+            # real-candidate prefix (columns 0..c-1 always align with the
+            # policy's collate) is written onto a copy of menu_logp;
+            # padding mass is exactly zero on both sides.)
+            anc_mb = menu_logp.clone()
+            for j, gi in enumerate(sl):
+                c = int(menus_mb[j])
+                anc_mb[j, :c] = anchor_rows[gi].to(dev)[:c]
+            kl_m = (menu_logp.exp() * (menu_logp - anc_mb)).sum(-1).mean()
+            kl_sum += float(kl_m.detach()) * len(sl)
             seen += len(sl)
-            entropy_sum += float((-(menu_logp.exp() * menu_logp)).sum(-1).mean()) * len(
-                sl
-            )
-            pg_sum += float(pg_loss) * len(sl)
-            vloss_sum += float(v_loss) * len(sl)
+            entropy_sum += float(
+                (-(menu_logp.exp() * menu_logp)).sum(-1).mean().detach()
+            ) * len(sl)
+            pg_sum += float(pg_loss.detach()) * len(sl)
+            vloss_sum += float(v_loss.detach()) * len(sl)
             n_mbs += 1
-            tot += float(loss)
+            tot += float(loss.detach())
             n_in_ep += 1
             # early-stop: running mean KL vs the frozen anchor
             if seen > 0 and (kl_sum / seen) > kl_stop:
@@ -908,13 +918,9 @@ def ppo_update(
         for s in range(0, m, minibatch):
             items = decisions[s : s + minibatch]
             r = batch_forward(policy, items, dev, with_value=False)
-            anc_chosen = (
-                anchor_lps_t[s : s + len(items)]
-                .gather(
-                    1,
-                    torch.tensor([d["idx"] for d in items], dtype=torch.long)[:, None],
-                )
-                .squeeze(1)
+            anc_chosen = torch.tensor(
+                [anchor_rows[s + j][d["idx"]] for j, d in enumerate(items)],
+                dtype=torch.float32,
             )
             dlogp_sum += float((r["logp_chosen"] - anc_chosen).abs().sum())
 

@@ -533,6 +533,72 @@ def test_ppo_update_50_games(blob):
     assert u["value_explained_variance"] < 1.0
 
 
+# ---------------------------------------------- (d2) PPO update: synthetic
+def test_ppo_update_synthetic_cpu_chunked():
+    """CPU regression for the anchor-cache chunking bug: with different
+    menu sizes per row, each collate chunk gets a different C_max, so the
+    per-chunk anchor-logp tensors cannot be concatenated into one
+    (torch.cat size mismatch — the fault that killed the first offline
+    run). Random small models, fake records, minibatch=4 over 9 decisions
+    => chunks of widths 6/10/11. No anchor blob needed, runs everywhere."""
+    torch.manual_seed(0)
+    anchor = PointerBC(
+        vocab_size=128,
+        d=32,
+        layers=2,
+        heads=2,
+        ff=64,
+        dropout=0.0,
+        max_len=64,
+        grad_checkpoint=False,
+    )
+    policy = T.PointerBCValue(
+        vocab_size=128,
+        d=32,
+        layers=2,
+        heads=2,
+        ff=64,
+        dropout=0.0,
+        max_len=64,
+        grad_checkpoint=False,
+    )
+    policy.load_state_dict(anchor.state_dict(), strict=False)
+    anchor.eval()
+    policy.train()
+
+    # 9 decisions, menu sizes 3..11 (varying per chunk), one per "game"
+    dec: list[dict] = []
+    offsets: list[int] = []
+    for i in range(9):
+        menu = ["PASS"] + [f"card:{k}" for k in range(2 + i)]
+        offsets.append(len(dec))
+        dec.append(fake_record(i, 8 + 2 * (i % 3), menu, i % len(menu)))
+    u = T.ppo_update(
+        policy,
+        anchor,
+        dec,
+        offsets,
+        epochs=2,
+        minibatch=4,
+        lr=3e-4,
+        value_lr=1e-3,
+        ratio_clip=0.2,
+        kl_stop=T.DEFAULT_KL_STOP,
+        grad_clip=5.0,
+        value_coef=0.5,
+        gae_lambda=0.95,
+        seed=21,
+        device="cpu",
+    )
+    for k, v in u.items():
+        if k == "raw_grad_norms":
+            assert all(math.isfinite(x) for x in v), "NaN in grad norms"
+        elif isinstance(v, float):
+            assert math.isfinite(v), f"NaN in {k}"
+    assert u["kl_per_update"] > 0.0, "KL vs anchor is 0 — the update is a no-op"
+    assert u["chosen_dlogp_post"] > 0.0, "policy did not move at all"
+
+
 # ------------------------------------------------------- (f) logging keys
 LOG_KEYS = (
     "iter",
