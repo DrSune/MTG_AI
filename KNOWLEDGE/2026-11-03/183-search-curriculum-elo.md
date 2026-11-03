@@ -76,3 +76,22 @@ places each version through its neighbours.
 | r4 | --trainer-proc (PPO in its own process/CUDA context) | **~105 s total**: 64-84K of the 98K decisions are played during the previous update; train_s ~88-90 s | 22-24 games/s, MemAvailable min ~54 GiB |
 
 Elo at r4 start (uniform random = 0, 594 games): heuristic +387.6, v0 (25M BC) +376.0.
+
+## 7. PPO against the teacher does not move at this scale (r4) -> adaptation by expert iteration (r5)
+
+r4: 25M BC net, PPO vs the heuristic only, 12 iterations x 98K learner decisions (~26K games,
+1 epoch, lr 1e-4, KL anchor 0.01 to v0, entropy 0.003):
+
+| Number | Value |
+|---|---|
+| teacher-gate eval (greedy, 100 deals x 2) | it5 **0.500** [0.431, 0.569]; it9 **0.497** [0.428, 0.567] |
+| training win rate vs heuristic (sampled) | 0.48-0.51, flat over 12 iterations |
+| KL(learner || v0) | 0.013 -> 0.122 (diffusing) |
+| PPO surrogate on fresh minibatches | positive on average (0.01-0.065): updates on other minibatches made it worse |
+| entropy | stable 0.13-0.16 (no drift, unlike m2/m3) |
+
+Reading: noise-dominated updates. The imitation policy is near-deterministic (~3% of actions
+explore) and one +-1 outcome per ~45 decisions credits the rare useful deviation too weakly. Not
+evidence that PPO cannot work here; evidence that at ~2K games per update it does not, from a
+peaked BC start. r5 keeps the curriculum, gates and Elo ladder and adapts by expert iteration
+(search distillation), whose per-decision targets compare alternatives in the same position.
