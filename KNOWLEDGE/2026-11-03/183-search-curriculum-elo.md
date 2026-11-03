@@ -157,3 +157,14 @@ decisions per generation). Measured on the 25M net:
 | small rollout net in simulations | rejected (r7: weaker search, little speed) |
 
 r10 = r9 + --infer-bf16 (policy r6 gen 2, value net r5 gen 2).
+
+## 12. r10: the separate value net makes the strongest search; value data must be sampled
+
+r10 gen 1 (policy r6 gen 2, value net r5 gen 2, bf16 inference, 16 slots): searching seat vs
+heuristic **0.639** over 1,500 games (r6: 0.610/0.592; r7 with the collapsed head: 0.554). The
+value net's update on all positions of those games made it worse on held-out games
+(0.645 -> 0.712) and was reverted: positions of one game share the outcome and are near copies.
+
+r11: value net trained only on positions sampled with p = 0.06 (~5 per game) from 6,000 fast
+unsearched value games per generation plus the search games, 10-generation value window, 3
+epochs early-stopped at the best held-out epoch; 16 slots in 4 pipelined groups per worker.
