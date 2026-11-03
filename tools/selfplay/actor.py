@@ -146,6 +146,33 @@ class RecordingHeuristic:
         return idx
 
 
+class ValueSampler:
+    """Wraps any seat: with probability ``p`` a decision's position is kept as a value-only
+    sample (features, action, policy weight 0). A few positions from many games, not every
+    position of few games: consecutive positions of one game share its outcome and are near
+    copies, so training on all of them memorises outcomes (AlphaGo's value-net finding; r10:
+    held-out value MSE 0.645 -> 0.712 after one epoch on all positions)."""
+
+    def __init__(self, inner: Any, table: FT.CardTable, p: float, seed: int) -> None:
+        self.inner_agent = inner
+        self.table = table
+        self.p = p
+        self.rng = random.Random(seed)
+        self.vsamples: list[tuple[dict, int, float]] = []
+        self.name = getattr(inner, "name", "?")
+
+    def __getattr__(self, key: str) -> Any:  # plan_combat, searcher, decisions, ...
+        return getattr(self.inner_agent, key)
+
+    def decide(self, ask: Any, obs: Any) -> int:
+        idx = self.inner_agent.decide(ask, obs)
+        n = len(ask.options)
+        if 1 < n <= FT.MAX_OPTIONS and ask.kind != "name" and self.rng.random() < self.p:
+            self.vsamples.append(
+                (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx, 0.0))
+        return idx
+
+
 class _Slot(threading.Thread):
     def __init__(self, worker: Worker, index: int) -> None:
         super().__init__(daemon=True)
@@ -226,20 +253,27 @@ class Worker:
                 agents.append(_UniformRandom(job["seed"] * 7 + seat))
             else:
                 raise ValueError(f"unknown seat spec {spec!r}")
+        value_p = float(job.get("value_p", 0.0))
+        if value_p > 0:
+            agents = [ValueSampler(a, self.table, value_p, job["seed"] * 2 + seat)
+                      for seat, a in enumerate(agents)]
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"])
         res["gid"] = job["gid"]
         res["kind"] = job["kind"]
         res["seats"] = job["seats"]
         res["a_seat"] = job.get("a_seat")
         res["opp"] = job.get("opp")
+        inner = [getattr(a, "inner_agent", a) for a in agents]
         res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
-                         for a in agents]
-        res["net_decisions"] = [getattr(a, "decisions", 0) for a in agents]
-        res["overflow"] = [getattr(a, "overflow", 0) for a in agents]
+                         for a in inner]
+        res["net_decisions"] = [getattr(a, "decisions", 0) for a in inner]
+        res["overflow"] = [getattr(a, "overflow", 0) for a in inner]
         bc = [a.samples if isinstance(a, RecordingHeuristic) or getattr(a, "label", False)
-              else None for a in agents]
+              else None for a in inner]
         if any(s is not None for s in bc):
             res["bc"] = bc
+        if value_p > 0:
+            res["vs"] = [a.vsamples for a in agents]
         return res
 
     # --- main thread

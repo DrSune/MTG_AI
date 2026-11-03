@@ -201,6 +201,8 @@ class Learner:
         self.bc_seats = ["heuristic", "heuristic"]
         self.exit_opps: list[str] = []
         self.gen_search: Counter = Counter()  # search stats of the current ExIt generation
+        self.vdata: list = []  # sampled value positions of the current generation
+        self.v_target = self.v_issued = self.v_done = 0
         self.stage = ""  # curriculum: "teacher" | "selfplay"
         self.versions: list[str] = []
         self.elo_games: list[tuple[str, str, float]] = []
@@ -409,6 +411,16 @@ class Learner:
     def next_job(self) -> dict | None:
         if self.eval_jobs:
             return self.eval_jobs.popleft()
+        if self.phase == "bc" and self.v_issued < self.v_target and (
+                self.bc_issued >= self.bc_target
+                or self.v_issued * max(self.bc_target, 1) <= self.bc_issued * self.v_target):
+            self.v_issued += 1
+            opp = self.curriculum_opponent() if self.stage else "heuristic"
+            seats = ["learner", opp] if self.rng.random() < 0.5 else [opp, "learner"]
+            job = self._job("value", self.bc_seed0 + 500_000 + self.v_issued, seats,
+                            [False, False], [False, False], self._deck_mode())
+            job["value_p"] = self.args.value_p
+            return job
         if self.phase == "bc" and self.bc_issued < self.bc_target:
             self.bc_issued += 1
             seats = list(self.bc_seats)
@@ -428,6 +440,8 @@ class Learner:
             # the opponent's positions (its own view, its own outcome) train the value only
             job["value_seats"] = [not r and self.args.exit_value_opp for r in record]
             job["search"] = self.search_opts()
+            if self.v_target:
+                job["value_p"] = self.args.value_p
             return job
         if self.phase == "ppo":
             return self.train_job()
@@ -634,6 +648,13 @@ class Learner:
                 row["tag"] = self.eval_meta.get("tag")
                 with (self.run / "eval_rows.jsonl").open("a") as fh:
                     fh.write(json.dumps(row) + "\n")
+            if not void and r.get("vs"):
+                for seat in (0, 1):
+                    z = self.reward(r["outcome"], r["winner"], seat)
+                    for sample in r["vs"][seat] or []:
+                        self.vdata.append((sample[0], sample[1], z, r["gid"], 0.0))
+            if kind == "value":
+                self.v_done += 1
             elif kind == "bc":
                 self.bc_done += 1
                 for st in r.get("search") or []:
@@ -738,6 +759,8 @@ class Learner:
         self.log({"event": "bc_data", "model": tag, "samples": len(data), "train": len(train),
                   "test": len(test), "games": len(gids)})
         before = self.bc_eval(test, net)[1] if value_only and test else None
+        first_before = before
+        kept_epoch = -1
         saved = ({k: v.detach().clone() for k, v in net.state_dict().items()}
                  if value_only else None)
         vcoef = 1.0 if value_only else a.bc_vcoef
@@ -776,15 +799,24 @@ class Learner:
                    "test_acc": acc, "test_vloss": vl, "secs": round(time.time() - t0, 1)}
             self.log(row)
             best = row
+            if value_only and before is not None and vl < before:
+                # early stopping for the value net: remember the best epoch by held-out MSE
+                before = vl
+                saved = {k: v.detach().clone() for k, v in net.state_dict().items()}
+                kept_epoch = epoch
         net.eval()
         self.weights_changed(net)
         if value_only and best is not None and before is not None:
-            best["before_vloss"] = before
-            if best["test_vloss"] > before:  # held-out value got worse: keep the old weights
+            best["before_vloss"] = first_before
+            best["kept_epoch"] = kept_epoch
+            best["kept_vloss"] = before
+            if kept_epoch != epochs - 1:  # the last epoch was not the best: restore the best
                 net.load_state_dict(saved)
-                best["reverted"] = True
-                self.log({"event": "value_revert", "model": tag, "before": before,
-                          "after": best["test_vloss"]})
+                best["test_vloss"] = before
+                best["reverted"] = kept_epoch < 0
+                self.log({"event": "value_revert" if kept_epoch < 0 else "value_early_stop",
+                          "model": tag, "before": first_before, "kept_epoch": kept_epoch,
+                          "kept": before})
         if not keep:
             self.bc = []
         self.release_cache()
@@ -1068,13 +1100,19 @@ class Learner:
         # generations that left the policy window stay as value-only data (policy weight 0):
         # the value head over-fits one window's ~1.5K games (r7 gen 1: held-out MSE 0.93 -> 1.05)
         vwindow: deque = deque(maxlen=max(0, a.exit_value_keep - a.exit_keep))
+        vdata_window: deque = deque(maxlen=max(1, a.value_keep))
         for self.it in range(1, a.iters + 1):
             t0 = time.time()
             self.bc, self.phase = [], "bc"
             self.bc_target, self.bc_issued, self.bc_done = a.exit_games, 0, 0
+            self.v_target = a.value_games if "value" in self.models else 0
+            self.v_issued = self.v_done = 0
+            self.vdata = []
             self.bc_seed0 = BC_SEED0 + 1_000_000 * self.it
-            self.serve(lambda: self.bc_done >= self.bc_target)
+            self.serve(lambda: self.bc_done >= self.bc_target and self.v_done >= self.v_target)
             self.phase = "idle"
+            if self.v_target:
+                vdata_window.append(self.vdata)
             play_s = time.time() - t0
             if len(window) == window.maxlen and vwindow.maxlen:
                 vwindow.append([(x[0], x[1], x[2], x[3], 0.0) for x in window[0]])
@@ -1090,9 +1128,14 @@ class Learner:
             fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr, keep=True)
             vfit: dict = {}
             if "value" in self.models:
+                policy_data = self.bc
+                self.bc = ([x for part in vdata_window for x in part] if self.v_target
+                           else policy_data)
                 vfit = self.bc_train(epochs=a.value_epochs, lr=a.value_lr,
                                      model=self.models["value"], keep=True, tag="value",
                                      value_only=True)
+                vfit["value_samples"] = len(self.bc)
+                self.bc = policy_data
                 M.save(str(self.run / "value.pt"), self.models["value"], self.table,
                        {"it": self.it})
             rfit: dict = {}
@@ -1107,6 +1150,7 @@ class Learner:
                       "value_net_mse": vfit.get("test_vloss"),
                       "value_net_before": vfit.get("before_vloss"),
                       "value_net_reverted": bool(vfit.get("reverted")),
+                      "value_samples": vfit.get("value_samples"), "value_games": self.v_done,
                       "samples": len(window[-1]), "window": n_window,
                       "label_acc": fit.get("test_acc"), "value_mse": fit.get("test_vloss"),
                       "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
@@ -1351,6 +1395,11 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--exit-eval-seats", default="eval,eval+search")
     p.add_argument("--value-init", default="",
                    help="checkpoint of a separate value network for the search's leaves")
+    p.add_argument("--value-games", type=int, default=0,
+                   help="fast unsearched games per ExIt generation that only feed value positions")
+    p.add_argument("--value-p", type=float, default=0.06,
+                   help="probability a decision's position becomes a value sample")
+    p.add_argument("--value-keep", type=int, default=10, help="generations of value positions")
     p.add_argument("--value-epochs", type=int, default=1)
     p.add_argument("--value-lr", type=float, default=5e-5)
     p.add_argument("--rollout-init", default="",
