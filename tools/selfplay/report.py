@@ -1,0 +1,58 @@
+"""One-screen status of a self-play run from its metrics.jsonl.
+
+    .venv/bin/python -m tools.selfplay.report runs/selfplay/NAME [--iters 8]
+
+Prints the frozen versions (when, which stage), the latest Elo ladder (uniform random = 0),
+the gate and teacher-gate results, and the most recent training iterations.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("run")
+    ap.add_argument("--iters", type=int, default=8)
+    args = ap.parse_args(argv)
+    rows = [json.loads(line) for line in (Path(args.run) / "metrics.jsonl").open()]
+    t0 = rows[0]["t"]
+
+    def ago(t: float) -> str:
+        return f"{(t - t0) / 3600:5.2f} h"
+
+    print(f"run {args.run}: {len(rows)} rows, last {(time.time() - rows[-1]['t']) / 60:.1f} min ago")
+    freezes = [r for r in rows if r.get("event") == "freeze"]
+    print("\nversions:")
+    for r in freezes:
+        print(f"  {r['version']:>4}  it {r['it']:>4}  {ago(r['t'])}  stage {r.get('stage') or '-'}")
+    elo = [r for r in rows if r.get("event") == "elo"]
+    if elo:
+        last = elo[-1]
+        print(f"\nElo (uniform random = 0; {last['games']} games):")
+        for name, rating in sorted(last["ratings"].items(), key=lambda kv: -kv[1]):
+            print(f"  {name:>10}  {rating:8.1f}")
+    gates = [r for r in rows if r.get("event") in ("gate", "teacher_gate")]
+    if gates:
+        print("\ngates (last 10):")
+        for r in gates[-10:]:
+            vs = r.get("vs", "heuristic")
+            print(f"  it {r['it']:>4} {r['event']:<12} vs {vs:<9} score {r.get('score')} "
+                  f"ci {r.get('ci95')} {'PASS' if r.get('passed') else '-'}")
+    iters = [r for r in rows if r.get("event") == "iter"]
+    if iters:
+        print(f"\nlast {args.iters} iterations:")
+        for r in iters[-args.iters:]:
+            print(f"  it {r['it']:>4} {r.get('stage', ''):<8} win {r.get('win', r.get('vs'))} "
+                  f"kl {r.get('kl')} ent {r.get('ent')} ev {r.get('ev')} games/s {r.get('games_s')} "
+                  f"upd {r.get('upd_s')}s mem {r.get('mem_gib')}G")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
