@@ -682,7 +682,10 @@ class Learner:
         net = self.model if model is None else model
         data = self.bc
         gids = sorted({x[3] for x in data})
-        hold = set(gids[:: max(2, int(1 / max(a.bc_holdout, 1e-3)))])
+        # A game is held out by its own id, once and for all: re-sampling the holdout each
+        # generation put games trained on earlier into the test set (r5 gen 2's value MSE 0.25).
+        every = max(2, int(1 / max(a.bc_holdout, 1e-3)))
+        hold = {g for g in gids if g % every == 0}
         train = [x for x in data if x[3] not in hold]
         test = [x for x in data if x[3] in hold]
         self.log({"event": "bc_data", "model": tag, "samples": len(data), "train": len(train),
