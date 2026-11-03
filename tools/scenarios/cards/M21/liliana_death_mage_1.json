@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lili", "real": "Liliana, Death Mage", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Dead One", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 1},
+  {"key": "c2", "name": "Dead Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 1},
+  {"key": "c3", "name": "Dead Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 1},
+  {"key": "i1", "name": "Spent Spell", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "m1", "name": "My Dead One", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "m2", "name": "My Dead Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lili", "set": 8},
+  {"op": "activate", "key": "lili", "idx": 2, "seat": 0, "targets": ["p1"]}
+ ],
+ "expect": {
+  "life": {"1": 14, "0": 20},
+  "counters": {"lili": {"LOYALTY": 1}}
+ },
+ "notes": "Pfbaeca04bc G4: '[-7]: Target opponent loses 2 life for each creature card in THEIR graveyard.' Three creature cards (the instant does not count, nor your two creature cards): the opponent loses 6 (20 -> 14), you lose nothing; loyalty 8 -> 1."
+}

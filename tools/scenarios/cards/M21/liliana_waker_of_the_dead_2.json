@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "g1", "name": "Chaff", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Chaff", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "og1", "name": "Opp Chaff", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 1},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "extra", "name": "Spare", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 1, "seat": 0, "targets": ["ogre"]},
+  {"op": "move", "key": "extra", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield", "extra": "graveyard"},
+  "power": {"ogre": 3},
+  "toughness": {"ogre": 3},
+  "counters": {"lil": {"LOYALTY": 1}}
+ },
+ "notes": "Printed: '[-3]: Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.' X counts MY graveyard only (2 cards; the opponent's 1 card does not count): the 5/5 Ogre becomes 3/3. X is determined once, as the ability resolves (CR 608.2h): a third card entering my graveyard afterwards leaves it 3/3."
+}

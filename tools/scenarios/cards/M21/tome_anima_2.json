@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Tome Anima threshold control: only ONE card drawn this turn (one Revitalize), so it can be blocked. Expected: the wall blocks it (3 damage marked on the 0/5 wall), the opponent stays at 20.",
+ "cards": [
+  {"key": "anima", "real": "Tome Anima", "zone": "battlefield", "controller": 0},
+  {"key": "rv1", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "wall", "name": "Their Wall", "power": "0", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv1"},
+  {"op": "combat", "seat": 0, "attack": {"anima": true}, "block": {"wall": "anima"}}
+ ],
+ "expect": {"attackers": {"anima": true}, "blocked": {"anima": ["wall"]}, "damage": {"wall": 3}, "life": {"0": 23, "1": 20}}}

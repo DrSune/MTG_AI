@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "gt", "real": "Grim Tutor", "zone": "hand", "controller": 0},
+  {"key": "deep", "name": "Deep Card", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "mid", "name": "Mid Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "gy", "name": "Grave Card", "type": "Instant", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Grim Tutor", "key": "gt", "decisions": ["deep"]}
+ ],
+ "expect": {
+  "zone": {"gt": "graveyard", "deep": "hand", "mid": "library", "top": "library", "gy": "graveyard"},
+  "hand": {"0": 2},
+  "life": {"0": 17, "1": 20}
+ },
+ "notes": "P833647fcdf G4: 'Search your library for a card, put that card into your hand, then shuffle. You lose 3 life.' Any card, here the deepest pack card, goes to hand (hand = Drawn + Deep Card); the others stay in the library, the graveyard is not searched; you lose 3 and the opponent nothing."
+}

@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet Pa890036926. Printed: '... search your library and/or graveyard for A card named Chandra, Flame's Catalyst, reveal IT, and put IT into your hand.' One Chandra is in my library and another in my graveyard. I search both zones (option 0) and take the one in the library: exactly ONE Chandra comes to my hand and the other stays in the graveyard. hand after = drawn + one Chandra = 2.",
+ "cards": [
+  {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
+  {"key": "ch_lib", "real": "Chandra, Flame's Catalyst", "zone": "library", "controller": 0},
+  {"key": "ch_gy", "real": "Chandra, Flame's Catalyst", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "fm", "decisions": ["fire", "0", "ch_lib"]}],
+ "expect": {"zone": {"fm": "battlefield", "ch_lib": "hand", "ch_gy": "graveyard", "drawn": "hand"}, "hand": {"0": 2}}}

@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "cb97da84-1d13-4795-b68a-2bf111a50067",
+ "name": "Herald of Faith",
+ "text_sha": "05fdc26c448aa25b3872ab1aa91afc824c6507f5e519c4a660c9ceae2c584774",
+ "verified": {
+  "tree_sha": "63acf3f5676858818a06d61bed216ec7d961fb5fbb3aa77cbdbf1d6dc7affe76",
+  "probe_sha": "b1e19d99bd596cc5940d6ffe8fa3a694b277057707005d4b425d4a5d086ea213",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords [FLYING]; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, the ground 4/4 cannot block, 'opp is dealt 4 damage (combat)'",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, you gain 2 life.",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: ability [0] triggers on DECLARE_ATTACKERS, 'you gains 2 life', you 20 -> 22; same in the attempted-block variant; [stimulus: another creature you control (you_bear) attacks -> none]",
+    "issue": ""
+   },
+   {
+    "clause": "(4/3 Angel creature, {3}{W}{W})",
+    "status": "OK",
+    "evidence": "[cast]: enters 4/3 with FLYING for W-5; combat damage 4",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

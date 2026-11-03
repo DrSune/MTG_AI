@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ff", "zone": "hand", "controller": 1, "real": "Faith's Fetters"},
+  {"key": "sanctuary", "zone": "battlefield", "controller": 0, "real": "Animal Sanctuary"},
+  {"key": "cat", "zone": "battlefield", "controller": 0, "name": "Cat", "type": "Creature — Cat", "power": "1", "toughness": "1"}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "enchant", "aura": "ff", "host": "sanctuary"},
+  {"op": "activate", "key": "sanctuary", "idx": 1, "seat": 0, "targets": ["cat"], "expect_raise": "illegal activation"},
+  {"op": "activate", "key": "sanctuary", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "attached": {"ff": "sanctuary"},
+  "counters": {"cat": {}},
+  "tapped": {"sanctuary": true},
+  "mana_pool": {"0": {"C": 3}}
+ },
+ "notes": "P64acd861b2 G4: 'its activated abilities can't be activated unless they're mana abilities.' Fetters (the opponent's) on Animal Sanctuary: the {2},{T} counter ability is refused (no counter, the {C}{C} stays), while the {T}: Add {C} mana ability still works (pool 3)."
+}

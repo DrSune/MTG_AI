@@ -64,6 +64,9 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("TokenSpec", "types"): "SET-R1a",
     ("TokenSpec", "subtypes"): "SET-R1a",
     ("TokenSpec", "keywords"): "SET-R1a",
+    # R5-11: the token's colour SET, construction-sorted in WUBRG order (CR 105.1)
+    # rather than by canonical_json; replaces the scalar TokenSpec.color.
+    ("TokenSpec", "colors"): "SET-R1a",
     ("FAtom", "colors"): "SET-R1a",
     ("EtBState", "initial_counters"): "SET-R1a",
     ("Cost", "parts"): "SET-ENFORCED",

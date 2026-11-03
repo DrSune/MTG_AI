@@ -1,0 +1,21 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Pack Leader (M21): 'Whenever this creature attacks, prevent all COMBAT damage that would be dealt THIS TURN to Dogs you control.' Pack Leader attacks alone, unblocked (2 to seat 1), so the shield is up for this turn. Then 1 NONcombat damage is dealt to the other Dog: not prevented. The turn passes; on seat 1's turn a 4/4 attacks and the untapped Hound (3/3 with the bonus) blocks: the shield has ended, the Hound is dealt 4 and dies. Total damage the Hound received: 1 + 4 = 5.",
+ "cards": [
+  {"key": "pl", "zone": "battlefield", "controller": 0, "real": "Pack Leader"},
+  {"key": "dog2", "zone": "battlefield", "controller": 0, "name": "Your Hound", "type": "Creature — Dog", "power": 2, "toughness": 2},
+  {"key": "og", "zone": "battlefield", "controller": 1, "name": "Opp Giant", "type": "Creature — Giant", "power": 4, "toughness": 4}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"pl": true, "dog2": false}},
+  {"op": "deal_damage", "source": "og", "target": "dog2", "amount": 1},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"og": true}, "block": {"dog2": "og"}}
+ ],
+ "expect": {
+  "attackers": {"og": true},
+  "blocked": {"og": ["dog2"]},
+  "zone": {"pl": "battlefield", "dog2": "graveyard", "og": "battlefield"},
+  "damage_received": {"dog2": 5, "pl": 0},
+  "damage": {"og": 3},
+  "life": {"0": 20, "1": 18}
+ }}

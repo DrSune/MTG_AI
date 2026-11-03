@@ -57,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
     Selector,
+    SelectorMode,
     ThisTurnKind,
     ZonePosition,
 )
@@ -184,6 +185,12 @@ class ExecCtx:
     # the Seq walker's pre-scan so the SEARCH atom knows its found cards
     # must stay put for the partition atoms to re-find.
     search_partition: bool = False
+    # W4-6 (Cultivate, 2026-10-30): the cards a partition SEARCH found, in the
+    # order it found them. The sibling ONE_OF/REST atoms choose among THESE
+    # (CR 701.23a: "put one onto the battlefield tapped and the other into
+    # your hand" divides the found cards), not among every card in the zone
+    # that passes the filter. None when no partition search has run.
+    search_found: tuple[Handle, ...] | None = None
     # r19b (Track Down / See the Truth): the cards LOOK_AT/REVEAL showed
     # THIS resolution, top-first — the compiler's documented register
     # convention for the following sentence (templates_b5b
@@ -195,6 +202,10 @@ class ExecCtx:
     # bare Conditional after any other atom keeps the old ctx.source
     # subject, byte-unchanged. Empty (the default) everywhere else.
     look_window: tuple[Handle, ...] = ()
+    # V11 (2026-10-29): did the last atom run write the ``result`` register?
+    # The one-sentence width of "it" for a bare Conditional (run_atom sets
+    # it after every atom; transient per resolution, like look_window).
+    result_fresh: bool = False
     # r19c (Rookie Mistake / Hunter's Edge): MULTI-slot spell designation —
     # per-TARGET-selector designations keyed by the Selector's ``repr()``
     # (the same identity key ``spell_target_slots`` dedupes on). None for
@@ -214,6 +225,10 @@ class ExecCtx:
     # Choose CONSUMES the declaration instead of re-asking for a choice
     # the caster already made. Consumed in ask order; empty elsewhere.
     prechosen_modes: list[str] = field(default_factory=list)
+    # V12 (2026-10-29): per may-offer site (``may:<source>``) of this
+    # resolution, whether the optional action was carried out (CR 118.12);
+    # MAY_DONE reads it. Transient, per resolution, like look_window.
+    may_done: dict[str, bool] = field(default_factory=dict)
 
     def take_decision(
         self, vocab: tuple[str, ...], what: str, *, seat: Handle | None = None
@@ -240,9 +255,11 @@ class ExecCtx:
         this method process-wide at import with the old ``(self, vocab,
         what)`` signature (packrec, packrec_v2, dagger_rollout_v3,
         puzzle_cert; BACKLOG B-35), so a caller passing ``seat=`` would
-        crash whenever one of them is loaded. The scry site therefore relies
-        on its controller being the scrying player, and the bench router's
-        tag check raises loudly if a card ever breaks that.
+        crash whenever one of them is loaded. A site whose decider is not
+        the controller asks through :meth:`take_decision_of` instead (V10,
+        2026-10-29). The scry site relies on its controller being the
+        scrying player, and the bench router's tag check raises loudly if a
+        card ever breaks that.
         """
         decider = self.controller if seat is None else seat
         if self.decision_idx < len(self.decisions):
@@ -275,6 +292,24 @@ class ExecCtx:
             f"got only {len(self.decisions)} supplied"
         )
 
+    def take_decision_of(self, player: Handle, vocab: tuple[str, ...], what: str) -> str:
+        """:meth:`take_decision`, asked of ``player``: the player the rules say makes this choice
+        when it is not this context's controller (CR 701.9b: the discarding player picks the
+        cards; CR 701.21a with 101.4: a player sacrifices only what they control, so they pick).
+
+        For the length of the ask the context's controller IS that player. ``take_decision`` then
+        names them as the stream's ``asking_seat``, and the tools/training wrappers that replace
+        ``take_decision`` process-wide (BACKLOG B-35; they drop a ``seat=`` keyword, which is why
+        no call site may pass one) read the same field. Nothing else runs while it is swapped."""
+        if player == self.controller:
+            return self.take_decision(vocab, what)
+        outer = self.controller
+        self.controller = player
+        try:
+            return self.take_decision(vocab, what)
+        finally:
+            self.controller = outer
+
     def binding_handles(self, role: str) -> list[Handle] | None:
         """The caller-supplied handles for a role, Handle-sorted (ruling 5)."""
         value = self.bindings.get(role)
@@ -290,6 +325,14 @@ class ExecCtx:
     def effective_pt(self, card: Handle) -> tuple[int | None, int | None]:
         card_state = self.world.cards[card]
         return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
+
+
+def phased_out(ctx: ExecCtx, handle: Handle) -> bool:
+    """CR 702.26b: is ``handle`` a phased-out permanent, treated as though
+    it does not exist? The status lives on the executor; a bare ExecCtx (no
+    executor) has no phasing."""
+    executor = ctx.executor
+    return executor is not None and handle in getattr(executor, "phased_out", ())
 
 
 def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
@@ -334,6 +377,9 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
             resolve_selector,
         )  # cycle-free at call time
 
+        deaths = _died_this_turn_census(quantity.selector, ctx)
+        if deaths is not None:
+            return deaths
         return len(resolve_selector(quantity.selector, ctx))
     if isinstance(quantity, QDistinctColorCount):
         from MTG_bot.core.executor.selectors import resolve_selector
@@ -458,7 +504,40 @@ def _referent_handle(referent: str, ctx: ExecCtx) -> Handle:
     )
 
 
+def departed_lki(
+    handle: Handle, ctx: ExecCtx
+) -> tuple[int | None, int | None, dict[str, int]] | None:
+    """CR 603.10a: a leaves-the-battlefield trigger "looks back in time". When the
+    firing event is the departure of ``handle`` from the battlefield (its dies row
+    or zone change) and the object is gone, its last known (power, toughness,
+    counters) answer for it (Executor.departed_lki, captured before the counters
+    ceased, CR 122.2). Anything else reads the live object, as before."""
+    event = ctx.event
+    ex = ctx.executor
+    if event is None or ex is None or getattr(event, "subject", None) != handle:
+        return None
+    kind = getattr(event, "kind", None)
+    from MTG_bot.core.executor.events import KIND_CREATURE_DIES, KIND_ZONE_CHANGE
+
+    if kind == KIND_ZONE_CHANGE:
+        if event.zone_move[0] != ZONE_BATTLEFIELD:
+            return None
+    elif kind != KIND_CREATURE_DIES:
+        return None
+    if handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+        return None
+    return ex.departed_lki.get(handle)
+
+
 def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
+    lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+    if lki is not None and field in (QPropField.POWER, QPropField.TOUGHNESS):
+        value = lki[0] if field is QPropField.POWER else lki[1]
+        if value is None:
+            raise ValueError(f"executor: {field.name} undefined on handle {handle}")
+        return value
+    if lki is not None and field is QPropField.COUNTER_COUNT and ctx.event_counter_count is None:
+        return sum(lki[2].values())
     if field in (QPropField.POWER, QPropField.TOUGHNESS):
         power, toughness = ctx.effective_pt(handle)
         value = power if field is QPropField.POWER else toughness
@@ -840,9 +919,11 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
         # 13b (the cast-trigger feed reads these over SPELL cards): COLOR_IN
         # is the grammar's SUBSET reading ("colours are a non-empty subset
-        # of the given set" — Quirion Dryad's compiled blue), COLOR_HAS the
-        # single-colour membership ("hexproof from black"). Identity data —
-        # works for a card in any zone, incl. the stack.
+        # of the given set"), COLOR_HAS the single-colour membership
+        # ("hexproof from black"; a spell "that's white or blue" is the FOr
+        # of COLOR_HAS, CR 105.2 — V39 moved Quirion Dryad off COLOR_IN,
+        # which no compiled card writes now). Identity data — works for a
+        # card in any zone, incl. the stack.
         if handle.namespace != "card":
             return False
         card_colors = set(world.cards[handle].identity.colors)
@@ -981,9 +1062,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "executor: filter pred HAS_COUNTER has no bound counter_kind "
                 "(12c query surface — which counter is asked for?)"
             )
-        if handle.namespace != "card" or handle not in world.cards:
+        if handle.namespace != "card":
             return False  # characteristic absent (the KEYWORD_HAS convention)
         threshold = 1 if atom.count is None else resolve(atom.count, ctx)
+        lki = departed_lki(handle, ctx)
+        if lki is not None:
+            # "if it had a +1/+1 counter on it" (Basri's Lieutenant): CR 603.10a
+            return lki[2].get(atom.counter_kind.name, 0) >= threshold
+        if handle not in world.cards:
+            return False
         return world.cards[handle].counters.get(atom.counter_kind.name, 0) >= threshold
     if pred is FAtomPred.CONTROLLER_IS:
         who = atom.who
@@ -1105,6 +1192,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # without a journal row); consulted only when the journal holds
         # nothing for the site.
         site = f"may:{ctx.source}"
+        if site in ctx.may_done:
+            # V12 (CR 118.12): the optional action's outcome in this
+            # resolution: "fire" and the action changed something. Since
+            # m21-fidelity wave 4 (ruling (a)) the Seq runners also record a
+            # MANDATORY step here (Executor._note_step_done): "[Do something].
+            # If you do" reads whether it actually happened.
+            return ctx.may_done[site]
 
         def at_site(what: str) -> bool:
             return what == site or what.startswith(f"{site}:")
@@ -1135,6 +1229,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and controller_of(ctx, card) == ctx.controller
                 and (
                     atom.inner_filter is None
@@ -1167,6 +1262,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 1
                 for card in sorted(world.cards)
                 if world.zone_of(card).kind == ZONE_BATTLEFIELD
+                and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and eval_filter(filt, card, ctx)
             )
 
@@ -1254,6 +1350,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         for card in sorted(world.cards):
             if (
                 world.zone_of(card).kind != ZONE_BATTLEFIELD
+                or phased_out(ctx, card)  # CR 702.26b: not counted
                 or controller_of(ctx, card) != ctx.controller
                 or not eval_filter(atom.inner_filter, card, ctx)
             ):
@@ -1344,13 +1441,24 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         from_state = ZONE_KIND_TO_STATE[atom.zone.kind]
         owners = players_for_ref(atom.zone.controller, ctx)
+        # W4-5 (CR 400.7, the V6 twin): the entry must be THIS object's. A card
+        # that entered from the graveyard, left, and entered again from the
+        # stack is a new object that did not enter from the graveyard. Its
+        # object is the one its LAST battlefield entry made (the permanent now,
+        # or the last-known one after it left); a turn-wide search for any
+        # entry of the card answered for the older object.
+        entry = None
         for e in _turn_rows(ctx, pred.name):
-            if e.kind != KIND_ZONE_CHANGE or e.subject != handle:
-                continue
-            frm, to, owner_before, _after = e.zone_move
-            if to == ZONE_BATTLEFIELD and frm == from_state and owner_before in owners:
-                return True
-        return False
+            if (
+                e.kind == KIND_ZONE_CHANGE
+                and e.subject == handle
+                and e.zone_move[1] == ZONE_BATTLEFIELD
+            ):
+                entry = e
+        if entry is None or entry is not _last_battlefield_entry(ctx, handle):
+            return False
+        frm, _to, owner_before, _after = entry.zone_move
+        return frm == from_state and owner_before in owners
     if pred is FAtomPred.CAST_THIS_TURN_FROM:
         # 14d (B-7): "you cast it from your graveyard" (Archfiend's Vessel),
         # "if this spell was cast from anywhere other than your hand" (See
@@ -1391,17 +1499,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # replacement judges it: the Priest spares its own casting spell
         # and every other cast creature, but not a put-onto-the-battlefield
         # creature — which never passed through the stack).
-        from MTG_bot.core.executor.events import KIND_CAST
+        # V6 (2026-10-29, CR 400.7): the cast must be THIS object's. A card
+        # cast earlier this turn that died and was returned is a new object
+        # that was not cast, so a turn-wide search for its CAST row was wrong
+        # (the Priest spared a reanimated creature). _object_cast_row follows
+        # the object across its own zone changes.
         from MTG_bot.core.executor.selectors import controller_matches
 
         assert atom.who is not None
-        for e in _turn_rows(ctx, pred.name):
-            if e.kind != KIND_CAST or e.subject != handle:
-                continue
-            caster = e.cast[0]
-            if controller_matches(atom.who, caster, ctx):
-                return True
-        return False
+        row = _object_cast_row(ctx, handle)
+        if row is None or row not in _turn_rows(ctx, pred.name):
+            return False
+        return controller_matches(atom.who, row.cast[0], ctx)
     if pred is FAtomPred.WAS_KICKED:
         # ZND-1e (CR 702.27a), three reader lanes over ONE carrier: the
         # CAST row's trailing kicked column (journal.emit_cast) is the
@@ -1455,7 +1564,20 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         from MTG_bot.core.executor.events import KIND_CREATURE_DIES
 
         rows = _turn_rows(ctx, pred.name)
-        dies = [e for e in rows if e.kind == KIND_CREATURE_DIES]
+        # B-56 (2026-10-29): the journal writes a dies row for EVERY
+        # battlefield-to-graveyard move (CR 700.4: any permanent "dies"),
+        # and every compiled reading of this pred is about a CREATURE ("if
+        # a creature died this turn", "creature that died this turn"). So
+        # only rows whose C18 was-snapshot type line names Creature count
+        # (CR 603.10a: the object as it last existed on the battlefield). A
+        # sacrificed Treasure died, but no creature did (Twinblade
+        # Assassins drew off it).
+        dies = [
+            e
+            for e in rows
+            if e.kind == KIND_CREATURE_DIES
+            and "Creature" in _type_line_tokens(e.dies[2])
+        ]
         if any(e.subject == handle for e in dies):
             return True
         # r19a (Life Goes On / Fungal Rebirth): an EXISTENTIAL reading for
@@ -1545,9 +1667,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # CURRENT attacker set whose ATTACKED object passes inner_filter.
         # The pred reads the executor's attack record (the R10-3 "game
         # record" reading), evaluated in the firing ability's coordinates:
-        # CONTROLLER_IS YOU = "attacking you", the Planeswalker child
-        # short-circuits behind it in v1 (all attackers attack the
-        # defending player — planeswalker attacking is 16c).
+        # CONTROLLER_IS YOU = "attacking you" (a player matches themself),
+        # and an attacked planeswalker matches through its controller
+        # (V41: creatures attack planeswalkers, CR 508.1b).
         if ctx.executor is None:
             raise NotImplementedError(
                 "executor: filter pred ATTACK_AGAINST_COUNT_GE reads the "
@@ -1718,9 +1840,85 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         if record is None or record.is_token:
             return False
         return any(isinstance(a, KickerAbility) for a in record.abilities)
+    if pred is FAtomPred.STACK_KIND_EQ:
+        # Ontology R5-10 (CR 405.1, 111.1/112.1: a card or a copy of a card on
+        # the stack is a spell; abilities on the stack are not, CR 113.7a).
+        # This engine never puts an activated or triggered ability on the
+        # stack (activate() and the trigger drain resolve them at once;
+        # BACKLOG B-110), so the only stack objects are spell cards in the
+        # stack zone: SPELL holds for them, ACTIVATED and TRIGGERED hold for
+        # nothing. A mode or target that needs an ability on the stack has no
+        # legal candidate and is never offered (CR 700.2a), not guessed.
+        from MTG_bot.core.state import ZONE_STACK
+
+        if atom.string_value != "SPELL":
+            return False
+        return handle in world.cards and world.zone_of(handle).kind == ZONE_STACK
     raise NotImplementedError(
         f"executor: filter pred {pred.name} not implemented (12c query surface)"
     )
+
+
+def _last_battlefield_entry(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
+    """W4-5: the journal row of ``handle``'s most recent entry onto the
+    battlefield, over the whole journal (None if it never entered). Its object
+    is the permanent now, or the last-known one if it has left since."""
+    from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+
+    jrn = ctx.journal
+    if jrn is None:
+        raise NotImplementedError(
+            "executor: an entered-from read needs the journalled zone history "
+            "(this ExecCtx has no journal)"
+        )
+    for e in reversed(jrn.events):
+        if (
+            e.kind == KIND_ZONE_CHANGE
+            and e.subject == handle
+            and e.zone_move[1] == ZONE_BATTLEFIELD
+        ):
+            return e
+    return None
+
+
+def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
+    """The CAST row of the object ``handle`` is now, or None when this object
+    was not cast (V6, CR 400.7: a card that changes zones becomes a new
+    object). On the stack, the CAST row after its move onto the stack; on the
+    battlefield, the CAST row inside the stack residency its last entry came
+    from (a resolving permanent spell is the object that was cast, the
+    WAS_KICKED permanent-lane reading); in any other zone, None. The whole
+    journal is read: the object's cast may be older than this turn."""
+    from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
+    from MTG_bot.core.state import ZONE_STACK
+
+    jrn = ctx.journal
+    if jrn is None:
+        raise NotImplementedError(
+            "executor: a was-cast read needs the journalled zone history "
+            "(this ExecCtx has no journal)"
+        )
+    zone = ctx.world.zone_of(handle).kind
+    if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
+        return None
+    rows = [
+        e
+        for e in jrn.events
+        if e.subject == handle and e.kind in (KIND_ZONE_CHANGE, KIND_CAST)
+    ]
+    need_entry = zone == ZONE_BATTLEFIELD
+    for e in reversed(rows):
+        if need_entry:
+            if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] == ZONE_BATTLEFIELD:
+                if e.zone_move[0] != ZONE_STACK:
+                    return None  # put onto the battlefield, never cast
+                need_entry = False
+            continue
+        if e.kind == KIND_CAST:
+            return e
+        if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] == ZONE_STACK:
+            return None  # the stack residency began without a cast
+    return None
 
 
 def _permanent_was_kicked(ctx: ExecCtx, handle: Handle) -> bool:
@@ -1775,6 +1973,64 @@ def _permanent_was_kicked(ctx: ExecCtx, handle: Handle) -> bool:
     # (a residency with no cast row inside: a put-on-stack / copy entry —
     # was never cast, never kicked).
     return cast_kicked and cast_clock > stack_in_clock
+
+
+def _died_this_turn_census(sel: Selector, ctx: ExecCtx) -> int | None:
+    """V7 (2026-10-29): "the number of [nontoken] creatures that died [under
+    your control] this turn" (Liliana's Standard Bearer, Gadrak, Canopy
+    Stalker) counts this turn's DEATH EVENTS, never graveyard contents. To die
+    is to be put into a graveyard from the battlefield (CR 700.4); the count
+    reads each dead creature as it last existed on the battlefield (CR
+    603.10a): its type line, its controller, its token flag, all recorded on
+    the CREATURE_DIES row. So a card that left the graveyard since still
+    counts, a token that ceased to exist (CR 704.5d) counts, and the
+    controller is the one at death, not the graveyard's owner.
+
+    Applies to an ALL-mode census whose filter conjoins DIED_THIS_TURN; None
+    for every other selector (the ordinary zone census). A conjunct this
+    census cannot judge on the death row raises (flag, never guess)."""
+    if sel.mode is not SelectorMode.ALL or sel.referent is not None:
+        return None
+
+    def conjuncts(f: Filter) -> list[Filter]:
+        if isinstance(f, FAnd):
+            return [c for child in f.children for c in conjuncts(child)]
+        return [f]
+
+    parts = conjuncts(sel.filter)
+    if not any(isinstance(c, FAtom) and c.pred is FAtomPred.DIED_THIS_TURN for c in parts):
+        return None
+    from MTG_bot.core.executor.events import KIND_CREATURE_DIES
+    from MTG_bot.core.executor.selectors import controller_matches
+
+    def holds(part: Filter, row: GameEvent) -> bool:
+        negate = isinstance(part, FNot)
+        atom = part.inner if isinstance(part, FNot) else part
+        if not isinstance(atom, FAtom):
+            raise NotImplementedError(
+                f"executor: died-this-turn census cannot judge {type(atom).__name__}"
+            )
+        data = row.data
+        if atom.pred is FAtomPred.DIED_THIS_TURN:
+            got = True
+        elif atom.pred is FAtomPred.TYPE_EQ:
+            got = atom.string_value in _type_line_tokens(str(data[2]))
+        elif atom.pred is FAtomPred.IS_TOKEN:
+            got = bool(data[6])
+        elif atom.pred is FAtomPred.CONTROLLER_IS:
+            assert atom.who is not None
+            was_controller = data[5]
+            assert isinstance(was_controller, Handle)
+            got = controller_matches(atom.who, was_controller, ctx)
+        else:
+            raise NotImplementedError(
+                f"executor: died-this-turn census cannot judge {atom.pred.name} "
+                "on a death row"
+            )
+        return got != negate
+
+    rows = [e for e in _turn_rows(ctx, "DIED_THIS_TURN") if e.kind == KIND_CREATURE_DIES]
+    return sum(1 for row in rows if all(holds(part, row) for part in parts))
 
 
 def _turn_rows(ctx: ExecCtx, pred_name: str) -> list[GameEvent]:

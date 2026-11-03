@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ad44cf74-b717-48fb-9fa2-77512024d76a",
+ "name": "Mind Rot",
+ "text_sha": "b891e02aad22b1d77619bc09f21593c86bdec1fd44f6e25caf4f711a052e6ed3",
+ "verified": {
+  "tree_sha": "2ec9ec544dc95ff5bd53c269a1cf89fd6a2c89fc99bb1506436d644a2152f367",
+  "probe_sha": "e418210f25c144856e3673ad25e6d277a22429d945691a9231ea34b6facfd33c",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Target player discards two cards.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you, opp]' (any player). [cast targets=['you']] and its ask variants: two 'ask discard' picks over your own hand, exactly the two picked cards go hand -> graveyard (hand 6 -> 3 with Mind Rot itself). [cast targets=['opp']]: opp_spare and opp_trick (its whole 2-card hand, no choice needed) discarded, opp hand 2 -> 0, your hand untouched. Tree is the canonical B5b-discard-target-2 (SORCERY carrier). Unseen in the trace, the opponent choosing its own discards: pack mind_rot_opponent_picks_its_two (opponent holds 3, picks Alpha and Gamma, Beta stays, hand 3 -> 1) PASS; the engine asks the discarding player (verbs.py:126-163).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/mind_rot_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

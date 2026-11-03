@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6a83768e-672e-4fec-8931-853f5e96d43d",
+ "name": "Stasis Snare",
+ "text_sha": "c6313be8bef952906acadd56ac653921ebf8e78e814d38f96aff288fedeab35c",
+ "needs_atom": {
+  "missing": "When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.: MOVE_ZONE (and EXILE) take no duration role, so the 'until this enchantment leaves the battlefield' window cannot carry DurationUntilLeaves (which exists, wired only to GAIN_CONTROL / grants). Mapping the exile without it makes the exile permanent (stronger than printed); a separate leaves-the-battlefield return trigger is the old two-ability O-Ring wording and differs in timing edge cases. Needs MOVE_ZONE += duration (DurationUntilLeaves) with the executor returning the card to the battlefield under its owner's control. Flash keyword is compiled correctly; carrier SpellAbility(ENCHANTMENT) would also be needed.",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

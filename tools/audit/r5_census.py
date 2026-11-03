@@ -31,11 +31,18 @@ PATTERNS = {
     "token_copy": r"token that's a copy of",
     "enters_as_copy": r"(enter|enters) (the battlefield )?as a copy of",
     "targeted_by_opponent_trigger": r"becomes the target of a spell or ability an opponent controls",
-    "activation_lock_unless_mana": r"activated abilities can't be activated unless they're mana abilities",
-    "activation_lock_all": r"activated abilities can't be activated(?! unless)",
+    # R5-7 (gate round 3): "activated abilities OF <sources> can't be activated" counts too
+    # (Pithing Needle, Sorcerous Spyglass, Karn, the Great Creator, Phyrexian Revoker).
+    "activation_lock_unless_mana": r"activated abilities (of [^.]*?)?can't be activated unless they're mana abilities",
+    "activation_lock_all": r"activated abilities (of [^.]*?)?can't be activated(?! unless)",
+    # R5-7: the AbilityActivatedEvent trigger family (kind LOYALTY: Keral Keep Disciples;
+    # NON_MANA: Runic Armasaur, Kurkesh; ANY: Sarkhan's Whelp; boast: Frenzied Raider).
+    "activation_trigger": r"whenever (you|an opponent|a player|another player) activates? [^.]*abilit",
     "linked_exile": r"(exiled with ~|cards? exiled with|the exiled cards?|exile [^.]* with (this|~)|until you exile another)",
     "resolving_exile_instead": r"if (that|the|it|target)[^.]*would (die|be put into [^.]*graveyard)[^.]*exile it instead",
-    "counter_target_spell": r"counter target (\w+ )?spell",
+    # R5-10 (gate round 3): any restriction between "target" and "spell" counts ("instant or
+    # sorcery", "red or green", "artifact or enchantment", Tale's End's list): 48 cards.
+    "counter_target_spell": r"counter target [^.]*?\bspell",
     "counter_target_ability": r"counter target (activated|triggered) (or (activated|triggered) )?ability",
     "choose_one_or_more": r"choose one or more",
     "phasing": r"phases? (out|in)|phasing",

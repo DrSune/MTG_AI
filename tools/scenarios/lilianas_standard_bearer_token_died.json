@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "b",
+   "real": "Liliana's Standard Bearer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Deleter",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "real": "Pirate",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "tok",
+   "amount": 3
+  },
+  {
+   "op": "enter",
+   "key": "b"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "zone": {
+   "b": "battlefield"
+  },
+  "tokens": {
+   "Pirate": 0
+  }
+ },
+ "notes": "Printed: '... X is the number of creatures that died under your control this turn.' Your creature token (a Pirate) dies this turn (CR 700.4, 704.5d: it died before ceasing to exist); the Bearer enters: X = 1, one card drawn."
+}

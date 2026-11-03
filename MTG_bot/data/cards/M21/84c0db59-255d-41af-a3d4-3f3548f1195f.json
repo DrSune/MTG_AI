@@ -1,0 +1,69 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "84c0db59-255d-41af-a3d4-3f3548f1195f",
+ "name": "Thieves' Guild Enforcer",
+ "text_sha": "4670741b1f616f1e76b405af6cf6f25b5ec01693365f05ea107aacfe85953d20",
+ "verified": {
+  "tree_sha": "a2c6ea72b7930ecdb1977e54fca8461649d2d73ac2792749b47b44e380e6acda",
+  "probe_sha": "e928d65011f5f8d6b52cea499b9d23e9f9c5055d016fc5e4612be8d2d8ef8543",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Creature {B} 1/1 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 1/1; mana B-1",
+    "issue": ""
+   },
+   {
+    "clause": "Flash",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLASH",
+    "issue": "engine-limit: no priority window for the non-active player, so the card cannot actually be cast on the opponent's turn (weaker only)."
+   },
+   {
+    "clause": "Whenever this creature ... enters, each opponent mills two cards.",
+    "status": "OK",
+    "evidence": "[cast]: ability [0] triggers, opp:Library 5#2 and 4#2 library -> graveyard (opp library 6 -> 4); [the card enters during the opponent's turn]: mills 2 again; your library untouched",
+    "issue": ""
+   },
+   {
+    "clause": "... or another Rogue you control enters ...",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe's entering creatures are not Rogues ([a creature enters under your control]: none); pack thieves_guild_enforcer_other_rogue_enters.json: your Rogue entering mills the opponent's top two, your non-Rogue and the opponent's Rogue mill nothing, PASS",
+    "issue": ""
+   },
+   {
+    "clause": "As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe's opponent graveyard never reaches 8 (Static: 1/1); pack thieves_guild_enforcer_eight_in_graveyard.json: the count goes 6 -> 8 while the Enforcer is on the battlefield, it becomes 3/2 with deathtouch and 1 damage destroys a 5/5, PASS; control thieves_guild_enforcer_seven_no_bonus.json: at 7 it stays 1/1 without deathtouch, PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_1.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_2.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_3.json"
+  ],
+  "mutation": {
+   "mutants": 20,
+   "killed": 8,
+   "score": 0.4,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject/children/0",
+    "widen filter (drop part 2) at 1/0/event/subject/children/0",
+    "widen filter (drop part 3) at 1/0/event/subject/children/0",
+    "controller YOU->OPPONENT at 1/0/event/subject/children/0/children/0/who",
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "amount+1 at 1/1/effect/steps/0/args/power/magnitude",
+    "amount-1 at 1/1/effect/steps/0/args/power/magnitude",
+    "amount+1 at 1/1/effect/steps/0/args/toughness/magnitude",
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count",
+    "controller OPPONENT->YOU at 1/1/condition/who"
+   ]
+  }
+ }
+}

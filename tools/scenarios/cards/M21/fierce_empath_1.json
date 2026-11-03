@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Fierce Empath (M21): 'When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.' Library: a 6-MV creature, a 5-MV creature, a 7-MV artifact (and a last card the opening draw takes). The controller says yes and asks for the 5-MV creature, which is not a legal find: the only legal card, the 6-MV creature, goes to hand; the 5-MV creature and the artifact stay in the library. Hand: Empath + drawn card, Empath enters -> 1, found card -> 2.",
+ "cards": [
+  {"key": "emp", "zone": "hand", "controller": 0, "real": "Fierce Empath"},
+  {"key": "big6", "zone": "library", "controller": 0, "name": "Big Six", "type": "Creature — Beast", "power": 6, "toughness": 6, "cmc": 6},
+  {"key": "mid5", "zone": "library", "controller": 0, "name": "Mid Five", "type": "Creature — Beast", "power": 5, "toughness": 5, "cmc": 5},
+  {"key": "art7", "zone": "library", "controller": 0, "name": "Heavy Relic", "type": "Artifact", "cmc": 7},
+  {"key": "drawme", "zone": "library", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "emp", "decisions": ["fire", "mid5"]}
+ ],
+ "expect": {"zone": {"emp": "battlefield", "big6": "hand", "mid5": "library", "art7": "library", "drawme": "hand"}, "hand": {"0": 2}}}

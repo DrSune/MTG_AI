@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Sacrifice a creature with defender'. Seat 0 controls the Vine and a Bear WITHOUT defender; the pack asks to sacrifice the Bear. The Bear is not a legal choice, so the only legal sacrifice is the Vine itself: the Bear stays, the Vine goes to the graveyard, one card drawn.",
+ "cards": [
+  {"key": "vine", "real": "Portcullis Vine", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [{"op": "activate", "key": "vine", "idx": 0, "seat": 0, "decisions": ["bear"]}],
+ "expect": {"zone": {"vine": "graveyard", "bear": "battlefield"}, "hand": {"0": 1}}}

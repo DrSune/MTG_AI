@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "orr", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+  {"key": "rs", "real": "Rin and Seri, Inseparable", "zone": "battlefield", "controller": 0},
+  {"key": "wc", "real": "Walking Corpse", "zone": "battlefield", "controller": 0},
+  {"key": "ou", "name": "Opp Blue Thing", "power": "1", "toughness": "1", "type": "Creature", "colors": ["U"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 5}},
+ "steps": [
+  {"op": "activate", "key": "orr", "idx": 2, "seat": 0}
+ ],
+ "expect": {"hand": {"0": 4}, "tapped": {"orr": true}},
+ "notes": "Printed: '{5}, {T}: Draw a card for each color among permanents you control.' Your permanents show red, green and white (Rin and Seri) and black (Walking Corpse): 4 colours, so 4 cards. The colorless Orrery adds none; the opponent's blue creature does not count."}

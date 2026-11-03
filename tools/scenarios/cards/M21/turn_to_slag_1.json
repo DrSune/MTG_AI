@@ -1,0 +1,26 @@
+{
+ "set": "M21",
+ "notes": "Turn to Slag, printed: 'Turn to Slag deals 5 damage to target creature. Destroy all Equipment attached to that creature.' Target: the opponent's 6/6 Colossus, which survives with 5 damage. Both Equipment attached to it are destroyed; an Equipment attached to another creature and an unattached Equipment stay.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Turn to Slag", "zone": "hand", "controller": 0},
+  {"key": "col", "name": "Colossus", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "eq1", "name": "Blade One", "type": "Artifact — Equipment", "zone": "battlefield", "controller": 1},
+  {"key": "eq2", "name": "Blade Two", "type": "Artifact — Equipment", "zone": "battlefield", "controller": 1},
+  {"key": "eq3", "name": "Bear Blade", "type": "Artifact — Equipment", "zone": "battlefield", "controller": 1},
+  {"key": "eq4", "name": "Loose Blade", "type": "Artifact — Equipment", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 5}},
+ "steps": [
+  {"op": "enchant", "aura": "eq1", "host": "col"},
+  {"op": "enchant", "aura": "eq2", "host": "col"},
+  {"op": "enchant", "aura": "eq3", "host": "bear"},
+  {"op": "cast", "real": "Turn to Slag", "key": "sp", "targets": ["col"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "col": "battlefield", "bear": "battlefield", "eq1": "graveyard", "eq2": "graveyard", "eq3": "battlefield", "eq4": "battlefield"},
+  "damage": {"col": 5},
+  "attached": {"eq3": "bear", "eq4": null}
+ }
+}

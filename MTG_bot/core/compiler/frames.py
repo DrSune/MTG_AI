@@ -83,6 +83,13 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any], SentenceOutco
     (_frame("B13-attacks", "whenever this creature attacks, <clause>",
             r"Whenever this creature attacks, (?P<clause>.+)"),
      _triggered(templates_b2b._attack_event)),
+    # Ontology R5-6 (2026-10-29): the targeting trigger with its actor (Thorn Lieutenant).
+    (_frame("B13-targeted",
+            "whenever this creature becomes the target of a spell or ability an opponent controls, "
+            "<clause>",
+            r"Whenever this creature becomes the target of a spell or ability an opponent "
+            r"controls, (?P<clause>.+)"),
+     _triggered(lambda: templates_b2b._targeted_by_an_opponent(FAtom(pred=FAtomPred.IS_SOURCE)))),
     (_frame("B13-activated", "<mana and tap cost>: <clause>",
             rf"{templates_b3._COST}\s*:\s*(?P<clause>.+)"),
      lambda m, effect: templates_b3._build_activated(templates_b3._parse_cost(m), effect)),

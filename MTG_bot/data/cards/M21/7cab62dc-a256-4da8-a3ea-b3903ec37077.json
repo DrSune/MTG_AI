@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7cab62dc-a256-4da8-a3ea-b3903ec37077",
+ "name": "Griffin Aerie",
+ "text_sha": "df4c775af5fcf35240d012c224f7454a3c6579d2021d43a401e814e4348e6ebc",
+ "verified": {
+  "tree_sha": "2fd6e030855d319427fae63ddf59965714f53a9ea67adf8f376bb34ae08ce6fc",
+  "probe_sha": "54cc429f0033222402613ea9e42221638e4093394b6207f95eeb6f26dffe2579",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "At the beginning of your end step",
+    "status": "OK",
+    "evidence": "'turns pass: your end step, ...': ability [0] triggers before the opponent's untap (your end step); 'the card enters during the opponent's turn, then that turn ends -> none' (the opponent's end step does not trigger it). Tree: TurnPhaseEvent END_TURN, actor CONTROLLER_IS YOU.",
+    "issue": ""
+   },
+   {
+    "clause": "if you gained 3 or more life this turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe never gains life before an end step; with no gain the trigger makes nothing (so the condition is not dropped). Tree: LIFE_GAINED_THIS_TURN_GE 3, who YOU, identical to the compiler's parse. Pack P2eeaa8d4ca_griffin_aerie.json PASSES: 2 life in a turn -> no token; 1 life on a later turn (3 cumulative) -> no token; exactly 2+1 = 3 in one turn -> token.",
+    "issue": ""
+   },
+   {
+    "clause": "create a 2/2 white Griffin creature token with flying",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree TokenSpec Griffin, Creature — Griffin, 2/2, FLYING, colors ('W',), count 1. Pack: exactly one Griffin token, battlefield_pt [2,2], keywords [FLYING] (colour read from the tree; the runner has no colour lane).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/griffin_aerie_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 2,
+   "score": 0.3333333333333333,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
+ }
+}

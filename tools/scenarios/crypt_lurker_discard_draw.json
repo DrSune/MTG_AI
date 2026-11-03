@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cl", "real": "Crypt Lurker", "zone": "hand", "controller": 0},
+  {"key": "inst", "name": "Some Instant", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "crit", "name": "Spare Beast", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "cl", "real": "Crypt Lurker", "decisions": ["fire", "1", "crit"]}
+ ],
+ "expect": {
+  "zone": {"cl": "battlefield", "inst": "hand", "crit": "graveyard", "bear": "battlefield"},
+  "hand": {"0": 2}
+ },
+ "notes": "M21 G2 spec: Crypt Lurker. Discarding a creature card (the 3/3; the instant cannot be chosen) draws a card: hand = instant + the drawn card; the bear is not sacrificed."
+}

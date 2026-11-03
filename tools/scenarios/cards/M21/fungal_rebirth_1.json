@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fr", "real": "Fungal Rebirth", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Fallen", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "spell", "name": "My Used Spell", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their Fallen", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "cast", "real": "Fungal Rebirth", "key": "fr", "targets": ["theirs"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Fungal Rebirth", "key": "fr", "targets": ["spell"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Fungal Rebirth", "key": "fr", "targets": ["mine"]}
+ ],
+ "expect": {"zone": {"fr": "graveyard", "mine": "hand", "spell": "graveyard", "theirs": "graveyard"}, "tokens": {"Saproling": 0}},
+ "notes": "Printed: 'Return target permanent card from your graveyard to your hand. If a creature died this turn, create two 1/1 green Saproling creature tokens.' An opponent's graveyard card is not a legal target, nor is an instant card in your graveyard (not a permanent card). Your creature card returns to your hand. No creature died this turn, so no Saprolings."}

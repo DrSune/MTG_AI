@@ -23,12 +23,16 @@
   "steps": [
     {
       "op": "enter",
-      "key": "br"
+      "key": "br",
+      "decisions": [
+        "d"
+      ]
     }
   ],
   "expect": {
     "zone": {
       "d": "hand"
     }
-  }
+  },
+  "notes": "re-pinned 2026-10-29: V15 (CR 601.2c, 115.6) makes 'return up to one other target creature' a choice of the Dummy or no target, so the step answers it with the Dummy; C17 had forced the single candidate."
 }

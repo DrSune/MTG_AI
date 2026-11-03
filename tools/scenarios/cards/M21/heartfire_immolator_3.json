@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' Short Sword makes the Immolator 3/3; after the turn ends it is 2/2 again.",
+ "cards": [
+  {"key": "hi", "real": "Heartfire Immolator", "zone": "battlefield", "controller": 0},
+  {"key": "sw", "real": "Short Sword", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "cast", "key": "sw", "real": "Short Sword"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"power": {"hi": 2}, "toughness": {"hi": 2}, "zone": {"sw": "battlefield"}}}

@@ -1,0 +1,65 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "gsh",
+   "real": "Garruk, Savage Herald",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "name": "Top Relic",
+   "type": "Artifact",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "drawn",
+   "name": "Drawn Card",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "gsh",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "top": "library",
+   "gsh": "battlefield"
+  },
+  "counters": {
+   "gsh": {
+    "LOYALTY": 6
+   }
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Top Relic"
+   ]
+  }
+ },
+ "notes": "B-49 follow-up #5: Garruk, Savage Herald's [+1] reveals the top card of the library; 'it' in the next two sentences is the result register (R7-1), which a fresh top-N REVEAL/LOOK_AT now produces. It used to pay the loyalty and then raise ReferentAbsentRegisterError on every activation (12 crashes in the 800-game castable sweep). A noncreature on top goes to the bottom of the library (the library lane pins it last, TOP-first; the hand holds only 'Drawn Card', taken by the runner's turn-1 draw at setup)."
+}

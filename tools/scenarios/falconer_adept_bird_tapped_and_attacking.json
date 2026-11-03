@@ -1,0 +1,14 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adept", "real": "Falconer Adept", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"adept": true}}
+  ],
+  "expect": {
+    "tokens": {"Bird": 1},
+    "life": {"1": 17}
+  },
+  "notes": "m21-fidelity (fixer 4's finding, 2026-10-30). Printed: 'Whenever this creature attacks, create a 1/1 white Bird creature token with flying that's tapped and attacking.' The Bird enters tapped and attacking (CR 508.4: it was never declared, it is attacking), so it deals its 1 combat damage beside the Adept's 2: seat 1 at 17. Before the fix the TokenSpec had no enters_tapped/enters_attacking, so the Bird stayed home untapped and seat 1 ended at 18."
+}

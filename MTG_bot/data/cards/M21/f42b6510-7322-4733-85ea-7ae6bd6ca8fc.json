@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f42b6510-7322-4733-85ea-7ae6bd6ca8fc",
+ "name": "Quirion Dryad",
+ "text_sha": "97d20ec799abe846fe3bc867b0389f4aa0c189edd5601d3dea638aecb64e7df0",
+ "verified": {
+  "tree_sha": "80e9a02334984663a71a80cc5c1ed030e9a234def3c4310e28b724965c63bb16",
+  "probe_sha": "f6f7167fe4549a631f7c881928cba8fa66e5775beab8e31a486c9f7c4afbb1de",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Whenever you cast a spell that's white, blue, black, or red, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "Stimulus 'you cast an instant or sorcery (Crash Through)' (red): 'card gets 1 PLUS_1_PLUS_1 counter(s)', P/T 1/1 -> 2/2. Stimulus 'you cast a creature (Staunch Shieldmate)' (white): one counter, 1/1 -> 2/2. Tree: CastSpellEvent FOr(COLOR_HAS B/R/U/W) (COLOR_HAS, not a COLOR_IN subset test), actor YOU, PUT_COUNTER count QConst(1). Unseen cases: pack quirion_dryad_green_and_opponent_spells_no_counter (your green Titanic Growth: no counter; the opponent's red Shock: no counter; your blue Opt: one counter) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/quirion_dryad_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

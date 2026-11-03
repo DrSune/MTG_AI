@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V35 (CR 704.5d, 111.7, 111.8): a 1/1 Soldier token dies and ceases to exist, so Rise Again ('Return target creature card from your graveyard to the battlefield') has no legal target and cannot be cast: the token is not a card and is not in the graveyard. Before V35 the dead token stayed in the graveyard and was Rise Again's only target.",
+ "cards": [
+  {"key": "sol", "real": "Soldier", "zone": "battlefield", "controller": 0},
+  {"key": "rise", "real": "Rise Again", "zone": "hand", "controller": 0},
+  {"key": "zap", "name": "Zapper", "type": "Creature", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "deal_damage", "source": "zap", "target": "sol", "amount": 1, "controller": 1},
+  {"op": "cast", "key": "rise", "real": "Rise Again", "expect_raise": "selection:count_below_min:0<1"}
+ ],
+ "expect": {
+  "zone": {"sol": "ceased", "rise": "hand"},
+  "tokens": {"Soldier": 0}
+ }
+}

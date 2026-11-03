@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sear", "real": "Soul Sear", "zone": "hand", "controller": 0},
+    {"key": "colossus", "name": "Test Colossus", "type": "Creature — Golem", "power": "6", "toughness": "8", "keywords": ["INDESTRUCTIBLE"], "zone": "battlefield", "controller": 1},
+    {"key": "zapper", "name": "Test Zapper", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"R": 3, "C": 3}},
+  "steps": [
+    {"op": "cast", "key": "sear", "real": "Soul Sear", "targets": ["colossus"]},
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "deal_damage", "source": "zapper", "target": "colossus", "amount": 9}
+  ],
+  "expect": {
+    "zone": {"sear": "graveyard", "colossus": "battlefield", "zapper": "battlefield"},
+    "damage": {"colossus": 9},
+    "battlefield_keywords": {"Test Colossus": ["INDESTRUCTIBLE"]}
+  }
+}

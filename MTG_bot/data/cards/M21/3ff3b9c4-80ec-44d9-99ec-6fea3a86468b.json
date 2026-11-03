@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3ff3b9c4-80ec-44d9-99ec-6fea3a86468b",
+ "name": "Setessan Training",
+ "text_sha": "03eec8bf8ee704606d59c936282ed019d38f5cd5a5ea54274d80cc63cbe93034",
+ "verified": {
+  "tree_sha": "8df50fb9748c1598288732185563b8738bffe17096925c007e2f80cd69875af3",
+  "probe_sha": "98d450e3a79c1c28797896ee2198353fc1b7439c0a436b994711691c3cc92dd3",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Enchant creature you control",
+    "status": "OK",
+    "evidence": "keyword ENCHANT with FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature); 'target slot (cast): 1..1 of [you_bear, you_giant]': only your creatures, not opp_* creatures and not noncreatures",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, draw a card.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']] and [cast targets=['you_giant']]: 'card's triggered ability [0] triggers', 'you draws you:Library 5#1' (library 6 -> 5); the opponent's-turn entry also draws one card",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +1/+0 and has trample.",
+    "status": "OK",
+    "evidence": "you_bear P/T 2/2 -> 3/2 and keywords +TRAMPLE; you_giant 4/4 -> 5/4 and +TRAMPLE; 'after the turn ends: (nothing changes)' (static, not until end of turn). Tree matches the compiler's B5a-enchant-pt-trample",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 15,
+   "killed": 12,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/args/target/filter"
+   ]
+  }
+ }
+}

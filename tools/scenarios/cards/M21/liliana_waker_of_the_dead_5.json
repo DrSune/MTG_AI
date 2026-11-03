@@ -1,0 +1,18 @@
+{"set": "M21",
+ "notes": "G3 spec (amount+1 on the 'can't discard' threshold). Printed: '[+1]: Each player discards a card. Each opponent who CAN'T loses 3 life.' The opponent holds exactly one card, so they can discard it and lose no life (20 stays 20); you discard your one card too. Liliana goes 3 -> 4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Card", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "theirs", "name": "Their Card", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "activate", "key": "lili", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"mine": "graveyard", "theirs": "graveyard"},
+  "hand": {"0": 0, "1": 0},
+  "counters": {"lili": {"LOYALTY": 4}}
+ }}

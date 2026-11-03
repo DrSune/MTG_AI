@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rs", "real": "Rin and Seri, Inseparable", "zone": "battlefield", "controller": 0},
+  {"key": "dog", "name": "My Dog", "power": "1", "toughness": "1", "type": "Creature — Dog", "zone": "battlefield", "controller": 0},
+  {"key": "cat", "name": "My Cat", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0},
+  {"key": "cat2", "name": "My Other Cat", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0},
+  {"key": "odog", "name": "Opp Dog", "power": "1", "toughness": "1", "type": "Creature — Dog", "zone": "battlefield", "controller": 1},
+  {"key": "ocat", "name": "Opp Cat", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "G": 1, "W": 1}},
+ "steps": [
+  {"op": "activate", "key": "rs", "idx": 2, "seat": 0, "targets": ["p1"]}
+ ],
+ "expect": {"life": {"0": 23, "1": 18}, "tapped": {"rs": true}},
+ "notes": "Printed: '{R}{G}{W}, {T}: Rin and Seri deals damage to any target equal to the number of Dogs you control. You gain life equal to the number of Cats you control.' Dogs you control: Rin and Seri (Dog Cat) + My Dog = 2 -> opponent 20 -> 18 (the opponent's Dog does not count). Cats you control: Rin and Seri + My Cat + My Other Cat = 3 -> you gain 3, 20 -> 23 (the opponent's Cat does not count). The {T} is part of the cost: Rin and Seri ends tapped."}

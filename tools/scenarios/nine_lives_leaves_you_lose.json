@@ -1,0 +1,16 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+    {"key": "sts", "real": "Secure the Scene", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"W": 5}},
+  "steps": [
+    {"op": "cast", "real": "Secure the Scene", "key": "sts", "targets": ["nl"]}
+  ],
+  "expect": {
+    "zone": {"nl": "exile"},
+    "lost": {"0": true, "1": false}
+  },
+  "notes": "m21-fidelity (review batch C, 2026-10-29). Nine Lives itself leaves (its controller exiles it with Secure the Scene; hexproof stops only opponents, CR 702.11b), so its trigger makes its controller lose the game (CR 104.3e). Passed before the fix too; it pins the subject from the other side."
+}

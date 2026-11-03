@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "pinger",
+   "name": "Pinger",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "pinger",
+   "target": "forest",
+   "amount": 3
+  },
+  {
+   "op": "deal_damage",
+   "source": "pinger",
+   "target": "bear",
+   "amount": 1
+  }
+ ],
+ "expect": {
+  "damage": {
+   "bear": 1
+  },
+  "damage_received": {
+   "forest": 0,
+   "bear": 1
+  },
+  "zone": {
+   "forest": "battlefield",
+   "bear": "battlefield"
+  }
+ },
+ "notes": "CR 120.1a: damage can't be dealt to an object that's not a battle, a creature or a planeswalker. 3 damage forced onto a Forest marks nothing and leaves no damage event; the control, 1 damage to a 2/3, is marked."
+}

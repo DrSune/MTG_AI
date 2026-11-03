@@ -1,0 +1,21 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '{1}, Discard a land card or Shrine card: ~ deals X damage to target creature or planeswalker, where X is the number of Shrines you control.' Seat 0 controls three Shrines (Shattered Heights plus two trigger-less synthetic Shrine enchantments); seat 1's synthetic Shrine is not counted, so X = 3. The cost is paid by discarding Sanctum of All (a Shrine card; no land in hand); the off-filter Bystander card stays in hand. The target is the opponent's planeswalker Basri Ket at 5 loyalty: 3 damage removes 3 loyalty counters (CR 120.3c), leaving 2.",
+ "cards": [
+  {"key": "s", "real": "Sanctum of Shattered Heights", "zone": "battlefield", "controller": 0},
+  {"key": "s2", "name": "Shrine Two", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "s3", "name": "Shrine Three", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "os", "name": "Opp Shrine", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 1},
+  {"key": "sa", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "by", "name": "Bystander", "power": 1, "toughness": 1, "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 5},
+  {"op": "activate", "key": "s", "idx": 0, "seat": 0, "targets": ["pw"]}
+ ],
+ "expect": {
+  "zone": {"sa": "graveyard", "by": "hand", "pw": "battlefield", "s": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 2}},
+  "mana_pool": {"0": {}}
+ }}

@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Brash Taunter ({2}{R}, {T}) fights the opponent's 4/4. The 4/4 deals 4 damage to the indestructible Taunter, so Taunter's trigger deals that much damage (4) to target opponent: seat 1 goes 20 -> 16 and seat 0 is untouched. The 4/4 takes 1.",
+ "cards": [
+  {"key": "bt", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "activate", "key": "bt", "idx": 1, "seat": 0, "targets": ["giant"], "decisions": ["p1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 16},
+  "zone": {"bt": "battlefield", "giant": "battlefield"},
+  "tapped": {"bt": true},
+  "damage": {"bt": 4, "giant": 1}
+ }
+}

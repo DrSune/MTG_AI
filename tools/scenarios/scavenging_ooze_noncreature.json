@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "o", "real": "Scavenging Ooze", "zone": "battlefield", "controller": 0},
+  {"key": "sorc", "name": "Used Sorcery", "type": "Sorcery", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "activate", "key": "o", "idx": 0, "seat": 0, "targets": ["sorc"]}
+ ],
+ "expect": {
+  "zone": {"sorc": "exile"},
+  "counters": {"o": {}},
+  "power": {"o": 2},
+  "toughness": {"o": 2},
+  "life": {"0": 20}
+ },
+ "notes": "M21 G2 spec: Scavenging Ooze. '{G}: Exile target card from a graveyard. If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.' Exiling a SORCERY card gives no counter and no life."
+}

@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "2e7c3881-6fa6-4fd2-ae86-9e3a0fcecdbd",
+ "name": "Sporeweb Weaver",
+ "text_sha": "00c7c1a12e1d22322bd5b42e2cd9c64105f7dab7747791f5030643cc3891ab75",
+ "verified": {
+  "tree_sha": "09c905ebaf522ac27efa611b1bfa1eeac7a0614627149f043ebe122a81f004df",
+  "probe_sha": "18efa6da660416f9039eb2425c74f9c31450c74807eed1c1bad145c0d5d55d12",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "OK",
+    "evidence": "keywords REACH; [cast] '+REACH'. Blocking a flier not in the trace: pack Pea85a00b72_sporeweb_reach_blocks_flier.json PASS",
+    "issue": ""
+   },
+   {
+    "clause": "hexproof from blue",
+    "status": "OK",
+    "evidence": "keywords HEXPROOF params (COLOR_HAS U) (= canonical B5b-keyword-list-params), no bare HEXPROOF. Not in the trace: packs Pea85a00b72_sporeweb_hexproof_from_blue_only.json PASS (opponent's blue Frost Breath refused, opponent's red Scorching Dragonfire allowed) and Pea85a00b72_sporeweb_own_blue_spell_may_target.json PASS (your own blue spell may target it)",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature is dealt damage, you gain 1 life and create a 1/1 green Saproling creature token.",
+    "status": "OK",
+    "evidence": "abilities[0] (= canonical B2b-sporeweb-weaver): DamageDealtEvent filter IS_SOURCE; GAIN_LIFE 1 YOU; CREATE_TOKEN 1/1 Saproling colors ('G',). [dealt 1 damage], [dealt lethal damage] and [attacks and opp_giant blocks it] each: one firing, 'you gains 1 life', '+ you:Saproling (battlefield, you, 1/1)'; no firing when the card deals damage unblocked. One trigger per damage event regardless of amount (99 damage -> 1 life, 1 token)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sporeweb_weaver_1.json",
+   "tools/scenarios/cards/M21/sporeweb_weaver_2.json",
+   "tools/scenarios/cards/M21/sporeweb_weaver_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

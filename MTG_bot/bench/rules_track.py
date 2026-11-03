@@ -100,7 +100,10 @@ def read_state(runner: Any, labels: dict[str, str], gold_shape: dict[str, dict[s
                 pool = world.players[runner.seats[int(k)]].mana_pool
                 got[k] = {c: n for c, n in sorted(pool.items()) if n}
             elif lane == "zone":
-                got[k] = world.zone_of(by_label[k]).kind
+                # "ceased", as ScenarioRunner.check reads it: a token that left the battlefield
+                # ceased to exist (CR 704.5d) and is in no zone.
+                h = by_label[k]
+                got[k] = world.zone_of(h).kind if h in world.cards else "ceased"
             elif lane == "counters":
                 got[k] = {c: n for c, n in sorted(world.cards[by_label[k]].counters.items())}
             elif lane == "tapped":
@@ -316,6 +319,12 @@ def build_items(
         gold = _gold(pack, labels)
         if not gold:
             cov.excluded["no scorable lane"] += 1
+            continue
+        if "ceased" in gold.get("zone", {}).values():
+            # 2026-10-30 (vfix2's merge of cards/integration): a token that left the battlefield
+            # ceases to exist (CR 704.5d, V35). The zone question offers no answer for that, so
+            # the pack is a named exclusion rather than an unanswerable item.
+            cov.excluded["a token ceases to exist"] += 1
             continue
         try:
             runner = ScenarioRunner(pack, supply)

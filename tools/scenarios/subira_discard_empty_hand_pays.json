@@ -1,0 +1,13 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V33 (CR 118.3, 701.9a): Subira, Tulzidi Caravanner's '{1}{R}, {T}, Discard your hand: ...' can be activated with an EMPTY hand: discarding all zero cards pays that part of the cost in full. Subira taps and the mana is spent.",
+ "cards": [
+  {"key": "sub", "zone": "battlefield", "controller": 0, "real": "Subira, Tulzidi Caravanner"}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 1, "seat": 0}
+ ],
+ "expect": {"tapped": {"sub": true}, "hand": {"0": 0}, "mana_pool": {"0": {}}}
+}

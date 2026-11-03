@@ -35,7 +35,8 @@
    "seat": 0,
    "decisions": [
     "fire"
-   ]
+   ],
+   "expect_raise": "illegal activation: ability:not_activated:SpellAbility"
   }
  ],
  "expect": {
@@ -43,11 +44,11 @@
    "1": 20
   },
   "zone": {
-   "ct": "graveyard"
+   "ct": "hand"
   },
   "hand": {
    "0": 1
   }
  },
- "notes": "Branch chandra_flame_s_catalyst:02 (OptionalEffect free-cast, heat 34). The idx4 offer FIRES and free-CASTs Crash Through from hand (zone lane: hand -> stack -> graveyard; CAST row; one filler draw make the hand lane 1 = the drawn filler (spell left hand)). Free = no mana paid. Twin: ..._twin.json skips and the spell stays in hand."
+ "notes": "B-49 follow-up #1 negative (was branch chandra_flame_s_catalyst:02, the free-cast fire branch). The [-8]'s 'Until end of turn, you may cast spells from your hand without paying their mana costs.' compiled as a free empty-cost activation at idx 4 that cast Crash Through from hand for nothing, any turn, as often as wanted. It is part of the [-8] (CR 611.2a) and is now suppressed (the card is engine-unsupported until CAST has a duration role), so idx 4 is the cast carrier: refused, and Crash Through stays in hand."
 }

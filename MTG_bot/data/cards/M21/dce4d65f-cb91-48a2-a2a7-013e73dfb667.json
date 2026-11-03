@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "dce4d65f-cb91-48a2-a2a7-013e73dfb667",
+ "name": "Legion's Judgment",
+ "text_sha": "a28f289a9935666666b5555e215900a91fbc74e6046ab7ef6053d653bf759d06",
+ "verified": {
+  "tree_sha": "3de2f0b8c17d9f23286b4589a92483e5f1131d26623a736ed6c8be6a2df5dc41",
+  "probe_sha": "cfabbe9ba116d3226fdc2b02fb2bc9c3cd2cbeb090090034ec813f108691f4e3",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Sorcery {2}{W} (card type / cost)",
+    "status": "OK",
+    "evidence": "tree SpellAbility(kind=SORCERY); both cast variants pay 'mana W-3' (3 total for {2}{W})",
+    "issue": ""
+   },
+   {
+    "clause": "Destroy target creature with power 4 or greater.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_giant, opp_giant] (only the 4/4s; the 2/2 bears excluded, either controller allowed); [cast targets=['you_giant']] and ['opp_giant']: target moves battlefield -> graveyard (by card/DESTROY), dies",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

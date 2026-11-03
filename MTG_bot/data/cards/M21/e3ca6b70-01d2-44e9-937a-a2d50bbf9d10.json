@@ -1,0 +1,49 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e3ca6b70-01d2-44e9-937a-a2d50bbf9d10",
+ "name": "Dub",
+ "text_sha": "2185589c6997af52e87beb6656359c0acc3721179cf6495e04844e208b77d0fc",
+ "verified": {
+  "tree_sha": "e4ee0f1e2fa733df4ac6296fbdfd5bbdb5ade5fe96d51256b8efea30a7b75e9b",
+  "probe_sha": "d6ef85cd479b330c8b37b58e02dad8be81e247c498de7f1b13c2465d26238951",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "keyword ENCHANT with TYPE_EQ Creature; 'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]': every creature on either side, no relic or charm",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +2/+2, has first strike",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']] 2/2 -> 4/4 +FIRST_STRIKE; you_giant 4/4 -> 6/6; opp_flier 1/1 -> 3/3; opp_bear 2/2 -> 4/4; opp_giant 4/4 -> 6/6, each with +FIRST_STRIKE; 'after the turn ends: (nothing changes)' (static)",
+    "issue": ""
+   },
+   {
+    "clause": "and is a Knight in addition to its other types.",
+    "status": "NOT_EXERCISED",
+    "evidence": "tree: GRANT_TYPE types=('Knight',) on the attached creature, the same as the compiler's B5a-enchant-pt-firststrike-knight. The engine unions it into the type overlay that SUBTYPE_EQ reads (layers.py _apply_type, 'never REMOVES'). Pack dub_keeps_other_types: a Dog wearing Dub keeps Pack Leader's Dog bonus (2/2 +1/+1 +2/+2 = 5/5, first strike), so the grant is additive (pass)",
+    "issue": "The Knight subtype itself has no observable consequence in M21: no M21 card keys on Knights and no pack expect lane reads subtypes. A subtype lane in run_scenarios would close this."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/dub_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 8,
+   "score": 0.5714285714285714,
+   "survived": [
+    "drop step 2 at 1/0/effect",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/2/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/2/args/target/filter"
+   ]
+  }
+ }
+}

@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "power": "0", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"wall": "bear"}}
+ ],
+ "expect": {"blocked": {"bear": []}, "life": {"1": 18}},
+ "notes": "Printed: '{1}: Another target creature with power 2 or less can't be blocked this turn.' The bear (power 2) is made unblockable; the opponent's wall cannot block it and it deals 2."}

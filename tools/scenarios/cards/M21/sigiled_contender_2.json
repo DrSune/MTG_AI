@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Sigiled Contender: only a counter on THIS creature grants lifelink. Basri's Solidarity puts a counter on my bear only (the Contender is still in hand); then the Contender enters, two turns pass, and it attacks unblocked with no counter. Expected: opponent 20 -> 17, my life stays 20.",
+ "cards": [
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "sc", "real": "Sigiled Contender", "zone": "hand", "controller": 0},
+  {"key": "sol", "real": "Basri's Solidarity", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Basri's Solidarity", "key": "sol"},
+  {"op": "enter", "key": "sc"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"sc": true, "bear": false}}
+ ],
+ "expect": {"counters": {"bear": {"PLUS_1_PLUS_1": 1}, "sc": {}}, "attackers": {"sc": true, "bear": false}, "life": {"0": 20, "1": 17}}}

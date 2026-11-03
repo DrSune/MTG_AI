@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "430b3e61-09a5-4390-b377-89830cacf66e",
+ "name": "Caged Zombie",
+ "text_sha": "b8d9da96a1897dd86343614f91f35dbe10c4dfb1a0c6762faa7548ef1742b4b6",
+ "verified": {
+  "tree_sha": "ed9a98f3d09360f3e960783f1c6c48004bf10a60afe34c94c6f6779f81d6a4a2",
+  "probe_sha": "277ea13ee690e477aa64b11d5957df60ed615885d60a5706ffb15874aec05923",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Zombie {2}{B} 2/3",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/3, mana B-1 W-2; attacks unblocked for 2 (opp 20 -> 18); blocked by the 4/4 it dies",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{B}, {T}: Each opponent loses 2 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: 'ability [0] not activatable from battlefield: condition:false' (nothing died). Tree cost {B}+{1}+{T}, LOSE_LIFE 2 controller ALL_OPPONENTS (same as similar's B3-lose-life-each-opponent). Pack caged_zombie_after_destroy.json (a creature destroyed by Swift Response, then activate: opponent 20 -> 18, controller 20, Zombie tapped, all mana spent): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only if a creature died this turn.",
+    "status": "OK",
+    "evidence": "Probe: refused with condition:false when no creature died. Tree condition FAtom(DIED_THIS_TURN) (B5a-activate-only-death); quantity.py:1465-1470 counts only creature-typed dies rows. Pack caged_zombie_noncreature_died.json (only a Treasure died: activation raises condition:false, opponent stays at 20): PASS; positive case in caged_zombie_after_destroy.json: PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/caged_zombie_1.json",
+   "tools/scenarios/cards/M21/caged_zombie_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "drop cost part 0 (CostManaColor) at 1/0/cost",
+    "drop cost part 1 (CostManaGeneric) at 1/0/cost",
+    "drop cost part 2 (CostTap) at 1/0/cost",
+    "amount+1 at 1/0/cost/parts/0/amount",
+    "amount+1 at 1/0/cost/parts/1/amount",
+    "amount+1 at 1/0/effect/args/amount",
+    "amount-1 at 1/0/effect/args/amount",
+    "controller ALL_OPPONENTS->YOU at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

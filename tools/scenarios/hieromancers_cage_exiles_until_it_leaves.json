@@ -1,0 +1,79 @@
+{
+ "set": "M19",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cage",
+   "real": "Hieromancer's Cage",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "nat",
+   "real": "Naturalize",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2,
+   "G": 3,
+   "C": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bear",
+   "target": "ogre",
+   "amount": 2
+  },
+  {
+   "op": "cast",
+   "real": "Hieromancer's Cage",
+   "key": "cage"
+  },
+  {
+   "op": "cast",
+   "real": "Naturalize",
+   "key": "nat",
+   "targets": [
+    "cage"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cage": "graveyard",
+   "nat": "graveyard",
+   "ogre": "battlefield"
+  },
+  "controller": {
+   "ogre": 1
+  },
+  "damage": {}
+ },
+ "notes": "R5-1, CR 610.3 + 610.3c: 'exile target nonland permanent an opponent controls until this enchantment leaves the battlefield.' The Ogre (3/3) is dealt 2 damage, then the Cage exiles it; Naturalize destroys the Cage and the Ogre returns to the battlefield under its owner's control as a new object (CR 400.7), with no damage marked. Before R5-1 the sentence did not parse at all (no enters trigger), so the Ogre never left and kept its 2 damage."
+}

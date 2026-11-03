@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6a0419c3-4bfa-46c1-932b-fe10f2fa2ad7",
+ "name": "Alpine Watchdog",
+ "text_sha": "02139d4b7f2cb9e3aed407317d9de9680bc250164bd068f8b8d712cba6feed77",
+ "verified": {
+  "tree_sha": "ec7d8fbd030cf59b631602cafe98e49ac5faeb043dd06f7842945ecc4bffdd4a",
+  "probe_sha": "be156781c2e67f4f7a3eee86a10216ee78b39afbed30cd83b4d8dd0c11afca77",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Dog {1}{W} 2/2",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/2, mana W-2; attacks unblocked for 2; dies to the blocking 4/4",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "status": "OK",
+    "evidence": "[cast]: keywords +VIGILANCE; [this creature attacks alone, unblocked] and [opp_giant blocks it]: DECLARE_ATTACKERS with no 'card becomes tapped' event and no tapped change (compare the non-vigilant cards, which tap)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

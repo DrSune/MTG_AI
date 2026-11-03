@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5a898412-5b1e-4217-ac78-5b4099ed8e16",
+ "name": "Angelic Ascension",
+ "text_sha": "288c3c3d6800169c1fea6084b059cb5a382343cf35b4f7e0055f92b503e5d094",
+ "verified": {
+  "tree_sha": "7a1ca0ccf5e9293da3c29054fac667761d2214ee594b5ab8a383b3de086b305a",
+  "probe_sha": "35c883b2ebbe6c5b02fa77c8bcaeb93ff654c06879590af673ec65989ffc3a5f",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Angelic Ascension {1}{W} Instant (cast)",
+    "status": "OK",
+    "evidence": "[cast targets=...]: hand -> stack -> graveyard, paid W-2",
+    "issue": ""
+   },
+   {
+    "clause": "Exile target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] = every creature on the battlefield, either controller, no artifact/enchantment; each cast moves the target battlefield -> exile. Tree = parse template B5a (FOr Creature|Planeswalker). Planeswalker half: no planeswalker on the standard board, covered by pack angelic_ascension_planeswalker.json (opp's Garruk, Unleashed exiled) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Its controller creates a 4/4 white Angel creature token with flying.",
+    "status": "OK",
+    "evidence": "targets you_bear/you_giant: + you:Angel (4/4, FLYING); targets opp_flier/opp_tapped/opp_bear/opp_giant: + opp:Angel (4/4, FLYING); exactly one token each time. Tree = parse template B5b (controller referent='target'), colors ('W',)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/angelic_ascension_1.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

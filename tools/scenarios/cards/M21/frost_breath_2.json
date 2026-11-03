@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Frost Breath: only the controller's NEXT untap step is skipped. Cast on my turn at two opponent creatures; advance through the opponent's turn (skipped untap), my turn, and into the opponent's following turn. Expected: both untap at that second untap step.",
+ "cards": [
+  {"key": "fb", "real": "Frost Breath", "zone": "hand", "controller": 0},
+  {"key": "one", "name": "Frost One", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "two", "name": "Frost Two", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Breath", "key": "fb", "targets": ["one", "two"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"zone": {"fb": "graveyard"}, "tapped": {"one": false, "two": false}}}

@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Turret Ogre (itself power 4) enters while you control only a 2/2 and the OPPONENT controls a 5/5. 'if you control ANOTHER creature with power 4 or greater' is false (the Ogre does not count itself, the opponent's creature does not count): no damage.",
+ "cards": [
+  {"key": "ogre", "real": "Turret Ogre", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Big", "type": "Creature", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "cast", "key": "ogre", "real": "Turret Ogre"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

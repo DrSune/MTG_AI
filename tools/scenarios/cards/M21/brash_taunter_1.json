@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bt", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bt", "idx": 1, "seat": 0, "targets": ["ob"]}
+ ],
+ "expect": {"zone": {"bt": "battlefield", "ob": "battlefield"}, "tapped": {"bt": true}, "damage": {"bt": 2, "ob": 1}, "life": {"1": 18, "0": 20}},
+ "notes": "Printed: '{2}{R}, {T}: This creature fights ANOTHER TARGET CREATURE.' With a single other creature on the battlefield the ability is activatable with that one target: the Taunter (1 power) deals 1 to the Opp Bear, the bear deals 2 to the Taunter (indestructible), and 'Whenever this creature is dealt damage, it deals that much damage to target opponent' sends 2 to the opponent (20 -> 18)."}

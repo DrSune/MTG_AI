@@ -79,6 +79,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b5a import target_spell
 from MTG_bot.core.compiler.templates_b6 import (
     _draw_a_card,
     _etb_event,
@@ -131,8 +132,8 @@ def _target_creature() -> Selector:
 
 
 def _target_creature_you_control() -> Selector:
-    """``target creature you control`` — verbatim the executed
-    B5b-sacr-grant selector (carrier: templates_b5b._build_sacr_grant)."""
+    """``target creature you control`` — the executed B5b-sacr-grant selector
+    without its "Another" clause (carrier: templates_b5b._build_sacr_grant)."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -528,15 +529,9 @@ def _build_counter_noncreature(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 (
                     "target",
-                    # R1a (ontology §6 V2′): lone negation emitted BARE — a
-                    # one-child FAnd is a phantom wrapper (unwrap at emission).
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        FNot(
-                            inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
-                        ),
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+                    # R5-10: STACK_KIND_EQ SPELL ANDed with the negation.
+                    target_spell(
+                        FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"))
                     ),
                 ),
             )

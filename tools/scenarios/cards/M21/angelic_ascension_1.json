@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Exile target creature or planeswalker. Its controller creates a 4/4 white Angel creature token with flying.' The planeswalker half of the target: the opponent's Garruk, Unleashed is a legal target, goes to exile, and exactly one 4/4 flying Angel token is created.",
+ "cards": [
+  {"key": "asc", "real": "Angelic Ascension", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [{"op": "cast", "real": "Angelic Ascension", "key": "asc", "targets": ["pw"]}],
+ "expect": {"zone": {"asc": "graveyard", "pw": "exile"},
+            "tokens": {"Angel": 1},
+            "battlefield_pt": {"Angel": [4, 4]},
+            "battlefield_keywords": {"Angel": ["FLYING"]}}}

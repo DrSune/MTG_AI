@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the search count). Printed: 'When this creature enters, you may search your library for A creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.' The library holds two legal finds (Big Six, MV 6, and Big Seven, MV 7). The may is taken and Big Seven is picked: it goes to hand; Big Six stays in the library. Hand: Empath + opening draw, Empath enters -> 1, found card -> 2.",
+ "cards": [
+  {"key": "emp", "zone": "hand", "controller": 0, "real": "Fierce Empath"},
+  {"key": "big6", "zone": "library", "controller": 0, "name": "Big Six", "type": "Creature — Beast", "power": 6, "toughness": 6, "cmc": 6},
+  {"key": "big7", "zone": "library", "controller": 0, "name": "Big Seven", "type": "Creature — Beast", "power": 7, "toughness": 7, "cmc": 7},
+  {"key": "drawme", "zone": "library", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "emp", "decisions": ["fire", "big7"]}
+ ],
+ "expect": {"zone": {"emp": "battlefield", "big7": "hand", "big6": "library", "drawme": "hand"}, "hand": {"0": 2}}
+}

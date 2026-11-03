@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wa", "zone": "battlefield", "controller": 0, "real": "Dire Fleet Warmonger"},
+  {"key": "keep", "zone": "battlefield", "controller": 0, "name": "Keeper", "type": "Creature", "power": "3", "toughness": "3"},
+  {"key": "fod", "zone": "battlefield", "controller": 0, "name": "Fodder", "type": "Creature", "power": "1", "toughness": "1"}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "may": {"wa": true}, "decisions": ["fod"]}
+ ],
+ "expect": {
+  "zone": {"wa": "battlefield", "keep": "battlefield", "fod": "graveyard"},
+  "power": {"wa": 5},
+  "toughness": {"wa": 5}
+ },
+ "notes": "V10 (2026-10-29). Printed Dire Fleet Warmonger: 'At the beginning of combat on your turn, you may sacrifice another creature. If you do, this creature gets +2/+2 and gains trample until end of turn.' The controller chooses which other creature: here Fodder, so Keeper (the lower handle, which the engine used to take) survives."
+}

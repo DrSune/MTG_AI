@@ -1,0 +1,84 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V24 (CR 108.3, 110.2a, 400.3): Liliana, Waker of the Dead's emblem puts the OPPONENT's creature card from their graveyard onto the battlefield under your control. It attacks with haste for 2 (20 -> 18), but it is still the opponent's card: when it dies it goes to its owner's graveyard, never yours (before V24 the move filed it under your zones and made you its owner). The beast is the only creature card in a graveyard, so the emblem's target is designated without an ask; the Zapper does not block.",
+ "cards": [
+  {
+   "key": "lil",
+   "real": "Liliana, Waker of the Dead",
+   "controller": 0,
+   "zone": "battlefield"
+  },
+  {
+   "key": "obeast",
+   "name": "Opp Beast",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "graveyard"
+  },
+  {
+   "key": "zap",
+   "name": "Zapper",
+   "controller": 1,
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "lil",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "lil",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "obeast": true
+   },
+   "block": {
+    "zap": null
+   }
+  },
+  {
+   "op": "deal_damage",
+   "source": "zap",
+   "target": "obeast",
+   "amount": 2,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lil": "graveyard",
+   "obeast": "graveyard"
+  },
+  "attackers": {
+   "obeast": true
+  },
+  "life": {
+   "1": 18
+  },
+  "graveyard": {
+   "0": [
+    "Liliana, Waker of the Dead"
+   ],
+   "1": [
+    "Opp Beast"
+   ]
+  }
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b24d1540-ed8b-4df3-abfe-1b8492a58388",
+ "name": "Pestilent Haze",
+ "text_sha": "08c71b6664f10cf2cd5515382bbb6923cdbf31d4ec02d9c35b946712af356468",
+ "verified": {
+  "tree_sha": "5a99479538fa60d3d47f84ae1866edc7933c50c11d7e4f60927a34b3731a6a1e",
+  "probe_sha": "07f0d23370c920cec7e080f5e56802a1bb5865a741bdb0b6a3e4a6585c98bfb5",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "SpellAbility effect Choose(count QConst(1)) over the two options; the probe casts modes=[0] and modes=[1] separately",
+    "issue": ""
+   },
+   {
+    "clause": "• All creatures get -2/-2 until end of turn.",
+    "status": "OK",
+    "evidence": "option 0 (= canonical B5c-bullet-all-pt) MODIFY_PT -2/-2 DurationEot over ALL creatures. [cast modes=[0]] both sides: you_bear, opp_bear 2/2 and opp_flier 1/1 die; you_giant, opp_giant 4/4 -> 2/2; opp_tapped 3/3 -> 1/1; 'after the turn ends' each back to its printed size. Locked set (CR 611.2c): pack Pbae93a856e_pestilent_haze_locked_set.json PASS (a creature entering afterwards is unaffected)",
+    "issue": ""
+   },
+   {
+    "clause": "• Remove two loyalty counters from each planeswalker.",
+    "status": "OK",
+    "evidence": "option 1 (= canonical B5c-bullet-remove-loyalty) REMOVE_COUNTER 2 LOYALTY from ALL planeswalkers. [cast modes=[1]] no planeswalker on the standard board, so nothing changes (creatures untouched). Pack Pbae93a856e_pestilent_haze_loyalty_mode.json PASS (your walker 6 -> 4, the opponent's at 2 goes to 0 and dies, creatures untouched)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/pestilent_haze_1.json",
+   "tools/scenarios/cards/M21/pestilent_haze_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 6,
+   "score": 0.75,
+   "survived": [
+    "amount+1 at 1/0/effect/options/1/args/count",
+    "amount-1 at 1/0/effect/options/1/args/count"
+   ]
+  }
+ }
+}

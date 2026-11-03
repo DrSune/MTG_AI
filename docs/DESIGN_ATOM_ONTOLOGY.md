@@ -66,8 +66,8 @@ Detection rule (binding, single source `tools/audit/atom_field_table.py` — it
 regenerates this table AND the checker's CLASSIFY dict, exiting nonzero on any
 UNCLASSIFIED runtime field or STALE dict entry; `/126` carries the table rows):
 a CONTAINER field = annotation contains `tuple[` | `frozenset[` | `list[`.
-Runtime scan: **25 container fields** = 24 `tuple[` + 1 `frozenset[`
-(`CardRecord.color_identity`), 80 classes, zero unclassified.
+Runtime scan: **26 container fields** = 25 `tuple[` + 1 `frozenset[`
+(`CardRecord.color_identity`), 80 classes, zero unclassified (R5-11 added `TokenSpec.colors`).
 
 | class.field | annotation | CLASSIFY | canonical form |
 |---|---|---|---|
@@ -79,6 +79,7 @@ Runtime scan: **25 container fields** = 24 `tuple[` + 1 `frozenset[`
 | FAnd.children / FOr.children | tuple[Filter,…] | **SET-R1a** | construction sort by canonical_json(child) + same-class flatten + single-child unwrap (eval purity gate-verified binding.py:219–236) |
 | CardRecord.keywords | tuple[KeywordAbility,…] | **SET-R1a** | grant-membership order-free (keyword_of scans; same-timestamp layers re-order by layer rules) — sort (v3→v4 gate A2: field was MISSING from v3) |
 | TokenSpec.types/subtypes/keywords | tuple | **SET-R1a** | COMPILER-EMITTED data, not oracle print (v4 gate A4: canonicalize, not declare divergence) — sort |
+| TokenSpec.colors | tuple[str,…] | **SET-R1a** | R5-11 (replaces the scalar `color`): the token's colour set, WUBRG letters sorted in WUBRG order (CR 105.1), omitted when colourless |
 | FAtom.colors | tuple[str,…] | **SET-R1a** | filter membership only — sort |
 | EtBState.initial_counters | tuple[(CounterKind,Quantity),…] | **SET-R1a** | counter dict keyed by kind; sort |
 | Cost.parts | tuple[CostPart,…] | **SET-R1b** | payment order-free (PAYMENT_ORDER legality.py:138) but planning order-keyed (:721 min-clamp, :755 hybrid append, failure-string, witness digest) ⇒ sort ONLY after planning-determinization |

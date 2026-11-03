@@ -1250,7 +1250,9 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
                 ),
             ),
         ),
-        ("CostLoyalty zero", lambda: at.CostLoyalty(0)),
+        # re-pinned 2026-10-30: R5-7 makes the int 0 legal (a [0] loyalty
+        # ability, CR 606.2/606.4); QConst(0), its twin spelling, stays refused.
+        ("CostLoyalty QConst zero", lambda: at.CostLoyalty(at.QConst(0))),
         ("CostManaHybrid same colour", lambda: at.CostManaHybrid(("W", "W"), q)),
         ("CostManaHybrid bad colour", lambda: at.CostManaHybrid(("W", "X"), q)),
         ("CostManaColor bad colour", lambda: at.CostManaColor("Q", q)),

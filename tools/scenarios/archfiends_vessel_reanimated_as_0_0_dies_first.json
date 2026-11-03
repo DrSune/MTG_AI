@@ -1,0 +1,51 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "W4-4 (CR 117.5, 704.3, 704.5f; review wave 4, fixed 2026-10-30). The zone half of the review's archfiends_vessel_no_demon_if_not_exiled pack. The opponent's Kaervek, the Spiteful gives other creatures -1/-1, so the 1/1 Vessel that Rise Again returns enters as a 0/0. State-based actions are performed before its enter trigger resolves: the Vessel dies first, and the trigger can no longer exile it (it is a new object in the graveyard). Before the fix the settle resolved the trigger first and the Vessel was exiled. The Demon the trigger then makes is the compiler's 'If you do' gate, another lane, so this pack does not count tokens.",
+ "cards": [
+  {
+   "key": "kaervek",
+   "real": "Kaervek, the Spiteful",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "vessel",
+   "real": "Archfiend's Vessel",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "rise",
+   "real": "Rise Again",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Rise Again",
+   "key": "rise",
+   "targets": [
+    "vessel"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "vessel": "graveyard",
+   "rise": "graveyard",
+   "kaervek": "battlefield"
+  }
+ }
+}

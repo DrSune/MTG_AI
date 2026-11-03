@@ -329,9 +329,13 @@ class TestRegistryLaws(unittest.TestCase):
         p = _pairs(atom)
         sel = p["target"]
         self.assertIs(sel.zones[0].kind, ZoneKind.STACK)
-        self.assertIsInstance(sel.filter, FOr)
+        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into the filter
+        self.assertIsInstance(sel.filter, FAnd)
+        kind, types = sorted(sel.filter.children, key=lambda c: isinstance(c, FOr))
+        self.assertEqual(kind, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"))
+        self.assertIsInstance(types, FOr)
         self.assertEqual(
-            sorted(k.string_value for k in sel.filter.children),
+            sorted(k.string_value for k in types.children),
             ["Creature", "Planeswalker"],
         )
         unless = p["unless"]

@@ -1,0 +1,25 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sb", "real": "Liliana's Standard Bearer", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Doomed A", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "c1", "amount": 1, "controller": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"B": 3}},
+  {"op": "cast", "real": "Liliana's Standard Bearer", "key": "sb"}
+ ],
+ "expect": {
+  "zone": {"sb": "battlefield", "c1": "graveyard"},
+  "hand": {"0": 2},
+  "turn_seats": [0, 1, 0]
+ },
+ "notes": "Printed: 'draw X cards, where X is the number of creatures that died under your control this turn.' My creature died on turn 1; on my turn 3 no creature has died, so X = 0. Hand = Top Junk (opening draw) + the turn-3 draw = 2, nothing more."
+}

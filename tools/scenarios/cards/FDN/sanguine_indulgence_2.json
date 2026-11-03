@@ -1,0 +1,100 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'costs {3} less to cast if YOU'VE gained 3 or more life this turn.' You gain only 2 (your Bishop's Soldier) while the opponent gains 3 (their Bishop's Soldier): no reduction, so casting from a pool of four B spends all four ({3}{B}). One target returns.",
+ "cards": [
+  {
+   "key": "si",
+   "real": "Sanguine Indulgence",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "soldier",
+   "real": "Bishop's Soldier",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "osoldier",
+   "real": "Bishop's Soldier",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "dummy",
+   "name": "Dummy",
+   "type": "Creature",
+   "power": "0",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mydummy",
+   "name": "My Dummy",
+   "type": "Creature",
+   "power": "0",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fa",
+   "name": "Fallen A",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "soldier",
+   "target": "dummy",
+   "amount": 2
+  },
+  {
+   "op": "deal_damage",
+   "source": "osoldier",
+   "target": "mydummy",
+   "amount": 3,
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "real": "Sanguine Indulgence",
+   "key": "si",
+   "targets": [
+    "fa"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 23
+  },
+  "zone": {
+   "si": "graveyard",
+   "fa": "hand"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "damage": {
+   "dummy": 2,
+   "mydummy": 3
+  }
+ }
+}

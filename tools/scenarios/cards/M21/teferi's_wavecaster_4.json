@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (option 0: search count, the searched library's controller, the destination hand). Printed: 'When this creature enters, you may search your library and/or graveyard for A card named Teferi, Timeless Voyager, reveal it, and put it INTO YOUR HAND.' The controller chooses to search your library and graveyard; one copy waits in each. The library copy is picked: it goes to your hand, the graveyard copy stays.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Teferi's Wavecaster",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "lib",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "src",
+   "decisions": [
+    "fire",
+    "0",
+    "lib"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "battlefield",
+   "lib": "hand",
+   "gy": "graveyard"
+  }
+ }
+}

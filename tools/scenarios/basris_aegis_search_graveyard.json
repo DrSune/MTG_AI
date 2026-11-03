@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ba", "real": "Basri's Aegis", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Guard One", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "pal", "real": "Basri, Devoted Paladin", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 4}},
+ "steps": [
+  {"op": "cast", "key": "ba", "real": "Basri's Aegis", "targets": ["c1"], "decisions": ["fire", "yes", "pal"]}
+ ],
+ "expect": {
+  "zone": {"ba": "graveyard", "pal": "hand"},
+  "counters": {"c1": {"PLUS_1_PLUS_1": 1}}
+ },
+ "notes": "M21 G2 spec: Basri's Aegis. On resolution the caster may search the graveyard for Basri, Devoted Paladin and put it into hand. The card starts in the graveyard (not the library, so the runner's opening draw cannot fake the result)."
+}

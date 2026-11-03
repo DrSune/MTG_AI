@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "h", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 0},
+  {"key": "inst", "name": "Some Instant", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "library", "controller": 0},
+  {"key": "ench", "name": "Some Enchantment", "type": "Enchantment", "zone": "library", "controller": 0},
+  {"key": "art", "name": "Some Artifact", "type": "Artifact", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn Card", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"h": true}, "may": {"h": true}}
+ ],
+ "expect": {"life": {"1": 16}, "zone": {"basri": "library", "inst": "library", "art": "library", "ench": "library", "drawn": "hand"}, "hand": {"0": 1},
+   "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "*", "*", "*", "*"]}},
+ "notes": "Printed: 'You may reveal a CREATURE card or GARRUK planeswalker card from among them ...'. The four looked-at cards are an artifact, an enchantment, a non-Garruk planeswalker (Basri Ket) and an instant: none may be taken, so the hand gains nothing and all four go to the bottom of the library (the six creature fillers below them are now on top)."}

@@ -1,0 +1,80 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "53b17c51-a216-484f-80df-3904284df0ea",
+ "name": "Chandra's Firemaw",
+ "text_sha": "81044673ad9f5571a4612fc767f775d670c9a8aefd39c574fbd44e0f120a901b",
+ "verified": {
+  "tree_sha": "518b1febb92e78b1392e7a7ee7a573bfa86867c38cf4087abc2029534b34af4f",
+  "probe_sha": "af6ff646a93a2a83d698603096add011af6e4065aabdd8b7564613c737de6d44",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5Q",
+  "clauses": [
+   {
+    "clause": "Creature {3}{R}{R} 4/2",
+    "status": "OK",
+    "evidence": "[cast]: mana R-2 W-3, enters as 4/2. [attacks alone, unblocked]: deals 4.",
+    "issue": ""
+   },
+   {
+    "clause": "Haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's attack variants use a copy already on the battlefield at setup (never summoning-sick), so they cannot show haste. Pack Pa890036926_firemaw_haste_attacks_the_turn_it_enters.json: the Firemaw and a 3/3 without haste both enter from hand this turn. Only the Firemaw is asked to attack (debug: attack:card:0 [ATTACK, DECLINE]; the 3/3 is never asked) and it deals 4 (20 -> 16). PASSES. Tree: KeywordAbility(HASTE).",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you may search your library and/or graveyard (the may and the choice of zones)",
+    "status": "OK",
+    "evidence": "[cast]: ask may [fire, skip] then ask choose [0, 1, 2] (library+graveyard / library / graveyard). Declinable ('| ask 1 -> skip'), each option played ('| ask 2 -> 1', '| ask 2 -> 2'). [from your hand, the card enters during the opponent's turn]: trigger [0] fires on any entry. Tree: ETB of IS_SOURCE, OptionalEffect(Choose(1, three Seqs)).",
+    "issue": ""
+   },
+   {
+    "clause": "for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe zones hold no Chandra. Pack Pa890036926_firemaw_library_only.json (option 1: Chandra library -> hand, the graveyard card stays). Pack Pa890036926_firemaw_graveyard_only_no_shuffle.json (option 2: Chandra graveyard -> hand). Pack Pa890036926_firemaw_both_zones_one_card.json (option 0, one Chandra in each zone: the one_of offers both, exactly one comes to hand and the other stays in the graveyard). All PASS. Tree: SEARCH count 1 NAME_EQ \"Chandra, Flame's Catalyst\" -> your hand.",
+    "issue": "The REVEAL count=1 idiom reveals the library's top card (card:9 in the pack run), not the Chandra found. Information only (nothing reads REVEAL events)."
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack Pa890036926_firemaw_graveyard_only_no_shuffle.json: only the graveyard is searched, and the library keeps its exact setup order. PASSES. Debug log of the both_zones pack: SHUFFLE of player:0's library after the search. Tree: SHUFFLE in options 0 and 1 only.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chandra's_firemaw_1.json",
+   "tools/scenarios/cards/M21/chandra's_firemaw_2.json",
+   "tools/scenarios/cards/M21/chandra's_firemaw_3.json",
+   "tools/scenarios/cards/M21/chandra's_firemaw_4.json",
+   "tools/scenarios/cards/M21/chandra's_firemaw_5.json",
+   "tools/scenarios/cards/M21/chandra's_firemaw_6.json",
+   "tools/scenarios/cards/M21/chandra's_firemaw_7.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 5,
+   "score": 0.20833333333333334,
+   "survived": [
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
+   ]
+  }
+ }
+}

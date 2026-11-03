@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vito", "real": "Vito, Thorn of the Dusk Rose", "zone": "battlefield", "controller": 0},
+  {"key": "ff", "real": "Faith's Fetters", "zone": "hand", "controller": 1},
+  {"key": "mine", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "ff", "host": "mine"}
+ ],
+ "expect": {
+  "attached": {"ff": "mine"},
+  "life": {"0": 20, "1": 24}
+ },
+ "notes": "P7111e87bf7 G4: 'Whenever YOU gain life'. The opponent's Faith's Fetters makes the opponent gain 4: Vito does not trigger, so neither player loses life."
+}

@@ -1,0 +1,200 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h0",
+   "name": "Hand 0",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h1",
+   "name": "Hand 1",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h2",
+   "name": "Hand 2",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h3",
+   "name": "Hand 3",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h4",
+   "name": "Hand 4",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h5",
+   "name": "Hand 5",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h6",
+   "name": "Hand 6",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h7",
+   "name": "Hand 7",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h8",
+   "name": "Hand 8",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o0",
+   "name": "Opp Hand 0",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o1",
+   "name": "Opp Hand 1",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "name": "Opp Hand 2",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "name": "Opp Hand 3",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o4",
+   "name": "Opp Hand 4",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o5",
+   "name": "Opp Hand 5",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o6",
+   "name": "Opp Hand 6",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o7",
+   "name": "Opp Hand 7",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o8",
+   "name": "Opp Hand 8",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn",
+   "decisions": [
+    "h3",
+    "h7"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 7,
+   "1": 9
+  },
+  "zone": {
+   "h3": "graveyard",
+   "h7": "graveyard",
+   "h0": "hand",
+   "h8": "hand",
+   "o0": "hand"
+  },
+  "graveyard": {
+   "0": [
+    "Hand 3",
+    "Hand 7"
+   ],
+   "1": []
+  }
+ },
+ "notes": "V36, CR 514.1 and 402.2: in the cleanup step the active player discards down to their maximum hand size, seven, choosing the cards (CR 701.9b). Seat 0 ends its turn with nine cards in hand (the opening draw step draws nothing: the pack's libraries are filled after it) and picks Hand 3 and Hand 7. The opponent's nine cards stay: only the active player discards."
+}

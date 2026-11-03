@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "306549ad-84c7-4983-840b-9663799e9f40",
+ "name": "Rousing Read",
+ "text_sha": "bdaf36d8e8a926781d93a6375618171b203c27009fd5da4097ed2cf8755f0529",
+ "verified": {
+  "tree_sha": "4c80056453e238900e9d70c55767758ea0fa3cb0e043f9f26034a85baea0386c",
+  "probe_sha": "9bd486a61faa7663810390d675ef74f3559d315cacb8b8f532482315e5c44271",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "Keyword ENCHANT params TYPE_EQ 'Creature'. Cast target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: creatures of both players only (no relic/charm/lands). Cost U-1 W-2 = {2}{U}.",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, draw two cards, then discard a card.",
+    "status": "OK",
+    "evidence": "Every [cast targets=...] variant: triggered ability [0], two DRAW events, then 'ask one_of' over the whole hand including both drawn cards, and the chosen card (you_spare / you_trick / you_land_drop / ... / you:Library 5#1 in the alternative variants) moves hand -> graveyard. Packs rousing_read_on_bear_flying and rousing_read_choice_and_leaves (controller discards Junk, not the lowest-handle Keeper; hand 3) PASS on the live tree and on this packet's tree.",
+    "issue": "The discard selector is mode ONE_OF; the compiler template B2a-rousing-read emits CHOOSE, which in the hand-discard lane silently takes the lowest handle (see Kinetic Augur). ONE_OF is the faithful one here. Engine note: the probe's 'enters during the opponent's turn' stimulus puts the Aura onto the battlefield without a host; it draws two, discards, then dies as an unattached Aura, where CR 303.4f has the player choose what it enchants as it enters (harness path; reachable via Ugin's -10)."
+   },
+   {
+    "clause": "Enchanted creature gets +1/+1 and has flying.",
+    "status": "OK",
+    "evidence": "Each cast: host +1/+1 and keywords +FLYING (you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, opp_bear, opp_tapped, opp_giant likewise; opp_flier 1/1 -> 2/2, already flying), nothing wears off at end of turn. Pack rousing_read_choice_and_leaves: after Thrashing Brontodon destroys the Aura the Bear is 2/2 with no flying. Tree equal to parse template B5a-enchant-pt-flying.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/rousing_read_1.json",
+   "tools/scenarios/cards/M21/rousing_read_2.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 16,
+   "score": 0.8421052631578947,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/args/target/filter"
+   ]
+  }
+ }
+}

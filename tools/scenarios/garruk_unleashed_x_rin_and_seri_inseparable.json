@@ -38,13 +38,6 @@
    "controller": 1
   }
  ],
- "mana": {
-  "1": {
-   "W": 4,
-   "G": 4,
-   "C": 4
-  }
- },
  "steps": [
   {
    "op": "loyalty",
@@ -62,6 +55,15 @@
   },
   {
    "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "W": 4,
+    "G": 4,
+    "C": 4
+   }
   },
   {
    "op": "enter",
@@ -113,5 +115,5 @@
    "1": 20
   }
  },
- "notes": "HUNT H3 pair 5 (heat 2160, FALSE-census contrast x cross-seat cast triggers x token-name lanes). Garruk, Unleashed (seat 0) -2 FIRST creates its 3/3 Beast, THEN censuses 'if an opponent controls more creatures than you': seat 1 = Rin alone = 1 vs seat 0 = Garruk + Beast = 2 -> FALSE branch, no loyalty rebate, 6-2 = 4 (the TRUE branch is lit by alpine_houndmaster_x_garruk_unleashed; same ability, opposite census answer - together they pin both printed outcomes). Dance to seat 1's window, then the Rin and Seri printed cast triggers fire for the OPPONENT of Garruk: cast a Dog spell (Alpine Watchdog, no EtB ask) -> 'create a Cat creature token'; cast a Cat spell (Pridemalkin, EtB counter decision 'r') -> 'create a Dog creature token' AND the +1/+1 counter rides Rin to power 5 (rin_and_seri_cast_triggers precedent lanes). Token lane is keyed by printed token name, merged across seats (basri_ket_x_elder_gargaroth precedent): Beast 1 (seat 0) + Cat 1 + Dog 1 (seat 1); Cat printed 1/1 via battlefield_pt. Falsifiers: loyalty 5 (rebate fired on a false census), Cat/Dog 0 (cast trigger blind to cross-seat... they are seat 1's own casts - a lost trigger zeroes both), battlefield_pt [2,2] (token PT printed wrong), power r 4 (EtB counter lost). eval-granularity 2026-10-05: Stray Aurochs (hand) ENTERS after the Garruk census \u2014 loyalty stays on the\nFALSE-branch 4 \u2014 but it is on the battlefield for the Pridemalkin ETB menu: null card:0\ncountered the aurochs, falsified by power[r]."
+ "notes": "HUNT H3 pair 5 (heat 2160, FALSE-census contrast x cross-seat cast triggers x token-name lanes). Garruk, Unleashed (seat 0) -2 FIRST creates its 3/3 Beast, THEN censuses 'if an opponent controls more creatures than you': seat 1 = Rin alone = 1 vs seat 0 = Garruk + Beast = 2 -> FALSE branch, no loyalty rebate, 6-2 = 4 (the TRUE branch is lit by alpine_houndmaster_x_garruk_unleashed; same ability, opposite census answer - together they pin both printed outcomes). Dance to seat 1's window, then the Rin and Seri printed cast triggers fire for the OPPONENT of Garruk: cast a Dog spell (Alpine Watchdog, no EtB ask) -> 'create a Cat creature token'; cast a Cat spell (Pridemalkin, EtB counter decision 'r') -> 'create a Dog creature token' AND the +1/+1 counter rides Rin to power 5 (rin_and_seri_cast_triggers precedent lanes). Token lane is keyed by printed token name, merged across seats (basri_ket_x_elder_gargaroth precedent): Beast 1 (seat 0) + Cat 1 + Dog 1 (seat 1); Cat printed 1/1 via battlefield_pt. Falsifiers: loyalty 5 (rebate fired on a false census), Cat/Dog 0 (cast trigger blind to cross-seat... they are seat 1's own casts - a lost trigger zeroes both), battlefield_pt [2,2] (token PT printed wrong), power r 4 (EtB counter lost). eval-granularity 2026-10-05: Stray Aurochs (hand) ENTERS after the Garruk census — loyalty stays on the\nFALSE-branch 4 — but it is on the battlefield for the Pridemalkin ETB menu: null card:0\ncountered the aurochs, falsified by power[r]. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

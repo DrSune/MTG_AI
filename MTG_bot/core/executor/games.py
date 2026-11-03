@@ -53,8 +53,11 @@ repro test in ``test_executor_games.py``; ``--repro SEED`` replays one game with
 the traceback printed.
 
 Known ceilings the harness deliberately does NOT hide (all in
-``KNOWLEDGE/2026-09-30/03``): mana is never emptied between steps (there is no
-CR 305.2 rule in the executor, so survival is optimistic), the CR 121.3
+``KNOWLEDGE/2026-09-30/03``): since V2 (2026-10-29) the pool empties as each step
+and phase ends (CR 500.5); the FIRST_MAIN batch pays from what the policy tapped,
+and a payment outside it (a response window, "you may pay", "unless ... pays") taps
+a minimal set of the payer's {T}-only mana abilities, chosen by the engine (B-90
+(a), a scaffold: CR 605.3a lets the player choose), the CR 121.3
 draw-from-empty loss is a harness-side state check (13a left it out of the
 verbs), and a spell with more than one TARGET selector has no designation
 channel, which the policy filters rather than hands the engine a broken cast.
@@ -90,8 +93,10 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    is_mana_ability,
     walk,
 )
+from MTG_bot.core.compiler.card_records import is_verified, load_records
 from MTG_bot.core.compiler.compiler import PoolCompile, compile_pool
 from MTG_bot.core.compiler.coverage import (
     ShapeGap,
@@ -107,12 +112,14 @@ from MTG_bot.core.executor.query import (
     CastOption,
     TargetSlot,
     activation_target_slots,
+    cast_mode_options,
     legal_activations,
     legal_casts,
+    modal_choose,
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.stack import cast, cast_modes, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -212,6 +219,10 @@ class Supply:
     #: whose power is defined by a card-type census the current quantity
     #: grammar cannot express — see KNOWLEDGE/2026-10-18/99).
     shape_gaps: tuple[ShapeGap, ...] = ()
+    #: docs/PLAN_CARD_ONBOARDING.md: cards whose current tree passed play-time verification (a
+    #: card record's ``verified.tree_sha`` equals the tree dealt). Empty for a set with no
+    #: records (M21 today).
+    verified_ids: frozenset[str] = frozenset()
 
 
 _SUPPLY_CACHE: dict[str, Supply] = {}
@@ -226,7 +237,27 @@ def get_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     return supply
 
 
-def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
+def _rescued(raw: dict, oid: str, records: dict, require_verified: bool) -> bool:
+    """Does the card record rescue this refused card (current text, verified if required)?"""
+    if "ir" not in records.get(oid, {}):
+        return False
+    try:
+        result = compile_pool(
+            {oid: raw[oid]}, build_full_registry(), records=records,
+            require_verified=require_verified,
+        ).results[oid]
+    except StateCorruptionError:
+        return False
+    return result.record is not None
+
+
+def compile_supply(
+    mode: str = "all",
+    set_code: str = SET_CODE,
+    *,
+    records: dict | None = None,
+    require_verified: bool = True,
+) -> Supply:
     """Compile the set the way the measurement harness does and build the deck
     view. ``mode`` picks the dealt set:
 
@@ -242,9 +273,19 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
       DESIGN_CARD_POOL.md:219); this one plays only cards whose whole text is in
       the tree. It equals ``castable`` on M21; it is how a new set (M20, KHM)
       is played honestly while its grammar rounds run (KNOWLEDGE /159).
+    * ``verified`` — compiled AND its current tree passed the play-time gates of
+      docs/PLAN_CARD_ONBOARDING.md (a card record under ``MTG_bot/data/cards/<SET>/``
+      whose ``verified.tree_sha`` matches). Cards mapped by agents enter every mode only
+      once verified; this mode also leaves out compiled cards nobody verified yet.
+
+    ``records`` defaults to the set's card records on disk. The card tooling
+    (tools/cards) passes its own, with ``require_verified=False``, to play a draft
+    tree before it is verified; games never do.
     """
-    if mode not in ("all", "engine", "castable", "compiled"):
-        raise ValueError(f"unknown pool_mode {mode!r} (all|engine|castable|compiled)")
+    if mode not in ("all", "engine", "castable", "compiled", "verified"):
+        raise ValueError(
+            f"unknown pool_mode {mode!r} (all|engine|castable|compiled|verified)"
+        )
     started = time.perf_counter()
     raw = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json")
     registry = build_full_registry()
@@ -261,13 +302,20 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     # drop). M21 has zero shape gaps: the fast path below runs unchanged
     # and its supply stays byte-identical.
     shape_gaps: tuple[ShapeGap, ...] = ()
+    if records is None:
+        records = load_records(set_code)
     try:
-        pool = compile_pool(raw, registry)
+        pool = compile_pool(raw, registry, records=records, require_verified=require_verified)
     except StateCorruptionError:
         _tolerated, gap_rows = _compile_pool_tolerant(raw, registry)
+        # A refused card that a verified card record rescues stays in; every other refusal is
+        # a shape gap as before.
+        gap_rows = [
+            gap for gap in gap_rows if not _rescued(raw, gap.card, records, require_verified)
+        ]
         dropped = {gap.card for gap in gap_rows}
         raw = {oid: rc for oid, rc in raw.items() if oid not in dropped}
-        pool = compile_pool(raw, registry)
+        pool = compile_pool(raw, registry, records=records, require_verified=require_verified)
         shape_gaps = tuple(gap_rows)
         for gap in gap_rows:
             print(
@@ -277,7 +325,10 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     # The 12e second pass, exactly as tools/measure_grammar.py runs it: the
     # ungated pass stamps every card supported (the template's True default),
     # so the 286 number ONLY exists in the gated fold.
-    gated = compile_pool(raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2))
+    gated = compile_pool(
+        raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2), records=records,
+        require_verified=require_verified,
+    )
     engine_ids = frozenset(
         oid for oid, res in gated.results.items() if res.legality.engine_supported
     )
@@ -309,11 +360,14 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
     playable_engine = frozenset(
         oid for oid, meta in metas.items() if meta.engine_supported and meta.playable
     )
+    verified = frozenset(
+        oid for oid in metas if is_verified(pool.results[oid], records.get(oid))
+    )
     if mode == "all":
         deckable = tuple(sorted(metas))
     elif mode == "engine":
         deckable = tuple(sorted(oid for oid in engine_ids if oid in metas))
-    elif mode == "compiled":
+    elif mode in ("compiled", "verified"):
         deckable = tuple(
             sorted(
                 oid
@@ -323,6 +377,7 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
                     or pool.results[oid].ambiguities
                     or pool.results[oid].back_face_unparsed
                 )
+                and (mode == "compiled" or oid in verified)
             )
         )
     else:
@@ -338,6 +393,7 @@ def compile_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
         playable_engine_ids=playable_engine,
         pool_seconds=time.perf_counter() - started,
         shape_gaps=shape_gaps,
+        verified_ids=verified,
     )
 
 
@@ -363,6 +419,11 @@ def identity_of(record: CardRecord) -> CardIdentity:
         # never ran and every cast planeswalker entered with an empty
         # counters map. One field, one path — the seed itself is unchanged.
         loyalty=str(record.loyalty) if record.loyalty is not None else None,
+        # Fixer 3 (2026-10-30): a token record (the scenario runner's by-name token
+        # lane, "real": "Treasure") stays a token in the world, so the token rules
+        # see it (CR 704.5d ceasing to exist, IS_TOKEN filters). Dealt decks never
+        # hold token records (compile_supply filters them), so dealing is unchanged.
+        is_token=bool(record.is_token),
     )
 
 
@@ -525,13 +586,14 @@ class RandomPolicy:
     # -- the act surface
     @staticmethod
     def is_mana_activation(option: ActivationOption) -> bool:
-        """'Tap it for mana' recognised from the IR of the option the query
+        """A mana ability, recognised from the IR of the option the query
         handed over (the very ``ActivatedAbility`` the executor will run), not
-        from a card-name table."""
-        atoms = [node for node in walk(option.ability.effect) if isinstance(node, Atom)]
-        return bool(atoms) and all(
-            node.verb in (Verb.ADD_MANA, Verb.TAP) for node in atoms
-        )
+        from a card-name table. R5-7: the one CR 605.1a classifier
+        (:func:`~MTG_bot.core.ability_tree.is_mana_ability`) decides; the old
+        "only ADD_MANA or TAP atoms" test counted "tap target creature"
+        (Shacklegeist) as a mana ability and missed a mana ability that does
+        something else too."""
+        return is_mana_ability(option.ability)
 
     def mana_activations(
         self, options: list[ActivationOption]
@@ -576,7 +638,16 @@ class RandomPolicy:
         assert isinstance(node, SpellAbility)  # a non-land legal_casts row has one
         name = game.name_of(row.handle)
         game.attempted = f"cast:{name}"
-        slots = spell_target_slots(executor, node, spell_handle=row.handle, seat=seat)
+        # V17 (CR 601.2b-c): a modal spell's modes are announced first, through
+        # the decision channel (the provider answers, as it did at resolution),
+        # and only the chosen modes' targets are designated.
+        modes: tuple[int, ...] | None = None
+        if modal_choose(node) is not None:
+            if not cast_mode_options(executor, node, spell_handle=row.handle, seat=seat):
+                game.infeasible_skips += 1  # no mode can be chosen (CR 700.2a)
+                return
+            _token, modes, _rest = cast_modes(executor, seat, row.handle, node)
+        slots = spell_target_slots(executor, node, spell_handle=row.handle, seat=seat, modes=modes)
         if len(slots) > 1:
             # v1 has ONE designation tuple per cast, so a multi-slot spell cannot
             # be designated (``stack._validate_spell_targets`` raises
@@ -601,6 +672,7 @@ class RandomPolicy:
             seat,
             row.handle,
             kicked=row.kicked,
+            mode_choices=modes or (),
             targets=tuple(targets),
         )
         self._log(game, "cast", name, f"{len(targets)}t")
@@ -672,6 +744,8 @@ class RandomPolicy:
         for _ in range(self.max_acts):
             if game.over_reason() is not None:
                 return
+            if not executor.turn_open:
+                break  # V37 (CR 724.1): an effect ended the turn; no one acts in it again
             rows = legal_casts(world, executor, seat)
             lands = [row for row in rows if row.land]
             spells = [
@@ -786,7 +860,7 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         }
         for f in executor.stack.frames
     ]
-    return {
+    snapshot: dict[str, Any] = {
         "turn": world.turn,
         "phase": executor.phase,
         "active": str(world.active_player) if world.active_player else None,
@@ -796,6 +870,11 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         "stack_dump": [repr(row) for row in executor.stack.dump()],
         "land_plays": {str(seat): list(v) for seat, v in executor.land_ledger.items()},
     }
+    if executor.returns.rows:
+        # Ontology R5-1 (CR 610.3): the return registry, as state_fingerprint folds it
+        # (only while a row exists, so traces without one keep their bytes).
+        snapshot["returns"] = [repr(row) for row in executor.returns.dump()]
+    return snapshot
 
 
 def game_name(world: GameWorld, handle: object) -> str:

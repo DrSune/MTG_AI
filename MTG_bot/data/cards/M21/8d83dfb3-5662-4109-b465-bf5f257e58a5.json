@@ -1,0 +1,51 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8d83dfb3-5662-4109-b465-bf5f257e58a5",
+ "name": "Tide Skimmer",
+ "text_sha": "2fa91618235db280ef07b01abba9732a48275a88d5cfd125350ecec4e8a680c3",
+ "verified": {
+  "tree_sha": "6942c778b068b267f517d9ed0ffc26238871b591c91cde3bceebc8f8a1e5199b",
+  "probe_sha": "931f5eafda05add58570cd8f9031838129c9af9ad163cc35e102b1a2138140dd",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "Static: card keywords FLYING. [this creature attacks and opp_giant blocks it]: the non-flying giant cannot block it (no DECLARE_BLOCKERS row), opp is dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you attack with two or more creatures with flying, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: attacking alone, the trigger is checked and nothing is drawn (right); no attack with two fliers happens. Tree equals the compiler's parse (B2b-attack-two-flying-draw). Packs: tide_skimmer_two_fliers_draw (it and a flier attack: hand 0 -> 1) PASS; tide_skimmer_three_fliers_one_draw (three fliers attack: still exactly one card) PASS; tide_skimmer_home_two_other_fliers_draw (it stays home, two other fliers attack: one card) PASS; tide_skimmer_flier_and_ground_no_draw (it and a non-flier attack: no card) PASS, which kills a mutant whose count ignores flying; tide_skimmer_opponent_fliers_no_draw (two opposing fliers attack you: no card) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/tide_skimmer_1.json",
+   "tools/scenarios/cards/M21/tide_skimmer_2.json",
+   "tools/scenarios/cards/M21/tide_skimmer_3.json",
+   "tools/scenarios/cards/M21/tide_skimmer_4.json",
+   "tools/scenarios/cards/M21/tide_skimmer_5.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 4,
+   "score": 0.2857142857142857,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "widen filter (drop part 2) at 1/0/condition/inner_filter",
+    "widen filter (drop part 3) at 1/0/condition/inner_filter",
+    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

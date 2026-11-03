@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7d5dfa6b-f685-4925-b93a-ae5815a3c0a7",
+ "name": "Rain of Revelation",
+ "text_sha": "2930605d6329008530b17167a39a5a7af817916c69cf028032bcfad780e0fec8",
+ "verified": {
+  "tree_sha": "7ce16a59c5bc268b0d0c182a53d793a42920d4ae3fe36d62341b6ab52e058164",
+  "probe_sha": "c65b98f05554e1a6b540ea9de6f61e20799f09933f401c27f0ca4af5e02d2b61",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {3}{U}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); every cast 'mana U-1 W-3' (4 total)",
+    "issue": ""
+   },
+   {
+    "clause": "Draw three cards,",
+    "status": "OK",
+    "evidence": "DRAW 3 YOU; every variant: three 'you draws' events (Library 5#1, 4#1, 3#1), library 6 -> 3",
+    "issue": ""
+   },
+   {
+    "clause": "then discard a card.",
+    "status": "OK",
+    "evidence": "MOVE_ZONE ONE_OF 1 from your hand -> your graveyard, after the draws: 'ask one_of' offers all 8 hand cards including the 3 just drawn, no skip word; each of the 8 answers moves exactly that card hand -> graveyard; hand 6 -> 7 (= 6 - 1 cast + 3 - 1). Packs (live tree) PASS: /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P5e274204ce_rain_discard_choice.json (the named card, not the first sorted one, is discarded) and /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P5e274204ce_rain_discard_mandatory.json (answering NONE still discards exactly one)",
+    "issue": "note: the packet uses SelectorMode.ONE_OF where 'parse' (template B5a-draw-three-then-discard) emits CHOOSE ('up to count' in the IR docs). Both packs also pass against a CHOOSE scratch draft (/tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/_drafts/rain_choose.py), so the two are behaviourally the same here: player's choice, mandatory"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/rain_of_revelation_1.json",
+   "tools/scenarios/cards/M21/rain_of_revelation_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Conclave Mentor (M21): 'If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.' Tempered Veteran puts one counter on seat 0's Bear: 2 counters. A second Veteran puts one on seat 1's Bear (not yours): 1 counter. Wildwood Scourge cast with X=3 enters with 3 + 1 = 4 counters (one placement of three).",
+ "cards": [
+  {"key": "mentor", "zone": "battlefield", "controller": 0, "real": "Conclave Mentor"},
+  {"key": "vet", "zone": "battlefield", "controller": 0, "real": "Tempered Veteran"},
+  {"key": "vet2", "zone": "battlefield", "controller": 0, "real": "Tempered Veteran"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "obear", "zone": "battlefield", "controller": 1, "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "ws", "zone": "hand", "controller": 0, "real": "Wildwood Scourge"}
+ ],
+ "mana": {"0": {"W": 12, "G": 4}},
+ "steps": [
+  {"op": "activate", "key": "vet", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "activate", "key": "vet2", "idx": 1, "seat": 0, "targets": ["obear"]},
+  {"op": "cast", "key": "ws", "x": 3}
+ ],
+ "expect": {"counters": {"bear": {"PLUS_1_PLUS_1": 2}, "obear": {"PLUS_1_PLUS_1": 1}, "ws": {"PLUS_1_PLUS_1": 4}, "mentor": {}},
+            "power": {"bear": 4, "obear": 3, "ws": 4}}}

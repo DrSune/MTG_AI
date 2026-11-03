@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Vryn Wingmare, printed 'Noncreature spells cost {1} more to cast.' (every player's). With my Wingmare out, the opponent has exactly {R} and tries Shock ({R} printed, {1}{R} taxed). Expected: the cast is refused; Shock stays in hand and the opponent's R stays in the pool.",
+ "cards": [
+  {"key": "wing", "real": "Vryn Wingmare", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "osh", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "osh", "controller": 1, "targets": ["bear"], "expect_raise": "illegal cast"}
+ ],
+ "expect": {"zone": {"osh": "hand", "bear": "battlefield"}, "mana_pool": {"1": {"R": 1}}}}

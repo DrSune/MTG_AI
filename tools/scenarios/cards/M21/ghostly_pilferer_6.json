@@ -1,0 +1,70 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 and controller YOU->OPPONENT on the draw). Printed: 'Whenever an opponent casts a spell from anywhere other than their hand, draw a card.' On the opponent's turn the opponent's Chandra, Flame's Catalyst uses [-2] ('You may cast target red instant or sorcery card from your graveyard') on Crash Through in the opponent's graveyard: the opponent casts it from the graveyard. The Pilferer's controller (seat 0, empty hand: the pack gives seat 0 no library card, so there is no opening draw) draws exactly one card: hand 0 -> 1. The opponent's hand: its draw-step card plus Crash Through's own draw = 2. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there.",
+ "cards": [
+  {
+   "key": "gp",
+   "real": "Ghostly Pilferer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "loyalty",
+   "key": "cf",
+   "set": 5
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "cf",
+   "idx": 1,
+   "seat": 1,
+   "targets": [
+    "ct"
+   ],
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1,
+   "1": 2
+  },
+  "zone": {
+   "gp": "battlefield",
+   "cf": "battlefield"
+  }
+ }
+}

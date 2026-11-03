@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "My Ox", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "h1", "name": "Hand Card A", "type": "Sorcery", "zone": "hand", "controller": 0},
+  {"key": "h2", "name": "Hand Card B", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "ox": true}}
+ ],
+ "expect": {"zone": {"h1": "graveyard", "h2": "graveyard"}, "tapped": {"sub": true}, "hand": {"0": 1}, "life": {"1": 15}},
+ "notes": "Printed: '{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.' The cost taps Subira and discards both hand cards. The 2-power bear and the 3-power ox both connect (5 damage): only the bear's damage draws, so the hand goes 0 -> 1."}

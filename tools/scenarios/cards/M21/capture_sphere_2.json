@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sphere", "real": "Capture Sphere", "zone": "hand", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "sphere", "real": "Capture Sphere", "targets": ["ob"]},
+  {"op": "move", "key": "sphere", "to": "graveyard"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"zone": {"sphere": "graveyard", "ob": "battlefield"}, "tapped": {"ob": false}},
+ "notes": "Printed: 'Enchanted creature doesn't untap during its controller's untap step.' The restriction lasts only while the Aura is attached: after the Sphere goes to the graveyard, Opp Bear untaps in its controller's next untap step."}

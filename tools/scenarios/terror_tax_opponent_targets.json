@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "An opponent casts Shock targeting Terror of the Peaks: the spell costs an additional 3 life (seat 1: 20 -> 17) on top of {R}; Terror (5/4) takes 2 damage.",
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 1, "targets": ["t"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 17},
+  "zone": {"t": "battlefield", "s": "graveyard"},
+  "damage": {"t": 2},
+  "mana_pool": {"1": {}}
+ }
+}

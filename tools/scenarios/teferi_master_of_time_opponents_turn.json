@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "teferi", "idx": 1, "seat": 0},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "expect_raise": "window:loyalty:once_per_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "counters": {"teferi": {"LOYALTY": 4}},
+  "hand": {"0": 0},
+  "graveyard": {"0": ["Library 5"]}
+ },
+ "notes": "Teferi, Master of Time: 'You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant.' On seat 1's turn seat 0 activates [+1] (draw a card, then discard a card: the drawn top card is the only card in hand, so it is discarded). Loyalty 3 -> 4. CR 606.3 still allows one loyalty ability of the permanent per turn, so a second one ([-3]) is refused the same turn."
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gs", "real": "Gloom Sower", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "b2", "name": "Opp Wolf", "type": "Creature — Wolf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gs": true}, "block": {"b1": "gs", "b2": "gs"}}
+ ],
+ "expect": {
+  "attackers": {"gs": true},
+  "blocked": {"gs": ["b1", "b2"]},
+  "life": {"0": 24, "1": 16},
+  "zone": {"gs": "battlefield", "b1": "graveyard", "b2": "graveyard"},
+  "damage": {"gs": 4}
+ },
+ "notes": "Printed: 'Whenever this creature becomes blocked by a creature, that creature's controller loses 2 life and you gain 2 life.' Two blockers = two triggers: the opponent loses 4 (20 -> 16), you gain 4 (20 -> 24). The 8/6 kills both 2/2s and keeps 4 damage."
+}

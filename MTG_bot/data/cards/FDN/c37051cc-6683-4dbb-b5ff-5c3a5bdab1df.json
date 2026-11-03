@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c37051cc-6683-4dbb-b5ff-5c3a5bdab1df",
+ "name": "Painful Quandary",
+ "text_sha": "4fa98a31ef9fa783dd5184c22ced7d1dac5f81cd5fcdee391c231607188adb7c",
+ "needs_atom": {
+  "missing": "Whenever an opponent casts a spell, that player loses 5 life unless they discard a card.: no node expresses a punisher choice made by the AFFECTED player ('X unless they Y'). The only 'unless' in the IR is COUNTER_SPELL's mana-payment role; Choose is decided by the ability's controller (the Quandary player would pick the worse option for the opponent: stronger than printed); EachPlayer can rotate the chooser but its ref is a ControllerRef with no 'the triggering spell's caster' value (OPPONENT/ALL_OPPONENTS is wrong in multiplayer), and nothing makes the discard branch unavailable to a player with an empty hand. The trigger (CastSpellEvent by an opponent) and 'that player loses 5 life' (LOSE_LIFE controller=Selector referent='event', Gloom Sower shape) are expressible.",
+  "author": "claude-mapper-A",
+  "date": "2026-10-29"
+ }
+}

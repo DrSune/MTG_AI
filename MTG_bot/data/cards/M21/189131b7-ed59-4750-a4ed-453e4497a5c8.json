@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "189131b7-ed59-4750-a4ed-453e4497a5c8",
+ "name": "Indulging Patrician",
+ "text_sha": "e627ba9f4faf27eb956e204379bb050f18321c61563ca5ed6126a1fb9af6bde2",
+ "verified": {
+  "tree_sha": "d780f33aef0eec2a1190fe0e25a2c2e4982354730d6f4da96337647b9cf1353f",
+  "probe_sha": "a8c925846dccdc1d9bda722d71a18e4ab3deaf2e7419f766de53e1fd023583a7",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block row, 1 combat damage to opp (a non-flier cannot block it); keywords +FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: 'you gains 1 life (by card/DEAL_DAMAGE)' with 1 damage dealt; you: life 20 -> 21",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, if you gained 3 or more life this turn, each opponent loses 3 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: fires once at YOUR end step ([stimulus: turns pass ...]; not at the opponent's end step) and with no life gained that turn does nothing; the gain-3 stimulus never reaches an end step. Tree = compiler template B2a-indulging-patrician. Packs: indulging_patrician_gain3_one_event.json (Revitalize: +3 -> opp 20 -> 17) PASS; indulging_patrician_gain3_three_events.json (three 1-life gains -> opp 17) PASS; indulging_patrician_gain2_no_trigger.json (only 2 gained -> opp stays 20) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{W}{B} 1/4 creature",
+    "status": "OK",
+    "evidence": "[cast]: mana B-1 W-2; P/T - -> 1/4",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/indulging_patrician_1.json",
+   "tools/scenarios/cards/M21/indulging_patrician_2.json",
+   "tools/scenarios/cards/M21/indulging_patrician_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 4,
+   "score": 0.4,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "amount-1 at 1/0/effect/args/amount",
+    "controller ALL_OPPONENTS->YOU at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

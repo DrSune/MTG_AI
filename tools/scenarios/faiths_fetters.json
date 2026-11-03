@@ -9,6 +9,15 @@
       "zone": "hand",
       "controller": 0,
       "real": "Faith's Fetters"
+    },
+    {
+      "key": "bear",
+      "name": "Opp Bear",
+      "type": "Creature",
+      "power": "2",
+      "toughness": "2",
+      "zone": "battlefield",
+      "controller": 1
     }
   ],
   "steps": [
@@ -25,7 +34,11 @@
       "0": 24
     },
     "zone": {
-      "ff": "graveyard"
+      "ff": "battlefield"
+    },
+    "attached": {
+      "ff": "bear"
     }
-  }
+  },
+  "notes": "re-pinned 2026-10-29: V32 (CR 303.4f-g) changes an Aura put onto the battlefield without being cast: it enters attached to what its controller chooses, and with nothing legal to enchant it stays in hand. The pack had no permanent, so Faith's Fetters entered unattached, gained 4 and died to 704.5q; it now has the opponent's Bear to enchant (the only candidate, so no ask) and still gains 4."
 }

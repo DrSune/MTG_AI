@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Massacre Wurm (M21): 'When this creature enters, creatures your opponents control get -2/-2 until end of turn. Whenever a creature an opponent controls dies, that player loses 2 life.' The -2/-2 affects only the creatures the opponents control as the ability resolves (CR 611.2c). The Wurm enters: seat 1's Bear dies (seat 1 loses 2: 20 -> 18), seat 1's Ogre 4/4 -> 2/2, seat 0's Bear unaffected. Then a 2/2 enters under seat 1's control later this turn: it is NOT affected and survives as a 2/2.",
+ "cards": [
+  {"key": "wurm", "zone": "hand", "controller": 0, "real": "Massacre Wurm"},
+  {"key": "mybear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "obear", "zone": "battlefield", "controller": 1, "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "ogre", "zone": "battlefield", "controller": 1, "name": "Opp Ogre", "type": "Creature — Ogre", "power": 4, "toughness": 4},
+  {"key": "late", "zone": "hand", "controller": 1, "name": "Late Bear", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "steps": [
+  {"op": "enter", "key": "wurm"},
+  {"op": "enter", "key": "late"}
+ ],
+ "expect": {"zone": {"wurm": "battlefield", "obear": "graveyard", "ogre": "battlefield", "late": "battlefield", "mybear": "battlefield"},
+            "power": {"ogre": 2, "late": 2, "mybear": 2}, "toughness": {"ogre": 2, "late": 2, "mybear": 2}, "life": {"0": 20, "1": 18}}}

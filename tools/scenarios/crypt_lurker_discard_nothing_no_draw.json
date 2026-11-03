@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cl", "real": "Crypt Lurker", "zone": "hand", "controller": 0},
+  {"key": "inst", "name": "Some Instant", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "cl", "real": "Crypt Lurker", "decisions": ["fire", "1"]}
+ ],
+ "expect": {
+  "zone": {"cl": "battlefield", "inst": "hand"},
+  "hand": {"0": 1}
+ },
+ "notes": "M21 G2 spec: Crypt Lurker. 'you may sacrifice a creature or discard a creature card. If you do, draw a card.' Choosing the discard with no creature card in hand discards nothing (the instant stays), so you did not do it and draw nothing: hand stays at 1."
+}

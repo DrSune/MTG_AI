@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 79},
+  "cards": [
+    {"key": "gm", "real": "Goremand", "zone": "hand", "controller": 0},
+    {"key": "foe", "name": "Enemy Beast", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 6}},
+  "steps": [
+    {"op": "cast", "real": "Goremand", "key": "gm", "expect_raise": "cost:sacrifice"}
+  ],
+  "expect": {
+    "zone": {"gm": "hand", "foe": "battlefield"},
+    "mana_pool": {"0": {"B": 6}}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'As an additional cost to cast this spell, sacrifice a creature.' Expectation from the text (CR 601.2b, 601.2h): with no creature of your own to sacrifice the spell cannot be cast at all, even with the mana; it stays in hand, no mana is spent and the opponent's creature is untouched (the opponent's creature cannot pay your cost)."
+}

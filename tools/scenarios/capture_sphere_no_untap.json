@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sphere", "real": "Capture Sphere", "zone": "hand", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opp_other", "name": "Opp Other", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 4, "C": 6}},
+ "steps": [
+  {"op": "cast", "key": "sphere", "real": "Capture Sphere", "targets": ["opp_bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"sphere": "battlefield", "opp_bear": "battlefield"},
+  "attached": {"sphere": "opp_bear"},
+  "tapped": {"opp_bear": true, "opp_other": false}
+ },
+ "notes": "M21 G2 spec: Capture Sphere. 'When this Aura enters, tap enchanted creature' taps the host; 'Enchanted creature doesn't untap during its controller's untap step' keeps it tapped through its controller's next untap step, while the controller's other tapped creature untaps as normal."
+}

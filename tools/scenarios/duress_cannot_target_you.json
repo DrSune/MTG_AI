@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Trick", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Duress", "key": "du", "targets": ["p0"], "expect_raise": "illegal"}
+ ],
+ "expect": {
+  "zone": {"du": "hand", "mine": "hand"}
+ },
+ "notes": "V21 (2026-10-29). Printed Duress: 'Target opponent reveals their hand. You choose a noncreature, nonland card from it. That player discards that card.' 'Target opponent' excludes the caster (CR 102.2), so designating yourself is refused. It now compiles to TARGET_OPPONENT; 'target player' (TARGET_PLAYER) may be you."
+}

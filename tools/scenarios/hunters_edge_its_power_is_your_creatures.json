@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "he", "real": "Hunter's Edge", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [{"op": "cast", "real": "Hunter's Edge", "key": "he", "targets": ["bear", "giant"]}],
+ "expect": {"zone": {"he": "graveyard", "giant": "battlefield", "bear": "battlefield"},
+            "counters": {"bear": {"PLUS_1_PLUS_1": 1}}, "damage": {"giant": 3}},
+ "notes": "V3 (2026-10-29). Printed: 'Put a +1/+1 counter on target creature you control. Then that creature deals damage equal to its power to target creature you don't control.' 'its power' is the Bear's (2 + the counter = 3), not the Giant's 4, so the 4/4 Giant survives with 3 damage. Before the fix the amount read the second target's power and the Giant died. tools/scenarios/hunters_edge.json could not tell (both creatures end at power 3)."}

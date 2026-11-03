@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of Fruitful Harvest, printed 'At the beginning of your first main phase, add X mana of any one color, where X is the number of Shrines you control.' It enters on my turn (no trigger mid-phase); then the OPPONENT's turn begins. Expected: no mana is added to either pool during the opponent's turn.",
+ "cards": [
+  {"key": "sanc", "real": "Sanctum of Fruitful Harvest", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sanc"},
+  {"op": "advance_turn", "decisions": ["G"]}
+ ],
+ "expect": {"zone": {"sanc": "battlefield"}, "mana_pool": {"0": {}, "1": {}}}}

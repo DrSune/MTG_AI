@@ -24,8 +24,19 @@ def m21():
 
 def test_the_default_deal_is_the_stress_pile_byte_for_byte(m21) -> None:
     # Hash of the M21 deals for seeds 1-5 before deck modes existed (main 3a1e05b, 2026-10-27).
+    # re-pinned 2026-10-29: B-49 carrier made 42 noncreature permanents castable (M21 castable pool grew)
+    # from 239 to 281 deckable cards, so the deals moved (was "e9fceb12fb91e3ab"). The default ==
+    # "stress" identity below is unchanged.
+    # re-pinned 2026-10-29 (B-49 follow-up #1): 281 -> 279, the two Chandras with suppressed duration
+    # permissions are engine-unsupported (was "d8e619dbf28b3c6d").
+    # re-pinned 2026-10-29 (B-49 follow-up #4): 279 -> 278, Ugin's [−X] loyalty cost is gated
+    # engine-unsupported (was "fdcbefbd2b37d046").
+    # re-pinned 2026-10-29: the activation X lane changes 278 -> 279 (Ugin is castable again), and
+    # the hash returns exactly to the pre-gate "fdcbefbd2b37d046" (was "e05cfd168521e687").
+    # re-pinned 2026-10-29: phasing (CR 702.26) changes 279 -> 281, both Teferis castable (was
+    # "fdcbefbd2b37d046"; dropping the two Teferis from the new supply reproduces it exactly).
     deals = [deal_decks(seed, 1409, m21) for seed in range(1, 6)]
-    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "e9fceb12fb91e3ab"
+    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "010cc3fbc22462c5"
     assert deals == [deal_decks(seed, 1409, m21, "stress") for seed in range(1, 6)]
 
 
@@ -59,9 +70,16 @@ def test_coherent_deals_are_seeded_and_vary(m21) -> None:
 
 
 def test_coherent_games_play_to_a_result(m21) -> None:
+    # re-pinned 2026-10-29: V2 (mana empties as each step and phase ends,
+    # CR 500.5) ends the random policy's banked mana, so its games run longer:
+    # seed 1 now reaches the 60-turn cap. Every game still runs crash-free and
+    # never stalls, and the other four end decisively.
+    decisive = 0
     for seed in range(1, 6):
         outcome = play_game(seed, pool_mode="castable", supply=m21, deck_mode="coherent")
-        assert outcome.crash is None and "game over" in outcome.reason
+        assert outcome.crash is None and not outcome.reason.startswith("STALL")
+        decisive += "game over" in outcome.reason
+    assert decisive >= 4
 
 
 def test_an_unknown_mode_raises(m21) -> None:

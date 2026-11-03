@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Spellgorger Weird", "zone": "battlefield", "controller": 0},
+  {"key": "fi", "real": "Frantic Inventory", "zone": "hand", "controller": 1},
+  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "fi", "real": "Frantic Inventory", "controller": 1},
+  {"op": "cast", "key": "ct", "real": "Crash Through", "controller": 0}
+ ],
+ "expect": {
+  "counters": {"w": {"PLUS_1_PLUS_1": 1}},
+  "power": {"w": 3},
+  "toughness": {"w": 3},
+  "zone": {"fi": "graveyard", "ct": "graveyard"}
+ },
+ "notes": "Printed: 'Whenever YOU cast a noncreature spell, put a +1/+1 counter on this creature.' The opponent's instant (Frantic Inventory) adds nothing; my sorcery (Crash Through) adds one: exactly 1 counter, 3/3."
+}

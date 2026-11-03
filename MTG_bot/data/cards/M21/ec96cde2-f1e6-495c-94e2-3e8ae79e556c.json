@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ec96cde2-f1e6-495c-94e2-3e8ae79e556c",
+ "name": "Thornwood Falls",
+ "text_sha": "170eb33163084a7e4c440e68efc61a12b2ff5a621c12623dbd8946c8a8c1cfdb",
+ "verified": {
+  "tree_sha": "32257dd2ef2064829e80632cbeede362d676e24de97fa004c642528a4c38dfdf",
+  "probe_sha": "1e74035c5cd6b388e2ca550949e519670326d4b4d2f4eb180db6f65071d85f1b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "EtBState(tapped=True); [play land]: 'zone hand -> battlefield; tapped False -> True'; same on the MOVE_ZONE entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "ETB trigger -> GAIN_LIFE 1 YOU; [play land]: triggered ability [1] triggers, 'you gains 1 life', you 20 -> 21; also on the opponent's-turn entry (you, not the opponent); [you play a land -> none] (another land does not fire it)",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: choose 0 -> tapped, mana G+1; choose 1 -> tapped, mana U+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

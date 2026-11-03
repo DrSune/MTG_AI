@@ -1,0 +1,9 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "B-61 control (2026-10-29), from the FDN round-1 verifier's swiftblade_vindicator_trample: Swiftblade Vindicator (1/1, double strike, vigilance, trample) attacks and a 1/1 blocks it. First-strike damage: 1 to the blocker, which dies. Regular damage: the Vindicator is still blocked with no creature blocking it, and WITH trample it assigns all its damage to the player it attacks (CR 702.19e): the opponent goes 20 -> 19. Vigilance keeps it untapped. Non-trample twin: siege_striker_blocker_dies_first_strike.json (no regular damage at all).",
+ "cards": [
+  {"key": "vind", "zone": "battlefield", "controller": 0, "real": "Swiftblade Vindicator"},
+  {"key": "chump", "zone": "battlefield", "controller": 1, "name": "Chump", "type": "Creature", "power": 1, "toughness": 1}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"vind": true}, "block": {"chump": "vind"}}],
+ "expect": {"life": {"0": 20, "1": 19}, "zone": {"vind": "battlefield", "chump": "graveyard"}, "blocked": {"vind": ["chump"]}, "tapped": {"vind": false}}}

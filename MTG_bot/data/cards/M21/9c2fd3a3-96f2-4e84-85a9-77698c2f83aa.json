@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "9c2fd3a3-96f2-4e84-85a9-77698c2f83aa",
+ "name": "Volcanic Salvo",
+ "text_sha": "b94e53bf2b94a3d523ac51c90a9af7a95bf8aef320af0c9de028907c5c071108",
+ "verified": {
+  "tree_sha": "ae25c2d5338f560514f77d6279b10a684f44ebea860ec862fb32ba8290412c92",
+  "probe_sha": "e3e2412c579f416a2d7a5b54f276f3d790550134bdf1b206ed8d0c5a5b6183bd",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-F",
+  "clauses": [
+   {
+    "clause": "This spell costs {X} less to cast, where X is the total power of creatures you control.",
+    "status": "OK",
+    "evidence": "Every [cast ...] variant: mana R-2 W-4 = {4}{R}{R}, i.e. {10}{R}{R} reduced by 6 = you_bear 2 + you_giant 4 (the opponent's 10 power is not counted; generic only). Pack volcanic_salvo_planeswalker.json: one 2-power creature -> exactly R2+C8 spent, pool empty (PASS).",
+    "issue": ""
+   },
+   {
+    "clause": "Volcanic Salvo deals 6 damage to each of up to two target creatures and/or planeswalkers.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..2 of all six creatures on both sides; [cast targets=['you_bear','you_giant']] both dealt 6 and die; each single-target variant dealt 6. Planeswalker half (not on the standard board): pack volcanic_salvo_planeswalker.json targets an opponent's Ugin (loyalty 10) + a 3/3 -> LOYALTY 4, 3/3 dies (PASS).",
+    "issue": "engine-limit: 'up to two target' is offered as 1..2, not 0..2 (engine-wide convention C17, query.py: 0 is not a legal TARGET declaration), so a zero-target cast is refused. Weaker only."
+   },
+   {
+    "clause": "Sorcery {10}{R}{R}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=SORCERY); cast in your main phase; card moves stack -> graveyard",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/volcanic_salvo_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/delta/amount/referent/filter"
+   ]
+  }
+ }
+}

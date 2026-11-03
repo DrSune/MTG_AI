@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V36 (CR 601.2f, 601.2h: unpayable costs can't be paid): with an empty hand, the Sparkhunter Masticore exiled by Idol of Endurance cannot be cast, because its additional cost (discard a card) cannot be paid. The 'you may cast' offer narrows to skip, so the Masticore stays in exile; the Idol's activation still resolves (it taps).",
+ "cards": [
+  {"key": "idol", "zone": "hand", "controller": 0, "real": "Idol of Endurance"},
+  {"key": "mast", "zone": "graveyard", "controller": 0, "real": "Sparkhunter Masticore"}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "enter", "key": "idol"},
+  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"idol": "battlefield", "mast": "exile"},
+  "tapped": {"idol": true},
+  "hand": {"0": 0}
+ }
+}

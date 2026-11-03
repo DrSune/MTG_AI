@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d96141af-313f-4ea9-a249-d9eb22cd2431",
+ "name": "Luminous Rebuke",
+ "text_sha": "307aace8c97d87b0769d48e4bee72304ec5b429ee8f6a40c21555d1be849e979",
+ "needs_atom": {
+  "missing": "This spell costs {3} less to cast if it targets a tapped creature.: no component makes a spell's cost depend on its OWN chosen target. CostModifier.condition is judged over the casting spell, and no predicate asks 'this spell's designated target matches a filter' (TARGETS_SOURCE is the reverse: the judged spell targets the modifier's host, used only for cost increases). The closest composition, condition=ZONE_COUNT_GE(who ANY, BATTLEFIELD, inner FAnd(IS_ANY_TARGET, IS_TAPPED, TYPE_EQ Creature), count 1), never applies: self-test with a tapped target and {1}{W} -> 'illegal cast: cost:mana_generic:1<4', and with 5 W the full {4}{W} is paid (the fold runs before/without the target binding). 'Destroy target creature.' is compiled correctly.",
+  "author": "claude-mapper-A",
+  "date": "2026-10-29"
+ }
+}

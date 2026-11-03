@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 103},
+  "cards": [
+    {"key": "stew", "real": "Liliana's Steward", "zone": "battlefield", "controller": 0},
+    {"key": "mine", "name": "My Card", "type": "Instant", "zone": "hand", "controller": 0},
+    {"key": "h1", "name": "Opp Card A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+    {"key": "h2", "name": "Opp Card B", "type": "Sorcery", "zone": "hand", "controller": 1},
+    {"key": "h3", "name": "Opp Card C", "type": "Instant", "zone": "hand", "controller": 1}
+  ],
+  "steps": [
+    {"op": "activate", "key": "stew", "idx": 0, "seat": 0, "targets": ["p1"], "decisions": ["h3"]}
+  ],
+  "expect": {
+    "zone": {"stew": "graveyard", "mine": "hand", "h1": "hand", "h2": "hand", "h3": "graveyard"},
+    "hand": {"0": 1, "1": 2},
+    "graveyard": {"0": ["Liliana's Steward"], "1": ["Opp Card C"]}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{T}, Sacrifice this creature: Target opponent discards a card.' Expectation from the text (CR 701.9b): the cost sacrifices the Steward (to its owner's graveyard); the target opponent discards exactly one card, which they choose (here the last one, Opp Card C, not the first-listed); your own hand is untouched."
+}

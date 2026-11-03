@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8d907825-25f9-4b25-9fac-e0a207ed1797",
+ "name": "Skyway Sniper",
+ "text_sha": "916fec41c97a987aa51eb8afe46f955973468a5ec197246cfad6496bdff97fd8",
+ "verified": {
+  "tree_sha": "1021e08e1b63ff54bc15f8ca656b51b084a6b46da99e5e1c78415c3111c6435f",
+  "probe_sha": "2eaaf116a2ea1b3a3918e373d9ece1b368a863b7c38928191e001081ed5d2059",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "OK",
+    "evidence": "[cast]: keywords +REACH (tree keywords[0]). Blocking a flier is not in the trace: pack skyway_sniper_reach_blocks_flier.json (an opponent's 1/1 flier attacks, the Sniper is offered '<f>,NONE', blocks, kills it and survives with 1 damage) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{G}: This creature deals 1 damage to target creature with flying.",
+    "status": "OK",
+    "evidence": "[activate [0]]: target slot 1..1 of [opp_flier], the only flier on the board (non-flying you_bear, you_giant, opp_bear, opp_giant, opp_tapped and the Sniper itself are not offered); opp_flier is dealt 1 damage by card and dies; you: mana G-1 W-2 = {2}{G}; no tap event. Tree abilities[0] is identical to parse of the printed wording (template B3-deal-dmg-const-flying).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/skyway_sniper_1.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

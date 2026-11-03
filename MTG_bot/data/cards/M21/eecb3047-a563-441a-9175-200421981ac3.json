@@ -1,0 +1,55 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "eecb3047-a563-441a-9175-200421981ac3",
+ "name": "Ugin, the Spirit Dragon",
+ "text_sha": "c006eda82d5891df2acb432fba82f40b8cdc0742dd294505f61af1a5bf96651a",
+ "verified": {
+  "tree_sha": "04af53b7329bf7ea70b8b2f2a758b96d6bccf2e2444621e795bbb93138de6675",
+  "probe_sha": "bd1fcb866cd4054af15f3d06219400ebcd08e2b3251a4c8733e9ca9955bde246",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5R",
+  "clauses": [
+   {
+    "clause": "[+2]: Ugin deals 3 damage to any target.",
+    "status": "OK",
+    "evidence": "target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card, you, opp]: every creature, the planeswalker, both players, no artifact/enchantment/land; every variant LOYALTY 7 -> 9 and 3 damage to the target (players 20 -> 17; Ugin on itself 7+2-3 = 6)",
+    "issue": ""
+   },
+   {
+    "clause": "[−X]: Exile each permanent with mana value X or less that's one or more colors.",
+    "status": "OK",
+    "evidence": "tree [1] CostLoyalty(delta=QX()) (the canonical compile). ask x: [0..7] (capped at loyalty 7). Probe board (tools/cards/probe.py BOARD/EXTRA): bears and flier MV 2 coloured, ape MV 3 green, giants MV 5 coloured, relics/charms/lands/Ugin colourless. X=0 and X=1: nothing exiled, loyalty 7 and 6; X=2: you_bear, opp_flier, opp_bear, loyalty 5; X=3/4: + opp_tapped, loyalty 4/3; X=5/6: + you_giant, opp_giant, loyalty 2/1; X=7: same set, Ugin to graveyard at 0 loyalty and the ability still resolves. Colourless artifacts, enchantments, lands and Ugin never exiled; both controllers' permanents affected.",
+    "issue": ""
+   },
+   {
+    "clause": "[−10]: You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.",
+    "status": "NOT_EXERCISED",
+    "evidence": "probe: 'ability [2] not activatable from battlefield: cost:loyalty:7<10' (correct at 7). Tree [2] CostLoyalty(-10); Seq(GAIN_LIFE 7 YOU, DRAW 7 YOU, MOVE_ZONE QAtMost(7) CHOOSE {Artifact,Creature,Enchantment,Land,Planeswalker} from your HAND to your BATTLEFIELD). Pack ugin_minus10_gain7_draw7_put_permanents: life 27/20, seven drawn, creature + land put, instant stays, Ugin to graveyard: PASS All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/ugin_the_spirit_dragon_1.json"
+  ],
+  "mutation": {
+   "mutants": 23,
+   "killed": 11,
+   "score": 0.4782608695652174,
+   "survived": [
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "drop step 2 at 1/2/effect",
+    "amount+1 at 1/2/effect/steps/0/args/amount",
+    "amount-1 at 1/2/effect/steps/0/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/steps/0/args/controller",
+    "amount+1 at 1/2/effect/steps/1/args/amount",
+    "amount-1 at 1/2/effect/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/controller",
+    "controller YOU->OPPONENT at 1/2/effect/steps/2/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/2/effect/steps/2/args/destination",
+    "controller YOU->OPPONENT at 1/2/effect/steps/2/args/destination/controller"
+   ]
+  }
+ }
+}

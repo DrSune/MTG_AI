@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "'Discard a card: This creature can't be blocked this turn.' With an empty hand the cost cannot be paid: the activation is refused, and the Wall can still block the Pilferer.",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Wall", "type": "Creature", "power": 1, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "gp", "idx": 2, "seat": 0, "expect_raise": "illegal activation"},
+  {"op": "combat", "seat": 0, "attack": {"gp": true}, "block": {"wall": "gp"}}
+ ],
+ "expect": {
+  "blocked": {"gp": ["wall"]},
+  "life": {"1": 20},
+  "hand": {"0": 0},
+  "damage": {"wall": 2}
+ }
+}

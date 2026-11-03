@@ -1,0 +1,71 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "orr",
+   "real": "Chromatic Orrery",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hk",
+   "real": "Hellkite Punisher",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2,
+   "G": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "orr",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "cast",
+   "real": "Hellkite Punisher",
+   "key": "hk"
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "hk": "battlefield",
+   "shock": "graveyard",
+   "orr": "battlefield"
+  },
+  "tapped": {
+   "orr": true
+  },
+  "life": {
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'You may spend mana as though it were mana of any color. {T}: Add {C}{C}{C}{C}{C}.' The Orrery taps for five colorless; with two more colorless that pays Hellkite Punisher's {5}{R}{R} (colorless spent as red), and the one mana left (green or colorless) pays Shock's {R}. Pool empty at the end. Control: chromatic_orrery_control_no_orrery.json."
+}

@@ -1,0 +1,76 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count, option 2). Printed: '... you may search your library and/or graveyard for A card named Basri, Devoted Paladin ...' The controller chooses to search your graveyard only, where two copies wait. Copy A (pool word card:2, its handle) is found and goes to your hand; copy B stays in your graveyard.",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Basri's Aegis",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "copy_a",
+   "real": "Basri, Devoted Paladin",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "copy_b",
+   "real": "Basri, Devoted Paladin",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "src",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "fire",
+    "2",
+    "card:2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "graveyard",
+   "copy_a": "hand",
+   "copy_b": "graveyard"
+  },
+  "counters": {
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ },
+ "mana": {
+  "0": {
+   "W": 2,
+   "C": 2
+  }
+ }
+}

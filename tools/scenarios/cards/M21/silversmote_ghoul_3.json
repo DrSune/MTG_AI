@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'if you gained 3 or more life this turn' counts all the life gained this turn: seat 0 gains 2, then 1 more (two separate gains, 3 in total). At seat 0's end step the Ghoul returns from the graveyard tapped.",
+ "cards": [
+  {"key": "ghoul", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "ll2", "name": "Small Lifelinker", "type": "Creature — Cleric", "power": 2, "toughness": 2, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "ll1", "name": "Tiny Lifelinker", "type": "Creature — Cleric", "power": 1, "toughness": 1, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "dummy", "name": "Dummy", "type": "Creature — Golem", "power": 0, "toughness": 9, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll2", "target": "dummy", "amount": 2},
+  {"op": "deal_damage", "source": "ll1", "target": "dummy", "amount": 1},
+  {"op": "end_turn"}
+ ],
+ "expect": {"zone": {"ghoul": "battlefield"}, "tapped": {"ghoul": true}, "life": {"0": 23}}}

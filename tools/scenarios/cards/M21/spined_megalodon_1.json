@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Spined Megalodon, printed 'Whenever this creature attacks, scry 1.' Attack alone; answer the scry ask with 'bottom'. Expected from the text: the single top card (Library 5) goes to the bottom, nothing else moves; the 5/7 deals 5 to the opponent.",
+ "cards": [
+  {"key": "md", "real": "Spined Megalodon", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"md": true}, "decisions": ["bottom"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 15}, "attackers": {"md": true}, "zone": {"md": "battlefield"},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}}}

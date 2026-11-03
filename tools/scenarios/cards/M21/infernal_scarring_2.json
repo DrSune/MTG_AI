@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Infernal Scarring (M21): the granted 'When this creature dies, draw a card.' is the CREATURE's ability, so the creature's controller draws (CR 113.8 / 603.3a: a triggered ability is controlled by its source's controller). Seat 0 casts it on seat 1's Bear (4/2, +2/+0 shown on power). The Bear is dealt 2 and dies: seat 1 draws one card, seat 0 draws nothing.",
+ "cards": [
+  {"key": "is", "zone": "hand", "controller": 0, "real": "Infernal Scarring"},
+  {"key": "obear", "zone": "battlefield", "controller": 1, "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "src", "zone": "battlefield", "controller": 0, "name": "Your Giant", "type": "Creature — Giant", "power": 4, "toughness": 4}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "cast", "key": "is", "targets": ["obear"]},
+  {"op": "deal_damage", "source": "src", "target": "obear", "amount": 2}
+ ],
+ "expect": {"zone": {"obear": "graveyard", "is": "graveyard"}, "hand": {"0": 0, "1": 1}}}

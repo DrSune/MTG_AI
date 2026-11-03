@@ -1,0 +1,50 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7851e4c8-020c-4a3d-88ed-0c97609cdfed",
+ "name": "Experimental Overload",
+ "text_sha": "5c27f321c21d3179c7bca3ed2d4f7f62bf3b18429c32247f6bfc2e1287dd5d46",
+ "verified": {
+  "tree_sha": "7a0aa428408ed480be80c83fd00f40fc894a726c6fc9ccb0a7de32674410384b",
+  "probe_sha": "a7618e70c6e36445f40833a462119fe4e1440842173f34c40c4ea9e424a738d9",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5Q",
+  "clauses": [
+   {
+    "clause": "Sorcery {2}{U}{R}",
+    "status": "OK",
+    "evidence": "[cast]: mana R-1 U-1 W-2. Tree: SpellAbility kind=SORCERY.",
+    "issue": ""
+   },
+   {
+    "clause": "Create an X/X blue and red Weird creature token, where X is the number of instant and sorcery cards in your graveyard.",
+    "status": "OK",
+    "evidence": "[cast]: 'you:Weird moves new -> battlefield', '+ you:Weird (battlefield, you, 1/1)': X = 1, the only instant/sorcery in my graveyard (you_used). The creature you_fallen, the opponent's graveyard and the Overload itself (on the stack) are not counted. The token stays 1/1 after you_used goes back to hand, so X is fixed at creation, as printed. Pack Pa2358581ac_overload_x_counts_my_instants_and_sorceries.json: 2 instants, 1 sorcery and 1 creature in my graveyard and 2 instants in the opponent's give a 3/3 Weird, still 3/3 after one is returned. PASSES. Debug run: the token is colors ('U','R'), a token under seat 0, no keywords. Tree identical to the compiler's parse (B5a-weird-token).",
+    "issue": ""
+   },
+   {
+    "clause": "Then you may return an instant or sorcery card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "[cast]: ask may [fire, skip] -> fire, then you_used moves graveyard -> hand AFTER the token is made. [cast | ask 1 -> skip]: nothing returns (hand 6 -> 5). Pack Pa2358581ac_overload_x_counts_my_instants_and_sorceries.json: the chosen sorcery returns and the other cards stay. PASSES. A debug variant with an out-of-vocabulary answer shows the one_of vocabulary is exactly my two instants and my sorcery (card:1-3), with no creature card and none of the opponent's cards. Tree: OptionalEffect(MOVE_ZONE ONE_OF Instant-or-Sorcery, your graveyard -> your hand). The bare sentence parse (B5c-then-return-is) has no OptionalEffect, so the packet tree's may is the faithful one.",
+    "issue": ""
+   },
+   {
+    "clause": "Exile Experimental Overload.",
+    "status": "OK",
+    "evidence": "[cast] and [cast | skip]: 'card moves stack -> exile (by card/MOVE_ZONE)', and the card ends in exile, not the graveyard. Pack: eo in exile. Tree: MOVE_ZONE IS_SOURCE from STACK to EXILE/OWNER.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/experimental_overload_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "amount+1 at 1/0/effect/steps/0/steps/1/inner/args/cards/count"
+   ]
+  }
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "sovereign", "real": "Feline Sovereign", "zone": "battlefield", "controller": 1},
+  {"key": "cat", "name": "Tabby", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["sovereign"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "phased_out": {"sovereign": false},
+  "power": {"cat": 3},
+  "toughness": {"cat": 3}
+ },
+ "notes": "Continuation: Feline Sovereign phases in during seat 1's untap step (CR 502.1) and its static applies again, so the Cat is a 3/3."
+}

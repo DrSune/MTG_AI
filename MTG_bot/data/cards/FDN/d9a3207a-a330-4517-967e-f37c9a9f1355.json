@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d9a3207a-a330-4517-967e-f37c9a9f1355",
+ "name": "Clinquant Skymage",
+ "text_sha": "bf4cab801657dfbd2e2b553022fe85d151314b7d3640cde181ddc4881d5ab9a7",
+ "verified": {
+  "tree_sha": "ca59ad2ee48cc7937432cbe7231c86a633e01385645571a98de3b63941b4ee6c",
+  "probe_sha": "4f7cc09db0b6a117645a3445fe089c6742a8d3ce1b96af9e6f8e03c98b58f34b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords [FLYING]; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, the 1 damage goes to the opponent",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you draw a card, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[stimulus: you draw a card]: 1 PLUS_1_PLUS_1 counter, 1/1 -> 2/2; [you draw two cards, one after the other]: triggers twice, 2 counters, 3/3; [turns pass]: only your own draw-step draw adds 1 (the opponent's draw does not); [the opponent draws a card -> none]; Crash Through's draw adds 1; counters persist",
+    "issue": ""
+   },
+   {
+    "clause": "(1/1 Bird Wizard creature, {3}{U})",
+    "status": "OK",
+    "evidence": "[cast]: enters 1/1 +FLYING for U-1 W-3",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

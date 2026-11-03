@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of Fruitful Harvest: 'add X mana of any one color, where X is the number of Shrines you control.' I control two Shrines (Fruitful Harvest + Sanctum of Tranquil Light); the opponent controls a third (not mine, not counted). On my next turn's first main phase I choose G. Expected: my pool G 2; the opponent's pool empty.",
+ "cards": [
+  {"key": "sanc", "real": "Sanctum of Fruitful Harvest", "zone": "hand", "controller": 0},
+  {"key": "tl", "real": "Sanctum of Tranquil Light", "zone": "hand", "controller": 0},
+  {"key": "otl", "real": "Sanctum of Tranquil Light", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sanc"},
+  {"op": "enter", "key": "tl"},
+  {"op": "advance_turn", "decisions": ["G"]},
+  {"op": "advance_turn", "decisions": ["G"]}
+ ],
+ "expect": {"zone": {"sanc": "battlefield", "tl": "battlefield", "otl": "battlefield"}, "mana_pool": {"0": {"G": 2}, "1": {}}}}

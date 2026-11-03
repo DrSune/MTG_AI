@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ghostly Pilferer attacks (taps). On its controller's next turn it untaps in the untap step: 'you may pay {2}. If you do, draw a card.' The may is taken: {2} is spent and one extra card is drawn (hand: opening draw + turn-3 draw + Pilferer draw = 3). Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the {2} for the untap trigger comes from two untapped Islands, tapped while paying (CR 601.2g, 605.3a).",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gp": true}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "life": {"1": 18},
+  "tapped": {"gp": false, "i1": true, "i2": true},
+  "hand": {"0": 3},
+  "mana_pool": {"0": {}}
+ }
+}

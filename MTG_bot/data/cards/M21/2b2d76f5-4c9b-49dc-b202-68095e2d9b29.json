@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "2b2d76f5-4c9b-49dc-b202-68095e2d9b29",
+ "name": "Faith's Fetters",
+ "text_sha": "c461ecc3e4503ea6ca104ced3d9c045dbf460a785f2e659dc0240519a730a9f7",
+ "verified": {
+  "tree_sha": "dc2c9e6cb8008eeea1e1b2b4c5245c48e171d93abf66de01215e62d74b307dcc",
+  "probe_sha": "23fb2a957e38554cac7b4f517cfc9293967899e2da42f23c61b687efb52fa6aa",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Enchant permanent",
+    "status": "OK",
+    "evidence": "keywords[0] ENCHANT params IS_PERMANENT; 'target slot (cast): 1..1 of [you_bear, ..., you_relic, you_charm, ..., you_land, opp_land]': every permanent of both sides; the opponent's-turn entry asks 'enchant' over the same set",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, you gain 4 life.",
+    "status": "OK",
+    "evidence": "abilities[0] (= canonical B2a-faiths-fetters) ETB GAIN_LIFE 4 controller YOU; every [cast targets=...] variant and the opponent's-turn entry: 'you gains 4 life (by card/GAIN_LIFE)', you 20 -> 24, opponent unchanged",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
+    "status": "OK",
+    "evidence": "abilities[1] (= canonical B5a-enchant-cant-attack-block): PREVENT DeclareAttackersEvent, DeclareBlockersEvent and AbilityActivatedEvent kind NON_MANA, all IS_ATTACHED_TO_SOURCE. Not in the trace. Packs P64acd861b2_fetters_you_gain_4_and_creature_locked.json PASS (never offered a block, never asked to attack) and P64acd861b2_fetters_lock_spares_mana_abilities.json PASS (non-mana ability refused, mana ability works)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/faith's_fetters_1.json",
+   "tools/scenarios/cards/M21/faith's_fetters_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 5,
+   "score": 0.625,
+   "survived": [
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "drop step 2 at 1/1/effect"
+   ]
+  }
+ }
+}

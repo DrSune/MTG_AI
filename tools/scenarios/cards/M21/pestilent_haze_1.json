@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "haze", "real": "Pestilent Haze", "zone": "hand", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "voy", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 1},
+  {"key": "mite", "name": "Mite", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 6},
+  {"op": "loyalty", "key": "voy", "set": 2},
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"haze": "graveyard", "basri": "battlefield", "voy": "graveyard", "mite": "battlefield"},
+  "counters": {"basri": {"LOYALTY": 4}},
+  "power": {"mite": 1},
+  "toughness": {"mite": 1}
+ },
+ "notes": "Pbae93a856e G4: second mode, 'Remove two loyalty counters from each planeswalker' (yours too). Your Basri Ket 6 -> 4; the opponent's Teferi at 2 -> 0 and is put into the graveyard (CR 704.5i). Creatures are untouched in this mode."
+}

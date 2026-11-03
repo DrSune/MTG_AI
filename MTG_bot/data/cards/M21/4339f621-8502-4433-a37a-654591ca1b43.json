@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4339f621-8502-4433-a37a-654591ca1b43",
+ "name": "Turn to Slag",
+ "text_sha": "8b63481ff45a99e7567e285e3ae32c2af7e28e805ec86eb4bbb905429effa775",
+ "verified": {
+  "tree_sha": "2efb06264db860853c9245753e0556c85e471fc57215b2a15a896913360a65ee",
+  "probe_sha": "5b7530621e90a41de844a41313917041e97f7737885b7478a5f83193aae7547e",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "Turn to Slag deals 5 damage to target creature.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, you_equipment, opp_equipment]' (creatures only, both sides; the *_equipment stand-ins are synthetic 'Creature - Equipment' 2/2s); each [cast targets=...]: 'X is dealt 5 damage (by card/DEAL_DAMAGE)', the creature dies; mana R-2 W-3; a sorcery",
+    "issue": ""
+   },
+   {
+    "clause": "Destroy all Equipment attached to that creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no Equipment is attached on the probe board. Packs pass on the live tree and this packet's tree: turn_to_slag_only_its_equipment (a 6/6 survives with 5 damage; both Equipment attached to it are destroyed; an Equipment on another creature and an unattached one stay) and turn_to_slag_dying_creature (the 2/2 dies and its Equipment is still destroyed, CR 704.3)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/turn_to_slag_1.json",
+   "tools/scenarios/cards/M21/turn_to_slag_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

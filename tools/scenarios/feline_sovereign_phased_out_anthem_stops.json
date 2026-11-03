@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "sovereign", "real": "Feline Sovereign", "zone": "battlefield", "controller": 1},
+  {"key": "cat", "name": "Tabby", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["sovereign"]}
+ ],
+ "expect": {
+  "phased_out": {"sovereign": true, "cat": false},
+  "power": {"cat": 2},
+  "toughness": {"cat": 2}
+ },
+ "notes": "CR 702.26b: a phased-out permanent cannot affect anything, so its static abilities stop. Feline Sovereign ('Other Cats you control get +1/+1') makes seat 1's Cat a 3/3; Teferi, Master of Time's [-3] phases the Sovereign out and the Cat is a 2/2 again."
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Each creature YOU CONTROL with a +1/+1 counter on it has trample.' Your Gnarlid Colony is on the battlefield; the OPPONENT's Hungry Ghoul gets a +1/+1 counter (its controller activates it, sacrificing their Fodder): it does not gain trample from your Colony.",
+ "cards": [
+  {"key": "colony", "real": "Gnarlid Colony", "zone": "battlefield", "controller": 0},
+  {"key": "ghoul", "real": "Hungry Ghoul", "zone": "battlefield", "controller": 1},
+  {"key": "fodder", "name": "Fodder", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"1": {"B": 1}},
+ "steps": [
+  {"op": "activate", "key": "ghoul", "idx": 0, "seat": 1, "decisions": ["fodder"]}
+ ],
+ "expect": {
+  "zone": {"fodder": "graveyard"},
+  "counters": {"ghoul": {"PLUS_1_PLUS_1": 1}},
+  "battlefield_keywords": {"Hungry Ghoul": [], "Gnarlid Colony": []}
+ }
+}

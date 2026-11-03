@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d654dd73-763d-4dfb-a30f-a058fd7f27a6",
+ "name": "Liliana, Death Mage",
+ "text_sha": "ec6551327b029fe8ce81c139f543ee9f9514a6c61ed93c4921b977ea8d667a28",
+ "verified": {
+  "tree_sha": "cc061e8965c98cdb18596a5339b11d377637527a6c77a251bf64842059eba263",
+  "probe_sha": "3779bdf1aee7481f60d996a164a8c5419252408cf80ffe1d78eb44f6d3396513",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "[+1]: Return up to one target creature card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "abilities[0] (= canonical B5c-loyalty-return-creature): CostLoyalty +1, MOVE_ZONE up to 1 TARGET Creature in GRAVEYARD(YOU) -> HAND. 'target slot: 0..1 of [you_fallen]' (not you_used, not the opponent's graveyard); [targets you_fallen] loyalty 4 -> 5, you_fallen graveyard -> hand; [no target] loyalty 4 -> 5, nothing moves",
+    "issue": ""
+   },
+   {
+    "clause": "[-3]: Destroy target creature. Its controller loses 2 life.",
+    "status": "OK",
+    "evidence": "abilities[1] (= canonical B5c-loyalty-destroy + B5b-its-controller-loses-life): DESTROY TARGET Creature, LOSE_LIFE 2 controller referent target. 'target slot: 1..1 of [all six creatures]'; [you_bear] destroyed, 'you loses 2 life'; [opp_flier] destroyed, 'opp loses 2 life'; loyalty 4 -> 1",
+    "issue": ""
+   },
+   {
+    "clause": "[-7]: Target opponent loses 2 life for each creature card in their graveyard.",
+    "status": "OK",
+    "evidence": "abilities[2] (= canonical B5c-loyalty-lose-per-creature): LOSE_LIFE QBin(MUL, 2, QCount(Creature in GRAVEYARD(TARGET_OPPONENT))) to TARGET_OPPONENT. Not activatable in the trace (cost:loyalty:4<7). Pack Pfbaeca04bc_liliana_minus7_counts_their_creature_cards.json PASS (3 creature cards -> 6; their instant and your creature cards not counted)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana_death_mage_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 12,
+   "score": 0.8571428571428571,
+   "survived": [
+    "amount+1 at 1/2/effect/args/amount/left",
+    "amount-1 at 1/2/effect/args/amount/left"
+   ]
+  }
+ }
+}

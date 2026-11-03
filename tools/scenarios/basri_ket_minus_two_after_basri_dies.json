@@ -1,0 +1,19 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "basri", "zone": "battlefield", "controller": 0, "real": "Basri Ket"},
+    {"key": "tiger", "zone": "battlefield", "controller": 0, "name": "Tiger", "type": "Creature", "power": "5", "toughness": "5"},
+    {"key": "wolf", "zone": "battlefield", "controller": 0, "name": "Wolf", "type": "Creature", "power": "2", "toughness": "2"}
+  ],
+  "steps": [
+    {"op": "loyalty", "key": "basri", "set": 2},
+    {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+    {"op": "combat", "seat": 0, "attack": {"tiger": true, "wolf": true}}
+  ],
+  "expect": {
+    "zone": {"basri": "graveyard"},
+    "tokens": {"Soldier": 2},
+    "life": {"1": 11}
+  },
+  "notes": "m21-fidelity (engine fixer's finding, 2026-10-29). Printed: '[-2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.' The ability creates a DELAYED triggered ability (CR 603.7): it lives for the turn on its own, so it still works after Basri Ket is gone. Activated at 2 loyalty, Basri goes to 0 and dies (CR 704.5i); attacking with two creatures still makes 2 attacking Soldiers: 5 + 2 + 1 + 1 = 9, seat 1 at 11. Before the fix the -2 granted the trigger to Basri himself until end of turn, so with Basri dead no Soldiers came."
+}

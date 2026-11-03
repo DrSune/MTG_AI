@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P802f38f3c2. Printed: '[-2]: Whenever one or more nontoken creatures attack THIS TURN, create that many ...' I activate -2 and do not attack. The turn ends; on my next turn my 2/2 attacks: the effect has ended, so no Soldier is created and seat 1 takes only 2 (20 -> 18).",
+ "cards": [
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "n2", "name": "Nontoken Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 3},
+  {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"n2": true}}
+ ],
+ "expect": {"tokens": {"Soldier": 0}, "life": {"1": 18}, "counters": {"basri": {"LOYALTY": 1}}}}

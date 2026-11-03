@@ -1,0 +1,235 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "49f0da4a-e046-4220-b90e-e105a5f2ef00",
+ "name": "Incinerating Blast",
+ "text_sha": "799923591f70ae765a0f5b84b489f316b2236deda95b1dfd3a163929f4e81f04",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 6
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MOVE_ZONE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "HAND"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ],
+          [
+           "from",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "DRAW"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "amount",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-B",
+  "date": "2026-10-29",
+  "draft_py": "# Incinerating Blast: \"Incinerating Blast deals 6 damage to target creature. You may discard a card.\n#                      If you do, draw a card.\"\ndamage, draw = compiled[0].effect.steps\ndiscard = A(Verb.MOVE_ZONE, {   # 'discard a card' (B5b-cont-discard / Obsessive Stitcher shape)\n    'cards': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n    ),\n    'controller': ControllerRef.YOU,\n    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n})\n# \"You may X. If you do, Y.\" = Seq(OptionalEffect(X), Conditional(MAY_DONE, Y))  (Crypt Lurker / Jeskai Elder)\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(\n    damage,\n    OptionalEffect(inner=discard),\n    Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=draw),\n)))]\n",
+  "clauses": [
+   {
+    "clause": "Incinerating Blast deals 6 damage to target creature.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "You may discard a card.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "If you do, draw a card.",
+    "ir": "abilities[0].effect.steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "4949c1838096240f1f9109116f2df23de990d3d854bd18a3973b57662f72ac2c"
+ }
+}

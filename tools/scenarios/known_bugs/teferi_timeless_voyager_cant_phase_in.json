@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "voyager", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "voyager", "set": 9},
+  {"op": "activate", "key": "voyager", "idx": 2, "seat": 0, "targets": ["p1"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "phased_out": {"ogre": true}
+ },
+ "notes": "KNOWN BUG (weaker than printed), fails today. Teferi, Timeless Voyager [-8], second sentence: 'Until the end of your next turn, they can't phase in.' The Ogre must skip its controller's next untap step. The compiler's built-in _phase_in_prevention_effect emits PREVENT_EFFECT over ZoneChangeEvent(COMMAND -> BATTLEFIELD); phasing is a status, not a zone change (CR 702.26d), so no consumer can match it and the Ogre phases back in. Needs a phase-in event in the ontology (next gated round); see docs/BACKLOG.md."
+}

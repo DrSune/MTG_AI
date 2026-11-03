@@ -1,0 +1,58 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1e414a4f-6e76-4cbe-9c69-d52852cd5bc0",
+ "name": "Heartfire Immolator",
+ "text_sha": "751d6c7a935fd95a9ee08f8468b1e5fbda3eb2e810b0cba483836d1b964eee6f",
+ "verified": {
+  "tree_sha": "92d6af51ccf43b53f267e7e4a9c7dd3abb280c5a50aec81a41e81c66c2128f97",
+  "probe_sha": "471d3c3581033acfc60fff7ddf5a87f536f88075515629f632a11d5f99a7bf37",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Creature {1}{R} 2/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 2/2; mana R-1 W-1",
+    "issue": ""
+   },
+   {
+    "clause": "Prowess",
+    "status": "OK",
+    "evidence": "[stimulus: you cast an instant or sorcery (Crash Through)]: card P/T 2/2 -> 3/3; [you cast a creature]: none. Expiry: pack heartfire_immolator_prowess_wears_off.json, 2/2 again after the turn ends, PASS",
+    "issue": ""
+   },
+   {
+    "clause": "{R}, Sacrifice this creature:",
+    "status": "OK",
+    "evidence": "[activate [0]] variants: card moves battlefield -> graveyard (by card/SACRIFICE); mana R-1",
+    "issue": ""
+   },
+   {
+    "clause": "It deals damage equal to its power to target creature",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of all seven creatures; each variant deals 2 (its power) to the chosen one only. Pumped power: pack heartfire_immolator_prowess_lki_damage.json, after prowess the sacrificed 3/3 deals 3 (last-known power), PASS",
+    "issue": "ENGINE (minor, harmless here): in the variant targets=['card'] the Immolator targets itself, is sacrificed as the cost, and the engine still deals 2 damage to it in the graveyard (damage 0 -> 2 on a graveyard card) instead of the ability doing nothing because its only target is gone (CR 608.2b)."
+   },
+   {
+    "clause": "... or planeswalker.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no planeswalker on the probe board; pack heartfire_immolator_planeswalker.json: 2 damage takes the opponent's Basri Ket from 5 to 3 loyalty, PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/heartfire_immolator_1.json",
+   "tools/scenarios/cards/M21/heartfire_immolator_2.json",
+   "tools/scenarios/cards/M21/heartfire_immolator_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

@@ -20,8 +20,8 @@ Coverage (47 = 46 template + 1 uncovered):
    Indulgence; Stormwing Entity's compound {N}{U} reduction; opponent
    spell-cost increases — Terror of the Peaks, Pursued Whale),
    ETB_STATE (tapped creature, tapped land),
-   ETB X +1/+1 counters (Wildwood Scourge: ZoneChangeEvent subject
-   IS_SOURCE + PUT_COUNTER count QX, target bound to the event referent),
+   ETB X +1/+1 counters (Wildwood Scourge: EtBState initial counters
+   (+1/+1, QX), an entering-state replacement, CR 614.1c),
    ACTIVATED_ABILITY (cast from top of library, graveyard recast with
    additional cost), TUTOR (name-specific library/graveyard search for
    Basri / Liliana).
@@ -72,7 +72,6 @@ from MTG_bot.core.ability_tree import (
     CounterKind,
     DeclareBlockersEvent,
     DurationEot,
-    DurationPermanent,
     DurationWhileCondition,
     EtBState,
     FAnd,
@@ -102,10 +101,8 @@ from MTG_bot.core.ability_tree import (
     StaticAbility,
     TargetingEvent,
     ThisTurnKind,
-    TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
 )
@@ -114,6 +111,7 @@ from MTG_bot.core.compiler.templates import (
     EffectOutcome,
     SentenceOutcome,
     Template,
+    and_or_zone_search,
 )
 
 _BUCKET = "B4"
@@ -571,6 +569,14 @@ def _build_gain_life_n(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_gain_life_qcount_cats(m: re.Match[str]) -> SentenceOutcome:
+    """``You gain life equal to the number of Cats you control.`` (Rin and
+    Seri, Inseparable s4). m21-fidelity (wave 4, 2026-10-30): the sentence
+    is the second instruction of the {R}{G}{W}, {T} ability above it (CR
+    602.1: "[Cost]: [Effect.]", the effect is everything after the colon,
+    and CR 608.2c follows its instructions in order), so it is an EFFECT
+    the compiler's continuation fold appends to that ability. It was a
+    StaticAbility of its own, which never gains life (the executor skips it
+    as an unparseable static), so the activation only dealt damage."""
     atom = Atom(
         verb=Verb.GAIN_LIFE,
         args=AtomArgs(
@@ -580,7 +586,7 @@ def _build_gain_life_qcount_cats(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return AbilityOutcome(ability=StaticAbility(atom))
+    return EffectOutcome(effect=atom)
 
 
 def _build_lose_life_n(m: re.Match[str]) -> SentenceOutcome:
@@ -777,59 +783,57 @@ def _build_search_liliana(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_search_named_card(card_name: str) -> SentenceOutcome:
-    """Shared tutor builder: search library/graveyard for a named card,
-    reveal it, put it into hand."""
-    cards = Selector(
-        QConst(1),
-        SelectorMode.CHOOSE,
-        FAtom(pred=FAtomPred.NAME_EQ, string_value=card_name),
-        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU), *(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),)),
+    """Shared tutor builder: search library and/or graveyard for a named card,
+    reveal it, put it into hand.
+
+    m21-fidelity wave 4 (2026-10-30, B-78): "library and/or graveyard" is the
+    visible zone choice (templates.and_or_zone_search), as in the ETB twin;
+    the shuffle sentence joins only the options that search the library."""
+
+    def search_in(zones: tuple[Zone, ...]) -> Seq:
+        cards = Selector(
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAtom(pred=FAtomPred.NAME_EQ, string_value=card_name),
+            zones=zones,
+        )
+        search_atom = Atom(
+            verb=Verb.SEARCH,
+            args=AtomArgs(
+                pairs=(
+                    ("cards", cards),
+                    ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
+                )
+            ),
+        )
+        reveal_atom = Atom(
+            verb=Verb.REVEAL,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", ControllerRef.YOU),
+                    ("count", QConst(1)),
+                )
+            ),
+        )
+        return Seq(steps=(search_atom, reveal_atom))
+
+    # "put it into your hand" is the SEARCH's own destination; the unprinted
+    # MOVE_ZONE(this card from the top of your library) step is gone (G3 finisher,
+    # 2026-10-30), as in the ETB twin.
+    seq = and_or_zone_search(
+        search_in,
+        Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
     )
-    search_atom = Atom(
-        verb=Verb.SEARCH,
-        args=AtomArgs(
-            pairs=(
-                ("cards", cards),
-                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
-            )
-        ),
-    )
-    reveal_atom = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(
-            pairs=(
-                ("controller", ControllerRef.YOU),
-                ("count", QConst(1)),
-            )
-        ),
-    )
-    move_atom = Atom(
-        verb=Verb.MOVE_ZONE,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_SOURCE),
-                        zones=(Zone(
-                            kind=ZoneKind.LIBRARY,
-                            controller=ControllerRef.YOU,
-                            position=ZonePosition.TOP,
-                        ),),
-                    ),
-                ),
-                ("destination", Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)),
-            )
-        ),
-    )
-    seq = Seq(steps=(search_atom, reveal_atom, move_atom))
-    ability = ActivatedAbility(
-        cost=Cost(),
-        effect=OptionalEffect(inner=seq),
-    )
-    return AbilityOutcome(ability=ability)
+    # The sentence is part of the SORCERY's effect (Basri's Aegis, Liliana's
+    # Scorn): it runs as the spell resolves, after the printed sentence before
+    # it (CR 608.2c), and the compiler's search-shuffle tail joins this same
+    # OptionalEffect ("If you search your library this way, shuffle", only if
+    # the search ran). Same inner bytes as the ETB twin B2b-named-card-search
+    # (Garruk's Warsteed, Chandra's Firemaw). m21-fidelity (review batches A
+    # and C, 2026-10-29): this was a free ActivatedAbility (cost {}) on the
+    # sorcery, so the spell never searched when it resolved.
+    return EffectOutcome(effect=OptionalEffect(inner=seq))
 
 
 # ---------------------------------------------------------------------------
@@ -917,40 +921,23 @@ def _build_block_only_flying(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_enters_with_x_counters(m: re.Match[str]) -> SentenceOutcome:
     """This creature enters with X +1/+1 counters on it.  (Wildwood
-    Scourge; bucket-ownership deviation: the round-6 decision doc guessed
-    b2a, but the JSON partition owns this key in B4.  X semantics per the
-    b5c event-referent precedent (convention C2 + ``QX()`` — b5c line
-    ~551 ``_event_reference`` / b5b C8): ETB ZoneChangeEvent with
-    subject=IS_SOURCE, then PUT_COUNTER on the event's subject object.)"""
-    atom = Atom(
-        verb=Verb.PUT_COUNTER,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
-                        referent="event",
-                    ),
-                ),
-                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-                ("count", QX()),
-            )
-        ),
+    Scourge, Ivy Elemental and the X hydras; bucket-ownership deviation:
+    the round-6 decision doc guessed b2a, but the JSON partition owns this
+    key in B4.)
+
+    An entering-state replacement (CR 614.1c), not a trigger: the
+    permanent ENTERS with the counters, so it is never an X-less 0/0 and
+    "whenever a creature with power 4 or greater enters" sees it at its
+    full size. EtBState(initial_counters=((+1/+1, X),)), the shape the
+    constant "enters with N counters" cards already use (Malefic Scythe,
+    the kicker Baloths); the executor stamps it with the X the spell was
+    cast with (0 when it entered without being cast, CR 107.3g).
+    m21-fidelity (review batch B, 2026-10-29): this was an ETB trigger
+    putting X counters on the event subject, so the creature entered as a
+    0/0 and Garruk's Uprising never saw an X/X."""
+    return AbilityOutcome(
+        ability=EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
     )
-    ability = TriggeredAbility(
-        event=ZoneChangeEvent(
-            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
-            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
-            subject=FAtom(pred=FAtomPred.IS_SOURCE),
-        ),
-        condition=None,
-        effect=atom,
-    )
-    return AbilityOutcome(ability=ability)
 
 
 # ---------------------------------------------------------------------------
@@ -1264,24 +1251,22 @@ def _build_azusa_extra_land_plays(m: re.Match[str]) -> SentenceOutcome:
     """``You may play two additional lands on each of your turns.`` (Azusa,
     Lost but Seeking) — Verb.ADD_LAND_PLAY (R8-8): count = QConst(2) —
     C14 spelled-number word-pin ("two" is not digit-normalized into the
-    shape; Gnarled-Sage precedent), duration = DurationPermanent ("on
-    each of your turns" is the card's permanent land-drop allowance).
-    OptionalEffect wrap keeps the may-decision (C15).  Executor deferred
-    per the FIGHT orphan precedent (PC-6: the verb is consumed here —
-    the orphan count drops).
+    shape; Gnarled-Sage precedent).
+
+    A STATIC ability (CR 604.1; 305.2: continuous effects may raise the
+    land allowance): StaticAbility(OptionalEffect(ADD_LAND_PLAY)), the
+    Teferi, Master of Time permission shape (the "you may" is the use,
+    playing the land; layers._new_static unwraps it). No duration role: the
+    static's own lifetime is the window, as for every other static atom.
+    m21-fidelity (adversarial gate, 2026-10-29): this was a free activated
+    ability (cost {}), so nothing was granted until it was activated and
+    each activation added two more land plays (0 -> 2 -> 4 -> 6).
     C16: open — whether to use either additional land play."""
     atom = Atom(
         verb=Verb.ADD_LAND_PLAY,
-        args=AtomArgs(
-            pairs=(
-                ("count", QConst(2)),
-                ("duration", DurationPermanent()),
-            )
-        ),
+        args=AtomArgs(pairs=(("count", QConst(2)),)),
     )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
-    )
+    return AbilityOutcome(ability=StaticAbility(effect=OptionalEffect(inner=atom)))
 
 
 def _build_noncombat_damage_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
@@ -1341,21 +1326,23 @@ def _build_tefei_grant_activation(m: re.Match[str]) -> SentenceOutcome:
     """``You may activate loyalty abilities of Teferi on any player's turn
     any time you could cast an instant.`` (Teferi, Master of Time) —
     grammar round 9-B row 8, closing the 8-C withdrawal: Verb.
-    GRANT_ACTIVATION (R9-7) with filter = FAnd(TYPE_EQ Planeswalker,
-    NAME_CONTAINS "Teferi") (the ability-holder gate) and window =
-    ActivationWindow.INSTANT — "any time you could cast an instant" names
-    the instant window EXACTLY (R9-1 vocabulary; NOT SORCERY — the r10
-    grammar fixture's SORCERY example is unrelated to this row's text).
-    OptionalEffect wrap per C15 ("you may"); executor deferred per the
-    GRANT_ABILITY-adjacent orphan precedent (PC-6: verb consumed this round).
+    GRANT_ACTIVATION (R9-7) with filter = FAtom(IS_SOURCE) (the ability-
+    holder gate) and window = ActivationWindow.INSTANT — "any time you
+    could cast an instant" names the instant window EXACTLY (R9-1
+    vocabulary; NOT SORCERY — the r10 grammar fixture's SORCERY example is
+    unrelated to this row's text). OptionalEffect wrap per C15 ("you
+    may"); executor deferred per the GRANT_ABILITY-adjacent orphan
+    precedent (PC-6: verb consumed this round).
+
+    2026-10-29: "Teferi" here is the card's shortened name, which means
+    this object only (CR 201.5, 201.5c), so the holder is the self
+    referent IS_SOURCE. The earlier FAnd(TYPE_EQ Planeswalker,
+    NAME_CONTAINS "Teferi") also matched every other Teferi planeswalker
+    on the battlefield (Teferi, Timeless Voyager; an opponent's Teferi),
+    and the layer's instant window is global: stronger than printed.
 
     C16: open — WHICH loyalty ability and WHEN inside the widened window."""
-    holder = FAnd(
-        children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-            FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Teferi"),
-        )
-    )
+    holder = FAtom(pred=FAtomPred.IS_SOURCE)
     atom = Atom(
         verb=Verb.GRANT_ACTIVATION,
         args=AtomArgs(pairs=(("filter", holder), ("window", ActivationWindow.INSTANT))),

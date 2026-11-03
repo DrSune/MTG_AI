@@ -1,0 +1,50 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e08c71aa-d35c-4c20-b4db-ae9d36ee3169",
+ "name": "Miscast",
+ "text_sha": "cfb67bf2c7a5f011b90368e47e7cfbe4fd0a8aa1085366f0e9ed63322b5496ba",
+ "verified": {
+  "tree_sha": "4e045b960a42fc298be950b37055e1df4e9177b3e4be557be8ace835d7a5192b",
+  "probe_sha": "44fd6d04bb6a1771997978eb54f91ed6b02c71f7a423d7526afc0a22376eced0",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Instant {U}",
+    "status": "OK",
+    "evidence": "packs: Miscast is cast in the opponent's response window paying its {U} (mana_pool seat 1 -> {})",
+    "issue": "engine-limit: no priority; a counterspell is used only in the engine's response window"
+   },
+   {
+    "clause": "Counter target instant or sorcery spell",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: 'cast skipped: a target slot needs 1, the board offers 0' (nothing on the stack). Tree = `parse` B5a-counter-unless-sps (FAnd(FOr(Instant, Sorcery), STACK_KIND_EQ SPELL) on STACK). Packs PASS on this packet's tree (draft) and the live tree: K_miscast_two_is_not_enough.json (Shock is countered, the Rager lives) and K_miscast_cannot_counter_a_creature_spell.json (a creature spell: Miscast is never offered, window_asks seat 1 = [], the creature resolves). A throwaway mutant with the filter widened to any spell fails the creature pack.",
+    "issue": ""
+   },
+   {
+    "clause": "unless its controller pays {3}.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Packs PASS on both trees: K_miscast_paid_exactly_three.json (Shock's controller, seat 0, is asked PAY and pays exactly {3}; Shock resolves, the Rager dies, pool empty) and K_miscast_two_is_not_enough.json (with only {2} spare no PAY is offered, kickback_asks seat 0 = [], Shock countered, R2 unspent). A throwaway mutant with 'unless {2}' fails the second pack.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/miscast_1.json",
+   "tools/scenarios/cards/M21/miscast_2.json",
+   "tools/scenarios/cards/M21/miscast_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 2,
+   "score": 0.2857142857142857,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/args/unless",
+    "amount+1 at 1/0/effect/args/unless/parts/0/amount",
+    "amount-1 at 1/0/effect/args/unless/parts/0/amount"
+   ]
+  }
+ }
+}

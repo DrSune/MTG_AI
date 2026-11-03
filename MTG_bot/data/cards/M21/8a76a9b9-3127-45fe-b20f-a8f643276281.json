@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8a76a9b9-3127-45fe-b20f-a8f643276281",
+ "name": "Containment Priest",
+ "text_sha": "fdd17cbf3a9749a6295e90739861995920875250596a70fc7babb1f6f80a033b",
+ "verified": {
+  "tree_sha": "c4b4d74ea85077ec83ebb300705c12bc8787a3b251d4f2b980b283924309d98b",
+  "probe_sha": "ecd9b4d47ce68b7ba024df980bd836900c5dae4600780ecf73339056de62b436",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Containment Priest {1}{W} Creature — Human Cleric 2/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 2/2, paid W-2",
+    "issue": ""
+   },
+   {
+    "clause": "Flash",
+    "status": "OK",
+    "evidence": "keywords[0] FLASH; static: card keywords FLASH",
+    "issue": "engine-limit: no priority, so flash is used only in its controller's own action window (weaker only)"
+   },
+   {
+    "clause": "If a nontoken creature would enter and it wasn't cast, exile it instead.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control]: you_spare hand -> exile (put onto the battlefield, not cast); [under the opponent's control]: opp_spare hand -> exile; [you cast a creature (Staunch Shieldmate)]: enters normally; [you play a land]: unaffected; the Priest itself entering is unaffected. Tree = parse template B5b-repl-nontoken-enter-exile. Packs: containment_priest_spares_cast_and_tokens.json (cast Valorous Steed and its Knight token both enter) - PASS; containment_priest_exiles_reanimated.json (opponent's graveyard creature put onto the battlefield -> exile) - PASS; containment_priest_exiles_flickered_cast_creature.json (creature cast this turn, exiled and returned the same turn -> exiled, CR 400.7; a no-Priest control returns it to the battlefield) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/containment_priest_1.json",
+   "tools/scenarios/cards/M21/containment_priest_2.json",
+   "tools/scenarios/cards/M21/containment_priest_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "widen filter (drop part 1) at 1/0/event/subject"
+   ]
+  }
+ }
+}

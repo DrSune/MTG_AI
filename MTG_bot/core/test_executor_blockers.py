@@ -5,7 +5,7 @@ Every one of these runs the REAL executor against compiled pool cards:
 the per-blocker ask contract (site ``block:<card>:<turn>``, vocabulary =
 the attackers that permanent may legally block + NONE, C15 narrowing for
 the must-be-blocked mandate and the menace repair), the CR 509.1 pair
-legality consumers (tapped, defender, flying/reach, two-sided protection,
+legality consumers (tapped, defender, flying/reach, attacker-side protection,
 static AND runtime PREVENT_EFFECT records, the live draw clock), the
 DECLARE_BLOCKERS pair-row feed (DeclareBlockersEvent slots over
 blocker/attacker; the anchored BecomesBlockedEvent — Gloom Sower's life
@@ -19,6 +19,7 @@ rows (Harbinger's ``combat`` flag consumed).
 
 from __future__ import annotations
 
+import dataclasses
 import unittest
 
 from MTG_bot.core.ability_tree import (
@@ -34,7 +35,7 @@ from MTG_bot.core.executor.games import identity_of
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_LIBRARY
 from MTG_bot.core.test_executor_combat import CombatCase, _supply
-from MTG_bot.core.test_executor_verbs import UNIV, atom, card_id
+from MTG_bot.core.test_executor_verbs import UNIV, atom, card_id, target_sel
 
 
 class BlockerCase(CombatCase):
@@ -188,27 +189,52 @@ class TestPairLegality(BlockerCase):
         self.assertEqual(self.damage_plan(spider), ((3, flyer),))
         self.assertEqual(self.world.zone_of(flyer).kind, ZONE_GRAVEYARD)  # 3 on a 2/2
 
-    def test_two_sided_protection_rejects_the_matching_blocker(self):
-        # Baneslayer Angel's printed quality pair (Demons/Dragons) reads
-        # through the KeywordAbility params; a Demon blocker is vetoed.
+    def test_a_protected_blocker_may_block_the_quality(self):
+        # re-pinned 2026-10-30: V44 changes the blocker side of protection. CR
+        # 702.16f restricts only the protected ATTACKER ("can't be blocked by
+        # creatures that have the stated quality"), so Baneslayer Angel
+        # (protection from Demons and from Dragons) may block a Demon, and the
+        # Demon's damage to it is prevented (702.16e). The old pin had the Angel
+        # vetoed from the pair and never asked.
         attacker = self.world.add_card(
-            card_id("Test Demon", "2", "2", type_line="Creature — Demon"),
+            card_id("Test Demon", "6", "6", type_line="Creature — Demon"),
             self.p0,
             ZONE_BATTLEFIELD,
         )
         baneslayer = self.real("Baneslayer Angel", self.p1)
-        vanilla = self.synth("Vanilla", 2, 2, self.p1)
         self.begin()
-        self.answers[f"block:{vanilla}"] = str(attacker)
+        self.answers[f"block:{baneslayer}"] = str(attacker)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # protection was the ONLY pair for Baneslayer: legal against
-        # nothing, the engine honestly does not ask at all (C15)
-        self.assertEqual(
-            [a for a in self.seen_asks if a[1].startswith(f"block:{baneslayer}")], []
+        self.assertEqual(self.vocab_for(baneslayer), (str(attacker), "NONE"))
+        self.assertEqual(self.blocked_map(), {str(attacker): [str(baneslayer)]})
+        # 5 first-strike lifelink damage marks the 6/6; its 6 back is prevented
+        self.assertEqual(self.ex.damage.get(attacker), 5)
+        self.assertNotIn(baneslayer, self.ex.damage)
+        self.assertEqual(self.world.zone_of(baneslayer).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.players[self.p1].life, 25)
+
+    def test_attacker_protection_rejects_the_matching_blocker(self):
+        # Baneslayer Angel's printed quality pair (Demons/Dragons) reads through
+        # the KeywordAbility params: attacking, it can't be blocked by a Demon.
+        baneslayer = self.real("Baneslayer Angel", self.p0)
+        demon = self.world.add_card(  # it flies, so only protection stops the block
+            dataclasses.replace(
+                card_id("Test Demon", "2", "2", type_line="Creature — Demon"),
+                keywords=("FLYING",),
+            ),
+            self.p1,
+            ZONE_BATTLEFIELD,
         )
-        self.assertEqual(self.blocked_map(), {str(attacker): [str(vanilla)]})
-        self.assertEqual(self.world.players[self.p1].life, 20)
+        self.begin()
+        self.answers[f"block:{demon}"] = str(baneslayer)
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        # protection was the ONLY pair for the Demon: legal against nothing,
+        # the engine honestly does not ask at all (C15)
+        self.assertEqual([a for a in self.seen_asks if a[1].startswith(f"block:{demon}")], [])
+        self.assertEqual(self.blocked_map(), {})
+        self.assertEqual(self.world.players[self.p1].life, 15)
 
     def test_static_prevention_draw_clock_tome_anima(self):
         # Tome Anima (attacking for P0): "can't be blocked as long as
@@ -491,6 +517,33 @@ class TestMenaceAndMandate(BlockerCase):
         self.assertEqual(self.world.zone_of(stalker).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(blocker).kind, ZONE_GRAVEYARD)
 
+    def test_dispatched_must_be_blocked_this_turn_ends_at_cleanup(self):
+        # B-59 (2026-10-29, FDN Joraga Invocation's shape): "must be blocked
+        # this turn if able" is a RESOLVED effect with a duration (CR
+        # 611.2a, 509.1h). This turn the only blocker is forced onto the
+        # lure; after the cleanup step (CR 514.2) it may stay home. The
+        # dispatch ledger used to keep the lure until it left play.
+        lure = self.synth("Lure", 1, 5, self.p0)
+        blocker = self.synth("Blocky", 1, 5, self.p1)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.execute(
+            atom(Verb.MANDATE_BLOCK, cards=target_sel(), duration=DurationEot()),
+            source=lure,
+            controller=self.p0,
+            bindings={"cards": lure},
+        )
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.forced_block(blocker), str(lure))
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.seen_asks.clear()
+        self.ex.combat_step(self.p0)
+        self.assertEqual(set(self.vocab_for(blocker)), {str(lure), "NONE"})
+        self.assertEqual(self.world.players[self.p1].life, 19)  # NONE: unblocked
+
 
 class TestFeeds(BlockerCase):
     def test_becomes_blocked_gloom_sower_swaps_life(self):
@@ -576,6 +629,91 @@ class TestTokenBinder(BlockerCase):
             # gate consumes it silently; the journal is the evidence.
             self.forced_attack(creature)
         self.assertEqual(self.world.players[self.p0].life, 20 - 3)
+
+
+class TestBlockedWithNoBlockerLeft(BlockerCase):
+    """B-61: an attacker stays BLOCKED when every creature blocking it has
+    left combat (CR 509.1h). CR 510.1c: such a creature assigns no combat
+    damage, unless it has trample, which then assigns all of it to the
+    player it attacks (CR 702.19e). Before the fix ``_assign_damage`` sent
+    the whole damage to the player for any attacker with no live blocker,
+    so a double striker that killed its blocker in the first-strike step
+    hit the player in the regular step."""
+
+    def striker(self, name, power, toughness, *keywords):
+        identity = dataclasses.replace(
+            card_id(name, str(power), str(toughness)), keywords=keywords
+        )
+        return self.world.add_card(identity, self.p0, ZONE_BATTLEFIELD)
+
+    def fight(self, attacker, blocker) -> None:
+        self.answers[f"block:{blocker}"] = str(attacker)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+
+    def plans(self, dealer):
+        return [r.combat_damage[0] for r in self.rows("COMBAT_DAMAGE") if r.subject == dealer]
+
+    def test_double_striker_deals_no_regular_damage_once_its_blocker_died(self):
+        ds = self.striker("Twinblade", 2, 2, "DOUBLE_STRIKE")
+        chump = self.synth("Chump", 1, 1, self.p1)
+        self.fight(ds, chump)
+        self.assertEqual(self.world.zone_of(chump).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.players[self.p1].life, 20)
+        # one announcement, the first-strike step's; the regular step has
+        # nothing to assign to
+        self.assertEqual(self.plans(ds), [((2, chump),)])
+
+    def test_double_strike_trampler_tramples_everything_over_a_dead_blocker(self):
+        ds = self.striker("Stampede", 3, 3, "DOUBLE_STRIKE", "TRAMPLE")
+        chump = self.synth("Chump", 1, 1, self.p1)
+        self.fight(ds, chump)
+        # first strike: lethal 1 to the chump, the excess 2 to the player;
+        # regular: the chump is gone, all 3 to the player (CR 702.19e)
+        self.assertEqual(self.plans(ds), [((1, chump), (2, self.p1)), ((3, self.p1),)])
+        self.assertEqual(self.world.players[self.p1].life, 15)
+
+    def herald_fight(self, *policy_words):
+        """A Herald-granted double striker blocked by a 1/1; the policy
+        asks are answered in order and recorded."""
+        herald = self.real("Garruk, Savage Herald", self.p0)
+        ds = self.striker("Twinblade", 2, 2, "DOUBLE_STRIKE")
+        chump = self.synth("Chump", 1, 1, self.p1)
+        self.answers[f"block:{chump}"] = str(ds)
+        self.begin()
+        self.world.cards[herald].counters["LOYALTY"] = 7
+        activate(self.ex, herald, 2, seat=self.p0)  # the -7 grant
+        words = iter(policy_words)
+        asked: list[tuple[str, ...]] = []
+        base = self.provider
+
+        def provider(vocab, what):
+            if what.startswith(f"policy:{ds}:"):
+                asked.append(tuple(vocab))
+                return next(words)
+            return base(vocab, what)
+
+        self.ex.decisions.provider = provider
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        return ds, chump, asked
+
+    def test_herald_policy_still_offers_the_player_with_no_blocker_left(self):
+        # "assign its combat damage as though it weren't blocked" still
+        # applies when no blocker is left, so the regular step ASKS the
+        # policy too (before the fix it skipped the ask and hit the player).
+        ds, chump, asked = self.herald_fight("AS_BLOCKED", "UNBLOCKED")
+        self.assertEqual(asked, [("AS_BLOCKED", "UNBLOCKED")] * 2)
+        # first strike AS_BLOCKED kills the chump; regular step UNBLOCKED
+        self.assertEqual(self.plans(ds), [((2, chump),), ((2, self.p1),)])
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def test_herald_policy_declined_with_no_blocker_left_deals_nothing(self):
+        ds, chump, asked = self.herald_fight("AS_BLOCKED", "AS_BLOCKED")
+        self.assertEqual(len(asked), 2)
+        self.assertEqual(self.plans(ds), [((2, chump),)])
+        self.assertEqual(self.world.players[self.p1].life, 20)
 
 
 if __name__ == "__main__":

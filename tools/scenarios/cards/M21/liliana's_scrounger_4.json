@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scrounger, printed: 'if a creature died THIS TURN'. The bear dies on your turn: at your end step the counter goes on (3 -> 4). On the opponent's next turn no creature dies, so at that end step nothing happens even when answered yes: Liliana ends at 4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sc", "real": "Liliana's Scrounger", "zone": "battlefield", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "lili"},
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "deal_damage", "source": "sc", "target": "bear", "amount": 99},
+  {"op": "end_turn", "decisions": ["fire", "lili"]},
+  {"op": "advance_turn"},
+  {"op": "end_turn", "decisions": ["fire", "lili"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard"},
+  "counters": {"lili": {"LOYALTY": 4}}
+ }
+}

@@ -25,12 +25,42 @@ from typing import Union
 from MTG_bot.core.ability_tree import (
     Ability,
     ActivationWindow,
+    Choose,
     Cost,
     Effect,
     Filter,
     Keyword,
+    QConst,
     Quantity,
+    Zone,
 )
+
+# ---------------------------------------------------------------------------
+# "Search your library and/or graveyard" — the zone choice (B-78).
+# ---------------------------------------------------------------------------
+
+
+def and_or_zone_search(
+    search_in: Callable[[tuple[Zone, ...]], Effect], library: Zone, graveyard: Zone
+) -> Choose:
+    """m21-fidelity wave 4 (2026-10-30, coordinator go on B-78): "search your
+    library and/or graveyard for ..." lets the player search either zone or
+    both (CR 701.23a: a search looks at the zones searched), so it is a
+    visible Choose over the three zone sets, built from existing components.
+    Option 0 searches both zones (the only reading before this change, so a
+    default answer keeps it); option 1 the library only; option 2 the
+    graveyard only. ``search_in`` builds one option's effect for a zone set.
+    The printed "If you search your library this way, shuffle." joins only
+    the options that search a library (compiler._merge_search_shuffle)."""
+    return Choose(
+        count=QConst(1),
+        options=(
+            search_in((library, graveyard)),
+            search_in((library,)),
+            search_in((graveyard,)),
+        ),
+    )
+
 
 # ---------------------------------------------------------------------------
 # SentenceOutcome — the typed result of one template match.
@@ -133,17 +163,22 @@ class ActivationGateOutcome:
 
 @dataclass(frozen=True)
 class KickerEffectOutcome:
-    """A "If this spell/it was kicked, [instead] X" sentence (ZNR).
+    """A conditional arm on the previous effect: "If this spell/it was kicked,
+    [instead] X" (ZNR), or any "If <condition>, X instead." that rewrites
+    the spell's own previous instruction (``pred`` set: Life Goes On, "If a
+    creature died this turn, you gain 8 life instead"; CR 608.2c, later
+    text modifies earlier text).
 
     The compiler folds it onto the previous effect-bearing slot:
-    ``replaces=False`` appends ``Conditional(WAS_KICKED, X)`` to the base
+    ``replaces=False`` appends ``Conditional(pred, X)`` to the base
     effect (additive kicker); ``replaces=True`` makes the arm replace the
-    base effect: ``Conditional(WAS_KICKED, X, else=base)`` (CR 601.2f
-    alternative resolution).
+    base effect: ``Conditional(pred, X, else=base)`` (CR 601.2f
+    alternative resolution). ``pred`` None is WAS_KICKED.
     """
 
     effect: Effect
     replaces: bool = False
+    pred: Filter | None = None
 
 
 SentenceOutcome = Union[

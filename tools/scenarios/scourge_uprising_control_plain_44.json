@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Control for scourge_enters_as_xx_garruks_uprising.json: a plain 4/4 entering under seat 0's control makes Garruk's Uprising draw a card (hand 0 -> 1), so the Uprising itself works on this engine.",
+ "cards": [
+  {"key": "up", "zone": "battlefield", "controller": 0, "real": "Garruk's Uprising"},
+  {"key": "big", "zone": "hand", "controller": 0, "name": "Big Beast", "type": "Creature — Beast", "power": 4, "toughness": 4}
+ ],
+ "steps": [
+  {"op": "enter", "key": "big"}
+ ],
+ "expect": {"zone": {"big": "battlefield"}, "hand": {"0": 1}}}

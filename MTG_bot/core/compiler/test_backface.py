@@ -319,7 +319,8 @@ class TestPhantomDefenses(unittest.TestCase):
         from MTG_bot.core.compiler import compiler, coverage
 
         for fn in (
-            compiler.compile_card,
+            compiler._star_pt_gaps,  # compile_card's verdict folds, shared with card records
+            compiler._engine_supported,
             compiler.compile_pool,
             coverage.measure_pool,
             games.compile_supply,

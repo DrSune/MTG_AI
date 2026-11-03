@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Chrome Replicator, printed: 'When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.' A Chrome Replicator is already on your battlefield; you cast a second one: on entry you control two permanents named Chrome Replicator, so exactly one 4/4 Construct token is created (only the entering one triggers).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cr1", "real": "Chrome Replicator", "zone": "battlefield", "controller": 0},
+  {"key": "cr2", "real": "Chrome Replicator", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 5}},
+ "steps": [
+  {"op": "cast", "real": "Chrome Replicator", "key": "cr2"}
+ ],
+ "expect": {
+  "zone": {"cr1": "battlefield", "cr2": "battlefield"},
+  "tokens": {"Construct": 1},
+  "battlefield_pt": {"Construct": [4, 4]}
+ }
+}

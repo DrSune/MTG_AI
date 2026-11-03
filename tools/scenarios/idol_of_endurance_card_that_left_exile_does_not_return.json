@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "i", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "tb", "real": "Thrashing Brontodon", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Small Creature", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "c3", "name": "Medium Creature", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "enter", "key": "i"},
+  {"op": "move", "key": "c2", "to": "hand"},
+  {"op": "move", "key": "c2", "to": "exile"},
+  {"op": "activate", "key": "tb", "idx": 0, "seat": 0, "targets": ["i"]}
+ ],
+ "expect": {
+  "zone": {"i": "graveyard", "c2": "exile", "c3": "graveyard"}
+ },
+ "notes": "R5-1, CR 610.3 + 400.7: the Idol exiles both creature cards. Another effect then takes Small Creature out of exile and a third puts it back: it is a new object in exile, not the one the Idol exiled, so when the Idol is destroyed only Medium Creature returns to the graveyard. Handles survive zone moves, so the engine decides 'the same object' from the journal entry clock, as WAS_KICKED does."
+}

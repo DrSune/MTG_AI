@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sh", "real": "Battle-Rattle Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "may": {"sh": true}, "decisions": ["bear"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {"power": {"bear": 2}, "toughness": {"bear": 2}},
+ "notes": "Printed: '... get +2/+0 UNTIL END OF TURN.' The Bear is pumped at your beginning of combat; after the turn ends it is a 2/2 again."}

@@ -1,0 +1,53 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {
+      "key": "sp",
+      "real": "Peer into the Abyss",
+      "zone": "hand",
+      "controller": 0
+    },
+    {
+      "key": "pg",
+      "name": "Extra Page",
+      "power": "1",
+      "toughness": "1",
+      "type": "Creature",
+      "zone": "library",
+      "controller": 0
+    }
+  ],
+  "mana": {
+    "0": {
+      "B": 7
+    }
+  },
+  "steps": [
+    {
+      "op": "life",
+      "seat": 0,
+      "set": 15
+    },
+    {
+      "op": "cast",
+      "real": "Peer into the Abyss",
+      "key": "sp",
+      "decisions": [
+        "player:0"
+      ]
+    }
+  ],
+  "expect": {
+    "life": {
+      "0": 7,
+      "1": 20
+    },
+    "hand": {
+      "0": 4
+    }
+  },
+  "notes": "B-53 repro (m21-fidelity item 2, 2026-10-29). 'Target player' may be the caster (CR 115.1: any player). It failed while 'target player' and 'target opponent' shared TARGET_PLAYER (the synthesized slot offered opponents only). V21 (engine/verify-fixes-2) gave 'target opponent' its own TARGET_OPPONENT; at the merge of cards/integration into that branch (2026-10-30) the pack moved here from known_bugs/, superseding V21's draw-only peer_into_the_abyss_targets_caster. Corrected at the move: the runner deals its 6 filler cards after begin_turn, whose draw finds an empty library, so the repro's '5 library cards after the draw' was never the setup. 'Extra Page' makes seat 0's library 7, so the draw-half witness discriminates round-up: it draws 4 (round up of 3.5), a hand of 4 once Peer has left it, and loses 8 of its 15 life (round up of 7.5), to 7."
+}

@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "66093486-c9c3-42c5-97d1-ec0fe54f65b0",
+ "name": "Twinblade Assassins",
+ "text_sha": "609f40fed53461d3ed8b725a44f13c38cea16861ded2bb1c638a0b97cdeab332",
+ "verified": {
+  "tree_sha": "a54866ba2e898e0b539233b32ad75519cc4776fb7ab7666df2e96a195dcd9e12",
+  "probe_sha": "5a12b18dc2d207dbefa4423384f955a02a8a0debbbfb0069325b7ffc7afe3712",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Elf Assassin {3}{B}{G} 5/4",
+    "status": "OK",
+    "evidence": "[cast]: P/T 5/4, mana B-1 G-1 W-3; attacks unblocked for 5 (opp 20 -> 15); trades with the blocking 4/4",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step,",
+    "status": "OK",
+    "evidence": "[turns pass: your end step, the opponent's turn, your next upkeep]: exactly one 'card's triggered ability [0] triggers' (your end step; none at the opponent's end step). Tree TurnPhaseEvent END_TURN actor CONTROLLER_IS YOU",
+    "issue": ""
+   },
+   {
+    "clause": "if a creature died this turn, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: nothing died, so the trigger draws nothing (the only draw is the draw step's, 'by you/DRAW'). Tree condition DIED_THIS_TURN, DRAW 1 YOU. Packs: twinblade_assassins_death_then_end_step.json (opponent's creature destroyed, end_turn: you draw exactly Library 5): PASS; twinblade_assassins_death_last_turn_only.json (death on turn 1 draws once; your turn 3 end step with no death draws nothing; hand 2): PASS. Noncreature death is covered by the existing tools/scenarios/died_this_turn_treasure.json (B-56).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/twinblade_assassins_1.json",
+   "tools/scenarios/cards/M21/twinblade_assassins_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

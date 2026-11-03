@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "real": "Kitesail Freebooter", "zone": "hand", "controller": 0},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "salve", "name": "Salve", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 4, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Kitesail Freebooter", "key": "k", "decisions": ["zap"]},
+  {"op": "move", "key": "k", "to": "hand"},
+  {"op": "cast", "real": "Kitesail Freebooter", "key": "k", "decisions": ["salve"]}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield", "zap": "hand", "salve": "exile"},
+  "hand": {"0": 0, "1": 1}
+ },
+ "notes": "R5-1, CR 610.3 + 400.7: Freebooter is cast and exiles Zap; it is returned to its owner's hand, so Zap comes back; cast again, it is a new object whose new enters trigger exiles anew (Salve this time). The old exile ended with the old object; the new one is anchored to the new Freebooter."
+}

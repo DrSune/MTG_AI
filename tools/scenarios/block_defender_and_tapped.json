@@ -59,7 +59,6 @@
   ],
   "expect": {
     "not_asked_to_block": [
-      "wall",
       "corpse"
     ],
     "blocked": {
@@ -70,6 +69,10 @@
     },
     "zone": {
       "wall": "battlefield"
+    },
+    "block_asks": {
+      "wall": "<ogre>,NONE"
     }
-  }
+  },
+  "notes": "re-pinned 2026-10-29: V40 changes blocking with defender: CR 702.3b forbids only attacking, so the wall (Warded Battlements) is now asked to block, offered the ogre or no block; it declines here (the pack names no block), so the ogre still deals 4. The tapped Walking Corpse is still never asked (CR 509.1a). The pack used to pin the wall as not asked."
 }

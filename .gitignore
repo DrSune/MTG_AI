@@ -39,3 +39,6 @@ scraped_frames/
 reports/monitoring/selfwake.json
 tools/training/bc_s2_best.pt
 reports/episodes_iter1.jsonl
+
+# card tooling caches (tools/cards/corpus.py), rebuilt on demand
+.cache/

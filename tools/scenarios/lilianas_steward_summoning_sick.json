@@ -1,0 +1,47 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ls",
+   "real": "Liliana's Steward",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Opp Card A",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "ls"
+  },
+  {
+   "op": "activate",
+   "key": "ls",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "illegal activation"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ls": "battlefield",
+   "c1": "hand"
+  },
+  "tapped": {
+   "ls": false
+  }
+ },
+ "notes": "Printed cost '{T}, Sacrifice this creature' with CR 302.6: a creature's ability with {T} in its cost can't be activated unless the creature has been under its controller's control continuously since their most recent turn began. The Steward entered this turn (no haste), so the activation must be refused and nothing paid. Before V1 (2026-10-29) the engine tapped and sacrificed it and only then failed on the player target; the activation is now refused before anything is paid."
+}

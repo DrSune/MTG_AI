@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c6b94e03-61c0-4077-b3da-a70795e97278",
+ "name": "Teferi's Tutelage",
+ "text_sha": "8947b758e405905c12cc79b6f6d111fdfa69c77654accf814b230a89199604f7",
+ "verified": {
+  "tree_sha": "c38a0f53d73b124f617006c373f047f6e5d51803dec1114766ade311cbf85552",
+  "probe_sha": "6c21fe8f0e647beb9401f1c3b916f132a579a1f4cdab19e3bff8d6e29e213dd0",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "When this enchantment enters, draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "[cast] variants: you draw Library 5#1, then 'ask one_of' over the whole hand including the drawn card; the chosen card moves hand -> graveyard (every option honoured). Also on entering during the opponent's turn. Paid {2}{U} (U-1 W-2).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you draw a card, target opponent mills two cards.",
+    "status": "OK",
+    "evidence": "'you draw a card': ability [1] triggers, opp is targeted, opp's top two (Library 5#2, 4#2) library -> graveyard; 'you draw two cards, one after the other': two triggers, four milled (library 6 -> 2); 'the opponent draws a card -> none'; your draw step in 'turns pass' and Crash Through's draw each trigger it once; the ETB draw triggers it too. Tree identical to the compiler's parse (MOVE_ZONE 2, MILL, TOP).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

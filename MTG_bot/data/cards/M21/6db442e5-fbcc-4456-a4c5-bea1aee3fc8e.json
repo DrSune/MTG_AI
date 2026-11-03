@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6db442e5-fbcc-4456-a4c5-bea1aee3fc8e",
+ "name": "Radiant Fountain",
+ "text_sha": "2cbda1dc14b1ca981e28a0c4a72d4a5378084b6a7a3f6dcc58bc8e5f61fd9427",
+ "verified": {
+  "tree_sha": "bc485a0ab841d362afdedcee0aec6276e52bc8fce49a38afd4a9769dc16605a8",
+  "probe_sha": "a706226137edb16d962be4d93df966477218c1cf04a1dc66966732af967257b3",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "When this land enters, you gain 2 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'card's triggered ability [0] triggers', 'you gains 2 life (by card/GAIN_LIFE)', life 20 -> 22; land enters untapped (no 'enters tapped' in the text); [enters during the opponent's turn]: same trigger, 20 -> 22",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {C}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: card becomes tapped; you: mana C+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

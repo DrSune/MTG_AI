@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the block trigger's token count). Printed: 'Whenever this creature attacks or blocks, choose one - Create A 3/3 green Beast creature token. ...' On the opponent's turn Elder Gargaroth blocks the opponent's 2/2 and its controller chooses the Beast: exactly one 3/3 Beast token is created. The 2/2 dies.",
+ "cards": [
+  {"key": "eg", "real": "Elder Gargaroth", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"ob": true}, "block": {"eg": "ob"}, "decisions": ["0"]}
+ ],
+ "expect": {
+  "tokens": {"Beast": 1},
+  "battlefield_pt": {"Beast": [3, 3]},
+  "zone": {"ob": "graveyard", "eg": "battlefield"},
+  "life": {"0": 20},
+  "damage": {"eg": 2}
+ }
+}

@@ -15,6 +15,24 @@
    "real": "Crash Through",
    "zone": "hand",
    "controller": 0
+  },
+  {
+   "key": "lib1",
+   "name": "Spare Library One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib2",
+   "name": "Spare Library Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
   }
  ],
  "mana": {
@@ -29,17 +47,26 @@
  },
  "steps": [
   {
+   "op": "loyalty",
+   "key": "cf",
+   "set": 9,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "cf",
+   "idx": 3,
+   "seat": 0
+  },
+  {
    "op": "activate",
    "key": "cf",
    "idx": 4,
    "seat": 0,
    "decisions": [
-    "skip"
+    "fire"
    ],
-   "eval_reclassification": {
-    "reason": "branch-coverage negative twin of chandra_flame_s_catalyst_branch02: free-cast fire path certified by the sibling pack; this pack pins the SKIP branch (Crash Through stays in hand). True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
-    "verdict": "true-no-decision"
-   }
+   "expect_raise": "illegal activation: ability:not_activated:SpellAbility"
   }
  ],
  "expect": {
@@ -47,11 +74,17 @@
    "1": 20
   },
   "zone": {
-   "ct": "hand"
+   "ct": "graveyard",
+   "cf": "battlefield"
   },
   "hand": {
-   "0": 1
+   "0": 7
+  },
+  "counters": {
+   "cf": {
+    "LOYALTY": 1
+   }
   }
  },
- "notes": "Negative twin of chandra_flame_s_catalyst_branch02: the free-cast offer SKIPs - Crash Through stays in hand (zone + hand lanes), no CAST row."
+ "notes": "B-49 follow-up #1 twin (was the skip twin of branch02). The [-8] at idx 3 resolves as compiled: discard your hand (Crash Through to the graveyard), then draw seven. Its suppressed permission leaves no free activation behind: idx 4 is refused. Seeded at 9 loyalty, Chandra stays on the battlefield with 1."
 }

@@ -1,20 +1,59 @@
 {
-  "world": { "life": 20, "seed": 7 },
-  "cards": [
-    { "key": "sf", "real": "Mystic Skyfish", "controller": 0, "zone": "battlefield" },
-    { "key": "r1", "real": "Revitalize", "controller": 0, "zone": "hand" },
-    { "key": "r2", "real": "Revitalize", "controller": 0, "zone": "hand" }
-  ],
-  "mana": { "0": { "W": 6 } },
-  "steps": [
-    { "op": "advance_turn" },
-    { "op": "advance_turn" },
-    { "op": "cast", "key": "r1" }
-  ],
-  "expect": {
-    "battlefield_keywords": { "Mystic Skyfish": ["FLYING"] },
-    "life": { "0": 23 },
-    "hand": { "0": 3 }
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sf",
+   "real": "Mystic Skyfish",
+   "controller": 0,
+   "zone": "battlefield"
   },
-  "notes": "Printed: 'Whenever you draw your second card each turn, this creature gains flying until end of turn.' Turn 2: the upkeep draw is card 1 (no grant, see the control pack), the Revitalize draw is card 2 -> FLYING granted. The ordinal=2 counter is TURN-scoped, matching the printed 'each turn'."
+  {
+   "key": "r1",
+   "real": "Revitalize",
+   "controller": 0,
+   "zone": "hand"
+  },
+  {
+   "key": "r2",
+   "real": "Revitalize",
+   "controller": 0,
+   "zone": "hand"
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 6
+   }
+  },
+  {
+   "op": "cast",
+   "key": "r1"
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "Mystic Skyfish": [
+    "FLYING"
+   ]
+  },
+  "life": {
+   "0": 23
+  },
+  "hand": {
+   "0": 3
+  }
+ },
+ "notes": "Printed: 'Whenever you draw your second card each turn, this creature gains flying until end of turn.' Turn 2: the upkeep draw is card 1 (no grant, see the control pack), the Revitalize draw is card 2 -> FLYING granted. The ordinal=2 counter is TURN-scoped, matching the printed 'each turn'. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

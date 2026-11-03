@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Siege Striker attacks alone; its trigger's may is taken: it taps the two untapped creatures its controller controls (not the opponent's), gets +2/+2 until end of turn (3/3) and, with double strike, deals 3+3 = 6. After the turn ends it is 1/1 again.",
+ "cards": [
+  {"key": "ss", "real": "Siege Striker", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Giant", "type": "Creature", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ss": true, "bear": false, "giant": false}, "may": {"ss": true}}
+ ],
+ "expect": {
+  "attackers": {"ss": true, "bear": false, "giant": false},
+  "tapped": {"ss": true, "bear": true, "giant": true, "relic": false, "obear": false},
+  "power": {"ss": 3},
+  "toughness": {"ss": 3},
+  "life": {"0": 20, "1": 14}
+ }
+}

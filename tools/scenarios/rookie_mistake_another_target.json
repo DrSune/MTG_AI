@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rm", "real": "Rookie Mistake", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Bear A", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "b", "name": "Opp Ape", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "rm", "real": "Rookie Mistake", "targets": ["b", "b"], "expect_raise": "illegal"},
+  {"op": "cast", "key": "rm", "real": "Rookie Mistake", "targets": ["a", "b"]}
+ ],
+ "expect": {
+  "zone": {"rm": "graveyard"},
+  "power": {"a": 2, "b": 1},
+  "toughness": {"a": 4, "b": 3},
+  "mana_pool": {"0": {"U": 1}}
+ },
+ "notes": "M21 G2 spec: Rookie Mistake. 'target creature gets +0/+2 and ANOTHER target creature gets -2/-0': the same creature cannot be both targets (refused); with two different creatures the first gets +0/+2 and the second -2/-0."
+}

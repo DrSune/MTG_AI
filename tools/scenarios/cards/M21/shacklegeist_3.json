@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Tap target creature YOU DON'T CONTROL.' With two untapped Spirits available, targeting seat 0's own Bear is refused; nothing is tapped.",
+ "cards": [
+  {"key": "sg", "real": "Shacklegeist", "zone": "battlefield", "controller": 0},
+  {"key": "sp2", "name": "Spirit Two", "type": "Creature — Spirit", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "activate", "key": "sg", "idx": 1, "seat": 0, "targets": ["bear"], "expect_raise": "target"}],
+ "expect": {"tapped": {"sg": false, "sp2": false, "bear": false}}}

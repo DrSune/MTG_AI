@@ -1,0 +1,63 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "9e2e3272-d4e1-4329-b1d2-f393b3511b82",
+ "name": "Subira, Tulzidi Caravanner",
+ "text_sha": "56737bac2a373551999060087da09680698c07314d364973946be92aa12178f0",
+ "verified": {
+  "tree_sha": "44129ed8eb37d54287f27b71e416cdc9416a03eda2d2ed615f42e98a5f2b13f3",
+  "probe_sha": "cd7ed7582ca542e289ae204dcce29e3e54691405bee4c51d3b9c9dac1c266802",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +HASTE in the trace; no attack the turn it is cast. Pack subira_haste.json (cast, then attack the same turn for 2) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}: Another target creature with power 2 or less can't be blocked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Ability [0] target slot: 1..1 of [you_bear, opp_flier, opp_bear] (power <= 2, either side, Subira itself excluded; you_giant/opp_giant/opp_tapped excluded); cost 'mana W-1'. No combat after it in the probe. Tree = the corpus parse. Packs: subira_unblockable.json (wall cannot block it) PASS; subira_unblockable_after_pump.json (pumped to 4/2 after resolution, still unblockable, CR 608.2b) PASS; subira_unblockable_this_turn_only.json (blockable on the next turn) PASS.",
+    "issue": "engine-limit: no priority, so the instant-speed ability is used only in its controller's action window"
+   },
+   {
+    "clause": "{1}{R}, {T}, Discard your hand:",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: card becomes tapped; all five hand cards move hand -> graveyard; 'you: hand 5 -> 0; mana R-1 W-1'.",
+    "issue": ""
+   },
+   {
+    "clause": "Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: DelayedTrigger(DurationEot, DamageDealtEvent(to a player, source creature you control with POWER_LE 2, combat)) -> DRAW 1. No combat after the activation in the probe. Packs: subira_delayed_draw_power_check.json (2-power connects -> 1 card, 3-power -> none) PASS; subira_delayed_draw_blocked_and_eot.json (blocked -> none; next turn -> none) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_1.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_2.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_3.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_4.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_5.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_6.json"
+  ],
+  "mutation": {
+   "mutants": 25,
+   "killed": 16,
+   "score": 0.64,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "widen filter (drop part 0) at 1/1/effect/event/source",
+    "widen filter (drop part 1) at 1/1/effect/event/source",
+    "widen filter (drop part 2) at 1/1/effect/event/source",
+    "controller YOU->OPPONENT at 1/1/effect/event/source/children/0/who",
+    "amount+1 at 1/1/effect/event/source/children/2/count",
+    "amount-1 at 1/1/effect/event/source/children/2/count",
+    "amount+1 at 1/1/effect/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/effect/args/controller"
+   ]
+  }
+ }
+}

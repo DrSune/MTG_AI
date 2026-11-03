@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V35 (CR 704.5d, 111.7): Goblin Wizardry makes two 1/1 Goblin Wizard tokens. Pestilent Haze ('All creatures get -2/-2 until end of turn') is a noncreature spell, so their prowess makes them 2/2 first, then the Haze kills them. Tokens that leave the battlefield cease to exist: the graveyard holds only the two spells, never the tokens.",
+ "cards": [
+  {"key": "wiz", "real": "Goblin Wizardry", "zone": "hand", "controller": 0},
+  {"key": "haze", "real": "Pestilent Haze", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4, "B": 6}},
+ "steps": [
+  {"op": "cast", "key": "wiz", "real": "Goblin Wizardry"},
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["0"]}
+ ],
+ "expect": {
+  "tokens": {"Goblin Wizard": 0},
+  "graveyard": {"0": ["Goblin Wizardry", "Pestilent Haze"]}
+ }
+}

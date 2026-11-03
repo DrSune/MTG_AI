@@ -1,0 +1,94 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: '{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.' Your library holds Forest, Island (basic) and Jungle Hollow (nonbasic) under 6 filler cards; the opponent's library holds a Swamp. Activating taps and sacrifices the Wilds; you choose the Island, which enters the battlefield tapped under your control. Forest, Jungle Hollow and the fillers stay in your library (8 cards, order unknown after the shuffle); the opponent's Swamp stays put. (The harness's opening begin_turn draws your top library card before the filler is dealt: the last-listed 'Opening Draw' absorbs that draw.)",
+ "cards": [
+  {
+   "key": "wilds",
+   "real": "Evolving Wilds",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "island",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "hollow",
+   "real": "Jungle Hollow",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "oppswamp",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "drawn",
+   "name": "Opening Draw",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "wilds",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "island"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wilds": "graveyard",
+   "island": "battlefield",
+   "forest": "library",
+   "hollow": "library",
+   "oppswamp": "library",
+   "drawn": "hand"
+  },
+  "tapped": {
+   "island": true
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ],
+   "1": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

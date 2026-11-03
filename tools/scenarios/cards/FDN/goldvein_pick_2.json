@@ -1,0 +1,23 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "mana": {"0": {"C": 1}},
+  "cards": [
+    {"key": "pick", "real": "Goldvein Pick", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "wall", "name": "Their Wall", "type": "Creature — Wall", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "activate", "key": "pick", "idx": 2, "seat": 0, "targets": ["bear"]},
+    {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"wall": "bear"}}
+  ],
+  "expect": {
+    "attackers": {"bear": true},
+    "blocked": {"bear": ["wall"]},
+    "damage": {"wall": 3},
+    "life": {"0": 20, "1": 20},
+    "tokens": {"Treasure": 0}
+  },
+  "notes": "Goldvein Pick: the equipped Bear (3/3) is blocked by a 0/5 Wall and deals its combat damage to the Wall, not to a player, so no Treasure is created."
+}

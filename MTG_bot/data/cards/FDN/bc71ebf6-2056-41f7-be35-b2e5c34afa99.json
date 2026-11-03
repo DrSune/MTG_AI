@@ -1,0 +1,27 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "bc71ebf6-2056-41f7-be35-b2e5c34afa99",
+ "name": "Plains",
+ "text_sha": "8076074f42e3dbd14a705afe2ef08543d8750edc44cb018600213125b22442ed",
+ "verified": {
+  "tree_sha": "68ea29ef6e31bc3fd993873cd9e54f873260f4b3484769e48f9b7cdba87348ac",
+  "probe_sha": "e3924bdbf47b3b031e989f2361f977e7885058fc5584d94e6f9d65e17d1db5ea",
+  "date": "2026-10-29",
+  "reviewer": "claude-orchestrator",
+  "clauses": [
+   {
+    "clause": "({T}: Add {W}.)",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: card becomes tapped; you: mana W+1; no other effect; plays as a land drop"
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

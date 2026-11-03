@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
+ "name": "Peer into the Abyss",
+ "text_sha": "39ed4d697e1cdcb5ee27d428c3ff94aafb65bdd9cb5985e4747663584da53739",
+ "verified": {
+  "tree_sha": "7b2080bca1b79f5d3d4510e73f326fd515f67ec5f57aeaa862c4075afe97935c",
+  "probe_sha": "88d251a576073b7cd4427c4238d659f7b4c485ad179ae40f2185485abff869e8",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "Target player draws cards equal to half the number of cards in their library and loses half their life.",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you, opp]' (any player); [cast targets=['you']]: library 6 -> draws 3, life 20 -> 10; [cast targets=['opp']]: opp draws 3 (library 6 -> 3) and opp 20 -> 10 while the caster's life is untouched. Paid {4}{B}{B}{B} (B-3 W-4). The end-of-turn 'ask discard' is the cleanup discard to seven (hand 8 -> 7). Tree identical to the compiler's parse.",
+    "issue": ""
+   },
+   {
+    "clause": "Round up each time.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe numbers are even. Tree: rounding CEIL on both halves. Pack Pacc35f67f8_peer_round_up.json PASSES: opponent with a 7-card library draws 4 and at 15 life loses 8 (-> 7).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/peer_into_the_abyss_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

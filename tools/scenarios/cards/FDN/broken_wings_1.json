@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Destroy target artifact, enchantment, or creature with flying.' Target the opponent's Serra Angel (a creature with flying): it is destroyed. The non-flying 2/2 is untouched.",
+ "cards": [
+  {"key": "bw", "real": "Broken Wings", "zone": "hand", "controller": 0},
+  {"key": "angel", "real": "Serra Angel", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "cast", "real": "Broken Wings", "key": "bw", "targets": ["angel"]}
+ ],
+ "expect": {
+  "zone": {"bw": "graveyard", "angel": "graveyard", "bear": "battlefield"}
+ }
+}

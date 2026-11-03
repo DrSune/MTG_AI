@@ -26,6 +26,8 @@ import unittest
 from pathlib import Path
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     Atom,
     BecomesBlockedEvent,
     CardDrawnEvent,
@@ -51,11 +53,11 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
-    LoyaltyActivatedEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
     QAgg,
+    QAtMost,
     QConst,
     QCount,
     QProp,
@@ -73,7 +75,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
-    ZonePosition,
     canonical_json,
     fingerprint,
 )
@@ -978,11 +979,15 @@ class TestB2bTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, CastSpellEvent)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        assert isinstance(event.filter, FAtom)
-        self.assertIs(event.filter.pred, FAtomPred.COLOR_IN)
-        # R1a canonicalization (ontology §3 SET-R1a): FAtom.colors is a
-        # membership set, construction-sorted; the SET is the pinned fact.
-        self.assertEqual(event.filter.colors, ("B", "R", "U", "W"))
+        # re-pinned 2026-10-29: V39 changes the filter from COLOR_IN (a subset
+        # test: a green-blue spell failed it) to "has any of the four colors",
+        # the FOr of COLOR_HAS (CR 105.2). FOr children are construction-
+        # sorted (ontology §3 SET-R1a); the SET of colors is the pinned fact.
+        assert isinstance(event.filter, FOr)
+        self.assertTrue(all(c.pred is FAtomPred.COLOR_HAS for c in event.filter.children))
+        self.assertEqual(
+            sorted(c.color for c in event.filter.children), ["B", "R", "U", "W"]
+        )
 
     def test_draw_counter_is_card_drawn_you(self) -> None:
         ability = _ability(
@@ -1164,14 +1169,15 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         # R2 fold (/140): CombatDamageEvent folded into DamageDealtEvent —
-        # amount unbounded, empty filter conj, the old filter moved
-        # verbatim to source, combat=True (the COMBAT_DAMAGE feed is now
-        # the is_combat=True DAMAGE journal rows).
+        # amount unbounded, the old filter moved verbatim to source,
+        # combat=True (the COMBAT_DAMAGE feed is now the is_combat=True
+        # DAMAGE journal rows).
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        assert isinstance(event.filter, FAnd)
-        self.assertEqual(event.filter.children, ())
+        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
+        # universal FAnd(()) to "a player" (not a permanent, CR 120.1).
+        self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
         self.assertIsNone(ability.condition)
@@ -1280,13 +1286,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
         )
         event = ability.event
         # R2 fold (/140): the cats filter moved VERBATIM from the old
-        # CombatDamageEvent filter slot to DamageDealtEvent.source; the
-        # fold's filter is the empty conj, amount unbounded, combat=True.
+        # CombatDamageEvent filter slot to DamageDealtEvent.source; amount
+        # unbounded, combat=True.
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        assert isinstance(event.filter, FAnd)
-        self.assertEqual(event.filter.children, ())
+        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
+        # universal FAnd(()) to "a player" (not a permanent, CR 120.1).
+        self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         assert isinstance(event.source, FAnd)
         self._assert_has_type_eq_creature(event.source)
         self._assert_has_controller_you(event.source)
@@ -1336,6 +1343,17 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
+        # B-57: "to a player or planeswalker" is the recipient (it was the
+        # universal FAnd(()), which fired on damage to a blocker).
+        self.assertEqual(
+            event.filter,
+            FOr(
+                (
+                    FNot(FAtom(pred=FAtomPred.IS_PERMANENT)),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                )
+            ),
+        )
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
 
@@ -1375,12 +1393,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        assert isinstance(event, LoyaltyActivatedEvent)
+        # R5-7: the activation event of kind LOYALTY (CR 606.2)
+        assert isinstance(event, AbilityActivatedEvent)
+        self.assertIs(event.kind, AbilityKind.LOYALTY)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        assert isinstance(event.filter, FAnd)
-        subtype = _find_atom(event.filter, FAtomPred.SUBTYPE_EQ)
+        assert isinstance(event.source, FAnd)
+        subtype = _find_atom(event.source, FAtomPred.SUBTYPE_EQ)
         self.assertEqual(subtype.string_value, "Chandra")
-        type_atom = _find_atom(event.filter, FAtomPred.TYPE_EQ)
+        type_atom = _find_atom(event.source, FAtomPred.TYPE_EQ)
         self.assertEqual(type_atom.string_value, "Planeswalker")
 
     # --- small filter assertion helpers ---
@@ -1438,23 +1458,29 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         option = _optional(ability)
         seq = _seq_inner(option)
-        self.assertEqual(len(seq.steps), 3)
-        # SEARCH
-        search = _atom_step(seq, 0)
-        self.assertIs(search.verb, Verb.SEARCH)
-        sel = _selector(search, "cards")
-        assert isinstance(sel.count, QConst)
-        self.assertEqual(sel.count.value, 2)
-        self.assertIs(sel.mode, SelectorMode.CHOOSE)
-        assert isinstance(sel.filter, FOr)
-        self.assertEqual(len(sel.filter.children), 2)
+        # re-pinned 2026-10-29: m21-fidelity, "a card named A and/or a card named B" is at most
+        # one card of EACH name: one up-to-one pick per name (it was one up-to-two pick over
+        # FOr(A, B), which could fetch two Alpine Watchdogs).
+        self.assertEqual(len(seq.steps), 4)
+        # SEARCH x2, in printed order
+        for idx, name in ((0, "Alpine Watchdog"), (1, "Igneous Cur")):
+            search = _atom_step(seq, idx)
+            self.assertIs(search.verb, Verb.SEARCH)
+            sel = _selector(search, "cards")
+            # re-pinned 2026-10-30: m21-fidelity wave 4, each named find is up to one
+            # (QAtMost(1)): CR 701.23b lets a hidden-zone search fail to find.
+            assert isinstance(sel.count, QAtMost)
+            self.assertEqual(sel.count.n, 1)
+            self.assertIs(sel.mode, SelectorMode.CHOOSE)
+            assert isinstance(sel.filter, FAtom)
+            self.assertEqual(sel.filter.string_value, name)
         # REVEAL
-        reveal = _atom_step(seq, 1)
+        reveal = _atom_step(seq, 2)
         self.assertIs(reveal.verb, Verb.REVEAL)
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
         assert isinstance(reveal.args.get("count"), QUnbounded)
         # SHUFFLE
-        shuffle = _atom_step(seq, 2)
+        shuffle = _atom_step(seq, 3)
         self.assertIs(shuffle.verb, Verb.SHUFFLE)
         zone = shuffle.args.get("zone")
         assert isinstance(zone, Zone)
@@ -1787,8 +1813,25 @@ class TestB2bEffectStructure(unittest.TestCase):
             )
         )
         option = _optional(ability)
-        seq = _seq_inner(option)
-        self.assertEqual(len(seq.steps), 3)
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
+        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
+        # unchanged), option 1 the library only, option 2 the graveyard only.
+        choose = option.inner
+        assert isinstance(choose, Choose)
+        self.assertEqual(choose.count, QConst(1))
+        self.assertEqual(len(choose.options), 3)
+        for idx, kinds in ((1, (ZoneKind.LIBRARY,)), (2, (ZoneKind.GRAVEYARD,))):
+            only = choose.options[idx]
+            assert isinstance(only, Seq)
+            self.assertEqual(
+                tuple(z.kind for z in _selector(_atom_step(only, 0), "cards").zones), kinds
+            )
+        seq = choose.options[0]
+        assert isinstance(seq, Seq)
+        # re-pinned 2026-10-30 (G3 finisher): two steps. The third, MOVE_ZONE(this creature
+        # from the top of your library to your hand), was unprinted ("put it into your hand"
+        # is the SEARCH's destination) and moved the creature itself when it was on top.
+        self.assertEqual(len(seq.steps), 2)
         # SEARCH
         search = _atom_step(seq, 0)
         self.assertIs(search.verb, Verb.SEARCH)
@@ -1817,20 +1860,6 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
         reveal_count = _qconst(reveal, "count")
         self.assertEqual(reveal_count.value, 1)
-        # MOVE_ZONE
-        move = _atom_step(seq, 2)
-        self.assertIs(move.verb, Verb.MOVE_ZONE)
-        move_sel = _selector(move, "cards")
-        assert isinstance(move_sel.filter, FAtom)
-        self.assertIs(move_sel.filter.pred, FAtomPred.IS_SOURCE)
-        self.assertEqual(
-            move_sel.zones[0],
-            Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=ZonePosition.TOP),
-        )
-        self.assertEqual(
-            move.args.get("destination"),
-            Zone(ZoneKind.HAND, ControllerRef.YOU),
-        )
 
     def test_nine_lives_lose_game(self) -> None:
         ability = _ability(
@@ -2036,7 +2065,9 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIsInstance(set_pt.args.get("duration"), DurationEot)
         grant_type = _atom_step(seq, 1)
         self.assertIs(grant_type.verb, Verb.GRANT_TYPE)
-        self.assertEqual(grant_type.args.get("types"), ("Sphinx",))
+        # re-pinned 2026-10-29: m21-fidelity (review batch C) grants the card type Creature too
+        # ("a 3/3 Sphinx creature"); ("Sphinx",) alone left it unable to attack or block.
+        self.assertEqual(grant_type.args.get("types"), ("Creature", "Sphinx"))
         self.assertIsInstance(grant_type.args.get("duration"), DurationEot)
         grant_ability = _atom_step(seq, 2)
         self.assertIs(grant_ability.verb, Verb.GRANT_ABILITY)
@@ -2081,15 +2112,16 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         # T4 P1a: the mill shape is the merged MOVE_ZONE atom — the milled
-        # player's own library and graveyard carry TARGET_PLAYER.
+        # player's own library and graveyard carry the designated player.
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertEqual(
             atom.args.get("destination"),
-            Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),
+            Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT),
         )
         self.assertEqual(
-            atom.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)
+            atom.args.get("from"), Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT)
         )
         self.assertEqual(atom.args.get("journal_kind"), "MILL")
         amount = _qconst(atom, "amount")
@@ -2249,7 +2281,8 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.LOSE_LIFE)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         amount = _qprop(atom, "amount")
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.AMOUNT)

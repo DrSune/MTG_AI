@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the search count; the placeholder destination). Printed: 'Search your library for UP TO TWO basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.' The library holds four basic lands. Two are found (Forest and Swamp); the Forest goes onto the battlefield tapped and the Swamp into your hand; the Island and the Mountain stay in the library.",
+ "cards": [
+  {"key": "cv", "real": "Cultivate", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "library", "controller": 0},
+  {"key": "opener", "name": "Opening Draw", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [{"op": "cast", "key": "cv", "decisions": ["card:1", "card:2", "card:1"]}],
+ "expect": {"zone": {"cv": "graveyard", "forest": "battlefield", "swamp": "hand", "island": "library", "mountain": "library", "opener": "hand"},
+            "tapped": {"forest": true}, "hand": {"0": 2}}}

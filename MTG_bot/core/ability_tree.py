@@ -74,7 +74,9 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   by the controller this turn; mirrors CastSpellEvent.ordinal — Jolrael,
   Mystic Skyfish), the new ``LoyaltyActivatedEvent(controller, filter)``
   ("Whenever you activate a loyalty ability of a Chandra planeswalker, ..."
-  — Keral Keep Disciples), ``CastSpellEvent.from_zone_not`` ("from anywhere
+  — Keral Keep Disciples; ontology R5-7 replaced it with
+  ``AbilityActivatedEvent(source, kind, actor)``, kind LOYALTY),
+  ``CastSpellEvent.from_zone_not`` ("from anywhere
   other than their hand" — Ghostly Pilferer; mutually exclusive with
   ``from_zone``), three ``FAtom`` zone slots (``zone`` / ``from_zone`` /
   ``to_zone``) with the condition predicates
@@ -111,7 +113,8 @@ Design decisions (each pinned by tests in test_ability_tree.py):
 - **grammar round 8 / phase 8-A (decision-surface vocabulary, KNOWLEDGE
   2026-09-28/08)**, pinned by test_ability_tree_r9.py: ``QAtMost(n)``
   (convention C17 — TARGET-mode "up to n" designation), ``TokenSpec``
-  trailing ``color`` / ``enters_tapped`` / ``enters_attacking`` optionals,
+  trailing ``color`` / ``enters_tapped`` / ``enters_attacking`` optionals
+  (ontology R5-11 replaced ``color`` with the WUBRG tuple ``colors``),
   the AtomArgs ``color`` vocabulary widened with ``"ANY"`` ("mana of any
   one color" — distinct from colourless ``"C"``), optional ``dealer`` /
   ``recipient`` roles on DEAL_DAMAGE, ``FAtomPred.
@@ -177,6 +180,10 @@ _DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
 # union check is complete at AtomArgs level.
 _MOVE_JOURNAL_KINDS = ("MOVE", "MILL")
 _MOVE_POP_ORDERS = ("TOP",)
+# _STACK_KINDS (ontology R5-10): the closed string vocabulary of
+# FAtomPred.STACK_KIND_EQ — the three kinds of stack object (CR 405.1: spells,
+# activated abilities, triggered abilities).
+_STACK_KINDS = ("ACTIVATED", "SPELL", "TRIGGERED")
 
 
 # ---- Closed vocabularies (enums) ----
@@ -447,11 +454,20 @@ class ControllerRef(Enum):
     YOU = "YOU"
     OPPONENT = "OPPONENT"
     TARGET_PLAYER = (
-        "TARGET_PLAYER"  # "the target player" — the spell's target, when it is a player
+        "TARGET_PLAYER"  # "target player" — the spell's target, when it is a player (any player)
     )
     ANY = "ANY"
     ALL_OPPONENTS = "ALL_OPPONENTS"
     OWNER = "OWNER"  # "its owner" — owner-scoped zones ("return to its owner's hand")
+    # V21 (2026-10-29): "target opponent" — the same designated player, restricted to an
+    # opponent of the controller (CR 102.2, 102.3). It shared TARGET_PLAYER's bytes before,
+    # so "target player" could never designate you.
+    TARGET_OPPONENT = "TARGET_OPPONENT"
+
+
+#: The refs naming the player a spell or ability designated (V21): "target player" and
+#: "target opponent" read the same binding and differ only in who may be designated.
+DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
 
 
 class QPropField(Enum):
@@ -594,11 +610,14 @@ class FAtomPred(Enum):
     )
     FLIP_WON = "FLIP_WON"  # "if you win the flip" (required who; Tavern Swindler)
     MAY_DONE = (
-        "MAY_DONE"  # r18a CR 611.1: the "If you do, X" tail of a MAY sentence —
-        # X executes only when the optional action actually executed. Handle-
-        # free like FLIP_WON; answered from the 14b decision channel's logged
-        # may-offer outcome (asked 'fire' at this ability's site). No slots
-        # (precedent: TARGETS_SOURCE); never re-asks.
+        "MAY_DONE"  # r18a CR 611.1: the "If you do, X" tail — X executes only
+        # when the action before it was done (CR 118.12): a "may" action the
+        # player chose and carried out, or (m21-fidelity wave 4, 2026-10-30) a
+        # mandatory one that actually happened ("Exile it. If you do, ...").
+        # One meaning, one encoding. Handle-free like FLIP_WON; answered from
+        # the executor's per-resolution record (the may-offer outcome, or the
+        # mandatory step's). No slots (precedent: TARGETS_SOURCE); never
+        # re-asks.
     )
     INSTANT_OR_SORCERY_CAST_THIS_TURN = (
         "INSTANT_OR_SORCERY_CAST_THIS_TURN"  # "if you've cast an instant or
@@ -717,6 +736,14 @@ class FAtomPred(Enum):
         # this round; its template consumers arrive with the reveal-menu
         # shapes (gap ledger). CR 608.2f: distinct from WAS_KICKED.
     )
+    STACK_KIND_EQ = (
+        "STACK_KIND_EQ"  # ontology R5-10: what a stack object is — "counter
+        # target SPELL" vs "counter target ACTIVATED or TRIGGERED ability"
+        # (CR 405.1, 113.7a: abilities on the stack are not spells). The
+        # required string_value is the closed vocabulary _STACK_KINDS
+        # (SPELL / ACTIVATED / TRIGGERED); validated per predicate
+        # (_FATOM_STRING_VOCAB).
+    )
 
 
 class CounterKind(Enum):
@@ -742,6 +769,9 @@ class SpellKind(Enum):
     ENCHANTMENT = "ENCHANTMENT"
     PLANESWALKER = "PLANESWALKER"
     LAND = "LAND"
+    # B-49 (2026-10-29): a noncreature artifact is a permanent spell too (CR 301.1). Without a
+    # kind of its own it fell back to SORCERY, and a SORCERY resolves to the graveyard.
+    ARTIFACT = "ARTIFACT"
 
 
 class Keyword(Enum):
@@ -828,6 +858,24 @@ class ActivationWindow(Enum):
 
     SORCERY = "SORCERY"
     INSTANT = "INSTANT"
+
+
+class AbilityKind(Enum):
+    """Which activations an :class:`AbilityActivatedEvent` covers (ontology
+    R5-7). Required on the event, never defaulted: "activated abilities
+    can't be activated" (Arachnus Web) and "... unless they're mana
+    abilities" (Faith's Fetters) are different locks, so an absent kind
+    would be a silent pick of one of them.
+
+    ANY = every activated ability; NON_MANA = every activated ability that
+    is not a mana ability (CR 605.1a, decided by :func:`is_mana_ability`;
+    a loyalty ability is never a mana ability, so a NON_MANA lock covers
+    it); LOYALTY = an ability whose cost has a loyalty symbol (CR 606.2,
+    :func:`is_loyalty_ability`, a [0] ability included)."""
+
+    ANY = "ANY"
+    NON_MANA = "NON_MANA"
+    LOYALTY = "LOYALTY"
 
 
 # ---- Quantity — "Quantity on every numeric field, without exception" ----
@@ -1503,6 +1551,14 @@ class FAtom:
                 f"FAtom: referent must be one of _QPROP_STR_REFERENTS, got {self.referent!r}"
             )
 
+        vocab = _FATOM_STRING_VOCAB.get(self.pred)
+        if vocab is not None and self.string_value is not None and self.string_value not in vocab:
+            # R5-10: a closed-vocabulary predicate's string_value is a token of
+            # its vocabulary, never free text (TYPE_EQ/NAME_EQ stay open data).
+            raise ValueError(
+                f"FAtom: {self.pred.name} string_value must be one of {vocab}, "
+                f"got {self.string_value!r}"
+            )
         required, allowed = _FATOM_RULES[self.pred]
         for slot in (
             "string_value",
@@ -1564,6 +1620,7 @@ class FAtom:
                 ControllerRef.YOU,
                 ControllerRef.OPPONENT,
                 ControllerRef.TARGET_PLAYER,
+                ControllerRef.TARGET_OPPONENT,
             )
             and not (isinstance(self.who, Selector) and self.who.referent is not None)
         ):
@@ -1652,11 +1709,19 @@ class DurationUntilNextStep:
 @dataclass(frozen=True)
 class DurationUntilLeaves:
     """Until the referenced permanent leaves the battlefield (Kitesail
-    Cabinet's "until this creature leaves the battlefield", Idol of
+    Freebooter's "until this creature leaves the battlefield", Idol of
     Endurance's exile window). ``source`` names the anchored object as a
     referent string from ``_QPROP_STR_REFERENTS`` — default "source" =
     the object that owns the ability (C12: structured referent, never an
-    English substring like "this creature")."""
+    English substring like "this creature").
+
+    Ontology R5-1 (2026-10-29) fixes the meaning: exactly "until the
+    anchor leaves the battlefield". It ends when that object (the same
+    object, CR 400.7) leaves the battlefield. Phasing out does NOT end it:
+    phasing is a status, not a zone change (CR 702.26d). A future "for as
+    long as ~ remains on the battlefield" duration (CR 611.2b) does end when
+    the object phases out (CR 702.26f), so it must not reuse this node; it
+    needs its own node or a field here."""
 
     source: str = "source"
 
@@ -1674,6 +1739,14 @@ Duration = (
     | DurationWhileCondition
     | DurationUntilNextStep
     | DurationUntilLeaves
+)
+
+#: Ontology R5-1 (CR 610.3): the durations a MOVE_ZONE "until …" may carry —
+#: each ends on an event, after which the object returns to its previous zone.
+_MOVE_ZONE_DURATIONS: tuple[type, ...] = (
+    DurationUntilLeaves,
+    DurationEot,
+    DurationUntilNextTurn,
 )
 
 
@@ -1988,14 +2061,28 @@ class DamageDealtEvent:
 class TargetingEvent:
     """The subject was targeted by a spell or ability (filter over the
     targeted object — Warden of the Woods; the event hexproof/protection
-    preventions attach to)."""
+    preventions attach to).
+
+    ``actor`` (ontology R5-6, 2026-10-29): a Filter over the CONTROLLER of
+    the targeting spell or ability, the player journalled on the TARGETING
+    row (None = any). "Becomes the target of a spell or ability an opponent
+    controls" is ``actor=FAtom(CONTROLLER_IS, OPPONENT)``: the single
+    direction encoding (E1, /65) of CastSpellEvent, CardDrawnEvent,
+    LifeGainedEvent and AbilityActivatedEvent. "Can't be the target of
+    spells or abilities your opponents control" is HEXPROOF (CR 702.11),
+    never a PREVENT_EFFECT over this event."""
 
     filter: Filter
+    actor: Filter | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"TargetingEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if self.actor is not None and not _is_filter(self.actor):
+            raise ValueError(
+                f"TargetingEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
@@ -2068,30 +2155,42 @@ class SacrificeEvent:
 
 
 @dataclass(frozen=True)
-class LoyaltyActivatedEvent:
-    """A loyalty ability was activated on a planeswalker (grammar
-    round 4: Keral Keep Disciples' "whenever you activate a loyalty ability
-    of a Chandra planeswalker"). ``filter`` selects the planeswalker whose
-    loyalty ability was activated (e.g. subtype Chandra + type Planeswalker);
-    it is required — a bare "any loyalty ability" trigger is never expressible.
-    Convention C5: loyalty triggers compile as the EFFECT of the
-    ActivatedAbility whose cost is the loyalty part, not as a standalone
-    TriggeredAbility, so this event tags that activation. E1 (/65): the
-    ``actor`` Filter is evaluated over the ACTIVATOR journalled as the
-    event's cause (CR 606.3: only the controller may activate — the cause
-    handle is the activator's seat). The old ``controller`` field is gone."""
+class AbilityActivatedEvent:
+    """An activated ability was activated (ontology R5-7; it replaces the
+    grammar-round-4 ``LoyaltyActivatedEvent``, which was this event with
+    ``kind=LOYALTY`` built in).
 
-    filter: Filter
+    - ``source`` (required) selects the object whose ability was activated:
+      Keral Keep Disciples' "a Chandra planeswalker" (subtype Chandra + type
+      Planeswalker), Faith's Fetters' enchanted permanent
+      (IS_ATTACHED_TO_SOURCE).
+    - ``kind`` (required, no default) says which activations count:
+      :class:`AbilityKind` ANY / NON_MANA (CR 605.1a) / LOYALTY (CR 606.2).
+    - ``actor`` (E1, /65) is evaluated over the ACTIVATOR, journalled as the
+      event's cause (CR 602.2: the activating player controls the ability).
+
+    Two consumers read it: a TriggeredAbility ("whenever you activate a
+    loyalty ability of a Chandra planeswalker") and PREVENT_EFFECT, the
+    activation lock ("its activated abilities can't be activated unless
+    they're mana abilities", CR 602.5), which legality's
+    ``ability_playable`` consults before anything is paid."""
+
+    source: Filter
+    kind: AbilityKind
     actor: Filter | None = None
 
     def __post_init__(self) -> None:
-        if not _is_filter(self.filter):
+        if not _is_filter(self.source):
             raise ValueError(
-                f"LoyaltyActivatedEvent: filter must be a Filter, got {type(self.filter).__name__}"
+                f"AbilityActivatedEvent: source must be a Filter, got {type(self.source).__name__}"
+            )
+        if not isinstance(self.kind, AbilityKind):
+            raise ValueError(  # noqa: TRY004 — the grammar's validation contract is ValueError
+                f"AbilityActivatedEvent: kind must be an AbilityKind, got {self.kind!r}"
             )
         if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
-                f"LoyaltyActivatedEvent: actor must be a Filter, got {type(self.actor).__name__}"
+                f"AbilityActivatedEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
 
 
@@ -2111,7 +2210,7 @@ EventSpec = (
     | CardDrawnEvent
     | LifeGainedEvent
     | SacrificeEvent
-    | LoyaltyActivatedEvent
+    | AbilityActivatedEvent
 )
 
 
@@ -2167,14 +2266,16 @@ class TokenSpec:
     toughness: Quantity | None
     keywords: tuple[Keyword, ...]
     abilities: tuple[Ability, ...]
-    # color / enters_tapped / enters_attacking (grammar round 8, R8-2/R8-4):
-    # token color words ("Treasure" artifact tokens are colourless, a Basri
-    # Ket soldier is white), "put those tokens onto the battlefield tapped"
-    # and "…that's attacking" (Basri Ket [-2]). All three default to None —
-    # absent (unknown/unstated) — and serialize by OMITTING the key, so
-    # every pre-round-8 token golden stays byte-identical (dual
-    # registration: _SPECS opt-tags + _OMIT_IF_EMPTY row).
-    color: str | None = None
+    # colors (ontology R5-11, replacing grammar round 8's one-letter
+    # ``color``): the token's printed colour words, each a WUBRG letter, in
+    # WUBRG order (CR 105.1) — "a 1/1 white Soldier" is ("W",), Experimental
+    # Overload's "blue and red Weird" ("U", "R"), a colourless Treasure ().
+    # enters_tapped / enters_attacking (R8-4): "put those tokens onto the
+    # battlefield tapped" and "…that's attacking" (Basri Ket [-2]). All three
+    # serialize by OMITTING the key at their empty default (dual
+    # registration: _SPECS + _OMIT_IF_EMPTY row), so a colourless token's
+    # bytes are unchanged.
+    colors: tuple[str, ...] = ()
     enters_tapped: bool | None = None
     enters_attacking: bool | None = None
 
@@ -2204,12 +2305,14 @@ class TokenSpec:
                 raise ValueError(
                     f"TokenSpec: abilities must be Ability, got {type(ability).__name__}"
                 )
-        if self.color is not None and (
-            not isinstance(self.color, str) or not self.color.strip()
+        if not isinstance(self.colors, tuple) or any(
+            c not in _COLORS for c in self.colors
         ):
             raise ValueError(
-                f"TokenSpec: color must be a non-empty str, got {self.color!r}"
+                f"TokenSpec: colors must be a tuple of {_COLORS} letters, got {self.colors!r}"
             )
+        if len(set(self.colors)) != len(self.colors):
+            raise ValueError(f"TokenSpec: colors must be distinct, got {self.colors!r}")
         for flag in ("enters_tapped", "enters_attacking"):
             value = getattr(self, flag)
             if value is not None and not isinstance(value, bool):
@@ -2223,6 +2326,12 @@ class TokenSpec:
             value = _set_sorted(getattr(self, fld))
             if value != getattr(self, fld):
                 object.__setattr__(self, fld, value)
+        # R5-11: the colour set is canonical in WUBRG order (CR 105.1), the
+        # order mana costs and colour identities print in, so "blue and red"
+        # and "red and blue" are the same bytes.
+        colors = tuple(sorted(self.colors, key=_COLORS.index))
+        if colors != self.colors:
+            object.__setattr__(self, "colors", colors)
 
 
 # ---- Costs ----
@@ -2376,7 +2485,13 @@ class CostLoyalty:
 
     ``delta`` is a literal int or a Quantity (T3 round 2, item 6: Ugin's
     "[−X]" — a DYNAMIC loyalty cost); a dynamic delta is still always a
-    reduction (loyalty is never gained as a cost)."""
+    reduction (loyalty is never gained as a cost).
+
+    R5-7: ``delta=0`` is legal. A [0] ability is a loyalty ability (CR
+    606.2: the symbol is in its cost) that adds and removes no counter
+    (CR 606.4), so the once-per-turn clock and the main-phase window still
+    apply. The int 0 is its only spelling: ``QConst(0)`` would mean "remove
+    0", the same cost in other bytes, so it stays refused."""
 
     delta: int | Quantity
 
@@ -2386,11 +2501,13 @@ class CostLoyalty:
                 f"CostLoyalty: delta must be an int or Quantity, got {self.delta!r}"
             )
         if isinstance(self.delta, int):
-            if self.delta == 0:
-                raise ValueError("CostLoyalty: delta must be non-zero")
+            pass  # any signed literal, [0] included (R5-7, CR 606.2/606.4)
         elif _is_quantity(self.delta):
             if isinstance(self.delta, QConst) and self.delta.value == 0:
-                raise ValueError("CostLoyalty: delta must be non-zero")
+                raise ValueError(
+                    "CostLoyalty: a [0] cost is the int 0, never QConst(0) "
+                    "(one meaning, one spelling)"
+                )
         else:
             raise ValueError(
                 "CostLoyalty: delta must be an int or Quantity, got "
@@ -2675,6 +2792,23 @@ class Atom:
                 f"Atom: {self.verb.name} needs one of the cards/target/"
                 "amount object axes"
             )
+        # Ontology R5-1 (CR 610.3): a zone move "until" something returns the
+        # object when that event happens, so only durations that END ON AN
+        # EVENT are accepted. DurationPermanent would be a twin of leaving the
+        # role out (same meaning, different bytes: divergence class D12), and
+        # DurationWhileCondition can become true again, which would move the
+        # object a second time.
+        if self.verb is Verb.MOVE_ZONE and "duration" in roles:
+            duration = roles["duration"]
+            if not isinstance(duration, _MOVE_ZONE_DURATIONS):
+                raise ValueError(
+                    f"Atom: MOVE_ZONE duration must be one of "
+                    f"{', '.join(t.__name__ for t in _MOVE_ZONE_DURATIONS)} (a "
+                    f"duration that ends on an event, CR 610.3), got "
+                    f"{type(duration).__name__}; DurationPermanent means the same as "
+                    "leaving the role out, and DurationWhileCondition could start "
+                    "again and move the object a second time"
+                )
         # R10-4: per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -3437,7 +3571,7 @@ _EV_CLASSES = (
     CardDrawnEvent,
     LifeGainedEvent,
     SacrificeEvent,
-    LoyaltyActivatedEvent,
+    AbilityActivatedEvent,
 )
 _D_CLASSES = (
     DurationEot,
@@ -3540,6 +3674,8 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.WAS_KICKED: (frozenset(), frozenset()),
     # HAS_KICKER (ZND-1 G2, /95): the card HAS a kicker cost. No slots.
     FAtomPred.HAS_KICKER: (frozenset(), frozenset()),
+    # STACK_KIND_EQ (ontology R5-10): string_value from _STACK_KINDS only.
+    FAtomPred.STACK_KIND_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
     FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
     FAtomPred.POWER_LE: (frozenset({"count"}), frozenset({"count"})),
     FAtomPred.POWER_GE: (frozenset({"count"}), frozenset({"count"})),
@@ -3566,9 +3702,10 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # TARGETS_SOURCE: "spells your opponents cast that target this creature"
     # — the spell targets the source object. No slots (precedent: IS_SOURCE).
     FAtomPred.TARGETS_SOURCE: (frozenset(), frozenset()),
-    # MAY_DONE (r18a, CR 611.1): the "If you do, X" tail of a MAY sentence.
-    # Handle-free like FLIP_WON; the executor answers it from the 14b
-    # decision channel's logged may-offer outcome. No slots.
+    # MAY_DONE (r18a, CR 611.1): the "If you do, X" tail, after a "may"
+    # action or a mandatory one (CR 118.12, m21-fidelity wave 4). Handle-free
+    # like FLIP_WON; the executor answers it from its per-resolution record of
+    # the step before the gate. No slots.
     FAtomPred.MAY_DONE: (frozenset(), frozenset()),
     # ENTERED_THIS_TURN_FROM: "if it entered from your graveyard this turn"
     # (Archfiend's Vessel). The zone slot names the source zone of the
@@ -3673,6 +3810,15 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
 # (data); "color" is a WUBRG string plus colourless "C" and (grammar round
 # 8, R8-3) "ANY" = "mana of any one color" — a choice among WUBRG, distinct
 # from colourless "C" (validated in AtomArgs.__post_init__).
+# Per-predicate closed vocabularies for FAtom.string_value (ontology R5-10).
+# A predicate listed here takes only these tokens; every other string_value
+# predicate (TYPE_EQ, SUBTYPE_EQ, SUPERTYPE_EQ, NAME_EQ, NAME_CONTAINS) reads
+# open card data (type, subtype and card names).
+_FATOM_STRING_VOCAB: dict[FAtomPred, tuple[str, ...]] = {
+    FAtomPred.STACK_KIND_EQ: _STACK_KINDS,
+}
+
+
 _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "target": (Selector,),
     "source": (Selector,),
@@ -3814,6 +3960,11 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # knows it (mill/discard); `journal_kind` carries A2(ii)'s literal
     # journal row kind. Axes stay orthogonal (§9): operation × menu ×
     # count × journal kind, no fused special-case verb.
+    # duration (ontology R5-1, 2026-10-29, CR 610.3): "exile that card until
+    # this creature leaves the battlefield". The move happens; when the
+    # duration ends, a second one-shot effect returns the object to its
+    # previous zone. Only durations that end on an event are accepted
+    # (_MOVE_ZONE_DURATIONS, checked in Atom.__post_init__).
     Verb.MOVE_ZONE: {
         "destination": True,
         "cards": False,
@@ -3824,6 +3975,7 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
         "journal_kind": False,
         "pop_order": False,
         "tapped_on_enter": False,
+        "duration": False,
     },
     Verb.SEARCH: {
         "cards": True,
@@ -3948,6 +4100,9 @@ _KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
     Keyword.BATTALION: ((_Q_CLASSES,),),
     Keyword.PROTECTION: ((_F_CLASSES,),),
     Keyword.HEXPROOF: ((), (_F_CLASSES,)),
+    # B-49 follow-up #2 (2026-10-29): "Enchant [object or player]" (CR 702.5a) carries what
+    # the Aura may target and enchant; bare when the Enchant line did not parse.
+    Keyword.ENCHANT: ((), (_F_CLASSES,)),
 }
 
 
@@ -3985,6 +4140,7 @@ _ENUMS: dict[str, type[Enum]] = {
     "Phase": Phase,
     "Step": Step,
     "ActivationWindow": ActivationWindow,
+    "AbilityKind": AbilityKind,
 }
 
 _DATACLASSES: tuple[type, ...] = (
@@ -4027,7 +4183,7 @@ _DATACLASSES: tuple[type, ...] = (
     CardDrawnEvent,
     LifeGainedEvent,
     SacrificeEvent,
-    LoyaltyActivatedEvent,
+    AbilityActivatedEvent,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -4203,15 +4359,19 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("source", "opt:filter"),
         ("combat", "opt:bool"),
     ),
-    "TargetingEvent": (("filter", "filter"),),
+    # actor (ontology R5-6): the targeting spell or ability's controller; omitted
+    # when None (_OMIT_IF_EMPTY row), so every pre-R5-6 TargetingEvent keeps its bytes.
+    "TargetingEvent": (("filter", "filter"), ("actor", "opt:filter")),
     "CardDrawnEvent": (
         ("actor", "opt:filter"),
         ("ordinal", "opt:int"),
     ),
     "LifeGainedEvent": (("actor", "opt:filter"),),
     "SacrificeEvent": (("actor", "opt:filter"),),
-    "LoyaltyActivatedEvent": (
-        ("filter", "filter"),
+    # R5-7: replaces LoyaltyActivatedEvent; kind is required (no default).
+    "AbilityActivatedEvent": (
+        ("source", "filter"),
+        ("kind", "enum:AbilityKind"),
         ("actor", "opt:filter"),
     ),
     "LiteralName": (("name", "str"),),
@@ -4225,9 +4385,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("toughness", "opt:quantity"),
         ("keywords", "tup:enum:Keyword"),
         ("abilities", "tup:ability"),
-        # grammar round 8, R8-2/R8-4: trailing opt-in fields; omitted at
-        # the None default (_OMIT_IF_EMPTY row) — byte-stable.
-        ("color", "opt:str"),
+        # R5-11: colors replaces round 8's ("color", "opt:str"); omitted at
+        # the () default like the R8-4 flags (_OMIT_IF_EMPTY row).
+        ("colors", "tup:str"),
         ("enters_tapped", "opt:bool"),
         ("enters_attacking", "opt:bool"),
     ),
@@ -4398,7 +4558,7 @@ _EVENT_TAGS = frozenset(
         "CardDrawnEvent",
         "LifeGainedEvent",
         "SacrificeEvent",
-        "LoyaltyActivatedEvent",
+        "AbilityActivatedEvent",
     }
 )
 _COST_DELTA_TAGS = frozenset(
@@ -4517,7 +4677,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "TurnPhaseEvent": frozenset({"actor"}),
     "LifeGainedEvent": frozenset({"actor"}),
     "SacrificeEvent": frozenset({"actor"}),
-    "LoyaltyActivatedEvent": frozenset({"actor"}),
+    "AbilityActivatedEvent": frozenset({"actor"}),
+    "TargetingEvent": frozenset({"actor"}),  # R5-6
     # count (grammar round 5, R5-2): omit when None.
     "CounterPlacedEvent": frozenset({"count"}),
     # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every
@@ -4534,7 +4695,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # TokenSpec had NO row before round 8 — without it, every existing
     # token golden would byte-diff on regeneration (dual-registration
     # rule, PITFALLS 2026-09-28; pinned in test_ability_tree_r9.py).
-    "TokenSpec": frozenset({"color", "enters_tapped", "enters_attacking"}),
+    # R5-11: ``colors`` (omitted at ()) replaced ``color``.
+    "TokenSpec": frozenset({"colors", "enters_tapped", "enters_attacking"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),
@@ -4836,3 +4998,161 @@ def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]
     elif isinstance(value, frozenset):
         for item in value:
             yield from _walk_value(item, skip)
+
+
+# ---- Ability classification (ontology R5-7: one 605.1a classifier) ----
+
+#: Nodes whose subtree belongs to ANOTHER ability: a granted ability, a
+#: keyword, a token's own abilities, and a delayed trigger (created when the
+#: ability resolves, it triggers and resolves later as its own ability, CR
+#: 603.7). CR 605.1a judges the activated ability itself, so none of its
+#: criteria look inside them.
+_FOREIGN_ABILITY_NODES: tuple[type, ...] = (*_A_CLASSES, TokenSpec, DelayedTrigger)
+
+#: Verbs that always take cards from a library (CR 121.1 draw, 701.17a mill).
+_LIBRARY_POP_VERBS = frozenset({Verb.DRAW, Verb.MILL})
+#: Verbs that move the objects their roles name. They touch a library when a
+#: zone they name is a library, or ZoneKind.ANY (which includes the library).
+_ZONE_MOVING_VERBS = frozenset(
+    {
+        Verb.MOVE_ZONE,
+        Verb.SEARCH,
+        Verb.CAST,
+        Verb.EXILE,
+        Verb.DISCARD,
+        Verb.SACRIFICE,
+        Verb.DESTROY,
+        Verb.COUNTER_SPELL,
+    }
+)
+
+
+def is_loyalty_ability(ability: object) -> bool:
+    """CR 606.2: an activated ability with a loyalty symbol in its cost is a
+    loyalty ability. A [0] symbol counts (``CostLoyalty(0)``)."""
+    return isinstance(ability, ActivatedAbility) and any(
+        isinstance(part, CostLoyalty) for part in ability.cost.parts
+    )
+
+
+def _own_nodes(effect: Any) -> list[Any]:
+    """The nodes of ``effect`` that belong to this ability (foreign ability
+    subtrees are neither descended nor returned)."""
+    return [
+        node
+        for node in walk(effect, skip=_FOREIGN_ABILITY_NODES)
+        if not isinstance(node, _FOREIGN_ABILITY_NODES)
+    ]
+
+
+def _leaf_values(node: Any) -> Iterator[Any]:
+    """The non-node field values of one node (enums, strings, ints), with
+    tuples flattened. Dataclass children are skipped: ``walk`` yields them."""
+    stack = [getattr(node, f.name) for f in dataclasses.fields(node)]
+    while stack:
+        value = stack.pop()
+        if isinstance(value, tuple):
+            stack.extend(value)
+        elif not dataclasses.is_dataclass(value):
+            yield value
+
+
+def _requires_target(nodes: list[Any]) -> bool:
+    """CR 115.1c/115.6: the ability says "target": a TARGET-mode selector, or
+    the target-player coordinate anywhere (a role, a zone's controller, a
+    filter's ``who``, an EachPlayer ref). The IR has no other way to bind
+    TARGET_PLAYER than a designation, so any reference to it is a target."""
+    for node in nodes:
+        if isinstance(node, Selector) and node.mode is SelectorMode.TARGET:
+            return True
+        if any(value is ControllerRef.TARGET_PLAYER for value in _leaf_values(node)):
+            return True
+    return False
+
+
+def _zone_holds_library(zone: Zone) -> bool:
+    return zone.kind in (ZoneKind.LIBRARY, ZoneKind.ANY)
+
+
+def _atom_moves_library_card(atom: Atom) -> bool:
+    """Does this atom move a card to or from a library (CR 605.1a's fourth
+    criterion)? A draw or mill always does. A zone-moving verb does when its
+    destination is a library, or its departure (``from``, the mill shape's
+    top-of-library pop, or the zones of the selector naming what moves) may
+    be one. A referent selector ("it", "that card") carries the neutral zone
+    of convention C2, not a departure zone, so it is not read: the atom that
+    produced the referent is judged on its own. Scry and shuffle keep the
+    cards in the library (701.22a, 701.24a), reveal and look move nothing."""
+    if atom.verb in _LIBRARY_POP_VERBS:
+        return True
+    if atom.verb not in _ZONE_MOVING_VERBS:
+        return False
+    return any(_role_touches_library(role, value) for role, value in atom.args.pairs)
+
+
+def _role_touches_library(role: str, value: object) -> bool:
+    """One role of a zone-moving atom, judged for :func:`_atom_moves_library_card`."""
+    if role == "destination":
+        return isinstance(value, Zone) and value.kind is ZoneKind.LIBRARY
+    if role == "from":
+        return isinstance(value, Zone) and _zone_holds_library(value)
+    if role in ("pop_order", "journal_kind"):
+        return value in ("TOP", "MILL")  # the mill shape's top-of-library pop
+    return (
+        role in ("cards", "target", "source")
+        and isinstance(value, Selector)
+        and value.referent is None
+        and any(_zone_holds_library(zone) for zone in value.zones)
+    )
+
+
+def _cost_moves_library_card(cost: Cost) -> bool:
+    """CR 605.1a's fourth criterion on the cost side. Of the closed CostPart
+    union only sacrifice and discard move cards (to the graveyard, CR 701.21a,
+    701.9a); they touch a library only if their selector's zone is one. A new
+    card-moving cost part must be added here."""
+    return any(
+        isinstance(part, (CostSacrifice, CostDiscard))
+        and any(_zone_holds_library(zone) for zone in part.target.zones)
+        for part in cost.parts
+    )
+
+
+def is_mana_ability(ability: object) -> bool:
+    """CR 605.1a, every criterion: an activated ability is a mana ability iff
+    (i) it doesn't require a target (115.6), (ii) it could add mana when it
+    resolves (any ADD_MANA atom reachable in its own effect, whatever else the
+    effect does and whatever the board allows, 605.2), (iii) it isn't a
+    loyalty ability (606), and (iv) its cost and effect don't move any card
+    to or from a library. Replacement effects other than the ability's own
+    are not consulted (605.1a's last sentence): an outside replacement never
+    sits in the ability's tree, and a self-replacement does.
+
+    This is the engine's one classifier: the act-window drivers
+    (``games.RandomPolicy``, ``bench.router``), the activation journal row
+    and the NON_MANA activation lock all read it."""
+    if not isinstance(ability, ActivatedAbility):
+        return False
+    if is_loyalty_ability(ability) or _cost_moves_library_card(ability.cost):
+        return False
+    nodes = _own_nodes(ability.effect)
+    if not any(isinstance(node, Atom) and node.verb is Verb.ADD_MANA for node in nodes):
+        return False
+    if _requires_target(nodes):
+        return False
+    return not any(
+        isinstance(node, Atom) and _atom_moves_library_card(node) for node in nodes
+    )
+
+
+def activation_matches_kind(ability: object, kind: AbilityKind) -> bool:
+    """Does an activation of ``ability`` count for an AbilityActivatedEvent
+    of ``kind``? ANY: every activated ability; NON_MANA: not a mana ability
+    (605.1a; a loyalty ability is never one); LOYALTY: a loyalty ability."""
+    if kind is AbilityKind.ANY:
+        return True
+    if kind is AbilityKind.NON_MANA:
+        return not is_mana_ability(ability)
+    if kind is AbilityKind.LOYALTY:
+        return is_loyalty_ability(ability)
+    raise ValueError(f"activation_matches_kind: unknown AbilityKind {kind!r}")

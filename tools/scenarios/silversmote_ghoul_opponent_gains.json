@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Only the opponent gains life (4) during the Ghoul owner's turn: 'if YOU gained 3 or more life' is false, so the Ghoul stays in the graveyard.",
+ "cards": [
+  {"key": "g", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 1},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"1": {"G": 1}},
+ "steps": [
+  {"op": "cast", "key": "lgo", "real": "Life Goes On", "controller": 1},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 24},
+  "zone": {"g": "graveyard"}
+ }
+}

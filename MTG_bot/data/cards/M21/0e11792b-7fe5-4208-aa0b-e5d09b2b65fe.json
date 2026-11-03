@@ -1,0 +1,49 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0e11792b-7fe5-4208-aa0b-e5d09b2b65fe",
+ "name": "Baneslayer Angel",
+ "text_sha": "de6888183d33f97a04dd4c12ad5e0e760fc6edb640817fa2deea446453372de7",
+ "verified": {
+  "tree_sha": "b4f9b4f7fd4d474524871f51f914242e4360020d6526948abce6e110c9598a1a",
+  "probe_sha": "c97d0449fbc73e3f7966bf4b4aecc3fcd6b7a7d5b24956929c53bd02dbe9a35d",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords FLYING; [this creature attacks and opp_giant blocks it] no DECLARE_BLOCKERS: the non-flying giant cannot block, opp 20 -> 15",
+    "issue": ""
+   },
+   {
+    "clause": "first strike",
+    "status": "OK",
+    "evidence": "keywords FIRST_STRIKE; not shown in the trace (never blocked): pack P7c3f9186fa_baneslayer_first_strike_vs_flier.json PASS (kills a 5/5 flying blocker first, takes no damage)",
+    "issue": ""
+   },
+   {
+    "clause": "lifelink",
+    "status": "OK",
+    "evidence": "keywords LIFELINK; [attacks alone, unblocked] 'you gains 5 life (by card/DEAL_DAMAGE)', you 20 -> 25",
+    "issue": ""
+   },
+   {
+    "clause": "protection from Demons and from Dragons",
+    "status": "OK",
+    "evidence": "keywords PROTECTION params FOr(SUBTYPE_EQ Demon, SUBTYPE_EQ Dragon) (= canonical B5b-keyword-list-params). Not in the trace: pack P7c3f9186fa_baneslayer_protection_demons_dragons.json PASS (a Demon's damage is prevented, a flying Dragon cannot block)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/baneslayer_angel_1.json",
+   "tools/scenarios/cards/M21/baneslayer_angel_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339",
+ "name": "Masked Blackguard",
+ "text_sha": "41106e81499c97f4b3f35740917d8f6f08f998c903cce41d6d92eddd3656cc72",
+ "verified": {
+  "tree_sha": "162b80f47ad326c19c9818d236b04b4e7980a29e71e977b36d58af644f05c13e",
+  "probe_sha": "0dfe5cf53036d8de6e6549063ab4b021395c8605d0f37343b44b76864a418bf5",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Creature {1}{B} 2/1 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 2/1; mana B-1 W-1",
+    "issue": ""
+   },
+   {
+    "clause": "Flash",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLASH",
+    "issue": "engine-limit: no priority window for the non-active player, so it cannot actually be cast on the opponent's turn (weaker only)."
+   },
+   {
+    "clause": "{2}{B}: This creature gets +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0]]: mana B-1 W-2 (one B plus two generic), card P/T 2/1 -> 3/2; after the turn ends: 3/2 -> 2/1. Tree identical to `parse` (template B3-modify-pt-self)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

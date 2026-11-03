@@ -1,0 +1,18 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "mana": {"0": {"R": 4}},
+  "cards": [
+    {"key": "veteran", "real": "Volley Veteran", "zone": "hand", "controller": 0},
+    {"key": "my_goblin", "name": "My Goblin", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "cast", "key": "veteran", "controller": 0}
+  ],
+  "expect": {
+    "zone": {"veteran": "battlefield", "my_goblin": "battlefield"},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Volley Veteran: the ETB says 'target creature an opponent controls'. With no creature on the opponent's side the trigger has no legal target and is removed from the stack (CR 603.3d): nothing is dealt damage (your own Goblin is never a legal target)."
+}

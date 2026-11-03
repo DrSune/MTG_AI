@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3c8a6c58-f4af-4809-af86-a931313fa71e",
+ "name": "Finishing Blow",
+ "text_sha": "a646e6e720e5e19390059824697e80a105c9a83e107a44da023152d459fb6490",
+ "verified": {
+  "tree_sha": "f662245ca6e649d19a3c81e5bc6e05de6f049572e27b6908086e19f18c02f721",
+  "probe_sha": "72c4da67a38ab358c770763864e2e6a4b442813bd36729471ae7e2d26a7bace0",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {4}{B}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); every cast 'mana B-1 W-4'",
+    "issue": ""
+   },
+   {
+    "clause": "Destroy target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "DESTROY target FOr(TYPE_EQ Creature, TYPE_EQ Planeswalker), any controller; target slot (cast): 1..1 of the six creatures only (relic/charm not offered); each cast moves the target battlefield -> graveyard (by card/DESTROY). Planeswalker branch not on the board: pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pe16583e80a_finishing_blow_planeswalker.json (PASS) destroys the opponent's Basri Ket",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/finishing_blow_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

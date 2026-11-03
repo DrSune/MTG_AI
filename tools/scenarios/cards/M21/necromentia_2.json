@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "nec", "real": "Necromentia", "zone": "hand", "controller": 0},
+  {"key": "h1", "name": "Grim Twin", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "colors": ["B"], "zone": "hand", "controller": 1},
+  {"key": "lib", "name": "Grim Twin", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "colors": ["B"], "zone": "library", "controller": 1},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 2, "C": 1}},
+  {"op": "cast", "key": "nec", "controller": 0, "targets": ["p1"], "decisions": ["Grim Twin"]}
+ ],
+ "expect": {
+  "zone": {"h1": "exile", "lib": "exile"},
+  "tokens": {"Zombie": 1},
+  "battlefield_pt": {"Zombie": [2, 2]},
+  "hand": {"1": 0}
+ },
+ "notes": "Printed: '... creates a 2/2 black Zombie creature token for each card exiled from their hand this way.' One copy exiled from the opponent's hand and one from their library: exactly one Zombie (the library copy does not count), and it is a 2/2."
+}

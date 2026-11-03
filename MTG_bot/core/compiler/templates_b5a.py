@@ -22,8 +22,8 @@ Coverage (90 = 64 template + 23 rule-reminder + 3 uncovered):
   (Miscast, Lofty Denial), round-6 batch: ZONE_COUNT_GE conditional static
   (Thieves' Guild Enforcer), TURN_OF static grant (Radha) and TURN_OF
   CostModifier (Discontinuity), blocked-side PREVENT_EFFECT
-  (Ghostly Pilferer discard, Faith's Fetters attack+block Seq — C11
-  lossy), untap-prevention on enchanted creature (Capture Sphere, lossy),
+  (Ghostly Pilferer discard, Faith's Fetters attack+block+activation-lock
+  Seq — C11, the lock since R5-7), untap-prevention on enchanted creature (Capture Sphere, lossy),
   and grammar round 11 C3: the each-opponent "who can't" life-loss gate
   (Waker +1 tail — Conditional + EachPlayer over a post-discard hand
   count, payment-failure row retired).
@@ -48,15 +48,14 @@ Conventions (documented build decisions):
   stays ``QConst(0)`` (lossless w.r.t. oracle text, shape #42).
 - ``Add two mana of any one color`` → ``ADD_MANA(color="ANY")`` (round 8 /
   C-3 repair; colorless "{C}" rows keep ``"C"`` — shape #34).
-- Token colors (round 8 / C-2): the red Goblin Wizard populates
-  ``color="R"``; the blue-and-red Weird stays dropped — ``TokenSpec.color``
-  is a single-color ``str`` (bichrome needs a color-set field, R9).
+- Token colors (round 8 / C-2; R5-11 made the field the WUBRG tuple
+  ``TokenSpec.colors``): the red Goblin Wizard is ``colors=("R",)``, the
+  blue-and-red Weird ``colors=("U", "R")``.
 - ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)`` (shape #72).
-- ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)``
-  carrying the "spell" semantics (shape #49).
-- The Equip sentence (#83) is an ``ActivatedAbility``; the "Equip only as
-  a sorcery" speed restriction is unrepresentable (gap, documented in
-  test).
+- ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)`` and
+  ``STACK_KIND_EQ SPELL`` (shape #49; the kind atom since ontology R5-10).
+- The Equip sentence (#83) is an ``ActivatedAbility`` with
+  ``timing=ActivationWindow.SORCERY`` ("Equip only as a sorcery", B-60).
 
 PC-3: every B5a concrete sentence fullmatches **at most one** template
 (patterns are pairwise disjoint by construction); verified in tests.
@@ -68,6 +67,8 @@ import re
 from typing import Callable, Final
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     Atom,
     AtomArgs,
     ActivatedAbility,
@@ -88,6 +89,7 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DurationEot,
     DurationPermanent,
+    DurationUntilLeaves,
     DurationWhileCondition,
     EachPlayer,
     FAnd,
@@ -273,22 +275,47 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
 
+#: Ontology R5-10: "spell" names a stack object's kind (CR 405.1, 111.1/112.1).
+SPELL_ON_STACK: Final = FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
+
+
+def target_spell(filter_: Filter | None = None) -> Selector:
+    """"target [filter] spell": the one STACK-zone TARGET selector every
+    counterspell template builds (ontology R5-10). The spell kind is an
+    explicit STACK_KIND_EQ SPELL atom, ANDed with the printed restriction
+    ("noncreature", "instant or sorcery"); a bare "target spell" is the lone
+    atom (a one-child FAnd is a phantom wrapper, ontology §6 V2′)."""
+    if filter_ is None or filter_ == FAnd(children=()):
+        kind: Filter = SPELL_ON_STACK
+    else:
+        kind = FAnd(children=(SPELL_ON_STACK, filter_))
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        kind,
+        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+    )
+
+
+def target_stack_ability(*kinds: str) -> Selector:
+    """"target activated or triggered ability" (ontology R5-10): a STACK-zone
+    TARGET selector whose object is an ability of one of ``kinds``
+    ("ACTIVATED", "TRIGGERED"). This engine never puts an ability on the
+    stack, so the selector has no legal candidate today (BACKLOG B-110)."""
+    atoms = tuple(FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value=k) for k in kinds)
+    kind: Filter = atoms[0] if len(atoms) == 1 else FOr(children=atoms)
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        kind,
+        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+    )
+
+
 def _build_counter_spell(m: re.Match[str]) -> SentenceOutcome:
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
-            )
-        ),
+        args=AtomArgs(pairs=(("target", target_spell()),)),
     )
     return EffectOutcome(effect=atom)
 
@@ -359,15 +386,7 @@ def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(
             pairs=(
-                (
-                    "target",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        target_filter,
-                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
-                    ),
-                ),
+                ("target", target_spell(target_filter)),
                 (
                     "unless",
                     Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),)),
@@ -442,12 +461,12 @@ def _build_weird_token(m: re.Match[str]) -> SentenceOutcome:
                         subtypes=("Weird",),
                         power=x,
                         toughness=x,
-                        # GAP (stays, 8-B skip): the Weird is blue AND red;
-                        # TokenSpec.color is a single-color str (C-2 scope),
-                        # so a bichrome token cannot be populated faithfully
-                        # without inventing a color-set format (R9 candidate).
                         keywords=(),
                         abilities=(),
+                        # R5-11 (B-82 fixed): "blue and red" — both colours,
+                        # WUBRG order. It was colourless while TokenSpec held
+                        # one colour letter.
+                        colors=("U", "R"),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -473,7 +492,7 @@ def _build_goblin_wizard_tokens(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.PROWESS,),
                         abilities=(),
-                        color="R",  # C-2 repair (round 8): printed "red"
+                        colors=("R",),  # C-2 repair (round 8): printed "red"
                     ),
                 ),
                 ("count", QConst(2)),
@@ -587,10 +606,17 @@ def _build_destroy_power_ge(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
-    # SET_PT with power = 2 * target.power, toughness = target.toughness,
-    # duration = DurationEot.
+    """``Double the power of target creature until end of turn.`` (Unleash Fury).
+
+    CR 701.10a/b: doubling MODIFIES, it never sets: the creature gets +X/+0
+    until end of turn, X = its power as the spell resolves. So MODIFY_PT with
+    power PtDelta(INCREASE, QProp(target, POWER)) and the printed-+0 toughness
+    convention (shape #42). m21-fidelity (review batch I, 2026-10-29): this was
+    SET_PT(2 * power, toughness), a set effect that later layers stack on, so a
+    2/2 with a +1/+1 counter became 7/4 instead of 6/3 (stronger than printed).
+    """
     atom = Atom(
-        verb=Verb.SET_PT,
+        verb=Verb.MODIFY_PT,
         args=AtomArgs(
             pairs=(
                 (
@@ -604,15 +630,14 @@ def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
                 ),
                 (
                     "power",
-                    QBin(
-                        op=QBinOp.MUL,
-                        left=QConst(2),
-                        right=QProp(referent="target", field=QPropField.POWER),
+                    PtDelta(
+                        direction=PtDirection.INCREASE,
+                        magnitude=QProp(referent="target", field=QPropField.POWER),
                     ),
                 ),
                 (
                     "toughness",
-                    QProp(referent="target", field=QPropField.TOUGHNESS),
+                    PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(0)),
                 ),
                 ("duration", DurationEot()),
             )
@@ -780,15 +805,15 @@ def _build_lose_life(m: re.Match[str]) -> SentenceOutcome:
 def _build_each_opp_cant_lose_life(m: re.Match[str]) -> SentenceOutcome:
     """``Each opponent who can't loses 3 life.`` (Liliana Waker +1 tail;
     grammar round 11 C3 — the round-9 "payment-failure condition" UNCOVERED
-    row retired: "who can't [discard a card]" resolves to a post-discard
-    hand-count gate, the roadmap-sanctioned r21b reading (an opponent
-    reduced to an empty hand by the preceding forced discard loses 3).
+    row retired: "who can't [discard a card]" is a hand-count gate: an
+    opponent with no card in hand cannot discard).
     EachPlayer(ref=ALL_OPPONENTS) rotates the CONTROLLER role (b2a/b2b
     precedent), so the YOU-relative predicate AND the YOU-relative
     LOSE_LIFE both rebind per opponent.  The sentence carries no ``may``
-    and no continuation prefix: the compiler appends this mandatory tail
-    to the preceding loyalty ability through the R11-1 loyalty-trailing
-    path (``_append_mandatory_to_seq``)."""
+    and no continuation prefix: the R11-1 loyalty-trailing path puts it
+    BEFORE the discard it is about (``compiler._insert_before_last_step``,
+    V10 2026-10-29; docs/ATOM_DIVERGENCES.md D17). The old post-discard
+    reading also made an opponent who discarded their last card lose 3."""
     cant_discard = FNot(
         inner=FAtom(
             pred=FAtomPred.ZONE_COUNT_GE,
@@ -965,8 +990,10 @@ def _build_end_turn(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_equip(m: re.Match[str]) -> SentenceOutcome:
-    # GAP: "Equip only as a sorcery" speed restriction is unrepresentable
-    # (no speed-restriction construct on ActivatedAbility).
+    # B-60 (2026-10-29): "Equip only as a sorcery" (CR 702.6a, which holds
+    # even where the reminder text is omitted: B11-equip-bare builds here
+    # too) rides the R9-1 timing slot. The old GAP note predated that slot;
+    # without it every Equipment moved at instant speed and mid-combat.
     attach = Atom(
         verb=Verb.ATTACH,
         args=AtomArgs(
@@ -1004,6 +1031,7 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
         ability=ActivatedAbility(
             cost=_parse_equip_cost(m.group("cost")),
             effect=attach,
+            timing=ActivationWindow.SORCERY,
         )
     )
 
@@ -1028,12 +1056,34 @@ def _build_equipped_pt(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_exile_self(m: re.Match[str]) -> SentenceOutcome:
-    # "Exile Experimental Overload" — self-reference by name, encoded
-    # semantically as IS_SOURCE (no hardcoded name).
-    return _build_exile_target(
-        m,
-        FAtom(pred=FAtomPred.IS_SOURCE),  # type: ignore[arg-type]
+    """"Exile Experimental Overload" — self-reference by name, encoded
+    semantically as IS_SOURCE (no hardcoded name).
+
+    m21-fidelity (wave 4, 2026-10-30): the spell exiles ITSELF as its last
+    instruction, which takes no target (CR 115.1a: only "target" makes a
+    target; CR 608.2n: the resolving spell is on the stack until its last
+    step). It was a TARGET selector over the battlefield, so the cast query
+    demanded a target nothing could fill and games never cast the card. Now
+    the self-reference convention ("~" = CHOOSE IS_SOURCE, as Archfiend's
+    Vessel's "exile it") over the STACK zone the spell resolves from."""
+    atom = Atom(
+        verb=Verb.MOVE_ZONE,
+        args=AtomArgs(
+            pairs=(
+                ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                (
+                    "target",
+                    Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_SOURCE),
+                        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
+                    ),
+                ),
+            )
+        ),
     )
+    return EffectOutcome(effect=atom)
 
 
 # +1/+1 counter kind alias
@@ -1230,17 +1280,18 @@ def _build_enchant_no_untap(m: re.Match[str]) -> SentenceOutcome:
 def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
     """Enchanted permanent can't attack or block, and its activated
     abilities can't be activated unless they're mana abilities.
-    (Faith's Fetters; decision C11 — Seq of two PREVENT_EFFECT atoms on
+    (Faith's Fetters; decision C11 — Seq of PREVENT_EFFECT atoms on
     the enchanted permanent (IS_ATTACHED_TO_SOURCE), the attack atom over
     DeclareAttackersEvent, the block atom over DeclareBlockersEvent
     following the B4 cant-block idiom (filter selects the restricted
     participant).)
 
-    LOSSY (verbatim, per C11): "and its activated abilities can't be
-    activated unless they're mana abilities" is DROPPED — needs an
-    ability-activation event class + ability-kind predicate
-    (ability-introspection family, 2026-09-28 decision doc deferred
-    family 1).
+    Ontology R5-7 (2026-10-30): the third clause, "its activated abilities
+    can't be activated unless they're mana abilities" (CR 602.5), is the
+    activation lock PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted,
+    kind=NON_MANA)). Loyalty abilities are never mana abilities (CR
+    605.1a), so the lock covers them too. It was dropped (lossy C11) until
+    the event existed.
     """
     enchanted = FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
     attack = Atom(
@@ -1261,7 +1312,19 @@ def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block))))
+    lock = Atom(
+        verb=Verb.PREVENT_EFFECT,
+        args=AtomArgs(
+            pairs=(
+                ("condition", enchanted),
+                (
+                    "event",
+                    AbilityActivatedEvent(source=enchanted, kind=AbilityKind.NON_MANA),
+                ),
+            )
+        ),
+    )
+    return AbilityOutcome(ability=StaticAbility(Seq(steps=(attack, block, lock))))
 
 
 def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
@@ -1329,19 +1392,19 @@ def _equipped_creature() -> Selector:
 
 def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
     """``Exile that card until this creature leaves the battlefield.``
-    (Kitesail Freebooter s3) — EXILE of the result-referent card.
-    LOSSY (C11 verbatim): "until this creature leaves the battlefield"
-    — ``_VERB_ROLES[EXILE]`` has no duration role (grammar phase added
-    ``DurationUntilLeaves`` but only wired it to GAIN_CONTROL, per the
-    round-7 spec's R7-2 role row), so the temporary window is dropped;
-    the exiled card would never return. Flagged as an R8 grammar item
-    (EXILE duration role); the card CHOICE (result referent) is
-    preserved."""
+    (Kitesail Freebooter s3) — MOVE_ZONE to exile of the result-referent
+    card (the card the previous sentence chose), with
+    ``duration=DurationUntilLeaves()`` (ontology R5-1, 2026-10-29, CR
+    610.3): when Freebooter leaves the battlefield the card returns to its
+    previous zone, its owner's hand. The C11 loss this template used to
+    carry (no duration role on the move, so the exile was permanent) is
+    closed."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
                 ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("duration", DurationUntilLeaves()),
                 ("target", _result_selector()),
             )
         ),
@@ -1467,19 +1530,18 @@ def _build_speaker_activation_gate(m: re.Match[str]) -> SentenceOutcome:
 
     C16: none — the gate is a legality condition, fully forced.
 
-    LOSSY (verbatim): "and only as a sorcery" — the ActivationWindow
-    vocabulary shipped in R9-1 but NO attach plumbing exists for a bare
-    gate sentence carrying timing (ActivationGateOutcome carries a condition
-    only; the compiler's gate-attach rewrites the condition slot). A
-    pattern-override of the s1 builder would create a second match on that
-    sentence (PC-3 hard gate), so the clause is DROPPED with this note —
-    R10: gate-outcome timing attachment (ActivationGateOutcome.timing).
+    "and only as a sorcery" is the gate's ``window`` slot (B-60,
+    2026-10-29). It was dropped while ActivationGateOutcome carried a
+    condition only; R10-1 gave the outcome both slots and the compiler's
+    gate-attach writes both (C25), so the clause no longer needs to be
+    LOSSY: without it the Angel could be made at instant speed.
     """
     return ActivationGateOutcome(
+        window=ActivationWindow.SORCERY,
         condition=FAtom(
             pred=FAtomPred.LIFE_LEAD_OVER_START_GE,
             count=QConst(int(m.group("n"))),
-        )
+        ),
     )
 
 
@@ -2141,7 +2203,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5a-enchant-cant-attack-block",
-        name="enchanted permanent can't attack or block (mana-abilities clause dropped, C11)",
+        name="enchanted permanent can't attack or block; non-mana activations locked (R5-7)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Enchanted permanent can't attack or block, and its activated "
@@ -2162,7 +2224,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
     Template(
         tid="B5a-exile-that-until-leaves",
-        name="exile that card (result referent; until-leaves window lossy)",
+        name="exile that card until this creature leaves the battlefield (result referent)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Exile that card until this creature leaves the battlefield\.$"

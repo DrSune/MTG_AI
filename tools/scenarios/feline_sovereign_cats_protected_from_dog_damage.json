@@ -1,0 +1,59 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16e). Printed: 'Other Cats you control get +1/+1 and have protection from Dogs.' The static grant reaches the other Cat: the Dog's 3 damage to the 2/2 Cat is prevented. The Sovereign itself is not covered ('other'): the Dog's 1 damage marks it. Before V44 the Cat died.",
+ "cards": [
+  {
+   "key": "fs",
+   "real": "Feline Sovereign",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cat",
+   "name": "House Cat",
+   "type": "Creature — Cat",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dog",
+   "name": "Opp Dog",
+   "type": "Creature — Dog",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "dog",
+   "target": "cat",
+   "amount": 3,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "dog",
+   "target": "fs",
+   "amount": 1,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cat": "battlefield",
+   "fs": "battlefield"
+  },
+  "damage": {
+   "fs": 1
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "enf", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+  {"key": "bird", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "activate", "key": "enf", "idx": 0, "seat": 0, "targets": ["ox"]}
+ ],
+ "expect": {
+  "tapped": {"ox": true, "enf": true, "bird": false},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Pfe4e53aa9d G4: '{1}{W}, {T}: Tap target creature. Activate only if you control a creature with flying.' You control a flier, so it activates: {1}{W} is paid, the Enforcer taps, the target Ox becomes tapped."
+}

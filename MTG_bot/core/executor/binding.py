@@ -44,10 +44,14 @@ answerable — pinned deterministic by the replay test.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
+    AbilityActivatedEvent,
+    AbilityKind,
     AbilityTriggerEvent,
     Atom,
     AtomArgs,
@@ -55,6 +59,8 @@ from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
     CardRecord,
     CastSpellEvent,
+    Choose,
+    Conditional,
     ControllerRef,
     CounterKind,
     CounterPlacedEvent,
@@ -64,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DelayedTrigger,
     DurationEot,
+    EachPlayer,
     EventSpec,
     FAnd,
     FAtom,
@@ -73,14 +80,16 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     LifeGainedEvent,
-    LoyaltyActivatedEvent,
+    OptionalEffect,
     PtDelta,
     PtDirection,
     QAtMost,
     QConst,
+    Repeat,
     SacrificeEvent,
     Selector,
     SelectorMode,
+    Seq,
     StepEvent,
     TapStateEvent,
     TargetingEvent,
@@ -97,6 +106,7 @@ from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations_min import duration_tag
 from MTG_bot.core.executor.events import (
+    KIND_ABILITY_ACTIVATED,
     KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
@@ -107,7 +117,6 @@ from MTG_bot.core.executor.events import (
     KIND_DECLARE_ATTACKERS,
     KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
-    KIND_LOYALTY_ACTIVATED,
     KIND_TAP_STATE,
     KIND_TARGETING,
     KIND_TURN_PHASE,
@@ -118,6 +127,7 @@ from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
+    filter_bound_player_refs,
     filter_reads_bound_player,
     players_for_ref,
 )
@@ -153,11 +163,12 @@ MAX_TRIGGER_FIRES = 200
 # designation lanes (spell 601.2c plan, activation 602.2b, the 18b trigger
 # channel) ship the journal TARGETING feed and ``_match_node`` subscribes
 # the node (filter over the designated object, the grammar's only slot).
-# r22c (Keral Keep Disciples): LoyaltyActivatedEvent LEFT too — the
-# activation lane ships the journal LOYALTY_ACTIVATED feed (emitted at
-# the loyalty-payment point of legality.activate, CR 606.2b's symbol) and
-# ``_match_node`` subscribes the node (controller scope over the
-# activating player, filter over the permanent — the grammar's two slots).
+# r22c (Keral Keep Disciples): the activation event LEFT too — the
+# activation lane ships the journal feed (since R5-7 one ABILITY_ACTIVATED
+# row per activation, mana included, emitted at the payment point of
+# legality.activate) and ``_match_node`` subscribes AbilityActivatedEvent
+# (actor over the activating player, source over the object, kind over
+# the row's 605.1a verdict and loyalty delta).
 _UNSUPPORTED_EVENTS: dict[type, str] = {
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
@@ -175,6 +186,45 @@ _SWEEP_TAGS = ("Eot", "UntilNextTurn")
 # Any trigger node: attached TriggeredAbility or scheduled DelayedTrigger —
 # both carry ``condition`` + ``effect`` (C22 convention).
 _AnyTrigger = TriggeredAbility | DelayedTrigger
+
+
+def _required_target_keys(effect: object) -> frozenset[str]:
+    """B-55, CR 603.3d: the TARGET slots an ability must fill to be put on
+    the stack at all, keyed like :meth:`TriggerBinder._designate`'s
+    collector (``repr`` of a referent-free TARGET-mode Selector).
+
+    Every printed "target" outside a mode choice is required, whatever
+    wraps it: "you may", "if you do", a repeat or a per-player loop are all
+    resolution-time, and targets are announced before any of them (CR
+    601.2c, which 603.3d applies to triggers). A slot inside a ``Choose``
+    is mode-dependent (CR 700.2a): required only when EVERY option carries
+    it (Tolarian Kraken's "tap or untap target permanent"), since otherwise
+    a mode without it stays choosable. A nested ``DelayedTrigger`` chooses
+    its own targets when it triggers (CR 603.7c), so it adds nothing."""
+    if isinstance(effect, Atom):
+        return frozenset(
+            repr(value)
+            for _role, value in effect.args.pairs
+            if isinstance(value, Selector)
+            and value.mode is SelectorMode.TARGET
+            and value.referent is None
+        )
+    if isinstance(effect, Choose):
+        return frozenset.intersection(
+            *(_required_target_keys(option) for option in effect.options)
+        )
+    if isinstance(effect, Seq):
+        return frozenset().union(*(_required_target_keys(s) for s in effect.steps))
+    if isinstance(effect, Conditional):
+        keys = _required_target_keys(effect.then_effect)
+        if effect.else_effect is not None:
+            keys |= _required_target_keys(effect.else_effect)
+        return keys
+    if isinstance(effect, (OptionalEffect, Repeat)):
+        return _required_target_keys(effect.inner)
+    if isinstance(effect, EachPlayer):
+        return _required_target_keys(effect.effect)
+    return frozenset()  # DelayedTrigger (CR 603.7c)
 
 
 def _is_universal(filter_: Filter) -> bool:
@@ -278,6 +328,34 @@ class DelayedBinding:
     controller: Handle
 
 
+def functions_from_graveyard(ability: object) -> bool:
+    """V30 (CR 113.6m: "An ability whose cost or effect specifies that it moves
+    the object it's on out of a particular zone functions only in that zone"): a
+    triggered ability whose effect moves its own source out of a graveyard
+    ("return this card from your graveyard to the battlefield tapped", Silversmote
+    Ghoul) functions only while that card is in a graveyard."""
+    from MTG_bot.core.executor.selectors import _filter_is_self_referential
+
+    if not isinstance(ability, TriggeredAbility):
+        return False
+    for node in walk(ability.effect):
+        if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
+            continue
+        dest = node.args.get("destination")
+        if isinstance(dest, Zone) and dest.kind is ZoneKind.GRAVEYARD:
+            continue
+        for role in ("cards", "target"):
+            sel = node.args.get(role)
+            if (
+                isinstance(sel, Selector)
+                and sel.zones
+                and all(z.kind is ZoneKind.GRAVEYARD for z in sel.zones)
+                and _filter_is_self_referential(sel.filter)
+            ):
+                return True
+    return False
+
+
 class TriggerBinder:
     """The (handle, ability-idx) trigger registry + event matcher + APNAP
     fire loop. Owned by one :class:`~MTG_bot.core.executor.Executor`."""
@@ -286,6 +364,10 @@ class TriggerBinder:
         self.executor = executor
         self.records: dict[str, CardRecord] = {}
         self.attached: dict[tuple[Handle, int], TriggeredAbility] = {}
+        # V30 (CR 113.6m): the triggers of cards IN A GRAVEYARD whose ability
+        # functions only there (functions_from_graveyard). Kept apart from
+        # ``attached`` so a battlefield departure's detach never drops them.
+        self.attached_graveyard: dict[tuple[Handle, int], TriggeredAbility] = {}
         self.handle_record: dict[Handle, CardRecord] = {}
         # 13c: emblem synthetic handles -> their OWNER. Emblems are not
         # world cards, so ``world.controller_of`` cannot answer "who is
@@ -325,6 +407,11 @@ class TriggerBinder:
         # queued the firing. Non-death departures (bounce/exile/hand) have
         # no dies row and detach on the spot, exactly as before.
         self._pending_dies_detach: set[Handle] = set()
+        # V37 (CR 724.1c): while an effect ends the turn, state-based actions
+        # are checked but no triggered ability is put onto the stack; the
+        # firings stay queued for the cleanup step (724.1f). Set and cleared
+        # inside one Executor call, so never set between ops.
+        self.hold = False
 
     # ------------------------------------------------------------ attach
 
@@ -435,7 +522,21 @@ class TriggerBinder:
             self.handle_record[card] = record
             if self.world.zone_of(card).kind == ZONE_BATTLEFIELD:
                 count += self._register(card, record)
+            elif self.world.zone_of(card).kind == ZONE_GRAVEYARD:
+                count += self._register_graveyard(card, record)
         return count
+
+    def _register_graveyard(self, handle: Handle, record: CardRecord) -> int:
+        """V30 (CR 113.6m): bind the record's graveyard-only triggers while the
+        card is in a graveyard."""
+        n = 0
+        for idx, ability in enumerate(record.abilities):
+            if functions_from_graveyard(ability):
+                assert isinstance(ability, TriggeredAbility)
+                self._check_event(ability.event, record.name)
+                self.attached_graveyard[(handle, idx)] = ability
+                n += 1
+        return n
 
     def _register(self, handle: Handle, record: CardRecord) -> int:
         """Bind the record's TriggeredAbility nodes at (handle, idx), and
@@ -449,6 +550,8 @@ class TriggerBinder:
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
                 self._check_event(ability.event, record.name)
+                if functions_from_graveyard(ability):
+                    continue  # V30, CR 113.6m: it does not function here
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
         for idx, ability in triggers:
@@ -538,21 +641,25 @@ class TriggerBinder:
 
     # ------------------------------------------------------------ matching
 
-    def on_events(self) -> None:
+    def on_events(self, upto: int | None = None) -> None:
         """Match every not-yet-seen journalled event against the attached
         triggers and the scheduled delayed triggers, queueing one
         TriggerInstance per match. The attach/detach lifecycle rides the
         same pass in journal order: a permanent ENTERING re-registers
         before matching (its own ETB trigger is live — IS_SOURCE sees it),
         a permanent LEAVING detaches only after matching (its own dies
-        trigger still fires)."""
+        trigger still fires). ``upto`` (V37) stops before that journal
+        position; it always falls between two atom boundaries, so it never
+        splits a zone change from its dies row."""
         events = self.executor.journal.events
-        while self._seen_journal_len < len(events):
+        end = len(events) if upto is None else min(upto, len(events))
+        while self._seen_journal_len < end:
             event = events[self._seen_journal_len]
             self._seen_journal_len += 1
             self._lifecycle(event, attach=True)
             for (handle, _idx), ability in sorted(
-                self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
+                [*self.attached.items(), *self.attached_graveyard.items()],
+                key=lambda kv: (str(kv[0][0]), kv[0][1]),
             ):
                 if self._match_node(
                     ability.event, event, handle, self._controller_of(handle)
@@ -600,7 +707,9 @@ class TriggerBinder:
                 if self._match_node(
                     entry.node.event, event, entry.source, entry.controller
                 ):
-                    self._queue(entry.source, entry.controller, entry.node, event)
+                    self._queue(
+                        entry.source, entry.controller, entry.node, event, delayed=True
+                    )
             self._lifecycle(event, attach=False)
         # r22a defensive flush: record_atom always journalled the pair, so
         # a pending handle should never outlive the pass. If a hand-built
@@ -629,6 +738,15 @@ class TriggerBinder:
             return
         from_state, to_state = event.data[0], event.data[1]
         handle = event.subject
+        if attach and to_state == ZONE_GRAVEYARD and from_state != ZONE_GRAVEYARD:
+            record = self.handle_record.get(handle)
+            if record is None and handle in self.world.cards:
+                record = self.records.get(self.world.cards[handle].identity.oracle_id)
+            if record is not None:
+                self._register_graveyard(handle, record)  # V30
+        if not attach and from_state == ZONE_GRAVEYARD and to_state != ZONE_GRAVEYARD:
+            for key in [k for k in self.attached_graveyard if k[0] == handle]:
+                del self.attached_graveyard[key]  # V30: it left the graveyard
         if attach:
             if to_state == ZONE_BATTLEFIELD:
                 record = self.handle_record.get(handle)
@@ -665,11 +783,18 @@ class TriggerBinder:
         node: _AnyTrigger,
         event: GameEvent,
         additional: bool = False,
+        delayed: bool = False,
     ) -> None:
         if source in self.quarantined:
             # r23a tripwire guard: a flagged loop source never queues
             # again this game (its firing was already recorded loudly in
             # executor.trigger_loops).
+            return
+        if not delayed and source in self.executor.phased_out:
+            # CR 702.26b: a phased-out permanent's triggered abilities (its
+            # printed, granted and keyword ones, and the AbilityTriggerEvent
+            # subscribers) do not trigger. A delayed trigger is not an
+            # ability of its source (CR 603.7) and still triggers.
             return
         if (
             not additional
@@ -866,8 +991,8 @@ class TriggerBinder:
             # 16b: the attack feed. The filter reads the DECLARED creature
             # (IS_SOURCE = "whenever this creature attacks"); the optional
             # ``attacked`` filter (R10-3) reads the attacker's ATTACKED
-            # object off the executor's attack record — v1: every attacker
-            # attacks the defending player (planeswalker attacks are 16c).
+            # object off the executor's attack record: the defending player
+            # or a planeswalker that player controls (V41, CR 508.1b).
             assert event.subject is not None  # the row names the attacker
             ctx = self._match_ctx(source, controller, event)
             if node.attacked is not None:
@@ -930,6 +1055,14 @@ class TriggerBinder:
             # FALSE outright, undecidable preds keep the 12c raise.
             assert event.subject is not None  # the row names its object
             ctx = self._match_ctx(source, controller, event)
+            # R5-6: the actor filter reads the targeting spell's or ability's
+            # controller, journalled as data[1] (events.emit_targeting) — "a
+            # spell or ability an opponent controls" (Warden of the Woods).
+            if node.actor is not None:
+                actor = event.data[1]
+                assert isinstance(actor, Handle)  # emit_targeting's (source, actor)
+                if not eval_filter(node.actor, actor, ctx):
+                    return False
             if event.subject.namespace == "player":
                 if _is_universal(node.filter):
                     return True
@@ -937,19 +1070,26 @@ class TriggerBinder:
                     return False
                 return _player_subject_verdict(node.filter, event.subject, ctx)
             return eval_filter(node.filter, event.subject, ctx)
-        if kind == KIND_LOYALTY_ACTIVATED and isinstance(node, LoyaltyActivatedEvent):
-            # r22c (Keral Keep Disciples): the loyalty feed — the node's
-            # CONTROLLER scope reads the ACTIVATING player (the row's
-            # cause, the CR 606.3 seat), its FILTER reads the PERMANENT
-            # whose loyalty ability was paid for (the grammar's "a
-            # Chandra planeswalker" slot — a Basri row evaluates FALSE
-            # here, the negative half of the pack).
-            assert event.subject is not None  # the row names the permanent
+        if kind == KIND_ABILITY_ACTIVATED and isinstance(node, AbilityActivatedEvent):
+            # R5-7 (r22c's loyalty feed, generalised): one row per
+            # activation. ``kind`` reads the row's own classification, made
+            # at activation time by the one 605.1a classifier: NON_MANA
+            # skips mana abilities, LOYALTY keeps only abilities that paid a
+            # loyalty symbol (CR 606.2, a [0] included). ``actor`` reads the
+            # ACTIVATING player (the row's cause), ``source`` the object
+            # whose ability it is (Keral's "a Chandra planeswalker" — a
+            # Basri row evaluates FALSE here, the negative half of the pack).
+            assert event.subject is not None  # the row names the object
             assert event.cause is not None  # the row names its activator
+            _idx, mana, loyalty = event.activation
+            if node.kind is AbilityKind.NON_MANA and mana:
+                return False
+            if node.kind is AbilityKind.LOYALTY and loyalty is None:
+                return False
             ctx = self._match_ctx(source, controller, event)
             if node.actor is not None and not eval_filter(node.actor, event.cause, ctx):
                 return False
-            return eval_filter(node.filter, event.subject, ctx)
+            return eval_filter(node.source, event.subject, ctx)
         return False  # no subscriber shape for this journalled kind
 
     def _match_cast(
@@ -959,23 +1099,35 @@ class TriggerBinder:
         journalled tuple (``GameEvent.cast``) carries (caster, per-turn
         ordinal, spell kind, from-zone, X): ``controller`` scopes whose
         cast (OPPONENT = "an opponent casts" — Mangara, Ghostly Pilferer),
-        ``ordinal`` is the Nth cast by THAT caster this turn (journal-
-        counted, reset at begin_turn — "whenever you cast your second
-        spell", Double Vision's first-cast ordinal 1), and the zone pair
+        ``ordinal`` is the Nth cast by THAT caster this turn among the
+        spells the node describes (:meth:`_fitting_cast_ordinal` — "whenever
+        you cast your second spell", Double Vision's first instant or sorcery
+        ordinal 1), and the zone pair
         is mutually exclusive in the grammar (R4-3): ``from_zone`` must
         equal the cast's source zone, ``from_zone_not`` EXCLUDES it
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
         whose controller ref scopes the caster, not the zone's owner: the
         cast came from the caster's zones). The filter reads the SPELL
-        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_IN over
-        it, which is exactly Quirion Dryad's compiled "colored spell"
-        filter (COLOR_IN WUBR = non-empty subset, quantity.py 13b)."""
-        caster, ordinal, _kind, from_zone, _x, _kicked = event.cast
+        card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_HAS over
+        it; Quirion Dryad's "a spell that's white, blue, black, or red" is
+        the FOr of COLOR_HAS W/U/B/R (V39: any of them, CR 105.2)."""
+        caster = event.cast[0]
         ctx = self._match_ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
             return False
-        if node.ordinal is not None and node.ordinal != ordinal:
+        if not self._cast_fits(node, event, source, controller):
             return False
+        return node.ordinal is None or node.ordinal == self._fitting_cast_ordinal(
+            node, event, source, controller
+        )
+
+    def _cast_fits(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> bool:
+        """Does one CAST row's spell fit the node's spell description: its
+        from-zone pair and its filter (the SPELL card is the row's subject)?"""
+        caster, _ordinal, _kind, from_zone, _x, _kicked = event.cast
+        ctx = self._match_ctx(source, controller, event)
         if node.from_zone is not None and not self._cast_zone_matches(
             node.from_zone, caster, from_zone, ctx
         ):
@@ -986,6 +1138,29 @@ class TriggerBinder:
             return False
         assert event.subject is not None  # the CAST row names the spell card
         return eval_filter(node.filter, event.subject, ctx)
+
+    def _fitting_cast_ordinal(
+        self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
+    ) -> int:
+        """The ordinal a CastSpellEvent's ``ordinal`` compares with (ontology
+        R5 engine item, Double Vision): the number of spells THIS caster cast
+        this turn that fit the node's description, up to and including this
+        one. "Your first instant or sorcery spell each turn" is the first
+        instant or sorcery, so a creature cast before it does not use it up;
+        the journal row's own ordinal counts every spell, which is exactly
+        this count for an unfiltered node (Mangara's "second spell"). The
+        journal's turn window holds every CAST row since the turn began,
+        including casts made before this permanent arrived, which the count
+        must see. Earlier rows are judged now: the pool's ordinal filters read
+        the spell's types and colours, which do not change as it resolves."""
+        caster = event.cast[0]
+        count = 0
+        for row in self.executor.journal.turn_window():
+            if row.kind != KIND_CAST or row.clock > event.clock or row.cast[0] != caster:
+                continue
+            if self._cast_fits(node, row, source, controller):
+                count += 1
+        return count
 
     def _cast_zone_matches(
         self, zone_ir: Zone, caster: Handle, from_zone: str | None, ctx: ExecCtx
@@ -1119,7 +1294,7 @@ class TriggerBinder:
 
     # -------------------------------------------------------------- fire
 
-    def fire_all(self) -> int:
+    def fire_all(self, between: Callable[[], object] | None = None) -> int:
         """Drain the world's trigger queue: APNAP order_key, then
         ``str(source)`` then bind-seq (Handle-sort within a seat, ruling 5).
         Every firing runs through the 12a effect runner, whose journalled
@@ -1130,7 +1305,13 @@ class TriggerBinder:
         — every demand a firing makes reaches the executor's
         vocabulary-addressed decision channel (per-(vocab, what) FIFO /
         ask-time provider), so a trigger the op itself armed mid-drain is
-        answerable exactly like one that was already pending."""
+        answerable exactly like one that was already pending.
+        W4-4 (CR 117.5, 704.3): ``between`` runs after each firing. The
+        settle passes the state-based-action check, so the next trigger
+        resolves only after the actions the last one made necessary (a
+        creature it dealt lethal damage dies first)."""
+        if self.hold:
+            return 0  # V37, CR 724.1c: no triggered ability is put onto the stack
         fired = 0
         per_source: dict[Handle, int] = {}
         while self.world.triggers:
@@ -1184,7 +1365,22 @@ class TriggerBinder:
             per_source[instance.source] = per_source.get(instance.source, 0) + 1
             fired += 1
             self.on_events()  # the firing's own events queue the next batch
+            if between is not None:
+                between()
         return fired
+
+    def pending_references(self) -> frozenset[Handle]:
+        """W4-4: the objects the queued firings still name: their source and their
+        event's subject and cause. A token that left the battlefield stays in the
+        world (as its own last-known information) until the triggers its leaving
+        caused have resolved; see ``Executor._cease_tokens``."""
+        out: set[Handle] = set()
+        for payload in self.firings.values():
+            out.add(payload.source)
+            for handle in (payload.event.subject, payload.event.cause):
+                if isinstance(handle, Handle):
+                    out.add(handle)
+        return frozenset(out)
 
     def _pop_next(self):
         ordered = sorted(
@@ -1199,6 +1395,20 @@ class TriggerBinder:
         chosen = ordered[0]
         self.world.triggers.remove(chosen)
         return chosen
+
+    def cease_triggered_before(self, mark: int) -> int:
+        """V37, CR 724.1a: when an effect ends the turn, the abilities that
+        triggered before that process began and were never put onto the
+        stack cease to exist. The journal rows before ``mark`` (where the
+        END_TURN atom ran) are matched first, so the attach/detach lifecycle
+        still runs for them; then every queued firing is dropped, those and
+        any a drain had not reached yet. Returns how many ceased."""
+        self.on_events(upto=mark)
+        ceased = list(self.world.triggers)
+        for instance in ceased:
+            self.world.triggers.remove(instance)
+            self.firings.pop(instance.clock, None)
+        return len(ceased)
 
     def _fire(self, payload: _Firing) -> None:
         """One trigger resolution: the condition gate, the 18b TARGET-
@@ -1219,12 +1429,22 @@ class TriggerBinder:
         # already relies on that ordering), so the group is complete here.
         if event.kind == KIND_DECLARE_ATTACKERS and event.subject is not None:
             group = event.declare_group
+            spec = payload.node.event
+            # W4-1 (CR 603.2c): "Whenever one or more NONTOKEN creatures attack
+            # this turn, create that many ..." (Basri Ket's -2): the antecedent
+            # is the attackers the trigger's own event spec names, matched like
+            # the row that fired it (filter and attacked object), not every
+            # creature in the declaration. Two Bears and a token make 2.
             ctx.bindings["declare_attackers"] = [
                 e.subject
                 for e in self.executor.journal.turn_window()
                 if e.kind == KIND_DECLARE_ATTACKERS
                 and e.declare_group == group
                 and e.subject is not None
+                and (
+                    not isinstance(spec, DeclareAttackersEvent)
+                    or self._match_node(spec, e, payload.source, payload.controller)
+                )
             ]
         node = payload.node
         if node.condition is not None:
@@ -1292,8 +1512,11 @@ class TriggerBinder:
                 # TARGET Selector slot — CR 603.1 designates it through the
                 # 18b channel, and the pre-bind must never swallow the ask.
                 ctx.bindings["target"] = event.subject
-            else:
-                self._designate(node, ctx)
+            elif not self._designate(node, ctx):
+                # B-55, CR 603.3d: a required target with no legal choice
+                # removes the ability from the stack. None of its effect
+                # happens, its untargeted steps included.
+                return
         # The 12a shared effect runner — the SAME dispatch execute() uses,
         # journalled at its Atom boundaries by the Executor. r24 (/111):
         # guarded like the spell lanes — a template mis-fold whose
@@ -1428,8 +1651,10 @@ class TriggerBinder:
                     return True
         return False
 
-    def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> None:
+    def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
         """The 18b designation channel (CR 603.1, first PC-8 lift).
+        Returns False when the ability is removed from the stack (CR
+        603.3d, B-55), True when it goes on and resolves.
 
         The TARGET-bearing trigger no longer crashes at its first verb: the
         engine enumerates the candidates through its OWN 12c query surface
@@ -1460,34 +1685,45 @@ class TriggerBinder:
         the same card asks two DIFFERENT keys (attribution, not collision).
 
         Zero-candidate honesty: nothing enumerable means no decision exists
-        (C15) and the binding is the EMPTY set — the effect's TARGET atoms
-        resolve to nothing, which IS the CR 603.4 answer ("a triggered
-        ability with no legal targets resolves doing nothing"); never a
-        crash, never a guess. Cardinality follows the frozen slot contract:
-        ``QConst(1)`` designates exactly one (forced when one candidate);
-        ``QAtMost(n)`` asks pick-by-pick, the first pick mandatory (C17:
-        TARGET designation range 1..n, the pinned contract the query lane
-        already enforces), later picks carry the ``"NONE"`` stop token the
-        block-ask lane established; ``QConst(n>1)`` asks n picks without
+        (C15); never a crash, never a guess. A REQUIRED slot (an exact
+        count the ability needs whatever mode it takes, see
+        :func:`_required_target_keys`) that cannot be filled removes the
+        ability from the stack (CR 603.3d, B-55): False, and none of the
+        effect runs. Before B-55 the binding was the empty set and the
+        effect ran anyway, so its untargeted steps still happened and an
+        ATTACH with no host raised. An "up to N" or mode-dependent slot
+        binds the EMPTY set and the ability resolves without it, since zero
+        targets (or another mode) is a legal choice.
+
+        Cardinality follows the frozen slot contract: ``QConst(1)``
+        designates exactly one (forced when one candidate);
+        ``QAtMost(n)`` asks pick-by-pick, every pick carrying the ``"NONE"``
+        stop token the block-ask lane established (V15, CR 601.2c/115.6: the
+        range is 0..n, the query lane's contract; zero picks = not targeted,
+        and one candidate is still a choice of it or none); ``QConst(n>1)`` asks n picks without
         the stop token and clamps at exhaustion (C17's 0..remaining
         sibling); ``QAtLeast``/QX-in-TARGET stays the flag it always was.
         """
         selectors: list[Selector] = []
         seen: set[str] = set()
         reads_target_player = False
+        opponent_only = False  # V21: a "target opponent" read narrows the slot
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
-                if (
-                    value is ControllerRef.TARGET_PLAYER
-                    or isinstance(value, Zone)
-                    and value.controller is ControllerRef.TARGET_PLAYER
-                    or isinstance(value, Selector)
-                    and filter_reads_bound_player(value.filter)
-                    or filter_reads_bound_player(value)
-                ):
+                refs: set[ControllerRef] = set()
+                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
+                    refs.add(value)
+                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
+                    refs.add(value.controller)
+                elif isinstance(value, Selector):
+                    refs |= filter_bound_player_refs(value.filter)
+                else:
+                    refs |= filter_bound_player_refs(value)
+                if refs:
                     reads_target_player = True
+                    opponent_only |= ControllerRef.TARGET_OPPONENT in refs
                 if (
                     isinstance(value, Selector)
                     and value.mode is SelectorMode.TARGET
@@ -1498,7 +1734,7 @@ class TriggerBinder:
                         seen.add(key)
                         selectors.append(value)
         if not selectors and not reads_target_player:
-            return  # no designation to make
+            return True  # no designation to make
         if len(selectors) > 1 or (selectors and reads_target_player):
             raise NotImplementedError(
                 f"executor: trigger {node.effect!r:.80} carries "
@@ -1509,15 +1745,30 @@ class TriggerBinder:
         if reads_target_player:
             # The synthetic player slot (spell_target_slots' 14b twin): the
             # candidate population is the ENGINE's player rule — the ability
-            # controller's opponents — and the cross-seat ruling is CR
-            # 603.1's: the ABILITY's controller designates, so an opponent's
-            # trigger asks the OPPONENT's seat (ctx.controller IS that seat,
-            # the firing context was built from payload.controller).
-            opponents = players_for_ref(ControllerRef.OPPONENT, ctx)
+            # controller's opponents for "target opponent", every player for
+            # "target player" (V21, CR 115.1, 102.2) — and the cross-seat
+            # ruling is CR 603.1's: the ABILITY's controller designates, so an
+            # opponent's trigger asks the OPPONENT's seat (ctx.controller IS
+            # that seat, the firing context was built from payload.controller).
+            from MTG_bot.core.executor.legality import protected_from
+
+            # V44 (CR 702.16b): a player with protection from the source of the
+            # ability can't be its target (Runed Halo naming the trigger's card).
+            opponents = [
+                h
+                for h in (
+                    players_for_ref(ControllerRef.OPPONENT, ctx)
+                    if opponent_only
+                    else list(ctx.world.player_order)
+                )
+                if not protected_from(self.executor, h, ctx.source)
+            ]
             if not opponents:
-                ctx.bindings["target"] = []  # CR 603.4 nothing (20-life
+                ctx.bindings["target"] = []  # resolves without a player (a
                 # duel always has an opponent; the empty read is the honest
-                # multiplayer-shape answer, not a crash)
+                # multiplayer-shape answer, not a crash). Not a CR 603.3d
+                # removal: this slot cannot tell "target player" (you are a
+                # legal target) from "target opponent" (B-53).
             elif len(opponents) == 1:
                 ctx.bindings["target"] = opponents[0]
             else:
@@ -1531,14 +1782,14 @@ class TriggerBinder:
                 )
             # r20b: TARGETING feed — a genuine designation made here is an
             # event (pre-bound firings never reach this method). The empty
-            # CR 603.4 set emits nothing.
+            # set emits nothing.
             designated = ctx.bindings["target"]
             self.executor.journal.emit_targeting(
                 ctx.source,
                 ctx.controller,
                 designated if isinstance(designated, list) else [designated],
             )
-            return
+            return True
         selector = selectors[0]
         from MTG_bot.core.executor.query import (  # cycle-free at call time
             _widen_any_target,  # the query lane's ONE widening opinion (13b)
@@ -1564,12 +1815,20 @@ class TriggerBinder:
             # lane was the last caller not passing it.
             bindings=ctx.bindings,
         )
-        slot = _widen_any_target(self.executor, selector, slot) or slot
+        slot = _widen_any_target(self.executor, selector, slot, ctx.source) or slot
         candidates = sorted(slot.candidates)
-        if not candidates:
-            ctx.bindings["target"] = []  # CR 603.4: resolves doing nothing
-            return
         count = selector.count
+        # B-55, CR 603.3d: an exact-count slot the ability needs in every
+        # mode, with too few legal choices, removes it from the stack.
+        required = isinstance(count, QConst) and repr(selector) in (
+            _required_target_keys(node.effect)
+        )
+        if not candidates:
+            if required:
+                return False
+            ctx.bindings["target"] = []  # "up to N" / mode-dependent slot:
+            # zero targets is a legal choice, the ability resolves without
+            return True
         if not isinstance(count, (QConst, QAtMost)):
             raise NotImplementedError(
                 f"executor: trigger TARGET count {count!r} designates "
@@ -1578,25 +1837,29 @@ class TriggerBinder:
             )
         # T3 legality unification (doc 36, CR 601.2c): ONE answer for the
         # count axis — QConst is EXACT, never clamped. A trigger that
-        # cannot complete its full-size designation has no announce gate
-        # to reject it, so it rides the empty-slot lane above: designate
-        # NOTHING, resolve doing nothing (603.4 sibling of the zero-
-        # candidate return). Asking over fewer than stated (the old
-        # unclamped loop running the menu dry) was the third divergent
-        # answer of the legality triad.
-        optional_stop = isinstance(count, QAtMost)  # C17 first mandatory
+        # cannot complete its full-size designation rides the empty-slot
+        # lane above: removed from the stack when the slot is required
+        # (CR 603.3d, B-55), otherwise designate NOTHING and resolve.
+        # Asking over fewer than stated (the old unclamped loop running
+        # the menu dry) was the third divergent answer of the legality
+        # triad.
+        # V15 (CR 601.2c, 115.6): "up to N" may designate zero, so the stop
+        # word is offered from the first pick on (C17 had made it mandatory).
+        optional_stop = isinstance(count, QAtMost)
         announceable, wanted = count_semantics(count, len(candidates))
         if not announceable:
+            if required:
+                return False
             ctx.bindings["target"] = []
-            return
+            return True
         picks: list[Handle] = []
         pool = list(candidates)
         for pick_no in range(wanted):
-            if len(pool) == 1 and not (optional_stop and pick_no > 0):
+            if len(pool) == 1 and not optional_stop:
                 picks.append(pool[0])  # §1.4 auto-fill: one legal filler
                 break
             vocab = tuple(str(h) for h in pool)
-            if optional_stop and pick_no > 0:
+            if optional_stop:
                 vocab = vocab + ("NONE",)
             answer = ctx.take_decision(
                 vocab,
@@ -1611,6 +1874,7 @@ class TriggerBinder:
         # r20b: TARGETING feed — see the player-slot note above; an empty
         # pick list (impossible past the zero-candidate return) emits none.
         self.executor.journal.emit_targeting(ctx.source, ctx.controller, picks)
+        return True
 
     def _ctx(
         self,
@@ -1734,9 +1998,25 @@ class TriggerBinder:
             )
         )
         quarantined = tuple(sorted(map(str, self.quarantined)))
-        return (
+        dump: tuple[tuple[object, ...], ...] = (
             ("attached", attached),
             ("delayed", delayed),
             ("emblems", emblems),
             ("quarantined", quarantined),
         )
+        if self.attached_graveyard:
+            # V30: present only when a graveyard trigger is bound, so a game
+            # without one keeps its fingerprint bytes.
+            dump += (
+                (
+                    "graveyard",
+                    tuple(
+                        (str(handle), idx, repr(ability.event))
+                        for (handle, idx), ability in sorted(
+                            self.attached_graveyard.items(),
+                            key=lambda kv: (str(kv[0][0]), kv[0][1]),
+                        )
+                    ),
+                ),
+            )
+        return dump

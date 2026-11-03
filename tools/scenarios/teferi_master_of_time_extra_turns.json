@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "teferi", "set": 10},
+  {"op": "activate", "key": "teferi", "idx": 3, "seat": 0},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 0, 0, 1],
+  "zone": {"teferi": "graveyard"}
+ },
+ "notes": "Teferi, Master of Time [-10]: 'Take two extra turns after this one.' Seat 0 activates it on its turn with exactly 10 loyalty: Teferi goes to 0 and dies to the state-based action (CR 704.5i), the ability still resolves. CR 500.7: two extra turns are added directly after this turn, so the next two turns are seat 0's, then the normal order resumes with seat 1."
+}

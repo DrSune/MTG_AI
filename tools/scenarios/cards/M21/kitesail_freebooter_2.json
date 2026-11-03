@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 11},
+ "cards": [
+  {"key": "k", "real": "Kitesail Freebooter", "zone": "hand", "controller": 0},
+  {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": ["zap"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield", "zap": "exile"}
+ },
+ "notes": "P1ad9624db7 G4: the exile lasts while Freebooter stays: it does not wear off at end of turn. Zap is still in exile after the turn passes."
+}

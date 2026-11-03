@@ -51,12 +51,21 @@ def test_oracle_scores_one_and_the_null_floor_scores_zero_on_changed_keys(real) 
 
 def test_prompts_never_show_pack_notes(real) -> None:
     items, _ = real
+    # The probe is the note's first 40-character window that is not verbatim oracle text. An
+    # activate step quotes its ability's oracle line on purpose, and a note may open by quoting that
+    # same line (leafkin_avenger, renderable since B-49 taught ability_line to skip the cast
+    # carrier). Such a match is card text, not a leaked note, so the probe moves to the next window.
+    oracle = OracleIndex.for_sets("M21", "ZNR")
+    card_text = [oracle.text(oid) for oid in oracle.cards]
     notes = {}
     for path in PACK_DIR.glob("*.json"):
         pack = json.loads(path.read_text())
         text = (pack.get("notes") or "") + (pack.get("note") or "")
         if len(text) > 40:
-            notes[path.stem] = text[:40]
+            windows = (text[i : i + 40] for i in range(0, len(text) - 39, 40))
+            probe = next((w for w in windows if not any(w in t for t in card_text)), None)
+            if probe is not None:
+                notes[path.stem] = probe
     for item in items:
         if item.id in notes:
             assert notes[item.id] not in item.prompt

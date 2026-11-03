@@ -1,0 +1,23 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 19},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "gold", "name": "Gold Imp", "type": "Creature", "power": "1", "toughness": "1", "colors": ["W", "U"], "zone": "battlefield", "controller": 1},
+    {"key": "red", "name": "Red Imp", "type": "Creature", "power": "1", "toughness": "1", "colors": ["R"], "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"lt": true}, "block": {"red": "lt"}}
+  ],
+  "expect": {
+    "attackers": {"lt": true},
+    "tapped": {"lt": false},
+    "not_asked_to_block": ["gold"],
+    "block_asks": {"red": "<lt>,NONE"},
+    "blocked": {"lt": ["red"]},
+    "zone": {"red": "graveyard", "lt": "battlefield"},
+    "damage": {"lt": 1},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Vigilance, protection from multicolored'. Expectation from the text: vigilance, so attacking does not tap it (CR 702.20b); protection from multicolored means it can't be blocked by multicolored creatures (CR 702.16f), so the white-blue Gold Imp is never offered a block, while the mono-red Red Imp may block it, and the red Imp's 1 combat damage is dealt (a mono-coloured source is not covered)."
+}

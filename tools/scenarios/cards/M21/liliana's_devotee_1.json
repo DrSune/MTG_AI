@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dev", "real": "Liliana's Devotee", "zone": "battlefield", "controller": 0},
+  {"key": "z", "name": "My Zombie", "power": "2", "toughness": "2", "type": "Creature — Zombie", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "oz", "name": "Opp Zombie", "power": "2", "toughness": "2", "type": "Creature — Zombie", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {"power": {"z": 3, "bear": 2, "oz": 2, "dev": 2}, "toughness": {"z": 2, "bear": 2, "oz": 2, "dev": 3}},
+ "notes": "Printed: 'Zombies you control get +1/+0.' Your Zombie is 3/2; your Bear, the opponent's Zombie and the Devotee itself (Human Warlock) are unchanged."}

@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b3b8c7d0-46b9-4519-808a-154e503a58b6",
+ "name": "Liliana's Devotee",
+ "text_sha": "1992459ad4254530d7d158db1d57e6e84bed3b094aed0d733e5e94bbb9d95072",
+ "verified": {
+  "tree_sha": "4fe0961dc2abdb62327b02db6b4c06f72bdab38ff5b565f4353dd3ea788ef0d7",
+  "probe_sha": "05f3a2cb74f39b280bb31c242dfe144c604b018707f3b6c7991e717e2d26b395",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Zombies you control get +1/+0.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No Zombie on the probe board (static section: only the card's own 2/3). Tree: static MODIFY_PT +1/+0 over creatures you control with subtype Zombie. Pack lilianas_devotee_zombie_bonus.json (your Zombie 3/2; your Bear, the opponent's Zombie and the Devotee unchanged) PASS; the token in lilianas_devotee_end_step_pay.json is 3/2.",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, if a creature died this turn, you may pay {1}{B}.",
+    "status": "OK",
+    "evidence": "[stimulus: turns pass: your end step ...]: 'card's triggered ability [1] triggers' at your end step; no creature died, so the intervening-if fails and nothing is paid or created. Death side packs: lilianas_devotee_end_step_pay.json PASS; lilianas_devotee_noncreature_died.json (only an artifact died -> nothing) PASS; lilianas_devotee_opp_end_step.json (the opponent's end step -> nothing) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, create a 2/2 black Zombie creature token.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: Seq(OptionalEffect(PAY {1}{B}), Conditional(MAY_DONE, CREATE_TOKEN 1 x 2/2 Zombie colors ('B',))). Packs: lilianas_devotee_end_step_pay.json (pay, both Swamps tap, one Zombie, 3/2 with the static) PASS; lilianas_devotee_decline.json (decline: Swamps untapped, no Zombie) PASS.",
+    "issue": "engine-limit: the end-step payment is made from the payer's {T} mana sources tapped by the engine (B-90 scaffold), since pools are empty by then"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana's_devotee_1.json",
+   "tools/scenarios/cards/M21/liliana's_devotee_2.json",
+   "tools/scenarios/cards/M21/liliana's_devotee_3.json",
+   "tools/scenarios/cards/M21/liliana's_devotee_4.json",
+   "tools/scenarios/cards/M21/liliana's_devotee_5.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 3,
+   "score": 0.1875,
+   "survived": [
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/target/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/toughness/magnitude",
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "optional->mandatory at 1/1/effect/steps/0",
+    "drop cost part 0 (CostManaColor) at 1/1/effect/steps/0/inner/args/cost",
+    "drop cost part 1 (CostManaGeneric) at 1/1/effect/steps/0/inner/args/cost",
+    "amount+1 at 1/1/effect/steps/0/inner/args/cost/parts/0/amount",
+    "amount+1 at 1/1/effect/steps/0/inner/args/cost/parts/1/amount",
+    "amount+1 at 1/1/effect/steps/1/then_effect/args/count"
+   ]
+  }
+ }
+}

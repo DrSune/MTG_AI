@@ -1,0 +1,15 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "ghost", "real": "Roaming Ghostlight", "zone": "hand", "controller": 0},
+    {"key": "victim", "name": "Victim", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "enter", "key": "ghost", "decisions": ["victim"]}
+  ],
+  "expect": {
+    "zone": {"victim": "hand", "ghost": "battlefield"},
+    "hand": {"0": 0, "1": 1}
+  },
+  "notes": "m21-fidelity (review batch C, 2026-10-29). Printed: 'When this creature enters, return up to one target non-Spirit creature to its owner's hand.' The opponent's Victim goes to ITS OWNER's hand (CR 400.3): seat 1 holds it and seat 0 holds nothing (the first turn skips its draw). Before the fix the destination was Zone(HAND, ANY) and the Victim landed in seat 0's hand."
+}

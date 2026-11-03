@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "64c54c9f-0550-41e2-a44a-5892a199f670",
+ "name": "Light of Promise",
+ "text_sha": "c26d88b1a435f6b1f3b84b70ca47b2f432f89268ba74815ac67d64043885ccb9",
+ "verified": {
+  "tree_sha": "2cefc4d083ba269b8797fd1b9e1910dd4fce3b0feed014fcb4027bea56ddc4b2",
+  "probe_sha": "acc60e24249e4331fe022bf6a9c5b65ecf1458ef0a881cba1c231ba59f2a934e",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "keywords[0] ENCHANT with TYPE_EQ Creature; 'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' (creatures of both sides, no relic/charm); each [cast targets=...] resolves onto the battlefield",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature has \"Whenever you gain life, put that many +1/+1 counters on this creature.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "in the trigger stimuli the Aura is not attached to a creature, so [you gain 3 life -> none] cannot show the grant. Tree: static GRANT_ABILITY to IS_ATTACHED_TO_SOURCE creature of LifeGainedEvent(actor YOU) -> PUT_COUNTER QProp(event AMOUNT) +1/+1 on IS_SOURCE. Packs light_of_promise_you_gain_life (you gain 3: host gets exactly 3 counters, 5/5; another creature none; the opponent's lifegain adds none) and light_of_promise_on_opp_creature (on an opponent's creature 'you' is that creature's controller: your gain adds nothing, theirs adds 3) pass against the live tree and the packet's own tree",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/light_of_promise_1.json",
+   "tools/scenarios/cards/M21/light_of_promise_2.json",
+   "tools/scenarios/cards/M21/light_of_promise_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/effect/args/ability/event/actor/who",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

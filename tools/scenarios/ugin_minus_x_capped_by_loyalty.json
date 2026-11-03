@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "colors": ["R"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "ugin", "set": 3},
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "x": 4, "expect_raise": "x:4>max:3"},
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "x": 3}
+ ],
+ "expect": {
+  "zone": {"ogre": "exile", "ugin": "graveyard"}
+ },
+ "notes": "Ugin's [-X] with 3 loyalty: CR 606.6 (a negative loyalty cost can't be activated unless the permanent has at least that many loyalty counters) caps X at 3, so X = 4 is refused before anything is paid and loyalty stays 3. X = 3 is legal: the cost removes all 3 counters, Ugin dies to the state-based action (CR 704.5i), and the ability still resolves and exiles the red 3-drop (mana value 3 <= X)."
+}

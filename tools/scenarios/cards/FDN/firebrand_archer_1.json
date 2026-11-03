@@ -1,0 +1,23 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "mana": {"0": {"G": 1}, "1": {"G": 1}},
+  "cards": [
+    {"key": "archer", "real": "Firebrand Archer", "zone": "battlefield", "controller": 0},
+    {"key": "my_bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "opp_bear", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+    {"key": "opp_growth", "real": "Giant Growth", "zone": "hand", "controller": 1},
+    {"key": "my_growth", "real": "Giant Growth", "zone": "hand", "controller": 0},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "cast", "key": "opp_growth", "controller": 1, "targets": ["opp_bear"]},
+    {"op": "cast", "key": "my_growth", "controller": 0, "targets": ["my_bear"]}
+  ],
+  "expect": {
+    "zone": {"opp_growth": "graveyard", "my_growth": "graveyard"},
+    "power": {"opp_bear": 5, "my_bear": 5},
+    "life": {"0": 20, "1": 19}
+  },
+  "notes": "Firebrand Archer: 'Whenever you cast a noncreature spell, this creature deals 1 damage to each opponent.' The opponent's instant must not trigger it (nobody takes damage); your own instant triggers it once (the opponent goes to 19)."
+}

@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "zone": "hand", "controller": 0, "real": "Kinetic Augur"},
+  {"key": "h1", "zone": "hand", "controller": 0, "name": "Keep", "type": "Creature", "power": "1", "toughness": "1"},
+  {"key": "h2", "zone": "hand", "controller": 0, "name": "Toss", "type": "Instant"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": ["h2", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield", "h1": "hand", "h2": "graveyard"},
+  "hand": {"0": 2},
+  "power": {"k": 1}
+ },
+ "notes": "V15 (2026-10-29). 'Discard up to two cards, then draw that many': the controller discards one card (the instant) and stops, so it draws one (hand: Keep + 1 drawn); one instant in the graveyard gives power 1."
+}

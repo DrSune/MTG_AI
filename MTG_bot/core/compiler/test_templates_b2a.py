@@ -40,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     EachPlayer,
     FAnd,
     FAtom,
@@ -65,6 +66,8 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    SpellAbility,
+    SpellKind,
     StaticAbility,
     TokenSpec,
     TriggeredAbility,
@@ -812,9 +815,16 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
+        # re-pinned 2026-10-29: V11 makes "if you control a creature with power
+        # 4 or greater" an existence test (CONTROLLER_COUNT_GE >= 1 over
+        # Creature AND POWER_GE 4), the Ornery Dilophosaur encoding; as a bare
+        # filter it was judged on the enchantment and never held.
         condition = ability.condition
-        assert isinstance(condition, FAnd)
-        self.assertEqual(_find_atom(condition, FAtomPred.POWER_GE).count, QConst(4))
+        assert isinstance(condition, FAtom)
+        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertEqual(condition.count, QConst(1))
+        assert condition.inner_filter is not None
+        self.assertEqual(_find_atom(condition.inner_filter, FAtomPred.POWER_GE).count, QConst(4))
 
     def test_sanctum_of_all_is_upkeep_turn_phase(self) -> None:
         ability = _ability(
@@ -1438,8 +1448,9 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.SUBTYPE_EQ))
+        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
         self.assertEqual(
-            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
+            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
 
     def test_gale_swooper_grants_flying_eot(self) -> None:
@@ -1556,7 +1567,8 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.REVEAL)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertIsInstance(atom.args.get("count"), QUnbounded)
 
     def test_aven_gagglemaster_gain_life_qbin_mul_flying(self) -> None:
@@ -1724,8 +1736,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.IS_SOURCE))
         self.assertEqual(cards.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
+        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
         self.assertEqual(
-            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
+            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
 
     def test_barrin_returns_creature_or_planeswalker(self) -> None:
@@ -1748,8 +1761,9 @@ class TestB2aEffectStructure(unittest.TestCase):
             },
             {"Creature", "Planeswalker"},
         )
+        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
         self.assertEqual(
-            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.ANY)
+            atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
 
     def test_meteorite_deals_two_to_any_target(self) -> None:
@@ -1872,7 +1886,18 @@ class TestB2aEffectStructure(unittest.TestCase):
                 "battlefield.",
             )
         )
-        atom = _atom_inner(_optional(ability))
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
+        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
+        # unchanged), option 1 the library only, option 2 the graveyard only.
+        choose = _optional(ability).inner
+        assert isinstance(choose, Choose)
+        self.assertEqual(len(choose.options), 3)
+        for idx, kinds in ((1, (ZoneKind.LIBRARY,)), (2, (ZoneKind.GRAVEYARD,))):
+            only = choose.options[idx]
+            assert isinstance(only, Atom)
+            self.assertEqual(tuple(z.kind for z in _selector(only, "cards").zones), kinds)
+        atom = choose.options[0]
+        assert isinstance(atom, Atom)
         self.assertIs(atom.verb, Verb.SEARCH)
         cards = _selector(atom, "cards")
         self.assertEqual(
@@ -2071,9 +2096,10 @@ class TestB2aRound7Batch(unittest.TestCase):
             Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
         )
         cards = _selector(discard, "cards")
-        # C15: "up to two" stays CHOOSE + QConst(2) — never TARGET.
+        # re-pinned 2026-10-29: V15 changes "up to two" to CHOOSE + QAtMost(2),
+        # the player's 0..2 (QConst(2) discarded exactly two); never TARGET.
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
-        self.assertEqual(cards.count, QConst(2))
+        self.assertEqual(cards.count, QAtMost(2))
         draw = _atom_step(seq, 1)
         self.assertIs(draw.verb, Verb.DRAW)
         amount = dict(draw.args.pairs).get("amount")
@@ -2101,6 +2127,8 @@ class TestB2aRound7Batch(unittest.TestCase):
         self.assertIsInstance(target.count, QUnbounded)
         self.assertIs(target.zones[0].kind, ZoneKind.GRAVEYARD)
         self.assertIs(target.zones[0].controller, ControllerRef.YOU)
+        # R5-1 (CR 610.3): "until this artifact leaves the battlefield".
+        self.assertEqual(atom.args.get("duration"), DurationUntilLeaves())
 
 
 # ---------------------------------------------------------------------------
@@ -2139,7 +2167,7 @@ class TestB2aRound9BWhaleToken(unittest.TestCase):
         self.assertEqual(token.name, "Pirate")
         self.assertEqual(token.power, QConst(1))
         self.assertEqual(token.toughness, QConst(1))
-        self.assertEqual(token.color, "R")
+        self.assertEqual(token.colors, ("R",))  # re-pinned 2026-10-30: R5-11 colors tuple
         self.assertEqual(token.subtypes, ("Pirate",))
         # C23: structured nodes, not strings — two embedded statics
         self.assertEqual(len(token.abilities), 2)
@@ -2220,7 +2248,8 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(token.subtypes, ("Construct",))
         self.assertEqual(token.power, QConst(4))
         self.assertEqual(token.toughness, QConst(4))
-        self.assertIsNone(token.color)  # colorless = None (Treasure precedent)
+        # re-pinned 2026-10-30: R5-11 — colourless is the empty colors tuple
+        self.assertEqual(token.colors, ())
 
 
 class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
@@ -2243,12 +2272,16 @@ class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
         cls.registry = build_full_registry()
 
     def test_furious_rise_compiles_to_one_trigger_no_activation(self) -> None:
-        """Exactly one ability, a TriggeredAbility; NO ActivatedAbility
-        anywhere on the card (the pre-C5 phantom activation is gone)."""
+        """Exactly one printed ability, a TriggeredAbility; NO ActivatedAbility
+        anywhere on the card (the pre-C5 phantom activation is gone).
+
+        B-49 (2026-10-29): the enchantment also trails its effect-less cast
+        carrier, so it is castable; the carrier is not a printed ability."""
         res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
         self.assertEqual(res.unparsed, ())
-        (ability,) = res.card.abilities
+        (ability, carrier) = res.card.abilities
         self.assertIsInstance(ability, TriggeredAbility)
+        self.assertEqual(carrier, SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.assertFalse(
             any(isinstance(a, ActivatedAbility) for a in res.card.abilities)
         )

@@ -126,6 +126,8 @@ class PositionalMultiSlotTest(StackCase):
 
 class ForcedAutoDesignationTest(StackCase):
     def peer_draw(self, name="PeerDraw"):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT; a
+        # TARGET_PLAYER designation may now name either seat, so it is no longer forced.
         """Mind Rot / Peer shape: TARGET_PLAYER controller, NO TARGET
         selector — only the synthesized opponent-slot exists."""
         return self.give(
@@ -133,7 +135,7 @@ class ForcedAutoDesignationTest(StackCase):
             SpellKind.SORCERY,
             type_line="Sorcery",
             effect=atom(
-                Verb.DRAW, controller=ControllerRef.TARGET_PLAYER, amount=QConst(2)
+                Verb.DRAW, controller=ControllerRef.TARGET_OPPONENT, amount=QConst(2)
             ),
         )
 
@@ -253,6 +255,8 @@ class DecisionLaneTest(StackCase):
         self.assertEqual(ctx.take_decision(("prey", "sheep"), "choose:x"), "prey")
 
     def test_pool_word_flows_to_its_own_site(self):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT; a
+        # TARGET_PLAYER designation may now name either seat, so it is no longer forced.
         # Duress interaction end-to-end: a may-offer asked FIRST must not
         # eat the card-name token scripted for the LATER Choose site.
         pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,))
@@ -277,13 +281,13 @@ class DecisionLaneTest(StackCase):
                     atom(Verb.CHOOSE, target=pool, count=QConst(1)),
                     atom(
                         Verb.MOVE_ZONE,
-                        controller=ControllerRef.TARGET_PLAYER,
+                        controller=ControllerRef.TARGET_OPPONENT,
                         cards=result,
                         **{
                             "destination": Zone(
-                                ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                                ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT
                             ),
-                            "from": Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER),
+                            "from": Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT),
                         },
                     ),
                 )
@@ -349,8 +353,11 @@ class ChooseAliasTest(StackCase):
         self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
 
     def test_word_not_in_any_lane_stays_loud(self):
+        # re-pinned 2026-10-29: V19 forces a one-candidate pick (no ask, no
+        # empty row), so the hand holds two cards to keep this a real ask.
         spell = self.duress("LoudDuress")
         self.world.add_card(card_id("HandOne", "1", "1"), self.p1, ZONE_HAND)
+        self.world.add_card(card_id("HandTwo", "1", "1"), self.p1, ZONE_HAND)
         with self.assertRaises(ValueError) as cm:
             cast(self.ex, self.p0, spell, targets=(self.p1,), decisions=("nonsense",))
         self.assertIn("not in", str(cm.exception))
@@ -429,10 +436,15 @@ class PrechosenModesTest(StackCase):
         self.assertEqual(self.world.zone_of(orb).kind, ZONE_BATTLEFIELD)
 
     def test_undeclared_mode_stays_loud(self):
+        # re-pinned 2026-10-29: V17 changes an undeclared mode from a cast
+        # refusal into an ask of the caster at cast time (CR 601.2b), over the
+        # legal mode sets; with nobody to answer it the cast still raises,
+        # never a default.
         orb, _ = self._board()
         with self.assertRaises(ValueError) as cm:
             cast(self.ex, self.p0, self.rtn("Returnish4"), targets=(orb,))
-        self.assertIn("must declare its mode", str(cm.exception))
+        self.assertIn("needs a decision from ('0', '1')", str(cm.exception))
+        self.assertIn("choose:", str(cm.exception))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
+  {"key": "tva", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "w", "decisions": ["fire", "1", "tva"]}
+ ],
+ "expect": {
+  "zone": {"w": "battlefield", "tva": "hand", "drawn": "hand"},
+  "hand": {"0": 2}
+ },
+ "notes": "Printed: search your library (option 1, library only) for a card named Teferi, Timeless Voyager, reveal it, put it into your hand; then shuffle (If you search your library this way, shuffle). Teferi leaves the library for the hand."
+}

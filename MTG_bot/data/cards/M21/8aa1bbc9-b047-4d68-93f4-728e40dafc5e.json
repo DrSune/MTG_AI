@@ -1,0 +1,51 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8aa1bbc9-b047-4d68-93f4-728e40dafc5e",
+ "name": "Kitesail Freebooter",
+ "text_sha": "a3620a25363511296bdfb019c212fc9409b1940915f29a1fc77954b9cc199dbb",
+ "verified": {
+  "tree_sha": "a1fe12487240a0d115d160722eab8301b100d9d9652af481c11933c85a1886e5",
+  "probe_sha": "6ea2acf3ed236bc75db0fd726d287ad911b0babf8fa0186453e78f71c21a6019",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords[0] FLYING; [cast] change: keywords +FLYING; static: card keywords FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, target opponent reveals their hand.",
+    "status": "OK",
+    "evidence": "abilities[0] ZoneChangeEvent ANY->BATTLEFIELD(YOU) IS_SOURCE, REVEAL controller TARGET_OPPONENT count unbounded (= canonical parse B2a); [cast] 'opp is targeted (by card/TARGET)'; also fires on the 'enters during the opponent's turn' variant; never fires for other creatures entering",
+    "issue": ""
+   },
+   {
+    "clause": "You choose a noncreature, nonland card from it.",
+    "status": "OK",
+    "evidence": "CHOOSE count 1 over HAND(TARGET_PLAYER) filter FAnd(FNot Creature, FNot Land) (= canonical parse B4, same as Duress); [cast] opp hand {opp_spare 3/3, opp_trick}: only opp_trick taken, opp hand 2 -> 1",
+    "issue": ""
+   },
+   {
+    "clause": "Exile that card until this creature leaves the battlefield.",
+    "status": "OK",
+    "evidence": "MOVE_ZONE destination EXILE(OWNER) duration DurationUntilLeaves referent result (= canonical parse B5a); [cast] 'opp_trick: zone hand -> exile (until card leaves the battlefield, then back to the hand)'. Return on leave and persistence past end of turn not in the trace: packs P1ad9624db7_freebooter_returns_on_leave.json and P1ad9624db7_freebooter_held_until_leave.json both PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/kitesail_freebooter_1.json",
+   "tools/scenarios/cards/M21/kitesail_freebooter_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
+ }
+}

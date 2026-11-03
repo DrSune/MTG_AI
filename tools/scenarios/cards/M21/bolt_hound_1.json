@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Bolt Hound, printed: 'Haste' and 'Whenever this creature attacks, other creatures you control get +1/+0 until end of turn.' Cast from hand and attack the same turn (haste, CR 702.10): it is asked and attacks for 2 (P1 20->18). The trigger gives the non-attacking bear +1/+0 (3/2, toughness unchanged), the Hound itself is not 'other' (stays 2/2) and the opponent's bear is not 'you control' (stays 2/2).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hound", "real": "Bolt Hound", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "cast", "real": "Bolt Hound", "key": "hound"},
+  {"op": "combat", "seat": 0, "attack": {"hound": true, "bear": false}}
+ ],
+ "expect": {
+  "zone": {"hound": "battlefield"},
+  "attackers": {"hound": true, "bear": false},
+  "life": {"1": 18},
+  "power": {"bear": 3, "hound": 2, "obear": 2},
+  "toughness": {"bear": 2, "hound": 2, "obear": 2}
+ }
+}

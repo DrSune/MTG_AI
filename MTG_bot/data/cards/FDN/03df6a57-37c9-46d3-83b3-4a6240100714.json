@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "03df6a57-37c9-46d3-83b3-4a6240100714",
+ "name": "Hero's Downfall",
+ "text_sha": "48ecf27f9e3be8d1f0af73e64dd9cccbbbaba519bb2ace3685fe2a2e1c29d691",
+ "verified": {
+  "tree_sha": "f662245ca6e649d19a3c81e5bc6e05de6f049572e27b6908086e19f18c02f721",
+  "probe_sha": "824b052b869b63dd444498a117635325ba092fce5d352a46e9969eec7dfa989a",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Destroy target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_bear, opp_giant] (creatures of both sides; relic/charm not offered); each [cast targets=[X]] variant: 'X moves battlefield -> graveyard (by card/DESTROY)', 'X dies', only the chosen creature. Planeswalker half (no walker on the standard board) covered by pack heros_downfall_planeswalker.json (Ajani destroyed -> graveyard, bystander untouched): PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/hero's_downfall_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

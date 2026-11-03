@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f8640899-2458-40f2-98a3-35c402ee9a7a",
+ "name": "Jolrael, Mwonvuli Recluse",
+ "text_sha": "1bd724bfeea107ef60be1ea3d0f269056ad659251a35d23c96b531b81f7c00f5",
+ "verified": {
+  "tree_sha": "b7e71ce3d3d072a9d16e009d79009ea196a9ebce23763f48be2792513119ade1",
+  "probe_sha": "53ecb51740e740ecb103c9222c84f92d67a208ba1bad3eb27ac39fa872af0612",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Legendary Creature - Human Druid {1}{G} 1/2",
+    "status": "OK",
+    "evidence": "[cast]: mana G-1 W-1, P/T 1/2",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you draw your second card each turn, create a 2/2 green Cat creature token.",
+    "status": "OK",
+    "evidence": "[stimulus: you draw a card] -> none; [stimulus: you draw two cards, one after the other] -> triggers once, '+ you:Cat (battlefield, you, 2/2)'; [stimulus: the opponent draws a card] -> none. TokenSpec Cat type_line 'Creature — Cat', colors ('G',), 2/2. Third draws and other turns NOT_EXERCISED by the trace: pack K_jolrael_second_draw_each_turn.json PASSES (Read the Tides draws 3 on your turn -> exactly 1 Cat; on the opponent's turn two Opts -> a 2nd Cat on your second draw that turn; step-by-step replay confirms one Cat per turn).",
+    "issue": ""
+   },
+   {
+    "clause": "{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand.",
+    "status": "OK",
+    "evidence": "[activate [1]]: mana G-2 W-4 (6 mana, two green); with 5 cards in hand card 1/2 -> 5/5, you_bear 2/2 -> 5/5, you_giant 4/4 -> 5/5, no opp creature changes; 'after the turn ends' all revert. NOT_EXERCISED parts (resolution-time X, locked set, layer 7b): pack K_jolrael_x_fixed_at_resolution.json PASSES: X = your hand (2; opponent holds 4), stays 2/2 after your hand drops to 1 (CR 608.2h), a creature entering afterwards keeps 1/1 (CR 611.2c), a creature with a +1/+1 counter is 3/3, the opponent's 8/8 untouched.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_1.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

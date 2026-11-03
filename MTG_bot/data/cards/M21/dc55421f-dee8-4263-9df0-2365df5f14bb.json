@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "dc55421f-dee8-4263-9df0-2365df5f14bb",
+ "name": "Temple of Malady",
+ "text_sha": "dad95ecd35186fd659f1f64e73d575e24de51e8769e0667ef5659948ff63cc9c",
+ "verified": {
+  "tree_sha": "01089cfe44b531fb1bfc4dade1bf96b54f859b622a24a02d2c2ea8c6f296f1b2",
+  "probe_sha": "be15667f3c5fc3ebcc1bc3020be7435e3317be0cbad1f90643a84351b6e793c0",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "EtBState(tapped=True); [play land] and [play land | ask 1 -> bottom]: 'card: zone hand -> battlefield; tapped False -> True'; also on the MOVE_ZONE entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "trigger ZoneChangeEvent(ANY -> BATTLEFIELD YOU, IS_SOURCE) -> SCRY YOU 1; [play land]: one 'ask scry: [top, bottom]' and 'card's triggered ability [1] triggers'; fires on the opponent's-turn entry too; no other stimulus fires it. Library effect of 'bottom' not visible in the trace: pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P3c20e481c3_temple_malady_scry.json (PASS) shows exactly the top card goes to the bottom and the land is tapped",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0, 1] -> 0: tapped, mana B+1; [ask 1 -> 1]: tapped, mana G+1; one mana, tap cost only",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/temple_of_malady_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'if IT entered from your graveyard or you cast IT from your graveyard'. The Vessel enters from the graveyard (trigger held), is returned to hand in response, and is then cast from HAND the same turn. The new object (CR 400.7) entered from the stack, cast from the hand: neither condition holds for it, so it stays on the battlefield (zone lane only; the Demon count is pack archfiends_vessel_if_you_do.json's question). W4-5 (review wave 4, fixed 2026-10-30): ENTERED_THIS_TURN_FROM reads this object's own entry (its last battlefield entry, CR 400.7); before, the earlier object's entry from the graveyard this turn answered for it, and the recast Vessel exiled itself.",
+ "cards": [
+  {
+   "key": "vessel",
+   "real": "Archfiend's Vessel",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "vessel",
+   "hold_triggers": true
+  },
+  {
+   "op": "move",
+   "key": "vessel",
+   "to": "hand"
+  },
+  {
+   "op": "cast",
+   "real": "Archfiend's Vessel",
+   "key": "vessel"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "vessel": "battlefield"
+  }
+ }
+}

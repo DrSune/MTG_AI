@@ -18,6 +18,8 @@ import uuid
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    AbilityActivatedEvent,
+    AbilityKind,
     ActivatedAbility,
     ActivationWindow,
     Atom,
@@ -36,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     DurationWhileCondition,
     FAnd,
     FAtom,
@@ -58,6 +61,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellAbility,
+    SpellKind,
     StaticAbility,
     TapStateEvent,
     TokenSpec,
@@ -1085,6 +1089,14 @@ class TestStructuralAssertions(unittest.TestCase):
             )
             target = p["target"]
             self.assertIsInstance(target, Selector, f"{tid}")
+            if tid == "B5a-exile-self":
+                # re-pinned 2026-10-30: m21-fidelity wave 4, a spell exiling itself takes no
+                # target (CR 115.1a): the self-reference CHOOSE over the stack it resolves
+                # from. The TARGET over the battlefield made the card uncastable in games.
+                self.assertEqual(target.mode, SelectorMode.CHOOSE, f"{tid}")
+                self.assertEqual(target.zones, (Zone(ZoneKind.STACK, ControllerRef.ANY),))
+                self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+                continue
             self.assertEqual(target.mode, SelectorMode.TARGET, f"{tid}")
 
     def test_discard_tap_self(self) -> None:
@@ -1293,6 +1305,10 @@ class TestStructuralAssertions(unittest.TestCase):
         # Effect: ATTACH
         atom = _as_atom(ab.effect)
         self.assertEqual(atom.verb, Verb.ATTACH)
+        # B-60 (2026-10-29): "Equip only as a sorcery" (CR 702.6a) rides
+        # the R9-1 timing slot; it was dropped, so equipment moved at
+        # instant speed.
+        self.assertIs(ab.timing, ActivationWindow.SORCERY)
 
     def test_equipped_pt(self) -> None:
         """B5a-equipped-pt: StaticAbility, MODIFY_PT."""
@@ -1391,30 +1407,26 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(preds[0].count.value, 4)
 
     def test_double_power(self) -> None:
-        """B5a-double-power: EffectOutcome, SET_PT verb, QBin MUL."""
+        """B5a-double-power: EffectOutcome, MODIFY_PT +X/+0, X = the target's power.
+
+        # re-pinned 2026-10-29: m21-fidelity (review batch I). CR 701.10a/b: doubling gives
+        # +X/+0, it never sets P/T. It was SET_PT(QBin(MUL, 2, power), toughness), which made a
+        # 2/2 with a +1/+1 counter 7/4 instead of 6/3 (pack unleash_fury_counter).
+        """
         outcome = self._match_outcome("B5a-double-power")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
-        self.assertEqual(atom.verb, Verb.SET_PT)
+        self.assertEqual(atom.verb, Verb.MODIFY_PT)
         p = _pairs_dict(atom)
-        # Power should be QBin(MUL, QConst(2), QProp(target, POWER))
         power = p["power"]
-        if not isinstance(power, QBin):
-            self.fail(f"expected QBin, got {type(power)}")
-        self.assertEqual(power.op, QBinOp.MUL)
-        self.assertIsInstance(power.left, QConst)
-        if not isinstance(power.left, QConst):
-            self.fail(f"expected QConst, got {type(power.left)}")
-        self.assertEqual(power.left.value, 2)
-        self.assertIsInstance(power.right, QProp)
-        if not isinstance(power.right, QProp):
-            self.fail(f"expected QProp, got {type(power.right)}")
-        self.assertEqual(power.right.field, QPropField.POWER)
-        # Toughness should be QProp(target, TOUGHNESS)
-        self.assertIsInstance(p["toughness"], QProp)
-        if not isinstance(p["toughness"], QProp):
-            self.fail(f"expected QProp, got {type(p['toughness'])}")
-        self.assertEqual(p["toughness"].field, QPropField.TOUGHNESS)
+        if not isinstance(power, PtDelta):
+            self.fail(f"expected PtDelta, got {type(power)}")
+        self.assertIs(power.direction, PtDirection.INCREASE)
+        if not isinstance(power.magnitude, QProp):
+            self.fail(f"expected QProp, got {type(power.magnitude)}")
+        self.assertEqual(power.magnitude.referent, "target")
+        self.assertEqual(power.magnitude.field, QPropField.POWER)
+        self.assertEqual(p["toughness"], PtDelta(PtDirection.INCREASE, QConst(0)))
         # Duration should be DurationEot
         self.assertIsInstance(p["duration"], DurationEot)
 
@@ -1526,7 +1538,10 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
         self.assertEqual(target.zones[0].controller, ControllerRef.ANY)
-        filt = target.filter
+        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into the filter
+        self.assertIsInstance(target.filter, FAnd)
+        kind, filt = sorted(target.filter.children, key=lambda c: isinstance(c, FOr))
+        self.assertEqual(kind, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"))
         self.assertIsInstance(filt, FOr)
         self.assertEqual(len(filt.children), 2)
         first, second = filt.children
@@ -1544,7 +1559,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(cmg.amount, QConst(3))
 
     def test_counter_unless_spell(self) -> None:
-        """B5a-counter-unless-spell: COUNTER_SPELL, empty filter, unless {1}."""
+        """B5a-counter-unless-spell: COUNTER_SPELL, target spell, unless {1}."""
         outcome = self._match_outcome("B5a-counter-unless-spell")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
@@ -1554,9 +1569,11 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
-        filt = target.filter
-        self.assertIsInstance(filt, FAnd)
-        self.assertEqual(len(filt.children), 0)
+        # re-pinned 2026-10-30: R5-10 — "target spell" is the bare
+        # STACK_KIND_EQ SPELL atom (it was the universal FAnd(())).
+        self.assertEqual(
+            target.filter, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
+        )
         unless = p["unless"]
         self.assertIsInstance(unless, Cost)
         self.assertEqual(len(unless.parts), 1)
@@ -1691,8 +1708,10 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertNotIn("duration", p)
 
     def test_enchant_cant_attack_block_structure(self) -> None:
-        """C11: Seq of two PREVENT atoms (attack + block) on
-        IS_ATTACHED_TO_SOURCE; mana-abilities clause dropped (lossy)."""
+        """C11: Seq of PREVENT atoms (attack + block + the activation lock)
+        on IS_ATTACHED_TO_SOURCE. re-pinned 2026-10-30: R5-7 encodes the
+        mana-abilities clause (it was dropped, lossy) as the third atom,
+        PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted, NON_MANA))."""
         outcome = self._match_outcome("B5a-enchant-cant-attack-block")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1702,9 +1721,19 @@ class TestStructuralAssertions(unittest.TestCase):
         eff = ab.effect
         if not isinstance(eff, Seq):
             self.fail(f"expected Seq effect, got {type(eff)}")
-        self.assertEqual(len(eff.steps), 2)
-        attack, block = eff.steps
+        self.assertEqual(len(eff.steps), 3)
+        attack, block, lock = eff.steps
         assert isinstance(attack, Atom) and isinstance(block, Atom)
+        assert isinstance(lock, Atom) and lock.verb is Verb.PREVENT_EFFECT
+        lp = _pairs_dict(lock)
+        self.assertEqual(lp["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
+        self.assertEqual(
+            lp["event"],
+            AbilityActivatedEvent(
+                source=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),
+                kind=AbilityKind.NON_MANA,
+            ),
+        )
         ap = _pairs_dict(attack)
         bp = _pairs_dict(block)
         self.assertEqual(ap["condition"], FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE))
@@ -1772,9 +1801,8 @@ class TestRound7Structures(unittest.TestCase):
         return matches[0].outcome
 
     def test_exile_that_until_leaves(self) -> None:
-        """Merged MOVE_ZONE (exile shape) on the result referent; the
-        until-leaves window is the documented lossy drop (no move duration
-        role)."""
+        """Merged MOVE_ZONE (exile shape) on the result referent, with the
+        until-leaves window as its duration (ontology R5-1, CR 610.3)."""
         outcome = self._match_one(
             "Exile that card until this creature leaves the battlefield."
         )
@@ -1787,7 +1815,9 @@ class TestRound7Structures(unittest.TestCase):
         target = _pairs_dict(atom)["target"]
         self.assertEqual(target.referent, "result")
         self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertNotIn("duration", _pairs_dict(atom))
+        # re-pinned 2026-10-29: R5-1 changes the missing duration (the old
+        # assertNotIn encoded the C11 gap) into DurationUntilLeaves().
+        self.assertEqual(_pairs_dict(atom)["duration"], DurationUntilLeaves())
 
     def test_etb_choose_name(self) -> None:
         outcome = self._match_one("As this enchantment enters, choose a card name.")
@@ -2043,7 +2073,7 @@ class TestEndToEndCompile(unittest.TestCase):
 
     def test_short_sword_equip(self) -> None:
         """Short Sword: Equip {1} + Equipped creature gets +1/+1.
-        → ActivatedAbility + StaticAbility."""
+        → ActivatedAbility + StaticAbility (+ the B-49 cast carrier)."""
         raw = _raw(
             "Short Sword",
             (
@@ -2056,15 +2086,17 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=2,
         )
         result = compile_card(raw, self.reg)
-        # Two abilities: ActivatedAbility (equip) + StaticAbility (PT)
-        self.assertEqual(len(result.card.abilities), 2)
+        # Two printed abilities: ActivatedAbility (equip) + StaticAbility (PT),
+        # then the B-49 effect-less SpellAbility(ARTIFACT) cast carrier.
+        self.assertEqual(len(result.card.abilities), 3)
         self.assertIsInstance(result.card.abilities[0], ActivatedAbility)
         self.assertIsInstance(result.card.abilities[1], StaticAbility)
+        self.assertEqual(result.card.abilities[2], SpellAbility(kind=SpellKind.ARTIFACT))
         self.assertEqual(len(result.unparsed), 0)
 
     def test_furor_enchant(self) -> None:
         """Furor of the Bitten: Enchanted creature gets +2/+2 and attacks.
-        → StaticAbility with Seq."""
+        → StaticAbility with Seq (+ the B-49 cast carrier)."""
         raw = _raw(
             "Furor of the Bitten",
             ("Enchanted creature gets +2/+2 and attacks each combat if able.",),
@@ -2075,8 +2107,10 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=1,
         )
         result = compile_card(raw, self.reg)
-        self.assertEqual(len(result.card.abilities), 1)
+        # B-49: the Aura trails its effect-less SpellAbility(ENCHANTMENT) carrier.
+        self.assertEqual(len(result.card.abilities), 2)
         self.assertIsInstance(result.card.abilities[0], StaticAbility)
+        self.assertEqual(result.card.abilities[1], SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.assertEqual(len(result.unparsed), 0)
 
     def test_discontinuity_end_turn(self) -> None:
@@ -2190,11 +2224,14 @@ class TestB5aRound9BStructures(unittest.TestCase):
         self.assertEqual(cond.count, QConst(7))
         self.assertIsNone(cond.who)
         self.assertIsNone(cond.inner_filter)
+        # B-60 (2026-10-29): "... and only as a sorcery" is the gate's
+        # window slot (R10-1 compound gate); it used to be dropped.
+        self.assertIs(outcome.window, ActivationWindow.SORCERY)
 
     def test_speaker_gate_attaches_through_compile(self) -> None:
         """E2E: the gate lands on the preceding {T}-Angel-token activation
-        (existing r3 attach plumbing); timing clause lossy — asserted absent
-        with the documented reason (no condition/timing fabrication)."""
+        (existing r3 attach plumbing), BOTH slots: the life-lead condition
+        and, since B-60 (2026-10-29), the sorcery timing."""
         raw = _raw(
             "Speaker of the Heavens",
             (
@@ -2218,6 +2255,7 @@ class TestB5aRound9BStructures(unittest.TestCase):
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
         self.assertEqual(cond.count, QConst(7))
+        self.assertIs(activated[0].timing, ActivationWindow.SORCERY)
 
     def test_drowsing_defender_strip(self) -> None:
         outcome = self._match_one(

@@ -1,0 +1,18 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "eagle", "real": "Empyrean Eagle", "zone": "battlefield", "controller": 0},
+    {"key": "my_flier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+    {"key": "my_walker", "name": "My Walker", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "opp_flier", "name": "Their Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [],
+  "expect": {
+    "power": {"eagle": 2, "my_flier": 2, "my_walker": 2, "opp_flier": 1},
+    "toughness": {"eagle": 3, "my_flier": 2, "my_walker": 2, "opp_flier": 1},
+    "battlefield_keywords": {"Empyrean Eagle": ["FLYING"], "My Flier": ["FLYING"], "My Walker": [], "Their Flier": ["FLYING"]}
+  },
+  "notes": "Empyrean Eagle: 'Flying. Other creatures you control with flying get +1/+1.' Your other flier gets +1/+1; the Eagle itself, your non-flier and the opponent's flier do not."
+}

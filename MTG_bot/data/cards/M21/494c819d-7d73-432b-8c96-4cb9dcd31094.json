@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "494c819d-7d73-432b-8c96-4cb9dcd31094",
+ "name": "Grasp of Darkness",
+ "text_sha": "d512c8a8e438c7bac90f7e5ce7ddcbb9500159774af0757a6af6ebf59998c482",
+ "verified": {
+  "tree_sha": "652f71161b76e68e8d1a8a387f3338ebf6cf14874d5906af98d1e04dcbb5a279",
+  "probe_sha": "c38034b3d2eb7bf65e3f7b6a15b6e7a8a06ce10e9c3f7917b84455255e5c1f46",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Target creature gets -4/-4 (Instant {B}{B})",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of all six creatures (either side); every cast kills its target (toughness 1-4), mana B-2. Exact amount in pack grasp_of_darkness_exact_amount.json (a 6/6 becomes 2/2 and survives, pool empty): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Every probe target dies, so no revert can show. Tree DurationEot(). Pack grasp_of_darkness_wears_off.json (the 6/6 is 6/6 again after end_turn): PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/grasp_of_darkness_1.json",
+   "tools/scenarios/cards/M21/grasp_of_darkness_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 3,
+   "score": 0.42857142857142855,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
+ }
+}

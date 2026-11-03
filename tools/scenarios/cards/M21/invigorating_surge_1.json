@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "real": "Invigorating Surge", "zone": "hand", "controller": 0},
+  {"key": "s2", "real": "Invigorating Surge", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 6}},
+ "steps": [
+  {"op": "cast", "key": "s1", "real": "Invigorating Surge", "controller": 0, "targets": ["bear"]},
+  {"op": "cast", "key": "s2", "real": "Invigorating Surge", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "counters": {"bear": {"PLUS_1_PLUS_1": 6}},
+  "power": {"bear": 8},
+  "toughness": {"bear": 8},
+  "zone": {"s1": "graveyard", "s2": "graveyard"},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed: 'Put a +1/+1 counter on target creature you control, then double the number of +1/+1 counters on that creature.' First cast: 0 -> 1 -> 2. Second cast: 2 -> 3 -> 6 (a fixed second +1 would read 4). The 2/2 ends 8/8."
+}

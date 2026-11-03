@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jes", "real": "Havoc Jester", "zone": "battlefield", "controller": 0},
+  {"key": "c", "real": "Tormod's Crypt", "zone": "battlefield", "controller": 1},
+  {"key": "w", "real": "Walking Corpse", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "c", "idx": 0, "seat": 1, "targets": ["w"]}
+ ],
+ "expect": {"zone": {"c": "graveyard", "w": "exile", "jes": "battlefield"}, "life": {"0": 20, "1": 20}},
+ "notes": "Printed: 'Whenever YOU sacrifice a permanent ...'. On the opponent's turn the OPPONENT sacrifices their Tormod's Crypt: the Jester must not trigger (no target ask is primed, so a wrong trigger fails this pack loudly), and nobody takes damage."}

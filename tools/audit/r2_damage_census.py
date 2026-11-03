@@ -98,7 +98,7 @@ ACTOR_EVENTS = {
     "CardDrawnEvent",
     "LifeGainedEvent",
     "SacrificeEvent",
-    "LoyaltyActivatedEvent",
+    "AbilityActivatedEvent",  # R5-7: replaced LoyaltyActivatedEvent
 }
 
 

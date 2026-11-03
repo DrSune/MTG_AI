@@ -66,6 +66,13 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 2
+   }
+  },
+  {
    "op": "cast",
    "key": "s1",
    "real": "Shock",
@@ -93,11 +100,6 @@
    }
   }
  ],
- "mana": {
-  "1": {
-   "R": 2
-  }
- },
  "expect": {
   "life": {
    "0": 16
@@ -124,5 +126,5 @@
    "biter": 4
   }
  },
- "notes": "Printed both draws: opponent's SECOND spell each turn (two Shocks at their own 5/5 -> +1 card) and 2+ creatures attacking me (two unblocked 2/2 Corpses -> +1 card, 4 damage). Lifelink asserted via the layers lane."
+ "notes": "Printed both draws: opponent's SECOND spell each turn (two Shocks at their own 5/5 -> +1 card) and 2+ creatures attacking me (two unblocked 2/2 Corpses -> +1 card, 4 damage). Lifelink asserted via the layers lane. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

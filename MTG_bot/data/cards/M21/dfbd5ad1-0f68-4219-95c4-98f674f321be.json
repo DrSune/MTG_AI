@@ -1,0 +1,53 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "dfbd5ad1-0f68-4219-95c4-98f674f321be",
+ "name": "Jeskai Elder",
+ "text_sha": "460cefe414972cc8bb86e667a83524b42124c1efbae74f60bd54d946c601b456",
+ "verified": {
+  "tree_sha": "d2eaf933555842a58c15b5bca460998847477283dbc9bf8c9a1a094564e8541a",
+  "probe_sha": "573315e8fb2259bbaef91ff3128560700ac89b7234d9ca094cff934ecdd6a46b",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Prowess",
+    "status": "OK",
+    "evidence": "keywords PROWESS; [you cast an instant or sorcery (Crash Through)]: card 1/2 -> 2/3; [you cast a creature (Staunch Shieldmate)] -> none (a creature spell does not trigger it). Until end of turn is not in the trace; pack elder_prowess_eot: back to 1/2 after end_turn (pass)",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature deals combat damage to a player, you may draw a card.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: 1 combat damage to opp and 'card's triggered ability [0] triggers'; [this creature attacks and opp_giant blocks it]: combat damage to the blocker only, no trigger; non-combat damage ('this card is dealt 1 damage') -> none. Tree matches B2b-jeskai-elder (FNot IS_PERMANENT recipient, combat=True). The probe declines the may. Pack elder_loot_decline: no draw and no discard (pass); pack elder_loot_choice: the draw happens (pass)",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, discard a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Conditional(MAY_DONE, MOVE_ZONE 1 card from your hand -> graveyard). Pack elder_loot_choice: the player discards Junk and keeps Keep (pass); pack elder_loot_choice_other: the player discards Keep (pass), so the discarded card is the player's choice; pack elder_loot_decline: no discard without the draw (pass)",
+    "issue": "Tree note: the discard selector is ONE_OF where the compiler's B5b-cont-discard emits CHOOSE. In the MOVE_ZONE discard lane CHOOSE is a fixed first-card stand-in and ONE_OF asks the player, so ONE_OF is the faithful 'discard a card' (your choice) and not stronger than printed."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/jeskai_elder_1.json",
+   "tools/scenarios/cards/M21/jeskai_elder_2.json",
+   "tools/scenarios/cards/M21/jeskai_elder_3.json",
+   "tools/scenarios/cards/M21/jeskai_elder_4.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 3,
+   "score": 0.3,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/inner/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/inner/args/controller",
+    "amount+1 at 1/0/effect/steps/1/then_effect/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/then_effect/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/then_effect/args/controller",
+    "zone GRAVEYARD->EXILE at 1/0/effect/steps/1/then_effect/args/destination"
+   ]
+  }
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "set": "M19",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cage",
+   "real": "Hieromancer's Cage",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "nat",
+   "real": "Naturalize",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oak",
+   "real": "Oakenform",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2,
+   "G": 3,
+   "C": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "oak",
+   "host": "ogre"
+  },
+  {
+   "op": "cast",
+   "real": "Hieromancer's Cage",
+   "key": "cage",
+   "decisions": [
+    "oak"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "cage",
+   "target": "ogre",
+   "amount": 3
+  },
+  {
+   "op": "cast",
+   "real": "Naturalize",
+   "key": "nat",
+   "targets": [
+    "cage"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cage": "graveyard",
+   "oak": "exile",
+   "ogre": "graveyard"
+  }
+ },
+ "notes": "R5-1, CR 303.4g: the Cage exiles Oakenform; the Ogre then dies, so when the Cage is destroyed there is no creature for 'Enchant creature' to enchant, and the returning Aura stays in exile."
+}

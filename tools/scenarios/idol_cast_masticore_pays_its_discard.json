@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V36 (CR 601.2f, 118.9d): Idol of Endurance exiles Sparkhunter Masticore (mana value 3) from your graveyard, and its {1}{W}, {T} ability casts it 'without paying its mana cost'. That is an alternative cost; the Masticore's own additional cost ('As an additional cost to cast this spell, discard a card') still applies, so the only card in hand, Junk, is discarded as the Masticore is cast.",
+ "cards": [
+  {"key": "idol", "zone": "hand", "controller": 0, "real": "Idol of Endurance"},
+  {"key": "mast", "zone": "graveyard", "controller": 0, "real": "Sparkhunter Masticore"},
+  {"key": "junk", "zone": "hand", "controller": 0, "name": "Junk", "type": "Sorcery"}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "enter", "key": "idol"},
+  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"idol": "battlefield", "mast": "battlefield", "junk": "graveyard"},
+  "tapped": {"idol": true},
+  "hand": {"0": 0}
+ }
+}

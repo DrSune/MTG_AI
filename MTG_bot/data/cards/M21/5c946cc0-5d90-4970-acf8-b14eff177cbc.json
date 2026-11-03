@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5c946cc0-5d90-4970-acf8-b14eff177cbc",
+ "name": "Storm Caller",
+ "text_sha": "82ba1b03feefe4e57822d7ee6b107b6365df2a537f3fd6defeaec8b9f27c8559",
+ "verified": {
+  "tree_sha": "7196fc0860fe02ab1910d5647005b06b4397c02415b7885451bfa5aeefab7fc1",
+  "probe_sha": "6d1fc5952f9b0f15b78f818cd38498059d81fb44772cc1530fd01af241c53fc8",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "When this creature enters, it deals 2 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[cast]: 'card's triggered ability [0] triggers', 'opp is dealt 2 damage (by card/DEAL_DAMAGE)', opp life 20 -> 18, you untouched; [from your hand, the card enters during the opponent's turn]: triggers again, opp 20 -> 18. The damage source is the card itself. No trigger on other stimuli. Tree equals the compiler's parse (B2a-storm-caller).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

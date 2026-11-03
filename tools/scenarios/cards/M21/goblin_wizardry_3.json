@@ -1,0 +1,85 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed prowess: 'Whenever YOU cast a noncreature spell'. After Goblin Wizardry, the OPPONENT casts Shock at seat 0: no prowess trigger. Then seat 0 casts Pestilent Haze: one trigger, 1/1 +1/+1 -2/-2 = 0/0, both tokens die. Had the opponent's Shock triggered prowess, they would survive.",
+ "cards": [
+  {
+   "key": "wiz",
+   "real": "Goblin Wizardry",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "oshock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "haze",
+   "real": "Pestilent Haze",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Goblin Wizardry",
+   "key": "wiz"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "oshock",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Pestilent Haze",
+   "key": "haze",
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "oshock": "graveyard",
+   "haze": "graveyard"
+  },
+  "tokens": {
+   "Goblin Wizard": 0
+  },
+  "life": {
+   "0": 18
+  }
+ }
+}

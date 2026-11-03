@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 59},
+  "cards": [
+    {"key": "g", "real": "Elder Gargaroth", "zone": "battlefield", "controller": 0},
+    {"key": "bird", "name": "Sky Bird", "type": "Creature — Bird", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 1, "attack": {"bird": true}, "block": {"g": "bird"}, "decisions": ["1"]}
+  ],
+  "expect": {
+    "attackers": {"bird": true},
+    "blocked": {"bird": ["g"]},
+    "life": {"0": 23, "1": 20},
+    "zone": {"bird": "graveyard", "g": "battlefield"},
+    "damage": {"g": 2},
+    "tokens": {"Beast": 0}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Vigilance, reach, trample / Whenever this creature attacks or blocks, choose one - Create a 3/3 green Beast creature token. / You gain 3 life. / Draw a card.' Expectation from the text: on the opponent's turn their 2/2 flier attacks; reach lets Gargaroth block it (CR 702.17b); blocking triggers the choose-one, and choosing the second mode gains its controller 3 life (20 -> 23) and creates no Beast; the flier dies to 6 damage."
+}

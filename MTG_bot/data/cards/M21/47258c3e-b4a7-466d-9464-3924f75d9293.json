@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "47258c3e-b4a7-466d-9464-3924f75d9293",
+ "name": "Bad Deal",
+ "text_sha": "dd2f42718dd0df07908c51848f5eb686dc44545aa44bca8c6cf2881b4a3209ec",
+ "verified": {
+  "tree_sha": "8d45952219111498e25658882db017f48cceb397465c53ea8351f4c84bfc6d04",
+  "probe_sha": "3ffecd5c1797d860ae5ca467fd8d8b2e71ef1ba482776a8846be5fb34f4ccd3a",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Bad Deal {4}{B}{B} Sorcery (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> graveyard, paid B-2 plus 4 generic",
+    "issue": ""
+   },
+   {
+    "clause": "You draw two cards and each opponent discards two cards.",
+    "status": "OK",
+    "evidence": "[cast]: you draw 2 (library 6 -> 4, hand 6 -> 7 after the cast), opp_spare and opp_trick (the opponent's whole 2-card hand) hand -> graveyard; your hand untouched. Tree = parse template B4-draw-discard-bad-deal. Choice with more than two cards not in the trace: pack bad_deal_opponent_discards_two_of_three.json (the opponent discards the two it picks, keeps the third; your cards stay) - PASS; the pick is asked of the discarding player (verbs.py _discard_picks, take_decision_of, CR 701.9b)",
+    "issue": "note: the discard is journalled as a raw MOVE row (no journal_kind), like every compiled discard; the IR has no discard-triggered event type, so nothing reads the difference today"
+   },
+   {
+    "clause": "Each player loses 2 life.",
+    "status": "OK",
+    "evidence": "[cast]: you loses 2 life and opp loses 2 life (20 -> 18 each). Tree = parse template B5a-lose-life-each-player",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/bad_deal_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "amount+1 at 1/0/effect/steps/0/steps/1/args/cards/count"
+   ]
+  }
+ }
+}

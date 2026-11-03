@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Prowess: casting a noncreature spell (Shock at the opponent) gives Jeskai Elder +1/+1 until end of turn (1/2 -> 2/3); after the turn ends it is 1/2 again.",
+ "cards": [
+  {"key": "je", "real": "Jeskai Elder", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "decisions": ["player:1"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"1": 18},
+  "power": {"je": 1},
+  "toughness": {"je": 2}
+ }
+}

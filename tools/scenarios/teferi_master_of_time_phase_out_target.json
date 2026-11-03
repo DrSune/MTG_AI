@@ -1,0 +1,27 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "shackle", "name": "Shackle", "type": "Enchantment — Aura", "keywords": ["ENCHANT"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "teferi", "set": 5},
+  {"op": "enchant", "aura": "shackle", "host": "ogre"},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["ogre"]},
+  {"op": "deal_damage", "source": "bear", "target": "ogre", "amount": 3},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"ogre": "bear"}}
+ ],
+ "expect": {
+  "phased_out": {"ogre": true, "shackle": true, "bear": false},
+  "zone": {"ogre": "battlefield", "shackle": "battlefield"},
+  "attached": {"shackle": "ogre"},
+  "damage": {},
+  "not_asked_to_block": ["ogre"],
+  "life": {"0": 20, "1": 18},
+  "counters": {"teferi": {"LOYALTY": 2}}
+ },
+ "notes": "Teferi, Master of Time [-3]: 'Target creature you don't control phases out.' CR 702.26b: the phased-out Ogre is treated as though it does not exist: 3 damage aimed at it does nothing (no damage mark), and it cannot block, so the Bear's 2 damage reaches seat 1. CR 702.26g: seat 0's Aura on it phases out with it, indirectly. 702.26d: no zone change, so both stay on the battlefield and the Aura stays attached."
+}

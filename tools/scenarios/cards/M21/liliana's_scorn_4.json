@@ -1,0 +1,72 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (the searched library's controller, option 0). Printed: '... you may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand.' The controller chooses to search your library and graveyard; your only copy is in your library (the opponent's library holds another): yours is found and goes to your hand, the opponent's stays. The pick is the pool word card:2 (your copy's handle; the spell's own may and mode consume the first words).",
+ "cards": [
+  {
+   "key": "src",
+   "real": "Liliana's Scorn",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Opp Ox",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mine",
+   "real": "Liliana, Death Mage",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "real": "Liliana, Death Mage",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "opener",
+   "name": "Opening Draw",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "src",
+   "targets": [
+    "ox"
+   ],
+   "decisions": [
+    "fire",
+    "0",
+    "card:2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "src": "graveyard",
+   "mine": "hand",
+   "theirs": "library",
+   "ox": "graveyard"
+  }
+ },
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 3
+  }
+ }
+}

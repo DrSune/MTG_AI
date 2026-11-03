@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "si", "real": "Sanguine Indulgence", "zone": "hand", "controller": 0},
+  {"key": "rv", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "g1", "name": "Grave One", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Grave Two", "power": "3", "toughness": "3", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "og", "name": "Opp Grave", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2, "B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv"},
+  {"op": "cast", "real": "Sanguine Indulgence", "key": "si", "targets": ["g1", "g2"]}
+ ],
+ "expect": {
+  "life": {"0": 23},
+  "zone": {"g1": "hand", "g2": "hand", "og": "graveyard", "si": "graveyard"},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Sanguine Indulgence {3}{B}: 'This spell costs {3} less to cast if you've gained 3 or more life this turn. Return up to two target creature cards from your graveyard to your hand.' After Revitalize's 3 life it costs just {B} (the pool holds only B:1 after Revitalize's {1}{W}); both creature cards return to your hand; the opponent's graveyard is untouched."
+}

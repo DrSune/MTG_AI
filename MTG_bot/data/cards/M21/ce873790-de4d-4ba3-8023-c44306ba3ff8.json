@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ce873790-de4d-4ba3-8023-c44306ba3ff8",
+ "name": "Deathbloom Thallid",
+ "text_sha": "6ccf83cbed4f8d8157f71533b9e884bb0de623a6d31a792d3ad5c6b786738d41",
+ "verified": {
+  "tree_sha": "b76d89282cf2a43342287dc6b7b0302625acf70506c77d76801e44b5f208c083",
+  "probe_sha": "9b6e08b8feb90195470a0b7f71c1e2664965b4418f75d13a07b742a4fc403221",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Deathbloom Thallid {2}{B} Creature — Fungus 3/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 3/2, paid B-1 plus 2 generic",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, create a 1/1 green Saproling creature token.",
+    "status": "OK",
+    "evidence": "[this card is dealt lethal damage]: card dies, + you:Saproling (battlefield, you, 1/1); [attacks and opp_giant blocks it]: dies in combat, Saproling created; [your creature (you_bear) dies] and [opp_bear dies]: none (filter IS_SOURCE only). Tree TokenSpec: Creature — Saproling, 1/1, colors ('G',), count QConst 1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle.' Liliana, Death Mage is in the library under Top Junk (the opening draw takes Top Junk). Casting Scorn on the opponent's Doomed Beast destroys it, and answering 'fire' to the may puts Liliana into the hand.",
+ "cards": [
+  {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
+  {"key": "victim", "name": "Doomed Beast", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "lil", "real": "Liliana, Death Mage", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "cast", "key": "ls", "real": "Liliana's Scorn", "targets": ["victim"], "decisions": ["fire", "lil"]}
+ ],
+ "expect": {
+  "zone": {"ls": "graveyard", "victim": "graveyard", "lil": "hand", "junk": "hand"}
+ }}

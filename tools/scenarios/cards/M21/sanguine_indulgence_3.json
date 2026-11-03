@@ -1,0 +1,83 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount-1 on the life threshold). Printed: 'This spell costs {3} less to cast if you've gained 3 or more life this turn.' You gain exactly 2 life this turn (your lifelink 2/2 deals 2 damage to the opponent's creature), which is not 3 or more: the spell costs the full {3}{B}, so the whole {3}{B} pool is spent. The creature card returns to your hand.",
+ "cards": [
+  {
+   "key": "si",
+   "real": "Sanguine Indulgence",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "keywords": [
+    "LIFELINK"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Opp Ox",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "g1",
+   "name": "Grave One",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "ox",
+   "amount": 2
+  },
+  {
+   "op": "cast",
+   "real": "Sanguine Indulgence",
+   "key": "si",
+   "targets": [
+    "g1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22
+  },
+  "zone": {
+   "g1": "hand",
+   "si": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "damage": {
+   "ox": 2
+  }
+ }
+}

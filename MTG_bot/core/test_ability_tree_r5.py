@@ -9,7 +9,9 @@ Round-5 scope (spec: KNOWLEDGE/2026-09-24/05-grammar-round4-decision.md):
   you activate a loyalty ability of a Chandra planeswalker" (Keral Keep
   Disciples); added to the ``EventSpec`` union + serialization tag; filter
   required; convention C5 (the loyalty trigger compiles as the effect of the
-  ActivatedAbility whose cost is the loyalty part).
+  ActivatedAbility whose cost is the loyalty part). Ontology R5-7 replaced
+  it with ``AbilityActivatedEvent(source, kind, actor)``: the R4-2 node is
+  ``kind=AbilityKind.LOYALTY``, and the pins below follow the new node.
 - R4-3: ``CastSpellEvent.from_zone_not: Zone | None = None`` — "from anywhere
   other than their hand" (Ghostly Pilferer); mutually exclusive with
   ``from_zone``; omit-if-None.
@@ -76,10 +78,12 @@ def _cd_second() -> at.CardDrawnEvent:
     )
 
 
-def _loyalty() -> at.LoyaltyActivatedEvent:
-    """R4-2: 'you activate a loyalty ability of a Chandra planeswalker'."""
-    return at.LoyaltyActivatedEvent(
+def _loyalty() -> at.AbilityActivatedEvent:
+    """R4-2: 'you activate a loyalty ability of a Chandra planeswalker'
+    (R5-7: AbilityActivatedEvent of kind LOYALTY)."""
+    return at.AbilityActivatedEvent(
         _chandra_filter(),
+        at.AbilityKind.LOYALTY,
         actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
     )
 
@@ -180,7 +184,9 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "loyalty",
         _loyalty,
-        "a91d56dd470a01e979e6bdfecbf77b81fae89ef0c15cfd0dfc01b0a3af2ffd82",
+        # re-pinned 2026-10-30: R5-7 changes the node (AbilityActivatedEvent:
+        # filter -> source, the required kind LOYALTY, the new tag)
+        "0f90725db814e6dab9332edea6b56664ed78b26630d0ab826d3524e0fc7a85ad",
     ),
     (
         "cast_bare",
@@ -345,15 +351,18 @@ def test_r5_enum_and_table_members() -> None:
 
 
 def test_loyalty_activated_event_union_membership() -> None:
-    """R4-2: LoyaltyActivatedEvent is registered as a legal event spec and
-    carries its own serialization tag."""
+    """R4-2 / R5-7: the activation event is registered as a legal event spec
+    and carries its own serialization tag; the old LoyaltyActivatedEvent tag
+    is gone (no silent migration of stale bytes)."""
     node = _loyalty()
     assert type(node) in at._DATACLASSES
     assert type(node) in at._EV_CLASSES
-    assert "LoyaltyActivatedEvent" in at._EVENT_TAGS
+    assert "AbilityActivatedEvent" in at._EVENT_TAGS
+    assert "LoyaltyActivatedEvent" not in at._EVENT_TAGS
     d = at.to_dict(node)
-    assert d["tag"] == "LoyaltyActivatedEvent"
-    assert at.from_dict("LoyaltyActivatedEvent", d) == node
+    assert d["tag"] == "AbilityActivatedEvent"
+    assert d["kind"] == {"tag": "AbilityKind", "name": "LOYALTY"}
+    assert at.from_dict("AbilityActivatedEvent", d) == node
 
 
 def test_role_union_controller_selector_roundtrip() -> None:
@@ -407,19 +416,29 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 ordinal="2",
             ),  # type: ignore[arg-type]
         ),
-        # R4-2: LoyaltyActivatedEvent validation (E1: actor slot)
+        # R4-2 / R5-7: AbilityActivatedEvent validation (E1: actor slot;
+        # kind required and typed)
         (
             "loyalty_bad_actor",
-            lambda: at.LoyaltyActivatedEvent(_chandra_filter(), "you"),  # type: ignore[arg-type]
+            lambda: at.AbilityActivatedEvent(
+                _chandra_filter(), at.AbilityKind.LOYALTY, "you"  # type: ignore[arg-type]
+            ),
         ),
         (
             "loyalty_bad_filter",
-            lambda: at.LoyaltyActivatedEvent(
-                "Chandra",
+            lambda: at.AbilityActivatedEvent(
+                "Chandra",  # type: ignore[arg-type]
+                at.AbilityKind.LOYALTY,
                 actor=at.FAtom(
                     pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
                 ),
-            ),  # type: ignore[arg-type]
+            ),
+        ),
+        (
+            "activation_bad_kind",
+            lambda: at.AbilityActivatedEvent(
+                _chandra_filter(), "LOYALTY"  # type: ignore[arg-type]
+            ),
         ),
         # R4-3: CastSpellEvent.from_zone_not mutual exclusion
         (

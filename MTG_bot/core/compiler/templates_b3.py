@@ -834,19 +834,26 @@ def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOut
 
 
 def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
+    """``{cost}: Create a P/T white Angel creature token with flying.``
+    (Speaker of the Heavens). m21-fidelity (wave 4, 2026-10-30): the type
+    line is "Creature — Angel" (CR 205.1: the type line carries the card type
+    and the subtypes; CR 111.3: the creating text defines the token's
+    characteristics). It was "Angel", and the executor mints a token's
+    identity from the type line, so the 4/4 flier was not a creature (it
+    could not attack or block)."""
     cost = _parse_cost(m)
     p = int(m.group("p"))
     t = int(m.group("t"))
     token = TokenSpec(
         name="Angel",
-        type_line="Angel",
+        type_line="Creature — Angel",
         types=("Creature",),
         subtypes=("Angel",),
         power=QConst(p),
         toughness=QConst(t),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        color="W",  # C-2 repair (round 8)
+        colors=("W",),  # C-2 repair (round 8)
     )
     effect = Atom(
         verb=Verb.CREATE_TOKEN,
@@ -918,10 +925,12 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
     Taunter) — Verb.FIGHT as an effect verb (R7-9a; previously the verb
     existed only as a Keyword).  FIGHT's single ``target`` role is the
     *opponent* of the fight: the source creature is the implicit attacker
-    (no role for it), so "another" rides the IS_ANY_TARGET convention the
-    Selfless Savior precedent established for self-exclusion — the paired
-    damage rule ("each deals damage equal to its power to the other") is
-    FIGHT's rule reminder, never a sentence."""
+    (no role for it). "another" excludes the source: FNot(IS_SOURCE), the
+    "other/another target" shape of Barrin, Niambi and Basri's Acolyte
+    (m21-fidelity, review batch D, 2026-10-29: it was IS_ANY_TARGET, which
+    is true of every designated target, so Brash Taunter could fight
+    itself) — the paired damage rule ("each deals damage equal to its power
+    to the other") is FIGHT's rule reminder, never a sentence."""
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.FIGHT,
@@ -935,7 +944,7 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
                         FAnd(
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                                FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                             )
                         ),
                         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),

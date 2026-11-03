@@ -1,0 +1,19 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "h", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 1},
+    {"key": "fury", "real": "Unleash Fury", "zone": "hand", "controller": 0},
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"R": 2, "B": 2, "G": 2}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["h"],
+     "expect_raise": "illegal target"},
+    {"op": "cast", "real": "Unleash Fury", "key": "fury", "targets": ["h"]}
+  ],
+  "expect": {
+    "zone": {"h": "battlefield", "fury": "graveyard", "elim": "hand"},
+    "power": {"h": 8}
+  },
+  "notes": "m21-fidelity item 1 (2026-10-29). Printed: 'Hexproof from black'. CR 702.11d: the opponent's black Eliminate cannot target it; the opponent's red Unleash Fury can, doubling its power (4 -> 8). Before the fix a bare HEXPROOF rode beside the hexproof-from-black row (MTGJSON lists 'Hexproof' next to 'Hexproof from'), so every opponent spell was refused: stronger than printed."
+}

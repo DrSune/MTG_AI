@@ -147,7 +147,9 @@ def classify(n, text):
     if n["universal_filter"] and any(z.startswith("LIBRARY") for z in n["zones"]):
         return "L-A", "topn", None
     chooser = None
-    if "TARGET_PLAYER" in " ".join(n["zones"]) or "EachPlayer" in path:
+    zones = " ".join(n["zones"])
+    # V21 (2026-10-29): "target opponent" zones carry TARGET_OPPONENT.
+    if "TARGET_PLAYER" in zones or "TARGET_OPPONENT" in zones or "EachPlayer" in path:
         chooser = "affected/controlled player, NOT the source controller"
     return "L-B", "firstn", chooser
 

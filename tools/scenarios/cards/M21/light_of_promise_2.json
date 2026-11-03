@@ -1,0 +1,25 @@
+{
+ "set": "M21",
+ "notes": "Light of Promise, printed: 'Enchanted creature has \"Whenever YOU gain life, put that many +1/+1 counters on this creature.\"' The granted ability's 'you' is its controller, the controller of the enchanted creature (CR 113.8, 109.5). Your Light of Promise on the opponent's 2/2: when YOU gain 3 life nothing happens; when the OPPONENT gains 3 life on their turn, their creature gets 3 +1/+1 counters. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lp", "real": "Light of Promise", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "rev", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "orev", "real": "Revitalize", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Light of Promise", "key": "lp", "targets": ["obear"]},
+  {"op": "cast", "real": "Revitalize", "key": "rev"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"W": 2}},
+  {"op": "cast", "real": "Revitalize", "key": "orev", "controller": 1}
+ ],
+ "expect": {
+  "attached": {"lp": "obear"},
+  "life": {"0": 23, "1": 23},
+  "counters": {"obear": {"PLUS_1_PLUS_1": 3}}
+ }
+}

@@ -1,0 +1,55 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6b946317-8a66-41b7-b902-308784d69b90",
+ "name": "Idol of Endurance",
+ "text_sha": "dc390c68a5dc3d493a1f6ed9a3862ed7dae808a538882754ad6c42e0f8f5fc53",
+ "verified": {
+  "tree_sha": "92883c38927d7bd2ce7124a3b099359889151ff4314ad15adda4445b64ad6d42",
+  "probe_sha": "5559bad3a214b680d67c9bb72284d7fe0e6e597b21c3b898b68b62cbd53ed9a4",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0]; you_fallen (creature, MV 2) moves graveyard -> exile '(until card leaves the battlefield, then back to the graveyard)'; you_used (sorcery) and opp_fallen (opponent's graveyard) stay. Same on the opponent's-turn entry. Packs: idol_of_endurance_exile_filter_mid.json (MV 1 and 3 exiled; MV 4, instant and opponent's card stay) PASS; idol_of_endurance_exile_filter_and_return.json (returns to the graveyard when the Idol leaves) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{W}, {T}:",
+    "status": "OK",
+    "evidence": "Tree [1]: CostManaColor W 1 + CostManaGeneric 1 + CostTap. Trace [activate [1] from battlefield]: card tapped, 'you: mana W-2' (two mana). Pack idol_of_endurance_cost_and_cast.json: {W} alone is refused (cost:mana_generic). PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
+    "status": "NOT_EXERCISED",
+    "evidence": "In the probe's activation nothing had been exiled with the card, so no cast. Tree: OptionalEffect(CAST, cost=Cost(), source ONE_OF exiled-with-source creature in your exile). Pack idol_of_endurance_cost_and_cast.json: the exiled Alpine Watchdog is cast for free and enters; the pool is empty after paying exactly {1}{W}. PASS.",
+    "issue": "engine-limit: the engine's CAST verb casts the card while the ability resolves rather than granting a permission until end of turn; with one action window per turn in the first main phase this is main-phase timing with an empty stack, so it is no stronger than printed (only the option to wait until later in the turn is lost)."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/idol_of_endurance_1.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_2.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_3.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_4.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_5.json"
+  ],
+  "mutation": {
+   "mutants": 17,
+   "killed": 9,
+   "score": 0.5294117647058824,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/target/filter/children/1/count",
+    "amount-1 at 1/0/effect/args/target/filter/children/1/count",
+    "optional->mandatory at 1/1/effect",
+    "amount+1 at 1/1/effect/inner/args/source/count",
+    "widen filter (drop part 0) at 1/1/effect/inner/args/source/filter",
+    "widen filter (drop part 1) at 1/1/effect/inner/args/source/filter",
+    "controller YOU->OPPONENT at 1/1/effect/inner/args/source/zones/0/controller"
+   ]
+  }
+ }
+}

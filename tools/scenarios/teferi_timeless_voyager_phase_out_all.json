@@ -1,0 +1,27 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "voyager", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 0},
+  {"key": "sprite", "name": "Sprite", "type": "Creature", "power": "1", "toughness": "1", "colors": ["U"], "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "relic", "name": "Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "shackle", "name": "Shackle", "type": "Enchantment — Aura", "keywords": ["ENCHANT"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "voyager", "set": 8},
+  {"op": "enchant", "aura": "shackle", "host": "ogre"},
+  {"op": "activate", "key": "voyager", "idx": 2, "seat": 0, "targets": ["p1"]},
+  {"op": "combat", "seat": 0, "attack": {"sprite": true}, "block": {"ogre": "sprite", "bear": "sprite"}}
+ ],
+ "expect": {
+  "phased_out": {"ogre": true, "bear": true, "shackle": true, "sprite": false, "relic": false},
+  "zone": {"voyager": "graveyard", "ogre": "battlefield", "bear": "battlefield"},
+  "attached": {"shackle": "ogre"},
+  "attackers": {"sprite": true},
+  "not_asked_to_block": ["ogre", "bear"],
+  "life": {"0": 20, "1": 19}
+ },
+ "notes": "Teferi, Timeless Voyager [-8]: 'Each creature target opponent controls phases out.' With 8 loyalty it goes to 0 and dies; the ability still resolves. Both of seat 1's creatures phase out, seat 0's Aura on one of them phases out indirectly (CR 702.26g); seat 1's artifact and seat 0's own creature do not. The phased-out creatures cannot block (702.26b), so the Sprite's 1 damage connects. The second sentence ('Until the end of your next turn, they can't phase in') is not modelled yet: see tools/scenarios/known_bugs/teferi_timeless_voyager_cant_phase_in.json."
+}

@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "64e29bfc-9313-4e8c-808c-bc27f6b018a6",
+ "name": "Bloodfell Caves",
+ "text_sha": "4adb6831ffcce581b0240704d9a821666b005feb20ab9df8b7096e28c7ba5dc6",
+ "verified": {
+  "tree_sha": "a5686cfc3826b4632474c6cbf1a51a31765c0f27c8b12f3228cc9285aa903ba0",
+  "probe_sha": "6253c294a09869a592748da37a4b904573e5dca67f645f2c3557e5c75b07f3d9",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] 'card: zone hand -> battlefield; tapped False -> True'; same on the MOVE_ZONE entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land] triggered ability [1] triggers, 'you gains 1 life', life 20 -> 21; [you play a land -> none]",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [2]] 'ask choose: [0, 1]': 0 -> 'mana B+1', 1 -> 'mana R+1'; the land taps each time",
+    "issue": "engine-limit: the mana pool does not empty between steps (B-12). Measured here: it does not empty across turns either (R tapped on turn 1 is still in the pool on turn 3), so any mana source can bank mana. Engine-wide, not this card's text."
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

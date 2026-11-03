@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Life Goes On, printed: '... If a creature died THIS TURN, you gain 8 life instead.' The opponent's 2/2 dies on your turn; two turns later (your next turn) you cast Life Goes On: no creature died this turn, so you gain 4 (20 -> 24).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+  {"key": "golem", "name": "My Golem", "type": "Creature — Golem", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "golem", "target": "obear", "amount": 5},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"G": 1}},
+  {"op": "cast", "real": "Life Goes On", "key": "lgo"}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard", "lgo": "graveyard"},
+  "life": {"0": 24, "1": 20}
+ }
+}

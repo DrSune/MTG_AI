@@ -1,0 +1,29 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "want", "name": "Wanted", "power": "2", "toughness": "2", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "land", "name": "Forest", "type": "Basic Land — Forest", "cmc": 0, "zone": "hand", "controller": 0},
+  {"key": "trick", "name": "Trick", "type": "Instant", "cmc": 1, "colors": ["U"], "zone": "hand", "controller": 0},
+  {"key": "s1", "name": "Sorcery One", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s2", "name": "Sorcery Two", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s3", "name": "Sorcery Three", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s4", "name": "Sorcery Four", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s5", "name": "Sorcery Five", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s6", "name": "Sorcery Six", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s7", "name": "Sorcery Seven", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "s8", "name": "Sorcery Eight", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "ugin", "set": 10},
+  {"op": "activate", "key": "ugin", "idx": 2, "seat": 0, "decisions": ["want", "land", "NONE"]}
+ ],
+ "expect": {
+  "life": {"0": 27, "1": 20},
+  "zone": {"ugin": "graveyard", "want": "battlefield", "land": "battlefield", "trick": "hand",
+           "s1": "hand", "s2": "hand", "s3": "hand", "s4": "hand", "s5": "hand", "s6": "hand", "s7": "hand", "s8": "hand"},
+  "hand": {"0": 9}
+ },
+ "notes": "Printed Ugin [-10]: 'You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.' Loyalty 10 -> 0, Ugin dies (CR 704.5i), the ability still resolves. I gain exactly 7 (opponent unchanged), draw exactly seven (s1..s7; s8 was the runner's opening draw), then put the creature and the land (both permanent cards) onto the battlefield and stop; the instant stays. Hand = 4 + 7 - 2 = 9."
+}

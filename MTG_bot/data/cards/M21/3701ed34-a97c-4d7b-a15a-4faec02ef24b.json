@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3701ed34-a97c-4d7b-a15a-4faec02ef24b",
+ "name": "Pack Leader",
+ "text_sha": "182ab7ea3ba48c3b28a3f1ee601f633a2ce6ef4dd4be5c5aacfe04ae6d6d747c",
+ "verified": {
+  "tree_sha": "193cf41ac290dd481cc807abf17b6c35012d040399c3741db99f6665de471428",
+  "probe_sha": "18706373014d8069ccbfd6ab9ef7e3b49aa1eeea9829776bb09b7072dd2d502d",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "Other Dogs you control get +1/+1.",
+    "status": "OK",
+    "evidence": "Static section and [cast]: you_dog 2/2 -> 3/3, the card itself stays 2/2, opp_dog (on the probe board, probe._extra_board) unchanged; [this card is dealt lethal damage]: you_dog 3/3 -> 2/2 when it leaves.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, prevent all combat damage that would be dealt this turn to Dogs you control.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: triggered ability [1] triggers; [another creature you control (you_bear) attacks]: no trigger. Blocked by opp_giant: COMBAT_DAMAGE opp_giant ((4, card)) produces no 'card is dealt' event, the card survives, opp_giant takes 2.",
+    "issue": ""
+   },
+   {
+    "clause": "(same clause) other Dogs you control are covered; non-Dogs and the opponent's Dogs are not; combat damage only; ends with the turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "Packs pack_leader_protects_your_dogs_only (Pack Leader and another own Dog blocked by 4/4s take 0; own Bear dies; opp's Dog blocking dies) and pack_leader_shield_this_turn_combat_only (1 noncombat damage to the Hound is not prevented; on the next turn the Hound blocking a 4/4 is dealt 4 and dies; received 5). Both PASS on the live tree and on this packet's tree (--draft).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/pack_leader_1.json",
+   "tools/scenarios/cards/M21/pack_leader_2.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 8,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/condition",
+    "widen filter (drop part 1) at 1/1/effect/args/condition",
+    "widen filter (drop part 2) at 1/1/effect/args/condition",
+    "until-end-of-turn->permanent at 1/1/effect/args/duration",
+    "widen filter (drop part 0) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 2) at 1/1/effect/args/event/filter"
+   ]
+  }
+ }
+}

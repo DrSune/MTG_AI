@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "61859443-e298-41c7-a179-6e6554de91c9",
+ "name": "Anointed Chorister",
+ "text_sha": "0d459e37cd80093333572d739f4949a465ac45fc411334d745829aa3ac99d0a2",
+ "verified": {
+  "tree_sha": "dd599394e6d49c4021d5f7898cc1ac881e0249608ed28755034b35318fa3f0ed",
+  "probe_sha": "ef99dad3edc9fc7f2e7646055708a29fc884eda1f7b70ccaf87ad2921a40763b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: 'you gains 1 life (by card/DEAL_DAMAGE)', you 20 -> 21, opp 20 -> 19; [attacks and opp_giant blocks it]: you gain 1 for the 1 damage dealt to the blocker. Static: card keywords LIFELINK.",
+    "issue": ""
+   },
+   {
+    "clause": "{4}{W}: This creature gets +3/+3 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: cost 'mana W-5' ({W} plus 4 generic, paid from W), 'card: P/T 1/1 -> 4/4'; 'after the turn ends: card: P/T 4/4 -> 1/1'. Tree equals the compiler's parse (B3-modify-pt-self).",
+    "issue": "engine-limit: no priority; the instant-speed pump is usable only in its controller's own action window (weaker only)."
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 14,
+   "killed": 13,
+   "score": 0.9285714285714286,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

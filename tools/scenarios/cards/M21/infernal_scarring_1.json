@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Infernal Scarring (M21): 'Enchant creature. Enchanted creature gets +2/+0 and has \"When this creature dies, draw a card.\"' Cast on seat 0's Bear (4/2). The Bear is dealt 2 and dies: its granted trigger makes its controller (seat 0) draw one card (hand 0 -> 1); the Aura goes to the graveyard; seat 1 draws nothing.",
+ "cards": [
+  {"key": "is", "zone": "hand", "controller": 0, "real": "Infernal Scarring"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "src", "zone": "battlefield", "controller": 1, "name": "Opp Giant", "type": "Creature — Giant", "power": 4, "toughness": 4}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "cast", "key": "is", "targets": ["bear"]},
+  {"op": "deal_damage", "source": "src", "target": "bear", "amount": 2}
+ ],
+ "expect": {"zone": {"bear": "graveyard", "is": "graveyard"}, "hand": {"0": 1, "1": 0}}}

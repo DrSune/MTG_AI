@@ -1,0 +1,21 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sa", "real": "Syr Alin, the Lion's Claw", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "home", "name": "My Homebody", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+    {"key": "foe", "name": "Foe Wall", "type": "Creature — Wall", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"sa": true, "bear": true, "home": false}},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "attackers": {"sa": true, "bear": true, "home": false},
+    "life": {"1": 13},
+    "power": {"sa": 4, "bear": 2, "home": 1, "foe": 0},
+    "toughness": {"sa": 4, "bear": 2, "home": 1, "foe": 5}
+  },
+  "notes": "Syr Alin: 'Whenever Syr Alin attacks, other creatures you control get +1/+1 until end of turn.' Syr Alin (4) and My Bear (2+1) attack unblocked: 7 damage, opponent 20 -> 13. After the turn ends every bonus is gone: the bear and the non-attacking 1/1 are back to printed size, Syr Alin never got one, and the opponent's creature never did."
+}

@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8291bc2e-ef58-4bd4-b261-b587142bbb1c",
+ "name": "Ornery Dilophosaur",
+ "text_sha": "2b05116dcbcf2f3aeb6b2657ad1383e7513d13a780efad7dc29e08243ea53f68",
+ "verified": {
+  "tree_sha": "6f808d739fc0ace33506cc3f66b26edde2c2c40d92d2d735c9ecc5b82374b220",
+  "probe_sha": "75e6c59022d00514b09dcd4900ffca58af00bc98e6038b17f8025cb5c9f45b85",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Deathtouch",
+    "status": "OK",
+    "evidence": "keywords[0] DEATHTOUCH; [stimulus: this creature attacks and opp_giant blocks it] opp_giant is dealt damage and dies",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn.",
+    "status": "OK",
+    "evidence": "[attacks alone, unblocked]: trigger fires (you_giant 4/4 is yours), P/T 2/2 -> 4/4, opp 20 -> 16; [another creature you control (you_bear) attacks] -> none. Tree matches the compiler's B2b-attack-power-condition-self-boost. Not in the trace: the false condition and the end-of-turn expiry. Pack no_big_creature: only the opponent has a 5/5, so no pump, 2 damage (pass). Pack eot: back to 2/2 after end_turn (pass)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/ornery_dilophosaur_1.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_2.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_3.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 7,
+   "score": 0.6363636363636364,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "amount-1 at 1/0/condition/inner_filter/children/1/count",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
+ }
+}

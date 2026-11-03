@@ -1,0 +1,23 @@
+{
+  "set": "FDN",
+  "world": {"life": 20, "seed": 7},
+  "mana": {"0": {"C": 1}},
+  "cards": [
+    {"key": "pick", "real": "Goldvein Pick", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "lib0", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "activate", "key": "pick", "idx": 2, "seat": 0, "targets": ["bear"]},
+    {"op": "combat", "seat": 0, "attack": {"bear": true}}
+  ],
+  "expect": {
+    "power": {"bear": 3},
+    "toughness": {"bear": 3},
+    "attackers": {"bear": true},
+    "life": {"0": 20, "1": 17},
+    "tokens": {"Treasure": 1},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Goldvein Pick: Equip {1} onto your Bear (it becomes 3/3), the Bear attacks unblocked and deals 3 combat damage to the opponent: 'Whenever equipped creature deals combat damage to a player, create a Treasure token.' -> exactly one Treasure."
+}

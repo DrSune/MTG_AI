@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e0df8e2a-96d2-4e4d-b065-aa2e162abbfe",
+ "name": "Liliana, Waker of the Dead",
+ "text_sha": "ee9308f04c8808759575da255de503377e67f85907ee34017f3818400807e4d5",
+ "verified": {
+  "tree_sha": "fabfea446e1608b2c0d7a454e0cb5474a7ba20ea049ad626510776112199549c",
+  "probe_sha": "8f6c9835fe7dce145e3b498cb9f5d22efae74f82210665b043467e7ba3f18c6b",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "[+1]: Each player discards a card.",
+    "status": "OK",
+    "evidence": "[activate [0]] variants: two discard asks, mine over my hand and the opponent's over [opp_spare, opp_trick] (each chooses their own card, every option honoured); one card each to the graveyard; LOYALTY 4 -> 5.",
+    "issue": ""
+   },
+   {
+    "clause": "Each opponent who can't loses 3 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe opponent always holds cards. Tree: EachPlayer ALL_OPPONENTS, Conditional NOT(hand count >= 1) -> LOSE_LIFE 3, evaluated before the discard (so a player discarding a last card is not 'who can't'). Pack P9c05326ab8_liliana_plus1_cant_discard.json PASSES: opponent with an empty hand 20 -> 17, I lose nothing; existing tools/scenarios/liliana_plus_one_each_player_discards.json covers the one-card boundary.",
+    "issue": ""
+   },
+   {
+    "clause": "[-3]: Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.",
+    "status": "OK",
+    "evidence": "'ability [1] target slot: 1..1 of' all six creatures (both sides); you_giant 4/4 -> 2/2 and opp_giant 4/4 -> 2/2 with 2 cards in my graveyard (X = 2), bears/flier die; 'after the turn ends' back to 4/4 and 3/3; LOYALTY 4 -> 1. Pack P9c05326ab8_liliana_minus3_x_locked.json PASSES: only MY graveyard counts, and X is locked at resolution (a later card in my graveyard leaves the 5/5 at 3/3, CR 608.2h).",
+    "issue": ""
+   },
+   {
+    "clause": "[-7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [2] not activatable: cost:loyalty:4<7'. Tree GET_EMBLEM (the emblem's own record is not in this packet). Packs P9c05326ab8_liliana_emblem_not_opp_turn.json and P9c05326ab8_liliana_emblem_each_turn.json PASS: the opponent's creature card returns under my control with haste and attacks; the opponent's beginning of combat does not trigger it; it triggers again on my next turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_1.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_2.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_3.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_4.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_5.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 9,
+   "score": 0.5625,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "controller ALL_OPPONENTS->YOU at 1/0/effect/steps/0/ref",
+    "amount+1 at 1/0/effect/steps/0/effect/pred/inner/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/effect/pred/inner/who",
+    "amount+1 at 1/0/effect/steps/0/effect/then_effect/args/amount",
+    "amount-1 at 1/0/effect/steps/0/effect/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/effect/then_effect/args/controller"
+   ]
+  }
+ }
+}

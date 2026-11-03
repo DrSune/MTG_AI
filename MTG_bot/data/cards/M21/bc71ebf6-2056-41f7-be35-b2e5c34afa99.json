@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "bc71ebf6-2056-41f7-be35-b2e5c34afa99",
+ "name": "Plains",
+ "text_sha": "8076074f42e3dbd14a705afe2ef08543d8750edc44cb018600213125b22442ed",
+ "verified": {
+  "tree_sha": "68ea29ef6e31bc3fd993873cd9e54f873260f4b3484769e48f9b7cdba87348ac",
+  "probe_sha": "460629e8cea2ce73b31309697dcc27ab961cf98c4744ed10ccde8b964571ea80",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Basic Land — Plains (played as a land drop)",
+    "status": "OK",
+    "evidence": "[play land]: card moves hand -> battlefield (by card/PLAY_LAND); no triggers or statics added (all stimuli same as without the card)",
+    "issue": ""
+   },
+   {
+    "clause": "({T}: Add {W}.)",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped (by card/TAP); you: mana W+1. Tree: CostTap, ADD_MANA amount QConst(1), color 'W', controller YOU",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

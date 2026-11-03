@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b0b6be0c-41cf-4757-9f0e-87227b6ba6b3",
+ "name": "Ghalta, Primal Hunger",
+ "text_sha": "4c90c208d689a698aa88e31132edb059f7324c96aeff95b6c4bdeeaf27e2ab53",
+ "verified": {
+  "tree_sha": "044f3ef32c5d6a569ced6cd578116fc8a7900363dda099445a953fac17a9088d",
+  "probe_sha": "10200abedfcb070e181d1c81a92e1e36d0074d49469a75b3c8a9d36f176d47fe",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "This spell costs {X} less to cast, where X is the total power of creatures you control.",
+    "status": "OK",
+    "evidence": "[cast]: your creatures you_bear (2) + you_giant (4) = 6 power; paid G-2 W-4 = {4}{G}{G}, i.e. {10}{G}{G} minus 6; the opponent's 6 power (opp_bear + opp_giant) not counted (that would have made it {G}{G}). Cap case covered by pack ghalta_reduction_capped.json (your total power 11: costs exactly {G}{G}, five W left in the pool; the opponent's 9/9 ignored) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: 'COMBAT_DAMAGE card ((4, opp_giant), (8, opp))', opp 20 -> 12",
+    "issue": ""
+   },
+   {
+    "clause": "(Legendary 12/12 Elder Dinosaur creature, {10}{G}{G})",
+    "status": "OK",
+    "evidence": "[cast]: enters 12/12 +TRAMPLE; unblocked attack deals 12",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/ghalta_primal_hunger_1.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 3,
+   "score": 0.6,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/delta/amount/referent/filter",
+    "controller YOU->OPPONENT at 1/0/delta/amount/referent/filter/children/0/who"
+   ]
+  }
+ }
+}

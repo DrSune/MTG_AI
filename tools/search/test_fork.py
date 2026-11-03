@@ -98,13 +98,19 @@ def test_expand_engine_choose_ask(pos8):
         assert o.boundary in {"mid_act", "pre_combat", "post_combat"}
 
 
-def test_expand_act_menu_ask(pos8):
+def test_expand_act_menu_ask():
     """After the color choose is answered (a mid_act branch), the seat's next
-    decision is the act menu itself — kind 'act' on site act:main."""
-    seat = _active_seat(pos8.game)
-    branch = expand(pos8, seat).options[0]
+    decision is the act menu itself — kind 'act' on site act:main.
+
+    re-pinned 2026-10-29 (engine/phasing): the two Teferis joined the engine
+    supply, so seed 20261010 deals a different second deck, and at turn 8 the
+    answered choose now ends the act batch (pre_combat). Turn 9 of the same
+    seed is the nearest turn-top where the premise holds (scan in the commit)."""
+    pos = play_position(SEED, at_turn=9, boundary="turn_top")
+    seat = _active_seat(pos.game)
+    branch = expand(pos, seat).options[0]
     assert branch.boundary == "mid_act"
-    mid = Position(branch.game, pos8.supply, "mid_act")
+    mid = Position(branch.game, pos.supply, "mid_act")
     xs = expand(mid, seat)
     assert xs.kind == "act" and xs.site == "act:main"
     assert len(xs.options) >= 2  # at least two acts are legal midgame

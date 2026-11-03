@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "notes": "Ranger's Guile, printed: 'Target creature you control gets +1/+1 and gains hexproof until end of turn. (It can't be the target of spells or abilities your opponents control.)' Cast on your bear (3/3, hexproof). Then the opponent's Goblin Arsonist dies; its dies trigger (an ability the OPPONENT controls) cannot target the hexproof bear even when the answer names it, so the 1 damage goes elsewhere and the bear has no damage marked.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "guile", "real": "Ranger's Guile", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oars", "real": "Goblin Arsonist", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Ranger's Guile", "key": "guile", "targets": ["bear"]},
+  {"op": "deal_damage", "source": "bear", "target": "oars", "amount": 1, "decisions": ["bear", "fire"]}
+ ],
+ "expect": {
+  "zone": {"guile": "graveyard", "oars": "graveyard", "bear": "battlefield"},
+  "power": {"bear": 3},
+  "toughness": {"bear": 3},
+  "damage": {}
+ }
+}

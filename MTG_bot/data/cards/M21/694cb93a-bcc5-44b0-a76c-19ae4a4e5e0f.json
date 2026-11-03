@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f",
+ "name": "Ranger's Guile",
+ "text_sha": "a2ea60c24accb87de5804d7dd19e2e6a8746d92d84c1e56942bd17aed97d40aa",
+ "verified": {
+  "tree_sha": "788f5895f359f046780e00596e58ee75fcf232719ad31b57b3fb062f7a59c8fe",
+  "probe_sha": "bbe07a99771c29fa84b935299d28eeb49a4159dc276ba78a470a31445e6e6f98",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "Target creature you control",
+    "status": "OK",
+    "evidence": "'target slot (cast): 1..1 of [you_bear, you_giant]' (your creatures only; one target shared by both effects)",
+    "issue": ""
+   },
+   {
+    "clause": "gets +1/+1 ... until end of turn",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']] 'you_bear: P/T 2/2 -> 3/3'; 'after the turn ends: you_bear: P/T 3/3 -> 2/2' (same for you_giant 4/4 -> 5/5 -> 4/4)",
+    "issue": ""
+   },
+   {
+    "clause": "and gains hexproof until end of turn. (It can't be the target of spells or abilities your opponents control.)",
+    "status": "OK",
+    "evidence": "'keywords +HEXPROOF', 'after the turn ends: ... keywords -HEXPROOF'. The protection itself is not in the trace: pack rangers_guile_hexproof_vs_opponent (an opponent's Goblin Arsonist dies trigger cannot target the hexproof bear; a tmp control without the Guile shows it can) passes on the live tree and this packet's tree",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/ranger's_guile_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 14,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "W4-4 guard (CR 603.10a, 704.5d). Basri's Lieutenant: 'Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.' A Soldier TOKEN with one +1/+1 counter dies to 2 damage. State-based actions now run before the trigger resolves, and a token in the graveyard ceases to exist as one of them; the engine keeps the token until the triggers its death caused have resolved, so the Lieutenant still sees that it had the counter and makes a Knight. Then the token is gone.",
+ "cards": [
+  {
+   "key": "lt",
+   "real": "Basri's Lieutenant",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Soldier",
+   "type": "Creature — Soldier",
+   "power": 1,
+   "toughness": 1,
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "zap",
+   "name": "Zapper",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "zap",
+   "target": "tok",
+   "amount": 2,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tok": "ceased",
+   "lt": "battlefield"
+  },
+  "tokens": {
+   "Knight": 1,
+   "Soldier": 0
+  }
+ }
+}

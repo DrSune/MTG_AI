@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'costs {1} less ... for each Shrine you control' reduces only the generic part (CR 601.2f). With six Shrines (the Sanctum + five) the {5} is gone but the {W} stays: the ability is paid from exactly W1 and the pool ends empty (a reduction that also ate the {W} would leave W1 over).",
+ "cards": [
+  {"key": "st", "real": "Sanctum of Tranquil Light", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "name": "Shrine One", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "s2", "name": "Shrine Two", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "s3", "name": "Shrine Three", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "s4", "name": "Shrine Four", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "s5", "name": "Shrine Five", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "type": "Creature — Ox", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [{"op": "activate", "key": "st", "idx": 0, "seat": 0, "targets": ["victim"]}],
+ "expect": {"tapped": {"victim": true}, "mana_pool": {"0": {}}}}

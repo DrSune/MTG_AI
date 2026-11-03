@@ -54,7 +54,7 @@
    "decisions": [
     "fire"
    ],
-   "expect_raise": "no ability idx 1"
+   "expect_raise": "illegal activation: ability:not_activated:SpellAbility"
   }
  ],
  "expect": {

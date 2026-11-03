@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Silversmote Ghoul starts on the battlefield, is sacrificed to its own ability (draw a card), then its owner gains 4 life (Life Goes On) and ends the turn: at the beginning of that end step the Ghoul returns from the graveyard to the battlefield tapped.",
+ "cards": [
+  {"key": "g", "real": "Silversmote Ghoul", "zone": "battlefield", "controller": 0},
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "B": 2}},
+ "steps": [
+  {"op": "activate", "key": "g", "idx": 1, "seat": 0},
+  {"op": "cast", "key": "lgo", "real": "Life Goes On"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"g": "battlefield", "lgo": "graveyard"},
+  "tapped": {"g": true}
+ }
+}

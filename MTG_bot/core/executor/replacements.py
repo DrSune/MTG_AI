@@ -27,10 +27,10 @@ shapes and both fingerprint-dumped:
     application record: condition + event spec + optional step + duration.
     The UNTAP consumer is live (12d's untap step consults
     :meth:`ReplacementRegistry.prevents_untap` — the Frost Breath freeze);
-    combat-side prevents (attack/block) and mana-ability prevents are
-    REGISTERED + EXPOSED (:meth:`combat_preventions`) with no consumer yet
-    — the combat phase is post-12e territory and faking a consumer would
-    violate the honest-unsupported mandate.
+    the attack/block declaration consults are live since 16c, and the
+    activation lock (an AbilityActivatedEvent record, R5-7) is consulted
+    by legality's ``ability_playable`` through
+    :meth:`ReplacementRegistry.prevents_activation`.
 
 Matching rules (documented, pinned): the player-subject filter of a
 DamageDealtEvent replacement is read with the PLAYER as subject —
@@ -48,6 +48,7 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
     QX,
+    AbilityActivatedEvent,
     Atom,
     BecomesBlockedEvent,
     CardDrawnEvent,
@@ -83,6 +84,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    activation_matches_kind,
 )
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
@@ -209,15 +211,19 @@ class ReplacementRegistry:
         record: CardRecord,
         designated: tuple[Handle, ...] = (),
     ) -> int:
-        """r19a (Life Goes On): a RESOLVING INSTANT/SORCERY's ReplacementAbility
+        """r19a: a RESOLVING INSTANT/SORCERY's ReplacementAbility
         nodes. A spell never attaches (it hits the graveyard), so the
         battlefield lifecycle that normally registers replacements never
         sees it — yet the grammar carries the corpus' turn-shaped replacement
-        idiom ("If a creature died this turn, you'd gain 8 life instead") as
-        a card-level ReplacementAbility on the spell itself. Registering at
-        resolution start (stack.py) with an Eot tag is the honest home: the
-        effect is live from resolution to end of turn, expires in the EOT
-        sweep, and never survives the window its own text names."""
+        idiom ("If that creature or planeswalker would die this turn, exile
+        it instead": Scorching Dragonfire, Obliterating Bolt, Blitz of the
+        Thunder-Raptor) as a card-level ReplacementAbility on the spell
+        itself. Registering at resolution start (stack.py) with an Eot tag is
+        the honest home: the effect is live from resolution to end of turn,
+        expires in the EOT sweep, and never survives the window its own text
+        names. (Life Goes On, the r19a case, no longer comes here: its
+        "instead" rewrites only its own life gain, so it compiles to a
+        Conditional amount — m21-fidelity item 4, 2026-10-29.)"""
         count = 0
         for node in record.abilities:
             if isinstance(node, ReplacementAbility):
@@ -272,8 +278,15 @@ class ReplacementRegistry:
     # -------------------------------------------------------------- matching
 
     def _source_alive(self, source: Handle) -> bool:
+        """The battlefield-lifetime gate of a permanent's own replacement and
+        prevention records. A phased-out source does not exist (CR 702.26b),
+        so its static records do not apply until it phases in."""
         world = self.world
-        return source in world.cards and world.zone_of(source).kind == "battlefield"
+        return (
+            source in world.cards
+            and world.zone_of(source).kind == "battlefield"
+            and source not in self.executor.phased_out
+        )
 
     def _condition_holds(self, rec, subject: Handle, ctx: ExecCtx) -> bool:
         """A record's condition is judged over the EVENT SUBJECT (the
@@ -658,6 +671,12 @@ class ReplacementRegistry:
         death (no graveyard move, no CREATURE_DIES journal row — see the
         documented v1 gap in __init__.py's state-check drain).
 
+        B-62: both dying lanes of the SBA sweep consult it, the lethal
+        creature AND the zero-loyalty planeswalker (CR 704.5i: both are put
+        into a graveyard from the battlefield, which is dying, CR 700.4).
+        The record's filter decides which dying object it covers, e.g.
+        Obliterating Bolt's "that creature or planeswalker" (IS_ANY_TARGET).
+
         CONTROLLER RULE as in the other lanes: every predicate is judged
         in the RECORD's coordinates (the ``_rec_ctx`` convention). The
         spell-sourced record's anaphora ("that creature" — IS_ANY_TARGET)
@@ -763,7 +782,16 @@ class ReplacementRegistry:
         """The UNTAP-step consumer: does a live prevention veto this
         permanent's untap? (Frost Breath's compiled s2 lands here:
         TapStateEvent(tapped=False), step UNTAP, targets = the cast's
-        designated creatures.)"""
+        designated creatures.)
+
+        V16 (2026-10-29, CR 502.3: "effects can keep one or more of a
+        player's permanents from untapping"): a STATIC carrier designates
+        nothing; its affected set is the event's filter, judged over the card
+        in the record's coordinates (Capture Sphere: "Enchanted creature
+        doesn't untap during its controller's untap step" is IS_ATTACHED_TO_
+        SOURCE ∧ creature, read off the Aura). A static carrier works while
+        its source is on the battlefield. Only designated records were
+        consulted before, so the Aura's creature untapped as usual."""
         for rec in sorted(self.preventions, key=lambda r: r.seq):
             if rec.status == "expired":
                 continue
@@ -772,7 +800,19 @@ class ReplacementRegistry:
                 continue
             if rec.step not in (None, Step.UNTAP):
                 continue
-            if card not in rec.targets:
+            if rec.targets:
+                if card in rec.targets:
+                    return True
+                continue
+            if rec.duration is None and not self._source_alive(rec.source):
+                # a static carrier works while its source is on the
+                # battlefield; a resolved effect with a duration outlives its
+                # source (CR 611.2a, the _pair_vetoed rule)
+                continue
+            ctx = self._rec_ctx(rec, card)
+            if not self._condition_holds(rec, card, ctx):
+                continue
+            if not eval_filter(event.filter, card, ctx):
                 continue
             return True
         return False
@@ -848,16 +888,18 @@ class ReplacementRegistry:
                 or eval_filter(rec.condition, blocked, ctx)
             ):
                 return False
-            if not eval_filter(event.filter, blocker, ctx):
+            if not self._slot_holds(rec, event.filter, blocker, ctx):
                 return False
-            if event.subject is not None and not eval_filter(
-                event.subject, blocker, ctx
+            if event.subject is not None and not self._slot_holds(
+                rec, event.subject, blocker, ctx
             ):
                 return False
             # the blocked slot must MATCH the attacker side (IS_SOURCE for
             # "can't be blocked" carriers, FNot(FLYING) for the block-only
             # restriction family - a matching slot vetoes the pair)
-            return event.blocked is None or eval_filter(event.blocked, blocked, ctx)
+            return event.blocked is None or self._slot_holds(
+                rec, event.blocked, blocked, ctx
+            )
         if isinstance(event, DeclareAttackersEvent):
             if event.attacked is not None:
                 raise NotImplementedError(
@@ -868,8 +910,21 @@ class ReplacementRegistry:
                 rec.condition, subject, ctx
             ):
                 return False
-            return eval_filter(event.filter, subject, ctx)
+            return self._slot_holds(rec, event.filter, subject, ctx)
         return False
+
+    @staticmethod
+    def _slot_holds(rec, filter_, handle: Handle, ctx: ExecCtx) -> bool:
+        """V34 (CR 608.2b): a combat slot that names the ability's target
+        (an IS_ANY_TARGET conjunct) means the creatures designated and checked
+        when the ability resolved (_v_prevent locked them into rec.targets); its
+        targeting restrictions are not read again. Any other slot is evaluated
+        live, as before."""
+        from MTG_bot.core.executor.query import designation_bound
+
+        if designation_bound(filter_):
+            return handle in rec.targets
+        return eval_filter(filter_, handle, ctx)
 
     def prevents_block_declaration(self, blocker: Handle, attacker: Handle) -> bool:
         """16c (CR 509 legality): does a live PREVENT_EFFECT veto the pair
@@ -897,6 +952,42 @@ class ReplacementRegistry:
             if not isinstance(event, DeclareAttackersEvent):
                 continue
             if self._pair_vetoed(rec, attacker, attacker):
+                return True
+        return False
+
+    def prevents_activation(
+        self, permanent: Handle, activator: Handle, ability: object
+    ) -> bool:
+        """R5-7 (CR 602.5, 602.5a's "prohibited from being activated"): does a
+        live PREVENT_EFFECT over an :class:`AbilityActivatedEvent` forbid
+        ``activator`` activating ``ability`` of ``permanent``? Faith's
+        Fetters' "its activated abilities can't be activated unless they're
+        mana abilities" is such a record (kind NON_MANA, source the enchanted
+        permanent). Judged in the record's coordinates like the declaration
+        consults (:meth:`_pair_vetoed`): the same liveness rule, the record's
+        designated set bound as ``target``, its condition over the permanent,
+        the event's ``kind`` through the one 605.1a classifier, ``actor``
+        over the activating player and ``source`` over the permanent."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, AbilityActivatedEvent) or rec.status == "expired":
+                continue
+            if not isinstance(rec.duration, DurationEot) and not self._source_alive(
+                rec.source
+            ):
+                continue
+            ctx = self._rec_ctx(rec, permanent)
+            if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
+                rec.duration.filter, rec.source, ctx
+            ):
+                continue
+            if rec.condition is not None and not eval_filter(rec.condition, permanent, ctx):
+                continue
+            if not activation_matches_kind(ability, event.kind):
+                continue
+            if event.actor is not None and not eval_filter(event.actor, activator, ctx):
+                continue
+            if eval_filter(event.source, permanent, ctx):
                 return True
         return False
 

@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (optional->mandatory on the cast). Printed: '{1}{W}, {T}: Until end of turn, YOU MAY cast a creature spell from among cards exiled with this artifact without paying its mana cost.' The Idol's entry exiles Alpine Watchdog. The ability is activated and the controller declines: the Watchdog stays in exile; the Idol is tapped and {1}{W} is spent.",
+ "cards": [
+  {"key": "idol", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "aw", "real": "Alpine Watchdog", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "enter", "key": "idol"},
+  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["skip"]}
+ ],
+ "expect": {"zone": {"idol": "battlefield", "aw": "exile"}, "tapped": {"idol": true}, "mana_pool": {"0": {}}}}
