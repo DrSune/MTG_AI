@@ -153,13 +153,33 @@ budget, checkpoint pair `<tag>.pt` + `<tag>_policy.pt` sidecar
   checkpoint round-trips through `load_policy` (value head intact);
   sidecar policy is bit-identical to the anchor pre-update.
 
-### 7.2 Second re-run (in flight at writing — numbers appended below)
+### 7.2 Second re-run: PASSED end-to-end (2026-11-03 02:05 → 03:47, wall ~102 min, rc=0)
 
-Same command as §5, after the `be11cbe` fix. Launched 2026-11-03 02:05
-(background; expected ~105–115 min wall: warm-start dominates).
+- **Warm-start** (500g / 23910 decisions / 3 epochs, value-lr 1e-3):
+  last-epoch MSE **0.84546** (target Var ≈ 0.953), train EV **0.17771**.
+- **Holdout EV (200g) = 0.18656** — triage rule #1 satisfied; within the
+  0.1–0.3 predicted by the §3 raw-feature probe at this budget.
+- **PPO update (iter 1, 50g: 21W/27L/0D/2X, 2439 asks)**:
+  policy_loss 0.01014 · value_loss 0.59997 · EV(V0 vs batch) 0.16145 ·
+  advantage mean/std -0.00118/0.38966 · entropy 0.03669 ·
+  **KL 0.010561/update → early-stop after 1/3 epochs (5 minibatches)**
+  at the 0.01 budget · grad norm 9.298 pre-clip (max 14.793, clip binds
+  80%) · **chosen_dlogp_post 0.03652** (the update genuinely moved the
+  policy, v1 /158 no-op check) · epoch loss 0.59094.
+- Artifacts: `rlv2_off50.pt` (full, 39 MB) + `rlv2_off50_policy.pt`
+  (sidecar, 39 MB) + `_diag.json` + `_updates.jsonl`.
+- **Verification (executed)**: `BcAsk.fresh` strict-loads the real
+  sidecar as plain PointerBC (the collection path); full checkpoint
+  round-trips through `load_policy` (value head (1, 325) finite, all
+  policy keys finite).
+- The loop's per-iteration wiring was re-verified against this run's
+  artifacts: `ckpt_collect = anchor` at iter 1 (mirror), then each
+  iteration's `<tag>_policy.pt` sidecar for the next; per-iteration
+  tags `rlv2dbg_i1..i5`.
 
-### 7.3 5-iteration on-policy debug loop (pending — after 7.2 lands)
+### 7.3 5-iteration on-policy debug loop (IN FLIGHT — launched 03:5x)
 
 Launch: `/tmp/opencode/rlv2_debug_launch.sh` (OMP_NUM_THREADS=8 per the
 23:21 encode-peak memory measurement; fresh seed blocks 520002+ per the
-D9 registry).
+D9 registry; out `/tmp/opencode/rld_v2dbg`). Expected ~4–6 h wall
+(warm-start dominates). Numbers appended below on completion.
