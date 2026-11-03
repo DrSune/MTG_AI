@@ -189,6 +189,27 @@ def test_gae_per_game_placement():
     assert all(abs(x + 1.0) < 1e-12 for x in advs[3:])
 
 
+def test_gae_zero_decision_game():
+    """A game with zero decisions — a loss before the first ask (e.g. a
+    library-empty loss; measured 2/50 learner games in the 2026-11-03
+    debug collection, which crashed gae_advantages before the fix) —
+    is skipped: no decisions, no credit, neighbours untouched."""
+    dec = [
+        {"reward": 1.0},
+        {"reward": 1.0},
+        {"reward": -1.0},
+    ]
+    offsets = [0, 2, 3, 3]  # last game has zero decisions
+    advs = T.gae_advantages(dec, offsets, [0.1, 0.2, -0.3], lam=0.95)
+    assert len(advs) == 3
+    # game 1 (gamma=1, lam=0.95): d0 = 0 + V1 - V0 = 0.1;
+    # d1 = 1 + 0 - V1 = 0.8 -> A = [0.1 + 0.95*0.8, 0.8] = [0.86, 0.8]
+    # game 2 (terminal only): A = -1 - (-0.3) = -0.7
+    assert advs[0] == pytest.approx(0.86)
+    assert advs[1] == pytest.approx(0.8)
+    assert advs[2] == pytest.approx(-0.7)
+
+
 def test_explained_variance():
     # perfect prediction -> 1
     assert T.explained_variance(

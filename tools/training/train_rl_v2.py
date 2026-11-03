@@ -560,6 +560,12 @@ def gae_advantages(
     for g in range(len(bounds) - 1):
         s, e = bounds[g], bounds[g + 1]
         n = e - s
+        if n == 0:
+            # zero-decision game: a loss before the first ask (e.g. the
+            # player emptied their library — measured 2/50 learner games,
+            # plus 2 opponent-side rows, in the 2026-11-03 debug
+            # collection). Nothing to credit.
+            continue
         rewards = [0.0] * (n - 1) + [decisions[e - 1]["reward"]]
         advs.extend(compute_gae(rewards, values[s:e], gamma=1.0, lam=lam))
     return advs
