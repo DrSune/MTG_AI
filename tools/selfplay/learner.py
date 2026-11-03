@@ -367,8 +367,8 @@ class Learner:
         table_json = self.table.to_json()
         for wid in range(self.args.workers):
             a, b = ctx.Pipe(duplex=True)
-            p = ctx.Process(target=worker_main, args=(wid, b, self.args.slots, table_json),
-                            daemon=True)
+            p = ctx.Process(target=worker_main, args=(wid, b, self.args.slots, table_json, 5,
+                                                      self.args.groups), daemon=True)
             p.start()
             self.conns.append(a)
             self.procs.append(p)
@@ -1272,6 +1272,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--workers", type=int, default=16)
     p.add_argument("--slots", type=int, default=8)
+    p.add_argument("--groups", type=int, default=2,
+                   help="pipelined slot groups per worker (more hide more round-trip latency)")
     # model
     p.add_argument("--d", type=int, default=256)
     p.add_argument("--layers", type=int, default=6)

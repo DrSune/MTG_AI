@@ -189,7 +189,8 @@ class _Slot(threading.Thread):
 
 
 class Worker:
-    def __init__(self, wid: int, conn: Any, n_slots: int, table_json: dict) -> None:
+    def __init__(self, wid: int, conn: Any, n_slots: int, table_json: dict,
+                 n_groups: int = 2) -> None:
         self.wid = wid
         self.conn = conn
         self.table = FT.CardTable.from_json(table_json)
@@ -197,11 +198,13 @@ class Worker:
         self.outbox: list = []
         self.main_wake = threading.Semaphore(0)
         self.slots = [_Slot(self, i) for i in range(n_slots)]
-        half = max(1, n_slots // 2)
-        self.groups = [self.slots[:half], self.slots[half:]] if n_slots > 1 else [self.slots, []]
+        # Slot groups are pipelined: a group's requests are answered while the others run. More
+        # groups hide more round-trip latency (simulated decisions are only ~1-2 ms apart).
+        n_groups = max(1, min(n_groups, n_slots))
+        self.groups = [self.slots[i::n_groups] for i in range(n_groups)]
         self.need_sent = 0
         self.stopping = False
-        self.answers: dict[int, list | None] = {0: None, 1: None}
+        self.answers: dict[int, list | None] = {g: None for g in range(len(self.groups))}
 
     def take_job(self) -> dict | None:
         return self.jobs.popleft() if self.jobs else None
@@ -264,10 +267,10 @@ class Worker:
     def loop(self) -> None:
         for s in self.slots:
             s.start()
-        outstanding: list[list[_Slot]] = [[], []]
+        outstanding: list[list[_Slot]] = [[] for _ in self.groups]
         while not self.stopping:
             progressed = False
-            for g in (0, 1):
+            for g in range(len(self.groups)):
                 if outstanding[g]:
                     answers = self._wait_answers(g)
                     if self.stopping:
@@ -299,7 +302,8 @@ class Worker:
                 self._handle(self.conn.recv())
 
 
-def worker_main(wid: int, conn: Any, n_slots: int, table_json: dict, nice: int = 5) -> None:
+def worker_main(wid: int, conn: Any, n_slots: int, table_json: dict, nice: int = 5,
+                n_groups: int = 2) -> None:
     try:
         os.nice(nice)
     except OSError:
@@ -308,4 +312,4 @@ def worker_main(wid: int, conn: Any, n_slots: int, table_json: dict, nice: int =
 
     sys.setrecursionlimit(20000)
     threading.stack_size(64 * 1024 * 1024)
-    Worker(wid, conn, n_slots, table_json).loop()
+    Worker(wid, conn, n_slots, table_json, n_groups=n_groups).loop()
