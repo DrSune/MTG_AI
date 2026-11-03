@@ -95,3 +95,16 @@ explore) and one +-1 outcome per ~45 decisions credits the rare useful deviation
 evidence that PPO cannot work here; evidence that at ~2K games per update it does not, from a
 peaked BC start. r5 keeps the curriculum, gates and Elo ladder and adapts by expert iteration
 (search distillation), whose per-decision targets compare alternatives in the same position.
+
+## 8. r5: expert iteration vs the teacher, first two generations
+
+| Gen | searching seat vs heuristic (training games) | games/s (18x8) | distillation (held-out agreement with search labels / value MSE) |
+|---|---|---|---|
+| 1 | **0.560** (1,499 games) | 3.63 | 0.9552 / 0.5149 |
+| 2 | **0.609** (1,500 games) | 1.38 | 0.9216 / 0.2509 |
+
+Raw network (no search) vs heuristic after gen 2: **0.500** [0.431, 0.569]; paired vs v0 on the
+same 98 deals **+0.028** [-0.013, +0.071] (10 deals better, 6 worse). Searching player +11 points
+above its own raw network: distillation under-fit (1 epoch, lr 1e-4, ~4K-decision minibatches =
+~35 optimizer steps for 137K samples). r6 restarts from r5's gen-2 net (last.pt, it 2) with 3
+epochs, lr 2e-4, minibatches <= 1024 (~400 steps per generation).
