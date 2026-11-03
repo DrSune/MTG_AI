@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import multiprocessing as mp
+import os
 import sys
 from collections import Counter
 from typing import Any
@@ -121,6 +122,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default="")
     args = ap.parse_args(argv)
     jobs = [(args.seed_base + i, swap, args.old) for i in range(args.games) for swap in (False, True)]
+    # libgomp otherwise starts one spin-waiting thread per core in every worker: measured ~4.7x
+    # the useful CPU burnt in idle spinning. Spawned workers inherit the environment.
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
     ctx = mp.get_context("spawn")
     with ctx.Pool(args.workers, initializer=_init, initargs=(args.new, args.seed_base)) as pool:
         rows = pool.map(_play, jobs, chunksize=2)

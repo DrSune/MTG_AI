@@ -1,5 +1,20 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+## 2026-11-03
+- **[Training activations are system memory on the Spark: cap minibatches by padded tokens, not by
+  rows.]** One forward+backward of the tools/selfplay net costs ~66-72 KiB per padded token (d256 L6)
+  and ~170 KiB (d512 L8), measured with `torch.cuda.max_memory_allocated`. A 1024-row minibatch of
+  the longest sequences (~170 tokens) is ~11.5 GiB and took MemAvailable from ~22 to ~1-6 GiB while
+  vLLM was resident (2026-11-03). `tools/selfplay/learner.py` caps rows x longest-sequence with
+  `--tok-budget` and stops itself below `--mem-floor-gib` (KNOWLEDGE/2026-11-03/182).
+- **[A tiny CPU forward per decision in many processes: pin torch to one thread.]** With
+  `torch.set_num_threads(2)` each per-decision forward created and destroyed threads: ~2,400
+  threads/s per process, 24K PIDs/s machine-wide (load average 28 on 20 cores). One intra-op and one
+  inter-op thread brought the machine to ~40 new PIDs/s (`tools/selfplay/vs_legacy.py`).
+- **[`PointerBC` is not causal.]** `tools/training/bc_model.py` runs `TransformerEncoderLayer` with no
+  attention mask although its docstring says causal; training sees each decision's future, play
+  sees only the prefix (measured, KNOWLEDGE/2026-11-03/182 §1).
+
 ## 2026-10-05
 - **[Scenario `damage` is live-ledger truth; use `damage_received` for historical combat proof.]** `expect["damage"]` reads the executor's live damage ledger, which `end_turn()` cleanup clears. A pack that survives combat but asserts post-cleanup damage needs the additive `expect["damage_received"]` lane, which sums historical `KIND_DAMAGE` rows with `subject.namespace == "card"`.
 - **[Partition `TARGETING` rows are audit evidence, not CR target designation.]** `ONE_OF` and `REST` selectors may emit `TARGETING` journal rows with `cause_verb="ONE_OF"` or `cause_verb="REST"`, but `TargetingEvent` triggers match only `cause_verb == "TARGET"`. Query, legality, and count resolution must not journal partition choices; only real partition-applying verbs pass `journal_partition=True`.
