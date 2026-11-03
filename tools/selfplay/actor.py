@@ -73,8 +73,10 @@ class NetAgent:
         # Expert iteration: in a "bc" job a recorded network seat keeps (features, the move it
         # actually played) locally, the search's choice where it searched; the learner trains
         # on them like BC data. The server records nothing for it (that lane is PPO's).
-        self.label = job["kind"] == "bc" and self.record
-        self.samples: list[tuple[dict, int]] = []
+        value_only = bool(job.get("value_seats", [False, False])[seat])
+        self.label = job["kind"] == "bc" and (self.record or value_only)
+        self.wp = 0.0 if value_only and not self.record else 1.0
+        self.samples: list[tuple[dict, int, float]] = []
         if spec.endswith(SEARCH_SUFFIX):
             from tools.selfplay.search import Searcher
 
@@ -98,7 +100,8 @@ class NetAgent:
             if idx is not None:
                 if self.label:
                     self.samples.append(
-                        (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx))
+                        (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx,
+                         self.wp))
                 return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
         self.decisions += 1
@@ -109,7 +112,7 @@ class NetAgent:
                    self.record and not self.label, feats)
             idx = int(self.slot.infer(req))
         if self.label:
-            self.samples.append((feats, idx))
+            self.samples.append((feats, idx, self.wp))
         return idx
 
     def plan_combat(self, game: Any, seat: int) -> None:
@@ -121,20 +124,24 @@ class NetAgent:
 
 
 class RecordingHeuristic:
-    """The heuristic, recording (features, action) for behaviour cloning."""
+    """The heuristic, recording (features, action, policy weight) for behaviour cloning. With
+    ``value_only`` the policy weight is 0: the decision trains the value head only (an ExIt
+    opponent's positions, seen from its own seat)."""
 
-    def __init__(self, seat: int, table: FT.CardTable) -> None:
+    def __init__(self, seat: int, table: FT.CardTable, value_only: bool = False) -> None:
         self.inner = HeuristicAgent()
         self.seat = seat
         self.table = table
-        self.samples: list[tuple[dict, int]] = []
+        self.wp = 0.0 if value_only else 1.0
+        self.samples: list[tuple[dict, int, float]] = []
         self.name = "heuristic"
 
     def decide(self, ask: Any, obs: Any) -> int:
         idx = self.inner.decide(ask, obs)
         n = len(ask.options)
         if 1 < n <= FT.MAX_OPTIONS and ask.kind != "name":
-            self.samples.append((FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx))
+            self.samples.append(
+                (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx, self.wp))
         return idx
 
 
@@ -205,8 +212,12 @@ class Worker:
             if is_net(spec):
                 agents.append(NetAgent(slot, job, seat, self.table))
             elif spec == "heuristic":
-                agents.append(RecordingHeuristic(seat, self.table) if job["record"][seat]
-                              else HeuristicAgent())
+                value_only = bool(job.get("value_seats", [False, False])[seat])
+                if job["record"][seat] or value_only:
+                    agents.append(RecordingHeuristic(seat, self.table,
+                                                     value_only=not job["record"][seat]))
+                else:
+                    agents.append(HeuristicAgent())
             elif spec == "random":
                 agents.append(_UniformRandom(job["seed"] * 7 + seat))
             else:

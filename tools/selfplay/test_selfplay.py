@@ -80,7 +80,7 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
     assert res["crash"] is None
     samples = recs[0].samples + recs[1].samples
     assert len(samples) > 20
-    for feats, idx in samples:
+    for feats, idx, _wp in samples:
         e = feats["cards_i"].shape[0]
         k = feats["opts_i"].shape[0]
         assert 2 <= k <= FT.MAX_OPTIONS and 0 <= idx < k
@@ -110,7 +110,7 @@ def test_network_is_equivariant_over_options_and_roundtrips(table, tmp_path) -> 
     net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
     for p in net.parameters():
         p.data.normal_(0, 0.1)
-    feats = next(f for f, _ in samples if f["opts_i"].shape[0] >= 3)
+    feats = next(s[0] for s in samples if s[0]["opts_i"].shape[0] >= 3)
     rev = dict(feats)
     rev["opts_i"] = feats["opts_i"][::-1].copy()
     rev["opts_f"] = feats["opts_f"][::-1].copy()
@@ -121,7 +121,7 @@ def test_network_is_equivariant_over_options_and_roundtrips(table, tmp_path) -> 
     assert torch.allclose(va, vb, atol=1e-5)
     # padding other rows into a batch must not change a row's outputs
     with torch.no_grad():
-        c, vc = net(M.collate([feats] + [f for f, _ in samples[:7]], "cpu"))
+        c, vc = net(M.collate([feats] + [s[0] for s in samples[:7]], "cpu"))
     k = feats["opts_i"].shape[0]
     assert torch.allclose(a[0, :k], c[0, :k], atol=1e-4) and torch.allclose(va[0], vc[0], atol=1e-5)
     path = tmp_path / "net.pt"
@@ -136,7 +136,7 @@ def test_network_is_equivariant_over_options_and_roundtrips(table, tmp_path) -> 
 def test_packed_collation_equals_collate(table) -> None:
     recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
     play_game(9, recs, deck_mode="stress")
-    feats = [f for f, _ in recs[0].samples + recs[1].samples]
+    feats = [s[0] for s in recs[0].samples + recs[1].samples]
     packed = M.pack(feats)
     assert len(packed) == len(feats)
     idx = np.array([5, 0, 17, 3, len(feats) - 1])

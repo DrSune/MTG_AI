@@ -390,6 +390,8 @@ class Learner:
                 record = [s == "heuristic" for s in seats]
             job = self._job("bc", self.bc_seed0 + self.bc_issued, seats, [True, True], record,
                             self._deck_mode())
+            # the opponent's positions (its own view, its own outcome) train the value only
+            job["value_seats"] = [not r and self.args.exit_value_opp for r in record]
             job["search"] = self.search_opts()
             return job
         if self.phase == "ppo":
@@ -604,8 +606,9 @@ class Learner:
                 if not void and r.get("bc"):
                     for seat in (0, 1):
                         z = self.reward(r["outcome"], r["winner"], seat)
-                        for feats, idx in r["bc"][seat] or []:
-                            self.bc.append((feats, idx, z, r["gid"]))
+                        for sample in r["bc"][seat] or []:
+                            wp = sample[2] if len(sample) > 2 else 1.0
+                            self.bc.append((sample[0], sample[1], z, r["gid"], wp))
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args
@@ -706,9 +709,13 @@ class Learner:
                 b = M.collate([train[i][0] for i in ch], self.device)
                 act = torch.tensor([train[i][1] for i in ch], device=self.device)
                 z = torch.tensor([train[i][2] for i in ch], device=self.device)
+                wp = torch.tensor([train[i][4] if len(train[i]) > 4 else 1.0 for i in ch],
+                                  device=self.device)
                 with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                     logits, v = net(b)
-                loss = F.cross_entropy(logits, act) + a.bc_vcoef * F.mse_loss(v, z)
+                ce = F.cross_entropy(logits, act, reduction="none")
+                pol = (ce * wp).sum() / wp.sum().clamp(min=1.0)
+                loss = pol + a.bc_vcoef * F.mse_loss(v, z)
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(net.parameters(), a.max_grad)
@@ -732,6 +739,7 @@ class Learner:
         net = self.model if net is None else net
         net.eval()
         correct = 0
+        labelled = 0
         vls = []
         for i in range(0, len(test), self.args.mb):
             part = test[i:i + self.args.mb]
@@ -739,11 +747,13 @@ class Learner:
             with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                 logits, v = net(b)
             pred = logits.argmax(-1).cpu().numpy()
-            correct += int(sum(int(p == x[1]) for p, x in zip(pred, part, strict=True)))
+            labelled += sum(1 for x in part if (x[4] if len(x) > 4 else 1.0) > 0)
+            correct += int(sum(int(p == x[1]) for p, x in zip(pred, part, strict=True)
+                               if (x[4] if len(x) > 4 else 1.0) > 0))
             z = torch.tensor([x[2] for x in part], device=self.device)
             vls.append(F.mse_loss(v, z).item())
         net.train()
-        return round(correct / max(len(test), 1), 4), round(float(np.mean(vls or [0])), 4)
+        return round(correct / max(labelled, 1), 4), round(float(np.mean(vls or [0])), 4)
 
     # ------------------------------------------------------------------ eval
 
@@ -1261,6 +1271,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--exit-epochs", type=int, default=2)
     p.add_argument("--exit-lr", type=float, default=2e-4)
     p.add_argument("--exit-keep", type=int, default=3, help="generations of data trained on")
+    p.add_argument("--exit-value-opp", action="store_true",
+                   help="also record the opponent's positions (value targets only)")
     p.add_argument("--exit-eval-seats", default="eval,eval+search")
     p.add_argument("--rollout-init", default="",
                    help="checkpoint of a small network that plays the moves inside simulations")
