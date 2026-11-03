@@ -348,7 +348,9 @@ class Learner:
         if self.phase == "bc" and self.bc_issued < self.bc_target:
             self.bc_issued += 1
             seats = list(self.bc_seats)
-            if self.exit_opps:
+            if self.stage and seats[0].endswith("+search"):
+                seats[1] = self.curriculum_opponent()
+            elif self.exit_opps:
                 seats[1] = self.rng.choice(self.exit_opps)
             if seats[0] != seats[1] and self.rng.random() < 0.5:
                 seats.reverse()  # the recorded seat plays both sides of the table
@@ -387,6 +389,17 @@ class Learner:
         seats = ["learner", opp] if seat == 0 else [opp, "learner"]
         record = [s == "learner" for s in seats]
         return self._job("train", seed, seats, [False, False], record, self._deck_mode())
+
+    def curriculum_opponent(self) -> str:
+        a = self.args
+        if self.stage == "teacher":
+            return "heuristic"
+        r = self.rng.random()
+        if r < a.p_heuristic:
+            return "heuristic"
+        if r < a.p_heuristic + a.p_past and len(self.versions) > 1:
+            return self.rng.choice(self.versions[:-1])
+        return self.versions[-1]
 
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
@@ -542,6 +555,12 @@ class Learner:
                     fh.write(json.dumps(row) + "\n")
             elif kind == "bc":
                 self.bc_done += 1
+                if not void:
+                    seats = r.get("seats") or []
+                    for seat, spec in enumerate(seats):
+                        if spec.endswith("+search") and not seats[1 - seat].endswith("+search"):
+                            self.train_results.append((seats[1 - seat], self.reward(
+                                r["outcome"], r["winner"], seat), r["turns"]))
                 if not void and r.get("bc"):
                     for seat in (0, 1):
                         z = self.reward(r["outcome"], r["winner"], seat)
@@ -905,6 +924,68 @@ class Learner:
                 self.save("last.pt", {"versions": self.versions, "stage": self.stage})
         self.save("last.pt", {"versions": self.versions, "stage": self.stage})
 
+    def _drain_evals(self) -> None:
+        """Run every queued evaluation to completion (gates may queue ladders)."""
+        while True:
+            self._eval_tick()
+            if not self.eval_pending and not self.eval_meta and not self.eval_queue:
+                return
+            prev, self.phase = self.phase, "idle"
+            self.serve(lambda: not self.eval_pending)
+            self.phase = prev
+
+    def curriculum_exit(self) -> None:
+        """The same curriculum and gates, with expert iteration as the adaptation step: each
+        generation the searching learner plays --exit-games against the stage's opponents
+        (teacher stage: the heuristic; selfplay: the newest frozen version, plus --p-past and
+        --p-heuristic), the network is trained on the moves the search chose and the outcomes
+        (a window of --exit-keep generations), then the stage's gate runs."""
+        a = self.args
+        v0 = self.freeze(self.model)
+        self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"], a.ladder_deals)
+        self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"], a.ladder_deals)
+        self._drain_evals()
+        self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
+        self.bc_seats = [a.exit_seat, a.exit_seat]
+        window: deque = deque(maxlen=a.exit_keep)
+        for self.it in range(1, a.iters + 1):
+            t0 = time.time()
+            self.bc, self.phase = [], "bc"
+            self.bc_target, self.bc_issued, self.bc_done = a.exit_games, 0, 0
+            self.bc_seed0 = BC_SEED0 + 1_000_000 * self.it
+            self.serve(lambda: self.bc_done >= self.bc_target)
+            self.phase = "idle"
+            play_s = time.time() - t0
+            window.append(self.bc)
+            res, self.train_results = self.train_results, []
+            wr: dict[str, list] = defaultdict(list)
+            for opp, z, _ in res:
+                wr["frozen" if opp == self.versions[-1] else
+                   ("past" if opp.startswith("v") else opp)].append(z)
+            self.bc = [x for part in window for x in part]
+            n_window = len(self.bc)
+            t1 = time.time()
+            fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr)
+            self.log({"event": "iter", "it": self.it, "stage": self.stage, "adapt": "exit",
+                      "samples": len(window[-1]), "window": n_window,
+                      "label_acc": fit.get("test_acc"), "value_mse": fit.get("test_vloss"),
+                      "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
+                              for k, v in wr.items()},
+                      "games": len(res), "play_s": round(play_s, 1),
+                      "train_s": round(time.time() - t1, 1),
+                      "games_s": round(self.bc_done / max(play_s, 1e-6), 2),
+                      "frozen": self.versions[-1], "mem_gib": round(mem_available_gib(), 1),
+                      "search": {k: v for k, v in self.counts.items() if k.startswith("bc")}})
+            self.bc = []
+            if self.stage == "teacher" and self.it % a.eval_every == 0:
+                self.queue_eval("teacher", f"teacher:it{self.it}", "eval", ["heuristic"],
+                                a.eval_deals)
+            if self.stage == "selfplay" and self.it % a.gate_every == 0:
+                self.queue_eval("gate", f"gate:it{self.it}", "eval", [self.versions[-1]],
+                                a.gate_deals)
+            self._drain_evals()
+            self.save("last.pt", {"versions": self.versions, "stage": self.stage})
+
     def run_eval(self, tag: str, seat: str) -> dict:
         self.start_eval(tag, seat=seat)
         prev, self.phase = self.phase, "idle"
@@ -975,7 +1056,10 @@ class Learner:
             if a.curriculum:
                 if a.bc_games > 0 and not a.init:
                     self.bc_phase()
-                self.curriculum()
+                if a.adapt == "exit":
+                    self.curriculum_exit()
+                else:
+                    self.curriculum()
                 return
             if a.exit_gens > 0:
                 self.add_snapshot()
@@ -1092,6 +1176,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--curriculum", action="store_true")
+    p.add_argument("--adapt", default="ppo", choices=("ppo", "exit"),
+                   help="how the learner adapts in each stage: PPO, or expert iteration (search "
+                        "distillation, generations of --exit-games)")
     p.add_argument("--teacher-iters", type=int, default=60,
                    help="max PPO iterations against the heuristic before frozen self-play")
     p.add_argument("--teacher-gate", type=float, default=0.65,
