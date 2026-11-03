@@ -129,3 +129,22 @@ The 0.0000 deltas at KL ≤ 1.3e-3 are the first empirical measurement of the
 tripwire cannot fire at iteration-scale movements; it guards the confirmation
 phase where cumulative KL may be larger. `verdict`/`beat_se` are null in
 standalone use (single-ckpt run); the gate reads the raw `acc` delta.
+
+## 7. Addendum (2026-11-03): RL v2 on-policy debug seed blocks — CONSUMED
+
+The RL v2 discarded 5-iteration debug run (/180 §7.3, worktree
+`30c75f/rl-v2`, engine-known-broken era, results thrown away) consumed
+the following blocks — all ≥ 400 clear of every block above and of the
+pilot spans (510201+/511xxx/512002):
+
+| Item | Games | seed-base | seed span | dps | rl-seed |
+|---|---|---|---|---|---|
+| rlv2dbg iter 1 | 50 | **520001** | 520002–520051 | **1500** | **4300** |
+| rlv2dbg iter 2 | 50 | **521001** | 521002–521051 | **1501** | **4301** |
+| rlv2dbg iter 3 | 50 | **522001** | 522002–522051 | **1502** | **4302** |
+| rlv2dbg iter 4 | 50 | **523001** | 523002–523051 | **1503** | **4303** |
+| rlv2dbg iter 5 | 50 | **524001** | 524002–524051 | **1504** | **4304** |
+
+Mirror matchup (learner = previous iteration's sidecar, iter 1 = the
+frozen anchor); CPU per the memory law. Blocks reserved for future
+v2 work: none yet — the next real run reserves fresh spans ≥ 525001.

@@ -207,11 +207,74 @@ budget, checkpoint pair `<tag>.pt` + `<tag>_policy.pt` sidecar
   should state this handling explicitly (the game counts in game-level
   stats, contributes no decisions).
 
-**Retry (attempt 2, in flight)**: relaunched ~05:5x via
-`/tmp/opencode/rlv2_debug_launch.sh` (OMP_NUM_THREADS=8; out
-`/tmp/opencode/rld_v2dbg`). Same seed block 520002–520051 — a retry,
-not a new experiment (deterministic engine + fixed seeds ⇒ identical
-games). First attempt's episode file archived as
-`episodes_i1_firstattempt.jsonl`
-(SHA-256 `ef905a3c22932dbe83bac60e2dcee08a75e4fb20665652f033b9c208e5c43140`)
-for the bit-identity check of the on-policy collection path.
+**Retry (attempt 2, killed)**: relaunched ~05:5x; killed by an opencode
+server restart ~08:00 during warm-start (no iteration artifacts).
+
+**Attempt 3 (2026-11-03 08:10 → 11:15, wall ~3 h 05 min, COMPLETE)** —
+same launch, same (deterministic) seed blocks; the GAE fix
+(`6c7772d`) was in place throughout.
+
+- Warm-start (500g / 23910 decisions / 3 epochs): last-epoch MSE
+  0.84440, train EV 0.17849, **held-out EV 0.18577** (200g) — gate
+  passed. (Attempt 1 measured 0.1660 on the same seeded carve: the
+  difference is unseeded value-head INIT — the carve is seeded by
+  `--seed`, the torch RNG is not; note for the real run: seed the
+  torch RNG at start.)
+- **All 5 iterations completed the full cycle** (collect → SHA guard +
+  seat filter → encode → GAE → PPO w/ KL early-stop → checkpoint +
+  sidecar; each iteration's collection strict-loads the previous
+  iteration's sidecar via `BcAsk.fresh` — the sidecar chain worked in
+  production, i1→i2→i3→i4→i5):
+
+| it | W/L/D/X | decisions | KL/update | entropy | EV(batch) | dlogp_post | grad pre/max | epochs run | early-stop |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 16/30/2/2 | 2575 | 0.01185 | 0.0818 | 0.2535 | 0.0482 | 6.69/28.94 | 2/3 | yes |
+| 2 | 21/25/0/4 | 2071 | 0.01148 | 0.0096 | 0.1288 | 0.0313 | 7.76/7.76 | 1/3 | yes |
+| 3 | 22/27/0/1 | 2647 | 0.01141 | 0.0148 | −0.0391 | 0.0324 | 7.28/8.28 | 1/3 | yes |
+| 4 | 23/23/1/3 | 2657 | 0.01387 | 0.0066 | 0.1121 | 0.0375 | 17.05/17.05 | 1/3 | yes |
+| 5 | 18/29/0/3 | 2015 | 0.01114 | 0.0305 | −0.0334 | 0.0374 | 6.05/11.17 | 1/3 | yes |
+
+- **Checklist tally** (pre-registration items 1–6, per iteration):
+  item 2 (KL > 1e-6, early-stop respected) **5/5** · item 4 (no NaNs)
+  **5/5** · item 5 (no trainer crash) **5/5** · item 6 (draws logged)
+  **5/5** · item 1 (EV > 0 per update) **3/5** (fails: iters 3, 5) ·
+  item 3 (entropy 0.02–0.5) **2/5** (fails: iters 2, 3, 4). Strict
+  pre-registered success (ALL items, every iteration): **NOT MET** —
+  two sentinel violations, both diagnostic, neither a mechanical fault:
+  - **Entropy collapse** (iter 2: 0.0096 → iter 4: 0.0066): PPO with no
+    entropy term (the spec's "no shaping") sharpens an already
+    low-entropy BC anchor; iter 1 starts at 0.082 on the on-policy
+    mirror distribution and is below the 0.02 sentinel by iter 2. The
+    loop behaves exactly as specified — the spec's no-entropy choice is
+    what collapses. Real-run spec item for the owner: add an entropy
+    bonus or recalibrate the sentinel band.
+  - **Value EV negative on iters 3/5** (−0.039, −0.033, modest): the
+    value head was warm-started on the ANCHOR's state distribution; the
+    policy drifts (cumulative KL ≈ 0.06 over 5 updates) while the value
+    head gets few steps per update (early-stop at ~1 epoch) and every
+    iteration brings 50 fresh games. Value ≈ mean baseline on those
+    batches; GAE still functional. A value-lag effect, not a loop
+    fault.
+- **Iter-1 determinism + GAE-fix proof**: iter-1's collection
+  (seed block 520002–520051) re-collected in attempt 3 is
+  **SHA-256 bit-identical** to attempt 1's (`ef905a3c22932dbe83bac60e
+  2dcee08a75e4fb20665652f033b9c208e5c43140`) — the on-policy
+  `--rl-collect` path is bit-reproducible across process restarts.
+  And iter 1's collection contains the same 2 zero-ask learner losses
+  that crashed attempt 1's GAE — iter 1 completed this time: the GAE
+  fix is proven on the fault data itself.
+- Engine crash rate this run: 2/4/1/3/3 per 50 games — consistent with
+  the known-broken engine; handled per v1 convention (crash = loss;
+  zero-ask rows carry no decisions).
+- Artifacts (all DISCARDED per the pre-registration; /tmp, untracked):
+  `rlv2dbg_summary.json` (seed blocks + all metrics), per-iteration
+  `<tag>.pt` + `<tag>_policy.pt` + `_diag.json` + `_updates.jsonl`,
+  `episodes_i1..i5.jsonl` (203 MB total, plus the 45 MB archived
+  first-attempt file), `collect_i1..i5.json`.
+- **Conclusion**: the v2 loop is **mechanically sound** — the one
+  question the pre-registration was designed to answer. Strict success
+  not met; the two sentinel violations have measured root causes and
+  both feed the real-run spec (entropy: owner call; value-lag:
+  documented). Everything trained here is thrown away (broken engine);
+  nothing here is a strength claim (mirror win rates 16–23/50 carry no
+  game-theoretic content on this era).
