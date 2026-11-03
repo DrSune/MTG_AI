@@ -22,11 +22,13 @@ Every number goes to ``<run>/metrics.jsonl``; checkpoints to ``<run>/*.pt``.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import math
 import multiprocessing as mp
 import random
 import sys
+import threading
 import time
 from collections import Counter, defaultdict, deque
 from multiprocessing.connection import wait
@@ -124,6 +126,15 @@ class Learner:
                                  ff=args.ff, name_dropout=args.name_dropout).to(self.device)
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
+        self.infer_stream = None
+        if args.async_update:
+            # Workers keep playing on this copy while the GPU trains self.model (sync_actor).
+            self.actor = self._copy(self.model)
+            self.models["learner"] = self.actor
+            # Inference stays on the default stream: with its own stream, concurrent training
+            # and inference kernels hit a device-side assert after ~5 iterations that never
+            # reproduced with CUDA_LAUNCH_BLOCKING=1 (2026-11-03). One stream serialises the GPU
+            # work; the gain kept is that workers keep playing while the update runs.
         self.snaps: list[str] = []
         self.opt = torch.optim.AdamW(self.model.parameters(), lr=args.lr, betas=(0.9, 0.99),
                                      eps=1e-6, weight_decay=args.wd)
@@ -159,6 +170,47 @@ class Learner:
         self.infer_time = 0.0
         self._mem_checked = 0.0
         self._start_workers()
+
+    def _copy(self, src: torch.nn.Module) -> torch.nn.Module:
+        cfg = {k: v for k, v in self.model.config.items() if k not in ("n_cards", "n_ir")}
+        net = M.build(self.table, **cfg).to(self.device)
+        net.load_state_dict(src.state_dict())
+        net.eval()
+        if self.cuda:
+            torch.cuda.synchronize()  # the copy is complete before any stream reads it
+        return net
+
+    def sync_actor(self) -> None:
+        if self.args.async_update:
+            self.actor.load_state_dict(self.model.state_dict())
+            if self.cuda:
+                torch.cuda.synchronize()
+
+    def update(self) -> dict:
+        """One PPO update. With --async-update it runs in a thread while this thread keeps
+        serving the workers on the actor copy (they otherwise sit idle for the whole update);
+        the next batch then starts with data from the previous weights, which the PPO ratio
+        and clipping account for."""
+        if not self.args.async_update:
+            return self.ppo_update()
+        buf, self.buffer = self.buffer, []
+        out: dict = {}
+
+        def work() -> None:
+            try:
+                out.update(self.ppo_update(buf))
+            except BaseException as error:  # noqa: BLE001 - re-raised in the main thread
+                out["error"] = error
+
+        th = threading.Thread(target=work, daemon=True)
+        th.start()
+        self.serve(lambda: not th.is_alive())
+        th.join()
+        if "error" in out:
+            raise out["error"]
+        self.sync_actor()
+        out["overlap_steps"] = len(self.buffer)
+        return out
 
     # ------------------------------------------------------------------ memory
 
@@ -356,21 +408,27 @@ class Learner:
         for mi, (_, _, reqs) in enumerate(msgs):
             for ri, req in enumerate(reqs):
                 by_key[req[2]].append((mi, ri, req))
+        stream_ctx = (torch.cuda.stream(self.infer_stream) if self.infer_stream is not None
+                      else contextlib.nullcontext())
         for key, items in by_key.items():
             model = self.models[key]
-            b = M.collate([it[2][5] for it in items], self.device)
-            with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
-                logits, value = model(b)
-            greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
-            probs = torch.softmax(logits, -1)
-            sampled = torch.multinomial(probs, 1).squeeze(1)
-            act = torch.where(greedy, logits.argmax(-1), sampled)
-            logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
-            act_np = act.cpu().numpy()
-            logp_np = logp.cpu().numpy()
-            val_np = value.cpu().numpy()
-            probs_np = probs.float().cpu().numpy() if any(
-                len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
+            with stream_ctx:
+                b = M.collate([it[2][5] for it in items], self.device)
+                with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
+                    logits, value = model(b)
+            with stream_ctx:
+                greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
+                probs = torch.softmax(logits, -1)
+                sampled = torch.multinomial(probs, 1).squeeze(1)
+                act = torch.where(greedy, logits.argmax(-1), sampled)
+                logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
+                # read back on the SAME stream: a copy on the default stream would not wait for
+                # these kernels (with --async-update that race corrupted recorded logps -> NaN)
+                act_np = act.cpu().numpy()
+                logp_np = logp.cpu().numpy()
+                val_np = value.cpu().numpy()
+                probs_np = probs.float().cpu().numpy() if any(
+                    len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
             for j, (mi, ri, req) in enumerate(items):
                 a = int(act_np[j])
                 # req[6] ("want"): 0/absent -> the action; 1 -> (action, value);
@@ -487,16 +545,19 @@ class Learner:
         random.shuffle(chunks)
         return chunks
 
-    def ppo_update(self) -> dict:
+    def ppo_update(self, buf: list | None = None) -> dict:
         a = self.args
-        buf, self.buffer = self.buffer, []
+        if buf is None:
+            buf, self.buffer = self.buffer, []
         n = len(buf)
         adv = np.array([b[4] for b in buf], dtype=np.float32)
         adv_n = (adv - adv.mean()) / (adv.std() + 1e-8)
         ret = np.array([b[5] for b in buf], dtype=np.float32)
         old_v = np.array([b[3] for b in buf], dtype=np.float32)
         ev = 1.0 - float(np.var(ret - old_v)) / max(float(np.var(ret)), 1e-8)
-        self.model.train()
+        # eval() = no name dropout: PPO's ratio must compare the policy that acted with the same
+        # function (dropout is for supervised BC only; in train mode the ratio was noise-inflated)
+        self.model.eval()
         stats = defaultdict(list)
         stop = False
         # Minibatches are formed and collated ONCE per iteration and reused by every epoch (only
@@ -525,7 +586,8 @@ class Learner:
                 logp_all = torch.log_softmax(logits, -1)
                 logp = logp_all.gather(1, act[:, None]).squeeze(1)
                 ent = -(logp_all.exp() * logp_all).sum(-1)
-                ratio = torch.exp(logp - old_logp)
+                # clamp: a rail against overflow, far outside the clip range
+                ratio = torch.exp((logp - old_logp).clamp(-20.0, 20.0))
                 pg = -torch.min(ratio * A, ratio.clamp(1 - a.clip, 1 + a.clip) * A).mean()
                 v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
                 vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
@@ -542,8 +604,15 @@ class Learner:
                     loss = loss + a.kl_anchor * kl_anc
                     stats["kl_anchor"].append(kl_anc.item())
                 self.opt.zero_grad(set_to_none=True)
+                if not torch.isfinite(loss):
+                    stats["nonfinite"].append(1.0)  # skipped step, counted (never silent)
+                    continue
                 loss.backward()
                 gn = torch.nn.utils.clip_grad_norm_(self.model.parameters(), a.max_grad)
+                if not torch.isfinite(gn):
+                    self.opt.zero_grad(set_to_none=True)
+                    stats["nonfinite"].append(1.0)
+                    continue
                 self.opt.step()
                 with torch.no_grad():
                     log_ratio = logp - old_logp
@@ -562,7 +631,9 @@ class Learner:
         del batches
         self.model.eval()
         self.release_cache()
-        out = {k: round(float(np.mean(v)), 5) for k, v in stats.items() if k != "epochs"}
+        out = {k: round(float(np.mean(v)), 5) for k, v in stats.items()
+               if k not in ("epochs", "nonfinite")}
+        out["nonfinite"] = len(stats.get("nonfinite", []))
         out.update({"steps": n, "epochs": stats["epochs"][-1], "kl_stop": stop,
                     "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4)})
         return out
@@ -637,11 +708,7 @@ class Learner:
     def start_eval(self, tag: str, opponents: list[str] | None = None,
                    seat: str | None = None, deals: int | None = None) -> None:
         a = self.args
-        frozen = M.build(self.table, **{k: v for k, v in self.model.config.items()
-                                        if k not in ("n_cards", "n_ir")}).to(self.device)
-        frozen.load_state_dict(self.model.state_dict())
-        frozen.eval()
-        self.models["eval"] = frozen
+        self.models["eval"] = self._copy(self.model)
         self.eval_rows = []
         self.eval_meta = {"tag": tag, "it": self.it, "t0": time.time()}
         me = seat or a.eval_seat
@@ -749,10 +816,7 @@ class Learner:
     def freeze(self, src: torch.nn.Module) -> str:
         """A new frozen version from ``src``'s weights (saved as <run>/v<k>.pt)."""
         name = f"v{len(self.versions)}"
-        cfg = {k: v for k, v in self.model.config.items() if k not in ("n_cards", "n_ir")}
-        net = M.build(self.table, **cfg).to(self.device)
-        net.load_state_dict(src.state_dict())
-        net.eval()
+        net = self._copy(src)
         self.models[name] = net
         self.versions.append(name)
         M.save(str(self.run / f"{name}.pt"), net, self.table, {"it": self.it, "stage": self.stage})
@@ -839,7 +903,7 @@ class Learner:
             self.serve(lambda: len(self.buffer) >= a.steps)
             tp = self.throughput(t0, g0, d0)
             t1 = time.time()
-            st = self.ppo_update()
+            st = self.update()
             res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
             for opp, z, _ in res:
@@ -898,6 +962,7 @@ class Learner:
                       "counts": {k: v for k, v in self.counts.items() if k.startswith("bc")}})
             self.bc = [x for part in window for x in part]
             self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr)
+            self.sync_actor()
             self.save(f"exit_gen{gen}.pt")
             for seat in a.exit_eval_seats.split(","):
                 self.run_eval(f"gen{gen}:{seat}", seat)
@@ -924,6 +989,7 @@ class Learner:
         self.log({"event": "bc_gen_done", "games": self.bc_done, "samples": len(self.bc),
                   "secs": round(time.time() - t0, 1), "counts": dict(self.counts)})
         self.bc_train()
+        self.sync_actor()
         self.save("bc.pt")
 
     def main(self) -> None:
@@ -957,7 +1023,7 @@ class Learner:
                 self.serve(lambda: len(self.buffer) >= a.steps)
                 tp = self.throughput(t0, g0, d0)
                 t1 = time.time()
-                st = self.ppo_update()
+                st = self.update()
                 upd = round(time.time() - t1, 1)
                 res = self.train_results
                 self.train_results = []
@@ -1079,6 +1145,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--search-skip-p", type=float, default=0.97,
                    help="no search when the network's top option has at least this probability")
     p.add_argument("--save-every", type=int, default=5)
+    p.add_argument("--async-update", action="store_true",
+                   help="train in a thread while the workers keep playing on an actor copy")
     p.add_argument("--mem-floor-gib", type=float, default=8.0,
                    help="stop the run (emergency checkpoint) below this much MemAvailable")
     return p.parse_args(argv)
