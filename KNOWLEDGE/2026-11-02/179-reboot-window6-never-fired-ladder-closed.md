@@ -114,3 +114,23 @@ wait for the era merge). Consequences:
 ## 6. Addendum (post-regeneration + test results)
 
 _(appended below when the background collect and the pytest suite land)_
+
+### 6.1 (2026-11-02 evening — results moved to /180)
+
+- **Episode regeneration: COMPLETE** (1000g, wall 4839 s under engine
+  contention; profile 403W/581L/1D/15X — identical to the five-night
+  baseline). File SHA `2bbdad3d…` ≠ the pinned `2e09d72b…`: the
+  difference is SOLELY the per-row `policy` path string (this run used
+  the main-tree anchor path, the nightly windows the export cwd's).
+  **Content identity is proven, not assumed**: the cpu-to-cpu logprob
+  audit re-derives all 46941 asks, max|Δ| = 0.0, mean|Δ| = 0.0 (the
+  nightly cuda-vs-cpu audits measured 5.507e-4). Full record:
+  **/180 §1 + NUMBERS**.
+- **pytest `test_rl_v2.py` (CPU, vLLM resident → 3 cuda-only tests skip
+  per the memory law)**: 14 passed / 3 skipped in 113.91 s (pre-fix).
+  Later results (post value-head fix, post chunking fix, post GAE
+  fix): 15/3, then **16/3** — all in /180 §2/§7 with the
+  commit history.
+- Plan §5 progress: item 1–2 done (above); item 3–4 in flight (the
+  offline CLI passed end-to-end; the on-policy debug loop is
+  retrying — /180 §7.2–7.3); item 5 unchanged.
