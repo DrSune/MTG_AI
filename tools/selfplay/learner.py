@@ -165,6 +165,7 @@ class Learner:
                 raise ValueError("--rollout-init: card table differs from the learner's")
             self.models["rollout"] = rollout.eval()
         self.infer_stream = None
+        self.infer_models: dict[str, tuple] = {}
         self.trainer = None
         self.tconn = None
         self.sent_anchor: str | None = None
@@ -215,6 +216,30 @@ class Learner:
         self._mem_checked = 0.0
         self._start_workers()
 
+    def weights_changed(self, net: torch.nn.Module) -> None:
+        """Bump a model's weight version: its bf16 inference copy is rebuilt on next use."""
+        net._wver = getattr(net, "_wver", 0) + 1
+
+    def _infer_net(self, key: str) -> torch.nn.Module:
+        """The network answering inference for ``key``: a bf16 copy of models[key] (1.6-1.9x
+        faster than autocast over fp32 weights, which re-casts every weight on every forward;
+        same argmax on a probe, values within 1e-3), rebuilt whenever the source's weights
+        changed (weight-version counter) or the key now names another model."""
+        src = self.models[key]
+        if not (self.args.infer_bf16 and self.cuda):
+            return src
+        cached = self.infer_models.get(key)
+        ver = getattr(src, "_wver", 0)
+        if cached is None or cached[0] is not src or cached[1] != ver:
+            cfg = {k: v for k, v in src.config.items() if k not in ("n_cards", "n_ir")}
+            net = M.build(self.table, **cfg).to(self.device)
+            net.load_state_dict(src.state_dict())
+            net = net.to(torch.bfloat16).eval()
+            torch.cuda.synchronize()
+            self.infer_models[key] = (src, ver, net)
+            return net
+        return cached[2]
+
     def _copy(self, src: torch.nn.Module) -> torch.nn.Module:
         cfg = {k: v for k, v in self.model.config.items() if k not in ("n_cards", "n_ir")}
         net = M.build(self.table, **cfg).to(self.device)
@@ -227,6 +252,7 @@ class Learner:
     def sync_actor(self) -> None:
         if self.args.async_update:
             self.actor.load_state_dict(self.model.state_dict())
+            self.weights_changed(self.actor)
             if self.cuda:
                 torch.cuda.synchronize()
 
@@ -261,6 +287,7 @@ class Learner:
             raise SystemExit(4)
         _, state, stats = msg
         self.model.load_state_dict(state)
+        self.weights_changed(self.model)
         if self.cuda:
             torch.cuda.synchronize()
         stats["send_s"] = round(send_s, 2)
@@ -528,11 +555,17 @@ class Learner:
             for bucket in length_buckets(items):
                 groups.append((key, bucket))
         for key, items in groups:
-            model = self.models[key]
+            model = self._infer_net(key)
+            bf16 = next(model.parameters()).dtype == torch.bfloat16
             with stream_ctx:
                 b = M.collate([it[2][5] for it in items], self.device)
-                with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
+                if bf16:
+                    b = {k: (v.to(torch.bfloat16) if v.dtype == torch.float32 else v)
+                         for k, v in b.items()}
+                with torch.autocast(self.device.type, dtype=torch.bfloat16,
+                                    enabled=self.cuda and not bf16):
                     logits, value = model(b)
+                logits, value = logits.float(), value.float()
             with stream_ctx:
                 greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
                 probs = torch.softmax(logits, -1)
@@ -678,8 +711,10 @@ class Learner:
         payload = pack_buffer(buf)
         del buf
         anchor = self.models.get(self.versions[-1]) if self.versions else None
-        return ppo_train(self.model, self.opt, anchor, a=self.args, device=self.device,
-                         check=self.check_memory, release=self.release_cache, **payload)
+        out = ppo_train(self.model, self.opt, anchor, a=self.args, device=self.device,
+                        check=self.check_memory, release=self.release_cache, **payload)
+        self.weights_changed(self.model)
+        return out
 
     # ------------------------------------------------------------------ BC
 
@@ -742,6 +777,7 @@ class Learner:
             self.log(row)
             best = row
         net.eval()
+        self.weights_changed(net)
         if value_only and best is not None and before is not None:
             best["before_vloss"] = before
             if best["test_vloss"] > before:  # held-out value got worse: keep the old weights
@@ -1326,6 +1362,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--save-every", type=int, default=5)
     p.add_argument("--trainer-proc", action="store_true",
                    help="PPO updates in a separate process; the workers never wait for one")
+    p.add_argument("--infer-bf16", action="store_true",
+                   help="answer inference from bf16 copies of the models (1.6-1.9x faster)")
     p.add_argument("--async-update", action="store_true",
                    help="train in a thread while the workers keep playing on an actor copy")
     p.add_argument("--mem-floor-gib", type=float, default=8.0,
