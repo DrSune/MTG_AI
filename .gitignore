@@ -39,3 +39,6 @@ scraped_frames/
 reports/monitoring/selfwake.json
 tools/training/bc_s2_best.pt
 reports/episodes_iter1.jsonl
+
+# --- Self-play runs (metrics + checkpoints; numbers go to KNOWLEDGE/NUMBERS.md) ---
+runs/
