@@ -141,3 +141,19 @@ r9: policy = r6 gen 2 (strong distillation, value weight 0.1); leaf values from 
 network initialised from r5 gen 2, trained value-only each generation (1 epoch, lr 5e-5) on a
 10-generation value window that includes the opponent's positions, reverted whenever its
 held-out MSE gets worse; 16 game slots per worker; no rollout net.
+
+## 11. Inference server: the bottleneck of searched play
+
+Searched play is ~99% inference inside simulations (r6 gen 1: 140K simulations, ~2.5M simulated
+decisions per generation). Measured on the 25M net:
+
+| Change | Effect |
+|---|---|
+| per-request costs | unpickle 4.3 us, collate 19.9 us, forward ~220 us/decision at batch 128 |
+| length buckets (sorted, 1.4x rule) | 128-request batch with a 114-token outlier (mean 25): 78 -> 43 ms; no change without outliers |
+| bf16 inference copies vs autocast over fp32 weights | batch 8 6.28 -> 3.38 ms, 32 9.54 -> 5.45, 128 22.84 -> 14.09; same argmax, values within 8.8e-4 |
+| one read-back per call (pinned inputs) | no measurable gain (47 vs 52 ms, GPU shared) - not adopted |
+| 16 game slots per worker (from 8) | r9: workers 68% CPU, learner serving thread 86% |
+| small rollout net in simulations | rejected (r7: weaker search, little speed) |
+
+r10 = r9 + --infer-bf16 (policy r6 gen 2, value net r5 gen 2).
