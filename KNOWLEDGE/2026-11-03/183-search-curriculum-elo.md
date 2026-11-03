@@ -120,3 +120,24 @@ memorises game outcomes). Holdout made fixed per game id (it was re-sampled per 
 
 r7 (from r6's gen-2 net): + fast rollout network (m1 5.3M BC) for the moves inside simulations,
 length-bucketed inference, 2 epochs, value weight 0.25, 4-generation window.
+
+## 10. The value head collapses under aggressive distillation -> a separate value network (r9)
+
+Fixed probe: 120 fresh heuristic-vs-heuristic games (seeds 7,700,000+), 11,420 positions, both
+seats, outcome z = +-1 (var 0.988). Value MSE / explained variance / correlation:
+
+| Network | MSE | EV | corr |
+|---|---|---|---|
+| BC r1 (16K games) | 0.589 | 0.404 | 0.640 |
+| r5 gen 2 (ExIt 1 epoch, lr 1e-4, vcoef 0.5) | **0.565** | **0.428** | **0.659** |
+| r6 gen 2 (3 epochs, lr 2e-4, vcoef 0.5) | 0.964 | 0.024 | 0.452 |
+| r7 gen 1 (from r6, 2 epochs, vcoef 0.25, + rollout net) | 0.876 | 0.113 | 0.482 |
+
+The setting that finally moved the POLICY (r6: +0.064 paired vs BC) destroyed the VALUE head the
+search scores its leaves with. r7 also showed the small rollout network weakening the search
+(searching seat 0.554 vs ~0.60) for no real speed-up (round trips now bound simulations).
+
+r9: policy = r6 gen 2 (strong distillation, value weight 0.1); leaf values from a separate value
+network initialised from r5 gen 2, trained value-only each generation (1 epoch, lr 5e-5) on a
+10-generation value window that includes the opponent's positions, reverted whenever its
+held-out MSE gets worse; 16 game slots per worker; no rollout net.
