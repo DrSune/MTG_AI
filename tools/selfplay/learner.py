@@ -526,8 +526,12 @@ class Learner:
 
     # ------------------------------------------------------------------ serving
 
-    def serve(self, until: Any, max_wait: float = 0.002) -> None:
-        """Answer workers until ``until()`` is true."""
+    def serve(self, until: Any, max_wait: float | None = None) -> None:
+        """Answer workers until ``until()`` is true. Requests arriving within ``--serve-wait`` ms
+        are answered together: each forward launches ~150 kernels from Python (~1-1.5 ms of
+        this thread), so fewer, larger forwards keep the serving thread from saturating."""
+        if max_wait is None:
+            max_wait = self.args.serve_wait / 1000.0
         while not until():
             self.check_memory()
             self._flush_needs()
@@ -566,7 +570,7 @@ class Learner:
                       else contextlib.nullcontext())
         groups = []
         for key, items in by_key.items():
-            for bucket in length_buckets(items):
+            for bucket in length_buckets(items, self.args.bucket_ratio, self.args.bucket_min):
                 groups.append((key, bucket))
         for key, items in groups:
             model = self._infer_net(key)
@@ -1413,6 +1417,11 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--save-every", type=int, default=5)
     p.add_argument("--trainer-proc", action="store_true",
                    help="PPO updates in a separate process; the workers never wait for one")
+    p.add_argument("--serve-wait", type=float, default=2.0,
+                   help="ms to gather requests into one inference call")
+    p.add_argument("--bucket-ratio", type=float, default=1.4,
+                   help="new length bucket when a request is this much longer than its shortest")
+    p.add_argument("--bucket-min", type=int, default=8, help="minimum requests per length bucket")
     p.add_argument("--infer-bf16", action="store_true",
                    help="answer inference from bf16 copies of the models (1.6-1.9x faster)")
     p.add_argument("--async-update", action="store_true",
