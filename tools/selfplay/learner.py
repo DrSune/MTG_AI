@@ -163,6 +163,7 @@ class Learner:
         self.bc_done = 0
         self.bc_seats = ["heuristic", "heuristic"]
         self.exit_opps: list[str] = []
+        self.gen_search: Counter = Counter()  # search stats of the current ExIt generation
         self.stage = ""  # curriculum: "teacher" | "selfplay"
         self.versions: list[str] = []
         self.elo_games: list[tuple[str, str, float]] = []
@@ -555,6 +556,9 @@ class Learner:
                     fh.write(json.dumps(row) + "\n")
             elif kind == "bc":
                 self.bc_done += 1
+                for st in r.get("search") or []:
+                    if st:
+                        self.gen_search.update(st)
                 if not void:
                     seats = r.get("seats") or []
                     for seat, spec in enumerate(seats):
@@ -975,7 +979,9 @@ class Learner:
                       "train_s": round(time.time() - t1, 1),
                       "games_s": round(self.bc_done / max(play_s, 1e-6), 2),
                       "frozen": self.versions[-1], "mem_gib": round(mem_available_gib(), 1),
-                      "search": {k: v for k, v in self.counts.items() if k.startswith("bc")}})
+                      "search": dict(self.gen_search),
+                      "games_void": self.counts["bc:void"], "games_leaky": self.counts["bc:leaky"]})
+            self.gen_search = Counter()
             self.bc = []
             if self.stage == "teacher" and self.it % a.eval_every == 0:
                 self.queue_eval("teacher", f"teacher:it{self.it}", "eval", ["heuristic"],
