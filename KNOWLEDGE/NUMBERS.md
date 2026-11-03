@@ -15,6 +15,8 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 | BC held-out action agreement | **0.943** (8,109 decisions, 3% of 3,000 games held out) | `learner --bc-games 3000 --bc-epochs 3` (run m1) | value MSE overfits 0.633 -> 0.860 |
 | self-play throughput, 6 workers x 8 slots | **7.0-8.2 games/s, 560-600 net decisions/s** | `learner --workers 6 --slots 8` (run m2) | engine-bound: workers ~97% CPU |
 | training memory per padded token | **66-72 KiB** (d256 L6), **~170 KiB** (d512 L8) | `torch.cuda.max_memory_allocated` over one fwd+bwd+step | unified memory: this is system RAM |
+| new BC vs uniform random, NEW rig | **0.8889** [0.8375, 0.9255], 198 g | `learner --init runs/selfplay/m1_medium/bc.pt --eval-only --eval-opponents random --eval-deals 100` | the heuristic itself: 77/80 vs uniform (0.96); imitation is brittle off its teacher's distribution |
+| BC + decision-time search vs heuristic, NEW rig | **0.5281** [0.4583, 0.5967], 196 g; paired vs no-search **+0.0536** [+0.0102, +0.0995] over 98 deals | `learner --eval-only --eval-seat eval+search --search-k 4 --search-d 3 --search-skip-p 0.99`; `python -m tools.selfplay.paired s0/eval_rows.jsonl s2/eval_rows.jsonl` | search: belief-sampled forks to the next turn, value at the leaf, common random numbers; 889 act asks + 295 attack plans searched |
 
 ## 2026-10-24 (external review — benchmark core MTG_bot/bench, exploratory, M21 castable pool)
 
