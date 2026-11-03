@@ -114,10 +114,13 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
 class Searcher:
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, k: int = 4,
                  d: int = 2, skip_p: float = 0.97, draw_value: float = -1.0,
-                 seed: int = 0) -> None:
+                 seed: int = 0, rollout: str | None = None) -> None:
         self.slot = slot
         self.gid = gid
         self.spec = spec
+        # the network that plays inside simulations; the leaf value and the root prior always
+        # come from ``spec``
+        self.rollout = rollout or spec
         self.table = table
         self.k = k
         self.d = d
@@ -213,7 +216,7 @@ class Searcher:
         world = clone.world
         me = world.player_order[seat]
         start = world.turn
-        agents = [SimAgent(self.slot, self.gid, self.spec, self.table) for _ in (0, 1)]
+        agents = [SimAgent(self.slot, self.gid, self.rollout, self.table) for _ in (0, 1)]
         agents[seat].forced = token
         agents[seat].attack_plan = attack_plan
         oracle = _ORACLES.get("M21") or OracleIndex.for_sets("M21")

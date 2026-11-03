@@ -149,6 +149,13 @@ class Learner:
                                  ff=args.ff, name_dropout=args.name_dropout).to(self.device)
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
+        if args.rollout_init:
+            # A small fast network plays the moves inside search simulations (the big one picks
+            # the candidates and scores the leaves); trained on the same labels each generation.
+            rollout, rtable, _ = M.load(args.rollout_init, self.device)
+            if rtable.oracle_ids != self.table.oracle_ids:
+                raise ValueError("--rollout-init: card table differs from the learner's")
+            self.models["rollout"] = rollout.eval()
         self.infer_stream = None
         self.trainer = None
         self.tconn = None
@@ -383,8 +390,7 @@ class Learner:
                 record = [s == "heuristic" for s in seats]
             job = self._job("bc", self.bc_seed0 + self.bc_issued, seats, [True, True], record,
                             self._deck_mode())
-            job["search"] = {"k": self.args.search_k, "d": self.args.search_d,
-                             "skip_p": self.args.search_skip_p}
+            job["search"] = self.search_opts()
             return job
         if self.phase == "ppo":
             return self.train_job()
@@ -411,6 +417,11 @@ class Learner:
         seats = ["learner", opp] if seat == 0 else [opp, "learner"]
         record = [s == "learner" for s in seats]
         return self._job("train", seed, seats, [False, False], record, self._deck_mode())
+
+    def search_opts(self) -> dict:
+        a = self.args
+        return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
+                "rollout": "rollout" if "rollout" in self.models else None}
 
     def curriculum_opponent(self) -> str:
         a = self.args
@@ -660,19 +671,24 @@ class Learner:
 
     # ------------------------------------------------------------------ BC
 
-    def bc_train(self, epochs: int | None = None, lr: float | None = None) -> dict:
+    def bc_train(self, epochs: int | None = None, lr: float | None = None,
+                 model: torch.nn.Module | None = None, keep: bool = False,
+                 tag: str = "bc") -> dict:
+        """Supervised training on self.bc: cross-entropy on the recorded move + value MSE on the
+        outcome. ``model`` defaults to the learner; ``keep`` leaves self.bc for another model."""
         a = self.args
         epochs = a.bc_epochs if epochs is None else epochs
         lr = a.bc_lr if lr is None else lr
+        net = self.model if model is None else model
         data = self.bc
         gids = sorted({x[3] for x in data})
         hold = set(gids[:: max(2, int(1 / max(a.bc_holdout, 1e-3)))])
         train = [x for x in data if x[3] not in hold]
         test = [x for x in data if x[3] in hold]
-        self.log({"event": "bc_data", "samples": len(data), "train": len(train),
+        self.log({"event": "bc_data", "model": tag, "samples": len(data), "train": len(train),
                   "test": len(test), "games": len(gids)})
-        self.model.train()
-        opt = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=a.wd)
+        net.train()
+        opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=a.wd)
         steps_total = max(1, epochs * math.ceil(len(train) / a.mb))
         warm = max(1, steps_total // 20)
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / warm) * (
@@ -688,39 +704,42 @@ class Learner:
                 act = torch.tensor([train[i][1] for i in ch], device=self.device)
                 z = torch.tensor([train[i][2] for i in ch], device=self.device)
                 with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
-                    logits, v = self.model(b)
+                    logits, v = net(b)
                 loss = F.cross_entropy(logits, act) + a.bc_vcoef * F.mse_loss(v, z)
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), a.max_grad)
+                torch.nn.utils.clip_grad_norm_(net.parameters(), a.max_grad)
                 opt.step()
                 sched.step()
                 ls.append(loss.item())
-            acc, vl = self.bc_eval(test)
-            row = {"event": "bc_epoch", "epoch": epoch, "loss": round(float(np.mean(ls)), 5),
+            acc, vl = self.bc_eval(test, net)
+            row = {"event": "bc_epoch", "model": tag, "epoch": epoch,
+                   "loss": round(float(np.mean(ls)), 5),
                    "test_acc": acc, "test_vloss": vl, "secs": round(time.time() - t0, 1)}
             self.log(row)
             best = row
-        self.model.eval()
-        self.bc = []
+        net.eval()
+        if not keep:
+            self.bc = []
         self.release_cache()
         return best or {}
 
     @torch.no_grad()
-    def bc_eval(self, test: list) -> tuple[float, float]:
-        self.model.eval()
+    def bc_eval(self, test: list, net: torch.nn.Module | None = None) -> tuple[float, float]:
+        net = self.model if net is None else net
+        net.eval()
         correct = 0
         vls = []
         for i in range(0, len(test), self.args.mb):
             part = test[i:i + self.args.mb]
             b = M.collate([x[0] for x in part], self.device)
             with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
-                logits, v = self.model(b)
+                logits, v = net(b)
             pred = logits.argmax(-1).cpu().numpy()
             correct += int(sum(int(p == x[1]) for p, x in zip(pred, part, strict=True)))
             z = torch.tensor([x[2] for x in part], device=self.device)
             vls.append(F.mse_loss(v, z).item())
-        self.model.train()
+        net.train()
         return round(correct / max(len(test), 1), 4), round(float(np.mean(vls or [0])), 4)
 
     # ------------------------------------------------------------------ eval
@@ -733,7 +752,7 @@ class Learner:
         self.eval_meta = {"tag": tag, "it": self.it, "t0": time.time()}
         me = seat or a.eval_seat
         self.eval_meta["eval_seat"] = me
-        search = {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p}
+        search = self.search_opts()
         for opp in opponents or a.eval_opponents.split(","):
             for i in range(deals or a.eval_deals):
                 seed = EVAL_SEED0 + i
@@ -994,8 +1013,16 @@ class Learner:
             self.bc = [x for part in window for x in part]
             n_window = len(self.bc)
             t1 = time.time()
-            fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr)
+            fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr, keep=True)
+            rfit: dict = {}
+            if "rollout" in self.models:
+                rfit = self.bc_train(epochs=a.rollout_epochs, lr=a.rollout_lr,
+                                     model=self.models["rollout"], keep=True, tag="rollout")
+                M.save(str(self.run / "rollout.pt"), self.models["rollout"], self.table,
+                       {"it": self.it})
+            self.bc = []
             self.log({"event": "iter", "it": self.it, "stage": self.stage, "adapt": "exit",
+                      "rollout_acc": rfit.get("test_acc"),
                       "samples": len(window[-1]), "window": n_window,
                       "label_acc": fit.get("test_acc"), "value_mse": fit.get("test_vloss"),
                       "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
@@ -1232,6 +1259,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--exit-lr", type=float, default=2e-4)
     p.add_argument("--exit-keep", type=int, default=3, help="generations of data trained on")
     p.add_argument("--exit-eval-seats", default="eval,eval+search")
+    p.add_argument("--rollout-init", default="",
+                   help="checkpoint of a small network that plays the moves inside simulations")
+    p.add_argument("--rollout-epochs", type=int, default=3)
+    p.add_argument("--rollout-lr", type=float, default=3e-4)
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")
     p.add_argument("--search-d", type=int, default=2, help="sampled worlds per option")
     p.add_argument("--search-skip-p", type=float, default=0.97,

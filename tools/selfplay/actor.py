@@ -81,7 +81,7 @@ class NetAgent:
             opts = job.get("search", {})
             self.searcher = Searcher(slot, job["gid"], self.spec, table, k=opts.get("k", 4),
                                      d=opts.get("d", 2), skip_p=opts.get("skip_p", 0.97),
-                                     seed=job["seed"] * 2 + seat)
+                                     seed=job["seed"] * 2 + seat, rollout=opts.get("rollout"))
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
