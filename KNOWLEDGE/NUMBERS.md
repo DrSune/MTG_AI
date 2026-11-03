@@ -5,6 +5,17 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-03 (Claude takeover — tools/selfplay, M21 castable; KNOWLEDGE/2026-11-03/182)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| new BC (5.3M, per-seat) vs old HeuristicTeacher, LEGACY rig | **0.5325** [0.4835, 0.5809], 400 g (213-187) | `python -m tools.selfplay.vs_legacy --new runs/selfplay/m1_medium/bc.pt --old teacher --games 200 --workers 3` | same rig + seed base 991001 as the anchor's 0.394 [0.347, 0.442] (/134); new model plays through an adapter (handicap only) |
+| new BC vs old anchor `bsh_S3a_s1_best.pt`, LEGACY rig | **0.6625** [0.6148, 0.7071], 400 g (265-135, 0 draws) | `python -m tools.selfplay.vs_legacy --new runs/selfplay/m1_medium/bc.pt --old tools/training/bsh_S3a_s1_best.pt --old-device cuda --games 200 --workers 3` | the old model gets its native omniscient input |
+| new BC vs new heuristic, NEW rig (bench SeatRouter) | **0.4821** [0.4132, 0.5518], 196 g (4 voided) | `learner --init .../bc.pt` start eval, 100 deals x 2 seats | an imitation of its teacher; greedy |
+| BC held-out action agreement | **0.943** (8,109 decisions, 3% of 3,000 games held out) | `learner --bc-games 3000 --bc-epochs 3` (run m1) | value MSE overfits 0.633 -> 0.860 |
+| self-play throughput, 6 workers x 8 slots | **7.0-8.2 games/s, 560-600 net decisions/s** | `learner --workers 6 --slots 8` (run m2) | engine-bound: workers ~97% CPU |
+| training memory per padded token | **66-72 KiB** (d256 L6), **~170 KiB** (d512 L8) | `torch.cuda.max_memory_allocated` over one fwd+bwd+step | unified memory: this is system RAM |
+
 ## 2026-10-24 (external review — benchmark core MTG_bot/bench, exploratory, M21 castable pool)
 
 | Number | Value | Command | Notes |

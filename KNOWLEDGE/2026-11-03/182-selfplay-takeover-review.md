@@ -50,3 +50,15 @@ with a snapshot league, and duplicate-format evaluation on fixed deals.
 | leaky games (CHOOSE_NAME) | 123/3,000 (4.1%) | kept for training, voided in eval |
 | BC data rate | 10.6 games/s, 6 workers x 8 slots (99 decisions/game) | m1 `bc_gen` |
 | BC 5.3M params (d256 L6), 3 epochs, 282k samples | held-out action agreement **0.943**; value MSE rises 0.633 -> 0.860 (overfits: BC value weight lowered to 0.25) | `runs/selfplay/m1_medium/metrics.jsonl` |
+| new BC vs old HeuristicTeacher, legacy rig, 400 g | **0.5325** [0.4835, 0.5809] | anchor's own number there: 0.394 [0.347, 0.442] (/134) |
+| new BC vs old anchor `bsh_S3a_s1_best.pt`, legacy rig, 400 g | **0.6625** [0.6148, 0.7071] (265-135) | old model on its native omniscient input |
+| new BC vs new heuristic, new rig | 0.4821 [0.4132, 0.5518], 196 g | start eval of PPO |
+| PPO at ent 0.01 (run m2) | it5 eval 0.510 [0.441, 0.579]; entropy 0.18 -> 0.40 in 7 its | stopped; m3 uses ent 0.003 |
+
+## 4. Reading
+
+A 5.3M-parameter network trained by behaviour cloning on 3,000 games of a simple heuristic,
+seeing only what its seat may see, already beats the old live model 66% head to head in the old
+model's own rig and on its own seeds. The remaining work is the one the owner asked for: scale
+(workers, games, network) and self-play RL beyond the teacher. Throughput is engine-bound (7.5
+games/s on 6 workers); the full run needs the vLLM engine stopped (73 GiB) for 18 workers.
