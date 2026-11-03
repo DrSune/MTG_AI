@@ -113,7 +113,34 @@ class Learner:
         self.infer_batches = 0
         self.infer_items = 0
         self.infer_time = 0.0
+        self._mem_checked = 0.0
         self._start_workers()
+
+    # ------------------------------------------------------------------ memory
+
+    def check_memory(self) -> None:
+        """Unified memory: host RAM and GPU memory are one pool, and exhausting it froze this
+        machine twice (INCIDENT_REPORT_2026-11-02). Below ``--mem-floor-gib`` the run saves an
+        emergency checkpoint, stops its own workers and exits. A safety rail, not a tuning knob."""
+        now = time.monotonic()
+        if now - self._mem_checked < 1.0:
+            return
+        self._mem_checked = now
+        avail = mem_available_gib()
+        if avail >= self.args.mem_floor_gib:
+            return
+        self.log({"event": "mem_floor", "avail_gib": round(avail, 2),
+                  "floor_gib": self.args.mem_floor_gib, "it": self.it})
+        self.buffer, self.bc, self.traj = [], [], {}
+        try:
+            self.save("emergency.pt")
+        finally:
+            self.stop_workers()
+        raise SystemExit(3)
+
+    def release_cache(self) -> None:
+        if self.cuda:
+            torch.cuda.empty_cache()
 
     # ------------------------------------------------------------------ logging
 
@@ -216,6 +243,7 @@ class Learner:
     def serve(self, until: Any, max_wait: float = 0.002) -> None:
         """Answer workers until ``until()`` is true."""
         while not until():
+            self.check_memory()
             self._flush_needs()
             ready = wait(self.conns, timeout=0.05)
             if not ready:
@@ -342,9 +370,23 @@ class Learner:
     # ------------------------------------------------------------------ PPO
 
     def _chunks(self, items: list, mb: int, key) -> list[np.ndarray]:
+        """Length-sorted minibatches of at most ``mb`` decisions and at most ``--tok-budget``
+        padded tokens (decisions x longest sequence). The token cap bounds activation memory,
+        which on this machine is system memory: a 1024-decision chunk of the longest
+        sequences took ~15 GB and tripped the memory floor (2026-11-03)."""
         lengths = np.array([key(x) for x in items], dtype=np.float64)
         order = np.argsort(lengths + np.random.rand(len(items)) * 4.0)
-        chunks = [order[i:i + mb] for i in range(0, len(order), mb)]
+        budget = self.args.tok_budget
+        chunks, cur, cur_max = [], [], 0.0
+        for i in order:
+            length = lengths[i] + 3.0
+            if cur and (len(cur) >= mb or (len(cur) + 1) * max(cur_max, length) > budget):
+                chunks.append(np.array(cur))
+                cur, cur_max = [], 0.0
+            cur.append(i)
+            cur_max = max(cur_max, length)
+        if cur:
+            chunks.append(np.array(cur))
         random.shuffle(chunks)
         return chunks
 
@@ -363,7 +405,8 @@ class Learner:
         for epoch in range(a.epochs):
             kls = []
             for ch in self._chunks(buf, a.mb, lambda x: x[0]["cards_i"].shape[0]
-                                   + 2 * x[0]["opts_i"].shape[0]):
+                                   + x[0]["opts_i"].shape[0]):
+                self.check_memory()
                 b = M.collate([buf[i][0] for i in ch], self.device)
                 act = torch.tensor([buf[i][1] for i in ch], device=self.device)
                 old_logp = torch.tensor([buf[i][2] for i in ch], device=self.device)
@@ -399,6 +442,7 @@ class Learner:
                 stop = True
                 break
         self.model.eval()
+        self.release_cache()
         out = {k: round(float(np.mean(v)), 5) for k, v in stats.items() if k != "epochs"}
         out.update({"steps": n, "epochs": stats["epochs"][-1], "kl_stop": stop,
                     "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4)})
@@ -426,13 +470,14 @@ class Learner:
             t0 = time.time()
             ls = []
             for ch in self._chunks(train, a.mb, lambda x: x[0]["cards_i"].shape[0]
-                                   + 2 * x[0]["opts_i"].shape[0]):
+                                   + x[0]["opts_i"].shape[0]):
+                self.check_memory()
                 b = M.collate([train[i][0] for i in ch], self.device)
                 act = torch.tensor([train[i][1] for i in ch], device=self.device)
                 z = torch.tensor([train[i][2] for i in ch], device=self.device)
                 with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                     logits, v = self.model(b)
-                loss = F.cross_entropy(logits, act) + a.vcoef * F.mse_loss(v, z)
+                loss = F.cross_entropy(logits, act) + a.bc_vcoef * F.mse_loss(v, z)
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), a.max_grad)
@@ -446,6 +491,7 @@ class Learner:
             best = row
         self.model.eval()
         self.bc = []
+        self.release_cache()
         return best or {}
 
     @torch.no_grad()
@@ -645,10 +691,13 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--bc-epochs", type=int, default=4)
     p.add_argument("--bc-lr", type=float, default=1e-3)
     p.add_argument("--bc-holdout", type=float, default=0.03)
+    p.add_argument("--bc-vcoef", type=float, default=0.25)
     # PPO
     p.add_argument("--iters", type=int, default=100)
     p.add_argument("--steps", type=int, default=65536, help="learner decisions per iteration")
     p.add_argument("--mb", type=int, default=2048)
+    p.add_argument("--tok-budget", type=int, default=65536,
+                   help="max padded tokens per training minibatch (bounds activation memory)")
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--lr", type=float, default=2e-4)
     p.add_argument("--wd", type=float, default=0.01)
@@ -673,6 +722,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-deals", type=int, default=200)
     p.add_argument("--eval-opponents", default="heuristic")
     p.add_argument("--save-every", type=int, default=5)
+    p.add_argument("--mem-floor-gib", type=float, default=8.0,
+                   help="stop the run (emergency checkpoint) below this much MemAvailable")
     return p.parse_args(argv)
 
 
