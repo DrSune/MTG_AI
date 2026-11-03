@@ -107,6 +107,9 @@ class Learner:
         self.bc_target = 0
         self.bc_issued = 0
         self.bc_done = 0
+        self.bc_seats = ["heuristic", "heuristic"]
+        self.exit_opps: list[str] = []
+        self.bc_seed0 = BC_SEED0
         self.it = 0
         self.counts: Counter = Counter()
         self.train_results: list = []
@@ -195,8 +198,21 @@ class Learner:
             return self.eval_jobs.popleft()
         if self.phase == "bc" and self.bc_issued < self.bc_target:
             self.bc_issued += 1
-            return self._job("bc", BC_SEED0 + self.bc_issued, ["heuristic", "heuristic"],
-                             [False, False], [True, True], self._deck_mode())
+            seats = list(self.bc_seats)
+            if self.exit_opps:
+                seats[1] = self.rng.choice(self.exit_opps)
+            if seats[0] != seats[1] and self.rng.random() < 0.5:
+                seats.reverse()  # the recorded seat plays both sides of the table
+            # what is trained on: the searching seats if any (ExIt never trains on the
+            # opponent's or the unsearched network's moves), else every heuristic seat (BC)
+            record = [s.endswith("+search") for s in seats]
+            if not any(record):
+                record = [s == "heuristic" for s in seats]
+            job = self._job("bc", self.bc_seed0 + self.bc_issued, seats, [True, True], record,
+                            self._deck_mode())
+            job["search"] = {"k": self.args.search_k, "d": self.args.search_d,
+                             "skip_p": self.args.search_skip_p}
+            return job
         if self.phase == "ppo":
             return self.train_job()
         return None
@@ -289,9 +305,21 @@ class Learner:
             act_np = act.cpu().numpy()
             logp_np = logp.cpu().numpy()
             val_np = value.cpu().numpy()
+            probs_np = probs.float().cpu().numpy() if any(
+                len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
             for j, (mi, ri, req) in enumerate(items):
                 a = int(act_np[j])
-                answers[mi][ri] = a
+                # req[6] ("want"): 0/absent -> the action; 1 -> (action, value);
+                # 2 -> (action, value, option probabilities) for decision-time search
+                want = req[6] if len(req) > 6 else 0
+                if want == 0:
+                    answers[mi][ri] = a
+                elif want == 1:
+                    answers[mi][ri] = (a, float(val_np[j]))
+                else:
+                    k = req[5]["opts_i"].shape[0]
+                    answers[mi][ri] = (a, float(val_np[j]),
+                                       [round(float(x), 5) for x in probs_np[j, :k]])
                 if req[4] and key == "learner":
                     self.traj.setdefault((req[0], req[1]), []).append(
                         (req[5], a, float(logp_np[j]), float(val_np[j])))
@@ -329,6 +357,11 @@ class Learner:
             elif kind == "eval":
                 self.eval_rows.append(r)
                 self.eval_pending.discard(r["gid"])
+                row = {k: r.get(k) for k in ("gid", "seed", "deck_mode", "seats", "a_seat", "opp",
+                                              "outcome", "winner", "turns", "leaky", "crash")}
+                row["tag"] = self.eval_meta.get("tag")
+                with (self.run / "eval_rows.jsonl").open("a") as fh:
+                    fh.write(json.dumps(row) + "\n")
             elif kind == "bc":
                 self.bc_done += 1
                 if not void and r.get("bc"):
@@ -461,8 +494,10 @@ class Learner:
 
     # ------------------------------------------------------------------ BC
 
-    def bc_train(self) -> dict:
+    def bc_train(self, epochs: int | None = None, lr: float | None = None) -> dict:
         a = self.args
+        epochs = a.bc_epochs if epochs is None else epochs
+        lr = a.bc_lr if lr is None else lr
         data = self.bc
         gids = sorted({x[3] for x in data})
         hold = set(gids[:: max(2, int(1 / max(a.bc_holdout, 1e-3)))])
@@ -471,13 +506,13 @@ class Learner:
         self.log({"event": "bc_data", "samples": len(data), "train": len(train),
                   "test": len(test), "games": len(gids)})
         self.model.train()
-        opt = torch.optim.AdamW(self.model.parameters(), lr=a.bc_lr, weight_decay=a.wd)
-        steps_total = max(1, a.bc_epochs * math.ceil(len(train) / a.mb))
+        opt = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=a.wd)
+        steps_total = max(1, epochs * math.ceil(len(train) / a.mb))
         warm = max(1, steps_total // 20)
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / warm) * (
             0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(1.0, s / steps_total)))))
         best = None
-        for epoch in range(a.bc_epochs):
+        for epoch in range(epochs):
             t0 = time.time()
             ls = []
             for ch in self._chunks(train, a.mb, lambda x: x[0]["cards_i"].shape[0]
@@ -524,7 +559,8 @@ class Learner:
 
     # ------------------------------------------------------------------ eval
 
-    def start_eval(self, tag: str, opponents: list[str] | None = None) -> None:
+    def start_eval(self, tag: str, opponents: list[str] | None = None,
+                   seat: str | None = None) -> None:
         a = self.args
         frozen = M.build(self.table, **{k: v for k, v in self.model.config.items()
                                         if k not in ("n_cards", "n_ir")}).to(self.device)
@@ -533,23 +569,30 @@ class Learner:
         self.models["eval"] = frozen
         self.eval_rows = []
         self.eval_meta = {"tag": tag, "it": self.it, "t0": time.time()}
+        me = seat or a.eval_seat
+        self.eval_meta["eval_seat"] = me
+        search = {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p}
         for opp in opponents or a.eval_opponents.split(","):
             for i in range(a.eval_deals):
                 seed = EVAL_SEED0 + i
                 mode = "stress" if i % 2 == 0 else "coherent"
                 for a_seat in (0, 1):
-                    seats = ["eval", opp] if a_seat == 0 else [opp, "eval"]
+                    seats = [me, opp] if a_seat == 0 else [opp, me]
                     job = self._job("eval", seed, seats, [True, True], [False, False], mode)
                     job["opp"] = opp
                     job["a_seat"] = a_seat
+                    job["search"] = search
                     self.eval_jobs.append(job)
                     self.eval_pending.add(job["gid"])
 
     def eval_summary(self) -> dict:
         by_opp: dict[str, list] = defaultdict(list)
+        search_stats: Counter = Counter()
         for r in self.eval_rows:
-            opp = next(s for s in r["seats"] if s != "eval") if "eval" in r["seats"] else "?"
-            by_opp[opp].append(r)
+            by_opp[r.get("opp") or "?"].append(r)
+            for st in r.get("search") or []:
+                if st:
+                    search_stats.update(st)
         out = {"event": "eval", **self.eval_meta, "secs": round(time.time() - self.eval_meta["t0"], 1)}
         for opp, rows in by_opp.items():
             pairs: dict[tuple, list] = defaultdict(list)
@@ -564,7 +607,7 @@ class Learner:
                     voids += len(prs)
                     continue
                 for p in prs:
-                    a_seat = p["seats"].index("eval")
+                    a_seat = p["a_seat"]
                     if p["outcome"] == "win":
                         s = 1.0 if p["winner"] == a_seat else 0.0
                     else:
@@ -578,6 +621,8 @@ class Learner:
                         "ci95": wilson(score, int(n)), "voids": voids,
                         "by_mode": {m: round(v[0] / max(v[1], 1), 4) for m, v in by_mode.items()},
                         "turns": round(float(np.mean(turns)) if turns else 0.0, 1)}
+        if search_stats:
+            out["search"] = dict(search_stats)
         return out
 
     # ------------------------------------------------------------------ league
@@ -609,9 +654,69 @@ class Learner:
         return {"games_s": round((games - games0) / dt, 2),
                 "dec_s": round((self.infer_items - dec0) / dt, 1)}
 
+    def eval_only(self) -> None:
+        """Evaluate --init (as the "eval" seat, optionally with search) and exit."""
+        a = self.args
+        self.models["eval"] = self.model
+        if a.opp_ckpt:
+            opp, _, _ = M.load(a.opp_ckpt, self.device)
+            self.models["snap:opp"] = opp.eval()
+        self.eval_rows = []
+        self.eval_meta = {"tag": "eval-only", "it": 0, "t0": time.time(), "init": a.init}
+        self.start_eval("eval-only")
+        self.models["eval"] = self.model  # start_eval made a frozen copy; same weights
+        self.phase = "idle"
+        self.serve(lambda: not self.eval_pending)
+        self.log(self.eval_summary())
+
+    def run_eval(self, tag: str, seat: str) -> dict:
+        self.start_eval(tag, seat=seat)
+        prev, self.phase = self.phase, "idle"
+        self.serve(lambda: not self.eval_pending)
+        self.phase = prev
+        ev = self.eval_summary()
+        self.log(ev)
+        self.eval_meta = {}
+        return ev
+
+    def expert_iteration(self) -> None:
+        """Generations of: play --exit-games with the searching network, train the network on
+        the moves the search chose (and the outcomes), evaluate with and without search."""
+        a = self.args
+        window: deque = deque(maxlen=a.exit_keep)
+        self.bc_seats = [a.exit_seat, a.exit_seat]
+        self.exit_opps = a.exit_opps.split(",")
+        for gen in range(1, a.exit_gens + 1):
+            self.it = gen
+            self.bc, self.phase = [], "bc"
+            self.bc_target, self.bc_issued, self.bc_done = a.exit_games, 0, 0
+            self.bc_seed0 = BC_SEED0 + 1_000_000 * gen
+            t0 = time.time()
+            self.serve(lambda: self.bc_done >= self.bc_target)
+            self.phase = "idle"
+            window.append(self.bc)
+            self.log({"event": "exit_gen", "gen": gen, "games": self.bc_done,
+                      "samples": len(self.bc), "secs": round(time.time() - t0, 1),
+                      "counts": {k: v for k, v in self.counts.items() if k.startswith("bc")}})
+            self.bc = [x for part in window for x in part]
+            self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr)
+            self.save(f"exit_gen{gen}.pt")
+            for seat in a.exit_eval_seats.split(","):
+                self.run_eval(f"gen{gen}:{seat}", seat)
+
     def main(self) -> None:
         a = self.args
         try:
+            if a.eval_only:
+                self.eval_only()
+                return
+            if a.exit_gens > 0:
+                self.add_snapshot()
+                self.models["snap:base"] = self.models[self.snaps[-1]]
+                for seat in a.exit_eval_seats.split(","):
+                    self.run_eval(f"gen0:{seat}", seat)
+                self.expert_iteration()
+                return
             if a.bc_games > 0 and not a.init:
                 self.phase = "bc"
                 self.bc_target = a.bc_games
@@ -732,6 +837,22 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-every", type=int, default=10)
     p.add_argument("--eval-deals", type=int, default=200)
     p.add_argument("--eval-opponents", default="heuristic")
+    p.add_argument("--eval-seat", default="eval", help="'eval' or 'eval+search'")
+    p.add_argument("--eval-only", action="store_true", help="evaluate --init and exit")
+    p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
+    p.add_argument("--exit-gens", type=int, default=0, help="expert-iteration generations")
+    p.add_argument("--exit-games", type=int, default=2000)
+    p.add_argument("--exit-seat", default="learner+search", help="the seat whose moves are learned")
+    p.add_argument("--exit-opps", default="heuristic,learner",
+                   help="opponents, one drawn per game (learner = the network, unsearched)")
+    p.add_argument("--exit-epochs", type=int, default=2)
+    p.add_argument("--exit-lr", type=float, default=2e-4)
+    p.add_argument("--exit-keep", type=int, default=3, help="generations of data trained on")
+    p.add_argument("--exit-eval-seats", default="eval,eval+search")
+    p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")
+    p.add_argument("--search-d", type=int, default=2, help="sampled worlds per option")
+    p.add_argument("--search-skip-p", type=float, default=0.97,
+                   help="no search when the network's top option has at least this probability")
     p.add_argument("--save-every", type=int, default=5)
     p.add_argument("--mem-floor-gib", type=float, default=8.0,
                    help="stop the run (emergency checkpoint) below this much MemAvailable")

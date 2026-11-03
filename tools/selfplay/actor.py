@@ -31,9 +31,11 @@ from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
 
 NET_SPECS = ("learner", "eval")
+SEARCH_SUFFIX = "+search"
 
 
 def is_net(spec: str) -> bool:
+    spec = spec.removesuffix(SEARCH_SUFFIX)
     return spec in NET_SPECS or spec.startswith("snap:")
 
 
@@ -56,14 +58,30 @@ class NetAgent:
         self.slot = slot
         self.job = job
         self.seat = seat
-        self.spec = job["seats"][seat]
+        spec = job["seats"][seat]
+        self.spec = spec.removesuffix(SEARCH_SUFFIX)
         self.greedy = bool(job["greedy"][seat])
         self.record = bool(job["record"][seat])
         self.table = table
         self.fallback = HeuristicAgent()
-        self.name = self.spec
+        self.name = spec
         self.decisions = 0
         self.overflow = 0
+        self.searcher = None
+        self.attack_plan = None
+        self.plan_turn = -1
+        # Expert iteration: in a "bc" job a recorded network seat keeps (features, the move it
+        # actually played) locally, the search's choice where it searched; the learner trains
+        # on them like BC data. The server records nothing for it (that lane is PPO's).
+        self.label = job["kind"] == "bc" and self.record
+        self.samples: list[tuple[dict, int]] = []
+        if spec.endswith(SEARCH_SUFFIX):
+            from tools.selfplay.search import Searcher
+
+            opts = job.get("search", {})
+            self.searcher = Searcher(slot, job["gid"], self.spec, table, k=opts.get("k", 4),
+                                     d=opts.get("d", 2), skip_p=opts.get("skip_p", 0.97),
+                                     seed=job["seed"] * 2 + seat)
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -72,11 +90,34 @@ class NetAgent:
         if n > FT.MAX_OPTIONS or ask.kind == "name":
             self.overflow += 1
             return self.fallback.decide(ask, obs)
+        if (ask.kind == "attack" and self.attack_plan is not None
+                and self.plan_turn == obs.executor.world.turn):
+            from tools.selfplay.search import plan_answer
+
+            idx = plan_answer(ask, self.attack_plan)
+            if idx is not None:
+                if self.label:
+                    self.samples.append(
+                        (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx))
+                return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
         self.decisions += 1
-        req = (self.job["gid"], self.seat, self.spec, self.greedy, self.record, feats)
-        action = self.slot.infer(req)
-        return int(action)
+        if self.searcher is not None and ask.kind == "act":
+            idx = self.searcher.choose(ask, obs, feats)
+        else:
+            req = (self.job["gid"], self.seat, self.spec, self.greedy,
+                   self.record and not self.label, feats)
+            idx = int(self.slot.infer(req))
+        if self.label:
+            self.samples.append((feats, idx))
+        return idx
+
+    def plan_combat(self, game: Any, seat: int) -> None:
+        """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.take_acts)."""
+        if self.searcher is None or not self.job.get("search", {}).get("combat", True):
+            return
+        self.attack_plan = self.searcher.plan_attacks(game, seat)
+        self.plan_turn = game.world.turn
 
 
 class RecordingHeuristic:
@@ -174,9 +215,14 @@ class Worker:
         res["gid"] = job["gid"]
         res["kind"] = job["kind"]
         res["seats"] = job["seats"]
+        res["a_seat"] = job.get("a_seat")
+        res["opp"] = job.get("opp")
+        res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
+                         for a in agents]
         res["net_decisions"] = [getattr(a, "decisions", 0) for a in agents]
         res["overflow"] = [getattr(a, "overflow", 0) for a in agents]
-        bc = [a.samples if isinstance(a, RecordingHeuristic) else None for a in agents]
+        bc = [a.samples if isinstance(a, RecordingHeuristic) or getattr(a, "label", False)
+              else None for a in agents]
         if any(s is not None for s in bc):
             res["bc"] = bc
         return res

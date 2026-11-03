@@ -30,6 +30,7 @@ from tools.selfplay.features import AskContext, _handle
 @dataclass
 class SPObservation(Observation):
     ctx: AskContext = field(default_factory=AskContext)
+    game: Any = None  # the live Game: decision-time search forks it (search.py)
 
 
 class SelfplayRouter(SeatRouter):
@@ -71,6 +72,15 @@ class SelfplayRouter(SeatRouter):
                 self._blocks[blocker] = attacker
         return token
 
+    def take_acts(self, game: Any, seat: Handle) -> None:
+        super().take_acts(game, seat)
+        # The pre-combat boundary: a driver that plans its combat (search.py) does it here,
+        # with no engine call in flight.
+        driver = self.drivers[self._index(seat)]
+        plan = getattr(driver, "plan_combat", None)
+        if plan is not None and game.over_reason() is None and game.executor.turn_open:
+            plan(game, self._index(seat))
+
     def _decide(self, driver: Any, ask: Any) -> int:
         self._sync_turn()
         st = self.stats[ask.seat]
@@ -88,7 +98,7 @@ class SelfplayRouter(SeatRouter):
             declared_blocks=dict(self._blocks),
             picked=picked,
         )
-        obs = SPObservation(self.lenses[ask.seat], self.game.executor, ctx=ctx)
+        obs = SPObservation(self.lenses[ask.seat], self.game.executor, ctx=ctx, game=self.game)
         idx = driver.decide(ask, obs)
         if not isinstance(idx, int) or not 0 <= idx < len(ask.options):
             raise AgentError(f"agent {getattr(driver, 'name', driver)!r} returned {idx!r} for {ask.site}")
