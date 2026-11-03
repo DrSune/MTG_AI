@@ -42,6 +42,8 @@ import torch.nn.functional as F
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.actor import worker_main
+from tools.selfplay.ppo import pack_buffer, ppo_train
+from tools.selfplay.trainer import trainer_main
 
 EVAL_SEED0 = 900_000
 TRAIN_SEED0 = 10_000_000
@@ -127,6 +129,11 @@ class Learner:
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
         self.infer_stream = None
+        self.trainer = None
+        self.tconn = None
+        self.sent_anchor: str | None = None
+        if args.trainer_proc and args.async_update:
+            raise ValueError("--trainer-proc and --async-update are alternatives")
         if args.async_update:
             # Workers keep playing on this copy while the GPU trains self.model (sync_actor).
             self.actor = self._copy(self.model)
@@ -186,11 +193,50 @@ class Learner:
             if self.cuda:
                 torch.cuda.synchronize()
 
+    def _update_remote(self) -> dict:
+        """--trainer-proc: hand the batch to the trainer process and keep serving the workers
+        on the current weights until the new ones come back."""
+        a = self.args
+        if self.trainer is None:
+            ctx = mp.get_context("spawn")
+            self.tconn, child = ctx.Pipe(duplex=True)
+            ckpt = {"config": self.model.config, "table": self.table.to_json(),
+                    "state": {k: v.detach().cpu() for k, v in self.model.state_dict().items()}}
+            self.trainer = ctx.Process(target=trainer_main, args=(child, ckpt, vars(a)),
+                                       daemon=True)
+            self.trainer.start()
+        anchor = self.versions[-1] if self.versions and a.kl_anchor > 0 else None
+        if anchor is not None and anchor != self.sent_anchor:
+            state = {k: v.detach().cpu() for k, v in self.models[anchor].state_dict().items()}
+            self.tconn.send(("anchor", anchor, state))
+            self.sent_anchor = anchor
+        buf, self.buffer = self.buffer, []
+        t0 = time.perf_counter()
+        self.tconn.send(("update", pack_buffer(buf), anchor))
+        send_s = time.perf_counter() - t0
+        del buf
+        self.serve(lambda: self.tconn.poll() or not self.trainer.is_alive())
+        if not self.tconn.poll():
+            raise RuntimeError("trainer process died without a reply")
+        msg = self.tconn.recv()
+        if msg[0] == "error":
+            self.log({"event": "trainer_error", "error": msg[1]})
+            raise SystemExit(4)
+        _, state, stats = msg
+        self.model.load_state_dict(state)
+        if self.cuda:
+            torch.cuda.synchronize()
+        stats["send_s"] = round(send_s, 2)
+        stats["overlap_steps"] = len(self.buffer)
+        return stats
+
     def update(self) -> dict:
         """One PPO update. With --async-update it runs in a thread while this thread keeps
         serving the workers on the actor copy (they otherwise sit idle for the whole update);
         the next batch then starts with data from the previous weights, which the PPO ratio
         and clipping account for."""
+        if self.args.trainer_proc:
+            return self._update_remote()
         if not self.args.async_update:
             return self.ppo_update()
         buf, self.buffer = self.buffer, []
@@ -223,6 +269,7 @@ class Learner:
             return
         self._mem_checked = now
         avail = mem_available_gib()
+        self.mem_min = min(getattr(self, "mem_min", avail), avail)
         if avail >= self.args.mem_floor_gib:
             return
         self.log({"event": "mem_floor", "avail_gib": round(avail, 2),
@@ -264,6 +311,15 @@ class Learner:
         self.wid_of = {id(c): i for i, c in enumerate(self.conns)}
 
     def stop_workers(self) -> None:
+        if self.trainer is not None:
+            try:
+                self.tconn.send(("stop",))
+            except (BrokenPipeError, OSError):
+                pass
+            self.trainer.join(timeout=20)
+            if self.trainer.is_alive():
+                self.trainer.terminate()
+            self.trainer = None
         for c in self.conns:
             try:
                 c.send(("stop",))
@@ -546,97 +602,13 @@ class Learner:
         return chunks
 
     def ppo_update(self, buf: list | None = None) -> dict:
-        a = self.args
         if buf is None:
             buf, self.buffer = self.buffer, []
-        n = len(buf)
-        adv = np.array([b[4] for b in buf], dtype=np.float32)
-        adv_n = (adv - adv.mean()) / (adv.std() + 1e-8)
-        ret = np.array([b[5] for b in buf], dtype=np.float32)
-        old_v = np.array([b[3] for b in buf], dtype=np.float32)
-        ev = 1.0 - float(np.var(ret - old_v)) / max(float(np.var(ret)), 1e-8)
-        # eval() = no name dropout: PPO's ratio must compare the policy that acted with the same
-        # function (dropout is for supervised BC only; in train mode the ratio was noise-inflated)
-        self.model.eval()
-        stats = defaultdict(list)
-        stop = False
-        # Minibatches are formed and collated ONCE per iteration and reused by every epoch (only
-        # their order is reshuffled): collation is ~70 us/decision of Python, the dominant
-        # update cost when redone per epoch.
-        batches = []
-        for ch in self._chunks(buf, a.mb, lambda x: x[0]["cards_i"].shape[0]
-                               + x[0]["opts_i"].shape[0]):
-            self.check_memory()
-            batches.append((
-                M.collate([buf[i][0] for i in ch], self.device),
-                torch.tensor([buf[i][1] for i in ch], device=self.device),
-                torch.tensor([buf[i][2] for i in ch], device=self.device),
-                torch.from_numpy(adv_n[ch]).to(self.device),
-                torch.from_numpy(ret[ch]).to(self.device),
-                torch.from_numpy(old_v[ch]).to(self.device),
-            ))
+        payload = pack_buffer(buf)
         del buf
-        for epoch in range(a.epochs):
-            kls = []
-            random.shuffle(batches)
-            for b, act, old_logp, A, R, V0 in batches:
-                self.check_memory()
-                with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
-                    logits, v = self.model(b)
-                logp_all = torch.log_softmax(logits, -1)
-                logp = logp_all.gather(1, act[:, None]).squeeze(1)
-                ent = -(logp_all.exp() * logp_all).sum(-1)
-                # clamp: a rail against overflow, far outside the clip range
-                ratio = torch.exp((logp - old_logp).clamp(-20.0, 20.0))
-                pg = -torch.min(ratio * A, ratio.clamp(1 - a.clip, 1 + a.clip) * A).mean()
-                v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
-                vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
-                loss = pg + a.vcoef * vloss - a.ent * ent.mean()
-                anchor = self.models.get(self.versions[-1]) if self.versions else None
-                if a.kl_anchor > 0 and anchor is not None:
-                    # pull toward the frozen version (KL(learner || frozen)): noise in the
-                    # policy gradient otherwise random-walks a peaked policy flat (m2/m3)
-                    with torch.no_grad(), torch.autocast(self.device.type, dtype=torch.bfloat16,
-                                                         enabled=self.cuda):
-                        anc_logits, _ = anchor(b)
-                    anc_logp = torch.log_softmax(anc_logits.float(), -1)
-                    kl_anc = (logp_all.exp() * (logp_all - anc_logp)).sum(-1).mean()
-                    loss = loss + a.kl_anchor * kl_anc
-                    stats["kl_anchor"].append(kl_anc.item())
-                self.opt.zero_grad(set_to_none=True)
-                if not torch.isfinite(loss):
-                    stats["nonfinite"].append(1.0)  # skipped step, counted (never silent)
-                    continue
-                loss.backward()
-                gn = torch.nn.utils.clip_grad_norm_(self.model.parameters(), a.max_grad)
-                if not torch.isfinite(gn):
-                    self.opt.zero_grad(set_to_none=True)
-                    stats["nonfinite"].append(1.0)
-                    continue
-                self.opt.step()
-                with torch.no_grad():
-                    log_ratio = logp - old_logp
-                    kl = ((ratio - 1) - log_ratio).mean().item()
-                    kls.append(kl)
-                    stats["pg"].append(pg.item())
-                    stats["v"].append(vloss.item())
-                    stats["ent"].append(ent.mean().item())
-                    stats["kl"].append(kl)
-                    stats["clip"].append(((ratio - 1).abs() > a.clip).float().mean().item())
-                    stats["gn"].append(float(gn))
-            stats["epochs"].append(epoch + 1)
-            if a.target_kl > 0 and float(np.mean(kls)) > a.target_kl:
-                stop = True
-                break
-        del batches
-        self.model.eval()
-        self.release_cache()
-        out = {k: round(float(np.mean(v)), 5) for k, v in stats.items()
-               if k not in ("epochs", "nonfinite")}
-        out["nonfinite"] = len(stats.get("nonfinite", []))
-        out.update({"steps": n, "epochs": stats["epochs"][-1], "kl_stop": stop,
-                    "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4)})
-        return out
+        anchor = self.models.get(self.versions[-1]) if self.versions else None
+        return ppo_train(self.model, self.opt, anchor, a=self.args, device=self.device,
+                         check=self.check_memory, release=self.release_cache, **payload)
 
     # ------------------------------------------------------------------ BC
 
@@ -917,8 +889,10 @@ class Learner:
                       "frozen": self.versions[-1] if self.versions else None,
                       "turns": round(float(np.mean([x[2] for x in res])) if res else 0, 1),
                       "games": len(res), "mem_gib": round(mem_available_gib(), 1),
+                      "mem_min_gib": round(getattr(self, "mem_min", float("nan")), 1),
                       "infer_bs": round(self.infer_items / max(self.infer_batches, 1), 1),
                       "voids": self.counts["train:void"], "overflow": self.counts["overflow"]})
+            self.mem_min = float("inf")
             queued = {q[0] for q in self.eval_queue} | {self.eval_kind.get("kind")}
             if self.stage == "teacher" and self.it % a.eval_every == 0 and "teacher" not in queued:
                 self.queue_eval("teacher", f"teacher:it{self.it}", "eval", ["heuristic"],
@@ -1145,6 +1119,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--search-skip-p", type=float, default=0.97,
                    help="no search when the network's top option has at least this probability")
     p.add_argument("--save-every", type=int, default=5)
+    p.add_argument("--trainer-proc", action="store_true",
+                   help="PPO updates in a separate process; the workers never wait for one")
     p.add_argument("--async-update", action="store_true",
                    help="train in a thread while the workers keep playing on an actor copy")
     p.add_argument("--mem-floor-gib", type=float, default=8.0,

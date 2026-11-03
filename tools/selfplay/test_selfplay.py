@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pickle
 import random
 
 import numpy as np
@@ -130,3 +131,19 @@ def test_network_is_equivariant_over_options_and_roundtrips(table, tmp_path) -> 
     with torch.no_grad():
         a2, _ = net2(M.collate([feats], "cpu"))
     assert torch.allclose(a, a2) and extra["note"] == "test" and table2.oracle_ids == table.oracle_ids
+
+
+def test_packed_collation_equals_collate(table) -> None:
+    recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
+    play_game(9, recs, deck_mode="stress")
+    feats = [f for f, _ in recs[0].samples + recs[1].samples]
+    packed = M.pack(feats)
+    assert len(packed) == len(feats)
+    idx = np.array([5, 0, 17, 3, len(feats) - 1])
+    a = M.collate([feats[i] for i in idx], "cpu")
+    b = M.collate_packed(packed, idx, "cpu")
+    for key in a:
+        assert a[key].shape == b[key].shape, key
+        assert torch.equal(a[key].float(), b[key].float()), key
+    clone = pickle.loads(pickle.dumps(packed))
+    assert np.array_equal(clone.cards_f, packed.cards_f) and len(clone) == len(packed)

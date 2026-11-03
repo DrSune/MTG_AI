@@ -158,6 +158,79 @@ def collate(obs: list[dict[str, np.ndarray]], device: torch.device | str) -> dic
     return {k2: torch.from_numpy(v).to(device, non_blocking=True) for k2, v in out.items()}
 
 
+class Packed:
+    """Many decisions as flat arrays: every sample's card rows (and option rows) back to back,
+    with offsets. Cheap to pickle across processes, and ``collate_packed`` pads a minibatch from
+    it with a handful of vectorised numpy ops instead of a Python loop over decisions."""
+
+    FIELDS = ("cards_i", "cards_f", "c_off", "opts_i", "opts_f", "o_off", "players_f", "glob_f",
+              "ask_i")
+
+    def __init__(self, **arrays: np.ndarray) -> None:
+        for k in self.FIELDS:
+            setattr(self, k, arrays[k])
+
+    def __len__(self) -> int:
+        return len(self.c_off) - 1
+
+    def lengths(self) -> np.ndarray:
+        """Per-decision token count (cards + options), the minibatch sort key."""
+        return np.diff(self.c_off) + np.diff(self.o_off)
+
+    def __getstate__(self) -> dict:
+        return {k: getattr(self, k) for k in self.FIELDS}
+
+    def __setstate__(self, state: dict) -> None:
+        for k, v in state.items():
+            setattr(self, k, v)
+
+
+def pack(obs: list[dict[str, np.ndarray]]) -> Packed:
+    e = np.array([o["cards_i"].shape[0] for o in obs], dtype=np.int64)
+    k = np.array([o["opts_i"].shape[0] for o in obs], dtype=np.int64)
+    return Packed(
+        cards_i=np.concatenate([o["cards_i"] for o in obs]).astype(np.int16),
+        cards_f=np.concatenate([o["cards_f"] for o in obs]).astype(np.float16),
+        c_off=np.concatenate([[0], np.cumsum(e)]),
+        opts_i=np.concatenate([o["opts_i"] for o in obs]).astype(np.int16),
+        opts_f=np.concatenate([o["opts_f"] for o in obs]).astype(np.float16),
+        o_off=np.concatenate([[0], np.cumsum(k)]),
+        players_f=np.stack([o["players_f"] for o in obs]).astype(np.float16),
+        glob_f=np.stack([o["glob_f"] for o in obs]).astype(np.float16),
+        ask_i=np.stack([o["ask_i"] for o in obs]).astype(np.int16),
+    )
+
+
+def _rows(off: np.ndarray, idx: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    start = off[idx]
+    n = off[idx + 1] - start
+    width = max(1, int(n.max()) if len(n) else 1)
+    ar = np.arange(width)
+    mask = ar[None, :] < n[:, None]
+    rows = np.where(mask, start[:, None] + ar[None, :], 0)
+    return rows, mask
+
+
+def collate_packed(p: Packed, idx: np.ndarray, device: torch.device | str) -> dict[str, torch.Tensor]:
+    """The same batch ``collate`` builds, for the decisions ``idx`` of ``p``."""
+    idx = np.asarray(idx, dtype=np.int64)
+    c_rows, c_mask = _rows(p.c_off, idx)
+    o_rows, o_mask = _rows(p.o_off, idx)
+    out = {
+        "cards_i": p.cards_i[c_rows].astype(np.int64) * c_mask[..., None],
+        "cards_f": p.cards_f[c_rows].astype(np.float32) * c_mask[..., None],
+        "card_mask": c_mask,
+        "players_f": p.players_f[idx].astype(np.float32),
+        "glob_f": p.glob_f[idx].astype(np.float32),
+        "ask_i": p.ask_i[idx].astype(np.int64),
+        "opts_i": p.opts_i[o_rows].astype(np.int64) * o_mask[..., None],
+        "opts_f": p.opts_f[o_rows].astype(np.float32) * o_mask[..., None],
+        "opt_mask": o_mask,
+    }
+    return {k: torch.from_numpy(np.ascontiguousarray(v)).to(device, non_blocking=True)
+            for k, v in out.items()}
+
+
 def build(table: FT.CardTable, **kw: Any) -> PolicyValueNet:
     return PolicyValueNet(len(table.oracle_ids), len(table.ir_vocab), table.ir_array(), **kw)
 
