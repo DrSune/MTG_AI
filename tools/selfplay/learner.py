@@ -1009,6 +1009,9 @@ class Learner:
         self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
         self.bc_seats = [a.exit_seat, a.exit_seat]
         window: deque = deque(maxlen=a.exit_keep)
+        # generations that left the policy window stay as value-only data (policy weight 0):
+        # the value head over-fits one window's ~1.5K games (r7 gen 1: held-out MSE 0.93 -> 1.05)
+        vwindow: deque = deque(maxlen=max(0, a.exit_value_keep - a.exit_keep))
         for self.it in range(1, a.iters + 1):
             t0 = time.time()
             self.bc, self.phase = [], "bc"
@@ -1017,13 +1020,15 @@ class Learner:
             self.serve(lambda: self.bc_done >= self.bc_target)
             self.phase = "idle"
             play_s = time.time() - t0
+            if len(window) == window.maxlen and vwindow.maxlen:
+                vwindow.append([(x[0], x[1], x[2], x[3], 0.0) for x in window[0]])
             window.append(self.bc)
             res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
             for opp, z, _ in res:
                 wr["frozen" if opp == self.versions[-1] else
                    ("past" if opp.startswith("v") else opp)].append(z)
-            self.bc = [x for part in window for x in part]
+            self.bc = [x for part in window for x in part] + [x for part in vwindow for x in part]
             n_window = len(self.bc)
             t1 = time.time()
             fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr, keep=True)
@@ -1271,6 +1276,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--exit-epochs", type=int, default=2)
     p.add_argument("--exit-lr", type=float, default=2e-4)
     p.add_argument("--exit-keep", type=int, default=3, help="generations of data trained on")
+    p.add_argument("--exit-value-keep", type=int, default=0,
+                   help="generations of value targets (>= --exit-keep; older ones value-only)")
     p.add_argument("--exit-value-opp", action="store_true",
                    help="also record the opponent's positions (value targets only)")
     p.add_argument("--exit-eval-seats", default="eval,eval+search")
