@@ -177,9 +177,41 @@ budget, checkpoint pair `<tag>.pt` + `<tag>_policy.pt` sidecar
   iteration's `<tag>_policy.pt` sidecar for the next; per-iteration
   tags `rlv2dbg_i1..i5`.
 
-### 7.3 5-iteration on-policy debug loop (IN FLIGHT — launched 03:5x)
+### 7.3 5-iteration on-policy debug loop (attempt 1 FAILED on a third bug; retry in flight)
 
-Launch: `/tmp/opencode/rlv2_debug_launch.sh` (OMP_NUM_THREADS=8 per the
-23:21 encode-peak memory measurement; fresh seed blocks 520002+ per the
-D9 registry; out `/tmp/opencode/rld_v2dbg`). Expected ~4–6 h wall
-(warm-start dominates). Numbers appended below on completion.
+**Attempt 1 (2026-11-03 04:05 → 05:50, wall ~1 h 45 min, rc=1)**:
+- Warm-start on the recorded 1000g (500g / 23910 decisions / 3 epochs):
+  **held-out EV = 0.1660 on 200 games** — gate passed (consistent with
+  the offline run's 0.1866 on a different carve).
+- Iteration-1 mirror collection (50g, seeds **520002–520051**, dps
+  1500, rl-seed 4300, anchor vs anchor): 100 rows → 50 learner rows →
+  **2575 learner decisions**.
+- **Crash (measured)**: `IndexError` in `compute_gae` via
+  `gae_advantages`. The collection contained **4 zero-ask rows** — 2
+  learner "loss" games (520003, 520038: a loss before the first ask,
+  the seat never decided) and 2 opponent-side rows (520015 crash,
+  520022 loss). With `n = 0` decisions, GAE built
+  `rewards = [0]*(n-1) + [terminal]` → length 1 against an empty value
+  slice. The v1 pilot's 1000g recorded file had no zero-ask games, so
+  the offline path never met it; the on-policy mirror collection does.
+- **Fix (worktree commit `6c7772d`)**: `gae_advantages` skips `n == 0`
+  games (no decisions → no credit; neighbours untouched) — one
+  defensive branch covering every consumer (offline `train()`, the
+  loop, future real runs). New CPU regression test
+  `test_gae_zero_decision_game` (hand-checked neighbours). Suite:
+  **16 passed, 3 skipped** (cuda-only).
+- Behaviour note for the era boundary: a loss before the first ask is
+  a property of this broken-era engine (e.g. library-empty losses in
+  the opening phase); the fix makes the loop mechanics robust to it.
+  If the corrected engine still produces such games, the real-run spec
+  should state this handling explicitly (the game counts in game-level
+  stats, contributes no decisions).
+
+**Retry (attempt 2, in flight)**: relaunched ~05:5x via
+`/tmp/opencode/rlv2_debug_launch.sh` (OMP_NUM_THREADS=8; out
+`/tmp/opencode/rld_v2dbg`). Same seed block 520002–520051 — a retry,
+not a new experiment (deterministic engine + fixed seeds ⇒ identical
+games). First attempt's episode file archived as
+`episodes_i1_firstattempt.jsonl`
+(SHA-256 `ef905a3c22932dbe83bac60e2dcee08a75e4fb20665652f033b9c208e5c43140`)
+for the bit-identity check of the on-policy collection path.
