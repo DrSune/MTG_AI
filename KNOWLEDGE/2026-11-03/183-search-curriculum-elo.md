@@ -168,3 +168,16 @@ value net's update on all positions of those games made it worse on held-out gam
 r11: value net trained only on positions sampled with p = 0.06 (~5 per game) from 6,000 fast
 unsearched value games per generation plus the search games, 10-generation value window, 3
 epochs early-stopped at the best held-out epoch; 16 slots in 4 pipelined groups per worker.
+
+## 13. r11: value net finally improves on held-out games; the raw network plateaus
+
+| Gen | value net held-out MSE (before -> kept) | value positions / games | searching seat vs heuristic | raw net gate |
+|---|---|---|---|---|
+| 1 | 0.4755 -> **0.4486** | 44,250 / 7,399 | 0.600 | - |
+| 2 | 0.5653 -> **0.5528** | 88,191 / ~15K | 0.593 | **0.5434** [0.4735, 0.6116] |
+
+Paired over 98 deals, r11 gen 2 vs the original BC net **+0.0714** [+0.0153, +0.1276]; vs r6 gen 2
++0.0077 [-0.0306, +0.0459]: the raw network has not moved since r6 gen 2 (~4 generations) while
+the searching seat keeps ~0.59-0.64. Hypothesis: hard labels from a noisy search (k 3, d 2) flip
+on small score edges. r12: soft targets prior x exp(score / 0.05), resumable state, serving
+window 5 ms with coarser buckets (ratio 2.0, min 24).
