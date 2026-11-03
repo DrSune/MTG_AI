@@ -65,3 +65,14 @@ places each version through its neighbours.
   params); BC on 16,000 heuristic games (1,545,443 decisions, 692 s at 23 games/s on 18 workers x
   8 slots); BC epoch 0 held-out agreement 0.9495, value MSE 0.5726, 741 s/epoch. Restarted from
   its bc.pt with --async-update and the fixed PPO once BC finished (r2).
+
+## 6. Throughput engineering (same day)
+
+| Run | Change | Iteration (98K decisions) | Notes |
+|---|---|---|---|
+| r1 | synchronous, 2 PPO epochs | BC only (stopped after bc.pt) | update ~118 s measured in r2 |
+| r2 | --async-update (thread, one CUDA stream), 2 epochs | ~100 s collect + 118 s update | stopped at the memory floor: MemAvailable 80 -> 7 GiB at it 4 (allocator growth, varying shapes) |
+| r3 | + expandable_segments, tok-budget 98K, cache release every 16 steps, 1 epoch | ~95 s collect + 62-82 s update; 5-10K decisions played during an update | stopped for r4 |
+| r4 | --trainer-proc (PPO in its own process/CUDA context) | **~105 s total**: 64-84K of the 98K decisions are played during the previous update; train_s ~88-90 s | 22-24 games/s, MemAvailable min ~54 GiB |
+
+Elo at r4 start (uniform random = 0, 594 games): heuristic +387.6, v0 (25M BC) +376.0.
