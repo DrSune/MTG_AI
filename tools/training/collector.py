@@ -188,12 +188,22 @@ class EpisodeCollector:
 
         def provider(vocab: tuple[str, ...], what: str) -> str:
             world = game.world
+            # era-boundary (/177 §2): the engine names the deciding seat per
+            # ask (EachPlayer re-asks the same tag once per player, so the
+            # tag alone cannot recover it); fall back to the active player
+            # when a site did not name one (pre-era semantics).
+            ash = executor.decisions.asking_seat
+            seat = (
+                seats.index(str(ash))
+                if ash is not None and str(ash) in seats
+                else seats.index(str(world.active_player))
+            )
             ctx = AskContext(
                 vocab=what,
                 candidates=tuple(vocab),
                 world={
                     "turn": world.turn,
-                    "seat": seats.index(str(world.active_player)),
+                    "seat": seat,
                     "lives": [world.players[s].life for s in world.player_order],
                 },
             )

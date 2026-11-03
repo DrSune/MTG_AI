@@ -44,6 +44,14 @@ SITE_KINDS = (
     # additive kinds only (first-seen vocab order extends; episodes re-encoded).
     "one_of",
     "sacrifice",
+    # 2026-11-03 era-boundary (/177 §2, cards/integration merge): the merged
+    # engine asks discard/legend/enchant to the deciding player (opponent-side
+    # sites) plus tap and X-value asks — additive kinds only.
+    "tap",
+    "discard",
+    "legend",
+    "x",
+    "enchant",
 )
 
 _WORD = re.compile(r"[^0-9a-z']+")

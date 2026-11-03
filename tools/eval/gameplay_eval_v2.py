@@ -591,8 +591,17 @@ def run_v2_game(
                 agent.pending = None
 
     def provider(vocab: tuple[str, ...], what: str) -> str:
-        active = seats.index(str(world.active_player))
-        seat = resolve_seat(what, game, seats, active, handle_words)
+        # era-boundary (/177 §2): the engine names the deciding seat per
+        # ask (EachPlayer re-asks the same tag once per player, so the tag
+        # alone cannot recover it). Fall back to the v2 tag inference, then
+        # the active player (pre-era semantics).
+        ash = game.executor.decisions.asking_seat
+        if ash is not None and str(ash) in seats:
+            seat = seats.index(str(ash))
+        else:
+            seat = resolve_seat(
+                what, game, seats, seats.index(str(world.active_player)), handle_words
+            )
         st = stats[str(seat)]
         obs = snapshot_obs(world, world.active_player)
         obs["_seat"] = seat

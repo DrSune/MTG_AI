@@ -669,7 +669,8 @@ def run_duel_game(
     """One seeded, seat-assigned duel -> the outcome record. Mirrors
     collector.run_episode's provider installation exactly (the games.py
     ``driver.answer`` masking), but routes each ask to the policy OWNING
-    the active seat."""
+    the seat the engine is asking (``asking_seat``; the active player when
+    a site did not name one — /177 §2 era-boundary fix)."""
     # /135 T-G5 item 1: the supply is set-scoped (get_supply takes set_code;
     # the ladder was M21-locked because this layer never passed it through).
     supply = supply if supply is not None else get_supply(pool_mode, set_code)
@@ -684,7 +685,15 @@ def run_duel_game(
     }
 
     def provider(vocab: tuple[str, ...], what: str) -> str:
-        seat = seats.index(str(world.active_player))
+        # era-boundary (/177 §2): route to the policy owning the seat the
+        # engine is asking (asking_seat; the active player when a site did
+        # not name one — pre-era semantics).
+        ash = game.executor.decisions.asking_seat
+        seat = (
+            seats.index(str(ash))
+            if ash is not None and str(ash) in seats
+            else seats.index(str(world.active_player))
+        )
         ctx = AskContext(
             vocab=what,
             candidates=tuple(vocab),
