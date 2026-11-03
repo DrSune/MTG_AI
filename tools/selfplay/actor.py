@@ -30,13 +30,13 @@ from tools.selfplay import features as FT
 from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
 
-NET_SPECS = ("learner", "eval")
 SEARCH_SUFFIX = "+search"
 
 
 def is_net(spec: str) -> bool:
-    spec = spec.removesuffix(SEARCH_SUFFIX)
-    return spec in NET_SPECS or spec.startswith("snap:")
+    """Every seat spec except the two scripted players names a network on the learner
+    ("learner", "eval", "snap:<k>", a frozen version "v<k>", ...)."""
+    return spec.removesuffix(SEARCH_SUFFIX) not in ("heuristic", "random")
 
 
 class _UniformRandom:

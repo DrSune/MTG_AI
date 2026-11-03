@@ -56,6 +56,42 @@ def wilson(wins: float, n: int, z: float = 1.96) -> tuple[float, float]:
     return (round(c - h, 4), round(c + h, 4))
 
 
+def fit_elo(games: list[tuple[str, str, float]], anchor: str = "random",
+            prior: float = 1.0, iters: int = 2000) -> dict[str, float]:
+    """Bradley-Terry ratings in Elo points from ``(a, b, score_of_a)`` games, ``anchor`` = 0.
+
+    ``prior`` adds that many virtual drawn games to every pair that met, so a 200-0 result
+    gives a large but finite gap (the bench's ``bradley_terry`` refuses such data). Ratings far
+    from every opponent a player actually met are extrapolations: read the gaps between
+    neighbours on the ladder, not across it."""
+    wins: dict[str, float] = defaultdict(float)
+    pairs: dict[tuple[str, str], float] = defaultdict(float)
+    for a, b, sc in games:
+        key = (a, b) if a <= b else (b, a)
+        pairs[key] += 1.0
+        wins[a] += sc
+        wins[b] += 1.0 - sc
+    for (a, b) in list(pairs):
+        pairs[(a, b)] += prior
+        wins[a] += prior / 2
+        wins[b] += prior / 2
+    players = sorted({x for k in pairs for x in k})
+    if anchor not in players:
+        return {}
+    strength = dict.fromkeys(players, 1.0)
+    for _ in range(iters):
+        new = {}
+        for pl in players:
+            den = sum(n / (strength[x] + strength[y]) for (x, y), n in pairs.items() if pl in (x, y))
+            new[pl] = wins[pl] / den
+        norm = new[anchor]
+        delta = max(abs(math.log(new[pl] / norm / strength[pl])) for pl in players)
+        strength = {pl: v / norm for pl, v in new.items()}
+        if delta < 1e-10:
+            break
+    return {pl: round(400.0 * math.log10(strength[pl]), 1) for pl in players}
+
+
 def mem_available_gib() -> float:
     with open("/proc/meminfo") as fh:
         for line in fh:
@@ -109,6 +145,11 @@ class Learner:
         self.bc_done = 0
         self.bc_seats = ["heuristic", "heuristic"]
         self.exit_opps: list[str] = []
+        self.stage = ""  # curriculum: "teacher" | "selfplay"
+        self.versions: list[str] = []
+        self.elo_games: list[tuple[str, str, float]] = []
+        self.eval_queue: deque = deque()
+        self.eval_kind: dict = {}
         self.bc_seed0 = BC_SEED0
         self.it = 0
         self.counts: Counter = Counter()
@@ -219,6 +260,8 @@ class Learner:
 
     def train_job(self) -> dict:
         a = self.args
+        if self.stage:
+            return self.curriculum_job()
         r = self.rng.random()
         seed = TRAIN_SEED0 + self.gid + 1
         if r < a.p_self:
@@ -236,6 +279,27 @@ class Learner:
         seats = ["learner", opp] if seat == 0 else [opp, "learner"]
         record = [s == "learner" for s in seats]
         return self._job("train", seed, seats, [False, False], record, self._deck_mode())
+
+    def curriculum_job(self) -> dict:
+        """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
+        the newest frozen version (most games), older versions and the heuristic (a few, so it
+        does not forget how to beat them). Only the learner's seat is trained on."""
+        a = self.args
+        seed = TRAIN_SEED0 + self.gid + 1
+        if self.stage == "teacher":
+            opp = "heuristic"
+        else:
+            r = self.rng.random()
+            if r < a.p_heuristic:
+                opp = "heuristic"
+            elif r < a.p_heuristic + a.p_past and len(self.versions) > 1:
+                opp = self.rng.choice(self.versions[:-1])
+            else:
+                opp = self.versions[-1]
+        seat = self.rng.randrange(2)
+        seats = ["learner", opp] if seat == 0 else [opp, "learner"]
+        return self._job("train", seed, seats, [False, False], [x == "learner" for x in seats],
+                         self._deck_mode())
 
     def _serve_need(self, wid: int, n: int) -> None:
         jobs = []
@@ -466,6 +530,17 @@ class Learner:
                 v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
                 vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
                 loss = pg + a.vcoef * vloss - a.ent * ent.mean()
+                anchor = self.models.get(self.versions[-1]) if self.versions else None
+                if a.kl_anchor > 0 and anchor is not None:
+                    # pull toward the frozen version (KL(learner || frozen)): noise in the
+                    # policy gradient otherwise random-walks a peaked policy flat (m2/m3)
+                    with torch.no_grad(), torch.autocast(self.device.type, dtype=torch.bfloat16,
+                                                         enabled=self.cuda):
+                        anc_logits, _ = anchor(b)
+                    anc_logp = torch.log_softmax(anc_logits.float(), -1)
+                    kl_anc = (logp_all.exp() * (logp_all - anc_logp)).sum(-1).mean()
+                    loss = loss + a.kl_anchor * kl_anc
+                    stats["kl_anchor"].append(kl_anc.item())
                 self.opt.zero_grad(set_to_none=True)
                 loss.backward()
                 gn = torch.nn.utils.clip_grad_norm_(self.model.parameters(), a.max_grad)
@@ -560,7 +635,7 @@ class Learner:
     # ------------------------------------------------------------------ eval
 
     def start_eval(self, tag: str, opponents: list[str] | None = None,
-                   seat: str | None = None) -> None:
+                   seat: str | None = None, deals: int | None = None) -> None:
         a = self.args
         frozen = M.build(self.table, **{k: v for k, v in self.model.config.items()
                                         if k not in ("n_cards", "n_ir")}).to(self.device)
@@ -573,7 +648,7 @@ class Learner:
         self.eval_meta["eval_seat"] = me
         search = {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p}
         for opp in opponents or a.eval_opponents.split(","):
-            for i in range(a.eval_deals):
+            for i in range(deals or a.eval_deals):
                 seed = EVAL_SEED0 + i
                 mode = "stress" if i % 2 == 0 else "coherent"
                 for a_seat in (0, 1):
@@ -669,6 +744,129 @@ class Learner:
         self.serve(lambda: not self.eval_pending)
         self.log(self.eval_summary())
 
+    # ------------------------------------------------------------------ curriculum
+
+    def freeze(self, src: torch.nn.Module) -> str:
+        """A new frozen version from ``src``'s weights (saved as <run>/v<k>.pt)."""
+        name = f"v{len(self.versions)}"
+        cfg = {k: v for k, v in self.model.config.items() if k not in ("n_cards", "n_ir")}
+        net = M.build(self.table, **cfg).to(self.device)
+        net.load_state_dict(src.state_dict())
+        net.eval()
+        self.models[name] = net
+        self.versions.append(name)
+        M.save(str(self.run / f"{name}.pt"), net, self.table, {"it": self.it, "stage": self.stage})
+        self.log({"event": "freeze", "version": name, "it": self.it, "stage": self.stage})
+        return name
+
+    def queue_eval(self, kind: str, tag: str, seat: str, opponents: list[str],
+                   deals: int) -> None:
+        self.eval_queue.append((kind, tag, seat, opponents, deals))
+
+    def _eval_rows_as_games(self, player: str) -> list[tuple[str, str, float]]:
+        """The finished evaluation's games as (player, opponent, score), voided pairs dropped."""
+        pairs: dict[tuple, list] = defaultdict(list)
+        for r in self.eval_rows:
+            pairs[(r.get("opp"), r["seed"], r["deck_mode"])].append(r)
+        out = []
+        for prs in pairs.values():
+            if any(p["outcome"].startswith("void") or p.get("leaky", 0) for p in prs):
+                continue
+            for p in prs:
+                sc = 0.5 if p["outcome"] != "win" else (1.0 if p["winner"] == p["a_seat"] else 0.0)
+                out.append((player, p["opp"], sc))
+        return out
+
+    def _log_elo(self) -> None:
+        elo = fit_elo(self.elo_games, anchor="random")
+        if elo:
+            self.log({"event": "elo", "it": self.it, "ratings": elo,
+                      "games": len(self.elo_games), "versions": list(self.versions)})
+
+    def _eval_tick(self) -> None:
+        """Called once per iteration: finish a completed evaluation, start the next one."""
+        a = self.args
+        if self.eval_meta and not self.eval_pending and self.eval_rows:
+            ev = self.eval_summary()
+            kind, seat, opps = self.eval_kind["kind"], self.eval_kind["seat"], self.eval_kind["opps"]
+            ev["kind"] = kind
+            self.log(ev)
+            if kind == "ladder":
+                self.elo_games += self._eval_rows_as_games(seat)
+                self._log_elo()
+            elif kind == "teacher":
+                res = ev.get("heuristic", {})
+                passed = res.get("score", 0) >= a.teacher_gate and res.get("ci95", [0])[0] > 0.5
+                self.log({"event": "teacher_gate", "it": self.it, "score": res.get("score"),
+                          "ci95": res.get("ci95"), "passed": passed})
+                if passed or self.it >= a.teacher_iters:
+                    name = self.freeze(self.models["eval"])
+                    self.elo_games += self._eval_rows_as_games(name)
+                    self.stage = "selfplay"
+                    self.log({"event": "stage", "stage": "selfplay", "it": self.it,
+                              "frozen": name, "forced": not passed})
+                    self.queue_eval("ladder", f"ladder:{name}", name, ["random"], a.ladder_deals)
+            elif kind == "gate":
+                res = ev.get(opps[0], {})
+                passed = res.get("score", 0) >= a.gate_score and res.get("ci95", [0])[0] > 0.5
+                self.log({"event": "gate", "it": self.it, "vs": opps[0], "score": res.get("score"),
+                          "ci95": res.get("ci95"), "passed": passed})
+                if passed:
+                    name = self.freeze(self.models["eval"])
+                    self.elo_games += self._eval_rows_as_games(name)
+                    self.queue_eval("ladder", f"ladder:{name}", name, ["random", "heuristic"],
+                                    a.ladder_deals)
+                    self.save("best.pt", {"version": name, "gate": res})
+            self.eval_meta = {}
+            self.eval_kind = {}
+        if not self.eval_pending and not self.eval_meta and self.eval_queue:
+            kind, tag, seat, opps, deals = self.eval_queue.popleft()
+            self.eval_kind = {"kind": kind, "seat": seat, "opps": opps}
+            self.start_eval(tag, opponents=opps, seat=seat, deals=deals)
+
+    def curriculum(self) -> None:
+        """Teacher inter-play (BC) -> PPO against the teacher -> PPO against a frozen version of
+        itself, re-frozen whenever it beats that version on the gate deals."""
+        a = self.args
+        v0 = self.freeze(self.model)  # the starting policy (BC or --init)
+        self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"], a.ladder_deals)
+        self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"], a.ladder_deals)
+        self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
+        self.phase = "ppo"
+        for self.it in range(1, a.iters + 1):
+            t0, d0 = time.time(), self.infer_items
+            g0 = sum(self.counts[k] for k in ("train:games", "eval:games", "bc:games"))
+            self.serve(lambda: len(self.buffer) >= a.steps)
+            tp = self.throughput(t0, g0, d0)
+            t1 = time.time()
+            st = self.ppo_update()
+            res, self.train_results = self.train_results, []
+            wr: dict[str, list] = defaultdict(list)
+            for opp, z, _ in res:
+                wr["frozen" if opp == (self.versions[-1] if self.versions else "") else
+                   ("past" if opp.startswith("v") else opp)].append(z)
+            self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,
+                      "upd_s": round(time.time() - t1, 1), "collect_s": round(t1 - t0, 1),
+                      # training-game win rate per opponent group (sampled play, not the eval)
+                      "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
+                              for k, v in wr.items()},
+                      "frozen": self.versions[-1] if self.versions else None,
+                      "turns": round(float(np.mean([x[2] for x in res])) if res else 0, 1),
+                      "games": len(res), "mem_gib": round(mem_available_gib(), 1),
+                      "infer_bs": round(self.infer_items / max(self.infer_batches, 1), 1),
+                      "voids": self.counts["train:void"], "overflow": self.counts["overflow"]})
+            queued = {q[0] for q in self.eval_queue} | {self.eval_kind.get("kind")}
+            if self.stage == "teacher" and self.it % a.eval_every == 0 and "teacher" not in queued:
+                self.queue_eval("teacher", f"teacher:it{self.it}", "eval", ["heuristic"],
+                                a.eval_deals)
+            if self.stage == "selfplay" and self.it % a.gate_every == 0 and "gate" not in queued:
+                self.queue_eval("gate", f"gate:it{self.it}", "eval", [self.versions[-1]],
+                                a.gate_deals)
+            self._eval_tick()
+            if self.it % a.save_every == 0:
+                self.save("last.pt", {"versions": self.versions, "stage": self.stage})
+        self.save("last.pt", {"versions": self.versions, "stage": self.stage})
+
     def run_eval(self, tag: str, seat: str) -> dict:
         self.start_eval(tag, seat=seat)
         prev, self.phase = self.phase, "idle"
@@ -704,11 +902,40 @@ class Learner:
             for seat in a.exit_eval_seats.split(","):
                 self.run_eval(f"gen{gen}:{seat}", seat)
 
+    def bc_phase(self) -> None:
+        """Teacher inter-play: heuristic-vs-heuristic games, then behaviour cloning."""
+        a = self.args
+        self.phase = "bc"
+        self.bc_target = a.bc_games
+        t0 = time.time()
+        last = 0
+
+        def bc_done() -> bool:
+            nonlocal last
+            if self.bc_done - last >= 2000:
+                last = self.bc_done
+                self.log({"event": "bc_gen", "games": self.bc_done, "samples": len(self.bc),
+                          "secs": round(time.time() - t0, 1),
+                          "mem_gib": round(mem_available_gib(), 1)})
+            return self.bc_done >= self.bc_target
+
+        self.serve(bc_done)
+        self.phase = "idle"
+        self.log({"event": "bc_gen_done", "games": self.bc_done, "samples": len(self.bc),
+                  "secs": round(time.time() - t0, 1), "counts": dict(self.counts)})
+        self.bc_train()
+        self.save("bc.pt")
+
     def main(self) -> None:
         a = self.args
         try:
             if a.eval_only:
                 self.eval_only()
+                return
+            if a.curriculum:
+                if a.bc_games > 0 and not a.init:
+                    self.bc_phase()
+                self.curriculum()
                 return
             if a.exit_gens > 0:
                 self.add_snapshot()
@@ -718,24 +945,7 @@ class Learner:
                 self.expert_iteration()
                 return
             if a.bc_games > 0 and not a.init:
-                self.phase = "bc"
-                self.bc_target = a.bc_games
-                t0 = time.time()
-                last = 0
-                def bc_done() -> bool:
-                    nonlocal last
-                    if self.bc_done - last >= 1000:
-                        last = self.bc_done
-                        self.log({"event": "bc_gen", "games": self.bc_done,
-                                  "samples": len(self.bc), "secs": round(time.time() - t0, 1),
-                                  "mem_gib": round(mem_available_gib(), 1)})
-                    return self.bc_done >= self.bc_target
-                self.serve(bc_done)
-                self.phase = "idle"
-                self.log({"event": "bc_gen_done", "games": self.bc_done, "samples": len(self.bc),
-                          "secs": round(time.time() - t0, 1), "counts": dict(self.counts)})
-                self.bc_train()
-                self.save("bc.pt")
+                self.bc_phase()
             self.add_snapshot()  # the starting policy is the league's first member
             self.models["snap:base"] = self.models[self.snaps[-1]]
             self.start_eval("start")
@@ -840,6 +1050,21 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-seat", default="eval", help="'eval' or 'eval+search'")
     p.add_argument("--eval-only", action="store_true", help="evaluate --init and exit")
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
+    # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
+    p.add_argument("--curriculum", action="store_true")
+    p.add_argument("--teacher-iters", type=int, default=60,
+                   help="max PPO iterations against the heuristic before frozen self-play")
+    p.add_argument("--teacher-gate", type=float, default=0.65,
+                   help="leave the teacher stage once the learner scores this vs the heuristic")
+    p.add_argument("--gate-every", type=int, default=5)
+    p.add_argument("--gate-deals", type=int, default=200)
+    p.add_argument("--gate-score", type=float, default=0.55,
+                   help="re-freeze when the learner scores this vs the frozen version "
+                        "(and the 95%% interval is above 0.5)")
+    p.add_argument("--ladder-deals", type=int, default=100)
+    p.add_argument("--p-past", type=float, default=0.1, help="selfplay games vs older versions")
+    p.add_argument("--kl-anchor", type=float, default=0.0,
+                   help="weight of KL(learner || newest frozen version) in the PPO loss")
     p.add_argument("--exit-gens", type=int, default=0, help="expert-iteration generations")
     p.add_argument("--exit-games", type=int, default=2000)
     p.add_argument("--exit-seat", default="learner+search", help="the seat whose moves are learned")
