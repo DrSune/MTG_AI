@@ -533,9 +533,16 @@ class Learner:
         this thread), so fewer, larger forwards keep the serving thread from saturating."""
         if max_wait is None:
             max_wait = self.args.serve_wait / 1000.0
+        last_log = time.monotonic()
         while not until():
             self.check_memory()
             self._flush_needs()
+            if time.monotonic() - last_log >= self.args.progress_every > 0:
+                last_log = time.monotonic()
+                self.log({"event": "progress", "phase": self.phase, "it": self.it,
+                          **{k: getattr(self, k, None) for k in
+                             ("bc_done", "bc_target", "v_done", "v_target")},
+                          "mem_gib": round(mem_available_gib(), 1)})
             ready = wait(self.conns, timeout=0.05)
             if not ready:
                 continue
@@ -1485,6 +1492,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--save-every", type=int, default=5)
     p.add_argument("--trainer-proc", action="store_true",
                    help="PPO updates in a separate process; the workers never wait for one")
+    p.add_argument("--progress-every", type=float, default=300.0,
+                   help="seconds between progress events while serving (0: off)")
     p.add_argument("--serve-wait", type=float, default=2.0,
                    help="ms to gather requests into one inference call")
     p.add_argument("--bucket-ratio", type=float, default=1.4,
