@@ -3,7 +3,9 @@
     .venv/bin/python -m tools.selfplay.report runs/selfplay/NAME [--iters 8]
 
 Prints the frozen versions (when, which stage), the latest Elo ladder (uniform random = 0),
-the gate and teacher-gate results, and the most recent training iterations.
+the gate and teacher-gate results, the greedy evaluations against the heuristic, the
+training-game win rates in blocks of 10 iterations, and the most recent iterations. An
+iteration redone after a resume is shown once (its last run).
 """
 
 from __future__ import annotations
@@ -44,8 +46,30 @@ def main(argv: list[str] | None = None) -> int:
             vs = r.get("vs", "heuristic")
             print(f"  it {r['it']:>4} {r['event']:<12} vs {vs:<9} score {r.get('score')} "
                   f"ci {r.get('ci95')} {'PASS' if r.get('passed') else '-'}")
-    iters = [r for r in rows if r.get("event") == "iter"]
+    evals = [r for r in rows if r.get("event") == "eval" and "heuristic" in r
+             and r.get("kind") in ("teacher", "ladder", None)]
+    if evals:
+        print("\nvs heuristic (greedy evals, last 10):")
+        for r in evals[-10:]:
+            h = r["heuristic"]
+            print(f"  {r.get('tag', '?'):<18} score {h.get('score')} ci {h.get('ci95')} "
+                  f"n {h.get('n')}")
+    by_it: dict = {}
+    for r in rows:
+        if r.get("event") == "iter":
+            by_it[r["it"]] = r
+    iters = [by_it[k] for k in sorted(by_it)]
     if iters:
+        print("\ntraining-game win rate by 10 iterations (sampled play):")
+        for start in range(0, len(iters), 10):
+            block = iters[start:start + 10]
+            groups: dict = {}
+            for r in block:
+                for k, v in (r.get("win") or {}).items():
+                    groups.setdefault(k, []).append(v)
+            means = {k: round(sum(v) / len(v), 3) for k, v in sorted(groups.items())}
+            print(f"  it {block[0]['it']:>4}-{block[-1]['it']:<4} {block[-1].get('stage', ''):<8} "
+                  f"{means}")
         print(f"\nlast {args.iters} iterations:")
         for r in iters[-args.iters:]:
             print(f"  it {r['it']:>4} {r.get('stage', ''):<8} win {r.get('win', r.get('vs'))} "
