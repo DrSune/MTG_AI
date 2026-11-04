@@ -451,3 +451,10 @@ v2 0.613, v3 0.625 (292 each) - rising inside the noise. Gates vs v3 after its f
 head-to-head gate games against the predecessor. Health normal (KL ~0.013 per update, entropy
 ~0.19, explained variance ~0.77). Levers if it persists: opponent mix (more past versions /
 heuristic, or win-rate-weighted league sampling), a decaying learning rate, a larger network.
+
+Transitivity check: `python -m tools.selfplay.learner --run runs/selfplay/e4_v3_vs_v1 --init
+runs/selfplay/r15_ppo/v3.pt --opp-ckpt runs/selfplay/r15_ppo/v1.pt --eval-only --eval-seat eval
+--eval-opponents snap:opp,heuristic --eval-deals 150 --infer-bf16`: v3 vs v1 **0.568** [0.511,
+0.623] (294 games), the ~0.57 the 50-Elo gap predicts; v3 vs heuristic 0.628 [0.572, 0.682]. The
+self-play steps carry over to versions two freezes back: the ladder measures real strength, and
+the slow vs-heuristic slope is learning slowing, not a rock-paper-scissors cycle.
