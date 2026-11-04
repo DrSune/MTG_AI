@@ -413,3 +413,17 @@ frequent steps; the Elo ladder still places every version.
 would also have passed 0.55) -> v2 frozen at update 71. v2's ladder: vs random 0.946 (296 games),
 vs heuristic **0.613** [0.556, 0.667] (292). Elo (random = 0, 2,354 games): heuristic 412.6,
 v0 446.6, v1 473.3, **v2 503.0** - each version ~+27-30 over the last.
+
+## 28. v3, and the search's gain shrinks as the network improves (2026-11-04)
+
+Gate after update 85: **0.5488 [0.5086, 0.5884]** vs v2 (14 updates after v2's freeze; the
+update-80 gate was 0.4966) -> v3 frozen at update 87. v3 vs heuristic **0.625** [0.568, 0.679],
+vs random 0.949. Elo (random = 0, 3,536 games): heuristic 412.6, v0 446.7, v1 467.8, v2 493.5,
+**v3 518.2** (+21, +26, +25 per freeze).
+
+v2 + search (k 3, d 2, no blocks; `runs/selfplay/e3_v2_search`): **0.6575** [0.6014, 0.7096] over
+292 games; paired vs raw v2 (ladder:v2, 145 deals) +0.0448 [+0.0069, +0.0828]; vs v1 + search on
+the same deals +0.0034 [-0.0379, +0.0483]. v1 gained +0.064 from the same search. The sharper
+network leaves the search fewer asks (searched 2,715 / skipped 5,155 at top >= 0.99; v1: 3,605 /
+4,119), and the searched model sits near 0.66 either way: this shallow search (3 candidates,
+2 worlds, leaf at the next turn, the network's own value head) has a ceiling of its own.
