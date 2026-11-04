@@ -377,3 +377,10 @@ games): hash `2a01d4c6824fab56` before and after, 6.4 -> 4.5 s. Engine suite unc
 **+0.0599** [+0.0188, +0.1027] (26 deals better, 10 worse). Elo-equivalent vs the heuristic
 (414): ~522. Search changed 29% of searched acts (1,095 / 3,767), 36% of attack plans
 (299 / 833) and **54% of block plans** (166 / 308); 220 / 28,440 simulations errored (scored 0).
+
+Control without block search (`runs/selfplay/e2_v1_search_noblocks`, same command minus
+`--search-blocks`): **0.6552** [0.5988, 0.7075] over 290 games, +0.0638 [+0.0190, +0.1103] over
+raw v1. With minus without blocks, paired over 145 deals: **-0.0034 [-0.0345, +0.0241]** (9 vs 10
+deals). The block search changes 54% of block plans and moves nothing: at d 2 worlds and v1's own
+value head those changes are ties or noise, like the act search's (§16). `--search-blocks` stays
+off by default; the pre-blocks boundary stays for a better leaf value.
