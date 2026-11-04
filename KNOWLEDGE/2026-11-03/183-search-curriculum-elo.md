@@ -299,3 +299,19 @@ update 10 **0.5664** [0.5164, 0.6151] (400 games each). Paired over 98 shared de
 v0: **+0.0536 [+0.0102, +0.0995]** (16 deals better, 5 worse); update 10 vs update 5 (189 deals)
 +0.0146 [-0.0132, +0.0423]. Ten PPO updates (~22K games, ~25 minutes) matched what four ExIt
 generations since r6 did not. r4's flat 12 updates started from the BC net (raw 0.47).
+
+## 20. bf16 serving is safe for PPO; block-plan search (2026-11-04)
+
+`python -m tools.selfplay.bf16_logp` (4,096 saved positions, r15 net): KL(trainer numerics ||
+bf16 serving copy) mean **0.00001** (p99 0.00017), |d logp(top)| mean 0.001 (p99 0.013), against
+PPO's ~0.015 per update. r15 resumed at update 15 with --infer-bf16: update ~88 s (from ~95),
+iteration ~113 s (from ~140).
+
+Blocks were the one big decision the search could not touch: the engine ran all of combat in
+one call. `Executor.combat_step` is now `combat_attacks` + `combat_blocks` (byte-identical
+games; engine suite 2 failed by design / 3505 passed), and `games._play` has an opt-in
+`pre_blocks` boundary for a policy with a `before_blocks` hook (the selfplay router), where
+`Searcher.plan_blocks` searches up to 6 block assignments (the network's, none, one blocker moved
+to its second choice). Pipeline smoke with the r15 net (`--eval-only --eval-seat eval+search
+--search-blocks`, 6 deals): 8 block plans searched, **4 changed**, 0 simulation errors (attack
+plans change ~20%). Strength effect not measured yet.
