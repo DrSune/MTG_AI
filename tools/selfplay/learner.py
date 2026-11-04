@@ -1054,12 +1054,21 @@ class Learner:
         """Teacher inter-play (BC) -> PPO against the teacher -> PPO against a frozen version of
         itself, re-frozen whenever it beats that version on the gate deals."""
         a = self.args
-        v0 = self.freeze(self.model)  # the starting policy (BC or --init)
-        self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"], a.ladder_deals)
-        self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"], a.ladder_deals)
-        self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
+        start = 1
+        if a.resume:  # the optimiser moments are not saved: the trainer restarts them
+            st = self.load_state(a.resume)
+            start = st["it"] + 1
+            self.log({"event": "resume", "from": a.resume, "it": st["it"], "stage": self.stage,
+                      "versions": self.versions})
+        else:
+            v0 = self.freeze(self.model)  # the starting policy (BC or --init)
+            self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"],
+                            a.ladder_deals)
+            self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"],
+                            a.ladder_deals)
+            self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
         self.phase = "ppo"
-        for self.it in range(1, a.iters + 1):
+        for self.it in range(start, a.iters + 1):
             t0, d0 = time.time(), self.infer_items
             g0 = sum(self.counts[k] for k in ("train:games", "eval:games", "bc:games"))
             self.serve(lambda: len(self.buffer) >= a.steps)
@@ -1093,7 +1102,9 @@ class Learner:
             self._eval_tick()
             if self.it % a.save_every == 0:
                 self.save("last.pt", {"versions": self.versions, "stage": self.stage})
+                self.save_state(deque(), deque(), deque())
         self.save("last.pt", {"versions": self.versions, "stage": self.stage})
+        self.save_state(deque(), deque(), deque())
 
     def _drain_evals(self) -> None:
         """Run every queued evaluation to completion (gates may queue ladders)."""
@@ -1439,7 +1450,7 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--curriculum", action="store_true")
     p.add_argument("--resume", default="",
-                   help="--adapt exit: continue the run saved in this directory (state.pkl, "
+                   help="--curriculum: continue the run saved in this directory (state.pkl, "
                         "last.pt, value.pt, v<k>.pt)")
     p.add_argument("--adapt", default="ppo", choices=("ppo", "exit"),
                    help="how the learner adapts in each stage: PPO, or expert iteration (search "
