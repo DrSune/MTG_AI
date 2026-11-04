@@ -81,6 +81,15 @@ class SelfplayRouter(SeatRouter):
         if plan is not None and game.over_reason() is None and game.executor.turn_open:
             plan(game, self._index(seat))
 
+    def before_blocks(self, game: Any, seat: Handle) -> None:
+        """The pre-blocks boundary (games._play, after ``seat``'s attack is declared): a
+        defending driver that plans its blocks (search.py) does it here, no engine call in
+        flight."""
+        defender = 1 - self._index(seat)
+        plan = getattr(self.drivers[defender], "plan_blocks", None)
+        if plan is not None and game.over_reason() is None:
+            plan(game, defender)
+
     def _decide(self, driver: Any, ask: Any) -> int:
         self._sync_turn()
         st = self.stats[ask.seat]

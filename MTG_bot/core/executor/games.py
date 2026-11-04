@@ -1039,6 +1039,10 @@ class Game:
     # byte-identical.
     skip_next_acts: bool = False
     skip_next_combat: bool = False
+    # PRE_BLOCKS (attackers declared, no block asked yet): the resumed loop
+    # skips the declare-attackers half of combat. Only a policy with a
+    # ``before_blocks`` hook has this boundary (see _play).
+    skip_to_blocks: bool = False
 
     @property
     def world(self) -> GameWorld:
@@ -1350,7 +1354,10 @@ def _play(
     turn has just opened, pre-stall-check, pre-acts), ``"pre_combat"`` (that
     seat's acts are done, its combat has not started) and ``"post_combat"``
     (its combat ended, still its turn). Returning True returns from the loop
-    right there with the position consistent.
+    right there with the position consistent. A policy with a
+    ``before_blocks(game, seat)`` hook adds a fourth, ``"pre_blocks"`` (the
+    attackers are declared, no block asked): the hook runs there and a fork
+    taken there resumes with ``skip_next_acts`` and ``skip_to_blocks`` set.
 
     The stall rule (KNOWLEDGE/2026-10-05/11) rides at the top of every turn:
     one :func:`_stall_fingerprint` per turn, compared against the SAME
@@ -1400,7 +1407,8 @@ def _play(
         if game.skip_next_combat:
             game.skip_next_combat = False  # a POST_COMBAT resume skips one phase
         elif executor.turn_open:
-            if stop_after is not None and stop_after(game, "pre_combat"):
+            resume_blocks, game.skip_to_blocks = game.skip_to_blocks, False
+            if not resume_blocks and stop_after is not None and stop_after(game, "pre_combat"):
                 return
             # 16b: the COMBAT phase rides between the main phase and the
             # end step - guarded on turn_open because an END_TURN atom
@@ -1409,7 +1417,17 @@ def _play(
             # phase are counted separately (combat deaths vs crashes is
             # the semantic shift the engine numbers report).
             before = {s: world.players[s].life for s in world.player_order}
-            executor.combat_step(seat)
+            if not resume_blocks:
+                executor.combat_attacks(seat)
+                # PRE_BLOCKS exists only for a policy that plans blocks (a
+                # ``before_blocks`` hook): every other caller's stop_after
+                # sees exactly the historical boundaries.
+                before_blocks = getattr(policy, "before_blocks", None)
+                if before_blocks is not None:
+                    if stop_after is not None and stop_after(game, "pre_blocks"):
+                        return
+                    before_blocks(game, seat)
+            executor.combat_blocks(seat)
             for s, life in before.items():
                 if life > 0 and world.players[s].life <= 0:
                     game.combat_losses += 1

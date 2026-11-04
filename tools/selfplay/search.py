@@ -22,7 +22,8 @@ engine step would match the real one (no M21 decision depends on that today).
 Searched decisions are the clean points of this rig, where no engine call is in flight: the
 router's act loop, and the pre-combat boundary (the end of the act window), where whole attack
 plans are compared (``plan_attacks``) and the engine's per-creature attack asks are then answered
-from the chosen plan. Blocks happen inside the engine's combat call and stay with the network.
+from the chosen plan. Blocks (--search-blocks) are planned the same way at the engine's
+pre-blocks boundary, where the opponent's attack is declared and no block asked yet.
 """
 
 from __future__ import annotations
@@ -34,8 +35,13 @@ from typing import Any
 from MTG_bot.bench.protocol import Ask, Option
 from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
 from MTG_bot.core.executor.games import TURN_CAP, _play, get_supply, identity_of
-from MTG_bot.core.executor.legality import legal_attackers, mandated_attackers
-from MTG_bot.core.state import ZONE_HAND, ZONE_LIBRARY
+from MTG_bot.core.executor.legality import (
+    block_pair_blocked_reason,
+    blocker_askable,
+    legal_attackers,
+    mandated_attackers,
+)
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, ZONE_LIBRARY
 from tools.search.fork import fork
 from tools.selfplay import features as FT
 from tools.selfplay.features import _handle
@@ -81,6 +87,7 @@ class SimAgent:
         self.decisions = 0
 
     attack_plan: frozenset | None = None
+    block_plan: frozenset | None = None
 
     def decide(self, ask: Any, obs: Any) -> int:
         if self.forced is not None and ask.kind == "act":
@@ -90,6 +97,10 @@ class SimAgent:
                     return i
         if self.attack_plan is not None and ask.kind == "attack":
             idx = plan_answer(ask, self.attack_plan)
+            if idx is not None:
+                return idx
+        if self.block_plan is not None and ask.kind == "block":
+            idx = block_answer(ask, self.block_plan)
             if idx is not None:
                 return idx
         n = len(ask.options)
@@ -106,6 +117,19 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
     """The ATTACK/DECLINE index an attack ask gets under ``plan`` (handles that attack)."""
     h = _handle(":".join(ask.site.split(":")[1:3]))
     tok = "ATTACK" if h in plan else "DECLINE"
+    for i, o in enumerate(ask.options):
+        if o.token == tok:
+            return i
+    return None
+
+
+def block_answer(ask: Any, plan: frozenset) -> int | None:
+    """The index a block ask gets under ``plan`` ((blocker, attacker) pairs; a blocker not in
+    it blocks nothing), or None when the engine did not offer that word (it offers only words
+    that keep the whole assignment CR-completable: menace pairs, must-be-blocked attackers)."""
+    h = _handle(":".join(ask.site.split(":")[1:3]))
+    target = next((a for b, a in plan if b == h), None)
+    tok = "NONE" if target is None else str(target)
     for i, o in enumerate(ask.options):
         if o.token == tok:
             return i
@@ -227,10 +251,74 @@ class Searcher:
         self.plan_targets = {c: sum(wt for pl, wt in w if c in pl) for c in asked}
         return best | mandated
 
+    def plan_blocks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
+        """At the pre-blocks boundary (the attackers are declared): the block assignment to
+        declare, as (blocker, attacker) pairs, or None to let the network answer the asks.
+
+        Candidates: the network's own assignment (asked blocker by blocker in the engine's
+        handle order, each ask seeing the blocks declared before it), no blocks, and the
+        network's assignment with one blocker moved to its second choice (least confident
+        first). The engine's completability filter is not replicated: a planned word it does
+        not offer falls back to the network (block_answer)."""
+        ex = game.executor
+        world = game.world
+        me = world.player_order[seat]
+        if ex.defending_player != me or world.active_player is None:
+            return None
+        attackers = ex._live_attackers(world.active_player)
+        if not attackers:
+            return None
+        cands = [c for c in sorted(world.cards)
+                 if ex.controller_of(c) == me and world.zone_of(c).kind == ZONE_BATTLEFIELD
+                 and blocker_askable(ex, c, attackers)]
+        declared: dict = {}
+        choices: dict = {}  # blocker -> [(prob, attacker or None)] best first
+        for b in cands:
+            legal = [a for a in attackers if block_pair_blocked_reason(ex, b, a) is None]
+            if not legal:
+                continue
+            opts = tuple(Option(str(a), str(a)) for a in legal) + (Option("NONE", "NONE"),)
+            ask = Ask(seat=seat, kind="block", site=f"block:{b}:{world.turn}", prompt="",
+                      options=opts, refuse=len(opts) - 1)
+            feats = FT.encode(ex, seat, ask, self.table,
+                              FT.AskContext(declared_blocks=dict(declared)))
+            _, _, probs = self.slot.infer((self.gid, seat, self.spec, True, False, feats, 2))
+            ranked = sorted(zip(probs, [*legal, None]), key=lambda x: -x[0])
+            choices[b] = ranked
+            if ranked[0][1] is not None:
+                declared[b] = ranked[0][1]
+        if not choices or all(r[0][0] >= self.skip_p for r in choices.values()):
+            self.stats["blocks_skipped"] = self.stats.get("blocks_skipped", 0) + 1
+            return None
+        base = frozenset(declared.items())
+        plans = [base, frozenset()]
+        for b in sorted(choices, key=lambda b: choices[b][0][0]):
+            if len(choices[b]) > 1:
+                alt = dict(declared)
+                second = choices[b][1][1]
+                alt.pop(b, None)
+                if second is not None:
+                    alt[b] = second
+                plans.append(frozenset(alt.items()))
+        uniq = []
+        for pl in plans:
+            if pl not in uniq:
+                uniq.append(pl)
+        uniq = uniq[:max_plans]
+        worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
+        scores = {pl: sum(self.simulate(game, seat, None, block_plan=pl, world=w)
+                          for w in worlds) / self.d for pl in uniq}
+        best = max(uniq, key=lambda pl: (scores[pl], pl == base))
+        self.stats["blocks"] = self.stats.get("blocks", 0) + 1
+        self.stats["blocks_changed"] = self.stats.get("blocks_changed", 0) + int(best != base)
+        return best
+
     def simulate(self, game: Any, seat: int, token: str | None,
-                 attack_plan: frozenset | None = None, world: int = 0) -> float:
+                 attack_plan: frozenset | None = None, world: int = 0,
+                 block_plan: frozenset | None = None) -> float:
         """Score one candidate: ``token`` is a main-phase option to play now (the copy finishes
-        this act window), or None with ``attack_plan`` to start at the pre-combat boundary."""
+        this act window), or None with ``attack_plan`` to start at the pre-combat boundary, or
+        with ``block_plan`` at the pre-blocks boundary (the opponent's attack declared)."""
         self.stats["sims"] += 1
         # The live provider is the real router's bound method: deepcopy would copy the router,
         # its agents and their worker-thread locks. Detach it for the copy only.
@@ -247,6 +335,7 @@ class Searcher:
         agents = [SimAgent(self.slot, self.gid, self.rollout, self.table) for _ in (0, 1)]
         agents[seat].forced = token
         agents[seat].attack_plan = attack_plan
+        agents[seat].block_plan = block_plan
         oracle = _ORACLES.get("M21") or OracleIndex.for_sets("M21")
         router = SelfplayRouter(clone, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
                                 supply=self.supply)
@@ -255,6 +344,7 @@ class Searcher:
             if token is not None:
                 router.take_acts(clone, me)
             clone.skip_next_acts = True
+            clone.skip_to_blocks = block_plan is not None
 
             def stop(g: Any, boundary: str) -> bool:
                 return (boundary == "turn_top" and g.world.active_player == me

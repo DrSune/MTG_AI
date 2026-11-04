@@ -472,7 +472,7 @@ class Learner:
     def search_opts(self) -> dict:
         a = self.args
         return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
-                "tau": a.search_tau,
+                "tau": a.search_tau, "blocks": a.search_blocks,
                 "rollout": "rollout" if "rollout" in self.models else None,
                 "value": "value" if "value" in self.models else None}
 
@@ -1494,6 +1494,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="checkpoint of a small network that plays the moves inside simulations")
     p.add_argument("--rollout-epochs", type=int, default=3)
     p.add_argument("--rollout-lr", type=float, default=3e-4)
+    p.add_argument("--search-blocks", action="store_true",
+                   help="searching seats also plan their blocks at the pre-blocks boundary")
     p.add_argument("--search-tau", type=float, default=0.05,
                    help="soft search targets: prior x exp(score / tau)")
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")

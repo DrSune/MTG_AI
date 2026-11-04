@@ -1493,7 +1493,18 @@ class Executor:
         end of combat. Returns the trigger-firing count. A creature with no
         legal declaration is never asked (it cannot attack); a mandatory
         attacker's ask is ATTACK-only (C15 - the policy is never offered
-        an illegal answer)."""
+        an illegal answer).
+
+        Runs :meth:`combat_attacks` then :meth:`combat_blocks`; the split is the
+        search substrate's ``pre_blocks`` boundary (games._play), where no
+        executor call is in flight between the two declarations."""
+        return self.combat_attacks(seat) + self.combat_blocks(seat)
+
+    def combat_attacks(self, seat: Handle) -> int:
+        """The first half of :meth:`combat_step`: the beginning-of-combat
+        marker and the declare-attackers step with its trigger settle (CR
+        506-508). Leaves ``attackers`` and ``defending_player`` set for
+        :meth:`combat_blocks`. Returns the trigger-firing count."""
         world = self.world
         if not self.turn_open:
             raise ValueError(f"combat_step: no turn is open ({seat})")
@@ -1521,6 +1532,14 @@ class Executor:
             fired += self._settle()
         finally:
             self.declaring = False
+        return fired
+
+    def combat_blocks(self, seat: Handle) -> int:
+        """The second half of :meth:`combat_step`: declare blockers, the
+        combat instant window, the damage step(s) and the end of combat (CR
+        509-511), for the attack :meth:`combat_attacks` declared. Returns
+        the trigger-firing count."""
+        fired = 0
         # Declare blockers (CR 509, 16c) - after the attack-trigger drain
         # (CR 508.3: the triggers resolve BEFORE the blocking player gets
         # the declaration duty), before any damage step.

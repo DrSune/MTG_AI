@@ -147,3 +147,93 @@ def test_packed_collation_equals_collate(table) -> None:
         assert torch.equal(a[key].float(), b[key].float()), key
     clone = pickle.loads(pickle.dumps(packed))
     assert np.array_equal(clone.cards_f, packed.cards_f) and len(clone) == len(packed)
+
+
+class _CpuSlot:
+    """Synchronous inference for tests: the worker slot's request protocol on a CPU net."""
+
+    def __init__(self, net: torch.nn.Module) -> None:
+        self.net = net
+
+    @torch.no_grad()
+    def infer(self, req: tuple):
+        feats, want = req[5], (req[6] if len(req) > 6 else 0)
+        logits, value = self.net(M.collate([feats], "cpu"))
+        probs = torch.softmax(logits[0, : feats["opts_i"].shape[0]], -1)
+        a = int(probs.argmax())
+        if want == 0:
+            return a
+        if want == 1:
+            return a, float(value[0])
+        return a, float(value[0]), probs.tolist()
+
+
+class _BlockPlanner:
+    """The heuristic, except that it plans its blocks with the searcher (rig.before_blocks)."""
+
+    name = "block-planner"
+
+    def __init__(self, searcher) -> None:
+        self.inner = HeuristicAgent()
+        self.searcher = searcher
+        self.plan, self.turn = None, -1
+        self.planned = self.answered = 0
+
+    def plan_blocks(self, game, seat: int) -> None:
+        self.plan, self.turn = self.searcher.plan_blocks(game, seat), game.world.turn
+        self.planned += self.plan is not None
+
+    def decide(self, ask, obs) -> int:
+        from tools.selfplay.search import block_answer
+
+        if ask.kind == "block" and self.plan is not None and self.turn == obs.executor.world.turn:
+            idx = block_answer(ask, self.plan)
+            if idx is not None:
+                self.answered += 1
+                return idx
+        return self.inner.decide(ask, obs)
+
+
+def test_block_search_plans_at_the_pre_blocks_boundary(table) -> None:
+    from tools.selfplay.search import Searcher
+
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
+    planned = answered = 0
+    for seed in (21, 22, 23, 24):
+        searcher = Searcher(_CpuSlot(net), 0, "learner", table, k=2, d=1, skip_p=1.01, seed=seed)
+        planner = _BlockPlanner(searcher)
+        res = play_game(seed, [planner, HeuristicAgent()], deck_mode="coherent")
+        assert res["crash"] is None
+        assert searcher.stats["sim_errors"] == 0
+        planned += planner.planned
+        answered += planner.answered
+    assert planned >= 1 and answered >= 1
+
+
+def test_pre_blocks_boundary_is_opt_in() -> None:
+    """Only a policy with a before_blocks hook sees the pre_blocks boundary; every other
+    caller's stop_after gets exactly the historical three."""
+    from MTG_bot.bench.router import SeatRouter
+    from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+    from MTG_bot.core.executor.games import TURN_CAP, _play, _setup_game, deal_decks
+    from tools.selfplay.rig import SelfplayRouter
+
+    supply = get_supply("castable", "M21")
+    oracle = OracleIndex.for_sets("M21")
+    seen: dict[str, set] = {}
+    for cls in (SeatRouter, SelfplayRouter):
+        game = _setup_game(31, supply, deal_decks(31, 1409, supply, "coherent"))
+        agents = [UniformRandomAgent(random.Random(3)), UniformRandomAgent(random.Random(4))]
+        router = cls(game, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
+                     supply=supply)
+        boundaries: set = set()
+
+        def stop(_g, b, out=boundaries) -> bool:
+            out.add(b)
+            return False
+
+        _play(game, router, game.world.player_order, TURN_CAP, stop_after=stop)
+        seen[cls.__name__] = boundaries
+    assert {"turn_top", "pre_combat", "post_combat"} <= seen["SeatRouter"]
+    assert "pre_blocks" not in seen["SeatRouter"] and "pre_blocks" in seen["SelfplayRouter"]

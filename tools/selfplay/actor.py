@@ -71,6 +71,8 @@ class NetAgent:
         self.searcher = None
         self.attack_plan = None
         self.plan_turn = -1
+        self.block_plan = None
+        self.block_turn = -1
         # Expert iteration: in a "bc" job a recorded network seat keeps (features, the move it
         # actually played) locally, the search's choice where it searched; the learner trains
         # on them like BC data. The server records nothing for it (that lane is PPO's).
@@ -111,6 +113,17 @@ class NetAgent:
                         (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx,
                          self.wp, target))
                 return idx
+        if (ask.kind == "block" and self.block_plan is not None
+                and self.block_turn == obs.executor.world.turn):
+            from tools.selfplay.search import block_answer
+
+            idx = block_answer(ask, self.block_plan)
+            if idx is not None:
+                if self.label:
+                    self.samples.append(
+                        (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx,
+                         self.wp, None))
+                return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
         self.decisions += 1
         target = None
@@ -131,6 +144,13 @@ class NetAgent:
             return
         self.attack_plan = self.searcher.plan_attacks(game, seat)
         self.plan_turn = game.world.turn
+
+    def plan_blocks(self, game: Any, seat: int) -> None:
+        """Called by the rig at the pre-blocks boundary (rig.SelfplayRouter.before_blocks)."""
+        if self.searcher is None or not self.job.get("search", {}).get("blocks", False):
+            return
+        self.block_plan = self.searcher.plan_blocks(game, seat)
+        self.block_turn = game.world.turn
 
 
 class RecordingHeuristic:
