@@ -367,3 +367,13 @@ one event's pass and skipped for hosts with no granted ability
 8.0 -> 5.8 s (15.4 -> 5.8 s with §21, **2.7x**). `python -m tools.selfplay.games_hash` (30 seeded
 games): hash `2a01d4c6824fab56` before and after, 6.4 -> 4.5 s. Engine suite unchanged
 (2 by-design / 3505 passed, 49 s).
+
+## 25. The deployed model: v1 + search = 0.651 vs heuristic (2026-11-04)
+
+`python -m tools.selfplay.learner --run runs/selfplay/e1_v1_search --init runs/selfplay/r15_ppo/v1.pt
+--eval-only --eval-seat eval+search --eval-opponents heuristic --eval-deals 150 --search-blocks
+--search-k 3 --search-d 2 --search-skip-p 0.99 --infer-bf16` (v1's own value head at the leaves):
+**0.6507** [0.5944, 0.7031] over 292 games; paired vs raw v1 on the same 146 deals (teacher:it30)
+**+0.0599** [+0.0188, +0.1027] (26 deals better, 10 worse). Elo-equivalent vs the heuristic
+(414): ~522. Search changed 29% of searched acts (1,095 / 3,767), 36% of attack plans
+(299 / 833) and **54% of block plans** (166 / 308); 220 / 28,440 simulations errored (scored 0).
