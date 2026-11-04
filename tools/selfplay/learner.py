@@ -444,6 +444,12 @@ class Learner:
                 job["value_p"] = self.args.value_p
             return job
         if self.phase == "ppo":
+            # PPO wants on-policy batches. Workers keep playing during an update; once a full
+            # next batch is waiting they get no new training games until the update takes it,
+            # else a trainer slower than the workers makes every batch larger than the last.
+            if len(self.buffer) >= self.args.steps:
+                self.counts["throttled"] += 1
+                return None
             return self.train_job()
         return None
 
@@ -1090,7 +1096,8 @@ class Learner:
                       "games": len(res), "mem_gib": round(mem_available_gib(), 1),
                       "mem_min_gib": round(getattr(self, "mem_min", float("nan")), 1),
                       "infer_bs": round(self.infer_items / max(self.infer_batches, 1), 1),
-                      "voids": self.counts["train:void"], "overflow": self.counts["overflow"]})
+                      "voids": self.counts["train:void"], "overflow": self.counts["overflow"],
+                      "throttled": self.counts["throttled"]})
             self.mem_min = float("inf")
             queued = {q[0] for q in self.eval_queue} | {self.eval_kind.get("kind")}
             if self.stage == "teacher" and self.it % a.eval_every == 0 and "teacher" not in queued:
