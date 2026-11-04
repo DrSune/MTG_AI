@@ -384,3 +384,16 @@ raw v1. With minus without blocks, paired over 145 deals: **-0.0034 [-0.0345, +0
 deals). The block search changes 54% of block plans and moves nothing: at d 2 worlds and v1's own
 value head those changes are ties or noise, like the act search's (§16). `--search-blocks` stays
 off by default; the pre-blocks boundary stays for a better leaf value.
+
+## 26. Self-play is serving-bound: bigger slot groups (2026-11-04)
+
+Self-play gates vs v1: update 35 0.4885, 50 0.5357, **55 0.5441 [0.5037, 0.5838]** (lower bound
+above 0.5, score under the 0.55 freeze line). Training games vs v1 ~0.55, vs heuristic 0.58-0.67;
+entropy settled at 0.17-0.18 (0.21 at the start of self-play).
+
+With both seats networks (learner + v1: two forwards per serving batch) the learner's serving
+thread ran at 92% of a core while workers idled at 37% CPU. Resumed at update 60 with
+`--slots 16 --groups 4` (was 8 x 2) and `--save-every 1` (state each update, so a restart no
+longer drops the gate queued with every fifth save): mean inference batch 67 -> 120, collect per
+update 41 -> 25 s, games/s over the iteration 18 -> 21-24, iteration ~110 -> ~93 s. The PPO update
+(~68 s for 98K steps) is the bottleneck again.
