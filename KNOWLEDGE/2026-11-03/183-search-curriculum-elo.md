@@ -270,3 +270,15 @@ decisions ~ 2,000 games per update, lr 1e-4, 1 epoch, ent 0.002, KL anchor 0.01 
 frozen version) for up to 30 updates or a 0.65 gate, then frozen self-play (gate 0.55 with Wilson
 lower bound > 0.5 every 5 updates, 15% heuristic, 15% past versions). r4 ran this loop for 12
 updates only.
+
+## 18. What the search corrects (clear overrides, margin >= 0.1)
+
+`python -m tools.selfplay.clear_changes runs/selfplay/r13_exit/state.pkl 0
+runs/selfplay/r12_exit/v0.pt`: 1,715 clear overrides of 33,246 searched asks (r12 gen 1), all on
+the searcher's own turn, 736 at turn >= 12. Network -> search: cast A -> cast B 393, ATTACK ->
+DECLINE 247, land A -> land B 198, cast -> PASS 186, land -> cast 168, DECLINE -> ATTACK 122,
+land -> PASS 110. So: spell choice, attack/hold-back, land sequencing (e.g. a tapped land on a
+turn whose mana is not needed). Some look like artefacts of the leaf value or of the network's
+own continuation, e.g. casting Heroic Intervention with no creature in play instead of a land
+drop (margin 0.14); `legal_casts` offers only payable casts (`MTG_bot/core/executor/query.py:912`),
+so these are real choices the search prefers, not free no-ops.
