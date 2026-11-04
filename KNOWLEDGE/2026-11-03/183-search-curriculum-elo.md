@@ -440,3 +440,14 @@ shape-gap (`MTG_bot/core/executor/quantity.py:569`), strict by design (never a g
 networks play into it where the heuristic does not; training voids ~0.35% of games. Fix =
 modelling the CDA (CR 604.3), engine-track work. 116 of 9,036 rows carried a leaky ask
 (CHOOSE_NAME), voided in eval by design.
+
+## 30. vs-heuristic progress flattens after ~update 60 while the self-play ladder climbs (2026-11-04)
+
+Training-game win rate vs the heuristic by 10-update block (sampled play, ~3,000 games per
+block, SE ~0.009): 0.544, 0.571, 0.587 (teacher), 0.603, 0.600, 0.611, **0.625, 0.630, 0.622,
+0.618** (self-play, updates 61-100). Greedy frozen versions vs heuristic: v1 0.598 (382 games),
+v2 0.613, v3 0.625 (292 each) - rising inside the noise. Gates vs v3 after its freeze (update
+87): 0.5025, 0.5396 [0.4994, 0.5793], 0.4983. The Elo steps (v2 +26, v3 +25) come mostly from the
+head-to-head gate games against the predecessor. Health normal (KL ~0.013 per update, entropy
+~0.19, explained variance ~0.77). Levers if it persists: opponent mix (more past versions /
+heuristic, or win-rate-weighted league sampling), a decaying learning rate, a larger network.
