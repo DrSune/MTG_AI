@@ -1,6 +1,17 @@
 # PITFALLS — standing traps (each dated; newest first)
 
 ## 2026-11-03
+- **[`gid % k` holdouts can select no search games: job ids follow a fixed interleave.]**
+  `tools/selfplay/learner.py` issues value and search jobs in a fixed ratio (6,000 : 1,500 = one
+  search job every 5 ids), so all search games share one residue mod 5. A `gid % 5 == 0` holdout
+  in `tools/selfplay/distill_lab.py` selected zero rows (2026-11-04). The learner's own rule
+  (`gid % 33`, --bc-holdout 0.03) works only because 33 is coprime to the period; a 2:1 ratio
+  (period 3) would empty its policy holdout and switch off value early stopping. Hash the id
+  (`distill_lab.py` does); check the `bc_data` event's `test` count after any ratio change.
+- **[`pkill -f PATTERN` also matches the shell running it.]** The bracket trick hides only the
+  grep/pkill process. When the same command line contains the pattern elsewhere (a later `nohup
+  ... PATTERN ...`), the calling shell matches and dies (exit 144, three times on 2026-11-03/04).
+  Find PIDs with `ps -eo pid,cmd | grep "[p]attern" | grep -v /bin/bash` and kill those.
 - **[Training activations are system memory on the Spark: cap minibatches by padded tokens, not by
   rows.]** One forward+backward of the tools/selfplay net costs ~66-72 KiB per padded token (d256 L6)
   and ~170 KiB (d512 L8), measured with `torch.cuda.max_memory_allocated`. A 1024-row minibatch of

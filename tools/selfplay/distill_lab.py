@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import math
 import pickle
@@ -177,8 +178,14 @@ def main(argv: list[str] | None = None) -> int:
                     f"changed<{MARGINS[1]}" if m < MARGINS[1] else f"changed>={MARGINS[1]}")
         infos.append({"a0": top, "probs": probs, "margin": m, "kind": kind,
                       "scores": cand_scores(soft, probs, a.tau) if soft else {}})
-    held = [i for i, r in enumerate(rows) if r[3] % a.holdout_every == 0]
-    trn = [i for i, r in enumerate(rows) if r[3] % a.holdout_every != 0]
+    # hashed: game ids are issued in a fixed value/search interleave, so gid % k can select
+    # no search games at all (k = 5 with the 4:1 interleave selects none)
+    def is_held(gid: int) -> bool:
+        h = hashlib.blake2b(str(gid).encode(), digest_size=4).digest()
+        return int.from_bytes(h, "little") % a.holdout_every == 0
+
+    held = [i for i, r in enumerate(rows) if is_held(r[3])]
+    trn = [i for i, r in enumerate(rows) if not is_held(r[3])]
     h_rows, h_infos = [rows[i] for i in held], [infos[i] for i in held]
     t_rows, t_infos = [rows[i] for i in trn], [infos[i] for i in trn]
     t_eval = [i for i, inf in enumerate(t_infos) if inf["kind"] != "plain"][:6000]
