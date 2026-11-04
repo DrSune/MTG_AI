@@ -355,3 +355,15 @@ inference doubles and the GPU is shared three ways. Resumed at update 40 with `-
 the anchor costs one extra forward of the frozen net per minibatch (~25% of the update), and at
 0.01 it did not hold the policy anyway (KL to v0 reached 0.21 by update 30) - PPO's clip and one
 epoch at lr 1e-4 bound each update (KL ~0.01-0.02). Gates 300 deals (600 games), ladders 150.
+
+## 24. Second engine hotspot: the trigger binder's controller lookups (2026-11-04)
+
+After §21, `Binder.on_events` was 3.24 s of 8.0 s in the same 12-game profile, 2.36 s of it in
+`_controller_of` (the matching itself, `_match_node`, 0.02 s): per journal event it looked up the
+controller of every attached trigger's source (twice on a match) and of every card in the world,
+granted abilities or not. Matching one event moves no card, so the lookup is now memoised for
+one event's pass and skipped for hosts with no granted ability
+(`MTG_bot/core/executor/binding.py:_controller_memo`). on_events 3.24 -> 0.88 s; profiled games
+8.0 -> 5.8 s (15.4 -> 5.8 s with §21, **2.7x**). `python -m tools.selfplay.games_hash` (30 seeded
+games): hash `2a01d4c6824fab56` before and after, 6.4 -> 4.5 s. Engine suite unchanged
+(2 by-design / 3505 passed, 49 s).
