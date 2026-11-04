@@ -427,3 +427,16 @@ the same deals +0.0034 [-0.0379, +0.0483]. v1 gained +0.064 from the same search
 network leaves the search fewer asks (searched 2,715 / skipped 5,155 at top >= 0.99; v1: 3,605 /
 4,119), and the searched model sits near 0.66 either way: this shallow search (3 candidates,
 2 worlds, leaf at the next turn, the network's own value head) has a ceiling of its own.
+
+## 29. The only crash in 9,036 eval games: Kinetic Augur's undefined power (2026-11-04)
+
+r15's eval rows: 8,996 decided, 16 mutual draws, 6 turn-cap draws, **18 void-crash, all one deal**
+(seed 900165, coherent decks; 18 of its 28 games), all `ValueError: executor: POWER undefined on
+handle card:77` = Kinetic Augur (printed */4). Reproduced with a v2 seat vs the heuristic: 8 of
+24 games crash (`cast -> _settle -> fire_all -> _v_deal_damage -> quantity._prop_value`); the
+heuristic and random seats never do (0 of 41). A damage-equal-to-power effect reads the Augur's
+power, whose characteristic-defining ability the engine does not model: the registered /99
+shape-gap (`MTG_bot/core/executor/quantity.py:569`), strict by design (never a guessed zero). The
+networks play into it where the heuristic does not; training voids ~0.35% of games. Fix =
+modelling the CDA (CR 604.3), engine-track work. 116 of 9,036 rows carried a leaky ask
+(CHOOSE_NAME), voided in eval by design.
