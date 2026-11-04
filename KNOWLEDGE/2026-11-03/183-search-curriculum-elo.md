@@ -282,3 +282,20 @@ turn whose mana is not needed). Some look like artefacts of the leaf value or of
 own continuation, e.g. casting Heroic Intervention with no creature in play instead of a land
 drop (margin 0.14); `legal_casts` offers only payable casts (`MTG_bot/core/executor/query.py:912`),
 so these are real choices the search prefers, not free no-ops.
+
+## 19. PPO works when it runs long enough (r15, 2026-11-04)
+
+r15 = PPO curriculum from r14/last.pt (the ExIt network, raw 0.536 vs heuristic), teacher stage.
+Per update: 98,304 learner decisions (~2,000 sampled games vs the heuristic), lr 1e-4, 1 epoch,
+ent 0.002, KL anchor 0.01 to v0, trainer process; ~140 s per update (update ~95 s, GPU 93%).
+
+| update | training-game win vs heuristic | KL | entropy | explained var | KL to v0 |
+|---|---|---|---|---|---|
+| 1-5 (mean) | 0.537 | 0.012-0.020 | 0.243 -> 0.219 | 0.58 -> 0.72 | 0.012 -> 0.038 |
+| 6-11 (mean) | 0.550 | 0.013-0.018 | ~0.21 | 0.72 -> 0.75 | 0.045 -> 0.074 |
+
+Greedy evals vs heuristic: v0 0.5357 (ladder, 196 games); update 5 0.5556 [0.5052, 0.6048];
+update 10 **0.5664** [0.5164, 0.6151] (400 games each). Paired over 98 shared deals, update 10 vs
+v0: **+0.0536 [+0.0102, +0.0995]** (16 deals better, 5 worse); update 10 vs update 5 (189 deals)
++0.0146 [-0.0132, +0.0423]. Ten PPO updates (~22K games, ~25 minutes) matched what four ExIt
+generations since r6 did not. r4's flat 12 updates started from the BC net (raw 0.47).
