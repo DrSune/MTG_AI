@@ -257,3 +257,16 @@ corrections (~1 per game); it learns the generating network's style instead. The
 is realised at play time (searching seat ~0.60 vs raw ~0.55). Next: a long PPO run. r4's
 "flat PPO" was 12 updates (~26K games, ~20 minutes, KL ~0.015 per update), too short to show
 anything.
+
+## 17. Four worlds per candidate: not worth it; switch to a long PPO run (r15)
+
+r14 gen 3 (resumed from r13; k 3, **d 4**, search where top < 0.95): searching seat vs heuristic
+**0.614** over 1,499 games (r13 gen 2 at d 2 / top < 0.99: 0.603; r12 gen 1: 0.608; each +-0.025),
+**0.56** searched games/s (d 2: 0.96), value net 0.5467 -> 0.5381 held-out MSE on 132,301
+positions. Twice the worlds: +0.006-0.011 (inside the noise) for 1.7x the time.
+
+r15 = the PPO curriculum from r14/last.pt: teacher stage (PPO vs the heuristic, 98,304 learner
+decisions ~ 2,000 games per update, lr 1e-4, 1 epoch, ent 0.002, KL anchor 0.01 to the newest
+frozen version) for up to 30 updates or a 0.65 gate, then frozen self-play (gate 0.55 with Wilson
+lower bound > 0.5 every 5 updates, 15% heuristic, 15% past versions). r4 ran this loop for 12
+updates only.
