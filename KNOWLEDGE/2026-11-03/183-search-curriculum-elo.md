@@ -458,3 +458,15 @@ runs/selfplay/r15_ppo/v3.pt --opp-ckpt runs/selfplay/r15_ppo/v1.pt --eval-only -
 0.623] (294 games), the ~0.57 the 50-Elo gap predicts; v3 vs heuristic 0.628 [0.572, 0.682]. The
 self-play steps carry over to versions two freezes back: the ladder measures real strength, and
 the slow vs-heuristic slope is learning slowing, not a rock-paper-scissors cycle.
+
+## 31. Plateau after v3; learning rate halved (2026-11-04)
+
+Gates vs v3 after its freeze (update 87): 0.5025, 0.5396, 0.4983, 0.5109, 0.5177, 0.5126, 0.5017
+(updates 90-120; mean ~0.512, none significant). The learner at update 122
+(`runs/selfplay/e5_learner122_vs_v1`, same deals as e4) vs v3, paired: vs v1 **-0.0119**
+[-0.0493, +0.0238], vs heuristic **+0.0190** [-0.0121, +0.0517] - 35 updates bought ~nothing,
+while the policy kept moving ~0.014 KL per update (entropy 0.19, explained variance 0.776, clip
+0.06): updates random-walking around a plateau, the gradient noise of 2,000-game batches at a
+constant lr 1e-4 swamping what is left. Resumed at update 123 with `--lr 5e-5` (annealing),
+everything else unchanged. Next levers if this does not move the gates: larger batches
+(`--steps`), a better critic, opponent mix, a larger network.
