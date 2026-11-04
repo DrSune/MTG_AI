@@ -343,3 +343,15 @@ Greedy teacher evals (400 games each): update 5 0.556, 10 0.566, 20 0.581, 25 0.
 Forced exit at update 30 (gate 0.65 not reached): v1 frozen at update 31, stage selfplay
 (70% vs v1, 15% heuristic, 15% past versions). First self-play update: 0.512 vs v1, 0.625 vs
 heuristic. Elo (random = 0, 1,174 games): heuristic 414, v0 448, **v1 484** (v1's ladder partial).
+
+## 23. Self-play gates and dropping the KL anchor (2026-11-04)
+
+Self-play updates 32-40: training games vs v1 0.495-0.533 (mean ~0.515), vs heuristic 0.53-0.64,
+vs v0 0.54-0.60. Gate after update 35 (4 updates past the freeze): **0.4885** [0.4394, 0.5379]
+vs v1 (not passed; the gate needs >= 0.55 with the Wilson lower bound > 0.5).
+
+Self-play iterations took ~130 s (update ~90 s + ~39 s collect): both seats are networks, so
+inference doubles and the GPU is shared three ways. Resumed at update 40 with `--kl-anchor 0`:
+the anchor costs one extra forward of the frozen net per minibatch (~25% of the update), and at
+0.01 it did not hold the policy anyway (KL to v0 reached 0.21 by update 30) - PPO's clip and one
+epoch at lr 1e-4 bound each update (KL ~0.01-0.02). Gates 300 deals (600 games), ladders 150.
