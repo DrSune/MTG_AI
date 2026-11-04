@@ -5,16 +5,21 @@
 
 Arguments: a run's state.pkl, the window index, the network that generated those labels.
 """
-import pickle, random, sys
+import pickle
+import random
+import sys
 from collections import Counter
+
 import torch
+
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.distill_lab import classify
 
 state, gen, prior = sys.argv[1], int(sys.argv[2]), sys.argv[3]
 dev = torch.device("cuda")
-rows = pickle.load(open(state, "rb"))["window"][gen]
+with open(state, "rb") as fh:
+    rows = pickle.load(fh)["window"][gen]
 rows = [r for r in rows if len(r) > 5 and r[5]]
 net, table, _ = M.load(prior, dev)
 infos = classify(rows, net, 0.05, dev)
@@ -33,7 +38,7 @@ for r, i in clear:
     kinds[FT.ASK_KINDS[int(f["ask_i"][0])]] += 1
     a, b = opt(f, i["a0"]).split(":")[0], opt(f, r[1]).split(":")[0]
     trans[f"{a} -> {b}"] += 1
-    turns[min(int(round(float(f["glob_f"][0]) * 20)), 12)] += 1
+    turns[min(round(float(f["glob_f"][0]) * 20), 12)] += 1
     mine[bool(f["glob_f"][1])] += 1
 print(f"clear overrides {len(clear)} of {len(rows)} searched")
 print("ask kinds:", kinds.most_common())
