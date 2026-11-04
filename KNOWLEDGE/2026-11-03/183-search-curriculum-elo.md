@@ -408,3 +408,8 @@ elo/winrate increase should trigger a re-freeze"). Resumed at update 67 with `--
 a version is frozen when the 600-game gate's 95% Wilson lower bound is above 0.5 (score >~ 0.541),
 i.e. when the learner is significantly better than the newest frozen version. Smaller, more
 frequent steps; the Elo ladder still places every version.
+
+**First self-play re-freeze.** Gate after update 70: **0.5515 [0.5113, 0.5911]** vs v1 (600 games;
+would also have passed 0.55) -> v2 frozen at update 71. v2's ladder: vs random 0.946 (296 games),
+vs heuristic **0.613** [0.556, 0.667] (292). Elo (random = 0, 2,354 games): heuristic 412.6,
+v0 446.6, v1 473.3, **v2 503.0** - each version ~+27-30 over the last.
