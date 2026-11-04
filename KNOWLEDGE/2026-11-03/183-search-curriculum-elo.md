@@ -315,3 +315,19 @@ games; engine suite 2 failed by design / 3505 passed), and `games._play` has an 
 to its second choice). Pipeline smoke with the r15 net (`--eval-only --eval-seat eval+search
 --search-blocks`, 6 deals): 8 block plans searched, **4 changed**, 0 simulation errors (attack
 plans change ~20%). Strength effect not measured yet.
+
+## 21. The engine spent two thirds of a game finding which zone a card is in (2026-11-04)
+
+cProfile of 12 self-play games (a seat that encodes every decision like NetAgent, vs the
+heuristic): `GameWorld.zone_of` 10.2 s of 15.4 s. 834K calls, each scanning every zone of every
+seat (libraries first) with the dataclass `Handle.__eq__` (53M calls, 4.8 s); the main caller is
+the trigger binder's `controller_of` (~700K calls). `MTG_bot/core/state.py:zone_of` now remembers
+each card's last zone and re-validates membership before returning it (a stale entry falls
+through to the historical scan, so no code path can make it answer wrong). Profiled 15.4 s ->
+8.5 s; `tools/selfplay/zone_identity.py` 20 seeded games old vs new **20/20 identical** (digest,
+world fingerprint, end reason), 12.3 s -> **5.8 s**; engine suite unchanged (2 by-design fails /
+3505 passed) and 85 s -> 68 s. r15's workers went from **20.5 to 38.2 games/s**.
+
+The PPO trainer (~88-98 s per 98K-step update, GPU-bound) is now the bottleneck: workers can
+outrun it, and the update took the whole buffer, so batches would have grown every update.
+`next_job` gives no training game while a full next batch waits (`throttled` in the iter event).
