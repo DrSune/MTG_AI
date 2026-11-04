@@ -37,7 +37,7 @@ def run(seed):
     try:
         _play(game, router, game.world.player_order, TURN_CAP)
         err = None
-    except Exception as e:  # compare crashes too
+    except Exception as e:  # noqa: BLE001 - a crash is compared too
         err = f"{type(e).__name__}: {e}"
     return ("|".join(game.digest), game.world.fingerprint(), game.reason, err)
 
