@@ -331,3 +331,15 @@ world fingerprint, end reason), 12.3 s -> **5.8 s**; engine suite unchanged (2 b
 The PPO trainer (~88-98 s per 98K-step update, GPU-bound) is now the bottleneck: workers can
 outrun it, and the update took the whole buffer, so batches would have grown every update.
 `next_job` gives no training game while a full next batch waits (`throttled` in the iter event).
+
+## 22. r15 teacher stage done: raw network 0.598 vs heuristic; self-play begins (2026-11-04)
+
+Greedy teacher evals (400 games each): update 5 0.556, 10 0.566, 20 0.581, 25 0.596,
+**30 0.598** [0.548, 0.646]. Paired over 98 shared deals, update 30 vs its start (r14 ExIt net)
+**+0.074** [+0.031, +0.120] (20 deals better, 4 worse); vs the original BC net **+0.138**
+[+0.082, +0.196] (27 vs 4). Training-game win rate (sampled play, ~2,000 games per update): mean
+0.537 over updates 1-5, ~0.59-0.61 over 26-31.
+
+Forced exit at update 30 (gate 0.65 not reached): v1 frozen at update 31, stage selfplay
+(70% vs v1, 15% heuristic, 15% past versions). First self-play update: 0.512 vs v1, 0.625 vs
+heuristic. Elo (random = 0, 1,174 games): heuristic 414, v0 448, **v1 484** (v1's ladder partial).
