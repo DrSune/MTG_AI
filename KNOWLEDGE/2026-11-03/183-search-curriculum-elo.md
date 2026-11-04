@@ -181,3 +181,20 @@ Paired over 98 deals, r11 gen 2 vs the original BC net **+0.0714** [+0.0153, +0.
 the searching seat keeps ~0.59-0.64. Hypothesis: hard labels from a noisy search (k 3, d 2) flip
 on small score edges. r12: soft targets prior x exp(score / 0.05), resumable state, serving
 window 5 ms with coarser buckets (ratio 2.0, min 24).
+
+## 14. r12-r13: soft targets, resumable runs; the plateau is label noise
+
+| Run / gen | searching seat vs heuristic | raw gate | paired vs original BC | paired vs r11 gen 2 | games/s |
+|---|---|---|---|---|---|
+| r12 g1 (soft targets, serve-wait 5, coarse buckets) | 0.608 | - | - | - | 0.94 |
+| r13 g2 (resumed from r12; 32 slots x 4 groups) | 0.603 | **0.5485** [0.4785, 0.6165] | **+0.0765** [+0.0281, +0.1250] (20 vs 5 deals) | +0.0051 [-0.0306, +0.0434] | 0.96 |
+
+Throughput levers exhausted for this architecture (0.91-0.97 searched games/s through r10-r13
+whatever the slots, groups, batching window or buckets). Resume works (r13 restored 71,827
+policy + 44,482 value samples).
+
+Diagnosis of the plateau: after distillation the network still disagrees with ~11% of HELD-OUT
+search labels, about the share the search changes; it fits the changes on training positions but
+cannot predict them on new ones, i.e. the changes are mostly decided by the two sampled worlds,
+not by the position. r14: 4 worlds per candidate (score noise halved) and search only where the
+network's top option is below 0.95 (instead of 0.99).
