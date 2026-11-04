@@ -198,3 +198,20 @@ search labels, about the share the search changes; it fits the changes on traini
 cannot predict them on new ones, i.e. the changes are mostly decided by the two sampled worlds,
 not by the position. r14: 4 worlds per candidate (score noise halved) and search only where the
 network's top option is below 0.95 (instead of 0.99).
+
+## 15. Correction: search labels are reproducible (the plateau is not label noise)
+
+`python -m tools.selfplay.label_noise --policy runs/selfplay/r13_exit/last.pt --value
+runs/selfplay/r13_exit/value.pt --games 12 --d 2 4` (96 main-phase asks where the network's top
+option < 0.95; two independent searches with different sampled worlds, k = 3):
+
+| worlds per candidate | repeat agreement | search changes the network's move (per run) |
+|---|---|---|
+| 2 | **0.823** | 0.328 |
+| 4 | **0.875** | 0.333 |
+
+§14's diagnosis is superseded: the search's changes are consistent, the network fails to
+predict them on unseen positions. They are lookahead decisions (combat arithmetic, the opponent's
+reply) that need many more labelled examples to generalise. Next lever: a larger policy window
+(more generations of labels at 1 epoch) rather than better labels; d = 4 gives +5 points of
+agreement only.
