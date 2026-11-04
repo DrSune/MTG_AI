@@ -2,7 +2,8 @@
 search labels (state.pkl) under different targets, score them on held-out games.
 
     .venv/bin/python -m tools.selfplay.distill_lab --state runs/selfplay/r13_exit/state.pkl \
-        --gen 0 --prior runs/selfplay/r12_exit/v0.pt --recipes soft hard sharp:0.02
+        --gen 0 1 --prior runs/selfplay/r12_exit/v0.pt runs/selfplay/r12_exit/last.pt \
+        --recipes soft hard sharp:0.02
 
 The headline metric is search regret on held-out searched rows: the search's score of its best
 candidate minus the score of the network's move (scores recovered from the soft target and the
@@ -143,11 +144,32 @@ def evaluate(net: torch.nn.Module, rows: list, infos: list, device: torch.device
     return out
 
 
+def classify(rows: list, net: torch.nn.Module, tau: float, device: torch.device) -> list[dict]:
+    """Per row: the generating network's move, probs, the search's margin, bucket and scores."""
+    infos = []
+    for row, (top, _p, _ce, probs) in zip(rows, score(net.eval(), rows, device)):
+        soft = row[5] if len(row) > 5 else None
+        m = margin(soft, row[1], top, probs, tau) if soft and top != row[1] else None
+        if not soft:
+            kind = "plain"
+        elif top == row[1]:
+            kind = "kept"
+        else:
+            kind = ("changed?" if m is None else
+                    f"changed<{MARGINS[0]}" if m < MARGINS[0] else
+                    f"changed<{MARGINS[1]}" if m < MARGINS[1] else f"changed>={MARGINS[1]}")
+        infos.append({"a0": top, "probs": probs, "margin": m, "kind": kind,
+                      "scores": cand_scores(soft, probs, tau) if soft else {}})
+    return infos
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--state", required=True)
-    ap.add_argument("--gen", type=int, default=0)
-    ap.add_argument("--prior", required=True)
+    ap.add_argument("--gen", type=int, nargs="+", default=[0],
+                    help="window indices trained on together")
+    ap.add_argument("--prior", nargs="+", required=True,
+                    help="the network that generated each --gen's labels; the first is trained")
     ap.add_argument("--recipes", nargs="+", default=["soft"])
     ap.add_argument("--holdout-every", type=int, default=5)
     ap.add_argument("--tau", type=float, default=0.05, help="the run's --search-tau")
@@ -159,46 +181,39 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--tok-budget", type=int, default=49152)
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args(argv)
+    assert len(a.gen) == len(a.prior), "one --prior per --gen"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     with open(a.state, "rb") as fh:
-        rows = pickle.load(fh)["window"][a.gen]
-    prior, _, _ = M.load(a.prior, device)
-    pri = score(prior.eval(), rows, device)
-    infos = []
-    for row, (top, _p, _ce, probs) in zip(rows, pri):
-        soft = row[5] if len(row) > 5 else None
-        m = margin(soft, row[1], top, probs, a.tau) if soft and top != row[1] else None
-        if not soft:
-            kind = "plain"
-        elif top == row[1]:
-            kind = "kept"
-        else:
-            kind = ("changed?" if m is None else
-                    f"changed<{MARGINS[0]}" if m < MARGINS[0] else
-                    f"changed<{MARGINS[1]}" if m < MARGINS[1] else f"changed>={MARGINS[1]}")
-        infos.append({"a0": top, "probs": probs, "margin": m, "kind": kind,
-                      "scores": cand_scores(soft, probs, a.tau) if soft else {}})
+        window = pickle.load(fh)["window"]
+
     # hashed: game ids are issued in a fixed value/search interleave, so gid % k can select
     # no search games at all (k = 5 with the 4:1 interleave selects none)
     def is_held(gid: int) -> bool:
         h = hashlib.blake2b(str(gid).encode(), digest_size=4).digest()
         return int.from_bytes(h, "little") % a.holdout_every == 0
 
-    held = [i for i, r in enumerate(rows) if is_held(r[3])]
-    trn = [i for i, r in enumerate(rows) if not is_held(r[3])]
-    h_rows, h_infos = [rows[i] for i in held], [infos[i] for i in held]
-    t_rows, t_infos = [rows[i] for i in trn], [infos[i] for i in trn]
+    init, _, _ = M.load(a.prior[0], device)
+    t_rows, t_infos, held = [], [], {}
+    for g, path in zip(a.gen, a.prior):
+        rows = window[g]
+        gen_net = init if path == a.prior[0] else M.load(path, device)[0]
+        infos = classify(rows, gen_net, a.tau, device)
+        held[g] = ([r for r in rows if is_held(r[3])],
+                   [inf for r, inf in zip(rows, infos) if is_held(r[3])])
+        t_rows += [r for r in rows if not is_held(r[3])]
+        t_infos += [inf for r, inf in zip(rows, infos) if not is_held(r[3])]
     t_eval = [i for i, inf in enumerate(t_infos) if inf["kind"] != "plain"][:6000]
-    report = {"state": a.state, "gen": a.gen, "prior": a.prior, "train": len(trn),
-              "held": len(held), "epochs": a.epochs, "lr": a.lr,
-              "prior_held": evaluate(prior, h_rows, h_infos, device)}
+    report = {"state": a.state, "gen": a.gen, "prior": a.prior, "train": len(t_rows),
+              "held": {g: len(h[0]) for g, h in held.items()}, "epochs": a.epochs, "lr": a.lr,
+              "prior_held": {g: evaluate(init, *h, device) for g, h in held.items()}}
     print(json.dumps(report), flush=True)
     for recipe in a.recipes:
         torch.manual_seed(a.seed)
         np.random.seed(a.seed)
-        net = copy.deepcopy(prior)
+        net = copy.deepcopy(init)
         fit = train(net, t_rows, t_infos, recipe, a, device)
-        row = {"recipe": recipe, **fit, "held": evaluate(net, h_rows, h_infos, device),
+        row = {"recipe": recipe, **fit,
+               "held": {g: evaluate(net, *h, device) for g, h in held.items()},
                "train_searched": evaluate(net, [t_rows[i] for i in t_eval],
                                           [t_infos[i] for i in t_eval], device)}
         print(json.dumps(row), flush=True)

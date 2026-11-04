@@ -215,3 +215,45 @@ predict them on unseen positions. They are lookahead decisions (combat arithmeti
 reply) that need many more labelled examples to generalise. Next lever: a larger policy window
 (more generations of labels at 1 epoch) rather than better labels; d = 4 gives +5 points of
 agreement only.
+
+## 16. Why distillation stalls: few clear labels, half the changes are ties (2026-11-04)
+
+`python -m tools.selfplay.distill_probe --state runs/selfplay/r13_exit/state.pkl --gen 0 --prior
+runs/selfplay/r12_exit/v0.pt --nets runs/selfplay/r13_exit/last.pt` (gen 0 = r12 gen 1, labels by
+r12/v0.pt; r13/last.pt trained on it ~4 epochs over two generations):
+
+| rows of gen 0 (changed = the search overrode the generating network) | n (train) | p(label) before -> after | acc after |
+|---|---|---|---|
+| changed, score margin >= 0.1 | 1,657 | 0.219 -> 0.304 | 0.229 |
+| changed, margin 0.02-0.1 | 1,896 | 0.231 -> 0.251 | 0.141 |
+| changed, margin < 0.02 (ties) | 3,490 | 0.233 -> 0.225 | 0.066 |
+| kept (search agreed) | 25,150 | 0.791 -> 0.823 | 0.972 |
+
+On held-out games (gid % 33, n 58) the clear changes moved 0.198 -> 0.214. Margins recovered from
+the soft targets: median **0.021**, 65% < 0.05; the soft target keeps the network's move as its
+mode on 62% of changed rows. Clear changes are ~1.6K per generation (~1 per game).
+
+`tools.selfplay.distill_lab` (offline recipes, hashed 20% holdout, regret = score given up vs the
+search's best on held-out searched rows; untrained init 0.0248 on gen 0):
+
+| recipe (2 epochs, lr 2e-4) | trained on | gen-0 held regret | gen-1 held regret |
+|---|---|---|---|
+| soft (tau 0.05) | gen 0 | 0.0256 | - |
+| hard | gen 0 | 0.0266 | - |
+| sharp (tau 0.02) | gen 0 | 0.0257 | - |
+| margin >= 0.05 x3, else own move | gen 0 | 0.0260 | - |
+| soft, 1 epoch lr 5e-5 | gen 0 | 0.0256 | - |
+| soft | gens 0+1 | 0.0251 | 0.0221 (init 0.0239) |
+
+Every recipe lowers training-row regret (0.025 -> ~0.019) and raises held-out regret on the
+generator's own labels; a second generation of data shrinks the damage. Caveat: this regret
+favours the label-generating network (it has zero regret on every kept row by construction, and
+the noisy max inflates the cost of any deviation), so it cannot rank recipes; games can. In games
+the learner's two generations of soft distillation gained +0.0051 [-0.0306, +0.0434] (r11 gen 2
+-> r13 gen 2, paired, §14).
+
+Conclusion: at ~1.6K clear labels per generation the network cannot generalise the search's
+corrections (~1 per game); it learns the generating network's style instead. The search's value
+is realised at play time (searching seat ~0.60 vs raw ~0.55). Next: a long PPO run. r4's
+"flat PPO" was 12 updates (~26K games, ~20 minutes, KL ~0.015 per update), too short to show
+anything.
