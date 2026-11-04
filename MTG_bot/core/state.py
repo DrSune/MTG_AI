@@ -192,12 +192,25 @@ class GameWorld:
     # ------------------------------------------------------------------- moves
 
     def zone_of(self, card: Handle) -> ZoneState:
-        """The zone currently holding ``card``. Raises if the card is absent."""
+        """The zone currently holding ``card``. Raises if the card is absent.
+
+        Hot path: the full scan (every zone of every seat, libraries first) was two thirds of
+        a self-play game's CPU (2026-11-04 profile, KNOWLEDGE/2026-11-03/183 §21). The zone
+        last found for each card is remembered and RE-VALIDATED by membership before it is
+        returned, so a move made by any code path (``move_card`` or a direct ``entries``
+        edit) can never make it answer wrong: a stale entry just falls through to the scan,
+        which keeps its historical order. Not part of the state: ``fingerprint`` does not
+        read it and a deep copy carries it to the copied zones."""
         if card not in self.cards:
             raise KeyError(f"unknown card {card}")
+        cache = self.__dict__.setdefault("_zone_cache", {})
+        zone = cache.get(card)
+        if zone is not None and card in zone.entries:
+            return zone
         for player in self.player_order:
             for zone in self.players[player].zones.values():
                 if zone.contains(card):
+                    cache[card] = zone
                     return zone
         raise KeyError(f"card {card} is not in any zone")
 
