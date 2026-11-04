@@ -397,3 +397,14 @@ thread ran at 92% of a core while workers idled at 37% CPU. Resumed at update 60
 longer drops the gate queued with every fifth save): mean inference batch 67 -> 120, collect per
 update 41 -> 25 s, games/s over the iteration 18 -> 21-24, iteration ~110 -> ~93 s. The PPO update
 (~68 s for 98K steps) is the bottleneck again.
+
+## 27. Freeze on significance, not on 0.55 (2026-11-04)
+
+Gates vs v1: update 50 0.5357 [0.4953, 0.5757], 55 **0.5441 [0.5037, 0.5838]**, 65 **0.5449
+[0.5046, 0.5847]** (600 games each): two gates running significantly above v1, stuck under the
+0.55 line for 15 updates while the vs-heuristic training win rate kept rising (0.603 -> 0.622 by
+10-update block). The 0.55 line was a convention (AlphaGo Zero's), not the owner's rule ("some
+elo/winrate increase should trigger a re-freeze"). Resumed at update 67 with `--gate-score 0.5`:
+a version is frozen when the 600-game gate's 95% Wilson lower bound is above 0.5 (score >~ 0.541),
+i.e. when the learner is significantly better than the newest frozen version. Smaller, more
+frequent steps; the Elo ladder still places every version.
