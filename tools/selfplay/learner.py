@@ -1078,9 +1078,10 @@ class Learner:
             t0, d0 = time.time(), self.infer_items
             g0 = sum(self.counts[k] for k in ("train:games", "eval:games", "bc:games"))
             self.serve(lambda: len(self.buffer) >= a.steps)
-            tp = self.throughput(t0, g0, d0)
             t1 = time.time()
             st = self.update()
+            # over the whole iteration: the workers also play while the update runs
+            tp = self.throughput(t0, g0, d0)
             res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
             for opp, z, _ in res:
