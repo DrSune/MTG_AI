@@ -25,9 +25,10 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `features.py` | One decision -> arrays: card entities (vocab id, zone, controller, owner, flags, types, colours, keywords, live P/T, damage, counters), two player rows, global row, the ask kind, one row per option (type + the entities it points at). Only what the seat may know: own hand, public zones, counts, cards offered or revealed to it. |
 | `heuristic.py` | Rule-based player for the bench protocol: the anchor opponent and the BC teacher (rules in its docstring). Beats uniform random ~96%. |
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
+| `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. |
 | `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. |
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. No torch in workers. |
-| `learner.py` | GPU inference server (batches all workers' asks), BC, PPO (GAE, clipped policy + value, entropy, KL stop), league of frozen snapshots, duplicate-format evaluation vs the heuristic on fixed deals. |
+| `learner.py` | GPU inference server (batches all workers' asks), BC, PPO (GAE, clipped policy + value, entropy, KL stop; `trainer.py` + `ppo.py` with `--trainer-proc`), expert iteration, curricula with gates and frozen versions, Elo, duplicate-format evaluation on fixed deals. |
 
 ## Training paths
 
@@ -49,13 +50,21 @@ virtual draw per pair keeps lopsided results finite. Far from random, a 100% sco
 gap from below, so each new version is placed through its neighbours (previous version, the
 heuristic) and the chain carries the anchor; read gaps between neighbours as the precise part.
 
-**Decision-time search (`eval+search`, `learner+search`; `search.py`).** At main-phase asks and
-at the pre-combat boundary (whole attack plans), the top candidates are played forward in copies
+**Decision-time search (`eval+search`, `learner+search`; `search.py`).** At main-phase asks, at
+the pre-combat boundary (whole attack plans) and, with `--search-blocks`, at the engine's opt-in
+pre-blocks boundary (whole block assignments), the top candidates are played forward in copies
 of the game whose hidden zones were re-sampled from public information, through the opponent's
-next turn, and scored by the outcome or the value head; candidates share sampled worlds.
+next turn, and scored by the outcome or the value head; candidates share sampled worlds. v1 +
+search: 0.651 vs the heuristic, +0.060 over raw v1 (KNOWLEDGE/2026-11-03/183 §25).
 
-**Expert iteration (`--exit-gens`).** The searching network plays; its played moves (the search's
-choices) and the outcomes are distilled into the network; repeat.
+**Expert iteration (`--adapt exit`).** The searching network plays; its played moves (soft
+targets, `--search-tau`) and the outcomes are distilled into the network; repeat. Stalls at this
+data scale (~1.6K clear search corrections per generation, half the changes are ties; /183 §16).
+**PPO (`--adapt ppo`, the default)** is what improves the raw network (/183 §19, §22).
+
+**Resuming (`--resume DIR`).** Both curricula save `state.pkl` (iteration, stage, versions, rating
+games, ExIt data windows) with `last.pt` and every `v<k>.pt`; resume into the same directory to
+keep one metrics history. PPO's AdamW moments restart.
 
 ## Run
 
@@ -70,7 +79,16 @@ choices) and the outcomes are distilled into the network; repeat.
 ```
 
 `runs/` is gitignored. Metrics: `runs/selfplay/NAME/metrics.jsonl` (events `bc_gen`,
-`bc_epoch`, `iter`, `eval`). Checkpoints: `bc.pt`, `last.pt`, `best.pt` (best eval vs heuristic).
+`bc_epoch`, `iter`, `eval`, `gate`, `freeze`, `elo`, `progress` every `--progress-every` s).
+Checkpoints: `bc.pt`, `last.pt`, `best.pt` (last gate passed), `v<k>.pt` (frozen versions).
+
+PPO throughput: workers play during an update and no new training game is issued while a full
+next batch waits (`throttled`); serve with `--infer-bf16` (KL to the trainer's numerics ~1e-5,
+`bf16_logp.py`). Engine changes must keep `games_hash.py` unchanged.
+
+Diagnostics: `distill_probe.py` / `distill_lab.py` (does distillation absorb the search?),
+`label_noise.py` (search-label reproducibility), `clear_changes.py` (what the search corrects),
+`games_hash.py` / `zone_identity.py` (an engine optimisation leaves games identical).
 
 Evaluation: `--eval-deals` fixed deals (seeds 900000+), half stress and half coherent decks, each
 played twice with seats swapped; greedy play; a crash or a leaky ask (CHOOSE_NAME lists hidden
@@ -81,7 +99,8 @@ while the vLLM engine is resident (AGENTS.md §1).
 
 ## Tests
 
-`.venv/bin/python -m pytest tools/selfplay -q` (about 10 s): hidden-information metamorphic
+`.venv/bin/python -m pytest tools/selfplay -q` (about 15 s): hidden-information metamorphic
 test (rewriting the opponent's hand and both libraries leaves the encoding byte-identical),
 encoding consistency over whole games, heuristic vs uniform random, option-permutation
-equivariance, batch-padding invariance and save/load round-trip.
+equivariance, batch-padding invariance and save/load round-trip, packed collation, block plans
+made and answered at the pre-blocks boundary, and that boundary being opt-in.
