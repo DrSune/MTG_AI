@@ -538,6 +538,14 @@ class TriggerBinder:
 
     # ------------------------------------------------------------ matching
 
+    def _controller_memo(self, memo: dict, source: Handle) -> Handle:
+        """:meth:`_controller_of`, looked up once per source within one
+        event's matching pass (``memo`` lives for that pass only)."""
+        ctrl = memo.get(source)
+        if ctrl is None:
+            ctrl = memo[source] = self._controller_of(source)
+        return ctrl
+
     def on_events(self) -> None:
         """Match every not-yet-seen journalled event against the attached
         triggers and the scheduled delayed triggers, queueing one
@@ -551,13 +559,17 @@ class TriggerBinder:
             event = events[self._seen_journal_len]
             self._seen_journal_len += 1
             self._lifecycle(event, attach=True)
+            # Matching one event moves no card (queueing only appends trigger
+            # instances), so each source's controller is looked up once per
+            # event: the per-card lookups were ~70% of this pass (2026-11-04
+            # profile, KNOWLEDGE/2026-11-03/183 §24).
+            ctrl_of: dict = {}
             for (handle, _idx), ability in sorted(
                 self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
             ):
-                if self._match_node(
-                    ability.event, event, handle, self._controller_of(handle)
-                ):
-                    self._queue(handle, self._controller_of(handle), ability, event)
+                ctrl = self._controller_memo(ctrl_of, handle)
+                if self._match_node(ability.event, event, handle, ctrl):
+                    self._queue(handle, ctrl, ability, event)
             # r20a (wave-3): GRANTED triggers. A StaticAbility GRANT_ABILITY
             # layer parks its TriggeredAbility row in the layer registry —
             # the ``attached`` map above only walks the card's PRINTED rows,
@@ -568,8 +580,11 @@ class TriggerBinder:
             # Determinism: Handle order, then the registry's layer-seq order.
             layers = self.executor.layers
             for host in sorted(self.world.cards):
-                ctrl = self._controller_of(host)
-                for granted in layers.granted_abilities(host):
+                granted_rows = layers.granted_abilities(host)
+                if not granted_rows:
+                    continue
+                ctrl = self._controller_memo(ctrl_of, host)
+                for granted in granted_rows:
                     node = granted.node
                     if isinstance(node, TriggeredAbility) and self._match_node(
                         node.event, event, host, ctrl
@@ -590,7 +605,7 @@ class TriggerBinder:
                     ):
                         continue
                     node = self._keyword_node(family, host)
-                    ctrl = self._controller_of(host)
+                    ctrl = self._controller_memo(ctrl_of, host)
                     if not self._match_node(node.event, event, host, ctrl):
                         continue
                     if family == "BATTALION" and self._group_size(event) < 3:
