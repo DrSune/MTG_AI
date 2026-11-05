@@ -308,3 +308,22 @@ def test_table_extension_reads_new_cards_through_known_components(table) -> None
     assert torch.allclose(before, after, atol=1e-5)
     assert torch.equal(net.name_emb.weight[-1], net.name_emb.weight[FT.UNK])
     assert net.ir_table.shape[0] == len(t2.oracle_ids)
+
+
+def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
+    """Refreshing from the compile that built the table changes nothing; a refreshed table with
+    new component types grows the network's component embedding with zero rows."""
+    from MTG_bot.core.executor.games import get_supply as supply_of
+
+    recs = {oid: r.card for oid, r in supply_of("castable", "M21").pool.results.items()}
+    same, st = table.refresh(recs)
+    assert st == {"rows_changed": 0, "tokens_added": 0, "new_tokens": []}
+    assert same.ir == table.ir and same.ir_vocab == table.ir_vocab
+    grown = FT.CardTable(table.oracle_ids, table.names, table.ir_vocab + ["New.Component"],
+                         [row + [len(table.ir_vocab)] if i == 2 else row
+                          for i, row in enumerate(table.ir)], table.max_ir)
+    net = M.build(table, d=32, layers=2, heads=4, ff=64)
+    M.extend_cards(net, grown)
+    assert net.ir_emb.weight.shape[0] == len(table.ir_vocab) + 1
+    assert torch.equal(net.ir_emb.weight[-1], torch.zeros(32))
+    assert net.ir_table.shape[0] == len(table.oracle_ids) and net.config["n_ir"] == len(grown.ir_vocab)

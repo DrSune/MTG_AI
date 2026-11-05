@@ -188,34 +188,70 @@ class CardTable:
     def row(self, oracle_id: str) -> int:
         return self.index.get(oracle_id, UNK)
 
-    def extend(self, records: dict[str, Any]) -> tuple[CardTable, dict]:
-        """A copy with a row for every record this table lacks, in the SAME component
-        vocabulary (a network trained on this table reads the new cards through the components
-        it knows; components it never saw are dropped and counted). New names are unknown to
-        the network: extend_cards gives them the unknown-card name embedding."""
+    def extend(self, records: dict[str, Any], add_tokens: bool = False) -> tuple[CardTable, dict]:
+        """A copy with a row for every record this table lacks. Without ``add_tokens`` the new
+        cards are read through the components the network knows (unseen components dropped and
+        counted: the generalisation probe); with it, unseen components join the vocabulary as
+        new, learnable tokens (training on the new cards). New names are unknown to the
+        network: extend_cards gives them the unknown-card name embedding."""
         oids, names = list(self.oracle_ids), list(self.names)
         ir = [list(x) for x in self.ir]
-        vi = {t: i for i, t in enumerate(self.ir_vocab)}
+        vocab = list(self.ir_vocab)
+        vi = {t: i for i, t in enumerate(vocab)}
         added = tokens = known = 0
         unseen: dict[str, int] = {}
         for oid in sorted(records):
             if oid in self.index:
                 continue
             toks = card_tokens(records[oid])
-            ids = [vi[t] for t in toks if t in vi]
+            ids = []
             for t in toks:
                 if t not in vi:
                     unseen[t] = unseen.get(t, 0) + 1
+                    if not add_tokens:
+                        continue
+                    vi[t] = len(vocab)
+                    vocab.append(t)
+                else:
+                    known += 1
+                ids.append(vi[t])
             tokens += len(toks)
-            known += len(ids)
             oids.append(oid)
             names.append(records[oid].name)
             ir.append(ids[: self.max_ir])
             added += 1
         stats = {"added": added, "component_tokens": tokens, "known_share": round(
             known / max(tokens, 1), 4), "unseen_components": sorted(
-            unseen.items(), key=lambda kv: -kv[1])[:20]}
-        return CardTable(oids, names, self.ir_vocab, ir, self.max_ir), stats
+            unseen.items(), key=lambda kv: -kv[1])[:20], "tokens_added": len(vocab) - len(
+            self.ir_vocab)}
+        return CardTable(oids, names, vocab, ir, self.max_ir), stats
+
+    def refresh(self, records: dict[str, Any]) -> tuple[CardTable, dict]:
+        """A copy whose rows are rebuilt from the CURRENT compile of ``records`` (cards absent
+        from ``records`` keep their row); components outside the vocabulary are appended to it.
+        A saved table describes the trees as compiled when it was built: after a compiler or
+        engine change re-compiles cards (the 2026-11-05 cards/integration merge changed 93 of
+        M21's 305 rows and introduced 11 component types), refresh it, then grow the network
+        with model.extend_cards."""
+        vocab = list(self.ir_vocab)
+        vi = {t: i for i, t in enumerate(vocab)}
+        ir = [list(x) for x in self.ir]
+        changed = 0
+        for row, oid in enumerate(self.oracle_ids):
+            if oid not in records:
+                continue
+            ids = []
+            for t in card_tokens(records[oid]):
+                if t not in vi:
+                    vi[t] = len(vocab)
+                    vocab.append(t)
+                ids.append(vi[t])
+            ids = ids[: self.max_ir]
+            changed += ids != ir[row]
+            ir[row] = ids
+        return (CardTable(list(self.oracle_ids), list(self.names), vocab, ir, self.max_ir),
+                {"rows_changed": changed, "tokens_added": len(vocab) - len(self.ir_vocab),
+                 "new_tokens": vocab[len(self.ir_vocab):]})
 
     def ir_array(self) -> np.ndarray:
         out = np.zeros((len(self.ir), self.max_ir), dtype=np.int64)

@@ -143,16 +143,25 @@ class Learner:
         if args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init, "extra": extra})
+            from MTG_bot.core.executor.games import get_supply
+
+            if args.refresh_table:
+                # the saved table describes the trees as compiled when it was built; rebuild
+                # its rows from the current compile (FT.CardTable.refresh)
+                records = {oid: r.card for oid, r in
+                           get_supply("castable", "M21").pool.results.items()}
+                self.table, ref = self.table.refresh(records)
+                M.extend_cards(self.model, self.table)
+                self.log({"event": "refresh_table", **ref})
             if args.extend_sets:
                 # cards of other sets the network never trained on: rows in its component
-                # vocabulary, names unknown (FT.CardTable.extend, M.extend_cards)
-                from MTG_bot.core.executor.games import get_supply
-
+                # vocabulary, names unknown (FT.CardTable.extend, M.extend_cards); when it will
+                # train on them (--mix-sets), their unseen components become learnable tokens
                 records = {}
                 for code in args.extend_sets.split(","):
                     records.update({oid: r.card for oid, r in
                                     get_supply("castable", code).pool.results.items()})
-                self.table, ext = self.table.extend(records)
+                self.table, ext = self.table.extend(records, add_tokens=bool(args.mix_sets))
                 M.extend_cards(self.model, self.table)
                 self.log({"event": "extend_sets", "sets": args.extend_sets, **ext})
             if args.mask_names:
@@ -1542,6 +1551,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--curriculum", action="store_true")
+    p.add_argument("--refresh-table", action="store_true",
+                   help="rebuild the --init card table's rows from the current compile (after "
+                        "an engine/compiler change re-compiled cards); new components learnable")
     p.add_argument("--extend-sets", default="",
                    help="comma list of sets whose castable cards join the card table (names "
                         "unknown, components in the trained vocabulary)")

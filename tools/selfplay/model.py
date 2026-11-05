@@ -129,8 +129,9 @@ class PolicyValueNet(nn.Module):
 
 
 def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
-    """Grow ``net`` to an extended table (FT.CardTable.extend): new name rows start as the
-    unknown-card embedding (what name dropout trained), the component table is rebuilt."""
+    """Grow ``net`` to an extended or refreshed table (FT.CardTable.extend/refresh): new name
+    rows start as the unknown-card embedding (what name dropout trained), new component rows at
+    zero, and the component table is rebuilt."""
     old = net.name_emb.weight.data
     n = len(table.oracle_ids)
     if n > old.shape[0]:
@@ -138,6 +139,16 @@ def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
         emb.weight.data[: old.shape[0]] = old
         emb.weight.data[old.shape[0]:] = old[FT.UNK]
         net.name_emb = emb
+    # new component types (CardTable.refresh, extend(add_tokens=True)) start at zero: a
+    # neutral term in the card's component mean until training gives it a meaning
+    old_ir = net.ir_emb.weight.data
+    n_ir = len(table.ir_vocab)
+    if n_ir > old_ir.shape[0]:
+        emb = nn.Embedding(n_ir, old_ir.shape[1], padding_idx=0).to(old_ir.device, old_ir.dtype)
+        emb.weight.data.zero_()
+        emb.weight.data[: old_ir.shape[0]] = old_ir
+        net.ir_emb = emb
+        net.config["n_ir"] = n_ir
     net.ir_table = torch.as_tensor(table.ir_array(), dtype=torch.long,
                                    device=net.ir_table.device)
     net.config["n_cards"] = n
