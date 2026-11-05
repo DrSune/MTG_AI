@@ -3113,6 +3113,50 @@ class TestDanglingContinuation(unittest.TestCase):
         self.assertNotIn(self.REST, [sentence for sentence, _hint in res.unparsed])
         self.assertEqual(len(self._rest_selectors(res.card)), 1)
 
+    def test_if_you_do_after_an_unparsed_sentence_is_unparsed(self) -> None:
+        # 2026-11-05 (known_bugs compiler_orphaned_if_you_do, M20 Keldon Raider): "If you do"
+        # reads whether the previous instruction was done (CR 118.12). With that sentence
+        # unparsed it has no antecedent; compiled alone it became the creature spell's own
+        # effect, so casting the creature drew a card.
+        tail = "If you do, draw a card."
+        raw = _raw_card(
+            "Raider Probe",
+            9103,
+            types=("Creature",),
+            mana_cost_raw="{2}{R}{R}",
+            mana_value=4,
+            power_raw="4",
+            toughness_raw="3",
+            sentences=("When this creature enters, you may discard a card.", tail),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertEqual(len(res.unparsed), 2, res.unparsed)
+        self.assertIn(tail, [sentence for sentence, _hint in res.unparsed])
+        spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+        self.assertEqual(len(spells), 1)
+        self.assertIsNone(spells[0].effect)
+
+    def test_if_you_do_after_a_parsed_sentence_is_gated(self) -> None:
+        # Control: a parsed antecedent keeps the r18a gate (CR 118.12).
+        raw = _raw_card(
+            "Ooze Control",
+            9104,
+            types=("Creature",),
+            mana_cost_raw="{1}{G}",
+            mana_value=2,
+            power_raw="2",
+            toughness_raw="2",
+            sentences=(
+                "At the beginning of your end step, if a creature died this turn, you may pay {1}{B}.",
+                "If you do, create a 2/2 black Zombie creature token.",
+            ),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertEqual(res.unparsed, ())
+        trigger = res.card.abilities[0]
+        self.assertIsInstance(trigger, TriggeredAbility)
+        self.assertIsInstance(trigger.effect.steps[-1], Conditional)
+
 
 if __name__ == "__main__":
     unittest.main()

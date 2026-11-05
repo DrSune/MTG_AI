@@ -818,14 +818,22 @@ def _leans_on_previous_sentence(node: object) -> bool:
     return False
 
 
-def _dangles_after_unparsed(outcomes: list, outcome: object) -> bool:
+def _dangles_after_unparsed(outcomes: list, outcome: object, sentence: str) -> bool:
     """m21-fidelity wave 4: is ``outcome`` a sentence that leans on the one
     before it (:func:`_leans_on_previous_sentence`) while that sentence is
     unparsed (a None slot; reminder text in between is skipped)? Such a
     sentence has no antecedent (CR 608.2c reads the instructions in order,
-    and "the rest" / "it" name the previous instruction's objects)."""
-    if not isinstance(outcome, EffectOutcome) or not _leans_on_previous_sentence(
-        outcome.effect
+    and "the rest" / "it" name the previous instruction's objects).
+
+    2026-11-05: a continuation sentence (:func:`_is_continuation`: "If you do,
+    ...", "Then ...", "Otherwise ...") leans on the previous sentence by its
+    wording. With that sentence unparsed, the continuation pass skipped over
+    it and the continuation became an effect of its own: Keldon Raider's "If
+    you do, draw a card." was the creature spell's effect, so casting it drew
+    a card (CR 118.12: "if you do" asks whether the previous instruction was
+    done)."""
+    if not isinstance(outcome, EffectOutcome) or not (
+        _leans_on_previous_sentence(outcome.effect) or _is_continuation(sentence)
     ):
         return False
     for prev in reversed(outcomes):
@@ -1864,7 +1872,7 @@ def compile_card(
         # (FDN Squad Rallier and Vivien Reid: the rest-to-bottom ran as the
         # whole spell effect, moving the top card of the library), so it is
         # unparsed too (flag, don't degrade).
-        if _dangles_after_unparsed(outcomes, best_match.outcome):
+        if _dangles_after_unparsed(outcomes, best_match.outcome, sentence):
             outcomes.append(None)
             continue
 
