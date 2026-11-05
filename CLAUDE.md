@@ -135,18 +135,18 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B1** (2026-11-05, branch `cleanup/legacy`, `TORCH_DISABLE_NATIVE_JIT=1`):
-  **4567 passed / 39 deselected / 66 subtests passed, nothing failed or xfailed**, about 40 s. Other
+  **Baseline B2** (2026-11-05, the round-two integration f908287, KNOWLEDGE/2026-11-05/184):
+  **4686 passed / 39 deselected / 66 subtests passed, nothing failed or xfailed**, about 40 s. Other
   docs point here. It is reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
   - **No expected failures: any failure is a regression.** B0 (2026-10-24) carried 2 by-design
     failures and 23 xfails; all were legacy tests, deleted with `rule_engine/` and `strategic_brain/`.
   - The 39 deselected are the R3b red-first battery (`MTG_bot/core/test_ontology_r3b.py`).
     `-m red_first` gives 13 passed / 26 failed on 2026-11-05, the same on `main`; the 15 / 24 in
     `reports/r3b_red_prechange.txt` is from 2026-10-24.
-  - The 668 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`).
+  - The 689 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`). The runner
+    fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 2 failed / 101 passed, about 15 s. The two failures are
-    the V5 census tests in `tools/audit/test_ontology_conformance.py`, red on `main` too since the
-    `cards/integration` merge (NUMBERS.md, /181). `tools/run_scenarios.py` = 668/668.
+  - Companion numbers: `pytest tools -q` = 126 passed, about 20 s (the ontology baselines were
+    re-recorded after the reviewed M21 campaign; NUMBERS.md). `tools/run_scenarios.py` = 689/689.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.
