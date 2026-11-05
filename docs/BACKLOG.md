@@ -1493,3 +1493,17 @@ W&B key in history is revoked; a private split exists outside the public repo.
   genuine leftovers (enter 12, end_turn 10, combat 7, advance_turn 5, deal_damage 1; e.g.
   faiths_fetters "skip", spirit_of_malevolence_dies_trigger "foe"). Fix: hand each word out once,
   fail a step that leaves words unused, then repair the flagged packs with red evidence.
+- **From the M20 verification round (2026-11-05; 21/21 planted faults caught)**:
+  - Scry keeps the cards it leaves on top in handle order (verbs._v_scry): the player's "any order"
+    choice is removed. Weaker only, but live on verified M21 scry cards (B-81: alters options).
+  - "Any order" is never asked (Anticipate, Cavalier of Gales, Goblin Ringleader: WRONG); "random
+    order" is fixed (Drawn from Dreams, Brightwood Tracker: OK under B-81, information only).
+  - Sanitarium Skeleton: abilities that work from the graveyard are refused (CR 113.6k), and the
+    same row on the battlefield is a paid no-op (the Demonic Embrace shape; extend query.inert_row
+    to "moves its own source from a zone it is not in").
+  - Mu Yanling, Sky Dancer's -8 emblem is unmapped, so the -8 does nothing: a planeswalker whose
+    emblem record is empty should not reach a supply.
+  - Probe (G1) gaps that leave clauses NOT_EXERCISED: granted abilities are never activated,
+    loyalty never reaches an ultimate, the land drop is always a Plains, the library holds 6 cards,
+    no planeswalker is on the board, and the "Aura" probe card is a 2/2 creature.
+  - Pack runner: the deal_damage op cannot target a player; the `life` op is undocumented.
