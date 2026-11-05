@@ -7,7 +7,7 @@
   {"key": "a", "name": "Card A", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
   {"key": "b", "name": "Card B", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
   {"key": "c", "name": "Card C", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
-  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0}
+  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"R": 5}},
  "steps": [

@@ -294,8 +294,9 @@ class ScenarioRunner:
         for seat, colors in pack.get("mana", {}).items():
             for color, n in colors.items():
                 self.world.players[self.seats[int(seat)]].mana_pool[color] = n
-        # 16b: the clock opens for REAL (begin_turn: draw, markers,
-        # ledger) — a faked turn desynced world.turn and the sickness
+        # 16b: the clock opens for REAL (begin_turn: markers, ledger; turn 1
+        # of a two-player game, so seat 0 skips its draw step, CR 103.8a)
+        # — a faked turn desynced world.turn and the sickness
         # clock against advance_turn. The old fakes turn_open/phase
         # manually, which every combat pack now outgrows.
         # tools/cards probe (2026-10-29): a card pre-placed on the battlefield can trigger at this

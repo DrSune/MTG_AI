@@ -6,7 +6,7 @@
   {"key": "basri", "real": "Basri Ket", "zone": "library", "controller": 0},
   {"key": "garruk", "real": "Garruk, Unleashed", "zone": "library", "controller": 0},
   {"key": "art", "name": "Some Artifact", "type": "Artifact", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Drawn Card", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Drawn Card", "type": "Sorcery", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "combat", "seat": 0, "attack": {"h": true}, "may": {"h": true}}

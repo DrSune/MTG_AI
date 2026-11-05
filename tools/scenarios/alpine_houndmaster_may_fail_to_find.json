@@ -4,7 +4,7 @@
   {"key": "h", "real": "Alpine Houndmaster", "zone": "hand", "controller": 0},
   {"key": "wd", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
   {"key": "cur", "real": "Igneous Cur", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Drawn", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Drawn", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
  ],
  "steps": [{"op": "enter", "key": "h", "decisions": ["fire", "wd", "NONE"]}],
  "expect": {"zone": {"h": "battlefield", "wd": "hand", "cur": "library", "drawn": "hand"}, "hand": {"0": 2}}}

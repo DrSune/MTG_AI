@@ -8,7 +8,7 @@
   {"key": "b", "name": "B", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
   {"key": "c", "name": "C", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
   {"key": "d", "name": "D", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
-  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"B": 3}},
  "steps": [

@@ -6,7 +6,7 @@
   {"key": "swamp", "real": "Swamp", "zone": "library", "controller": 0},
   {"key": "island", "real": "Island", "zone": "library", "controller": 0},
   {"key": "mountain", "real": "Mountain", "zone": "library", "controller": 0},
-  {"key": "opener", "name": "Opening Draw", "type": "Instant", "zone": "library", "controller": 0}
+  {"key": "opener", "name": "Opening Draw", "type": "Instant", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"G": 1, "C": 2}},
  "steps": [{"op": "cast", "key": "cv", "decisions": ["card:1", "card:2", "card:1"]}],

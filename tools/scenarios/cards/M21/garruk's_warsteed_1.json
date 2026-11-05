@@ -4,7 +4,7 @@
   {"key": "w", "real": "Garruk's Warsteed", "zone": "hand", "controller": 0},
   {"key": "hg", "real": "Garruk, Savage Herald", "zone": "library", "controller": 0},
   {"key": "gyc", "name": "Graveyard Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "steps": [{"op": "enter", "key": "w", "decisions": ["fire", "1"]}],
  "expect": {"zone": {"w": "battlefield", "hg": "hand", "gyc": "graveyard", "drawn": "hand"},

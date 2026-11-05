@@ -168,8 +168,9 @@ $PY tools/cards/cardtool.py --help
   - Test spec packs against your unwritten draft with
     `cardtool.py runpack SET pack.json --card "Card" --draft draft.py`.
   - Pack runner quirks:
-    - The runner's opening `begin_turn` draws seat 0's top library card, so the last library card
-      a pack lists ends up in hand.
+    - The runner's opening `begin_turn` is turn 1 of a two-player game, so seat 0 skips its draw
+      step (CR 103.8a) and nothing is drawn at setup (until 2026-11-05 it drew the last library
+      card a pack lists). Declare a card in hand if the pack needs it there.
     - A `cast` step needs `key` (and takes `controller`); an `activate` step takes `seat`.
     - Use `start_tapped` to make a setup card start tapped. The older `tapped` key is ignored
       (B-63).

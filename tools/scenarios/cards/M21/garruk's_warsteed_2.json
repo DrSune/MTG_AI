@@ -5,7 +5,7 @@
   {"key": "hg", "real": "Garruk, Savage Herald", "zone": "graveyard", "controller": 0},
   {"key": "k1", "name": "Keep One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
   {"key": "k2", "name": "Keep Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "steps": [{"op": "enter", "key": "w", "decisions": ["fire", "2"]}],
  "expect": {"zone": {"w": "battlefield", "hg": "hand", "drawn": "hand", "k1": "library", "k2": "library"},

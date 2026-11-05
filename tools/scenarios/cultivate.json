@@ -39,7 +39,7 @@
    "power": 1,
    "toughness": 1,
    "type": "Creature",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0
   }
  ],
@@ -71,13 +71,13 @@
   },
   "library": {
    "0": [
-    "Library 0",
-    "Library 2",
-    "Library 1",
-    "Library 4",
     "Gemthing",
     "Library 3",
-    "Library 5"
+    "Library 5",
+    "Library 0",
+    "Library 1",
+    "Library 2",
+    "Library 4"
    ],
    "1": [
     "Library 5",

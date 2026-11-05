@@ -12,7 +12,7 @@
   },
   {
    "key": "drawn",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0,
    "name": "Drawn",
    "type": "Creature",

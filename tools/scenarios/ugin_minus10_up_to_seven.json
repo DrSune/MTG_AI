@@ -12,7 +12,7 @@
   {"key": "s5", "name": "Sorcery Five", "type": "Sorcery", "zone": "library", "controller": 0},
   {"key": "s6", "name": "Sorcery Six", "type": "Sorcery", "zone": "library", "controller": 0},
   {"key": "s7", "name": "Sorcery Seven", "type": "Sorcery", "zone": "library", "controller": 0},
-  {"key": "s8", "name": "Sorcery Eight", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "s8", "name": "Sorcery Eight", "type": "Sorcery", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "loyalty", "key": "ugin", "set": 10},

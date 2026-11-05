@@ -4,7 +4,7 @@
   {"key": "ba", "real": "Basri's Aegis", "zone": "hand", "controller": 0},
   {"key": "pal_lib", "real": "Basri, Devoted Paladin", "zone": "library", "controller": 0},
   {"key": "pal_gy", "real": "Basri, Devoted Paladin", "zone": "graveyard", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"W": 4}},
  "steps": [{"op": "cast", "key": "ba", "real": "Basri's Aegis", "decisions": ["fire", "0", "card:2"]}],

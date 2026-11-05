@@ -38,7 +38,7 @@
    "power": "2",
    "toughness": "2",
    "cmc": 2,
-   "zone": "library",
+   "zone": "hand",
    "controller": 0
   }
  ],

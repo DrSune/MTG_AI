@@ -6,7 +6,7 @@
   {"key": "is", "name": "Island", "type": "Basic Land — Island", "zone": "library", "controller": 0},
   {"key": "nb", "name": "Temple of Nothing", "type": "Land", "zone": "library", "controller": 0},
   {"key": "cr", "name": "Library Beast", "power": "2", "toughness": "2", "type": "Creature", "zone": "library", "controller": 0},
-  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
   {"key": "opp_fo", "name": "Forest", "type": "Basic Land — Forest", "zone": "library", "controller": 1}
  ],
  "mana": {"0": {"G": 3}},

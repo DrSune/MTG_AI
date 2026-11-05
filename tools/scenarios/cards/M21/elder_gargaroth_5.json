@@ -5,7 +5,7 @@
  "cards": [
   {"key": "eg", "real": "Elder Gargaroth", "zone": "battlefield", "controller": 0},
   {"key": "ob", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
-  {"key": "opener", "name": "Opening Draw", "type": "Instant", "zone": "library", "controller": 0}
+  {"key": "opener", "name": "Opening Draw", "type": "Instant", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "advance_turn"},

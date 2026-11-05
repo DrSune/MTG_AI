@@ -216,8 +216,9 @@ class TestDeclareAsks(CombatCase):
         self.assertEqual(declared, [alpha])  # one row, the attacker only
         # the group id is shared per declaration:
         self.assertEqual(
-            {e.declare_group for e in self.rows("DECLARE_ATTACKERS")}, {1 + 1}
-        )  # op_seq: begin_turn's draw atom was op 1, declare is op 2
+            {e.declare_group for e in self.rows("DECLARE_ATTACKERS")}, {1}
+        )  # op_seq: the declaration is op 1 (re-pinned 2026-11-05: turn 1 has
+        # no draw step, CR 103.8a, so no draw atom takes op 1 before it)
 
     def test_decline_is_respected_and_no_ask_without_creatures(self):
         alpha = self.synth("Alpha", 2, 2, self.p0)

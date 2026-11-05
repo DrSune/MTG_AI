@@ -4,7 +4,7 @@
   {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
   {"key": "victim", "name": "Doomed Beast", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1},
   {"key": "lil", "real": "Liliana, Death Mage", "zone": "library", "controller": 0},
-  {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "library", "controller": 0}
+  {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"B": 5}},
  "steps": [

@@ -1,7 +1,7 @@
 {
  "world": {
   "life": 20,
-  "seed": 7
+  "seed": 3
  },
  "cards": [
   {
@@ -27,5 +27,5 @@
    "t": true
   }
  },
- "notes": "Printed: '{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life.' At master_seed 7 the flip LOSES (reconciled in staging): life pays 3 -> 17 and the 6-life win-branch stays closed. The tap and the life payment (both cost side) are asserted; the RNG branch is seed-pinned."
+ "notes": "Printed: '{T}, Pay 3 life: Flip a coin. If you win the flip, you gain 6 life.' At master_seed 3 the flip LOSES (re-seeded 2026-11-05 from 7, whose flip now wins: the opening turn has no draw step, CR 103.8a, so the seeded RNG stream moved): life pays 3 -> 17 and the 6-life win-branch stays closed. The tap and the life payment (both cost side) are asserted; the RNG branch is seed-pinned."
 }

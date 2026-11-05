@@ -4,7 +4,7 @@
   {"key": "w", "real": "Garruk's Warsteed", "zone": "hand", "controller": 0},
   {"key": "hg_lib", "real": "Garruk, Savage Herald", "zone": "library", "controller": 0},
   {"key": "hg_gy", "real": "Garruk, Savage Herald", "zone": "graveyard", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "steps": [{"op": "enter", "key": "w", "decisions": ["fire", "0", "hg_lib"]}],
  "expect": {"zone": {"w": "battlefield", "hg_lib": "hand", "hg_gy": "graveyard", "drawn": "hand"},

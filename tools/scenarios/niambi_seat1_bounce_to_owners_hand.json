@@ -5,7 +5,7 @@
  "cards": [
   {"key": "n", "real": "Niambi, Esteemed Speaker", "zone": "hand", "controller": 1},
   {"key": "ob", "name": "Opp Ox", "type": "Creature", "power": 3, "toughness": 3, "cmc": 3, "zone": "battlefield", "controller": 1},
-  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "enter", "key": "n", "decisions": ["ob", "fire"]}

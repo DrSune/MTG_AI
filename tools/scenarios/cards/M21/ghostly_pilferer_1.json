@@ -6,7 +6,7 @@
   {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
   {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
   {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0},
-  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "combat", "seat": 0, "attack": {"gp": true}},

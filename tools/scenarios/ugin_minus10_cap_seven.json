@@ -146,7 +146,7 @@
    "key": "s8",
    "name": "Sorcery 8",
    "type": "Sorcery",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0
   }
  ],

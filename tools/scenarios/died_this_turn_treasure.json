@@ -38,7 +38,7 @@
   },
   {
    "key": "l2",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0,
    "name": "Lib C",
    "type": "Creature — Bear",

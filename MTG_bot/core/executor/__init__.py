@@ -1958,9 +1958,11 @@ class Executor:
     def begin_turn(self, player: Handle) -> int:
         """Begin ``player``'s turn: active rotation, turn clock, the UNTAP
         step (12d), UPKEEP and FIRST_MAIN markers, per-turn event trackers
-        reset; drains triggers. Returns the firing count."""
+        reset; drains triggers. Returns the firing count. The first turn of
+        a two-player game has no draw step (CR 103.8a)."""
         if player not in self.world.players:
             raise ValueError(f"begin_turn: {player} is not a player of this world")
+        first_turn = not self._turn_started
         if self._turn_started:
             self.world.turn += 1
         self._turn_started = True
@@ -1987,8 +1989,11 @@ class Executor:
         # 14a: the DRAW step (CR 504.5-c), journalled INSIDE the skeleton so
         # 'whenever you draw' triggers and the fingerprint see it, and AFTER
         # the UPKEEP marker so beginning-of-upkeep triggers keep their CR
-        # ordering ahead of draw triggers.
-        self._turn_draw(player)
+        # ordering ahead of draw triggers. CR 103.8a: in a two-player game the
+        # player who plays first skips the draw step of their first turn
+        # (103.8c: in other multiplayer games nobody skips it).
+        if not (first_turn and len(self.world.player_order) == 2):
+            self._turn_draw(player)
         self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
         self.phase = Phase.FIRST_MAIN.name
         return self._settle()

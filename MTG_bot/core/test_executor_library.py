@@ -442,6 +442,37 @@ class TestEndTurn(LibraryCase):
         self.assertEqual(self.ex.phase, "FIRST_MAIN")
 
 
+class TestFirstTurnDraw(LibraryCase):
+    """CR 103.8a: in a two-player game the player who plays first skips the
+    draw step of their first turn; 103.8c: in other multiplayer games nobody
+    skips it. Regression (2026-11-05 invariant audit: the starting player drew
+    on turn 1; seat 0 won 59.8% of heuristic mirrors, 55.3% with the skip)."""
+
+    def drawn(self, player):
+        return [e for e in self.journal_rows("CARD_DRAWN") if e.data[0] == player]
+
+    def test_the_starting_player_skips_the_first_draw_step(self):
+        self.ex.begin_turn(self.p0)
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.h1])
+        self.assertEqual(self.drawn(self.p0), [])
+        self.assertEqual(self.ex.phase, "FIRST_MAIN")
+
+    def test_every_later_turn_draws_the_other_players_first_too(self):
+        p1_card = self.world.add_card(card_id("P1 Top"), self.p1)
+        self.ex.begin_turn(self.p0)
+        self.ex.advance_turn()  # turn 2: p1's first turn has its draw step
+        self.assertEqual(self.zone(self.p1, ZONE_HAND), [p1_card])
+        self.ex.advance_turn()  # turn 3: p0 draws its top card (L4)
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.h1, self.libs[3]])
+
+    def test_no_player_skips_it_in_a_multiplayer_game(self):
+        world = GameWorld(num_players=3, start_life=20, master_seed=7)
+        first = world.player_order[0]
+        top = world.add_card(card_id("Top"), first)
+        Executor(world).begin_turn(first)
+        self.assertEqual(world.players[first].zone(ZONE_HAND).entries, [top])
+
+
 # ----------------------------------------------------------- EXTRA_TURN
 
 

@@ -878,7 +878,11 @@ class TestMayAndDeterminism(BindingCase):
         # pinned 2/2 because the skeleton had NO draw step at all (the games
         # harness found it: without a per-turn draw a real game stalls). The
         # chain's SHAPE is unchanged — one extra link at the head.
-        self.assertEqual(len(world.players[p0].zone(ZONE_HAND).entries), 3)
+        # AMENDED 2026-11-05 (CR 103.8a): begin_turn(p0) is the first turn of a
+        # two-player game, and the player who plays first skips that draw
+        # step, so the head link is gone again: ETB draw + mill, direct draw +
+        # mill = 2 in hand, 2 in the graveyard, 1 left in the library.
+        self.assertEqual(len(world.players[p0].zone(ZONE_HAND).entries), 2)
         self.assertEqual(len(world.players[p0].zone(ZONE_GRAVEYARD).entries), 2)
         return ex.state_fingerprint()
 

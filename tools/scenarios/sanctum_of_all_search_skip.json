@@ -23,7 +23,7 @@
    "power": "1",
    "toughness": "1",
    "controller": 0,
-   "zone": "library"
+   "zone": "hand"
   }
  ],
  "steps": [
@@ -53,11 +53,11 @@
   },
   "library": {
    "0": [
-    "Library 4",
-    "Library 0",
     "Library 3",
+    "Library 1",
+    "Library 0",
     "Library 2",
-    "Library 1"
+    "Library 4"
    ],
    "1": [
     "Library 4",

@@ -4,7 +4,7 @@
   {"key": "je", "zone": "battlefield", "controller": 0, "real": "Jeskai Elder"},
   {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9},
   {"key": "l0", "zone": "library", "controller": 0, "name": "Lib A", "type": "Creature — Bear", "power": 2, "toughness": 2},
-  {"key": "l1", "zone": "library", "controller": 0, "name": "Lib B", "type": "Creature — Bear", "power": 2, "toughness": 2}
+  {"key": "l1", "zone": "hand", "controller": 0, "name": "Lib B", "type": "Creature — Bear", "power": 2, "toughness": 2}
  ],
  "mana": {},
  "steps": [{"op": "combat", "seat": 0, "attack": {"je": true}, "block": {"wall": "je"}, "may": {"je": true}}],

@@ -6,7 +6,7 @@
   {"key": "dog1", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
   {"key": "dog2", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
   {"key": "cur", "real": "Igneous Cur", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"R": 1, "W": 1}},
  "steps": [

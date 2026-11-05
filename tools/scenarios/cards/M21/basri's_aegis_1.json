@@ -5,7 +5,7 @@
   {"key": "c1", "name": "Guard One", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
   {"key": "o1", "name": "Their Guard", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
   {"key": "pal", "real": "Basri, Devoted Paladin", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"W": 4}},
  "steps": [{"op": "cast", "key": "ba", "real": "Basri's Aegis", "targets": ["c1", "o1"], "decisions": ["fire", "1"]}],

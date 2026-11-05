@@ -4,7 +4,7 @@
  "cards": [
   {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
   {"key": "sh", "real": "Sanctum of Shattered Heights", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "enter", "key": "a"},

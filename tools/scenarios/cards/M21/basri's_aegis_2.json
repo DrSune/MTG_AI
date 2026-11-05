@@ -6,7 +6,7 @@
   {"key": "pal", "real": "Basri, Devoted Paladin", "zone": "graveyard", "controller": 0},
   {"key": "k1", "name": "Keep One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
   {"key": "k2", "name": "Keep Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"W": 4}},
  "steps": [{"op": "cast", "key": "ba", "real": "Basri's Aegis", "targets": ["c1"], "decisions": ["fire", "2"]}],

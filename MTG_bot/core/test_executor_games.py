@@ -2517,10 +2517,15 @@ class StallRuleTest(unittest.TestCase):
         # decisive (97 acts); engine/verify-fixes alone 46 turns, decisive (87).
         # Re-measured 2026-10-30 after cards/integration 9553ae1 (vfix2's lane) merged in:
         # the same 60-turn cap, no loser, 95 acts (double-run verified).
+        # re-pinned 2026-11-05: CR 508.1a (only untapped creatures attack) and
+        # CR 103.8a (the starting player skips the draw step of turn 1) shift
+        # the seeded trajectory. Decisive again: player 1 loses on turn 37,
+        # 65 acts, the stall rule does not fire (double-run replay verified:
+        # same fingerprint, turns and reason).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 60)
-        self.assertEqual(game.reason, "turn cap 60 reached (no loser)")
+        self.assertEqual(game.turns, 37)
+        self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()
