@@ -1473,3 +1473,14 @@ W&B key in history is revoked; a private split exists outside the public repo.
   the aliases additive on purpose ("the digest and the index lane stay byte-unchanged", for
   replays), and two unit tests and three packs pin the index lane. Decide the replay contract
   first, then switch to handles and re-pin.
+- **Triggered abilities choose their targets as they resolve** (binding.py ~1621; B-110: abilities
+  never go on the stack), so CR 608.2b never applies to them, and in a simultaneous-trigger race
+  the active player now chooses after the other player's trigger has resolved (CR 603.3b/d: all
+  are put on the stack, targets chosen, before any resolves). Stronger for the active player in
+  rare races (two Pitchburn Devils). Red-team rt3b, 2026-11-05.
+- **One player's simultaneous triggers resolve oldest first, never asked** (CR 603.3b lets the
+  player order them): weaker only, e.g. Terror of the Peaks + Bone Pit Brute deals 4 where 8 is
+  possible; ~9 of 481 same-player batches per 2,000 games care.
+- **Target recheck gaps (not reachable in current games)**: Enthralling Hold's "as you cast it"
+  restriction is re-read at resolution, so it fizzles if its target untaps; a target exiled and
+  returned before resolution is still hit because handles survive zone changes (CR 400.7).
