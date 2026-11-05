@@ -35,8 +35,11 @@ def test_the_default_deal_is_the_stress_pile_byte_for_byte(m21) -> None:
     # the hash returns exactly to the pre-gate "fdcbefbd2b37d046" (was "e05cfd168521e687").
     # re-pinned 2026-10-29: phasing (CR 702.26) changes 279 -> 281, both Teferis castable (was
     # "fdcbefbd2b37d046"; dropping the two Teferis from the new supply reproduces it exactly).
+    # re-pinned 2026-11-05 (B-100, CR 601.3): 281 -> 280, Demonic Embrace's graveyard-cast
+    # permission is refused and the card is engine-unsupported (was "010cc3fbc22462c5";
+    # dropping Demonic Embrace from the old supply reproduces the new hash exactly).
     deals = [deal_decks(seed, 1409, m21) for seed in range(1, 6)]
-    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "010cc3fbc22462c5"
+    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "2eee0b1b533f0ef2"
     assert deals == [deal_decks(seed, 1409, m21, "stress") for seed in range(1, 6)]
 
 

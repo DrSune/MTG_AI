@@ -1148,10 +1148,21 @@ These are forks, not tasks. See the report that accompanied this audit.
     row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
     action), so the row can do nothing: the CAST head refuses with a cast-gap ledger row, the
     may-offer narrows to skip, and `query.legal_activations` no longer offers the row
-    (`query.inert_free_row`). R5-3's `play_lands` makes it playable.
-  - Demonic Embrace's "You may cast this card from your graveyard ..." row is an activated
-    ability, and activations need the source on the battlefield (`window:not_on_battlefield`), so
-    the graveyard cast is never available. R5-2's permission lane (a StaticAbility CAST) fixes it.
+    (`query.inert_row`). R5-3's `play_lands` makes it playable.
+  - Demonic Embrace's "You may cast this card from your graveyard ..." compiled to an activated
+    ability {pay 3 life, discard a card}: cast this card from your graveyard. Activations need the
+    source on the battlefield, so the graveyard cast was never available, and **the promise above
+    was false for it**: on the battlefield the row WAS offered, paid 3 life and a card, and did
+    nothing (a discard outlet the card does not have; a trained network picked it at 0.94-0.99,
+    237 life and 79 cards in 18 of 19 games, hunt_exploits/repro_embrace.py).
+    **[FIXED on branch `fix/rules-objects` 2026-11-05]**: the compiler refuses such a row
+    (`compiler.casts_itself_from_another_zone`, a KNOWN-GAP row) and marks the card
+    engine-unsupported, so it left the castable pool (M21 castable 281 -> 280, engine 301 -> 300).
+    The phantom screen (`query.inert_row`, was `inert_free_row`) also drops a row WITH a cost when
+    no step could ever act, which is exactly this shape; a real costed row whose effect does nothing
+    right now stays offered (Idol of Endurance with nothing exiled, CR 602.2). Across the 19 sets'
+    compiled pools no other card has the shape. R5-2's permission lane (PERMIT_CAST) brings the
+    card back.
   - Also: a CAST whose designation is empty (a nonland on top for Radha, a non-Goblin for
     Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
 - **B-101 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd (a duplicate of the
