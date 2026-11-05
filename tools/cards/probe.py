@@ -667,7 +667,9 @@ class Probe:
             ("this card becomes tapped", ex(tap, 1, "opp_bear", "card")),
             ("turns pass: your end step, the opponent's turn, your next upkeep", turns),
         ]
-        if "Emblem" not in self.card.types:  # an emblem is never in a hand (CR 114.1)
+        if "Emblem" not in self.card.types and not self.card.is_token:
+            # an emblem (CR 114.1) or a token (CR 111.8: a token in a hand ceases to exist) is
+            # never a card in a hand
             out.append(("from your hand, the card enters during the opponent's turn, then that "
                         "turn ends", enters_on_their_turn))
         if self.lands:

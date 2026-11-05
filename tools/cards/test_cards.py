@@ -71,3 +71,14 @@ def test_the_probe_plays_an_emblem_without_putting_it_in_a_hand() -> None:
     rep = probe.Probe(sup, "M21", oid).report()
     assert not rep.errors
     assert "from your hand" not in rep.text()
+
+
+def test_the_probe_plays_a_token_without_putting_it_in_a_hand() -> None:
+    # 2026-11-05: a token put into a hand ceases to exist (CR 111.8), so the from-hand stimulus
+    # raised KeyError 'unknown card' and G1 refused every token record (M20 round 2: Treasure,
+    # Spirit, Wolf, Soldier, the Elementals).
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, r in sup.pool.results.items() if r.card.name == "Cat" and r.card.is_token)
+    rep = probe.Probe(sup, "M21", oid).report()
+    assert not rep.errors
+    assert "from your hand" not in rep.text()
