@@ -1,9 +1,16 @@
 """Second-wave engine fixes, family "effects, objects and conditions" (2026-11-05): one test
 class per finding (KNOWLEDGE/2026-11-05/184, tools/scenarios/known_bugs/2026-11-05).
 
-CR 400.7  An object that leaves the battlefield and comes back is a new object: no effect a
+CR 400.7  An object that leaves the battlefield is a new object in its new zone: no effect a
           resolved spell or ability applied to the old one applies to it (a pump, a granted
-          ability or type, a "doesn't untap"), while a static ability applies to it afresh.
+          ability or type, a "doesn't untap"), neither in the graveyard (Carrion Grub reads a
+          dead creature card's printed power) nor if it comes back, while a static ability
+          applies afresh to an object that returns.
+LKI       What needs the object as it last existed reads one snapshot taken as it left (CR
+          608.2h, 113.7a, 603.10a, 603.3a): a sacrificed or dead source deals damage with the
+          deathtouch or lifelink it had been granted, a stolen creature's own dies trigger is
+          controlled by the player who controlled it, and a later read of a card in a graveyard
+          sees no controller but its owner (CR 108.4a).
 CR 701.21a A player sacrifices a permanent of their own choice as the instruction resolves: the
           menu never takes the ability's target designation (Sorin, Imperious Bloodlord's +1,
           known_bugs sacrifice_takes_the_target).
@@ -192,17 +199,157 @@ class TestCR4007NewObject(unittest.TestCase):
                           bindings={"cards": [cat]})
         self.assertEqual(pt(r, "cat"), (3, 3))
 
-    def test_effect_still_answers_for_the_departed_object(self):
-        # Last known information is untouched: while the pumped Bear is in the graveyard, a
-        # read of its power (Heartfire Immolator's "damage equal to its power" after it was
-        # sacrificed) still sees the pump; only a return to the battlefield ends it.
+    def test_a_dead_creature_card_has_its_printed_power(self):
+        # Carrion Grub: "+X/+0, where X is the greatest power among creature cards in your
+        # graveyard." A Titanic Growth'd 2/2 that died is a 2/2 card in the graveyard (the Grub
+        # read it as 6/5); a 3/3 killed by Grasp of Darkness is a 3/3 card (it read -1/5).
+        r = runner([{"key": "grub", "real": "Carrion Grub", "zone": "battlefield", "controller": 0},
+                    {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0},
+                    bear("mine", 0), bear("killer", 1, name="Killer")], mana={"0": {"G": 2}})
+        r.run_step({"op": "cast", "key": "tg", "controller": 0, "targets": ["mine"]})
+        r.run_step({"op": "deal_damage", "source": "killer", "target": "mine", "amount": 9,
+                    "controller": 1})
+        self.assertEqual(r.world.zone_of(r.handles["mine"]).kind, "graveyard")
+        self.assertEqual((pt(r, "mine"), pt(r, "grub")), ((2, 2), (2, 5)))
+        r = runner([{"key": "grub", "real": "Carrion Grub", "zone": "battlefield", "controller": 0},
+                    {"key": "gd", "real": "Grasp of Darkness", "zone": "hand", "controller": 1},
+                    {"key": "mine", "name": "Mine", "type": "Creature — Bear", "power": "3",
+                     "toughness": "3", "zone": "battlefield", "controller": 0}],
+                   mana={"1": {"B": 2}})
+        r.run_step({"op": "cast", "key": "gd", "controller": 1, "targets": ["mine"]})
+        self.assertEqual(pt(r, "grub"), (3, 5))
+
+
+
+
+def answering(r, step, choose):
+    """Run ``step`` answering every ask with ``choose(what, vocab)``; returns the asks seen."""
+    seen = []
+
+    def provider(vocab, what):
+        word = choose(what, vocab)
+        seen.append((what, tuple(vocab), word))
+        return word
+
+    r.ex.decisions.provider = provider
+    try:
+        r._dispatch(step)
+    finally:
+        r.ex.decisions.provider = None
+    return seen
+
+
+def steal(r, thief, key):
+    """Traitorous Greed (in ``thief``'s hand under key "greed") takes ``key``."""
+    r.run_step({"op": "mana", "seat": thief, "add": {"R": 4}})
+    answering(r, {"op": "cast", "key": "greed", "controller": thief, "targets": [key]},
+              lambda what, vocab: "R" if "R" in vocab else vocab[0])
+    assert r.ex.controller_of(r.handles[key]) == r.seats[thief]
+
+
+class TestLastKnownInformation(unittest.TestCase):
+    def gifted_immolator(self, word):
+        """Alchemist's Gift on Heartfire Immolator (word "0": deathtouch, "1": lifelink): a 4/4
+        with prowess; then "{R}, Sacrifice: It deals damage equal to its power" at a 5/5."""
+        r = runner([{"key": "gift", "real": "Alchemist's Gift", "zone": "hand", "controller": 0},
+                    {"key": "imm", "real": "Heartfire Immolator", "zone": "battlefield",
+                     "controller": 0},
+                    {"key": "big", "name": "Big", "type": "Creature — Beast", "power": "5",
+                     "toughness": "5", "zone": "battlefield", "controller": 1}],
+                   mana={"0": {"B": 2}})
+        answering(r, {"op": "cast", "key": "gift", "controller": 0, "targets": ["imm"]},
+                  lambda what, vocab: word if word in vocab else vocab[0])
+        self.assertEqual(pt(r, "imm"), (4, 4))
+        r.run_step({"op": "mana", "seat": 0, "add": {"R": 1}})
+        r.run_step({"op": "activate", "key": "imm", "idx": 0, "seat": 0, "targets": ["big"]})
+        self.assertEqual(r.world.zone_of(r.handles["imm"]).kind, "graveyard")
+        return r
+
+    def test_a_sacrificed_source_deals_damage_with_its_granted_deathtouch(self):
+        # CR 113.7a, 608.2h: the Immolator left the battlefield, so the damage uses its last
+        # known information: 4 damage (its power) with the deathtouch it was granted.
+        r = self.gifted_immolator("0")
+        self.assertEqual(r.world.zone_of(r.handles["big"]).kind, "graveyard")
+
+    def test_a_sacrificed_source_deals_damage_with_its_granted_lifelink(self):
+        r = self.gifted_immolator("1")
+        self.assertEqual(r.world.players[r.p0].life, 24)
+
+    def test_a_dead_creatures_trigger_deals_damage_with_its_granted_deathtouch(self):
+        # Pitchburn Devils: "When this creature dies, it deals 3 damage to any target."
+        r = runner([{"key": "gift", "real": "Alchemist's Gift", "zone": "hand", "controller": 0},
+                    {"key": "dev", "real": "Pitchburn Devils", "zone": "battlefield",
+                     "controller": 0},
+                    {"key": "big", "name": "Big", "type": "Creature — Beast", "power": "5",
+                     "toughness": "5", "zone": "battlefield", "controller": 1},
+                    bear("killer", 1, name="Killer")], mana={"0": {"B": 2}})
+        answering(r, {"op": "cast", "key": "gift", "controller": 0, "targets": ["dev"]},
+                  lambda what, vocab: "0" if "0" in vocab else vocab[0])
+        big = str(r.handles["big"])
+        answering(r, {"op": "deal_damage", "source": "killer", "target": "dev", "amount": 9,
+                      "controller": 1},
+                  lambda what, vocab: big if big in vocab else vocab[0])
+        self.assertEqual(r.world.zone_of(r.handles["big"]).kind, "graveyard")
+
+    def test_a_sacrificed_source_deals_damage_equal_to_its_last_known_power(self):
+        # Heartfire Immolator pumped by Titanic Growth (a 6/6, with prowess 7/7) and sacrificed:
+        # "damage equal to its power" is 7, not the printed 2.
         r = runner([{"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0},
-                    bear("bear", 0)], mana={"0": {"G": 2}})
-        r.run_step({"op": "cast", "key": "tg", "controller": 0, "targets": ["bear"]})
-        r.run_step({"op": "move", "key": "bear", "to": "graveyard"})
-        self.assertEqual(pt(r, "bear"), (6, 6))
+                    {"key": "imm", "real": "Heartfire Immolator", "zone": "battlefield",
+                     "controller": 0},
+                    {"key": "big", "name": "Big", "type": "Creature — Beast", "power": "8",
+                     "toughness": "8", "zone": "battlefield", "controller": 1}],
+                   mana={"0": {"G": 2}})
+        r.run_step({"op": "cast", "key": "tg", "controller": 0, "targets": ["imm"]})
+        self.assertEqual(pt(r, "imm"), (7, 7))
+        r.run_step({"op": "mana", "seat": 0, "add": {"R": 1}})
+        r.run_step({"op": "activate", "key": "imm", "idx": 0, "seat": 0, "targets": ["big"]})
+        self.assertEqual(r.ex.damage.get(r.handles["big"]), 7)
 
+    def test_a_stolen_creatures_dies_trigger_is_controlled_by_the_thief(self):
+        # Spirit of Malevolence: "When this creature dies, each opponent loses 1 life and you
+        # gain 1 life." Seat 0 took it with Traitorous Greed and it died under seat 0 (CR
+        # 603.3a, 603.10a): seat 0 is "you".
+        r = runner([{"key": "greed", "real": "Traitorous Greed", "zone": "hand", "controller": 0},
+                    {"key": "sp", "real": "Spirit of Malevolence", "zone": "battlefield",
+                     "controller": 1}, bear("killer", 0, name="Killer")])
+        steal(r, 0, "sp")
+        r.run_step({"op": "deal_damage", "source": "killer", "target": "sp", "amount": 9})
+        self.assertEqual((r.world.players[r.p0].life, r.world.players[r.p1].life), (21, 19))
 
+    def test_a_dies_trigger_reads_its_controller_after_the_card_moved_on(self):
+        # Massacre Wurm's trigger for a creature the opponent took from you waits; the dead card
+        # moves on (graveyard to hand) before it resolves. "That player" is still the opponent,
+        # who controlled it as it died.
+        r = runner([{"key": "wurm", "real": "Massacre Wurm", "zone": "battlefield", "controller": 0},
+                    {"key": "greed", "real": "Traitorous Greed", "zone": "hand", "controller": 1},
+                    bear("mine", 0)])
+        r.run_step({"op": "advance_turn"})
+        steal(r, 1, "mine")
+        r.ex.binder.hold = True
+        try:
+            r.ex.execute(Atom(Verb.DEAL_DAMAGE, AtomArgs((
+                ("amount", QConst(2)),
+                ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),
+            ))), source=r.handles["wurm"], controller=r.p0, bindings={"target": r.handles["mine"]})
+        finally:
+            r.ex.binder.hold = False
+        r.run_step({"op": "move", "key": "mine", "to": "hand"})
+        self.assertEqual((r.world.players[r.p0].life, r.world.players[r.p1].life), (20, 18))
+
+    def test_a_card_in_a_graveyard_has_no_controller_but_its_owner_later(self):
+        # CR 108.4a: two turns after a stolen Bear died, "its controller" of the card in its
+        # owner's graveyard is its owner.
+        from MTG_bot.core.executor.selectors import last_known_controller
+
+        r = runner([{"key": "greed", "real": "Traitorous Greed", "zone": "hand", "controller": 0},
+                    bear("ob", 1), bear("killer", 0, name="Killer")])
+        steal(r, 0, "ob")
+        r.run_step({"op": "deal_damage", "source": "killer", "target": "ob", "amount": 5})
+        r.run_step({"op": "advance_turn"})
+        r.run_step({"op": "advance_turn"})
+        ctx = r.ex._ctx(source=r.handles["killer"], controller=r.p0, bindings={}, decisions=())
+        self.assertEqual(last_known_controller(ctx, r.handles["ob"]), r.p1)
 
 
 class TestCR70121SacrificeIsTheControllersChoice(unittest.TestCase):

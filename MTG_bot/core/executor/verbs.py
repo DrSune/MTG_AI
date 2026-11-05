@@ -74,6 +74,7 @@ from MTG_bot.core.executor.quantity import (
     ExecCtx,
     _type_line_tokens,
     eval_filter,
+    last_known,
     referent_handle,
     resolve,
 )
@@ -83,6 +84,7 @@ from MTG_bot.core.executor.selectors import (
     amount,
     apnap_order,
     existing,
+    last_known_controller,
     move_destination,
     resolve_selector,
     role_handles,
@@ -566,13 +568,24 @@ def _lifelink_gain(ctx: ExecCtx, n: int) -> None:
         return
     if ctx.source.namespace != "card":
         return
-    if not ctx.layers.keyword_of(ctx.source, Keyword.LIFELINK):
+    if not _source_has(ctx, Keyword.LIFELINK):
         return
     atom = Atom(
         verb=Verb.GAIN_LIFE,
         args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(n)))),
     )
-    _v_gain_life(replace(ctx, controller=ctx.executor.controller_of(ctx.source)), atom)
+    _v_gain_life(replace(ctx, controller=last_known_controller(ctx, ctx.source)), atom)
+
+
+def _source_has(ctx: ExecCtx, keyword: Keyword) -> bool:
+    """Does the damage's source have ``keyword``? CR 113.7a, 608.2h: a source that has left the
+    battlefield (Heartfire Immolator sacrificed for its ability, Pitchburn Devils dead) deals
+    the damage with the keywords it last had there, granted ones included."""
+    lki = last_known(ctx.source, ctx)
+    if lki is not None:
+        return keyword.name in lki.keywords
+    layers = ctx.layers if ctx.layers is not None else ctx.executor.layers
+    return layers.keyword_of(ctx.source, keyword)
 
 
 def _v_trigger_additional(ctx: ExecCtx, atom: Atom) -> None:
@@ -858,7 +871,7 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
         ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
         _lifelink_gain(ctx, n)
         return True
-    deathtouch = ctx.executor.layers.keyword_of(ctx.source, Keyword.DEATHTOUCH)
+    deathtouch = _source_has(ctx, Keyword.DEATHTOUCH)
     ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
     _lifelink_gain(ctx, n)  # r20a: after the mark, on the dealt amount

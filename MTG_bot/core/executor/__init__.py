@@ -152,7 +152,7 @@ from MTG_bot.core.executor.legality import (
     spell_record,
 )
 from MTG_bot.core.executor.offers import offer_or_autopick
-from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter
+from MTG_bot.core.executor.quantity import Binding, ExecCtx, LastKnown, eval_filter
 from MTG_bot.core.executor.query import (
     ActivationOption,
     CastOption,
@@ -654,24 +654,19 @@ class Executor:
         # state replayed from the same detaches, so it is NOT part of the
         # replay fingerprint (pin-stable).
         self.detach_lki: dict[Handle, tuple[Handle, ...]] = {}
-        # V31b follow-up (CR 603.10a: leaves-the-battlefield abilities look back
-        # in time): the departed permanent's last known (power, toughness,
-        # counters), captured as it leaves the battlefield and before its
-        # counters cease to exist (CR 122.2), so "When this creature dies, you
-        # gain life equal to its power" (Conclave Mentor) and "if it had a +1/+1
-        # counter on it" (Basri's Lieutenant) read the object as it last existed.
-        # Dropped when the card re-enters (a new object, CR 400.7). Derived state
-        # replayed from the same departures, NOT in the fingerprint (the
-        # detach_lki precedent above).
-        self.departed_lki: dict[
-            Handle, tuple[int | None, int | None, dict[str, int]]
-        ] = {}
-        # CR 608.2h: "its controller" of an object that left the battlefield is the controller
-        # it last had there (Angelic Ascension's token, Liliana, Death Mage's life loss), not
-        # its owner, which the control overlay falls back to once the object is gone. Captured
-        # at the departure, dropped when the object moves again (a new object, CR 400.7).
-        # Derived state, NOT in the fingerprint (the departed_lki precedent).
-        self.departed_controller: dict[Handle, Handle] = {}
+        # The one last-known-information snapshot of each permanent that left the
+        # battlefield (quantity.LastKnown: power, toughness, counters, keywords with
+        # the granted ones, controller), captured as it leaves, before its counters
+        # cease (CR 122.2), its effects end (CR 400.7) and its control entries
+        # expire. Read through quantity.departed_lki / last_known by what needs the
+        # object as it last existed: "When this creature dies, you gain life equal
+        # to its power" (Conclave Mentor), "if it had a +1/+1 counter on it"
+        # (Basri's Lieutenant), damage a sacrificed source deals with its granted
+        # deathtouch (CR 113.7a), "its controller" and "that player" (CR 608.2h),
+        # the controller of its own dies trigger (CR 603.3a, 603.10a). Dropped when
+        # the card re-enters (a new object, CR 400.7). Derived state replayed from
+        # the same departures, NOT in the fingerprint (the detach_lki precedent).
+        self.departed_lki: dict[Handle, LastKnown] = {}
         # r20c (Speaker of the Heavens): the game's STARTING life per seat,
         # snapshotted at executor construction — the fact the frozen world
         # takes as a ``start_life`` parameter but never stores. LIFE_LEAD_-
@@ -1317,22 +1312,23 @@ class Executor:
                 power, toughness = self.ledger.effective_pt(
                     state.identity, event.subject, state.counters
                 )
-                self.departed_lki[event.subject] = (power, toughness, dict(state.counters))
-                # CR 608.2h: read before the control entries end below.
-                self.departed_controller[event.subject] = self.controller_of(event.subject)
+                self.departed_lki[event.subject] = LastKnown(
+                    power,
+                    toughness,
+                    dict(state.counters),
+                    self.layers.keywords(event.subject),
+                    self.controller_of(event.subject),  # before the control entries end
+                    self._op_seq,
+                )
+                # CR 400.7: the object in its new zone is a new object, so the P/T
+                # effects applied to the old one end here (a dead creature card is
+                # printed: Carrion Grub); grants, preventions and control end below.
+                # Handles are stable across zones, so the records keyed on this one
+                # are cut. The snapshot above answers for the old object.
+                self.ledger.forget(event.subject)
+                self.layers.forget_materialized(event.subject)
             elif event.zone_move[1] == ZONE_BATTLEFIELD:
                 self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
-                if from_state != ZONE_BATTLEFIELD:
-                    # CR 400.7: a P/T effect applied to the old object does not apply to
-                    # the new one. Handles are stable across zones, so its ledger entries
-                    # are cut here, at the entry: until then they answer for the object as
-                    # it last existed (Heartfire Immolator's "damage equal to its power"
-                    # after it was sacrificed). Grants and preventions end as it leaves
-                    # (forget_departed below).
-                    self.ledger.forget(event.subject)
-                    self.layers.forget_materialized(event.subject)
-            if from_state != ZONE_BATTLEFIELD:
-                self.departed_controller.pop(event.subject, None)  # it moved on: a new object
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
                 # V31b, CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to

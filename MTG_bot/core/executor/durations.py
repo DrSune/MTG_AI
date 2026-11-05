@@ -441,11 +441,11 @@ class DurationLedger:
         return expired
 
     def forget(self, card: Handle) -> int:
-        """CR 400.7: ``card`` entered the battlefield as a new object, so no entry recorded for
-        an earlier object with the same handle applies to it. Terminal-expire them all (a
-        static's materialized entry too: the layer registry re-materializes it for the new
-        object). Called at the entry, not the departure: until then the entries answer for the
-        object as it last existed (its power while it is in the graveyard)."""
+        """CR 400.7: ``card`` left the battlefield; in its new zone it is a new object, so no
+        entry recorded for the old one applies to it (a dead creature card has its printed P/T).
+        Terminal-expire them all (a static's materialized entry too: the layer registry
+        re-materializes one for the object if it returns). What needs the old object's power
+        reads its last known information (``Executor.departed_lki``)."""
         return self.expire(c.record_id for c in self._changes if c.target == card)
 
     def expire_leaves(self, anchor: Handle) -> int:

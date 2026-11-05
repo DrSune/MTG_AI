@@ -566,10 +566,11 @@ These are forks, not tasks. See the report that accompanied this audit.
     in the same turn is a new object (CR 400.7) and does not keep it.
   - **[FIXED on `fix/w2-effects` 2026-11-05 (c958f64): runtime GRANT/LOSE/GRANT_TYPE layers and
     PREVENT_EFFECT records are `resolved`, so `detach_source` and the prevention liveness gates
-    leave them alone (CR 611.2a). The CR 400.7 half (23db0f9, 8574444): an object that leaves
-    the battlefield drops out of those records as it leaves (B-59's `forget_departed`); its
-    P/T ledger entries are cut when it returns, so effects that read a departed object's power
-    still see it.]**
+    leave them alone (CR 611.2a). The CR 400.7 half (23db0f9, 8574444, and the red-team
+    follow-up): an object that leaves the battlefield drops out of those records and its P/T
+    ledger entries as it leaves; what needs it as it last existed (a sacrificed source's power
+    and granted deathtouch, its dies trigger's controller) reads the one snapshot taken then,
+    `Executor.departed_lki`.]**
 - **B-51 [2026-10-29] `Verb.CHOOSE` always offers choosing nothing.**
   - `query.verb_choose_options` (`core/executor/query.py`) appends the empty pick `()` even when a
     legal candidate exists.

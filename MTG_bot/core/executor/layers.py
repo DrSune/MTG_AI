@@ -414,11 +414,11 @@ class LayerRegistry:
         return touched
 
     def forget_materialized(self, handle: Handle) -> None:
-        """CR 400.7: ``handle`` entered the battlefield as a new object, and
-        ``DurationLedger.forget`` expired the old object's P/T entries, a static's
-        materialized one included. Drop the statics' links to them, so the next recompute
-        gives the new object an entry of its own (a leave-and-return inside one op meets no
-        recompute in between that would have found the link stale)."""
+        """CR 400.7: ``handle`` left the battlefield, and ``DurationLedger.forget`` expired
+        its P/T entries, a static's materialized one included. Drop the statics' links to
+        them, so if it returns the next recompute gives the new object an entry of its own (a
+        leave-and-return inside one op meets no recompute in between that would have found
+        the link stale)."""
         for layer in self.records:
             layer.ledger_ids.pop(handle, None)
 

@@ -46,7 +46,13 @@ from MTG_bot.core.ability_tree import (
     count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, phased_out, resolve
+from MTG_bot.core.executor.quantity import (
+    ExecCtx,
+    eval_filter,
+    last_known,
+    phased_out,
+    resolve,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
@@ -1393,16 +1399,13 @@ def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Han
 
 def last_known_controller(ctx: ExecCtx, handle: Handle) -> Handle:
     """The player "its controller" names (CR 608.2h). An object that has left the battlefield
-    answers with the controller it last had there (``Executor.departed_controller``), not with
-    its owner: "Destroy target creature. Its controller loses 2 life" on a stolen creature
-    costs the player who stole it the life. Anything else answers with its effective
-    controller, as before."""
-    ex = ctx.executor
-    if ex is not None:
-        last = ex.departed_controller.get(handle)
-        if last is not None:
-            return last
-    return controller_of(ctx, handle)
+    answers with the controller it last had there (its last known information,
+    :func:`quantity.last_known`), not with its owner: "Destroy target creature. Its controller
+    loses 2 life" on a stolen creature costs the player who stole it the life. Anything else
+    answers with its effective controller; a card that has been sitting in a graveyard, with
+    its owner (CR 108.4a)."""
+    lki = last_known(handle, ctx)
+    return lki.controller if lki is not None else controller_of(ctx, handle)
 
 
 def amount(ctx: ExecCtx, atom: Atom, role: str) -> int:

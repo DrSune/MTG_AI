@@ -21,7 +21,7 @@ from __future__ import annotations
 import random
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Final, Union
+from typing import TYPE_CHECKING, Final, NamedTuple, Union
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
     from MTG_bot.core.executor import Executor
@@ -504,40 +504,80 @@ def _referent_handle(referent: str, ctx: ExecCtx) -> Handle:
     )
 
 
-def departed_lki(
-    handle: Handle, ctx: ExecCtx
-) -> tuple[int | None, int | None, dict[str, int]] | None:
+class LastKnown(NamedTuple):
+    """An object's last known information as it left the battlefield (CR 608.2h), captured
+    once, before its counters ceased (CR 122.2), its continuous effects ended (CR 400.7) and
+    its control entries expired: what anything that needs the object as it last existed reads
+    (Executor.departed_lki). ``op`` is the public op in which it left."""
+
+    power: int | None
+    toughness: int | None
+    counters: dict[str, int]
+    keywords: tuple[str, ...]
+    controller: Handle
+    op: int
+
+
+def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     """CR 603.10a: a leaves-the-battlefield trigger "looks back in time". When the
     firing event is the departure of ``handle`` from the battlefield (its dies row
-    or zone change) and the object is gone, its last known (power, toughness,
-    counters) answer for it (Executor.departed_lki, captured before the counters
-    ceased, CR 122.2). Anything else reads the live object, as before."""
-    event = ctx.event
-    ex = ctx.executor
+    or zone change) and the object is gone, its last known information answers for
+    it (Executor.departed_lki). Anything else reads the live object, as before."""
+    return departure_lki(handle, ctx.event, ctx.executor)
+
+
+def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKnown | None:
+    """:func:`departed_lki` for a caller that holds the event but no context (the binder
+    choosing the controller of the departed object's own trigger, CR 603.3a)."""
     if event is None or ex is None or getattr(event, "subject", None) != handle:
         return None
     kind = getattr(event, "kind", None)
     from MTG_bot.core.executor.events import KIND_CREATURE_DIES, KIND_ZONE_CHANGE
 
     if kind == KIND_ZONE_CHANGE:
-        if event.zone_move[0] != ZONE_BATTLEFIELD:
+        if event.zone_move[0] != ZONE_BATTLEFIELD:  # a GameEvent: its kind says so
             return None
     elif kind != KIND_CREATURE_DIES:
         return None
-    if handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+    if handle in ex.world.cards and ex.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
         return None
     return ex.departed_lki.get(handle)
 
 
+def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
+    """The last known information an effect uses for an object that has left the battlefield
+    (CR 608.2h: "if it's no longer in the zone it was expected to be in ... the object's last
+    known information"; CR 113.7a for the ability's own source): on the object's own departure
+    event (:func:`departed_lki`); for the ability's source (Heartfire Immolator's "damage equal
+    to its power" after it was sacrificed); and for an object that left during the current op
+    (Angelic Ascension's "its controller" after the exile). None otherwise: a card that has been
+    sitting in a graveyard is read as it is now (its owner controls nothing, CR 108.4a; its
+    printed power, CR 400.7)."""
+    found = departed_lki(handle, ctx)
+    if found is not None:
+        return found
+    ex = ctx.executor
+    if ex is None or handle.namespace != "card":
+        return None
+    snap = ex.departed_lki.get(handle)
+    if snap is None:
+        return None
+    if handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+        return None
+    if handle == ctx.source or snap.op == ex._op_seq:
+        return snap
+    return None
+
+
 def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
-    lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+    lki = last_known(handle, ctx) if handle.namespace == "card" else None
     if lki is not None and field in (QPropField.POWER, QPropField.TOUGHNESS):
-        value = lki[0] if field is QPropField.POWER else lki[1]
+        value = lki.power if field is QPropField.POWER else lki.toughness
         if value is None:
             raise ValueError(f"executor: {field.name} undefined on handle {handle}")
         return value
     if lki is not None and field is QPropField.COUNTER_COUNT and ctx.event_counter_count is None:
-        return sum(lki[2].values())
+        return sum(lki.counters.values())
     if field in (QPropField.POWER, QPropField.TOUGHNESS):
         power, toughness = ctx.effective_pt(handle)
         value = power if field is QPropField.POWER else toughness
@@ -1068,7 +1108,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         lki = departed_lki(handle, ctx)
         if lki is not None:
             # "if it had a +1/+1 counter on it" (Basri's Lieutenant): CR 603.10a
-            return lki[2].get(atom.counter_kind.name, 0) >= threshold
+            return lki.counters.get(atom.counter_kind.name, 0) >= threshold
         if handle not in world.cards:
             return False
         return world.cards[handle].counters.get(atom.counter_kind.name, 0) >= threshold
@@ -1088,13 +1128,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             if handle.namespace == "player":
                 return controller_matches(who, handle, ctx)
             return False
-        if departed_lki(handle, ctx) is not None:
+        lki = departed_lki(handle, ctx)
+        if lki is not None:
             # CR 603.10a: judged on its own departure ("whenever a creature an opponent
             # controls dies", Massacre Wurm), the object is the one that left: the
             # controller it had there, not the owner whose graveyard it went to.
-            from MTG_bot.core.executor.selectors import last_known_controller
-
-            return controller_matches(who, last_known_controller(ctx, handle), ctx)
+            return controller_matches(who, lki.controller, ctx)
         actual = controller_of(ctx, handle)
         return controller_matches(who, actual, ctx)
     if pred is FAtomPred.OPPONENT_OF:

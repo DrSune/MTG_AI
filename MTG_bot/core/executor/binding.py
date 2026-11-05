@@ -125,7 +125,7 @@ from MTG_bot.core.executor.events import (
     KIND_ZONE_CHANGE,
     GameEvent,
 )
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
+from MTG_bot.core.executor.quantity import ExecCtx, departure_lki, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
@@ -429,14 +429,20 @@ class TriggerBinder:
     def world(self) -> GameWorld:
         return self.executor.world
 
-    def _controller_of(self, handle: Handle) -> Handle:
+    def _controller_of(self, handle: Handle, event: GameEvent | None = None) -> Handle:
         """The trigger controller: the world's battlefield controller, or
         for an emblem's synthetic handle (never a world card — 13c) the
         recorded OWNER. The emblem's "you" is its owner for every event
-        match (CR 113.7 the emblem is controlled by its owner)."""
+        match (CR 113.7 the emblem is controlled by its owner). Matched on
+        ``event``, the object's own departure from the battlefield, it is the
+        controller the object had as it left (CR 603.3a with 603.10a): a
+        stolen creature's "when this creature dies" trigger is the thief's."""
         owner = self.emblem_owner.get(handle)
         if owner is not None:
             return owner
+        lki = departure_lki(handle, event, self.executor)
+        if lki is not None:
+            return lki.controller
         # 16e: triggers ride the CURRENT controller (CR 603.7b).
         return self.executor.controller_of(handle)
 
@@ -651,12 +657,12 @@ class TriggerBinder:
 
     # ------------------------------------------------------------ matching
 
-    def _controller_memo(self, memo: dict, source: Handle) -> Handle:
+    def _controller_memo(self, memo: dict, source: Handle, event: GameEvent) -> Handle:
         """:meth:`_controller_of`, looked up once per source within one
         event's matching pass (``memo`` lives for that pass only)."""
         ctrl = memo.get(source)
         if ctrl is None:
-            ctrl = memo[source] = self._controller_of(source)
+            ctrl = memo[source] = self._controller_of(source, event)
         return ctrl
 
     def on_events(self, upto: int | None = None) -> None:
@@ -684,7 +690,7 @@ class TriggerBinder:
                 [*self.attached.items(), *self.attached_graveyard.items()],
                 key=lambda kv: (str(kv[0][0]), kv[0][1]),
             ):
-                ctrl = self._controller_memo(ctrl_of, handle)
+                ctrl = self._controller_memo(ctrl_of, handle, event)
                 if self._match_node(ability.event, event, handle, ctrl):
                     self._queue(handle, ctrl, ability, event)
             # r20a (wave-3): GRANTED triggers. A StaticAbility GRANT_ABILITY
@@ -700,7 +706,7 @@ class TriggerBinder:
                 granted_rows = layers.granted_abilities(host)
                 if not granted_rows:
                     continue
-                ctrl = self._controller_memo(ctrl_of, host)
+                ctrl = self._controller_memo(ctrl_of, host, event)
                 for granted in granted_rows:
                     node = granted.node
                     if isinstance(node, TriggeredAbility) and self._match_node(
@@ -722,7 +728,7 @@ class TriggerBinder:
                     ):
                         continue
                     node = self._keyword_node(family, host)
-                    ctrl = self._controller_memo(ctrl_of, host)
+                    ctrl = self._controller_memo(ctrl_of, host, event)
                     if not self._match_node(node.event, event, host, ctrl):
                         continue
                     if family == "BATTALION" and self._group_size(event) < 3:
