@@ -2,10 +2,10 @@
 
 How agents map a card onto existing components and how another agent proves it plays right.
 The plan, the gates and the reasons are in `docs/PLAN_CARD_ONBOARDING.md`. Run every command from
-the worktree that carries the card-record loader (branch `cards/mapping`):
+the repository root (the card-record loader is on `main` since 2026-11-05):
 
 ```bash
-cd /home/sune/Desktop/MTG_AI-sets
+cd /home/sune/Desktop/MTG_AI
 export TORCH_DISABLE_NATIVE_JIT=1 PY=/home/sune/Desktop/MTG_AI/.venv/bin/python
 $PY tools/cards/cardtool.py --help
 ```
@@ -167,14 +167,29 @@ $PY tools/cards/cardtool.py --help
   - Card names with a comma do not work with `--name`; write "this creature" instead.
   - Test spec packs against your unwritten draft with
     `cardtool.py runpack SET pack.json --card "Card" --draft draft.py`.
-  - Pack runner quirks:
-    - The runner's opening `begin_turn` draws seat 0's top library card, so the last library card
-      a pack lists ends up in hand.
+  - Pack runner rules (it fails a pack that breaks the first two, since 2026-11-05):
+    - Every `expect` lane must be one the runner reads (the docstring of `tools/run_scenarios.py`
+      lists them); a mistyped lane used to pass silently.
+    - Every decision word must be offered by the ask it answers. A pack key resolves to its
+      handle; write `player:N` for a player; `first-legal` takes the first offered word.
+    - Make each pack fail against a deliberately wrong draft before you rely on it.
+  - Pack runner behaviour worth knowing:
+    - The opening `begin_turn` draws only when the pack lists library cards, and six filler
+      "Library N" cards go on top of the pack's own unless `"world": {"library_top": true}`.
+    - `end_turn` does not begin the next turn; `advance_turn` does.
+    - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
+    - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.
     - A `cast` step needs `key` (and takes `controller`); an `activate` step takes `seat`.
-    - Use `start_tapped` to make a setup card start tapped. The older `tapped` key is ignored
-      (B-63).
-  - During a calibration round, `parse` hides a few exact wordings. Try a sibling wording, or
-    `similar`.
+    - Use `start_tapped` to make a setup card start tapped (the older `tapped` key is ignored,
+      B-63).
+    - A card with an upkeep trigger placed on the battlefield fires during the opening turn: start
+      it in hand and `enter` it. A synthetic `"type": "Planeswalker"` card takes damage marks
+      instead of losing loyalty: use a real planeswalker from the pool.
+  - Emblems can be probed and written. Token records cannot yet (G0 demands a SpellAbility):
+    skip them and list them in your report.
+  - During a calibration round, `parse` hides a few exact wordings (digits are normalised, so
+    every numeric sibling is hidden too). Try a different wording, or `similar`. The same sentence
+    on another card or set may still show; if you see a hidden wording's tree, say so.
 
 ## Verifier workflow (gate G2)
 Packets are made by the orchestrator: `cardtool.py packet SET "Card" --out DIR --id ID`. A packet
