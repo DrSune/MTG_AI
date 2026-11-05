@@ -1088,6 +1088,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             if handle.namespace == "player":
                 return controller_matches(who, handle, ctx)
             return False
+        if departed_lki(handle, ctx) is not None:
+            # CR 603.10a: judged on its own departure ("whenever a creature an opponent
+            # controls dies", Massacre Wurm), the object is the one that left: the
+            # controller it had there, not the owner whose graveyard it went to.
+            from MTG_bot.core.executor.selectors import last_known_controller
+
+            return controller_matches(who, last_known_controller(ctx, handle), ctx)
         actual = controller_of(ctx, handle)
         return controller_matches(who, actual, ctx)
     if pred is FAtomPred.OPPONENT_OF:

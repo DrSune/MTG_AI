@@ -659,6 +659,12 @@ class Executor:
         self.departed_lki: dict[
             Handle, tuple[int | None, int | None, dict[str, int]]
         ] = {}
+        # CR 608.2h: "its controller" of an object that left the battlefield is the controller
+        # it last had there (Angelic Ascension's token, Liliana, Death Mage's life loss), not
+        # its owner, which the control overlay falls back to once the object is gone. Captured
+        # at the departure, dropped when the object moves again (a new object, CR 400.7).
+        # Derived state, NOT in the fingerprint (the departed_lki precedent).
+        self.departed_controller: dict[Handle, Handle] = {}
         # r20c (Speaker of the Heavens): the game's STARTING life per seat,
         # snapshotted at executor construction — the fact the frozen world
         # takes as a ``start_life`` parameter but never stores. LIFE_LEAD_-
@@ -1286,6 +1292,8 @@ class Executor:
                     state.identity, event.subject, state.counters
                 )
                 self.departed_lki[event.subject] = (power, toughness, dict(state.counters))
+                # CR 608.2h: read before the control entries end below.
+                self.departed_controller[event.subject] = self.controller_of(event.subject)
             elif event.zone_move[1] == ZONE_BATTLEFIELD:
                 self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
                 if from_state != ZONE_BATTLEFIELD:
@@ -1297,6 +1305,8 @@ class Executor:
                     self.ledger.forget(event.subject)
                     self.layers.forget_object(event.subject)
                     self.replacements.forget_object(event.subject)
+            if from_state != ZONE_BATTLEFIELD:
+                self.departed_controller.pop(event.subject, None)  # it moved on: a new object
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
                 # V31b, CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to

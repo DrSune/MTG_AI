@@ -12,6 +12,11 @@ V11 follow-up  "If it's a Vampire" / "If a Dinosaur is dealt damage this way" / 
           the previous sentence acted on (damage and ability grants name it too), and after a
           sentence that names no object, on the object the trigger's event names, never on
           the ability's source (known_bugs if_its_reads_the_source, conditional_judged_on_source).
+CR 608.2h "Its controller" after the object left the battlefield is the controller it last had
+          there, not its owner (Angelic Ascension, Secure the Scene, Liliana, Death Mage's -3
+          on a creature Traitorous Greed took). CR 603.10a: a dies trigger looks back in time,
+          so Massacre Wurm's "a creature an opponent controls dies, that player loses 2 life"
+          reads the controller at death.
 """
 
 from __future__ import annotations
@@ -315,6 +320,68 @@ class TestConditionalSubject(unittest.TestCase):
             r.ex.apply_effect(self.overgrowth_trigger(), source=og, controller=r.p0,
                               bindings={"event": [r.handles[key]]})
             self.assertEqual(dict(r.world.cards[og].counters), want, key)
+
+
+
+class TestCR6082hLastKnownController(unittest.TestCase):
+    """Seat 0 takes the opponent's Bear with Traitorous Greed, then removes it."""
+
+    def stolen(self, extra, mana):
+        r = runner([{"key": "greed", "real": "Traitorous Greed", "zone": "hand", "controller": 0},
+                    bear("obear", 1), *extra], mana=mana)
+        r.run_step({"op": "cast", "key": "greed", "controller": 0, "targets": ["obear"],
+                    "decisions": ["R"]})
+        self.assertEqual(r.ex.controller_of(r.handles["obear"]), r.p0)
+        return r
+
+    def token_seats(self, r, name):
+        return [r.seats.index(r.ex.controller_of(h)) for h, c in r.world.cards.items()
+                if c.identity.name == name and r.world.zone_of(h).kind == "battlefield"]
+
+    def test_exiled_creatures_controller_gets_the_token(self):
+        for spell, token in (("Angelic Ascension", "Angel"), ("Secure the Scene", "Soldier")):
+            r = self.stolen([{"key": "x", "real": spell, "zone": "hand", "controller": 0}],
+                            {"0": {"R": 4, "W": 5, "C": 5}})
+            r.run_step({"op": "cast", "key": "x", "controller": 0, "targets": ["obear"]})
+            self.assertEqual(r.world.zone_of(r.handles["obear"]).kind, "exile")
+            self.assertEqual(self.token_seats(r, token), [0], spell)
+
+    def test_destroyed_creatures_controller_loses_the_life(self):
+        r = self.stolen([{"key": "lili", "real": "Liliana, Death Mage", "zone": "battlefield",
+                          "controller": 0}], {"0": {"R": 4}})
+        r.run_step({"op": "loyalty", "key": "lili", "set": 4})
+        r.run_step({"op": "activate", "key": "lili", "idx": 1, "seat": 0, "targets": ["obear"]})
+        self.assertEqual((r.world.players[r.p0].life, r.world.players[r.p1].life), (18, 20))
+
+    def wurm_sees(self, thief):
+        """Seat ``thief`` steals the other seat's Bear with Traitorous Greed on its own turn;
+        seat 0's Massacre Wurm is on the battlefield; the Bear dies under the thief."""
+        owner = 1 - thief
+        r = runner([{"key": "wurm", "real": "Massacre Wurm", "zone": "battlefield", "controller": 0},
+                    {"key": "greed", "real": "Traitorous Greed", "zone": "hand", "controller": thief},
+                    bear("bear", owner)])
+        if thief == 1:
+            r.run_step({"op": "advance_turn"})
+        r.run_step({"op": "mana", "seat": thief, "add": {"R": 4}})
+        r.run_step({"op": "cast", "key": "greed", "controller": thief, "targets": ["bear"],
+                    "decisions": ["R"]})
+        self.assertEqual(r.ex.controller_of(r.handles["bear"]), r.seats[thief])
+        r.run_step({"op": "deal_damage", "source": "wurm", "target": "bear", "amount": 2})
+        self.assertEqual(r.world.zone_of(r.handles["bear"]).kind, "graveyard")
+        return r.world.players[r.p0].life, r.world.players[r.p1].life
+
+    def test_dies_trigger_reads_the_controller_at_death(self):
+        # The opponent took your Bear and it died under them: "a creature an opponent controls
+        # died", and that player (the opponent) loses 2.
+        self.assertEqual(self.wurm_sees(thief=1), (20, 18))
+        # You took the opponent's Bear and it died under you: not an opponent's creature.
+        self.assertEqual(self.wurm_sees(thief=0), (20, 20))
+
+    def test_an_unstolen_creatures_controller_is_its_owner(self):
+        r = runner([{"key": "x", "real": "Angelic Ascension", "zone": "hand", "controller": 0},
+                    bear("obear", 1)], mana={"0": {"W": 2}})
+        r.run_step({"op": "cast", "key": "x", "controller": 0, "targets": ["obear"]})
+        self.assertEqual(self.token_seats(r, "Angel"), [1])
 
 
 if __name__ == "__main__":

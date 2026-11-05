@@ -132,7 +132,9 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
             )
         if bound.namespace == "player":
             return [bound]
-        return [controller_of(ctx, bound)]
+        # CR 608.2h: a designated object that has left the battlefield ("that player" of
+        # Massacre Wurm's dies trigger) answers with the controller it last had there.
+        return [last_known_controller(ctx, bound)]
     raise NotImplementedError(
         f"executor: ControllerRef.{ref.name} has no player-side meaning here"
     )
@@ -1385,8 +1387,22 @@ def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Han
         if handle.namespace == "player":
             players.add(handle)
         elif handle in world.cards:
-            players.add(controller_of(ctx, handle))
+            players.add(last_known_controller(ctx, handle))
     return sorted(players)
+
+
+def last_known_controller(ctx: ExecCtx, handle: Handle) -> Handle:
+    """The player "its controller" names (CR 608.2h). An object that has left the battlefield
+    answers with the controller it last had there (``Executor.departed_controller``), not with
+    its owner: "Destroy target creature. Its controller loses 2 life" on a stolen creature
+    costs the player who stole it the life. Anything else answers with its effective
+    controller, as before."""
+    ex = ctx.executor
+    if ex is not None:
+        last = ex.departed_controller.get(handle)
+        if last is not None:
+            return last
+    return controller_of(ctx, handle)
 
 
 def amount(ctx: ExecCtx, atom: Atom, role: str) -> int:
