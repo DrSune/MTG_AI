@@ -478,7 +478,8 @@ def test_v5_r1a_content_delta_is_the_two_unwraps():
 def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
     # Every branching the live-vs-committed view calls NEW exists in the
     # uncapped POST census => it is a top-40 truncation artefact of the
-    # committed baseline, not a checker harvest bug.
+    # committed baseline, not a checker harvest bug; or a later landing
+    # registered it in a dated uncapped census (below).
     v5 = oc.check_v5(compiled)
     delta = v5["r1a_content_delta"]
     if not delta.get("available"):
@@ -501,12 +502,20 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         }
         for cls, rows in post["C_branching"]["branchings"].items()
     }
+    # Uncapped censuses registered at later landings (V5 registration law: a new
+    # branching needs a dated map row), merged when the artifact is there.
     # R0 zone-fold: fused multi-zone menus (zones:A+B) exist ONLY in the
-    # post-fold census; merge its uncapped rows when the artifact is there.
-    r0_full = oc.REPO / "reports" / "ontology_census_2026-10-19_r0_post_full.json"
-    if r0_full.exists():
-        r0 = json.loads(r0_full.read_text())
-        for cls, rows in r0["C_branching"]["branchings"].items():
+    # post-fold census. M21 fidelity campaign (merged a26578f, registered
+    # 2026-11-05): 13 new branchings, with their cards in KNOWLEDGE/NUMBERS.md.
+    for name in (
+        "ontology_census_2026-10-19_r0_post_full.json",
+        "ontology_census_2026-11-05_m21fid_post_full.json",
+    ):
+        full = oc.REPO / "reports" / name
+        if not full.exists():
+            continue
+        registered = json.loads(full.read_text())
+        for cls, rows in registered["C_branching"]["branchings"].items():
             tail.setdefault(cls, set()).update(
                 (
                     oc._canon_fshape(r["menu"]),
@@ -520,7 +529,7 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         for s in row_strs:
             menu, cnt, kids = s.split(" / ", 2)
             key = (menu, cnt, tuple(ast.literal_eval(kids)))
-            assert key in tail.get(cls, set()), f"{cls}:{s[:80]} in neither census"
+            assert key in tail.get(cls, set()), f"{cls}:{s[:80]} in no registered census"
             checked += 1
     assert checked > 0, "no live-new branchings to classify (view changed?)"
 

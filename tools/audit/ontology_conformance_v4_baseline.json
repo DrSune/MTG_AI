@@ -14,10 +14,11 @@
       ]
     },
     "Alpine Houndmaster": {
-      "count": 2,
+      "count": 3,
       "shapes": [
-        "3739603da5da272e",
-        "8ee9c29664ca15fe"
+        "8ee9c29664ca15fe",
+        "c5a2d0101bea8d8a",
+        "ce01c5879d2c1c5a"
       ]
     },
     "Angelic Ascension": {
@@ -39,24 +40,16 @@
       ]
     },
     "Basri Ket": {
-      "count": 2,
-      "shapes": [
-        "9583947c6a67fa87",
-        "dcc0215a6d64c41f"
-      ]
-    },
-    "Basri's Aegis": {
       "count": 1,
       "shapes": [
-        "cb0e646738d69348"
+        "9583947c6a67fa87"
       ]
     },
     "Basri, Devoted Paladin": {
-      "count": 3,
+      "count": 2,
       "shapes": [
         "091505202ca5e2fb",
-        "9583947c6a67fa87",
-        "dcc0215a6d64c41f"
+        "9583947c6a67fa87"
       ]
     },
     "Burlfist Oak": {
@@ -77,12 +70,6 @@
         "6bbd7b676f7b6b6a"
       ]
     },
-    "Chandra's Firemaw": {
-      "count": 1,
-      "shapes": [
-        "cb0e646738d69348"
-      ]
-    },
     "Chandra's Incinerator": {
       "count": 1,
       "shapes": [
@@ -97,19 +84,16 @@
       ]
     },
     "Chandra, Flame's Catalyst": {
-      "count": 2,
+      "count": 1,
       "shapes": [
-        "657c7dd3c682af4c",
-        "96b08300627e201f"
+        "657c7dd3c682af4c"
       ]
     },
     "Chandra, Heart of Fire": {
-      "count": 4,
+      "count": 2,
       "shapes": [
         "234c6544387f2934",
-        "3d8c166eb60bd205",
-        "ce907aa28600f7bf",
-        "ce907aa28600f7bf"
+        "3d8c166eb60bd205"
       ]
     },
     "Conclave Mentor": {
@@ -137,13 +121,6 @@
         "dd35b2b11b8b3fcf"
       ]
     },
-    "Demonic Embrace": {
-      "count": 2,
-      "shapes": [
-        "36ae55ee2245272c",
-        "f13afd89792df0fa"
-      ]
-    },
     "Dire Fleet Warmonger": {
       "count": 3,
       "shapes": [
@@ -168,6 +145,12 @@
       "count": 1,
       "shapes": [
         "8b10a755c5de2665"
+      ]
+    },
+    "Experimental Overload": {
+      "count": 1,
+      "shapes": [
+        "e77d717d392af6f7"
       ]
     },
     "Fabled Passage": {
@@ -209,12 +192,6 @@
       "count": 1,
       "shapes": [
         "d46ac34acd74b4f3"
-      ]
-    },
-    "Garruk's Warsteed": {
-      "count": 1,
-      "shapes": [
-        "cb0e646738d69348"
       ]
     },
     "Garruk, Savage Herald": {
@@ -274,6 +251,12 @@
         "e06e26adbf9be6f1"
       ]
     },
+    "Hunter's Edge": {
+      "count": 1,
+      "shapes": [
+        "e8615a2c5fcf5fc2"
+      ]
+    },
     "Invigorating Surge": {
       "count": 1,
       "shapes": [
@@ -290,13 +273,13 @@
       "count": 2,
       "shapes": [
         "6bbd7b676f7b6b6a",
-        "f9f395a30d4dfad8"
+        "c468ae7aad824182"
       ]
     },
     "Kitesail Freebooter": {
       "count": 1,
       "shapes": [
-        "bd7bec080d327629"
+        "9583947c6a67fa87"
       ]
     },
     "Light of Promise": {
@@ -305,17 +288,11 @@
         "8ee9c29664ca15fe"
       ]
     },
-    "Liliana's Scorn": {
-      "count": 1,
-      "shapes": [
-        "cb0e646738d69348"
-      ]
-    },
     "Liliana's Steward": {
       "count": 2,
       "shapes": [
         "74932d3542582dd2",
-        "a481a00ff9860ff9"
+        "9c95f06d85c29209"
       ]
     },
     "Liliana, Death Mage": {
@@ -335,12 +312,6 @@
       "count": 1,
       "shapes": [
         "bd7bec080d327629"
-      ]
-    },
-    "Lofty Denial": {
-      "count": 1,
-      "shapes": [
-        "94a32b95e37cb876"
       ]
     },
     "Lorescale Coatl": {
@@ -385,7 +356,7 @@
     "Necromentia": {
       "count": 2,
       "shapes": [
-        "4321830aa1495d0e",
+        "16d46707bd8dfcc8",
         "bd7bec080d327629"
       ]
     },
@@ -456,7 +427,7 @@
     "Run Afoul": {
       "count": 1,
       "shapes": [
-        "fbd6283ea1971769"
+        "33781864b00f5064"
       ]
     },
     "Runed Halo": {
@@ -578,12 +549,6 @@
         "8ee9c29664ca15fe"
       ]
     },
-    "Teferi's Wavecaster": {
-      "count": 1,
-      "shapes": [
-        "cb0e646738d69348"
-      ]
-    },
     "Thieves' Guild Enforcer": {
       "count": 2,
       "shapes": [
@@ -631,7 +596,7 @@
     "Ugin, the Spirit Dragon": {
       "count": 1,
       "shapes": [
-        "c725f4fad1518549"
+        "1213fa6bcc745190"
       ]
     },
     "Village Rites": {
@@ -653,9 +618,8 @@
       ]
     },
     "Wildwood Scourge": {
-      "count": 2,
+      "count": 1,
       "shapes": [
-        "091505202ca5e2fb",
         "8ee9c29664ca15fe"
       ]
     },
@@ -667,12 +631,6 @@
     }
   },
   "ZNR": {
-    "Acquisitions Expert": {
-      "count": 1,
-      "shapes": [
-        "8b10a755c5de2665"
-      ]
-    },
     "Akoum Hellhound": {
       "count": 1,
       "shapes": [
@@ -759,8 +717,9 @@
       ]
     },
     "Maul of the Skyclaves": {
-      "count": 1,
+      "count": 2,
       "shapes": [
+        "7c858c4d428b66aa",
         "7c858c4d428b66aa"
       ]
     },
@@ -771,8 +730,9 @@
       ]
     },
     "Mind Carver": {
-      "count": 1,
+      "count": 2,
       "shapes": [
+        "7c858c4d428b66aa",
         "7c858c4d428b66aa"
       ]
     },
@@ -780,12 +740,6 @@
       "count": 1,
       "shapes": [
         "80742d90fcd46f4b"
-      ]
-    },
-    "Pelakka Predation // Pelakka Caverns": {
-      "count": 1,
-      "shapes": [
-        "8b10a755c5de2665"
       ]
     },
     "Practiced Tactics": {
@@ -801,8 +755,9 @@
       ]
     },
     "Ravager's Mace": {
-      "count": 1,
+      "count": 2,
       "shapes": [
+        "7c858c4d428b66aa",
         "7c858c4d428b66aa"
       ]
     },

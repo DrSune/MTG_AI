@@ -27,10 +27,13 @@ import dataclasses
 import json
 import sys
 from collections import Counter, defaultdict
+from datetime import date
 from enum import Enum
 from pathlib import Path
 
-REPO = Path("/home/sune/Desktop/MTG_AI")
+# The checkout this file lives in (code and card data): a fixed path measured the main
+# checkout's compiler from any worktree.
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
 from MTG_bot.core import ability_tree as at  # noqa: E402
@@ -462,7 +465,7 @@ def main() -> int:
 
     out = {
         "meta": {
-            "date": "2026-10-19",
+            "date": date.today().isoformat(),  # was the fixed "2026-10-19": a dated census carries its run date
             "sets": per_set,
             "total_cards": len(cards_data),
             "total_abilities": len(all_abilities),
