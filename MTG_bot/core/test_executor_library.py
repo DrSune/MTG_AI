@@ -29,9 +29,12 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    Phase,
     QConst,
     Selector,
     SelectorMode,
+    TriggeredAbility,
+    TurnPhaseEvent,
     Verb,
     Zone,
     ZoneKind,
@@ -51,6 +54,7 @@ from MTG_bot.core.executor.query import legal_search
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
@@ -477,6 +481,60 @@ class TestFirstTurnDraw(LibraryCase):
         top = world.add_card(card_id("Top"), first)
         Executor(world).begin_turn(first)
         self.assertEqual(world.players[first].zone(ZONE_HAND).entries, [top])
+
+
+class TestUpkeepBeforeDraw(LibraryCase):
+    """CR 503.1a, 504.1: the abilities that trigger at the beginning of the
+    upkeep resolve in the upkeep step, before the draw step's draw.
+    Regression (2026-11-05, Rotting Regisaur's "At the beginning of your
+    upkeep, discard a card."): the draw came first, so the discard could take
+    the card just drawn (stronger than printed), and with an empty hand at
+    upkeep it discarded the draw (weaker)."""
+
+    def regisaur(self):
+        # The M20 mapping draft's IR for the trigger, on a test creature.
+        rex = self.world.add_card(card_id("Regisaur", "7", "6"), self.p0, ZONE_BATTLEFIELD)
+        hand = Zone(ZoneKind.HAND, ControllerRef.YOU)
+        discard = Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("cards", Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(hand,))),
+                    ("controller", ControllerRef.YOU),
+                    ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                    ("from", hand),
+                )
+            ),
+        )
+        upkeep = TurnPhaseEvent(
+            Phase.UPKEEP, FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        )
+        self.ex.attach_card(
+            rex,
+            record_of(
+                [TriggeredAbility(upkeep, None, discard)],
+                oid=self.world.cards[rex].identity.oracle_id,
+            ),
+        )
+        drawn = str(self.libs[3])  # the top card, drawn in p0's draw step
+        self.ex.decisions.provider = lambda vocab, what: drawn if drawn in vocab else vocab[0]
+
+    def to_p0s_draw_step_turn(self):
+        self.ex.begin_turn(self.p1)  # p1 plays first (CR 103.8a: no draw step)
+        self.ex.advance_turn()  # p0's turn 2: upkeep, then the draw step
+
+    def test_the_upkeep_discard_cannot_take_the_card_drawn_this_turn(self):
+        self.regisaur()
+        self.to_p0s_draw_step_turn()
+        self.assertEqual(self.zone(self.p0, ZONE_GRAVEYARD), [self.h1])
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.libs[3]])
+
+    def test_an_empty_hand_at_upkeep_discards_nothing(self):
+        self.world.move_to_zone(self.h1, self.p0, ZONE_EXILE)
+        self.regisaur()
+        self.to_p0s_draw_step_turn()
+        self.assertEqual(self.zone(self.p0, ZONE_GRAVEYARD), [])
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.libs[3]])
 
 
 # ----------------------------------------------------------- EXTRA_TURN

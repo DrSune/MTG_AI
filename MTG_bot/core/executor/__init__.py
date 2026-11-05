@@ -2001,8 +2001,10 @@ class Executor:
     def begin_turn(self, player: Handle) -> int:
         """Begin ``player``'s turn: active rotation, turn clock, the UNTAP
         step (12d), UPKEEP and FIRST_MAIN markers, per-turn event trackers
-        reset; drains triggers. Returns the firing count. The first turn of
-        a two-player game has no draw step (CR 103.8a)."""
+        reset; drains triggers. Returns the firing count. Each step resolves
+        its own triggers: the upkeep's before the draw step (CR 503.1a, 504),
+        the draw step's before the main phase. The first turn of a two-player
+        game has no draw step (CR 103.8a)."""
         if player not in self.world.players:
             raise ValueError(f"begin_turn: {player} is not a player of this world")
         first_turn = not self._turn_started
@@ -2029,17 +2031,22 @@ class Executor:
             self._run_returns(returning)
         self.journal.record_turn_phase(Phase.UPKEEP.name)
         self.phase = Phase.UPKEEP.name
-        # 14a: the DRAW step (CR 504.5-c), journalled INSIDE the skeleton so
-        # 'whenever you draw' triggers and the fingerprint see it, and AFTER
-        # the UPKEEP marker so beginning-of-upkeep triggers keep their CR
-        # ordering ahead of draw triggers. CR 103.8a: in a two-player game the
-        # player who plays first skips the draw step of their first turn
-        # (103.8c: in other multiplayer games nobody skips it).
+        # CR 503.1a: what triggered in the untap step or at the beginning of
+        # the upkeep resolves in the upkeep, before the draw step (an upkeep
+        # discard never sees the card this turn draws).
+        fired = self._settle()
+        # 14a: the DRAW step (CR 504.1), journalled INSIDE the skeleton so
+        # 'whenever you draw' triggers and the fingerprint see it; its
+        # triggers and its state-based check (CR 704.5b) follow at once.
+        # CR 103.8a: in a two-player game the player who plays first skips
+        # the draw step of their first turn (103.8c: in other multiplayer
+        # games nobody skips it).
         if not (first_turn and len(self.world.player_order) == 2):
             self._turn_draw(player)
+            fired += self._settle()
         self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
         self.phase = Phase.FIRST_MAIN.name
-        return self._settle()
+        return fired + self._settle()
 
     def _turn_draw(self, player: Handle) -> None:
         """The CR 504.5-c draw step of the active player (14a).
@@ -2052,14 +2059,13 @@ class Executor:
         library->hand move as a MOVE_ZONE atom boundary.
 
         Two deliberate omissions, both the skeleton's existing discipline:
-        no nested ``_settle`` (the turn has exactly ONE settle, the one at
-        the tail of :meth:`begin_turn`, and a draw-armed trigger already
-        drains there in clock order behind the UPKEEP marker) and no nested
-        ``_consume_end_turn`` (an END_TURN requested by such a trigger
-        closes at the next op boundary, never mid-skeleton). An empty
-        library draws nothing here; ``_v_draw`` records the attempt and the
-        state-based check at the tail of :meth:`begin_turn` makes that
-        player lose (CR 704.5b, :meth:`_player_losses`).
+        no nested ``_settle`` (:meth:`begin_turn` settles right after this
+        step, so the draw step's triggers resolve before the main phase) and
+        no nested ``_consume_end_turn`` (an END_TURN requested by such a
+        trigger closes at the next op boundary, never mid-skeleton). An
+        empty library draws nothing here; ``_v_draw`` records the attempt
+        and the state-based check of that settle makes the player lose (CR
+        704.5b, :meth:`_player_losses`).
 
         ``source`` is the seat: no permanent drew this card, and the
         journal's cause column records the seat, which is what
