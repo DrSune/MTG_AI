@@ -1,0 +1,84 @@
+{
+ "set": "M21",
+ "notes": "Volcanic Geyser, printed: '{X}{R}{R}, instant: Volcanic Geyser deals X damage to any target.' Cast in the combat window with six untapped Mountains, X may be up to 4 (CR 601.2f, 107.3a). The defender casts it at the 4/4 attacker for X = 4, which dies before damage. Until 2026-11-05 the combat window offered X spells only at X = 0 (no :x token), so Geyser dealt 0.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "atk",
+   "name": "Big Attacker",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gey",
+   "real": "Volcanic Geyser",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "m2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "m3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "m4",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "m5",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "m6",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "atk": true
+   },
+   "decisions": [
+    "gey@atk:x4"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "atk": "graveyard",
+   "gey": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "damage": {}
+ }
+}

@@ -50,6 +50,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field, fields, is_dataclass
+from itertools import count
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
@@ -74,12 +75,14 @@ from MTG_bot.core.executor.events import (
 )
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
+    _cost_has_x,
     build_payment_plan,
     ctx_for,
     pay_costs,
     plan_mana_taps,
     protected_from,
     spell_castable,
+    spell_cost,
     spell_record,
     tap_for_payment,
 )
@@ -766,28 +769,33 @@ def _counter_vocab(
     return ("PASS",) + tuple(sorted(options))
 
 
-def _window_taps(executor: Executor, seat: Handle, handle: Handle, targets: tuple[Handle, ...] = ()):
+def _window_taps(
+    executor: Executor, seat: Handle, handle: Handle, targets: tuple[Handle, ...] = (),
+    x: int | None = None,
+):
     """B-90 (a): the free sources ``seat`` taps to cast ``handle`` at
-    ``targets`` in a response window (CR 601.2g, 605.3a: mana abilities may be
-    activated while paying; 601.2f: the total includes a target's cost
-    increase), () when the pool already pays, None when the spell cannot be cast
-    (C15: then it is never offered)."""
+    ``targets`` (with ``x`` for an X spell) in a response window (CR 601.2g,
+    605.3a: mana abilities may be activated while paying; 601.2f: the total
+    includes X and a target's cost increase), () when the pool already pays,
+    None when the spell cannot be cast (C15: then it is never offered)."""
     return plan_mana_taps(
-        executor, seat, lambda: spell_castable(executor, seat, handle, targets=targets)[0]
+        executor, seat, lambda: spell_castable(executor, seat, handle, x=x, targets=targets)[0]
     )
 
 
-def _window_pay(executor: Executor, seat: Handle, handle: Handle):
+def _window_pay(executor: Executor, seat: Handle, handle: Handle, x: int | None = None):
     """How a window prices a target (``spell_target_slots``' ``pay``): the
     pool plus the free sources the window would tap, as it pays."""
-    return lambda targets: _window_taps(executor, seat, handle, targets) is not None
+    return lambda targets: _window_taps(executor, seat, handle, targets, x) is not None
 
 
-def _window_cast(executor: Executor, seat: Handle, handle: Handle, target: Handle) -> None:
+def _window_cast(
+    executor: Executor, seat: Handle, handle: Handle, target: Handle, x: int | None = None
+) -> None:
     """Cast a response-window answer: tap the planned mana abilities, then the
     ordinary :func:`cast` (which re-checks legality and pays from the pool)."""
-    tap_for_payment(executor, seat, _window_taps(executor, seat, handle, (target,)) or ())
-    cast(executor, seat, handle, targets=(target,))
+    tap_for_payment(executor, seat, _window_taps(executor, seat, handle, (target,), x) or ())
+    cast(executor, seat, handle, x=x, targets=(target,))
 
 
 def _counter_selectors(effect: object) -> set[str]:
@@ -992,16 +1000,20 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
             continue
         if not _tree_verb_closure(node, set()) <= set(HANDLERS):
             continue
-        if _window_taps(executor, seat, handle) is None:
-            continue
-        slots = spell_target_slots(
-            executor, node, spell_handle=handle, seat=seat, pay=_window_pay(executor, seat, handle)
-        )
-        if len(slots) != 1 or not slots[0].min_count <= 1 <= slots[0].max_count:
-            continue
-        for target in slots[0].candidates:
-            if validate_target_selection(slots[0], (target,)) is None:
-                options.append(f"{handle}@{target}")
+        # one token per payable X, as the act menu offers (an X spell cast here was locked
+        # at X = 0 until 2026-11-05: Volcanic Geyser dealt 0 in combat)
+        record_cost = spell_cost(record, tuple(node.additional_costs))
+        for x in count() if _cost_has_x(record_cost) else (None,):
+            if _window_taps(executor, seat, handle, (), x) is None:
+                break  # a larger X costs more: none is payable either
+            slots = spell_target_slots(
+                executor, node, spell_handle=handle, seat=seat, pay=_window_pay(executor, seat, handle, x)
+            )
+            if len(slots) != 1 or not slots[0].min_count <= 1 <= slots[0].max_count:
+                break
+            for target in slots[0].candidates:
+                if validate_target_selection(slots[0], (target,)) is None:
+                    options.append(f"{handle}@{target}" + (f":x{x}" if x else ""))
     return ("PASS",) + tuple(sorted(options))
 
 
@@ -1035,7 +1047,9 @@ def open_combat_window(executor: Executor) -> None:
             executor.journal.emit(KIND_WINDOW_PASS, None, seat, "COMBAT_WINDOW", ())
             continue
         card_tag, _, target_tag = answer.partition("@")
-        _window_cast(executor, seat, parse_handle_tag(card_tag), parse_handle_tag(target_tag))
+        target_tag, _, x_tag = target_tag.partition(":x")
+        _window_cast(executor, seat, parse_handle_tag(card_tag), parse_handle_tag(target_tag),
+                     int(x_tag) if x_tag else None)
 
 
 def cast(

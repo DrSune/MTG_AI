@@ -525,6 +525,9 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
     assert FT._parse_option("cast:card:12:x3") == (FT.OPT_INDEX["cast"], c, None, 0, 3.0, 0.0)
     assert FT._parse_option("cast:card:12:k:x2") == (FT.OPT_INDEX["cast_kicked"], c, None, 0, 2.0, 1.0)
     assert FT._parse_option("cast:card:12") == (FT.OPT_INDEX["cast"], c, None, 0, 0.0, 0.0)
+    p1 = Handle("player", 1)  # a combat-window cast at a target, with X (stack.py)
+    assert FT._parse_option("card:12@player:1:x4") == (FT.OPT_INDEX["cast_at"], c, p1, 0, 4.0, 0.0)
+    assert FT._parse_option("card:12@player:1") == (FT.OPT_INDEX["cast_at"], c, p1, 0, 0.0, 0.0)
 
 
 def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:

@@ -354,9 +354,10 @@ def _parse_option(tok: str) -> tuple:
         h = _handle(f"{parts[1]}:{parts[2]}") if len(parts) >= 3 else None
         idx = int(parts[3]) if len(parts) >= 4 and parts[3].lstrip("-").isdigit() else 0
         return OPT_INDEX["activate"], h, None, max(-4, min(idx, 15)), 0.0, 0.0
-    if "@" in tok:
+    if "@" in tok:  # a window cast: <card>@<target>[:x<N>] (stack.py)
         a, _, b = tok.partition("@")
-        return OPT_INDEX["cast_at"], _handle(a), _handle(b), 0, 0.0, 0.0
+        b, _, x = b.partition(":x")
+        return OPT_INDEX["cast_at"], _handle(a), _handle(b), 0, float(int(x)) if x.isdigit() else 0.0, 0.0
     if tok.startswith("card:"):
         return OPT_INDEX["card"], _handle(tok), None, 0, 0.0, 0.0
     if tok.startswith("player:"):

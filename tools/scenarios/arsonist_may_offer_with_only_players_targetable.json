@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "notes": "Goblin Arsonist, printed: 'When this creature dies, you may have it deal 1 damage to any target.' Any target includes players (CR 115.4). With no creature or planeswalker left, the players are still legal targets, so the may is offered (2026-11-05: optional_offer counted candidates without the any-target player widening and narrowed the offer to skip).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ars", "real": "Goblin Arsonist", "zone": "battlefield", "controller": 0},
+  {"key": "orock", "name": "Opp Rock", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "orock", "target": "ars", "amount": 1, "decisions": ["player:1", "fire"]}
+ ],
+ "expect": {
+  "zone": {"ars": "graveyard"},
+  "life": {"0": 20, "1": 19},
+  "damage": {}
+ }
+}

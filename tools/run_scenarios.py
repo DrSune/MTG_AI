@@ -634,7 +634,8 @@ class ScenarioRunner:
             return str(self.seats[int(word[1])])
         card, sep, target = word.partition("@")
         if sep:
-            return f"{self._resolve_word(card)}@{self._resolve_word(target)}"
+            target, x_sep, x = target.partition(":x")  # an X spell's window token
+            return f"{self._resolve_word(card)}@{self._resolve_word(target)}{x_sep}{x}"
         return word
 
     def _combat(self, step: dict) -> None:

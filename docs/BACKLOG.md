@@ -1467,3 +1467,9 @@ W&B key in history is revoked; a private split exists outside the public repo.
 - **Off-policy lag**: 42-135% of each r17 batch was played on the previous weights (collection
   overlaps the update). The importance ratio corrects it and the bf16/fp32 ratio is unbiased
   (mean 0.9996), but the data is further off-policy than CleanRL assumes; watch the clip fraction.
+- **Duress / Kitesail Freebooter's choose ask lists each card twice** (index tokens plus handle
+  aliases, verbs._v_choose, r19c), so an agent sees two options per choice and splits its
+  probability. One token per choice (the handle) was tried on 2026-11-05 and reverted: r19c made
+  the aliases additive on purpose ("the digest and the index lane stay byte-unchanged", for
+  replays), and two unit tests and three packs pin the index lane. Decide the replay contract
+  first, then switch to handles and re-pin.

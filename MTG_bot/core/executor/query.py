@@ -700,7 +700,13 @@ def optional_offer(
             want = resolve(value.count, ctx)
             if want <= 0:
                 continue
-            if len(enumerate_candidates(value, ctx)) == 0:
+            if len(enumerate_candidates(value, ctx)) == 0 and not (
+                # "any target" includes players (CR 115.4), which no zone holds: count them the
+                # way the target ask does (_widen_any_target), or a board with no creature or
+                # planeswalker narrowed Goblin Arsonist's may to skip (2026-11-05)
+                _player_widening_applies(value)
+                and any(not protected_from(executor, h, source) for h in executor.world.players)
+            ):
                 return MAY_VOCAB[1:]
     # r23a (Radha, Heart of Keld): the CAST atom's third unactionable shape.
     # The frozen compiler turns "you may play lands from the top of your
