@@ -1292,12 +1292,10 @@ class Executor:
             # came back tapped.
             if anchor in self.world.cards:
                 self.world.cards[anchor].tapped = False
-            # 16c: a departing permanent leaves no trace in the block record
-            # (a dead blocker stops blocking, a dead attacker forgets).
-            self.blocked_by.pop(anchor, None)
-            for blockers in self.blocked_by.values():
-                if anchor in blockers:
-                    blockers.remove(anchor)
+            # CR 506.4: a permanent that leaves the battlefield is removed
+            # from combat: a dead attacker stops attacking (it leaves the
+            # attack record) and a dead blocker stops blocking.
+            self._remove_from_combat({anchor})
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
             # B-59: the timed (resolved-layer) twin of the two discards
@@ -3122,9 +3120,9 @@ class Executor:
         return directly
 
     def _remove_from_combat(self, cards: set[Handle]) -> None:
-        """CR 506.4: the permanents stop attacking and blocking. An attacker
-        whose blocker left stays blocked (CR 509.1h): its entry keeps its
-        key, the same rule ``_on_zone_changes`` applies to a departure."""
+        """CR 506.4: the permanents stop attacking and blocking (phasing out,
+        leaving the battlefield). An attacker whose blocker left stays
+        blocked (CR 509.1h): its entry keeps its key."""
         if not cards:
             return
         self.attackers = [card for card in self.attackers if card not in cards]

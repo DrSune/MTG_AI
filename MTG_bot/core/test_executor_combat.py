@@ -638,3 +638,22 @@ class TestEndOfCombat(CombatCase):
         base = self.ex.state_fingerprint()
         self.ex.mandates.add(alpha)  # replayed state -> fingerprint moves
         self.assertNotEqual(self.ex.state_fingerprint(), base)
+
+    def test_an_attacker_that_leaves_the_battlefield_leaves_combat(self):
+        # CR 506.4: a permanent that leaves the battlefield is removed from
+        # combat. Regression (2026-11-05 exploit audit, seeds 7100026 and
+        # 7300040): Falconer Adept's Bird enters tapped and attacking as a
+        # 0/0 under Kaervek, dies and ceases to exist, and stayed in
+        # ``attackers``; the defender's block planning read the dead handle
+        # (KeyError, game voided).
+        falconer = self.real("Falconer Adept", self.p0)
+        self.real("Kaervek, the Spiteful", self.p1)  # other creatures -1/-1
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_attacks(self.p0)
+        declared = [e.subject for e in self.rows("DECLARE_ATTACKERS")]
+        self.assertEqual(len(declared), 2)  # Falconer and its Bird (CR 508.1i)
+        bird = declared[1]
+        self.assertNotIn(bird, self.world.cards)  # died at 0/0, ceased (704.5d)
+        self.assertEqual(self.ex.attackers, [falconer])
+        self.assertEqual(set(self.ex.attacked), {falconer})
