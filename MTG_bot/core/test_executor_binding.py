@@ -354,6 +354,38 @@ class TestAttachment(BindingCase):
 
 
 class TestEventKinds(BindingCase):
+    def test_dies_trigger_with_no_target_does_not_bind_the_dead_creature(self):
+        # known_bugs discard_any_number_never_asked_and_dies_trigger_target (M20 Cavalier of
+        # Flame): "When this creature dies, it deals 1 damage to each creature your opponents
+        # control" has no target. The dies firing bound the dead creature as ``target`` for
+        # the "that player" anaphora (Massacre Wurm), and the ALL selector's role read that
+        # binding first, so the damage went to the dead creature and no opponent's creature.
+        opp_creature = self.world.add_card(card_id("Opp Bear", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        each_opp_creature = Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd(
+                (
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                    CREATURE,
+                )
+            ),
+            zones=(BF_ANY,),
+        )
+        self.attach_trigger(
+            self.watch,
+            CreatureDiesEvent(filter=IS_SOURCE),
+            atom(Verb.DEAL_DAMAGE, amount=QConst(1), target=each_opp_creature),
+        )
+        self.ex.execute(
+            atom(Verb.DESTROY, target=all_bf()),
+            source=self.watch,
+            controller=self.p0,
+            bindings={"target": self.watch},
+        )
+        self.assertEqual(self.world.zone_of(self.watch).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.ex.damage, {opp_creature: 1})
+
     def test_dies_carries_c18_was_snapshot_and_event_referent(self):
         amount = QProp(referent="event", field=QPropField.POWER, agg=QAgg.FIRST)
         self.attach_trigger(

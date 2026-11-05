@@ -1576,6 +1576,7 @@ class TriggerBinder:
                 event.kind == KIND_CREATURE_DIES
                 and event.subject is not None
                 and not self._trigger_designates_target(node)
+                and self._designated_player_refs(node)
             ):
                 # 16a's twin: in a DIES firing the antecedent the frozen IR
                 # compiles to TARGET_PLAYER IS the dead creature — players
@@ -1589,6 +1590,10 @@ class TriggerBinder:
                 # the anaphora. A printed "…to ANY target" carries a real
                 # TARGET Selector slot — CR 603.1 designates it through the
                 # 18b channel, and the pre-bind must never swallow the ask.
+                # 2026-11-05: and an effect that reads no designated player
+                # gets no pre-bind at all: a role reads its binding before its
+                # own selector, so "each creature your opponents control"
+                # (Cavalier of Flame) hit the dead creature instead.
                 ctx.bindings["target"] = event.subject
             elif not self._designate(node, ctx):
                 # B-55, CR 603.3d: a required target with no legal choice
@@ -1708,6 +1713,26 @@ class TriggerBinder:
         return True
 
     @staticmethod
+    def _designated_player_refs(node: _AnyTrigger) -> set[ControllerRef]:
+        """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) this trigger's
+        effect reads: a role value naming one, a zone it controls, or a filter reading the
+        bound player (the scan :meth:`_designate` makes)."""
+        refs: set[ControllerRef] = set()
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
+                    refs.add(value)
+                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
+                    refs.add(value.controller)
+                elif isinstance(value, Selector):
+                    refs |= filter_bound_player_refs(value.filter)
+                else:
+                    refs |= filter_bound_player_refs(value)
+        return refs
+
+    @staticmethod
     def _trigger_designates_target(node: _AnyTrigger) -> bool:
         """r22a: does this trigger's effect carry a real TARGET designation
         slot — a TARGET-mode Selector with no referent? Mirrors the
@@ -1784,24 +1809,14 @@ class TriggerBinder:
         """
         selectors: list[Selector] = []
         seen: set[str] = set()
-        reads_target_player = False
-        opponent_only = False  # V21: a "target opponent" read narrows the slot
+        player_refs = self._designated_player_refs(node)
+        reads_target_player = bool(player_refs)
+        # V21: a "target opponent" read narrows the slot
+        opponent_only = ControllerRef.TARGET_OPPONENT in player_refs
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
-                refs: set[ControllerRef] = set()
-                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
-                    refs.add(value)
-                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
-                    refs.add(value.controller)
-                elif isinstance(value, Selector):
-                    refs |= filter_bound_player_refs(value.filter)
-                else:
-                    refs |= filter_bound_player_refs(value)
-                if refs:
-                    reads_target_player = True
-                    opponent_only |= ControllerRef.TARGET_OPPONENT in refs
                 if (
                     isinstance(value, Selector)
                     and value.mode is SelectorMode.TARGET
