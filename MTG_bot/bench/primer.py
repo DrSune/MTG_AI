@@ -56,7 +56,7 @@ STRUCTURAL = frozenset(
 ENGINE_SIMPLIFICATIONS = (
     "No priority passing: the active player gets one action window per turn, in the first main phase, then combat.",
     "Opponents can respond to a spell only with a counterspell, and in combat only with combat instants.",
-    "Mana pools do not empty between steps or turns.",
+    "Mana pools empty at the end of every step and phase (CR 500.5). A cast taps the lands and mana rocks it needs; other mana abilities are actions of their own.",
     "Drawing from an empty library loses the game at the draw (CR 121.3); two simultaneous losers draw.",
     "Spells with more than one separate target slot cannot be cast yet.",
     "An effect that would have an opponent choose is decided by the engine for some cards (gap L-27).",

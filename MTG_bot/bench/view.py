@@ -52,7 +52,8 @@ PUBLIC_ZONES = (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_COMMAND)
 ENGINE_NOTES = (
     "Engine notes: no priority passing; one action window per turn in the first main phase, "
     "then combat; opponents may respond only with counterspells and combat instants; "
-    "mana pools do not empty between steps or turns."
+    "mana pools empty at the end of every step and phase (CR 500.5); a cast taps the lands and "
+    "mana rocks it needs, and other mana abilities are actions of their own."
 )
 
 
