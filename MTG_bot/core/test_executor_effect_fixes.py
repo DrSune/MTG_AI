@@ -4,6 +4,9 @@ class per finding (KNOWLEDGE/2026-11-05/184, tools/scenarios/known_bugs/2026-11-
 CR 400.7  An object that leaves the battlefield and comes back is a new object: no effect a
           resolved spell or ability applied to the old one applies to it (a pump, a granted
           ability or type, a "doesn't untap"), while a static ability applies to it afresh.
+CR 701.21a A player sacrifices a permanent of their own choice as the instruction resolves: the
+          menu never takes the ability's target designation (Sorin, Imperious Bloodlord's +1,
+          known_bugs sacrifice_takes_the_target).
 """
 
 from __future__ import annotations
@@ -15,6 +18,8 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     ControllerRef,
     FAnd,
+    FAtom,
+    FAtomPred,
     QConst,
     Selector,
     SelectorMode,
@@ -23,6 +28,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 from MTG_bot.core.executor.games import get_supply
 from tools.run_scenarios import ScenarioRunner
 
@@ -140,6 +146,68 @@ class TestCR4007NewObject(unittest.TestCase):
         r.run_step({"op": "move", "key": "bear", "to": "graveyard"})
         self.assertEqual(pt(r, "bear"), (6, 6))
 
+
+
+BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+
+
+class TestCR70121SacrificeIsTheControllersChoice(unittest.TestCase):
+    """Sorin, Imperious Bloodlord's +1 as the M20 mapper drew it: "You may sacrifice a Vampire.
+    When you do, Sorin deals 3 damage to any target and you gain 3 life." The sacrifice menu is a
+    one-of pick (the compiler promotes a count-1 CHOOSE to ONE_OF); the damage is the ability's
+    only TARGET."""
+
+    def effect(self):
+        vampire_you_control = FAnd((
+            FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            FAtom(FAtomPred.SUBTYPE_EQ, string_value="Vampire"),
+            FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+        ))
+        return Seq((
+            Atom(Verb.SACRIFICE, AtomArgs((
+                ("target", Selector(QConst(1), SelectorMode.ONE_OF, vampire_you_control,
+                                    zones=(BF_ANY,))),
+            ))),
+            Atom(Verb.DEAL_DAMAGE, AtomArgs((
+                ("amount", QConst(3)),
+                ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),
+            ))),
+        ))
+
+    def vampire(self, key, seat):
+        return {"key": key, "name": key.title(), "type": "Creature — Vampire", "power": "2",
+                "toughness": "2", "zone": "battlefield", "controller": seat}
+
+    def test_the_target_is_not_sacrificed_when_it_is_not_a_choice(self):
+        # No Vampire to sacrifice: the targeted opposing Bear is not sacrificed in its place.
+        r = runner([bear("sorin", 0), bear("mybear", 0), bear("obear", 1)])
+        obear = r.handles["obear"]
+        r.ex.apply_effect(self.effect(), source=r.handles["sorin"], controller=r.p0,
+                          bindings={"target": [obear]})
+        self.assertEqual(r.world.zone_of(r.handles["mybear"]).kind, "battlefield")
+        self.assertEqual(r.ex.damage.get(obear), None)  # 3 damage killed it: it died, not sacrificed
+        self.assertEqual(r.world.zone_of(obear).kind, "graveyard")
+        sacrificed = [e.subject for e in r.ex.journal.events
+                      if e.kind == KIND_ZONE_CHANGE and e.cause_verb == "SACRIFICE"]
+        self.assertEqual(sacrificed, [])
+
+    def test_the_controller_picks_even_when_the_target_could_be_sacrificed(self):
+        # The target is one of your Vampires; you sacrifice the other one, and the target is
+        # dealt the 3 damage.
+        r = runner([bear("sorin", 0), self.vampire("vtarget", 0), self.vampire("vother", 0)])
+        asks = []
+
+        def answer(vocab, what):
+            asks.append((what, vocab))
+            return str(r.handles["vother"])
+
+        r.ex.decisions.provider = answer
+        r.ex.apply_effect(self.effect(), source=r.handles["sorin"], controller=r.p0,
+                          bindings={"target": [r.handles["vtarget"]]})
+        self.assertEqual(r.world.zone_of(r.handles["vother"]).kind, "graveyard")
+        self.assertEqual(r.world.zone_of(r.handles["vtarget"]).kind, "graveyard")  # 3 damage
+        self.assertEqual(len(asks), 1)
+        self.assertEqual(set(asks[0][1]), {str(r.handles["vtarget"]), str(r.handles["vother"])})
 
 
 if __name__ == "__main__":
