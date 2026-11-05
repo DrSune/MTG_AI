@@ -6,15 +6,17 @@ baton back. The worker sends the posts of one slot group to the learner in one m
 the other group while it waits, so the CPU keeps working during GPU inference. Engine code never
 runs concurrently, so there are no data races on the engine's module-level caches.
 
-Workers never import torch.
+Workers do no torch work (spawn still imports torch in them: it re-imports learner.py as each
+worker's main module).
 
 Messages, worker -> learner: ("infer", wid, group, [req]), ("done", wid, [result]),
 ("need", wid, n). Learner -> worker: ("ans", group, [(action, logp, value)]), ("jobs", [job]),
 ("stop",).
 
-A job: {"gid", "kind" ("train"|"eval"|"bc"), "seed", "deck_mode", "seats": [spec, spec],
-"greedy": [bool, bool], "record": [bool, bool]}; a seat spec is "learner", "snap:<id>",
-"eval", "heuristic" or "random".
+A job: {"gid", "kind" ("train"|"eval"|"bc"), "seed", "deck_mode", "set_code", "pool_mode",
+"seats": [spec, spec], "greedy": [bool, bool], "record": [bool, bool]}; a seat spec is "learner", "eval", a frozen
+version "v<k>", "snap:opp", "heuristic" or "random", and a network spec ending in "+search"
+searches its decisions (search.py, options in job["search"]).
 """
 
 from __future__ import annotations
@@ -27,7 +29,6 @@ from collections import deque
 from typing import Any
 
 from tools.selfplay import features as FT
-from tools.selfplay.features import _handle
 from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
 
@@ -66,28 +67,20 @@ class NetAgent:
         self.table = table
         self.fallback = HeuristicAgent()
         self.name = spec
-        self.decisions = 0
         self.overflow = 0
         self.searcher = None
         self.attack_plan = None
         self.plan_turn = -1
         self.block_plan = None
         self.block_turn = -1
-        # Expert iteration: in a "bc" job a recorded network seat keeps (features, the move it
-        # actually played) locally, the search's choice where it searched; the learner trains
-        # on them like BC data. The server records nothing for it (that lane is PPO's).
-        value_only = bool(job.get("value_seats", [False, False])[seat])
-        self.label = job["kind"] == "bc" and (self.record or value_only)
-        self.wp = 0.0 if value_only and not self.record else 1.0
-        self.samples: list[tuple[dict, int, float]] = []
         if spec.endswith(SEARCH_SUFFIX):
             from tools.selfplay.search import Searcher
 
-            opts = job.get("search", {})
-            self.searcher = Searcher(slot, job["gid"], self.spec, table, k=opts.get("k", 4),
-                                     d=opts.get("d", 2), skip_p=opts.get("skip_p", 0.97),
-                                     seed=job["seed"] * 2 + seat, rollout=opts.get("rollout"),
-                                     value=opts.get("value"), tau=opts.get("tau", 0.05))
+            opts = job["search"]
+            self.searcher = Searcher(slot, job["gid"], self.spec, table,
+                                     pool_mode=job["pool_mode"], set_code=job["set_code"],
+                                     k=opts["k"], d=opts["d"], skip_p=opts["skip_p"],
+                                     seed=job["seed"] * 2 + seat)
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -102,16 +95,6 @@ class NetAgent:
 
             idx = plan_answer(ask, self.attack_plan)
             if idx is not None:
-                if self.label:
-                    target = None
-                    h = _handle(":".join(ask.site.split(":")[1:3]))
-                    pa = self.searcher.plan_targets.get(h) if self.searcher else None
-                    toks = [o.token for o in ask.options]
-                    if pa is not None and "ATTACK" in toks and "DECLINE" in toks:
-                        target = [(toks.index("ATTACK"), pa), (toks.index("DECLINE"), 1.0 - pa)]
-                    self.samples.append(
-                        (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx,
-                         self.wp, target))
                 return idx
         if (ask.kind == "block" and self.block_plan is not None
                 and self.block_turn == obs.executor.world.turn):
@@ -119,86 +102,44 @@ class NetAgent:
 
             idx = block_answer(ask, self.block_plan)
             if idx is not None:
-                if self.label:
-                    self.samples.append(
-                        (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx,
-                         self.wp, None))
                 return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
-        self.decisions += 1
-        target = None
         if self.searcher is not None and ask.kind == "act":
-            idx = self.searcher.choose(ask, obs, feats)
-            target = self.searcher.last_target
-        else:
-            req = (self.job["gid"], self.seat, self.spec, self.greedy,
-                   self.record and not self.label, feats)
-            idx = int(self.slot.infer(req))
-        if self.label:
-            self.samples.append((feats, idx, self.wp, target))
-        return idx
+            return self.searcher.choose(ask, obs, feats)
+        return int(self.slot.infer((self.job["gid"], self.seat, self.spec, self.greedy,
+                                    self.record, feats)))
 
     def plan_combat(self, game: Any, seat: int) -> None:
         """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.take_acts)."""
-        if self.searcher is None or not self.job.get("search", {}).get("combat", True):
+        if self.searcher is None:
             return
         self.attack_plan = self.searcher.plan_attacks(game, seat)
         self.plan_turn = game.world.turn
 
     def plan_blocks(self, game: Any, seat: int, declared_attackers: frozenset = frozenset()) -> None:
         """Called by the rig at the pre-blocks boundary (rig.SelfplayRouter.before_blocks)."""
-        if self.searcher is None or not self.job.get("search", {}).get("blocks", False):
+        if self.searcher is None or not self.job["search"]["blocks"]:
             return
         self.block_plan = self.searcher.plan_blocks(game, seat, declared_attackers)
         self.block_turn = game.world.turn
 
 
 class RecordingHeuristic:
-    """The heuristic, recording (features, action, policy weight) for behaviour cloning. With
-    ``value_only`` the policy weight is 0: the decision trains the value head only (an ExIt
-    opponent's positions, seen from its own seat)."""
+    """The heuristic, recording (features, action) at every real decision for behaviour
+    cloning (the teacher inter-play stage)."""
 
-    def __init__(self, seat: int, table: FT.CardTable, value_only: bool = False) -> None:
+    def __init__(self, seat: int, table: FT.CardTable) -> None:
         self.inner = HeuristicAgent()
         self.seat = seat
         self.table = table
-        self.wp = 0.0 if value_only else 1.0
-        self.samples: list[tuple[dict, int, float]] = []
+        self.samples: list[tuple[dict, int]] = []
         self.name = "heuristic"
 
     def decide(self, ask: Any, obs: Any) -> int:
         idx = self.inner.decide(ask, obs)
         n = len(ask.options)
         if 1 < n <= FT.MAX_OPTIONS and ask.kind != "name":
-            self.samples.append(
-                (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx, self.wp))
-        return idx
-
-
-class ValueSampler:
-    """Wraps any seat: with probability ``p`` a decision's position is kept as a value-only
-    sample (features, action, policy weight 0). A few positions from many games, not every
-    position of few games: consecutive positions of one game share its outcome and are near
-    copies, so training on all of them memorises outcomes (AlphaGo's value-net finding; r10:
-    held-out value MSE 0.645 -> 0.712 after one epoch on all positions)."""
-
-    def __init__(self, inner: Any, table: FT.CardTable, p: float, seed: int) -> None:
-        self.inner_agent = inner
-        self.table = table
-        self.p = p
-        self.rng = random.Random(seed)
-        self.vsamples: list[tuple[dict, int, float]] = []
-        self.name = getattr(inner, "name", "?")
-
-    def __getattr__(self, key: str) -> Any:  # plan_combat, searcher, decisions, ...
-        return getattr(self.inner_agent, key)
-
-    def decide(self, ask: Any, obs: Any) -> int:
-        idx = self.inner_agent.decide(ask, obs)
-        n = len(ask.options)
-        if 1 < n <= FT.MAX_OPTIONS and ask.kind != "name" and self.rng.random() < self.p:
-            self.vsamples.append(
-                (FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx, 0.0))
+            self.samples.append((FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx))
         return idx
 
 
@@ -244,7 +185,7 @@ class _Slot(threading.Thread):
                           # the deal, so an eval voids the seat-swapped pair (it raised before)
                           "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
                           "seats": job.get("seats"), "a_seat": job.get("a_seat"),
-                          "opp": job.get("opp")}
+                          "opp": job.get("opp"), "set_code": job.get("set_code")}
             self.worker.outbox.append(result)
 
 
@@ -276,42 +217,26 @@ class Worker:
             if is_net(spec):
                 agents.append(NetAgent(slot, job, seat, self.table))
             elif spec == "heuristic":
-                value_only = bool(job.get("value_seats", [False, False])[seat])
-                if job["record"][seat] or value_only:
-                    agents.append(RecordingHeuristic(seat, self.table,
-                                                     value_only=not job["record"][seat]))
-                else:
-                    agents.append(HeuristicAgent())
+                agents.append(RecordingHeuristic(seat, self.table) if job["record"][seat]
+                              else HeuristicAgent())
             elif spec == "random":
                 agents.append(_UniformRandom(job["seed"] * 7 + seat))
             else:
                 raise ValueError(f"unknown seat spec {spec!r}")
-        value_p = float(job.get("value_p", 0.0))
-        if value_p > 0:
-            agents = [ValueSampler(a, self.table, value_p, job["seed"] * 2 + seat)
-                      for seat, a in enumerate(agents)]
-        allow = job.get("deck_allow")
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"],
-                        set_code=job.get("set_code", "M21"),
-                        pool_mode=job.get("pool_mode", "castable"),
-                        deck_allow=frozenset(allow) if allow else None)
+                        set_code=job["set_code"], pool_mode=job["pool_mode"])
         res["gid"] = job["gid"]
         res["kind"] = job["kind"]
         res["seats"] = job["seats"]
         res["a_seat"] = job.get("a_seat")
         res["opp"] = job.get("opp")
-        res["set_code"] = job.get("set_code", "M21")
-        inner = [getattr(a, "inner_agent", a) for a in agents]
+        res["set_code"] = job["set_code"]
         res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
-                         for a in inner]
-        res["net_decisions"] = [getattr(a, "decisions", 0) for a in inner]
-        res["overflow"] = [getattr(a, "overflow", 0) for a in inner]
-        bc = [a.samples if isinstance(a, RecordingHeuristic) or getattr(a, "label", False)
-              else None for a in inner]
+                         for a in agents]
+        res["overflow"] = [getattr(a, "overflow", 0) for a in agents]
+        bc = [a.samples if isinstance(a, RecordingHeuristic) else None for a in agents]
         if any(s is not None for s in bc):
             res["bc"] = bc
-        if value_p > 0:
-            res["vs"] = [a.vsamples for a in agents]
         return res
 
     # --- main thread

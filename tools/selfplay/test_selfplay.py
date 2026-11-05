@@ -80,7 +80,7 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
     assert res["crash"] is None
     samples = recs[0].samples + recs[1].samples
     assert len(samples) > 20
-    for feats, idx, _wp in samples:
+    for feats, idx in samples:
         e = feats["cards_i"].shape[0]
         k = feats["opts_i"].shape[0]
         assert 2 <= k <= FT.MAX_OPTIONS and 0 <= idx < k
@@ -183,7 +183,8 @@ def test_block_search_plans_at_the_pre_blocks_boundary(table) -> None:
     net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
     planned = answered = 0
     for seed in (21, 22, 23, 24):
-        searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, k=2, d=1, skip_p=1.01, seed=seed)
+        searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
+                            set_code="M21", k=2, d=1, skip_p=1.01, seed=seed)
         planner = _BlockPlanner(searcher)
         res = play_game(seed, [planner, HeuristicAgent()], deck_mode="coherent")
         assert res["crash"] is None
@@ -355,6 +356,61 @@ def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
     assert torch.equal(w[:n_old], net.ask_emb.weight.data[:n_old])
     for k in FT.ASK_KINDS[n_old:]:
         assert torch.equal(w[FT.ASK_INDEX[k]], w[FT.ASK_INDEX["other"]])
+
+
+def test_manifest_appends_one_entry_per_start(tmp_path) -> None:
+    """A resume adds a manifest entry; it never overwrites the first start's."""
+    import json
+
+    from tools.selfplay.learner import parse, write_manifest
+
+    write_manifest(tmp_path, parse(["--run", str(tmp_path), "--seed", "5"]))
+    write_manifest(tmp_path, parse(["--run", str(tmp_path), "--resume", str(tmp_path)]))
+    entries = json.loads((tmp_path / "manifest.json").read_text())
+    assert len(entries) == 2
+    assert entries[0]["args"]["seed"] == 5 and entries[0]["args"]["resume"] == ""
+    assert entries[1]["args"]["resume"] == str(tmp_path) and entries[1]["args"]["pool"] == "verified"
+    for e in entries:
+        assert len(e["git_commit"]) == 40 and isinstance(e["git_dirty"], bool)
+        assert e["torch"] == torch.__version__ and e["host"] and e["started"]
+
+
+def test_resume_refuses_another_pool(table, tmp_path, monkeypatch) -> None:
+    """A run deals from one pool; a state file from before --pool existed was dealt castable."""
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    src = tmp_path / "src"
+    src.mkdir()
+    M.save(str(src / "last.pt"), M.build(table, d=32, layers=1, heads=4, ff=64), table)
+    (src / "state.pkl").write_bytes(pickle.dumps(
+        {"it": 3, "stage": "teacher", "versions": [], "elo_games": []}))
+
+    def learner(pool: str) -> L.Learner:
+        return L.Learner(L.parse(["--run", str(tmp_path / pool), "--device", "cpu", "--d", "32",
+                                  "--layers", "1", "--heads", "4", "--ff", "64", "--pool", pool]))
+
+    with pytest.raises(ValueError, match="'castable' pool"):
+        learner("verified").load_state(str(src))
+    assert learner("castable").load_state(str(src))["it"] == 3
+
+
+def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:
+    """A run resumed across the change holds old rows (no set, no pool) and new ones."""
+    import json
+
+    from tools.selfplay import paired
+
+    rows = []
+    for seed in (1, 2):
+        for a_seat in (0, 1):
+            old = {"opp": "heuristic", "seed": seed, "deck_mode": "stress", "a_seat": a_seat,
+                   "outcome": "win", "winner": a_seat}
+            rows += [old, {**old, "seed": seed + 10, "set_code": "M21", "pool": "verified"}]
+    path = tmp_path / "eval_rows.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    assert paired.main([str(path), str(path)]) == 0
+    assert json.loads(capsys.readouterr().out)["deals"] == 4
 
 
 def test_gae_bootstraps_a_truncated_game() -> None:

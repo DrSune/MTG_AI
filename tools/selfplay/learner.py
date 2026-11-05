@@ -1,37 +1,48 @@
-"""The learner: GPU inference server for the workers, BC warm start, PPO self-play, evaluation.
+"""The learner: GPU inference server for the workers, the training curriculum, evaluation.
 
-Run::
+Run (full commands in README.md here)::
 
-    .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --workers 18 \
-        --bc-games 20000 --iters 400
+    .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --init CKPT ...
+    .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --init CKPT --eval-only
 
-Phases:
-1. BC (skipped with --init): heuristic-vs-heuristic games record (features, action) for both
-   seats; the network learns the action (cross-entropy) and the outcome (value MSE).
-2. PPO: workers play the learner against itself, frozen snapshots of itself (the league) and
-   the heuristic. Every learner decision is recorded with its log-probability and value; when
-   a game ends its seats get +1 (win), -1 (loss), ``--draw-reward`` (turn cap or stall) or 0
-   (both lose at once), and GAE turns that into per-decision advantages.
-3. Evaluation (every --eval-every iterations): a frozen copy of the learner plays the heuristic
-   greedily on fixed deals, each deal twice with the seats swapped (duplicate format). Score =
-   wins + draws/2 over decided-or-drawn games; voided games void their pair.
+The curriculum (KNOWLEDGE/2026-11-03/183 §3); the network it starts from is frozen as v0:
+1. Teacher inter-play, only for a network trained from scratch (--bc-games, no --init):
+   heuristic-vs-heuristic games record (features, action) for both seats; the network learns
+   the action (cross-entropy) and the outcome (value MSE).
+2. Teacher stage: PPO against the heuristic until a frozen copy of the learner scores
+   --teacher-gate against it (Wilson lower bound above 0.5) or --teacher-iters pass.
+3. Self-play stage: PPO against the newest frozen version, older versions (--p-past) and the
+   heuristic (--p-heuristic). Every --gate-every iterations a gate match on fresh deals freezes
+   the learner as the next version when it scores --gate-score with the lower bound above 0.5.
 
-Every number goes to ``<run>/metrics.jsonl``; checkpoints to ``<run>/*.pt``.
+PPO: every learner decision is recorded with its log-probability and value; when a game ends
+its seats get +1 (win), -1 (loss), --draw-reward (turn cap or stall) or 0 (both lose at once),
+and GAE turns that into per-decision advantages. Each update runs in the trainer process
+(trainer.py) while this process keeps serving the workers on the current weights.
+
+Evaluation: greedy play on fixed deals, each deal twice with the seats swapped (duplicate
+format); score = (wins + draws/2) / games, a voided game voids its pair. Ratings: Elo by
+Bradley-Terry over the ladder games, uniform random = 0.
+
+Every number goes to <run>/metrics.jsonl; checkpoints to <run>/*.pt. Each start of the learner
+(a resume too) appends what ran, from which code, where and when to <run>/manifest.json.
 """
 
 from __future__ import annotations
 
 import argparse
-import contextlib
 import json
 import math
 import multiprocessing as mp
+import platform
 import random
 import signal
+import socket
+import subprocess
 import sys
-import threading
 import time
 from collections import Counter, defaultdict, deque
+from datetime import datetime
 from multiprocessing.connection import wait
 from pathlib import Path
 from typing import Any
@@ -40,12 +51,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from MTG_bot.core.executor.games import get_supply
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.actor import worker_main
-from tools.selfplay.ppo import pack_buffer, ppo_train
+from tools.selfplay.ppo import chunks, pack_buffer
 from tools.selfplay.trainer import trainer_main
 
+REPO = Path(__file__).resolve().parents[2]
+TRAIN_SET = "M21"  # the set training games are dealt from (--mix-sets adds others)
 EVAL_SEED0 = 900_000
 # Gates draw a fresh block of deals each time (GATE_SEED0 + 1000 * gate number): re-testing a
 # learner on the same deals until one snapshot clears the bar selects luck on those deals.
@@ -129,6 +143,44 @@ def mem_available_gib() -> float:
     return float("nan")
 
 
+def write_manifest(run: Path, args: argparse.Namespace) -> dict:
+    """Append this start of the learner to ``<run>/manifest.json``, a list with one entry per
+    start (a resume or a restart adds an entry, never overwrites one): the parsed arguments, the
+    git commit and whether the tree differs from it, the host, the Python and torch versions and
+    the start time."""
+    def git(*cmd: str) -> str | None:
+        try:
+            out = subprocess.run(["git", *cmd], cwd=REPO, capture_output=True, text=True,
+                                 timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return out.stdout if out.returncode == 0 else None
+
+    commit = git("rev-parse", "HEAD")
+    # untracked files count as dirty: card records on disk change what the pools deal. No
+    # optional locks: a status that refreshes the index would hold index.lock against the
+    # commits of other agents working in the same checkout.
+    status = git("--no-optional-locks", "status", "--porcelain")
+    entry = {
+        "started": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "t": round(time.time(), 1),  # the clock of the metrics.jsonl rows
+        "host": socket.gethostname(),
+        "git_commit": commit.strip() if commit else None,
+        "git_dirty": bool(status.strip()) if status is not None else None,
+        "git_status": status.splitlines() if status else [],
+        "python": platform.python_version(),
+        "torch": torch.__version__,
+        "args": vars(args),
+    }
+    path = run / "manifest.json"
+    entries = json.loads(path.read_text()) if path.exists() else []
+    entries.append(entry)
+    tmp = path.with_name("manifest.json.tmp")
+    tmp.write_text(json.dumps(entries, indent=1, default=str) + "\n")
+    tmp.replace(path)
+    return entry
+
+
 def gae(vals: list[float], z: float, gamma: float, lam: float) -> list[float]:
     """Generalised advantage estimates for one seat's decisions in one game, whose end pays
     ``z`` after the last decision. A game cut off before its end passes ``z = vals[-1]``: the
@@ -150,6 +202,7 @@ class Learner:
         self.args = args
         self.run = Path(args.run)
         self.run.mkdir(parents=True, exist_ok=True)
+        write_manifest(self.run, args)
         self.device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu"
                                    else "cpu")
         self.cuda = self.device.type == "cuda"
@@ -159,8 +212,6 @@ class Learner:
         if args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init, "extra": extra})
-            from MTG_bot.core.executor.games import get_supply
-
             if args.refresh_table:
                 # the saved table describes the trees as compiled when it was built; rebuild
                 # its rows from the current compile (FT.CardTable.refresh)
@@ -183,61 +234,26 @@ class Learner:
             if args.mask_names:
                 self.model.mask_names = True
         else:
-            from MTG_bot.core.executor.games import get_supply
-
             supply = get_supply("castable")
             self.table = FT.CardTable.from_records(
                 {oid: r.card for oid, r in supply.pool.results.items()})
             self.model = M.build(self.table, d=args.d, layers=args.layers, heads=args.heads,
                                  ff=args.ff, name_dropout=args.name_dropout).to(self.device)
-        # --mix-allow: per set, the oracle ids a mixed training game may deal (lands always)
-        self.mix_allow: dict[str, list] = {}
         if args.mix_sets:
             missing = set(args.mix_sets.split(",")) - set(args.extend_sets.split(","))
             if missing:
                 raise ValueError(f"--mix-sets {sorted(missing)} must also be in --extend-sets")
-            if args.mix_allow:
-                allow = json.loads(Path(args.mix_allow).read_text())
-                self.mix_allow = {code: list(allow.get(code, [])) for code in
-                                  args.mix_sets.split(",")}
             self.log({"event": "mix", "sets": args.mix_sets, "share": args.mix_share,
-                      "pool": args.mix_pool,
-                      "allowed": {k: len(v) for k, v in self.mix_allow.items()}})
+                      "pool": args.pool})
+        # Every game deals from --pool. A set with no deckable card in it (e.g. 'verified' for a
+        # set whose cards nobody verified yet) fails here, not in every worker game it voids.
+        for code in sorted({TRAIN_SET, args.eval_set, *filter(None, args.mix_sets.split(","))}):
+            get_supply(args.pool, code)
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
-        if args.value_init:
-            # A separate value network scores the search's leaves: one network cannot take the
-            # policy's aggressive distillation without its value head collapsing (measured on
-            # 11,420 unseen positions: value MSE 0.565 -> 0.964 after r6's 3-epoch generations).
-            vnet, vtable, _ = M.load(args.value_init, self.device)
-            if vtable.oracle_ids != self.table.oracle_ids:
-                raise ValueError("--value-init: card table differs from the learner's")
-            self.models["value"] = vnet.eval()
-        if args.rollout_init:
-            # A small fast network plays the moves inside search simulations (the big one picks
-            # the candidates and scores the leaves); trained on the same labels each generation.
-            rollout, rtable, _ = M.load(args.rollout_init, self.device)
-            if rtable.oracle_ids != self.table.oracle_ids:
-                raise ValueError("--rollout-init: card table differs from the learner's")
-            self.models["rollout"] = rollout.eval()
-        self.infer_stream = None
         self.infer_models: dict[str, tuple] = {}
-        self.trainer = None
+        self.trainer = None  # the PPO trainer process, started at the first update
         self.tconn = None
-        self.sent_anchor: str | None = None
-        if args.trainer_proc and args.async_update:
-            raise ValueError("--trainer-proc and --async-update are alternatives")
-        if args.async_update:
-            # Workers keep playing on this copy while the GPU trains self.model (sync_actor).
-            self.actor = self._copy(self.model)
-            self.models["learner"] = self.actor
-            # Inference stays on the default stream: with its own stream, concurrent training
-            # and inference kernels hit a device-side assert after ~5 iterations that never
-            # reproduced with CUDA_LAUNCH_BLOCKING=1 (2026-11-03). One stream serialises the GPU
-            # work; the gain kept is that workers keep playing while the update runs.
-        self.snaps: list[str] = []
-        self.opt = torch.optim.AdamW(self.model.parameters(), lr=args.lr, betas=(0.9, 0.99),
-                                     eps=1e-6, weight_decay=args.wd)
         n_params = sum(p.numel() for p in self.model.parameters())
         self.log({"event": "model", "params": n_params, "config": self.model.config,
                   "device": str(self.device), "args": vars(args)})
@@ -254,24 +270,17 @@ class Learner:
         self.bc_target = 0
         self.bc_issued = 0
         self.bc_done = 0
-        self.bc_seats = ["heuristic", "heuristic"]
-        self.exit_opps: list[str] = []
-        self.gen_search: Counter = Counter()  # search stats of the current ExIt generation
-        self.vdata: list = []  # sampled value positions of the current generation
-        self.v_target = self.v_issued = self.v_done = 0
         self.stage = ""  # curriculum: "teacher" | "selfplay"
         self.versions: list[str] = []
         self.elo_games: list[tuple[str, str, float]] = []
         self.eval_queue: deque = deque()
         self.eval_kind: dict = {}
-        self.bc_seed0 = BC_SEED0
         self.it = 0
         self.counts: Counter = Counter()
         self.n_gates = 0
         self.train_results: list = []
         self.infer_batches = 0
         self.infer_items = 0
-        self.infer_time = 0.0
         self._mem_checked = 0.0
         self._start_workers()
 
@@ -310,16 +319,11 @@ class Learner:
             torch.cuda.synchronize()  # the copy is complete before any stream reads it
         return net
 
-    def sync_actor(self) -> None:
-        if self.args.async_update:
-            self.actor.load_state_dict(self.model.state_dict())
-            self.weights_changed(self.actor)
-            if self.cuda:
-                torch.cuda.synchronize()
-
-    def _update_remote(self) -> dict:
-        """--trainer-proc: hand the batch to the trainer process and keep serving the workers
-        on the current weights until the new ones come back."""
+    def update(self) -> dict:
+        """One PPO update: hand the batch to the trainer process (its own CUDA context) and keep
+        serving the workers on the current weights until the new ones come back. The workers
+        play the next batch meanwhile; the PPO ratio and clipping account for its slightly
+        older weights."""
         a = self.args
         if self.trainer is None:
             ctx = mp.get_context("spawn")
@@ -329,14 +333,9 @@ class Learner:
             self.trainer = ctx.Process(target=trainer_main, args=(child, ckpt, vars(a)),
                                        daemon=True)
             self.trainer.start()
-        anchor = self.versions[-1] if self.versions and a.kl_anchor > 0 else None
-        if anchor is not None and anchor != self.sent_anchor:
-            state = {k: v.detach().cpu() for k, v in self.models[anchor].state_dict().items()}
-            self.tconn.send(("anchor", anchor, state))
-            self.sent_anchor = anchor
         buf, self.buffer = self.buffer, []
         t0 = time.perf_counter()
-        self.tconn.send(("update", pack_buffer(buf), anchor))
+        self.tconn.send(("update", pack_buffer(buf)))
         send_s = time.perf_counter() - t0
         del buf
         self.serve(lambda: self.tconn.poll() or not self.trainer.is_alive())
@@ -354,34 +353,6 @@ class Learner:
         stats["send_s"] = round(send_s, 2)
         stats["overlap_steps"] = len(self.buffer)
         return stats
-
-    def update(self) -> dict:
-        """One PPO update. With --async-update it runs in a thread while this thread keeps
-        serving the workers on the actor copy (they otherwise sit idle for the whole update);
-        the next batch then starts with data from the previous weights, which the PPO ratio
-        and clipping account for."""
-        if self.args.trainer_proc:
-            return self._update_remote()
-        if not self.args.async_update:
-            return self.ppo_update()
-        buf, self.buffer = self.buffer, []
-        out: dict = {}
-
-        def work() -> None:
-            try:
-                out.update(self.ppo_update(buf))
-            except BaseException as error:  # noqa: BLE001 - re-raised in the main thread
-                out["error"] = error
-
-        th = threading.Thread(target=work, daemon=True)
-        th.start()
-        self.serve(lambda: not th.is_alive())
-        th.join()
-        if "error" in out:
-            raise out["error"]
-        self.sync_actor()
-        out["overlap_steps"] = len(self.buffer)
-        return out
 
     # ------------------------------------------------------------------ memory
 
@@ -433,7 +404,6 @@ class Learner:
             p.start()
             self.conns.append(a)
             self.procs.append(p)
-        self.wid_of = {id(c): i for i, c in enumerate(self.conns)}
 
     def stop_workers(self) -> None:
         if self.trainer is not None:
@@ -461,7 +431,8 @@ class Learner:
              record: list[bool], deck_mode: str) -> dict:
         self.gid += 1
         return {"gid": self.gid, "kind": kind, "seed": seed, "seats": seats, "greedy": greedy,
-                "record": record, "deck_mode": deck_mode}
+                "record": record, "deck_mode": deck_mode, "set_code": TRAIN_SET,
+                "pool_mode": self.args.pool}
 
     def _deck_mode(self) -> str:
         p = self.args.coherent_share
@@ -470,38 +441,11 @@ class Learner:
     def next_job(self) -> dict | None:
         if self.eval_jobs:
             return self.eval_jobs.popleft()
-        if self.phase == "bc" and self.v_issued < self.v_target and (
-                self.bc_issued >= self.bc_target
-                or self.v_issued * max(self.bc_target, 1) <= self.bc_issued * self.v_target):
-            self.v_issued += 1
-            opp = self.curriculum_opponent() if self.stage else "heuristic"
-            seats = ["learner", opp] if self.rng.random() < 0.5 else [opp, "learner"]
-            job = self._job("value", self.bc_seed0 + 500_000 + self.v_issued, seats,
-                            [False, False], [False, False], self._deck_mode())
-            job["value_p"] = self.args.value_p
-            return job
         if self.phase == "bc" and self.bc_issued < self.bc_target:
+            # teacher inter-play: heuristic vs heuristic, both seats' decisions recorded
             self.bc_issued += 1
-            seats = list(self.bc_seats)
-            if self.stage and seats[0].endswith("+search"):
-                seats[1] = self.curriculum_opponent()
-            elif self.exit_opps:
-                seats[1] = self.rng.choice(self.exit_opps)
-            if seats[0] != seats[1] and self.rng.random() < 0.5:
-                seats.reverse()  # the recorded seat plays both sides of the table
-            # what is trained on: the searching seats if any (ExIt never trains on the
-            # opponent's or the unsearched network's moves), else every heuristic seat (BC)
-            record = [s.endswith("+search") for s in seats]
-            if not any(record):
-                record = [s == "heuristic" for s in seats]
-            job = self._job("bc", self.bc_seed0 + self.bc_issued, seats, [True, True], record,
-                            self._deck_mode())
-            # the opponent's positions (its own view, its own outcome) train the value only
-            job["value_seats"] = [not r and self.args.exit_value_opp for r in record]
-            job["search"] = self.search_opts()
-            if self.v_target:
-                job["value_p"] = self.args.value_p
-            return job
+            return self._job("bc", BC_SEED0 + self.bc_issued, ["heuristic", "heuristic"],
+                             [True, True], [True, True], self._deck_mode())
         if self.phase == "ppo":
             # PPO wants on-policy batches. Workers keep playing during an update; once a full
             # next batch is waiting they get no new training games until the update takes it,
@@ -509,48 +453,13 @@ class Learner:
             if len(self.buffer) >= self.args.steps:
                 self.counts["throttled"] += 1
                 return None
-            return self.train_job()
-        return None
-
-    def train_job(self) -> dict:
-        a = self.args
-        if self.stage:
             return self.curriculum_job()
-        r = self.rng.random()
-        seed = TRAIN_SEED0 + self.gid + 1
-        if r < a.p_self:
-            return self._job("train", seed, ["learner", "learner"], [False, False],
-                             [True, True], self._deck_mode())
-        if r < a.p_self + a.p_heuristic:
-            opp = "heuristic"
-        elif r < a.p_self + a.p_heuristic + a.p_random:
-            opp = "random"
-        elif self.snaps:
-            opp = self.rng.choice(self.snaps[-a.max_snaps:])
-        else:
-            opp = "heuristic"
-        seat = self.rng.randrange(2)
-        seats = ["learner", opp] if seat == 0 else [opp, "learner"]
-        record = [s == "learner" for s in seats]
-        return self._job("train", seed, seats, [False, False], record, self._deck_mode())
+        return None
 
     def search_opts(self) -> dict:
         a = self.args
         return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
-                "tau": a.search_tau, "blocks": a.search_blocks,
-                "rollout": "rollout" if "rollout" in self.models else None,
-                "value": "value" if "value" in self.models else None}
-
-    def curriculum_opponent(self) -> str:
-        a = self.args
-        if self.stage == "teacher":
-            return "heuristic"
-        r = self.rng.random()
-        if r < a.p_heuristic:
-            return "heuristic"
-        if r < a.p_heuristic + a.p_past and len(self.versions) > 1:
-            return self.rng.choice(self.versions[:-1])
-        return self.versions[-1]
+                "blocks": a.search_blocks}
 
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
@@ -576,16 +485,12 @@ class Learner:
         return job
 
     def _mix(self, job: dict) -> None:
-        """--mix-sets: a --mix-share of training games is dealt from another set's curated cards
-        (--mix-allow), the rest from M21. Evaluations and ladders stay on M21."""
+        """--mix-sets: a --mix-share of training games is dealt from another set (from the same
+        --pool), the rest from TRAIN_SET. Evaluations and ladders deal from --eval-set."""
         a = self.args
         if not a.mix_sets or self.rng.random() >= a.mix_share:
             return
-        code = self.rng.choice(a.mix_sets.split(","))
-        job["set_code"] = code
-        job["pool_mode"] = a.mix_pool
-        if self.mix_allow.get(code):
-            job["deck_allow"] = self.mix_allow[code]
+        job["set_code"] = self.rng.choice(a.mix_sets.split(","))
 
     def _serve_need(self, wid: int, n: int) -> None:
         jobs = []
@@ -619,8 +524,7 @@ class Learner:
             if time.monotonic() - last_log >= self.args.progress_every > 0:
                 last_log = time.monotonic()
                 self.log({"event": "progress", "phase": self.phase, "it": self.it,
-                          **{k: getattr(self, k, None) for k in
-                             ("bc_done", "bc_target", "v_done", "v_target")},
+                          "bc_done": self.bc_done, "bc_target": self.bc_target,
                           "mem_gib": round(mem_available_gib(), 1)})
             ready = wait(self.conns, timeout=0.05)
             if not ready:
@@ -647,14 +551,11 @@ class Learner:
 
     @torch.no_grad()
     def infer(self, msgs: list) -> None:
-        t0 = time.perf_counter()
         answers = [[0] * len(reqs) for (_, _, reqs) in msgs]
         by_key: dict[str, list] = defaultdict(list)
         for mi, (_, _, reqs) in enumerate(msgs):
             for ri, req in enumerate(reqs):
                 by_key[req[2]].append((mi, ri, req))
-        stream_ctx = (torch.cuda.stream(self.infer_stream) if self.infer_stream is not None
-                      else contextlib.nullcontext())
         groups = []
         for key, items in by_key.items():
             for bucket in length_buckets(items, self.args.bucket_ratio, self.args.bucket_min):
@@ -662,28 +563,24 @@ class Learner:
         for key, items in groups:
             model = self._infer_net(key)
             bf16 = next(model.parameters()).dtype == torch.bfloat16
-            with stream_ctx:
-                b = M.collate([it[2][5] for it in items], self.device)
-                if bf16:
-                    b = {k: (v.to(torch.bfloat16) if v.dtype == torch.float32 else v)
-                         for k, v in b.items()}
-                with torch.autocast(self.device.type, dtype=torch.bfloat16,
-                                    enabled=self.cuda and not bf16):
-                    logits, value = model(b)
-                logits, value = logits.float(), value.float()
-            with stream_ctx:
-                greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
-                probs = torch.softmax(logits, -1)
-                sampled = torch.multinomial(probs, 1).squeeze(1)
-                act = torch.where(greedy, logits.argmax(-1), sampled)
-                logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
-                # read back on the SAME stream: a copy on the default stream would not wait for
-                # these kernels (with --async-update that race corrupted recorded logps -> NaN)
-                act_np = act.cpu().numpy()
-                logp_np = logp.cpu().numpy()
-                val_np = value.cpu().numpy()
-                probs_np = probs.float().cpu().numpy() if any(
-                    len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
+            b = M.collate([it[2][5] for it in items], self.device)
+            if bf16:
+                b = {k: (v.to(torch.bfloat16) if v.dtype == torch.float32 else v)
+                     for k, v in b.items()}
+            with torch.autocast(self.device.type, dtype=torch.bfloat16,
+                                enabled=self.cuda and not bf16):
+                logits, value = model(b)
+            logits, value = logits.float(), value.float()
+            greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
+            probs = torch.softmax(logits, -1)
+            sampled = torch.multinomial(probs, 1).squeeze(1)
+            act = torch.where(greedy, logits.argmax(-1), sampled)
+            logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
+            act_np = act.cpu().numpy()
+            logp_np = logp.cpu().numpy()
+            val_np = value.cpu().numpy()
+            probs_np = probs.float().cpu().numpy() if any(
+                len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
             for j, (mi, ri, req) in enumerate(items):
                 a = int(act_np[j])
                 # req[6] ("want"): 0/absent -> the action; 1 -> (action, value);
@@ -704,7 +601,6 @@ class Learner:
         for (conn, group, _), ans in zip(msgs, answers, strict=True):
             conn.send(("ans", group, ans))
         self.infer_batches += 1
-        self.infer_time += time.perf_counter() - t0
 
     # ------------------------------------------------------------------ results
 
@@ -735,35 +631,20 @@ class Learner:
                 self.eval_rows.append(r)
                 self.eval_pending.discard(r["gid"])
                 row = {k: r.get(k) for k in ("gid", "seed", "deck_mode", "seats", "a_seat", "opp",
-                                              "outcome", "winner", "turns", "leaky", "crash")}
+                                              "outcome", "winner", "turns", "leaky", "crash",
+                                              "set_code")}
+                # the deal is (set, pool, seed, deck mode): paired.py pairs only equal deals
+                row["pool"] = self.args.pool
                 row["tag"] = self.eval_meta.get("tag")
                 with (self.run / "eval_rows.jsonl").open("a") as fh:
                     fh.write(json.dumps(row) + "\n")
-            if not void and r.get("vs"):
-                for seat in (0, 1):
-                    z = self.reward(r["outcome"], r["winner"], seat)
-                    for sample in r["vs"][seat] or []:
-                        self.vdata.append((sample[0], sample[1], z, r["gid"], 0.0))
-            if kind == "value":
-                self.v_done += 1
             elif kind == "bc":
                 self.bc_done += 1
-                for st in r.get("search") or []:
-                    if st:
-                        self.gen_search.update(st)
-                if not void:
-                    seats = r.get("seats") or []
-                    for seat, spec in enumerate(seats):
-                        if spec.endswith("+search") and not seats[1 - seat].endswith("+search"):
-                            self.train_results.append((seats[1 - seat], self.reward(
-                                r["outcome"], r["winner"], seat), r["turns"]))
                 if not void and r.get("bc"):
                     for seat in (0, 1):
                         z = self.reward(r["outcome"], r["winner"], seat)
-                        for sample in r["bc"][seat] or []:
-                            wp = sample[2] if len(sample) > 2 else 1.0
-                            target = sample[3] if len(sample) > 3 else None
-                            self.bc.append((sample[0], sample[1], z, r["gid"], wp, target))
+                        for feats, act in r["bc"][seat] or []:
+                            self.bc.append((feats, act, z, r["gid"]))
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args
@@ -785,148 +666,66 @@ class Learner:
             for seat in (0, 1):
                 if seats[seat] == "learner" and seats[1 - seat] != "learner":
                     self.train_results.append((seats[1 - seat], self.reward(
-                        r["outcome"], r["winner"], seat), r["turns"], r.get("set_code", "M21")))
-            if seats == ["learner", "learner"]:
-                self.train_results.append(("self", 0.0, r["turns"]))
-
-    # ------------------------------------------------------------------ PPO
-
-    def _chunks(self, items: list, mb: int, key) -> list[np.ndarray]:
-        """Length-sorted minibatches of at most ``mb`` decisions and at most ``--tok-budget``
-        padded tokens (decisions x longest sequence). The token cap bounds activation memory,
-        which on this machine is system memory: a 1024-decision chunk of the longest
-        sequences took ~15 GB and tripped the memory floor (2026-11-03)."""
-        lengths = np.array([key(x) for x in items], dtype=np.float64)
-        order = np.argsort(lengths + np.random.rand(len(items)) * 4.0)
-        budget = self.args.tok_budget
-        chunks, cur, cur_max = [], [], 0.0
-        for i in order:
-            length = lengths[i] + 3.0
-            if cur and (len(cur) >= mb or (len(cur) + 1) * max(cur_max, length) > budget):
-                chunks.append(np.array(cur))
-                cur, cur_max = [], 0.0
-            cur.append(i)
-            cur_max = max(cur_max, length)
-        if cur:
-            chunks.append(np.array(cur))
-        random.shuffle(chunks)
-        return chunks
-
-    def ppo_update(self, buf: list | None = None) -> dict:
-        if buf is None:
-            buf, self.buffer = self.buffer, []
-        payload = pack_buffer(buf)
-        del buf
-        anchor = self.models.get(self.versions[-1]) if self.versions else None
-        out = ppo_train(self.model, self.opt, anchor, a=self.args, device=self.device,
-                        check=self.check_memory, release=self.release_cache, **payload)
-        self.weights_changed(self.model)
-        return out
+                        r["outcome"], r["winner"], seat), r["turns"], r["set_code"]))
 
     # ------------------------------------------------------------------ BC
 
-    def bc_train(self, epochs: int | None = None, lr: float | None = None,
-                 model: torch.nn.Module | None = None, keep: bool = False,
-                 tag: str = "bc", value_only: bool = False) -> dict:
-        """Supervised training on self.bc: cross-entropy on the recorded move + value MSE on the
-        outcome. ``model`` defaults to the learner; ``keep`` leaves self.bc for another model."""
+    def bc_train(self) -> None:
+        """Behaviour cloning on self.bc (teacher inter-play): cross-entropy on the teacher's move
+        plus --bc-vcoef x value MSE on the game's outcome; linear warmup, then cosine decay."""
         a = self.args
-        epochs = a.bc_epochs if epochs is None else epochs
-        lr = a.bc_lr if lr is None else lr
-        net = self.model if model is None else model
-        data = self.bc
+        net = self.model
+        data, self.bc = self.bc, []
         gids = sorted({x[3] for x in data})
-        # A game is held out by its own id, once and for all: re-sampling the holdout each
-        # generation put games trained on earlier into the test set (r5 gen 2's value MSE 0.25).
+        # whole games are held out (by id): positions of one game share its outcome and are
+        # near copies, so a split by position would leak the test set into training
         every = max(2, int(1 / max(a.bc_holdout, 1e-3)))
         hold = {g for g in gids if g % every == 0}
         train = [x for x in data if x[3] not in hold]
         test = [x for x in data if x[3] in hold]
-        self.log({"event": "bc_data", "model": tag, "samples": len(data), "train": len(train),
+        self.log({"event": "bc_data", "samples": len(data), "train": len(train),
                   "test": len(test), "games": len(gids)})
-        before = self.bc_eval(test, net)[1] if value_only and test else None
-        first_before = before
-        kept_epoch = -1
-        saved = ({k: v.detach().clone() for k, v in net.state_dict().items()}
-                 if value_only else None)
-        vcoef = 1.0 if value_only else a.bc_vcoef
         net.train()
-        opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=a.wd)
-        steps_total = max(1, epochs * math.ceil(len(train) / a.mb))
+        opt = torch.optim.AdamW(net.parameters(), lr=a.bc_lr, weight_decay=a.wd)
+        steps_total = max(1, a.bc_epochs * math.ceil(len(train) / a.mb))
         warm = max(1, steps_total // 20)
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / warm) * (
             0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(1.0, s / steps_total)))))
-        best = None
-        for epoch in range(epochs):
+        lengths = np.array([x[0]["cards_i"].shape[0] + x[0]["opts_i"].shape[0] for x in train],
+                           dtype=np.float64)
+        for epoch in range(a.bc_epochs):
             t0 = time.time()
             ls = []
-            chunks = self._chunks(train, a.mb, lambda x: x[0]["cards_i"].shape[0]
-                                  + x[0]["opts_i"].shape[0])
-            n_chunks = len(chunks)
-            for ch in chunks:
+            batches = chunks(lengths, a.mb, a.tok_budget)
+            for ch in batches:
                 self.check_memory()
                 b = M.collate([train[i][0] for i in ch], self.device)
                 act = torch.tensor([train[i][1] for i in ch], device=self.device)
                 z = torch.tensor([train[i][2] for i in ch], device=self.device)
-                wp = torch.tensor([train[i][4] if len(train[i]) > 4 else 1.0 for i in ch],
-                                  device=self.device)
                 with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                     logits, v = net(b)
-                # hard label (the played move) unless the search left a soft target
-                tgt = torch.zeros_like(logits)
-                tgt[torch.arange(len(ch), device=self.device), act] = 1.0
-                for row, i in enumerate(ch):
-                    soft = train[i][5] if len(train[i]) > 5 else None
-                    if soft:
-                        tgt[row].zero_()
-                        for j, pj in soft:
-                            tgt[row, j] = pj
-                ce = -(tgt * torch.log_softmax(logits.float(), -1)).sum(-1)
-                pol = (ce * wp).sum() / wp.sum().clamp(min=1.0)
-                loss = (0.0 if value_only else pol) + vcoef * F.mse_loss(v, z)
+                loss = F.cross_entropy(logits.float(), act) + a.bc_vcoef * F.mse_loss(v, z)
                 # equal weight per decision across length-sorted, token-capped chunks
-                loss = loss * (len(ch) * n_chunks / max(len(train), 1))
+                loss = loss * (len(ch) * len(batches) / max(len(train), 1))
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(net.parameters(), a.max_grad)
                 opt.step()
                 sched.step()
                 ls.append(loss.item())
-            acc, vl = self.bc_eval(test, net)
-            row = {"event": "bc_epoch", "model": tag, "epoch": epoch,
-                   "loss": round(float(np.mean(ls)), 5),
-                   "test_acc": acc, "test_vloss": vl, "secs": round(time.time() - t0, 1)}
-            self.log(row)
-            best = row
-            if value_only and before is not None and vl < before:
-                # early stopping for the value net: remember the best epoch by held-out MSE
-                before = vl
-                saved = {k: v.detach().clone() for k, v in net.state_dict().items()}
-                kept_epoch = epoch
+            acc, vl = self.bc_eval(test)
+            self.log({"event": "bc_epoch", "epoch": epoch, "loss": round(float(np.mean(ls)), 5),
+                      "test_acc": acc, "test_vloss": vl, "secs": round(time.time() - t0, 1)})
         net.eval()
         self.weights_changed(net)
-        if value_only and best is not None and before is not None:
-            best["before_vloss"] = first_before
-            best["kept_epoch"] = kept_epoch
-            best["kept_vloss"] = before
-            if kept_epoch != epochs - 1:  # the last epoch was not the best: restore the best
-                net.load_state_dict(saved)
-                best["test_vloss"] = before
-                best["reverted"] = kept_epoch < 0
-                self.log({"event": "value_revert" if kept_epoch < 0 else "value_early_stop",
-                          "model": tag, "before": first_before, "kept_epoch": kept_epoch,
-                          "kept": before})
-        if not keep:
-            self.bc = []
         self.release_cache()
-        return best or {}
 
     @torch.no_grad()
-    def bc_eval(self, test: list, net: torch.nn.Module | None = None) -> tuple[float, float]:
-        net = self.model if net is None else net
+    def bc_eval(self, test: list) -> tuple[float, float]:
+        """Held-out agreement with the teacher's moves and value MSE."""
+        net = self.model
         net.eval()
         correct = 0
-        labelled = 0
         vls = []
         for i in range(0, len(test), self.args.mb):
             part = test[i:i + self.args.mb]
@@ -934,13 +733,11 @@ class Learner:
             with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
                 logits, v = net(b)
             pred = logits.argmax(-1).cpu().numpy()
-            labelled += sum(1 for x in part if (x[4] if len(x) > 4 else 1.0) > 0)
-            correct += int(sum(int(p == x[1]) for p, x in zip(pred, part, strict=True)
-                               if (x[4] if len(x) > 4 else 1.0) > 0))
+            correct += sum(int(p == x[1]) for p, x in zip(pred, part, strict=True))
             z = torch.tensor([x[2] for x in part], device=self.device)
             vls.append(F.mse_loss(v, z).item())
         net.train()
-        return round(correct / max(labelled, 1), 4), round(float(np.mean(vls or [0])), 4)
+        return round(correct / max(len(test), 1), 4), round(float(np.mean(vls or [0])), 4)
 
     # ------------------------------------------------------------------ eval
 
@@ -965,7 +762,6 @@ class Learner:
                     job["a_seat"] = a_seat
                     job["search"] = search
                     job["set_code"] = a.eval_set
-                    job["pool_mode"] = a.eval_pool
                     self.eval_jobs.append(job)
                     self.eval_pending.add(job["gid"])
 
@@ -1009,23 +805,6 @@ class Learner:
             out["search"] = dict(search_stats)
         return out
 
-    # ------------------------------------------------------------------ league
-
-    def add_snapshot(self) -> str:
-        key = f"snap:{self.it}"
-        snap = M.build(self.table, **{k: v for k, v in self.model.config.items()
-                                      if k not in ("n_cards", "n_ir")}).to(self.device)
-        snap.load_state_dict(self.model.state_dict())
-        snap.eval()
-        self.models[key] = snap
-        self.snaps.append(key)
-        # keep only max_snaps on the GPU; games in flight against a dropped one finish on
-        # the newest snapshot instead
-        while len(self.snaps) > self.args.max_snaps:
-            old = self.snaps.pop(0)
-            self.models[old] = self.models[self.snaps[-1]]
-        return key
-
     def save(self, name: str, extra: dict | None = None) -> None:
         M.save(str(self.run / name), self.model, self.table,
                {"it": self.it, **(extra or {})})
@@ -1041,12 +820,9 @@ class Learner:
     def eval_only(self) -> None:
         """Evaluate --init (as the "eval" seat, optionally with search) and exit."""
         a = self.args
-        self.models["eval"] = self.model
         if a.opp_ckpt:
             opp, _, _ = M.load(a.opp_ckpt, self.device)
             self.models["snap:opp"] = opp.eval()
-        self.eval_rows = []
-        self.eval_meta = {"tag": "eval-only", "it": 0, "t0": time.time(), "init": a.init}
         self.start_eval("eval-only")
         self.models["eval"] = self.model  # start_eval made a frozen copy; same weights
         self.phase = "idle"
@@ -1175,7 +951,7 @@ class Learner:
                    ("past" if opp.startswith("v") else opp)].append(z)
             by_set: dict[str, list] = defaultdict(list)
             for row in res:
-                by_set[row[3] if len(row) > 3 else "M21"].append(row[1])
+                by_set[row[3]].append(row[1])
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,
                       "upd_s": round(time.time() - t1, 1), "collect_s": round(t1 - t0, 1),
                       # with --mix-sets: the training-game win rate per dealing set
@@ -1202,131 +978,17 @@ class Learner:
             self._eval_tick()
             if self.it % a.save_every == 0:
                 self.save("last.pt", {"versions": self.versions, "stage": self.stage})
-                self.save_state(deque(), deque(), deque())
+                self.save_state()
         self.save("last.pt", {"versions": self.versions, "stage": self.stage})
-        self.save_state(deque(), deque(), deque())
+        self.save_state()
 
-    def _drain_evals(self) -> None:
-        """Run every queued evaluation to completion (gates may queue ladders)."""
-        while True:
-            self._eval_tick()
-            if not self.eval_pending and not self.eval_meta and not self.eval_queue:
-                return
-            prev, self.phase = self.phase, "idle"
-            self.serve(lambda: not self.eval_pending)
-            self.phase = prev
-
-    def curriculum_exit(self) -> None:
-        """The same curriculum and gates, with expert iteration as the adaptation step: each
-        generation the searching learner plays --exit-games against the stage's opponents
-        (teacher stage: the heuristic; selfplay: the newest frozen version, plus --p-past and
-        --p-heuristic), the network is trained on the moves the search chose and the outcomes
-        (a window of --exit-keep generations), then the stage's gate runs."""
-        a = self.args
-        window: deque = deque(maxlen=a.exit_keep)
-        # generations that left the policy window stay as value-only data (policy weight 0):
-        # the value head over-fits one window's ~1.5K games (r7 gen 1: held-out MSE 0.93 -> 1.05)
-        vwindow: deque = deque(maxlen=max(0, a.exit_value_keep - a.exit_keep))
-        vdata_window: deque = deque(maxlen=max(1, a.value_keep))
-        start = 1
-        if a.resume:
-            st = self.load_state(a.resume)
-            window.extend(st["window"])
-            vwindow.extend(st["vwindow"])
-            vdata_window.extend(st["vdata_window"])
-            start = st["it"] + 1
-            self.log({"event": "resume", "from": a.resume, "it": st["it"], "stage": self.stage,
-                      "versions": self.versions, "window": sum(map(len, window)),
-                      "value_window": sum(map(len, vdata_window))})
-        else:
-            v0 = self.freeze(self.model)
-            self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"],
-                            a.ladder_deals)
-            self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"],
-                            a.ladder_deals)
-            self._drain_evals()
-            self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
-        self.bc_seats = [a.exit_seat, a.exit_seat]
-        for self.it in range(start, a.iters + 1):
-            t0 = time.time()
-            self.bc, self.phase = [], "bc"
-            self.bc_target, self.bc_issued, self.bc_done = a.exit_games, 0, 0
-            self.v_target = a.value_games if "value" in self.models else 0
-            self.v_issued = self.v_done = 0
-            self.vdata = []
-            self.bc_seed0 = BC_SEED0 + 1_000_000 * self.it
-            self.serve(lambda: self.bc_done >= self.bc_target and self.v_done >= self.v_target)
-            self.phase = "idle"
-            if self.v_target:
-                vdata_window.append(self.vdata)
-            play_s = time.time() - t0
-            if len(window) == window.maxlen and vwindow.maxlen:
-                vwindow.append([(x[0], x[1], x[2], x[3], 0.0) for x in window[0]])
-            window.append(self.bc)
-            res, self.train_results = self.train_results, []
-            wr: dict[str, list] = defaultdict(list)
-            for opp, z, *_ in res:
-                wr["frozen" if opp == self.versions[-1] else
-                   ("past" if opp.startswith("v") else opp)].append(z)
-            self.bc = [x for part in window for x in part] + [x for part in vwindow for x in part]
-            n_window = len(self.bc)
-            t1 = time.time()
-            fit = self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr, keep=True)
-            vfit: dict = {}
-            if "value" in self.models:
-                policy_data = self.bc
-                self.bc = ([x for part in vdata_window for x in part] if self.v_target
-                           else policy_data)
-                vfit = self.bc_train(epochs=a.value_epochs, lr=a.value_lr,
-                                     model=self.models["value"], keep=True, tag="value",
-                                     value_only=True)
-                vfit["value_samples"] = len(self.bc)
-                self.bc = policy_data
-                M.save(str(self.run / "value.pt"), self.models["value"], self.table,
-                       {"it": self.it})
-            rfit: dict = {}
-            if "rollout" in self.models:
-                rfit = self.bc_train(epochs=a.rollout_epochs, lr=a.rollout_lr,
-                                     model=self.models["rollout"], keep=True, tag="rollout")
-                M.save(str(self.run / "rollout.pt"), self.models["rollout"], self.table,
-                       {"it": self.it})
-            self.bc = []
-            self.log({"event": "iter", "it": self.it, "stage": self.stage, "adapt": "exit",
-                      "rollout_acc": rfit.get("test_acc"),
-                      "value_net_mse": vfit.get("test_vloss"),
-                      "value_net_before": vfit.get("before_vloss"),
-                      "value_net_reverted": bool(vfit.get("reverted")),
-                      "value_samples": vfit.get("value_samples"), "value_games": self.v_done,
-                      "samples": len(window[-1]), "window": n_window,
-                      "label_acc": fit.get("test_acc"), "value_mse": fit.get("test_vloss"),
-                      "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
-                              for k, v in wr.items()},
-                      "games": len(res), "play_s": round(play_s, 1),
-                      "train_s": round(time.time() - t1, 1),
-                      "games_s": round(self.bc_done / max(play_s, 1e-6), 2),
-                      "frozen": self.versions[-1], "mem_gib": round(mem_available_gib(), 1),
-                      "search": dict(self.gen_search),
-                      "games_void": self.counts["bc:void"], "games_leaky": self.counts["bc:leaky"]})
-            self.gen_search = Counter()
-            self.bc = []
-            if self.stage == "teacher" and self.it % a.eval_every == 0:
-                self.queue_eval("teacher", f"teacher:it{self.it}", "eval", ["heuristic"],
-                                a.eval_deals)
-            if self.stage == "selfplay" and self.it % a.gate_every == 0:
-                self.queue_eval("gate", f"gate:it{self.it}", "eval", [self.versions[-1]],
-                                a.gate_deals)
-            self._drain_evals()
-            self.save("last.pt", {"versions": self.versions, "stage": self.stage})
-            self.save_state(window, vwindow, vdata_window)
-
-    def save_state(self, window: deque, vwindow: deque, vdata_window: deque) -> None:
-        """Everything --resume needs besides the checkpoints: the data windows, the stage, the
-        version list and the rating games (written atomically after each generation)."""
+    def save_state(self) -> None:
+        """Everything --resume needs besides the checkpoints: the stage, the version list and the
+        rating games (written atomically with every save of last.pt)."""
         import pickle
 
         state = {"it": self.it, "stage": self.stage, "versions": self.versions,
-                 "elo_games": self.elo_games, "window": list(window), "vwindow": list(vwindow),
-                 "vdata_window": list(vdata_window),
+                 "elo_games": self.elo_games, "pool": self.args.pool,
                  # a resume continues the job ids (training seeds), the opponent draws, the gate
                  # deal blocks and any queued evaluation (a freeze's ladder)
                  "gid": self.gid, "rng": self.rng.getstate(), "n_gates": self.n_gates,
@@ -1337,20 +999,23 @@ class Learner:
         tmp.replace(self.run / "state.pkl")
 
     def load_state(self, run_dir: str) -> dict:
-        """Restore a run saved by save_state: learner weights (last.pt), value net (value.pt),
-        every frozen version (v<k>.pt), stage, ratings and data windows."""
+        """Restore a run saved by save_state: learner weights (last.pt), every frozen version
+        (v<k>.pt), stage, ratings, job ids, opponent draws and queued evaluations."""
         import pickle
 
         src = Path(run_dir)
         with (src / "state.pkl").open("rb") as fh:
             st = pickle.load(fh)
+        # A run deals from one pool: its ratings and evaluations compare games dealt from it.
+        # State files from before --pool existed were written by runs that dealt castable cards.
+        pool = st.get("pool", "castable")
+        if pool != self.args.pool:
+            raise ValueError(f"--resume {run_dir}: that run dealt from the {pool!r} pool, not "
+                             f"{self.args.pool!r}; resume it with --pool {pool}, or start a new "
+                             f"run from its weights with --init {src / 'last.pt'}")
         model, _, _ = M.load(str(src / "last.pt"), self.device)
         self.model.load_state_dict(model.state_dict())
         self.weights_changed(self.model)
-        if (src / "value.pt").exists() and "value" in self.models:
-            vnet, _, _ = M.load(str(src / "value.pt"), self.device)
-            self.models["value"].load_state_dict(vnet.state_dict())
-            self.weights_changed(self.models["value"])
         for name in st["versions"]:
             net, _, _ = M.load(str(src / f"{name}.pt"), self.device)
             self.models[name] = net.eval()
@@ -1365,42 +1030,6 @@ class Learner:
         self.n_gates = st.get("n_gates", 0)
         self.eval_queue.extend(st.get("eval_queue", []))
         return st
-
-    def run_eval(self, tag: str, seat: str) -> dict:
-        self.start_eval(tag, seat=seat)
-        prev, self.phase = self.phase, "idle"
-        self.serve(lambda: not self.eval_pending)
-        self.phase = prev
-        ev = self.eval_summary()
-        self.log(ev)
-        self.eval_meta = {}
-        return ev
-
-    def expert_iteration(self) -> None:
-        """Generations of: play --exit-games with the searching network, train the network on
-        the moves the search chose (and the outcomes), evaluate with and without search."""
-        a = self.args
-        window: deque = deque(maxlen=a.exit_keep)
-        self.bc_seats = [a.exit_seat, a.exit_seat]
-        self.exit_opps = a.exit_opps.split(",")
-        for gen in range(1, a.exit_gens + 1):
-            self.it = gen
-            self.bc, self.phase = [], "bc"
-            self.bc_target, self.bc_issued, self.bc_done = a.exit_games, 0, 0
-            self.bc_seed0 = BC_SEED0 + 1_000_000 * gen
-            t0 = time.time()
-            self.serve(lambda: self.bc_done >= self.bc_target)
-            self.phase = "idle"
-            window.append(self.bc)
-            self.log({"event": "exit_gen", "gen": gen, "games": self.bc_done,
-                      "samples": len(self.bc), "secs": round(time.time() - t0, 1),
-                      "counts": {k: v for k, v in self.counts.items() if k.startswith("bc")}})
-            self.bc = [x for part in window for x in part]
-            self.bc_train(epochs=a.exit_epochs, lr=a.exit_lr)
-            self.sync_actor()
-            self.save(f"exit_gen{gen}.pt")
-            for seat in a.exit_eval_seats.split(","):
-                self.run_eval(f"gen{gen}:{seat}", seat)
 
     def bc_phase(self) -> None:
         """Teacher inter-play: heuristic-vs-heuristic games, then behaviour cloning."""
@@ -1424,7 +1053,6 @@ class Learner:
         self.log({"event": "bc_gen_done", "games": self.bc_done, "samples": len(self.bc),
                   "secs": round(time.time() - t0, 1), "counts": dict(self.counts)})
         self.bc_train()
-        self.sync_actor()
         self.save("bc.pt")
 
     def main(self) -> None:
@@ -1436,71 +1064,11 @@ class Learner:
             if a.eval_only:
                 self.eval_only()
                 return
-            if a.curriculum:
-                if a.bc_games > 0 and not a.init:
-                    self.bc_phase()
-                if a.adapt == "exit":
-                    self.curriculum_exit()
-                else:
-                    self.curriculum()
-                return
-            if a.exit_gens > 0:
-                self.add_snapshot()
-                self.models["snap:base"] = self.models[self.snaps[-1]]
-                for seat in a.exit_eval_seats.split(","):
-                    self.run_eval(f"gen0:{seat}", seat)
-                self.expert_iteration()
-                return
-            if a.bc_games > 0 and not a.init:
+            # teacher inter-play only for a network trained from scratch; a resume restores
+            # the network from its run instead
+            if a.bc_games > 0 and not (a.init or a.resume):
                 self.bc_phase()
-            self.add_snapshot()  # the starting policy is the league's first member
-            self.models["snap:base"] = self.models[self.snaps[-1]]
-            self.start_eval("start")
-            self.phase = "ppo"
-            best = -1.0
-            for self.it in range(1, a.iters + 1):
-                t0, g0, d0 = time.time(), sum(self.counts[k] for k in
-                                              ("train:games", "eval:games", "bc:games")), self.infer_items
-                self.serve(lambda: len(self.buffer) >= a.steps)
-                tp = self.throughput(t0, g0, d0)
-                t1 = time.time()
-                st = self.update()
-                upd = round(time.time() - t1, 1)
-                res = self.train_results
-                self.train_results = []
-                wr: dict[str, list] = defaultdict(list)
-                for opp, z, *_ in res:
-                    if opp != "self":
-                        wr[opp.split(":")[0]].append(z)
-                row = {"event": "iter", "it": self.it, **st, **tp, "upd_s": upd,
-                       "collect_s": round(t1 - t0, 1),
-                       "vs": {k: round(float(np.mean(v)), 3) for k, v in wr.items()},
-                       "turns": round(float(np.mean([x[2] for x in res])) if res else 0, 1),
-                       "games": len(res), "mem_gib": round(mem_available_gib(), 1),
-                       "infer_bs": round(self.infer_items / max(self.infer_batches, 1), 1),
-                       "voids": self.counts["train:void"], "overflow": self.counts["overflow"]}
-                self.log(row)
-                if self.it % a.snap_every == 0:
-                    self.add_snapshot()
-                if self.eval_meta and not self.eval_pending and self.eval_rows:
-                    ev = self.eval_summary()
-                    self.log(ev)
-                    score = ev.get("heuristic", {}).get("score", -1)
-                    if score > best and ev.get("tag") != "start":
-                        best = score
-                        self.save("best.pt", {"eval": ev})
-                    self.eval_meta = {}
-                if self.it % a.eval_every == 0 and not self.eval_pending:
-                    self.start_eval(f"it{self.it}")
-                if self.it % a.save_every == 0:
-                    self.save("last.pt")
-            self.save("last.pt")
-            # final evaluation, waited for
-            if not self.eval_pending:
-                self.start_eval("final")
-            self.phase = "idle"
-            self.serve(lambda: not self.eval_pending)
-            self.log(self.eval_summary())
+            self.curriculum()
         finally:
             self.stop_workers()
 
@@ -1546,11 +1114,7 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--target-kl", type=float, default=0.03)
     p.add_argument("--draw-reward", type=float, default=-1.0)
     # opponents
-    p.add_argument("--p-self", type=float, default=0.5)
     p.add_argument("--p-heuristic", type=float, default=0.25)
-    p.add_argument("--p-random", type=float, default=0.0)
-    p.add_argument("--snap-every", type=int, default=5)
-    p.add_argument("--max-snaps", type=int, default=10)
     p.add_argument("--coherent-share", type=float, default=0.5)
     # eval
     p.add_argument("--eval-every", type=int, default=10)
@@ -1560,7 +1124,6 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-only", action="store_true", help="evaluate --init and exit")
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
-    p.add_argument("--curriculum", action="store_true")
     p.add_argument("--refresh-table", action="store_true",
                    help="rebuild the --init card table's rows from the current compile (after "
                         "an engine/compiler change re-compiled cards); new components learnable")
@@ -1568,26 +1131,21 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="comma list of sets whose castable cards join the card table (names "
                         "unknown, components in the trained vocabulary)")
     p.add_argument("--eval-set", default="M21", help="the set evaluation decks are dealt from")
-    p.add_argument("--eval-pool", default="castable",
-                   help="pool mode of the evaluation decks: 'compiled' deals only cards whose "
-                        "whole text compiled ('castable' also deals partly parsed cards with the "
-                        "rest of their text missing; the two are equal on M21)")
+    p.add_argument("--pool", default="verified", choices=("verified", "compiled", "castable"),
+                   help="the cards every game deals from (training, mixed sets, evaluation; "
+                        "games.compile_supply): 'verified' = whose current compiled tree passed "
+                        "play-time verification; 'compiled' = whole text compiled; 'castable' "
+                        "also deals partly parsed cards with the rest of their text missing")
     p.add_argument("--mix-sets", default="",
                    help="comma list of sets some training games are dealt from (must also be "
                         "in --extend-sets)")
     p.add_argument("--mix-share", type=float, default=0.25,
                    help="share of training games dealt from --mix-sets")
-    p.add_argument("--mix-pool", default="compiled", help="pool mode of the mixed games")
-    p.add_argument("--mix-allow", default="",
-                   help="JSON {set: [oracle ids]}: the non-land cards a mixed game may deal")
     p.add_argument("--mask-names", action="store_true",
                    help="the --init network reads every card name as the unknown card")
     p.add_argument("--resume", default="",
-                   help="--curriculum: continue the run saved in this directory (state.pkl, "
-                        "last.pt, value.pt, v<k>.pt)")
-    p.add_argument("--adapt", default="ppo", choices=("ppo", "exit"),
-                   help="how the learner adapts in each stage: PPO, or expert iteration (search "
-                        "distillation, generations of --exit-games)")
+                   help="continue the run saved in this directory (state.pkl, last.pt, "
+                        "v<k>.pt)")
     p.add_argument("--teacher-iters", type=int, default=60,
                    help="max PPO iterations against the heuristic before frozen self-play")
     p.add_argument("--teacher-gate", type=float, default=0.65,
@@ -1599,45 +1157,13 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                         "(and the 95%% interval is above 0.5)")
     p.add_argument("--ladder-deals", type=int, default=100)
     p.add_argument("--p-past", type=float, default=0.1, help="selfplay games vs older versions")
-    p.add_argument("--kl-anchor", type=float, default=0.0,
-                   help="weight of KL(learner || newest frozen version) in the PPO loss")
-    p.add_argument("--exit-gens", type=int, default=0, help="expert-iteration generations")
-    p.add_argument("--exit-games", type=int, default=2000)
-    p.add_argument("--exit-seat", default="learner+search", help="the seat whose moves are learned")
-    p.add_argument("--exit-opps", default="heuristic,learner",
-                   help="opponents, one drawn per game (learner = the network, unsearched)")
-    p.add_argument("--exit-epochs", type=int, default=2)
-    p.add_argument("--exit-lr", type=float, default=2e-4)
-    p.add_argument("--exit-keep", type=int, default=3, help="generations of data trained on")
-    p.add_argument("--exit-value-keep", type=int, default=0,
-                   help="generations of value targets (>= --exit-keep; older ones value-only)")
-    p.add_argument("--exit-value-opp", action="store_true",
-                   help="also record the opponent's positions (value targets only)")
-    p.add_argument("--exit-eval-seats", default="eval,eval+search")
-    p.add_argument("--value-init", default="",
-                   help="checkpoint of a separate value network for the search's leaves")
-    p.add_argument("--value-games", type=int, default=0,
-                   help="fast unsearched games per ExIt generation that only feed value positions")
-    p.add_argument("--value-p", type=float, default=0.06,
-                   help="probability a decision's position becomes a value sample")
-    p.add_argument("--value-keep", type=int, default=10, help="generations of value positions")
-    p.add_argument("--value-epochs", type=int, default=1)
-    p.add_argument("--value-lr", type=float, default=5e-5)
-    p.add_argument("--rollout-init", default="",
-                   help="checkpoint of a small network that plays the moves inside simulations")
-    p.add_argument("--rollout-epochs", type=int, default=3)
-    p.add_argument("--rollout-lr", type=float, default=3e-4)
     p.add_argument("--search-blocks", action="store_true",
                    help="searching seats also plan their blocks at the pre-blocks boundary")
-    p.add_argument("--search-tau", type=float, default=0.05,
-                   help="soft search targets: prior x exp(score / tau)")
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")
     p.add_argument("--search-d", type=int, default=2, help="sampled worlds per option")
     p.add_argument("--search-skip-p", type=float, default=0.97,
                    help="no search when the network's top option has at least this probability")
     p.add_argument("--save-every", type=int, default=5)
-    p.add_argument("--trainer-proc", action="store_true",
-                   help="PPO updates in a separate process; the workers never wait for one")
     p.add_argument("--progress-every", type=float, default=300.0,
                    help="seconds between progress events while serving (0: off)")
     p.add_argument("--serve-wait", type=float, default=2.0,
@@ -1647,8 +1173,6 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--bucket-min", type=int, default=8, help="minimum requests per length bucket")
     p.add_argument("--infer-bf16", action="store_true",
                    help="answer inference from bf16 copies of the models (1.6-1.9x faster)")
-    p.add_argument("--async-update", action="store_true",
-                   help="train in a thread while the workers keep playing on an actor copy")
     p.add_argument("--mem-floor-gib", type=float, default=8.0,
                    help="stop the run (emergency checkpoint) below this much MemAvailable")
     return p.parse_args(argv)

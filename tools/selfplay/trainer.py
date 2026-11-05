@@ -1,9 +1,9 @@
-"""The trainer process (--trainer-proc): PPO updates in their own process and CUDA context.
+"""The trainer process: PPO updates (ppo.py) in their own process and CUDA context.
 
 The learner keeps answering the workers on the current weights while this process trains on
 the previous batch; the GPU time-slices between the two contexts, so the workers never wait for
-an update. Protocol (one Pipe): learner -> ("anchor", name, state) | ("update", payload, anchor
-name) | ("stop",); trainer -> ("done", state, stats) | ("error", text).
+an update. Protocol (one Pipe): learner -> ("update", payload) | ("stop",); trainer ->
+("done", state, stats) | ("error", text).
 """
 
 from __future__ import annotations
@@ -41,7 +41,6 @@ def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
     model = build(ckpt["state"])
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, betas=(0.9, 0.99), eps=1e-6,
                             weight_decay=a.wd)
-    anchors: dict[str, torch.nn.Module] = {}
 
     def check() -> None:
         avail = _mem_available_gib()
@@ -57,13 +56,9 @@ def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
             msg = conn.recv()
             if msg[0] == "stop":
                 return
-            if msg[0] == "anchor":
-                _, name, state = msg
-                anchors = {name: build(state)}  # only the newest frozen version is an anchor
-                continue
-            _, payload, anchor_name = msg
-            stats = ppo_train(model, opt, anchors.get(anchor_name), a=a, device=device,
-                              check=check, release=release, **payload)
+            _, payload = msg
+            stats = ppo_train(model, opt, a=a, device=device, check=check, release=release,
+                              **payload)
             state = {k: v.detach().to("cpu") for k, v in model.state_dict().items()}
             conn.send(("done", state, stats))
     except BaseException as error:  # noqa: BLE001 - reported to the learner, which stops
