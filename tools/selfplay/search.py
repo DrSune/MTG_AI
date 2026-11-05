@@ -127,12 +127,15 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
     return None
 
 
-def mean_score(values: list) -> float:
-    """A candidate's score over its sampled worlds. A world whose simulation crashed (None)
-    is left out: scored 0.0 it beat every losing leaf, so in a bad position the move that
-    crashes the engine won the search. Every world crashed: the worst score."""
-    ok = [v for v in values if v is not None]
-    return sum(ok) / len(ok) if ok else -1.0
+def mean_scores(raw: dict) -> dict:
+    """Each candidate's score over its sampled worlds. A world whose simulation crashed (None)
+    scores the mean of every simulation of this search that did not: what the search believes
+    of the position, the same for every candidate. Dropped, it scored a candidate only on the
+    worlds it survived (a move that crashed its bad worlds looked better, 2026-11-05 red-team);
+    scored 0.0, the crashing move won in a bad position. Nothing survived: -1 for all."""
+    ok = [v for vals in raw.values() for v in vals if v is not None]
+    neutral = sum(ok) / len(ok) if ok else -1.0
+    return {c: sum(neutral if v is None else v for v in vals) / len(vals) for c, vals in raw.items()}
 
 
 def block_answer(ask: Any, plan: frozenset) -> int | None:
@@ -180,10 +183,8 @@ class Searcher:
         # Common random numbers: every candidate is played in the SAME d sampled worlds, so a
         # difference in score is the move's, not the luck of the opponent's sampled hand.
         worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
-        scores = {}
-        for i in order:
-            scores[i] = mean_score([self.simulate(obs.game, ask.seat, ask.options[i].token,
-                                                  world=w) for w in worlds])
+        scores = mean_scores({i: [self.simulate(obs.game, ask.seat, ask.options[i].token, world=w)
+                                  for w in worlds] for i in order})
         best = max(order, key=lambda i: (scores[i], probs[i]))
         self.stats["searched"] += 1
         self.stats["changed"] += int(best != a0)
@@ -229,10 +230,8 @@ class Searcher:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
         worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
-        scores = {}
-        for pl in uniq:
-            scores[pl] = mean_score([self.simulate(game, seat, None, attack_plan=pl, world=w)
-                                     for w in worlds])
+        scores = mean_scores({pl: [self.simulate(game, seat, None, attack_plan=pl, world=w)
+                                   for w in worlds] for pl in uniq})
         best = max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["plans"] = self.stats.get("plans", 0) + 1
         self.stats["plans_changed"] = self.stats.get("plans_changed", 0) + int(best != base)
@@ -297,8 +296,8 @@ class Searcher:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
         worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
-        scores = {pl: mean_score([self.simulate(game, seat, None, block_plan=pl, world=w)
-                                  for w in worlds]) for pl in uniq}
+        scores = mean_scores({pl: [self.simulate(game, seat, None, block_plan=pl, world=w)
+                                   for w in worlds] for pl in uniq})
         best = max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["blocks"] = self.stats.get("blocks", 0) + 1
         self.stats["blocks_changed"] = self.stats.get("blocks_changed", 0) + int(best != base)

@@ -87,6 +87,13 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             # a mean loss per minibatch gave a long decision ~15x the weight of a short one.
             # Scale so every decision weighs the same (2026-11-05 review).
             loss = loss * (len(act_t) * len(batches) / max(n, 1))
+            with torch.no_grad():
+                kl = ((ratio - 1) - (lp - old_logp)).mean().item()
+            # Stop before a step on a minibatch the policy has already left by 1.5x the target
+            # (as SB3 does): checked only between epochs, the target never acted at --epochs 1.
+            if a.target_kl > 0 and kl > 1.5 * a.target_kl:
+                stop = True
+                break
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(loss):
                 stats["nonfinite"].append(1.0)
@@ -99,7 +106,6 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 continue
             opt.step()
             with torch.no_grad():
-                kl = ((ratio - 1) - (lp - old_logp)).mean().item()
                 kls.append(kl)
                 stats["pg"].append(pg.item())
                 stats["v"].append(vloss.item())
@@ -108,7 +114,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 stats["clip"].append(((ratio - 1).abs() > a.clip).float().mean().item())
                 stats["gn"].append(float(gn))
         stats["epochs"].append(epoch + 1)
-        if a.target_kl > 0 and kls and float(np.mean(kls)) > a.target_kl:
+        if stop or (a.target_kl > 0 and kls and float(np.mean(kls)) > a.target_kl):
             stop = True
             break
     n_batches = len(batches)

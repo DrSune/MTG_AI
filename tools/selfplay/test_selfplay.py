@@ -590,3 +590,37 @@ def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
     for kind in ("teacher", "gate", "ladder"):
         L.Learner.queue_eval(fake, kind, kind, "eval", ["heuristic"], 10)
     assert [q[5] for q in fake.eval_queue] == [L.GATE_SEED0, L.GATE_SEED0 + 1000, L.EVAL_SEED0]
+
+
+def test_a_crashed_world_is_neutral_between_candidates() -> None:
+    """A crashed simulation scores the search's mean belief, the same for every candidate:
+    dropping it let a move be scored only on the worlds it survived (2026-11-05 red-team)."""
+    from tools.selfplay.search import mean_scores
+    got = mean_scores({"a": [1.0, None], "b": [0.0, 0.0]})
+    assert abs(got["a"] - (1.0 + 1 / 3) / 2) < 1e-9 and got["b"] == 0.0
+    assert mean_scores({"a": [None], "b": [None]}) == {"a": -1.0, "b": -1.0}
+
+
+def test_ppo_stops_inside_the_epoch_when_the_policy_has_left_the_data(table) -> None:
+    """--target-kl was checked only between epochs, so at --epochs 1 it never acted (2026-11-05
+    red-team). With data whose behaviour policy is far from the network, no step is taken."""
+    from types import SimpleNamespace
+
+    from tools.selfplay.ppo import ppo_train
+    recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
+    play_game(7, recs, deck_mode="coherent")
+    samples = recs[0].samples + recs[1].samples
+    n = len(samples)
+    packed = M.pack([s[0] for s in samples])
+    acts = np.array([s[1] for s in samples])
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    before = [p.detach().clone() for p in net.parameters()]
+    opt = torch.optim.AdamW(net.parameters(), lr=1e-3)
+    a = SimpleNamespace(epochs=1, mb=16, tok_budget=10**9, clip=0.2, vclip=0.2, vcoef=0.5,
+                        ent=0.0, max_grad=1.0, target_kl=0.03)
+    far = np.full(n, -15.0, dtype=np.float32)  # the data's actions had ~0 probability
+    zeros = np.zeros(n, dtype=np.float32)
+    out = ppo_train(net, opt, packed, acts, far, zeros, zeros + 1, zeros + 1, a, torch.device("cpu"))
+    assert out["kl_stop"]
+    assert all(torch.equal(b, p) for b, p in zip(before, net.parameters(), strict=True))

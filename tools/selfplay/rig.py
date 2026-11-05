@@ -141,7 +141,7 @@ def outcome_of(game: Any) -> tuple[str, int | None]:
 
 
 def play_game(seed: int, agents: list[Any], *, deck_mode: str = "stress",
-              pool_mode: str = "castable", set_code: str = "M21", deck_pairs_seed: int = 1409,
+              pool_mode: str = "verified", set_code: str = "M21", deck_pairs_seed: int = 1409,
               turn_cap: int = TURN_CAP) -> dict[str, Any]:
     """Play one game between ``agents[0]`` (seat 0) and ``agents[1]`` (seat 1), both decks
     dealt from ``get_supply(pool_mode, set_code)`` (the learner passes its --pool)."""
