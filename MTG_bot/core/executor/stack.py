@@ -412,6 +412,46 @@ def positional_slot_designations(slots: list, targets: Sequence[Handle]) -> dict
     }
 
 
+def recheck_targets(
+    executor: Executor,
+    slots: list,
+    targets: Sequence[Handle],
+    *,
+    own: Handle | None = None,
+) -> tuple[tuple[Handle, ...], dict[str, tuple[Handle, ...]] | None]:
+    """CR 608.2b: as a spell or ability resolves, each of its targets is checked again against
+    the slot it was chosen for, ``slots`` recomputed now (the same populations the choice
+    was made from: zone, filter, protection and hexproof). Returns the targets still legal,
+    and for a positional multi-slot designation the per-slot map with each illegal slot
+    emptied (its TARGET selector then acts on nothing; CR 608.2b: an illegal target is not
+    affected). With every target illegal the first value is empty and the caller does not
+    resolve the spell or ability. ``own`` is a spell's own handle, the self-clause
+    designation trusted by construction (CR 115.4, _plan_cast_designation). On a
+    synthesized player slot a card stands for its controller, as when it was chosen
+    (legality.activation_target_reason)."""
+
+    def legal(slot, handle: Handle) -> bool:
+        if handle == own or handle in slot.candidates:
+            return True
+        return (
+            getattr(slot, "synthetic", False)
+            and handle.namespace == "card"
+            and executor.controller_of(handle) in slot.candidates
+        )
+
+    if len(slots) <= 1:
+        if not slots:
+            return tuple(targets), None
+        return tuple(h for h in targets if legal(slots[0], h)), None
+    kept = {
+        repr(slot.selector): (
+            (targets[i],) if i < len(targets) and legal(slot, targets[i]) else ()
+        )
+        for i, slot in enumerate(slots)
+    }
+    return tuple(sorted(h for one in kept.values() for h in one)), kept
+
+
 def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
     """V13 (2026-10-29): "target creature ... and another target creature"
     (Rookie Mistake, Garruk, Savage Herald's -2). The compiler marks the
@@ -507,7 +547,11 @@ def _plan_cast_designation(
     decisions: tuple[str, ...],
     mode_choices: tuple[int, ...],
 ) -> tuple[
-    tuple[Handle, ...], dict[str, tuple[Handle, ...]], tuple[str, ...], tuple[int, ...]
+    tuple[Handle, ...],
+    dict[str, tuple[Handle, ...]],
+    tuple[str, ...],
+    tuple[int, ...],
+    SpellAbility,
 ]:
     """r19c: the CR 601.2b/2c DECLARATION lane — modes, then targets, with
     the three machinery gaps the suspects pinned, each closing a loud raise:
@@ -537,7 +581,9 @@ def _plan_cast_designation(
       ExecCtx.slot_designations.
 
     Returns ``(designated_targets, slot_designations, remaining_decisions,
-    declared_modes)``. Validation of the finished designation happens
+    declared_modes, node)``, ``node`` narrowed to the declared modes (its
+    slots are the ones the targets were chosen for; resolution checks them
+    again, CR 608.2b). Validation of the finished designation happens
     HERE — :func:`cast` must not re-validate mode-blind."""
     from MTG_bot.core.ability_tree import FAtomPred
     from MTG_bot.core.executor.query import (
@@ -573,7 +619,7 @@ def _plan_cast_designation(
         # targetless / TARGET_PLAYER-only legacy shapes: the original
         # player-coordinate oracle validates (it re-derives the same slots).
         _validate_spell_targets(executor, seat, handle, node, targets)
-        return targets, {}, remaining, modes
+        return targets, {}, remaining, modes, node
 
     # --- forced auto-designation (601.2c, one legal answer per slot) ------
     # `auto_skip` marks slots filled by the SELF-CLAUSE branch below: their
@@ -612,14 +658,14 @@ def _plan_cast_designation(
             reason = validate_target_selection(slots[0], targets)
             if reason is not None:
                 raise ValueError(f"executor: cast: illegal target selection: {reason}")
-        return targets, {}, remaining, modes
+        return targets, {}, remaining, modes, node
 
     _validate_positional(slots, targets, skip=auto_skip)
     slot_designations = positional_slot_designations(slots, targets)
     # a Choose-pruned multi-slot spell lands in the len==1 branch above;
     # a mode the caller supplied AND a multi-slot residue would mean the
     # option STILL fans slots — positional threading covers it unchanged.
-    return targets, slot_designations, remaining, modes
+    return targets, slot_designations, remaining, modes, node
 
 
 def _tree_has_counter(node: object) -> bool:
@@ -1083,7 +1129,7 @@ def cast(
     # 2-3: declaration — r19c: modes (601.2b) then targets (601.2c) through
     # the PLAN lane, which owns auto-designation, the Choose-mode prune and
     # positional multi-slot validation (and thereby the validation itself).
-    targets, slot_designations, decisions, declared_modes = _plan_cast_designation(
+    targets, slot_designations, decisions, declared_modes, target_node = _plan_cast_designation(
         executor,
         seat,
         handle,
@@ -1203,6 +1249,34 @@ def cast(
         # to its graveyard (400.7). The effect never runs and the spell
         # gets no SPELL_PUT — a countered spell was never put anywhere.
         return frame
+    if targets:
+        # CR 608.2b: the targets are checked again as the spell resolves; the cast
+        # triggers above it have resolved by now.
+        from MTG_bot.core.executor.query import spell_target_slots
+
+        legal_now, kept = recheck_targets(
+            executor,
+            spell_target_slots(executor, target_node, spell_handle=handle, seat=seat),
+            targets,
+            own=handle,
+        )
+        if not legal_now:
+            # Every target is illegal: the spell doesn't resolve. It is removed from
+            # the stack and put into its owner's graveyard (an Aura too, CR 608.3b).
+            before_put = executor.journal.snapshot()
+            start_put = len(executor.events)
+            world.move_to_zone(handle, seat, ZONE_GRAVEYARD)
+            executor.events.append(
+                (len(executor.events), "NO_LEGAL_TARGETS", str(handle), "stack->graveyard")
+            )
+            executor.journal.record_atom(
+                before_put, handle, "CAST", list(executor.events[start_put:])
+            )
+            executor._finish_op()
+            return frame
+        targets = legal_now
+        if kept is not None:
+            slot_designations = kept
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
     if chosen:
@@ -1388,7 +1462,16 @@ def cast_card(
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
-    triggers see it (CR 601.2m)."""
+    triggers see it (CR 601.2m).
+
+    2026-11-05 (CR 704.3): the spell is resolved here, inside the
+    resolution that cast it, and the two settles below stand for the
+    priority points that follow that resolution (its cast triggers above
+    the spell, then the spell, then its ETB triggers). That holds because
+    every compiled CAST is the last instruction of its effect (Idol of
+    Endurance, Conspicuous Snoop, Radha, Coveted Prize, Chandra, Flame's
+    Catalyst's [-2]). The cost payment above is part of the resolution
+    and does not settle (Executor._run_resolution)."""
     from MTG_bot.core.executor.legality import ctx_for, effect_cast_cost
 
     world = executor.world

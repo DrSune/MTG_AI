@@ -733,6 +733,24 @@ class TestCastTriggerFeed(StackCase):
         cast_card(self.ex, self.p1, exiled, cost_override=Cost(()))
         self.assertEqual(self.world.players[self.p0].life, life0 + 1)  # fired
 
+    def test_a_spell_that_targets_the_watcher_fires_it(self):
+        # known_bugs targets_source_in_cast_filter_never_matches (M20 Gnarlback Rhino):
+        # "Whenever you cast a spell that targets this creature, ..." is a CastSpellEvent
+        # whose filter is TARGETS_SOURCE. The matcher judged it with the trigger's own target
+        # bindings, so it never matched; it reads the cast spell's declared targets now.
+        watcher = self.watch(
+            CastSpellEvent(
+                FAtom(pred=FAtomPred.TARGETS_SOURCE),
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
+        )
+        life0 = self.world.players[self.p0].life
+        self.mana(self.p0, R=2)
+        cast(self.ex, self.p0, self.shock("Bolt A"), targets=(self.p1,))
+        self.assertEqual(self.world.players[self.p0].life, life0)  # not this creature
+        cast(self.ex, self.p0, self.shock("Bolt B"), targets=(watcher,))
+        self.assertEqual(self.world.players[self.p0].life, life0 + 1)
+
     def test_cast_trigger_resolves_above_the_spell(self):
         # the trigger's GAIN_LIFE row must land BEFORE the spell's DAMAGE
         self.watch(

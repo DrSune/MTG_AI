@@ -1299,7 +1299,7 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
             executor = ctx.executor  # branch-guarded non-None; local narrows
 
             def ok(handle: Handle) -> bool:
-                return cast_designee_ok(executor, ctx, handle, cost_override)
+                return cast_designee_ok(executor, ctx, handle, cost_override, atom=atom)
 
             return sorted(resolve_selector(value, ctx, ok=ok))
         # R3 (spec 141 §6): this is the EFFECT-role choke point — a finite

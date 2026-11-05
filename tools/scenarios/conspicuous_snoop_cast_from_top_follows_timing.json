@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "snoop",
+   "real": "Conspicuous Snoop",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "real": "Goblin Arsonist",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "snoop",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gob": "library"
+  }
+ },
+ "notes": "Conspicuous Snoop: 'You may cast Goblin spells from the top of your library.' A permission changes where a card is cast from, not when (CR 601.3); Goblin Arsonist is a creature (CR 302.1: own main phase, empty stack), so on the opponent's turn it stays on top. The compiled permission row used to cast it at instant speed."
+}

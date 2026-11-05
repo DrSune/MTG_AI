@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "i", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "wc", "real": "Walking Corpse", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "i"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
+  {"op": "activate", "key": "i", "idx": 1, "seat": 0}
+ ],
+ "expect": {"zone": {"i": "battlefield", "wc": "exile"}, "tapped": {"i": true}},
+ "notes": "Idol of Endurance: 'Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.' A permission changes where a card is cast from, not when (CR 601.3; a creature is cast in its controller's main phase with an empty stack, CR 302.1). On the opponent's turn the activation is legal and paid, but Walking Corpse (no flash) cannot be cast, so it stays in exile. The engine used to cast it at instant speed."
+}

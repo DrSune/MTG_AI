@@ -159,6 +159,9 @@ $PY tools/cards/cardtool.py --help
     library this way, shuffle." adds a SHUFFLE only to the options that search the library. See
     `parse` on any named tutor, or `templates.and_or_zone_search`.
   - "its controller" is a `referent='target'` selector in the `controller` role.
+  - "N damage to that creature's controller" has no encoding yet: a second TARGET selector over
+    the PLAYER zone is a target slot of its own, so the caster would pick who takes the damage.
+    Mark such a card needs-atom (M20 Chandra's Outrage).
   - Equip carries `timing=ActivationWindow.SORCERY` ("Equip only as a sorcery"). The compiler's
     equip template drops it (B-60), so add it.
 - **Tool tips.**

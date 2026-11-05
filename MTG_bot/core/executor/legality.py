@@ -131,6 +131,7 @@ from MTG_bot.core.state import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
+    from MTG_bot.core.ability_tree import CardRecord
     from MTG_bot.core.executor import Executor
     from MTG_bot.core.executor.layers import LayerRecord
 
@@ -1494,6 +1495,26 @@ def spell_window_reason(
     return None
 
 
+def card_window_reason(
+    executor: Executor, seat: Handle, record: CardRecord, node: SpellAbility
+) -> str | None:
+    """:func:`spell_window_reason` for one card: its spell's kind, with the card's own FLASH.
+
+    r23a (CR 702.9a): the cast lane's own record answers FLASH — the
+    compiled card carries KeywordAbility(FLASH) in its KEYWORDS tuple
+    (Masked Blackguard; the abilities list keeps only the cast/activated
+    nodes). Keyword grants from the battlefield describe permanents, not
+    a card waiting in hand, so the record is the honest source for a cast."""
+    flash = any(
+        isinstance(k, KeywordAbility) and k.keyword is Keyword.FLASH
+        for k in record.keywords
+    ) or any(
+        isinstance(a, KeywordAbility) and a.keyword is Keyword.FLASH
+        for a in record.abilities
+    )
+    return spell_window_reason(executor, seat, node.kind, flash=flash)
+
+
 def spell_castable(
     executor: Executor,
     seat: Handle,
@@ -1535,19 +1556,7 @@ def spell_castable(
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
     if node is None:
         return f"cast:not_a_spell:{handle}", None, None, None
-    # r23a (CR 702.9a): the cast lane's own record answers FLASH — the
-    # compiled card carries KeywordAbility(FLASH) in its KEYWORDS tuple
-    # (Masked Blackguard; the abilities list keeps only the cast/activated
-    # nodes). Keyword grants from the battlefield describe permanents, not
-    # a card waiting in hand, so the record is the honest source for a cast.
-    flash = any(
-        isinstance(k, KeywordAbility) and k.keyword is Keyword.FLASH
-        for k in record.keywords
-    ) or any(
-        isinstance(a, KeywordAbility) and a.keyword is Keyword.FLASH
-        for a in record.abilities
-    )
-    window = spell_window_reason(executor, seat, node.kind, flash=flash)
+    window = card_window_reason(executor, seat, record, node)
     if window is not None:
         return window, None, None, None
     additional = node.additional_costs
@@ -2041,15 +2050,29 @@ def activate(
     # exactly as the cast lane threads them (stack._plan_cast_designation); each
     # TARGET selector then reads its own designation, not the union.
     slot_designations = None
-    if len(targets) > 1:
+    if targets:
         from MTG_bot.core.executor.query import activation_target_slots
+        from MTG_bot.core.executor.stack import recheck_targets
 
         slots = activation_target_slots(executor, effect, source=handle, seat=seat)
-        if len(slots) == len(targets) > 1:
+        if len(targets) > 1 and len(slots) == len(targets):
             slot_designations = {
                 repr(slot.selector): (one,)
                 for slot, one in zip(slots, targets, strict=True)
             }
+        # CR 608.2b: the targets are checked again as the ability resolves, after its
+        # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).
+        legal_now, kept = recheck_targets(executor, slots, targets)
+        if not legal_now:
+            # Every target is illegal: the ability doesn't resolve.
+            executor.events.append(
+                (len(executor.events), "NO_LEGAL_TARGETS", str(handle), str(ability_idx))
+            )
+            executor._finish_op()
+            return ()
+        bindings["target"] = sorted(legal_now)
+        if slot_designations is not None and kept is not None:
+            slot_designations = kept
     return executor.apply_effect(
         effect,
         source=handle,

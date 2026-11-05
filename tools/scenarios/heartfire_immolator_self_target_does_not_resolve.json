@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hf", "real": "Heartfire Immolator", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "activate", "key": "hf", "idx": 0, "seat": 0, "targets": ["hf"]}
+ ],
+ "expect": {
+  "zone": {"hf": "graveyard", "ogre": "battlefield"},
+  "damage_received": {"hf": 0, "ogre": 0}
+ },
+ "notes": "Heartfire Immolator: '{R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker.' Targeting itself is legal when the ability is activated (CR 602.2b: targets before costs); the cost then sacrifices it, so at resolution its only target is illegal and the ability does not resolve (CR 608.2b): no damage is dealt. The engine used to mark 2 damage on the card in the graveyard."
+}

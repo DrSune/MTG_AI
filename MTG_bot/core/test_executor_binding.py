@@ -18,6 +18,7 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     BecomesBlockedEvent,
     CardDrawnEvent,
+    Choose,
     CardRecord,
     ControllerRef,
     CounterKind,
@@ -354,6 +355,38 @@ class TestAttachment(BindingCase):
 
 
 class TestEventKinds(BindingCase):
+    def test_dies_trigger_with_no_target_does_not_bind_the_dead_creature(self):
+        # known_bugs discard_any_number_never_asked_and_dies_trigger_target (M20 Cavalier of
+        # Flame): "When this creature dies, it deals 1 damage to each creature your opponents
+        # control" has no target. The dies firing bound the dead creature as ``target`` for
+        # the "that player" anaphora (Massacre Wurm), and the ALL selector's role read that
+        # binding first, so the damage went to the dead creature and no opponent's creature.
+        opp_creature = self.world.add_card(card_id("Opp Bear", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        each_opp_creature = Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd(
+                (
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                    CREATURE,
+                )
+            ),
+            zones=(BF_ANY,),
+        )
+        self.attach_trigger(
+            self.watch,
+            CreatureDiesEvent(filter=IS_SOURCE),
+            atom(Verb.DEAL_DAMAGE, amount=QConst(1), target=each_opp_creature),
+        )
+        self.ex.execute(
+            atom(Verb.DESTROY, target=all_bf()),
+            source=self.watch,
+            controller=self.p0,
+            bindings={"target": self.watch},
+        )
+        self.assertEqual(self.world.zone_of(self.watch).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.ex.damage, {opp_creature: 1})
+
     def test_dies_carries_c18_was_snapshot_and_event_referent(self):
         amount = QProp(referent="event", field=QPropField.POWER, agg=QAgg.FIRST)
         self.attach_trigger(
@@ -593,10 +626,12 @@ class TestAPNAP(unittest.TestCase):
         )
 
     def test_simultaneous_etbs_resolve_in_apnap_order(self):
-        # Both creatures enter in ONE op (simultaneous). The drain order is
-        # the world's APNAP order_key (controller_seat first): p0's trigger
-        # resolves first, p1's LAST — and the last SET_PT (5/5) wins the
-        # ledger fold.
+        # Both creatures enter in ONE op (simultaneous). CR 603.3b: the active
+        # player (p0) puts its trigger on the stack first and p1's goes on top,
+        # so p1's resolves first and p0's LAST — the last SET_PT (1/1) wins the
+        # ledger fold. (Until 2026-11-05 this test pinned the reverse: the
+        # drain sorted by seat index, so seat 0's trigger always resolved
+        # first.)
         self.ex.attach_card(self.c0, self.set_pt_rec(self.c0, 1))
         self.ex.attach_card(self.c1, self.set_pt_rec(self.c1, 5))
         both = sorted([self.c0, self.c1])
@@ -609,8 +644,126 @@ class TestAPNAP(unittest.TestCase):
         power, toughness = self.ex.ledger.effective_pt(
             self.world.cards[self.target].identity, self.target
         )
-        self.assertEqual((power, toughness), (5, 5))
+        self.assertEqual((power, toughness), (1, 1))
         self.assertEqual(self.world.triggers, [])  # fully drained
+
+    def test_a_trigger_from_a_resolving_trigger_goes_above_the_waiting_ones(self):
+        # CR 405.5 with 603.3: a trigger is put on the stack the next time a player would
+        # receive priority, above the ones still waiting. c0 (p0, active) and c1 (p1) enter
+        # together; p1's ETB resolves first (CR 603.3b) and makes p1 draw, which triggers p0's
+        # Watcher ("whenever an opponent draws a card"). The Watcher's trigger resolves next,
+        # before p0's older ETB, so p0's ETB (1/1) is the last SET_PT. The drain used to pick
+        # the oldest trigger of the lowest seat, so the Watcher's 7/7 resolved last.
+        watcher = self.world.add_card(card_id("Watcher", "1", "1"), self.p0, ZONE_BATTLEFIELD)
+        watch = TriggeredAbility(
+            event=CardDrawnEvent(
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
+            ),
+            condition=None,
+            effect=atom(
+                Verb.SET_PT,
+                target=named_sel("Target"),
+                duration=DurationEot(),
+                power=QConst(7),
+                toughness=QConst(7),
+            ),
+        )
+        self.ex.attach_card(
+            watcher, record_of([watch], oid=self.world.cards[watcher].identity.oracle_id)
+        )
+        self.ex.attach_card(self.c0, self.set_pt_rec(self.c0, 1))
+        draw = etb_trigger(
+            atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1))
+        )
+        self.ex.attach_card(
+            self.c1, record_of([draw], oid=self.world.cards[self.c1].identity.oracle_id)
+        )
+        stock_libraries(self.world, seats=[self.p1])
+        both = sorted([self.c0, self.c1])
+        self.ex.execute(
+            enter(BF_OWNER),
+            source=both[0],
+            controller=self.p0,
+            bindings={"cards": both},
+        )
+        power, toughness = self.ex.ledger.effective_pt(
+            self.world.cards[self.target].identity, self.target
+        )
+        self.assertEqual((power, toughness), (1, 1))
+        self.assertEqual(self.world.triggers, [])
+
+
+class TestModalTrigger(BindingCase):
+    """CR 603.3c: a modal triggered ability's mode is chosen as it is put on the stack, and its
+    targets are then chosen for that mode only; CR 700.2a: a mode that needs a target with no
+    legal choice can't be chosen. Voracious Hydra / Dread Presence (M20, known_bugs
+    modal_trigger_targets_before_mode): the trigger designated the targeted mode's target when
+    it fired and asked the mode only at resolution, so a target was asked for (and chosen) under
+    the other mode, and the targeted mode stayed on offer with nothing to target."""
+
+    def setUp(self):
+        super().setUp()
+        self.asks: list[tuple[tuple[str, ...], str]] = []
+        self.answers: dict[str, str] = {}
+
+        def provider(vocab, what):
+            self.asks.append((tuple(vocab), what))
+            for prefix, answer in self.answers.items():
+                if what.startswith(prefix) and answer in vocab:
+                    return answer
+            return vocab[0]
+
+        self.ex.decisions.provider = provider
+        # "When this creature enters, choose one: you gain 2 life; or this creature deals
+        # 3 damage to target creature an opponent controls."
+        opp_creature = FAnd(
+            (FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT), CREATURE)
+        )
+        burn = atom(
+            Verb.DEAL_DAMAGE,
+            amount=QConst(3),
+            target=Selector(QConst(1), SelectorMode.TARGET, opp_creature, zones=(BF_ANY,)),
+        )
+        self.hydra = self.world.add_card(card_id("Hydra", "1", "1"), self.p0, ZONE_HAND)
+        self.ex.attach_card(
+            self.hydra,
+            self.record_for(
+                self.hydra,
+                [etb_trigger(Choose(count=QConst(1), options=(gain(2), burn)))],
+            ),
+        )
+
+    def enter(self) -> None:
+        self.ex.execute(
+            enter(BF_OWNER), source=self.hydra, controller=self.p0, bindings={"cards": self.hydra}
+        )
+
+    def test_with_no_legal_target_only_the_other_mode_can_be_chosen(self):
+        self.enter()
+        self.assertEqual(self.life(self.p0), 22)  # the burn mode was not on offer
+        self.assertEqual([what for _v, what in self.asks if what.startswith("target")], [])
+        self.assertEqual([what for _v, what in self.asks if what.startswith("choose")], [])
+
+    def test_the_target_is_chosen_only_for_the_chosen_mode(self):
+        ogre = self.world.add_card(card_id("Ogre", "5", "5"), self.p1, ZONE_BATTLEFIELD)
+        self.world.add_card(card_id("Troll", "5", "5"), self.p1, ZONE_BATTLEFIELD)
+        self.answers["target"] = str(ogre)
+        self.answers["choose"] = "0"  # gain 2 life
+        self.enter()
+        self.assertEqual(self.life(self.p0), 22)
+        self.assertEqual([what for _v, what in self.asks if what.startswith("target")], [])
+        self.assertEqual(self.ex.damage, {})
+        self.answers["choose"] = "1"
+        self.asks.clear()
+        self.ex.execute(
+            atom(Verb.MOVE_ZONE, cards=all_bf(), destination=Zone(ZoneKind.HAND, ControllerRef.OWNER)),
+            source=self.hydra,
+            controller=self.p0,
+            bindings={"cards": self.hydra},
+        )
+        self.enter()
+        self.assertEqual(self.ex.damage, {ogre: 3})
+        self.assertIn("choose", [what.split(":")[0] for _v, what in self.asks])
 
 
 class TestDelayedTrigger(BindingCase):

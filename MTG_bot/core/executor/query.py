@@ -97,6 +97,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     count_semantics,
+    is_loyalty_ability,
     walk,
 )
 from MTG_bot.core.compiler.compiler import casts_itself_from_another_zone
@@ -806,11 +807,41 @@ def cast_run_gap(executor: Executor, handle: Handle) -> bool:
     return any(isinstance(a, BackFace) for a in rec.abilities)
 
 
+def permission_cast(executor: Executor, source: Handle, atom: Atom) -> bool:
+    """Is ``atom`` (a CAST) a permission to cast: an atom of one of ``source``'s activated
+    abilities other than a loyalty ability?
+
+    2026-11-05 (known_bugs cast_from_top_ignores_timing): the compiler writes a permission,
+    "You may cast Goblin spells from the top of your library" (Conspicuous Snoop, the Mystic
+    Forge draft) or "Until end of turn, you may cast a creature spell from among cards exiled
+    with this artifact" (Idol of Endurance), as an activated ability whose resolution casts the
+    card. A permission changes where a card may be cast from, not when (CR 601.3): the card is
+    cast at its own timing, a creature or sorcery only in its controller's main phase with an
+    empty stack unless it has flash (CR 302.1, 307.1, 702.8a). Cast as part of the ability's
+    resolution, Idol of Endurance flashed a creature in on the opponent's turn. A CAST in a
+    spell, a triggered ability or a loyalty ability (Chandra, Flame's Catalyst's [-2]) is made
+    while that ability resolves and ignores timing; no activated ability in the compiled pools
+    is such a cast."""
+    from MTG_bot.core.executor.legality import spell_record
+
+    record = spell_record(executor, source)
+    if record is None:
+        return False
+    return any(
+        isinstance(ability, ActivatedAbility)
+        and not is_loyalty_ability(ability)
+        and any(node is atom for node in walk(ability.effect))
+        for ability in record.abilities
+    )
+
+
 def cast_designee_ok(
     executor: Executor,
     ctx: ExecCtx,
     handle: Handle,
     cost_override: Cost | None = None,
+    *,
+    atom: Atom | None = None,
 ) -> bool:
     """B1/B2 designee law (/125 gate round): the execution-acceptance
     predicate for one CAST designee — carrier (a land is not a spell:
@@ -824,7 +855,21 @@ def cast_designee_ok(
     finite CHOOSE head is CHECKED positionally, TARGET-bound drops
     ledger) evaluate THIS predicate, so the model-visible menu and what
     execution accepts are the same computation (§10 menu-visibility,
-    /114 one-oracle law)."""
+    /114 one-oracle law).
+
+    ``atom`` is the CAST being judged. Through a permission (:func:`permission_cast`) the card
+    must also be castable at its own timing right now."""
+    from MTG_bot.core.executor.legality import card_window_reason
+
+    if atom is not None and permission_cast(executor, ctx.source, atom):
+        record = cast_carrier(executor, handle)
+        spell = (
+            next(a for a in record.abilities if isinstance(a, SpellAbility))
+            if record is not None
+            else None
+        )
+        if spell is not None and card_window_reason(executor, ctx.controller, record, spell):
+            return False
     if cast_run_gap(executor, handle):
         return True  # the typed guard owns it: fires, raises, ledgers
     return cast_carrier(executor, handle) is not None and _cast_option_payable(
@@ -913,7 +958,7 @@ def _cast_effect_actionable(
         cost_override = None  # no cost role, or a 12a Ref (resolved at runtime)
 
     def ok(handle: Handle) -> bool:
-        return cast_designee_ok(executor, ctx, handle, cost_override)
+        return cast_designee_ok(executor, ctx, handle, cost_override, atom=node)
 
     bound = ctx.binding_handles("source")
     if bound is not None:
@@ -1617,7 +1662,7 @@ def _clamp_cast_target_slot(
     keep = tuple(
         c
         for c in slot.candidates
-        if cast_designee_ok(executor, gate_ctx, c, cost_override)
+        if cast_designee_ok(executor, gate_ctx, c, cost_override, atom=atom)
     )
     if len(keep) == len(slot.candidates):
         return slot

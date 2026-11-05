@@ -16,7 +16,26 @@ unnoticed until the next draw step.
 
 from __future__ import annotations
 
-from MTG_bot.core.ability_tree import ControllerRef, Keyword, KeywordAbility, QConst, Verb
+from MTG_bot.core.ability_tree import (
+    ControllerRef,
+    Cost,
+    CostLife,
+    CostSacrifice,
+    CreatureDiesEvent,
+    DurationEot,
+    FAtom,
+    FAtomPred,
+    Keyword,
+    KeywordAbility,
+    QConst,
+    Selector,
+    SelectorMode,
+    Seq,
+    TriggeredAbility,
+    Verb,
+    Zone,
+    ZoneKind,
+)
 from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.games import Game, _play
 from MTG_bot.core.executor.stack import cast
@@ -108,6 +127,106 @@ class TestLifeLoss(LossCase):
         self.assertEqual(
             game.over_reason(), "draw: player:0(life<=0), player:1(life<=0)"
         )
+
+
+class TestSimultaneousTriggerOrder(LossCase):
+    """CR 603.3b: triggered abilities that triggered since a player last received priority are
+    put on the stack in APNAP order, the active player's first, so the non-active player's
+    resolve first (the stack resolves from the top, CR 405.5). Both players at 3 life; the
+    active player's Pitchburn Devils attacks into the other Devils, both die, and each dies
+    trigger ("it deals 3 damage to any target") aims at the opponent. The non-active player's
+    trigger resolves first, so the active player is at 0 at the check after it and loses
+    (CR 704.5a). The drain used to resolve by seat index, so seat 0 always won the race
+    (2 of 2,000 integration games ended in such a drain, rules red-team 2026-11-05)."""
+
+    def _race(self, active: int) -> None:
+        ap, nap = self.world.player_order[active], self.world.player_order[1 - active]
+        devils_ap = self.real("Pitchburn Devils", ap)
+        devils_nap = self.real("Pitchburn Devils", nap)
+        stock_libraries(self.world, seats=[self.p0, self.p1])
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        if active == 1:
+            self.ex.end_turn()
+            self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, ap)
+        self.world.players[self.p0].life = 3
+        self.world.players[self.p1].life = 3
+        self.answers[f"block:{devils_nap}"] = str(devils_ap)
+        self.answers[f"target:{ap}:{devils_ap}"] = str(nap)
+        self.answers[f"target:{nap}:{devils_nap}"] = str(ap)
+        with self.assertRaises(GameOver):
+            self.ex.combat_step(ap)
+        self.assertEqual(self.ex.lost_players, [ap])
+        self.assertEqual(self.world.players[nap].life, 3)
+
+    def test_seat_0_active_loses_the_race(self):
+        self._race(0)
+
+    def test_seat_1_active_loses_the_race(self):
+        self._race(1)
+
+
+class TestNoCheckInsideAResolution(LossCase):
+    """CR 704.3: state-based actions are checked only when a player would receive priority,
+    never while a spell or ability resolves, and CR 603.3: a triggered ability waits for
+    that moment too. A cost paid by an effect ("you may pay 2 life. If you do, ...") went
+    through legality.pay_costs, whose steps are public ops that each settled: the
+    player-loss check ran in the middle of the resolution and could end the game there,
+    and the triggers the payment caused resolved before the rest of the effect."""
+
+    def test_paying_life_to_zero_then_gaining_it_back_is_no_loss(self):
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.world.players[self.p0].life = 2
+        pay_then_gain = Seq(
+            steps=(
+                atom(Verb.PAY, cost=Cost(parts=(CostLife(amount=QConst(2)),))),
+                atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(3)),
+            )
+        )
+        source = self.synth("Payer", 1, 1, self.p0)
+        self.ex.apply_effect(pay_then_gain, source=source, controller=self.p0)
+        self.assertEqual(self.world.players[self.p0].life, 3)
+        self.assertEqual(self.ex.lost_players, [])
+
+    def test_a_trigger_the_payment_causes_waits_for_the_resolution(self):
+        # The effect sacrifices a creature as a cost, then sets Target to 2/2. A dies
+        # trigger sets Target to 5/5; it resolves after the effect, so 5/5 is last.
+        target = self.synth("Target", 3, 3, self.p0)
+        fodder = self.synth("Fodder", 1, 1, self.p0)
+        watcher = self.synth("Watcher", 1, 1, self.p1)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        named = lambda name: Selector(  # noqa: E731
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAtom(FAtomPred.NAME_EQ, string_value=name),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+        )
+        set_pt = lambda n: atom(  # noqa: E731
+            Verb.SET_PT, target=named("Target"), duration=DurationEot(),
+            power=QConst(n), toughness=QConst(n),
+        )
+        from MTG_bot.core.test_executor_binding import record_of
+
+        self.ex.attach_card(
+            watcher,
+            record_of(
+                [TriggeredAbility(CreatureDiesEvent(filter=FAtom(FAtomPred.NAME_EQ, string_value="Fodder")), None, set_pt(5))],
+                oid=self.world.cards[watcher].identity.oracle_id,
+            ),
+        )
+        sacrifice_then_set = Seq(
+            steps=(
+                atom(Verb.PAY, cost=Cost(parts=(CostSacrifice(target=named("Fodder")),))),
+                set_pt(2),
+            )
+        )
+        self.ex.apply_effect(sacrifice_then_set, source=target, controller=self.p0)
+        self.assertEqual(self.world.zone_of(fodder).kind, "graveyard")
+        power, toughness = self.ex.ledger.effective_pt(self.world.cards[target].identity, target)
+        self.assertEqual((power, toughness), (5, 5))
 
 
 class TestDrawFromEmptyLibrary(LossCase):

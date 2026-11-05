@@ -557,6 +557,13 @@ class Executor:
         self.replacements = ReplacementRegistry(self)
         self.binder = TriggerBinder(self)
         self._op_seq = 0
+        # CR 704.3, 603.3: how many effects are resolving right now. A public op
+        # (execute / apply_effect) started inside a resolution is part of it
+        # (legality.pay_costs paying a cost an effect asks for, verbs._v_pay):
+        # it does not settle, so no state-based action is checked and no
+        # trigger is put on the stack until the outermost op settles. Zero
+        # between ops, so not fingerprinted.
+        self._resolving = 0
         self._turn_started = False
         # ------------------------------------------------------ 13a turn state
         # The frozen GameWorld has no phase/turn-flow/loss fields, so the
@@ -836,8 +843,7 @@ class Executor:
             source=source, controller=controller, bindings=bindings, decisions=decisions
         )
         start = len(self.events)
-        self._run_effect(atom, ctx)
-        self._finish_op()
+        self._run_resolution(atom, ctx)
         return tuple(self.events[start:])
 
     def apply_effect(
@@ -896,9 +902,27 @@ class Executor:
                 sorted({h for one in slot_designations.values() for h in one})
             )
         start = len(self.events)
-        self._run_effect(effect, ctx)
-        self._finish_op()
+        self._run_resolution(effect, ctx)
         return tuple(self.events[start:])
+
+    def _run_resolution(self, effect: Effect, ctx: ExecCtx) -> None:
+        """Run a public op's effect, then settle, unless the op was started inside another
+        resolution (CR 704.3: state-based actions are checked only when a player would
+        receive priority; CR 603.3: triggered abilities are put on the stack then too).
+        Paying a cost an effect asks for ("You may pay 2 life. If you do, ...") runs each
+        payment step as an op; settling after each step ran the player-loss check in the
+        middle of the resolution, so paying down to 0 life before the effect gained life
+        back ended the game, and the triggers the payment caused resolved before the rest
+        of the effect. Such an op leaves its events to the outermost op's settle, whose
+        journal pass sees them (TriggerBinder.on_events reads every unseen row)."""
+        nested = self._resolving > 0
+        self._resolving += 1
+        try:
+            self._run_effect(effect, ctx)
+        finally:
+            self._resolving -= 1
+        if not nested:
+            self._finish_op()
 
     @staticmethod
     def _partition_step(step: object) -> bool:
@@ -952,6 +976,7 @@ class Executor:
             ctx.search_partition = saved_partition or any(
                 self._partition_step(step) for step in steps
             )
+        self._resolving += 1  # CR 704.3: see _run_resolution
         try:
             for step in steps:
                 depth = self.journal.open_depth()
@@ -984,6 +1009,7 @@ class Executor:
                     else:
                         self.unresolved_effect_counts[flag] += 1
         finally:
+            self._resolving -= 1
             ctx.search_partition = saved_partition
             ctx.search_found = saved_found
 

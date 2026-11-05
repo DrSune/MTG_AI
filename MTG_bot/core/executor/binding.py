@@ -5,7 +5,7 @@ Builds on 12a's Executor: compiled ability IR (a ``CardRecord`` from
 world event the :class:`~MTG_bot.core.executor.events.EventJournal` derives
 is matched against the attached :class:`TriggeredAbility` nodes; a match
 queues a canonical :class:`~MTG_bot.core.state.TriggerInstance` through
-``world.queue_trigger`` (APNAP ordering lives in the world's ``order_key``),
+``world.queue_trigger`` (the resolution order is the stack's, ``_pop_next``),
 and the binder drains the queue — condition -> may-offer -> effect through
 the 12a effect runner, whose mutations are journalled and matched in turn —
 firing until the queue empties.
@@ -16,10 +16,12 @@ Contracts honoured:
     battlefield: leaving detaches, re-entering re-registers. The compiled
     record stays registered by oracle id: the bridge from the game card's
     :class:`~MTG_bot.core.identity.CardIdentity` to its compiled IR;
-  * **APNAP then Handle-sorted** — the drain order is
-    ``(controller_seat, clock, str(source), bind_seq)``: the world's
-    order_key first (active player's triggers resolve first), a Handle
-    tie-break within a seat, so one scripted game replays byte-identically;
+  * **the stack's order** — the drain resolves the top of the stack first
+    (CR 405.5): the newest batch of triggers, within it the player last in
+    APNAP order (CR 603.3b: the active player puts theirs on the stack
+    first, so the non-active player's resolve first), within one player the
+    order they triggered, then Handle and bind order, so one scripted game
+    replays byte-identically (:meth:`TriggerBinder._pop_next`);
   * **C18** — a dies firing binds ``event``/``result`` to the dead subject,
     whose was-snapshot the journal carried; the event register makes 12a's
     ``event``/``result`` QProp referents real;
@@ -308,13 +310,17 @@ def _compile_bridge(compiled: object) -> CardRecord:
 @dataclass
 class _Firing:
     """One queued trigger instance's execution payload, keyed by the
-    instance's (tick-unique) clock."""
+    instance's (tick-unique) clock. ``batch`` and ``apnap`` place it on the
+    stack (:meth:`TriggerBinder._pop_next`): the drain step it triggered in,
+    and its controller's distance from the active player in turn order."""
 
     source: Handle
     controller: Handle
     node: _AnyTrigger
     event: GameEvent
     seq: int
+    batch: int = 0
+    apnap: int = 0
 
 
 @dataclass
@@ -384,6 +390,10 @@ class TriggerBinder:
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
         self._seq = 0
+        # CR 603.3b, 405.5: the drain step count. A trigger queued after the
+        # n-th firing began is put on the stack above every trigger waiting
+        # from before, so it resolves first (_pop_next).
+        self._stack_batch = 0
         # 16b CR 603.2 dedup: (source, node-id, declare-group) for every
         # DeclareAttackersEvent queue already made. The journal carries ONE
         # row per declared attacker (the grammar's filter is subject-
@@ -844,7 +854,13 @@ class TriggerBinder:
             source, controller, f"{event.kind}#{self._seq}"
         )
         payload = _Firing(
-            source=source, controller=controller, node=node, event=event, seq=self._seq
+            source=source,
+            controller=controller,
+            node=node,
+            event=event,
+            seq=self._seq,
+            batch=self._stack_batch,
+            apnap=self._apnap_distance(controller),
         )
         self.firings[instance.clock] = payload
         if not additional:
@@ -1167,6 +1183,19 @@ class TriggerBinder:
         ):
             return False
         assert event.subject is not None  # the CAST row names the spell card
+        # 2026-11-05 (Gnarlback Rhino, "whenever you cast a spell that targets this
+        # creature"): TARGETS_SOURCE asks whether the judged spell targets the filter's
+        # source, and reads the ``target`` binding (quantity._eval_atom). This ctx is the
+        # trigger's own, so it had none and the filter never matched: the cast spell's
+        # declared targets (its stack frame, CR 601.2c) are bound here.
+        ctx.bindings["target"] = next(
+            (
+                list(frame.declared_targets)
+                for frame in self.executor.stack.frames
+                if frame.handle == event.subject
+            ),
+            [],
+        )
         return eval_filter(node.filter, event.subject, ctx)
 
     def _fitting_cast_ordinal(
@@ -1325,8 +1354,8 @@ class TriggerBinder:
     # -------------------------------------------------------------- fire
 
     def fire_all(self, between: Callable[[], object] | None = None) -> int:
-        """Drain the world's trigger queue: APNAP order_key, then
-        ``str(source)`` then bind-seq (Handle-sort within a seat, ruling 5).
+        """Drain the world's trigger queue in stack order (:meth:`_pop_next`:
+        newest batch, then reverse APNAP, then trigger order; CR 603.3b).
         Every firing runs through the 12a effect runner, whose journalled
         events queue the next batch; loop until empty — the r23a tripwire
         guard QUARANTINES a self-retriggering source (recorded in the
@@ -1412,18 +1441,37 @@ class TriggerBinder:
                     out.add(handle)
         return frozenset(out)
 
+    def _apnap_distance(self, controller: Handle) -> int:
+        """How far ``controller`` sits after the active player in turn order (0 for the
+        active player; seat 0 counts as active before any turn began)."""
+        world = self.world
+        seats = len(world.player_order)
+        active = world.active_player
+        active_seat = world.players[active].seat if active is not None else 0
+        return (world.players[controller].seat - active_seat) % seats
+
     def _pop_next(self):
-        ordered = sorted(
-            self.world.triggers,
-            key=lambda t: (
-                t.controller_seat,
-                t.clock,
-                str(t.source),
-                self.firings[t.clock].seq if t.clock in self.firings else -1,
-            ),
-        )
-        chosen = ordered[0]
+        """The trigger that resolves next: the top of the stack.
+
+        CR 603.3b: the abilities that triggered since a player last received priority are
+        put on the stack in APNAP order, the active player's first, each player's in the
+        order that player chooses; CR 405.5: the stack resolves from the top. So the newest
+        batch goes first (a trigger queued after a firing began sits above the older ones),
+        then the player last in APNAP order (the non-active player of a duel), then that
+        player's own triggers in the order they triggered (the engine does not ask for that
+        order: it is the one a player putting them on the stack newest-first would get),
+        Handle and bind order breaking ties. The drain used to sort by seat index, so seat
+        0's triggers resolved first whoever was active, and a mutual-lethal pair of dies
+        triggers always went to seat 0."""
+        def key(t):
+            payload = self.firings.get(t.clock)
+            if payload is None:  # pragma: no cover - instances only via _queue
+                return (0, 0, t.clock, str(t.source), -1)
+            return (-payload.batch, -payload.apnap, t.clock, str(t.source), payload.seq)
+
+        chosen = min(self.world.triggers, key=key)
         self.world.triggers.remove(chosen)
+        self._stack_batch += 1
         return chosen
 
     def cease_triggered_before(self, mark: int) -> int:
@@ -1494,6 +1542,12 @@ class TriggerBinder:
         node = payload.node
         if not self._condition_holds(node, event, payload.source, ctx):
             return  # CR 603.4: the intervening "if" is checked again on resolution
+        if isinstance(node.effect, Choose) and self._modes_need_targets(node.effect):
+            # CR 603.3c: a modal trigger's mode is chosen as it is put on the stack, before
+            # its targets, and only the chosen mode's targets are chosen.
+            node = self._declare_mode(node, ctx)
+            if node is None:
+                return  # CR 700.2a: no mode can be chosen; the ability is removed
         # 18b (CR 603.1): designate targets BEFORE applying — the frozen IR
         # puts the ability's TARGET coordinates on the TRIGGERED-ABILITY node
         # itself, and CR 603.1 chooses targets as the ability goes on the
@@ -1541,6 +1595,7 @@ class TriggerBinder:
                 event.kind == KIND_CREATURE_DIES
                 and event.subject is not None
                 and not self._trigger_designates_target(node)
+                and self._designated_player_refs(node.effect)
             ):
                 # 16a's twin: in a DIES firing the antecedent the frozen IR
                 # compiles to TARGET_PLAYER IS the dead creature — players
@@ -1554,6 +1609,10 @@ class TriggerBinder:
                 # the anaphora. A printed "…to ANY target" carries a real
                 # TARGET Selector slot — CR 603.1 designates it through the
                 # 18b channel, and the pre-bind must never swallow the ask.
+                # 2026-11-05: and an effect that reads no designated player
+                # gets no pre-bind at all: a role reads its binding before its
+                # own selector, so "each creature your opponents control"
+                # (Cavalier of Flame) hit the dead creature instead.
                 ctx.bindings["target"] = event.subject
             elif not self._designate(node, ctx):
                 # B-55, CR 603.3d: a required target with no legal choice
@@ -1672,6 +1731,106 @@ class TriggerBinder:
                 return False
         return True
 
+    @classmethod
+    def _modes_need_targets(cls, choose: Choose) -> bool:
+        """Does any mode of a modal trigger designate (a TARGET selector or a designated
+        player)? A modal trigger without one keeps its mode ask at resolution, where the
+        runtime Choose makes it."""
+        if cls._designated_player_refs(choose):
+            return True
+        return any(
+            isinstance(value, Selector)
+            and value.mode is SelectorMode.TARGET
+            and value.referent is None
+            for inner in walk(choose)
+            if isinstance(inner, Atom)
+            for _role, value in inner.args.pairs
+        )
+
+    def _declare_mode(self, node: _AnyTrigger, ctx: ExecCtx) -> _AnyTrigger | None:
+        """CR 603.3c, 700.2a: choose a modal trigger's mode as it goes on the stack. The
+        menu is the option sets of :func:`query.choose_options` (its order index is the
+        token, as the runtime Choose reads it) whose required targets can be chosen now;
+        an exactly-n target needs n legal choices, an "up to" one none. Returns the trigger
+        narrowed to the chosen options, in printed order, or None when no set is legal."""
+        from MTG_bot.core.executor.offers import offer_or_autopick
+        from MTG_bot.core.executor.query import (
+            _widen_any_target,
+            choose_options,
+            legal_targets,
+        )
+
+        choose = node.effect
+        assert isinstance(choose, Choose)
+        options = choose_options(
+            self.executor,
+            choose,
+            source=ctx.source,
+            controller=ctx.controller,
+            bindings=ctx.bindings,
+        )
+
+        def fillable(effect: object) -> bool:
+            for inner in walk(effect):
+                if not isinstance(inner, Atom):
+                    continue
+                for _role, value in inner.args.pairs:
+                    if not (
+                        isinstance(value, Selector)
+                        and value.mode is SelectorMode.TARGET
+                        and value.referent is None
+                    ):
+                        continue
+                    need = value.count.value if isinstance(value.count, QConst) else 0
+                    slot = legal_targets(
+                        self.world,
+                        self.executor,
+                        value,
+                        source=ctx.source,
+                        controller=ctx.controller,
+                        bindings=ctx.bindings,
+                    )
+                    slot = _widen_any_target(self.executor, value, slot, ctx.source) or slot
+                    if len(slot.candidates) < need:
+                        return False
+            return True
+
+        legal = []
+        for i, option in enumerate(options):
+            picked = tuple(choose.options[j] for j in option.option_idxs)
+            effect = picked[0] if len(picked) == 1 else (Seq(steps=picked) if picked else None)
+            if effect is None or fillable(effect):
+                legal.append((str(i), option.option_idxs, effect))
+        if not legal:
+            return None
+        vocab = tuple(token for token, _idxs, _effect in legal)
+        digest = site_digest(tuple(idxs for _token, idxs, _effect in legal))
+        pick = offer_or_autopick(ctx, vocab, f"choose:{ctx.source}:{digest}")
+        effect = next(effect for token, _idxs, effect in legal if token == pick)
+        if effect is None:
+            return None  # the empty set of an "up to" choice: nothing happens
+        return TriggeredAbility(event=node.event, condition=node.condition, effect=effect)
+
+    @staticmethod
+    def _designated_player_refs(effect: object) -> set[ControllerRef]:
+        """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a trigger's effect
+        reads: a role value naming one, a zone it controls, or a filter reading the bound
+        player (the scan :meth:`_designate` makes)."""
+        refs: set[ControllerRef] = set()
+        for inner in walk(effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
+                    refs.add(value)
+                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
+                    refs.add(value.controller)
+                elif isinstance(value, Selector):
+                    refs |= filter_bound_player_refs(value.filter)
+                else:
+                    refs |= filter_bound_player_refs(value)
+        return refs
+
     @staticmethod
     def _trigger_designates_target(node: _AnyTrigger) -> bool:
         """r22a: does this trigger's effect carry a real TARGET designation
@@ -1749,24 +1908,14 @@ class TriggerBinder:
         """
         selectors: list[Selector] = []
         seen: set[str] = set()
-        reads_target_player = False
-        opponent_only = False  # V21: a "target opponent" read narrows the slot
+        player_refs = self._designated_player_refs(node.effect)
+        reads_target_player = bool(player_refs)
+        # V21: a "target opponent" read narrows the slot
+        opponent_only = ControllerRef.TARGET_OPPONENT in player_refs
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
-                refs: set[ControllerRef] = set()
-                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
-                    refs.add(value)
-                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
-                    refs.add(value.controller)
-                elif isinstance(value, Selector):
-                    refs |= filter_bound_player_refs(value.filter)
-                else:
-                    refs |= filter_bound_player_refs(value)
-                if refs:
-                    reads_target_player = True
-                    opponent_only |= ControllerRef.TARGET_OPPONENT in refs
                 if (
                     isinstance(value, Selector)
                     and value.mode is SelectorMode.TARGET

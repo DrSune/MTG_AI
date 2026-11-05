@@ -1,0 +1,44 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "snoop",
+   "real": "Conspicuous Snoop",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "real": "Goblin Arsonist",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "snoop",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gob": "battlefield"
+  }
+ },
+ "notes": "Control for conspicuous_snoop_cast_from_top_follows_timing: in its controller's main phase the permission row casts the Goblin from the top of the library for its cost ({R})."
+}

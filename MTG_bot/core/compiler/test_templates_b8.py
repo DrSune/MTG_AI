@@ -106,7 +106,6 @@ _CLEAR_ROWS: tuple[str, ...] = (
     "When this creature enters, each opponent loses X life and you gain X life, where X is the number of creatures in your party.",
     "When this creature enters, target creature an opponent controls gets -X/-X until end of turn, where X is the number of creatures in your party.",
     "When this creature enters, it deals X damage to target creature or planeswalker, where X is the number of creatures in your party.",
-    "Synchronized Spellcraft deals 4 damage to target creature and X damage to that creature's controller, where X is the number of creatures in your party.",
     "Look at the top X cards of your library, where X is three plus the number of creatures in your party.",
     # T5 (3)
     "Stonework Packbeast is also a Cleric, Rogue, Warrior, and Wizard.",
@@ -115,6 +114,11 @@ _CLEAR_ROWS: tuple[str, ...] = (
 )
 
 _DEFER_ROWS = (
+    # 2026-11-05 (known_bugs compiler_controller_becomes_a_free_player_target): withdrawn. The
+    # IR has no "that creature's controller" for a damage recipient; the template wrote it as a
+    # second TARGET selector over the PLAYER zone, which the cast lane designates on its own
+    # (V25), so the caster chose who took the X damage.
+    "Synchronized Spellcraft deals 4 damage to target creature and X damage to that creature's controller, where X is the number of creatures in your party.",
     "Counter target noncreature spell unless its controller pays {1} plus an additional {1} for each creature in your party.",
     "Archpriest of Iona's power is equal to the number of creatures in your party.",
     "Equipped creature gets +1/+0 for each creature in your party and has menace.",
@@ -126,8 +130,8 @@ _DEFER_ROWS = (
 
 class TestB8Registry(unittest.TestCase):
     def test_registry_shape(self) -> None:
-        self.assertEqual(len(TEMPLATES), 22)
-        self.assertEqual(len({t.tid for t in TEMPLATES}), 22)
+        self.assertEqual(len(TEMPLATES), 21)
+        self.assertEqual(len({t.tid for t in TEMPLATES}), 21)
         for t in TEMPLATES:
             self.assertEqual(t.bucket, "B8")
             self.assertEqual(t.priority, 114)
@@ -140,7 +144,7 @@ class TestB8Registry(unittest.TestCase):
 
 class TestB8VerbatimRows(unittest.TestCase):
     def test_every_clearing_row_matches_one_template(self) -> None:
-        self.assertEqual(len(_CLEAR_ROWS), 34)
+        self.assertEqual(len(_CLEAR_ROWS), 33)
         for text in _CLEAR_ROWS:
             tid, outcome = _build(text)
             self.assertIsNotNone(outcome, tid)
@@ -156,6 +160,28 @@ class TestB8VerbatimRows(unittest.TestCase):
                 [],
                 f"defer row was swept by another bucket: {text[:60]!r}",
             )
+
+    def test_spellcraft_opens_no_free_player_target(self) -> None:
+        # 2026-11-05: compiled from its printed text, Synchronized Spellcraft must not offer
+        # the caster a player slot for "that creature's controller" (CR 115.1: that player is
+        # not a target, and the controller of the targeted creature is not the caster's pick).
+        from pathlib import Path
+
+        from MTG_bot.core.ability_tree import Selector, walk
+        from MTG_bot.core.compiler.compiler import compile_card
+        from MTG_bot.core.compiler.ingest import ingest_pool
+
+        data = Path(__file__).resolve().parents[2] / "data" / "ZNR.json"
+        raw = next(r for r in ingest_pool(data).values() if r.identity.name == "Synchronized Spellcraft")
+        res = compile_card(raw, build_full_registry())
+        player_targets = [
+            node
+            for node in walk(res.card)
+            if isinstance(node, Selector)
+            and node.mode is SelectorMode.TARGET
+            and all(z.kind is ZoneKind.PLAYER for z in node.zones)
+        ]
+        self.assertEqual(player_targets, [])
 
     def test_templates_are_pairwise_disjoint(self) -> None:
         # PC-3 convention on the b8 clearing set: no row matches two.
@@ -472,18 +498,17 @@ class TestPartyCensusEdgeLaws(PartyCase):
         three_plus = QBin(op=QBinOp.ADD, left=QConst(3), right=_party_count())
         self.assertEqual(resolve(three_plus, ctx), 5)
         _, outcome = _build(
-            "Synchronized Spellcraft deals 4 damage to target creature and "
-            "X damage to that creature's controller, where X is the number "
-            "of creatures in your party."
+            "When this creature enters, each opponent loses X life and you "
+            "gain X life, where X is the number of creatures in your party."
         )
-        assert isinstance(outcome, EffectOutcome)
+        assert isinstance(outcome, AbilityOutcome)
         amounts = [
             v
-            for step in outcome.effect.steps
+            for step in outcome.ability.effect.steps
             for k, v in step.args.pairs
             if k == "amount"
         ]
-        self.assertEqual([resolve(a, ctx) for a in amounts], [4, 2])
+        self.assertEqual([resolve(a, ctx) for a in amounts], [2, 2])
 
 
 if __name__ == "__main__":

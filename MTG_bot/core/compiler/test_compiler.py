@@ -3113,6 +3113,91 @@ class TestDanglingContinuation(unittest.TestCase):
         self.assertNotIn(self.REST, [sentence for sentence, _hint in res.unparsed])
         self.assertEqual(len(self._rest_selectors(res.card)), 1)
 
+    def test_if_you_do_after_an_unparsed_sentence_is_unparsed(self) -> None:
+        # 2026-11-05 (known_bugs compiler_orphaned_if_you_do, M20 Keldon Raider): "If you do"
+        # reads whether the previous instruction was done (CR 118.12). With that sentence
+        # unparsed it has no antecedent; compiled alone it became the creature spell's own
+        # effect, so casting the creature drew a card.
+        tail = "If you do, draw a card."
+        raw = _raw_card(
+            "Raider Probe",
+            9103,
+            types=("Creature",),
+            mana_cost_raw="{2}{R}{R}",
+            mana_value=4,
+            power_raw="4",
+            toughness_raw="3",
+            sentences=("When this creature enters, you may discard a card.", tail),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertEqual(len(res.unparsed), 2, res.unparsed)
+        self.assertIn(tail, [sentence for sentence, _hint in res.unparsed])
+        spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+        self.assertEqual(len(spells), 1)
+        self.assertIsNone(spells[0].effect)
+
+    def test_if_you_do_after_a_parsed_sentence_is_gated(self) -> None:
+        # Control: a parsed antecedent keeps the r18a gate (CR 118.12).
+        raw = _raw_card(
+            "Ooze Control",
+            9104,
+            types=("Creature",),
+            mana_cost_raw="{1}{G}",
+            mana_value=2,
+            power_raw="2",
+            toughness_raw="2",
+            sentences=(
+                "At the beginning of your end step, if a creature died this turn, you may pay {1}{B}.",
+                "If you do, create a 2/2 black Zombie creature token.",
+            ),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertEqual(res.unparsed, ())
+        trigger = res.card.abilities[0]
+        self.assertIsInstance(trigger, TriggeredAbility)
+        self.assertIsInstance(trigger.effect.steps[-1], Conditional)
+
+
+class TestCastCostWaiver(unittest.TestCase):
+    """2026-11-05: CAST's ``cost`` role set to the empty Cost means "without paying its mana cost"
+    (verbs._v_cast -> stack.cast_card, CR 118.9). Two templates wrote it for permissions that are
+    not free in print (Chandra, Heart of Fire's "You may cast them this turn." and "Until end of
+    turn, you may play cards exiled this way."), a shape a mapper copies through ``similar``.
+    Every template sentence of the corpus that compiles a CAST is listed here (all sets, scanned
+    2026-11-05): the waiver compiles exactly when the sentence prints one."""
+
+    SENTENCES = (
+        "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled "
+        "with this artifact without paying its mana cost.",
+        "You may cast Goblin spells from the top of your library.",
+        "You may cast this card from your graveyard by paying 3 life and discarding a card in "
+        "addition to paying its other costs.",
+        "You may cast them this turn.",
+        "You may look at the top card of your library any time, and you may play lands from the "
+        "top of your library.",
+        "You may play that card until you exile another card with this enchantment.",
+        "[\u22122]: You may cast target red instant or sorcery card from your graveyard.",
+        "Until end of turn, you may play cards exiled this way.",
+        "Until end of turn, you may cast spells from your hand without paying their mana costs.",
+        "If you have a full party, you may cast a spell with mana value 4 or less from your hand "
+        "without paying its mana cost.",
+    )
+
+    def test_only_a_printed_waiver_compiles_to_the_empty_cost(self) -> None:
+        reg = build_full_registry()
+        for sentence in self.SENTENCES:
+            matches = reg.match(sentence)
+            self.assertTrue(matches, sentence)
+            casts = [
+                node
+                for node in walk(matches[0].outcome)
+                if isinstance(node, Atom) and node.verb is Verb.CAST
+            ]
+            self.assertTrue(casts, sentence)
+            for atom in casts:
+                waived = atom.args.get("cost") == Cost(parts=())
+                self.assertEqual(waived, "without paying" in sentence, sentence)
+
 
 if __name__ == "__main__":
     unittest.main()

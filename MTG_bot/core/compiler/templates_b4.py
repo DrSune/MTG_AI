@@ -1130,9 +1130,10 @@ def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
     OWN [+1] play-permission row compiles that filter.  "them" is the
     plural of the same population: CHOOSE + QUnbounded + Zone(EXILE, YOU),
     the [+1] row's shape down to the filter (the C2 referent-selector pin
-    is not in play — this is no referent selector).  Mana waiver via the
-    CAST atom's cost role = Cost(parts=()) (the established empty-cost
-    waiver reading, see the b3 UNCOVERED note).
+    is not in play — this is no referent selector).  The cards are cast
+    for their costs: the CAST atom has no ``cost`` role (2026-11-05: it
+    carried the empty Cost, the "without paying its mana cost" waiver of
+    CR 118.9, which the card does not print).
     Documented fidelity edge (shared with the [+1] row's golden — the
     pred's frozen reading is SOURCE-scoped, not row-scoped): both of
     Chandra's exiles carry the same permanent as journalled cause, so the
@@ -1159,7 +1160,6 @@ def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
                         zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
                     ),
                 ),
-                ("cost", Cost(parts=())),
             )
         ),
     )

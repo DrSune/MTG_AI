@@ -125,21 +125,11 @@ class TestTriggerOrdering(unittest.TestCase):
         p0, p1 = w.player_order[0], w.player_order[1]
         ca = w.add_card(card(ORACLE_A, "A"), p0)
         cb = w.add_card(card(ORACLE_B, "B"), p1)
-        # p1's trigger is queued first, but p0 (seat 0) must come first.
+        # p1's trigger is queued first, but the listing is by seat. (The executor resolves
+        # them in stack order, the non-active player's first: test_executor_player_loss.)
         t_p1 = w.queue_trigger(cb, p1, "etb")
         t_p0 = w.queue_trigger(ca, p0, "etb")
         self.assertEqual(w.pending_triggers(), [t_p0, t_p1])
-
-    def test_resolve_next_pops_in_order(self):
-        w = build_world()
-        p0, p1 = w.player_order[0], w.player_order[1]
-        ca = w.add_card(card(ORACLE_A, "A"), p0)
-        cb = w.add_card(card(ORACLE_B, "B"), p1)
-        t_p1 = w.queue_trigger(cb, p1, "etb")
-        t_p0 = w.queue_trigger(ca, p0, "etb")
-        self.assertIs(w.resolve_next_trigger(), t_p0)
-        self.assertIs(w.resolve_next_trigger(), t_p1)
-        self.assertIsNone(w.resolve_next_trigger())
 
 
 class TestDeterminism(unittest.TestCase):
