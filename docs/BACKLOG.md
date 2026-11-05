@@ -760,10 +760,13 @@ These are forks, not tasks. See the report that accompanied this audit.
     in order. When two or more apply, the damaged player or the controller of the damaged
     permanent chooses one, asked as `replace:<seat>:<digest>` over the effects' sources (a
     SEAT_IN_TAG kind in `bench/protocol.py`); it applies, the ones still applicable are checked
-    again (616.1e-f), each once (614.5). Options that rewrite the event identically (two Fiery
-    Emancipations) are one option, so they are never asked; each consuming option is its own
-    (which Nine Lives gets the counter). Prevention that stops all damage (protection, Pack
-    Leader) still applies first: in any order the result is no damage.
+    again (616.1e-f), each once (614.5). Only choices with a consequence are asked: when a
+    consuming record applies, the modifications change nothing (it still applies after them and
+    its action never reads the amount), so only the consumes are options (which Nine Lives gets
+    the counter; Nine Lives beside Fiery Emancipation is not asked); otherwise options that
+    rewrite the event identically (two Fiery Emancipations) are one option. Prevention that stops
+    all damage (protection, Pack Leader) still applies first: in any order the result is no
+    damage.
   - Not changed: the draw, counter, life, dies and zone-change lanes still take the first
     applicable record. Every pair the 19 compiled pools can put on one event there is two copies
     of one effect (Teferi's Ageless Insight and Alhammarret's Archive's draw rewrite, Conclave
@@ -775,7 +778,8 @@ These are forks, not tasks. See the report that accompanied this audit.
     first one made (614.5). Weaker than printed, never a crash.
   - Packs: `replacement_two_nine_lives_damaged_player_chooses.json`,
     `replacement_two_fiery_emancipations_both_apply.json`,
-    `replacement_fiery_then_nine_lives_damaged_player_chooses.json`.
+    `replacement_fiery_and_nine_lives_nobody_is_asked.json` (the first version of the fix asked
+    there: found by review and removed).
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
   **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
   branch `engine/r5a-until-leaves`; follow-ups in B-97]**

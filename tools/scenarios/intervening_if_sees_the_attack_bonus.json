@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "CR 603.4 with CR 603.10: the intervening 'if' is checked right after the trigger event, with the continuous effects that exist then. Ornery Dilophosaur ('Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn') attacks with a 3/3 while Warded Battlements gives attacking creatures +1/+0: the 3/3 is a 4/3 once declared, so the ability triggers and resolves. 5 + 4 damage: 20 -> 11; after combat the Dilophosaur is 4/4 (its +2/+2 lasts until end of turn, the attacking bonus ended with combat). The first event-time check (040b018) read the layers before the settle recomputed them, saw a 3/3 and dropped the trigger (13); found by review, fixed by recomputing the layers before the check.",
+ "cards": [
+  {
+   "key": "d",
+   "real": "Ornery Dilophosaur",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wb",
+   "real": "Warded Battlements",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Bruiser",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "d": true,
+    "b": true,
+    "wb": false
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "d": true,
+   "b": true
+  },
+  "life": {
+   "1": 11
+  },
+  "power": {
+   "d": 4
+  }
+ }
+}

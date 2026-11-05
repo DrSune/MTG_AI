@@ -497,17 +497,25 @@ class ReplacementRegistry:
         options: list[tuple[ReplacementRecord, int | None]],
     ) -> tuple[ReplacementRecord, int | None]:
         """CR 616.1: the affected player, or the controller of the affected
-        permanent, chooses which applicable replacement applies next.
+        permanent, chooses which applicable replacement applies next. Only
+        choices with a consequence are asked (AGENTS §10, no phantom asks):
 
-        Options that modify the event the same way are one option: the same
-        rewrite (action, event, condition, controller) giving the same new
-        amount, as two Fiery Emancipations do; choosing between them changes
-        nothing, so it is never asked (AGENTS §10, no phantom asks). Each
-        consuming option is its own, because its action runs at its own
-        source (which Nine Lives gets the counter). With one option left it
-        applies without an ask; otherwise the decider is asked under
-        ``replace:<seat>:<digest>``, the vocabulary being the options'
-        sources in record order."""
+        - When a consuming option applies, the modifications do not matter:
+          the consume still applies after any of them (matching never reads
+          the amount) and its action never reads the amount (the executor
+          drain runs it without the event). So only the consumes are options,
+          each its own, because its action runs at its own source (which Nine
+          Lives gets the counter).
+        - Otherwise, options that modify the event the same way are one
+          option: the same rewrite (action, event, condition, controller)
+          giving the same new amount, as two Fiery Emancipations do.
+
+        With one option left it applies without an ask; otherwise the decider
+        is asked under ``replace:<seat>:<digest>``, the vocabulary being the
+        options' sources in record order."""
+        consumes = [(rec, new_amount) for rec, new_amount in options if new_amount is None]
+        if consumes:
+            options = consumes
         choices: list[tuple[ReplacementRecord, int | None]] = []
         for rec, new_amount in options:
             if new_amount is not None and any(

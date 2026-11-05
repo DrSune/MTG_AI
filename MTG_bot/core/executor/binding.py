@@ -825,14 +825,20 @@ class TriggerBinder:
             if key in self._declare_queued:
                 return
             self._declare_queued.add(key)
-        if not additional and not self._condition_holds(
-            node, event, source, self._ctx(source, controller, event)
-        ):
+        if not additional and node.condition is not None:
             # CR 603.4: an intervening "if" is checked when the trigger event
-            # occurs, and the ability triggers only if it is true. An extra
-            # instance (CR 603.2e, ``additional``) is queued later, when the
-            # carrier resolves; its original passed this check.
-            return
+            # occurs, and the ability triggers only if it is true. The matcher
+            # runs before the settle's state-based sweep recomputes the layers,
+            # so they are brought up to date first (CR 603.10: the effects that
+            # exist right after the event; Warded Battlements' +1/+0 on the
+            # creatures just declared as attackers). An extra instance (CR
+            # 603.2e, ``additional``) is queued later, when the carrier
+            # resolves; its original passed this check.
+            self.executor.layers.recompute()
+            if not self._condition_holds(
+                node, event, source, self._ctx(source, controller, event)
+            ):
+                return
         self._seq += 1
         instance = self.world.queue_trigger(
             source, controller, f"{event.kind}#{self._seq}"

@@ -382,18 +382,31 @@ class TestCr6161Choice(R22bCase):
         self.assertEqual(self.world.cards[second].counters, {"INCARNATION": 1})
         self.assertEqual(len(self._rows("DAMAGE_REPLACED")), 1)
 
-    def test_modify_then_the_rest_are_checked_again(self):
-        # Seat 1's Fiery and seat 0's Nine Lives both apply to damage to seat 0. Seat 0 picks
-        # Fiery: 3 -> 9, then Nine Lives still applies and prevents it (616.1f).
-        fiery = self._fiery(self.p1)
+    def test_a_consume_beside_modifications_is_not_asked(self):
+        # Seat 1's Fiery and seat 0's Nine Lives both apply to damage to seat 0. Whatever the
+        # order, Nine Lives applies last (616.1f: it still applies after the triple) and its
+        # action never reads the amount, so the choice has no consequence and is not asked
+        # (AGENTS §10): Nine Lives consumes the event as dealt.
+        self._fiery(self.p1)
         lives = self._lives(self.p0, "Lives")
-        asks = self._answer(fiery)
+        asks = self._answer(lives)
         self._damage(self.brute2, self.p0, 3, self.p1)
-        self.assertEqual([a[2] for a in asks], [self.p0])
+        self.assertEqual(asks, [])
         self.assertEqual(self.world.players[self.p0].life, 20)
         self.assertEqual(self.world.cards[lives].counters, {"INCARNATION": 1})
-        self.assertEqual([row[4:6] for row in self._rows("DAMAGE_MODIFIED")], [(3, 9)])
-        self.assertEqual([row[4] for row in self._rows("DAMAGE_REPLACED")], [9])
+        self.assertEqual(self._rows("DAMAGE_MODIFIED"), [])
+        self.assertEqual([row[4] for row in self._rows("DAMAGE_REPLACED")], [3])
+
+    def test_two_consumes_beside_a_modification_ask_only_between_the_consumes(self):
+        fiery = self._fiery(self.p1)
+        first = self._lives(self.p0, "Lives One")
+        second = self._lives(self.p0, "Lives Two")
+        asks = self._answer(second)
+        self._damage(self.brute2, self.p0, 3, self.p1)
+        self.assertEqual([a[0] for a in asks], [(str(first), str(second))])
+        self.assertNotIn(str(fiery), asks[0][0])
+        self.assertEqual(self.world.cards[first].counters, {})
+        self.assertEqual(self.world.cards[second].counters, {"INCARNATION": 1})
 
     def test_the_controller_of_the_damaged_permanent_chooses(self):
         # Seat 0's triple and +1 records both modify damage from seat 0's source to seat 1's
