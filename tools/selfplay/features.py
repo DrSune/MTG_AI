@@ -339,12 +339,15 @@ def _parse_option(tok: str) -> tuple:
         return OPT_INDEX[tok], None, None, 0, 0.0, 0.0
     if tok.startswith("land:"):
         return OPT_INDEX["land"], _handle(tok[5:]), None, 0, 0.0, 0.0
-    if tok.startswith("cast:"):
-        rest = tok[5:]
+    if tok.startswith("cast:"):  # cast:<card>[:k][:x<N>] (router.py; no :x for X = 0)
+        rest, x = tok[5:], 0.0
+        head, sep, tail = rest.rpartition(":x")
+        if sep and tail.isdigit():
+            rest, x = head, float(int(tail))
         kicked = rest.endswith(":k")
         if kicked:
             rest = rest[:-2]
-        return (OPT_INDEX["cast_kicked" if kicked else "cast"], _handle(rest), None, 0, 0.0,
+        return (OPT_INDEX["cast_kicked" if kicked else "cast"], _handle(rest), None, 0, x,
                 1.0 if kicked else 0.0)
     if tok.startswith("act:"):
         parts = tok.split(":")

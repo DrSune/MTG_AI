@@ -53,8 +53,8 @@ class _UniformRandom:
 
 class NetAgent:
     """A seat played by a network on the learner. Single-option asks are not decisions, and
-    asks the encoding cannot hold (more than MAX_OPTIONS options, or a ``name`` ask, which
-    enumerates hidden cards) go to the fallback agent; both are counted."""
+    asks the encoding cannot hold (more than MAX_OPTIONS options, or a ``name`` ask, which lists
+    every card name of the format's pool) go to the fallback agent; both are counted."""
 
     def __init__(self, slot: _Slot, job: dict, seat: int, table: FT.CardTable) -> None:
         self.slot = slot

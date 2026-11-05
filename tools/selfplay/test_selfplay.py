@@ -91,15 +91,18 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
 
 
 def test_heuristic_beats_uniform_random() -> None:
+    """The teacher works. It wins ~0.89 against uniform random (600 games, 2026-11-05): 14 of 20
+    fails a working teacher with p = 0.005 and passes a coin-flip one with p = 0.06; 8 of 10
+    failed a working teacher 9% of the time."""
     wins = 0
-    for seed in range(1, 11):
+    for seed in range(1, 21):
         seat = seed % 2
         agents = [None, None]
         agents[seat] = HeuristicAgent()
         agents[1 - seat] = UniformRandomAgent(random.Random(seed))
         res = play_game(seed, agents, deck_mode="stress" if seed % 3 else "coherent")
         wins += res["outcome"] == "win" and res["winner"] == seat
-    assert wins >= 8
+    assert wins >= 14, wins
 
 
 def test_network_is_equivariant_over_options_and_roundtrips(table, tmp_path) -> None:
@@ -430,3 +433,95 @@ def test_learner_refuses_init_flags_without_init() -> None:
     with pytest.raises(SystemExit):
         parse(["--run", "/tmp/x", "--refresh-table"])
     assert parse(["--run", "/tmp/x", "--init", "a.pt", "--refresh-table"]).refresh_table
+
+
+# ------------------------------------------- the teacher on the 2026-11-05 menu (no TAP_ALL_MANA)
+
+
+def _teach(hand0=(), field0=(), field1=(), **kw):
+    """Seat 0's turn on an arranged board (MTG_bot/bench/test_router.py), the heuristic acting."""
+    from MTG_bot.bench.test_router import P0, _arranged, _router
+
+    game, supply = _arranged(hand0=hand0, field0=field0, field1=field1, **kw)
+    router = _router(game, supply, HeuristicAgent())
+    return game, router, P0
+
+
+def _named(game, name):
+    return next(h for h, c in game.world.cards.items() if c.identity.name == name)
+
+
+def test_heuristic_taps_a_mana_creature_only_for_a_spell_it_casts() -> None:
+    game, router, me = _teach(hand0=("Fierce Empath",), field0=("Forest", "Forest", "Forest", "Llanowar Visionary"))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Fierce Empath")).kind == "battlefield"
+    assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped  # the lands paid
+    game, router, me = _teach(hand0=("Fierce Empath",), field0=("Forest", "Forest", "Llanowar Visionary"))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Fierce Empath")).kind == "battlefield"
+    assert game.world.cards[_named(game, "Llanowar Visionary")].tapped  # its {G} was the third mana
+
+
+def test_heuristic_never_trades_two_mana_for_one() -> None:
+    # Prismite's "{2}: Add one mana of any color" was activated 752 times in 300 games.
+    game, router, me = _teach(hand0=("Pursued Whale",), field0=("Island", "Island", "Prismite"))
+    router.take_acts(game, me)
+    assert not any(a.card == "Prismite" for a in router.acts)
+
+
+def test_heuristic_casts_an_x_spell_at_its_largest_x() -> None:
+    game, router, me = _teach(hand0=("Volcanic Geyser",), field0=("Mountain", "Mountain", "Island", "Island", "Island"),
+                              field1=("Walking Corpse",))
+    router.take_acts(game, me)
+    assert [a.detail for a in router.acts if a.card == "Volcanic Geyser"] == ["1t:x3"]
+
+
+def test_heuristic_names_the_opponents_most_expensive_public_card() -> None:
+    from MTG_bot.core.ability_tree import Atom, AtomArgs, Verb
+
+    game, _router, me = _teach(field0=("Plains",), field1=("Walking Corpse", "Pursued Whale"))
+    source = _named(game, "Plains")
+    game.executor.apply_effect(Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=())), source=source, controller=me)
+    assert game.executor.name_choices[source] == "Pursued Whale"
+
+
+def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
+    # Only X = 0 is payable ({G} for Wildwood Scourge): a 0/0 that dies at once is not a play.
+    game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Forest",))
+    router.take_acts(game, me)
+    assert not any(a.card == "Wildwood Scourge" for a in router.acts)
+
+
+def test_heuristic_names_the_colour_its_treasure_is_for() -> None:
+    # Review 2026-11-05: the mana ask took the colour from identity.mana_cost, which no dealt card
+    # carries, so a Treasure sacrificed for Walking Corpse ({1}{B}) next to a Plains made {W}.
+    game, router, me = _teach(hand0=("Walking Corpse",), field0=("Plains",), tokens0=("Treasure",))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
+
+
+def test_heuristic_never_taps_mana_for_a_play_it_will_not_make() -> None:
+    # Wildwood Scourge with one {G} source is castable only at X = 0, which the teacher never casts.
+    game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Llanowar Visionary",))
+    router.take_acts(game, me)
+    assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped and router.acts == []
+
+
+def test_heuristic_aims_minus_n_at_the_opponent() -> None:
+    # "Target creature gets -4/-4" compiles to PtDelta(DECREASE, 4); the harm test read only
+    # negative numbers, so Grasp of Darkness was aimed at the teacher's own creature.
+    game, router, me = _teach(hand0=("Grasp of Darkness",), field0=("Swamp", "Swamp", "Walking Corpse"),
+                              field1=("Onakke Ogre",))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
+    assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
+
+
+def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
+    """The router writes cast:<card>[:k][:x<N>]; the parser read card:12:x3 as no card and X 0, so
+    every X > 0 row reached the network as a cast of nothing (2026-11-05, fix/menu-mana)."""
+    from MTG_bot.core.identity import Handle
+    c = Handle("card", 12)
+    assert FT._parse_option("cast:card:12:x3") == (FT.OPT_INDEX["cast"], c, None, 0, 3.0, 0.0)
+    assert FT._parse_option("cast:card:12:k:x2") == (FT.OPT_INDEX["cast_kicked"], c, None, 0, 2.0, 1.0)
+    assert FT._parse_option("cast:card:12") == (FT.OPT_INDEX["cast"], c, None, 0, 0.0, 0.0)

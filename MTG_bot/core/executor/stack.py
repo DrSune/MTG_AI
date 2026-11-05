@@ -440,6 +440,7 @@ def cast_modes(
     *,
     mode_choices: tuple[int, ...] = (),
     decisions: tuple[str, ...] = (),
+    pay=None,
 ) -> tuple[int, tuple[int, ...], tuple[str, ...]]:
     """V17 (CR 601.2b, 700.2a): announce a modal spell's modes as it is cast.
 
@@ -453,10 +454,11 @@ def cast_modes(
     (forced when only one is legal, never a phantom). A set whose modes need
     a target that cannot be chosen is not legal (700.2a); with no legal set
     the spell cannot be cast. An act window calls this before choosing
-    targets, then designates through ``spell_target_slots(..., modes=)``."""
+    targets, then designates through ``spell_target_slots(..., modes=)``;
+    ``pay`` prices the targets as that window pays (``spell_target_slots``)."""
     from MTG_bot.core.executor.query import cast_mode_options
 
-    legal = cast_mode_options(executor, node, spell_handle=handle, seat=seat)
+    legal = cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay)
     remaining = tuple(decisions)
     if mode_choices:
         wanted = tuple(sorted(int(m) for m in mode_choices))
@@ -709,25 +711,36 @@ def _counter_vocab(
             if _modal_counter_sets(executor, seat, handle, node, frame_handle):
                 options.append(str(handle))
             continue
-        slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
+        slots = spell_target_slots(
+            executor, node, spell_handle=handle, seat=seat, pay=_window_pay(executor, seat, handle)
+        )
         if len(slots) != 1 or validate_target_selection(slots[0], (frame_handle,)):
             continue
         options.append(str(handle))
     return ("PASS",) + tuple(sorted(options))
 
 
-def _window_taps(executor: Executor, seat: Handle, handle: Handle):
-    """B-90 (a): the mana abilities ``seat`` taps to cast ``handle`` in a
-    response window (CR 601.2g, 605.3a: mana abilities may be activated while
-    paying), () when the pool already pays, None when the spell cannot be cast
+def _window_taps(executor: Executor, seat: Handle, handle: Handle, targets: tuple[Handle, ...] = ()):
+    """B-90 (a): the free sources ``seat`` taps to cast ``handle`` at
+    ``targets`` in a response window (CR 601.2g, 605.3a: mana abilities may be
+    activated while paying; 601.2f: the total includes a target's cost
+    increase), () when the pool already pays, None when the spell cannot be cast
     (C15: then it is never offered)."""
-    return plan_mana_taps(executor, seat, lambda: spell_castable(executor, seat, handle)[0])
+    return plan_mana_taps(
+        executor, seat, lambda: spell_castable(executor, seat, handle, targets=targets)[0]
+    )
+
+
+def _window_pay(executor: Executor, seat: Handle, handle: Handle):
+    """How a window prices a target (``spell_target_slots``' ``pay``): the
+    pool plus the free sources the window would tap, as it pays."""
+    return lambda targets: _window_taps(executor, seat, handle, targets) is not None
 
 
 def _window_cast(executor: Executor, seat: Handle, handle: Handle, target: Handle) -> None:
     """Cast a response-window answer: tap the planned mana abilities, then the
     ordinary :func:`cast` (which re-checks legality and pays from the pool)."""
-    tap_for_payment(executor, seat, _window_taps(executor, seat, handle) or ())
+    tap_for_payment(executor, seat, _window_taps(executor, seat, handle, (target,)) or ())
     cast(executor, seat, handle, targets=(target,))
 
 
@@ -783,7 +796,11 @@ def _modal_counter_sets(
             continue  # the empty set counters nothing
         effect = _chosen_effect(node.effect, modes)
         slots = spell_target_slots(
-            executor, replace(node, effect=effect), spell_handle=handle, seat=seat
+            executor,
+            replace(node, effect=effect),
+            spell_handle=handle,
+            seat=seat,
+            pay=_window_pay(executor, seat, handle),
         )
         if any(len(slot.candidates) < slot.min_count for slot in slots):
             continue
@@ -931,7 +948,9 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
             continue
         if _window_taps(executor, seat, handle) is None:
             continue
-        slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
+        slots = spell_target_slots(
+            executor, node, spell_handle=handle, seat=seat, pay=_window_pay(executor, seat, handle)
+        )
         if len(slots) != 1 or not slots[0].min_count <= 1 <= slots[0].max_count:
             continue
         for target in slots[0].candidates:
@@ -1165,7 +1184,7 @@ def cast(
             # B-90 (a), CR 601.2g: the mana abilities are activated after the
             # declaration (601.2b-c), while the cost is paid.
             tap_for_payment(
-                executor, responder, _window_taps(executor, responder, counter) or ()
+                executor, responder, _window_taps(executor, responder, counter, chosen) or ()
             )
             cast(executor, responder, counter, mode_choices=modes, targets=chosen)
             continue

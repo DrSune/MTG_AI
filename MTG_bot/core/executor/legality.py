@@ -2067,11 +2067,15 @@ def activate(
 # pool, and since V2 the pool empties as each step and phase ends, so a
 # payment asked OUTSIDE the active player's act window (a response window, a
 # "you may pay", an "unless its controller pays") had no mana. These helpers
-# let such a payment tap the payer's untapped mana abilities whose cost is
-# only {T}: a minimal set the payment planner proves sufficient, never all.
+# let such a payment tap the payer's FREE sources (non-creature permanents
+# whose mana ability costs only {T}: lands, plain mana rocks): a minimal set
+# the payment planner proves sufficient, never all. The act window's menu
+# pays the same way (bench/router.py, 2026-11-05). Every other mana ability
+# (a creature's, a sacrifice, a mana-cost filter) has a cost of its own and
+# is never activated on the player's behalf.
 # SCAFFOLD (BACKLOG "scaffolds to remove"): the engine picks the sources, a
 # decision hidden from the player (AGENTS §10); removed by the PAYMENT asks
-# of DESIGN_ACTION_SPACE §1.3.
+# of DESIGN_ACTION_SPACE §1.3 (a learned payment choice).
 
 
 @dataclass(frozen=True)
@@ -2102,12 +2106,13 @@ def _mana_atom_output(atom: object, ctx: ExecCtx) -> tuple[str | None, int] | No
 
 
 def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
-    """Per permanent of ``payer`` (Handle order), the ways its first eligible
-    ability can add mana. Eligible: cost exactly {T}; effect one ADD_MANA atom
-    (fixed colour or any colour) or a Choose between ADD_MANA atoms (dual
-    lands); and activatable by ``payer`` right now (ability_playable: so tapped
-    sources, V1-sick creatures and locked abilities are out). Printed and
-    granted abilities, the legal_activations scan, which this does not call
+    """Per free source of ``payer`` (Handle order), the ways its first eligible
+    ability can add mana. A free source is a non-creature permanent (tapping a
+    creature costs its attack and its block); eligible: cost exactly {T};
+    effect one ADD_MANA atom (fixed colour or any colour) or a Choose between
+    ADD_MANA atoms (dual lands); and activatable by ``payer`` right now
+    (ability_playable: so tapped sources and locked abilities are out). Printed
+    and granted abilities, the legal_activations scan, which this does not call
     because it raises on cost kinds it cannot check."""
     from MTG_bot.core.ability_tree import Choose
     from MTG_bot.core.executor.query import choose_options
@@ -2115,10 +2120,13 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
 
     world = executor.world
     out: list[list[ManaTap]] = []
-    for handle in sorted(world.cards):
-        if world.zone_of(handle).kind != ZONE_BATTLEFIELD:
-            continue
+    # The battlefields' entries, not every world card: this runs once per payment the menu
+    # prices (2026-11-05 profile: world.zone_of over every card was a third of a game's time).
+    permanents = (h for p in world.player_order for h in world.players[p].zone(ZONE_BATTLEFIELD).entries)
+    for handle in sorted(permanents):
         if executor.controller_of(handle) != payer:
+            continue
+        if eval_filter(_IS_CREATURE, handle, ctx_for(executor, source=handle, controller=payer)):
             continue
         rows: list[tuple[int, object]] = []
         record = executor.binder.handle_record.get(handle)
@@ -2131,11 +2139,11 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
         for idx, ability in rows:
             if not isinstance(ability, ActivatedAbility):
                 continue
-            if not is_mana_ability(ability):
-                continue  # CR 605.3a: only a mana ability (605.1a) is activated while paying
             parts = ability.cost.parts
             if len(parts) != 1 or not isinstance(parts[0], CostTap) or parts[0].target is not None:
-                continue
+                continue  # (the cheap test first: is_mana_ability walks the whole tree)
+            if not is_mana_ability(ability):
+                continue  # CR 605.3a: only a mana ability (605.1a) is activated while paying
             ctx = ctx_for(executor, source=handle, controller=payer)
             policy = executor.layers.this_mana_filter(handle)
             tags: tuple[Filter, ...] = (policy,) if policy is not None else ()
@@ -2215,63 +2223,107 @@ def _with_trial_mana(executor: Executor, payer: Handle, taps: Sequence[ManaTap],
             ledger.segments.pop(payer, None)
 
 
+def _paying_tap(
+    taps: list[ManaTap], kind: str, colors: tuple[str, ...], any_colour: bool
+) -> ManaTap | None:
+    """The way of this source that pays the shortfall (``_mana_shortfall``), if any."""
+    if kind == "generic" or any_colour:
+        return taps[0]
+    return next((t for c in colors for t in taps if t.production[0] == c), None)
+
+
+def _keeps_open(taps: list[ManaTap], free: list[list[ManaTap]]) -> tuple[int, int, Handle]:
+    """plan_mana_taps' order, smallest first: the most colours the other free
+    sources still make once this one is tapped, then the fewest colours this one
+    makes, then the lowest Handle."""
+    left = {t.production[0] for other in free if other is not taps for t in other}
+    return (-len(left), len(taps), taps[0].source)
+
+
 def plan_mana_taps(
-    executor: Executor, payer: Handle, check
+    executor: Executor,
+    payer: Handle,
+    check,
+    *,
+    exclude: frozenset[Handle] = frozenset(),
 ) -> tuple[ManaTap, ...] | None:
-    """The mana abilities ``payer`` taps so a payment can be made. ``check()``
-    returns None when the payment is plannable, else the planner's reason.
-    Returns () when the pool already pays, the taps when they make it pay, and
-    None when no set of {T}-only mana abilities does (the payment is then
-    declined exactly as before). Deterministic: sources in Handle order, the
-    shortfall the planner names picks the next source (fixed colour first,
-    then dual, then any colour), a spend-restricted tap that does not reduce
-    the shortfall is dropped, and a last pass removes every tap the payment
-    does not need, so the set is inclusion-minimal."""
+    """The free sources ``payer`` taps so a payment can be made (pool first).
+    ``check()`` returns None when the payment is plannable, else the planner's
+    reason. Returns () when the pool already pays, the taps when they make it
+    pay, and None when no set of free sources does (the payment is then
+    declined exactly as before). ``exclude``: permanents the payment itself
+    taps (an ability's own {T}), never tapped for mana.
+
+    One deterministic rule, which keeps the most mana options open: each
+    shortfall the planner names (coloured symbols before generic ones) is
+    paid by the source whose loss leaves the most colours the other untapped
+    free sources can still make, then the one that makes the fewest colours,
+    then the lowest Handle (:func:`_keeps_open`). A coloured shortfall that
+    leads nowhere tries the next source in that order (:func:`_fill`), so a
+    payment is found whenever one exists ({R}{W} from a R/W and a B/R dual).
+    With Chromatic Orrery's permission (mana of any colour pays a coloured
+    symbol) every source pays every symbol. A last pass removes every tap the
+    payment does not need, so the set is inclusion-minimal."""
     reason = check()
     if reason is None:
         return ()
-    options = _mana_tap_options(executor, payer)
-    chosen: list[ManaTap] = []
-    used: set[Handle] = set()
-    while reason is not None:
-        need = _mana_shortfall(reason)
-        if need is None:
-            return None
-        kind, colors = need
-        pick: ManaTap | None = None
-        for rank in (0, 1, 2):  # fixed colour, dual, any colour
-            for taps in options:
-                if taps[0].source in used:
-                    continue
-                shape = 0 if len(taps) == 1 else (1 if len(taps) == 2 else 2)
-                if shape != rank:
-                    continue
-                if kind == "generic":
-                    pick = taps[0]
-                else:
-                    pick = next((t for c in colors for t in taps if t.production[0] == c), None)
-                if pick is not None:
-                    break
-            if pick is not None:
-                break
-        if pick is None:
-            return None
-        used.add(pick.source)
-        chosen.append(pick)
-        new_reason = _with_trial_mana(executor, payer, chosen, check)
-        if new_reason == reason and pick.production[2]:
-            # Spend-restricted mana (Vodalian Arcanist's) that this payment may
-            # not use leaves the shortfall as it was: drop it, try the next.
-            # Unrestricted mana always pays something (a repeated reason then
-            # only means a second symbol of the same colour, as in {U}{U}).
-            chosen.pop()
-            continue
-        reason = new_reason
+    options = [taps for taps in _mana_tap_options(executor, payer) if taps[0].source not in exclude]
+    any_colour = executor.mana_permission(payer)
+    chosen = _fill(executor, payer, check, options, any_colour, [], reason, set())
+    if chosen is None:
+        return None
     for tap in list(reversed(chosen)):
         rest = [t for t in chosen if t is not tap]
         if _with_trial_mana(executor, payer, rest, check) is None:
             chosen = rest
     return tuple(chosen)
+
+
+def _fill(
+    executor: Executor,
+    payer: Handle,
+    check,
+    options: list[list[ManaTap]],
+    any_colour: bool,
+    chosen: list[ManaTap],
+    reason: str | None,
+    seen: set[frozenset[tuple[Handle, str]]],
+) -> list[ManaTap] | None:
+    """plan_mana_taps' search: the taps that complete ``chosen``, depth first
+    over the shortfalls the planner names, sources in :func:`_keeps_open`
+    order. Only a coloured or hybrid shortfall tries a second source: any
+    source pays a generic one. ``seen`` holds the (source, colour) sets
+    already tried, so an order of the same taps is never tried twice."""
+    if reason is None:
+        return chosen
+    need = _mana_shortfall(reason)
+    if need is None:
+        return None
+    kind, colors = need
+    used = {tap.source for tap in chosen}
+    free = [taps for taps in options if taps[0].source not in used]
+    payers = sorted(
+        (_keeps_open(taps, free), tap)
+        for taps in free
+        if (tap := _paying_tap(taps, kind, colors, any_colour)) is not None
+    )  # the keys differ: each names its own source
+    for _key, tap in payers:
+        trial = [*chosen, tap]
+        tried = frozenset((t.source, t.production[0]) for t in trial)
+        if tried in seen:
+            continue
+        seen.add(tried)
+        new_reason = _with_trial_mana(executor, payer, trial, check)
+        if new_reason == reason and tap.production[2]:
+            # Spend-restricted mana (Vodalian Arcanist's) that this payment may
+            # not use leaves the shortfall as it was: try the next source.
+            # Unrestricted mana always pays something (a repeated reason then
+            # only means a second symbol of the same colour, as in {U}{U}).
+            continue
+        found = _fill(executor, payer, check, options, any_colour, trial, new_reason, seen)
+        if found is not None or kind == "generic" or any_colour:
+            return found
+    return None
 
 
 def tap_for_payment(

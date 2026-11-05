@@ -107,9 +107,11 @@ out-of-process from the agent's point of view, and the only channel is the optio
 
 ### 3.5 Known leaks the harness must neutralise
 
-- The engine's CHOOSE_NAME vocabulary lists every card name in the world, hidden zones included
-  (`core/executor/verbs.py:1543-1556`). The router flags `name:` asks and counts them, and labels
-  may only name cards visible to the decider.
+- The engine's CHOOSE_NAME vocabulary listed every card name in the world, hidden zones included
+  (B-29). Since 2026-11-05 a dealt game lists the format's card pool instead (`executor.name_pool`),
+  public information, so its `name:` asks are not leaky. The router flags, and counts, a `name:`
+  ask as leaky only in a rig with no format, where the engine still lists the world's names.
+  Labels may only name cards visible to the decider.
 - **L-27:** the engine silently decides some "an opponent chooses" effects. Counted, never
   attributed to an agent.
 
@@ -331,8 +333,8 @@ Measured with it (exploratory; M21 castable pool):
 
 Registered in [`BACKLOG.md`](BACKLOG.md) with removal conditions:
 - k = 3 strikes per decision;
-- `TAP_ALL_MANA` (the tap amount is not an engine ask);
-- X always 0;
+- payment is automatic: the pool first, then the free sources (lands, plain mana rocks) the engine
+  picks; other mana abilities are act rows (since 2026-11-05, replacing `TAP_ALL_MANA`);
 - rows with more than one target slot are hidden, mirroring the engine;
 - one act window per turn, the engine's;
 - stateless prompts;
