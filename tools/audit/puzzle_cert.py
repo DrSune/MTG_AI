@@ -64,6 +64,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
+from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.games import get_supply
 from MTG_bot.core.executor.quantity import ExecCtx
 from tools.run_scenarios import ScenarioRunner
@@ -187,6 +188,8 @@ def _drive(
             want = step.get("expect_raise")
             try:
                 runner.run_step(step)
+            except GameOver:  # a player lost (CR 704.5a/b): no later step, as in run_pack
+                break
             except Exception as e:  # noqa: BLE001
                 if want is None or want not in f"{type(e).__name__}: {e}":
                     return runner, False

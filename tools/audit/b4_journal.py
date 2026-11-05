@@ -33,6 +33,8 @@ import detectors as D
 from branch_coverage import Game
 from run_scenarios import PackError, ScenarioRunner
 
+from MTG_bot.core.executor import GameOver
+
 PACKS_DIR = REPO / "tools" / "scenarios"
 
 
@@ -78,6 +80,8 @@ def pack_games(
             want = step.get("expect_raise")
             try:
                 runner.run_step(step)
+            except GameOver:  # a player lost (CR 704.5a/b): no later step, as in run_pack
+                break
             except Exception as e:  # noqa: BLE001 - mirror run_pack
                 if want is None or want not in f"{type(e).__name__}: {e}":
                     broken = True
