@@ -748,10 +748,30 @@ These are forks, not tasks. See the report that accompanied this audit.
   `engine/verify-fixes-2` 2026-10-29 (V16): `replacements.prevents_untap` judges a static carrier's
   event filter over the card (CR 502.3).]**
 - **B-69 [same] Two damage replacements on one event raise `NotImplementedError`.**
+  **[FIXED on branch `fix/rules-objects` 2026-11-05]**
   - `replacements.py:424-425` does not model the affected player's ordering choice (CR 616.1).
   - About 0.25% of coherent M21 games crash on it (seeds 1176, 1356, 1439, 1603, 2230: Fiery
     Emancipation with Nine Lives, or two Fiery Emancipations).
   - Repro script on the B-49 branch: `cr6161_repro.py`.
+  - 2026-11-05: the crash voided the game, and voided games are dropped from training, so a
+    losing seat could escape through it: a trained network did (eval deal 900137, at 1 life it
+    cast a second Fiery Emancipation and attacked).
+  - Fix: `ReplacementRegistry.replacements_for_damage` returns every replacement that applies,
+    in order. When two or more apply, the damaged player or the controller of the damaged
+    permanent chooses one, asked as `replace:<seat>:<digest>` over the effects' sources (a
+    SEAT_IN_TAG kind in `bench/protocol.py`); it applies, the ones still applicable are checked
+    again (616.1e-f), each once (614.5). Options that rewrite the event identically (two Fiery
+    Emancipations) are one option, so they are never asked; each consuming option is its own
+    (which Nine Lives gets the counter). Prevention that stops all damage (protection, Pack
+    Leader) still applies first: in any order the result is no damage.
+  - Not changed: the draw, counter, life, dies and zone-change lanes still take the first
+    applicable record. Every pair the 19 compiled pools can put on one event there is two copies
+    of one effect (Teferi's Ageless Insight and Alhammarret's Archive's draw rewrite, Conclave
+    Mentor, the "exile it instead" dies records), so the order changes nothing today. A card that
+    makes the order matter in one of those lanes needs the same `_choose` there.
+  - Packs: `replacement_two_nine_lives_damaged_player_chooses.json`,
+    `replacement_two_fiery_emancipations_both_apply.json`,
+    `replacement_fiery_then_nine_lives_damaged_player_chooses.json`.
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
   **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
   branch `engine/r5a-until-leaves`; follow-ups in B-97]**

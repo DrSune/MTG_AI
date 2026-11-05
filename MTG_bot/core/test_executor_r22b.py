@@ -229,13 +229,24 @@ class TestFieryDamageModify(R22bCase):
         self.assertEqual(self.ex.damage[self.brute], 2)
         self.assertEqual(self.world.zone_of(self.brute).kind, ZONE_BATTLEFIELD)
 
-    def test_two_records_raise_cr_616_1(self):
+    def test_two_records_both_apply_cr_616_1(self):
+        # re-pinned 2026-11-05 (B-69): this asserted the NotImplementedError raise. CR 616.1e-f:
+        # once one replacement applies, the ones still applicable apply in turn, each once (CR
+        # 614.5): 2 -> 6 -> 18. Either order gives 18, so nobody is asked (no provider here: an
+        # ask would raise).
         self._fiery(self.p0, "Fiery")
         self._fiery(self.p0, "Fiery Two")
-        with self.assertRaises(NotImplementedError):
-            self._damage(self.brute, self.p1, 2, self.p0)
-        # loud means LOUD: the event was not applied at all
-        self.assertEqual(self.world.players[self.p1].life, 20)
+        self._damage(self.brute, self.p1, 2, self.p0)
+        self.assertEqual(self.world.players[self.p1].life, 2)
+        self.assertEqual([row[4:6] for row in self._rows("DAMAGE_MODIFIED")], [(2, 6), (6, 18)])
+
+    def test_two_records_both_apply_to_a_permanent(self):
+        self._fiery(self.p0, "Fiery")
+        self._fiery(self.p0, "Fiery Two")
+        self._damage(self.brute, self.beast, 1, self.p0)
+        # the 0/6 Beast takes 9 and dies, so read the journal, not the mark ledger
+        self.assertEqual([row[4:6] for row in self._rows("DAMAGE_MODIFIED")], [(1, 3), (3, 9)])
+        self.assertEqual([row[3] for row in self._rows("DAMAGE") if row[2] == str(self.beast)], [9])
 
     def test_player_idiom_filter_skips_card_lane(self):
         # A Nine-Lives-shaped 'to you' filter (CONTROLLER_IS over the
@@ -286,6 +297,116 @@ class TestConsumeDoctrine(R22bCase):
         self._damage(self.brute, self.p0, 2, self.p0)
         self.assertEqual(self.world.players[self.p0].life, 21)  # 20 - 0 + 1
         self.assertEqual(len(self._rows("DAMAGE_REPLACED")), 1)
+
+
+class TestCr6161Choice(R22bCase):
+    """B-69 (2026-11-05): CR 616.1. When two or more replacement effects would modify how one
+    damage event affects a player or an object, the affected player, or the controller of the
+    affected object, chooses one to apply; then the ones still applicable are checked again
+    (616.1e-f). The choice is asked through the decision channel, of that player
+    (``replace:<seat>:<digest>``, vocabulary = the sources of the distinct options)."""
+
+    def _lives(self, seat, name):
+        """Nine Lives node-for-node: 'If a source would deal damage to you, prevent that damage
+        and put an incarnation counter on this enchantment.'"""
+        handle = self._card(name, None, None, seat)
+        self._attach(
+            handle,
+            ReplacementAbility(
+                event=DamageDealtEvent(
+                    amount=QUnbounded(),
+                    filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                ),
+                condition=None,
+                action=atom(
+                    Verb.PUT_COUNTER,
+                    count=QConst(1),
+                    counter_kind=CounterKind.INCARNATION,
+                    target=Selector(
+                        QConst(1),
+                        SelectorMode.CHOOSE,
+                        FAtom(pred=FAtomPred.IS_SOURCE),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+                    ),
+                ),
+            ),
+        )
+        return handle
+
+    def _plus_one(self, seat):
+        """A Fiery-shaped record that adds 1 instead of tripling (no printed card; it makes the
+        order of two modifications matter: triple-then-add and add-then-triple differ)."""
+        handle = self._card("Plus One", None, None, seat)
+        self._attach(
+            handle,
+            ReplacementAbility(
+                event=DamageDealtEvent(
+                    amount=QX(),
+                    filter=FAnd(()),
+                    source=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                ),
+                condition=None,
+                action=atom(
+                    Verb.DEAL_DAMAGE,
+                    amount=QBin(QBinOp.ADD, QProp("event", QPropField.AMOUNT), QConst(1)),
+                    target=Selector(
+                        QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,), referent="event"
+                    ),
+                ),
+            ),
+        )
+        return handle
+
+    def _answer(self, pick):
+        asks = []
+
+        def provider(vocab, what):
+            asks.append((vocab, what, self.ex.decisions.asking_seat))
+            return str(pick)
+
+        self.ex.decisions.provider = provider
+        return asks
+
+    def test_the_damaged_player_chooses_which_nine_lives_applies(self):
+        first = self._lives(self.p0, "Lives One")
+        second = self._lives(self.p0, "Lives Two")
+        asks = self._answer(second)
+        self._damage(self.brute2, self.p0, 3, self.p1)  # the opponent's source
+        self.assertEqual(len(asks), 1)
+        vocab, what, seat = asks[0]
+        self.assertEqual(vocab, (str(first), str(second)))
+        self.assertTrue(what.startswith(f"replace:{self.p0}:"), what)
+        self.assertEqual(seat, self.p0)  # the damaged player, not the source's controller
+        self.assertEqual(self.world.players[self.p0].life, 20)
+        self.assertEqual(self.world.cards[first].counters, {})
+        self.assertEqual(self.world.cards[second].counters, {"INCARNATION": 1})
+        self.assertEqual(len(self._rows("DAMAGE_REPLACED")), 1)
+
+    def test_modify_then_the_rest_are_checked_again(self):
+        # Seat 1's Fiery and seat 0's Nine Lives both apply to damage to seat 0. Seat 0 picks
+        # Fiery: 3 -> 9, then Nine Lives still applies and prevents it (616.1f).
+        fiery = self._fiery(self.p1)
+        lives = self._lives(self.p0, "Lives")
+        asks = self._answer(fiery)
+        self._damage(self.brute2, self.p0, 3, self.p1)
+        self.assertEqual([a[2] for a in asks], [self.p0])
+        self.assertEqual(self.world.players[self.p0].life, 20)
+        self.assertEqual(self.world.cards[lives].counters, {"INCARNATION": 1})
+        self.assertEqual([row[4:6] for row in self._rows("DAMAGE_MODIFIED")], [(3, 9)])
+        self.assertEqual([row[4] for row in self._rows("DAMAGE_REPLACED")], [9])
+
+    def test_the_controller_of_the_damaged_permanent_chooses(self):
+        # Seat 0's triple and +1 records both modify damage from seat 0's source to seat 1's
+        # Beast. Seat 1 controls the Beast, so seat 1 chooses; +1 first gives (1+1)*3 = 6,
+        # triple first would give 1*3+1 = 4.
+        self._fiery(self.p0)
+        plus = self._plus_one(self.p0)
+        asks = self._answer(plus)
+        self._damage(self.brute, self.beast, 1, self.p0)
+        self.assertEqual([a[2] for a in asks], [self.p1])
+        self.assertTrue(asks[0][1].startswith(f"replace:{self.p1}:"), asks[0][1])
+        self.assertEqual([row[4:6] for row in self._rows("DAMAGE_MODIFIED")], [(1, 2), (2, 6)])
+        self.assertEqual([row[3] for row in self._rows("DAMAGE") if row[2] == str(self.beast)], [6])
 
 
 class TestTeferiDrawLane(R22bCase):

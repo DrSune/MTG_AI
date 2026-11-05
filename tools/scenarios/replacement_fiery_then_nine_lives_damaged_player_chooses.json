@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 616.1: seat 1 controls Fiery Emancipation and Shocks seat 0, who controls Nine Lives. Both replacements apply to the 2 damage to seat 0, so seat 0 (the affected player) chooses. It picks Fiery Emancipation first: the damage becomes 6; Nine Lives still applies (616.1f) and prevents it, putting one incarnation counter on itself. Seat 0 stays at 20. This is the B-69 crash pair (Nine Lives with Fiery Emancipation, eval deal 900137), which raised NotImplementedError before the fix.",
+ "cards": [
+  {"key": "fiery", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 1},
+  {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "controller": 1, "targets": ["p0"], "decisions": ["fiery"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "counters": {"nl": {"INCARNATION": 1}},
+  "zone": {"nl": "battlefield", "fiery": "battlefield"}
+ }
+}

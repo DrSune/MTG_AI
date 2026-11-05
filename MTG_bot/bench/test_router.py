@@ -80,3 +80,57 @@ def test_tap_effects_are_not_mana_abilities() -> None:
     agents = [UniformRandomAgent(rng.substream("bench", 6, 0)), PassAgent()]
     _play(game, SeatRouter(game, agents, _lenses(), supply=supply), game.world.player_order, 40)
     assert game.reason
+
+
+def test_a_replacement_choice_is_routed_to_the_damaged_player() -> None:
+    # B-69 (2026-11-05), CR 616.1: two Nine Lives apply to damage to seat 0, so seat 0 chooses
+    # which one applies; the ask is the engine's replace:<seat>:<digest> site, routed strictly.
+    from MTG_bot.core.ability_tree import (
+        Atom,
+        AtomArgs,
+        ControllerRef,
+        FAnd,
+        QConst,
+        Selector,
+        SelectorMode,
+        Verb,
+        Zone,
+        ZoneKind,
+    )
+    from MTG_bot.core.executor.games import identity_of
+    from MTG_bot.core.state import ZONE_BATTLEFIELD
+
+    class Recorder:
+        name = "recorder"
+
+        def __init__(self) -> None:
+            self.asks: list = []
+
+        def decide(self, ask, obs) -> int:
+            self.asks.append((ask.seat, ask.kind, [o.label for o in ask.options]))
+            return len(ask.options) - 1
+
+    game, supply = _game(3)
+    world, ex = game.world, game.executor
+    lives = next(r.card for r in supply.pool.results.values() if r.card.name == "Nine Lives")
+    first, second = (world.add_card(identity_of(lives), P0, ZONE_BATTLEFIELD) for _ in range(2))
+    for handle in (first, second):
+        ex.attach_card(handle, lives)
+    dealer = world.add_card(identity_of(lives), P1, ZONE_BATTLEFIELD)
+    drivers = [Recorder(), Recorder()]
+    router = SeatRouter(game, drivers, _lenses(), supply=supply, strict=True)
+    ex.decisions.provider = router.answer
+    target = Selector(
+        QConst(1), SelectorMode.TARGET, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),)
+    )
+    ex.execute(
+        Atom(verb=Verb.DEAL_DAMAGE, args=AtomArgs(pairs=(("amount", QConst(3)), ("target", target)))),
+        source=dealer,
+        controller=P1,
+        bindings={"target": P0},
+    )
+    assert drivers[1].asks == []
+    assert [(seat, kind) for seat, kind, _labels in drivers[0].asks] == [(0, "replace")]
+    assert all("Nine Lives" in label for label in drivers[0].asks[0][2])
+    assert world.players[P0].life == 20
+    assert world.cards[first].counters == {} and world.cards[second].counters == {"INCARNATION": 1}

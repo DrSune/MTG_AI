@@ -674,16 +674,17 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
             # action rewriting QProp(event, AMOUNT)) rewrites the amount
             # IN PLACE, so exactly one journalled DAMAGE row lands on the
             # tripled number and dealer attribution / lifelink stay on the
-            # dealt amount.
-            res = (
-                ctx.replacements.replacement_for_damage(
+            # dealt amount. B-69 (CR 616.1): several may apply in turn, in
+            # the order the damaged player chose; a consume is the last.
+            steps = (
+                ctx.replacements.replacements_for_damage(
                     ctx, target, ctx.source, n_i, combat
                 )
                 if ctx.replacements is not None
-                else None
+                else []
             )
-            if res is not None:
-                repl, new_n = res
+            consumed = False
+            for repl, new_n in steps:
                 if new_n is None:
                     ctx.pending_replacements.append(repl)
                     ctx.events.append(
@@ -695,7 +696,8 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
                             n_i,
                         )
                     )
-                    continue
+                    consumed = True
+                    break
                 ctx.events.append(
                     (
                         len(ctx.events),
@@ -707,6 +709,8 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
                     )
                 )
                 n_i = new_n
+            if consumed:
+                continue
             p = ctx.world.players[target]
             # CR 120.3a, 119.3: damage to a player is that much life lost, below 0 too.
             # The old clamp at 0 recorded 99 damage as 20 (the journal's DAMAGE row is
@@ -802,17 +806,16 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
     # to prevent the mark AND run its action against a card — the corpus
     # carries no such consumer (Nine Lives' "to you" filter never reaches
     # this lane: the consult's player-idiom gate skips it) — so it stays
-    # loud, never silently dropped.
+    # loud, never silently dropped. B-69 (CR 616.1): several may apply in
+    # turn, in the order the permanent's controller chose.
     if ctx.replacements is not None:
-        res = ctx.replacements.replacement_for_damage(
+        for repl, new_n in ctx.replacements.replacements_for_damage(
             ctx,
             target,
             ctx.source,
             n,
             combat=bool(getattr(ctx.executor, "_combat_wave_open", False)),
-        )
-        if res is not None:
-            repl, new_n = res
+        ):
             if new_n is None:
                 raise NotImplementedError(
                     "executor: a card-damage replacement whose action is "

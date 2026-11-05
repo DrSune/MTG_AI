@@ -465,7 +465,7 @@ def test_static_permission_may_is_dead() -> None:
 
 def test_damage_replacement_action_dealer_is_dead() -> None:
     """Fiery Emancipation's action is a DEAL_DAMAGE whose amount rewrites the event's; the lane
-    never runs the action (replacements.replacement_for_damage), so its dealer is never read."""
+    never runs the action (replacements.replacements_for_damage), so its dealer is never read."""
     fiery = _card("Fiery Emancipation")
     assert ("controller YOU->OPPONENT", "1/0/action/args/dealer/who") not in _where(fiery)
     pack = _pack([{"key": "fe", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 0},

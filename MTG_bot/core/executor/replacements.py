@@ -86,6 +86,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     activation_matches_kind,
 )
+from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
@@ -360,25 +361,57 @@ class ReplacementRegistry:
             return ReplacementRegistry._is_player_only_filter(filter_.inner)
         return False
 
-    def replacement_for_damage(
+    def replacements_for_damage(
         self,
         ctx: ExecCtx,
         victim: Handle,
         dealer: Handle,
         amount: int,
         combat: bool,
-    ) -> tuple[ReplacementRecord, int | None] | None:
+    ) -> list[tuple[ReplacementRecord, int | None]]:
         """r22b (Fiery Emancipation): the unified apply-pipeline interceptor
         for a DAMAGE event, both lanes (C24 replacement-before-apply).
-        Returns ``(record, None)`` when the record CONSUMES the event (the
-        Nine Lives doctrine — the damage never applies, the action runs in
-        the drain) or ``(record, new_amount)`` when it MODIFIES the event's
-        quantity in place (the Fiery Emancipation idiom: the action is a
-        DEAL_DAMAGE whose amount quantity rewrites the event's —
+        Returns the replacements that apply, in the order they apply, each
+        ``(record, None)`` when the record CONSUMES the event (the Nine Lives
+        doctrine — the damage never applies, the action runs in the drain)
+        or ``(record, new_amount)`` when it MODIFIES the event's quantity in
+        place (the Fiery Emancipation idiom: the action is a DEAL_DAMAGE
+        whose amount quantity rewrites the event's —
         ``QBin(MUL, 3, QProp(event, AMOUNT))`` — so exactly one journalled
-        DAMAGE row lands, dealer attribution and lifelink stay on the
-        dealt amount, and the action's C-4 dealer surface is never
-        executed). ``None`` when nothing applies.
+        DAMAGE row lands, dealer attribution and lifelink stay on the dealt
+        amount, and the action's C-4 dealer surface is never executed). A
+        consume is always last: nothing is left to replace. Empty when
+        nothing applies.
+
+        B-69 (2026-11-05), CR 616.1: when two or more records apply, the
+        affected player or the controller of the affected permanent chooses
+        one (:meth:`_choose`); it applies, then the records that still apply
+        are checked again, until none is left (616.1e-f). Each record applies
+        to the event once (CR 614.5). A record whose action re-queues damage
+        cannot self-replace: the drain's CR 614.4a ``replaced_seq`` guard
+        covers the consume half, and the modify half never executes an
+        action. The matching is :meth:`_damage_matches`."""
+        applied: list[tuple[ReplacementRecord, int | None]] = []
+        while True:
+            used = {rec.seq for rec, _amount in applied}
+            options = [
+                (rec, self._damage_rewrite(rec, ctx, victim, amount))
+                for rec in self._damage_matches(ctx, victim, dealer, combat)
+                if rec.seq not in used
+            ]
+            if not options:
+                return applied
+            rec, new_amount = self._choose(ctx, victim, options)
+            applied.append((rec, new_amount))
+            if new_amount is None:
+                return applied  # consumed: the event no longer happens
+            amount = new_amount
+
+    def _damage_matches(
+        self, ctx: ExecCtx, victim: Handle, dealer: Handle, combat: bool
+    ) -> list[ReplacementRecord]:
+        """The live DamageDealtEvent records that apply to damage from
+        ``dealer`` to ``victim``, in record order.
 
         The event's slots read as matchers over the about-to-happen event:
         ``amount`` accepts the two no-constraint idioms (QUnbounded "all",
@@ -389,14 +422,8 @@ class ReplacementRegistry:
         coordinates (the CONTROLLER_IS card branch resolves a spell
         handle through the zone-owner controller_of — the caster).
         CONTROLLER RULE as in every other lane: every predicate is judged
-        in the RECORD's own coordinates.
-
-        CR 616.1 ordering is unmodeled: when TWO live records match the
-        same event, the choice belongs to the damaged player and the
-        executor does not guess — RAISE (loud on hit, per the standing
-        mandate). A single record whose action re-queues damage cannot
-        self-replace: the drain's CR 614.4a ``replaced_seq`` guard covers
-        the consume half, and the modify half never executes an action."""
+        in the RECORD's own coordinates. Nothing here reads the amount, so
+        a modification never changes which records apply."""
         matches: list[ReplacementRecord] = []
         for rec in sorted(self.replacements, key=lambda r: r.seq):
             event = rec.event
@@ -434,36 +461,80 @@ class ReplacementRegistry:
             if not self._condition_holds(rec, victim, rec_ctx):
                 continue
             matches.append(rec)
-        if len(matches) > 1:
-            raise NotImplementedError(
-                "executor: "
-                + str(len(matches))
-                + " damage replacements apply to one event; the CR 616.1 "
-                "ordering choice belongs to the affected player (unmodeled)"
-            )
-        if not matches:
+        return matches
+
+    @staticmethod
+    def _damage_rewrite(
+        rec: ReplacementRecord, ctx: ExecCtx, victim: Handle, amount: int
+    ) -> int | None:
+        """What ``rec`` does to an event of ``amount`` damage to ``victim``:
+        the new amount when its action is the DEAL_DAMAGE quantity rewrite
+        (the Fiery idiom), None when it consumes the event."""
+        if not (isinstance(rec.action, Atom) and rec.action.verb is Verb.DEAL_DAMAGE):
             return None
-        rec = matches[0]
-        if isinstance(rec.action, Atom) and rec.action.verb is Verb.DEAL_DAMAGE:
-            quantity = rec.action.args.get("amount")
-            if quantity is None:
-                raise NotImplementedError(
-                    "executor: a DEAL_DAMAGE replacement action without an "
-                    "amount slot is not the Fiery idiom (flag, not guess)"
-                )
-            assert isinstance(quantity, Quantity)
-            # the MATCHED record's own coordinates (never the loop's last
-            # scan context), plus the event register the action's
-            # QProp(event, AMOUNT) reads and the victim bound as ``event``.
-            ev_ctx = replace(
-                ctx,
-                source=rec.source,
-                controller=rec.controller,
-                bindings={"event": [victim]},
-                event_amount=amount,
+        quantity = rec.action.args.get("amount")
+        if quantity is None:
+            raise NotImplementedError(
+                "executor: a DEAL_DAMAGE replacement action without an "
+                "amount slot is not the Fiery idiom (flag, not guess)"
             )
-            return (rec, max(0, resolve(quantity, ev_ctx)))
-        return (rec, None)
+        assert isinstance(quantity, Quantity)
+        # the record's own coordinates, plus the event register the action's
+        # QProp(event, AMOUNT) reads and the victim bound as ``event``.
+        ev_ctx = replace(
+            ctx,
+            source=rec.source,
+            controller=rec.controller,
+            bindings={"event": [victim]},
+            event_amount=amount,
+        )
+        return max(0, resolve(quantity, ev_ctx))
+
+    def _choose(
+        self,
+        ctx: ExecCtx,
+        affected: Handle,
+        options: list[tuple[ReplacementRecord, int | None]],
+    ) -> tuple[ReplacementRecord, int | None]:
+        """CR 616.1: the affected player, or the controller of the affected
+        permanent, chooses which applicable replacement applies next.
+
+        Options that modify the event the same way are one option: the same
+        rewrite (action, event, condition, controller) giving the same new
+        amount, as two Fiery Emancipations do; choosing between them changes
+        nothing, so it is never asked (AGENTS §10, no phantom asks). Each
+        consuming option is its own, because its action runs at its own
+        source (which Nine Lives gets the counter). With one option left it
+        applies without an ask; otherwise the decider is asked under
+        ``replace:<seat>:<digest>``, the vocabulary being the options'
+        sources in record order."""
+        choices: list[tuple[ReplacementRecord, int | None]] = []
+        for rec, new_amount in options:
+            if new_amount is not None and any(
+                other_amount == new_amount
+                and (other.action, other.event, other.condition, other.controller)
+                == (rec.action, rec.event, rec.condition, rec.controller)
+                for other, other_amount in choices
+            ):
+                continue
+            choices.append((rec, new_amount))
+        if len(choices) == 1:
+            return choices[0]
+        decider = (
+            affected
+            if affected.namespace == "player"
+            else self.executor.controller_of(affected)
+        )
+        vocab = tuple(str(rec.source) for rec, _amount in choices)
+        if len(set(vocab)) != len(vocab):
+            raise NotImplementedError(
+                "executor: two applicable damage replacements share a source, so "
+                "the CR 616.1 choice has no vocabulary for them (no card does this)"
+            )
+        answer = ctx.take_decision_of(
+            decider, vocab, f"replace:{decider}:{site_digest(vocab)}"
+        )
+        return choices[vocab.index(answer)]
 
     def prevented_card_damage(
         self, ctx: ExecCtx, victim: Handle, combat: bool
