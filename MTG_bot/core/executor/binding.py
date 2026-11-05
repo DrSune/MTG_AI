@@ -1516,10 +1516,14 @@ class TriggerBinder:
             and event.cause is not None
             and ctx.bindings.get("target") == event.cause
             and (
-                self._damage_designation_is_event_borne(node)
+                not self._designates(node)
+                or self._damage_designation_is_event_borne(node)
                 or not self._prebind_legal_for_targets(node, ctx)
             )
         ):
+            # An effect that designates nothing has no use for the dealer pre-bind, and a
+            # binding-first role would read it: "creatures you control get +1/+0" (Wildfire
+            # Elemental) pumped only the creature that dealt the damage.
             # R2 diff-gate BREAK-3 fix: the shape gate alone was fail-OPEN
             # on the other polarity — a TARGET slot with a NON-event filter
             # (e.g. CONTROLLER_IS OPPONENT) kept the pre-bind, and
@@ -1694,6 +1698,50 @@ class TriggerBinder:
                     return True
         return False
 
+    @staticmethod
+    def _designation_slots(node: _AnyTrigger) -> tuple[list[Selector], bool, bool]:
+        """The designations a trigger's effect makes: its distinct TARGET-mode,
+        referent-free Selectors; whether it reads a designated player
+        (TARGET_PLAYER / TARGET_OPPONENT in a role, a zone or a filter); and
+        whether that player read is "target opponent" only (V21)."""
+        selectors: list[Selector] = []
+        seen: set[str] = set()
+        reads_target_player = False
+        opponent_only = False  # V21: a "target opponent" read narrows the slot
+        for inner in walk(node.effect):
+            if not isinstance(inner, Atom):
+                continue
+            for _role, value in inner.args.pairs:
+                refs: set[ControllerRef] = set()
+                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
+                    refs.add(value)
+                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
+                    refs.add(value.controller)
+                elif isinstance(value, Selector):
+                    refs |= filter_bound_player_refs(value.filter)
+                else:
+                    refs |= filter_bound_player_refs(value)
+                if refs:
+                    reads_target_player = True
+                    opponent_only |= ControllerRef.TARGET_OPPONENT in refs
+                if (
+                    isinstance(value, Selector)
+                    and value.mode is SelectorMode.TARGET
+                    and value.referent is None
+                ):
+                    key = repr(value)
+                    if key not in seen:
+                        seen.add(key)
+                        selectors.append(value)
+        return selectors, reads_target_player, opponent_only
+
+    @classmethod
+    def _designates(cls, node: _AnyTrigger) -> bool:
+        """Does the trigger's effect make any designation (a TARGET slot or a designated-player
+        read)?"""
+        selectors, reads_target_player, _ = cls._designation_slots(node)
+        return bool(selectors) or reads_target_player
+
     def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
         """The 18b designation channel (CR 603.1, first PC-8 lift).
         Returns False when the ability is removed from the stack (CR
@@ -1747,35 +1795,7 @@ class TriggerBinder:
         the stop token and clamps at exhaustion (C17's 0..remaining
         sibling); ``QAtLeast``/QX-in-TARGET stays the flag it always was.
         """
-        selectors: list[Selector] = []
-        seen: set[str] = set()
-        reads_target_player = False
-        opponent_only = False  # V21: a "target opponent" read narrows the slot
-        for inner in walk(node.effect):
-            if not isinstance(inner, Atom):
-                continue
-            for _role, value in inner.args.pairs:
-                refs: set[ControllerRef] = set()
-                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
-                    refs.add(value)
-                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
-                    refs.add(value.controller)
-                elif isinstance(value, Selector):
-                    refs |= filter_bound_player_refs(value.filter)
-                else:
-                    refs |= filter_bound_player_refs(value)
-                if refs:
-                    reads_target_player = True
-                    opponent_only |= ControllerRef.TARGET_OPPONENT in refs
-                if (
-                    isinstance(value, Selector)
-                    and value.mode is SelectorMode.TARGET
-                    and value.referent is None
-                ):
-                    key = repr(value)
-                    if key not in seen:
-                        seen.add(key)
-                        selectors.append(value)
+        selectors, reads_target_player, opponent_only = self._designation_slots(node)
         if not selectors and not reads_target_player:
             return True  # no designation to make
         if len(selectors) > 1 or (selectors and reads_target_player):

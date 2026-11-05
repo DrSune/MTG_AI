@@ -33,9 +33,11 @@ import unittest
 from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
+    CardRecord,
     Conditional,
     ControllerRef,
     CounterKind,
+    DamageDealtEvent,
     DeclareBlockersEvent,
     DurationEot,
     DurationUntilNextTurn,
@@ -48,9 +50,11 @@ from MTG_bot.core.ability_tree import (
     PtDelta,
     PtDirection,
     QConst,
+    QUnbounded,
     Selector,
     SelectorMode,
     Seq,
+    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -497,6 +501,44 @@ class TestCR6112aResolvedEffectsOutliveTheirSource(unittest.TestCase):
         self.assertTrue(vetoed())
         r.run_step({"op": "advance_turn"})  # your next turn: over
         self.assertFalse(vetoed())
+
+
+
+class TestDamageTriggerPreBind(unittest.TestCase):
+    def test_creatures_you_control_get_the_pump_not_the_dealer(self):
+        # Wildfire Elemental: "Whenever an opponent is dealt noncombat damage, creatures you
+        # control get +1/+0 until end of turn." Your Bear deals 2 to the opponent.
+        r = runner([bear("we", 0, name="Wildfire"), bear("bear", 0), bear("obear", 1)])
+        we = r.handles["we"]
+        mine = Selector(QUnbounded(), SelectorMode.ALL,
+                        FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                              FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+                        zones=(BF_ANY,))
+        trigger = TriggeredAbility(
+            event=DamageDealtEvent(amount=QUnbounded(),
+                                   filter=FAtom(FAtomPred.OPPONENT_OF, who=ControllerRef.YOU),
+                                   combat=False),
+            condition=None,
+            effect=Atom(Verb.MODIFY_PT, AtomArgs((
+                ("duration", DurationEot()),
+                ("power", PtDelta(PtDirection.INCREASE, QConst(1))),
+                ("target", mine),
+                ("toughness", PtDelta(PtDirection.INCREASE, QConst(0))),
+            ))),
+        )
+        identity = r.world.cards[we].identity
+        r.ex.attach_card(we, CardRecord(
+            oracle_id=identity.oracle_id, name=identity.name, type_line=identity.type_line,
+            types=("Creature",), subtypes=("Bear",), supertypes=(), colors=(),
+            color_identity=frozenset(), mana_cost=None, mana_value=2, power=QConst(2),
+            toughness=QConst(2), loyalty=None, keywords=(), abilities=(trigger,), is_token=False))
+        r.ex.execute(Atom(Verb.DEAL_DAMAGE, AtomArgs((
+            ("amount", QConst(2)),
+            ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV,
+                                zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),))),
+        ))), source=r.handles["bear"], controller=r.p0, bindings={"target": [r.p1]})
+        self.assertEqual(r.world.players[r.p1].life, 18)
+        self.assertEqual((pt(r, "we"), pt(r, "bear"), pt(r, "obear")), ((3, 2), (3, 2), (2, 2)))
 
 
 if __name__ == "__main__":
