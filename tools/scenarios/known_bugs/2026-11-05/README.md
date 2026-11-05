@@ -14,7 +14,6 @@ When a bug is fixed, its pack moves to tools/scenarios/ as a regression pack and
 - **cr611_2a_control_ends_with_granter** (Sorin, Vampire Lord): WEAKER. Control gained through the granted "{T}: Gain control of target creature" ends when the Vampire that had the ability leaves; CR 611.2a: it lasts indefinitely.
 - **damage_trigger_binding_overrides_all** (Wildfire Elemental): WEAKER. On a damage trigger, binding.py _ctx (~1904) binds `target` to the damage dealer (a Brash Taunter workaround) and selectors.role_handles lets it override an ALL selector: "creatures you control get +1/+0" pumps only the dealer.
 - **b50_grant_ends_with_source** (Mu Yanling, Sky Dancer): WEAKER (B-50). The +2's "loses flying until your next turn" ends when Mu leaves the battlefield; the -2/-0 stays.
-- **cr608_2b_no_target_recheck** (Ember Hauler): WRONG. No target legality recheck at resolution (CR 608.2b): Ember Hauler targeting itself is sacrificed for the cost and the card in the graveyard is still dealt 2 damage (probe variant `activate [0] targets=['card']`); the phantom damage event can set off damage triggers.
 - **random_order_is_fixed** (Drawn from Dreams): MINOR. Cards put on the bottom "in a random order" keep their original order.
 
 Second wave (M20 batches 5-9):

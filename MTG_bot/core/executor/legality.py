@@ -2050,15 +2050,29 @@ def activate(
     # exactly as the cast lane threads them (stack._plan_cast_designation); each
     # TARGET selector then reads its own designation, not the union.
     slot_designations = None
-    if len(targets) > 1:
+    if targets:
         from MTG_bot.core.executor.query import activation_target_slots
+        from MTG_bot.core.executor.stack import recheck_targets
 
         slots = activation_target_slots(executor, effect, source=handle, seat=seat)
-        if len(slots) == len(targets) > 1:
+        if len(targets) > 1 and len(slots) == len(targets):
             slot_designations = {
                 repr(slot.selector): (one,)
                 for slot, one in zip(slots, targets, strict=True)
             }
+        # CR 608.2b: the targets are checked again as the ability resolves, after its
+        # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).
+        legal_now, kept = recheck_targets(executor, slots, targets)
+        if not legal_now:
+            # Every target is illegal: the ability doesn't resolve.
+            executor.events.append(
+                (len(executor.events), "NO_LEGAL_TARGETS", str(handle), str(ability_idx))
+            )
+            executor._finish_op()
+            return ()
+        bindings["target"] = sorted(legal_now)
+        if slot_designations is not None and kept is not None:
+            slot_designations = kept
     return executor.apply_effect(
         effect,
         source=handle,
