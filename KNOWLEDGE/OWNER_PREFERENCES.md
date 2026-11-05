@@ -13,6 +13,11 @@ than walls of guidance. Newest first. Dated audit trail lives in the numbered da
    No unnecessary abstraction, indirection, cleverness, or premature generalization — but
    never drop error handling or validation to save lines. Minimal diffs: touch only what the
    task requires; a drive-by rewrite is a bug surface.
+   Reaffirmed 2026-11-05 for the long run: keep only the code still needed, and follow
+   established RL/NN practice. Measure, but a one-off measurement script is deleted once its
+   number is in NUMBERS.md (which names the commit that held the script); what stays is the
+   result, a regression test, or a tool in regular use. Clean up regularly as part of the work:
+   merged branches and worktrees, dead flags and modes, parallel mechanisms, stale docs, old runs.
 3. **VERIFIED means EXECUTED.** (owner 2026-10-06) Report what you ran and what happened.
    A claim without a command + result behind it is not evidence; same-context self-review is
    review theater. Substantive changes get fresh-eyes review (diff + requirements only).
