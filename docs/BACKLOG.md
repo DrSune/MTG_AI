@@ -769,6 +769,10 @@ These are forks, not tasks. See the report that accompanied this audit.
     of one effect (Teferi's Ageless Insight and Alhammarret's Archive's draw rewrite, Conclave
     Mentor, the "exile it instead" dies records), so the order changes nothing today. A card that
     makes the order matter in one of those lanes needs the same `_choose` there.
+  - Found beside it, not fixed (open): the draw lane replaces a DRAW of n cards as one event, so
+    with two Teferi's Ageless Insight one main-phase draw gives 2 cards. The CR gives 4: each card
+    drawn is its own draw (CR 121.2), and the second effect applies to each of the two draws the
+    first one made (614.5). Weaker than printed, never a crash.
   - Packs: `replacement_two_nine_lives_damaged_player_chooses.json`,
     `replacement_two_fiery_emancipations_both_apply.json`,
     `replacement_fiery_then_nine_lives_damaged_player_chooses.json`.
@@ -1340,6 +1344,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     library is searched): M21 Basri's Aegis, Garruk's Warsteed, Liliana's Scorn, Sanctum of All
     and Teferi's Wavecaster. M21 verified 252 -> 247; every card pack passes (two re-pinned to
     answer the zone choice: garruk's_warsteed_4, teferi's_wavecaster_6).
+- **B-113 [2026-11-05, found by the `fix/rules-objects` invariant batch; on `main` too] Frost
+  Breath's "don't untap during their controller's next untap step" ends at the first untap step of
+  either player.** The PREVENT_EFFECT record (tag `UntilNextStep:UNTAP:owner`) covers both targets
+  and expires at the first untap step after it is made, so when the targets have different
+  controllers, the creature whose controller untaps second untaps anyway (3 of 1000 coherent games,
+  `untap:frost-ignored`; a uniform seat targeting its own creature). Weaker than printed for that
+  creature. Each target needs its own controller's next untap step. Repro (fails today):
+  `tools/scenarios/known_bugs/frost_breath_two_controllers_next_untap_steps.json`.
 - **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
   engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
   - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at

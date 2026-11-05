@@ -1490,8 +1490,10 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     # executor drain and the draw NEVER happens (CR 614.3a — the replaced
     # event is replaced WHOLE, cards stay in the library). One record per
     # draw is taken (first match): duplicate carriers chain through the
-    # drain's replaced_seq guard, the CR 616.1 choice among DIFFERENT
-    # replacement effects is unmodelled and stays loud at consult time.
+    # drain's replaced_seq guard. The CR 616.1 choice is not asked here: the
+    # pools' draw replacements are one rewrite (Teferi's Ageless Insight,
+    # Alhammarret's Archive), so the order changes nothing (BACKLOG B-69;
+    # the damage lane asks, replacements._choose).
     if ctx.replacements is not None:
         repl = ctx.replacements.replacement_for_card_draw(ctx, player, n)
         if repl is not None:
