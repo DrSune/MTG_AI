@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d9f11aa1-9219-42a8-85a9-a8f204160706",
+ "name": "Meteor Golem",
+ "text_sha": "36f9c0daa8404f31ec859211bbab2f5e8c5421fbd7b187a512fc3ed6e7a6e073",
+ "verified": {
+  "tree_sha": "1bc03a6a3da3a99445714c14f693c1817695e4855cbad2adb745b1132cbebe5b",
+  "probe_sha": "5c6109cb7ab2d40411ecc10ccf87a3f245335fa5687789f2e45df0ce8194a27c",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "When this creature enters, destroy target nonland permanent an opponent controls.",
+    "status": "OK",
+    "evidence": "[cast]: ask target: [opp_flier, opp_tapped, opp_bear, opp_giant, opp_relic, opp_charm] (not opp_land, a Forest, and none of yours); each choice moves that permanent to the graveyard (by card/DESTROY); fires again entering from hand on the opponent's turn; no trigger when another creature enters; cost W-7.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

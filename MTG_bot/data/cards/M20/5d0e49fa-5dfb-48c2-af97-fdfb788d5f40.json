@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5d0e49fa-5dfb-48c2-af97-fdfb788d5f40",
+ "name": "Marauder's Axe",
+ "text_sha": "4237c39452010e3be72648291015b19f27caa3e2bc5c3a90e1e30e303203902a",
+ "verified": {
+  "tree_sha": "33b01a7c97b219810fb0e5e36cd9c9813b65ea31585faaa10df61ab3ae13cdb5",
+  "probe_sha": "7e0437bdea05e6f8f54aa016df295c5a8080704a1423faf836ad1379d06a1b7d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Equipped creature gets +2/+0.",
+    "status": "OK",
+    "evidence": "[activate [1] targets=['you_bear']]: you_bear P/T 2/2 -> 4/2; [targets=['you_giant']]: 4/4 -> 6/4.",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {2}",
+    "status": "OK",
+    "evidence": "ability [1] target slot: 1..1 of [you_bear, you_giant] (creatures you control only); each activation pays W-2 (generic {2}) and attaches.",
+    "issue": ""
+   },
+   {
+    "clause": "(Equip only as a sorcery.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree has timing=ActivationWindow.SORCERY; the probe only equips in its own main phase. Pack marauders_axe_equip_sorcery_speed (PASS): on the opponent's turn the equip raises 'illegal activation: window:sorcery:not_own_turn' before payment; targeting the opponent's creature raises 'target:selection:off_population'; in its own main phase it attaches (Bear 4/2, pool C:3 -> C:1). Fails when the opponent-turn equip is expected to succeed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/marauder's_axe_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 13,
+   "score": 0.9285714285714286,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

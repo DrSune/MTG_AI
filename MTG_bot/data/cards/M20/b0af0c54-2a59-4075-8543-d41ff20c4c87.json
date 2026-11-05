@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b0af0c54-2a59-4075-8543-d41ff20c4c87",
+ "name": "Wind-Scarred Crag",
+ "text_sha": "6e08fc1a74dca4294d8af74c18b97d15b554f9e5579f068a286ede04d5639e91",
+ "verified": {
+  "tree_sha": "8a97383daf638b24266469c16dea3bc3df9249953c74a75199d20eaa1f17fc76",
+  "probe_sha": "d6ecc8e014b4ab6d66665b10e4107eb2f34da78325a3de74b475e031e09bb8e9",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] card: zone hand -> battlefield; tapped False -> True. Also tapped on the MOVE_ZONE entry in 'from your hand, the card enters during the opponent's turn'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land] card's triggered ability [1] triggers; you gains 1 life (by card/GAIN_LIFE); you: life 20 -> 21. Same on the opponent's-turn entry; no trigger for 'you play a land' or other entries.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield] ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), you: mana R+1; [| ask 1 -> 1] you: mana W+1; opponent's pool unchanged in both.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

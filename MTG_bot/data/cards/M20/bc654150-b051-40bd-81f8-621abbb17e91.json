@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "bc654150-b051-40bd-81f8-621abbb17e91",
+ "name": "Goblin Assailant",
+ "text_sha": "7df5040fb3b9d3f09546c40bd56ecbca041c7b1fd4fa037281f48a7c250ba391",
+ "verified": {
+  "tree_sha": "beb3563d8653ddafc080291c5f4c417e1e4879b2c58c8d12dccfc7a66178d71d",
+  "probe_sha": "c66525b79014997db291b832dd41009dae74607f41482cf6741c87523d45daaf",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Goblin Warrior {1}{R} 2/2)",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> battlefield, P/T - -> 2/2, paid R-1 W-1 ({1}{R}); the tree is only SpellAbility(CREATURE); every trigger stimulus is 'same as on the board without the card'; it attacks for 2 (opp life 20 -> 18)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

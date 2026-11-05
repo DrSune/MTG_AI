@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c616242a-95f0-4cd8-99a1-9237cfea0e57",
+ "name": "Howling Giant",
+ "text_sha": "c295afb513c54c78c75de08d2b71a7e95715aa3244ce077f4407bc5f3dd96df9",
+ "verified": {
+  "tree_sha": "8203dbbe8cd096425c350c59c5ec452ffc37009ed2de3fd400bf5aaa77a0100e",
+  "probe_sha": "0428247a3f668e10aa6efb7f1df5d09966b1d987639ea0b8b6913d8c8d2b15a3",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +REACH on cast, but no variant has a flier attacking into it. Pack howling_giant_reach_1 PASSES (blocks and kills an attacking 2/2 flier, takes 2); it fails against a draft without REACH and a wrong expectation.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create two 2/2 green Wolf creature tokens.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [0] triggers; you:Wolf#1 and you:Wolf#2 move new -> battlefield (by card/CREATE_TOKEN), each (battlefield, you, 2/2); same on the opponent's-turn entry. Tree TokenSpec 'Wolf', Creature — Wolf, colors ('G',).",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 5/5 Giant Druid for {5}{G}{G}",
+    "status": "OK",
+    "evidence": "[cast]: mana G-2 W-5; P/T 5/5",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/howling_giant_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

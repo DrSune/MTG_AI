@@ -1,0 +1,21 @@
+{"set": "M20", "name": "netcaster_spider_blocks_nonflyer_no_pump",
+ "notes": "P52a9efa29e G4. Printed: 'Whenever this creature blocks a creature with flying ...'. Blocking a 2/3 Bear without flying does not trigger: the Spider stays 2/3, deals 2 (the Bear survives with 2 damage) and takes 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spider", "real": "Netcaster Spider", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"bear": true}, "block": {"spider": "bear"}}
+ ],
+ "expect": {
+  "blocked": {"bear": ["spider"]},
+  "power": {"spider": 2},
+  "toughness": {"spider": 3},
+  "damage": {"spider": 2, "bear": 2},
+  "life": {"0": 20, "1": 20},
+  "zone": {"spider": "battlefield", "bear": "battlefield"}
+ }
+}

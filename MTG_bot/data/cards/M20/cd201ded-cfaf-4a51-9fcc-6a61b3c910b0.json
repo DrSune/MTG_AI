@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "cd201ded-cfaf-4a51-9fcc-6a61b3c910b0",
+ "name": "Convolute",
+ "text_sha": "1ff0c0abbfac4b6447101d6c78e3048c28fc33433b39c9f850adbc2f2439159b",
+ "verified": {
+  "tree_sha": "76742c0eed6b53c8f50ca1dd7424d1613294b7ee8779559e06221fdfb6caa7a4",
+  "probe_sha": "0365c2af26b055dfe6894f6ad44d9271fa4920a2b5336012f17f7fd5cf5b23b7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Counter target spell unless its controller pays {4}.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'cast skipped: a target slot needs 1, the board offers 0'. Tree equals the compiler's parse. Packs (PASS): convolute_paid_spell_resolves (seat 0, the countered spell's controller, is asked and pays {4} to the last mana: Disfigure resolves, the Bear dies); convolute_unpaid_spell_countered (PASS answer: Disfigure countered, seat 0 keeps its 4 mana); convolute_three_extra_mana_cannot_pay (only 3 left: never asked, countered). negate_cannot_target_a_creature_spell also shows Convolute offered against a creature spell. Each fails against a wrong expectation (tax 3 / paid with 3 / bear dies unpaid).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/convolute_1.json",
+   "tools/scenarios/cards/M20/convolute_2.json",
+   "tools/scenarios/cards/M20/convolute_3.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 2,
+   "score": 0.4,
+   "survived": [
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/args/unless",
+    "amount+1 at 1/0/effect/args/unless/parts/0/amount",
+    "amount-1 at 1/0/effect/args/unless/parts/0/amount"
+   ]
+  }
+ }
+}

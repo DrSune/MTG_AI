@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "temple_of_mystery_enters_tapped_and_scry_1_bottom_goes_under_the_library",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "temple", "real": "Temple of Mystery", "zone": "hand", "controller": 0},
+  {"key": "low", "name": "Lib Low", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "high", "name": "Lib High", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"temple": "battlefield"},
+  "tapped": {"temple": true},
+  "library": {"0": ["Lib Low", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Lib High"]},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Printed: 'This land enters tapped. / When this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)' Your library starts Lib High (top), Lib Low, then six filler cards. Played, the land is tapped; scry 1 shows Lib High and you put it on the bottom: Lib Low is now on top and Lib High is under the whole library."
+}

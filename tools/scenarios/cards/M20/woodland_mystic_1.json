@@ -1,0 +1,14 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P73e0d799ce G4. Printed: '{T}: Add {G}.' on a 1/1 creature. The probe activates it only after it has been on the battlefield since the turn began. The {T} in the cost means a creature that came under seat 0's control this turn cannot pay it (CR 302.6): seat 0 casts the Mystic and its mana ability is refused at once; the Mystic stays untapped on the battlefield.",
+ "cards": [
+  {"key": "mystic", "real": "Woodland Mystic", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "mystic", "controller": 0},
+  {"op": "activate", "key": "mystic", "idx": 0, "seat": 0, "expect_raise": "summoning sickness"}
+ ],
+ "expect": {"zone": {"mystic": "battlefield"}, "tapped": {"mystic": false}}
+}

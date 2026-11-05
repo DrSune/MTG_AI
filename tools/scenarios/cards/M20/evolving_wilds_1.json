@@ -1,0 +1,96 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "P60889e3683 G4. Printed: '{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.' Seat 0's library holds Forest and Island (basic) and Jungle Hollow (nonbasic) under the 6 fillers; seat 1's library holds a Swamp. Activating taps and sacrifices the Wilds; seat 0 picks the Island, which enters the battlefield tapped under seat 0's control. Forest, Jungle Hollow and the fillers stay in seat 0's library (8 cards, order unknown after the shuffle); seat 1's library (the fillers over its Swamp) is neither searched nor shuffled: its exact order is kept. No life changes, no damage.",
+ "cards": [
+  {
+   "key": "wilds",
+   "real": "Evolving Wilds",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "island",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "hollow",
+   "real": "Jungle Hollow",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "oppswamp",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "wilds",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "island"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wilds": "graveyard",
+   "island": "battlefield",
+   "forest": "library",
+   "hollow": "library",
+   "oppswamp": "library"
+  },
+  "controller": {
+   "island": 0
+  },
+  "tapped": {
+   "island": true
+  },
+  "graveyard": {
+   "0": [
+    "Evolving Wilds"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Swamp"
+   ]
+  }
+ }
+}

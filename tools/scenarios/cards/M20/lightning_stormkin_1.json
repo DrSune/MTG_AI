@@ -1,0 +1,69 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Pf90d5f71a4 G4. Printed: 'Flying. Haste (This creature can attack and {T} as soon as it comes under your control.)' Lightning Stormkin and a vanilla Centaur Courser both enter from seat 0's hand this turn (journalled enter: the sickness clock sees them). In combat the Stormkin is asked and attacks; the Courser, without haste, is never asked (CR 302.6). Seat 1's ground 4/4 does not block. Seat 1 takes 2.",
+ "cards": [
+  {
+   "key": "ls",
+   "real": "Lightning Stormkin",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cc",
+   "real": "Centaur Courser",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "ls"
+  },
+  {
+   "op": "enter",
+   "key": "cc"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ls": true,
+    "cc": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "ls": true,
+   "cc": false
+  },
+  "asks": {
+   "ls": "ATTACK,DECLINE"
+  },
+  "not_asked": [
+   "cc"
+  ],
+  "tapped": {
+   "ls": true,
+   "cc": false
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

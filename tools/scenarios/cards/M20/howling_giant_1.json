@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "howling_giant_reach_blocks_a_flier",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "giant", "real": "Howling Giant", "zone": "battlefield", "controller": 0},
+  {"key": "oflier", "name": "Opp Flier", "type": "Creature — Bird", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"oflier": true}, "block": {"giant": "oflier"}}
+ ],
+ "expect": {
+  "blocked": {"oflier": ["giant"]},
+  "life": {"0": 20, "1": 20},
+  "zone": {"oflier": "graveyard", "giant": "battlefield"},
+  "damage": {"giant": 2}
+ },
+ "notes": "Printed: 'Reach (This creature can block creatures with flying.)' On the opponent's turn their 2/2 flier attacks; the 5/5 Howling Giant may block it (reach) and kills it, taking 2; you take no damage."
+}

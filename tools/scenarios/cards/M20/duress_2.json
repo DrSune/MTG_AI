@@ -1,0 +1,102 @@
+{
+ "set": "M20",
+ "name": "duress_you_choose_a_noncreature_nonland_card",
+ "notes": "Pc3b90afb1d G4. Printed: 'Target opponent reveals their hand. You choose a noncreature, nonland card from it. That player discards that card.' 'Target opponent' excludes the caster (CR 115.1), so designating seat 0 is refused before anything is paid. Cast at seat 1, whose hand is an instant, a sorcery, a creature and a land: the caster's choice (the sorcery) is discarded; the instant, the creature and the land stay in hand. Duress ({B}) spends the pool.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "du",
+   "real": "Duress",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "t1",
+   "name": "Opp Trick",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "t2",
+   "name": "Opp Plan",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "elf",
+   "name": "Opp Spare Elf",
+   "type": "Creature \u2014 Elf",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "land",
+   "name": "Opp Forest",
+   "type": "Basic Land \u2014 Forest",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "du",
+   "real": "Duress",
+   "targets": [
+    "p0"
+   ],
+   "expect_raise": "illegal target selection: selection:off_population:player:0"
+  },
+  {
+   "op": "cast",
+   "key": "du",
+   "real": "Duress",
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "t2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "du": "graveyard",
+   "t2": "graveyard",
+   "t1": "hand",
+   "elf": "hand",
+   "land": "hand"
+  },
+  "hand": {
+   "0": 0,
+   "1": 3
+  },
+  "graveyard": {
+   "0": [
+    "Duress"
+   ],
+   "1": [
+    "Opp Plan"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

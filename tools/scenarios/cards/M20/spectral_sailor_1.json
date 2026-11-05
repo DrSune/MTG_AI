@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "spectral_sailor_flash_cast_on_opponents_turn",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sailor", "real": "Spectral Sailor", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 1}},
+  {"op": "cast", "key": "sailor", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"sailor": "battlefield"},
+  "mana_pool": {"0": {}},
+  "turn_seats": [0, 1]
+ },
+ "notes": "Printed: 'Flash (You may cast this spell any time you could cast an instant.)' During the opponent's turn you cast the Sailor for {U}; it resolves and enters the battlefield."
+}

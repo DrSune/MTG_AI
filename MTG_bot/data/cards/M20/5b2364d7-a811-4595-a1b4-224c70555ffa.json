@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5b2364d7-a811-4595-a1b4-224c70555ffa",
+ "name": "Raise the Alarm",
+ "text_sha": "f3b0d482edd93f8ca6d45b7cb29667249bae10ab61eb5e1ad08ed0608a137c4d",
+ "verified": {
+  "tree_sha": "a52a3ac4541eb115e4bbc0c8688754a034d87c2a24c121155f9306241331f727",
+  "probe_sha": "715b00900b686e7455c0a432372b5570cdcbf64017e130b62273a0f5760e6426",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Create two 1/1 white Soldier creature tokens.",
+    "status": "OK",
+    "evidence": "[cast] you:Soldier#1 and you:Soldier#2 move new -> battlefield (by card/CREATE_TOKEN), each (battlefield, you, 1/1); the instant goes to the graveyard; mana W-2. White is visible only in the tree (TokenSpec colors=('W',), type Creature — Soldier); no trace or pack lane reads a token's colour.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

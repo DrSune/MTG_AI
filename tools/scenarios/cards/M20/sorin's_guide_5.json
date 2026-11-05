@@ -1,0 +1,87 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Pa1d802b211 G4. Printed: 'When this creature enters, you MAY search ...'. Sorin, Vampire Lord is in seat 0's library (under Card C) and a second one in seat 0's graveyard. Seat 0 casts the Guide and declines the may (skip): nothing is searched, neither Sorin moves, and the library is not shuffled (exact order kept). Only seat 0's library is ever searched or shuffled: seat 1's library keeps its exact order.",
+ "cards": [
+  {
+   "key": "guide",
+   "real": "Sorin's Guide",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sorin",
+   "real": "Sorin, Vampire Lord",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "name": "Card C",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "sorin2",
+   "real": "Sorin, Vampire Lord",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "guide",
+   "controller": 0,
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "guide": "battlefield",
+   "sorin": "library",
+   "sorin2": "graveyard"
+  },
+  "hand": {
+   "0": 0
+  },
+  "library": {
+   "0": [
+    "Card C",
+    "Sorin, Vampire Lord",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ebd33f4c-2cc8-46e3-b367-ce5b37c2719b",
+ "name": "Daybreak Chaplain",
+ "text_sha": "bb1251c2500c41545bef4f4dd989affc922890d3e5e28ee5e76f703936b76f88",
+ "verified": {
+  "tree_sha": "d3070dd400763ae852305a246fa315874f82a367c50007f5ed6523518a21e8d1",
+  "probe_sha": "ceacc78c1337946c64c203728a6a4d869f4f7f454e512d2b5f2213983c8d6d34",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: opp dealt 1 and 'you gains 1 life (by card/DEAL_DAMAGE)', you 20 -> 21; also when its 1 damage goes to the blocking opp_giant.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

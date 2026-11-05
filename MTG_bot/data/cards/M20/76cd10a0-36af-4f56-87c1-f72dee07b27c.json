@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "76cd10a0-36af-4f56-87c1-f72dee07b27c",
+ "name": "Imperial Outrider",
+ "text_sha": "b5267d7945a7bb7f670c6cc62091cbae8f811cc4cc9f69f2994df9abaf7faa1f",
+ "verified": {
+  "tree_sha": "6a011092b8ded2fe060cf444a614082572661708cdf8e228e525cdfd3a5aea2c",
+  "probe_sha": "e335fa45f87f683a99ae66fad1bda050381dde520d7ec360d57eba98d10acaa9",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Human Knight {3}{W} 1/5)",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> battlefield, P/T - -> 1/5, paid W-4 ({3}{W}); the tree is only SpellAbility(CREATURE); every trigger stimulus is 'same as on the board without the card'; it attacks for 1 and survives opp_giant's block with 4 damage",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

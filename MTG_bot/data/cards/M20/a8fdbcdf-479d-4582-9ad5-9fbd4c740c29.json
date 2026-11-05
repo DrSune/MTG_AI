@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a8fdbcdf-479d-4582-9ad5-9fbd4c740c29",
+ "name": "Spectral Sailor",
+ "text_sha": "eba81de3475af4f2379d99629fc890788f40cb4a18ddfd60c557d55c4d6a80fc",
+ "verified": {
+  "tree_sha": "f8b918ddfbc107cbdc30c010ab425c749277d43e514c61f7b99ad3acfce62dc1",
+  "probe_sha": "6e2e7e9349a0d503921f5006bbea02933428b25c7537a24cd62ee7d42d30f310",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +FLASH on cast, but every cast is in your own main phase. Pack spectral_sailor_flash_1 PASSES: cast for {U} on the opponent's turn, it enters; against a draft without FLASH the cast is refused ('illegal cast: window:not_your_turn').",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 1 damage, 20 -> 19.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}{U}: Draw a card.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: ABILITY_ACTIVATED card 0; you draws you:Library 5#1; hand 5 -> 6, library 6 -> 5; you: mana U-1 W-3.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 1/1 Spirit Pirate for {U}",
+    "status": "OK",
+    "evidence": "[cast]: P/T 1/1; mana U-1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/spectral_sailor_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

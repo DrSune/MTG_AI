@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "feb4fcec-6f3a-4643-9ffb-69d3f5953322",
+ "name": "Prismite",
+ "text_sha": "90a263065c5db8090b818101f7fef3d0e6880af770ca27fa49b1a3595bc7d5a0",
+ "verified": {
+  "tree_sha": "a1ba0a3b8d27b49b19be4e5046b1dd169e775beafd6086a16b7a5fe3ec14b4dc",
+  "probe_sha": "b7482bb24119983c57db9b535dcae7f818e3385d3cce976e4627cc006a2c6cc7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "{2}: Add one mana of any color.",
+    "status": "OK",
+    "evidence": "[activate [0]]: ask mana [W, U, B, R, G]; pays two (W-2) and adds the chosen colour: W -> net W-1, U -> U+1 W-2, B/R/G likewise; no tap.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

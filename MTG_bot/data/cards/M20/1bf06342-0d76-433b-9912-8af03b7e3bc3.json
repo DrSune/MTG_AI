@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1bf06342-0d76-433b-9912-8af03b7e3bc3",
+ "name": "Feral Abomination",
+ "text_sha": "e6c81eaa22021a7ff76904cd31bda91818598240582c843c436097a2539ebffc",
+ "verified": {
+  "tree_sha": "42f23f99a2c90b0c185d9cb88d17c591aa17c09ff66fd1fe881c6406559494b6",
+  "probe_sha": "ed62b3b3ea7742448cfb9431b677792d77a9149a90c020f0b44464844be9e513",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it] opp_giant (4/4) dies, but 5 damage is lethal without deathtouch, so the keyword is not shown. Spec pack feral_abomination_deathtouch_kills_big_blocker.json passes: a blocking 0/8 wall dies. Its control (a plain 5/5) leaves the wall alive with 5 damage. [cast] 5/5 for mana B-1 W-5.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/feral_abomination_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "49e22e88-d4d9-4781-81e3-bf77b76b132b",
+ "name": "Wolfkin Bond",
+ "text_sha": "5093ad1149299ea7c8f4837da41089dec0d02d5443661b92cfdccfa3b8d9bb40",
+ "verified": {
+  "tree_sha": "95df9bd50ef3abbdd76a59105c54542487b0a708836278b233936295b3eec78c",
+  "probe_sha": "ca86bd990da4aa8bc7bb81f7faf83f02d2c5c39517acef5cf9b424a989843dd1",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: creatures only; the opponent's-turn entry asks enchant over the same six.",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, create a 2/2 green Wolf creature token.",
+    "status": "OK",
+    "evidence": "every cast variant: card's triggered ability [0] triggers; you:Wolf moves new -> battlefield (by card/CREATE_TOKEN), + you:Wolf (battlefield, you, 2/2), exactly one; same on the opponent's-turn entry. Green is in the tree only (TokenSpec colors=('G',)).",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +2/+2.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']] you_bear: P/T 2/2 -> 4/4; each target exactly +2/+2 (opp_giant 4/4 -> 6/6, ...); mana G-1 W-4.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

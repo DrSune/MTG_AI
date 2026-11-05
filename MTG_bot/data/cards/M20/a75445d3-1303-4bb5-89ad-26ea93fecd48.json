@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a75445d3-1303-4bb5-89ad-26ea93fecd48",
+ "name": "Evolving Wilds",
+ "text_sha": "2c3d5ffa741d41f27662250af75575c90adc9cf0a9a09a9b5c5913de4752a4a5",
+ "verified": {
+  "tree_sha": "82ced11e2b5a3d6706ca1b0f80ef8f02fa7e2beb8d82bcc158b4ef8de62c0dbf",
+  "probe_sha": "f04d79a7631de67366ceb5d2938b6d57cf542d25848ad5c6d8da0e73f9eeca76",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[activate [0] from battlefield] shows the cost only: card becomes tapped (by card/TAP); card moves battlefield -> graveyard (by card/SACRIFICE). The standard library holds no basic land, so the search, the tapped entry and the shuffle are not visible. Spec packs pass: evolving_wilds_search_basic.json (the chosen Island enters tapped under seat 0; Forest and Jungle Hollow stay in the 8-card library; seat 1's library keeps its exact order) and evolving_wilds_offers_only_your_basic_lands.json (the search offers exactly ('card:1', 'card:2'): your Forest and Island, never Jungle Hollow or seat 1's Swamp).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/evolving_wilds_1.json",
+   "tools/scenarios/cards/M20/evolving_wilds_2.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 5,
+   "score": 0.35714285714285715,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/destination/controller"
+   ]
+  }
+ }
+}

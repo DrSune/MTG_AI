@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b4c404d8-9f2d-4429-ac36-449ae319abb7",
+ "name": "Siege Mastodon",
+ "text_sha": "2e34f82f4bed0e4c5f3d04bbe0324b922aac3603d24b394d08cddcfd7e762241",
+ "verified": {
+  "tree_sha": "c255e8447bac03e717dd7ced68b05e73044d76acc4a75c23f4ee38ebe60cfce0",
+  "probe_sha": "45f307fbb7bed7bd7f8c217e0150ee946f677e35344b9541822dae6004d6150b",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

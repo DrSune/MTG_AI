@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P22b3ba7c9c G4. Printed: '... you may search your library and/or graveyard for a card named Ajani, Inspiring Leader, reveal it, and put it into your hand. If you search your library this way, shuffle.' One Ajani in seat 0's library, one in its graveyard. Seat 0 takes the may, searches both zones (option 0) and picks the graveyard copy: it goes to seat 0's hand and the library copy stays in the library (seven cards, shuffled: '*').",
+ "cards": [
+  {"key": "griffin", "real": "Goldmane Griffin", "zone": "hand", "controller": 0},
+  {"key": "aj_lib", "real": "Ajani, Inspiring Leader", "zone": "library", "controller": 0},
+  {"key": "aj_gy", "real": "Ajani, Inspiring Leader", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "key": "griffin", "controller": 0, "decisions": ["fire", "0", "aj_gy"]}
+ ],
+ "expect": {
+  "zone": {"griffin": "battlefield", "aj_gy": "hand", "aj_lib": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]}
+ }
+}

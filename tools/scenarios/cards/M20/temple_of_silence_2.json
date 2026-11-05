@@ -1,0 +1,57 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "P5308a67d1b G4. Printed: 'When this land enters, scry 1.' Scry 1 looks at ONE card (CR 701.22a): seat 0 would put every card it is shown on the bottom (two 'bottom' answers are queued), but only one scry decision exists, so only the top card (Library 5) goes to the bottom; Library 4 stays on top. The Temple enters tapped.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Temple of Silence",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "t",
+   "seat": 0,
+   "decisions": [
+    "bottom",
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t": "battlefield"
+  },
+  "tapped": {
+   "t": true
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

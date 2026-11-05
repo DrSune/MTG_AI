@@ -1,0 +1,18 @@
+{"set": "M20", "name": "duress_offers_only_noncreature_nonland_cards",
+ "notes": "Pc3b90afb1d G4. Printed: 'You choose a noncreature, nonland card from it.' Same hand as duress_you_choose_a_noncreature_nonland_card (handles: Duress card:0, instant card:1, sorcery card:2, creature card:3, land card:4). The step answers nothing, so it stops at the choice ask, whose exact words are pinned: the two rows (0, 1) and their handle aliases card:1 and card:2 only. The creature and the land are never offered, and there is no empty 'discard nothing' row.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "t1", "name": "Opp Trick", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "t2", "name": "Opp Plan", "type": "Sorcery", "zone": "hand", "controller": 1},
+  {"key": "elf", "name": "Opp Spare Elf", "type": "Creature — Elf", "power": "3", "toughness": "3", "zone": "hand", "controller": 1},
+  {"key": "land", "name": "Opp Forest", "type": "Basic Land — Forest", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "key": "du", "real": "Duress", "targets": ["p1"], "expect_raise": "needs a decision from ('0', '1', 'card:1', 'card:2')"}
+ ],
+ "expect": {
+  "hand": {"1": 4}
+ }
+}

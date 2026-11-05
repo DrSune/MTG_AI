@@ -1,0 +1,108 @@
+{
+ "set": "M20",
+ "name": "marauders_axe_equip_sorcery_speed",
+ "notes": "P3e7a7719df G4. Printed: 'Equipped creature gets +2/+0. Equip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)' On the opponent's turn the equip is refused before anything is paid. Back on its controller's turn (main phase, empty stack) the same activation spends exactly {2} of the three colorless and attaches: the Bear is 4/2. The opponent's creature is not a legal equip target (refused).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "axe",
+   "real": "Marauder's Axe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opp_bear",
+   "name": "Opp Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "axe"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 3
+   }
+  },
+  {
+   "op": "activate",
+   "key": "axe",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ],
+   "expect_raise": "illegal activation: window:sorcery:not_own_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 3
+   }
+  },
+  {
+   "op": "activate",
+   "key": "axe",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "opp_bear"
+   ],
+   "expect_raise": "illegal activation: target:selection:off_population"
+  },
+  {
+   "op": "activate",
+   "key": "axe",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "attached": {
+   "axe": "bear"
+  },
+  "power": {
+   "bear": 4,
+   "opp_bear": 2
+  },
+  "toughness": {
+   "bear": 2,
+   "opp_bear": 2
+  },
+  "mana_pool": {
+   "0": {
+    "C": 1
+   }
+  }
+ }
+}

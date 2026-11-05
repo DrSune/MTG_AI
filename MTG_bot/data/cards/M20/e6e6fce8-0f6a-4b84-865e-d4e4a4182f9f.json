@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f",
+ "name": "Temple of Silence",
+ "text_sha": "d3eea09e6b195589a8ccabea616d9f3293af5f807c05591a4a517a5107d1562c",
+ "verified": {
+  "tree_sha": "2962dea1e54726771fca7b497c0d65216f15bed644a4fe2e0cfdb308af405b05",
+  "probe_sha": "18ad27e364d888283e42c7eefa1683edfe888c3772e717b9bbe9f3fa8414074f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] card: zone hand -> battlefield; tapped False -> True (also on the opponent's-turn MOVE_ZONE entry).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[play land] and [play land | ask 1 -> bottom]: the trigger fires and asks scry [top, bottom] once, but the trace cannot show where the card went (the diff shows library counts only). Spec packs pass: temple_of_silence_scry_bottom.json ('bottom' moves Library 5 under the other five, order kept) and temple_of_silence_scry_looks_at_one_card.json (two 'bottom' answers queued, only one card moves: one card looked at; seat 1's library untouched).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield] ask choose [0, 1] -> 0: card becomes tapped, you: mana W+1; [| ask 1 -> 1] you: mana B+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/temple_of_silence_1.json",
+   "tools/scenarios/cards/M20/temple_of_silence_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

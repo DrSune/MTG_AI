@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "79f94050-d850-41ca-b1db-5ae0cf743f0a",
+ "name": "Temple of Epiphany",
+ "text_sha": "7740319dd190eb2e47aaa991941227d533f7d66f00773e3b89664f8e52151649",
+ "verified": {
+  "tree_sha": "2558f1c1aaa52fcf0aa0d4f3b30fe9147d0ae6c4b571ddae1a2d9c53a1ac9766",
+  "probe_sha": "176f83a0d93fa73d48c58142269dd1b389c6a1ed1f0628c73889621141c701fe",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "the trace shows the trigger with exactly one 'ask scry: [top, bottom]' ([play land] -> top; [play land | ask 1 -> bottom]) but no library change, so where a bottomed card goes, and whose library, is not visible. Pack temple_of_epiphany_1 PASSES: the top card goes under your whole library; it fails against drafts that scry the opponent's library or drop EtBState, and a wrong expectation.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, you: mana U+1; [ask 1 -> 1]: mana R+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/temple_of_epiphany_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

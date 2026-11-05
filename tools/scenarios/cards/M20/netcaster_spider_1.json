@@ -1,0 +1,23 @@
+{"set": "M20", "name": "netcaster_spider_blocks_flyer_pumps",
+ "notes": "P52a9efa29e G4. Printed: 'Reach' and 'Whenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn.' On the opponent's turn a 2/3 flying Drake attacks; Netcaster Spider (2/3) is offered the block (reach) and blocks it. The trigger makes it 4/3, so it deals 4 and the Drake (toughness 3) dies; the Spider takes 2 and survives. Seat 0 takes no damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spider", "real": "Netcaster Spider", "zone": "battlefield", "controller": 0},
+  {"key": "drake", "name": "Opp Drake", "type": "Creature — Drake", "power": "2", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"drake": true}, "block": {"spider": "drake"}}
+ ],
+ "expect": {
+  "attackers": {"drake": true},
+  "block_asks": {"spider": "<drake>,NONE"},
+  "blocked": {"drake": ["spider"]},
+  "power": {"spider": 4},
+  "toughness": {"spider": 3},
+  "life": {"0": 20, "1": 20},
+  "damage": {"spider": 2},
+  "zone": {"spider": "battlefield", "drake": "graveyard"}
+ }
+}

@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca",
+ "name": "Jungle Hollow",
+ "text_sha": "be67abcbf42e59a145b2e7a434e4c6975a2d21fc119b119c00379f3dcdc31e02",
+ "verified": {
+  "tree_sha": "dbaead56f378e72eb239770e8d9c4e472880c4b142df64ce63e8c0fddbeb4028",
+  "probe_sha": "e9e1cc2d785582de6c155bebecf7e9cd8e2feac6c53dca1967ab5d25ad47f2b7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] card: zone hand -> battlefield; tapped False -> True. Also tapped on the MOVE_ZONE entry in 'from your hand, the card enters during the opponent's turn'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land] card's triggered ability [1] triggers; you gains 1 life (by card/GAIN_LIFE); you: life 20 -> 21. Same on the opponent's-turn entry; no trigger for 'you play a land' or other entries.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield] ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), you: mana B+1; [| ask 1 -> 1] you: mana G+1; opponent's pool unchanged in both.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

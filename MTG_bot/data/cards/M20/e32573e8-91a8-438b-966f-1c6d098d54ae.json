@@ -1,0 +1,72 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e32573e8-91a8-438b-966f-1c6d098d54ae",
+ "name": "Goldmane Griffin",
+ "text_sha": "1dd64509529ab6de087743df057f8e45fa34a172bb7c8e98fa5292582f259bc1",
+ "verified": {
+  "tree_sha": "548eff4e94351cab90efc48f0e57371d3e4b9e1103e6acfd31c3330ddd3967f0",
+  "probe_sha": "52cbfb59085d3db83e65ac2bcc04d476758bc265629993ec0bad24b6f936d9af",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, opp dealt 3; keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "vigilance",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: DECLARE_ATTACKERS with no 'card becomes tapped' event.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you may search your library and/or graveyard for a card named Ajani, Inspiring Leader, reveal it, and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [cast] ask may [fire, skip] (skip does nothing), ask choose [0, 1, 2], but the board has no Ajani, so no search finds anything. Packs PASS (also against this packet's tree as a --draft): goldmane_griffin_1/_2 (both zones: the picked library or graveyard copy goes to hand, exactly one), _3 (library only: one of two library copies, graveyard copy untouched), _4 (graveyard only: one of two), _5 (other names are not found). They kill the zone-controller flips, count+1 and hand->battlefield destination mutants of all three options.",
+    "issue": ""
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Library order is not in the probe snapshot. Packs: after options 0/1 the library holds the right cards in an unknown order ('*'); a deliberately wrong twin asserting the unshuffled order FAILS (the library was shuffled); after option 2 (graveyard only) goldmane_griffin_4 asserts the exact unshuffled order and PASSES (no shuffle). No pack can kill a dropped-SHUFFLE mutant without pinning a seed-dependent order (a non-critical operator).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/goldmane_griffin_1.json",
+   "tools/scenarios/cards/M20/goldmane_griffin_2.json",
+   "tools/scenarios/cards/M20/goldmane_griffin_3.json",
+   "tools/scenarios/cards/M20/goldmane_griffin_4.json",
+   "tools/scenarios/cards/M20/goldmane_griffin_5.json"
+  ],
+  "mutation": {
+   "mutants": 25,
+   "killed": 6,
+   "score": 0.24,
+   "survived": [
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
+   ]
+  }
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "goblin_smuggler_haste_taps_for_its_ability_the_turn_it_is_cast",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "hand", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 2}},
+  {"op": "cast", "key": "smug", "controller": 0},
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["mybear"]}
+ ],
+ "expect": {
+  "zone": {"smug": "battlefield"},
+  "tapped": {"smug": true, "mybear": false}
+ },
+ "notes": "Printed: Haste lets the Smuggler {T} as soon as it comes under your control: its '{T}: Another target creature with power 2 or less can't be blocked this turn' is activated the turn it is cast (the Smuggler taps)."
+}

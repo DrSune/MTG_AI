@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pd23d994ba8 G4. Printed: 'Haste (This creature can attack and {T} as soon as it comes under your control.)' The probe only attacks with a card that was on the battlefield since the turn began, so haste never mattered there. Here seat 0 casts the 3/3 Minotaur and puts a vanilla 2/2 onto the battlefield the same turn, then tries to attack with both: the Minotaur attacks (haste, CR 702.10) and deals 3 (20 -> 17); the 2/2 is summoning sick (CR 302.6) and does not attack.",
+ "cards": [
+  {"key": "mino", "real": "Hostile Minotaur", "zone": "hand", "controller": 0},
+  {"key": "fresh", "name": "Fresh Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "cast", "key": "mino", "controller": 0},
+  {"op": "enter", "key": "fresh"},
+  {"op": "combat", "seat": 0, "attack": {"mino": true, "fresh": true}}
+ ],
+ "expect": {
+  "zone": {"mino": "battlefield", "fresh": "battlefield"},
+  "attackers": {"mino": true, "fresh": false},
+  "tapped": {"mino": true, "fresh": false},
+  "life": {"0": 20, "1": 17}
+ }
+}

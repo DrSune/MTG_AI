@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d87ebd8c-ad2c-45c9-8c97-f046aeda861c",
+ "name": "Anvilwrought Raptor",
+ "text_sha": "53eea0f1eadec3d89b24e9f973b8a39e0607a9710dfecf1f4464941a2845f082",
+ "verified": {
+  "tree_sha": "36ef63583c91c18d2e95631b754dabf6dd4beeca446f841c9ba182cb2f43c06a",
+  "probe_sha": "41afcdd2f68e67ff2bb51d0cb956a0cbf0732321386d4652842e6b1a85e57110",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 2 damage (combat), opp 20 -> 18: the ground 4/4 could not block it; keywords +FLYING on cast.",
+    "issue": ""
+   },
+   {
+    "clause": "First strike (This creature deals combat damage before creatures without first strike.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +FIRST_STRIKE on cast, but no variant puts the Raptor in combat damage with a creature (its only block was illegal). Pack anvilwrought_raptor_first_strike_1 PASSES: blocking an attacking 2/2 it kills it in the first-strike step and takes no damage; it fails against a draft without FIRST_STRIKE (zone[raptor] graveyard) and against a wrong expectation.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 2/1 artifact creature Bird for {4}",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 2/1; you: mana W-4",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/anvilwrought_raptor_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

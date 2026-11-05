@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6f0d94d9-64bb-4175-83bc-301e8f79f54f",
+ "name": "Temple of Triumph",
+ "text_sha": "e3a329eecae11ea9952ea54542eed34daf194280bc30fdcd703f3d1591094b5e",
+ "verified": {
+  "tree_sha": "aad160374ab01f1f4d1a908c0f1e40d94ccd9ef0367f551fc8b15aa5936c4778",
+  "probe_sha": "87d9f24e3d6bb610170b7a74e3eb6b4ba8c04dfc7cf94087934f06726cf6636e",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [play land] ask scry [top, bottom] once per entry (also entering on the opponent's turn), but library order is not in the snapshot. Pack temple_of_triumph_1 PASS (also against this packet's tree): 'bottom' sends only the top card down, the second card becomes the top; it fails against scry-controlled-by-opponent and scry 2 mutants.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0, 1]; 0 -> card tapped, you: mana R+1; 1 -> card tapped, you: mana W+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/temple_of_triumph_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P506b9728c7 G4. Printed: 'Whenever you gain life, put a +1/+1 counter on this creature.' The opponent gains 3 life (its lifelinker's damage): no counter, it is not 'you'. Then seat 0 gains life twice (2, then 1) from its own lifelinker: one counter per life-gain event, two in all. The 2/3 Aerialist ends 4/5 with two counters.",
+ "cards": [
+  {"key": "aer", "real": "Bloodthirsty Aerialist", "zone": "battlefield", "controller": 0},
+  {"key": "myll", "name": "My Lifelinker", "type": "Creature — Cleric", "power": 1, "toughness": 1, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "oppll", "name": "Opp Lifelinker", "type": "Creature — Cleric", "power": 1, "toughness": 1, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 1},
+  {"key": "dummy", "name": "Dummy", "type": "Creature — Golem", "power": 0, "toughness": 20, "zone": "battlefield", "controller": 1},
+  {"key": "mydummy", "name": "My Dummy", "type": "Creature — Golem", "power": 0, "toughness": 20, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "oppll", "target": "mydummy", "amount": 3, "controller": 1},
+  {"op": "deal_damage", "source": "myll", "target": "dummy", "amount": 2},
+  {"op": "deal_damage", "source": "myll", "target": "dummy", "amount": 1}
+ ],
+ "expect": {
+  "life": {"0": 23, "1": 23},
+  "counters": {"aer": {"PLUS_1_PLUS_1": 2}},
+  "power": {"aer": 4},
+  "toughness": {"aer": 5},
+  "damage": {"dummy": 3, "mydummy": 3}
+ }
+}

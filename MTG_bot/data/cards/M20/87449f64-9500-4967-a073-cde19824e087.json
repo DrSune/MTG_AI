@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "87449f64-9500-4967-a073-cde19824e087",
+ "name": "Bastion Enforcer",
+ "text_sha": "a1259daf521c11150bb7ee1106c6acb7c86d1044875a732b2d5684e94dc64d45",
+ "verified": {
+  "tree_sha": "ee441f0f2a337d8db8ecb45f94fd634b24f08421d4d849b5b970e36d25a8c832",
+  "probe_sha": "c1308b9d0f839a0742b926934686f6effcca4e5f269f52564ffb8f4a476e6146",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

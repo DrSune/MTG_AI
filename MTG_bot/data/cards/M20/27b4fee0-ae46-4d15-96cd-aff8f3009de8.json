@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "27b4fee0-ae46-4d15-96cd-aff8f3009de8",
+ "name": "Engulfing Eruption",
+ "text_sha": "c674fbbf62a355a324764702df63767953d27a62ba5f99474fbc4c35a74b79fe",
+ "verified": {
+  "tree_sha": "06daa49fc91f61d6ca2bf9bf48edc2bdebdd571ad32e506d3b3323060c0b7e6f",
+  "probe_sha": "58f655a468995935970c96a3b7ee5291afa9ced1bbd4cf6ea2616f5a82b8370e",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Engulfing Eruption deals 5 damage to target creature.",
+    "status": "OK",
+    "evidence": "target slot (cast): the six creatures, no player or noncreature; every [cast targets=[X]]: X is dealt 5 damage (by card/DEAL_DAMAGE) and dies (opp_giant 4/4 included). Sorcery, {2}{R}{R}: mana R-2 W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "bd1c9b5f-3b70-457c-8dd8-2420ce1c0d7c",
+ "name": "Ironclad Krovod",
+ "text_sha": "776fd91e9140ce2aa8c5848e7750d46e081a3e080aeeb0e0ba06e0865425600a",
+ "verified": {
+  "tree_sha": "1886a6beb8a23e3d734a138c639a9310503cb5370d7f59d6efdc82dabefa6069",
+  "probe_sha": "2829993338375a03fe084fecbfbca2ac661d41a94812418a9ddbefce4b0eca22",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla creature, {3}{W}, 2/5)",
+    "status": "OK",
+    "evidence": "[cast] card moves hand -> stack -> battlefield, P/T - -> 2/5, you: mana W-4; [attacks alone, unblocked] opp life 20 -> 18; [opp_giant blocks] card damage 0 -> 4 and survives, opp_giant damage 0 -> 2; no triggered ability; every other stimulus 'same as on the board without the card'.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "68a2e371-ccf0-4c2a-aeef-c66852811e1a",
+ "name": "Boreal Elemental",
+ "text_sha": "c992793f04de67fbb96d03c936eff1d2ac2d6673455d8016fcc185895abc20c3",
+ "verified": {
+  "tree_sha": "5bc9db648537b2190d26853e278771a633fbe8a0049bcf408c6c8657e07c488f",
+  "probe_sha": "f2b87ab8a14f976993d3a3556c1e72821f85cdb20d375775ad8e7c14d7f7e0f2",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block, opp dealt 3 (20 -> 17).",
+    "issue": ""
+   },
+   {
+    "clause": "Spells your opponents cast that target this creature cost {2} more to cast.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No opponent spell targets it in the probe. Tree equals the compiler's parse. Packs (PASS): boreal_elemental_opponent_spell_pays_two_more (seat 0's Disfigure at seat 1's Elemental spends exactly {2}{B}; it is 1/2); boreal_elemental_tax_unpayable_cannot_target (with {B}{1} the cast at it is refused, off_population, while the same Disfigure at an untaxed Bear costs {B}); boreal_elemental_own_spell_and_abilities_untaxed (its controller's own Disfigure costs {B}; Glaring Aegis's enters trigger taps an opponent's Elemental for nothing more). Each fails against a wrong expectation.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/boreal_elemental_1.json",
+   "tools/scenarios/cards/M20/boreal_elemental_2.json",
+   "tools/scenarios/cards/M20/boreal_elemental_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "controller OPPONENT->YOU at 1/0/controller_ref",
+    "amount+1 at 1/0/delta/amount",
+    "amount-1 at 1/0/delta/amount"
+   ]
+  }
+ }
+}

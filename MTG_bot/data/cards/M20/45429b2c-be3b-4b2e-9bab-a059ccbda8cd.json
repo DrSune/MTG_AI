@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "45429b2c-be3b-4b2e-9bab-a059ccbda8cd",
+ "name": "Blossoming Sands",
+ "text_sha": "1e8290802626dd9cfddc0879f19b95e8720616be8d866f9c20ad43f34578b79f",
+ "verified": {
+  "tree_sha": "7e7920b610629a6db6f3ec094c35a322ac8ace0ca74d88073ccd520a75bd4dac",
+  "probe_sha": "19d5a487e371bd70a716ef0cc880f27b00aaca038ee70092a9f7ca753f6892c5",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True (also on the effect entry in [stimulus: from your hand, the card enters during the opponent's turn ...])",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: card's triggered ability [1] triggers; you gains 1 life; you: life 20 -> 21. It fires only on its own entry ([stimulus: you play a land -> none], [stimulus: a creature enters ... -> none])",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card tapped False -> True, mana G+1; [... | ask 1 -> 1]: mana W+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "df77cb98-e3c6-4927-99d5-c3380641f356",
+ "name": "Mammoth Spider",
+ "text_sha": "26682b67ff2c1eefd27f04cb1f01cc64008bf6615802c9bd882e5372afc915bf",
+ "verified": {
+  "tree_sha": "447b04fb8e1b9fca2824868ef644f4c168c583d7c68d2328ea867b7e34b88d16",
+  "probe_sha": "608702c886d7bf62ac8d2004a84ecfc2840df07c999a6c090ef2c97128c72e47",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "No variant has a flier attack into the Spider (the opponent's attack is 'no block'). Spec pack mammoth_spider_reach_blocks_flier.json passes: seat 1's 2/2 flier attacks, the Spider is asked '<flier>,NONE', blocks, the flier dies, the Spider is marked 2. Its control (a 3/5 without reach) is never asked to block and seat 0 takes 2. [cast] 3/5 for mana G-1 W-4.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/mammoth_spider_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

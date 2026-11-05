@@ -1,0 +1,71 @@
+{
+ "set": "M20",
+ "name": "goblin_smuggler_target_cannot_be_blocked_this_turn",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "smug",
+   "real": "Goblin Smuggler",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "smug",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "mybear"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "mybear": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "mybear": true
+  },
+  "blocked": {
+   "mybear": []
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "tapped": {
+   "smug": true
+  },
+  "not_asked_to_block": [
+   "ogiant"
+  ]
+ },
+ "notes": "Printed: '{T}: Another target creature with power 2 or less can't be blocked this turn.' After the Smuggler taps targeting your 2/2, the 2/2 attacks; the opponent's untapped 4/4 is never offered a block (no legal block exists), so the 2/2 deals 2."
+}

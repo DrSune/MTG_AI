@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "711eea87-0fa3-46e0-a42b-fa5a86455f04",
+ "name": "Shivan Dragon",
+ "text_sha": "a1d3a5be0403eae56f6038410adb08addba115e4a110c7d9e3f7af2e6b553f4a",
+ "verified": {
+  "tree_sha": "24cde8149353e8c0c60a4935839af438a904995c545109ea68d8d10f464e7c74",
+  "probe_sha": "bce5bfb7ccda6ae13ff544711d2c994e7eb49d1e3cfcefb5f1b07fb8901079a6",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 5 damage, opp 20 -> 15.",
+    "issue": ""
+   },
+   {
+    "clause": "{R}: This creature gets +1/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: ABILITY_ACTIVATED card 0; card P/T 5/5 -> 6/5; you: mana R-1; after the turn ends 6/5 -> 5/5.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 5/5 Dragon for {4}{R}{R}",
+    "status": "OK",
+    "evidence": "[cast]: mana R-2 W-4; P/T 5/5",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

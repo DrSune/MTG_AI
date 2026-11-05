@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7744bae4-a8b7-44a5-9b4c-0048ad4cc448",
+ "name": "Air Elemental",
+ "text_sha": "69c30aa33780cf21c2c136c40063bb38fd3f794c2222ccde96acd34b51c4507a",
+ "verified": {
+  "tree_sha": "8e76642b598ac7e2f3a7ddae1f4f81d33d0b8776531bc4a4b4e854373548aab2",
+  "probe_sha": "e10856dfaabad9b09b5f47cae3bbeb1b9218fe585ae8ac3d721ab197ba7db968",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: 4/4, keywords +FLYING, paid U-2 W-3. [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 4 (life 20 -> 16): the non-flying 4/4 cannot block it.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

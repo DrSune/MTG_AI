@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "sleep_paralysis_enchanted_creature_stays_tapped_through_its_untap_step",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Sleep Paralysis", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "oother", "name": "Opp Other", "type": "Creature — Ox", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 3}},
+  {"op": "cast", "key": "sp", "controller": 0, "targets": ["obear"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"sp": "battlefield"},
+  "attached": {"sp": "obear"},
+  "tapped": {"obear": true, "oother": false}
+ },
+ "notes": "Printed: 'Enchant creature / When this Aura enters, tap enchanted creature. / Enchanted creature doesn't untap during its controller's untap step.' Cast on the opponent's untapped 2/2, it taps the 2/2; in the opponent's next untap step the 2/2 stays tapped while their other tapped creature untaps."
+}

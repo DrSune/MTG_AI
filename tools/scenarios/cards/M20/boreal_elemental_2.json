@@ -1,0 +1,20 @@
+{"set": "M20", "name": "boreal_elemental_tax_unpayable_cannot_target",
+ "notes": "Pde50e67e9e G4. Printed: 'Spells your opponents cast that target this creature cost {2} more to cast.' With {B}{1} seat 0 cannot pay Disfigure's {2}{B} total at seat 1's Boreal Elemental, so the cast is refused before anything is paid; the same Disfigure at seat 1's untaxed 2/2 Bear costs only {B} and resolves, leaving the {1}.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boreal", "real": "Boreal Elemental", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "controller": 0, "targets": ["boreal"], "expect_raise": "illegal target selection: selection:off_population"},
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"disfigure": "graveyard", "boreal": "battlefield", "bear": "graveyard"},
+  "power": {"boreal": 3},
+  "toughness": {"boreal": 4},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}

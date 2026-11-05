@@ -1,0 +1,20 @@
+{"set": "M20", "name": "convolute_paid_spell_resolves",
+ "notes": "P87cbe0b609 G4. Printed: 'Counter target spell unless its controller pays {4}.' Seat 0 casts Disfigure ({B}) at seat 1's 2/2 Bear with {B} plus exactly four more mana in its pool. Seat 1 answers the window with Convolute ({2}{U}, spent exactly). At resolution seat 0 (the countered spell's controller) is asked to pay and pays {4}, spending its pool to the last mana: Disfigure is not countered and the Bear dies.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0},
+  {"key": "convolute", "real": "Convolute", "zone": "hand", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 4}, "1": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "decisions": ["convolute", "PAY"]}
+ ],
+ "expect": {
+  "zone": {"disfigure": "graveyard", "convolute": "graveyard", "bear": "graveyard"},
+  "window_asks": {"1": ["convolute"]},
+  "kickback_asks": {"0": ["PAY"]},
+  "mana_pool": {"0": {}, "1": {}},
+  "life": {"0": 20, "1": 20}
+ }
+}

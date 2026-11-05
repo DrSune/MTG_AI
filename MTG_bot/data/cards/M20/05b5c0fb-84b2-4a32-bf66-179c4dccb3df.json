@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "05b5c0fb-84b2-4a32-bf66-179c4dccb3df",
+ "name": "Natural End",
+ "text_sha": "eb09307d0f65d6c30a0099f1573b6cdc6e11b4f5dbeed2c1dc9f05553cd54881",
+ "verified": {
+  "tree_sha": "f50b91837cce7c5eb5b289cd35fcd70d05dad2bf0d50d6ab8d2980ed594ccf94",
+  "probe_sha": "b98d69791444b0ec307a121470c7f252ec7b6edd3f90e1bbbdd7717f39ab1a45",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Destroy target artifact or enchantment.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_relic, you_charm, opp_relic, opp_charm]; in each variant only the target moves battlefield -> graveyard (by card/DESTROY); mana G-1 W-2.",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 3 life.",
+    "status": "OK",
+    "evidence": "every variant: you gains 3 life (by card/GAIN_LIFE); you: life 20 -> 23; opponent unchanged.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

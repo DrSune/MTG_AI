@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6c922206-6e68-4dcd-9559-88da1074f2c4",
+ "name": "Rugged Highlands",
+ "text_sha": "9d4dbb27f0e2933bdd01fa41a809057eed19659b7b65dc41402bc6caa326a826",
+ "verified": {
+  "tree_sha": "740ac183362cd0633f7e8d10b3d334914b95fd8315b6ba4533e76e6687a7c461",
+  "probe_sha": "1c35ec0f0974e2697e9419ccb85f33aec5b4389226f432b91955bd69b331b485",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] card: zone hand -> battlefield; tapped False -> True. Also tapped on the MOVE_ZONE entry in 'from your hand, the card enters during the opponent's turn'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land] card's triggered ability [1] triggers; you gains 1 life (by card/GAIN_LIFE); you: life 20 -> 21. Same on the opponent's-turn entry; no trigger for 'you play a land' or other entries.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield] ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), you: mana R+1; [| ask 1 -> 1] you: mana G+1; opponent's pool unchanged in both.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

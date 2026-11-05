@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7e6cfec7-3b54-43db-853a-27c164776a5f",
+ "name": "Savannah Sage",
+ "text_sha": "1efaf803af83aceba1ec3a2532c98e35bc64b8336e280556d6396f942b9a73ce",
+ "verified": {
+  "tree_sha": "57a4f19cf5fe7b0a5345b5640cd7960a275852c9c0dfccca3fad967e17681daf",
+  "probe_sha": "27f0c5b9e94edf40b22ec7c7441198b064d10dca2c4dea53f6f78cc3f2748fea",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you gain 2 life.",
+    "status": "OK",
+    "evidence": "[cast] card's triggered ability [0] triggers; you gains 2 life (by card/GAIN_LIFE); you: life 20 -> 22; same on the opponent's-turn entry; no trigger when another creature enters (stimulus 'a creature enters under your control' -> none). 2/2 for mana W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

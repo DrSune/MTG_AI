@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
+ "name": "Duress",
+ "text_sha": "42e705d21a23530af4e00d70670eabb6fadf742de8b8f3c5694c20b9d1edb9d4",
+ "verified": {
+  "tree_sha": "d5829e3a5887ae82c131a49d207dbca774e020857cd0ed8bedd076ea58250040",
+  "probe_sha": "eda73bb63f1810382abaf8c45a5aab548dd01af3d7be46fc8eaf2b7e3eb48d3d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Target opponent reveals their hand.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [opp] (the caster is not offered). Tree equals the compiler's parse.",
+    "issue": ""
+   },
+   {
+    "clause": "You choose a noncreature, nonland card from it.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The board's opponent hand holds one legal card (opp_trick), so the pick was forced and not asked; opp_spare (creature) stayed. Packs (PASS): duress_offers_only_noncreature_nonland_cards pins the ask's exact words: rows 0, 1 and aliases card:1, card:2 (the instant and the sorcery), never the creature or the land, no empty row; duress_you_choose_a_noncreature_nonland_card: the caster's pick (the sorcery) is discarded, the instant, creature and land stay; targeting seat 0 is refused (off_population:player:0). The choosing seat is the spell's controller (verbs.py _v_choose: ctx.take_decision without a seat).",
+    "issue": ""
+   },
+   {
+    "clause": "That player discards that card.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp']]: opp_trick moves hand -> graveyard; opp hand 2 -> 1; paid B-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/duress_1.json",
+   "tools/scenarios/cards/M20/duress_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
+ }
+}

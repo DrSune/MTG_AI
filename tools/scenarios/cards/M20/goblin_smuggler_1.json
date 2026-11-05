@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "goblin_smuggler_haste_attacks_the_turn_it_is_cast",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 2}},
+  {"op": "cast", "key": "smug", "controller": 0},
+  {"op": "combat", "seat": 0, "attack": {"smug": true}}
+ ],
+ "expect": {
+  "zone": {"smug": "battlefield"},
+  "attackers": {"smug": true},
+  "life": {"0": 20, "1": 18}
+ },
+ "notes": "Printed: 'Haste (This creature can attack and {T} as soon as it comes under your control.)' Cast this turn, the 2/2 Smuggler attacks at once and deals 2."
+}

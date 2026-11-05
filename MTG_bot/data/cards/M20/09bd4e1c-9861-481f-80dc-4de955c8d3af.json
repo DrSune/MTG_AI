@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "09bd4e1c-9861-481f-80dc-4de955c8d3af",
+ "name": "Cloudkin Seer",
+ "text_sha": "9e40073b83ce55713d77886d88cef29bc108f1dde6cb548c3dcd16012cb3e67a",
+ "verified": {
+  "tree_sha": "74b1e4b203a50bfa0201ca4d862382ca6fced0f03d8946c84584381c96ff050a",
+  "probe_sha": "6b9ec541cb9bd95090d864508a9e62d142d5df1f36b42b7e205e431cd20889e6",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block, opp dealt 2 (20 -> 18); keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, draw a card.",
+    "status": "OK",
+    "evidence": "[cast]: triggered ability [0]; you draws you:Library 5#1 (library 6 -> 5), exactly one card; the opponent draws nothing. Not on other creatures entering ([stimulus: a creature enters under your control -> none]).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

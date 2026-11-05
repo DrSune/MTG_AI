@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "126844f5-3a95-48cb-80f2-d7e4b0005350",
+ "name": "Lightning Stormkin",
+ "text_sha": "1fb0a77df132a3f64104c58cc7cec3b106688e20d3527a30e3c039b3bb1f7939",
+ "verified": {
+  "tree_sha": "e2d65f4d601d45b0f40bea4678643479fa52d54cbe9a24a4c017914bbd688289",
+  "probe_sha": "5b3d0416eb024de8b0be1123bbca353d79d58f02857f47ca2829b70dc7c3bb66",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it] no DECLARE_BLOCKERS row: the non-flying opp_giant cannot block; opp is dealt 2 damage (combat), life 20 -> 18. [cast] 2/2 for mana R-1 U-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Haste (This creature can attack and {T} as soon as it comes under your control.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "The attack variants use the card already on the battlefield; nothing shows it attacking the turn it arrives. Spec pack lightning_stormkin_haste_attacks_the_turn_it_enters.json passes: entered this turn, it is asked ATTACK,DECLINE and deals 2, while a Centaur Courser entered the same turn is never asked. Its control (a 2/2 flier without haste) is not asked.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/lightning_stormkin_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

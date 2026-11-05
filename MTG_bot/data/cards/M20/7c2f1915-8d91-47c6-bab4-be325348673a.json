@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7c2f1915-8d91-47c6-bab4-be325348673a",
+ "name": "Bogstomper",
+ "text_sha": "7067abbc5db741f82eeba62a9f71eb78a577de2fe64ff3d1abd6c2a9ad3f9583",
+ "verified": {
+  "tree_sha": "abcafdf82d8b2c894edd5adf71e65deea3572668bca87e1b8302f01b36b0fba4",
+  "probe_sha": "920a117fa2c2fac64e76d12bb36f9a61c9b26952d7571f548a72701348370571",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "(no rules text) vanilla 6/5 Beast for {4}{B}{B}",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 6/5; you: mana B-2 W-4; attacks for 6 (opp 20 -> 14); no abilities.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

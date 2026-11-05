@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pe07d4686f0 G4. Printed: 'Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)' Feral Abomination (5/5) attacks and seat 1's 0/8 wall blocks it. Five damage is not lethal to an 0/8 without deathtouch, so the wall dying shows the keyword (CR 702.2b, 704.5h). The Abomination takes nothing and no damage reaches seat 1.",
+ "cards": [
+  {"key": "fa", "real": "Feral Abomination", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "8", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"fa": true}, "block": {"wall": "fa"}}
+ ],
+ "expect": {
+  "attackers": {"fa": true},
+  "blocked": {"fa": ["wall"]},
+  "zone": {"fa": "battlefield", "wall": "graveyard"},
+  "tapped": {"fa": true},
+  "life": {"0": 20, "1": 20}
+ }
+}

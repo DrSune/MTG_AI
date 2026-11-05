@@ -1,0 +1,71 @@
+{
+ "set": "M20",
+ "name": "zephyr_charge_costs_one_and_blue",
+ "notes": "P48f6056d9e / Pa6bca94e89 regression. Printed: '{1}{U}: Target creature gains flying until end of turn.' With only {U} in the pool the activation is refused (it costs {1}{U}); with {U}{1} it is paid to the last mana and the Bear gains flying.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "charge",
+   "real": "Zephyr Charge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "charge",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ],
+   "expect_raise": "illegal activation: cost:mana_generic:0<1"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "charge",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "My Bear": [
+    "FLYING"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

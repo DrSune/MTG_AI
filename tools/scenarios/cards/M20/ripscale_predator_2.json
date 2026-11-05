@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pfaa42e27ab G4. Printed: 'Menace (This creature can't be blocked except by two or more creatures.)' With a single untapped creature on the defending side no legal block of the Predator exists (CR 702.110b), so that creature is never offered the block and the 6/5 deals 6 to seat 1 (20 -> 14).",
+ "cards": [
+  {"key": "rip", "real": "Ripscale Predator", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Lone Blocker", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"rip": true}, "block": {"b1": null}}
+ ],
+ "expect": {
+  "attackers": {"rip": true},
+  "not_asked_to_block": ["b1"],
+  "blocked": {"rip": []},
+  "zone": {"rip": "battlefield", "b1": "battlefield"},
+  "life": {"0": 20, "1": 14}
+ }
+}

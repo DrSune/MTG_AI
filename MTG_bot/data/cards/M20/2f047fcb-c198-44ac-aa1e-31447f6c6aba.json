@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "2f047fcb-c198-44ac-aa1e-31447f6c6aba",
+ "name": "Nimble Birdsticker",
+ "text_sha": "8f47298936f891022360f0b74b9ff47a9904fefdf03c89d7be07e7ad7c6fbf1c",
+ "verified": {
+  "tree_sha": "04161d1b44b22d6fb68338ae889be8040fd9ea9dc8f4b0b8d1ac561df2a09af5",
+  "probe_sha": "b748f4ac707c2471c0e929ba4fef00d52999829f0f15a45ba3f78276d95ea035",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +REACH on cast, but no variant has a flier attacking into it. Pack nimble_birdsticker_reach_1 PASSES: it blocks an attacking 2/2 flier, kills it and takes 2; it fails against a draft without REACH (no block, you take 2) and a wrong expectation.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 2/3 Goblin for {2}{R}",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/3; mana R-1 W-2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/nimble_birdsticker_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

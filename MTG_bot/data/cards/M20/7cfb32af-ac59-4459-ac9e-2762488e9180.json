@@ -1,0 +1,21 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7cfb32af-ac59-4459-ac9e-2762488e9180",
+ "name": "Stone Golem",
+ "text_sha": "fa6016ebd5f41d87bcfe8d3c888e0036c82e1a73ed26980ece544ba2e4182ec9",
+ "verified": {
+  "tree_sha": "f541b69dde8643d8b2ec16bb8db1f34ed8d938da30ae26068aa795d6b47dc37d",
+  "probe_sha": "8d99b7a4d7947e0979fe20ef5c6217baa4ef4ec2c58f95ad01570c2460afd191",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

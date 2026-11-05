@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "fbadf7a3-0d54-40fe-a763-f641dd448e56",
+ "name": "Sedge Scorpion",
+ "text_sha": "16b7eba008e6c51ebd8aae2d451ed9ffd96e68e4d4e8ad759b45d9361822fb0d",
+ "verified": {
+  "tree_sha": "632b1977917c2d075fac9f222515fef2ad97f3d64ab8e13837c6185460043151",
+  "probe_sha": "901d1866278d36cb91af0cd79d4fa54801f69d1e8fe28084e0731282865c47a0",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: opp_giant is dealt 1 damage and dies (4/4); keywords +DEATHTOUCH.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

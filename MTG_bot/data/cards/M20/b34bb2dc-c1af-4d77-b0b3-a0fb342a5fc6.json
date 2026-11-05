@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+ "name": "Forest",
+ "text_sha": "e1d41b999f6b6076862e784fba0a49a8fcf5843d59bf9df49ac5cdc65b9b2863",
+ "verified": {
+  "tree_sha": "06a95859d71cacbc1b038e7d3bbe38f57caba5ce9e2f5fcb63a781533f5f8b83",
+  "probe_sha": "eb5330f1dc73137ed8ef40fd9ccdad5b9c7219aa4b4f2ead366d0ff51c452bd7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "({T}: Add {G}.)",
+    "status": "OK",
+    "evidence": "[play land]: untapped on the battlefield; [activate [0]]: card becomes tapped, you: mana G+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

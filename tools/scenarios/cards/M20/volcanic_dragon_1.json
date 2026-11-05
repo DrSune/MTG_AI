@@ -1,0 +1,92 @@
+{
+ "set": "M20",
+ "name": "volcanic_dragon_haste_attacks_the_turn_it_enters",
+ "notes": "Pa4b976e6d6 G4. Printed: 'Flying, haste'. Volcanic Dragon is cast this turn ({4}{R}{R}, the pool spent exactly) and attacks at once (haste, CR 702.10); a vanilla 2/2 that entered the same turn is never offered an attack (summoning sickness, the control). The opponent's untapped 4/4 without flying or reach cannot block the Dragon: 4 damage, seat 1 goes to 16.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dragon",
+   "real": "Volcanic Dragon",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Opp Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "dragon",
+   "real": "Volcanic Dragon",
+   "controller": 0
+  },
+  {
+   "op": "enter",
+   "key": "corpse"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "dragon": true,
+    "corpse": true
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dragon": "battlefield",
+   "corpse": "battlefield",
+   "giant": "battlefield"
+  },
+  "asks": {
+   "dragon": "ATTACK,DECLINE"
+  },
+  "not_asked": [
+   "corpse"
+  ],
+  "attackers": {
+   "dragon": true,
+   "corpse": false
+  },
+  "blocked": {
+   "dragon": []
+  },
+  "life": {
+   "0": 20,
+   "1": 16
+  },
+  "tapped": {
+   "dragon": true,
+   "corpse": false
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "not_asked_to_block": [
+   "giant"
+  ]
+ }
+}

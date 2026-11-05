@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P320296c62a G4. Printed: 'As an additional cost to cast this spell, sacrifice a creature. Destroy target creature.' The cost is mandatory (CR 601.2h): seat 0 controls no creature (only an artifact), the opponent controls a 3/3, so seat 0 cannot cast it at all, not even at the opponent's creature. The cast is refused, the artifact is not a sacrifice candidate, the opponent's Ogre stays and Bone Splinters stays in hand.",
+ "cards": [
+  {"key": "bs", "real": "Bone Splinters", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "key": "bs", "controller": 0, "targets": ["ogre"], "expect_raise": "cost:sacrifice:insufficient_candidates"}
+ ],
+ "expect": {
+  "zone": {"bs": "hand", "relic": "battlefield", "ogre": "battlefield"}
+ }
+}

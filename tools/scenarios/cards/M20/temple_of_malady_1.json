@@ -1,0 +1,16 @@
+{"set": "M20", "name": "temple_of_malady_scry_one_bottom",
+ "notes": "P2b2dfac54f G4. Printed: 'This land enters tapped. When this land enters, scry 1.' The real land drop: the Temple enters tapped and its scry looks at ONE card. The pack answers bottom to every scry ask it might get: only the top card (Library 5) goes to the bottom, the rest keep their order. Seat 0's life is unchanged (no gain on this land).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "temple", "real": "Temple of Malady", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "decisions": ["bottom", "bottom"]}
+ ],
+ "expect": {
+  "zone": {"temple": "battlefield"},
+  "tapped": {"temple": true},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]},
+  "life": {"0": 20, "1": 20}
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6987d5d4-0ef6-4326-a590-678ac160fe56",
+ "name": "Bartizan Bats",
+ "text_sha": "73195c05fca1f6eedea58652d56639e68b12c03829e9761dbefafe7f50f2da13",
+ "verified": {
+  "tree_sha": "0011f623f1ca936ac9cf7a8459eed838a88d429c0e1ca8ac53fc1bd2ae4ec5f5",
+  "probe_sha": "cc44288fadf0e60c84938336277fbae6735900a1d3475ad2a6eae1d79d4b20fc",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it] no DECLARE_BLOCKERS row: the non-flying opp_giant cannot block; opp is dealt 3 damage (combat), life 20 -> 17. [cast] 3/1 for mana B-1 W-3.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

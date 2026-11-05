@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "40057917-4a88-4316-bc5b-efc0ada1ddff",
+ "name": "Moat Piranhas",
+ "text_sha": "0df062da4101f2bc5eb45d3e7ebf3050b03418162514484a177732c9c071ed53",
+ "verified": {
+  "tree_sha": "f3dfb5465907374c83088eda1124b433fae03eef78570b9ebaa17575a2c062a3",
+  "probe_sha": "d84c279f5adc6eaca6605fc2c515581ef2d78d23cc332d451bac563131d41ce2",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Defender",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [this creature attacks and opp_giant blocks it]: event (none), no DECLARE_ATTACKERS, no damage; keywords +DEFENDER.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

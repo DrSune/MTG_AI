@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P22b3ba7c9c G4. Printed: '... you may search your library and/or graveyard for a card named Ajani, Inspiring Leader ...' Only a card with that exact name can be found: a different card in the library and a different card in the graveyard both stay where they are when seat 0 takes the may and searches both zones (option 0); seat 0's hand stays empty after the cast.",
+ "cards": [
+  {"key": "griffin", "real": "Goldmane Griffin", "zone": "hand", "controller": 0},
+  {"key": "other", "real": "Ajani, Strength of the Pride", "zone": "library", "controller": 0},
+  {"key": "gyother", "real": "Shock", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "key": "griffin", "controller": 0, "decisions": ["fire", "0"]}
+ ],
+ "expect": {
+  "zone": {"griffin": "battlefield", "other": "library", "gyother": "graveyard"},
+  "hand": {"0": 0}
+ }
+}

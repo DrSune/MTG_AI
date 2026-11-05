@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ae78b6f9-8334-479e-8111-8e3acb2b7ca7",
+ "name": "Bloodthirsty Aerialist",
+ "text_sha": "5a316c7a5f9f156cbc96c13fbd13af8765769eb5224deacab2d755332e52ca4c",
+ "verified": {
+  "tree_sha": "9750d6c5ccce2181812e0bd7b8bf3ad14e7a9f159dae57b4dea27339db61743c",
+  "probe_sha": "f0bb3fa23ef5ac26e510190994d6ad6ba3f7644c97279d78122faff7baacfa99",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: not blocked, opp dealt 2; keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[you gain 3 life]: triggered ability [0] triggers, card gets 1 PLUS_1_PLUS_1, 2/3 -> 3/4; no trigger on any other stimulus. The board cannot make the opponent gain life: pack bloodthirsty_aerialist_1 PASS (opponent gains 3: no counter; you gain twice: two counters, 4/5); it fails against the actor->opponent, actor->any and count+1 mutants of this packet's tree.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/bloodthirsty_aerialist_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

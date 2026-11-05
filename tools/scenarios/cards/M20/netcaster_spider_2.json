@@ -1,0 +1,22 @@
+{"set": "M20", "name": "netcaster_spider_pump_ends_with_turn",
+ "notes": "P52a9efa29e G4. Printed: '... this creature gets +2/+0 until end of turn.' The Spider blocks a 2/5 flying Drake (4 damage does not kill it) and is 4/3 after combat; when that turn ends it is 2/3 again and its damage is gone.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spider", "real": "Netcaster Spider", "zone": "battlefield", "controller": 0},
+  {"key": "drake", "name": "Opp Big Drake", "type": "Creature — Drake", "power": "2", "toughness": "5", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"drake": true}, "block": {"spider": "drake"}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "blocked": {"drake": ["spider"]},
+  "power": {"spider": 2},
+  "toughness": {"spider": 3},
+  "damage_received": {"spider": 2, "drake": 4},
+  "life": {"0": 20, "1": 20},
+  "zone": {"spider": "battlefield", "drake": "battlefield"}
+ }
+}

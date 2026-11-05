@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a7d88510-d2ce-4dd6-938c-964cc74ff7d7",
+ "name": "Dawning Angel",
+ "text_sha": "44f1b9ae8ec7438600e75a8d80a5c0b786bb2756f95f3fcb080fa01a643160fe",
+ "verified": {
+  "tree_sha": "5c2688b08da517ca13a19185ad1d899f656a9f65f4180266c88be8b5bb717bcc",
+  "probe_sha": "1ee3f68afb3a13a70f367de2d4c824d10aaf79d0ac8fe27adabecc6e568c4136",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 3 damage (combat), opp 20 -> 17: the ground 4/4 could not block it; keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you gain 4 life.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [0] triggers; you gains 4 life (by card/GAIN_LIFE); you: life 20 -> 24 (also on the opponent's-turn entry).",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 3/2 Angel for {4}{W}",
+    "status": "OK",
+    "evidence": "[cast]: mana W-5; P/T 3/2",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

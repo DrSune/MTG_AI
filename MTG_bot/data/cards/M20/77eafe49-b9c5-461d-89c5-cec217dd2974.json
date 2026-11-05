@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "77eafe49-b9c5-461d-89c5-cec217dd2974",
+ "name": "Disfigure",
+ "text_sha": "f1f6ebccc07ef0607c0e2ee40207d807ea334571856a378a84d6000c9e817245",
+ "verified": {
+  "tree_sha": "edac77b6c4d43ac165e28ba69c0f377279eb3b88a329f034616d3d8f65c1c2f0",
+  "probe_sha": "289d3ae41364338586d37e368d473142bc280b964cf002d9624d56ef2af11b61",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Target creature gets -2/-2 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot: the six creatures only; you_giant 4/4 -> 2/2 and 'after the turn ends: you_giant: P/T 2/2 -> 4/4' (opp_giant, opp_tapped alike); you_bear, opp_bear and opp_flier die; paid B-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "P466bdd9245 G4. Printed: 'This land enters tapped. When this land enters, scry 1.' The trace shows the scry ask but not where the card goes. Seat 0's library is, top first, 'Top Card', 'Second Card', then six filler cards. Seat 0 plays the Temple and answers 'bottom' to every scry ask: scry 1 looks at the top card only (CR 701.22a), so 'Top Card' goes to the bottom and 'Second Card' becomes the top card. The Temple is tapped.",
+ "cards": [
+  {"key": "temple", "real": "Temple of Triumph", "zone": "hand", "controller": 0},
+  {"key": "secondc", "name": "Second Card", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "library", "controller": 0},
+  {"key": "topc", "name": "Top Card", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom", "bottom"]}
+ ],
+ "expect": {
+  "zone": {"temple": "battlefield", "topc": "library", "secondc": "library"},
+  "tapped": {"temple": true},
+  "library": {"0": ["Second Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Top Card"]}
+ }
+}

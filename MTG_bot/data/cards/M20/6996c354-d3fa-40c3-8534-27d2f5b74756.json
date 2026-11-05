@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6996c354-d3fa-40c3-8534-27d2f5b74756",
+ "name": "Woodland Mystic",
+ "text_sha": "eecb524720429bf8f9df8ce9d87b1b7715ac827a0efbe7fc077441da234eed34",
+ "verified": {
+  "tree_sha": "2658fe893bc8481365b8b9205d15a297a8a8cd948de21af4892e3caba3fe5e0c",
+  "probe_sha": "569890549305217e8b9adfce1054936c67533a706c303875a3a5c9b3d0b65b00",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "{T}: Add {G}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped (by card/TAP), you: mana G+1. Pack woodland_mystic_1 PASS: the turn it is cast the {T} cost is refused (summoning sickness, CR 302.6); it fails against the tree without the {T} cost.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/woodland_mystic_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

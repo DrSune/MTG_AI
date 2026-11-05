@@ -1,0 +1,79 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Pa1d802b211 G4. Printed: '... search your library and/or graveyard for A card named Sorin, Vampire Lord ... put it into your hand.' Seat 0's library holds two copies of Sorin, Vampire Lord. Seat 0 takes the may, searches the library only (option 1) and picks the first copy: exactly that one copy goes to hand; the other stays in the library (7 cards, shuffled). Seat 1's library keeps its exact order.",
+ "cards": [
+  {
+   "key": "guide",
+   "real": "Sorin's Guide",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sorin",
+   "real": "Sorin, Vampire Lord",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "sorin2",
+   "real": "Sorin, Vampire Lord",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "guide",
+   "controller": 0,
+   "decisions": [
+    "fire",
+    "1",
+    "sorin"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "guide": "battlefield",
+   "sorin": "hand",
+   "sorin2": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

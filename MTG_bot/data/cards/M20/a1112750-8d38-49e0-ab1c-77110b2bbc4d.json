@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a1112750-8d38-49e0-ab1c-77110b2bbc4d",
+ "name": "Ferocious Pup",
+ "text_sha": "0a169462998501d4eb5c239180779250e859d8103a23d9de27af1aed9ab28bc0",
+ "verified": {
+  "tree_sha": "d81194c982014b7932e1c487b90699e0553561f37945cb9928fa7e4d0636897e",
+  "probe_sha": "a006127c473755b8a8d02747f469f0ef9e348789466ffa91b4a8ecb2f01f47a4",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 2/2 green Wolf creature token.",
+    "status": "OK",
+    "evidence": "[cast] card's triggered ability [0] triggers; you:Wolf moves new -> battlefield (by card/CREATE_TOKEN); + you:Wolf (battlefield, you, 2/2), exactly one; same on the opponent's-turn entry; no trigger when another creature enters. 0/1 for mana G-1 W-2. Green is in the tree only (TokenSpec colors=('G',)).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

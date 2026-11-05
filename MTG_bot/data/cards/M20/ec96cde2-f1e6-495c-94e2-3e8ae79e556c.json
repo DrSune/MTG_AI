@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ec96cde2-f1e6-495c-94e2-3e8ae79e556c",
+ "name": "Thornwood Falls",
+ "text_sha": "170eb33163084a7e4c440e68efc61a12b2ff5a621c12623dbd8946c8a8c1cfdb",
+ "verified": {
+  "tree_sha": "32257dd2ef2064829e80632cbeede362d676e24de97fa004c642528a4c38dfdf",
+  "probe_sha": "36271f0e0fc9255b3633daecad58cee4fd22d41b10a6db6467198e1d1f760baa",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: card's triggered ability [1] triggers; you gains 1 life (by card/GAIN_LIFE); you: life 20 -> 21. Also on the opponent's-turn entry from hand (life 20 -> 21); no other stimulus fires it.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), you: mana G+1; [activate [2] | ask 1 -> 1]: tapped, mana U+1. Exactly one mana, either colour.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

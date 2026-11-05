@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "4a294001-645b-4691-bb32-c240ba5b5320",
+ "name": "Inspiring Captain",
+ "text_sha": "0448292ad7f2971b80077da9c6f30794c7f18d5dd931a66cc0ed088e73b845d1",
+ "verified": {
+  "tree_sha": "55579bbe7f6093da06662e5010fd1d7b5f58e26cb0b36b1426d51b46840d7ece",
+  "probe_sha": "7d44934953e12bb0e75de76af8811b3ea84004668c1a5816deb57f07c774dd4f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "When this creature enters, creatures you control get +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [0] triggers; card P/T -> 4/4, you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, no opp_ creature changes; after the turn ends card 4/4 -> 3/3, you_bear 3/3 -> 2/2, you_giant 5/5 -> 4/4.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 3/3 Human Knight for {3}{W}",
+    "status": "OK",
+    "evidence": "[cast]: mana W-4; static: 3/3",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

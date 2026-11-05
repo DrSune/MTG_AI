@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "epicure_of_blood_ignores_the_opponents_life_gain",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "epi", "real": "Epicure of Blood", "zone": "battlefield", "controller": 0},
+  {"key": "oangel", "real": "Dawning Angel", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "oangel"}
+ ],
+ "expect": {
+  "zone": {"oangel": "battlefield"},
+  "life": {"0": 20, "1": 24}
+ },
+ "notes": "Printed: 'Whenever you gain life, each opponent loses 1 life.' The opponent's Dawning Angel enters and the OPPONENT gains 4; you gained no life, so Epicure does not trigger and the opponent stays at 24."
+}

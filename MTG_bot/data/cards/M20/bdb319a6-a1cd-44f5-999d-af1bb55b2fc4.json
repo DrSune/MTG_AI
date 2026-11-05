@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "bdb319a6-a1cd-44f5-999d-af1bb55b2fc4",
+ "name": "Epicure of Blood",
+ "text_sha": "f7ed646452929fb2d8fa0b2e1d1e663d33fa6e77b3142a704f96e5d9542509a3",
+ "verified": {
+  "tree_sha": "b2a97940056c2715c8bf1f2b876ef0574d061157a35b4e79024038025ed57c8c",
+  "probe_sha": "52bbf39819b5286fa14ce4337b265dc35388532e19faa3253c0fa5106ec60feb",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, each opponent loses 1 life.",
+    "status": "OK",
+    "evidence": "[stimulus: you gain 3 life]: card's triggered ability [0] triggers; you gains 3 life; opp loses 1 life (by card/LOSE_LIFE); opp 20 -> 19, you 20 -> 23. The 'you' scope is not in the trace; pack epicure_of_blood_1 PASSES (the opponent's Dawning Angel gains them 4, Epicure does not trigger) and fails against a draft whose trigger reads the opponent's gain.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 4/4 Vampire for {4}{B}",
+    "status": "OK",
+    "evidence": "[cast]: mana B-1 W-4; P/T 4/4",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/epicure_of_blood_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

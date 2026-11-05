@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5a8bd4a4-8b10-4eef-8341-28be2afa2c00",
+ "name": "Sleep Paralysis",
+ "text_sha": "294cf7e6a99b6e9b24d1b570a81326f427944d87cf859dc943d6939932440ed7",
+ "verified": {
+  "tree_sha": "84f3fdef94ce9350e7355e3c97f55e47fdc800bd6ff4251ad4e5d065db10c33a",
+  "probe_sha": "0cdd4dfa8f72016dc2864ef16b8b255bdc85926d14d5d5421f86315c778c581f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: creatures only (you_relic, you_charm, lands not offered); keywords +ENCHANT.",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, tap enchanted creature.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_bear']]: card's triggered ability [0] triggers; opp_bear becomes tapped (by card/TAP); every untapped target alike, opp_tapped unchanged. {3}{U}: mana U-1 W-3.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature doesn't untap during its controller's untap step.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no variant reaches an untap step with the Aura attached. Pack sleep_paralysis_1 PASSES: cast on the opponent's 2/2, in their next untap step it stays tapped while their other tapped creature untaps; a draft without the StaticAbility fails it.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/sleep_paralysis_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/event/filter"
+   ]
+  }
+ }
+}

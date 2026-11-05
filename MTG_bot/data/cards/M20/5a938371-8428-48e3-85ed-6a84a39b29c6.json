@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5a938371-8428-48e3-85ed-6a84a39b29c6",
+ "name": "Vampire of the Dire Moon",
+ "text_sha": "3ab2770fc05fa6dc9e2ccc9677eb920d1c8bcf6a1641665eb253852150480299",
+ "verified": {
+  "tree_sha": "e6f22928d5a79bf9dabbb431a25388e0bbaacc2ca01d30f7d2ceb12943a67ad0",
+  "probe_sha": "df455682b209626192737a12de23fee781dd9eb8b48f3a37b62acf742cefd526",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Deathtouch",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it] opp_giant (4/4) is dealt 1 damage (combat) and dies (opp_giant moves battlefield -> graveyard): 1 damage is lethal only through deathtouch.",
+    "issue": ""
+   },
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked] opp is dealt 1 damage; you gains 1 life (by card/DEAL_DAMAGE); you: life 20 -> 21. Also +1 when the damage goes to the blocking opp_giant.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

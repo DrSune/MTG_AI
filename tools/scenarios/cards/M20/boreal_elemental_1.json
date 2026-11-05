@@ -1,0 +1,18 @@
+{"set": "M20", "name": "boreal_elemental_opponent_spell_pays_two_more",
+ "notes": "Pde50e67e9e G4. Printed: 'Spells your opponents cast that target this creature cost {2} more to cast.' Seat 1 controls Boreal Elemental (3/4). Seat 0 casts Disfigure ({B}) at it: the total is {2}{B}, and a pool of exactly {B}+{2} is spent to the last mana (CR 601.2f). The Elemental is 1/2 until end of turn.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boreal", "real": "Boreal Elemental", "zone": "battlefield", "controller": 1},
+  {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "controller": 0, "targets": ["boreal"]}
+ ],
+ "expect": {
+  "zone": {"disfigure": "graveyard", "boreal": "battlefield"},
+  "power": {"boreal": 1},
+  "toughness": {"boreal": 2},
+  "mana_pool": {"0": {}}
+ }
+}

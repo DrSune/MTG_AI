@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "19b4cf0b-e1e4-4e50-80bc-673bc6ef8bb8",
+ "name": "Yoked Ox",
+ "text_sha": "6a4a6db75e32f0871fa530500a4a83b2017a221bdcd38293c5031d2c096003c2",
+ "verified": {
+  "tree_sha": "e6aacf7b96c8685fa6935568613f65080230c493cfc642cac5032658491eb007",
+  "probe_sha": "03b71498a37b7f7b360445fb074244991c0f73f2d8ba9a3cc52e7d5d3087f5e7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Ox {W} 0/4)",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> battlefield, P/T - -> 0/4, paid W-1 ({W}); the tree is only SpellAbility(CREATURE); every trigger stimulus is 'same as on the board without the card'; attacking unblocked deals no damage",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

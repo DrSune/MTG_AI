@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "37f3733e-cc4e-4d84-b29b-d474f6e254a2",
+ "name": "Canopy Spider",
+ "text_sha": "c7490fa656ec6876e593f263b9fa43c80e76a78ac524106545e5272b3b22f428",
+ "verified": {
+  "tree_sha": "e1d647c250aedc1026992a9997301aa9aefa7267f5b44655c7f065bb54f8f21e",
+  "probe_sha": "785aa6c6e17540aafd778e63e80bf46b92dee50a5411c9e556234b47ffd803fd",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows only 'keywords +REACH' ([cast], Static); no flyer ever attacks it. Pack canopy_spider_reach_blocks_flyer (PASS): on seat 1's turn a 2/2 flying Drake attacks; the Spider's block ask is '<drake>,NONE', it blocks (blocked drake=[spider]), damage spider 2 / drake 1, seat 0 stays at 20; a 2/2 Bear without reach is never asked to block. Fails against a no-block expectation.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/canopy_spider_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

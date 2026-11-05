@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "0b0c98ba-3505-40aa-b0f2-e03c9790f51e",
+ "name": "Glaring Aegis",
+ "text_sha": "fda3fd78dbf3106973736d91b93f1ea2f9b130fafef2cfeae6e3479c2d841401",
+ "verified": {
+  "tree_sha": "b0c8822518653353af07096a24efcc3e0d25ed7da2ab564d4c8c4b9719b05b3f",
+  "probe_sha": "2a03c0032fc4f89e9b7d93552e19243023cc4ebf9720b24ea3966cf6762e94ea",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of the six creatures only; the effect entry's 'ask enchant' offers the same six.",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, tap target creature an opponent controls.",
+    "status": "OK",
+    "evidence": "every cast variant: 'ask target: [opp_flier, opp_tapped, opp_bear, opp_giant]' (opponent's creatures only) and the chosen one becomes tapped (e.g. opp_flier tapped False -> True; opp_tapped already tapped: no change).",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +1/+3.",
+    "status": "OK",
+    "evidence": "only the enchanted creature changes: you_bear 2/2 -> 3/5, you_giant 4/4 -> 5/7, opp_giant 4/4 -> 5/7; paid W-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

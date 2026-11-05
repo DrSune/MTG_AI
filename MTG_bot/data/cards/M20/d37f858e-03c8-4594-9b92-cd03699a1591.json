@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d37f858e-03c8-4594-9b92-cd03699a1591",
+ "name": "Scoured Barrens",
+ "text_sha": "82728e6b994b6ba9f8b6001ace36c4764bd53cc3ccc46f039205a8d3d984f889",
+ "verified": {
+  "tree_sha": "c5de03339871c5d67a5d1bf3f78702e82e27a0744dc7c2cff0c1ee1b0bc06481",
+  "probe_sha": "bd05f12c27897deaed1f6b2a254c9d961904afc4523341a992e3e369d4e4b46f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True (also on the effect entry in [stimulus: from your hand, the card enters during the opponent's turn ...])",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: card's triggered ability [1] triggers; you gains 1 life; you: life 20 -> 21. It fires only on its own entry ([stimulus: you play a land -> none], [stimulus: a creature enters ... -> none])",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card tapped False -> True, mana W+1; [... | ask 1 -> 1]: mana B+1",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

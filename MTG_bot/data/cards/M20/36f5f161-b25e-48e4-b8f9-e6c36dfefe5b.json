@@ -1,0 +1,63 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "36f5f161-b25e-48e4-b8f9-e6c36dfefe5b",
+ "name": "Sorin's Guide",
+ "text_sha": "2e837b2565d4f4b27659f1715c0dd3649e1be47058b29bae5b173926f32834ed",
+ "verified": {
+  "tree_sha": "57047d5be162016d586b28bd2f5ef31f5e4a0edcc72c0717ccf3c4ba63059129",
+  "probe_sha": "2220a5a6cc5dd2643a0978c2fe0f1629b5a0ff8023d41d5eaab0967e1c922fc1",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search your library and/or graveyard for a card named Sorin, Vampire Lord, reveal it, and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast] the trigger fires on entry and asks may [fire, skip], then choose [0, 1, 2] (both zones / library / graveyard); [cast | ask 1 -> skip] does nothing. No Sorin is on the standard board, so nothing is found. Spec packs pass: Sorin comes to hand from the library (option 1), from the graveyard (option 2), and through option 0 from either zone; 'skip' moves nothing; a card of another name (Chandra, Acolyte of Flame) is never offered; with two Sorins available exactly one is fetched (options 0, 1 and 2).",
+    "issue": ""
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "not visible on the standard board. Spec packs pass: options 0 and 1 shuffle seat 0's library (a deliberately wrong 'unshuffled order' expectation fails), option 2 and 'skip' keep its exact order, and seat 1's library is never shuffled.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/sorin's_guide_1.json",
+   "tools/scenarios/cards/M20/sorin's_guide_2.json",
+   "tools/scenarios/cards/M20/sorin's_guide_3.json",
+   "tools/scenarios/cards/M20/sorin's_guide_4.json",
+   "tools/scenarios/cards/M20/sorin's_guide_5.json",
+   "tools/scenarios/cards/M20/sorin's_guide_6.json",
+   "tools/scenarios/cards/M20/sorin's_guide_7.json",
+   "tools/scenarios/cards/M20/sorin's_guide_8.json"
+  ],
+  "mutation": {
+   "mutants": 23,
+   "killed": 4,
+   "score": 0.17391304347826086,
+   "survived": [
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
+   ]
+  }
+ }
+}

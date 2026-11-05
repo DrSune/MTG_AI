@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "72df0b70-5c9f-44f3-96d5-81c95abc0065",
+ "name": "Griffin Sentinel",
+ "text_sha": "41d0f7f0e8551fca659ba59a23226a2b3a4f12abd73299c696f687ecbc554ff0",
+ "verified": {
+  "tree_sha": "3565c7fb3634fd3998482e20ec7ab7a5faacdb0a5ad6e1432ee887fdd0909da8",
+  "probe_sha": "ebc302643678c54484818a6c85a7fe5549d06c04caaa4119f2e955328ab18e0d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it] no DECLARE_BLOCKERS row: the non-flying opp_giant cannot block; opp is dealt 1 damage (combat), life 20 -> 19. [cast] 1/3 for mana W-3.",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked] DECLARE_ATTACKERS card 1 with no 'card becomes tapped' event and no tapped change (other attackers in this round's packets show 'card becomes tapped').",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

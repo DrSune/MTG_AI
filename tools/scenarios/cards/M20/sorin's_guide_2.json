@@ -1,0 +1,93 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Pa1d802b211 G4. Printed: '... you may search your library and/or graveyard for a card named Sorin, Vampire Lord, reveal it, and put it into your hand. If you search your library this way, shuffle.' Sorin, Vampire Lord is in seat 0's graveyard. Seat 0 casts the Guide, takes the may and searches the graveyard only (option 2): Sorin goes to seat 0's hand and the library is NOT shuffled, so its order (Card C on top, then Card B, then the fillers) stays exactly as it was. Only seat 0's library is ever searched or shuffled: seat 1's library keeps its exact order.",
+ "cards": [
+  {
+   "key": "guide",
+   "real": "Sorin's Guide",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sorin",
+   "real": "Sorin, Vampire Lord",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Card B",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "name": "Card C",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "guide",
+   "controller": 0,
+   "decisions": [
+    "fire",
+    "2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "guide": "battlefield",
+   "sorin": "hand"
+  },
+  "hand": {
+   "0": 1
+  },
+  "graveyard": {
+   "0": []
+  },
+  "library": {
+   "0": [
+    "Card C",
+    "Card B",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

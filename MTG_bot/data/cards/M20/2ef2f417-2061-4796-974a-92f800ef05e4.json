@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "2ef2f417-2061-4796-974a-92f800ef05e4",
+ "name": "Fearless Halberdier",
+ "text_sha": "3a8e299c07cde5646758a683465fd3eed510457bd27ce1cbf90c6f562d6ece7c",
+ "verified": {
+  "tree_sha": "ee441f0f2a337d8db8ecb45f94fd634b24f08421d4d849b5b970e36d25a8c832",
+  "probe_sha": "e9f18c87d84d635ad4369207a2c79b2b09231a04d624078a385a0350a85f134d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Human Warrior {2}{R} 3/2)",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> battlefield, P/T - -> 3/2, paid R-1 W-2 ({2}{R}); the tree is only SpellAbility(CREATURE); every trigger stimulus is 'same as on the board without the card'; it attacks for 3 ([stimulus: this creature attacks alone, unblocked] opp life 20 -> 17)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

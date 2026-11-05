@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "2f810936-2ba6-4c2b-84a0-ff4c1deb026b",
+ "name": "Fencing Ace",
+ "text_sha": "4c46082b5b44b5b783c66469abf01090ddca0dc7796a9cb86fb1e5e31a2efa81",
+ "verified": {
+  "tree_sha": "1d947e7fdd412a792c2715f5a7646fed1740c3811a3f752ce9fcb92e96974925",
+  "probe_sha": "8a3b6815b98f44e879251484af00477745b57a4bcbd99c25ad05e63b636603b0",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Double strike (This creature deals both first-strike and regular combat damage.)",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: two COMBAT_DAMAGE rows (1, opp), opp 20 -> 18. Blocked by opp_giant: first-strike 1 to opp_giant, then regular 4 to the card and 1 more to opp_giant (opp_giant damage 2).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

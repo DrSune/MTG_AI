@@ -1,0 +1,23 @@
+{"set": "M20", "name": "canopy_spider_reach_blocks_flyer",
+ "notes": "P044a96794e G4. Printed: 'Reach (This creature can block creatures with flying.)' On the opponent's turn a 2/2 flying Drake attacks. Canopy Spider (1/3) is offered the block and blocks it: no damage to seat 0, the Spider takes 2 (survives), the Drake takes 1. A 2/2 Bear without reach or flying is never offered a block against the flyer.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spider", "real": "Canopy Spider", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "drake", "name": "Opp Drake", "type": "Creature — Drake", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"drake": true}, "block": {"spider": "drake"}}
+ ],
+ "expect": {
+  "attackers": {"drake": true},
+  "block_asks": {"spider": "<drake>,NONE"},
+  "not_asked_to_block": ["bear"],
+  "blocked": {"drake": ["spider"]},
+  "life": {"0": 20, "1": 20},
+  "damage": {"spider": 2, "drake": 1},
+  "zone": {"spider": "battlefield", "drake": "battlefield"}
+ }
+}

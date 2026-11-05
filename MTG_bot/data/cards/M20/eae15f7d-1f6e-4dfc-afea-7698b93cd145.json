@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "eae15f7d-1f6e-4dfc-afea-7698b93cd145",
+ "name": "Goblin Smuggler",
+ "text_sha": "0a63c50b9625782caec3b8f7f998b7fc5b675bea924023bf6a258a469aa319c1",
+ "verified": {
+  "tree_sha": "214b2da08c502636a93fb661d1a20a889410fa926d79ce3af2adc22b9fe1d615",
+  "probe_sha": "b9d1fb81249cbf568b10014d473ff050be512e8a29f14dccbe393b7d56d6b249",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Haste (This creature can attack and {T} as soon as it comes under your control.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +HASTE on cast; no variant attacks or taps the turn it entered. Packs goblin_smuggler_haste_1 PASSES (cast, attacks the same turn for 2) and goblin_smuggler_haste_2 PASSES (cast, then its {T} ability the same turn); against a draft without HASTE the attack is not offered and the activation is refused ('summoning sickness (CR 302.6) without haste').",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Another target creature with power 2 or less can't be blocked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Targeting is exercised: ability [0] target slot 1..1 of [you_bear, opp_flier, opp_bear] (power <= 2 only; the Smuggler itself excluded; you_giant, opp_tapped, opp_giant excluded); each [activate [0] targets=[X]]: card becomes tapped, X is targeted. The unblockability is never seen in combat: pack goblin_smuggler_unblockable_1 PASSES (your 2/2 attacks, the opponent's untapped 4/4 is never offered a block, 2 damage) and goblin_smuggler_unblockable_2 PASSES (on your next turn the 4/4 may block it). Drafts killed: restriction narrowed to flying blockers (pack 1), DurationPermanent (pack 2). Tree equals cardtool parse (template B3-target-cant-be-blocked).",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 2/2 Goblin Rogue for {2}{R}",
+    "status": "OK",
+    "evidence": "[cast]: mana R-1 W-2; P/T 2/2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/goblin_smuggler_1.json",
+   "tools/scenarios/cards/M20/goblin_smuggler_2.json",
+   "tools/scenarios/cards/M20/goblin_smuggler_3.json",
+   "tools/scenarios/cards/M20/goblin_smuggler_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
+ }
+}

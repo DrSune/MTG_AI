@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a3fb7228-e76b-4e96-a40e-20b5fed75685",
+ "name": "Mountain",
+ "text_sha": "08fc077583d128e6f81b37ef81da208f1aa67b4cf7adbde936102dbd9bb54caf",
+ "verified": {
+  "tree_sha": "c38511749c38727ecc0d52486d59feb543d5f560c0e47747bd8eeab287cc2d05",
+  "probe_sha": "49b5d838f0374f7f50e0d6522d9b1aa77ffbe967c325a9edaec273526e94e0e5",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "({T}: Add {R}.)",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped, mana R+1; [play land] enters untapped; no triggers.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

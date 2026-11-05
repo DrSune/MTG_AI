@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "41b1d850-2fda-490b-a4f6-0d9bfb37103c",
+ "name": "Soulmender",
+ "text_sha": "223466cc269a941558b753e8859ded1c797072c18b975f4b2f5f718cc7eb003e",
+ "verified": {
+  "tree_sha": "17af533e198ac5a2373d7b676fe354e7fd69290ba0cd277695c1017da262e75e",
+  "probe_sha": "0ae758157a555c17211593e595dd8292f83bc444712fb35a9b68aa64d6ce8241",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "{T}: You gain 1 life.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield] card becomes tapped (by card/TAP); you gains 1 life (by card/GAIN_LIFE); you: life 20 -> 21; nothing for the opponent. [cast] 1/1 for mana W-1. Spec pack soulmender_gain_one_and_summoning_sick.json passes: exactly +1, and a Soulmender cast this turn is refused the {T} activation (CR 302.6).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/soulmender_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

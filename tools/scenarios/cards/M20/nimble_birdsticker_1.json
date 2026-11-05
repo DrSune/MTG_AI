@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "nimble_birdsticker_reach_blocks_a_flier",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "stick", "real": "Nimble Birdsticker", "zone": "battlefield", "controller": 0},
+  {"key": "oflier", "name": "Opp Flier", "type": "Creature — Bird", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"oflier": true}, "block": {"stick": "oflier"}}
+ ],
+ "expect": {
+  "blocked": {"oflier": ["stick"]},
+  "life": {"0": 20, "1": 20},
+  "zone": {"oflier": "graveyard", "stick": "battlefield"},
+  "damage": {"stick": 2}
+ },
+ "notes": "Printed: 'Reach (This creature can block creatures with flying.)' On the opponent's turn their 2/2 flier attacks; the 2/3 Birdsticker may block it (reach), deals 2 and kills it, takes 2 and survives; you take no damage."
+}

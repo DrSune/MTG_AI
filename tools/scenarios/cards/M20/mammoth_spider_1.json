@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pda18b1651d G4. Printed: 'Reach (This creature can block creatures with flying.)' On seat 1's turn its 2/2 flier attacks; seat 0's Mammoth Spider (3/5) is offered the block and blocks it. The flier takes 3 and dies; the Spider is marked with 2; seat 0 takes no damage.",
+ "cards": [
+  {"key": "spider", "real": "Mammoth Spider", "zone": "battlefield", "controller": 0},
+  {"key": "flier", "name": "Opp Drake", "type": "Creature — Drake", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"flier": true}, "block": {"spider": "flier"}}
+ ],
+ "expect": {
+  "attackers": {"flier": true},
+  "blocked": {"flier": ["spider"]},
+  "block_asks": {"spider": "<flier>,NONE"},
+  "zone": {"flier": "graveyard", "spider": "battlefield"},
+  "damage": {"spider": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

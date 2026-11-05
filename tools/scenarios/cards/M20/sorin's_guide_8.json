@@ -1,0 +1,82 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Pa1d802b211 G4. Printed: '... search your library and/or graveyard for A card named Sorin, Vampire Lord ... put it into your hand. If you search your library this way, shuffle.' One copy of Sorin, Vampire Lord is in seat 0's library, another in seat 0's graveyard. Seat 0 takes the may, searches both zones (option 0) and picks the graveyard copy: exactly that copy goes to hand; the library copy stays in the (shuffled, 7-card) library. Seat 1's library keeps its exact order.",
+ "cards": [
+  {
+   "key": "guide",
+   "real": "Sorin's Guide",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sorinlib",
+   "real": "Sorin, Vampire Lord",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "soringy",
+   "real": "Sorin, Vampire Lord",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "guide",
+   "controller": 0,
+   "decisions": [
+    "fire",
+    "0",
+    "soringy"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "guide": "battlefield",
+   "soringy": "hand",
+   "sorinlib": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "graveyard": {
+   "0": []
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

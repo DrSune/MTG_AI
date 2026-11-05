@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pa25470dabf G4. Printed: 'Gain control of target creature until end of turn. ... It gains haste until end of turn.' Both effects end with the turn (CR 514.2): after seat 0 casts it on the opponent's tapped Ogre (untapping it) and the turn ends, seat 1 controls the Ogre again and it no longer has haste. It stays untapped (nothing tapped it again).",
+ "cards": [
+  {"key": "aot", "real": "Act of Treason", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "cast", "key": "aot", "controller": 0, "targets": ["ogre"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"aot": "graveyard", "ogre": "battlefield"},
+  "controller": {"ogre": 1},
+  "tapped": {"ogre": false},
+  "battlefield_keywords": {"Opp Ogre": []},
+  "life": {"0": 20, "1": 20}
+ }
+}

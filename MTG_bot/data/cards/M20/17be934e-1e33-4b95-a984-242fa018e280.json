@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "17be934e-1e33-4b95-a984-242fa018e280",
+ "name": "Vial of Dragonfire",
+ "text_sha": "290c1aed5401356e407052dfc2929fce76f82b2ec6e1eb18ca15b474c7d833cd",
+ "verified": {
+  "tree_sha": "34b48669586a4694939bab8aa5e4887086483cc484c91ba693513891bb92f177",
+  "probe_sha": "6e62850ecdb16a136c278563439148b59e8d81f536b1a3eded2cfd2461ffc57f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "{2}, {T}, Sacrifice this artifact: It deals 2 damage to target creature.",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of the six creatures (no relic/charm, no player). Each variant: you: mana W-2; card becomes tapped (by card/TAP); card moves battlefield -> graveyard (by card/SACRIFICE); the target is dealt 2 damage (by card/DEAL_DAMAGE): you_bear, opp_bear, opp_flier die; you_giant, opp_giant, opp_tapped damage 0 -> 2, cleared after the turn. [cast] for mana W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

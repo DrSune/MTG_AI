@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e15060c3-3773-4548-8747-ff59dcf2b519",
+ "name": "Snapping Drake",
+ "text_sha": "560a143a0de9eae23169fb44edda86936aa56cce90b36878a442d6db36d6e164",
+ "verified": {
+  "tree_sha": "c87c1e2b605431aeb9bbb8465920a206bec2280edde2ab473b4fbc1cf1a06596",
+  "probe_sha": "b5f0e031b53408764692cc1c7196750103b9cae95247b595b7f338a0254c2ba4",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, opp dealt 3; keywords +FLYING.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

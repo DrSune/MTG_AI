@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "anvilwrought_raptor_first_strike_kills_blocked_attacker_first",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Anvilwrought Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"obear": true}, "block": {"raptor": "obear"}}
+ ],
+ "expect": {
+  "blocked": {"obear": ["raptor"]},
+  "life": {"0": 20, "1": 20},
+  "zone": {"obear": "graveyard", "raptor": "battlefield"},
+  "damage": {}
+ },
+ "notes": "Printed: 'First strike (This creature deals combat damage before creatures without first strike.)' The 2/1 Raptor blocks an attacking 2/2: it deals its 2 in the first-strike damage step, the 2/2 dies before regular damage, so the Raptor takes no damage and survives."
+}

@@ -1,0 +1,19 @@
+{"set": "M20", "name": "negate_cannot_target_a_creature_spell",
+ "notes": "P0e39720e5e G4. Printed: 'Counter target noncreature spell.' Seat 0 casts Walking Corpse (a creature spell). Seat 1 holds Negate and Convolute with {2}{U}: the response window offers only Convolute (which may target any spell), never Negate, whose only legal targets are noncreature spells. Seat 1 passes, the Corpse resolves, Negate stays in hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "corpse", "real": "Walking Corpse", "zone": "hand", "controller": 0},
+  {"key": "negate", "real": "Negate", "zone": "hand", "controller": 1},
+  {"key": "convolute", "real": "Convolute", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}, "1": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "corpse", "real": "Walking Corpse", "decisions": ["PASS"]}
+ ],
+ "expect": {
+  "zone": {"corpse": "battlefield", "negate": "hand", "convolute": "hand"},
+  "window_asks": {"1": ["PASS"]},
+  "window_vocab": [["PASS", "convolute"]],
+  "mana_pool": {"0": {}, "1": {"U": 1, "C": 2}}
+ }
+}

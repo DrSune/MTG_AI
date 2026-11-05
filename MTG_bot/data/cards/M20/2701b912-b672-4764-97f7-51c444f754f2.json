@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "2701b912-b672-4764-97f7-51c444f754f2",
+ "name": "Healer of the Glade",
+ "text_sha": "f4fa8f53f99ce6545a47f83876e0d188ef8870793d9f7e1e4f06d12f76849d90",
+ "verified": {
+  "tree_sha": "5465a0293ff7e5e6dc57f893a3b1cbe1595c5ce96b6499f12fb38389e2d8f790",
+  "probe_sha": "2264f179c59713da1b796af3820f4037a63a047115efcb06dfb294185902c71a",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you gain 3 life.",
+    "status": "OK",
+    "evidence": "[cast]: triggered ability [0] triggers, you gains 3 life (by card/GAIN_LIFE), you: life 20 -> 23; again entering from hand during the opponent's turn (20 -> 23); no trigger when another creature enters.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{"set": "M20", "name": "boreal_elemental_own_spell_and_abilities_untaxed",
+ "notes": "Pde50e67e9e G4. Printed: 'Spells your OPPONENTS cast that target this creature cost {2} more.' (1) Seat 0 controls Boreal Elemental and casts Disfigure at it for just {B}: its own spell is not taxed (the Elemental is 1/2). (2) Seat 0 casts Glaring Aegis ({W}) on its Bear; the Aura's enters trigger targets seat 1's Boreal Elemental and taps it, and nothing more is paid: an ability is not a spell, so it is not taxed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "my_boreal", "real": "Boreal Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "opp_boreal", "real": "Boreal Elemental", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0},
+  {"key": "aegis", "real": "Glaring Aegis", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "controller": 0, "targets": ["my_boreal"]},
+  {"op": "cast", "key": "aegis", "real": "Glaring Aegis", "controller": 0, "targets": ["bear"], "decisions": ["opp_boreal"]}
+ ],
+ "expect": {
+  "zone": {"disfigure": "graveyard", "aegis": "battlefield", "my_boreal": "battlefield", "opp_boreal": "battlefield"},
+  "power": {"my_boreal": 1, "bear": 3},
+  "toughness": {"my_boreal": 2, "bear": 5},
+  "tapped": {"opp_boreal": true},
+  "attached": {"aegis": "bear"},
+  "mana_pool": {"0": {}}
+ }
+}

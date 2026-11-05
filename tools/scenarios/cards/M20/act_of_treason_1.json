@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pa25470dabf G4. Printed: 'Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn.' The G1 trace cannot show a control change (the probe snapshot reads the zone owner), so this pack does. Seat 0 casts it on the opponent's tapped 3/3 Ogre: seat 0 controls the Ogre (CR 613 layer 2), it is untapped, and having haste it can attack the turn it changed control (CR 302.6). It attacks seat 1, its owner, for 3 (20 -> 17) and is tapped by the attack.",
+ "cards": [
+  {"key": "aot", "real": "Act of Treason", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "cast", "key": "aot", "controller": 0, "targets": ["ogre"]},
+  {"op": "combat", "seat": 0, "attack": {"ogre": true}}
+ ],
+ "expect": {
+  "zone": {"aot": "graveyard", "ogre": "battlefield"},
+  "controller": {"ogre": 0},
+  "attackers": {"ogre": true},
+  "tapped": {"ogre": true},
+  "life": {"0": 20, "1": 17}
+ }
+}

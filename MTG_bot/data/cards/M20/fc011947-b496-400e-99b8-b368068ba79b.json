@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "fc011947-b496-400e-99b8-b368068ba79b",
+ "name": "Silverback Shaman",
+ "text_sha": "76e056838bc739cd899eaf0e8f0b5eeab7868731e305e19aef3600d72fefa2f2",
+ "verified": {
+  "tree_sha": "702a6cb854cae63c019e69f81f56523ecebe5000d4c0254a831d71a4e1559b95",
+  "probe_sha": "88813f809eb324b7389cc67a23c453e87ebd5c8c43dfbecfcfe92baaffc9e272",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: COMBAT_DAMAGE card ((4, opp_giant), (1, opp)): lethal 4 to the 4/4 blocker, 1 tramples over, opp 20 -> 19.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, draw a card.",
+    "status": "OK",
+    "evidence": "[stimulus: this card is dealt lethal damage]: card dies; card's triggered ability [0] triggers; you draws you:Library 5#1; you: hand 5 -> 6, library 6 -> 5 (also when it dies blocked by opp_giant). Not on other creatures' deaths.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 5/4 Ape Shaman for {3}{G}{G}",
+    "status": "OK",
+    "evidence": "[cast]: mana G-2 W-3; P/T 5/4",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

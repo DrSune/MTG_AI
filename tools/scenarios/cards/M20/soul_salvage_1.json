@@ -1,0 +1,133 @@
+{
+ "set": "M20",
+ "name": "soul_salvage_returns_two_of_three",
+ "notes": "Pecab33aa82 G4. Printed: 'Return up to two target creature cards from your graveyard to your hand.' Seat 0's graveyard holds three creature cards and a sorcery; seat 1's graveyard holds a creature card. Refused first, before anything is paid: three targets (more than two), the sorcery card (not a creature card) and seat 1's creature card (not your graveyard). Then Soul Salvage ({2}{B}, spent exactly) targets two of the three: exactly those two return to seat 0's hand; the third creature card, the sorcery and seat 1's card stay where they are.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "salvage",
+   "real": "Soul Salvage",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Dead Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Dead Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "c3",
+   "name": "Dead Elf",
+   "type": "Creature \u2014 Elf",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sorc",
+   "name": "Used Sorcery",
+   "type": "Sorcery",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "opp_dead",
+   "name": "Opp Dead Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "salvage",
+   "real": "Soul Salvage",
+   "targets": [
+    "c1",
+    "c2",
+    "c3"
+   ],
+   "expect_raise": "illegal target selection: selection:count_above_max:3>2"
+  },
+  {
+   "op": "cast",
+   "key": "salvage",
+   "real": "Soul Salvage",
+   "targets": [
+    "sorc"
+   ],
+   "expect_raise": "illegal target selection: selection:off_population"
+  },
+  {
+   "op": "cast",
+   "key": "salvage",
+   "real": "Soul Salvage",
+   "targets": [
+    "opp_dead"
+   ],
+   "expect_raise": "illegal target selection: selection:off_population"
+  },
+  {
+   "op": "cast",
+   "key": "salvage",
+   "real": "Soul Salvage",
+   "targets": [
+    "c1",
+    "c3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "salvage": "graveyard",
+   "c1": "hand",
+   "c3": "hand",
+   "c2": "graveyard",
+   "sorc": "graveyard",
+   "opp_dead": "graveyard"
+  },
+  "hand": {
+   "0": 2,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [
+    "Soul Salvage",
+    "Dead Giant",
+    "Used Sorcery"
+   ],
+   "1": [
+    "Opp Dead Bear"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

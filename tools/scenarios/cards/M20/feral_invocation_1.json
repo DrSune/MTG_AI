@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P453294d3f6 G4. Printed: 'Flash. Enchant creature. Enchanted creature gets +2/+2.' On seat 1's turn (advance_turn), seat 0 casts Feral Invocation with {2}{G} on its own 2/2 bear, which an Aura without flash could not do (CR 702.8a, 307.1). The Aura resolves onto the battlefield attached to the bear, and the bear is 4/4. Seat 1's bear is unchanged.",
+ "cards": [
+  {"key": "fi", "real": "Feral Invocation", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 2}},
+  {"op": "cast", "key": "fi", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"fi": "battlefield", "bear": "battlefield"},
+  "attached": {"fi": "bear"},
+  "power": {"bear": 4, "obear": 2},
+  "toughness": {"bear": 4, "obear": 2},
+  "turn_seats": [0, 1],
+  "life": {"0": 20, "1": 20}
+ }
+}

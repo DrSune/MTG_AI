@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pfaa42e27ab G4. Printed: 'Menace (This creature can't be blocked except by two or more creatures.)' The probe shows only that one blocker cannot block it; menace must not make it unblockable. Two 2/2s block the 6/5 together (CR 702.110b): it is blocked by both, seat 1 takes no damage, the 6 damage kills both blockers and the Predator survives with 4 damage marked.",
+ "cards": [
+  {"key": "rip", "real": "Ripscale Predator", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "First Blocker", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1},
+  {"key": "b2", "name": "Second Blocker", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"rip": true}, "block": {"b1": "rip", "b2": "rip"}}
+ ],
+ "expect": {
+  "attackers": {"rip": true},
+  "blocked": {"rip": ["b1", "b2"]},
+  "zone": {"rip": "battlefield", "b1": "graveyard", "b2": "graveyard"},
+  "damage": {"rip": 4},
+  "life": {"0": 20, "1": 20}
+ }
+}

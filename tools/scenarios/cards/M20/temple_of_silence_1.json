@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P5308a67d1b G4. Printed: 'This land enters tapped. When this land enters, scry 1.' The real land drop (play op): the Temple enters tapped, the scry 1 asks top/bottom once, and 'bottom' puts the top card of seat 0's library (Library 5) on the bottom; the other five keep their order.",
+ "cards": [
+  {"key": "t", "real": "Temple of Silence", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "t", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"t": "battlefield"},
+  "tapped": {"t": true},
+  "life": {"0": 20, "1": 20},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}
+ }
+}

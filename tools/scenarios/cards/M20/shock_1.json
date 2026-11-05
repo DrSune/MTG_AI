@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P90614f8d52 G4. Printed: 'Shock deals 2 damage to any target.' Any target includes a planeswalker (CR 115.4), which the probe board lacks. Shock on the opponent's Ajani, Inspiring Leader (seeded at 5 loyalty) removes two loyalty counters (CR 120.3c): 5 -> 3, Ajani stays on the battlefield, no player loses life and no damage is marked on any permanent.",
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Ajani, Inspiring Leader", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 5},
+  {"op": "cast", "key": "shock", "controller": 0, "targets": ["pw"]}
+ ],
+ "expect": {
+  "zone": {"shock": "graveyard", "pw": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 20}
+ }
+}
