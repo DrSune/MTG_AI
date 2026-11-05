@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4600e968-fe3a-446a-a306-bd10e6763e0d",
+ "name": "Rise Again",
+ "text_sha": "c5c0ef4b782841cea901d29061bbba3bb4d80063073fd891050800e54cfdf7de",
+ "verified": {
+  "tree_sha": "b6ef46db22aab2d1cfc2278890ef12cf19af2e33f01799847c0e2ca75cac9533",
+  "probe_sha": "8aa25c1aaa83c86961b4b6f810040386cf85cfdfac002093f66e5ffd78e718e7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4M",
+  "clauses": [
+   {
+    "clause": "Return target creature card from your graveyard to the battlefield.",
+    "status": "OK",
+    "evidence": "SpellAbility SORCERY: MOVE_ZONE TARGET 1 Creature in GRAVEYARD(YOU) -> BATTLEFIELD (= canonical B5b-return-creatures-battlefield). 'target slot (cast): 1..1 of [you_fallen]': only your creature card, not you_used or the opponent's graveyard. [cast] 'you_fallen moves graveyard -> battlefield', 2/2. Pack P60de851cbf_rise_again_returns_under_your_control.json PASS (returns under your control, untapped; the opponent's graveyard creature untouched)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/rise_again_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

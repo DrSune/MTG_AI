@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "adac526d-1a85-431a-a302-0a4b8f4a0c44",
+ "name": "Elvish Regrower",
+ "text_sha": "278c405edd3cf7c6387213146ab214edd8f04510abdf2a1037871f3f737e5f32",
+ "verified": {
+  "tree_sha": "d812f44b705ea2396c6579fc1492bc99c55c5271fe3d21048d1895cb3e0faef1",
+  "probe_sha": "3ebb2a6c3f8d900ba704644320e2535fd118d97e5d824c571d05126df088642b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, return target permanent card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "[cast] and the opponent's-turn entry: ability [0] triggers on entering, 'you_fallen is targeted', 'you_fallen moves graveyard -> hand'; no ask, so your Sorcery you_used and the opponent's opp_fallen were not candidates. Tree equals the compiler's B13-etb+B5b-return-cards-hand parse. Other permanent types covered by packs elvish_regrower_permanent_card.json (Forest, artifact and instant in your graveyard, opponent's enchantment: you target the artifact, only it returns) PASS and elvish_regrower_land_card.json (a land card is a legal target, instant/sorcery are not) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "(4/3 Elf Druid creature, {2}{G}{G})",
+    "status": "OK",
+    "evidence": "[cast]: enters 4/3 for G-2 W-2; no keywords",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/elvish_regrower_1.json",
+   "tools/scenarios/cards/FDN/elvish_regrower_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

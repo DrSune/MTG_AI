@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "bb27bfdf-fe8d-45bd-ad62-8118dce06eda",
+ "name": "Rewind",
+ "text_sha": "3ab79740dadded420563335f6422c663fc518aa72298644d63392f24e9fc8a98",
+ "verified": {
+  "tree_sha": "7bb39197f8a297234457995190e6db74bc2a2d82dca4829d9b6426479a912532",
+  "probe_sha": "7c0ace0ee2340ac6175c0fed4a35185805fd291a4632c02a635e823b6daa4e9f",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Instant {2}{U}{U}",
+    "status": "OK",
+    "evidence": "pack: Rewind cast in the response window from exactly four blue (pool seat 1 -> {})",
+    "issue": "engine-limit: no priority; a counterspell is used only in the engine's response window"
+   },
+   {
+    "clause": "Counter target spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: 'cast skipped: a target slot needs 1, the board offers 0' (nothing on the stack). Tree atom = `parse` B5a-counter-spell (count 1, STACK_KIND_EQ SPELL). Pack K_rewind_counters_creature_untaps_four.json PASSES on this packet's tree (draft) and the live tree: the opponent answers a creature spell with Rewind (window_asks seat 1 = [rewind]) and the creature goes to the graveyard, not the battlefield.",
+    "issue": ""
+   },
+   {
+    "clause": "Untap up to four lands.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree atom = `parse` B5c-untap-lands (CHOOSE count 4, Land, any battlefield). Same pack PASSES: of five tapped Plains, the four Rewind's controller picks untap and the fifth stays tapped.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/rewind_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/1/args/target/count",
+    "amount-1 at 1/0/effect/steps/1/args/target/count"
+   ]
+  }
+ }
+}

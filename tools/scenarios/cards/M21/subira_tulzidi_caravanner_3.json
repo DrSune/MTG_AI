@@ -1,0 +1,93 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sub",
+   "real": "Subira, Tulzidi Caravanner",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "uf",
+   "real": "Unleash Fury",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Opp Wall",
+   "power": "0",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "sub",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Unleash Fury",
+   "key": "uf",
+   "targets": [
+    "bear"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   },
+   "block": {
+    "wall": "bear"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "bear": []
+  },
+  "life": {
+   "1": 16
+  },
+  "power": {
+   "bear": 4
+  }
+ },
+ "notes": "Printed: '{1}: Another target creature WITH POWER 2 OR LESS can't be blocked this turn.' The power is part of the target requirement only (CR 115.1/608.2b: checked on activation and resolution). Once the ability resolves, the bear can't be blocked this turn even after Unleash Fury makes it 4/2, so the wall cannot block it and it deals 4."
+}

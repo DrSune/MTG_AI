@@ -21,7 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from MTG_bot.core.ability_tree import ActivatedAbility
+from MTG_bot.core.ability_tree import ActivatedAbility, SpellAbility
 from MTG_bot.core.identity import Handle
 
 if TYPE_CHECKING:
@@ -61,10 +61,15 @@ class AskRoutingError(RuntimeError):
 
 
 #: Engine ask kinds whose tag's second field is the deciding player.
-SEAT_IN_TAG = frozenset({"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw"})
+#: ``x`` (2026-10-29): an activation's X announcement, ``x:<seat>:<source>:<digest>``
+#: (CR 602.2b -> 601.2b; the menu is 0..the live bound). ``legend`` (V22, 2026-10-29): the
+#: legend rule's keep choice, ``legend:<seat>:<digest>`` (CR 704.5j).
+SEAT_IN_TAG = frozenset(
+    {"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "legend", "x"}
+)
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 OBJECT_IN_TAG = frozenset(
-    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name"}
+    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name", "enchant"}
 )
 SITE_KINDS = SEAT_IN_TAG | OBJECT_IN_TAG
 REFUSE_TOKENS = ("PASS", "NONE", "DECLINE", "skip")
@@ -132,9 +137,16 @@ def ability_line(record: CardRecord | None, oracle_text: str, idx: int) -> str |
     if not isinstance(record.abilities[idx], ActivatedAbility):
         return None
     lines = [line.strip() for line in oracle_text.split("\n") if line.strip()]
-    if len(lines) != len(record.abilities):
+    # An effect-less SpellAbility is the synthetic cast carrier of a permanent (B-49): it has no
+    # oracle line of its own, so it does not count.
+    lined = [
+        i
+        for i, ab in enumerate(record.abilities)
+        if not (isinstance(ab, SpellAbility) and ab.effect is None and not ab.additional_costs)
+    ]
+    if len(lines) != len(lined):
         return None
-    line = lines[idx]
+    line = lines[lined.index(idx)]
     return line if ":" in line.split("(")[0] else None
 
 
@@ -163,9 +175,15 @@ def engine_ask(
                 )
         handle = _handle_token(token)
         if handle is not None:
+            if kind == "attack":  # V41: a planeswalker this creature may attack
+                return f"attack {lens.describe(executor, handle, offered=True)}"
             return lens.describe(executor, handle, offered=True)
+        if kind == "attack" and token == "ATTACK" and any(_handle_token(t) for t in vocab):
+            return "attack the defending player"
         if kind == "mana" and token in _COLORS:
             return f"{_COLORS[token]} mana"
+        if kind == "x" and token.isdigit():
+            return f"X = {token}"
         if kind == "choose" and token.isdigit() and subject is not None:
             modes = _bullets(lens.text(executor_text(lens, executor, subject)))
             if len(modes) == len(vocab):
@@ -186,10 +204,13 @@ def engine_ask(
         "cw": "Combat: cast an instant now, or pass?",
         "sacrifice": f"{about}: choose what to sacrifice.",
         "discard": f"{about}: choose what to discard.",
+        "legend": "Legend rule: you control legendary permanents with the same name. Choose the one to keep; the others go to the graveyard.",
+        "enchant": f"{about} enters the battlefield: choose what it enchants.",
         "tap": f"{about}: choose what to tap.",
         "name": "Choose a card name.",
         "order": f"{about}: choose the damage assignment order.",
         "trample": f"{about}: choose how much excess damage to assign.",
+        "x": f"{about}: announce the value of X for the ability.",
         "policy": f"{about}: choose how to assign its combat damage.",
     }
     prompt = prompts.get(kind, f"The engine asks ({kind}): choose one.")

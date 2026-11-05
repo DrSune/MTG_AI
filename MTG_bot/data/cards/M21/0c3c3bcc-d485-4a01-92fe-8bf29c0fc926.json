@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0c3c3bcc-d485-4a01-92fe-8bf29c0fc926",
+ "name": "Meteorite",
+ "text_sha": "86e9c2bfe44536e98f84385923b71707182f5eeaacaccf800e488f60ce392de6",
+ "verified": {
+  "tree_sha": "e72869ec504b7f8092534a75e9b8606ae4757fba4448e6f60432bbee7d015ee6",
+  "probe_sha": "0044c7e63ebdc2f2d8877e6162d761b93c56043beb63902a306f1c101feb9d51",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "When this artifact enters, it deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "Every [cast] variant: target slot offers all six creatures of both sides plus you and opp (any target); the chosen one is dealt exactly 2 (bears and opp_flier die, giants and opp_tapped get damage 2, a player goes 20 -> 18). Also fires when it enters on the opponent's turn. Planeswalker leg (none on the probe board): pack P8193e487cf_meteorite_planeswalker.json PASSES (Liliana 4 -> 2 loyalty). Paid {5} (W-5). Tree identical to the compiler's parse.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add one mana of any color.",
+    "status": "OK",
+    "evidence": "[activate [1]] variants: ask mana [W, U, B, R, G]; card taps and adds exactly one of the chosen colour.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/meteorite_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "notes": "Pursued Whale, printed: 'When this creature enters, each opponent creates a 1/1 RED Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"' The Whale enters on your turn; the opponent gets the Pirate. On the opponent's turn you give your 1/1 Bear a +1/+1 counter and protection from red with Feat of Resistance (colour word 3 = R). The Pirate must attack (no DECLINE is offered); your Bear (2/2) blocks it (the step's spare decision words go to the Bear's unmapped block ask, whose first legal word is the Pirate). The red Pirate's 1 damage to the Bear is prevented (CR 702.16e) and the Pirate dies. A non-red token would mark 1 damage on the Bear.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "whale", "real": "Pursued Whale", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "feat", "real": "Feat of Resistance", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "whale"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 2}},
+  {"op": "cast", "real": "Feat of Resistance", "key": "feat", "targets": ["bear"], "decisions": ["3"]},
+  {"op": "combat", "seat": 1, "attack": {}, "block": {"whale": null}, "decisions": ["first-legal", "first-legal"]}
+ ],
+ "expect": {
+  "tokens": {"Pirate": 0},
+  "damage": {},
+  "zone": {"bear": "battlefield", "whale": "battlefield", "feat": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

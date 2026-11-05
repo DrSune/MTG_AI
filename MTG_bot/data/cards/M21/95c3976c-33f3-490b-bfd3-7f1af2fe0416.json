@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "95c3976c-33f3-490b-bfd3-7f1af2fe0416",
+ "name": "Chromatic Orrery",
+ "text_sha": "90b68ecb312212376d24471032e315759698ca1ef080223ab69baf6c8ce13f1f",
+ "verified": {
+  "tree_sha": "1de316a8be5fbc39fe02c8feecfd9d8af6ab8f07dd3c16d4c8cf92eeed11ebb6",
+  "probe_sha": "71537381175d354eef3ea461db47b8b500288167d13a9195f04ab8ab2c1a3681",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "You may spend mana as though it were mana of any color.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: StaticAbility(OptionalEffect(MANA_POLICY scope ALL_YOURS)) = the canonical B4-spend-any-color. No off-colour payment in the probe. Packs: chromatic_orrery_spend_any_color.json (colorless pays Hellkite Punisher's {R}{R}, the leftover pays Shock's {R}) PASS; chromatic_orrery_control_no_orrery.json (without it, green cannot pay {R}) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {C}{C}{C}{C}{C}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: card becomes tapped; 'you: mana C+5'.",
+    "issue": ""
+   },
+   {
+    "clause": "{5}, {T}: Draw a card for each color among permanents you control.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: tapped, 'mana W-5', draws 2 (Library 5#1, 4#1): your permanents show green (you_bear) and red (you_giant); relic, charm and the Orrery are colorless; the opponent's W/U/B creatures are not counted. Pack chromatic_orrery_draw_colors.json (Rin and Seri RGW + Walking Corpse B -> 4 cards) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chromatic_orrery_1.json",
+   "tools/scenarios/cards/M21/chromatic_orrery_2.json",
+   "tools/scenarios/cards/M21/chromatic_orrery_3.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/2/effect/args/amount/selector/filter"
+   ]
+  }
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "weaver", "real": "Sporeweb Weaver", "zone": "battlefield", "controller": 0},
+  {"key": "bird", "name": "Opp Bird", "type": "Creature — Bird", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"bird": true}, "block": {"weaver": "bird"}}
+ ],
+ "expect": {
+  "blocked": {"bird": ["weaver"]},
+  "life": {"0": 21},
+  "tokens": {"Saproling": 1},
+  "damage": {"weaver": 2, "bird": 1}
+ },
+ "notes": "Pea85a00b72 G4: Reach. The Weaver blocks the opponent's attacking flier. It is dealt 2 combat damage, which triggers its damage ability once: you gain 1 (21) and create a Saproling."
+}

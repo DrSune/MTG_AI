@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Sparkhunter Masticore, printed: '{1}: This creature deals 1 damage to target planeswalker.' Aiming it at the opponent's creature is refused (only a planeswalker is a legal target). Aimed at the opponent's Basri Ket (loyalty seeded to 3), it deals 1 damage, removing one loyalty counter (CR 120.3c): 3 -> 2. One {1} is spent; the refused activation paid nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mc", "real": "Sparkhunter Masticore", "zone": "battlefield", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 3},
+  {"op": "activate", "key": "mc", "idx": 0, "seat": 0, "targets": ["obear"], "expect_raise": "target:selection:off_population"},
+  {"op": "activate", "key": "mc", "idx": 0, "seat": 0, "targets": ["basri"]}
+ ],
+ "expect": {
+  "counters": {"basri": {"LOYALTY": 2}},
+  "zone": {"basri": "battlefield", "obear": "battlefield", "mc": "battlefield"},
+  "damage": {},
+  "mana_pool": {"0": {"C": 1}},
+  "life": {"0": 20, "1": 20}
+ }
+}

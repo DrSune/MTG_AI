@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Bolt Hound, printed: 'other creatures you control get +1/+0 until end of turn.' After the attack the bonus wears off at end of turn (CR 514.2): the bear is back to 2/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hound", "real": "Bolt Hound", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"hound": true, "bear": false}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "attackers": {"hound": true, "bear": false},
+  "life": {"1": 18},
+  "power": {"bear": 2, "hound": 2},
+  "toughness": {"bear": 2, "hound": 2}
+ }
+}

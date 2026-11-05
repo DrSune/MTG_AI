@@ -1,0 +1,56 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "515cee6a-a2e1-4eeb-8e1d-293724313b14",
+ "name": "Chandra's Incinerator",
+ "text_sha": "a9af684f68eb49857e72f9553e851543c0e2dd2b76fa4267c8d2d4636e6cbc62",
+ "verified": {
+  "tree_sha": "440849ac454f92fef5f7ddeee1c03ff8e8d01cc054b04380a3352ab2058dafea",
+  "probe_sha": "754b32d4eb1103e26cba1c92fb3642e74fcd1abe25c0ef00b144954f4602b183",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to your opponents this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe [cast] pays the full {5}{R} (R-1 W-5) with no damage dealt this turn (correct, but X = 0). Tree abilities[0] equal to parse template B4-noncombat-damage-cost-modifier. Packs: incinerator_cost_reduced_by_noncombat_damage (Shock to seat 1: costs {3}{R}, pool ends empty), incinerator_cost_ignores_creature_damage (Shock to a creature: full cost), incinerator_cost_this_turn_only (Shock, two turns pass: full cost). All PASS on the live tree and on this packet's tree.",
+    "issue": ""
+   },
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: 4 to opp_giant, 2 to opp (COMBAT_DAMAGE card ((4, opp_giant), (2, opp))), life 20 -> 18",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: combat damage to opp ([attacks alone, unblocked], 6 to opp) does not trigger (correct, combat=False); no noncombat damage to an opponent occurs. Tree abilities[1] equal to parse template B2b-chandras-incinerator. Packs: incinerator_trigger_hits_that_players_creature (Shock 2 to seat 1 -> 2 to seat 1's Bear, which dies; own Bear untouched), incinerator_trigger_hits_planeswalker (2 to Basri Ket, loyalty 4 -> 2), incinerator_no_trigger_on_creature_damage (Shock to a creature: no trigger). All PASS on the live tree and on this packet's tree.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chandra's_incinerator_1.json",
+   "tools/scenarios/cards/M21/chandra's_incinerator_2.json",
+   "tools/scenarios/cards/M21/chandra's_incinerator_3.json",
+   "tools/scenarios/cards/M21/chandra's_incinerator_4.json",
+   "tools/scenarios/cards/M21/chandra's_incinerator_5.json",
+   "tools/scenarios/cards/M21/chandra's_incinerator_6.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 1,
+   "score": 0.1111111111111111,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "controller ALL_OPPONENTS->YOU at 1/0/delta/amount/referent",
+    "controller YOU->OPPONENT at 1/1/event/filter/who",
+    "controller YOU->OPPONENT at 1/1/event/source/who",
+    "target->all at 1/1/effect/args/target",
+    "amount+1 at 1/1/effect/args/target/count",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

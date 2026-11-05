@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Tapped Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "src", "name": "Shock Source", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "ra", "real": "Rise Again", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "enter", "key": "bear", "tapped": true},
+  {"op": "deal_damage", "source": "src", "target": "bear", "amount": 2, "controller": 1},
+  {"op": "cast", "real": "Rise Again", "key": "ra", "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield", "ra": "graveyard"},
+  "tapped": {"bear": false}
+ },
+ "notes": "V43 (2026-10-29). Printed Rise Again: 'Return target creature card from your graveyard to the battlefield.' A tapped Bear dies and comes back: a new object (CR 400.7) that enters untapped (110.5b). Before V43 it returned tapped. (The Banishing Light 'until it leaves' return belongs to the R5-1 lane's branch.)"
+}

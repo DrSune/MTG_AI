@@ -1,0 +1,9 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [{"op": "combat", "seat": 0}],
+ "expect": {"counters": {"adh": {}}, "power": {"adh": 2}, "toughness": {"adh": 1}},
+ "notes": "Printed: '... if YOU control a Basri planeswalker ...'. The Basri planeswalker is the opponent's: at the beginning of your combat no counter is put on the Adherent (still 2/1)."}

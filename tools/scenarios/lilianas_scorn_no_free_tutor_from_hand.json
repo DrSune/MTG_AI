@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: Liliana's Scorn is a sorcery whose search happens only as part of its resolution; the card has no activated ability. Trying to 'activate' its index-0 node from the hand must be refused, and Liliana, Death Mage stays in the library.",
+ "cards": [
+  {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
+  {"key": "lil", "real": "Liliana, Death Mage", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ls", "idx": 0, "seat": 0, "decisions": ["fire", "lil"], "expect_raise": "illegal activation"}
+ ],
+ "expect": {"zone": {"ls": "hand", "lil": "library"}}}

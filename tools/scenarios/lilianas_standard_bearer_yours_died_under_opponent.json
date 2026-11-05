@@ -1,0 +1,112 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "b",
+   "real": "Liliana's Standard Bearer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "eh",
+   "real": "Enthralling Hold",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "src",
+   "name": "Deleter",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mine",
+   "name": "My Hound",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "start_tapped": true
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "U": 5
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Enthralling Hold",
+   "key": "eh",
+   "controller": 1,
+   "targets": [
+    "mine"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "mine": true
+   }
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "mine",
+   "amount": 3,
+   "controller": 1
+  },
+  {
+   "op": "enter",
+   "key": "b"
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "mine": true
+  },
+  "life": {
+   "0": 19,
+   "1": 20
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "zone": {
+   "b": "battlefield",
+   "mine": "graveyard",
+   "eh": "graveyard"
+  }
+ },
+ "notes": "Printed: '... X is the number of creatures that died under YOUR CONTROL this turn.' The opponent steals your 1/1 with Enthralling Hold; on their later turn it attacks you for them (attackers + your life 19 prove they control it) and dies under THEIR control (into YOUR graveyard, its owner's). Your Bearer is then put onto the battlefield that turn: no creature died under your control, X = 0. Hand: Bearer + your turn-3 draw (Library 5) - Bearer = 1; library Library 4..0. A count by graveyard owner draws 1 here (stronger than printed). (V2: the opponent's mana is added on its own turn, where it casts the Hold.)"
+}

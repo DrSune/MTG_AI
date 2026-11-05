@@ -1,0 +1,28 @@
+{
+ "set": "M21",
+ "notes": "Light of Promise, printed: 'Enchant creature. Enchanted creature has \"Whenever you gain life, put that many +1/+1 counters on this creature.\"' Cast onto your 2/2 host. You gain 3 life (Revitalize): the host gets 3 +1/+1 counters (5/5), your other creature none. On the opponent's turn the OPPONENT gains 3 life (their Revitalize): 'you' is the host's controller, so nothing more. Host ends with exactly 3 counters. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lp", "real": "Light of Promise", "zone": "hand", "controller": 0},
+  {"key": "host", "name": "Host", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "other", "name": "Other", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "rev", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "orev", "real": "Revitalize", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Light of Promise", "key": "lp", "targets": ["host"]},
+  {"op": "cast", "real": "Revitalize", "key": "rev"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"W": 2}},
+  {"op": "cast", "real": "Revitalize", "key": "orev", "controller": 1}
+ ],
+ "expect": {
+  "attached": {"lp": "host"},
+  "life": {"0": 23, "1": 23},
+  "counters": {"host": {"PLUS_1_PLUS_1": 3}, "other": {}},
+  "power": {"host": 5},
+  "toughness": {"host": 5}
+ }
+}

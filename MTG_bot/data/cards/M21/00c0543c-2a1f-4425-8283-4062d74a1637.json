@@ -1,0 +1,48 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "00c0543c-2a1f-4425-8283-4062d74a1637",
+ "name": "Solemn Simulacrum",
+ "text_sha": "9b910a1a303fd59d4346f98c0902cb0c7dc1a68167ade1aa9be58193b34c5b40",
+ "verified": {
+  "tree_sha": "0425d8b2e045837f96429b356172ce37a082521cc8d653586b745a3c7ca27b09",
+  "probe_sha": "5763f2ec598b13bdee886d8ef8a95de9cfd48babd05d97d3a5de01e4745555c7",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trigger and may are in the trace: [cast] and [cast | ask 1 -> skip] ask may [fire, skip] and 'card's triggered ability [0] triggers'; the opponent's-turn entry triggers too. The probe library has no basic land, so nothing is fetched. Pack solemn_fetch_basic_tapped: the basic Swamp enters tapped, the nonbasic Caves stays (pass). Pack solemn_decline: skip leaves the Swamp in the library (pass). The shuffle is not observable",
+    "issue": "Tree note, no behaviour difference: the SEARCH selector is ONE_OF where the compiler's B2b-etb-basic-land emits CHOOSE (the same as the Wavecaster and Fabled Passage packets); a count-1 search resolves the same either way."
+   },
+   {
+    "clause": "When this creature dies, you may draw a card.",
+    "status": "OK",
+    "evidence": "[stimulus: this card is dealt lethal damage]: ask may [fire, skip] -> fire, 'card's triggered ability [1] triggers', you draw 1 (hand 5 -> 6); [this creature attacks and opp_giant blocks it]: it dies in combat, the trigger fires, the may is declined and nothing is drawn. Pack solemn_dies_skip: declining draws nothing (pass)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/solemn_simulacrum_1.json",
+   "tools/scenarios/cards/M21/solemn_simulacrum_2.json",
+   "tools/scenarios/cards/M21/solemn_simulacrum_3.json",
+   "tools/scenarios/cards/M21/solemn_simulacrum_4.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 6,
+   "score": 0.42857142857142855,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/inner/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/inner/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/destination/controller"
+   ]
+  }
+ }
+}

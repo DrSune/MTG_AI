@@ -1,0 +1,66 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 701.12b, 702.16e). Each fighting creature is the source of its own damage. The Bear (3/3 with Feat's counter, protection from black) fights a black 3/3 Ogre: the Bear's 3 kills the Ogre, the Ogre's 3 is prevented. Before V44 the fight dealt both damages from the fight's source, so the Ogre's damage was judged as coming from the Bear and the Bear died too.",
+ "cards": [
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fr",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Black Ogre",
+   "power": "3",
+   "toughness": "3",
+   "colors": [
+    "B"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Feat of Resistance",
+   "key": "fr",
+   "targets": [
+    "bear"
+   ],
+   "decisions": [
+    "2"
+   ]
+  },
+  {
+   "op": "fight",
+   "source": "bear",
+   "target": "ogre"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bear": "battlefield",
+   "ogre": "graveyard"
+  },
+  "damage": {}
+ }
+}

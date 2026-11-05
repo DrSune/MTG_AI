@@ -1,0 +1,18 @@
+{"set": "M21",
+ "notes": "G3 spec (controller YOU->OPPONENT on the trigger's actor). Printed: 'Whenever YOU activate a loyalty ability of a Chandra planeswalker, this creature deals 1 damage to each opponent.' On the opponent's turn the opponent activates their own Chandra, Flame's Catalyst [+1] (3 damage to each of their opponents): seat 0 goes 20 -> 17. Seat 0's Disciples do not trigger, so seat 1 stays at 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ke", "real": "Keral Keep Disciples", "zone": "battlefield", "controller": 0},
+  {"key": "ocat", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "loyalty", "key": "ocat", "set": 5},
+  {"op": "activate", "key": "ocat", "idx": 0, "seat": 1, "decisions": ["player:0"]}
+ ],
+ "expect": {
+  "life": {"0": 17, "1": 20},
+  "zone": {"ke": "battlefield"},
+  "counters": {"ocat": {"LOYALTY": 6}}
+ }}

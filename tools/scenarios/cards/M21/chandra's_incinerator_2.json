@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Chandra's Incinerator (M21): the reduction counts noncombat damage dealt to your OPPONENTS only. Shock deals 2 to an opponent's creature (not to the opponent), so the Incinerator still costs the full {5}{R}: seat 0's remaining R1 C5 pays it exactly and the pool ends empty (a reduction of 2 would leave 2 mana).",
+ "cards": [
+  {"key": "s1", "zone": "hand", "controller": 0, "real": "Shock"},
+  {"key": "inc", "zone": "hand", "controller": 0, "real": "Chandra's Incinerator"},
+  {"key": "obear", "zone": "battlefield", "controller": 1, "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {"0": {"R": 2, "C": 5}},
+ "steps": [
+  {"op": "cast", "key": "s1", "targets": ["obear"]},
+  {"op": "cast", "key": "inc"}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "zone": {"s1": "graveyard", "inc": "battlefield", "obear": "graveyard"}, "mana_pool": {"0": {}}}}

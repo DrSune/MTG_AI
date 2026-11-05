@@ -1,0 +1,64 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count). Printed: 'When this creature enters, you may search your library for A basic land card, put that card onto the battlefield tapped, then shuffle.' The library holds two basic lands (Forest, Swamp). The may is taken and the Swamp (the second word of the ask) is picked: it enters tapped; the Forest stays in the library.",
+ "cards": [
+  {
+   "key": "ss",
+   "real": "Solemn Simulacrum",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "swamp",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "name": "Top Card",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ss",
+   "real": "Solemn Simulacrum",
+   "decisions": [
+    "fire",
+    "swamp"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ss": "battlefield",
+   "forest": "library",
+   "swamp": "battlefield",
+   "top": "hand"
+  },
+  "tapped": {
+   "swamp": true
+  }
+ }
+}

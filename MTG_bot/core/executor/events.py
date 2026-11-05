@@ -31,8 +31,8 @@ ordinal is event data; ``begin_turn`` resets them.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, field
 from typing import cast
 
 from MTG_bot.core.ability_tree import Phase
@@ -112,13 +112,15 @@ KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
 # reads it, IS_SOURCE = "whenever THIS becomes the target"); data carries
 # (source_object, actor) for the audit trail.
 KIND_TARGETING = "TARGETING"
-# r22c (Keral Keep Disciples): the loyalty feed. ONE row per activation
-# whose cost PAID a loyalty symbol (CR 606.2b's loyalty ability), emitted
-# at the payment point in legality.activate. Subject = the permanent
-# activated (the LoyaltyActivatedEvent filter reads it — Keral's "a
-# Chandra planeswalker"); cause = the activating player (the node's
-# controller scope); data carries the paid delta for the audit trail.
-KIND_LOYALTY_ACTIVATED = "LOYALTY_ACTIVATED"
+# R5-7 (it replaces r22c's LOYALTY_ACTIVATED feed): the activation feed. ONE
+# row per activated ability activated, mana abilities included (CR 602.2,
+# 605.3b), emitted at the payment point in legality.activate. Subject = the
+# object whose ability it is (the AbilityActivatedEvent ``source`` filter
+# reads it — Keral's "a Chandra planeswalker"); cause = the activating player
+# (the node's ``actor``); data = (ability index, the 605.1a mana-ability
+# verdict, the paid loyalty delta or None when it is not a loyalty ability),
+# which the node's ``kind`` reads.
+KIND_ABILITY_ACTIVATED = "ABILITY_ACTIVATED"
 # T5-D (Sanctum of All family): an ability TRIGGERED. SYNTHETIC-ONLY
 # kind — never journalled (the matcher feeds AbilityTriggerEvent nodes
 # from _queue at firing-queue time), so no golden/fingerprint bytes move.
@@ -161,7 +163,10 @@ class GameEvent:
       * ZONE_CHANGE   — ``(from_state|None, to_state, owner_before,
         owner_after)``; ``from_state=None`` marks a created object (token).
       * CREATURE_DIES — ``(from_state, owner_before, was_type_line,
-        was_power, was_toughness)`` (C18 was-snapshot).
+        was_power, was_toughness, was_controller, was_token)`` (C18
+        was-snapshot; V7 2026-10-29 appended the controller and the token
+        flag as of death, CR 603.10a, for "creatures that died under your
+        control this turn" and "nontoken creature that died this turn").
       * COUNTER_PLACED— ``(counter_kind_name, n)``
       * TAP_STATE     — ``(tapped_bool,)``
       * CARD_DRAWN    — ``(drawer, ordinal_this_turn)``
@@ -197,9 +202,11 @@ class GameEvent:
         chosen set for branch coverage but intentionally do not fire
         TargetingEvent triggers, because "choose one of them" is not a
         target designation (CR 115.4).
-      * LOYALTY_ACTIVATED — ``(delta,)``, subject the permanent whose
-        loyalty ability was activated, cause the activating player
-        (r22c, the LoyaltyActivatedEvent feed).
+      * ABILITY_ACTIVATED — ``(ability_idx, mana, loyalty)``, subject the
+        object whose activated ability was activated, cause the activating
+        player; ``mana`` is the CR 605.1a verdict, ``loyalty`` the paid
+        loyalty delta or None for a non-loyalty ability (R5-7, the
+        AbilityActivatedEvent feed; one row per activation, mana included).
       * WINDOW_OPEN   — ``(vocab,)``, subject the framed spell, cause the
         asked seat (RUNG-1, the response-window audit; one row per seat
         actually asked).
@@ -228,8 +235,10 @@ class GameEvent:
         return cast("tuple[str | None, str, Handle | None, Handle]", self.data)
 
     @property
-    def dies(self) -> tuple[str, Handle, str, int | None, int | None]:
-        return cast("tuple[str, Handle, str, int | None, int | None]", self.data)
+    def dies(self) -> tuple[str, Handle, str, int | None, int | None, Handle, bool]:
+        return cast(
+            "tuple[str, Handle, str, int | None, int | None, Handle, bool]", self.data
+        )
 
     @property
     def counter(self) -> tuple[str, int]:
@@ -293,10 +302,11 @@ class GameEvent:
         return cast("tuple[tuple[tuple[int, Handle], ...]]", self.data)
 
     @property
-    def loyalty(self) -> int:
-        """LOYALTY_ACTIVATED payload: the paid loyalty delta (signed —
-        CR 606.2b's ``+N``/``-N`` symbol; r22c)."""
-        return cast(int, self.data[0])
+    def activation(self) -> tuple[int, bool, int | None]:
+        """ABILITY_ACTIVATED payload (R5-7): (ability index, the 605.1a
+        mana-ability verdict, the paid loyalty delta — signed, CR 606.4 — or
+        None when the ability is not a loyalty ability)."""
+        return cast("tuple[int, bool, int | None]", self.data)
 
 
 @dataclass
@@ -307,6 +317,9 @@ class _Snapshot:
     tapped: dict[Handle, bool]
     counters: dict[Handle, dict[str, int]]
     life: dict[Handle, int]
+    # V23: raw DAMAGE tuples (by executor-event index) that a boundary nested
+    # inside this one already journalled; this boundary must not emit them again.
+    consumed_raw: set[int] = field(default_factory=set)
 
 
 class EventJournal:
@@ -322,6 +335,17 @@ class EventJournal:
         # like the draw ordinal.
         self.cast_counts: dict[Handle, int] = {}
         self._clock = 0
+        # V7 (2026-10-29): the executor's control overlay (16e) — who
+        # controls a permanent the frozen zones do not say (a stolen
+        # creature sits in its owner's zone). None = the zone's player.
+        self.controller_override: Callable[[Handle], Handle | None] | None = None
+        # V23: the atom boundaries open right now, outermost first (snapshot opens
+        # one, record_atom closes it). A boundary can open inside another: a CAST
+        # atom casts and resolves a spell, a PAY atom or a spell's additional cost
+        # pays through journalled verbs. Closing an inner boundary folds its changes
+        # into every boundary around it, so each change is journalled exactly once.
+        # Transient: empty between ops.
+        self._open: list[_Snapshot] = []
 
     # ------------------------------------------------------------- emitting
 
@@ -432,14 +456,26 @@ class EventJournal:
                 (source_object, actor),
             )
 
-    def emit_loyalty_activation(
-        self, permanent: Handle, actor: Handle, delta: int
+    def emit_ability_activation(
+        self,
+        source: Handle,
+        actor: Handle,
+        ability_idx: int,
+        *,
+        mana: bool,
+        loyalty: int | None,
     ) -> GameEvent:
-        """The LOYALTY_ACTIVATED row (r22c, the LoyaltyActivatedEvent
-        feed): one per activation that PAID a loyalty symbol — legality.
-        activate calls this exactly where CR 606.2b's loyalty ability is
-        bought. Subject = the permanent, cause = the activating player."""
-        return self._emit(KIND_LOYALTY_ACTIVATED, permanent, actor, "LOYALTY", (delta,))
+        """The ABILITY_ACTIVATED row (R5-7, the AbilityActivatedEvent feed):
+        one per activation, mana abilities included — legality.activate calls
+        this right after the costs are paid. Subject = the object whose
+        ability it is, cause = the activating player."""
+        return self._emit(
+            KIND_ABILITY_ACTIVATED,
+            source,
+            actor,
+            "ACTIVATE",
+            (ability_idx, bool(mana), loyalty),
+        )
 
     def begin_turn(self, player: Handle) -> None:
         """Reset per-turn event trackers for a new turn (12b skeleton)."""
@@ -471,6 +507,21 @@ class EventJournal:
     # ------------------------------------------------------------- diffing
 
     def snapshot(self) -> _Snapshot:
+        """Open an atom boundary: the world as it is now. ``record_atom`` closes it."""
+        snap = self._capture()
+        self._open.append(snap)
+        return snap
+
+    def open_depth(self) -> int:
+        """V23: how many boundaries are open (the guarded effect lane's mark)."""
+        return len(self._open)
+
+    def drop_open(self, depth: int) -> None:
+        """V23: forget the boundaries opened above ``depth`` whose atom raised and
+        will never close (the guarded lane skips a dangling step and goes on)."""
+        del self._open[depth:]
+
+    def _capture(self) -> _Snapshot:
         world = self.world
         zones: dict[Handle, tuple[Handle, str]] = {}
         for player in world.player_order:
@@ -496,7 +547,7 @@ class EventJournal:
         event the atom caused. Returns the newly appended events."""
         start = len(self.events)
         world = self.world
-        after = self.snapshot()
+        after = self._capture()
 
         # --- zone membership: moves, ETBs, deaths, draws, token creates.
         for card, (owner, kind) in after.zones.items():
@@ -511,7 +562,12 @@ class EventJournal:
                 cause_verb,
                 (from_state, kind, was[0] if was else None, owner),
             )
-            if from_state == ZONE_LIBRARY and kind == ZONE_HAND:
+            if from_state == ZONE_LIBRARY and kind == ZONE_HAND and cause_verb == "DRAW":
+                # V23 (CR 121.1, 121.5): only a draw is a draw. A card put into a
+                # hand from a library without the word "draw" (a search, Garruk's
+                # reveal-and-put, a tutor) is a zone change, not a CARD_DRAWN row.
+                # Every draw runs through a DRAW atom (_v_draw; the turn's draw is
+                # the _TURN_DRAW atom), whose boundary moves nothing else.
                 self.draw_counts[owner] = self.draw_counts.get(owner, 0) + 1
                 self._emit(
                     KIND_CARD_DRAWN,
@@ -527,6 +583,14 @@ class EventJournal:
                 was_power, was_toughness = self.ledger.effective_pt(
                     identity, card, world.cards[card].counters
                 )
+                # V7: the controller as of death (CR 603.10a): the overlay's
+                # entry is still in place here (it expires after the journal
+                # records the move), else the battlefield zone's player.
+                stolen_by = (
+                    self.controller_override(card)
+                    if self.controller_override is not None
+                    else None
+                )
                 self._emit(
                     KIND_CREATURE_DIES,
                     card,
@@ -538,11 +602,18 @@ class EventJournal:
                         identity.type_line,
                         was_power,
                         was_toughness,
+                        stolen_by if stolen_by is not None else (was[0] if was else owner),
+                        identity.is_token,
                     ),
                 )
 
         # --- tapped flags: TapStateEvent feed.
         for card, tapped in after.tapped.items():
+            # V43 (2026-10-29): CR 110.5d, only a permanent is tapped or untapped. A card that
+            # left the battlefield had its flag cleared on the way out; a window spanning that
+            # departure (the CAST atom around pay_costs) must not read it as an untap.
+            if after.zones.get(card, (None, None))[1] != ZONE_BATTLEFIELD:
+                continue
             if card in before.tapped and before.tapped[card] != tapped:
                 self._emit(KIND_TAP_STATE, card, cause, cause_verb, (tapped,))
 
@@ -600,10 +671,14 @@ class EventJournal:
 
         # --- non-lethal card damage leaves no state trace: the 12a handler
         # tuples carry its amount (the "handlers already return info" path).
+        consumed: set[int] = set()
         for entry in new_12a_tuples:
             if entry[1] in ("DAMAGE", "DAMAGE_LETHAL"):
                 subject = parse_handle_tag(str(entry[2]))
                 if subject.namespace == "card":
+                    if entry[0] in before.consumed_raw:
+                        continue  # V23: a nested boundary journalled it already
+                    consumed.add(entry[0])
                     self._emit(
                         KIND_DAMAGE,
                         subject,
@@ -612,7 +687,65 @@ class EventJournal:
                         (entry[3], True) if combat else (entry[3],),
                     )
 
+        self._close(before, after, consumed | before.consumed_raw)
         return self.events[start:]
+
+    def _close(self, before: _Snapshot, after: _Snapshot, consumed: set[int]) -> None:
+        """V23: close ``before``'s boundary and fold what it journalled into every
+        boundary still open around it, so the enclosing atom's own diff no longer
+        sees those changes. Before this, a creature sacrificed as a spell's
+        additional cost died twice (the SACRIFICE atom, then the cast's park
+        boundary), and a spell cast by a CAST atom journalled its draws, moves and
+        damage twice (Teferi's Tutelage milled 8 for 2 draws).
+
+        Only the keys THIS boundary changed are folded, so an enclosing atom's own
+        change made before the nested atom (a mana ability tapped raw inside a PAY
+        atom) still shows in the enclosing diff. Not covered: the enclosing atom
+        changes an object and the nested atom then changes the same object again;
+        the enclosing change is folded away (no corpus atom does that)."""
+        for i in range(len(self._open) - 1, -1, -1):
+            if self._open[i] is before:
+                del self._open[i:]  # anything above it never closed (it raised)
+                break
+        else:
+            return  # not an open boundary: nothing encloses it
+        if not self._open:
+            return
+        zones = [
+            c
+            for c in set(before.zones) | set(after.zones)
+            if before.zones.get(c) != after.zones.get(c)
+        ]
+        tapped = [
+            c
+            for c in set(before.tapped) | set(after.tapped)
+            if before.tapped.get(c) != after.tapped.get(c)
+        ]
+        counters = [
+            c
+            for c in set(before.counters) | set(after.counters)
+            if before.counters.get(c) != after.counters.get(c)
+        ]
+        life = [p for p in after.life if before.life.get(p) != after.life[p]]
+        for outer in self._open:
+            for c in zones:
+                if c in after.zones:
+                    outer.zones[c] = after.zones[c]
+                else:
+                    outer.zones.pop(c, None)
+            for c in tapped:
+                if c in after.tapped:
+                    outer.tapped[c] = after.tapped[c]
+                else:
+                    outer.tapped.pop(c, None)
+            for c in counters:
+                if c in after.counters:
+                    outer.counters[c] = dict(after.counters[c])
+                else:
+                    outer.counters.pop(c, None)
+            for p in life:
+                outer.life[p] = after.life[p]
+            outer.consumed_raw |= consumed
 
     # ---------------------------------------------------------- canonical
 

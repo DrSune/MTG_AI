@@ -1,0 +1,56 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "344cdec9-60b3-42ec-a3d5-41ee1d4f7c6c",
+ "name": "Traitorous Greed",
+ "text_sha": "2d9594feacc7c4f22b57f75cf3ad55686658fdbe2a686b856ba33d8f0b19afeb",
+ "verified": {
+  "tree_sha": "f586f09e0fda4ccebef86f0d260caeebac5df437be03a64c8f3e6692c877b55a",
+  "probe_sha": "e6906707ecead82e12f381f0f98a521e6d50ab7c2ebba6ffe5e981033661bc05",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "Gain control of target creature until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] = every creature, as 'target creature' allows. The control change itself cannot appear in the trace: the probe snapshot reads world.controller_of (zone owner, state.py:204), while GAIN_CONTROL writes the executor's control overlay (verbs.py _v_gain_control, executor controller_of). Tree atom = `parse` of the sentence (B5b-gain-control-eot, controller YOU, DurationEot). Pack K_traitorous_greed_control_until_eot.json PASSES: seat 0 attacks the opponent with the stolen tapped 3/3 (attackers ogre=true, opp 20 -> 17), and after end_turn its owner controls it again (controller ogre=1); a throwaway copy expecting seat 0 after end_turn fails, a mid-turn copy confirms seat 0 controls it.",
+    "issue": ""
+   },
+   {
+    "clause": "Untap that creature.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_tapped']]: event 'opp_tapped becomes untapped (by card/UNTAP)', change tapped True -> False; the untap hits the spell's target (referent='target'), = `parse` B5c-untap-that-creature",
+    "issue": ""
+   },
+   {
+    "clause": "It gains haste until end of turn.",
+    "status": "OK",
+    "evidence": "every variant: '<target>: keywords +HASTE' on the targeted creature only, then 'after the turn ends: <target>: keywords -HASTE'",
+    "issue": ""
+   },
+   {
+    "clause": "Add two mana of any one color.",
+    "status": "OK",
+    "evidence": "one ask 'mana: [W, U, B, R, G]' (no colorless), and exactly +2 of the chosen colour to you: e.g. '| ask 1 -> U': mana R-1 U+2 W-3 (cost {3}{R} paid R+3W, then +2U); default W: R-1 W-1 (= -4 +2)",
+    "issue": ""
+   },
+   {
+    "clause": "(card body) Sorcery {3}{R}",
+    "status": "OK",
+    "evidence": "cast pays 4 mana incl. one R (R-1 W-3), card goes stack -> graveyard",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/traitorous_greed_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/steps/0/args/duration"
+   ]
+  }
+ }
+}

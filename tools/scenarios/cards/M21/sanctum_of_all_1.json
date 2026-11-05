@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "sh", "real": "Sanctum of Shattered Heights", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["fire", "2", "sh"]}
+ ],
+ "expect": {
+  "zone": {"a": "battlefield", "sh": "battlefield", "drawn": "hand"},
+  "controller": {"sh": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. If you search your library this way, shuffle.' On seat 0's next upkeep the controller fires the may, searches the graveyard only (option 2) and puts the Shrine from the graveyard onto the battlefield under their control. The library was not searched, so it is not shuffled: after the turn's draw (Library 5) the five fillers keep their order."
+}

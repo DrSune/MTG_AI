@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Landfall — Whenever a land you control enters, this creature deals 1 damage to each opponent.' Your Forest is put onto the battlefield (not played): the Lagac deals 1 to the opponent (20 -> 19). Then the opponent's Mountain enters under their control: no trigger, nobody else takes damage.",
+ "cards": [
+  {"key": "lagac", "real": "Spitfire Lagac", "zone": "battlefield", "controller": 0},
+  {"key": "myland", "real": "Forest", "zone": "hand", "controller": 0},
+  {"key": "oppland", "real": "Mountain", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "myland"},
+  {"op": "enter", "key": "oppland"}
+ ],
+ "expect": {
+  "zone": {"myland": "battlefield", "oppland": "battlefield", "lagac": "battlefield"},
+  "life": {"0": 20, "1": 19}
+ }
+}

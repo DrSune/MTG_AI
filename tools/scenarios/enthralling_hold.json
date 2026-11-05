@@ -18,7 +18,7 @@
       "type": "Creature",
       "zone": "battlefield",
       "controller": 1,
-      "tapped": true
+      "start_tapped": true
     }
   ],
   "mana": {
@@ -61,5 +61,6 @@
       "0": 20,
       "1": 17
     }
-  }
+  },
+  "notes": "re-pinned 2026-10-29: V20 (B-66) applies 'You can't choose an untapped creature as this spell's target as you cast it'. The pack meant a tapped target but used the 'tapped' key the runner never honoured (B-63), so Thralldom was untapped and is now refused; it uses start_tapped."
 }

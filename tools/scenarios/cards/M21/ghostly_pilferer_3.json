@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "The opponent casts a spell from their HAND (Life Goes On): 'from anywhere other than their hand' is false, so the Pilferer's controller draws nothing (hand stays at the opening draw = 1).",
+ "cards": [
+  {"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 1},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"1": {"G": 1}},
+ "steps": [
+  {"op": "cast", "key": "lgo", "real": "Life Goes On", "controller": 1}
+ ],
+ "expect": {
+  "life": {"1": 24},
+  "hand": {"0": 1},
+  "zone": {"lgo": "graveyard"}
+ }
+}

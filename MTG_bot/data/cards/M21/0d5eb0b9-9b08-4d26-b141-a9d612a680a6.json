@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "0d5eb0b9-9b08-4d26-b141-a9d612a680a6",
+ "name": "Roaming Ghostlight",
+ "text_sha": "59e88d17b1aeacb6e287a1f78494408a9504498e50ab55836036f74d1e97ae93",
+ "verified": {
+  "tree_sha": "2350e1a77171d53be6f35d7abf90c4d821654126a887d3926ffc5de684a90e60",
+  "probe_sha": "6021de487d0b0d123ca1a3cb31039d29779eb7504748079a38c8717bdf195507",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Spirit {3}{U}{U} 3/2",
+    "status": "OK",
+    "evidence": "[cast]: mana U-2 W-3 (5 mana, two blue), P/T 3/2, +FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row (a non-flier/non-reach giant cannot block it), opp 20 -> 17",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, return up to one target non-Spirit creature to its owner's hand.",
+    "status": "OK",
+    "evidence": "ask target: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, NONE]: both sides' non-Spirit creatures, NONE offered ('up to one'), and neither the Ghostlight (a Spirit) nor the board's you_spirit (present: it gains TRAMPLE in the Crash Through stimulus) is offered. Each pick moves battlefield -> hand of its owner (opp_* -> 'opp: hand 2 -> 3'); NONE moves nothing. Also triggers when it enters on the opponent's turn. Tree = `parse` B2a-roaming-ghostlight.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

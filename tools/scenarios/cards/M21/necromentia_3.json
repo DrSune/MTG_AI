@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "nec", "real": "Necromentia", "zone": "hand", "controller": 0},
+  {"key": "f1", "real": "Forest", "zone": "hand", "controller": 1},
+  {"key": "f2", "real": "Forest", "zone": "library", "controller": 1},
+  {"key": "f3", "real": "Forest", "zone": "graveyard", "controller": 1},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 2, "C": 1}},
+  {"op": "cast", "key": "nec", "controller": 0, "targets": ["p1"], "decisions": ["Forest"]}
+ ],
+ "expect": {
+  "zone": {"nec": "graveyard", "f1": "hand", "f2": "library", "f3": "graveyard"},
+  "tokens": {"Zombie": 0}
+ },
+ "notes": "Printed: 'Choose a card name other than a basic land card name.' Forest cannot be named: the word is not offered (the runner then takes the engine's first legal name, a filler), so the opponent's Forests in hand, library and graveyard all stay and no Zombie is created."
+}

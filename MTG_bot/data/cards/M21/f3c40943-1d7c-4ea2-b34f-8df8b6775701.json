@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f3c40943-1d7c-4ea2-b34f-8df8b6775701",
+ "name": "Animal Sanctuary",
+ "text_sha": "81f1b7776d999c772f282e2a95ce707be4038b486fff565b2411636e1d0c89cc",
+ "verified": {
+  "tree_sha": "51bc4e23a02034d06e8e7a58de8f0cb3afe965d834fff6e79cd77d6b6bd64b92",
+  "probe_sha": "f899acc87ced71f7b82d705c6a213f6ddb875c35979af56b454bce84222a9b5c",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "status": "OK",
+    "evidence": "[activate [0]]: card becomes tapped (by card/TAP), you: mana C+1. [play land]: enters untapped (no entry clause printed). Tree abilities[0] identical to parse (template B3-add-mana-colorless).",
+    "issue": ""
+   },
+   {
+    "clause": "{2}, {T}: Put a +1/+1 counter on target Bird, Cat, Dog, Goat, Ox, or Snake.",
+    "status": "OK",
+    "evidence": "ability [1] target slot: 1..1 of [opp_flier (Creature - Bird), you_bird, opp_bird, you_cat, opp_cat, you_dog, opp_dog, you_goat, opp_goat, you_ox, opp_ox, you_snake, opp_snake]: only the six named types, both controllers; bears, giants and the ape are not offered. Each [activate [1]]: card becomes tapped, target gets 1 PLUS_1_PLUS_1 counter (e.g. you_bird 2/2 -> 3/3), you: mana W-2 = {2}. Tree abilities[1] identical to parse (template B3-put-counter-subtype-list).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
+ }
+}

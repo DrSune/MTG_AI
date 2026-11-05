@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'You draw two cards and each opponent discards two cards. Each player loses 2 life.' The opponent holds three cards and discards two of its choice (CR 701.9b; the pack answers its picks C3 and C2), keeping C1. Seat 0 keeps both of its own cards and draws two (hand 2 + 2 = 4; the runner's opening draw finds an empty library). Both players lose 2.",
+ "cards": [
+  {"key": "deal", "real": "Bad Deal", "zone": "hand", "controller": 0},
+  {"key": "m1", "name": "Mine One", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "hand", "controller": 0},
+  {"key": "m2", "name": "Mine Two", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Opp Card One", "type": "Creature — Ape", "power": 1, "toughness": 1, "zone": "hand", "controller": 1},
+  {"key": "c2", "name": "Opp Card Two", "type": "Creature — Ape", "power": 1, "toughness": 1, "zone": "hand", "controller": 1},
+  {"key": "c3", "name": "Opp Card Three", "type": "Creature — Ape", "power": 1, "toughness": 1, "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [{"op": "cast", "real": "Bad Deal", "key": "deal", "decisions": ["c3", "c2"]}],
+ "expect": {"zone": {"deal": "graveyard", "c1": "hand", "c2": "graveyard", "c3": "graveyard", "m1": "hand", "m2": "hand"},
+            "hand": {"0": 4, "1": 1}, "life": {"0": 18, "1": 18}}}

@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the search count, option 2). Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for A Shrine card and put it ONTO THE BATTLEFIELD.' The controller chooses to search your graveyard only, where two Shrines wait: Sanctum of Tranquil Light (copy A, the pick) and Sanctum of Stone Fangs (copy B; a different name, so the legend rule cannot hide a second find). Copy A enters; copy B stays in your graveyard.",
+ "cards": [
+  {
+   "key": "soa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "copy_a",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "copy_b",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "dc",
+   "name": "Decoy",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "soa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "2",
+    "copy_a"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "soa": "battlefield",
+   "copy_a": "battlefield",
+   "copy_b": "graveyard"
+  }
+ }
+}

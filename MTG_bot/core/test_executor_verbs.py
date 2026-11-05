@@ -197,7 +197,8 @@ class TestLifeAndDamage(ExecutorCase):
             source=self.alpha,
             controller=self.p0,
         )
-        self.assertEqual(self.world.players[self.p0].life, 0)  # clamps at 0
+        # re-pinned 2026-10-30: no clamp at 0 (CR 119.3, 119.6): 23 - 30.
+        self.assertEqual(self.world.players[self.p0].life, -7)
 
     def test_deal_damage_to_player_clamps(self):
         self.ex.execute(
@@ -210,7 +211,9 @@ class TestLifeAndDamage(ExecutorCase):
             controller=self.p0,
             bindings={"target": self.p1},
         )
-        self.assertEqual(self.world.players[self.p1].life, 0)
+        # re-pinned 2026-10-30: damage is that much life lost, below 0 too (CR 120.3a,
+        # 119.3); the old clamp at 0 recorded 25 damage as 20.
+        self.assertEqual(self.world.players[self.p1].life, -5)
 
     def test_lethal_damage_uses_ledger_pt(self):
         self.ex.execute(
@@ -359,26 +362,35 @@ class TestPtLedger(ExecutorCase):
         # layer-model work lands, so the move is a loud diff, not a
         # silent one). Flagged to the T4 ledger note in
         # KNOWLEDGE/2026-10-07/34.
+        # re-pinned 2026-10-30: V27 (CR 613.4) changes order A from 3/3 to 4/4:
+        # every set (7a/7b) now applies before every delta (7c), so both orders
+        # land at the CR oracle's 4/4 (the loud diff this pin was written for).
         from MTG_bot.core.ability_tree import DurationEot
 
-        for expect, ops in {
-            (3, 3): (
+        for expect, ops in (
+            (
+                (4, 4),
                 (
-                    Verb.MODIFY_PT,
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                ),
-                (Verb.SET_PT, QConst(3), QConst(3)),
-            ),
-            (4, 4): (
-                (Verb.SET_PT, QConst(3), QConst(3)),
-                (
-                    Verb.MODIFY_PT,
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
-                    PtDelta(PtDirection.INCREASE, QConst(1)),
+                    (
+                        Verb.MODIFY_PT,
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                    ),
+                    (Verb.SET_PT, QConst(3), QConst(3)),
                 ),
             ),
-        }.items():
+            (
+                (4, 4),
+                (
+                    (Verb.SET_PT, QConst(3), QConst(3)),
+                    (
+                        Verb.MODIFY_PT,
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                        PtDelta(PtDirection.INCREASE, QConst(1)),
+                    ),
+                ),
+            ),
+        ):
             self.ex.begin_turn(self.p0)  # opens a fresh EOT window per case
             for verb, first, second in ops:
                 self.ex.execute(
@@ -493,7 +505,7 @@ class TestTokens(ExecutorCase):
             toughness=QConst(1),
             keywords=(),
             abilities=(),
-            color="W",
+            colors=("W",),
             enters_tapped=True,
         )
         self.ex.execute(
@@ -514,6 +526,55 @@ class TestTokens(ExecutorCase):
             ),
             (1, 1),
         )
+
+    def test_token_colour_reaches_colour_filters_and_protection(self):
+        # m21-fidelity item 3 (2026-10-29): a token is the colour its spec prints (CR 111.4,
+        # 105.2), and every colour consumer reads it from the minted identity: COLOR_HAS,
+        # COLOR_COUNT_GE (Ugin's "one or more colors") and protection, whose attacker cannot
+        # be blocked by a creature of the stated quality (CR 702.16f).
+        from MTG_bot.core.ability_tree import DurationEot, Keyword, KeywordAbility
+        from MTG_bot.core.executor.legality import block_pair_blocked_reason
+        from MTG_bot.core.executor.quantity import eval_filter
+
+        cat = TokenSpec(
+            name="Cat",
+            type_line="Token Creature — Cat",
+            types=("Creature",),
+            subtypes=("Cat",),
+            power=QConst(2),
+            toughness=QConst(2),
+            keywords=(),
+            abilities=(),
+            colors=("G",),
+        )
+        before = set(self.world.players[self.p1].zone(ZONE_BATTLEFIELD).entries)
+        self.ex.execute(
+            atom(Verb.CREATE_TOKEN, tokens=cat, count=QConst(1)),
+            source=self.beta,
+            controller=self.p1,
+        )
+        (token,) = set(self.world.players[self.p1].zone(ZONE_BATTLEFIELD).entries) - before
+        self.assertEqual(self.world.cards[token].identity.colors, ("G",))
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        self.assertTrue(eval_filter(FAtom(FAtomPred.COLOR_HAS, color="G"), token, ctx))
+        self.assertFalse(eval_filter(FAtom(FAtomPred.COLOR_HAS, color="W"), token, ctx))
+        self.assertTrue(eval_filter(FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(1)), token, ctx))
+        self.assertFalse(eval_filter(FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(2)), token, ctx))
+        self.assertIsNone(block_pair_blocked_reason(self.ex, token, self.alpha))
+        green = FAtom(FAtomPred.COLOR_HAS, color="G")
+        self.ex.apply_effect(
+            atom(
+                Verb.GRANT_ABILITY,
+                target=target_sel(),
+                ability=KeywordAbility(Keyword.PROTECTION, (green,)),
+                duration=DurationEot(),
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": [self.alpha]},
+        )
+        self.assertIsNotNone(block_pair_blocked_reason(self.ex, token, self.alpha))
+        self.assertIsNone(block_pair_blocked_reason(self.ex, self.beta, self.alpha))
 
     def test_token_oracle_id_shape_and_distinct(self):
         a, b = token_oracle_id("Treasure"), token_oracle_id("Goblin")
@@ -647,8 +708,19 @@ class TestSelectors(ExecutorCase):
             self.assertEqual(self.world.zone_of(c).kind, ZONE_GRAVEYARD)
 
     def test_choose_mode_c17_clamp(self):
-        # "discard up to two" with one card in hand: legal designation
-        # 1..2, executor clamps to the 1 handle actually available.
+        # "discard up to two" with one card in hand: the executor clamps the
+        # menu to the 1 handle actually available.
+        # re-pinned 2026-10-29: V10 changes the discard lane: the discarding
+        # player chooses (CR 701.9b) and "up to two" names 0, 1 or 2, so the
+        # one card is a real ask with a NONE stop; the old silent 1..2 clamp
+        # discarded it with no decision.
+        asks: list[tuple[tuple[str, ...], object]] = []
+
+        def provider(vocab: tuple[str, ...], _what: str) -> str:
+            asks.append((vocab, self.ex.decisions.asking_seat))
+            return str(self.h1)
+
+        self.ex.decisions.provider = provider
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
@@ -663,6 +735,7 @@ class TestSelectors(ExecutorCase):
             controller=self.p0,
         )
         self.assertEqual(self.world.zone_of(self.h1).kind, ZONE_GRAVEYARD)
+        self.assertEqual(asks, [((str(self.h1), "NONE"), self.p0)])
 
     def test_target_mode_without_binding_raises(self):
         with self.assertRaises(ValueError):
@@ -981,8 +1054,12 @@ class TestDispatchRaises(ExecutorCase):
         # verb has a real handler (kickback ask included); off-stack
         # counters still raise loudly, pinned by
         # test_counter_spell_off_stack_raises in test_executor_stack.py.
+        # AMENDED 2026-10-29 (phasing, CR 702.26): PHASE_OUT left the raise
+        # list — it has a real handler (Executor.phase_out, covered in
+        # test_executor_phasing.py and the Teferi packs). PHASE_IN has no
+        # carrier in the pools and no handler, so it is the probe now.
         probes = {
-            Verb.PHASE_OUT: {"target": target_sel()},
+            Verb.PHASE_IN: {"cards": target_sel(), "controller": ControllerRef.YOU},
         }
         for verb, roles in probes.items():  # DRAW deliberately outside v1
             with self.subTest(verb=verb.name):
@@ -1236,6 +1313,134 @@ class TestReplayDeterminism(unittest.TestCase):
         after = ex.state_fingerprint()
         self.assertNotEqual(before, mid)
         self.assertNotEqual(mid, after)  # the ledger IS replayed state
+
+
+
+class TestConditionalSubject(ExecutorCase):
+    """V11 (2026-10-29): a bare Conditional whose predicate tests only an
+    object's characteristics ("If it was a creature card", Scavenging Ooze)
+    judges the object the previous sentence acted on (the result register,
+    CR 608.2h), not the ability's source; no such object means false."""
+
+    def exile_then_gain(self, card, pred=CREATURE):
+        gy = Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
+        effect = Seq(
+            steps=(
+                atom(
+                    Verb.MOVE_ZONE,
+                    target=target_sel(UNIV, gy),
+                    destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+                ),
+                Conditional(
+                    pred=pred,
+                    then_effect=atom(
+                        Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)
+                    ),
+                ),
+            )
+        )
+        self.ex.apply_effect(
+            effect, source=self.alpha, controller=self.p0, bindings={"target": card}
+        )
+        return self.world.players[self.p0].life
+
+    def test_it_is_the_exiled_card_not_the_source(self):
+        sorcery = self.world.add_card(card_id("Used", type_line="Sorcery"), self.p1, ZONE_GRAVEYARD)
+        self.assertEqual(self.exile_then_gain(sorcery), 20)  # Alpha is a creature; "it" is not
+
+    def test_an_exiled_creature_card_satisfies_it(self):
+        dead = self.world.add_card(card_id("Dead", "2", "2"), self.p1, ZONE_GRAVEYARD)
+        self.assertEqual(self.exile_then_gain(dead), 21)
+
+    def test_no_object_means_false(self):
+        self.assertEqual(self.exile_then_gain([]), 20)
+
+    def test_a_history_predicate_still_judges_the_source(self):
+        # Not a characteristic test: the source keeps the subject (See the
+        # Truth's "if this spell was cast from ..."), whatever the register.
+        from MTG_bot.core.executor import _conditional_subject
+
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        ctx.bindings["result"] = [self.beta]
+        ctx.result_fresh = True  # the previous atom wrote it
+        self.assertEqual(_conditional_subject(FAtom(FAtomPred.DIED_THIS_TURN), ctx), self.alpha)
+        self.assertEqual(_conditional_subject(CREATURE, ctx), self.beta)
+        # One sentence wide (the r19b look-window discipline): a register an
+        # earlier sentence wrote is not "it".
+        ctx.result_fresh = False
+        self.assertEqual(_conditional_subject(CREATURE, ctx), self.alpha)
+
+
+
+class TestIfYouDo(ExecutorCase):
+    """V12 (2026-10-29): "You may <action>. If you do, <effect>" (MAY_DONE)
+    asks whether the optional action was carried out (CR 118.12: a cost the
+    player could not pay was not paid), not whether "fire" was answered."""
+
+    def sacrifice_then_gain(self, answer, victims):
+        from MTG_bot.core.ability_tree import OptionalEffect
+
+        effect = Seq(
+            steps=(
+                OptionalEffect(
+                    inner=atom(
+                        Verb.SACRIFICE,
+                        target=Selector(
+                            QConst(1),
+                            SelectorMode.ONE_OF,
+                            FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), CREATURE)),
+                            zones=(BF_ANY,),
+                        ),
+                    )
+                ),
+                Conditional(
+                    pred=FAtom(FAtomPred.MAY_DONE),
+                    then_effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1)),
+                ),
+            )
+        )
+        for card in [self.alpha, self.gamma]:
+            if card not in victims:
+                self.world.move_to_zone(card, self.p0, ZONE_GRAVEYARD)
+        self.ex.decisions.provider = lambda vocab, what: answer if answer in vocab else vocab[0]
+        self.ex.apply_effect(effect, source=self.beta, controller=self.p0)
+        return self.world.players[self.p0].life
+
+    def test_fire_with_nothing_to_sacrifice_is_not_done(self):
+        self.assertEqual(self.sacrifice_then_gain("fire", victims=[]), 20)
+
+    def test_fire_and_a_sacrifice_is_done(self):
+        self.assertEqual(self.sacrifice_then_gain("fire", victims=[self.alpha]), 21)
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
+
+    def test_skip_is_not_done(self):
+        self.assertEqual(self.sacrifice_then_gain("skip", victims=[self.alpha]), 20)
+
+
+
+class TestObjectWasCast(ExecutorCase):
+    """V6 (2026-10-29, CR 400.7): "it wasn't cast" (Containment Priest) asks
+    about the entering OBJECT; a card put onto the battlefield, or returned
+    after it was cast, is a new object that was not cast. (The cast and the
+    reanimated branches run end to end in the containment_priest packs.)"""
+
+    def test_a_card_put_onto_the_battlefield_was_not_cast(self):
+        from MTG_bot.core.executor.quantity import _object_cast_row, eval_filter
+
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, HAND_YOU),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=self.h1,
+            controller=self.p0,
+            bindings={"cards": self.h1},
+        )
+        ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
+        self.assertIsNone(_object_cast_row(ctx, self.h1))
+        was_cast = FAtom(FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY)
+        self.assertFalse(eval_filter(was_cast, self.h1, ctx))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sav", "real": "Selfless Savior", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "og", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "sav", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "deal_damage", "source": "og", "target": "bear", "amount": 5}
+ ],
+ "expect": {"zone": {"sav": "graveyard", "bear": "graveyard"}},
+ "notes": "Printed: '... gains indestructible until end of turn.' After the turn ends the indestructible is gone, so 5 damage on the next turn destroys the bear (CR 514.2 / 704.5g)."}

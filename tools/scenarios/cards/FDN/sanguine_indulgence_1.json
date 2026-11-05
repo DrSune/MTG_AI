@@ -1,0 +1,121 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'This spell costs {3} less to cast if you've gained 3 or more life this turn. Return up to two target creature cards from your graveyard to your hand.' You gain 3 life (lifelink damage from Bishop's Soldier), so the {3}{B} spell costs {B}: from a pool of four B it spends exactly one, leaving three. Two of your three graveyard creature cards are targeted: exactly those two return; the third, the noncreature card and the opponent's creature card stay.",
+ "cards": [
+  {
+   "key": "si",
+   "real": "Sanguine Indulgence",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "soldier",
+   "real": "Bishop's Soldier",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dummy",
+   "name": "Dummy",
+   "type": "Creature",
+   "power": "0",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "fa",
+   "name": "Fallen A",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "fb",
+   "name": "Fallen B",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "fc",
+   "name": "Fallen C",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "junk",
+   "name": "Junk",
+   "type": "Artifact",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "oppf",
+   "name": "Opp Fallen",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "soldier",
+   "target": "dummy",
+   "amount": 3
+  },
+  {
+   "op": "cast",
+   "real": "Sanguine Indulgence",
+   "key": "si",
+   "targets": [
+    "fa",
+    "fb"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 23,
+   "1": 20
+  },
+  "zone": {
+   "si": "graveyard",
+   "fa": "hand",
+   "fb": "hand",
+   "fc": "graveyard",
+   "junk": "graveyard",
+   "oppf": "graveyard"
+  },
+  "hand": {
+   "0": 2
+  },
+  "mana_pool": {
+   "0": {
+    "B": 3
+   }
+  },
+  "damage": {
+   "dummy": 3
+  }
+ }
+}

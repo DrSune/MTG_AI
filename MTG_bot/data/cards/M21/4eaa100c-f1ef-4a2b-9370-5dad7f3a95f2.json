@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4eaa100c-f1ef-4a2b-9370-5dad7f3a95f2",
+ "name": "Unleash Fury",
+ "text_sha": "865c29da47cb0325eb7f7c97badfd07c33b74947bd0f4a87a82e7171515aa016",
+ "verified": {
+  "tree_sha": "47fd23de4ab84cd8e43dc313328ddbb0ea4a562797a778efdefde517d9849cc5",
+  "probe_sha": "fe4b8edc79d061a8213659cdf9d8665fb95f1d1885fedb6f5ff8aad775b9115a",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Double the power of target creature",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of all six creatures, both sides. [cast targets=['you_bear']] 2/2 -> 4/2; you_giant 4/4 -> 8/4; opp_flier 1/1 -> 2/1; opp_tapped 3/3 -> 6/3; opp_giant 4/4 -> 8/4. Toughness unchanged (+0).",
+    "issue": "engine-limit: no priority, so the instant is cast only in its controller's action window"
+   },
+   {
+    "clause": "until end of turn",
+    "status": "OK",
+    "evidence": "Every variant: 'after the turn ends: <target>: P/T 2X/T -> X/T'. Pack unleash_fury_wears_off.json (back to 2/2 after end_turn) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "(CR 701.10b) X is the power as the spell resolves",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack unleash_fury_x_locked.json: Hellkite Punisher 6/6 doubled, then its {R}: +1/+0 -> 13/6 (not 14). PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/unleash_fury_1.json",
+   "tools/scenarios/cards/M21/unleash_fury_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

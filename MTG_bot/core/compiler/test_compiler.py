@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 import unittest
 from collections.abc import Callable
+from dataclasses import fields, is_dataclass
 from pathlib import Path
 
 from MTG_bot.core.ability_tree import (
@@ -20,6 +21,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     Atom,
     AtomArgs,
+    CardRecord,
     Choose,
     Conditional,
     ControllerRef,
@@ -42,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     OptionalEffect,
+    QAtLeast,
     QConst,
     QUnbounded,
     Selector,
@@ -56,6 +59,7 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     canonical_json,
+    walk,
 )
 from MTG_bot.core.compiler.compiler import (
     CompileResult,
@@ -565,13 +569,15 @@ class TestKeywordDedup(unittest.TestCase):
         self.assertEqual(res.card.keywords, (KeywordAbility(Keyword.FLYING, ()),))
 
     def test_parametrized_distinct_from_bare(self) -> None:
+        # re-pinned 2026-10-29: m21-fidelity item 1 builds a bare keyword only if the face
+        # prints it, so the card now prints both abilities; the dedup still keeps them apart.
         filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
         raw = _raw_card(
             "C",
             1,
             types=("Creature", "Card"),
             keywords=("Hexproof",),
-            sentences=("Hexproof from black.",),
+            sentences=("Hexproof", "Hexproof from black."),
         )
         reg = TemplateRegistry()
         reg.register(
@@ -588,6 +594,54 @@ class TestKeywordDedup(unittest.TestCase):
                 KeywordAbility(Keyword.HEXPROOF, ()),
                 KeywordAbility(Keyword.HEXPROOF, (filt,)),
             ),
+        )
+
+    def test_bare_keyword_needs_the_face_to_print_it(self) -> None:
+        # m21-fidelity item 1 (2026-10-29). MTGJSON lists "Hexproof" next to "Hexproof from"
+        # for "Hexproof from black" (Garruk's Harbinger): only the variant is printed, so no
+        # bare HEXPROOF, which would be full hexproof (CR 702.11b, 702.11d). Likewise a
+        # keyword listed for the other face of a modal DFC (CR 712.8f).
+        filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
+        reg = TemplateRegistry()
+        reg.register(
+            _template(
+                "hexblack",
+                r"^Hexproof from black$",
+                lambda m: KeywordOutcome(keyword=Keyword.HEXPROOF, params=(filt,)),
+            )
+        )
+        harbinger = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("Hexproof", "Hexproof from"),
+            sentences=("Hexproof from black",),
+        )
+        self.assertEqual(
+            compile_card(harbinger, reg).card.keywords,
+            (KeywordAbility(Keyword.HEXPROOF, (filt,)),),
+        )
+        listed_for_other_face = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("Flying", "Reach"),
+            sentences=("Reach (This creature can block creatures with flying.)",),
+        )
+        self.assertEqual(
+            compile_card(listed_for_other_face, TemplateRegistry()).card.keywords,
+            (KeywordAbility(Keyword.REACH, ()),),
+        )
+        keyword_line = _raw_card(
+            "C",
+            1,
+            types=("Creature", "Card"),
+            keywords=("First strike", "Lifelink"),
+            sentences=("First strike, lifelink",),
+        )
+        self.assertEqual(
+            {ka.keyword for ka in compile_card(keyword_line, TemplateRegistry()).card.keywords},
+            {Keyword.FIRST_STRIKE, Keyword.LIFELINK},
         )
 
     def test_unbuildable_keywords_reported(self) -> None:
@@ -647,7 +701,10 @@ class TestContinuation(unittest.TestCase):
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
         # R11-1: "If you do, …" without "may" merges MANDATORILY.
-        self.assertEqual(steps.steps[1], _draw_atom(2))
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        self.assertEqual(steps.steps[1], Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2)))
 
     def test_continuation_without_previous_effect(self) -> None:
         raw = _raw_card("I", 1, sentences=("If you do, draw another.",))
@@ -674,7 +731,10 @@ class TestContinuation(unittest.TestCase):
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
         # R11-1: "If you do, …" without "may" merges MANDATORILY.
-        self.assertEqual(steps.steps[1], _draw_atom(2))
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        self.assertEqual(steps.steps[1], Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2)))
 
     def test_merges_into_previous_ability(self) -> None:
         raw = _raw_card(
@@ -702,10 +762,13 @@ class TestContinuation(unittest.TestCase):
         # The continuation was consumed into the static ability; no spell
         # effect is left to fold (C4: the creature still carries its
         # effect-less cast-lane carrier).
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
         self.assertEqual(
             res.card.abilities,
             (
-                StaticAbility(effect=Seq(steps=(_draw_atom(1), _draw_atom(2)))),
+                StaticAbility(effect=Seq(steps=(_draw_atom(1), Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2))))),
                 SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
@@ -729,7 +792,15 @@ class TestContinuation(unittest.TestCase):
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
-        self.assertEqual(steps.steps[1], OptionalEffect(_draw_atom(2)))
+        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
+        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
+        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        self.assertEqual(
+            steps.steps[1],
+            Conditional(
+                pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=OptionalEffect(_draw_atom(2))
+            ),
+        )
 
     def test_loyalty_trailing_text_merges_mandatory(self) -> None:
         """R11-1 (Basri Ket): plain text after a loyalty bullet is that
@@ -764,7 +835,10 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(len(res.card.abilities), 1)
+        # B-49: the planeswalker also trails its effect-less cast carrier. The
+        # trailing text did not orphan into it: the carrier has no effect.
+        self.assertEqual(len(res.card.abilities), 2)
+        self.assertEqual(res.card.abilities[1], SpellAbility(kind=SpellKind.PLANESWALKER))
         ab = res.card.abilities[0]
         if not isinstance(ab, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
@@ -962,7 +1036,10 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(len(res.card.abilities), 1)
+        # B-49: + the planeswalker's effect-less cast carrier (no effect, so
+        # the phase-in sentence did not land in it).
+        self.assertEqual(len(res.card.abilities), 2)
+        self.assertEqual(res.card.abilities[1], SpellAbility(kind=SpellKind.PLANESWALKER))
         ab = res.card.abilities[0]
         if not isinstance(ab, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
@@ -1450,21 +1527,30 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        activation, permission, carrier = res.card.abilities  # + C4 carrier
+        # B-49 follow-up #1: "this turn" makes the row a permission created by the
+        # activation's resolution (CR 611.2a), so it is suppressed at assembly
+        # instead of standing as a free ability. The tail still skipped it.
+        activation, carrier = res.card.abilities  # + C4 carrier
         assert isinstance(activation, ActivatedAbility)
-        assert isinstance(permission, ActivatedAbility)
         assert isinstance(carrier, SpellAbility)
         self.assertIsNone(carrier.effect)
         # The activation owns the tail…
         self.assertEqual(activation.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
-        # …and the permission row is untouched, still alone its OPT(CAST).
-        self.assertEqual(permission.effect, _cast_permission_effect())
+        # …and the permission row is gone from the tree, announced as a gap.
+        self.assertTrue(
+            any("You may cast them this turn." in gap for gap in res.known_gaps),
+            res.known_gaps,
+        )
 
     def test_loyalty_tail_never_routes_through_this_mechanism(self) -> None:
         """Chandra boundary, synthetic: loyalty bullet / permission row /
-        bare tail. The loyalty chain and the loyalty EXCLUSION keep the
-        tail out of the permission row; it lands card-level exactly as
-        before 14e (golden-stable status quo for Chandra's ADD_MANA)."""
+        bare tail. The loyalty EXCLUSION keeps this mechanism out, and the
+        tail never joins the permission row.
+
+        B-49 follow-up #1 (2026-10-29): the R11-1 loyalty chain now sees through the
+        permission row (the r14e intent), so the bullet owns its tail. Before,
+        the tail landed card-level: Chandra, Heart of Fire's "Add six {R}." ran
+        when she was cast. The row itself states a duration and is suppressed."""
         raw = _raw_card(
             "C",
             73,
@@ -1487,15 +1573,141 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        ability_names = [type(a).__name__ for a in res.card.abilities]
-        assert ability_names.count("ActivatedAbility") == 2
-        act, perm = (a for a in res.card.abilities if isinstance(a, ActivatedAbility))
-        assert isinstance(act, ActivatedAbility) and isinstance(perm, ActivatedAbility)
-        # Neither ability grew: the tail stayed card-level (SpellAbility).
-        self.assertEqual(act.effect, _draw_atom(1))
-        self.assertEqual(perm.effect, _cast_permission_effect())
-        spell = next(a for a in res.card.abilities if isinstance(a, SpellAbility))
-        self.assertEqual(_spell(spell).effect, _draw_atom(2))
+        act, carrier = res.card.abilities
+        assert isinstance(act, ActivatedAbility)
+        # The loyalty bullet owns the tail; nothing is left for the cast.
+        self.assertEqual(act.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
+        self.assertEqual(carrier, SpellAbility(kind=SpellKind.PLANESWALKER))
+
+
+class TestDurationPermissionRows(unittest.TestCase):
+    """B-49 follow-up #1 (2026-10-29): a cast permission that lasts "until end of turn" or
+    "this turn" is part of the ability whose resolution creates it (CR
+    611.2a). It compiled as a free empty-cost activation of its own, which
+    the controller could repeat any turn: Chandra, Flame's Catalyst cast any
+    spell from her hand for nothing. CAST has no duration role yet, so the
+    row is suppressed (the C5 mechanism) and the card is engine-unsupported.
+    A static permission (Conspicuous Snoop) states no duration and stays."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+
+        pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.raw = {raw.identity.name: raw for raw in pool.values()}
+        cls.gated_verbs = set(SUPPORTED_VERBS_V2)
+
+    def _compile(self, name: str, *, gated: bool = False) -> CompileResult:
+        verbs = self.gated_verbs if gated else None
+        return compile_card(self.raw[name], self.reg, supported_verbs=verbs)
+
+    @staticmethod
+    def _free_activations(card: CardRecord) -> list[ActivatedAbility]:
+        return [
+            ab for ab in card.abilities if isinstance(ab, ActivatedAbility) and not ab.cost.parts
+        ]
+
+    def test_catalyst_has_no_free_activation_and_is_unsupported(self) -> None:
+        res = self._compile("Chandra, Flame's Catalyst")
+        self.assertEqual(self._free_activations(res.card), [])
+        loyalty = [
+            next(p.delta for p in ab.cost.parts if isinstance(p, CostLoyalty))
+            for ab in res.card.abilities
+            if isinstance(ab, ActivatedAbility)
+        ]
+        self.assertEqual(loyalty, [1, -2, -8])
+        self.assertEqual(res.card.abilities[-1], SpellAbility(kind=SpellKind.PLANESWALKER))
+        self.assertTrue(any("Until end of turn, you may cast" in g for g in res.known_gaps))
+        self.assertFalse(self._compile("Chandra, Flame's Catalyst", gated=True).legality.engine_supported)
+
+    def test_heart_of_fire_minus_nine_owns_its_mana_and_the_cast_adds_none(self) -> None:
+        res = self._compile("Chandra, Heart of Fire")
+        self.assertEqual(self._free_activations(res.card), [])
+        (minus_nine,) = [
+            ab
+            for ab in res.card.abilities
+            if isinstance(ab, ActivatedAbility) and CostLoyalty(-9) in ab.cost.parts
+        ]
+        verbs = [n.verb for n in walk(minus_nine) if isinstance(n, Atom)]
+        self.assertIn(Verb.ADD_MANA, verbs)  # "Add six {R}." is the [−9]'s
+        (spell,) = [ab for ab in res.card.abilities if isinstance(ab, SpellAbility)]
+        self.assertIsNone(spell.effect)  # casting her adds no mana
+        self.assertEqual(len([g for g in res.known_gaps if "cast permission" in g]), 2)
+        self.assertFalse(self._compile("Chandra, Heart of Fire", gated=True).legality.engine_supported)
+
+    def test_static_permission_stays_an_ability(self) -> None:
+        res = self._compile("Conspicuous Snoop", gated=True)
+        (row,) = self._free_activations(res.card)
+        assert isinstance(row.effect, OptionalEffect) and isinstance(row.effect.inner, Atom)
+        self.assertIs(row.effect.inner.verb, Verb.CAST)
+        self.assertIsNone(row.effect.inner.args.get("cost"))  # costs are paid
+        self.assertTrue(res.legality.engine_supported)
+
+
+class TestDynamicLoyaltyCostGate(unittest.TestCase):
+    """B-49 follow-up #4 (2026-10-29): Ugin, the Spirit Dragon's [−X]. X is
+    announced as the ability is activated (CR 601.2b via 602.2b). The
+    activation lane had no X declaration, so once the B-49 carrier made Ugin
+    castable, legal_activations raised NotImplementedError ("QX has no declared
+    X") on its controller's next scan. That was 58 of the 153 crashes in the
+    800-game castable sweep, and the shape gate marked a Quantity loyalty
+    delta engine-unsupported.
+
+    Re-pinned 2026-10-29: the activation X lane (legality.activation_x_max /
+    ask_activation_x, CR 606.6 caps X at the loyalty counters) supports a
+    bare X, so Ugin is engine-supported. Any other Quantity delta has no
+    announcement lane and stays gated."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+
+        pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.raw = {raw.identity.name: raw for raw in pool.values()}
+        cls.verbs = set(SUPPORTED_VERBS_V2)
+
+    def _gated(self, name: str) -> CompileResult:
+        return compile_card(self.raw[name], self.reg, supported_verbs=self.verbs)
+
+    def test_ugin_minus_x_is_supported_by_the_x_lane(self) -> None:
+        # re-pinned 2026-10-29: the activation X lane changes Ugin from
+        # gated to supported (it asserted assertFalse before the lane).
+        res = self._gated("Ugin, the Spirit Dragon")
+        deltas = [
+            part.delta
+            for ab in res.card.abilities
+            if isinstance(ab, ActivatedAbility)
+            for part in ab.cost.parts
+            if isinstance(part, CostLoyalty)
+        ]
+        self.assertEqual(deltas, [2, QX(), -10])
+        self.assertTrue(res.legality.engine_supported)
+
+    def test_a_non_bare_x_loyalty_delta_stays_unsupported(self) -> None:
+        from dataclasses import replace
+
+        from MTG_bot.core.ability_tree import QBin, QBinOp, QConst
+        from MTG_bot.core.compiler.compiler import _engine_supported
+
+        res = self._gated("Ugin, the Spirit Dragon")
+        minus_x = res.card.abilities[1]
+        assert isinstance(minus_x, ActivatedAbility)
+        crafted = replace(
+            minus_x,
+            cost=Cost(
+                parts=(CostLoyalty(delta=QBin(QBinOp.ADD, QX(), QConst(1))),)
+            ),
+        )
+        card = replace(
+            res.card, abilities=(res.card.abilities[0], crafted, *res.card.abilities[2:])
+        )
+        self.assertFalse(_engine_supported(card, self.verbs))
+
+    def test_fixed_loyalty_costs_stay_supported(self) -> None:
+        for name in ("Basri Ket", "Liliana, Death Mage", "Garruk, Savage Herald"):
+            self.assertTrue(self._gated(name).legality.engine_supported, name)
 
 
 # ---------------------------------------------------------------------------
@@ -1532,7 +1744,14 @@ class TestRound14fFidelity(unittest.TestCase):
         )
         res = compile_card(raw, self.reg)
         self.assertEqual(res.unparsed, ())
-        (ability,) = res.card.abilities
+        # B-49 follow-up #1: the row states a duration, so compile_card suppresses it (a
+        # permission created by a resolving ability, CR 611.2a). The fidelity
+        # this test pins is the template's own row, read from the registry.
+        self.assertEqual(res.card.abilities, ())
+        self.assertEqual(len(res.known_gaps), 1)
+        (match,) = self.reg.match("You may cast them this turn.")
+        assert isinstance(match.outcome, AbilityOutcome)
+        ability = match.outcome.ability
         assert isinstance(ability, ActivatedAbility)
         self.assertEqual(ability.cost, Cost())  # the empty-cost permission
         assert isinstance(ability.effect, OptionalEffect)
@@ -2465,7 +2684,7 @@ class TestChooseOpener(unittest.TestCase):
         choose = _choose(_spell(res.card.abilities[0]).effect)
         self.assertEqual(choose.count, QConst(3))
 
-    def test_spell_choose_one_or_more_uses_unbounded(self) -> None:
+    def test_spell_choose_one_or_more_is_at_least_one(self) -> None:
         raw = _raw_card(
             "I",
             1,
@@ -2482,7 +2701,9 @@ class TestChooseOpener(unittest.TestCase):
         self.assertEqual(res.unparsed, ())
         ab = _spell(res.card.abilities[0])
         choose = _choose(ab.effect)
-        self.assertEqual(choose.count, QUnbounded())
+        # re-pinned 2026-10-30: R5 engine item — "one or more" is at least one
+        # mode (it was QUnbounded, which also allowed none)
+        self.assertEqual(choose.count, QAtLeast(1))
         self.assertEqual(
             choose.options, (_draw_atom(1), _destroy_atom(), _draw_atom(1))
         )
@@ -2704,7 +2925,7 @@ class TestChooseOpenerM21(unittest.TestCase):
         self.assertEqual(len(res.card.abilities), 1)
         ab = _spell(res.card.abilities[0])
         choose = _choose(ab.effect)
-        self.assertEqual(choose.count, QUnbounded())
+        self.assertEqual(choose.count, QAtLeast(1))  # re-pinned 2026-10-30: R5 engine item
         self.assertEqual(len(choose.options), 5)
 
     def test_etb_shape(self) -> None:
@@ -2788,6 +3009,69 @@ class TestAdditionalCostM21(unittest.TestCase):
                     sentence.startswith("As an additional cost"),
                     f"{name}: {sentence!r} left unparsed",
                 )
+
+
+class TestDanglingContinuation(unittest.TestCase):
+    """m21-fidelity wave 4 (2026-10-30): a sentence that acts on what the sentence before it
+    produced (a REST complement, the ``result`` register) is unparsed when that sentence did not
+    parse. FDN Squad Rallier and Vivien Reid compiled their lone "Put the rest on the bottom of
+    your library in a random order." as the whole spell effect, so casting them moved the top
+    card of the library to the bottom (CR 608.2c: "the rest" has no antecedent)."""
+
+    REST = "Put the rest on the bottom of your library in a random order."
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = build_full_registry()
+
+    @staticmethod
+    def _rest_selectors(card) -> list:
+        out: list = []
+
+        def walk(node: object) -> None:
+            if isinstance(node, Selector) and node.mode is SelectorMode.REST:
+                out.append(node)
+            if isinstance(node, (list, tuple)):
+                for x in node:
+                    walk(x)
+            elif is_dataclass(node) and not isinstance(node, type):
+                for f in fields(node):
+                    walk(getattr(node, f.name))
+
+        walk(card.abilities)
+        return out
+
+    def test_rest_after_an_unparsed_look_is_unparsed(self) -> None:
+        raw = _raw_card(
+            "Rally Probe",
+            9101,
+            types=("Creature",),
+            mana_cost_raw="{3}{W}",
+            mana_value=4,
+            power_raw="3",
+            toughness_raw="4",
+            sentences=(
+                "{2}{W}: Look at the top four cards of your library.",
+                (
+                    "You may reveal a creature card with power 2 or less from among them and "
+                    "put it into your hand."
+                ),
+                self.REST,
+            ),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertIn(self.REST, [sentence for sentence, _hint in res.unparsed])
+        self.assertEqual(self._rest_selectors(res.card), [])
+        spells = [a for a in res.card.abilities if isinstance(a, SpellAbility)]
+        self.assertEqual(len(spells), 1)
+        self.assertIsNone(spells[0].effect)
+
+    def test_a_parsed_antecedent_keeps_the_sentence(self) -> None:
+        # Control: the rule reads only an UNPARSED previous sentence.
+        raw = _raw_card("Rest Control", 9102, sentences=("Draw a card.", self.REST))
+        res = compile_card(raw, self.reg)
+        self.assertNotIn(self.REST, [sentence for sentence, _hint in res.unparsed])
+        self.assertEqual(len(self._rest_selectors(res.card)), 1)
 
 
 if __name__ == "__main__":

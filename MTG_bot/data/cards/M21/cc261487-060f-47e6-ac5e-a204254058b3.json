@@ -1,0 +1,51 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "cc261487-060f-47e6-ac5e-a204254058b3",
+ "name": "Riddleform",
+ "text_sha": "6fcad026146530f1da4b4064801a1c59d2744287eba992aed9b7c28b5a8ae4f0",
+ "verified": {
+  "tree_sha": "8806c0a02705f48dd74b1b343e9f4183796633341d449b135cdceca32c5063ca",
+  "probe_sha": "47bf2634a22e2a9f0df9883a37944b10ee10a4c3da0b4b7d33957c0844f8c561",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "Whenever you cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying in addition to its other types until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Partly in the trace: 'you cast an instant or sorcery (Crash Through) -> card's triggered ability [0] triggers', 'ask may: [fire, skip] -> fire', 'card: keywords +FLYING +TRAMPLE' (the trample comes from Crash Through's creatures-you-control grant, so it is a creature by then); 'you cast a creature (Staunch Shieldmate) -> none'. The 3/3, the opponent-spell case, the decline and the duration are not visible (the probe prints P/T only for printed creatures). Packs: riddleform_instant_animates_3_3_flier (your Shock + fire: power 3, toughness 3, FLYING, attacks for 3, opp 15) PASS; riddleform_decline_stays_enchantment (skip: no flying, cannot attack) PASS; riddleform_opponents_spell_does_not_trigger (opponent's Shock: no animation, cannot attack) PASS; riddleform_animation_ends_cannot_block_next_turn (after the turn ends: no flying, never offered a block, opp 2/2 connects) PASS. Tree is the canonical B2b-riddleform (CastSpellEvent FNot Creature, actor YOU; optional SET_PT 3/3 + GRANT_TYPE Creature Sphinx + FLYING, all DurationEot). The Sphinx subtype has no M21 reader, so it is not checked beyond the tree.",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{U}: Scry 1.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: 'you: mana U-1 W-2' (exactly {2}{U}), 'ask scry: [top, bottom]'; both the top and the bottom variants are played. Tree is the canonical B3-scry-n.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/riddleform_1.json",
+   "tools/scenarios/cards/M21/riddleform_2.json",
+   "tools/scenarios/cards/M21/riddleform_3.json",
+   "tools/scenarios/cards/M21/riddleform_4.json",
+   "tools/scenarios/cards/M21/riddleform_5.json",
+   "tools/scenarios/cards/M21/riddleform_6.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 10,
+   "score": 0.5263157894736842,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "until-end-of-turn->permanent at 1/0/effect/inner/steps/0/args/duration",
+    "amount+1 at 1/0/effect/inner/steps/0/args/power",
+    "amount-1 at 1/0/effect/inner/steps/0/args/power",
+    "amount+1 at 1/0/effect/inner/steps/0/args/toughness",
+    "amount-1 at 1/0/effect/inner/steps/0/args/toughness",
+    "until-end-of-turn->permanent at 1/0/effect/inner/steps/1/args/duration",
+    "until-end-of-turn->permanent at 1/0/effect/inner/steps/2/args/duration",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

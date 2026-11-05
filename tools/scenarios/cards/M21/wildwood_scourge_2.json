@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ws", "real": "Wildwood Scourge", "zone": "hand", "controller": 0},
+  {"key": "mentor", "real": "Conclave Mentor", "zone": "battlefield", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "ws", "real": "Wildwood Scourge", "x": 1},
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "counters": {"ws": {"PLUS_1_PLUS_1": 4}, "bear": {"PLUS_1_PLUS_1": 2}}
+ },
+ "notes": "P649da1d5b6 G4: with Conclave Mentor (one or more +1/+1 counters on a creature you control: that many plus one instead), the Scourge cast with X=1 enters with 2. Basri Ket's +1 puts one counter on the Bear, made two AT ONCE: 'one or more ... counters are put on another non-Hydra creature' triggers ONCE, and Mentor makes its single counter two. Scourge 2 + 2 = 4 (a trigger per counter would give 6)."
+}

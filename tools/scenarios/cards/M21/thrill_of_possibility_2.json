@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Thrill of Possibility with two other cards in hand: the caster chooses which card to discard as the cost (names 'second', the higher handle), then draws two. Expected: second in the graveyard, first still in hand; hand 3 -1 (cast) -1 (cost) +2 = 3; library 6 -> 4.",
+ "cards": [
+  {"key": "thrill", "real": "Thrill of Possibility", "zone": "hand", "controller": 0},
+  {"key": "first", "name": "First Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "second", "name": "Second Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Thrill of Possibility", "key": "thrill", "decisions": ["second"]}
+ ],
+ "expect": {"zone": {"thrill": "graveyard", "second": "graveyard", "first": "hand"}, "hand": {"0": 3},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"]}}}

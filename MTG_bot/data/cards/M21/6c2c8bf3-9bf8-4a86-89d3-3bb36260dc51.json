@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51",
+ "name": "Azusa, Lost but Seeking",
+ "text_sha": "900b7aa2d07496541b69b26c8e5a4357eda44e131d3465d7e37b13d0399983d6",
+ "verified": {
+  "tree_sha": "f5af3edf94a3255a518508137e80e5cc481319b7a952df1a531e4387df41346d",
+  "probe_sha": "e9d78ef017e3b25ba4be32aec0a38db9f601aa60ce9d7107d503ee95e226cc7f",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Legendary Creature - Human Monk {2}{G} 1/2",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 1/2, paid G-1 W-2 (3 mana, one green)",
+    "issue": ""
+   },
+   {
+    "clause": "You may play two additional lands on each of your turns.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No variant plays more than one land ('you play a land -> none' only checks triggers). Tree: StaticAbility(OptionalEffect(ADD_LAND_PLAY count=QConst(2))), identical to `parse` of the sentence (template B4-azusa-extra-land-plays); the layer folds the static into the controller's CR 305.1 allowance (layers.py land_play_bonus, controller-anchored). Pack K_azusa_three_drops_controller_only.json PASSES: with Azusa, 3 land drops land and the 4th is refused; the opponent on their own turn gets only 1.",
+    "issue": "engine-limit: land_playable only allows land drops in FIRST_MAIN (stack.py land_playable 'land:phase'), so the extra drops cannot be made in the second main phase. Weaker than printed only; affects every land, not this card."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/azusa_lost_but_seeking_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "amount+1 at 1/0/effect/inner/args/count",
+    "amount-1 at 1/0/effect/inner/args/count"
+   ]
+  }
+ }
+}

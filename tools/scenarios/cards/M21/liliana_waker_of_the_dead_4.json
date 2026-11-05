@@ -1,0 +1,29 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "ob1", "name": "Opp Beast", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"ob1": true}},
+  {"op": "deal_damage", "source": "ob1", "target": "ob1", "amount": 2, "controller": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"ob1": true}}
+ ],
+ "expect": {
+  "zone": {"lil": "graveyard", "ob1": "battlefield"},
+  "controller": {"ob1": 0},
+  "attackers": {"ob1": true},
+  "life": {"0": 20, "1": 16},
+  "battlefield_keywords": {"Opp Beast": ["HASTE"]},
+  "turn_seats": [0, 1, 0]
+ },
+ "notes": "Printed -7 emblem: 'At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.' Turn 1 (mine): the opponent's Opp Beast comes back under my control with haste and attacks for 2 (20 -> 18); it is then killed and goes back to its owner's graveyard. Turn 2 is the opponent's: their beginning of combat does not trigger my emblem. Turn 3 (mine): the emblem triggers again, the Beast returns under my control with haste and attacks for 2 more (18 -> 16)."
+}

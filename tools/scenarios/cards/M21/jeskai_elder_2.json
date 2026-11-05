@@ -1,0 +1,66 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "As elder_loot_choice, but the player discards Keep instead: the discard is the player's choice, not a fixed card.",
+ "cards": [
+  {
+   "key": "je",
+   "real": "Jeskai Elder",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "keep",
+   "name": "Keep",
+   "type": "Creature",
+   "power": 5,
+   "toughness": 5,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "junk",
+   "name": "Junk",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "je": true
+   },
+   "may": {
+    "je": true
+   },
+   "decisions": [
+    "keep"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 19
+  },
+  "zone": {
+   "keep": "graveyard",
+   "junk": "hand"
+  },
+  "hand": {
+   "0": 2
+  },
+  "graveyard": {
+   "0": [
+    "Keep"
+   ]
+  }
+ }
+}

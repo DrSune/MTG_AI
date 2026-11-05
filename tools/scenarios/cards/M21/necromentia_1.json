@@ -1,0 +1,145 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "nec",
+   "real": "Necromentia",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "Grim Twin",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "colors": [
+    "B"
+   ],
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h1",
+   "name": "Grim Twin",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "colors": [
+    "B"
+   ],
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "h2",
+   "name": "Grim Twin",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "colors": [
+    "B"
+   ],
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "other",
+   "name": "Other Card",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "cmc": 1,
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "lib",
+   "name": "Grim Twin",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "colors": [
+    "B"
+   ],
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "gy",
+   "name": "Grim Twin",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3,
+   "colors": [
+    "B"
+   ],
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "drawn",
+   "name": "Drawn",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "nec",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "Grim Twin"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "nec": "graveyard",
+   "h1": "exile",
+   "h2": "exile",
+   "lib": "exile",
+   "gy": "exile",
+   "other": "hand",
+   "mine": "hand"
+  },
+  "tokens": {
+   "Zombie": 2
+  },
+  "library": {
+   "1": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ },
+ "notes": "Printed: 'Choose a card name other than a basic land card name. Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them. That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.' Name Grim Twin: the opponent's four copies (two in hand, one in library, one in graveyard) are exiled; the opponent's other hand card and MY own copy stay. Two were exiled from their hand: exactly two Zombie tokens. The opponent's library (six fillers) is shuffled: the set of six remains."
+}

@@ -1,0 +1,17 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "sp", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+    {"key": "ox", "name": "Ox", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1},
+    {"key": "pinger", "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"R": 2}},
+  "steps": [
+    {"op": "cast", "real": "Scorching Dragonfire", "key": "sp", "targets": ["ox"]},
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "deal_damage", "source": "pinger", "target": "ox", "amount": 4}
+  ],
+  "expect": {"zone": {"sp": "graveyard", "ox": "graveyard"}},
+  "notes": "m21-fidelity item 4 (2026-10-29). 'If that creature or planeswalker would die this turn, exile it instead.' The Ox survives the 3 damage; it dies on the NEXT turn, after the replacement's 'this turn' ended, so it goes to the graveyard. The tree carries no duration: the executor gives a resolving instant's ReplacementAbility an end-of-turn lifetime (stack.py, replacements.register_ephemeral_replacements). Passed before and after the item-4 change; it pins the duration against regression."
+}

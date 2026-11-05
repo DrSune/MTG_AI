@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5748ebf1-24e3-499d-ab7c-c2cebd462a24",
+ "name": "Giant Growth",
+ "text_sha": "6d10d2c8b24c36806d7af330be81fb02b144e3fd04388778344c2994882e8bb4",
+ "verified": {
+  "tree_sha": "a8e67ee4abfbeee1030e0d096161faf73300cebe379640feed099942d0f7d324",
+  "probe_sha": "779ee7d52963d8bfe00d62415834d57fc44c6523b6420761b747085a018d79c1",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Target creature gets +3/+3 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_bear, opp_giant]; each [cast targets=[X]]: only X gets +3/+3 (you_bear 2/2 -> 5/5, opp_giant 4/4 -> 7/7, ...), and 'after the turn ends' X returns to printed P/T",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

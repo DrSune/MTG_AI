@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "49dc3434-2501-4788-84f2-93e55730f67c",
+ "name": "Selfless Savior",
+ "text_sha": "0c941ace6097a656a206d2c6fba76fe210c488e8d8e18b15c7c9ce0986f4fe16",
+ "verified": {
+  "tree_sha": "baed1d3549327cf76ee15f086ecc161b763d0bfeec354254a3b5c88ac849053d",
+  "probe_sha": "cc2626ca30bbc85a0c101aeea580e76503b02f65237c889c117e4a03828332dc",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Sacrifice this creature:",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield targets=['you_bear']]: card moves battlefield -> graveyard (by card/SACRIFICE), card dies, before ABILITY_ACTIVATED. No tap, no timing restriction.",
+    "issue": "engine-limit: no priority, so the instant-speed ability is used only in its controller's action window"
+   },
+   {
+    "clause": "Another target creature you control",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of [you_bear, you_giant]: own creatures only, the Savior itself and all opp_ creatures excluded.",
+    "issue": ""
+   },
+   {
+    "clause": "gains indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "you_bear: keywords +INDESTRUCTIBLE; 'after the turn ends: you_bear: keywords -INDESTRUCTIBLE' (same for you_giant). Packs: selfless_savior_indestructible_eot.json (target survives 5 damage, an untargeted bear dies) PASS; selfless_savior_wears_off.json (after end_turn, 5 damage destroys it) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/selfless_savior_1.json",
+   "tools/scenarios/cards/M21/selfless_savior_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

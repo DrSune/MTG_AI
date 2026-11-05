@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Chandra's Incinerator (M21): 'Whenever a source you control deals noncombat damage to an opponent, this creature deals that much damage to target creature or planeswalker that player controls.' Shock (a source seat 0 controls) deals 2 to seat 1: the Incinerator deals 2 to seat 1's only creature, which dies. Seat 0's own Bear is not a legal target (listed first, so a widened target list would offer it first) and survives.",
+ "cards": [
+  {"key": "inc", "zone": "battlefield", "controller": 0, "real": "Chandra's Incinerator"},
+  {"key": "mybear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "s1", "zone": "hand", "controller": 0, "real": "Shock"},
+  {"key": "obear", "zone": "battlefield", "controller": 1, "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s1", "decisions": ["player:1"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 18}, "zone": {"s1": "graveyard", "obear": "graveyard", "mybear": "battlefield", "inc": "battlefield"}, "damage_received": {"obear": 2, "mybear": 0}}}

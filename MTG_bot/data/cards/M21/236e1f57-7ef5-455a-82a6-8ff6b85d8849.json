@@ -1,0 +1,63 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "236e1f57-7ef5-455a-82a6-8ff6b85d8849",
+ "name": "Nine Lives",
+ "text_sha": "61b448032fbeda60020a5b61f72fca1a59e7aa61b23174cad2de333fe37728f8",
+ "verified": {
+  "tree_sha": "3bbe7d53124b7ef99544419ff658778d04e92e0455479d5f4228546bc670c0d0",
+  "probe_sha": "0db1d1889a2389c34fae656eb555364147a2d30cb45c2636a9e38ae6fa082020",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Nine Lives {1}{W}{W} Enchantment (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, paid W-3",
+    "issue": ""
+   },
+   {
+    "clause": "Hexproof",
+    "status": "OK",
+    "evidence": "keywords[0] HEXPROOF; static: card keywords HEXPROOF. Pack nine_lives_hexproof.json (the opponent's Secure the Scene cannot target it: 'illegal target selection') - PASS; control nine_lives_leaves_you_lose.json (its controller can target it)",
+    "issue": ""
+   },
+   {
+    "clause": "If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment.",
+    "status": "OK",
+    "evidence": "[on the opponent's turn, opp_bear attacks you]: 'card gets 1 INCARNATION counter', no life change (2 combat damage prevented); [your creature (you_bear) dies]: same as without the card (damage to your creature not prevented). Tree = parse template B5b-would-damage-incarnation. Pack nine_lives_prevents_damage_to_you_only.json (Shock at your Bear kills it, no counter; Shock at you prevented, exactly 1 counter) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "When there are nine or more incarnation counters on this enchantment, exile it.",
+    "status": "OK",
+    "evidence": "trace: ability [1] triggers at 1 counter, nothing happens (condition false). Tree = parse template B2a-nine-lives. Pack nine_lives_ninth_counter.json (8 counters, the opponent's Shock adds the 9th -> exiled) - PASS",
+    "issue": ""
+   },
+   {
+    "clause": "When this enchantment leaves the battlefield, you lose the game.",
+    "status": "OK",
+    "evidence": "not in the trace. Tree = parse template B2b-nine-lives-leave. Packs nine_lives_leaves_you_lose.json (exiled by your own Secure the Scene -> you lose, the opponent does not) - PASS; nine_lives_ninth_counter.json (exiled by its own trigger -> you lose) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/nine_lives_1.json",
+   "tools/scenarios/cards/M21/nine_lives_2.json",
+   "tools/scenarios/cards/M21/nine_lives_3.json",
+   "tools/scenarios/cards/M21/nine_lives_4.json",
+   "tools/scenarios/cards/M21/nine_lives_5.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 3,
+   "score": 0.42857142857142855,
+   "survived": [
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count",
+    "zone EXILE->GRAVEYARD at 1/1/effect/args/destination",
+    "controller YOU->OPPONENT at 1/2/event/from_zone/controller"
+   ]
+  }
+ }
+}

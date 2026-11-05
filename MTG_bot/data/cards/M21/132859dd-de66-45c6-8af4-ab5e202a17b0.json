@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "132859dd-de66-45c6-8af4-ab5e202a17b0",
+ "name": "Sanctum of Fruitful Harvest",
+ "text_sha": "4f4adcc6df6e7299460f3a9e02c77dc6ac57198e7ffbd2b3c5389b267d78b895",
+ "verified": {
+  "tree_sha": "360a66a983bd7dca6bc6bf682084f9537f8c068943b1ddb8e828316e6ff309cd",
+  "probe_sha": "b1c13d3e87e8f71c66d7bb17ab3c0dbc210c9d2c0504d88c0ad03dc1cc22e672",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Legendary Enchantment - Shrine {2}{G}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=ENCHANTMENT); [cast]: hand -> battlefield, mana G-1 W-2",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your first main phase,",
+    "status": "OK",
+    "evidence": "TurnPhaseEvent(FIRST_MAIN, actor CONTROLLER_IS YOU) (canonical B2a parse); [turns pass ...]: fires once over the turn cycle, after 'you draws' (my turn); no other stimulus fires it. Packs PASS: /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P8bee80a6c9_sanctum_not_opp_turn.json (no mana on the opponent's turn), /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P8bee80a6c9_sanctum_my_main.json (mana on my turn)",
+    "issue": ""
+   },
+   {
+    "clause": "add X mana of any one color, where X is the number of Shrines you control.",
+    "status": "OK",
+    "evidence": "ADD_MANA controller YOU, color ANY, amount QCount(Shrines you control); trace: 'ask mana' -> W, 'you: ... mana W+1' (X = 1, one Shrine); static: 'you: mana W+1'. Pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pcf5b0a5670_sanctum_counts_shrines.json (PASS): two Shrines of mine and one of the opponent's -> my pool G 2, the opponent's empty",
+    "issue": "engine (minor, engine-wide): the 'any one color' ask also offers C (verbs.py:94 _COLORS_VOCAB); CR 105.1 has five colors and colorless is not one. Not exploitable in M21 (no {C} costs), but an extra choice the text does not give"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sanctum_of_fruitful_harvest_1.json",
+   "tools/scenarios/cards/M21/sanctum_of_fruitful_harvest_2.json",
+   "tools/scenarios/cards/M21/sanctum_of_fruitful_harvest_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/amount/selector/filter"
+   ]
+  }
+ }
+}

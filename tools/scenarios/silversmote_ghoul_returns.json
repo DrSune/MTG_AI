@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Silversmote Ghoul in its owner's graveyard; its owner gains 4 life (Life Goes On, no creature died) and ends the turn: at the beginning of that end step the Ghoul returns to the battlefield tapped.",
+ "cards": [
+  {"key": "g", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "key": "lgo", "real": "Life Goes On"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 24, "1": 20},
+  "zone": {"g": "battlefield", "lgo": "graveyard"},
+  "tapped": {"g": true}
+ }
+}

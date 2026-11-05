@@ -16,6 +16,14 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1,
+    "B": 1
+   }
+  },
+  {
    "op": "cast",
    "key": "bg",
    "controller": 0
@@ -26,11 +34,5 @@
    "bg": "battlefield"
   }
  },
- "mana": {
-  "0": {
-   "C": 1,
-   "B": 1
-  }
- },
- "notes": "r23a (2026-10-02) ENGINE FIX \u2014 promoted from suspects. History: printed FLASH was never consulted \u2014 spell_window_reason (legality.py) keyed only on SpellKind, CREATURE sat in _SORCERY_WINDOW_KINDS, so casting Masked Blackguard on the opponent's turn raised 'illegal cast: window:not_your_turn'. The compiler half landed in C4 (SpellAbility(CREATURE) cast lane \u2014 before C4 the cast died at cast:not_a_spell and never reached the window gate). r23a lands the ENGINE half: spell_window_reason / spell_castable now consult the record's Keyword.FLASH and grant the instant window (CR 702.9a). GREEN now: Masked Blackguard (mana {C:1}{B:1}) casts on the opponent's turn and enters the battlefield."
+ "notes": "r23a (2026-10-02) ENGINE FIX — promoted from suspects. History: printed FLASH was never consulted — spell_window_reason (legality.py) keyed only on SpellKind, CREATURE sat in _SORCERY_WINDOW_KINDS, so casting Masked Blackguard on the opponent's turn raised 'illegal cast: window:not_your_turn'. The compiler half landed in C4 (SpellAbility(CREATURE) cast lane — before C4 the cast died at cast:not_a_spell and never reached the window gate). r23a lands the ENGINE half: spell_window_reason / spell_castable now consult the record's Keyword.FLASH and grant the instant window (CR 702.9a). GREEN now: Masked Blackguard (mana {C:1}{B:1}) casts on the opponent's turn and enters the battlefield. Re-pinned 2026-10-29 (V2): mana empties as each step and phase ends (CR 500.5), so the seat's mana is added at the step that spends it, standing in for the lands it taps there."
 }

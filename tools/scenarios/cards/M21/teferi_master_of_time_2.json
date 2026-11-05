@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "atk", "name": "My Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Blocker", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "tef", "set": 4},
+  {"op": "activate", "key": "tef", "idx": 2, "seat": 0, "targets": ["ob"]},
+  {"op": "combat", "seat": 0, "attack": {"atk": true}, "block": {"ob": "atk"}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "phased_out": {"ob": true},
+  "zone": {"tef": "battlefield", "ob": "battlefield", "atk": "battlefield"},
+  "counters": {"tef": {"LOYALTY": 1}},
+  "not_asked_to_block": ["ob"],
+  "life": {"1": 18}
+ },
+ "notes": "Printed Teferi, Master of Time: '[-3]: Target creature you don't control phases out.' (Treated as though it doesn't exist until its controller's next turn.) The opponent's 3/3 phases out: it cannot block my attacker (2 damage to the opponent), and it is still phased out at the end of my turn. Loyalty 4 -> 1."
+}

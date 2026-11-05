@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "sh", "real": "Sanctum of Shattered Heights", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"a": "battlefield", "sh": "graveyard"},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Printed: 'you may search ...'. The controller declines (skip): the Shrine stays in the graveyard and the library is neither searched nor shuffled."
+}

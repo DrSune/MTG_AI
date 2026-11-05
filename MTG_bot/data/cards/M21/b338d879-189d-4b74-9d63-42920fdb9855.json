@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b338d879-189d-4b74-9d63-42920fdb9855",
+ "name": "Kaervek, the Spiteful",
+ "text_sha": "2ddd4f523def3b82651dfa3f673408ec881a83d1f1b648ec87f25b23ea0a2f9f",
+ "verified": {
+  "tree_sha": "97dac3008a21104010272d7bfda1f1f3f9e9e0621645a534a14aeb96b9fb6324",
+  "probe_sha": "b6772b6ad538419d40c829017bef5faf0e99a76b65d1359b86be79d36c69ff67",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Other creatures get -1/-1.",
+    "status": "OK",
+    "evidence": "[cast] and Static: every other creature on both sides gets -1/-1 (you_bear 1/1, you_giant 3/3, opp_bear 1/1, opp_giant 3/3, opp_tapped 2/2) and the 1/1 opp_flier dies; the card itself stays 3/2. Continuous: creatures entering later are shrunk too (you_spare and opp_spare enter 2/2, Staunch Shieldmate 0/2). [this card is dealt lethal damage]: when it leaves, all return to printed P/T. Tree equals the compiler's parse (B4-modify-pt-other-creatures).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c8c6924e-9af8-4212-be28-b0b4eaa4c7d8",
+ "name": "Warden of the Woods",
+ "text_sha": "5e122fbc0696a68c5ba18fa46fa00451324a89769e298fce168982ff30804238",
+ "verified": {
+  "tree_sha": "f5f41520a99e1800dfafb551a6f5b1449000acd34ec2bddfb7cc0f781524d5ad",
+  "probe_sha": "06bab30aafe0fa666893d595eb788d00ab988155ae52386ab723095fd162c475",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4L",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "keywords +VIGILANCE; [stimulus: this creature attacks alone, unblocked] and [... opp_giant blocks it]: DECLARE_ATTACKERS with no 'card becomes tapped' event and no tapped change.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: TargetingEvent(filter IS_SOURCE, actor CONTROLLER_IS OPPONENT) -> OptionalEffect(DRAW 2, YOU), the R5-6 convention. Nothing targets it in the probe. Packs: warden_of_the_woods_opp_ability_targets.json (opponent's Rin and Seri ability -> draw 2) PASS; warden_of_the_woods_may_decline.json (opponent's Shock, may declined -> no draw) PASS; warden_of_the_woods_other_target.json (opponent's Shock at another creature -> no trigger) PASS; warden_of_the_woods_own_spell.json (own Shock -> no trigger) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/warden_of_the_woods_1.json",
+   "tools/scenarios/cards/M21/warden_of_the_woods_2.json",
+   "tools/scenarios/cards/M21/warden_of_the_woods_3.json",
+   "tools/scenarios/cards/M21/warden_of_the_woods_4.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 1,
+   "score": 0.16666666666666666,
+   "survived": [
+    "controller OPPONENT->YOU at 1/0/event/actor/who",
+    "optional->mandatory at 1/0/effect",
+    "amount+1 at 1/0/effect/inner/args/amount",
+    "amount-1 at 1/0/effect/inner/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/inner/args/controller"
+   ]
+  }
+ }
+}

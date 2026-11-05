@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-57 (2026-10-29): Subira's '{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a PLAYER, draw a card.' Subira enters (haste), pays the ability (discarding the one Spare card in hand; the engine refuses 'discard your hand' with an EMPTY hand, a separate weaker-than-printed cost bug), then two qualifying creatures attack: the Scout (2/2) is blocked by a 0/9 wall, the Runner (1/1) is unblocked. Only the Runner deals combat damage to a player, so the delayed trigger draws exactly ONE card. Before the fix its recipient filter was universal and the Scout's damage to the wall drew a second card.",
+ "cards": [
+  {"key": "s", "zone": "hand", "controller": 0, "real": "Subira, Tulzidi Caravanner"},
+  {"key": "spare", "zone": "hand", "controller": 0, "name": "Spare", "type": "Instant"},
+  {"key": "scout", "zone": "battlefield", "controller": 0, "name": "Scout", "type": "Creature", "power": 2, "toughness": 2},
+  {"key": "runner", "zone": "battlefield", "controller": 0, "name": "Runner", "type": "Creature", "power": 1, "toughness": 1},
+  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "enter", "key": "s"},
+  {"op": "activate", "key": "s", "idx": 1, "seat": 0, "targets": []},
+  {"op": "combat", "seat": 0, "attack": {"scout": true, "runner": true}, "block": {"wall": "scout"}}
+ ],
+ "expect": {"tapped": {"s": true}, "zone": {"spare": "graveyard"}, "life": {"1": 19}, "damage": {"wall": 2}, "hand": {"0": 1}}}

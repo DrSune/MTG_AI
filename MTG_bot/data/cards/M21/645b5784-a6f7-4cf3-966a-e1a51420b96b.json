@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "645b5784-a6f7-4cf3-966a-e1a51420b96b",
+ "name": "Mystic Skyfish",
+ "text_sha": "bdf7ff41c270cfd16d96c5b3ac62e24b17214333c1e763bc37f0d2112836751d",
+ "verified": {
+  "tree_sha": "877c08be1605c1be4488a7122e7660f4be5bb0ac9a024b759fa4c27bf60eed3a",
+  "probe_sha": "a153efc9ae706231640c54d2af80da2162add74aba0892a5d391fc0c49041bb1",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Creature — Fish {2}{U} 3/1",
+    "status": "OK",
+    "evidence": "[cast]: P/T 3/1, mana U-1 W-2; dies to 1 damage; attacks unblocked for 3 (opp 20 -> 17)",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you draw your second card each turn,",
+    "status": "OK",
+    "evidence": "[you draw two cards, one after the other]: 'card's triggered ability [0] triggers'; [you draw a card]: same as without the card; [the opponent draws a card]: none. Tree CardDrawnEvent actor CONTROLLER_IS YOU, ordinal=2. Packs: mystic_skyfish_opponent_second_draw.json (opponent's second card in their turn: no flying): PASS; mystic_skyfish_next_turn_second_card.json (next turn: draw-step card is first, Revitalize's is second: flying): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "this creature gains flying",
+    "status": "OK",
+    "evidence": "[you draw two cards]: 'card: keywords +FLYING' on the Skyfish only (target IS_SOURCE)",
+    "issue": ""
+   },
+   {
+    "clause": "until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The stimulus section shows no after-the-turn line. Tree duration DurationEot(). Pack mystic_skyfish_flying_wears_off.json (two draws, then end_turn: no flying): PASS; the same setup without end_turn shows FLYING (sanity run)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/mystic_skyfish_1.json",
+   "tools/scenarios/cards/M21/mystic_skyfish_2.json",
+   "tools/scenarios/cards/M21/mystic_skyfish_3.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 1,
+   "score": 0.5,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
+ }
+}

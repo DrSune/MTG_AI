@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "corpse"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "corpse": true
+   }
+  }
+ ],
+ "expect": {
+  "asks": {
+   "corpse": "ATTACK,DECLINE"
+  },
+  "attackers": {
+   "corpse": true
+  },
+  "life": {
+   "1": 18
+  }
+ },
+ "notes": "V41: with no planeswalker on the defending side the attack ask keeps its old shape, ATTACK or DECLINE, so games without planeswalkers are byte-identical."
+}

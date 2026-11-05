@@ -1,0 +1,19 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+    {"key": "fountain", "real": "Radiant Fountain", "zone": "hand", "controller": 0},
+    {"key": "lamb", "name": "Lamb", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"G": 1}},
+  "steps": [
+    {"op": "cast", "real": "Life Goes On", "key": "lgo"},
+    {"op": "deal_damage", "source": "lamb", "target": "lamb", "amount": 1},
+    {"op": "play", "key": "fountain"}
+  ],
+  "expect": {
+    "zone": {"lgo": "graveyard", "lamb": "graveyard", "fountain": "battlefield"},
+    "life": {"0": 26}
+  },
+  "notes": "m21-fidelity item 4 (2026-10-29). Printed: 'You gain 4 life. If a creature died this turn, you gain 8 life instead.' The 'instead' rewrites the spell's own instruction (CR 608.2c): it gains 4 here (no creature has died yet), 20 -> 24. Then a creature dies and Radiant Fountain's 'When this land enters, you gain 2 life' gains exactly 2: 26. Before the fix the sentence was a ReplacementAbility registered for the rest of the turn, so the Fountain's 2 became 8 (32): stronger than printed."
+}

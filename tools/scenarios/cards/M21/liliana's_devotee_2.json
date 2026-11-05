@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dev", "real": "Liliana's Devotee", "zone": "battlefield", "controller": 0},
+  {"key": "sw1", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "sw2", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "src", "name": "My Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "src", "target": "ob", "amount": 2},
+  {"op": "end_turn", "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"ob": "graveyard"}, "tokens": {"Zombie": 1}, "battlefield_pt": {"Zombie": [3, 2]}, "tapped": {"sw1": true, "sw2": true}},
+ "notes": "Printed: 'At the beginning of your end step, if a creature died this turn, you may pay {1}{B}. If you do, create a 2/2 black Zombie creature token.' The opponent's bear died this turn; at your end step you pay {1}{B} (the two Swamps tap) and get one 2/2 Zombie, which the Devotee's static makes 3/2."}

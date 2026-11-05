@@ -98,6 +98,7 @@ from MTG_bot.core.executor.games import (
 from MTG_bot.core.executor.legality import activate, ctx_for, spell_castable
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
+    activation_target_slots,
     is_aura_spell,
     legal_casts,
     legal_targets,
@@ -209,6 +210,16 @@ class DeckSupplyTest(unittest.TestCase):
         # Denial — measure_grammar --with-engine-flags: 301/305), zero
         # losses. Deckable unchanged: all four are instants, the castable
         # lane; the window now answers for them when they are cast.
+        # AMENDED 2026-10-29 (B-49 follow-up #1): 301 -> 299 — exactly the two Chandras
+        # (Flame's Catalyst, Heart of Fire) leave: their duration-limited cast
+        # permissions are suppressed and the gate marks them unsupported.
+        # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
+        # Spirit Dragon leaves: a [−X] loyalty cost needs an X declaration the
+        # activation lane does not have, so the shape gate marks it unsupported.
+        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299 (Ugin is
+        # supported again: legality.activate announces X, CR 602.2b/606.6).
+        # re-pinned 2026-10-29: phasing (PHASE_OUT, CR 702.26) changes 299 -> 301,
+        # exactly Teferi, Master of Time and Teferi, Timeless Voyager.
         self.assertEqual(len(self.supply.engine_ids), 301)
 
 
@@ -245,6 +256,11 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
+        # B-49 follow-up #1 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
+        # Chandras whose duration permissions are suppressed).
+        # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
+        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299, 278 -> 279 (Ugin back).
+        # re-pinned 2026-10-29: phasing changes 299 -> 301, 279 -> 281 (the two Teferis).
         self.assertEqual(len(m21.engine_ids), 301)
         self.assertEqual(len(m21.deckable), 281)
 
@@ -2014,7 +2030,9 @@ class Round16eControlTest(unittest.TestCase):
         )
         spell = world.add_card(identity_of(record), p0, ZONE_HAND)
         self._arm(world, executor, p0)
-        cast(executor, p0, spell, targets=(victim,), decisions=("C",))
+        # re-pinned 2026-10-29: V4 changes "Add one mana of any color" to offer
+        # the five colors only (CR 105.1, 106.1a); "C" was never a color.
+        cast(executor, p0, spell, targets=(victim,), decisions=("R",))
         self.assertEqual(executor.controller_of(victim), p0)
         executor.end_turn()
         self.assertEqual(executor.controller_of(victim), p1)
@@ -2043,6 +2061,10 @@ class Round16eControlTest(unittest.TestCase):
             p1,
             ZONE_BATTLEFIELD,
         )
+        # re-pinned 2026-10-29: V20 (B-66) applies the Aura's "You can't choose
+        # an untapped creature as this spell's target as you cast it", so the
+        # victim must be tapped to be a legal target.
+        world.cards[victim].tapped = True
         cast(executor, p0, aura, targets=(victim,))
         self.assertEqual(world.zone_of(aura).kind, ZONE_BATTLEFIELD)
         self.assertEqual(executor.attachments.get(aura), victim)
@@ -2200,6 +2222,113 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
         self.assertEqual(executor.attachments.get(aura), host)
 
 
+class AuraEnchantRestrictionTest(unittest.TestCase):
+    """B-49 follow-up #2 (2026-10-29): "Enchant creature" limits what an Aura spell can
+    target (CR 303.4a, 702.5a). An Aura cast through the effect-less carrier
+    has no effect tree to read the restriction from, so its enchant slot fell
+    back to any permanent: Dub, Capture Sphere and six more M21 Auras, and
+    ZNR's Bubble Snare, could be cast onto a land and stay there. The compiled
+    ENCHANT keyword now carries the Enchant line's filter and the slot reads it."""
+
+    def _slot_names(self, set_code: str, aura_name: str) -> set[str]:
+        supply = get_supply("all", set_code)
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        by_name = {meta.name: oid for oid, meta in supply.metas.items()}
+        board = {"Island": (p0, p1), "Short Sword": (p0, p1)} if set_code == "M21" else {"Island": (p0, p1)}
+        for name, seats in board.items():
+            for seat in seats:
+                world.add_card(identity_of(supply.pool.results[by_name[name]].card), seat, ZONE_BATTLEFIELD)
+        for seat, label in ((p0, "Own"), (p1, "Opp")):
+            world.add_card(card_id(f"{label} Bear", type_line="Creature — Bear", power="2", toughness="2"),
+                           seat, ZONE_BATTLEFIELD)
+        record = supply.pool.results[by_name[aura_name]].card
+        aura = world.add_card(identity_of(record), p0, ZONE_HAND)
+        node = next(a for a in record.abilities if isinstance(a, SpellAbility))
+        (slot,) = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
+        return {
+            f"{'own' if world.controller_of(h) == p0 else 'opp'} {world.cards[h].identity.name}"
+            for h in slot.candidates
+        }
+
+    def test_every_m21_aura_keyword_carries_its_enchant_filter(self) -> None:
+        cards = get_supply("all", "M21").pool.results.values()
+        auras = {
+            res.card.name: next(ka for ka in res.card.keywords if ka.keyword is Keyword.ENCHANT)
+            for res in cards
+            if any(ka.keyword is Keyword.ENCHANT for ka in res.card.keywords)
+        }
+        self.assertEqual(len(auras), 10)
+        self.assertTrue(all(len(ka.params) == 1 for ka in auras.values()), auras)
+        self.assertEqual(auras["Dub"].params, (FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),))
+        self.assertEqual(auras["Faith's Fetters"].params, (FAtom(pred=FAtomPred.IS_PERMANENT),))
+
+    def test_carrier_auras_offer_only_legal_hosts(self) -> None:
+        creatures = {"own Own Bear", "opp Opp Bear"}
+        for aura in ("Capture Sphere", "Demonic Embrace", "Dub", "Furor of the Bitten",
+                     "Infernal Scarring", "Light of Promise", "Rousing Read"):
+            self.assertEqual(self._slot_names("M21", aura), creatures, aura)
+        # "Enchant creature you control"
+        self.assertEqual(self._slot_names("M21", "Setessan Training"), {"own Own Bear"})
+        # "Enchant permanent" keeps every permanent
+        self.assertEqual(len(self._slot_names("M21", "Faith's Fetters")), 6)
+
+    def test_bubble_snare_is_fixed_by_the_same_change(self) -> None:
+        self.assertEqual(self._slot_names("ZNR", "Bubble Snare"), {"own Own Bear", "opp Opp Bear"})
+
+
+class TormodsCryptTargetPlayerTest(unittest.TestCase):
+    """B-49 follow-up #3 (2026-10-29): "Exile target player's graveyard" names
+    the player only inside a selector's zone, Zone(GRAVEYARD, TARGET_PLAYER).
+    The activation lane's scan missed that read, so no player slot was built,
+    the policy designated nothing, and the activation raised "TARGET_PLAYER
+    needs a bound target" once the B-49 carrier made the Crypt castable (14% of
+    stress and 24% of coherent castable games). "target player" is a target
+    (CR 115.1). The slot is the existing synthesized one; since V21 (2026-10-29)
+    it offers every player, the caster included (B-53)."""
+
+    def _armed(self):
+        supply = get_supply("all", "M21")
+        reset_oracle_ids()
+        world = GameWorld(num_players=2, start_life=20, master_seed=7)
+        executor = Executor(world)
+        executor.attach_pool(supply.pool)
+        p0, p1 = world.player_order
+        record = next(r.card for r in supply.pool.results.values() if r.card.name == "Tormod's Crypt")
+        crypt = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        executor.attach_card(crypt, record)
+        mine = world.add_card(card_id("Own Dead", power="1", toughness="1"), p0, ZONE_GRAVEYARD)
+        theirs = [
+            world.add_card(card_id(f"Opp Dead {i}", power="1", toughness="1"), p1, ZONE_GRAVEYARD)
+            for i in range(2)
+        ]
+        world.active_player = p0
+        executor.turn_open = True
+        executor.phase = "FIRST_MAIN"
+        return world, executor, p0, p1, record, crypt, mine, theirs
+
+    def test_the_zone_read_opens_one_required_player_slot(self) -> None:
+        _world, executor, p0, p1, record, crypt, _mine, _theirs = self._armed()
+        (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
+        self.assertTrue(slot.synthetic)
+        self.assertEqual((slot.min_count, slot.max_count), (1, 1))
+        # re-pinned 2026-10-29: V21 fixes B-53: "target player" is any player (CR 115.1).
+        self.assertEqual(slot.candidates, (p0, p1))
+
+    def test_the_designated_activation_exiles_exactly_that_graveyard(self) -> None:
+        world, executor, p0, _p1, record, crypt, mine, theirs = self._armed()
+        (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
+        # re-pinned 2026-10-29: V21: the slot names both seats now; designate the opponent.
+        self.assertIn(_p1, slot.candidates)
+        activate(executor, crypt, 0, seat=p0, targets=(_p1,))
+        self.assertEqual([world.zone_of(h).kind for h in theirs], [ZONE_EXILE, ZONE_EXILE])
+        self.assertEqual(world.zone_of(mine).kind, ZONE_GRAVEYARD)
+        self.assertEqual(world.zone_of(crypt).kind, ZONE_GRAVEYARD)  # sacrificed as the cost
+
+
 # ---------------------------------------------------------------------------
 # Stall rule (CR 104.4b): a world fingerprint that repeats exactly across
 # REPEAT_ROUNDS consecutive per-seat round observations ends the game early
@@ -2335,15 +2464,63 @@ class StallRuleTest(unittest.TestCase):
         # asks consume policy RNG draws on the new sites, so the seeded
         # trajectory shifts again — still decisive, SAME loser, 30 turns
         # (double-run replay verified).
-        # RE-ANCHORED 2026-11-05 (KNOWLEDGE/2026-11-03/183 §33): mana pools empty at the
-        # transition into their owner's turn instead of banking forever, so random play
-        # casts less and seed 73 now runs to the turn cap (still no stall). Seed 60 is the
-        # longest decisive game among seeds 60-99 under the new rule: 59 turns, player 1
-        # loses (double-run replay verified).
-        game = play_game(60, "all", SMOKE_DECK_PAIRS)
+        # RE-ANCHORED 2026-10-29 (B-49 + follow-up #3): the B-49 carrier made
+        # Tormod's Crypt castable, and player 0 casts and activates it. That
+        # activation crashed at turn 4 ("TARGET_PLAYER needs a bound target")
+        # until its player slot existed; it now exiles player 1's graveyard.
+        # Still crash-free and decisive, SAME loser, 36 turns (double-run
+        # replay verified). Neither Chandra in these decks is cast.
+        # re-pinned 2026-10-29: V10 changes Kinetic Augur's discard (seat 0,
+        # card:7) from the engine's lowest-handle pick to two asks of the
+        # discarding player (CR 701.9b), which draw policy RNG. Still
+        # decisive, SAME loser, 32 turns (double-run replay verified).
+        # re-pinned 2026-10-29: m21-fidelity folds Liliana's Scorn's tutor into
+        # its resolution (it was a free activated row that never ran), and the
+        # seat casting Scorn (turns 13 and 25) now gets the may-search ask and
+        # its search/shuffle, so the seeded trajectory shifts. The game is no
+        # longer decisive: it runs to the 60-turn cap with no loser, crash-free,
+        # its world changing every round (141 acts), so the stall rule still
+        # must not and does not fire (double-run replay verified: same
+        # fingerprint, turns and reason).
+        # re-pinned 2026-10-29: V36 changes the cleanup step: the active
+        # player now discards down to seven (CR 514.1), asking the policy
+        # which cards, so hands no longer grow without limit and the seeded
+        # trajectory shifts. Still crash-free and decisive, SAME loser,
+        # 58 turns (double-run replay verified, equal fingerprints).
+        # re-pinned 2026-10-29: V37 changes "end the turn" (CR 724.1): player 1
+        # casts Discontinuity here, which now skips the end step (it used to
+        # run two) and closes that turn's act window. Still crash-free and
+        # decisive, SAME loser, 50 turns (double-run replay verified, equal
+        # fingerprints).
+        # re-pinned 2026-10-29 (cards/integration merged into engine/verify-fixes-4):
+        # with m21-fidelity, V36 and V37 together the game is decisive again,
+        # SAME loser as before, 50 turns (double-run replay verified, equal
+        # fingerprints).
+        # re-pinned 2026-10-30 (cards/integration 6c10726 merged into
+        # engine/verify-fixes-2): with V10's 32 turns above superseded by every
+        # lane together, the final state differs from integration's (another
+        # fingerprint) but the game is still decisive, SAME loser, 50 turns and
+        # 97 acts (double-run replay verified, equal fingerprints).
+        # re-pinned 2026-10-29 (on engine/verify-fixes, before its merge): V2 (mana empties as each step and phase ends,
+        # CR 500.5; no more banked mana) changes the trajectory: still
+        # decisive, SAME loser, 48 turns. B-90 (a) (response windows tap mana
+        # abilities while paying, CR 605.3a) shifts it again: still decisive,
+        # SAME loser, 46 turns (double-run replay verified).
+        # re-pinned 2026-10-30 (cards/integration merged into engine/verify-fixes):
+        # V2 and B-90 (a) together with m21-fidelity, V36 and V37 shift the
+        # seeded trajectory again. The game is no longer decisive: it runs to
+        # the 60-turn cap with no loser, crash-free (95 acts; many late acts
+        # tap lands for mana the random policy then leaves unspent, and it
+        # empties, CR 500.5), so the stall rule still must not and does not
+        # fire (double-run replay verified: same fingerprint, turns and
+        # reason). Measured on the two parents: integration alone 50 turns,
+        # decisive (97 acts); engine/verify-fixes alone 46 turns, decisive (87).
+        # Re-measured 2026-10-30 after cards/integration 9553ae1 (vfix2's lane) merged in:
+        # the same 60-turn cap, no loser, 95 acts (double-run verified).
+        game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 59)
-        self.assertEqual(game.reason, "game over: player:1(life<=0)")
+        self.assertEqual(game.turns, 60)
+        self.assertEqual(game.reason, "turn cap 60 reached (no loser)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

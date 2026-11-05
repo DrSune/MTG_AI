@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Taunter's controller Shocks their own Brash Taunter: it is dealt 2 damage and deals 2 to TARGET OPPONENT (seat 1: 20 -> 18), never to its controller.",
+ "cards": [
+  {"key": "bt", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["bt"], "decisions": ["p1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"bt": "battlefield"},
+  "damage": {"bt": 2}
+ }
+}

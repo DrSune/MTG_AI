@@ -1,0 +1,21 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P802f38f3c2. Printed: '[-6]: You get an emblem with \"At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.\"' Loyalty 6 -> 0: Basri goes to the graveyard (CR 704.5i), and the emblem stays. My combat this turn: Soldier #1, then a counter on the Wolf and on Soldier #1. The opponent's combat: nothing ('on your turn'). My next combat: Soldier #2, then a counter on the Wolf, Soldier #1 and Soldier #2. So 2 Soldiers, the Wolf has 2 counters (4/4), and the opponent's creature none (2/2).",
+ "cards": [
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "opp_cr", "name": "Their Cat", "type": "Creature — Cat", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 6},
+  {"op": "activate", "key": "basri", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0}
+ ],
+ "expect": {"tokens": {"Soldier": 2}, "zone": {"basri": "graveyard", "wolf": "battlefield", "opp_cr": "battlefield"},
+            "counters": {"wolf": {"PLUS_1_PLUS_1": 2}, "opp_cr": {}},
+            "power": {"wolf": 4, "opp_cr": 2}, "toughness": {"wolf": 4, "opp_cr": 2}}}

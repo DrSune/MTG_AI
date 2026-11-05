@@ -42,3 +42,5 @@ reports/episodes_iter1.jsonl
 
 # --- Self-play runs (metrics + checkpoints; numbers go to KNOWLEDGE/NUMBERS.md) ---
 runs/
+# card tooling caches (tools/cards/corpus.py), rebuilt on demand
+.cache/

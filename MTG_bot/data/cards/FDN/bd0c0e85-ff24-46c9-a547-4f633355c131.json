@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "bd0c0e85-ff24-46c9-a547-4f633355c131",
+ "name": "Giant Cindermaw",
+ "text_sha": "73b6b447754227e27ab6f8876031b23274666bd0b03da13b8b686e1de7853c1c",
+ "needs_atom": {
+  "missing": "Players can't gain life.: no node expresses a standing 'can't gain life' prohibition over a player set. PREVENT_EFFECT has no LifeGainedEvent lane (replacements.py prevention consumers cover damage, untap, attack and block declarations only); a ReplacementAbility on LifeGainedEvent needs a replacement action and the executor accepts only actor CONTROLLER_IS YOU (replacements.py:526 raises NotImplementedError otherwise), so 'Players' (every player, the controller's own drawback included) cannot be stated. Trample keyword is compiled correctly.",
+  "author": "claude-mapper-A",
+  "date": "2026-10-29"
+ }
+}

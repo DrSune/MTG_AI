@@ -1,0 +1,25 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fabled Passage plus two other lands of yours; the opponent controls five lands. {T}, sacrifice: the only BASIC land in the library (Forest) enters tapped, the nonbasic Bloodfell Caves stays in the library. You then control 3 lands (the opponent's do not count), so the Forest stays tapped.",
+ "cards": [
+  {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "real": "Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "real": "Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "o3", "real": "Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "o4", "real": "Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "o5", "real": "Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "caves", "real": "Bloodfell Caves", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "fp", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"fp": "graveyard", "forest": "battlefield", "caves": "library"},
+  "tapped": {"forest": true, "p1": false, "i1": false}
+ }
+}

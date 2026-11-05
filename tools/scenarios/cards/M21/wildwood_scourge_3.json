@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ws", "real": "Wildwood Scourge", "zone": "hand", "controller": 0},
+  {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0},
+  {"key": "foe", "name": "Foe", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "cast", "key": "ws", "real": "Wildwood Scourge", "x": 2},
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["foe"]}
+ ],
+ "expect": {
+  "counters": {"ws": {"PLUS_1_PLUS_1": 2}, "foe": {"PLUS_1_PLUS_1": 1}}
+ },
+ "notes": "P649da1d5b6 G4: 'another non-Hydra creature YOU CONTROL'. Basri Ket's +1 puts a counter on the opponent's creature: no trigger, the Scourge keeps its X=2 counters."
+}

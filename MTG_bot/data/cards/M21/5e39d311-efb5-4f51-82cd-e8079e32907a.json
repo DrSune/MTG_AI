@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "5e39d311-efb5-4f51-82cd-e8079e32907a",
+ "name": "Sanctum of Shattered Heights",
+ "text_sha": "37fcef7d2cca7311ec1bbb61b301ec39728aa84db5afa9db4b196bc33ddbabf8",
+ "verified": {
+  "tree_sha": "4525af363ba99e2e30f94d32d2be1182355609cb6430a4286417baf7fadb7608",
+  "probe_sha": "e87db716e8530666957735ea199fc602337e474e2cdce3b545ac7eb2957f8d75",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-C",
+  "clauses": [
+   {
+    "clause": "Legendary Enchantment {2}{R} (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> battlefield; mana R-1 W-2",
+    "issue": ""
+   },
+   {
+    "clause": "{1}, Discard a land card ...",
+    "status": "OK",
+    "evidence": "every [activate [0]] variant: you_land_drop hand -> graveyard with no discard ask (you_spare and you_trick not offered); mana W-1",
+    "issue": ""
+   },
+   {
+    "clause": "... or Shrine card",
+    "status": "NOT_EXERCISED",
+    "evidence": "no Shrine card in the probe hand; pack sanctum_heights_shrine_discard_planeswalker.json: Sanctum of All discarded to pay, off-filter Bystander stays in hand, PASS",
+    "issue": ""
+   },
+   {
+    "clause": "~ deals X damage to target creature",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of the 8 creatures; each variant deals 2 only to the chosen target (you_bear dies, you_giant damage 0 -> 2, ...)",
+    "issue": ""
+   },
+   {
+    "clause": "... or planeswalker",
+    "status": "NOT_EXERCISED",
+    "evidence": "no planeswalker on the probe board; pack sanctum_heights_shrine_discard_planeswalker.json: opponent's Basri Ket 5 -> 2 loyalty, PASS",
+    "issue": ""
+   },
+   {
+    "clause": "where X is the number of Shrines you control",
+    "status": "OK",
+    "evidence": "probe: X = 2 (the card and you_shrine; opp_shrine not counted); pack: X = 3 with three own Shrines and one opposing Shrine",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sanctum_of_shattered_heights_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

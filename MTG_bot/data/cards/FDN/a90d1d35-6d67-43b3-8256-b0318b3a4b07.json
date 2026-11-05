@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "a90d1d35-6d67-43b3-8256-b0318b3a4b07",
+ "name": "Prideful Parent",
+ "text_sha": "da02504302ba37f9c7ab541943946c2618d531c47d18977ddbc50a32decb7386",
+ "verified": {
+  "tree_sha": "79748c7d892bd1bea60b69cead0d8d69d00d468c182ea00d48196f6068c4dd12",
+  "probe_sha": "d9936e28b9871a884bf0582e3d31f2833263c500063db7fdf3cde7bb8a536344",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "status": "OK",
+    "evidence": "keywords [VIGILANCE]; [stimulus: this creature attacks alone, unblocked] and the blocked variant: DECLARE_ATTACKERS with no 'card becomes tapped' event",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create a 1/1 white Cat creature token.",
+    "status": "OK",
+    "evidence": "[cast]: ability [0] triggers, 'you:Cat moves new -> battlefield (by card/CREATE_TOKEN)', '+ you:Cat (battlefield, you, 1/1)', exactly one token; same on the opponent's-turn entry; tree TokenSpec Cat, 'Creature — Cat', 1/1, color 'W'",
+    "issue": ""
+   },
+   {
+    "clause": "(2/2 Cat creature, {2}{W})",
+    "status": "OK",
+    "evidence": "[cast]: enters 2/2 +VIGILANCE for W-3",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

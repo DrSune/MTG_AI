@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "notes": "Liliana's Scrounger, printed: 'At the beginning of EACH end step'. Your own end step passes with no death (no counter). On the opponent's turn the opponent's bear dies; at the opponent's end step your Scrounger triggers and you put the counter on your Liliana (3 -> 4).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sc", "real": "Liliana's Scrounger", "zone": "battlefield", "controller": 0},
+  {"key": "lili", "real": "Liliana, Waker of the Dead", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "lili"},
+  {"op": "loyalty", "key": "lili", "set": 3},
+  {"op": "end_turn", "decisions": ["fire", "lili"]},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "sc", "target": "obear", "amount": 99},
+  {"op": "end_turn", "decisions": ["fire", "lili"]}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard"},
+  "counters": {"lili": {"LOYALTY": 4}}
+ }
+}

@@ -1,0 +1,102 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cv",
+   "real": "Cultivate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "fo1",
+   "name": "Forest",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "fo2",
+   "name": "Forest",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "pl",
+   "name": "Plains",
+   "type": "Basic Land — Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "is",
+   "name": "Island",
+   "type": "Basic Land — Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "nb",
+   "name": "Temple of Nothing",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "junk",
+   "name": "Top Junk",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opp_fo",
+   "name": "Forest",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Cultivate",
+   "key": "cv",
+   "decisions": [
+    "pl",
+    "is",
+    "is"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cv": "graveyard",
+   "junk": "hand",
+   "is": "battlefield",
+   "pl": "hand",
+   "fo1": "library",
+   "fo2": "library",
+   "nb": "library",
+   "opp_fo": "library"
+  },
+  "tapped": {
+   "is": true
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "notes": "Printed Cultivate: 'Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.' Four basics and a nonbasic land in the library: I find Plains and Island; Island enters tapped, Plains goes to hand. Exactly two lands leave the library: both Forests, the nonbasic land and the opponent's library stay. Top Junk is listed last, so the runner's opening draw puts it in hand: hand = Top Junk + Plains = 2. W4-6 (review wave 4, fixed 2026-10-30): the ONE_OF/REST partition divides the cards the search found (ExecCtx.search_found); before, the REST re-read the library and took every basic left in it, so both unfound Forests went to hand too (hand 4)."
+}

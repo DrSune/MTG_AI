@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "s0", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "s1", "real": "Shock", "controller": 1, "targets": ["bear"]},
+  {"op": "cast", "key": "s0", "real": "Shock", "controller": 0, "targets": ["t"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "zone": {"t": "battlefield", "bear": "graveyard", "s0": "graveyard", "s1": "graveyard"}, "damage": {"t": 2}},
+ "notes": "Printed: 'Spells YOUR OPPONENTS cast that TARGET THIS CREATURE cost an additional 3 life.' The opponent's Shock at another creature pays no life; your own Shock at Terror pays no life either."}

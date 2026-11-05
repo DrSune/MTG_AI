@@ -1,0 +1,54 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "3127ae9b-a7a7-43ec-89d7-688f8445b33d",
+ "name": "Garruk's Uprising",
+ "text_sha": "272cf8b97081eac971a122b396760699c67f435be6df9116f5c2ff765871c214",
+ "verified": {
+  "tree_sha": "cfc8288795876923f3258564d6be645418ac80ddc88e3c23451cf951ee3bb751",
+  "probe_sha": "8d044f91c785124eceab17a23b4afeaf915d15f1f2d381d83d36a8600a46c997",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-A",
+  "clauses": [
+   {
+    "clause": "When this enchantment enters, if you control a creature with power 4 or greater, draw a card.",
+    "status": "OK",
+    "evidence": "abilities[0] matches parse (B2b-etb-power-condition-draw); [cast] with you_giant 4/4 on board: triggered ability [0] triggers, you draws you:Library 5#1 (one card). Condition-false case: pack garruks_uprising_etb_no_big.json (own 3/3 only, opponent's 5/5 does not count -> no draw) PASSES",
+    "issue": ""
+   },
+   {
+    "clause": "Creatures you control have trample.",
+    "status": "OK",
+    "evidence": "abilities[1]; static section: you_bear, you_giant +TRAMPLE, opponent's creatures unchanged; you_spare and Staunch Shieldmate entering get +TRAMPLE",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever a creature you control with power 4 or greater enters, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "abilities[2] matches parse (B2b-power-ge-enters-draw); trace only shows 3/3 you_spare and 1/3 Shieldmate entering with no draw (correct). Pack garruks_uprising_big_enters.json (own 4/4 enters -> 1 draw; own 3/5 and opponent's 6/6 -> none) PASSES",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/garruk's_uprising_1.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_2.json"
+  ],
+  "mutation": {
+   "mutants": 20,
+   "killed": 10,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "amount-1 at 1/0/condition/inner_filter/children/1/count",
+    "controller YOU->OPPONENT at 1/2/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/2/event/subject",
+    "widen filter (drop part 1) at 1/2/event/subject",
+    "controller YOU->OPPONENT at 1/2/event/subject/children/0/who",
+    "amount+1 at 1/2/event/subject/children/2/count",
+    "amount+1 at 1/2/effect/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/args/controller"
+   ]
+  }
+ }
+}

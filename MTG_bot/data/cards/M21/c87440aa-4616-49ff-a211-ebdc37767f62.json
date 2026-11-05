@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c87440aa-4616-49ff-a211-ebdc37767f62",
+ "name": "Lorescale Coatl",
+ "text_sha": "84984e65aa2bff6d100b87eeb349741dc47e57853c970e99c63063b6bc976264",
+ "verified": {
+  "tree_sha": "df909a3c9a157e8e626897e717661768ddb92f8b4df47f7062ada9176ee271fc",
+  "probe_sha": "efa1cc476bd36049a995186709c7322a2d590b2e7ab33f733afd83e103ceff9f",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Whenever you draw a card, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[stimulus: you draw a card]: trigger [0], 'card gets 1 PLUS_1_PLUS_1 counter(s)', 2/2 -> 3/3; [you draw two cards]: two triggers, counters 2, 4/4; [turns pass ... your next upkeep]: own draw step triggers, 1 counter; [you cast Crash Through]: its draw triggers; [the opponent draws a card]: none.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

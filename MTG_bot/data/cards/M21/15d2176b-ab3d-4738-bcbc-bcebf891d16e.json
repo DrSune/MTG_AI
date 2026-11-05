@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "15d2176b-ab3d-4738-bcbc-bcebf891d16e",
+ "name": "Life Goes On",
+ "text_sha": "fa8c4941eb471b53ad21ef9837c22e6057e06d7e1094d17fb7575c45dab82af5",
+ "verified": {
+  "tree_sha": "9be48729f63edb3206162cf5715db438a175408456c451b9a249726548e7969f",
+  "probe_sha": "ff9c546adc3807f84956a5c5e79e12b85b91df20b571d07a0e5778a2f003b8d6",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "You gain 4 life.",
+    "status": "OK",
+    "evidence": "[cast] (no creature died): 'you gains 4 life (by card/GAIN_LIFE)', life 20 -> 24. Instant carrier, cost {G} (mana G-1).",
+    "issue": ""
+   },
+   {
+    "clause": "If a creature died this turn, you gain 8 life instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: Conditional(DIED_THIS_TURN, then GAIN 8, else GAIN 4): a true 'instead'. The engine counts only creature death rows (quantity.py:1534, B-56). Packs: life_goes_on_creature_died_gain_8 (opp 2/2 killed, then cast: 20 -> 28, not 24 or 32) PASS; life_goes_on_noncreature_died_gain_4 (only an artifact went to the graveyard: 20 -> 24) PASS; life_goes_on_creature_died_last_turn_gain_4 (creature died two turns earlier: 20 -> 24) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/life_goes_on_1.json",
+   "tools/scenarios/cards/M21/life_goes_on_2.json",
+   "tools/scenarios/cards/M21/life_goes_on_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/0/effect/then_effect/args/amount",
+    "amount-1 at 1/0/effect/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/then_effect/args/controller"
+   ]
+  }
+ }
+}

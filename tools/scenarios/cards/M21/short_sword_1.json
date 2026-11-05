@@ -1,0 +1,17 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Equipped creature gets +1/+1. Equip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)'. On the opponent's turn the equip is refused (sorcery timing). Back on its controller's turn the equip attaches to Bearer (2/2 -> 3/3) and spends exactly one of the three colorless. Re-pinned 2026-10-30 (V2 + B-90 (a), at the cards/integration merge): mana empties as each step and phase ends (CR 500.5), so the mana is added at the step that spends it, standing in for the lands tapped there.",
+ "cards": [
+  {"key": "s", "real": "Short Sword", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Bearer", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "s"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 3}},
+  {"op": "activate", "key": "s", "idx": 1, "seat": 0, "targets": ["a"],
+   "expect_raise": "illegal activation: window:sorcery"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 3}},
+  {"op": "activate", "key": "s", "idx": 1, "seat": 0, "targets": ["a"]}
+ ],
+ "expect": {"power": {"a": 3}, "toughness": {"a": 3}, "attached": {"s": "a"}, "mana_pool": {"0": {"C": 2}}}}

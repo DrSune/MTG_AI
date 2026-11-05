@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 0},
+  {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "elim", "real": "Eliminate", "controller": 0, "targets": ["h"]}
+ ],
+ "expect": {"zone": {"h": "graveyard", "elim": "graveyard"}},
+ "notes": "Printed: 'Hexproof from black' only stops spells and abilities YOUR OPPONENTS control (CR 702.11d). Its controller's own black Eliminate may target it (mana value 3) and destroys it."}

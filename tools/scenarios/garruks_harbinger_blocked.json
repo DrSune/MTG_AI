@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-57 (2026-10-29): 'Whenever this creature deals combat damage to a PLAYER OR PLANESWALKER, look at that many cards from the top of your library ... Put the rest on the bottom of your library in a random order.' Blocked by a 0/9 wall, the Harbinger deals its 4 damage only to the wall (a creature), so the trigger does not fire and the library keeps its order (filler Library 5 on top). Before the fix the recipient filter was universal: it looked at 4 and sent them to the bottom. The unblocked twin is garruks_harbinger.json.",
+ "cards": [
+  {"key": "h", "zone": "battlefield", "controller": 0, "real": "Garruk's Harbinger"},
+  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"h": true}, "block": {"wall": "h"}, "may": {"h": true}}],
+ "expect": {"life": {"1": 20}, "damage": {"wall": 4}, "hand": {"0": 0},
+            "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}}}

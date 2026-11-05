@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (controller YOU->OPPONENT on the granted trigger's actor). Printed: 'Enchanted creature has \"Whenever YOU gain life, put that many +1/+1 counters on this creature.\"' Cast onto your 2/2 Host; you gain 3 life (Revitalize) and nobody else gains life: the Host gets exactly 3 +1/+1 counters (5/5).",
+ "cards": [
+  {"key": "lp", "real": "Light of Promise", "zone": "hand", "controller": 0},
+  {"key": "host", "name": "Host", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "rev", "real": "Revitalize", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Light of Promise", "key": "lp", "targets": ["host"]},
+  {"op": "cast", "real": "Revitalize", "key": "rev"}
+ ],
+ "expect": {
+  "attached": {"lp": "host"},
+  "life": {"0": 23, "1": 20},
+  "counters": {"host": {"PLUS_1_PLUS_1": 3}},
+  "power": {"host": 5},
+  "toughness": {"host": 5}
+ }
+}

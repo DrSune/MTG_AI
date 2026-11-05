@@ -37,21 +37,18 @@
   {
    "op": "activate",
    "key": "ch",
-   "idx": 3,
+   "idx": 2,
    "seat": 0
   },
   {
    "op": "activate",
    "key": "ch",
-   "idx": 1,
+   "idx": 3,
    "seat": 0,
    "decisions": [
-    "skip"
+    "fire"
    ],
-   "eval_reclassification": {
-    "reason": "branch-coverage negative twin of chandra_heart_of_fire_branch01: fire path certified by the sibling pack; this pack pins the SKIP branch (Crash Through stays exiled, hand 0). True-no-decision for the ladder: 'skip' is the null word (PASS_WORDS, tools/audit/puzzle_cert.py:75-85), so the null replay IS the gold line by design; this twin pins the decline branch only.",
-    "verdict": "true-no-decision"
-   }
+   "expect_raise": "illegal activation: ability:not_activated:SpellAbility"
   }
  ],
  "expect": {
@@ -65,5 +62,5 @@
    "0": 0
   }
  },
- "notes": "Negative twin of chandra_heart_of_fire_branch01: the optional SKIPs (positional lane, no provider ask) - no CAST row, no draws (hand stays 0) and Crash Through stays in exile. Same seed, same rig: every expectation delta is the fire decision."
+ "notes": "B-49 follow-up #1 twin. After the [-9] exiles Crash Through, no free-cast permission is left on Chandra: idx 3 is the cast carrier and is refused, Crash Through stays exiled."
 }

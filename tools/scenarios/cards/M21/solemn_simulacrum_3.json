@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Solemn Simulacrum (2/2) is dealt 2 damage by an opponent creature and dies; its controller declines 'you may draw a card': hand stays at the opening draw (1).",
+ "cards": [
+  {"key": "ss", "real": "Solemn Simulacrum", "zone": "battlefield", "controller": 0},
+  {"key": "src", "name": "Pinger", "type": "Creature", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "src", "target": "ss", "amount": 2, "controller": 1, "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"ss": "graveyard"},
+  "hand": {"0": 1}
+ }
+}

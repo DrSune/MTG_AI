@@ -15,7 +15,9 @@ Batch C3 restores three clause emissions that the goldens never carried:
 3. Peer into the Abyss — STOP verdict: the missing half-life clause has
    no quantity lane (no LIFE-total quantity field; R9 grammar roadmap), so
    the golden stays byte-identical and the pin below only falsifies that
-   no half-LOSE_LIFE approximation was smuggled in.
+   no half-LOSE_LIFE approximation was smuggled in. (Superseded
+   2026-10-29, m21-fidelity item 2: r24a added QPropField.LIFE, the exact
+   clause is emitted, and the pin now checks it is exact.)
 
 Goldens moved for the two promoted cards under the C1-form set-evidence
 audit (pre-snapshot /tmp/golden_pre_c3, 303 others byte-identical; moved
@@ -37,8 +39,13 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     FNot,
+    QBin,
+    QBinOp,
     QConst,
+    QProp,
+    QPropField,
     QUnbounded,
+    Rounding,
     Seq,
     Selector,
     SelectorMode,
@@ -73,9 +80,11 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- waker: loyalty-+1 tail "Each opponent who can't loses 3 life." ----
 
     def test_waker_tail_merges_into_plus_one_ability(self) -> None:
-        """The can't-clause is APPENDED (R11-1 loyalty-trailing path), not
-        dropped and not a standalone sentence-outcome: the +1 ability's
-        effect is a Seq whose LAST step is the EachPlayer gate."""
+        """The can't-clause merges into the +1 ability (R11-1 loyalty-trailing
+        path), not dropped and not a standalone sentence-outcome.
+        re-pinned 2026-10-29: V10 changes its place: the gate is the FIRST
+        step, before the discard it is about (docs/ATOM_DIVERGENCES.md D17),
+        so an opponent who discards their last card does not lose life."""
         res = self._compile(_WAKER)
         gated = [
             ab
@@ -86,7 +95,8 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertEqual(len(gated), 1, "expected exactly one loyalty-+1 ability")
         ability = gated[0]
         assert isinstance(ability.effect, Seq)
-        self.assertIsInstance(ability.effect.steps[-1], EachPlayer)
+        self.assertEqual(len(ability.effect.steps), 2)
+        self.assertIsInstance(ability.effect.steps[0], EachPlayer)
 
     def test_waker_each_player_gate_shape(self) -> None:
         """EachPlayer(ALL_OPPONENTS, Conditional(pred=FNot(
@@ -124,7 +134,9 @@ class TestC3CompilerPins(unittest.TestCase):
 
     def test_waker_discard_head_preserved(self) -> None:
         """The pre-existing "discard a card" step of the +1 ability is
-        untouched — the tail is an append, the head is not rewritten."""
+        untouched — the tail is inserted, the discard is not rewritten.
+        re-pinned 2026-10-29: V10 moves the who-can't gate before the discard
+        (D17), so the discard is now the LAST step."""
         res = self._compile(_WAKER)
         ability = next(
             ab
@@ -133,7 +145,7 @@ class TestC3CompilerPins(unittest.TestCase):
             and any(isinstance(p, CostLoyalty) and p.delta == 1 for p in ab.cost.parts)
         )
         assert isinstance(ability.effect, Seq)
-        head = ability.effect.steps[0]
+        head = ability.effect.steps[-1]
         assert isinstance(head, Atom)
         # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
         self.assertIs(head.verb, Verb.MOVE_ZONE)
@@ -229,17 +241,38 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- peer: STOP verdict falsification ----
 
     def test_peer_golden_unchanged_no_half_life_approximation(self) -> None:
-        """Peer's DRAW half-library clause stays the ONLY emitted effect
-        (QCount-shape intact); the missing "loses half their life" has no
-        quantity lane (no LIFE-total Quantity in the grammar — R9 roadmap),
-        so no approximation is emitted and the golden stays byte-identical."""
+        """Peer's DRAW half-library clause keeps its QCount shape, and no
+        approximation of "loses half their life" is emitted.
+
+        # re-pinned 2026-10-29: m21-fidelity item 2 emits the exact life
+        # half now that QPropField.LIFE exists (r24a), so the pin moves from
+        # "no LOSE_LIFE at all" to "the LOSE_LIFE is exact": the target
+        # player's own life (EachPlayer rotation, never the caster's),
+        # halved and rounded up (CR 107.1a), after the draw (printed order)."""
         res = self._compile(_PEER)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
         effect = spell.effect
-        assert isinstance(effect, Atom)
-        self.assertIs(effect.verb, Verb.DRAW)
-        self.assertNotIn("LOSE_LIFE", repr(effect))
+        assert isinstance(effect, Seq)
+        draw, lose = effect.steps
+        assert isinstance(draw, Atom)
+        self.assertIs(draw.verb, Verb.DRAW)
+        self.assertIs(draw.args.get("controller"), ControllerRef.TARGET_PLAYER)
+        self.assertNotIn("LOSE_LIFE", repr(draw))
+        assert isinstance(lose, EachPlayer)
+        self.assertIs(lose.ref, ControllerRef.TARGET_PLAYER)
+        assert isinstance(lose.effect, Atom)
+        self.assertIs(lose.effect.verb, Verb.LOSE_LIFE)
+        self.assertIs(lose.effect.args.get("controller"), ControllerRef.YOU)
+        self.assertEqual(
+            lose.effect.args.get("amount"),
+            QBin(
+                op=QBinOp.DIV,
+                left=QProp(referent="controller", field=QPropField.LIFE),
+                right=QConst(2),
+                rounding=Rounding.CEIL,
+            ),
+        )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'If a source would deal damage to YOU, prevent that damage and put an incarnation counter ...' The opponent Shocks seat 0's Bear (damage to a creature you control is not damage to you: the Bear dies, no counter), then Shocks seat 0 (prevented: life 20, one counter for the one damage event, not one per point). Nine Lives stays; nobody loses.",
+ "cards": [
+  {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "shock1", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "shock2", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Shock", "key": "shock1", "controller": 1, "targets": ["bear"]},
+  {"op": "cast", "real": "Shock", "key": "shock2", "controller": 1, "targets": ["p0"]}
+ ],
+ "expect": {"zone": {"nl": "battlefield", "bear": "graveyard"}, "counters": {"nl": {"INCARNATION": 1}}, "life": {"0": 20}, "lost": {"0": false}}}

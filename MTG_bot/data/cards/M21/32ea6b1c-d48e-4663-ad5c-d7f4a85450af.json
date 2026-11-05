@@ -1,0 +1,59 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "32ea6b1c-d48e-4663-ad5c-d7f4a85450af",
+ "name": "Garruk, Unleashed",
+ "text_sha": "bb685f6d031c54f7cc77daffac4d68370f30da59e85dbc4762bbec0103c75642",
+ "verified": {
+  "tree_sha": "0fdeb59598be8c875b7b40a8f8cd7c7cac118873b62bf236951648aed7d9e3e9",
+  "probe_sha": "46ccfeb09c48c06dd15c0d0309937abb174644867a59cf80f6e2639b22020e6a",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Legendary Planeswalker - Garruk {2}{G}{G} loyalty 4",
+    "status": "OK",
+    "evidence": "[cast]: mana G-2 W-2, 'card gets 4 LOYALTY counter(s)'",
+    "issue": ""
+   },
+   {
+    "clause": "[+1]: Up to one target creature gets +3/+3 and gains trample until end of turn.",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 0..1 of every creature (either side, none allowed); e.g. targets=['you_giant']: LOYALTY 4 -> 5, you_giant 4/4 -> 7/7 +TRAMPLE, 'after the turn ends' 4/4 -TRAMPLE; with no target only the loyalty changes. Tree = `parse` B5c-loyalty-pt-trample (both atoms land on the one designated creature).",
+    "issue": ""
+   },
+   {
+    "clause": "[-2]: Create a 3/3 green Beast creature token.",
+    "status": "OK",
+    "evidence": "[activate [1]]: '+ you:Beast (battlefield, you, 3/3)'; TokenSpec Beast, type_line 'Creature — Beast', colors ('G',) = `similar` B5c-loyalty-create-token",
+    "issue": ""
+   },
+   {
+    "clause": "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
+    "status": "OK",
+    "evidence": "[activate [1]] on the standard board (opponent 4 creatures vs your 2 + the Beast = 3): 'card gets 1 LOYALTY counter', LOYALTY 4 -> 3 (= -2 +1). Conditional = `similar` B5b-then-if-opponent-more-creatures. The false case was NOT_EXERCISED by the trace: pack K_garruk_unleashed_minus_two_tie_no_counter.json PASSES on this packet's tree (draft) and the live tree: 1 vs 2 before, 2 vs 2 after the Beast -> no counter, LOYALTY 2.",
+    "issue": ""
+   },
+   {
+    "clause": "[-7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: 'ability [2] not activatable from battlefield: cost:loyalty:4<7' (correct gate). Tree = `parse` B5c-get-emblem (the emblem's ability is its own record). Pack K_garruk_unleashed_emblem_your_end_step_only.json PASSES on both trees: at 7 loyalty the -7 sends Garruk to the graveyard; at your end step the may-offer ('fire'/'skip') and a search offering only creature cards (debug replay: vocab = the Beast and the rig's creature fillers, not the sorcery) put the chosen 5/5 onto the battlefield; at the opponent's end step nothing is asked.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/garruk_unleashed_1.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_2.json"
+  ],
+  "mutation": {
+   "mutants": 26,
+   "killed": 23,
+   "score": 0.8846153846153846,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/steps/1/pred/inner_filter",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/pred/inner_filter",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/then_effect/args/target/filter"
+   ]
+  }
+ }
+}

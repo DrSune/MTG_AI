@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "35dfe1c7-48ab-436f-9a6e-44835ea01cf9",
+ "name": "Wall of Runes",
+ "text_sha": "d196f3e1b3f4aeb5ce049b33c2b92275b39bc6086eeb3bb191b83a056033d198",
+ "verified": {
+  "tree_sha": "6a5df61c9f3b96282039ad9012c25e291cba8e1864f380bb39d27dbb684923d1",
+  "probe_sha": "d2d69113e0c786a85eccc8c6a66cf2e622f5c39f45388e0960aea20e59c65886",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Wall {U} 0/4",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 0/4, mana U-1",
+    "issue": ""
+   },
+   {
+    "clause": "Defender",
+    "status": "OK",
+    "evidence": "keywords +DEFENDER; [this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: 'same as on the board without the card' (no attack declared)",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, scry 1.",
+    "status": "OK",
+    "evidence": "ETB trigger -> SCRY YOU 1; [cast]: one 'ask scry: [top, bottom]', triggered ability [0] triggers; also on the opponent's-turn entry; no other stimulus fires it. Pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pa130ae920a_wall_of_runes_scry.json (PASS): 'bottom' moves exactly the top card to the bottom",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/wall_of_runes_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

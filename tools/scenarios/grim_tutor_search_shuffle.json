@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Grim Tutor, printed: 'Search your library for a card, put that card into your hand, then shuffle. You lose 3 life.' Any card may be found (here B, not the top card). B goes to hand, exactly the 8 other library cards remain (order unknown after the shuffle, CR 701.24a: wildcard slots), the caster loses 3 life and the spell goes to the graveyard. Opponent untouched.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "gt", "real": "Grim Tutor", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "A", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "b", "name": "B", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "c", "name": "C", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "d", "name": "D", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "junk", "name": "Top Junk", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Grim Tutor", "key": "gt", "decisions": ["b"]}
+ ],
+ "expect": {
+  "zone": {"gt": "graveyard", "b": "hand", "a": "library", "c": "library", "d": "library"},
+  "life": {"0": 17, "1": 20},
+  "hand": {"0": 2},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*", "*"]}
+ }
+}

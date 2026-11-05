@@ -1,0 +1,53 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ee08435b-a2c1-491a-87cb-e60789b09c25",
+ "name": "Dire Fleet Warmonger",
+ "text_sha": "8facc017bec48f4d0226e9bf1af121c9a61be80df72c0767f43d54d19201ec63",
+ "verified": {
+  "tree_sha": "24b0b05bf1f42a105b2489b64471e0581edaf38bb3aba00c1006e25d5cf9cf74",
+  "probe_sha": "9f03e309f1221a789b2f8489ae64ca5276e5c32bb051b80257fa5bed6caca137",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "At the beginning of combat on your turn, you may sacrifice another creature.",
+    "status": "OK",
+    "evidence": "'this creature attacks alone', 'attacks and opp_giant blocks it', 'another creature you control (you_bear) attacks': ability [0] triggers at your combat; 'on the opponent's turn, opp_bear attacks you -> none' (not on the opponent's turn). The probe declines the may: nothing sacrificed, Warmonger stays 3/3 (deals 3). Tree TurnPhaseEvent COMBAT actor YOU, OptionalEffect SACRIFICE CHOOSE 1 of your creatures FNot IS_SOURCE (compiler's parse). Pack P81adf508d8_warmonger_no_other_creature.json PASSES: with only an opponent's creature, taking the may sacrifices nothing and gives no bonus.",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, this creature gets +2/+2 and gains trample until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe never takes the may. Tree Conditional(MAY_DONE, MODIFY_PT +2/+2 DurationEot + GRANT TRAMPLE DurationEot on itself). Pack P81adf508d8_warmonger_trample_eot.json PASSES: sacrifice Fodder -> 5/5 trample, 2 damage tramples over a 3/3 blocker (opp 20 -> 18); after end of turn it is 3/3 with no trample and survives its 3 damage.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/dire_fleet_warmonger_1.json",
+   "tools/scenarios/cards/M21/dire_fleet_warmonger_2.json",
+   "tools/scenarios/cards/M21/dire_fleet_warmonger_3.json"
+  ],
+  "mutation": {
+   "mutants": 18,
+   "killed": 4,
+   "score": 0.2222222222222222,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/inner/args/target/count",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/inner/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/inner/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/steps/0/inner/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/inner/args/target/filter/children/0/who",
+    "drop step 0 at 1/0/effect/steps/1/then_effect",
+    "drop step 1 at 1/0/effect/steps/1/then_effect",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/then_effect/steps/0/args/duration",
+    "amount+1 at 1/0/effect/steps/1/then_effect/steps/0/args/power/magnitude",
+    "amount-1 at 1/0/effect/steps/1/then_effect/steps/0/args/power/magnitude",
+    "amount+1 at 1/0/effect/steps/1/then_effect/steps/0/args/toughness/magnitude",
+    "amount-1 at 1/0/effect/steps/1/then_effect/steps/0/args/toughness/magnitude",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/then_effect/steps/1/args/duration"
+   ]
+  }
+ }
+}

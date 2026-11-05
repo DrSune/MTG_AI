@@ -1,0 +1,60 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "h",
+   "real": "Garruk's Harbinger",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "pw",
+   "set": 6
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "h": "pw"
+   },
+   "may": {
+    "h": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 20
+  },
+  "zone": {
+   "pw": "battlefield",
+   "h": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ },
+ "notes": "Printed: 'Whenever this creature deals combat damage to a player OR PLANESWALKER, look at that many cards ... You may reveal a creature card ... and put it into your hand.' The Harbinger attacks the opponent's Basri Ket (loyalty 6) and deals 4 to it (it survives; the player stays at 20). The trigger fires: look at the top four (the runner's creature fillers), one goes to hand (hand 0 -> 1; this pack has no library cards of its own, so the runner makes no opening draw), library 6 -> 5."
+}

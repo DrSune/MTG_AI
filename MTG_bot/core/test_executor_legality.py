@@ -41,12 +41,15 @@ from MTG_bot.core.ability_tree import (
     Verb,
 )
 from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.events import KIND_TAP_STATE, KIND_ZONE_CHANGE
 from MTG_bot.core.executor.legality import (
     ability_playable,
     activate,
     build_payment_plan,
     ctx_for,
     pay_costs,
+    plan_mana_taps,
+    tap_for_payment,
 )
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -460,12 +463,603 @@ class TestActivateFold(LegalityCase):
             activate(self.ex, self.alpha, 0, seat=self.p0)
         self.assertIn("source_tapped", str(caught.exception))
 
+    def test_any_colour_offers_the_five_colours_only(self):
+        # V4 (2026-10-29): "one mana of any color" is W, U, B, R or G (CR 105.1,
+        # 106.1a); colorless is not a color.
+        self.attach([ability(cost(CostTap()), effect=add_mana("ANY"))])
+        seen = []
+
+        def provider(vocab, what):
+            seen.append((tuple(vocab), what))
+            return vocab[-1]
+
+        self.ex.decisions.provider = provider
+        activate(self.ex, self.alpha, 0, seat=self.p0)
+        self.assertEqual([v for v, w in seen if w.startswith("mana:")], [("W", "U", "B", "R", "G")])
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 1})
+
+    def test_an_illegal_target_is_refused_before_anything_is_paid(self):
+        # V8 (2026-10-29): activate() validates its targets against the
+        # ability's target slot (as cast() does), before the costs (CR 602.2b).
+        yours = Selector(
+            QConst(1),
+            SelectorMode.TARGET,
+            FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            zones=(BF_YOU,),
+        )
+        grant = Atom(
+            verb=Verb.TAP, args=AtomArgs(pairs=(("target", yours),))
+        )
+        self.attach([ability(cost(CostTap()), effect=grant)])
+        with self.assertRaises(ValueError) as caught:
+            activate(self.ex, self.alpha, 0, seat=self.p0, targets=[self.beta])
+        self.assertIn("illegal activation: target:", str(caught.exception))
+        self.assertFalse(self.world.cards[self.alpha].tapped)  # nothing paid
+        activate(self.ex, self.alpha, 0, seat=self.p0, targets=[self.alpha])
+        self.assertTrue(self.world.cards[self.alpha].tapped)
+
     def test_sac_cost_self_sacrifice_moves_the_permanent(self):
         sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_YOU,))
         self.attach([ability(cost(CostTap(), CostSacrifice(sel)))])
         activate(self.ex, self.alpha, 0, seat=self.p0)
         self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
-        self.assertTrue(self.world.cards[self.alpha].tapped)
+        # re-pinned 2026-10-29: V43 changes the flag the graveyard card carries. CR 110.5d: a card
+        # off the battlefield is neither tapped nor untapped, so the tap cost's payment is pinned
+        # by its journal row, ahead of the sacrifice, instead of by a stale flag.
+        self.assertFalse(self.world.cards[self.alpha].tapped)
+        rows = [
+            r[1]
+            for r in self.ex.journal.dump()
+            if r[2] == str(self.alpha) and r[1] in (KIND_TAP_STATE, KIND_ZONE_CHANGE)
+        ]
+        self.assertEqual(rows, [KIND_TAP_STATE, KIND_ZONE_CHANGE])
+
+
+SICK = "summoning sickness (CR 302.6) without haste"
+
+
+class TestSummoningSickness(LegalityCase):
+    """V1 (2026-10-29): CR 302.6 / 602.5a. A creature's ability with {T} in
+    its cost needs the creature under its controller's control since their
+    most recent turn began; haste exempts it (CR 702.10). Setup permanents
+    (Alpha, Beta) carry no entry rows and read ready."""
+
+    def enter(self, name, type_line="Creature", seat=None):
+        """A journalled hand -> battlefield move this turn (what a resolving
+        creature spell does), so the sickness clock sees the entry row."""
+        seat = self.p0 if seat is None else seat
+        handle = self.world.add_card(
+            card_id(name, "1", "1", type_line=type_line), seat, ZONE_HAND
+        )
+        self.ex.execute(
+            Atom(
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        (
+                            "cards",
+                            Selector(
+                                QConst(1), SelectorMode.TARGET, UNIV, zones=(HAND_YOU,)
+                            ),
+                        ),
+                        ("destination", BF_YOU),
+                    )
+                ),
+            ),
+            source=handle,
+            controller=seat,
+            bindings={"cards": handle},
+        )
+        self.assertEqual(self.world.zone_of(handle).kind, ZONE_BATTLEFIELD)
+        return handle
+
+    def playable(self, handle, seat=None):
+        seat = self.p0 if seat is None else seat
+        return ability_playable(self.world, self.ex, handle, 0, seat=seat)
+
+    def test_tap_ability_refused_the_turn_it_enters(self):
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.assertEqual(self.playable(newcomer), SICK)
+        with self.assertRaises(ValueError) as caught:
+            activate(self.ex, newcomer, 0, seat=self.p0)
+        self.assertIn("summoning sickness", str(caught.exception))
+        self.assertFalse(self.world.cards[newcomer].tapped)  # nothing paid
+
+    def test_mana_ability_refused_and_not_listed(self):
+        from MTG_bot.core.executor.query import legal_activations
+
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Mana Elf")
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))], newcomer)
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))])  # Alpha
+        self.assertEqual(self.playable(newcomer), SICK)
+        rows = {o.source for o in legal_activations(self.world, self.ex, self.p0)}
+        self.assertEqual(rows, {self.alpha})  # the ready setup creature only
+
+    def test_ability_without_the_tap_symbol_is_not_restricted(self):
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        self.attach([ability(cost(CostManaColor("G", QConst(1))))], newcomer)
+        self.pool(self.p0, G=1)
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_tapping_other_creatures_as_a_cost_is_not_restricted(self):
+        # "Tap an untapped creature you control" is not the {T} symbol: a
+        # sick source may pay it, and a sick creature may be the one tapped.
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        other = Selector(
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+            zones=(BF_YOU,),
+        )
+        self.attach([ability(cost(CostTap(target=other)))], newcomer)
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_haste_exempts(self):
+        from MTG_bot.core.ability_tree import Keyword, KeywordAbility
+
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Hasty")
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.assertEqual(self.playable(newcomer), SICK)
+        self.ex.execute(
+            Atom(
+                verb=Verb.GRANT_ABILITY,
+                args=AtomArgs(
+                    pairs=(
+                        ("ability", KeywordAbility(keyword=Keyword.HASTE)),
+                        (
+                            "target",
+                            Selector(
+                                QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_YOU,)
+                            ),
+                        ),
+                    )
+                ),
+            ),
+            source=newcomer,
+            controller=self.p0,
+            bindings={"target": newcomer},
+        )
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_noncreature_permanent_taps_the_turn_it_enters(self):
+        self.ex.begin_turn(self.p0)
+        relic = self.enter("Relic", type_line="Artifact")
+        self.attach([ability(cost(CostTap()))], relic)
+        self.assertIsNone(self.playable(relic))
+
+    def test_sick_through_the_opponents_turn_ready_on_its_controllers_next(self):
+        # "their most recent turn began": a creature that entered on p0's
+        # turn is still sick for p0 during p1's turn.
+        self.ex.begin_turn(self.p0)
+        newcomer = self.enter("Newcomer")
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, self.p1)
+        self.assertEqual(self.playable(newcomer), SICK)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, self.p0)
+        self.assertIsNone(self.playable(newcomer))
+
+    def test_entered_on_the_opponents_turn_ready_on_its_controllers_turn(self):
+        self.ex.begin_turn(self.p1)
+        newcomer = self.enter("Flash Bear")  # p0's creature, on p1's turn
+        self.attach([ability(cost(CostTap()))], newcomer)
+        self.assertEqual(self.playable(newcomer), SICK)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, self.p0)
+        self.assertIsNone(self.playable(newcomer))
+
+
+class TestManaEmpties(LegalityCase):
+    """V2 (2026-10-29): CR 500.5 / 106.4. Unspent mana empties as each step
+    and phase ends; within the main phase it stays for the next act."""
+
+    def empty_rows(self):
+        return [e for e in self.ex.events if e[1] == "EMPTY_MANA"]
+
+    def tap_alpha_for_green(self):
+        self.attach(
+            [
+                ability(cost(CostTap()), effect=add_mana("G")),
+                ability(cost(CostManaColor("G", QConst(1)))),
+            ]
+        )
+        activate(self.ex, self.alpha, 0, seat=self.p0)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 1})
+
+    def test_mana_stays_for_the_next_act_of_the_same_phase(self):
+        self.ex.begin_turn(self.p0)
+        self.tap_alpha_for_green()
+        self.assertIsNone(ability_playable(self.world, self.ex, self.alpha, 1, seat=self.p0))
+        activate(self.ex, self.alpha, 1, seat=self.p0)  # pays the {G} just made
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+
+    def test_main_phase_mana_is_gone_at_combat(self):
+        self.ex.begin_turn(self.p0)
+        self.tap_alpha_for_green()
+        self.ex.decisions.provider = lambda vocab, what: (
+            "DECLINE" if "DECLINE" in vocab else vocab[0]
+        )
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+        rows = self.empty_rows()
+        self.assertEqual(len(rows), 1)  # what was lost reaches the fingerprint
+        self.assertEqual(rows[0][2:], (str(self.p0), (("G", 1),)))
+
+    def test_mana_does_not_survive_the_turn_and_its_restriction_goes_with_it(self):
+        self.ex.begin_turn(self.p0)
+        self.pool(self.p1, U=2)
+        self.ex.mana_ledger.add(self.p1, "U", 2, (FAtom(FAtomPred.IS_SOURCE),))
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(self.world.players[self.p1].mana_pool, {})
+        self.assertFalse(self.ex.mana_ledger.has(self.p1))
+
+    def test_an_empty_pool_leaves_no_row(self):
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.assertEqual(self.empty_rows(), [])
+
+
+
+class TestManaAbilitiesWhilePaying(LegalityCase):
+    """B-90 (a), 2026-10-29: CR 601.2g / 605.3a. A payment asked outside the
+    act window may tap the payer's untapped mana abilities whose cost is only
+    {T}: a minimal set the planner proves sufficient, never all."""
+
+    def land(self, name, effect, type_line="Land"):
+        handle = self.world.add_card(card_id(name, type_line=type_line), self.p0, ZONE_BATTLEFIELD)
+        self.attach([ability(cost(CostTap()), effect=effect)], handle)
+        return handle
+
+    def check(self, cost_ir):
+        ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
+        return lambda: build_payment_plan(self.world, ctx, cost_ir)[1]
+
+    def plan(self, *parts):
+        return plan_mana_taps(self.ex, self.p0, self.check(cost(*parts)))
+
+    def test_the_pool_pays_without_taps(self):
+        self.land("Forest", add_mana("G"))
+        self.pool(self.p0, G=1)
+        self.assertEqual(self.plan(CostManaColor("G", QConst(1))), ())
+
+    def test_a_minimal_set_never_all(self):
+        f1 = self.land("Forest", add_mana("G"))
+        self.land("Island", add_mana("U"))
+        self.land("Forest", add_mana("G"))
+        taps = self.plan(CostManaColor("G", QConst(1)), CostManaGeneric(QConst(1)))
+        self.assertEqual(len(taps), 2)  # {1}{G}: two of the three lands
+        self.assertEqual(taps[0].source, f1)
+        self.assertEqual(taps[0].production[0], "G")
+
+    def test_two_symbols_of_one_colour_tap_two_lands(self):
+        # {U}{U} as two cost parts: after one Island the planner still names
+        # "U short", which is progress, not a useless tap.
+        i1 = self.land("Island", add_mana("U"))
+        i2 = self.land("Island", add_mana("U"))
+        self.land("Island", add_mana("U"))
+        taps = self.plan(CostManaColor("U", QConst(1)), CostManaColor("U", QConst(1)))
+        self.assertEqual([t.source for t in taps], [i1, i2])
+
+    def test_a_coloured_need_taps_the_matching_land_only(self):
+        self.land("Forest", add_mana("G"))
+        island = self.land("Island", add_mana("U"))
+        taps = self.plan(CostManaColor("U", QConst(1)))
+        self.assertEqual([t.source for t in taps], [island])
+
+    def test_a_dual_land_chooses_the_needed_colour(self):
+        from MTG_bot.core.ability_tree import Choose
+
+        dual = self.land("Swiftwater Cliffs", Choose(count=QConst(1), options=(add_mana("U"), add_mana("R"))))
+        (tap,) = self.plan(CostManaColor("R", QConst(1)))
+        self.assertEqual((tap.source, tap.production[0]), (dual, "R"))
+        tap_for_payment(self.ex, self.p0, (tap,))
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"R": 1})
+        self.assertTrue(self.world.cards[dual].tapped)
+
+    def test_an_any_colour_source_chooses_the_needed_colour(self):
+        rock = self.land("Meteorite", add_mana("ANY"), type_line="Artifact")
+        (tap,) = self.plan(CostManaColor("B", QConst(1)))
+        self.assertEqual((tap.source, tap.decisions), (rock, ("B",)))
+        tap_for_payment(self.ex, self.p0, (tap,))
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"B": 1})
+
+    def test_sick_mana_creatures_and_tapped_lands_are_not_used(self):
+        self.ex.begin_turn(self.p0)
+        elf = self.world.add_card(card_id("Elf", "1", "1"), self.p0, ZONE_HAND)
+        self.ex.execute(
+            Atom(
+                verb=Verb.MOVE_ZONE,
+                args=AtomArgs(
+                    pairs=(
+                        ("cards", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(HAND_YOU,))),
+                        ("destination", BF_YOU),
+                    )
+                ),
+            ),
+            source=elf,
+            controller=self.p0,
+            bindings={"cards": elf},
+        )
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))], elf)  # V1: sick
+        forest = self.land("Forest", add_mana("G"))
+        self.world.cards[forest].tapped = True
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(1))))
+
+    def test_a_pay_inside_a_resolution_taps_in_place_and_journals_once(self):
+        # "You may pay {1}": offered because a land can pay it (CR 605.3a);
+        # paying taps the land without a nested activation, so the running
+        # atom journals exactly one TapState row and settles nothing extra.
+        from MTG_bot.core.ability_tree import OptionalEffect
+        from MTG_bot.core.executor.query import optional_offer
+
+        forest = self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(1)))),)))
+        )
+        self.assertIn("fire", optional_offer(self.ex, effect, source=self.alpha, controller=self.p0))
+        self.ex.apply_effect(effect, source=self.alpha, controller=self.p0, decisions=("fire",))
+        self.assertTrue(self.world.cards[forest].tapped)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+        taps = [e for e in self.ex.journal.events if e.kind == "TAP_STATE" and e.subject == forest]
+        self.assertEqual(len(taps), 1)
+
+    def test_a_pay_nothing_can_fund_is_not_offered(self):
+        from MTG_bot.core.ability_tree import OptionalEffect
+        from MTG_bot.core.executor.query import optional_offer
+
+        self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(2)))),)))
+        )
+        self.assertNotIn("fire", optional_offer(self.ex, effect, source=self.alpha, controller=self.p0))
+
+    def test_no_set_pays_returns_none(self):
+        self.land("Forest", add_mana("G"))
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(2))))
+
+    def test_planning_leaves_no_trace(self):
+        self.land("Forest", add_mana("G"))
+        self.land("Island", add_mana("U"))
+        self.pool(self.p0, W=1)
+        before = (dict(self.world.players[self.p0].mana_pool), len(self.ex.events), len(self.ex.journal.events))
+        self.assertIsNotNone(self.plan(CostManaColor("G", QConst(1)), CostManaGeneric(QConst(2))))
+        after = (dict(self.world.players[self.p0].mana_pool), len(self.ex.events), len(self.ex.journal.events))
+        self.assertEqual(before, after)
+        self.assertFalse(any(self.world.cards[h].tapped for h in self.world.cards))
+
+    # B-109 (R5-7, pinned at the cards/integration merge 2026-10-30): the planner
+    # picks sources through ability_playable, so the CR 602.5 activation lock binds
+    # it; and every tap it makes journals its ABILITY_ACTIVATED row (CR 602.2,
+    # 605.3b: one per activation, mana abilities included).
+
+    def lock(self, host, kind):
+        """An Aura carrying R5-7's activation lock of ``kind`` on ``host``
+        (Faith's Fetters' shape, test_ontology_r5_activation.aura_record)."""
+        from MTG_bot.core.test_ontology_r5_activation import aura_record
+
+        aura = self.world.add_card(
+            card_id("Lock Aura", type_line="Enchantment — Aura"), self.p1, ZONE_BATTLEFIELD
+        )
+        self.ex.attach_card(aura, aura_record(kind, self.world.cards[aura].identity.oracle_id))
+        self.ex.attach_aura(aura, host)
+
+    def activation_rows(self):
+        from MTG_bot.core.executor.events import KIND_ABILITY_ACTIVATED
+
+        return [
+            (e.subject, e.cause, e.activation)
+            for e in self.ex.journal.events
+            if e.kind == KIND_ABILITY_ACTIVATED
+        ]
+
+    def test_an_any_lock_keeps_the_locked_source_out_of_the_plan(self):
+        from MTG_bot.core.ability_tree import AbilityKind
+
+        f1 = self.land("Forest", add_mana("G"))
+        f2 = self.land("Forest", add_mana("G"))
+        self.lock(f1, AbilityKind.ANY)
+        self.assertEqual(
+            ability_playable(self.world, self.ex, f1, 0, seat=self.p0),
+            "prohibited:activation_lock",
+        )
+        (tap,) = self.plan(CostManaColor("G", QConst(1)))
+        self.assertEqual(tap.source, f2)  # the unlocked Forest pays
+        self.world.cards[f2].tapped = True
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(1))))  # only the locked one left
+
+    def test_a_non_mana_lock_spares_the_mana_source(self):
+        # Faith's Fetters' kind: a mana ability (CR 605.1a) is not locked.
+        from MTG_bot.core.ability_tree import AbilityKind
+
+        forest = self.land("Forest", add_mana("G"))
+        self.lock(forest, AbilityKind.NON_MANA)
+        (tap,) = self.plan(CostManaColor("G", QConst(1)))
+        self.assertEqual(tap.source, forest)
+
+    def test_each_window_tap_journals_its_activation_row(self):
+        # Top level (a response window): the tap is an ordinary activate().
+        f1 = self.land("Forest", add_mana("G"))
+        f2 = self.land("Forest", add_mana("G"))
+        taps = self.plan(CostManaColor("G", QConst(1)), CostManaGeneric(QConst(1)))
+        tap_for_payment(self.ex, self.p0, taps)
+        self.assertEqual(
+            self.activation_rows(),
+            [(f1, self.p0, (0, True, None)), (f2, self.p0, (0, True, None))],
+        )
+
+    def test_each_tap_inside_a_resolution_journals_its_activation_row(self):
+        # Inside a running atom ("you may pay {1}") the tap is made in place,
+        # and still journals the same row an activate() would.
+        from MTG_bot.core.ability_tree import OptionalEffect
+
+        forest = self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(1)))),)))
+        )
+        self.ex.apply_effect(effect, source=self.alpha, controller=self.p0, decisions=("fire",))
+        self.assertTrue(self.world.cards[forest].tapped)
+        self.assertEqual(self.activation_rows(), [(forest, self.p0, (0, True, None))])
+
+    def test_a_trigger_on_any_activation_sees_a_tap_made_while_paying(self):
+        # Sarkhan's Whelp's kind (ANY): the in-place tap is an activation.
+        from MTG_bot.core.ability_tree import (
+            AbilityActivatedEvent,
+            AbilityKind,
+            OptionalEffect,
+            TriggeredAbility,
+        )
+        from MTG_bot.core.test_executor_binding import gain
+
+        watcher = self.world.add_card(card_id("Watcher", "1", "1"), self.p1, ZONE_BATTLEFIELD)
+        self.attach(
+            [TriggeredAbility(event=AbilityActivatedEvent(source=UNIV, kind=AbilityKind.ANY), condition=None, effect=gain(1))],
+            watcher,
+        )
+        self.land("Forest", add_mana("G"))
+        effect = OptionalEffect(
+            inner=Atom(verb=Verb.PAY, args=AtomArgs(pairs=(("cost", cost(CostManaGeneric(QConst(1)))),)))
+        )
+        self.ex.apply_effect(effect, source=self.alpha, controller=self.p0, decisions=("fire",))
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.players[self.p1].life, 21)
+
+
+
+class TestSelflessSaviorAnotherTarget(unittest.TestCase):
+    """V5 (2026-10-29): Selfless Savior's "Sacrifice this creature: Another
+    target creature you control gains indestructible until end of turn."
+    "Another" excludes the Savior itself, so alone it has no legal target and
+    its ability is not a free sacrifice outlet (CR 601.2c, 602.2b)."""
+
+    def setUp(self):
+        from MTG_bot.core.executor.games import get_supply, identity_of
+
+        supply = get_supply("all", "M21")
+        record = next(
+            supply.pool.results[o].card
+            for o, m in supply.metas.items()
+            if m.name == "Selfless Savior"
+        )
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=13)
+        self.p0 = self.world.player_order[0]
+        self.savior = self.world.add_card(identity_of(record), self.p0, ZONE_BATTLEFIELD)
+        self.ex = Executor(self.world)
+        self.ex.attach_card(self.savior, record)
+        self.ability = record.abilities[0]
+
+    def candidates(self):
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        (slot,) = activation_target_slots(
+            self.ex, self.ability.effect, source=self.savior, seat=self.p0
+        )
+        return slot.candidates
+
+    def test_alone_it_has_no_legal_target(self):
+        self.assertEqual(self.candidates(), ())
+
+    def test_another_creature_you_control_is_the_target(self):
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.assertEqual(self.candidates(), (bear,))
+
+
+
+class TestAnotherTarget(unittest.TestCase):
+    """V13 (2026-10-29): "another target creature". Relative to the source
+    (Brash Taunter's "This creature fights another target creature") the
+    source is not a legal target; relative to another target (Rookie Mistake,
+    Garruk's -2) the two targets must differ (CR 115.3)."""
+
+    def test_brash_taunter_cannot_fight_itself(self):
+        from MTG_bot.core.ability_tree import ActivatedAbility
+        from MTG_bot.core.executor.games import get_supply, identity_of
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        supply = get_supply("all", "M21")
+        record = next(
+            supply.pool.results[o].card for o, m in supply.metas.items() if m.name == "Brash Taunter"
+        )
+        world = GameWorld(num_players=2, start_life=20, master_seed=13)
+        p0, p1 = world.player_order
+        taunter = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        ex = Executor(world)
+        ex.attach_card(taunter, record)
+        fight = next(a for a in record.abilities if isinstance(a, ActivatedAbility))
+
+        def candidates():
+            (slot,) = activation_target_slots(ex, fight.effect, source=taunter, seat=p0)
+            return slot.candidates
+
+        self.assertEqual(candidates(), ())
+        ogre = world.add_card(card_id("Ogre", "3", "3"), p1, ZONE_BATTLEFIELD)
+        self.assertEqual(candidates(), (ogre,))
+
+    def test_the_another_slot_must_differ_from_the_other_slot(self):
+        from types import SimpleNamespace
+
+        from MTG_bot.core.ability_tree import FAnd
+        from MTG_bot.core.executor.stack import another_target_reason
+        from MTG_bot.core.identity import Handle
+
+        creature = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+        first = SimpleNamespace(selector=Selector(QConst(1), SelectorMode.TARGET, creature, zones=(BF_YOU,)))
+        another = SimpleNamespace(
+            selector=Selector(
+                QConst(1),
+                SelectorMode.TARGET,
+                FAnd((creature, FAtom(FAtomPred.IS_ANY_TARGET))),
+                zones=(BF_YOU,),
+            )
+        )
+        a, b = Handle("card", 1), Handle("card", 2)
+        self.assertIsNone(another_target_reason([first, another], (a, b)))
+        self.assertIsNotNone(another_target_reason([first, another], (b, b)))
+        self.assertIsNone(another_target_reason([first, first], (b, b)))  # two plain "target"s may share
+
+    def test_garruk_savage_herald_minus_two_has_two_slots_and_the_first_deals(self):
+        # Pinned at the cards/integration merge (2026-10-30), V3 with vfix3's V25:
+        # "[-2]: Target creature you control deals damage equal to its power to
+        # another target creature." Exactly two target slots, designated in walk
+        # order, and the DEAL_DAMAGE dealer is the first slot (CR 120.2b): the
+        # creature deals the damage, not Garruk.
+        from MTG_bot.core.ability_tree import ActivatedAbility, CostLoyalty, walk
+        from MTG_bot.core.executor.games import get_supply, identity_of
+        from MTG_bot.core.executor.query import activation_target_slots
+
+        supply = get_supply("all", "M21")
+        record = next(
+            supply.pool.results[o].card for o, m in supply.metas.items() if m.name == "Garruk, Savage Herald"
+        )
+        world = GameWorld(num_players=2, start_life=20, master_seed=13)
+        p0, p1 = world.player_order
+        garruk = world.add_card(identity_of(record), p0, ZONE_BATTLEFIELD)
+        ex = Executor(world)
+        ex.attach_card(garruk, record)
+        bear = world.add_card(card_id("Bear", "2", "2"), p0, ZONE_BATTLEFIELD)
+        ogre = world.add_card(card_id("Ogre", "3", "3"), p1, ZONE_BATTLEFIELD)
+        minus_two = next(
+            a
+            for a in record.abilities
+            if isinstance(a, ActivatedAbility)
+            and any(isinstance(c, CostLoyalty) and c.delta == -2 for c in a.cost.parts)
+        )
+        slots = activation_target_slots(ex, minus_two.effect, source=garruk, seat=p0)
+        self.assertEqual(len(slots), 2)
+        self.assertEqual(slots[0].candidates, (bear,))  # "target creature you control"
+        self.assertEqual(slots[1].candidates, (bear, ogre))  # "another target creature"
+        (damage,) = [n for n in walk(minus_two.effect) if isinstance(n, Atom) and n.verb is Verb.DEAL_DAMAGE]
+        self.assertEqual(repr(damage.args.get("dealer")), repr(slots[0].selector))
 
 
 if __name__ == "__main__":  # pragma: no cover

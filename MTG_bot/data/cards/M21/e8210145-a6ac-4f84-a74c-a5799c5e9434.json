@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e8210145-a6ac-4f84-a74c-a5799c5e9434",
+ "name": "Obsessive Stitcher",
+ "text_sha": "2a422f9a79ad05cafb8c98f34b6a709f19d1644fbc14e9cf9434c137a2d55fa6",
+ "verified": {
+  "tree_sha": "be16b7a3bc3d494385ca29a86055e2d7180f34b33f8eac34c25af9214811653c",
+  "probe_sha": "9dd75f8715a56d294f35ed44e38730c1622ac02b099f3d736e64a81b2330f107",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "{T}: Draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "Every [activate [0]] variant: 'card becomes tapped (by card/TAP)', 'you draws you:Library 5#1', then 'ask one_of: [you_spare, you_trick, you_land_drop, you_cast_spell, you_cast_creature, you:Library 5#1]' (your whole hand INCLUDING the card just drawn, so the draw comes first), and exactly the picked card goes hand -> graveyard; the variant picking the drawn card discards it. No mana spent.",
+    "issue": "The discard selector is ONE_OF where the compiler's B3-seq-draw-discard writes CHOOSE; for a discard from your own hand both ask you for exactly one card (verbs.py MOVE_ZONE hand branch), so play is identical."
+   },
+   {
+    "clause": "{2}{U}{B}, {T}, Sacrifice this creature: Return target creature card from your graveyard to the battlefield.",
+    "status": "OK",
+    "evidence": "'ability [1] target slot: 1..1 of [you_fallen]': only the creature card in YOUR graveyard (not you_used, a non-creature, nor opp_fallen in the opponent's graveyard). [activate [1] targets=['you_fallen']]: 'card becomes tapped', 'card moves battlefield -> graveyard (by card/SACRIFICE)', mana B-1 U-1 W-2 (= {2}{U}{B}), 'you_fallen moves graveyard -> battlefield', P/T 2/2. Tree is the canonical B5c-cost-ub-sacrifice-return.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 26,
+   "killed": 25,
+   "score": 0.9615384615384616,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/cost/parts/3/target/filter"
+   ]
+  }
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Double strike. Vigilance. Trample.' The 1/1 Vindicator attacks and a 1/1 blocks it. First-strike damage: 1 to the blocker, which dies. Regular damage: the creature is still 'blocked' but its blocker is gone, and with trample it assigns all its damage to the player (CR 702.19e): the opponent goes 20 -> 19. Vigilance: it stays untapped.",
+ "cards": [
+  {"key": "vind", "real": "Swiftblade Vindicator", "zone": "battlefield", "controller": 0},
+  {"key": "chump", "name": "Chump", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"vind": true}, "block": {"chump": "vind"}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 19},
+  "zone": {"vind": "battlefield", "chump": "graveyard"},
+  "attackers": {"vind": true},
+  "blocked": {"vind": ["chump"]},
+  "tapped": {"vind": false}
+ }
+}

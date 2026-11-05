@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Discard a legendary card' is part of the cost. With only a non-legendary card in hand the cost cannot be paid, so the activation is refused: Niambi stays untapped, the Bear stays in hand, nothing is drawn.",
+ "cards": [
+  {"key": "niambi", "real": "Niambi, Esteemed Speaker", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "U": 1, "C": 1}},
+ "steps": [{"op": "activate", "key": "niambi", "idx": 1, "seat": 0, "decisions": ["bear"], "expect_raise": "discard"}],
+ "expect": {"zone": {"bear": "hand"}, "tapped": {"niambi": false}, "hand": {"0": 1}}}

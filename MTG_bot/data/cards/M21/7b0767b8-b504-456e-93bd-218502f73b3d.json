@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7b0767b8-b504-456e-93bd-218502f73b3d",
+ "name": "Palladium Myr",
+ "text_sha": "d6e7312542223c3475168d5e83b2613712ed72e33ab4435ba0b8bc325d234fb7",
+ "verified": {
+  "tree_sha": "4746208ece5ad0a4a6b355686b1f539fcf7e0eb21256b791bbe4c131aaf0bfa3",
+  "probe_sha": "4b461ec9227ca7ee1ff7603f8a24674828cf804cf4dcad9e99d60b313bcb5cb5",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4P",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}{C}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card taps, you: mana C+2 (exactly two colorless). Paid {3} to cast (W-3), 2/2. Pack P9387f2337a_palladium_myr.json PASSES: refused the turn it enters (summoning sickness), taps for exactly C:2 the next turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/palladium_myr_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

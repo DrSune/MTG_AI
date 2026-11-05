@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' You cast Fleeting Distraction (an instant) on the opponent's creature: the 3/3 Dowser is 4/4 for the rest of the turn.",
+ "cards": [
+  {"key": "dowser", "real": "Shipwreck Dowser", "zone": "battlefield", "controller": 0},
+  {"key": "fd", "real": "Fleeting Distraction", "zone": "hand", "controller": 0},
+  {"key": "oppbear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Fleeting Distraction", "key": "fd", "targets": ["oppbear"]}
+ ],
+ "expect": {
+  "zone": {"fd": "graveyard"},
+  "power": {"dowser": 4, "oppbear": 1},
+  "toughness": {"dowser": 4, "oppbear": 2}
+ }
+}

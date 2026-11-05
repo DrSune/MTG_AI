@@ -1,0 +1,57 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Savage Herald",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "glutton",
+   "real": "Blood Glutton",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "power": "2",
+   "toughness": "7",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "glutton",
+    "giant"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "giant": 4
+  },
+  "life": {
+   "0": 24,
+   "1": 20
+  },
+  "counters": {
+   "garruk": {
+    "LOYALTY": 3
+   }
+  }
+ },
+ "notes": "V3 + V25 + V8, pinned at the cards/integration merge (2026-10-30). Printed: '[-2]: Target creature you control deals damage equal to its power to another target creature.' The ability has exactly two target slots, designated in order (V25: Blood Glutton, then the Giant; V8 validates each against its own slot). CR 120.2b: the first target deals the damage, so Blood Glutton's lifelink gains its controller 4 (CR 702.15b) and Garruk is not the source (V3's dealer role). Before V3 Garruk was the source and no life was gained."
+}

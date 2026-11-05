@@ -1,0 +1,96 @@
+{
+ "set": "M19",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cage",
+   "real": "Hieromancer's Cage",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "nat",
+   "real": "Naturalize",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oak",
+   "real": "Oakenform",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2,
+   "G": 3,
+   "C": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "oak",
+   "host": "ogre"
+  },
+  {
+   "op": "cast",
+   "real": "Hieromancer's Cage",
+   "key": "cage",
+   "decisions": [
+    "oak"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Naturalize",
+   "key": "nat",
+   "targets": [
+    "cage"
+   ],
+   "decisions": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cage": "graveyard",
+   "oak": "battlefield",
+   "ogre": "battlefield"
+  },
+  "attached": {
+   "oak": "bear"
+  },
+  "controller": {
+   "oak": 1
+  },
+  "power": {
+   "bear": 5,
+   "ogre": 3
+  }
+ },
+ "notes": "R5-1, CR 303.4f + 610.3c: the Cage exiles seat 1's Oakenform. When Naturalize destroys the Cage, Oakenform returns to the battlefield under its owner's control, and its owner chooses what it enchants among the legal objects as it enters (a visible ask: Bear or Ogre). Seat 1 puts it on seat 0's Bear: Bear 5/5, Ogre 3/3."
+}

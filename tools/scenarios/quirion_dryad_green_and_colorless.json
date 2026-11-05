@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Quirion Dryad: a mono-green spell (Wildwood Patrol) and a colorless spell (Skyscanner) are not white, blue, black or red. Expected: no counter on the Dryad (still 1/1). Skyscanner draws one card on entering.",
+ "cards": [
+  {"key": "dryad", "real": "Quirion Dryad", "zone": "battlefield", "controller": 0},
+  {"key": "patrol", "real": "Wildwood Patrol", "zone": "hand", "controller": 0},
+  {"key": "sky", "real": "Skyscanner", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 6}},
+ "steps": [
+  {"op": "cast", "real": "Wildwood Patrol", "key": "patrol"},
+  {"op": "cast", "real": "Skyscanner", "key": "sky"}
+ ],
+ "expect": {"zone": {"patrol": "battlefield", "sky": "battlefield"}, "counters": {"dryad": {}}, "power": {"dryad": 1}, "toughness": {"dryad": 1}}}

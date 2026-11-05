@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "zone": "hand", "controller": 0, "real": "Kinetic Augur"},
+  {"key": "h1", "zone": "hand", "controller": 0, "name": "Keep A", "type": "Instant"},
+  {"key": "h2", "zone": "hand", "controller": 0, "name": "Keep B", "type": "Sorcery"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "k", "decisions": ["NONE"]}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield", "h1": "hand", "h2": "hand"},
+  "hand": {"0": 2},
+  "power": {"k": 0}
+ },
+ "notes": "V15 (2026-10-29). Printed Kinetic Augur: 'When this creature enters, discard up to two cards, then draw that many cards.' Up to two includes zero: the controller stops at once, discards nothing and draws nothing (hand stays at its two cards; no instant or sorcery in the graveyard, so power 0). Before V15 two cards were always discarded."
+}

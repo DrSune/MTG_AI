@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "idol", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "aw", "real": "Alpine Watchdog", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "enter", "key": "idol"},
+  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["fire"], "expect_raise": "cost:mana_generic"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"idol": "battlefield", "aw": "battlefield"}, "tapped": {"idol": true}, "mana_pool": {"0": {}}},
+ "notes": "Printed: '{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.' The Idol's entry exiles Alpine Watchdog (mana value 2). With only {W} the ability cannot be activated (it costs {1}{W}); with {1}{W} it taps and the exiled Watchdog is cast for free and enters; the pool is empty afterwards (exactly {1}{W} paid, nothing for the Watchdog)."}

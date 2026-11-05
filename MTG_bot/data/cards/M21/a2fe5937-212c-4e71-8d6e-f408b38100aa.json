@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "a2fe5937-212c-4e71-8d6e-f408b38100aa",
+ "name": "Conclave Mentor",
+ "text_sha": "8a590864f6a2b4e6e0df9697aab78b3746700f597986717f930dbde40c2bf3fd",
+ "verified": {
+  "tree_sha": "db9de85e9b227ac1f224508d19f156357861f76d59d419303e04f60411683663",
+  "probe_sha": "2345f91359a3c581bf26727c8a985f078e6e733b1f336046bb361bbfec8261c2",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-B",
+  "clauses": [
+   {
+    "clause": "If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on that creature instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No probe stimulus puts a +1/+1 counter. Tree abilities[0] equal to parse template B5b-repl-counter-plus-one. Packs conclave_mentor_plus_one_your_creatures (one counter on your Bear -> 2; one on the opponent's Bear -> 1; Wildwood Scourge X=3 -> 4) and scourge_one_trigger_per_placement (Scourge X=1 -> 2, Bear 1 -> 2, the Scourge's triggered counter 1 -> 2) PASS on the live tree and on this packet's tree.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, you gain life equal to its power.",
+    "status": "OK",
+    "evidence": "[this card is dealt lethal damage] and [attacks and opp_giant blocks it]: triggered ability [1], 'you gains 2 life', 20 -> 22 (power 2); [this card is dealt 1 damage] (survives): no trigger. Tree equal to parse template B2a-conclave-mentor. Pack conclave_mentor_dies_gain_power (Mentor with two counters, 4/4, dies: gain 4) PASSES on the live tree and on this packet's tree.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/conclave_mentor_1.json",
+   "tools/scenarios/cards/M21/conclave_mentor_2.json",
+   "tools/scenarios/cards/M21/conclave_mentor_3.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 1,
+   "score": 0.2,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "controller YOU->OPPONENT at 1/0/event/filter/children/0/who",
+    "amount+1 at 1/0/action/args/count/right"
+   ]
+  }
+ }
+}

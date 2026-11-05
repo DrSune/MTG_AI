@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "86e2bbdd-a788-4f76-9ebb-ef48d9bc9dcf",
+ "name": "Pitchburn Devils",
+ "text_sha": "67f147e33c199a70df3853e025c8530d7169f5ba5993ccd90a3e8e8f19f7c4a9",
+ "verified": {
+  "tree_sha": "95c957b9818d4a467b5cc9720b32634351bbedc45b0a62a801e218ccd45f5448",
+  "probe_sha": "87e857fa9031026e6a1eaf31e93c458d1019053aee49bebe2eb53b9192cefb45",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "When this creature dies, it deals 3 damage to any target.",
+    "status": "OK",
+    "evidence": "[this card is dealt lethal damage]: trigger [0]; 'ask target: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, you, opp]' (every creature and both players; no artifact/enchantment); 'you_bear is dealt 3 damage (by card/DEAL_DAMAGE)', it dies. [attacks and opp_giant blocks it]: combat death triggers the same. Other creatures dying and non-lethal damage do not trigger. Tree equals the compiler's parse (B2a-pitchburn-devils). Planeswalker part of 'any target' (no planeswalker on the probe board): pack pitchburn_devils_dies_hits_planeswalker, the dies trigger targets an opponent's Basri Ket at loyalty 5 and leaves it at 2: PASS (kills a mutant without the planeswalker branch).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/pitchburn_devils_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

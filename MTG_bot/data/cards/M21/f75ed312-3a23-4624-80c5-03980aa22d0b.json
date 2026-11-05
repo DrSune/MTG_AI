@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f75ed312-3a23-4624-80c5-03980aa22d0b",
+ "name": "Llanowar Visionary",
+ "text_sha": "7503f8aa6407fb8cdf8bf52fa35817a5017e9a0eadf485c0a83173ae91d4a4f3",
+ "verified": {
+  "tree_sha": "0d75fa6fd60dfc9554946e563ceded75f78aae9a7cc8bba2c7b283b879609c0c",
+  "probe_sha": "566683b25480a36d7c32961b12696da278dc5adf90b162f297722c3ed85a9c34",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Llanowar Visionary {2}{G} Creature — Elf Druid 2/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 2/2, paid G-1 plus 2 generic",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, draw a card.",
+    "status": "OK",
+    "evidence": "[cast]: ability [0] triggers, you draws you:Library 5#1, library 6 -> 5 (one card); [enters during the opponent's turn]: you draw one; other creatures entering: none",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: card tapped, mana G+1 (one green). Summoning-sickness side not in the trace: pack llanowar_visionary_tap_sick_then_ok.json (refused the turn it is cast, untapped; taps for exactly one G on your next turn) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/llanowar_visionary_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

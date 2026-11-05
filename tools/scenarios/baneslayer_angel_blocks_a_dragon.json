@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16e-f). Protection restricts only who may block the protected ATTACKER; a creature with protection from Dragons may itself block a Dragon, and the Dragon's damage to it is prevented. The 6/6 flying Dragon attacks, the Angel blocks: its 5 first-strike lifelink damage marks the Dragon (seat 0 gains 5), the Dragon's 6 is prevented, both live. Before V44 a blocker-side veto kept the Angel from blocking at all, and seat 0 took 6 (14).",
+ "cards": [
+  {
+   "key": "angel",
+   "real": "Baneslayer Angel",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "drake",
+   "name": "Opp Dragon",
+   "type": "Creature — Dragon",
+   "power": "6",
+   "toughness": "6",
+   "keywords": [
+    "FLYING"
+   ],
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "drake": true
+   },
+   "block": {
+    "angel": "drake"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 25,
+   "1": 20
+  },
+  "blocked": {
+   "drake": [
+    "angel"
+   ]
+  },
+  "zone": {
+   "drake": "battlefield",
+   "angel": "battlefield"
+  },
+  "damage": {
+   "drake": 5
+  }
+ }
+}

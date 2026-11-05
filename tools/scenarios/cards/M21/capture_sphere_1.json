@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sphere", "real": "Capture Sphere", "zone": "hand", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "ob2", "name": "Opp Other Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "sphere", "real": "Capture Sphere", "targets": ["ob"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"zone": {"sphere": "battlefield", "ob": "battlefield"}, "attached": {"sphere": "ob"}, "tapped": {"ob": true, "ob2": false}, "turn_seats": [0, 1, 0, 1]},
+ "notes": "Printed: 'Enchant creature. When this Aura enters, tap enchanted creature. Enchanted creature doesn't untap during its controller's untap step.' The Sphere taps Opp Bear on entry; through two of the opponent's untap steps it stays tapped, while the opponent's other tapped creature untaps (negative control)."}

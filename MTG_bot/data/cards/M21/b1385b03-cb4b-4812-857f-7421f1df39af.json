@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b1385b03-cb4b-4812-857f-7421f1df39af",
+ "name": "Revitalize",
+ "text_sha": "fc29012bcd93337b183a9ad1bb8f2420c69b14bf3e5509a1f76c8137a465e1eb",
+ "verified": {
+  "tree_sha": "ae04cf3b13fa23f0869ae7bead85de48acb9f53032a790d138124729d476ca5b",
+  "probe_sha": "3133c49197763e6aa73170c90b2d62f456c31cedcf93e2c10bb2445b83399060",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {1}{W}",
+    "status": "OK",
+    "evidence": "SpellAbility(kind=INSTANT); [cast] 'mana W-2'",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 3 life.",
+    "status": "OK",
+    "evidence": "GAIN_LIFE 3 YOU; [cast]: 'you gains 3 life', you life 20 -> 23",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "DRAW 1 YOU; [cast]: 'you draws you:Library 5#1', library 6 -> 5",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8f28b65b-4b73-4080-9cdc-d236ad99f39c",
+ "name": "Track Down",
+ "text_sha": "bbc0fd19a80a1000b0cf467b85dc7258e2758af066a2e833b22def1c91d19692",
+ "verified": {
+  "tree_sha": "e6b67e3cd68fb33a6d27688b0ddb6e4a5056ac8f31b73454473b5541e3a52c07",
+  "probe_sha": "03e3467edfe1c34bf4d8d6c6254f8948d5b0cbc1f7732cbe050af71cf8a4c0a1",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Scry 3, then reveal the top card of your library.",
+    "status": "OK",
+    "evidence": "[cast] and [cast | ask N -> bottom]: three 'ask scry: [top, bottom]' asks, one per card of the top three; a card sent to the bottom changes which card is drawn afterwards ([ask 1 -> bottom] draws Library 4#1, the next card). Tree equals the compiler's parse (B5b-scr-reveal). Sorcery, cost G-1 plus 1 generic.",
+    "issue": "engine-limit: SCRY never asks the order of the cards kept on top (or bottom). verbs.py:1086-1094 pins Handle-ascending order instead of 'the rest on top in any order'. Every result is one the player could have chosen, so it is only weaker."
+   },
+   {
+    "clause": "If it's a creature or land card, draw a card.",
+    "status": "OK",
+    "evidence": "Trace: every probe library card is a creature, so the revealed card always qualifies and one card is drawn (the revealed top card). Not exercised there: the non-qualifying and land cases. Packs: track_down_reveals_noncreature_no_draw (an instant is revealed: no draw, it stays on top) PASS; track_down_reveals_land_draws (a Forest is revealed and drawn) PASS. They kill an always-draw mutant and a creature-only mutant. Tree equals the compiler's parse (B5b-if-it-type-then).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/track_down_1.json",
+   "tools/scenarios/cards/M21/track_down_2.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/steps/1/args/controller"
+   ]
+  }
+ }
+}

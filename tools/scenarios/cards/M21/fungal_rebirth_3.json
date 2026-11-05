@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fr", "real": "Fungal Rebirth", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Fallen", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "src", "name": "My Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 3}},
+ "steps": [
+  {"op": "deal_damage", "source": "src", "target": "ob", "amount": 2},
+  {"op": "cast", "real": "Fungal Rebirth", "key": "fr", "targets": ["mine"]}
+ ],
+ "expect": {"zone": {"fr": "graveyard", "mine": "hand", "ob": "graveyard"}, "tokens": {"Saproling": 2}},
+ "notes": "Printed: 'If a creature died this turn, create two 1/1 green Saproling creature tokens.' Any creature counts, including an opponent's: the opponent's bear died this turn, so two Saprolings are created."}

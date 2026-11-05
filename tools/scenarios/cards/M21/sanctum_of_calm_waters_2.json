@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of Calm Waters (M21): the draw is optional ('you may draw X cards. If you do, discard a card.'). Seat 0 declines at its next first main phase: no extra draw and no discard. Hand: Junk 1 -> 2 (draw step only); Junk stays in hand.",
+ "cards": [
+  {"key": "sanct", "zone": "hand", "controller": 0, "real": "Sanctum of Calm Waters"},
+  {"key": "junk", "zone": "hand", "controller": 0, "name": "Junk", "type": "Sorcery"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "sanct"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["skip"]}
+ ],
+ "expect": {"zone": {"sanct": "battlefield", "junk": "hand"}, "hand": {"0": 2}}}

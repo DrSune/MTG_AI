@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6781f8ae-2a86-4e3d-bc43-48809c9d6c26",
+ "name": "Gatekeeper of Malakir",
+ "text_sha": "5eeb6e7eabf159e752e96edc60fd9dc1f59ea5192af21824dad519abdbb5c7b1",
+ "needs_atom": {
+  "missing": "When this creature enters, if it was kicked, target player sacrifices a creature of their choice.: no node expresses a TARGET-PLAYER edict (the targeted player chooses and sacrifices). SACRIFICE has only a 'target' role, and a TARGET_PLAYER designation binds under 'target', so selectors.role_handles (binding-first) hands the PLAYER handle to SACRIFICE (probe: KeyError 'unknown card player:1'); EachPlayer(ref=TARGET_PLAYER) is invisible to the trigger designation scan (binding._designate walks Atom args only: ValueError 'TARGET_PLAYER needs a bound target'); a bare SACRIFICE over CONTROLLER_IS TARGET_PLAYER lets the CASTER pick the victim via the R3 CHOOSE lift (stronger than printed; the Run Afoul ZND-9 deferral). Needs a sacrifice chooser/player role (or EachPlayer TARGET_PLAYER designation). The kicker head and the WAS_KICKED ETB trigger are expressible (Kitesail Cleric shape).",
+  "author": "claude-mapper-A",
+  "date": "2026-10-29"
+ }
+}

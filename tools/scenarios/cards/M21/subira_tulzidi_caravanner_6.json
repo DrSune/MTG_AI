@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "power": "0", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"wall": "bear"}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {"hand": {"0": 1}, "life": {"1": 18}},
+ "notes": "Printed: '... UNTIL END OF TURN, whenever a creature you control with power 2 or less deals combat damage TO A PLAYER, draw a card.' Turn 1: the bear is blocked by the wall (damage to a creature, no draw). Turn 3: seat 0 draws 1 in its draw step; the bear connects for 2, but the delayed trigger ended with turn 1, so no extra card (hand 1, not 2)."}

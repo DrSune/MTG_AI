@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b52824f9-7897-46b7-a4e5-a0261861cb5b",
+ "name": "Magnigoth Sentry",
+ "text_sha": "f6afbf079b4efcda661a2d95eb9547e45e4ff146d2b7b8f1735809cdd48d2c77",
+ "verified": {
+  "tree_sha": "35f1d9a72bebb69a13829b38fc1cc5d45ea9043fa1b149c861d4ffbd00db8743",
+  "probe_sha": "275092715b9b906e698c5b727d64ceaa75e75ac582df34bf3c1d0b2964606dca",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords [REACH] (static: 'card keywords: REACH'), but no flyer attacks on the standard board. Covered by pack magnigoth_sentry_reach_blocks_flyer.json (the Sentry is offered and makes the block on an attacking Serra Angel, the two 4/4s trade; a non-reach 2/2 is never asked to block) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "(4/4 Treefolk creature, {3}{G})",
+    "status": "OK",
+    "evidence": "[cast]: enters 4/4 +REACH for G-1 W-3; attacks and deals 4; no triggers",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/magnigoth_sentry_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

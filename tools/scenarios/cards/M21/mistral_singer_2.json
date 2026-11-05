@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Mistral Singer prowess, same turn: two of MY noncreature spells (Revitalize x2) give +2/+2 (4/4); the OPPONENT's noncreature spell (Shock at me) gives nothing ('whenever YOU cast').",
+ "cards": [
+  {"key": "ms", "real": "Mistral Singer", "zone": "battlefield", "controller": 0},
+  {"key": "rv1", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "rv2", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "osh", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 4}, "1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv1"},
+  {"op": "cast", "real": "Revitalize", "key": "rv2"},
+  {"op": "cast", "real": "Shock", "key": "osh", "controller": 1, "decisions": ["player:0"]}
+ ],
+ "expect": {"zone": {"osh": "graveyard"}, "power": {"ms": 4}, "toughness": {"ms": 4}, "life": {"0": 24}}}

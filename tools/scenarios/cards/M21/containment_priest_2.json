@@ -1,0 +1,8 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'If a nontoken creature would enter and it wasn't cast, exile it instead.' A creature card in the opponent's graveyard is put onto the battlefield by an effect (not cast): it is exiled instead (to its owner's exile) and never reaches the battlefield.",
+ "cards": [
+  {"key": "priest", "real": "Containment Priest", "zone": "battlefield", "controller": 0},
+  {"key": "dead", "name": "Fallen Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [{"op": "move", "key": "dead", "to": "battlefield"}],
+ "expect": {"zone": {"dead": "exile", "priest": "battlefield"}}}

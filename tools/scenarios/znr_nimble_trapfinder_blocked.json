@@ -1,0 +1,12 @@
+{"set": "ZNR", "world": {"life": 20, "seed": 7},
+ "notes": "B-57 (2026-10-29): Nimble Trapfinder 'At the beginning of combat on your turn, if you have a full party, creatures you control gain \"Whenever this creature deals combat damage to a PLAYER, draw a card\" until end of turn.' Full party (the Trapfinder is the Rogue, plus a Cleric, a Warrior and a Wizard). The Warrior attacks into a 0/9 wall and the Wizard is unblocked: only the Wizard deals combat damage to a player, so exactly ONE card is drawn. Before the fix the granted trigger's recipient filter was universal and the Warrior's damage to the wall drew a second card.",
+ "cards": [
+  {"key": "nt", "zone": "battlefield", "controller": 0, "real": "Nimble Trapfinder"},
+  {"key": "cleric", "zone": "battlefield", "controller": 0, "name": "Party Cleric", "type": "Creature — Human Cleric", "power": 1, "toughness": 1},
+  {"key": "warrior", "zone": "battlefield", "controller": 0, "name": "Party Warrior", "type": "Creature — Human Warrior", "power": 1, "toughness": 1},
+  {"key": "wizard", "zone": "battlefield", "controller": 0, "name": "Party Wizard", "type": "Creature — Human Wizard", "power": 1, "toughness": 1},
+  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9}
+ ],
+ "mana": {},
+ "steps": [{"op": "combat", "seat": 0, "attack": {"warrior": true, "wizard": true}, "block": {"wall": "warrior"}}],
+ "expect": {"life": {"1": 19}, "damage": {"wall": 1}, "hand": {"0": 1}}}

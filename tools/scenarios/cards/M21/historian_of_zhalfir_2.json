@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Historian of Zhalfir", "zone": "battlefield", "controller": 0},
+  {"key": "t", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "t", "set": 3},
+  {"op": "combat", "seat": 0, "attack": {"h": true}}
+ ],
+ "expect": {
+  "attackers": {"h": true},
+  "zone": {"t": "battlefield"},
+  "hand": {"0": 0, "1": 0}
+ },
+ "notes": "Printed: 'if YOU control a Teferi planeswalker'. Only the opponent controls Teferi, so the attack draws nothing: hand stays 0 for both players."
+}

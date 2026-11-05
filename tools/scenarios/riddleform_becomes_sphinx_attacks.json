@@ -1,0 +1,19 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever you cast a noncreature spell, you may have this enchantment become a 3/3 Sphinx creature with flying in addition to its other types until end of turn.' Casting Short Sword (an artifact, so a noncreature spell) and answering 'fire' makes Riddleform a 3/3 flying creature this turn: it can be declared as an attacker (it has been under its controller's control since the turn began) and deals 3 to the opponent (20 -> 17).",
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "sw", "real": "Short Sword", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "cast", "key": "sw", "real": "Short Sword", "decisions": ["fire"]},
+  {"op": "combat", "seat": 0, "attack": {"rf": true}}
+ ],
+ "expect": {
+  "zone": {"sw": "battlefield", "rf": "battlefield"},
+  "attackers": {"rf": true},
+  "life": {"1": 17},
+  "power": {"rf": 3},
+  "toughness": {"rf": 3},
+  "battlefield_keywords": {"Riddleform": ["FLYING"]}
+ }}

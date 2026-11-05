@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fabled Passage plus three other lands of yours. After the sacrifice and the search you control four lands (three plus the fetched Forest), so the Forest is untapped.",
+ "cards": [
+  {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "caves", "real": "Bloodfell Caves", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "fp", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"fp": "graveyard", "forest": "battlefield", "caves": "library"},
+  "tapped": {"forest": false}
+ }
+}

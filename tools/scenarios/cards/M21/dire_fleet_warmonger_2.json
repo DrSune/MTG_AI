@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wm", "real": "Dire Fleet Warmonger", "zone": "battlefield", "controller": 0},
+  {"key": "opp_c", "name": "Opp Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"wm": false}, "may": {"wm": true}, "decisions": ["opp_c", "wm"]}
+ ],
+ "expect": {
+  "zone": {"wm": "battlefield", "opp_c": "battlefield"},
+  "power": {"wm": 3},
+  "toughness": {"wm": 3},
+  "battlefield_keywords": {"Dire Fleet Warmonger": []}
+ },
+ "notes": "Printed: 'you may sacrifice another creature. If you do, ...'. I control no other creature: the Warmonger cannot sacrifice itself ('another') nor the opponent's creature (you sacrifice only what you control, CR 701.21a), so nothing is sacrificed and there is no +2/+2 or trample."
+}

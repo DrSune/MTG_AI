@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8b6e2feb-9e8f-4912-ada0-1614502d9813",
+ "name": "Makeshift Battalion",
+ "text_sha": "7eb1d2f3b4023a1a823b6767bd7346d36b61d573ed55c0e175c2797f2255f418",
+ "verified": {
+  "tree_sha": "6ab6819304471e25842213ac74c19576d47c7b009e3f0331f3ef526922a14978",
+  "probe_sha": "e09cbbb2acdbeba130378dec31e9bb54fa912a6d9fc2bda68ee15f1d3d7fad51",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-H",
+  "clauses": [
+   {
+    "clause": "Battalion — Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe only attacks with this creature alone ([this creature attacks alone, unblocked], [attacks and opp_giant blocks it]): the trigger is checked and no counter is placed, which is right; another creature attacking without it does nothing. A three-creature attack never happens. Tree equals the compiler's parse (B5a-battalion). Packs: makeshift_battalion_three_attackers (it and two others attack: one +1/+1 counter on it only, 4/3, opponent takes 4+2+2 = 8) PASS; makeshift_battalion_two_attackers (it and one other attack: no counter, opponent takes 5) PASS. The second pack kills a mutant whose threshold is 2 attackers.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/makeshift_battalion_1.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_2.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 1,
+   "score": 0.2,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
+ }
+}

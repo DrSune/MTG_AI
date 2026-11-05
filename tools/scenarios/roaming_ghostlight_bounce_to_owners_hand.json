@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "notes": "Roaming Ghostlight, printed: 'When this creature enters, return up to one target non-Spirit creature to its OWNER'S hand.' Cast it and target the opponent's bear: the bear goes to the OPPONENT's hand (opponent hand 0 -> 1); your hand is empty after casting the Ghostlight (0). The Ghostlight stays on the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gl", "real": "Roaming Ghostlight", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 5}},
+ "steps": [
+  {"op": "cast", "real": "Roaming Ghostlight", "key": "gl", "decisions": ["obear"]}
+ ],
+ "expect": {
+  "zone": {"gl": "battlefield", "obear": "hand"},
+  "hand": {"0": 0, "1": 1}
+ }
+}

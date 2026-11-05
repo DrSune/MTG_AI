@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "disc_opp", "real": "Discontinuity", "zone": "hand", "controller": 1},
+  {"key": "disc", "real": "Discontinuity", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}, "1": {"U": 5}},
+ "steps": [
+  {"op": "cast", "real": "Discontinuity", "key": "disc_opp", "controller": 1, "expect_raise": "illegal cast"},
+  {"op": "cast", "real": "Discontinuity", "key": "disc", "expect_raise": "illegal cast"},
+  {"op": "mana", "seat": 0, "add": {"U": 1}},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 1, "controller": 1},
+  {"op": "cast", "real": "Discontinuity", "key": "disc"}
+ ],
+ "expect": {
+  "zone": {"disc": "exile", "disc_opp": "hand", "bear": "battlefield"},
+  "damage": {},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed: 'During your turn, this spell costs {2}{U}{U} less to cast. End the turn.' On its controller's turn it costs {1}{U}: one U is not enough (the reduction is no larger than printed), two U are exactly enough. On the opponent's turn (seat 1 casting during seat 0's turn) it costs the full {3}{U}{U}{U}, so five U are not enough. Ending the turn exiles the spell from the stack and damage wears off (CR 724.1, 514.2)."
+}

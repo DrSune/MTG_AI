@@ -33,7 +33,10 @@
     {
       "op": "enter",
       "key": "k",
-      "decisions": []
+      "decisions": [
+        "z1",
+        "z2"
+      ]
     }
   ],
   "expect": {
@@ -44,5 +47,6 @@
       "z1": "graveyard",
       "z2": "graveyard"
     }
-  }
+  },
+  "notes": "re-pinned 2026-10-29: V15 encodes 'discard up to two cards' as an up-to count (QAtMost(2)), so with two cards in hand the controller is asked which to discard (or none); the step discards both, as before."
 }

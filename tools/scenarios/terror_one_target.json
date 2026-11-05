@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Terror of the Peaks: another creature you control (a 3/3) enters, so Terror deals 3 damage to ONE target (any target): the opponent is chosen, goes 20 -> 17, and no creature is damaged (there is no second target).",
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "c", "name": "Ox", "type": "Creature", "power": 3, "toughness": 3, "zone": "hand", "controller": 0},
+  {"key": "og", "name": "Opp Giant", "type": "Creature", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "c", "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 17},
+  "zone": {"c": "battlefield", "og": "battlefield", "t": "battlefield"},
+  "damage": {}
+ }
+}

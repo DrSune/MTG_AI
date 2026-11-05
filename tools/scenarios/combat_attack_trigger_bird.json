@@ -22,7 +22,7 @@
   ],
   "expect": {
     "life": {
-      "1": 18
+      "1": 17
     },
     "attackers": {
       "falconer": true
@@ -30,5 +30,6 @@
     "zone": {
       "falconer": "battlefield"
     }
-  }
+  },
+  "notes": "# re-pinned 2026-10-30: m21-fidelity (fixer 4's finding). The Bird token now enters tapped and attacking as printed (CR 508.4) and deals 1 beside the Adept's 2: seat 1 at 17 (it was 18 while the TokenSpec dropped the flags)."
 }

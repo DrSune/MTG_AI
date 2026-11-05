@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e5cc1492-c9cc-48f0-8c11-02ead883675c",
+ "name": "Gloom Sower",
+ "text_sha": "8fc1fee4fc4c25eb4e7e51038baab64db39e277c4ee67475682791d421403e88",
+ "verified": {
+  "tree_sha": "ad5e4a247758191052fb936fa7edb60f50f996744f019bb6c3190ba2b5f129c5",
+  "probe_sha": "5c548ad9495ad5effdea3486ca2ef8b13c4d84b8d9159de8a7265f43d95e3c59",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "Whenever this creature becomes blocked by a creature,",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: card's triggered ability [0] triggers on DECLARE_BLOCKERS opp_giant card; [this creature attacks alone, unblocked]: no trigger. The binder anchors BecomesBlockedEvent to the source as the blocked attacker and checks the filter on the blocker, one row per blocker (MTG_bot/core/executor/binding.py:926-952). Tree equals parse (template B2b-gloom-sower). Pack gloom_sower_double_block.json (two blockers = two triggers) PASS; pack gloom_sower_other_creature_blocked.json (another creature of mine is blocked: no trigger) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "that creature's controller loses 2 life and you gain 2 life.",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: opp loses 2 life (by card/LOSE_LIFE), you gains 2 life: opp 20 -> 18, you 20 -> 22 (the referent='event' selector resolves to the blocker's controller). Pack gloom_sower_double_block.json: opp 20 -> 16, you 20 -> 24 PASS. [cast]: mana B-2 W-5 = {5}{B}{B}, 8/6.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/gloom_sower_1.json",
+   "tools/scenarios/cards/M21/gloom_sower_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

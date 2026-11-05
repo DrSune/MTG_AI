@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7b428e94-8428-455f-b555-f648fcdd2127",
+ "name": "Hunter's Edge",
+ "text_sha": "8cf9bd315d60788b07598f224189234ede2158e33c8678e7db5ea8fc2c2a5ff5",
+ "verified": {
+  "tree_sha": "1321880fae5a78fa73f9b9141846ed778d0108f68aa33c0aa244ecd12289816a",
+  "probe_sha": "9a50c8efeac15fb61122a649ace9a2c3fbc2d3960452d98c379b5f220586a088",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Hunter's Edge {3}{G} Sorcery (cast)",
+    "status": "OK",
+    "evidence": "[cast targets=...]: hand -> stack -> graveyard, paid G-1 plus 3 generic; SpellKind.SORCERY",
+    "issue": ""
+   },
+   {
+    "clause": "Put a +1/+1 counter on target creature you control.",
+    "status": "OK",
+    "evidence": "target slot 1: 1..1 of [you_bear, you_giant] (your creatures only); you_bear gets 1 PLUS_1_PLUS_1 (2/2 -> 3/3), you_giant (4/4 -> 5/5). Tree = parse template B5b-put-counter",
+    "issue": ""
+   },
+   {
+    "clause": "Then that creature deals damage equal to its power to target creature you don't control.",
+    "status": "OK",
+    "evidence": "target slot 2: 1..1 of [opp_flier, opp_tapped, opp_bear, opp_giant] (no own creatures); damage dealt by the countered creature (by you_bear / by you_giant) equal to its power AFTER the counter: 3 from you_bear, 5 from you_giant; opp_giant survives 3 (damage wears off at end of turn), dies to 5. Tree = parse template B5c-damage-equal-power",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

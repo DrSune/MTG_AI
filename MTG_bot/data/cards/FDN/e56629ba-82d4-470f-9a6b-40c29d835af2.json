@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e56629ba-82d4-470f-9a6b-40c29d835af2",
+ "name": "Quakestrider Ceratops",
+ "text_sha": "06e49fc48c5834a97072e4706c571ed6feee1d1ed21da1c2b582c1e4cb6b74d3",
+ "verified": {
+  "tree_sha": "9e22dc6f2c166ab7296cd2b597597d18c7a46753f4e03cf40d4bd22805d5f38f",
+  "probe_sha": "dc796aa36d1641a7e607ebd15379f364d96a44e113d00c1753f1237672ceec36",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla 12/8 Dinosaur creature, {3}{G}{G}{G})",
+    "status": "OK",
+    "evidence": "tree is only SpellAbility(kind=CREATURE), keywords empty; [cast]: hand -> battlefield as 12/8 for six mana (G-3 W-3); attacking unblocked deals 12 (opp 20 -> 8); no stimulus triggers anything; static section: 12/8, no keywords",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

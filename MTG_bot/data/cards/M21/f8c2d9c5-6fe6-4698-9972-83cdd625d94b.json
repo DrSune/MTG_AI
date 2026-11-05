@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f8c2d9c5-6fe6-4698-9972-83cdd625d94b",
+ "name": "Defiant Strike",
+ "text_sha": "3901886c369c6bb86367b906de82a6168ea6bef3b5dfe6683a06d333ad1245fb",
+ "verified": {
+  "tree_sha": "3127a7e0c38a4023d36618e1689247913182e77797ae816fc2cd423bab3ce860",
+  "probe_sha": "b6997677609c80a173202cf6a5e0e9a280faf36cb75d28d51e40aab5e7dc2c14",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Instant {W}",
+    "status": "OK",
+    "evidence": "tree SpellAbility(kind=INSTANT); every cast pays 'mana W-1'",
+    "issue": ""
+   },
+   {
+    "clause": "Target creature gets +1/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (any creature); e.g. [cast targets=['you_bear']]: P/T 2/2 -> 3/2, 'after the turn ends: you_bear: P/T 3/2 -> 2/2'; same +1/+0 then revert on all six targets",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "every cast: 'you draws you:Library 5#1', you: library 6 -> 5 (exactly one card, the caster)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

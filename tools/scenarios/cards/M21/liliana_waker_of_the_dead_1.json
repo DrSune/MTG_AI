@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "Silk", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine"]}
+ ],
+ "expect": {
+  "zone": {"mine": "graveyard"},
+  "hand": {"0": 0, "1": 0},
+  "life": {"0": 20, "1": 17},
+  "counters": {"lil": {"LOYALTY": 5}}
+ },
+ "notes": "Printed Liliana, Waker of the Dead: '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' I discard my only card; the opponent has an empty hand, can't discard, and loses 3 life (20 -> 17). I lose nothing. Loyalty 4 -> 5."
+}

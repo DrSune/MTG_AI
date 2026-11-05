@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Each creature you control with a +1/+1 counter on it has trample.' With an unkicked Gnarlid Colony (no counters) on your battlefield, your Hungry Ghoul gets a +1/+1 counter (its own ability, sacrificing Fodder): the Ghoul now has trample. The Colony (no counter) and your plain 2/2 (no counter) do not.",
+ "cards": [
+  {"key": "colony", "real": "Gnarlid Colony", "zone": "battlefield", "controller": 0},
+  {"key": "ghoul", "real": "Hungry Ghoul", "zone": "battlefield", "controller": 0},
+  {"key": "fodder", "name": "Fodder", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "plain", "name": "Plain Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "activate", "key": "ghoul", "idx": 0, "seat": 0, "decisions": ["fodder"]}
+ ],
+ "expect": {
+  "zone": {"fodder": "graveyard"},
+  "counters": {"ghoul": {"PLUS_1_PLUS_1": 1}, "colony": {}},
+  "battlefield_keywords": {"Hungry Ghoul": ["TRAMPLE"], "Gnarlid Colony": [], "Plain Bear": []}
+ }
+}

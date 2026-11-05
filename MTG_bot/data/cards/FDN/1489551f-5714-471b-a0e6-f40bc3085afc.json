@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1489551f-5714-471b-a0e6-f40bc3085afc",
+ "name": "Moment of Craving",
+ "text_sha": "67a7114881e00bb0008b900b181d9885c41abe39173aafde69a8f4eda96f61d5",
+ "verified": {
+  "tree_sha": "0c16b753401b3b4a86d50df01bc66a475f339c68302fbd9c3152daf3ae997365",
+  "probe_sha": "494e78b58b6c1f0d049e6227085eac5352dad23f0a94ef8c915cf96095a90283",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "Target creature gets -2/-2 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_bear, opp_giant]; [cast targets=['you_giant']] / ['opp_giant']: 4/4 -> 2/2 and 'after the turn ends' back to 4/4; the 2/2 bears die (0/0) when targeted; only the chosen creature changes",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 2 life.",
+    "status": "OK",
+    "evidence": "every variant: 'you gains 2 life (by card/GAIN_LIFE)', you 20 -> 22",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 12,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

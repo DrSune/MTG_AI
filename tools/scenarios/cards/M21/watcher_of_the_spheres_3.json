@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "watcher", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "skyfish", "real": "Mystic Skyfish", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "skyfish", "real": "Mystic Skyfish", "expect_raise": "illegal cast: cost"}
+ ],
+ "expect": {
+  "zone": {"skyfish": "hand", "watcher": "battlefield"},
+  "power": {"watcher": 2}
+ },
+ "notes": "M21 G2 spec: Watcher of the Spheres reduces only creature spells WITH flying. Mystic Skyfish ({2}{U}, no printed flying) still costs three, so two mana cannot cast it."
+}

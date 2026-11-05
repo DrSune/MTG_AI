@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Rousing Read (M21) positive control for rousing_read_choice_and_leaves: cast on seat 0's Bear, it is 3/3 with flying and attached; the controller discards Junk.",
+ "cards": [
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "keeper", "zone": "hand", "controller": 0, "name": "Keeper", "type": "Instant"},
+  {"key": "rr", "zone": "hand", "controller": 0, "real": "Rousing Read"},
+  {"key": "junk", "zone": "hand", "controller": 0, "name": "Junk", "type": "Sorcery"}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "key": "rr", "targets": ["bear"], "decisions": ["junk"]}
+ ],
+ "expect": {"zone": {"rr": "battlefield", "junk": "graveyard", "keeper": "hand"}, "attached": {"rr": "bear"},
+            "hand": {"0": 3}, "power": {"bear": 3}, "toughness": {"bear": 3}, "battlefield_keywords": {"Your Bear": ["FLYING"]}}}

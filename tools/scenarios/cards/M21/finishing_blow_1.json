@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Finishing Blow, printed 'Destroy target creature or planeswalker.' Target the opponent's planeswalker Basri Ket (loyalty 3). Expected: Basri Ket goes to the graveyard.",
+ "cards": [
+  {"key": "pw", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+  {"key": "fb", "real": "Finishing Blow", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "loyalty", "key": "pw", "set": 3},
+  {"op": "cast", "real": "Finishing Blow", "key": "fb", "targets": ["pw"]}
+ ],
+ "expect": {"zone": {"pw": "graveyard", "fb": "graveyard"}}}

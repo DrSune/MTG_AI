@@ -1,0 +1,73 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aug",
+   "real": "Kinetic Augur",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "name": "Zap",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "name": "Rites",
+   "type": "Sorcery",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "g3",
+   "name": "Shock",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "chump",
+   "name": "Chump",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "aug": true
+   },
+   "block": {
+    "chump": "aug"
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "aug": 3
+  },
+  "zone": {
+   "chump": "graveyard",
+   "aug": "battlefield"
+  },
+  "life": {
+   "1": 18
+  },
+  "damage": {
+   "aug": 1
+  }
+ },
+ "notes": "P4f2d52370f G4: three instant/sorcery cards in your graveyard make Kinetic Augur 3/4; with trample it assigns lethal 1 to the 1/1 blocker and the excess 2 to the defending player."
+}

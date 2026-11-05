@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "fb4a044b-f25d-47ff-b272-754e577ce50a",
+ "name": "Turret Ogre",
+ "text_sha": "3a7b49d3eb1a631730e508f53b43531779b75a99806cb56dabb017c41ecbe2ad",
+ "verified": {
+  "tree_sha": "8361960490e01e46a2e338d31b638ac467deb93ef6b63ab688214840ab035c16",
+  "probe_sha": "9e9cb3ceda374ac28c4bbff2a0f591327572daa1c1845ef10695a1c12630955f",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-D",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords[0] REACH ('keywords +REACH' on cast); no probe stimulus has a flier attack into it. Pack reach_blocks_flier: the opponent's 2/2 flier attacks and the Ogre's block stands (pass)",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, if you control another creature with power 4 or greater, this creature deals 2 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[cast] and the opponent's-turn entry: the trigger fires with you_giant (4/4) on board and 'opp is dealt 2 damage', opp 20 -> 18, your life unchanged; [a creature enters under your control] -> none (only its own entry). Tree matches the compiler's B2a-turret-ogre (CONTROLLER_IS YOU, POWER_GE 4, FNot IS_SOURCE; ALL opponents). The false condition is not in the trace: pack no_other_big, where only the Ogre itself (power 4) and the opponent's 5/5 qualify, deals no damage (pass)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/turret_ogre_1.json",
+   "tools/scenarios/cards/M21/turret_ogre_2.json",
+   "tools/scenarios/cards/M21/turret_ogre_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 8,
+   "score": 0.6153846153846154,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "widen filter (drop part 2) at 1/0/condition/inner_filter",
+    "widen filter (drop part 3) at 1/0/condition/inner_filter",
+    "amount-1 at 1/0/condition/inner_filter/children/2/count"
+   ]
+  }
+ }
+}

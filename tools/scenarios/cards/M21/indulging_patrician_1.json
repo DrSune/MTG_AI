@@ -1,0 +1,13 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ip", "real": "Indulging Patrician", "zone": "battlefield", "controller": 0},
+  {"key": "rv", "real": "Revitalize", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "rv"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"life": {"0": 23, "1": 17}, "zone": {"rv": "graveyard", "ip": "battlefield"}},
+ "notes": "Printed: 'At the beginning of your end step, if you gained 3 or more life this turn, each opponent loses 3 life.' Revitalize gains you exactly 3 life this turn (20 -> 23); at your end step the opponent loses 3 (20 -> 17)."}

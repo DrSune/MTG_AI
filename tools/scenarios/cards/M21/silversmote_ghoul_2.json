@@ -1,0 +1,21 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'At the beginning of YOUR end step, if YOU gained 3 or more life THIS TURN, return this card ...' Turn 1 (seat 0): seat 0 gains 2 (not 3) and seat 1 gains 5 (not you): no return. Turn 2 (seat 1): seat 0 gains 3, but seat 1's end step is not seat 0's end step: no return. Turn 3 (seat 0): seat 0 gained nothing THIS turn: no return. The Ghoul stays in the graveyard throughout.",
+ "cards": [
+  {"key": "ghoul", "real": "Silversmote Ghoul", "zone": "graveyard", "controller": 0},
+  {"key": "ll2", "name": "Small Lifelinker", "type": "Creature — Cleric", "power": 2, "toughness": 2, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "ll3", "name": "Lifelinker", "type": "Creature — Cleric", "power": 3, "toughness": 3, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "oppll", "name": "Opp Lifelinker", "type": "Creature — Cleric", "power": 5, "toughness": 5, "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 1},
+  {"key": "dummy", "name": "Dummy", "type": "Creature — Golem", "power": 0, "toughness": 20, "zone": "battlefield", "controller": 1},
+  {"key": "mydummy", "name": "My Dummy", "type": "Creature — Golem", "power": 0, "toughness": 20, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll2", "target": "dummy", "amount": 2},
+  {"op": "deal_damage", "source": "oppll", "target": "mydummy", "amount": 5, "controller": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "ll3", "target": "dummy", "amount": 3},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"zone": {"ghoul": "graveyard"}, "life": {"0": 25, "1": 25}, "turn_seats": [0, 1, 0]}}

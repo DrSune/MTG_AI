@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e3483dd4-0118-4143-9b55-51078a6f274a",
+ "name": "Epitaph Golem",
+ "text_sha": "c247decee72d076db2f3840c0db1967822491ba5a477466c2e4465f0d0fc8906",
+ "verified": {
+  "tree_sha": "a6af592eba3938afdd96a88012929dc405d570898325332167601e188c7e48db",
+  "probe_sha": "e5202183a1f86a625150b013c66b02e65fbd85fbbd0d06307d9452b2a9754c0b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Artifact Creature — Golem {5} 3/5",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 3/5, mana W-5; [attacks alone, unblocked]: opp life 20 -> 17; [opp_giant blocks]: takes 4 damage and survives, deals 3",
+    "issue": ""
+   },
+   {
+    "clause": "{2}: Put target card from your graveyard (target slot, cost)",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of [you_fallen, you_used] (your graveyard only, any card type); [activate [0] targets=['you_fallen']]: moves graveyard -> library, mana W-2, no tap",
+    "issue": ""
+   },
+   {
+    "clause": "... on the bottom of your library.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe shows only 'graveyard -> library' and library 6 -> 7, not the position. Tree destination Zone(LIBRARY, YOU) with no position, identical to `parse` template B3-move-gy-to-library-bottom; verbs.py:286-294 treats a position-less library destination as the bottom. Pack epitaph_golem_bottom_of_library.json: the card lands under all six library cards, exactly {2} spent, Golem untapped, opponent's graveyard untouched: PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/epitaph_golem_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

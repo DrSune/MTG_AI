@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "fr", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "cs", "real": "Capture Sphere", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}, "1": {"R": 1, "U": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Feat of Resistance", "key": "fr", "targets": ["bear"], "decisions": ["3"]},
+  {"op": "cast", "real": "Shock", "key": "shock", "controller": 1, "targets": ["bear"], "expect_raise": "illegal"},
+  {"op": "cast", "real": "Capture Sphere", "key": "cs", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {"zone": {"fr": "graveyard", "shock": "hand", "cs": "battlefield", "bear": "battlefield"}, "attached": {"cs": "bear"},
+   "counters": {"bear": {"PLUS_1_PLUS_1": 1}}, "power": {"bear": 3}, "toughness": {"bear": 3}, "tapped": {"bear": true}},
+ "notes": "Printed: 'Put a +1/+1 counter on target creature you control. It gains protection from the color of your choice until end of turn.' Choice 3 of WUBRG = red: the bear gets a +1/+1 counter (3/3) and protection from red, so the opponent's red Shock cannot target it, while the opponent's blue Capture Sphere can (and taps it)."}

@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount+1 on the sacrifice count; toughness magnitude +-1). Printed: 'At the beginning of combat on your turn, you may sacrifice ANOTHER creature. If you do, this creature gets +2/+2 and gains trample until end of turn.' You control two other creatures (Bear, Second Bear). The may is taken and the Second Bear is chosen (the sacrifice ask's second word): exactly one creature is sacrificed, the Bear stays. Nobody attacks. Still within the turn the Warmonger (3/3) is 5/5 with trample.",
+ "cards": [
+  {"key": "dfw", "real": "Dire Fleet Warmonger", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Second Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dfw": false, "bear": false, "bear2": false}, "may": {"dfw": true}, "decisions": ["bear2"]}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield", "bear2": "graveyard", "dfw": "battlefield"},
+  "power": {"dfw": 5},
+  "toughness": {"dfw": 5},
+  "battlefield_keywords": {"Dire Fleet Warmonger": ["TRAMPLE"]}
+ }
+}

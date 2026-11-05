@@ -92,16 +92,18 @@ class TestLifeLostFeed(LifeJournalCase):
         self.assertEqual(self.rows("LIFE_GAINED"), [])
 
     def test_lose_life_clamp_amount_is_the_actual_delta(self):
-        # The verb 0-clamps (CR 118.5.2a: life can't go negative); the
-        # journalled amount is the REAL delta, so the fold reconstructs.
+        # The journalled amount is the REAL delta, so the fold reconstructs.
+        # re-pinned 2026-10-30: the verb no longer clamps at 0 (CR 119.3: the life
+        # total is adjusted; 119.6: at 0 or less the player loses, as a state-based
+        # action). The old pin cited a "CR 118.5.2a" that says no such thing.
         self.ex.execute(
             atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),
             source=self.source,
             controller=self.p0,
         )
-        self.assertEqual(self.life(self.p0), 0)
+        self.assertEqual(self.life(self.p0), -10)
         lost = self.rows("LIFE_LOST")
-        self.assertEqual([e.data for e in lost], [(20,)])
+        self.assertEqual([e.data for e in lost], [(30,)])
 
     def test_gain_life_still_journals_gain_not_loss(self):
         self.ex.execute(

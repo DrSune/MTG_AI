@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "f621dcaa-c500-4a17-a65a-60d9b5516a3b",
+ "name": "Goblin Wizardry",
+ "text_sha": "96c6ec86ead0dc94bacc91e993cfaf6dbd2cf8fa67e6f6a286c52fcf5b84fdc2",
+ "verified": {
+  "tree_sha": "9172713db914ac6cbc89af8efc90430a384d915ac7c74955f582e161acc690b3",
+  "probe_sha": "2e8b1aa57376a017690b5ef1c34cb320ee71aed7659fe05d6b7534a482fec009",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4N",
+  "clauses": [
+   {
+    "clause": "Goblin Wizardry {3}{R} Instant (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> graveyard, paid R-1 plus 3 generic",
+    "issue": ""
+   },
+   {
+    "clause": "Create two 1/1 red Goblin Wizard creature tokens with prowess.",
+    "status": "OK",
+    "evidence": "[cast]: + you:Goblin Wizard#1 and #2 (battlefield, you, 1/1, PROWESS), exactly two. TokenSpec: Creature — Goblin Wizard, subtypes (Goblin, Wizard), colors ('R',), count QConst 2",
+    "issue": ""
+   },
+   {
+    "clause": "(Whenever you cast a noncreature spell, they get +1/+1 until end of turn.) [prowess reminder]",
+    "status": "OK",
+    "evidence": "Not in the trace. Packs on the minted tokens: goblin_wizardry_prowess_triggers.json (Shock + Pestilent Haze: +2/+2 then -2/-2, both survive) - PASS; goblin_wizardry_prowess_wears_off.json (turn-1 Shock bonus gone by your next turn, Haze kills both) - PASS; goblin_wizardry_prowess_only_your_spells.json (opponent's Shock gives no bonus, Haze kills both) - PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/goblin_wizardry_1.json",
+   "tools/scenarios/cards/M21/goblin_wizardry_2.json",
+   "tools/scenarios/cards/M21/goblin_wizardry_3.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

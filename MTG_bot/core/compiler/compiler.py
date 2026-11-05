@@ -42,7 +42,6 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextTurn,
     EachPlayer,
     Effect,
-    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -54,8 +53,8 @@ from MTG_bot.core.ability_tree import (
     KickerAbility,
     OptionalEffect,
     QBin,
+    QAtLeast,
     QConst,
-    QUnbounded,
     Quantity,
     Repeat,
     Selector,
@@ -244,9 +243,10 @@ def _phase_in_prevention_effect() -> Atom:
 # folds the opener + its option bullets into one Choose node (or a triggered
 # ability carrying one) so the card no longer reports an unparsed sentence.
 #
-# KNOWN-GAP: "Choose one or more —" (Sublime Epiphany) is approximated with
-#   QUnbounded() — the grammar has no QAtLeast(1), so the minimum-1
-#   constraint is lost.
+# "Choose one or more —" (Sublime Epiphany, Casualties of War) is
+#   Choose(count=QAtLeast(1)) since ontology R5-10/11's engine item
+#   (2026-10-30): at least one mode, at most every mode once (CR 700.2d).
+#   It was QUnbounded(), which also admitted choosing no mode at all.
 # KNOWN-GAP: "attacks or blocks" (Elder Gargaroth) is decomposed into two
 #   TriggeredAbility nodes (DeclareAttackersEvent + DeclareBlockersEvent)
 #   sharing the same Choose effect — the grammar has no composite
@@ -405,7 +405,7 @@ def _expand_choose_opener(
     TriggeredAbility nodes into ``abilities``.
     """
     count = (
-        QUnbounded()
+        QAtLeast(1)  # "one or more": the empty mode set is not a choice (CR 700.2)
         if outcome.kind == _CHOOSE_SPELL_ONE_OR_MORE
         else _CHOOSE_SPELL_COUNTS.get(outcome.kind, QConst(1))
     )
@@ -616,6 +616,9 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
     # KNOWN-GAP: keywords in _KEYWORDS_BARE_UNBUILDABLE cannot be
     constructed without params; "Hexproof from" needs a Filter.
     These are silently omitted (reported via CompileResult.known_gaps).
+
+    A whole-ability keyword (``_LINE_KEYWORDS``) is built only if the face prints it
+    (``_face_prints_keyword``): MTGJSON's list is not the face's own keyword list.
     """
     results: list[KeywordAbility] = []
     for kw_str in raw.keywords:
@@ -628,8 +631,39 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
         # Keywords that require params in ALL their signatures.
         if kw_enum in _KEYWORDS_BARE_UNBUILDABLE:
             continue
+        if kw_str in _LINE_KEYWORDS and not _face_prints_keyword(raw, kw_str):
+            continue
         results.append(KeywordAbility(keyword=kw_enum, params=()))
     return tuple(results)
+
+
+def _face_prints_keyword(raw: RawCard, kw_str: str) -> bool:
+    """Does this face print the whole-ability keyword ``kw_str`` as its own?
+
+    MTGJSON's ``keywords`` field is not the face's keyword list, in two ways
+    (m21-fidelity item 1, 2026-10-29; 19-set census: 9 cards):
+
+    - It lists the bare keyword beside a parameterized variant of it: "Hexproof" next to
+      "Hexproof from" for "Hexproof from black" (Garruk's Harbinger, Sporeweb Weaver, Knight of
+      Grace, Knight of Malice, Elenda, Eradicator Valkyrie). "Hexproof from [quality]" is a
+      variant of hexproof that stops only [quality] spells and abilities (CR 702.11d), so a bare
+      HEXPROOF beside it was full hexproof (CR 702.11b): stronger than printed.
+    - A modal double-faced card lists both faces' keywords on each face, and a face has only
+      its own characteristics (CR 712.8a, 712.8f): Alrund, God of the Cosmos got the Flying of
+      its back face, Hakka.
+
+    A whole-ability keyword is printed as one comma-separated part of a line, trailing reminder
+    text dropped (CR 207.2): "Flying", "Reach, hexproof from blue" (Reach only), "First strike
+    (This creature deals combat damage first.)". Keywords that only other objects get ("creatures
+    you control have flying") are not in MTGJSON's list at all (measured on the 19 sets).
+    """
+    want = kw_str.lower()
+    for sentence in raw.sentences:
+        match = _TRAILING_REMINDER_RE.match(sentence.strip())
+        head = (match.group("head") if match else sentence.strip()).rstrip(".")
+        if any(part.strip().lower() == want for part in head.split(",")):
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -650,6 +684,8 @@ class CompileResult:
     ``back_face_unparsed`` — ZND-2f (/106): (sentence, hint) pairs for
     UNMATCHED back-face sentences only; ``unparsed`` stays the front-face
     register (PC-1's formula stays front-face compile results, /96 law).
+    ``record``        — the tree sha of an applied card record (card_records.py;
+    docs/PLAN_CARD_ONBOARDING.md), None when the tree is the compiler's own.
     """
 
     card: CardRecord
@@ -659,6 +695,7 @@ class CompileResult:
     rule_reminders: tuple[RuleReminderOutcome, ...] = ()
     known_gaps: tuple[str, ...] = ()
     back_face_unparsed: tuple[tuple[str, str], ...] = ()
+    record: str | None = None
 
 
 @dataclass(frozen=True)
@@ -766,6 +803,38 @@ def _self_named_sentence(sentence: str, raw: RawCard) -> str | None:
     return out if out != sentence else None
 
 
+def _leans_on_previous_sentence(node: object) -> bool:
+    """Does an effect act on objects the previous sentence produced: the
+    REST complement of a pick, or the ``result`` register (the objects the
+    previous sentence acted on, C12)?"""
+    if isinstance(node, Selector) and (
+        node.mode is SelectorMode.REST or node.referent == "result"
+    ):
+        return True
+    if type(node) is tuple:
+        return any(_leans_on_previous_sentence(x) for x in node)
+    if is_dataclass(node) and not isinstance(node, type):
+        return any(_leans_on_previous_sentence(getattr(node, f.name)) for f in fields(node))
+    return False
+
+
+def _dangles_after_unparsed(outcomes: list, outcome: object) -> bool:
+    """m21-fidelity wave 4: is ``outcome`` a sentence that leans on the one
+    before it (:func:`_leans_on_previous_sentence`) while that sentence is
+    unparsed (a None slot; reminder text in between is skipped)? Such a
+    sentence has no antecedent (CR 608.2c reads the instructions in order,
+    and "the rest" / "it" name the previous instruction's objects)."""
+    if not isinstance(outcome, EffectOutcome) or not _leans_on_previous_sentence(
+        outcome.effect
+    ):
+        return False
+    for prev in reversed(outcomes):
+        if isinstance(prev, RuleReminderOutcome):
+            continue
+        return prev is None
+    return False
+
+
 def _is_continuation(sentence: str) -> bool:
     """Check if a sentence starts with a continuation prefix."""
     s = sentence.strip()
@@ -789,11 +858,19 @@ def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     and was previously orphaned as a card-level SpellAbility.  If the nearest
     meaningful processed entry is an ActivatedAbility whose cost carries a
     CostLoyalty part, that ability is the sentence's true owner.
+
+    B-49 follow-up #1 (2026-10-29): the empty-cost OPT(CAST) permission row is transparent
+    here too, as the r14e adjudication intended (:func:`_is_cast_permission_row`).
+    Chandra, Heart of Fire's "Add six {R}." is printed under the [−9] bullet,
+    after "You may cast them this turn."; the scan stopped at that row, so the
+    mana landed on the card-level SpellAbility and casting her added six {R}.
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
         if prev is None or isinstance(prev, RuleReminderOutcome):
             continue
+        if _is_cast_permission_row(prev):
+            continue  # the permission sentence is part of the same bullet
         if (
             isinstance(prev, AbilityOutcome)
             and isinstance(prev.ability, ActivatedAbility)
@@ -862,6 +939,28 @@ def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
     )
 
 
+# B-49 follow-up #1 (2026-10-29): a permission that lasts "until end of turn" or "this turn" is
+# the continuous effect of the ability whose resolution creates it (CR 611.2a). A
+# static ability states no duration (CR 113.3d, 611.3a), so such a sentence is
+# never an ability of its own.
+_DURATION_PERMISSION_RE = re.compile(r"\b(?:until end of turn|this turn)\b", re.IGNORECASE)
+
+
+def _is_duration_cast_permission(slot: _OutcomeSlot, sentence: str) -> bool:
+    """B-49 follow-up #1: a permission row (:func:`_is_cast_permission_row`) whose sentence
+    states a duration. It belongs to the ability printed above it, but CAST has
+    no duration role and the executor no permission lane, so it cannot be
+    expressed there yet. As a sibling node it was a free cast the controller
+    could repeat whenever the permanent was on the battlefield: Chandra, Flame's
+    Catalyst's [−8] "Until end of turn, you may cast spells from your hand
+    without paying their mana costs.", and Chandra, Heart of Fire's "Until end of
+    turn, you may play cards exiled this way." and "You may cast them this
+    turn." A static permission (Conspicuous Snoop's "You may cast Goblin spells
+    from the top of your library.") states no duration and waives no cost, so it
+    stays an ability."""
+    return _is_cast_permission_row(slot) and bool(_DURATION_PERMISSION_RE.search(sentence))
+
+
 def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     """Index of the tail-most plain activated ability if it is the LAST
     meaningful processed entry, else None.
@@ -927,6 +1026,27 @@ def _append_mandatory_to_seq(effect: Effect, inner: Effect) -> Effect:
     return Seq(steps=(effect, inner))
 
 
+#: "Each opponent who can't loses 3 life." (Liliana, Waker of the Dead): a tail about whether the
+#: player COULD do the instruction just before it.
+_WHO_CANT_TAIL_RE = re.compile(r"^Each (?:opponent|player) who can't\b")
+
+
+def _insert_before_last_step(effect: Effect, inner: Effect) -> Effect:
+    """Put a "who can't" check right before the instruction it is about (V10, 2026-10-29).
+
+    "Each player discards a card. Each opponent who can't loses 3 life.": the opponents who
+    can't are those with no card to discard, so the check reads the hands BEFORE the discard.
+    Appended after it (the old order), it also hit an opponent who discarded their last card,
+    stronger than printed once every player really discards. Within one resolution nothing
+    observable happens between the check and the instruction (no choice, no priority; triggers
+    wait), so this order is the printed meaning. It departs from printed sentence order:
+    docs/ATOM_DIVERGENCES.md D17.
+    """
+    if isinstance(effect, Seq):
+        return Seq(steps=effect.steps[:-1] + (inner, effect.steps[-1]))
+    return Seq(steps=(inner, effect))
+
+
 def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
     """Inject ``shuffle`` into the previous ``OptionalEffect``'s inner steps.
 
@@ -938,10 +1058,39 @@ def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
     """
     if isinstance(prev_effect, OptionalEffect):
         inner = prev_effect.inner
+        if isinstance(inner, Choose):
+            # m21-fidelity wave 4 (2026-10-30, B-78): "search your library
+            # and/or graveyard" is a Choose over the zone sets
+            # (templates.and_or_zone_search). "If you search your library
+            # this way, shuffle" joins exactly the options that search a
+            # library; the graveyard-only option keeps the library's order.
+            return OptionalEffect(
+                inner=Choose(
+                    count=inner.count,
+                    options=tuple(
+                        _append_mandatory_to_seq(option, shuffle)
+                        if _searches_a_library(option)
+                        else option
+                        for option in inner.options
+                    ),
+                )
+            )
         if isinstance(inner, Seq):
             return OptionalEffect(inner=Seq(steps=inner.steps + (shuffle,)))
         return OptionalEffect(inner=Seq(steps=(inner, shuffle)))
     return Seq(steps=(prev_effect, shuffle))
+
+
+def _searches_a_library(effect: object) -> bool:
+    """Does an effect hold a SEARCH whose ``cards`` selector looks in a library?"""
+    if isinstance(effect, Atom):
+        cards = effect.args.get("cards") if effect.verb is Verb.SEARCH else None
+        return isinstance(cards, Selector) and any(
+            z.kind is ZoneKind.LIBRARY for z in cards.zones
+        )
+    if isinstance(effect, Seq):
+        return any(_searches_a_library(step) for step in effect.steps)
+    return False
 
 
 def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:
@@ -1029,19 +1178,6 @@ def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
     return _append_optional_to_seq(prev_effect, continuation)
 
 
-def _ends_with_optional(effect: Effect) -> bool:
-    """r18a: does the continuation SEAM end in an ``OptionalEffect`` — the
-    may-action a printed "If you do" anaphorically refers to (CR 611.1)?
-    True for a bare optional and for a Seq whose last step is one (through
-    nested Seqs); False means the antecedent was mandatory — the tail's
-    condition already rode the mandatory action, keep today's append."""
-    if isinstance(effect, OptionalEffect):
-        return True
-    if isinstance(effect, Seq) and effect.steps:
-        return _ends_with_optional(effect.steps[-1])
-    return False
-
-
 def _merge_if_do_continuation(
     prev_effect: Effect, continuation: Effect, sentence: str
 ) -> Effect:
@@ -1052,26 +1188,25 @@ def _merge_if_do_continuation(
     against the phantom second ask, but it left "If you do" tails running
     as free riders when the player answered ``skip`` (the wave-1b ledger's
     crypt_lurker_skip class: skip Crypt Lurker's sacrifice and the draw
-    still landed). The correct gate is the may-decision's OUTCOME, so the
-    tail joins the sequence as ``Conditional(MAY_DONE, Y)`` — the executor
-    answers MAY_DONE from the 14b channel's logged may-offer (consumes the
-    outcome, never re-asks). A "may"-bearing tail ("If you do, you may Z")
-    keeps its own inner optional INSIDE the gate. A non-optional seam
-    (mandatory antecedent, e.g. Archfiend's Vessel's condition-gated exile,
-    Mazemind Tome's counter-ability) keeps today's plain append: its "if
-    you do" is the mandatory action the sequence already performed.
+    still landed). The correct gate is the antecedent's OUTCOME, so the
+    tail joins the sequence as ``Conditional(MAY_DONE, Y)``. A "may"-bearing
+    tail ("If you do, you may Z") keeps its own inner optional INSIDE the
+    gate.
+
+    m21-fidelity wave 4 (2026-10-30, coordinator ruling (a)): a MANDATORY
+    antecedent is gated the same way. CR 118.12 reads "[Do something]. If
+    you do, [effect]" exactly as it reads "You may [do something]. If you
+    do": did the player do it. So it is one meaning with one encoding, and
+    the executor records whether the step before the gate actually happened
+    (Archfiend's Vessel's "exile it. If you do, create a Demon" makes no
+    Demon when the Vessel left the battlefield first; Mazemind Tome and
+    Fire Prophecy likewise). Before, the mandatory seam was a plain append.
     """
-    if _ends_with_optional(prev_effect):
-        inner = continuation
-        if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
-            inner = OptionalEffect(inner=inner)
-        gated = Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=inner)
-        return _append_mandatory_to_seq(prev_effect, gated)
-    return (
-        _append_optional_to_seq(prev_effect, continuation)
-        if _MAY_RE.search(sentence)
-        else _append_mandatory_to_seq(prev_effect, continuation)
-    )
+    inner = continuation
+    if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
+        inner = OptionalEffect(inner=inner)
+    gated = Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=inner)
+    return _append_mandatory_to_seq(prev_effect, gated)
 
 
 def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
@@ -1153,6 +1288,8 @@ def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKi
         return SpellKind.SORCERY
     if "Enchantment" in types:
         return SpellKind.ENCHANTMENT
+    if "Artifact" in types:
+        return SpellKind.ARTIFACT  # B-49: it fell back to SORCERY and resolved to the graveyard
     return SpellKind.SORCERY
 
 
@@ -1506,6 +1643,93 @@ def _as_single_faced(raw: RawCard) -> RawCard:
     )
 
 
+def _star_pt_gaps(raw: RawCard, card: CardRecord) -> list[str]:
+    """Known-gap notes for a printed '*' P/T that no SET_PT/MODIFY_PT atom covers.
+
+    Shared by :func:`compile_card` and the card-record path (card_records.py), so a
+    mapped tree is held to the same check as a compiled one."""
+    gaps: list[str] = []
+    # If power or toughness was '*' (→ None from parse_pt), check that a
+    # SET_PT or MODIFY_PT verb exists somewhere in the compiled tree.
+    # # KNOWN-GAP: when no template produced such an atom the card's P/T is
+    #   dynamic but uncovered — a template-coverage gap, not data corruption
+    #   (the data itself is sound). Report it; power/toughness stay None
+    #   (= "resolve at runtime"). M21 has exactly two such cards: Weird and
+    #   Kinetic Augur.
+    needs_set_pt = (raw.power_raw is not None and raw.power_raw.strip() == "*") or (
+        raw.toughness_raw is not None and raw.toughness_raw.strip() == "*"
+    )
+    if needs_set_pt:
+        has_set_pt = False
+        for node in walk(card, skip=BackFace):
+            if isinstance(node, Atom) and node.verb in (
+                Verb.SET_PT,
+                Verb.MODIFY_PT,
+            ):
+                has_set_pt = True
+                break
+        if not has_set_pt:
+            star_fields = []
+            if raw.power_raw is not None and raw.power_raw.strip() == "*":
+                star_fields.append("power")
+            if raw.toughness_raw is not None and raw.toughness_raw.strip() == "*":
+                star_fields.append("toughness")
+            gaps.append(
+                f"star P/T: {'/'.join(star_fields)} is '*' but no SET_PT/MODIFY_PT "
+                f"ability found in compiled text (template coverage gap)"
+            )
+    return gaps
+
+
+def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bool:
+    """The engine-support verdict for a built card (``supported_verbs=None`` is the
+    ungated pass: always True). Shared with the card-record path."""
+    if supported_verbs is None:
+        engine_supported = True
+    else:
+        engine_supported = True
+        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
+        # subtree is EXCLUDED — the engine never plays a face (owner-gated,
+        # spec §6), so a face-only verb must never flip a front-face-
+        # supported card's verdict (and a face-unsupported verb must never
+        # silently drop a front-face-supported card from engine supply).
+        for node in walk(card, skip=BackFace):
+            if isinstance(node, Atom) and node.verb not in supported_verbs:
+                engine_supported = False
+                break
+        # ZND-1e SHAPE gates (the verb-only fold was dishonest for the
+        # kicker family: it marked 41 of ZNR's 42 kicker cards supported
+        # while the executor raised on every gated lane). The delivered
+        # lanes — KickerAbility priced into the cast, WAS_KICKED read
+        # from the CAST journal row, gated EtBState with constant
+        # counters — stay SUPPORTED; what remains unplayable is marked
+        # unsupported here, honestly:
+        #   * an X-kicker ({X} in the optional cost): no producer wires
+        #     the kick choice to an X declaration (deferred, /95).
+        # (m21-fidelity, 2026-10-29: the gate on a gated EtBState with
+        # non-constant counters is gone. The entering-state stamp now
+        # resolves any counter Quantity with the cast X (executor
+        # _apply_etb_state), the lane "enters with X +1/+1 counters" uses.)
+        if engine_supported:
+            for node in walk(card, skip=BackFace):
+                if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
+                    engine_supported = False
+                    break
+                # B-49 follow-up #4 (2026-10-29): a loyalty [−X] (Ugin) is
+                # supported: legality.activate announces X before paying
+                # (CR 602.2b -> 601.2b, 107.3a), capped by the loyalty
+                # counters (CR 606.6). The lane handles a bare X only, so
+                # any other Quantity delta stays honestly unsupported.
+                if (
+                    isinstance(node, CostLoyalty)
+                    and not isinstance(node.delta, int)
+                    and not isinstance(node.delta, QX)
+                ):
+                    engine_supported = False
+                    break
+    return engine_supported
+
+
 def compile_card(
     raw: RawCard,
     registry: TemplateRegistry,
@@ -1610,6 +1834,18 @@ def compile_card(
                     )
                 )
 
+        # m21-fidelity wave 4 (2026-10-30): a sentence that acts on what the
+        # sentence before it produced ("Put the rest on the bottom of your
+        # library", "That player discards that card", "It gains
+        # indestructible") has no antecedent when that sentence did not
+        # parse. Compiled alone it became an unprinted effect of its own
+        # (FDN Squad Rallier and Vivien Reid: the rest-to-bottom ran as the
+        # whole spell effect, moving the top card of the library), so it is
+        # unparsed too (flag, don't degrade).
+        if _dangles_after_unparsed(outcomes, best_match.outcome):
+            outcomes.append(None)
+            continue
+
         # Use highest-priority match (first in ordered tuple)
         outcomes.append(best_match.outcome)
 
@@ -1641,8 +1877,17 @@ def compile_card(
         # ZNR kicker tail ("If this spell/it was kicked, [instead] X"):
         # fold the WAS_KICKED-gated arm onto the previous effect-bearing
         # slot — additive append, or "instead" replacement (the arm wins,
-        # the base moves to the Conditional's else_effect).
+        # the base moves to the Conditional's else_effect). The same fold
+        # takes any other printed condition (outcome.pred, m21-fidelity
+        # item 4): "You gain 4 life. If a creature died this turn, you gain
+        # 8 life instead." is Conditional(DIED_THIS_TURN, 8, else=4)
+        # (CR 608.2c), not a turn-long replacement.
         if isinstance(outcome, KickerEffectOutcome):
+            arm_pred = (
+                outcome.pred
+                if outcome.pred is not None
+                else FAtom(pred=FAtomPred.WAS_KICKED)
+            )
             j: int | None = None
             base: Effect | None = None
             saw_unparsed_base = False
@@ -1669,8 +1914,8 @@ def compile_card(
                     # effect content — no base clause exists in the text
                     # at all; never silently drop the clause.
                     raise StateCorruptionError(
-                        "compile_card: kicker 'instead' arm has no "
-                        "preceding base effect to replace it",
+                        "compile_card: kicker or conditional 'instead' arm has "
+                        "no preceding base effect to replace it",
                         context={"sentence": raw.sentences[i]},
                     )
                 if outcome.replaces:
@@ -1689,7 +1934,7 @@ def compile_card(
                 processed.append(
                     EffectOutcome(
                         effect=Conditional(
-                            pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                            pred=arm_pred,
                             then_effect=outcome.effect,
                         )
                     )
@@ -1698,7 +1943,7 @@ def compile_card(
                 continue
             merged = (
                 Conditional(
-                    pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                    pred=arm_pred,
                     then_effect=outcome.effect,
                     else_effect=base,
                 )
@@ -1706,7 +1951,7 @@ def compile_card(
                 else _append_mandatory_to_seq(
                     base,
                     Conditional(
-                        pred=FAtom(pred=FAtomPred.WAS_KICKED),
+                        pred=arm_pred,
                         then_effect=outcome.effect,
                     ),
                 )
@@ -1738,7 +1983,9 @@ def compile_card(
                 ab = slot.ability if isinstance(slot, AbilityOutcome) else None
                 if isinstance(ab, ActivatedAbility):
                     merge = (
-                        _append_optional_to_seq
+                        _insert_before_last_step
+                        if _WHO_CANT_TAIL_RE.match(sentence.strip())
+                        else _append_optional_to_seq
                         if _MAY_RE.search(sentence)
                         else _append_mandatory_to_seq
                     )
@@ -1771,7 +2018,9 @@ def compile_card(
                     # must not gain a phantom second wrap — the step is
                     # optional exactly once.
                     merge = (
-                        _append_optional_to_seq
+                        _insert_before_last_step
+                        if _WHO_CANT_TAIL_RE.match(sentence.strip())
+                        else _append_optional_to_seq
                         if _MAY_RE.search(sentence)
                         and not isinstance(outcome.effect, OptionalEffect)
                         else _append_mandatory_to_seq
@@ -1803,7 +2052,9 @@ def compile_card(
                 aab = slot.ability if isinstance(slot, AbilityOutcome) else None
                 if isinstance(aab, ActivatedAbility):
                     merge = (
-                        _append_optional_to_seq
+                        _insert_before_last_step
+                        if _WHO_CANT_TAIL_RE.match(sentence.strip())
+                        else _append_optional_to_seq
                         if _MAY_RE.search(sentence)
                         and not isinstance(outcome.effect, OptionalEffect)
                         else _append_mandatory_to_seq
@@ -1994,6 +2245,20 @@ def compile_card(
         if isinstance(outcome, MetaOutcome) and outcome.filter is not None:
             meta_filters.append(outcome.filter)
 
+    # B-49 follow-up #2 (2026-10-29): the Enchant restriction rides on the ENCHANT keyword,
+    # "Enchant [object or player]" (CR 702.5a), which limits what the Aura spell
+    # may target (CR 303.4a) and what the Aura may enchant. It used to reach the
+    # tree only by folding into the spell's own effect, so an Aura cast through
+    # the effect-less carrier lost it and could enchant any permanent.
+    if meta_filters:
+        enchant = meta_filters[0] if len(meta_filters) == 1 else FAnd(tuple(meta_filters))
+        keywords = tuple(
+            KeywordAbility(keyword=Keyword.ENCHANT, params=(enchant,))
+            if ka.keyword is Keyword.ENCHANT and not ka.params
+            else ka
+            for ka in keywords
+        )
+
     # -- Collect additional costs -------------------------------------------
     # "As an additional cost to cast this spell, ..." sentences: attached
     # to the card's SpellAbility right after assembly (order preserved).
@@ -2022,6 +2287,9 @@ def compile_card(
     ability_src: list[int] = []
     effect_outcomes: list[Effect] = []
     effect_src: list[int] = []
+    # B-49 follow-up #1: set when a printed permission had to be suppressed; the card then
+    # cannot be played as printed, so the gated pass marks it unsupported.
+    permission_unsupported = False
     for src, outcome in zip(processed_sentence_idx, processed):
         if isinstance(outcome, AbilityOutcome):
             if _is_result_anaphoric_cast_permission(outcome.ability):
@@ -2036,6 +2304,19 @@ def compile_card(
                     "(no executor play-permission lane; the card prints no "
                     "activated ability)"
                 )
+                continue
+            if _is_duration_cast_permission(outcome, raw.sentences[src]):
+                # B-49 follow-up #1: the same suppression for a duration-limited permission. It
+                # is part of the ability printed above it (CR 611.2a) and must
+                # never be a free, repeatable ability of its own; that ability
+                # cannot be played as printed, so the card is engine-unsupported.
+                known_gaps.append(
+                    "KNOWN-GAP (cast permission): duration-limited permission "
+                    f"{raw.sentences[src]!r} suppressed at assembly (it belongs to "
+                    "the ability printed above it; CAST has no duration role); "
+                    "the card is engine-unsupported"
+                )
+                permission_unsupported = True
                 continue
             ability_outcomes.append(outcome.ability)
             ability_src.append(src)
@@ -2131,6 +2412,8 @@ def compile_card(
                 kind = SpellKind.SORCERY
             elif "Enchantment" in types:
                 kind = SpellKind.ENCHANTMENT
+            elif "Artifact" in types:
+                kind = SpellKind.ARTIFACT  # B-49: not the SORCERY fallback (it resolved to the graveyard)
             else:
                 kind = SpellKind.SORCERY  # fallback
             combined = (
@@ -2140,6 +2423,27 @@ def compile_card(
             )
             abilities.append(SpellAbility(kind=kind, effect=combined))
             ability_srcs.append(max(effect_src))
+
+    # -- Permanent-spell carrier (B-49, 2026-10-29) ---------------------------
+    # A noncreature permanent whose text is all static, triggered or activated
+    # abilities (an anthem, an equipment, a planeswalker) assembled NO
+    # SpellAbility, so spell_castable answered cast:not_a_spell and the card was
+    # uncastable by construction: 44 of M21's cards, 63 of FDN's. It is plainly a
+    # permanent spell (CR 301.1, 303.1, 306.1), so it gets the effect-less
+    # carrier creatures got in C4 batch 4 and kicker heads in ZND-1e. Lands are
+    # played, not cast; tokens and emblems are never cast.
+    if (
+        not is_land
+        and not is_token
+        and not is_emblem
+        and not is_creature
+        and any(t in types for t in ("Enchantment", "Artifact", "Planeswalker"))
+        and not any(isinstance(ab, SpellAbility) for ab in abilities)
+        and not any(isinstance(ab, KickerAbility) for ab in abilities)
+    ):
+        abilities.append(SpellAbility(kind=_spell_kind_from_types(types, False)))
+        # Synthetic carrier, not tied to a sentence (last-index convention).
+        ability_srcs.append(len(raw.sentences) - 1)
 
     # -- Attach additional costs to the spell --------------------------------
     # Additional-cost sentences ride on a SpellAbility. A card that matched
@@ -2317,77 +2621,10 @@ def compile_card(
         is_token=raw.is_token or is_emblem,
     )
 
-    # -- Star P/T coverage check ----------------------------------------------
-    # If power or toughness was '*' (→ None from parse_pt), check that a
-    # SET_PT or MODIFY_PT verb exists somewhere in the compiled tree.
-    # # KNOWN-GAP: when no template produced such an atom the card's P/T is
-    #   dynamic but uncovered — a template-coverage gap, not data corruption
-    #   (the data itself is sound). Report it; power/toughness stay None
-    #   (= "resolve at runtime"). M21 has exactly two such cards: Weird and
-    #   Kinetic Augur.
-    needs_set_pt = (raw.power_raw is not None and raw.power_raw.strip() == "*") or (
-        raw.toughness_raw is not None and raw.toughness_raw.strip() == "*"
-    )
-    if needs_set_pt:
-        has_set_pt = False
-        for node in walk(card, skip=BackFace):
-            if isinstance(node, Atom) and node.verb in (
-                Verb.SET_PT,
-                Verb.MODIFY_PT,
-            ):
-                has_set_pt = True
-                break
-        if not has_set_pt:
-            star_fields = []
-            if raw.power_raw is not None and raw.power_raw.strip() == "*":
-                star_fields.append("power")
-            if raw.toughness_raw is not None and raw.toughness_raw.strip() == "*":
-                star_fields.append("toughness")
-            known_gaps.append(
-                f"star P/T: {'/'.join(star_fields)} is '*' but no SET_PT/MODIFY_PT "
-                f"ability found in compiled text (template coverage gap)"
-            )
-
-    # -- Engine support check ------------------------------------------------
-    if supported_verbs is None:
-        engine_supported = True
-    else:
-        engine_supported = True
-        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
-        # subtree is EXCLUDED — the engine never plays a face (owner-gated,
-        # spec §6), so a face-only verb must never flip a front-face-
-        # supported card's verdict (and a face-unsupported verb must never
-        # silently drop a front-face-supported card from engine supply).
-        for node in walk(card, skip=BackFace):
-            if isinstance(node, Atom) and node.verb not in supported_verbs:
-                engine_supported = False
-                break
-        # ZND-1e SHAPE gates (the verb-only fold was dishonest for the
-        # kicker family: it marked 41 of ZNR's 42 kicker cards supported
-        # while the executor raised on every gated lane). The delivered
-        # lanes — KickerAbility priced into the cast, WAS_KICKED read
-        # from the CAST journal row, gated EtBState with constant
-        # counters — stay SUPPORTED; what remains unplayable is marked
-        # unsupported here, honestly:
-        #   * an X-kicker ({X} in the optional cost): no producer wires
-        #     the kick choice to an X declaration (deferred, /95);
-        #   * a gated EtBState whose counters are not constants: the
-        #     engine's entering-state stamp is QConst-only.
-        if engine_supported:
-            for node in walk(card, skip=BackFace):
-                if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
-                    engine_supported = False
-                    break
-                if (
-                    isinstance(node, EtBState)
-                    and node.condition is not None
-                    and any(
-                        not isinstance(qty, QConst)
-                        for _kind, qty in node.initial_counters
-                    )
-                ):
-                    engine_supported = False
-                    break
+    known_gaps.extend(_star_pt_gaps(raw, card))
+    engine_supported = _engine_supported(card, supported_verbs)
+    if permission_unsupported and supported_verbs is not None:
+        engine_supported = False  # B-49 follow-up #1: a suppressed duration permission
 
     legality = LegalityFlags(
         format_legal=True,
@@ -2414,12 +2651,19 @@ def compile_pool(
     pool: dict[str, RawCard],
     registry: TemplateRegistry,
     supported_verbs: set[Verb] | None = None,
+    records: dict[str, dict[str, Any]] | None = None,
+    *,
+    require_verified: bool = True,
 ) -> PoolCompile:
     """Compile an entire pool (oracle_id → RawCard).
 
     Emblems are compiled and attached to their owner CardRecord via
     ``related_names``.  Emblems are excluded from the standalone ``cards``
     dict.  Missing owners become ``orphan_emblems``.
+
+    ``records`` (oracle_id → card record, card_records.py) puts a mapped tree
+    in place of the compiler's; with ``require_verified`` (the default) only a
+    record whose tree passed verification is applied.
 
     Summary is internally consistent:
     - total = number of non-emblem cards
@@ -2433,7 +2677,34 @@ def compile_pool(
     """
     results: dict[str, CompileResult] = {}
     for oid, raw in pool.items():
-        results[oid] = compile_card(raw, registry, supported_verbs)
+        try:
+            results[oid] = compile_card(raw, registry, supported_verbs)
+        except StateCorruptionError:
+            # A card whose text the compiler refuses can still be rescued by its card record:
+            # the printed facts compile alone, the record supplies every ability. If the record
+            # does not apply (absent, stale, unverified), the refusal stands, loud as before.
+            if not (records and "ir" in records.get(oid, {})):
+                raise
+            from MTG_bot.core.compiler.card_records import apply_record
+
+            base = compile_card(replace(raw, sentences=(), back_face=None), registry, supported_verbs)
+            rescued = apply_record(
+                raw, base, records[oid], supported_verbs, require_verified=require_verified
+            )
+            if rescued.record is None:
+                raise
+            results[oid] = rescued
+    if records:
+        # Card records (docs/PLAN_CARD_ONBOARDING.md): a mapped tree replaces the compiler's
+        # for its card; by default only a verified one. No records (M21): this loop is skipped.
+        from MTG_bot.core.compiler.card_records import apply_record
+
+        for oid, raw in pool.items():
+            if oid in records and results[oid].record is None:
+                results[oid] = apply_record(
+                    raw, results[oid], records[oid], supported_verbs,
+                    require_verified=require_verified,
+                )
 
     # Separate emblems from non-emblems
     emblem_oids: set[str] = set()

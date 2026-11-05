@@ -1,0 +1,49 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c19f3f00-2c7b-4e85-a034-e65760d9cc13",
+ "name": "Tempered Veteran",
+ "text_sha": "a2889a48c27164122dd412cb94dd3813b86dd6dbd9fc1d40a6f03e0538a25ff2",
+ "verified": {
+  "tree_sha": "1fb35f722c1a3e7d98d52d8d05ac71efd2e7bc92c58b6ad01116c6983e616e0a",
+  "probe_sha": "95a5d275e59ed48102de83e481f181cbff77b181f3dd44c0c6d07a92b03f2f26",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Creature - Human Knight {1}{W} 1/2",
+    "status": "OK",
+    "evidence": "[cast]: mana W-2, P/T 1/2",
+    "issue": ""
+   },
+   {
+    "clause": "{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: 'ability [0] skipped: a target slot needs 1, the board offers 0' (no creature on the standard board has a +1/+1 counter, so the narrow filter is at least not widened). Tree = `parse` (B3-put-counter-creature-with-counter). Pack K_tempered_veteran_counter_on_countered_creature.json PASSES: a counterless creature is refused as target; the opponent's creature with one counter gets one more (2 counters, 4/4); the {W} is spent (pool empty) and the Veteran taps.",
+    "issue": "engine-limit: no priority, so the ability is used only in its controller's own action window"
+   },
+   {
+    "clause": "{4}{W}{W}, {T}: Put a +1/+1 counter on target creature.",
+    "status": "OK",
+    "evidence": "ability [1] target slot: 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card] (every creature, itself included); each variant: card tapped False -> True, mana W-6, exactly one PLUS_1_PLUS_1 counter on the target (e.g. opp_giant 4/4 -> 5/5); tree cost = CostManaColor W x2 + CostManaGeneric 4 + CostTap = `parse`. Pack K_tempered_veteran_big_ability_costs_six.json PASSES on this packet's tree (run as a draft) and the live tree: 5 white mana is refused, the 6th makes it resolve and the pool is spent.",
+    "issue": "engine-limit: no priority (own action window only)"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/tempered_veteran_1.json",
+   "tools/scenarios/cards/M21/tempered_veteran_2.json"
+  ],
+  "mutation": {
+   "mutants": 17,
+   "killed": 12,
+   "score": 0.7058823529411765,
+   "survived": [
+    "drop cost part 0 (CostManaColor) at 1/0/cost",
+    "drop cost part 1 (CostTap) at 1/0/cost",
+    "amount+1 at 1/0/cost/parts/0/amount",
+    "amount+1 at 1/0/effect/args/count",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

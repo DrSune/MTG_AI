@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Double strike. Vigilance. Trample.' Giant Growth makes the Vindicator 4/4; a 2/2 blocks it. First-strike damage: lethal 2 to the blocker and, by trample, the excess 2 to the opponent (the trample ask gives the blocker 0 extra). The blocker dies. Regular damage: 4 more to the opponent (trample, blocker gone). Opponent 20 -> 14. Without trample the first-strike step could not assign past the blocker (CR 702.19). Vigilance: untapped.",
+ "cards": [
+  {"key": "vind", "real": "Swiftblade Vindicator", "zone": "battlefield", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "chump", "name": "Chump", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Giant Growth", "key": "gg", "targets": ["vind"]},
+  {"op": "combat", "seat": 0, "attack": {"vind": true}, "block": {"chump": "vind"}, "trample": {"vind": [0, 0]}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 14},
+  "zone": {"vind": "battlefield", "chump": "graveyard"},
+  "blocked": {"vind": ["chump"]},
+  "tapped": {"vind": false},
+  "power": {"vind": 4}
+ }
+}

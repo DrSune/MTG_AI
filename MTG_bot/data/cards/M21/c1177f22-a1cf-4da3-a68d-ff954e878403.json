@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "c1177f22-a1cf-4da3-a68d-ff954e878403",
+ "name": "Goblin Arsonist",
+ "text_sha": "f9b9e150c4dc6719aa8c8cf755f4b04d93a5a03834ef0603230e34292639836f",
+ "verified": {
+  "tree_sha": "d6f575d9889e277e788d0f2cd5f7634cda88fa8ab13a79ea0d4fcf580b4bbdad",
+  "probe_sha": "163a872210dac2072af88132b7fb8072216c309808f026c27d5ff8729c53aab6",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-E",
+  "clauses": [
+   {
+    "clause": "When this creature dies,",
+    "status": "OK",
+    "evidence": "[this card is dealt 1 damage], [this card is dealt lethal damage] and [attacks and opp_giant blocks it]: 'card dies' then triggered ability [0] triggers; [your creature (you_bear) dies -> none]",
+    "issue": ""
+   },
+   {
+    "clause": "you may have it deal 1 damage",
+    "status": "OK",
+    "evidence": "'ask may: [fire, skip] -> fire' then 'you_bear is dealt 1 damage (by card/DEAL_DAMAGE)'; in the combat variant the harness answers the may 'skip' and no damage follows. Pack goblin_arsonist_decline (declined: no damage marks) passes on the live tree and this packet's tree",
+    "issue": ""
+   },
+   {
+    "clause": "to any target.",
+    "status": "OK",
+    "evidence": "'ask target: [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, you, opp]': creatures and players of both sides, no artifact/enchantment; planeswalkers are in the filter but not on the board: pack goblin_arsonist_planeswalker_target (the opponent's Basri Ket 3 -> 2 loyalty) passes",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/goblin_arsonist_1.json",
+   "tools/scenarios/cards/M21/goblin_arsonist_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

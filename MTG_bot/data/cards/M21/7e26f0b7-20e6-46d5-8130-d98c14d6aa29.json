@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7e26f0b7-20e6-46d5-8130-d98c14d6aa29",
+ "name": "Temple of Mystery",
+ "text_sha": "8b1db14050ffb0833dfdca7414aba847154faf9da4b7b5420f091690a3c37555",
+ "verified": {
+  "tree_sha": "bf7b87aa282f892b4128d8bc252a293bf343f9d816db7d58b65d48d64e0a45c0",
+  "probe_sha": "708a34f3be7c41357f7dbed17a49d4e0e5419897b89e2081dac3e0c418d7b6e1",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on entry during the opponent's turn. Tree EtBState(tapped=True)",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "[play land]: 'card's triggered ability [1] triggers', ask scry: [top, bottom]; fires again on entry during the opponent's turn. Tree identical to template B2b-temple-etb-scry. Bottom branch (not visible in the change lines): pack temple_of_mystery_play_scry_bottom.json (land drop, answer bottom, Library 5 goes under the other five, land tapped): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [2]] ask choose -> 0: tapped, you: mana G+1; [ask 1 -> 1]: tapped, you: mana U+1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/temple_of_mystery_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

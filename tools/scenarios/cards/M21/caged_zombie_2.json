@@ -1,0 +1,59 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "zombie",
+   "real": "Caged Zombie",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "t1",
+   "real": "Treasure",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "t1",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "B"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "zombie",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "condition:false"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "t1": "ceased"
+  },
+  "tokens": {
+   "Treasure": 0
+  },
+  "life": {
+   "1": 20
+  },
+  "tapped": {
+   "zombie": false
+  }
+ },
+ "notes": "Printed: 'Activate only if a CREATURE died this turn.' Only a Treasure (a noncreature artifact) went to the graveyard this turn, so the ability cannot be activated even though {1}{B} is available (C plus the Treasure's B); the opponent keeps 20 life and the Zombie stays untapped. Re-pinned 2026-10-30 at the fixer-3 merge: the sacrificed Treasure is a token, and a token that leaves the battlefield ceases to exist (CR 704.5d; V35, with the runner now keeping is_token), so its zone is 'ceased', not 'graveyard'. The Treasure did die (tokens Treasure 0), and Caged Zombie's printed condition is unchanged: no creature died, so the ability cannot be activated."
+}

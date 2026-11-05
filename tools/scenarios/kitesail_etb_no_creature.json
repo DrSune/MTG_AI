@@ -1,0 +1,32 @@
+{
+ "set": "ZNR",
+ "notes": "B-55 regression (fixed 2026-10-29, was tools/scenarios/known_bugs/): Cliffhaven Kitesail 'When this Equipment enters, attach it to target creature you control.' With no creature you control the trigger has no legal target and is removed from the stack (CR 603.3d); the Equipment simply stays on the battlefield unattached. Before the fix the engine ran ATTACH with no host and raised. (Entered from hand with the enter op: on this branch the card is not castable yet, B-49.)",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "kite",
+   "real": "Cliffhaven Kitesail",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "kite"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "kite": "battlefield"
+  }
+ }
+}

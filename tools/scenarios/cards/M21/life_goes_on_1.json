@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Life Goes On, printed: 'You gain 4 life. If a creature died this turn, you gain 8 life instead.' Your 5/5 deals 5 damage to the opponent's 2/2, which dies. Then Life Goes On: a creature died this turn, so you gain 8 INSTEAD of 4 (20 -> 28, not 24 or 32).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0},
+  {"key": "golem", "name": "My Golem", "type": "Creature — Golem", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "deal_damage", "source": "golem", "target": "obear", "amount": 5},
+  {"op": "cast", "real": "Life Goes On", "key": "lgo"}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard", "lgo": "graveyard"},
+  "life": {"0": 28, "1": 20}
+ }
+}

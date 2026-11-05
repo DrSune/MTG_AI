@@ -38,6 +38,7 @@ import unittest
 
 from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
+    Choose,
     ControllerRef,
     CounterKind,
     CreatureDiesEvent,
@@ -226,8 +227,9 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(self.asks, [])
 
     def test_zero_candidates_resolves_doing_nothing(self):
-        # CR 603.4: the ability that cannot designate RESOLVES DOING
-        # NOTHING — not the 12c crash, not a guess. Artifact carrier, no
+        # CR 603.3d (B-55; this comment used to cite 603.4, the intervening-
+        # if rule): the ability that cannot designate is REMOVED FROM THE
+        # STACK — not the 12c crash, not a guess. Artifact carrier, no
         # creature you control anywhere.
         amulet = self.carrier(self.p0, "Amulet", type_line="Artifact")
         self.attach(
@@ -248,9 +250,66 @@ class TestDesignateThenApply(DesignationCase):
         self.enter(amulet)  # pre-18b this raised at the TARGET selector
         self.assertEqual(dict(self.world.cards[amulet].counters), {})
 
+    def _counter_then_gain(self, count):
+        """"Put a +1/+1 counter on <count> target creature you control.
+        You gain 3 life." — a targeted step plus an untargeted one."""
+        return Seq(
+            (
+                atom(
+                    Verb.PUT_COUNTER,
+                    counter_kind=CounterKind.PLUS_1_PLUS_1,
+                    count=QConst(1),
+                    target=Selector(
+                        count, SelectorMode.TARGET, CREATURE_ONLY, zones=(BF_YOU,)
+                    ),
+                ),
+                atom(Verb.GAIN_LIFE, amount=QConst(3), controller=ControllerRef.YOU),
+            )
+        )
+
+    def test_required_target_missing_removes_the_whole_ability(self):
+        # B-55, CR 603.3d: a trigger whose required target has no legal
+        # choice is removed from the stack, so its UNTARGETED step never
+        # happens either. Before the fix the effect ran with an empty
+        # binding: the counter fizzled, the 3 life still arrived (stronger
+        # than printed), and ATTACH-with-no-host raised (Cliffhaven
+        # Kitesail, Pirate's Cutlass).
+        amulet = self.carrier(self.p0, "Amulet", type_line="Artifact")
+        self.attach(amulet, etb_trigger(self._counter_then_gain(QConst(1))), name="Amulet")
+        self.never_ask()
+        self.enter(amulet)
+        self.assertEqual(self.world.players[self.p0].life, 20)
+
+    def test_up_to_target_missing_still_resolves_the_rest(self):
+        # Control: "up to one target" may legally choose ZERO targets, so
+        # the ability goes on the stack with none and its untargeted step
+        # still happens (CR 601.2c, 115.1).
+        amulet = self.carrier(self.p0, "Amulet", type_line="Artifact")
+        self.attach(amulet, etb_trigger(self._counter_then_gain(QAtMost(1))), name="Amulet")
+        self.never_ask()
+        self.enter(amulet)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+
+    def test_mode_dependent_target_missing_keeps_the_other_mode(self):
+        # Control: "Choose one — put a +1/+1 counter on target creature you
+        # control; or you gain 3 life." A target that only one mode needs
+        # does not remove the ability (CR 700.2a: the other mode is still
+        # choosable), so choosing the life mode gains the life.
+        amulet = self.carrier(self.p0, "Amulet", type_line="Artifact")
+        steps = self._counter_then_gain(QConst(1)).steps
+        self.attach(
+            amulet,
+            etb_trigger(Choose(QConst(1), (steps[0], steps[1]))),
+            name="Amulet",
+        )
+        self.answer("1")  # option set 1 = the life mode
+        self.enter(amulet)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+
     def test_up_to_multi_pick_carries_the_none_token(self):
-        # C17 contract (the pinned TARGET+QAtMost range 1..n): the FIRST
-        # pick is mandatory, later picks offer the "NONE" stop token.
+        # re-pinned 2026-10-29: V15 changes the TARGET+QAtMost range to 0..n
+        # (CR 601.2c, 115.6), so EVERY pick offers the "NONE" stop token, the
+        # first included (C17 had made the first pick mandatory).
         acolyte = self.carrier(self.p0, "Basri's Acolyte")
         d1 = self.world.add_card(
             card_id("Dummy One", "2", "2"), self.p0, ZONE_BATTLEFIELD
@@ -277,7 +336,7 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(dict(self.world.cards[d2].counters), {"PLUS_1_PLUS_1": 1})
         self.assertEqual(dict(self.world.cards[d1].counters), {})
         first_vocab, second_vocab = self.asks[0][0], self.asks[1][0]
-        self.assertNotIn("NONE", first_vocab)
+        self.assertEqual(first_vocab, (str(acolyte), str(d1), str(d2), "NONE"))
         # pool minus the first pick, stop token appended; the acolyte
         # itself is a legal creature candidate all along.
         self.assertEqual(second_vocab, (str(acolyte), str(d1), "NONE"))
@@ -323,6 +382,8 @@ class TestTargetPlayerRouting(DesignationCase):
         self.assertEqual(self.world.players[self.p1].life, 18)
 
     def test_self_fire_designates_the_opponent_seat(self):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
+        # now names any player, so this IR would ask over both seats).
         # Tutelage's twin: "whenever YOU draw a card, target opponent mills
         # one" — a self-origin firing has no anaphoric antecedent, so the
         # opponent seat is designated (duel: one seat → auto-fill, no ask).
@@ -337,12 +398,12 @@ class TestTargetPlayerRouting(DesignationCase):
                 effect=atom(
                     Verb.MOVE_ZONE,
                     amount=QConst(1),
-                    controller=ControllerRef.TARGET_PLAYER,
+                    controller=ControllerRef.TARGET_OPPONENT,
                     **{
                         "destination": Zone(
-                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER
+                            ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT
                         ),
-                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER),
+                        "from": Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_OPPONENT),
                         "journal_kind": "MILL",
                         "pop_order": "TOP",
                     },
@@ -352,16 +413,15 @@ class TestTargetPlayerRouting(DesignationCase):
         )
         self.never_ask()
         self.enter(dower)  # arms the draw trigger
+        # re-pinned 2026-10-29: V23 changes what counts as a draw: only a DRAW atom
+        # draws (CR 121.1, 121.5); the library-to-hand MOVE_ZONE this test used was
+        # logged as a draw. Drawme is the top card, so the draw takes it.
         self.ex.execute(
-            atom(
-                Verb.MOVE_ZONE,
-                cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
-                destination=HAND_YOU,
-            ),
+            atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
             source=dower,
             controller=self.p0,
-            bindings={"cards": lib},
         )
+        self.assertEqual(self.world.zone_of(lib).kind, ZONE_HAND)
         self.assertEqual(self.world.zone_of(victim).kind, ZONE_GRAVEYARD)
 
 
@@ -659,6 +719,8 @@ class TestTargetPlayerNestedFilter(DesignationCase):
     is designated and the filter-bound selector enumerates through it."""
 
     def _tp_wrapped(self, mode):
+        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
+        # now names any player, so this IR would ask over both seats).
         dower = self.carrier(self.p0)
         theirs = self.world.add_card(
             card_id("Theirs", "1", "1"), self.p1, ZONE_BATTLEFIELD
@@ -674,7 +736,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                     amount=QConst(1),
                     **{
                         "destination": Zone(
-                            ZoneKind.EXILE, ControllerRef.TARGET_PLAYER
+                            ZoneKind.EXILE, ControllerRef.TARGET_OPPONENT
                         ),
                     },
                     cards=Selector(
@@ -685,7 +747,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
                                 CREATURE_ONLY,
                                 FAtom(
                                     FAtomPred.CONTROLLER_IS,
-                                    who=ControllerRef.TARGET_PLAYER,
+                                    who=ControllerRef.TARGET_OPPONENT,
                                 ),
                             )
                         ),

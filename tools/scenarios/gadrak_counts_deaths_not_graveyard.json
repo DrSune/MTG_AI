@@ -1,0 +1,20 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Gadrak, the Crown-Scourge (M21): 'At the beginning of your end step, create a Treasure token for each nontoken creature that DIED this turn.' (CR 700.4: dies = put into a graveyard from the battlefield; the count is of creatures that died, wherever the card is now.) Seat 0's Bear dies, then Scavenging Ooze exiles the Bear card from the graveyard (Ooze +1/+1 counter, seat 0 gains 1). At seat 0's end step one nontoken creature has died this turn: exactly 1 Treasure.",
+ "cards": [
+  {"key": "gad", "zone": "battlefield", "controller": 0, "real": "Gadrak, the Crown-Scourge"},
+  {"key": "ooze", "zone": "battlefield", "controller": 0, "real": "Scavenging Ooze"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2},
+  {"key": "src", "zone": "battlefield", "controller": 1, "name": "Opp Giant", "type": "Creature — Giant", "power": 4, "toughness": 4}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "deal_damage", "source": "src", "target": "bear", "amount": 2},
+  {"op": "activate", "key": "ooze", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"bear": "exile", "gad": "battlefield"},
+  "counters": {"ooze": {"PLUS_1_PLUS_1": 1}},
+  "life": {"0": 21},
+  "tokens": {"Treasure": 1}
+ }}

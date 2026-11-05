@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4fb9c040-c684-4ba8-970e-58313af5584a",
+ "name": "Wildwood Patrol",
+ "text_sha": "a929a4c078b936aa9e793bb55d53b1c0da68002f8305d2f14bbfe019f0960535",
+ "verified": {
+  "tree_sha": "6ee1b7908176d796b4dd9e3f206111ac3d6d24b52dca587c439e5f9e55e08d6e",
+  "probe_sha": "6b141e1fc28be9a6c26f37a3f0970248ed80a4d338c219af82fa8648ea28ac20",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Centaur Scout {2}{G} 4/2",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 4/2, mana G-1 W-2 (3 total); unblocked attack: opp 20 -> 16",
+    "issue": ""
+   },
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "tree keywords=[TRAMPLE]; [cast] keywords +TRAMPLE. Excess damage not exercised (the only blocker, opp_giant 4/4, absorbs all 4). Pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P429b0ed22b_wildwood_trample.json (PASS): blocked by a 1/1, 1 lethal to the blocker and 3 to the player (20 -> 17)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/wildwood_patrol_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V44 (CR 702.16b, 702.16e; protection on a player). Seat 0's Runed Halo names Brash Taunter. 'Whenever Brash Taunter is dealt damage, it deals that much damage to target opponent': seat 0 can't be its target, so the trigger has no target and seat 0 stays at 20. Before V44 the trigger targeted seat 0 for 3.",
+ "cards": [
+  {
+   "key": "h",
+   "real": "Runed Halo",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bt",
+   "real": "Brash Taunter",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "imp",
+   "name": "Red Imp",
+   "power": "1",
+   "toughness": "1",
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "h",
+   "decisions": [
+    "Brash Taunter"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "imp",
+   "target": "bt",
+   "amount": 3,
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "bt": "battlefield"
+  },
+  "damage": {
+   "bt": 3
+  }
+ }
+}

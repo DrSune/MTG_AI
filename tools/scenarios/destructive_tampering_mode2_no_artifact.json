@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dt", "real": "Destructive Tampering", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "cast", "key": "dt", "real": "Destructive Tampering", "controller": 0, "decisions": ["1"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"giant": "bear"}}
+ ],
+ "expect": {
+  "zone": {"dt": "graveyard", "bear": "battlefield", "giant": "battlefield"},
+  "blocked": {"bear": []},
+  "life": {"1": 18}
+ },
+ "notes": "CR 700.2a/601.2b-c: the mode is chosen as the spell is cast and only the chosen mode's targets are chosen, so mode 2 ('Creatures without flying can't block this turn.') has no target and is castable with no artifact on the battlefield. The 4/4 then cannot block and the 2/2 deals 2."
+}

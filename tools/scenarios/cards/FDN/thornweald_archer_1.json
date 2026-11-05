@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Reach (This creature can block creatures with flying.) Deathtouch.' Serra Angel (4/4 flying) attacks; the defending Thornweald Archer may block it (block ask offers the Angel) and its 2 deathtouch damage destroys the 4/4; the Archer (2/1) dies to the 4 damage. A plain 2/2 without reach is never offered a block against the flyer.",
+ "cards": [
+  {"key": "angel", "real": "Serra Angel", "zone": "battlefield", "controller": 0},
+  {"key": "archer", "real": "Thornweald Archer", "zone": "battlefield", "controller": 1},
+  {"key": "guard", "name": "Pit Guard", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {},
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"angel": true}, "block": {"archer": "angel"}}
+ ],
+ "expect": {
+  "life": {"1": 20},
+  "zone": {"angel": "graveyard", "archer": "graveyard", "guard": "battlefield"},
+  "attackers": {"angel": true},
+  "blocked": {"angel": ["archer"]},
+  "block_asks": {"archer": "<angel>,NONE"},
+  "not_asked_to_block": ["guard"]
+ }
+}

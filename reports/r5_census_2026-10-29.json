@@ -591,27 +591,43 @@
   ]
  },
  "activation_lock_unless_mana": {
-  "cards": 2,
-  "sets": 2,
+  "cards": 4,
+  "sets": 6,
   "names": [
    "Bound in Gold",
-   "Faith's Fetters"
+   "Faith's Fetters",
+   "Pithing Needle",
+   "Sorcerous Spyglass"
   ]
  },
  "activation_lock_all": {
-  "cards": 10,
-  "sets": 10,
+  "cards": 12,
+  "sets": 11,
   "names": [
    "Arachnus Web",
    "Encrust",
    "Ice Cage",
+   "Karn, the Great Creator",
    "Koma, Cosmos Serpent",
    "Linvala, Shield of Sea Gate",
    "Mythos of Vadrok",
    "Nahiri's Binding",
+   "Phyrexian Revoker",
    "Suppression Bonds",
    "Trapped in the Tower",
    "Xathrid Gorgon"
+  ]
+ },
+ "activation_trigger": {
+  "cards": 6,
+  "sets": 5,
+  "names": [
+   "Chandra's Regulator",
+   "Frenzied Raider",
+   "Keral Keep Disciples",
+   "Kurkesh, Onakke Ancient",
+   "Runic Armasaur",
+   "Sarkhan's Whelp"
   ]
  },
  "linked_exile": {
@@ -658,10 +674,12 @@
   ]
  },
  "counter_target_spell": {
-  "cards": 39,
+  "cards": 48,
   "sets": 19,
   "names": [
    "An Offer You Can't Refuse",
+   "Annul",
+   "Anticognition",
    "Bone to Ash",
    "Calculated Dismissal",
    "Cancel",
@@ -670,6 +688,7 @@
    "Concerted Defense",
    "Convolute",
    "Crush Dissent",
+   "Deny the Divine",
    "Didn't Say Please",
    "Disciple of the Ring",
    "Discombobulate",
@@ -678,15 +697,19 @@
    "Dovin's Veto",
    "Drown in the Loch",
    "Essence Scatter",
+   "Flashfreeze",
    "Hypnotic Sprite // Mesmeric Glare",
    "Jwari Disruption // Jwari Ruins",
    "Keep Safe",
    "Lofty Denial",
    "Mana Leak",
    "Memory Drain",
+   "Miscast",
    "Mystical Dispute",
    "Negate",
    "Neutralize",
+   "No Escape",
+   "Psychic Rebuttal",
    "Refute",
    "Remove Soul",
    "Rewind",
@@ -696,9 +719,11 @@
    "Statute of Denial",
    "Sublime Epiphany",
    "Syncopate",
+   "Tale's End",
    "Thassa's Intervention",
    "Tibalt's Trickery",
    "Unwind",
+   "Voracious Greatshark",
    "Wizard's Retort"
   ]
  },

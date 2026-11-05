@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4e473298-0b67-42b8-90a8-3bcdd73da473",
+ "name": "Bigfin Bouncer",
+ "text_sha": "76deba0dbbb8bba613e61891f766f0b1f3ca97b8a772455e603a6c967268380e",
+ "verified": {
+  "tree_sha": "183eee191ffbe0db0797b9fb404711d01d1cadfcde77da664b914e00e62596f8",
+  "probe_sha": "8ac4ac898bc7f352f18ee88ee1afb0f919cff7bfd163f597007f7bfbafad3b78",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-c1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, return target creature an opponent controls to its owner's hand.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask target: [opp_bear, opp_giant]' (opponent's creatures only, not you_bear/you_giant or noncreatures); chosen opp_bear (or opp_giant) 'moves battlefield -> hand', opp hand 2 -> 3; same on the opponent's-turn entry; one target only",
+    "issue": ""
+   },
+   {
+    "clause": "(3/2 Shark Pirate creature, {3}{U})",
+    "status": "OK",
+    "evidence": "[cast]: enters 3/2 for U-1 W-3; no keywords",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

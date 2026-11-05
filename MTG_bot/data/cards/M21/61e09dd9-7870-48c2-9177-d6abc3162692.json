@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "61e09dd9-7870-48c2-9177-d6abc3162692",
+ "name": "Titanic Growth",
+ "text_sha": "9c5dc22e8de7d8de0362cb36264cf3a4be8d3d6647f9d159b500ce7551f46cb5",
+ "verified": {
+  "tree_sha": "dd6fd08d9cb35fcc44980aa81ca852937026157a3223dc7c955778d450ce37db",
+  "probe_sha": "1479c4f9dd5719876b98e1bbb8dc589811d0a03a7afb8d1e21d763691bee3c9a",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Target creature gets +4/+4 until end of turn. (Instant {1}{G})",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of all six creatures on both sides (no non-creatures). [cast targets=['you_bear']]: P/T 2/2 -> 6/6, after the turn ends 6/6 -> 2/2; likewise you_giant 4/4 -> 8/8, opp_flier 1/1 -> 5/5, opp_tapped 3/3 -> 7/7, opp_bear, opp_giant, each reverting at end of turn; mana G-1 W-1; card to graveyard",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

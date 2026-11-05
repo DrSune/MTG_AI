@@ -22,9 +22,10 @@ emblem attach is the payload):
   scry/reveal/look-at, per-creature life loss, ETB counter placement,
   loyalty discard-hand/exile-top-library, loyalty move-to-top-of-library,
   loyalty may-cast-from-graveyard, bullet return-to-owner-hand,
-  loyalty turn-scoped trigger grant (Basri [−1] — GRANT_ABILITY with
-  DurationEot wrapping a TriggeredAbility, round-4 convention C3; "it" =
-  the attacker via the event referent).
+  loyalty turn-scoped trigger (Basri [−1], Basri Ket [−2] — a
+  DelayedTrigger with DurationEot, CR 603.7, since m21-fidelity 2026-10-29;
+  it was the round-4 C3 GRANT_ABILITY to the planeswalker, which died with
+  it; "it" = the attacker via the event referent).
 - **2 uncovered shapes** — embedded replacement text, plus the phase-in
   built-in note.  Round 9-B landed Frost Breath's untap-step prevention
   (R9-4 step+DurationUntilNextStep) and Subira's delayed combat-damage
@@ -120,7 +121,6 @@ from MTG_bot.core.ability_tree import (
     Step,
     TapStateEvent,
     TokenSpec,
-    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -133,6 +133,8 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b2b import _to_a_player
+from MTG_bot.core.compiler.templates_b5a import target_spell, target_stack_ability
 
 _BUCKET = "B5c"
 _PRIORITY = 100
@@ -329,7 +331,7 @@ def _target_opponent_creatures() -> Selector:
         FAnd(
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_OPPONENT),
             )
         ),
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
@@ -370,16 +372,6 @@ def _each_opponent_player() -> Selector:
         SelectorMode.ALL,
         FAnd(children=()),
         zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ALL_OPPONENTS),),
-    )
-
-
-def _stack_target() -> Selector:
-    """A spell/ability on the stack (for COUNTER_SPELL)."""
-    return Selector(
-        QConst(1),
-        SelectorMode.TARGET,
-        FAnd(children=()),
-        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),
     )
 
 
@@ -602,7 +594,7 @@ def _build_zombies_pt(m: re.Match[str]) -> SentenceOutcome:
 # --- Loyalty build functions ---
 
 
-def _loyalty_wrapper(effect: Atom | Seq, m: re.Match[str]) -> SentenceOutcome:
+def _loyalty_wrapper(effect: Atom | Seq | DelayedTrigger, m: re.Match[str]) -> SentenceOutcome:
     """Wrap an effect in ActivatedAbility with CostLoyalty."""
     return AbilityOutcome(
         ability=ActivatedAbility(
@@ -657,54 +649,39 @@ def _build_loyalty_basri_attack_counter(m: re.Match[str]) -> SentenceOutcome:
     """Round 4 row #17: [−1] grant a turn-scoped triggered ability —
     whenever a creature attacks this turn, put a +N/+N counter on it.
 
-    GRANT_ABILITY(target=self, ability=TriggeredAbility(...),
-    duration=DurationEot) — the round-4 convention C3 (grant with
-    DurationEot); "it" = the attacker, the declare_attackers event
-    subject, bound via the event referent in the PUT_COUNTER target
-    role (convention C1: declare_attackers → the attacker; C2).  Lossy:
-    none."""
+    A DELAYED triggered ability (CR 603.7): DelayedTrigger(DurationEot,
+    DeclareAttackersEvent(Creature), PUT_COUNTER) — Subira's "this turn,
+    whenever" shape; it lives for the turn on its own, so it keeps working
+    if the planeswalker is gone (CR 603.7c). "it" = the attacker, the
+    declare_attackers event subject, bound via the event referent in the
+    PUT_COUNTER target role (convention C1: declare_attackers → the
+    attacker; C2). m21-fidelity (2026-10-29): it was GRANT_ABILITY(target=
+    this planeswalker, the trigger, DurationEot), which died with the
+    walker (a -1 at 1 loyalty did nothing). Lossy: none."""
     p = int(m.group("p"))
     t = int(m.group("t"))
     if p != t:
         raise ValueError(
             f"B5c-loyalty-basri-attack-counter expects equal P/T, got +{p}/+{t}"
         )
-    atom = Atom(
-        verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    _self_selector(
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU)
-                    ),
-                ),
-                (
-                    "ability",
-                    TriggeredAbility(
-                        event=DeclareAttackersEvent(
-                            filter=FAtom(
-                                pred=FAtomPred.TYPE_EQ, string_value="Creature"
-                            )
-                        ),
-                        condition=None,
-                        effect=Atom(
-                            verb=Verb.PUT_COUNTER,
-                            args=AtomArgs(
-                                pairs=(
-                                    ("target", _event_reference()),
-                                    ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-                                    ("count", QConst(p)),
-                                )
-                            ),
-                        ),
-                    ),
-                ),
-                ("duration", DurationEot()),
-            )
+    delayed = DelayedTrigger(
+        duration=DurationEot(),
+        event=DeclareAttackersEvent(
+            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        ),
+        condition=None,
+        effect=Atom(
+            verb=Verb.PUT_COUNTER,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _event_reference()),
+                    ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                    ("count", QConst(p)),
+                )
+            ),
         ),
     )
-    return _loyalty_wrapper(atom, m)
+    return _loyalty_wrapper(delayed, m)
 
 
 def _build_loyalty_draw_discard(m: re.Match[str]) -> SentenceOutcome:
@@ -888,7 +865,7 @@ def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(3))),
                         keywords=(),
                         abilities=(),
-                        color="G",  # C-2 repair (round 8)
+                        colors=("G",),  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1177,18 +1154,23 @@ def _build_loyalty_pt_qprop(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_dmg_power(m: re.Match[str]) -> SentenceOutcome:
-    amount = QProp(
-        referent=Selector(
-            QConst(1),
-            SelectorMode.TARGET,
-            FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
-            ),
-            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+    """Garruk, Savage Herald's -2: "Target creature you control deals damage
+    equal to its power to another target creature." V3 (2026-10-29): the
+    creature is the damage's ``dealer`` (CR 120.2b), so its deathtouch and
+    lifelink apply; the amount reads the same designation."""
+    creature_you_control = Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            )
         ),
+        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
+    )
+    amount = QProp(
+        referent=creature_you_control,
         field=QPropField.POWER,
         agg=QAgg.FIRST,
     )
@@ -1198,6 +1180,7 @@ def _build_loyalty_dmg_power(m: re.Match[str]) -> SentenceOutcome:
             pairs=(
                 ("target", _another_target_creature()),
                 ("amount", amount),
+                ("dealer", creature_you_control),
             )
         ),
     )
@@ -1218,7 +1201,7 @@ def _build_loyalty_lose_per_creature(m: re.Match[str]) -> SentenceOutcome:
             QUnbounded(),
             SelectorMode.ALL,
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),),
+            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_OPPONENT),),
         )
     )
     amount = QBin(
@@ -1230,7 +1213,7 @@ def _build_loyalty_lose_per_creature(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.LOSE_LIFE,
         args=AtomArgs(
             pairs=(
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("controller", ControllerRef.TARGET_OPPONENT),
                 ("amount", amount),
             )
         ),
@@ -1239,6 +1222,13 @@ def _build_loyalty_lose_per_creature(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_gain_draw_put(m: re.Match[str]) -> SentenceOutcome:
+    """Ugin, the Spirit Dragon [-10]: "You gain 7 life, draw seven cards, then
+    put up to seven permanent cards from your hand onto the battlefield."
+
+    m21-fidelity (wave 4, 2026-10-30): "up to seven" is QAtMost(7), any
+    number from zero to seven (the resolve-time CHOOSE lane asks each pick
+    with a NONE stop). It was QConst(7), so every permanent card in hand,
+    up to seven, had to go onto the battlefield."""
     seq = Seq(
         steps=(
             Atom(
@@ -1266,7 +1256,7 @@ def _build_loyalty_gain_draw_put(m: re.Match[str]) -> SentenceOutcome:
                         (
                             "cards",
                             Selector(
-                                QConst(7),
+                                QAtMost(7),
                                 SelectorMode.CHOOSE,
                                 _PERMANENT_CARD_FILTER,
                                 zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
@@ -1771,9 +1761,9 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
-                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER)),
-                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)),
-                ("controller", ControllerRef.TARGET_PLAYER),
+                ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_OPPONENT)),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT)),
+                ("controller", ControllerRef.TARGET_OPPONENT),
                 (
                     "cards",
                     Selector(
@@ -1781,7 +1771,7 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
                         zones=(Zone(
-                            kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER
+                            kind=ZoneKind.HAND, controller=ControllerRef.TARGET_OPPONENT
                         ),),
                     ),
                 ),
@@ -1912,17 +1902,19 @@ def _build_bullet_all_pt(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_counter_ability(m: re.Match[str]) -> SentenceOutcome:
+    # R5-10: an ability, not a spell (STACK_KIND_EQ ACTIVATED or TRIGGERED).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(pairs=(("target", _stack_target()),)),
+        args=AtomArgs(pairs=(("target", target_stack_ability("ACTIVATED", "TRIGGERED")),)),
     )
     return EffectOutcome(effect=atom)
 
 
 def _build_bullet_counter_spell(m: re.Match[str]) -> SentenceOutcome:
+    # R5-10: "target spell" (STACK_KIND_EQ SPELL).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
-        args=AtomArgs(pairs=(("target", _stack_target()),)),
+        args=AtomArgs(pairs=(("target", target_spell()),)),
     )
     return EffectOutcome(effect=atom)
 
@@ -1945,7 +1937,7 @@ def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
-                        color="G",  # C-2 repair (round 8)
+                        colors=("G",),  # C-2 repair (round 8)
                     ),
                 ),
                 ("count", QConst(1)),
@@ -2291,14 +2283,22 @@ def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
 def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
     """``Then that creature deals damage equal to its power to target
     creature you don't control.`` (Hunter's Edge s2) — "Then "
-    continuation; DEAL_DAMAGE with target = the new TARGET creature and
-    amount = ``QProp("target", POWER)`` (grammar-round-2 dynamic power —
-    the dealer is the previous sentence's countered creature, bound as the
-    target referent).  DEAL_DAMAGE has no source role; the dealer is the
-    QProp referent, executor-side (r8 canonical, same as the r7-A
-    Primal-Might FIGHT attacker — documented, not defaulted).
+    continuation; DEAL_DAMAGE with target = the new TARGET creature.
+    "That creature" is the previous sentence's countered creature: the
+    ``result`` register PUT_COUNTER writes (R7-1). V3 (2026-10-29): it is
+    both the ``dealer`` (CR 120.2b: the creature deals the damage, so its
+    deathtouch and lifelink apply) and the power read. Before, the amount
+    was ``QProp("target")``, which on this two-target spell reads the
+    damage step's own target (the opposing creature).
     C16: the damage target is an open controller choice; the amount is
     board-dynamic, not a choice."""
+    that_creature = Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
+        referent="result",
+    )
     return EffectOutcome(
         effect=Atom(
             verb=Verb.DEAL_DAMAGE,
@@ -2307,8 +2307,9 @@ def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
                     ("target", _target_creature_you_dont_control()),
                     (
                         "amount",
-                        QProp(referent="target", field=QPropField.POWER),
+                        QProp(referent="result", field=QPropField.POWER),
                     ),
+                    ("dealer", that_creature),
                 )
             ),
         )
@@ -2350,12 +2351,18 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     """``Then it fights up to one target creature you don't control.``
     (Primal Might s2) — Verb.FIGHT (R7-8/R7-9a; the "Then " prefix makes
     this a continuation, merged after the +X/+X step).
-    C15: resolution-time "up to one" = CHOOSE + QConst(1) (0..1 open),
-    not TARGET — the C-1 collapse fix applies to new templates.
     The attacker ("it") is the prior sentence's +X/+X object: FIGHT has
     no attacker role (the r8 canonical documents the attacker as the
     source object), so the anaphoric attacker binds the result register
-    executor-side; documented."""
+    executor-side; documented.
+
+    m21-fidelity (wave 4, 2026-10-30; was B-79): the foe is a TARGET with
+    QAtMost(1), the spell's second target slot, designated as it is cast
+    (CR 601.2c) and allowed to be empty (CR 115.6). It was a resolution-time
+    pick of exactly one (CHOOSE + QConst(1), flipped to ONE_OF), so a
+    hexproof creature could be fought and the fight could not be declined.
+    The cast lane designates a trailing up-to-one slot positionally
+    (stack._validate_positional)."""
     atom = Atom(
         verb=Verb.FIGHT,
         args=AtomArgs(
@@ -2363,8 +2370,8 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
                 (
                     "target",
                     Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
+                        QAtMost(1),
+                        SelectorMode.TARGET,
                         FAnd(
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -2411,11 +2418,15 @@ def _build_get_emblem(m: re.Match[str]) -> SentenceOutcome:
 def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     """``[−2]: Whenever one or more nontoken creatures attack this turn,
     create that many 1/1 white Soldier creature tokens that are tapped and
-    attacking.`` (Basri Ket) — the round-4 C3 turn-scoped-trigger-grant
-    convention (_build_loyalty_basri_attack_counter precedent):
-    GRANT_ABILITY(target=self, ability=TriggeredAbility(...),
-    duration=DurationEot), so the loyalty PAY decision stays the single
-    activation vertex and the trigger fires once per attack declaration.
+    attacking.`` (Basri Ket) — a DELAYED triggered ability (CR 603.7):
+    DelayedTrigger(DurationEot, DeclareAttackersEvent(nontoken creature),
+    CREATE_TOKEN), the Subira "this turn, whenever" shape. It lives for the
+    turn on its own (CR 603.7c), so the loyalty PAY decision stays the
+    single activation vertex, the trigger fires once per attack
+    declaration, and it still works after Basri Ket is gone (a -2 at 2
+    loyalty kills him, CR 704.5i). m21-fidelity (2026-10-29): it was
+    GRANT_ABILITY(target=Basri, the trigger, DurationEot), which made no
+    Soldiers once Basri had died.
 
     Filter: FAnd(Creature, FNot(IS_TOKEN)) — "nontoken" via the Gadrak
     FAtomPred.IS_TOKEN (FNot precedent: b2b 'another' →
@@ -2430,67 +2441,46 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     attacker set (board-dynamic "that many")."""
     p = int(m.group("p"))
     t = int(m.group("t"))
-    atom = Atom(
-        verb=Verb.GRANT_ABILITY,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "target",
-                    _self_selector(
-                        Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU)
-                    ),
-                ),
-                (
-                    "ability",
-                    TriggeredAbility(
-                        event=DeclareAttackersEvent(
-                            filter=FAnd(
-                                children=(
-                                    FAtom(
-                                        pred=FAtomPred.TYPE_EQ, string_value="Creature"
-                                    ),
-                                    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
-                                )
-                            )
-                        ),
-                        condition=None,
-                        effect=Atom(
-                            verb=Verb.CREATE_TOKEN,
-                            args=AtomArgs(
-                                pairs=(
-                                    (
-                                        "tokens",
-                                        TokenSpec(
-                                            name="Soldier",
-                                            type_line="Creature — Soldier",
-                                            types=("Creature",),
-                                            subtypes=("Soldier",),
-                                            power=QConst(p),
-                                            toughness=QConst(t),
-                                            keywords=(),
-                                            abilities=(),
-                                            color="W",
-                                            enters_tapped=True,
-                                            enters_attacking=True,
-                                        ),
-                                    ),
-                                    (
-                                        "count",
-                                        QProp(
-                                            referent="event",
-                                            field=QPropField.THAT_MANY_COUNT,
-                                        ),
-                                    ),
-                                )
-                            ),
-                        ),
-                    ),
-                ),
-                ("duration", DurationEot()),
+    delayed = DelayedTrigger(
+        duration=DurationEot(),
+        event=DeclareAttackersEvent(
+            filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
+                )
             )
         ),
+        condition=None,
+        effect=Atom(
+            verb=Verb.CREATE_TOKEN,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "tokens",
+                        TokenSpec(
+                            name="Soldier",
+                            type_line="Creature — Soldier",
+                            types=("Creature",),
+                            subtypes=("Soldier",),
+                            power=QConst(p),
+                            toughness=QConst(t),
+                            keywords=(),
+                            abilities=(),
+                            colors=("W",),
+                            enters_tapped=True,
+                            enters_attacking=True,
+                        ),
+                    ),
+                    (
+                        "count",
+                        QProp(referent="event", field=QPropField.THAT_MANY_COUNT),
+                    ),
+                )
+            ),
+        ),
     )
-    return _loyalty_wrapper(atom, m)
+    return _loyalty_wrapper(delayed, m)
 
 
 def _build_waive_cast_from_hand(m: re.Match[str]) -> SentenceOutcome:
@@ -2663,9 +2653,9 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
     CostDiscard over ALL cards in your hand (universal filter, the
     b4 _all-cards shape).
 
-    LOSSY (verbatim, b2b-pinned): "to a player" stays dropped from the
-    damaged-recipient filter — no player-identity FAtomPred exists
-    (Incinerator/Pyreling R8 candidate, unchanged by R9).
+    B-57: "to a player" is the damaged-recipient filter b2b's
+    ``_to_a_player`` (not a permanent, CR 120.1). It used to be dropped
+    (the universal FAnd(())), so a blocked creature drew off its blocker.
     C16: open — which qualifying creature to attack with; draw is forced
     once the event fires."""
     dealer = FAnd(
@@ -2701,7 +2691,7 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
                 duration=DurationEot(),
                 event=DamageDealtEvent(
                     amount=QUnbounded(),
-                    filter=FAnd(children=()),
+                    filter=_to_a_player(),  # B-57
                     source=dealer,
                     combat=True,
                 ),

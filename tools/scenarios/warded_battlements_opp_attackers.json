@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Warded Battlements, printed: 'Attacking creatures YOU CONTROL get +1/+0.' On the opponent's turn the opponent's 2/2 attacks unblocked: it gets no bonus and deals 2 (P0 20 -> 18).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wb", "real": "Warded Battlements", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"obear": true}}
+ ],
+ "expect": {
+  "attackers": {"obear": true},
+  "life": {"0": 18, "1": 20}
+ }
+}

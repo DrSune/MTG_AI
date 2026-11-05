@@ -1,0 +1,70 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "8b755881-a72d-4e21-a369-d2924eb4585a",
+ "name": "Cultivate",
+ "text_sha": "9c912fad5ec4aeb4e7827c12336191ee8b56a039f5b1abd7008d25a9855dfec8",
+ "verified": {
+  "tree_sha": "a20e652f99c6a85c64b7218b69aa79d1e1b17b2942c7a104b6f5eee97fb330aa",
+  "probe_sha": "787d256159fbac2d733a8e0758cbe172345e943ebd948293fbb1674f933d36b1",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5Q",
+  "clauses": [
+   {
+    "clause": "Sorcery {2}{G} (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> graveyard, mana G-1 W-2 paid (3 total, one green). Tree: SpellAbility kind=SORCERY.",
+    "issue": ""
+   },
+   {
+    "clause": "Search your library for up to two basic land cards",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe library has no basic land, so [cast] finds nothing. Pack P1625e1e6ed_cultivate_one_tapped_one_to_hand.json: from a library of Forest, Island, a nonbasic land and a creature, exactly the two basics leave it. The nonbasic land, the creature and the opponent's library Forest stay put. PASSES. Tree: SEARCH, count 2, SUPERTYPE_EQ Basic, your library. The tree is identical to the compiler's parse of the printed sentence (template B5b-search-one-other-shuffle).",
+    "issue": "With exactly two basics the search takes both without asking. The engine may not offer finding fewer than two; that would only make the card weaker, not stronger."
+   },
+   {
+    "clause": "reveal those cards",
+    "status": "OK",
+    "evidence": "Pack run (debug of the same pack): a REVEAL event is recorded. Tree: REVEAL count=QUnbounded, the compiler's documented idiom.",
+    "issue": "engine: the REVEAL QUnbounded idiom reveals the whole library top-first (verbs.py:1431-1437 _look; the grammar cannot name the found set), not just the two found lands. Information only: nothing in MTG_bot or tools reads REVEAL events, and it only ever tells the opponent more, so it cannot make the card stronger."
+   },
+   {
+    "clause": "put one onto the battlefield tapped and the other into your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack P1625e1e6ed_cultivate_one_tapped_one_to_hand.json: the one_of ask offers the two found lands, I pick the Island, it enters the battlefield TAPPED and the Forest goes to my hand (hand = Top Junk + Forest = 2). PASSES. Tree: MOVE_ZONE ONE_OF -> battlefield with tapped_on_enter=True, then MOVE_ZONE REST -> hand.",
+    "issue": ""
+   },
+   {
+    "clause": "then shuffle",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack run: a SHUFFLE of player:0's library comes after both moves (debug event log of the pack). Tree: SHUFFLE of your library, last. The pack itself does not assert the order, which is random by design.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/cultivate_1.json",
+   "tools/scenarios/cards/M21/cultivate_2.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 1,
+   "score": 0.06666666666666667,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "drop step 2 at 1/0/effect",
+    "drop step 3 at 1/0/effect",
+    "drop step 4 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/args/cards/count",
+    "amount-1 at 1/0/effect/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/cards/zones/0/controller",
+    "amount+1 at 1/0/effect/steps/2/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/2/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/steps/2/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/steps/2/args/destination/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/3/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/3/args/destination"
+   ]
+  }
+ }
+}

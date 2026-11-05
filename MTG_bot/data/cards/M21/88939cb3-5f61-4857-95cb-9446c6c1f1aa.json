@@ -1,0 +1,67 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "88939cb3-5f61-4857-95cb-9446c6c1f1aa",
+ "name": "Alpine Houndmaster",
+ "text_sha": "badcb4f4d5f05849d8ba6b2b4e666327e609e0745523d8ecd2a38170dde3b338",
+ "verified": {
+  "tree_sha": "be1b053c5ef18ce1dac988ca0032b61c1d203736e36adecc1e93ce48a1e1ec7b",
+  "probe_sha": "aaa201251a5fb5803a6e17a11dbae208e063a3a0a0e315aac028da228bba61de",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w5Q",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may ...",
+    "status": "OK",
+    "evidence": "[cast]: 'ask may: [fire, skip] -> fire' and trigger [0] fires on entry. [cast | ask 1 -> skip]: the may is declinable. [from your hand, the card enters during the opponent's turn]: trigger [0] fires on a non-cast entry too. Tree: ETB of IS_SOURCE, OptionalEffect.",
+    "issue": ""
+   },
+   {
+    "clause": "search your library for a card named Alpine Watchdog and/or a card named Igneous Cur, reveal them, put them into your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe library has neither card, so the fired search finds nothing. Pack P574fa6c4c2_houndmaster_etb_finds_one_of_each.json: the asks are may [fire, skip], then Watchdog [card:1, NONE], then Cur [card:2, card:3, NONE]. Only cards of the named names are offered and each pick can be declined. The Watchdog and one Cur go to hand, while the second Cur and a nonmatching creature stay in the library. PASSES. Tree: two SEARCH QAtMost(1) NAME_EQ -> your hand, identical to the compiler's parse (B2b-alpine-houndmaster-etb).",
+    "issue": "The REVEAL QUnbounded idiom reveals the rest of the library, not the found cards (verbs.py:1431 _look). Information only: nothing reads REVEAL events."
+   },
+   {
+    "clause": "then shuffle",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack run (debug event log): SHUFFLE of player:0's library comes last. Tree: SHUFFLE of your library.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, it gets +X/+0 until end of turn (X = 0)",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: trigger [1] fires, it deals 2 (2/2, X = 0). [attacks and opp_giant blocks it]: trigger [1] fires, it deals 2 to opp_giant. [another creature you control (you_bear) attacks]: no trigger (only this creature attacking triggers it). Tree: DeclareAttackersEvent(IS_SOURCE), MODIFY_PT DurationEot on the source.",
+    "issue": ""
+   },
+   {
+    "clause": "where X is the number of other attacking creatures (X > 0), until end of turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack P574fa6c4c2_houndmaster_attack_bonus_during_turn.json: it attacks with a 2/2 and a 1/1, so it is 4/2 after combat and the opponent goes 20 -> 13 (4+2+1). PASSES. Pack P574fa6c4c2_houndmaster_attack_counts_other_attackers.json: same attack, then the turn ends and it is 2/2 again (the bonus wears off) with life 13. PASSES. Tree: QCount(IS_ATTACKING and Creature and not IS_SOURCE), toughness +0.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/alpine_houndmaster_1.json",
+   "tools/scenarios/cards/M21/alpine_houndmaster_2.json",
+   "tools/scenarios/cards/M21/alpine_houndmaster_3.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 6,
+   "score": 0.375,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "drop step 2 at 1/0/effect/inner",
+    "drop step 3 at 1/0/effect/inner",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/1/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/1/args/destination",
+    "until-end-of-turn->permanent at 1/1/effect/args/duration",
+    "widen filter (drop part 1) at 1/1/effect/args/power/magnitude/selector/filter"
+   ]
+  }
+ }
+}

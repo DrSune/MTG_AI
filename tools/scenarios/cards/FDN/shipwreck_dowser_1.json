@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'When this creature enters, return target instant or sorcery card from your graveyard to your hand.' The only legal target is your instant card: it returns. Your creature card and the opponent's instant card stay in their graveyards (an opponent's graveyard card is not a legal target).",
+ "cards": [
+  {"key": "dowser", "real": "Shipwreck Dowser", "zone": "hand", "controller": 0},
+  {"key": "myinst", "name": "Old Instant", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "mycreat", "name": "Old Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "oppinst", "name": "Opp Instant", "type": "Instant", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"U": 5}},
+ "steps": [
+  {"op": "cast", "real": "Shipwreck Dowser", "key": "dowser"}
+ ],
+ "expect": {
+  "zone": {"dowser": "battlefield", "myinst": "hand", "mycreat": "graveyard", "oppinst": "graveyard"},
+  "hand": {"0": 1}
+ }
+}

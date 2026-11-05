@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gs", "real": "Gloom Sower", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Your Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gs": false, "ape": true}, "block": {"b1": "ape"}}
+ ],
+ "expect": {
+  "attackers": {"gs": false, "ape": true},
+  "blocked": {"ape": ["b1"]},
+  "life": {"0": 20, "1": 20},
+  "zone": {"gs": "battlefield", "ape": "battlefield", "b1": "graveyard"},
+  "damage": {"ape": 2}
+ },
+ "notes": "Printed: 'Whenever THIS creature becomes blocked by a creature ...' Only another creature of mine (the 3/3 Ape) attacks and is blocked: no trigger, both players stay at 20."
+}

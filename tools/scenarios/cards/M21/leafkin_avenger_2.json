@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '{T}: Add {G} for each creature with power 4 or greater you control.' Seat 0 controls Leafkin (4/3), a 3/3 with a +1/+1 counter (power 4) and a plain 3/3; seat 1 controls a 5/5. Power 4 or greater AND you control: Leafkin and the countered 3/3 -> exactly GG.",
+ "cards": [
+  {"key": "leaf", "real": "Leafkin Avenger", "zone": "battlefield", "controller": 0},
+  {"key": "pumped", "name": "Pumped Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "small", "name": "Small Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Big Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [{"op": "activate", "key": "leaf", "idx": 0, "seat": 0}],
+ "expect": {"tapped": {"leaf": true}, "mana_pool": {"0": {"G": 2}}}}

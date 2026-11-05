@@ -68,10 +68,10 @@
  ],
  "expect": {
   "zone": {
-   "t1": "graveyard",
+   "t1": "ceased",
    "small": "graveyard",
    "el": "graveyard",
-   "t2": "graveyard"
+   "t2": "ceased"
   },
   "mana_pool": {
    "0": {
@@ -79,5 +79,5 @@
    }
   }
  },
- "notes": "blindspot-twin (Prismite any-color): each Treasure activation asks the color vocab (W U B R G C); gold 'B' funds the {1}{B} Eliminate (null 'W' makes the SAME cast illegal - legality raise falsifies the null replay); gold 'U' leaves mana_pool {U} where null would leave {W}."
+ "notes": "blindspot-twin (Prismite any-color): each Treasure activation asks the color vocab (W U B R G C); gold 'B' funds the {1}{B} Eliminate (null 'W' makes the SAME cast illegal - legality raise falsifies the null replay); gold 'U' leaves mana_pool {U} where null would leave {W}. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token (games.identity_of kept is_token), so a sacrificed Treasure ceases to exist (CR 704.5d, V35) instead of lying in the graveyard: its zone expectation is 'ceased' (was 'graveyard', which encoded the token-in-graveyard gap)."
 }

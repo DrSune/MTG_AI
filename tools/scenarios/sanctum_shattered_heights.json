@@ -14,7 +14,7 @@
    "key": "s2",
    "zone": "battlefield",
    "controller": 0,
-   "real": "Sanctum of Shattered Heights"
+   "real": "Sanctum of Tranquil Light"
   },
   {
    "key": "mt",
@@ -56,5 +56,5 @@
    "mt": "graveyard"
   }
  },
- "notes": "Printed: '{1}, Discard a land card or Shrine card: ~ deals X damage to target creature or planeswalker, where X is the number of Shrines you control.' Two Shrines on battlefield -> X=2 lands on the 4/4; the {1} is exact and the land-card cost (Mountain) leaves the hand."
+ "notes": "Printed: '{1}, Discard a land card or Shrine card: ~ deals X damage to target creature or planeswalker, where X is the number of Shrines you control.' Two Shrines on battlefield -> X=2 lands on the 4/4; the {1} is exact and the land-card cost (Mountain) leaves the hand. re-pinned 2026-10-29: V22 (CR 704.5j legend rule) changes the board: two Sanctums of Shattered Heights cannot both stay (each Sanctum is legendary), so the second Shrine is Sanctum of Tranquil Light; X is still 2."
 }

@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "912bc348-9ba3-4001-90a8-104d2bb17527",
+ "name": "Silent Dart",
+ "text_sha": "63b616879d8858d64a67772b880de683823d9e6aa1f59111a5e92762dbff6f6d",
+ "verified": {
+  "tree_sha": "cd035837d5fe41562f06459236b6ad059483295180fd487fda2a3b677fe51d47",
+  "probe_sha": "039ceaca379396dc60c9d986e52f0a3dec6e72eea5ce6ac3c34f29235d8c0569",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "(Artifact {1}: cast as a permanent)",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> battlefield; you: mana W-1 = {1}. Tree abilities[1] SpellAbility(kind=ARTIFACT).",
+    "issue": ""
+   },
+   {
+    "clause": "{4}, {T}, Sacrifice this artifact: It deals 3 damage to target creature.",
+    "status": "OK",
+    "evidence": "ability [0] target slot: 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: every creature of either side, no noncreature (relics, charms) offered. Each [activate [0]] variant: card becomes tapped, card moves battlefield -> graveyard (by card/SACRIFICE), target is dealt 3 damage (by card/DEAL_DAMAGE), you: mana W-4 = {4}. 2/2, 1/1 and 3/3 targets die; the 4/4s keep 3 damage, which clears after the turn ends (damage 3 -> 0). Tree identical to parse (template B5c-cost-sacrifice-dmg).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

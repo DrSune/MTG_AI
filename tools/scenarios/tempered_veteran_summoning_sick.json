@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tv", "real": "Tempered Veteran", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 8}},
+ "steps": [
+  {"op": "cast", "key": "tv", "real": "Tempered Veteran"},
+  {"op": "activate", "key": "tv", "idx": 1, "seat": 0, "targets": ["bear"], "expect_raise": "illegal activation"}
+ ],
+ "expect": {
+  "zone": {"tv": "battlefield"},
+  "counters": {"bear": {}},
+  "tapped": {"tv": false}
+ },
+ "notes": "M21 G2 spec: Tempered Veteran's abilities cost {T}, so the turn it enters (summoning sick, CR 302.6) neither can be activated."
+}

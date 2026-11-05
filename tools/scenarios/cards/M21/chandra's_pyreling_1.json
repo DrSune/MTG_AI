@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a source you control deals noncombat damage to an opponent, this creature gets +1/+0 and gains double strike until end of turn.' Your Meteorite's ETB deals 2 noncombat damage to the opponent (20 -> 18): Pyreling becomes 2/3 with double strike, then attacks unblocked and deals 2 first-strike + 2 regular damage (18 -> 14). Its own combat damage does not trigger it again (still 2/3).",
+ "cards": [
+  {"key": "py", "real": "Chandra's Pyreling", "zone": "battlefield", "controller": 0},
+  {"key": "m", "real": "Meteorite", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "m", "decisions": ["player:1"]},
+  {"op": "combat", "seat": 0, "attack": {"py": true}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 14},
+  "attackers": {"py": true},
+  "power": {"py": 2}, "toughness": {"py": 3},
+  "battlefield_keywords": {"Chandra's Pyreling": ["DOUBLE_STRIKE"]}
+ }}

@@ -1,0 +1,275 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3fa71348-fa4d-4f39-a451-cf1570591991",
+ "name": "Imperious Perfect",
+ "text_sha": "1fac8cfc0b02f402e5dd5923ed0891406f09d2980f6d96ffa0de5f16af476e87",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Elf",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "G",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Elf Warrior",
+         "type_line": "Creature — Elf Warrior",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Elf",
+          "Warrior"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "G"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-A",
+  "date": "2026-10-29",
+  "draft_py": "lord = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n)\nabilities = [lord, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Other Elves you control get +1/+1.",
+    "ir": "abilities[0] (Pack Leader B4-modify-pt-other-dogs shape with SUBTYPE_EQ Elf)"
+   },
+   {
+    "clause": "{G}, {T}: Create a 1/1 green Elf Warrior creature token.",
+    "ir": "abilities[1] (compiled)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "7182a6c6f40f6e8eaf4bc45c7a60c4c6fac375caea3bc5096e0fb8f297206243"
+ },
+ "verified": {
+  "tree_sha": "646bf3a172cecfeb5b29ad9d4320203a49c8d9d74b23c4c47f8a9d3b91cb1ef7",
+  "probe_sha": "7005f9db89e41de4fde9733ce5bc5225f159df907e6182592527ab8b61934e88",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m1",
+  "clauses": [
+   {
+    "clause": "Other Elves you control get +1/+1.",
+    "status": "OK",
+    "evidence": "[stimulus: a creature enters under your control] you_spare (Elf) 3/3 -> 4/4; the Perfect itself 2/2; the token 1/1 shows 2/2; the opponent's Elf entering is 'same as without the card'.",
+    "issue": ""
+   },
+   {
+    "clause": "{G}, {T}: Create a 1/1 green Elf Warrior creature token.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: card becomes tapped, you: mana G-1, + you:Elf Warrior (battlefield, you, 2/2 = 1/1 + the lord); token spec green Creature - Elf Warrior 1/1; nothing changes after the turn ends.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b2c6aa39-2d2a-459c-a555-fb48ba993373",
+ "name": "Island",
+ "text_sha": "f2cf22f799b722dbaac2fee3a0db5c211a477b57c4487b7f53957a3b47edadaa",
+ "verified": {
+  "tree_sha": "b5eb090a94a667262c4b67d99103ffec83e3c5ffe2f3f9ae18b556ccb3492e48",
+  "probe_sha": "62e6a9a029d9a779f55f6e37641e2a94dca6d10f243400df2eb15b86b2a5335b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "Basic Land — Island (played as a land drop)",
+    "status": "OK",
+    "evidence": "[play land]: card moves hand -> battlefield (by card/PLAY_LAND); no triggers or statics",
+    "issue": ""
+   },
+   {
+    "clause": "({T}: Add {U}.)",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped (by card/TAP); you: mana U+1. Tree CostTap, ADD_MANA 1 'U' controller YOU",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

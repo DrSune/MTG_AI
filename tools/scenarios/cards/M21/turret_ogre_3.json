@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 spec (amount-1 on the power threshold). Printed: 'When this creature enters, if you control another creature with power 4 or greater, this creature deals 2 damage to each opponent.' You control a 3/3 only (power 3 is not 4 or greater): the Ogre enters and deals no damage.",
+ "cards": [
+  {"key": "ogre", "real": "Turret Ogre", "zone": "hand", "controller": 0},
+  {"key": "three", "name": "Three Power", "type": "Creature", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "cast", "key": "ogre", "real": "Turret Ogre"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

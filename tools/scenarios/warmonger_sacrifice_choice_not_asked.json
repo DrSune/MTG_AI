@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "FINDING (G3 finisher). Printed: 'At the beginning of combat on your turn, you may sacrifice another creature.' The sacrificing player chooses which (CR 701.17a). You control Bear and Second Bear; you take the may and choose the Second Bear. Expected: Second Bear sacrificed, Bear stays. The engine never asks which creature (asks seen: may, attack, attack) and sacrifices the lowest-handle candidate (Bear): weaker than printed, the V10 'deciding player never asked' family.",
+ "cards": [
+  {"key": "dfw", "real": "Dire Fleet Warmonger", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Second Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dfw": false, "bear": false, "bear2": false}, "may": {"dfw": true}, "decisions": ["bear2"]}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield", "bear2": "graveyard", "dfw": "battlefield"},
+  "power": {"dfw": 5},
+  "toughness": {"dfw": 5}
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d14f313c-fea6-49c4-8197-5b74ee584a6b",
+ "name": "Scorching Dragonfire",
+ "text_sha": "ead86aec46f421f0e2cbace318524103e6f2b635d5e32e0a2d301001eee782df",
+ "verified": {
+  "tree_sha": "c736d03b4f764352bec3d6adbfcf43af503cc0d3dcb3b5d890538de43d15c4f7",
+  "probe_sha": "f96665686b42f75ba7849a1d1ad977d1051a6bc50bf68f14ce0c71f506cda83b",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4K",
+  "clauses": [
+   {
+    "clause": "(card body) Instant {1}{R}",
+    "status": "OK",
+    "evidence": "every cast pays R-1 W-1; card goes stack -> graveyard",
+    "issue": "engine-limit: no priority, so the instant is only cast in its controller's own action window"
+   },
+   {
+    "clause": "Scorching Dragonfire deals 3 damage to target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (all creatures; no player, no noncreature). [cast targets=['you_giant']]: 'you_giant is dealt 3 damage', damage 0 -> 3, it survives; same for opp_giant. Atom = `parse` B5b-named-damage. The planeswalker half is not on the standard board: pack K_scorching_dragonfire_planeswalker_and_scope_ends.json PASSES (Basri Ket targeted, loses its 3 loyalty).",
+    "issue": ""
+   },
+   {
+    "clause": "If that creature or planeswalker would die this turn, exile it instead.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear'|'opp_bear'|'opp_flier'|'opp_tapped']]: lethal 3 damage, then 'moves battlefield -> exile (by card/MOVE_ZONE)', never the graveyard. Tree = `parse` B5b-repl-die-exile (no duration node; the executor gives a resolving instant's replacement an end-of-turn lifetime). The later-death and scope parts were NOT_EXERCISED by the trace: pack K_scorching_dragonfire_same_turn_only_that_creature.json PASSES (the targeted 4/4 survives, dies to 1 more damage the same turn -> exile; untargeted opponent's and own creatures dying the same turn -> graveyard), and K_scorching_dragonfire_planeswalker_and_scope_ends.json PASSES (zero-loyalty planeswalker -> exile; a targeted survivor that dies on the next turn -> graveyard).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/scorching_dragonfire_1.json",
+   "tools/scenarios/cards/M21/scorching_dragonfire_2.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

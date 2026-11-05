@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Hexproof'. On its own turn the opponent casts Secure the Scene ('Exile target nonland permanent') at seat 0's Nine Lives: not a legal target for an opponent, so the cast is refused and Nine Lives stays (seat 0 does not lose). Control: nine_lives_leaves_you_lose.json, where seat 0 targets its own Nine Lives with the same spell.",
+ "cards": [
+  {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+  {"key": "sts", "real": "Secure the Scene", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"}, {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"W": 1, "C": 4}},
+  {"op": "cast", "real": "Secure the Scene", "key": "sts", "controller": 1, "targets": ["nl"], "expect_raise": "illegal target selection"}
+ ],
+ "expect": {"zone": {"nl": "battlefield", "sts": "hand"}, "lost": {"0": false}}}

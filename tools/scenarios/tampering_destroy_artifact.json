@@ -23,7 +23,7 @@
    "power": 2,
    "toughness": 2,
    "type": "Creature",
-   "keywords": "FLYING",
+   "keywords": ["FLYING"],
    "zone": "battlefield",
    "controller": 1
   }

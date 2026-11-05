@@ -7,13 +7,13 @@
   {
    "key": "t",
    "real": "Treasure",
-   "zone": "hand",
+   "zone": "battlefield",
    "controller": 0
   },
   {
    "key": "t2",
    "real": "Treasure",
-   "zone": "hand",
+   "zone": "battlefield",
    "controller": 0
   },
   {
@@ -34,10 +34,6 @@
  ],
  "steps": [
   {
-   "op": "enter",
-   "key": "t"
-  },
-  {
    "op": "activate",
    "key": "t",
    "idx": 0,
@@ -45,10 +41,6 @@
    "decisions": [
     "W"
    ]
-  },
-  {
-   "op": "enter",
-   "key": "t2"
   },
   {
    "op": "activate",
@@ -70,8 +62,8 @@
  ],
  "expect": {
   "zone": {
-   "t": "graveyard",
-   "t2": "graveyard",
+   "t": "ceased",
+   "t2": "ceased",
    "ds": "graveyard"
   },
   "power": {
@@ -89,5 +81,5 @@
    }
   }
  },
- "notes": "r24a (2026-10-02) HARNESS \u2014 promoted from suspects. History: the suspect died at setup \"pool has no card 'Treasure'\": compile_supply filters is_token records out of metas, so no pack could ever name a token, although the Treasure golden sits in supply.pool.results (one ActivatedAbility {T},Sac -> ADD_MANA 1 ANY) and binder.attach_pool/legality.spell_record resolve it by real oracle_id \u2014 run_scenarios gained a token-golden fallback for \"real\" refs (harness-only; engine untouched). t's W is paid into Defiant Strike (soldier power 2 proves the payment); t2's U survives in the mana_pool expect lane added this batch. DOCUMENTED LIMITATION: engine-minted tokens (Gadrak) still have no pack address \u2014 the keyless-mint law stands (PITFALLS); the report lane tokens.Treasure works (24a probe), so the pack sets up real-token copies instead."
+ "notes": "r24a (2026-10-02) HARNESS — promoted from suspects. History: the suspect died at setup \"pool has no card 'Treasure'\": compile_supply filters is_token records out of metas, so no pack could ever name a token, although the Treasure golden sits in supply.pool.results (one ActivatedAbility {T},Sac -> ADD_MANA 1 ANY) and binder.attach_pool/legality.spell_record resolve it by real oracle_id — run_scenarios gained a token-golden fallback for \"real\" refs (harness-only; engine untouched). t's W is paid into Defiant Strike (soldier power 2 proves the payment); t2's U survives in the mana_pool expect lane added this batch. DOCUMENTED LIMITATION: engine-minted tokens (Gadrak) still have no pack address — the keyless-mint law stands (PITFALLS); the report lane tokens.Treasure works (24a probe), so the pack sets up real-token copies instead. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token, and a token in a hand ceases to exist at once (CR 704.5d, V35), so the setup 'Treasure in hand, then enter' was impossible; the two Treasures now start on the battlefield (no enter steps), and after their sacrifice they are 'ceased', not in the graveyard. The mana (W into Defiant Strike, U left in the pool) is asserted as before."
 }

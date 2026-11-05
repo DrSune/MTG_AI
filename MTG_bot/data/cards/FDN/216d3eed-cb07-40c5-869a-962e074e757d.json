@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "216d3eed-cb07-40c5-869a-962e074e757d",
+ "name": "Joraga Invocation",
+ "text_sha": "21b5b1e07ffbcdd59f2c50d496c8fe7440b3334e4a9cdaff7653e32be41825d5",
+ "needs_atom": {
+  "missing": "Each creature you control gets +3/+3 until end of turn and must be blocked this turn if able.: the '+3/+3 until end of turn' half is expressible (MODIFY_PT ALL creatures you control, DurationEot), but no component gives a lure that ENDS this turn. The IR form MANDATE_BLOCK{cards: ALL creatures you control, duration: DurationEot} is accepted, but the executor's dispatch handler (verbs._v_mandate_block) ignores the duration and adds the creatures to executor.mandate_block, which is cleared only when a creature leaves the battlefield: mapper pack shows the opponent's wall still forced to block the bear on the NEXT turn (permanent lure, stronger than printed). The granted-static alternative GRANT_ABILITY(StaticAbility(MANDATE_BLOCK self), DurationEot) is not consumed by block legality (no forced block even this turn). Needs executor support for MANDATE_BLOCK's duration role (expire the dispatched entry at end of turn).",
+  "author": "claude-mapper-B",
+  "date": "2026-10-29"
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "golem", "real": "Epitaph Golem", "zone": "battlefield", "controller": 0},
+  {"key": "fallen", "name": "Fallen", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "oppdead", "name": "Opp Dead", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "activate", "key": "golem", "idx": 0, "seat": 0, "targets": ["fallen"]}
+ ],
+ "expect": {
+  "zone": {"fallen": "library", "oppdead": "graveyard"},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Fallen"]},
+  "mana_pool": {"0": {}},
+  "tapped": {"golem": false}
+ },
+ "notes": "Printed Epitaph Golem: '{2}: Put target card from your graveyard on the bottom of your library.' Paying exactly {2} (no tap), the targeted card goes UNDER the six library cards, not on top; the opponent's graveyard is untouched."
+}

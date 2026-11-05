@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fish", "real": "Mystic Skyfish", "zone": "battlefield", "controller": 0},
+  {"key": "r1", "real": "Revitalize", "zone": "hand", "controller": 0},
+  {"key": "r2", "real": "Revitalize", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 4}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "r1"},
+  {"op": "cast", "real": "Revitalize", "key": "r2"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "hand": {"0": 2},
+  "life": {"0": 26},
+  "battlefield_keywords": {"Mystic Skyfish": []}
+ },
+ "notes": "Printed: 'Whenever you draw your second card each turn, this creature gains flying until end of turn.' The second Revitalize draw is the second card this turn (the probe shows the grant); the flying lasts only until end of turn, so after the turn ends the Skyfish has no flying."
+}

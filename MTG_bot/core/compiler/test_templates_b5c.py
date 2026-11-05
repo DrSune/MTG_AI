@@ -71,7 +71,6 @@ from MTG_bot.core.ability_tree import (
     Step,
     TapStateEvent,
     TokenSpec,
-    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -1255,6 +1254,9 @@ class TestB5cIrStructure(unittest.TestCase):
         amount = _pairs(atom)["amount"]
         self.assertIsInstance(amount, QProp)
         self.assertIs(amount.field, QPropField.POWER)
+        # V3 (2026-10-29): the target creature you control deals the damage
+        # (CR 120.2b); the dealer is the designation the power is read from.
+        self.assertEqual(_pairs(atom)["dealer"], amount.referent)
 
     def test_loyalty_lose_per_creature(self) -> None:
         atom = _as_atom(_activated_effect("B5c-loyalty-lose-per-creature"))
@@ -1347,28 +1349,19 @@ class TestB5cIrStructure(unittest.TestCase):
     # -- Round 5 (grammar round 4 shapes) ------------------------------
 
     def test_loyalty_basri_attack_counter(self) -> None:
-        """Basri [−1]: GRANT_ABILITY(DurationEot) of a TriggeredAbility."""
+        """Basri [−1]: a DelayedTrigger(DurationEot) — CR 603.7.
+
+        # re-pinned 2026-10-29: m21-fidelity. It was GRANT_ABILITY(target=this planeswalker,
+        # TriggeredAbility, DurationEot), which died with the planeswalker (a -1 at 1 loyalty
+        # did nothing). A delayed trigger lives for the turn on its own (CR 603.7c).
+        """
         ability = _activated_ability(_match_outcome("B5c-loyalty-basri-attack-counter"))
         delta = _as_cost_loyalty(ability.cost.parts[0]).delta
         self.assertEqual(delta, -1)
-        grant = _as_atom(ability.effect)
-        self.assertIs(grant.verb, Verb.GRANT_ABILITY)
-        target = _pairs(grant)["target"]
-        self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
-        self.assertIs(target.zones[0].controller, ControllerRef.ANY)
-        self.assertEqual(
-            target.filter,
-            FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.IS_SOURCE),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
-            ),
-        )
-        self.assertIsInstance(grant.args.get("duration"), DurationEot)
-        triggered = grant.args.get("ability")
-        if not isinstance(triggered, TriggeredAbility):
-            raise TypeError(f"expected TriggeredAbility, got {type(triggered)}")
+        triggered = ability.effect
+        if not isinstance(triggered, DelayedTrigger):
+            raise TypeError(f"expected DelayedTrigger, got {type(triggered)}")
+        self.assertIsInstance(triggered.duration, DurationEot)
         event = triggered.event
         if not isinstance(event, DeclareAttackersEvent):
             raise TypeError(f"expected DeclareAttackersEvent, got {type(event)}")
@@ -1572,10 +1565,12 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.FIGHT)
         target = _pairs(atom)["target"]
         self.assertIsInstance(target, Selector)
-        # C15: resolution-time "up to one" = CHOOSE + QConst(1) (0..1),
-        # never TARGET — the C-1 collapse fix.
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(target.count, QConst(1))
+        # re-pinned 2026-10-30: m21-fidelity wave 4 (was B-79), the printed "up to one
+        # target creature" is a TARGET designated as the spell is cast (CR 601.2c) that may
+        # be left empty (CR 115.6). The resolution-time CHOOSE + QConst(1) fought hexproof
+        # creatures and could not be declined.
+        self.assertIs(target.mode, SelectorMode.TARGET)
+        self.assertEqual(target.count, QAtMost(1))
         self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
         children = [c for c in target.filter.children if isinstance(c, (FAtom, FNot))]
         self.assertEqual(len(children), 2)
@@ -1713,8 +1708,10 @@ class TestB5cRound7BTopUps(unittest.TestCase):
 
     def test_damage_equal_power(self) -> None:
         """Hunter's Edge s2: DEAL_DAMAGE target = new TARGET creature-you-
-        dont-control; amount = QProp("target", POWER) (the dealer is the
-        referent, DEAL_DAMAGE has no source role — r8 canonical)."""
+        dont-control. V3 (2026-10-29): "that creature" is the countered
+        creature, the ``result`` register: it is the dealer (CR 120.2b) and
+        the power read. ``QProp("target")`` read the damage step's own
+        target on this two-target spell."""
         atom = _as_atom(_as_effect(_match_outcome("B5c-damage-equal-power")).effect)
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         d = _pairs(atom)
@@ -1724,8 +1721,15 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertEqual(target.count, QConst(1))
         amount = d["amount"]
         assert isinstance(amount, QProp)
-        self.assertEqual(amount.referent, "target")
+        self.assertEqual(amount.referent, "result")
         self.assertIs(amount.field, QPropField.POWER)
+        dealer = d["dealer"]
+        assert isinstance(dealer, Selector)
+        # C2 referent-selector shape: CHOOSE + QConst(1) + neutral zone
+        self.assertIs(dealer.mode, SelectorMode.CHOOSE)
+        self.assertEqual(dealer.count, QConst(1))
+        self.assertEqual(dealer.referent, "result")
+        self.assertIs(dealer.zones[0].kind, ZoneKind.ANY)
 
 
 if __name__ == "__main__":
@@ -1794,9 +1798,10 @@ class TestB5cRound9B(unittest.TestCase):
         assert isinstance(event, DamageDealtEvent)
         self.assertIsInstance(event.amount, QUnbounded)
         self.assertIs(event.combat, True)
-        # LOSSY: damaged-recipient filter universal ("to a player" dropped,
-        # b2b R8-candidate precedent)
-        self.assertEqual(event.filter, FAnd(children=()))
+        # re-pinned 2026-10-29: B-57 fix changes the damaged-recipient filter
+        # from the universal FAnd(()) ("to a player" dropped) to "a player"
+        # (not a permanent, CR 120.1).
+        self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         dealer = event.source
         assert isinstance(dealer, FAnd)
         # R1a canonicalization: FAnd children construction-sorted; the three

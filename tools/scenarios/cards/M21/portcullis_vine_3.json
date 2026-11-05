@@ -1,0 +1,9 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Sacrifice a creature with defender' (you can sacrifice only what you control, CR 701.21a). The opponent controls a creature with defender; the pack asks to sacrifice it. It is not a legal choice, so the Vine sacrifices itself: the opponent's Wall stays, the Vine goes to the graveyard, one card drawn.",
+ "cards": [
+  {"key": "vine", "real": "Portcullis Vine", "zone": "battlefield", "controller": 0},
+  {"key": "oppwall", "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 4, "keywords": ["DEFENDER"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [{"op": "activate", "key": "vine", "idx": 0, "seat": 0, "decisions": ["oppwall"]}],
+ "expect": {"zone": {"vine": "graveyard", "oppwall": "battlefield"}, "hand": {"0": 1}}}

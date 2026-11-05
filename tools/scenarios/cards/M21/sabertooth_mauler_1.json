@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "m", "real": "Sabertooth Mauler", "zone": "hand", "controller": 0},
+  {"key": "tok", "real": "Pirate", "zone": "battlefield", "controller": 1},
+  {"key": "sh", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "enter", "key": "m", "tapped": true},
+  {"op": "cast", "key": "sh", "real": "Shock", "targets": ["tok"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {"counters": {"m": {"PLUS_1_PLUS_1": 1}}, "tapped": {"m": false}, "power": {"m": 4}, "toughness": {"m": 4}, "tokens": {"Pirate": 0}, "zone": {"m": "battlefield"}},
+ "notes": "Printed: 'At the beginning of your end step, if a creature died this turn, put a +1/+1 counter on this creature and untap it.' The creature that dies is the OPPONENT's creature TOKEN (Shock): 'a creature' means any creature, tokens included. At your end step the tapped Mauler gets one +1/+1 counter (4/4) and untaps."}

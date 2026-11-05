@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "dc3073fc-dc23-426e-b867-fee5dd99fe25",
+ "name": "Shipwreck Dowser",
+ "text_sha": "ff805edfa69964d7691eb80b9a4a5f3b48815020327db0a9b10f47e5213f5f87",
+ "verified": {
+  "tree_sha": "b26b05650822a757f2bdf8dc5fcb82882d61a68a23fe2ce55782bd44e26d294a",
+  "probe_sha": "5885f16d00c2196c6315202bb1312012bf95c8bebbcb3a212e959a6477266337",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-G",
+  "clauses": [
+   {
+    "clause": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
+    "status": "OK",
+    "evidence": "[cast]: keywords +PROWESS; [you cast an instant or sorcery (Crash Through)]: card P/T 3/3 -> 4/4; [you cast a creature (Staunch Shieldmate)]: none. Expiry: pack shipwreck_dowser_prowess_wears_off.json (3/3 after end_turn) PASS.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, return target instant or sorcery card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [0] triggers; you_used (your sorcery) is targeted and moves graveyard -> hand; you_fallen (creature card) and opp_used (opponent's graveyard) are not taken and no choice was asked, so the legal set had one card. [from your hand, the card enters during the opponent's turn]: same. mana U-2 W-3 = {3}{U}{U}. Tree identical to parse (template B2a-shipwreck-dowser). Pack shipwreck_dowser_only_your_instants.json (only a creature card in my graveyard, an instant in the opponent's: nothing returns) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/shipwreck_dowser_1.json",
+   "tools/scenarios/cards/M21/shipwreck_dowser_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

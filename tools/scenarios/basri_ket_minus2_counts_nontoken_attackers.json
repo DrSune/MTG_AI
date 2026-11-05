@@ -1,0 +1,80 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: '[-2]: Whenever one or more NONTOKEN creatures attack this turn, create THAT MANY 1/1 white Soldier creature tokens that are tapped and attacking.' Two nontoken Bears and one creature token attack together: that many = 2 (the token is not a nontoken creature), so 2 Soldiers, and seat 1 takes 2+2+1+1+1 = 7 (life 13). W4-1 (review wave 4, fixed 2026-10-30): the declaration register 'that many' reads holds only the attackers the trigger's own event spec matches; before, it held every attacker, so the token counted (3 Soldiers, life 12).",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b1",
+   "name": "Bear One",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b2",
+   "name": "Bear Two",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Spirit",
+   "type": "Creature — Spirit",
+   "power": 1,
+   "toughness": 1,
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 3
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "b1": true,
+    "b2": true,
+    "tok": true
+   }
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 2,
+   "Spirit": 1
+  },
+  "life": {
+   "1": 13
+  },
+  "counters": {
+   "basri": {
+    "LOYALTY": 1
+   }
+  }
+ }
+}

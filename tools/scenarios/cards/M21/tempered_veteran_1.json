@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 71},
+  "cards": [
+    {"key": "vet", "real": "Tempered Veteran", "zone": "battlefield", "controller": 0},
+    {"key": "plain", "name": "Plain Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "ctr", "name": "Opp Countered", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1, "counters": {"PLUS_1_PLUS_1": 1}}
+  ],
+  "mana": {"0": {"W": 1}},
+  "steps": [
+    {"op": "activate", "key": "vet", "idx": 0, "seat": 0, "targets": ["plain"], "expect_raise": "target"},
+    {"op": "activate", "key": "vet", "idx": 0, "seat": 0, "targets": ["ctr"]}
+  ],
+  "expect": {
+    "tapped": {"vet": true},
+    "counters": {"ctr": {"PLUS_1_PLUS_1": 2}, "plain": {}},
+    "power": {"ctr": 4},
+    "toughness": {"ctr": 4},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{W}, {T}: Put a +1/+1 counter on target creature with a +1/+1 counter on it.' Expectation from the text: a creature with no +1/+1 counter is not a legal target (refused, nothing paid); any creature that has one is (here the opponent's), and it gets exactly one more (1 -> 2 counters, 2/2 -> 4/4); the cost spends the {W} and taps the Veteran."
+}

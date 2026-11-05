@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "m", "real": "Sabertooth Mauler", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "src", "name": "Deleter", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "og", "name": "Ogre", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "src", "target": "og", "amount": 3, "controller": 1},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"counters": {"m": {}}, "power": {"m": 3}, "zone": {"og": "graveyard", "m": "battlefield"}},
+ "notes": "Printed: 'At the beginning of YOUR end step, if a creature died THIS TURN ...'. Your opening turn: nothing dies, no counter. The Ogre dies on the OPPONENT's turn: their end step is not yours, so no counter. Your next turn: nothing dies that turn, so your end step adds no counter either. The Mauler stays a 3/3 with no counters."}

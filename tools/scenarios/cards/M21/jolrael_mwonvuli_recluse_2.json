@@ -1,0 +1,28 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 47},
+  "cards": [
+    {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+    {"key": "tiger", "name": "Tiger", "type": "Creature", "power": "6", "toughness": "5", "zone": "battlefield", "controller": 0},
+    {"key": "ctr", "name": "Counter Pup", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "8", "toughness": "8", "zone": "battlefield", "controller": 1},
+    {"key": "h1", "name": "Silk", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+    {"key": "h2", "name": "Silk Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+    {"key": "o1", "name": "Opp Card One", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+    {"key": "o2", "name": "Opp Card Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+    {"key": "o3", "name": "Opp Card Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+    {"key": "o4", "name": "Opp Card Four", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 1}
+  ],
+  "mana": {"0": {"G": 6}},
+  "steps": [
+    {"op": "activate", "key": "jol", "idx": 1, "seat": 0},
+    {"op": "enter", "key": "h1"}
+  ],
+  "expect": {
+    "hand": {"0": 1, "1": 4},
+    "power": {"jol": 2, "tiger": 2, "ctr": 3, "ogre": 8, "h1": 1},
+    "toughness": {"jol": 2, "tiger": 2, "ctr": 3, "ogre": 8, "h1": 1},
+    "zone": {"tiger": "battlefield", "ctr": "battlefield", "h1": "battlefield"}
+  },
+  "notes": "Verifier K, wave 4. Printed: '{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand.' Expectation from the text and rules: X is YOUR hand (2 cards; the opponent holds 4) and is determined once as the ability resolves (CR 608.2h), so after Silk leaves the hand (hand 1) the affected creatures stay 2/2. The affected set is fixed at resolution (CR 611.2c): Silk, entering afterwards, keeps 1/1. 'Base' P/T is layer 7b, so the +1/+1 counter still applies on top (Counter Pup 3/3). The opponent's Ogre is untouched."
+}

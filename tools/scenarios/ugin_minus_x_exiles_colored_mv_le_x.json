@@ -1,0 +1,26 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "sprite", "name": "Sprite", "type": "Creature", "power": "1", "toughness": "1", "cmc": 1, "colors": ["U"], "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "colors": ["G"], "zone": "battlefield", "controller": 1},
+  {"key": "charm", "name": "Charm", "type": "Enchantment", "cmc": 2, "colors": ["W"], "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "relic", "name": "Relic", "type": "Artifact", "cmc": 1, "zone": "battlefield", "controller": 1},
+  {"key": "golem", "name": "Golem", "type": "Artifact Creature", "power": "2", "toughness": "2", "cmc": 2, "zone": "battlefield", "controller": 1},
+  {"key": "forest", "name": "Forest", "type": "Basic Land — Forest", "cmc": 0, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "x": 2}
+ ],
+ "expect": {
+  "zone": {
+   "sprite": "exile", "bear": "exile", "charm": "exile",
+   "ogre": "battlefield", "relic": "battlefield", "golem": "battlefield",
+   "forest": "battlefield", "ugin": "battlefield"
+  },
+  "counters": {"ugin": {"LOYALTY": 5}}
+ },
+ "notes": "Ugin, the Spirit Dragon [-X]: 'Exile each permanent with mana value X or less that's one or more colors.' X = 2 is announced as the ability is activated (CR 602.2b -> 601.2b, 107.3a) and the cost removes 2 loyalty (7 -> 5). Exiled: every colored permanent with mana value <= 2 on both sides (blue 1-drop, green 2-drop, white enchantment 2). Kept: the red 3-drop (mana value 3 > X), the colorless artifact and artifact creature (not one or more colors), the land (colorless), and Ugin itself (colorless)."
+}

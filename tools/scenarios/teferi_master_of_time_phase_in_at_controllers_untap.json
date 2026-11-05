@@ -1,0 +1,25 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "colors": ["R"], "zone": "battlefield", "controller": 1, "start_tapped": true, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "shackle", "name": "Shackle", "type": "Enchantment — Aura", "keywords": ["ENCHANT"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "teferi", "set": 5},
+  {"op": "enchant", "aura": "shackle", "host": "ogre"},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["ogre"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "phased_out": {"ogre": false, "shackle": false},
+  "zone": {"ogre": "battlefield", "shackle": "battlefield"},
+  "attached": {"shackle": "ogre"},
+  "tapped": {"ogre": false},
+  "counters": {"ogre": {"PLUS_1_PLUS_1": 1}},
+  "power": {"ogre": 4}
+ },
+ "notes": "Teferi, Master of Time [-3] phases out seat 1's tapped Ogre (it has a +1/+1 counter and seat 0's Aura). CR 502.1: during its controller's next untap step, BEFORE untapping, it phases in, and the Aura that phased out indirectly comes back with it, still attached (702.26g). Then it untaps in the same step (502.3). Counters stay on a phased-out permanent (702.26d), so it is a 4/4."
+}

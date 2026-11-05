@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pr", "real": "Prismite", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "pr", "idx": 0, "seat": 0, "decisions": ["G"]}
+ ],
+ "expect": {"mana_pool": {"0": {"G": 1}}, "tapped": {"pr": false}},
+ "notes": "Printed: '{2}: Add one mana of any color.' Exactly {2} (two colorless here) pays for it; the pool then holds one green, and Prismite does not tap."}

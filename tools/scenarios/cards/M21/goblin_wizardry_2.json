@@ -1,0 +1,100 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed prowess: '+1/+1 UNTIL END OF TURN'. Turn 1: Goblin Wizardry, then Shock (the tokens are 2/2 this turn). Turn 3 (seat 0 again): the Shock bonus has worn off, so Pestilent Haze's prowess trigger makes them 2/2 and -2/-2 kills both. If the turn-1 bonus had stayed, they would survive as 1/1.",
+ "cards": [
+  {
+   "key": "wiz",
+   "real": "Goblin Wizardry",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "haze",
+   "real": "Pestilent Haze",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Goblin Wizardry",
+   "key": "wiz"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Pestilent Haze",
+   "key": "haze",
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "haze": "graveyard"
+  },
+  "tokens": {
+   "Goblin Wizard": 0
+  },
+  "life": {
+   "1": 18
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ]
+ }
+}

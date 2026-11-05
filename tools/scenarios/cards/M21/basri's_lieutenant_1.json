@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 17},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "plain", "name": "Plain Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "zap", "name": "Zapper", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "deal_damage", "source": "zap", "target": "plain", "amount": 2, "controller": 1},
+    {"op": "deal_damage", "source": "zap", "target": "obear", "amount": 3, "controller": 1},
+    {"op": "deal_damage", "source": "zap", "target": "lt", "amount": 5, "controller": 1}
+  ],
+  "expect": {
+    "zone": {"plain": "graveyard", "obear": "graveyard", "lt": "graveyard"},
+    "tokens": {"Knight": 1},
+    "battlefield_pt": {"Knight": [2, 2]},
+    "battlefield_keywords": {"Knight": ["VIGILANCE"]}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.' Expectation from the text: 'it' is the creature that died (CR 603.10a look-back). Your counterless Plain Bear dies while the Lieutenant itself carries a +1/+1 counter: no Knight. The opponent's Opp Bear with a counter dies: not a creature you control, no Knight. The Lieutenant (4/5 with its counter) dies: it had a counter, so exactly one 2/2 Knight with vigilance."
+}

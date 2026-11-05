@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead (M21): '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' Seat 0 holds one card, seat 1 holds one card. Both players discard (each hand -> graveyard). Seat 1 could discard, so it loses no life (an opponent who discards its last card is not an opponent who can't). Loyalty 4 -> 5.",
+ "cards": [
+  {"key": "lil", "zone": "battlefield", "controller": 0, "real": "Liliana, Waker of the Dead"},
+  {"key": "mine", "zone": "hand", "controller": 0, "name": "Silk", "type": "Instant"},
+  {"key": "theirs", "zone": "hand", "controller": 1, "name": "Opp Silk", "type": "Instant"}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine", "theirs"]}
+ ],
+ "expect": {"zone": {"mine": "graveyard", "theirs": "graveyard"}, "hand": {"0": 0, "1": 0}, "life": {"0": 20, "1": 20}, "counters": {"lil": {"LOYALTY": 5}}}}

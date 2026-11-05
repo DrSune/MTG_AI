@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'When Barrin enters, return up to one other target creature or planeswalker to its owner's hand.' Barrin enters and targets the opponent's Victim: it goes to the OPPONENT's hand (its owner), so seat 1's hand holds 1 card and seat 0's hand stays empty.",
+ "cards": [
+  {"key": "barrin", "real": "Barrin, Tolarian Archmage", "zone": "hand", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "barrin", "decisions": ["victim"]}
+ ],
+ "expect": {
+  "zone": {"victim": "hand", "barrin": "battlefield"},
+  "hand": {"0": 0, "1": 1}
+ }}

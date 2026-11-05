@@ -1,0 +1,194 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4c22257e-8a00-40b7-a29b-55fcec7ddbd4",
+ "name": "Crypt Feaster",
+ "text_sha": "943d820963bd24f1ca5375bde52da34f6ebe3aa2bff49681c919e3d1309a47a2",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "MENACE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "ZONE_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 7
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": {
+      "tag": "FAnd",
+      "children": []
+     },
+     "zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "GRAVEYARD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     }
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-A",
+  "date": "2026-10-29",
+  "draft_py": "_self = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nthreshold = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=FAtom(\n        pred=FAtomPred.ZONE_COUNT_GE,\n        count=QConst(value=7),\n        who=ControllerRef.YOU,\n        inner_filter=FAnd(children=()),\n        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    ),\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        'target': _self,\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n    }),\n)\nabilities = [threshold, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Menace",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Threshold — Whenever this creature attacks, if there are seven or more cards in your graveyard, this creature gets +2/+0 until end of turn.",
+    "ir": "abilities[0] (event: DeclareAttackersEvent IS_SOURCE; condition: ZONE_COUNT_GE 7 your graveyard; effect: MODIFY_PT +2/+0 EOT on self)"
+   }
+  ],
+  "g0_warnings": [
+   "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['THRESHOLD']"
+  ],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "0c1df8e7b5e1de3186bbebfeedf199e2aa4133262038f1df5109c068f6d36ca9"
+ }
+}

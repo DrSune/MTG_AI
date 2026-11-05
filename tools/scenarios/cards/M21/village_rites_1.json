@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spirit", "real": "Spirit of Malevolence", "zone": "battlefield", "controller": 0},
+  {"key": "vr", "real": "Village Rites", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Village Rites", "key": "vr", "decisions": ["spirit"]}
+ ],
+ "expect": {
+  "zone": {"spirit": "graveyard", "vr": "graveyard"},
+  "hand": {"0": 2},
+  "life": {"0": 21, "1": 19},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed Village Rites {B}: 'As an additional cost to cast this spell, sacrifice a creature. Draw two cards.' Sacrificing Spirit of Malevolence ('When this creature dies, each opponent loses 1 life and you gain 1 life') is ONE death: its trigger fires once (you 21, opponent 19), and you draw exactly two cards."
+}

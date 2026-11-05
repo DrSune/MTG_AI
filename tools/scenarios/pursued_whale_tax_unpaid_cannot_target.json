@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "V29 (CR 601.2f, 601.2h): with only {1}{G}, Titanic Growth can be cast at seat 0's own Bear but not at the opponent's Pursued Whale, whose tax makes the total {4}{G}. The Whale is not a live target (the slot drops it, so the cast is refused as an off-population target before anything is paid); the Bear cast then resolves (2/2 -> 6/6).",
+ "cards": [
+  {"key": "whale", "real": "Pursued Whale", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1, "G": 1}},
+ "steps": [
+  {"op": "cast", "key": "tg", "controller": 0, "targets": ["whale"], "expect_raise": "illegal target selection: selection:off_population"},
+  {"op": "cast", "key": "tg", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "power": {"whale": 8, "bear": 6},
+  "zone": {"tg": "graveyard"},
+  "mana_pool": {"0": {}}
+ }
+}

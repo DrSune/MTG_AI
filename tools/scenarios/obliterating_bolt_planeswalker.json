@@ -1,0 +1,9 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "B-62 (2026-10-29), from the FDN round-1 verifier's failing pack: Obliterating Bolt 'deals 4 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead.' Ajani, Caller of the Pride (printed loyalty 4) takes 4 damage, so it loses 4 loyalty (CR 120.3c) and the zero-loyalty state-based action would put it into the graveyard (CR 704.5i). That is dying (CR 700.4), so the replacement exiles it instead. Before the fix the zero-loyalty SBA moved the walker without consulting the dies replacements, and it landed in the graveyard.",
+ "cards": [
+  {"key": "bolt", "real": "Obliterating Bolt", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Ajani, Caller of the Pride", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [{"op": "cast", "real": "Obliterating Bolt", "key": "bolt", "targets": ["pw"]}],
+ "expect": {"zone": {"bolt": "graveyard", "pw": "exile"}}}

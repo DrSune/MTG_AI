@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Solemn Simulacrum enters and its may is declined: no land is searched for (the Swamp stays in the library).",
+ "cards": [
+  {"key": "ss", "real": "Solemn Simulacrum", "zone": "hand", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 4}},
+ "steps": [
+  {"op": "cast", "key": "ss", "real": "Solemn Simulacrum", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"ss": "battlefield", "swamp": "library"}
+ }
+}

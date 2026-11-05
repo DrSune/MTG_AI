@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dev", "real": "Liliana's Devotee", "zone": "battlefield", "controller": 0},
+  {"key": "sw1", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "sw2", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "move", "key": "relic", "to": "graveyard"},
+  {"op": "end_turn", "decisions": ["fire"]}
+ ],
+ "expect": {"zone": {"relic": "graveyard"}, "tokens": {"Zombie": 0}, "tapped": {"sw1": false, "sw2": false}},
+ "notes": "Printed: '... if a CREATURE died this turn ...'. Only an artifact went from the battlefield to a graveyard this turn: the intervening-if is false, nothing is paid, no Zombie."}

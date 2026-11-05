@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'When this creature enters, return target permanent card from your graveyard to your hand.' Your graveyard: a Forest (land), an artifact card and an instant card; the opponent's graveyard: an enchantment card. You target the artifact: it returns to your hand; the Forest and the instant stay, the opponent's enchantment stays.",
+ "cards": [
+  {"key": "regrower", "real": "Elvish Regrower", "zone": "hand", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "graveyard", "controller": 0},
+  {"key": "relic", "name": "Old Relic", "type": "Artifact", "zone": "graveyard", "controller": 0},
+  {"key": "trick", "name": "Old Trick", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "oppcharm", "name": "Opp Charm", "type": "Enchantment", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"G": 4}},
+ "steps": [
+  {"op": "cast", "real": "Elvish Regrower", "key": "regrower", "decisions": ["relic"]}
+ ],
+ "expect": {
+  "zone": {"regrower": "battlefield", "relic": "hand", "land": "graveyard", "trick": "graveyard", "oppcharm": "graveyard"},
+  "hand": {"0": 1}
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e4a68bb3-5a79-4764-8223-acddd16fb660",
+ "name": "Tome Anima",
+ "text_sha": "4b2a83fb7ffccfb8d1004aa0dad2feb54055469c25a416ed6a96497b08f4359a",
+ "verified": {
+  "tree_sha": "ebe7c104c8481bf3dfa60f33e97867834140c2a522e407e0e13b0678d763d40a",
+  "probe_sha": "efdf28aafe00c01abf1150d6b3b8df4b38ed86d684c0bd61516bc43f16380970",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Spirit {3}{U} 3/3",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 3/3, mana U-1 W-3; unblocked: opp 20 -> 17",
+    "issue": ""
+   },
+   {
+    "clause": "This creature can't be blocked as long as you've drawn two or more cards this turn.",
+    "status": "OK",
+    "evidence": "StaticAbility PREVENT_EFFECT(DeclareBlockersEvent blocked=IS_SOURCE) with condition CARDS_DRAWN_THIS_TURN_GE 2, who YOU. Trace (fewer than 2 drawn): [opp_giant blocks it]: DECLARE_BLOCKERS row, so it is blockable when the condition is false. Condition-true case not in the trace; packs PASS: /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pfdf03cc25a_anima_unblockable_after_two.json (after my 2 draws the wall's block is not declared, opp 20 -> 17), /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pfdf03cc25a_anima_blockable_after_one.json (1 draw: blocked), /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pfdf03cc25a_anima_opponent_draws.json (the opponent's 2 draws do not count: blocked)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/tome_anima_1.json",
+   "tools/scenarios/cards/M21/tome_anima_2.json",
+   "tools/scenarios/cards/M21/tome_anima_3.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who"
+   ]
+  }
+ }
+}

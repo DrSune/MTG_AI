@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "teferi", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "teferi", "idx": 2, "seat": 0, "targets": ["ogre"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "phased_out": {"ogre": true}
+ },
+ "notes": "Negative timing case. On seat 1's turn seat 0 uses Teferi, Master of Time's static (loyalty abilities on any player's turn) to phase out seat 1's Ogre. CR 502.1: only permanents that phased out under the ACTIVE player's control phase in, so seat 0's untap step on the next turn does not bring the Ogre back; it waits for seat 1's next untap step."
+}

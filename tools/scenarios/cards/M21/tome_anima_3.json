@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Tome Anima: only MY draws count ('you've drawn'). On my turn the OPPONENT draws two cards (casts Revitalize twice); I have drawn none. Expected: the Anima can still be blocked (the wall blocks, 3 damage marked on it), the opponent stays at 26 (20 + 6).",
+ "cards": [
+  {"key": "anima", "real": "Tome Anima", "zone": "battlefield", "controller": 0},
+  {"key": "orv1", "real": "Revitalize", "zone": "hand", "controller": 1},
+  {"key": "orv2", "real": "Revitalize", "zone": "hand", "controller": 1},
+  {"key": "wall", "name": "Their Wall", "power": "0", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"1": {"W": 4}},
+ "steps": [
+  {"op": "cast", "real": "Revitalize", "key": "orv1", "controller": 1},
+  {"op": "cast", "real": "Revitalize", "key": "orv2", "controller": 1},
+  {"op": "combat", "seat": 0, "attack": {"anima": true}, "block": {"wall": "anima"}}
+ ],
+ "expect": {"attackers": {"anima": true}, "blocked": {"anima": ["wall"]}, "damage": {"wall": 3}, "life": {"0": 20, "1": 26}}}

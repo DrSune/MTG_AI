@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Fierce Empath (M21): the search is optional. The controller declines: the 6-MV creature stays in the library, hand stays at the opening-draw card.",
+ "cards": [
+  {"key": "emp", "zone": "hand", "controller": 0, "real": "Fierce Empath"},
+  {"key": "big6", "zone": "library", "controller": 0, "name": "Big Six", "type": "Creature — Beast", "power": 6, "toughness": 6, "cmc": 6},
+  {"key": "drawme", "zone": "library", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "emp", "decisions": ["skip"]}
+ ],
+ "expect": {"zone": {"emp": "battlefield", "big6": "library", "drawme": "hand"}, "hand": {"0": 1}}}

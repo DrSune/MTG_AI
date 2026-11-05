@@ -43,8 +43,8 @@ Conventions (documented build decisions):
   tribe noun "Shrine" is a type-line word test — the same audited idiom as
   the green ``sanctum_of_all_search_fire`` ``TYPE_EQ("Shrine")`` search;
   ``NAME_EQ`` is the grammar's closed-card-name pred and matches no card).
-- Token color words populate ``TokenSpec.color`` (grammar round 8 / C-2;
-  ``Treasure`` artifact tokens stay colorless/None).
+- Token color words populate ``TokenSpec.colors`` (grammar round 8 / C-2;
+  ``Treasure`` artifact tokens stay colorless, ``()``; R5-11 made the field a WUBRG tuple).
 - ``add X mana of any one color`` is encoded as ``ADD_MANA(color="ANY")``
   (round 8 / C-3); concrete-color and colorless "{C}" rows keep their letter.
 - ``each opponent`` for life gain/loss uses ``ControllerRef.ALL_OPPONENTS``;
@@ -75,6 +75,7 @@ from MTG_bot.core.ability_tree import (
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
+    DurationUntilLeaves,
     EachPlayer,
     FAnd,
     FAtom,
@@ -114,6 +115,7 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     SentenceOutcome,
     Template,
+    and_or_zone_search,
 )
 
 _BUCKET: Final[str] = "B2a"
@@ -353,7 +355,7 @@ def _soldier_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -368,7 +370,7 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(),
         abilities=(),
-        color="G",
+        colors=("G",),
     )
 
 
@@ -383,7 +385,7 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.VIGILANCE,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -398,7 +400,7 @@ def _griffin_token(power: int, toughness: int) -> TokenSpec:
         toughness=QConst(toughness),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        color="W",
+        colors=("W",),
     )
 
 
@@ -782,7 +784,12 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
     """Barrin ETB: "return up to one other target creature or planeswalker"
     — TARGET + QAtMost(1) (grammar round 8, C17): a targeted "up to N" keeps
     SelectorMode.TARGET (legal designation range 1..N stays a target
-    decision; resolution clamps to 0..remaining)."""
+    decision; resolution clamps to 0..remaining).
+
+    "to its owner's hand" is Zone(HAND, OWNER) (CR 400.3: a card goes to its
+    owner's hand), the shape the other 35 owner's-hand returns compile to.
+    m21-fidelity (review batch C, 2026-10-29): Barrin, Niambi and Roaming
+    Ghostlight emitted Zone(HAND, ANY)."""
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Atom(
@@ -814,7 +821,7 @@ def _build_barrin_etb(m: re.Match[str]) -> SentenceOutcome:
                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
-                    ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                 )
             ),
         ),
@@ -850,7 +857,7 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
                                 zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                             ),
                         ),
-                        ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                        ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                     )
                 ),
             )
@@ -1467,7 +1474,7 @@ def _build_roaming_ghostlight(m: re.Match[str]) -> SentenceOutcome:
                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                         ),
                     ),
-                    ("destination", Zone(ZoneKind.HAND, ControllerRef.ANY)),
+                    ("destination", Zone(ZoneKind.HAND, ControllerRef.OWNER)),
                 )
             ),
         ),
@@ -1538,7 +1545,7 @@ def _build_kitesail_freebooter(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.REVEAL,
             args=AtomArgs(
                 pairs=(
-                    ("controller", ControllerRef.TARGET_PLAYER),
+                    ("controller", ControllerRef.TARGET_OPPONENT),
                     ("count", QUnbounded()),
                 )
             ),
@@ -1749,40 +1756,60 @@ def _build_furious_rise(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            )
+        # V11 (2026-10-29): "if you control a creature with power N or
+        # greater" is an existence test over your creatures (CR 603.4), the
+        # Ornery Dilophosaur encoding. As a filter it was judged on this
+        # enchantment, so the trigger never did anything.
+        condition=FAtom(
+            pred=FAtomPred.CONTROLLER_COUNT_GE,
+            count=QConst(1),
+            inner_filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+                )
+            ),
         ),
     )
 
 
 def _build_sanctum_of_all(m: re.Match[str]) -> SentenceOutcome:
+    """Sanctum of All: "At the beginning of your upkeep, you may search your
+    library and/or graveyard for a Shrine card and put it onto the
+    battlefield." m21-fidelity wave 4 (2026-10-30, B-78): the same visible
+    zone choice as the named tutors (templates.and_or_zone_search); the
+    shuffle sentence joins only the options that search the library."""
+
+    def search_in(zones: tuple[Zone, ...]) -> Atom:
+        return Atom(
+            verb=Verb.SEARCH,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "cards",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
+                            zones=zones,
+                        ),
+                    ),
+                    (
+                        "destination",
+                        Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                    ),
+                    ("controller", ControllerRef.YOU),
+                )
+            ),
+        )
+
     return _ability(
         _upkeep_event(),
         OptionalEffect(
-            inner=Atom(
-                verb=Verb.SEARCH,
-                args=AtomArgs(
-                    pairs=(
-                        (
-                            "cards",
-                            Selector(
-                                QConst(1),
-                                SelectorMode.CHOOSE,
-                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Shrine"),
-                                zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU), *(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
-                            ),
-                        ),
-                        (
-                            "destination",
-                            Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-                        ),
-                        ("controller", ControllerRef.YOU),
-                    )
-                ),
+            inner=and_or_zone_search(
+                search_in,
+                Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
             )
         ),
     )
@@ -2064,10 +2091,12 @@ def _build_barrin_end_step(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, discard up to two cards, then draw
-    that many cards.`` (Kinetic Augur) — C15: "up to two" stays
-    CHOOSE + QConst(2) (the 0/1/2 sub-choice is open, never TARGET-
-    pinned); the anaphor "that many" is the R7-5 ``THAT_MANY_COUNT``
-    quantity reading the discarded count off the effect register."""
+    that many cards.`` (Kinetic Augur) — "up to two" is CHOOSE + QAtMost(2):
+    the discarding player picks 0, 1 or 2 cards (V15, 2026-10-29; QConst(2)
+    discarded exactly two whenever the hand held two, the C17 clamp only
+    shortening it on a short hand); the anaphor "that many" is the R7-5
+    ``THAT_MANY_COUNT`` quantity reading the discarded count off the effect
+    register."""
     discard = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -2078,7 +2107,7 @@ def _build_kinetic_augur_etb(m: re.Match[str]) -> SentenceOutcome:
                 (
                     "cards",
                     Selector(
-                        QConst(2),
+                        QAtMost(2),
                         SelectorMode.CHOOSE,
                         FAnd(children=()),
                         zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
@@ -2105,17 +2134,17 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
     """``When this artifact enters, exile all creature cards with mana
     value N or less from your graveyard until this artifact leaves the
     battlefield.`` (Idol of Endurance) — ALL+QUnbounded exile of the
-    filtered graveyard.
-    LOSSY (C11 verbatim): "until this artifact leaves the battlefield" —
-    ``_VERB_ROLES[EXILE]`` has no duration role (the round-7 grammar
-    added ``DurationUntilLeaves`` but wired the role only to
-    GAIN_CONTROL), so the temporary window is dropped; R8 grammar item.
-    The card SET choice (filter + ALL) is fully expressed."""
+    filtered graveyard, with ``duration=DurationUntilLeaves()`` (ontology
+    R5-1, 2026-10-29, CR 610.3): when the Idol leaves the battlefield the
+    cards still in exile return to their previous zone, their owner's
+    graveyard. The C11 loss this template used to carry (no duration role
+    on the move, so the cards never came back) is closed."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
                 ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                ("duration", DurationUntilLeaves()),
                 (
                     "target",
                     Selector(
@@ -2193,7 +2222,7 @@ def _build_pursued_whale_token(m: re.Match[str]) -> SentenceOutcome:
             StaticAbility(effect=cant_block),
             StaticAbility(effect=attack_if_able),
         ),
-        color="R",  # printed red in the sentence (C-2 repair convention)
+        colors=("R",),  # printed red in the sentence (C-2 repair convention)
     )
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -2219,8 +2248,8 @@ def _build_chrome_replicator_etb(m: re.Match[str]) -> SentenceOutcome:
     house FNot IS_TOKEN ``nontoken`` idiom), count=2 the threshold; the
     executor groups the matched permanents by EXACT name and tests the
     largest group — no pairwise name-equality vocabulary is needed (the
-    retired b2a UNCOVERED diagnosis).  Colorless token = ``color`` left
-    None, the Treasure precedent ("colorless/None", module docstring).
+    retired b2a UNCOVERED diagnosis).  Colorless token = ``colors`` left
+    empty, the Treasure precedent (module docstring).
 
     C16: none — fully forced (no may, no choice, no targets)."""
     p, t = _n(m, 1), _n(m, 2)

@@ -1,0 +1,59 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "V29 (CR 601.2f, 119.4: a player can pay life only up to their life total): at 2 life the opponent cannot pay Terror of the Peaks' 'additional 3 life', so Terror is not a live target for its Shock (refused before anything is paid; Shock stays in hand), while a Shock at your face costs only {R}.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Terror of the Peaks",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "life",
+   "seat": 1,
+   "set": 2
+  },
+  {
+   "op": "cast",
+   "key": "s",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "t"
+   ],
+   "expect_raise": "illegal target selection: selection:off_population"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 2
+  },
+  "zone": {
+   "t": "battlefield",
+   "s": "hand"
+  },
+  "mana_pool": {
+   "1": {
+    "R": 1
+   }
+  }
+ }
+}

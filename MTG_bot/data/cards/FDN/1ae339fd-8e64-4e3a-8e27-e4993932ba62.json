@@ -1,0 +1,114 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1ae339fd-8e64-4e3a-8e27-e4993932ba62",
+ "name": "Gnarlback Rhino",
+ "text_sha": "23f06d867dce29b79ba7268a9aea181b12f3e64d589f8b9b9f3e378943cff752",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TRAMPLE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TARGETS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-B",
+  "date": "2026-10-29",
+  "draft_py": "# Gnarlback Rhino: \"Trample\" (compiled) + \"Whenever you cast a spell that targets this creature, draw a card.\"\ntrig = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [trig, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever you cast a spell that targets this creature, draw a card.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "CastSpellEvent(filter=FAtom(TARGETS_SOURCE), actor=CONTROLLER_IS you) -> DRAW 1. ENGINE GAP: the binder's CAST match ctx (binding.py _ctx) binds no 'target' for KIND_CAST rows, so TARGETS_SOURCE (quantity.py:699) is always False there and the trigger never fires; mapper pack (Giant Growth on the Rhino) shows no draw. An unconditional CastSpellEvent in the same pack does fire."
+ },
+ "probe": {
+  "sha": "467ddcd9233f1e0bd5bf9f1a5de8795e58357dc49e81977b7b3b6464f922fdee"
+ }
+}

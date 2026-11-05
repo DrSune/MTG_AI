@@ -21,8 +21,10 @@ takes min(count, candidates)); C12 referents are the closed strings.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     Atom,
     ControllerRef,
     Cost,
@@ -44,7 +46,7 @@ from MTG_bot.core.ability_tree import (
     count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, phased_out, resolve
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
@@ -82,6 +84,36 @@ def controller_of(ctx: ExecCtx, handle: Handle) -> Handle:
     return ex.controller_of(handle)
 
 
+def apnap_order(world: object, players: list[Handle]) -> list[Handle]:
+    """``players`` in APNAP order (CR 101.4): the active player first, then the others in turn
+    order. Seat order when no turn is open."""
+    order = list(world.player_order)  # type: ignore[attr-defined]
+    active = getattr(world, "active_player", None)
+    if active in order:
+        start = order.index(active)
+        order = order[start:] + order[:start]
+    return [p for p in order if p in players]
+
+
+def sacrificing_player(ctx: ExecCtx, menu: list[Handle]) -> Handle:
+    """The player who picks from a sacrifice menu (V10, 2026-10-29).
+
+    CR 701.21a: a player can sacrifice only a permanent they control, so the menu of one
+    sacrifice instruction belongs to one player, and that player chooses (CR 101.4's example:
+    "Each player sacrifices a creature" — each player chooses a creature they control). The
+    templates pin whose permanents through the filter (CONTROLLER_IS YOU, rotated by EachPlayer,
+    or TARGET_PLAYER). A menu spanning several controllers means the tree does not say who
+    sacrifices: that raises rather than let one player pick another's permanent. An empty menu
+    has no chooser; the context's controller stands in."""
+    owners = sorted({controller_of(ctx, h) for h in menu})
+    if len(owners) > 1:
+        raise ValueError(
+            f"executor: a sacrifice menu spans the permanents of {owners}: a player sacrifices "
+            "only what they control (CR 701.21a), so the tree must say whose (CONTROLLER_IS)"
+        )
+    return owners[0] if owners else ctx.controller
+
+
 def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
     """The player seats a ControllerRef denotes, in seat order."""
     if ref is ControllerRef.YOU:
@@ -90,7 +122,9 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
         return _opponents(ctx)
     if ref is ControllerRef.ANY:
         return list(ctx.world.player_order)
-    if ref is ControllerRef.TARGET_PLAYER:
+    if ref in DESIGNATED_PLAYER_REFS:
+        # V21: "target player" and "target opponent" read the same binding;
+        # they differ only in who could be designated (query/binding slots).
         bound = ctx.binding_one("target")
         if bound is None:
             raise ValueError(
@@ -120,7 +154,7 @@ def controller_matches(
         return actual == ctx.controller
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
-    if who is ControllerRef.TARGET_PLAYER:
+    if who in DESIGNATED_PLAYER_REFS:
         bound = ctx.binding_one("target")
         expected: Handle | None = bound
         if bound is not None and bound.namespace == "card":
@@ -137,42 +171,95 @@ def filter_reads_bound_player(filter_: object) -> bool:
     (binding._designate, the query cast/activation lanes) must consult
     FILTERS — not just raw ControllerRef/Zone pair values — or the flag
     silently flips off. The scope to filters is deliberate: a Selector or
-    Verb-role ZONE carrying TARGET_PLAYER is anaphoric (Brash Taunter's
-    "that creature or player") or a container read (Tormod's Crypt's
-    graveyard sweep) — those must NOT open a designation lane (the
-    multi-lane guard would raise)."""
+    Verb-role ZONE carrying TARGET_PLAYER can be anaphoric (Brash Taunter's
+    "that creature or player"), and in trigger designation those must NOT
+    open a designation lane (the multi-lane guard would raise).
+
+    B-49 follow-up #3 (2026-10-29): Tormod's Crypt's "Exile target player's
+    graveyard" is not a container read. "target player" is a target (CR 115.1),
+    so the query cast/activation lanes open its player slot from the selector's
+    zones (query._designated_player_refs); binding._designate is unchanged."""
+    return bool(filter_bound_player_refs(filter_))
+
+
+def filter_bound_player_refs(filter_: object) -> set[ControllerRef]:
+    """V21: the designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a Filter
+    reads through ``CONTROLLER_IS`` — :func:`filter_reads_bound_player`'s answer
+    with the ref kept, so a designation slot knows whether it is "target
+    player" (any player) or "target opponent"."""
     if isinstance(filter_, FAtom):
+        found: set[ControllerRef] = set()
         if (
             filter_.pred is FAtomPred.CONTROLLER_IS
-            and filter_.who is ControllerRef.TARGET_PLAYER
+            and filter_.who in DESIGNATED_PLAYER_REFS
         ):
-            return True
-        return any(
-            filter_reads_bound_player(inner)
-            for inner in (filter_.inner_filter, filter_.right_inner_filter)
-            if inner is not None
-        )
+            found.add(filter_.who)  # type: ignore[arg-type]
+        for inner in (filter_.inner_filter, filter_.right_inner_filter):
+            if inner is not None:
+                found |= filter_bound_player_refs(inner)
+        return found
     if isinstance(filter_, (FAnd, FOr)):
-        return any(filter_reads_bound_player(c) for c in filter_.children)
+        out: set[ControllerRef] = set()
+        for child in filter_.children:
+            out |= filter_bound_player_refs(child)
+        return out
     if isinstance(filter_, FNot):
-        return filter_reads_bound_player(filter_.inner)
-    return False
+        return filter_bound_player_refs(filter_.inner)
+    return set()
 
 
 def zone_owner(ctx: ExecCtx, zone_ir: Zone, owner: Handle | None) -> Handle:
-    """The single player who owns a destination/movement zone IR."""
+    """The single player who owns a destination/movement zone IR.
+
+    V24 (2026-10-29): ANY names no player, so it resolves to ``owner`` when the
+    caller has one, never to the first seat (B-43: a bounce to "its owner's hand"
+    compiled as Zone(HAND, ANY) handed an opponent's creature to seat 0). A
+    MOVING CARD's destination goes through :func:`move_destination`."""
     ref = zone_ir.controller
-    if ref is ControllerRef.OWNER:
+    if ref is ControllerRef.OWNER or (ref is ControllerRef.ANY and owner is not None):
         if owner is None:
             raise ValueError("executor: OWNER zone needs a card to own it")
         return owner
     if ref is ControllerRef.YOU:
         return ctx.controller
-    if ref in (ControllerRef.ANY, ControllerRef.TARGET_PLAYER):
+    if ref is ControllerRef.ANY or ref in DESIGNATED_PLAYER_REFS:
         return players_for_ref(ref, ctx)[0]
     raise NotImplementedError(
         f"executor: zone controller ref {ref.name} needs multiple owners (12b)"
     )
+
+
+def move_destination(
+    ctx: ExecCtx, dest_ir: Zone, dest_kind: str, card: Handle
+) -> tuple[Handle, Handle | None]:
+    """V24 (CR 108.3, 400.3, 110.2a): where a moving card lands, as ``(the player
+    whose zone receives it, the player who controls it if that is not its owner)``.
+
+    The frozen world reads a card's owner off the zone that holds it, so filing a
+    card under another player's zone would change its owner, which never happens
+    (108.3). A card goes to its OWNER's hand, library or graveyard whatever player
+    the destination names (400.3), and to its owner's slice of exile. Only a
+    battlefield destination names a controller (110.2a): the player the effect puts
+    it under, which is the effect's controller (YOU, and ANY: "return it to the
+    battlefield" puts it under the instructed player's control), the designated
+    player (TARGET_PLAYER), or its owner (OWNER). A controller other than the owner
+    is the caller's control entry (Executor.gain_control), never a zone."""
+    owner = ctx.world.controller_of(card)  # the zone owner IS the card's owner
+    if dest_kind != ZONE_BATTLEFIELD:
+        return owner, None
+    ref = dest_ir.controller
+    if ref is ControllerRef.OWNER:
+        return owner, None
+    if ref in (ControllerRef.YOU, ControllerRef.ANY):
+        controller = ctx.controller
+    elif ref is ControllerRef.TARGET_PLAYER:
+        controller = players_for_ref(ref, ctx)[0]
+    else:
+        raise NotImplementedError(
+            f"executor: battlefield destination under {ref.name} names no single "
+            "controller (CR 110.2a)"
+        )
+    return owner, (None if controller == owner else controller)
 
 
 def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
@@ -201,7 +288,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         for player in ctx.world.player_order:
             for any_kind in PLAYER_ZONES:
                 handles_all.extend(ctx.world.players[player].zone(any_kind).entries)
-        return handles_all
+        return existing(ctx, handles_all)
     ref = zone_ir.controller
     if kind is ZoneKind.STACK:
         # 14d (B-19): B-2's RUNTIME twin. ZONE_KIND_TO_STATE has no STACK
@@ -249,7 +336,19 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
             handles.extend(entries[:1])
         else:
             handles.extend(entries)
-    return handles
+    return existing(ctx, handles)
+
+
+def existing(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
+    """CR 702.26b: a phased-out permanent is treated as though it does not
+    exist, so no zone enumeration yields it: not a target, not an "each"
+    population, not counted, not a cost candidate, not a static's scope.
+    The ONE chokepoint every selector and query enumeration passes
+    (``enumerate_zone`` here, ``legality._zone_handles`` for its own
+    OWNER/ANY lanes). Order-preserving; free when nothing is phased out."""
+    if ctx.executor is None or not getattr(ctx.executor, "phased_out", None):
+        return handles
+    return [h for h in handles if not phased_out(ctx, h)]
 
 
 def _is_any_target_idiom(filter_: object) -> bool:
@@ -376,20 +475,13 @@ def referent_absent(exc: BaseException) -> bool:
 # mirroring GROUND_TRUTH_CHOOSER in the ledger: the ask lane names the
 # deferral explicitly instead of re-deriving a card identity the IR carries
 # only as an oracle id.
-R3_CHOOSE_DEFERRED_ORACLES: frozenset[str] = frozenset(
-    {
-        # M21 Run Afoul — scryfallOracleId (matches the ledger/pool key
-        # 5462cb38…, pinned by MTG_bot.core.test_ontology_r3). Its CHOOSE
-        # menu is public BATTLEFIELD:ANY, so every structural gate rule
-        # PASSES; only this table keeps it silent. The chooser is the
-        # TARGETED player and the direction axis is unencoded (ZND-9):
-        # without this entry the caster would be asked to pick the
-        # opponent's sacrifice. (R3 diff-gate follow-up: the original
-        # entry 4c784905-2ed4-4f22-8387-d1c462125276 matched no compiled
-        # card at all — an inert phantom the FIX-2 pins exposed.)
-        "5462cb38-7cd7-46e8-a273-35d0d1af45b4",  # M21 Run Afoul (ZND-9)
-    }
-)
+# V10 (2026-10-29): empty. Its one entry was M21 Run Afoul (5462cb38-7cd7-
+# 46e8-a273-35d0d1af45b4), whose BATTLEFIELD:ANY menu did not say whose
+# fliers, so asking would have let the caster pick the opponent's sacrifice.
+# The template now writes CONTROLLER_IS TARGET_PLAYER and the sacrifice lane
+# asks the player who controls the menu (sacrificing_player), so the
+# direction is encoded and the deferral has nothing left to hold.
+R3_CHOOSE_DEFERRED_ORACLES: frozenset[str] = frozenset()
 
 
 def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
@@ -404,15 +496,20 @@ def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
     filters keep their frozen lanes, a hidden-side (hand/library) zone
     owned by anyone but YOU defers, a PLAYER zone defers (the chooser's
     direction is not encoded — ZND-9), and a multi-zone menu with an ANY
-    controller is the merged ZND-7(a) shape which defers; and the chooser
-    must be the card's controller (``controller_of(source) == controller``,
-    the sacrifice lane's CR 701.14a reading of the same fact).
+    controller is the merged ZND-7(a) shape which defers.
+
+    V10 (2026-10-29) dropped the ledger's fourth rule, "the chooser must be
+    the card's controller": it deferred every choice the rules give another
+    player (Goremand's "each opponent sacrifices", where EachPlayer rotates
+    the controller to the opponent) to the lowest-handle slice, because the
+    decision channel could only ask the controller (L-27). The ask now names
+    the player who decides (:func:`resolve_selector`'s CHOOSE branch).
     """
     if sel.referent is not None:
         return False
     if not isinstance(sel.count, QConst):
         return False
-    if _filter_is_self_referential(sel.filter):
+    if _filter_names_the_source(sel.filter):
         return False
     zones = list(sel.zones)
     if not zones:
@@ -433,8 +530,6 @@ def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
         # A synthetic player-handle source (unit-world idiom): the ledger
         # chooser rule has no card controller to anchor to — frozen slice.
         return False
-    if ctx.world.controller_of(src) != ctx.controller:
-        return False  # the chooser must be the card's controller
     card_state = ctx.world.cards.get(ctx.source)
     identity = getattr(card_state, "identity", None)
     if str(getattr(identity, "oracle_id", "") or "") in (R3_CHOOSE_DEFERRED_ORACLES):
@@ -449,6 +544,7 @@ def resolve_selector(
     journal_partition: bool = False,
     ok: Callable[[Handle], bool] | None = None,
     ask_choose: bool = False,
+    sacrifice: bool = False,
 ) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
@@ -494,6 +590,13 @@ def resolve_selector(
     ``journal_partition=True``. That emits audit TARGETING rows for
     ONE_OF/REST chosen sets. Legality/query/count callers leave it false so
     hypothetical populations never pollute the journal.
+
+    ``sacrifice`` (V10): the CHOOSE menu is what a SACRIFICE atom destroys,
+    so the player who controls it picks (:func:`sacrificing_player`, CR
+    701.21a), asked under the sacrifice-cost lane's
+    ``sacrifice:<seat>:<source>:<digest>`` key. Every other CHOOSE is the
+    effect's controller's pick (CR 608.2d), which inside EachPlayer is the
+    rotated player.
     """
     partition_window: list[Handle] | None = None
     if sel.referent is not None:
@@ -569,6 +672,20 @@ def resolve_selector(
                     break
                 if partition_window is not None:
                     candidates = list(partition_window)
+        elif (
+            sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+            and ctx.search_partition
+            and ctx.search_found is not None
+        ):
+            # W4-6 (Cultivate, CR 701.23a): "Search your library for up to two
+            # basic land cards ... put one onto the battlefield tapped and the
+            # other into your hand." The partition divides the cards the
+            # search FOUND. The re-search idiom enumerated the whole zone, so
+            # the ONE_OF could pick an unfound basic and the REST took every
+            # basic left in the library (one land in, all the others to hand).
+            # A found card that left the zone since the search drops out.
+            found = set(ctx.search_found)
+            candidates = [h for h in candidates if h in found]
     if partition_window is not None and sel.mode is SelectorMode.ONE_OF:
         ctx.one_of_window = tuple(partition_window)
     candidates = [h for h in candidates if eval_filter(sel.filter, h, ctx)]
@@ -656,13 +773,49 @@ def resolve_selector(
         if isinstance(sel.count, QUnbounded):
             return ordered
         k = resolve(sel.count, ctx)
+        # V10: who picks. A sacrifice menu is its controller's (CR 701.21a);
+        # any other menu is the effect controller's (CR 608.2d).
+        decider = sacrificing_player(ctx, ordered) if sacrifice else ctx.controller
+        if (
+            ask_choose
+            and ok is None
+            and isinstance(sel.count, QAtMost)
+            and k > 0
+            and ordered
+            and _choose_lift_allowed(replace(sel, count=QConst(sel.count.n)), ctx)
+        ):
+            # B-107 (m21-fidelity wave 4, 2026-10-30): "up to N" names every
+            # number from zero to N (the untargeted twin of V15's 0..N target
+            # count, CR 115.6), so each pick may stop with
+            # NONE, the first included (the discard lane's shape,
+            # verbs._discard_picks): Ugin's -10 can keep a permanent card in
+            # hand, a named library search can fail to find (CR 701.23b).
+            # The other lift rules are the QConst lane's own (same zones,
+            # same referent and self-reference refusals). Before this lane
+            # a QAtMost CHOOSE fell to the silent slice below.
+            picks = []
+            pool = list(ordered)
+            for pick_no in range(min(k, len(pool))):
+                vocab = tuple(str(h) for h in sorted(pool)) + ("NONE",)
+                if sacrifice:
+                    what = f"sacrifice:{decider}:{ctx.source}:{site_digest(vocab)}"
+                else:
+                    mid = f"{pick_no + 1}of{k}:" if k > 1 else ""
+                    what = f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
+                answer = ctx.take_decision_of(decider, vocab, what)
+                if answer == "NONE":
+                    break
+                pick = next(h for h in pool if str(h) == answer)
+                picks.append(pick)
+                pool.remove(pick)
+            return picks
         if (
             ask_choose
             and ok is None
             and 0 < k < len(ordered)
             and _choose_lift_allowed(sel, ctx)
         ):
-            # R3 (spec 141 §6): WHICH k of the menu is the controller's
+            # R3 (spec 141 §6): WHICH k of the menu is the decider's
             # decision, not an accident of Handle order — the same
             # sequential-shrinking lane the ONE_OF want>1 loop above is
             # (frozen prefix, {i}of{k} middle segment only when k > 1,
@@ -673,10 +826,12 @@ def resolve_selector(
             pool = list(ordered)
             for pick_no in range(k):
                 vocab = tuple(str(h) for h in sorted(pool))
-                mid = f"{pick_no + 1}of{k}:" if k > 1 else ""
-                answer = ctx.take_decision(
-                    vocab, f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
-                )
+                if sacrifice:
+                    what = f"sacrifice:{decider}:{ctx.source}:{site_digest(vocab)}"
+                else:
+                    mid = f"{pick_no + 1}of{k}:" if k > 1 else ""
+                    what = f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
+                answer = ctx.take_decision_of(decider, vocab, what)
                 pick = next(h for h in pool if str(h) == answer)
                 picks.append(pick)
                 pool.remove(pick)
@@ -708,8 +863,17 @@ def resolve_selector(
         # and drop out (CR 603.3's mode/targets rule, applied per handle).
         # UNDESIGNATED stays the loud raise — an unbound designation is
         # still never guessed.
-        bound = ctx.binding_handles("target")
+        # V25: with per-slot designations (a spell or ability with several
+        # targets), a TARGET selector means ITS OWN slot's designation, whatever
+        # role or quantity it sits in ("deals damage equal to its power" reads
+        # the first target, the damage goes to the second).
+        own = ctx.slot_designations.get(repr(sel)) if ctx.slot_designations else None
+        bound = list(own) if own is not None else ctx.binding_handles("target")
         if bound is None:
+            if isinstance(sel.count, QAtMost):
+                # V15 (CR 601.2c, 115.6): "up to N" designated zero targets;
+                # the instruction acts on nothing (an exact count stays loud).
+                return []
             raise ValueError(
                 "executor: TARGET selector has no designation "
                 "(pass bindings={'target': ...})"
@@ -893,6 +1057,23 @@ def _filter_is_self_referential(filter_: object) -> bool:
     return False
 
 
+def _filter_names_the_source(filter_: object, positive: bool = True) -> bool:
+    """V10 (2026-10-29): does the menu pin the source itself (an ``IS_SOURCE``
+    reached through an even number of negations)? "This creature" is a
+    self-designation, never a choice. ``FNot(IS_SOURCE)`` is "another": a real
+    menu (Dire Fleet Warmonger's "you may sacrifice another creature"), which
+    :func:`_filter_is_self_referential` (polarity-blind, kept for its binding
+    and cost callers) counted as self-reference, so the lift never asked and
+    the engine took the lowest handle."""
+    if isinstance(filter_, FAtom):
+        return positive and filter_.pred is FAtomPred.IS_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_filter_names_the_source(c, positive) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _filter_names_the_source(filter_.inner, not positive)
+    return False
+
+
 # ---------------------------------------------------------------- role readers
 
 
@@ -902,15 +1083,23 @@ def atom_target_slot_key(atom: Atom, slot_designations: dict[str, tuple]) -> str
     effect runtime uses to shadow ``bindings["target"]`` to the atom's own
     slot (ExecCtx.slot_designations). None when the atom designates nothing
     or its selector was not part of the spell's designation walk (the
-    shared union binding then stands, exactly as before)."""
-    for _role, value in atom.args.pairs:
-        if (
-            isinstance(value, Selector)
-            and value.mode is SelectorMode.TARGET
-            and repr(value) in slot_designations
-        ):
-            return repr(value)
-    return None
+    shared union binding then stands, exactly as before).
+
+    V25: the shadow is what the ``target`` ROLE reads (role_handles is
+    binding-first), so an atom whose ``target`` role is designated shadows that
+    slot even when another role sorts first (a ``dealer``); the other TARGET
+    selectors read their own slots (resolve_selector)."""
+    keys = [
+        (role, repr(value))
+        for role, value in atom.args.pairs
+        if isinstance(value, Selector)
+        and value.mode is SelectorMode.TARGET
+        and repr(value) in slot_designations
+    ]
+    for role, key in keys:
+        if role == "target":
+            return key
+    return keys[0][1] if keys else None
 
 
 def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
@@ -934,10 +1123,18 @@ def graveyard_sweep_shape(value: object, verb: object, dest: object) -> bool:
         and isinstance(value.filter, FAnd)
         and not value.filter.children
         and any(
-            z.kind is ZoneKind.GRAVEYARD and z.controller is ControllerRef.TARGET_PLAYER
+            z.kind is ZoneKind.GRAVEYARD and z.controller in DESIGNATED_PLAYER_REFS
             for z in value.zones
         )
     )
+
+
+def _in_population(sel: Selector, handle: Handle, ctx: ExecCtx) -> bool:
+    """V28: could ``handle`` be one of the objects ``sel`` selects (in one of its
+    zones and passing its filter)?"""
+    if not any(handle in enumerate_zone(ctx, zone) for zone in sel.zones):
+        return False
+    return eval_filter(sel.filter, handle, ctx)
 
 
 def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
@@ -1034,6 +1231,35 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
     # into the sweep exemption).
     _dest = atom.args.get("destination")
     graveyard_sweep = graveyard_sweep_shape(value, atom.verb, _dest)
+    # V28 (Rewind, CR 608.2c): a CHOOSE selector is a choice its controller makes
+    # as the effect resolves, not a designation. It shares the role NAME
+    # ``target`` with the spell's TARGET designation only by the compiler's
+    # naming ("Counter target spell. Untap up to four lands." handed the
+    # countered spell to the untap). When none of the bound objects can be in
+    # this selector's population, the designation is not for it, and it
+    # resolves itself. A binding that does fit keeps the binding-first lane.
+    foreign = (
+        bound is not None
+        and isinstance(value, Selector)
+        and value.mode is SelectorMode.CHOOSE
+        and value.referent is None
+        and not any(_in_population(value, h, ctx) for h in bound)
+    )
+    # m21-fidelity (2026-10-29, B-53 second half): a designation made of PLAYER
+    # handles (the spell's TARGET_PLAYER coordinate, Run Afoul's target opponent)
+    # is never a member of a CARD population, so it must not take over a role
+    # whose non-TARGET selector (a resolution-time CHOOSE/ALL pick) can hold only
+    # cards (no PLAYER/ANY zone): "target opponent sacrifices a creature" raised
+    # KeyError 'unknown card player:1'. The role resolves its own selector
+    # instead, in the rotated coordinates. TARGET mode stays the designation lane.
+    player_into_cards = (
+        bound is not None
+        and bool(bound)
+        and all(h.namespace == "player" for h in bound)
+        and isinstance(value, Selector)
+        and value.mode is not SelectorMode.TARGET
+        and all(z.kind not in (ZoneKind.PLAYER, ZoneKind.ANY) for z in value.zones)
+    )
     if (
         bound is not None
         and not anaphoric
@@ -1041,8 +1267,12 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not population
         and not self_ref
         and not graveyard_sweep
+        and not foreign
+        and not player_into_cards
     ):
-        return bound
+        # CR 702.26b / 608.2b: a designated permanent that has phased out
+        # since it was designated does not exist, so the verb skips it.
+        return existing(ctx, bound)
     if isinstance(value, Selector):
         if (
             atom.verb is Verb.CAST
@@ -1073,10 +1303,15 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
 
             return sorted(resolve_selector(value, ctx, ok=ok))
         # R3 (spec 141 §6): this is the EFFECT-role choke point — a finite
-        # CHOOSE resolved here is a real controller decision and the fold
-        # asks through the 14b channel (gate + default-off kwarg keep every
-        # other caller on the frozen silent slice).
-        return sorted(resolve_selector(value, ctx, ask_choose=True))
+        # CHOOSE resolved here is a real decision and the fold asks through
+        # the 14b channel (gate + default-off kwarg keep every other caller
+        # on the frozen silent slice). V10: a SACRIFICE menu is asked of the
+        # player who controls it (CR 701.21a).
+        return sorted(
+            resolve_selector(
+                value, ctx, ask_choose=True, sacrifice=atom.verb is Verb.SACRIFICE
+            )
+        )
     if bound is not None:
         return bound
     raise ValueError(f"executor: {atom.verb.name} role {role!r} has no binding")
@@ -1088,7 +1323,18 @@ def role_player(ctx: ExecCtx, atom: Atom, role: str = "controller") -> Handle:
         return bound
     value = atom.args.get(role)
     if isinstance(value, ControllerRef):
-        return players_for_ref(value, ctx)[0]
+        players = players_for_ref(value, ctx)
+        if len(players) > 1:
+            # V42 (2026-10-30): one acting player cannot stand for several. With three or more
+            # seats OPPONENT ("an opponent") names one of several, and somebody must choose which;
+            # ALL_OPPONENTS ("each opponent") means every one of them. Taking the first was a
+            # silent wrong answer, so it is loud until the verb iterates or the tree wraps it in
+            # EachPlayer (BACKLOG B-108). Two seats never reach this with an opponent ref.
+            raise NotImplementedError(
+                f"executor: {atom.verb.name} {role!r} is one player, but ControllerRef."
+                f"{value.name} denotes {len(players)} here (B-108)"
+            )
+        return players[0]
     raise NotImplementedError(
         f"executor: {atom.verb.name} {role!r} referent-selector player is 12b's"
     )

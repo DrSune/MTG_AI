@@ -236,7 +236,11 @@ class LayerRecord:
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
-    PT target to its DurationLedger record id.
+    PT target to its DurationLedger record id. ``resolved`` marks a record
+    a RESOLVED spell or ability created with a duration (B-59: a dispatched
+    "mandate"/"mandate_block" with fixed ``targets``): CR 611.2a, it lasts
+    as long as its duration says, so its source leaving the battlefield
+    does not end it (:meth:`LayerRegistry.detach_source` skips it).
     """
 
     seq: int
@@ -251,6 +255,13 @@ class LayerRecord:
     condition: Filter | None = None  # StaticAbility/While-condition
     status: str = "live"
     ledger_ids: dict[Handle, int] = field(default_factory=dict)
+    resolved: bool = False
+    # CR 702.26b (2026-10-29): the record IS one of its source's own static
+    # or keyword abilities (attach_source registered it), so it does not
+    # function while the source is phased out. Effects a resolved spell or
+    # ability created are not abilities of the source and keep applying.
+    # Not in dump(): the flag is a function of the attach history.
+    from_static: bool = False
 
     @property
     def atoms(self) -> tuple[Atom, ...]:
@@ -276,6 +287,9 @@ class LayerRegistry:
         # to its other types") — rebuilt alongside the keyword/granted maps,
         # read by the TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ filter evaluator.
         self._types: dict[Handle, tuple[str, ...]] = {}
+        # B-59: the ``resolved`` records (a subset of ``records``), so the
+        # per-departure :meth:`forget_departed` scan stays O(resolved).
+        self._resolved: list[LayerRecord] = []
 
     # ------------------------------------------------------------ lifecycle
 
@@ -297,6 +311,7 @@ class LayerRegistry:
         resolve. ``None`` = the ordinary battlefield resolution."""
         self.detach_source(handle)
         count = 0
+        first_new = len(self.records)
         if controller is None:
             controller = self.executor.controller_of(handle)  # 16e overlay
         for kw in record.keywords:
@@ -328,17 +343,59 @@ class LayerRegistry:
                     sink = getattr(self.executor, "unparseable_statics", None)
                     if sink is not None and flag not in sink:
                         sink.append(flag)
+        for layer in self.records[first_new:]:
+            layer.from_static = True  # CR 702.26b: see LayerRecord.from_static
         return count
 
     def detach_source(self, handle: Handle) -> int:
         """Battlefield departure: expire every layer whose SOURCE is this
-        permanent (and terminal-expire its materialized ledger entries)."""
+        permanent (and terminal-expire its materialized ledger entries).
+        A ``resolved`` record is not the permanent's own ability: its
+        duration alone ends it (CR 611.2a)."""
         dropped = 0
         for layer in self.records:
-            if layer.source == handle and layer.status != "expired":
+            if layer.source == handle and layer.status != "expired" and not layer.resolved:
                 self._expire_layer(layer)
                 dropped += 1
         return dropped
+
+    def register_mandate(
+        self,
+        kind: str,
+        source: Handle,
+        controller: Handle,
+        targets: tuple[Handle, ...],
+        atom: Atom,
+        duration: Duration,
+    ) -> LayerRecord:
+        """B-59: a DISPATCHED MANDATE_ATTACK / MANDATE_BLOCK atom that
+        carries a duration ("attacks this turn if able", "must be blocked
+        this turn if able", goad's "until your next turn"). The creatures
+        were designated at resolution (fixed ``targets``), and the record
+        rides the registry's duration expiry: Eot at cleanup (CR 514.2),
+        UntilNextTurn when the controller's next turn begins (CR 611.2b),
+        UntilNextStep at its step, While while its condition holds,
+        UntilLeaves when the source leaves. ``kind`` is ``"mandate"`` or
+        ``"mandate_block"``, so legality reads it beside the static ones."""
+        layer = self._new(
+            kind, source, controller, (atom,), targets, duration=duration, resolved=True
+        )
+        self._resolved.append(layer)
+        return layer
+
+    def forget_departed(self, handle: Handle) -> int:
+        """A designated object left the battlefield: if it returns it is a
+        new object (CR 400.7) that no resolved effect was applied to, so it
+        drops out of every live ``resolved`` record's targets (a record left
+        with none expires). Returns the number of records touched."""
+        touched = 0
+        for layer in self._resolved:
+            if layer.status != "expired" and handle in layer.targets:
+                layer.targets = tuple(t for t in layer.targets if t != handle)
+                if not layer.targets:
+                    self._expire_layer(layer)
+                touched += 1
+        return touched
 
     def register_grant(
         self,
@@ -379,6 +436,7 @@ class LayerRegistry:
         duration: Duration | None = None,
         selector: Selector | None = None,
         condition: Filter | None = None,
+        resolved: bool = False,
     ) -> LayerRecord:
         self._seq += 1
         layer = LayerRecord(
@@ -392,6 +450,7 @@ class LayerRegistry:
             selector=selector,
             duration=duration,
             condition=condition,
+            resolved=resolved,
         )
         self.records.append(layer)
         return layer
@@ -578,6 +637,40 @@ class LayerRegistry:
                 )
             )
             return records
+        if any(atom.verb == Verb.ADD_LAND_PLAY for atom in atoms):
+            # m21-fidelity (2026-10-29): Azusa's "You may play two additional
+            # lands on each of your turns" is a STATIC ability (CR 604.1): a
+            # continuous effect that raises its controller's land allowance
+            # while the permanent is on the battlefield (CR 305.2). Same
+            # selector-less "land_play" record the runtime handler registers
+            # (verbs._v_add_land_play), so land_play_bonus sums both; its
+            # liveness is the anchor permanent's, like mana_policy. The "you
+            # may" was unwrapped above: it is the use, playing the land.
+            if any(atom.verb != Verb.ADD_LAND_PLAY for atom in atoms):
+                raise NotImplementedError(
+                    "executor: StaticAbility mixing ADD_LAND_PLAY with other "
+                    "payload verbs is not parseable"
+                )
+            for atom in atoms:
+                count_q = atom.args.get("count")
+                if count_q is None:
+                    count_q = QConst(1)  # "an additional land" (role optional)
+                if not isinstance(count_q, QConst) or count_q.value < 0:
+                    raise NotImplementedError(
+                        f"executor: static ADD_LAND_PLAY count {count_q!r} is not "
+                        "layer-parseable (a constant is the only shape in the pool)"
+                    )
+                records.append(
+                    self._new(
+                        "land_play",
+                        handle,
+                        controller,
+                        (QConst(count_q.value),),
+                        condition=static.condition,
+                        duration=_static_while_duration([atom]),
+                    )
+                )
+            return records
         for atom in atoms:
             if atom.verb not in _LAYER_PAYLOAD_VERBS:
                 raise NotImplementedError(
@@ -745,6 +838,10 @@ class LayerRegistry:
             layer.source not in self.executor.emblems.values()
         ):
             return False
+        if layer.from_static and layer.source in self.executor.phased_out:
+            # CR 702.26b: a phased-out permanent's static abilities do not
+            # function (dormant, not expired: they resume when it phases in).
+            return False
         if layer.condition is not None and not eval_filter(
             layer.condition, layer.source, self._ctx(layer.source, layer.controller)
         ):
@@ -791,7 +888,8 @@ class LayerRegistry:
 
     def _materialize_static(self, layer: LayerRecord) -> int:
         """Ensure every live target of a PT-bearing static owns exactly one
-        live ledger entry; stale targets' entries terminal-expire."""
+        live ledger entry carrying the static's CURRENT value; stale
+        targets' entries terminal-expire."""
         from MTG_bot.core.executor.verbs import pt_atom_delta
 
         targets = set(self._static_targets(layer))
@@ -807,8 +905,6 @@ class LayerRegistry:
             return changed
         ctx = self._ctx(layer.source, layer.controller)
         for target in sorted(targets):
-            if target in layer.ledger_ids:
-                continue
             power_delta = toughness_delta = 0
             power_set = toughness_set = None
             for atom in atoms:
@@ -822,6 +918,20 @@ class LayerRegistry:
                 if (power_set is not None or toughness_set is not None)
                 else "delta"
             )
+            linked = layer.ledger_ids.get(target)
+            if linked is not None:
+                # B-52 (2026-10-29): the value is re-read on EVERY pass. A
+                # static's effect is not locked in (CR 611.3a), so a counted
+                # bonus (Kinetic Augur's CDA, Malefic Scythe's soul counters,
+                # Carrion Grub's graveyard power) follows its count up AND
+                # down (CR 613.4a/c). The entry is revalued in place: same
+                # effect, same timestamp (CR 613.7a). It used to `continue`
+                # here and freeze at the first value.
+                if self.executor.ledger.revalue(
+                    linked, kind, power_delta, toughness_delta, power_set, toughness_set
+                ):
+                    changed += 1
+                continue
             change = self.executor.ledger.record(
                 self.world.cards[target].identity,
                 kind,
@@ -1159,9 +1269,22 @@ class LayerRegistry:
         """16c (CR 702.16c): the live PROTECTION quality filters on
         ``handle`` — printed KeywordAbility rows and granted rows alike
         (Baneslayer Angel's "protection from red and from black" compiles
-        as one PROTECTION keyword whose params carry the quality filters;
-        the pair-legality consumer evaluates each against the OTHER side
-        of the combat pair — "can't be blocked by [quality]")."""
+        as one PROTECTION keyword whose params carry the quality filters).
+        V44: the qualities of :meth:`protection_rows`, without their
+        coordinates; the consumers judge through ``legality.protected_from``."""
+        return tuple(quality for quality, _src, _ctrl in self.protection_rows(handle))
+
+    def protection_rows(self, handle: Handle) -> tuple[tuple[Filter, Handle, Handle], ...]:
+        """V44 (CR 702.16a): the live protection qualities on a permanent OR A PLAYER,
+        each with the coordinates its quality is judged in: (quality filter, the
+        source of the ability that gives the protection, that source's controller).
+        Rows come from printed PROTECTION keywords and one-shot grants (the keyword /
+        grant records: Basri's Lieutenant, Feat of Resistance), from static grants
+        (an anthem or an Aura giving protection, and Runed Halo's "You have protection
+        from the chosen card name", whose target is a PLAYER), and from granted keyword
+        nodes. A card whose PROTECTION was lost (LOSE_ABILITY strips the name from the
+        keyword map) has none. The coordinates matter for qualities that read their
+        source: NAME_CHOSEN is the Halo's chosen name."""
 
         def params_of(node: object) -> tuple[Filter, ...]:
             if not isinstance(node, KeywordAbility):
@@ -1172,16 +1295,50 @@ class LayerRegistry:
                 p for p in node.params if isinstance(p, (FAnd, FOr, FNot, FAtom))
             )
 
-        found: list[Filter] = []
+        is_card = handle.namespace == "card"
+        if is_card and _keyword_name(Keyword.PROTECTION) not in self._keywords.get(handle, ()):
+            return ()
+        found: list[tuple[Filter, Handle, Handle]] = []
         for layer in self.records:
-            if layer.status != "live" or layer.kind not in ("keyword", "grant"):
+            if layer.status != "live":
                 continue
-            if handle not in layer.targets:
+            if layer.kind in ("keyword", "grant"):
+                if handle in layer.targets:
+                    found.extend(
+                        (q, layer.source, layer.controller) for q in params_of(layer.payload)
+                    )
                 continue
-            found.extend(params_of(layer.payload))
+            if layer.kind != "static" or layer.selector is None:
+                continue
+            grants = [
+                q
+                for atom in layer.atoms
+                if atom.verb == Verb.GRANT_ABILITY
+                for q in params_of(atom.args.get("ability"))
+            ]
+            if grants and handle in self._static_grant_targets(layer):
+                found.extend((q, layer.source, layer.controller) for q in grants)
         for granted in self._granted.get(handle, ()):
-            found.extend(params_of(granted.node))
+            if granted.granter not in self.world.cards:
+                continue
+            controller = self.executor.controller_of(granted.granter)
+            found.extend((q, granted.granter, controller) for q in params_of(granted.node))
         return tuple(found)
+
+    def _static_grant_targets(self, layer: LayerRecord) -> tuple[Handle, ...]:
+        """V44: a static grant's targets including PLAYERS ("You have protection
+        from ...", Runed Halo); _static_targets keeps battlefield cards only, which
+        is what the P/T and keyword maps are keyed on."""
+        from MTG_bot.core.executor.legality import enumerate_candidates
+
+        assert layer.selector is not None
+        ctx = self._ctx(layer.source, layer.controller)
+        return tuple(
+            h
+            for h in enumerate_candidates(layer.selector, ctx)
+            if h.namespace == "player"
+            or (h.namespace == "card" and self.world.zone_of(h).kind == "battlefield")
+        )
 
     def hexproof_of(self, handle: Handle) -> tuple[Filter | None, ...]:
         """T4-P1c (CR 702.11b, gap L-4): the live HEXPROOF rows on

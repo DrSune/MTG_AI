@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "010ec11a-0484-486d-b7c0-de65593bf457",
+ "name": "Sanguine Indulgence",
+ "text_sha": "96c93d51925ec10841df62cd2396c5b50e56e1883a0d8523ec0ceadc67316d67",
+ "verified": {
+  "tree_sha": "c99a161f9d1113309c640bf8405d7e2f4c58da7baa5ad038c48a9effc6ee471d",
+  "probe_sha": "64a2147d295eaf0fa8bb24b958227ba137dee62b2e2c44795ae9aae8369edf19",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "This spell costs {3} less to cast if you've gained 3 or more life this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe gained no life: [cast] paid the full {3}{B} (mana B-1 W-3). Tree CostModifier IS_SOURCE, reduce generic 3, condition LIFE_GAINED_THIS_TURN_GE 3 who YOU. Packs: sanguine_indulgence_reduced_after_lifegain.json (after Revitalize's 3 life it is cast with only B:1 left): PASS; sanguine_indulgence_lifegain_last_turn.json (life gained on an earlier turn: full {3}{B} paid, pool empty): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "Return up to two target creature cards from your graveyard to your hand. (Sorcery)",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_fallen] (your only creature card in a graveyard; you_used and the opponent's graveyard not offered); [cast targets=['you_fallen']]: you_fallen graveyard -> hand. Two targets in pack sanguine_indulgence_reduced_after_lifegain.json (both return, the opponent's graveyard creature stays): PASS",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/sanguine_indulgence_1.json",
+   "tools/scenarios/cards/M21/sanguine_indulgence_2.json",
+   "tools/scenarios/cards/M21/sanguine_indulgence_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 4,
+   "score": 0.5,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who"
+   ]
+  }
+ }
+}

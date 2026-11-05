@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "79f94050-d850-41ca-b1db-5ae0cf743f0a",
+ "name": "Temple of Epiphany",
+ "text_sha": "7740319dd190eb2e47aaa991941227d533f7d66f00773e3b89664f8e52151649",
+ "verified": {
+  "tree_sha": "2558f1c1aaa52fcf0aa0d4f3b30fe9147d0ae6c4b571ddae1a2d9c53a1ac9766",
+  "probe_sha": "447d4acbadd3e792e590d4e3e3a636ba1f727a6133fab67004f7410ae4865f25",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-J",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] and [play land | ask 1 -> bottom]: card zone hand -> battlefield; tapped False -> True; also on the move during the opponent's turn. Tree EtBState(tapped=True)",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "[play land]: 'card's triggered ability [1] triggers', ask scry: [top, bottom] (one card); fires again when it enters during the opponent's turn. Tree identical to `parse` template B2b-temple-etb-scry. The bottom branch's library order is not shown by the probe's change lines; pack temple_of_epiphany_play_scry_bottom.json (real land drop, answer bottom, Library 5 goes under the other five, land tapped): PASS",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: ask choose [0,1] -> 0: tapped, mana U+1; [ask 1 -> 1]: tapped, mana R+1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/temple_of_epiphany_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

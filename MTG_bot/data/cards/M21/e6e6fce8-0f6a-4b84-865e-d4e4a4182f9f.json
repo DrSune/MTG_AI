@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f",
+ "name": "Temple of Silence",
+ "text_sha": "d3eea09e6b195589a8ccabea616d9f3293af5f807c05591a4a517a5107d1562c",
+ "verified": {
+  "tree_sha": "2962dea1e54726771fca7b497c0d65216f15bed644a4fe2e0cfdb308af405b05",
+  "probe_sha": "3164c75819f0b25e1acffaf6941ce24351fb2f0704976ec3d1a7259bb90b894b",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "EtBState(tapped=True); [play land] and [play land | ask 1 -> bottom]: 'zone hand -> battlefield; tapped False -> True'; also on the MOVE_ZONE entry during the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "trigger ZoneChangeEvent(ANY -> BATTLEFIELD YOU, IS_SOURCE) -> SCRY YOU 1; [play land]: one 'ask scry: [top, bottom]', triggered ability [1] triggers; fires on every entry, no other stimulus. Pack /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/P478d7b37eb_temple_silence_scry.json (PASS): 'bottom' moves exactly the top card to the bottom, land tapped",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: choose 0 -> tapped, mana W+1; choose 1 -> tapped, mana B+1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/temple_of_silence_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

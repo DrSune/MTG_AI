@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "notes": "Enthralling Hold, printed: 'You control enchanted creature.' Cast on the opponent's TAPPED 3/3 Thralldom: while the Aura is attached seat 0 controls it (effective controller 0), the Aura is attached to it, and the opponent's other untapped creature is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hold", "real": "Enthralling Hold", "zone": "hand", "controller": 0},
+  {"key": "thrall", "name": "Thralldom", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "other", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 5}},
+ "steps": [
+  {"op": "cast", "real": "Enthralling Hold", "key": "hold", "targets": ["thrall"]}
+ ],
+ "expect": {
+  "zone": {"hold": "battlefield", "thrall": "battlefield"},
+  "attached": {"hold": "thrall"},
+  "controller": {"thrall": 0, "other": 1}
+ }
+}

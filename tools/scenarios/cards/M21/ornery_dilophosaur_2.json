@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "With a 4/4 of yours on the battlefield the Dilophosaur attacks as a 4/4 (deals 4). The +2/+2 is until end of turn: after end_turn it is 2/2 again.",
+ "cards": [
+  {"key": "d", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "tusk", "name": "Tusk", "type": "Creature", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"d": true, "tusk": false}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "power": {"d": 2},
+  "toughness": {"d": 2},
+  "life": {"1": 16}
+ }
+}

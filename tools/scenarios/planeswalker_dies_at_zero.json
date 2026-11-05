@@ -1,0 +1,55 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Onakke Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lili",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "ogre"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ogre": "lili"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lili": "graveyard"
+  },
+  "life": {
+   "1": 20
+  }
+ },
+ "notes": "V41, CR 120.3c, 704.5i: Onakke Ogre (4/2) attacks Liliana (loyalty 4) unblocked; the 4 damage removes all four loyalty counters and the state-based action puts Liliana into its owner's graveyard."
+}

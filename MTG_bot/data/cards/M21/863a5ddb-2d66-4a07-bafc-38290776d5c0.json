@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "863a5ddb-2d66-4a07-bafc-38290776d5c0",
+ "name": "Mistral Singer",
+ "text_sha": "80f7e93588141b1bf0dfb7154b3a5c51501c9bbe8d13539b83c74404c885add5",
+ "verified": {
+  "tree_sha": "a12808009f2bd083806eebd67136fe15da2b26ea86e8c989ae54d43797ff3ac5",
+  "probe_sha": "c8fc8341bfcd16c8d6b17697f423e266d7ceac7c2417e0d59951ba121eca1455",
+  "date": "2026-10-29",
+  "reviewer": "claude-verifier-m21-I",
+  "clauses": [
+   {
+    "clause": "Creature - Siren {2}{U} 2/2",
+    "status": "OK",
+    "evidence": "[cast]: P/T - -> 2/2, mana U-1 W-2",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, opp 20 -> 18",
+    "issue": ""
+   },
+   {
+    "clause": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
+    "status": "OK",
+    "evidence": "keywords +PROWESS; [you cast an instant or sorcery (Crash Through)]: 'card's triggered ability [?] triggers', P/T 2/2 -> 3/3; [you cast a creature (Staunch Shieldmate)]: none. Wear-off and opponent scope not in the trace: packs PASS /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pfa2ff23f6c_singer_prowess_wears_off.json (two spells -> 4/4, back to 2/2 after end_turn) and /tmp/claude-1000/-home-sune-Desktop-MTG-AI/a7c2b569-fced-5f8e-8c25-4794a2681b90/scratchpad/m21v/w3/packs_I/Pfa2ff23f6c_singer_prowess_counts.json (+1/+1 per my noncreature spell; the opponent's Shock adds nothing)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/mistral_singer_1.json",
+   "tools/scenarios/cards/M21/mistral_singer_2.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

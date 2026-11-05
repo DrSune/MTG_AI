@@ -1,0 +1,6 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [{"key": "met", "real": "Meteorite", "zone": "battlefield", "controller": 0}],
+ "steps": [{"op": "activate", "key": "met", "idx": 1, "seat": 0, "decisions": ["C"]}],
+ "expect": {"tapped": {"met": true}, "mana_pool": {"0": {"W": 1}}},
+ "notes": "V4 (2026-10-29). Printed: '{T}: Add one mana of any color.' CR 105.1 / 106.1a: the colors are white, blue, black, red and green; colorless is not a color. The ask offers W U B R G only, so the word 'C' is not in the vocabulary and the runner takes the first legal word, W. Before the fix C was offered and the pool got {C}."}

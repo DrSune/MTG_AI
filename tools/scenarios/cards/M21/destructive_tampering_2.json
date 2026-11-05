@@ -1,0 +1,82 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dt",
+   "real": "Destructive Tampering",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Wall",
+   "power": "1",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oatk",
+   "name": "Opp Ram",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "dt",
+   "real": "Destructive Tampering",
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "oatk": true
+   },
+   "block": {
+    "mine": "oatk"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dt": "graveyard",
+   "mine": "battlefield",
+   "oatk": "battlefield"
+  },
+  "blocked": {
+   "oatk": [
+    "mine"
+   ]
+  },
+  "life": {
+   "0": 20
+  },
+  "damage": {
+   "mine": 2,
+   "oatk": 1
+  }
+ },
+ "notes": "Printed: '... can't block THIS TURN.' Cast on seat 0's turn; on the opponent's next turn the restriction is over, so seat 0's non-flying wall blocks the opponent's attacker and seat 0 takes no damage."
+}

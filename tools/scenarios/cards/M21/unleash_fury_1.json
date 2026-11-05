@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Hellkite Punisher", "zone": "battlefield", "controller": 0},
+  {"key": "uf", "real": "Unleash Fury", "zone": "hand", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Unleash Fury", "key": "uf", "targets": ["h"]},
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "h", "idx": 0, "seat": 0}
+ ],
+ "expect": {"power": {"h": 13, "ob": 2}, "toughness": {"h": 6, "ob": 2}, "zone": {"uf": "graveyard"}},
+ "notes": "Printed: 'Double the power of target creature until end of turn.' CR 701.10b: the creature gets +X/+0 where X is its power AS THE SPELL RESOLVES. Hellkite Punisher 6/6 doubled -> 12/6 (+6/+0, locked). Its own '{R}: +1/+0 until end of turn' afterwards -> 13/6. A doubling bonus that re-reads the creature's current power would give 14 or more."}

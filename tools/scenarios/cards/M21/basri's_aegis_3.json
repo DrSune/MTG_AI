@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P79cfec2ff7. Printed: '... search your library and/or graveyard for A card named Basri, Devoted Paladin, reveal IT, and put IT into your hand.' One Paladin is in my library and another in my graveyard. I cast the Aegis with no target (up to two), search both zones (option 0) and take the one in the graveyard (handle card:2, the pool needs the raw handle): exactly ONE Paladin comes to my hand and the other stays in the library. hand after = drawn + one Paladin = 2.",
+ "cards": [
+  {"key": "ba", "real": "Basri's Aegis", "zone": "hand", "controller": 0},
+  {"key": "pal_lib", "real": "Basri, Devoted Paladin", "zone": "library", "controller": 0},
+  {"key": "pal_gy", "real": "Basri, Devoted Paladin", "zone": "graveyard", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"W": 4}},
+ "steps": [{"op": "cast", "key": "ba", "real": "Basri's Aegis", "decisions": ["fire", "0", "card:2"]}],
+ "expect": {"zone": {"ba": "graveyard", "pal_gy": "hand", "pal_lib": "library", "drawn": "hand"},
+            "hand": {"0": 2}}}

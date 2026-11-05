@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "notes": "Mind Rot, printed: 'Target player discards two cards.' CR 701.9b: the discarding player chooses. Target the opponent, who holds three cards and picks the first and third (Alpha Card, Gamma Card), keeping Beta Card. Exactly two are discarded: opponent hand 3 -> 1. The caster's own hand is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mr", "real": "Mind Rot", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Alpha Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+  {"key": "b", "name": "Beta Card", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "g", "name": "Gamma Card", "type": "Sorcery", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Mind Rot", "key": "mr", "decisions": ["a", "g", "player:1"]}
+ ],
+ "expect": {
+  "zone": {"mr": "graveyard", "a": "graveyard", "b": "hand", "g": "graveyard", "mine": "hand"},
+  "hand": {"1": 1}
+ }
+}

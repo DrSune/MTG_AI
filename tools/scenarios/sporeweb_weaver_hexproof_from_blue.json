@@ -1,0 +1,19 @@
+{
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "weaver", "real": "Sporeweb Weaver", "zone": "battlefield", "controller": 1},
+    {"key": "fury", "real": "Unleash Fury", "zone": "hand", "controller": 0},
+    {"key": "unsub", "real": "Unsubstantiate", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"R": 2, "U": 2, "G": 2}},
+  "steps": [
+    {"op": "cast", "real": "Unsubstantiate", "key": "unsub", "targets": ["weaver"],
+     "expect_raise": "illegal target"},
+    {"op": "cast", "real": "Unleash Fury", "key": "fury", "targets": ["weaver"]}
+  ],
+  "expect": {
+    "zone": {"weaver": "battlefield", "fury": "graveyard", "unsub": "hand"},
+    "power": {"weaver": 2}
+  },
+  "notes": "m21-fidelity item 1 (2026-10-29). Printed: 'Reach, hexproof from blue'. CR 702.11d: hexproof from [quality] means the permanent can't be the target of [quality] spells an opponent controls or abilities an opponent controls from [quality] sources; any other spell may target it. So the opponent's blue Unsubstantiate is refused, and the opponent's red Unleash Fury targets it and doubles its power (1 -> 2). Before the fix the compiler also gave the card a bare HEXPROOF (MTGJSON lists 'Hexproof' next to 'Hexproof from'), so the red spell was refused too: full hexproof, stronger than printed."
+}

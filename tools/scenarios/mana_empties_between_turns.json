@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [{"key": "isl", "real": "Island", "zone": "battlefield", "controller": 0}],
+ "steps": [
+  {"op": "activate", "key": "isl", "idx": 0, "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"tapped": {"isl": false}, "mana_pool": {"0": {}, "1": {}}},
+ "notes": "V2 (2026-10-29). CR 500.5 / 106.4: unspent mana empties as each step and phase ends. Before the fix the Island's U was still in the pool two turns later (reviewer H), so any source could bank mana across turns."}

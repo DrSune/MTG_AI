@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ip", "real": "Indulging Patrician", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "real": "Blossoming Sands", "zone": "hand", "controller": 0},
+  {"key": "l2", "real": "Scoured Barrens", "zone": "hand", "controller": 0},
+  {"key": "l3", "real": "Jungle Hollow", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "l1"},
+  {"op": "enter", "key": "l2"},
+  {"op": "enter", "key": "l3"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"life": {"0": 23, "1": 17}, "zone": {"l1": "battlefield", "l2": "battlefield", "l3": "battlefield"}},
+ "notes": "Printed: '... if you gained 3 or more life THIS TURN ...' counts the turn's total: three separate 1-life gains (three gain-lands entering) = 3 life gained this turn (20 -> 23), so at your end step the opponent loses 3 (20 -> 17)."}

@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 131},
+  "cards": [
+    {"key": "sc", "real": "Malefic Scythe", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "mana", "seat": 0, "add": {"C": 1}},
+    {"op": "activate", "key": "sc", "idx": 3, "seat": 0, "targets": ["bear"], "expect_raise": "illegal activation"}
+  ],
+  "expect": {
+    "attached": {"sc": null},
+    "power": {"bear": 2},
+    "mana_pool": {"0": {"C": 1}}
+  },
+  "notes": "Verifier K, wave 4. Printed: 'Equip {1} (... Equip only as a sorcery.)'. Expectation from the text (CR 702.6a): on the opponent's turn the equip ability cannot be activated; nothing is paid and the Scythe stays unattached."
+}

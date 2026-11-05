@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '{5}{W}: Tap target creature. This ability costs {1} less to activate for each Shrine you control.' Seat 0 controls the Sanctum and two other Shrines (3 Shrines) plus a non-Shrine enchantment; seat 1 controls two Shrines. Cost = {5}{W} - 3 = {2}{W}: paid from exactly W1 C2, the pool ends empty and the opponent's creature is tapped. Counting the opponent's Shrines or the non-Shrine enchantment would leave mana over; counting fewer would make it unpayable.",
+ "cards": [
+  {"key": "st", "real": "Sanctum of Tranquil Light", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "name": "Shrine One", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "s2", "name": "Shrine Two", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 0},
+  {"key": "ench", "name": "Plain Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp Shrine One", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Shrine Two", "type": "Enchantment — Shrine", "zone": "battlefield", "controller": 1},
+  {"key": "victim", "name": "Victim", "type": "Creature — Ox", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 2}},
+ "steps": [{"op": "activate", "key": "st", "idx": 0, "seat": 0, "targets": ["victim"]}],
+ "expect": {"tapped": {"victim": true, "st": false}, "mana_pool": {"0": {}}}}

@@ -1,0 +1,60 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6de2d53c-06e3-4c56-a5cf-c9cb2db42527",
+ "name": "Pursued Whale",
+ "text_sha": "2cd580255d5abd2f2c0c4cdbbc72a5c5b060a3ba0d4e9b548c02da37d0bfa6d2",
+ "verified": {
+  "tree_sha": "214510ba104b8ae118627836f2bf6fa23524fa1e96e2eeef61af2f2026557dba",
+  "probe_sha": "7c19723543451db1d0c216911c33ef39fd43bc49f8d2d91d27b1ebb6117426d4",
+  "date": "2026-10-30",
+  "reviewer": "claude-verifier-m21-w4O",
+  "clauses": [
+   {
+    "clause": "When this creature enters, each opponent creates a 1/1 ... Pirate creature token",
+    "status": "OK",
+    "evidence": "[cast]: 'card's triggered ability [0] triggers', 'opp:Pirate moves new -> battlefield (by card/CREATE_TOKEN)', '+ opp:Pirate (battlefield, opp, 1/1)': one 1/1 Pirate under the OPPONENT. Same on the 'enters during the opponent's turn' stimulus. Tree is the canonical B2a-whale-opponent-pirate-tokens (EachPlayer ALL_OPPONENTS).",
+    "issue": ""
+   },
+   {
+    "clause": "(a 1/1) red Pirate creature token",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe does not print colours. Pack pursued_whale_pirate_is_red_and_must_attack PASS: your Bear with protection from red (Feat of Resistance) blocks the attacking Pirate and takes no damage (ledger empty), the Pirate dies. Control with protection from white: the Pirate's 1 damage marks the Bear, so the pack depends on the token being red. TokenSpec colors=('R',).",
+    "issue": ""
+   },
+   {
+    "clause": "with \"This token can't block\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack pursued_whale_pirate_cannot_block_and_forces_attacks PASS: your 3/3 attacks, Opp Bear is told not to block, and the Pirate is never offered a block (a spare decision word, which a control shows does make an unmapped blocker block, finds no Pirate ask): opponent 20 -> 17.",
+    "issue": ""
+   },
+   {
+    "clause": "and \"Creatures you control attack each combat if able.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack pursued_whale_pirate_cannot_block_and_forces_attacks PASS: on the opponent's turn Opp Bear attacks although the pack declines it, and the Pirate attacks too (you 20 - 2 - 1 = 17); the mandate is the token controller's (MANDATE_ATTACK over CONTROLLER_IS YOU in the token's own abilities), so your creatures were never forced. Pack pursued_whale_pirate_is_red_and_must_attack: the Pirate attacks with no attack answer given.",
+    "issue": ""
+   },
+   {
+    "clause": "Spells your opponents cast that target this creature cost {3} more to cast.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack pursued_whale_opponent_spell_taxed_yours_not PASS: your own Shock at your Whale costs {R}; the opponent's Shock at it is refused with only {R} ('selection:off_population'), then with {3}{R} resolves and the pool is spent (4 damage total). Tree is the canonical B4-opponent-spell-cost-mana (TARGETS_SOURCE, OPPONENT, +{3}).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/pursued_whale_1.json",
+   "tools/scenarios/cards/M21/pursued_whale_2.json",
+   "tools/scenarios/cards/M21/pursued_whale_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "controller OPPONENT->YOU at 1/1/controller_ref",
+    "amount+1 at 1/1/delta/amount",
+    "amount-1 at 1/1/delta/amount"
+   ]
+  }
+ }
+}

@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "G2 wave 5, packet P574fa6c4c2. Printed: 'When this creature enters, you may search your library for a card named Alpine Watchdog and/or a card named Igneous Cur, reveal them, put them into your hand, then shuffle.' The library holds one Alpine Watchdog, two Igneous Curs and a nonmatching creature. I accept the may and take the Watchdog and one Cur: both go to my hand, and the second Cur and the other creature stay in the library (at most one card of each name). 'drawn' is listed last, so the runner's opening draw puts it in hand: hand after = drawn + Watchdog + Cur = 3.",
+ "cards": [
+  {"key": "hm", "real": "Alpine Houndmaster", "zone": "hand", "controller": 0},
+  {"key": "wd", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
+  {"key": "cur1", "real": "Igneous Cur", "zone": "library", "controller": 0},
+  {"key": "cur2", "real": "Igneous Cur", "zone": "library", "controller": 0},
+  {"key": "other", "name": "Not A Dog", "type": "Creature — Hound", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "W": 1}},
+ "steps": [{"op": "cast", "key": "hm", "real": "Alpine Houndmaster", "decisions": ["fire", "wd", "cur1"]}],
+ "expect": {"zone": {"hm": "battlefield", "wd": "hand", "cur1": "hand", "cur2": "library", "other": "library", "drawn": "hand"},
+            "hand": {"0": 3}}}

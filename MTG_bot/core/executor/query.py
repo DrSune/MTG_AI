@@ -37,7 +37,8 @@ schedule:
 C-contract pins encoded here:
 
 * **C17** — ``TARGET`` + :class:`QAtMost` is a legal *designation* range
-  ``1..n`` (still targeted; min 1), resolving to ``0..remaining``;
+  ``0..n`` (V15, 2026-10-29: CR 601.2c, 115.6; it was min 1), resolving to
+  ``0..remaining``;
   ``CHOOSE`` + up-to (and ``Choose`` + ``QAtMost``) is a resolution-time
   enumeration that DOES include the empty selection (``0..n``). The two
   zero-cards sit in different phases and the tests pin both.
@@ -70,15 +71,19 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     ActivatedAbility,
     Atom,
     Choose,
     ControllerRef,
     Cost,
+    EachPlayer,
     Effect,
     FAnd,
     FAtom,
     FAtomPred,
+    Filter,
+    Keyword,
     OptionalEffect,
     QAtLeast,
     QAtMost,
@@ -86,6 +91,7 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    Seq,
     SpellAbility,
     Verb,
     Zone,
@@ -96,12 +102,14 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
     ability_playable,
+    activation_x_max,
     build_payment_plan,
     ctx_for,
+    protected_from,
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
-from MTG_bot.core.executor.selectors import filter_reads_bound_player
+from MTG_bot.core.executor.selectors import filter_bound_player_refs
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
@@ -117,11 +125,13 @@ __all__ = [
     "activation_target_slots",
     "cast_carrier",
     "cast_designee_ok",
+    "cast_mode_options",
     "choose_options",
     "legal_activations",
     "legal_casts",
     "legal_search",
     "legal_targets",
+    "modal_choose",
     "optional_offer",
     "rest_of",
     "spell_target_slots",
@@ -141,12 +151,19 @@ class ActivationOption:
     ability's index in the attached compiled record (the ``ABILITY:PTR``
     target), the typed IR object itself (§8.3), and the folded payment.
     Target/COST_TARGET slots are queried per slot (legal_targets) — an
-    option never stores a cross-slot product."""
+    option never stores a cross-slot product.
+
+    ``x_max`` (the activation X lane, CR 602.2b -> 601.2b): the live bound
+    of the X announcement when the cost carries X (a loyalty [−X]: the
+    loyalty counters, CR 606.6), else None. The row's ``payment`` is then
+    folded at the X = 0 witness; ``legality.activate`` asks X over
+    ``0..x_max``."""
 
     source: Handle
     ability_idx: int
     ability: ActivatedAbility
     payment: PaymentPlan
+    x_max: int | None = None
 
     def order_key(self) -> tuple[Handle, int]:
         return (self.source, self.ability_idx)
@@ -162,8 +179,8 @@ class TargetSlot:
     Cardinality semantics (C17, Selector docstring):
 
     * ``TARGET`` + ``QConst(n)``   — exactly n (min = max = n);
-    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 1..n (min 1: it is
-      still targeted; C17), resolution clamps 0..remaining later;
+    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 0..n (V15: CR 601.2c,
+      115.6; zero chosen = not targeted), resolution clamps 0..remaining;
     * ``TARGET`` + ``QAtLeast(n)`` — n..candidates ("one or more");
     * ``CHOOSE`` (up-to)           — 0..min(n, candidates): a resolution-
       time choice, so the EMPTY selection is legal (contrast the C17 pin
@@ -218,6 +235,38 @@ class OptionChoice:
 # ------------------------------------------------------------ activations
 
 
+_NO_OP_VERBS = (Verb.LOOK_AT, Verb.REVEAL)
+
+
+def inert_free_row(
+    executor: Executor, ability: ActivatedAbility, source: Handle, seat: Handle
+) -> bool:
+    """A free activated ability (no cost) that cannot do anything right now: every
+    step is either a recorded no-op (LOOK_AT / REVEAL: the engine is omniscient,
+    looking changes nothing) or a "you may" whose offer is narrowed to skip
+    (CR 117.3: nothing it could do is possible). The compiler's permission-row
+    idiom ("you may play lands from the top of your library", Radha, Heart of
+    Keld) is such a row whenever nothing is castable through it, and for a land
+    it never is until the permission lane (DESIGN_ATOM_ONTOLOGY R5-2/R5-3). Offering
+    it would be a phantom option (AGENTS §10), so legal_activations leaves it out.
+    A row with a real cost or any unconditional step is never inert here."""
+    if ability.cost.parts:
+        return False
+    effect = ability.effect
+    steps = effect.steps if isinstance(effect, Seq) else (effect,)
+    for step in steps:
+        if isinstance(step, Atom) and step.verb in _NO_OP_VERBS:
+            continue
+        if not isinstance(step, OptionalEffect):
+            return False
+        inner = step.inner
+        if isinstance(inner, Atom) and inner.verb in _NO_OP_VERBS:
+            continue
+        if optional_offer(executor, step, source=source, controller=seat) != MAY_VOCAB[1:]:
+            return False
+    return True
+
+
 def legal_activations(
     world: GameWorld, executor: Executor, seat: Handle
 ) -> list[ActivationOption]:
@@ -254,12 +303,26 @@ def legal_activations(
                 continue
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
-            ctx = ctx_for(executor, source=handle, controller=seat)
+            if inert_free_row(executor, ability, handle, seat):
+                continue  # a phantom option: it could do nothing (Radha's land row)
+            # The X lane: the row carries the live X bound, its payment the
+            # X = 0 witness (ability_playable's legality fold).
+            x_max = activation_x_max(world, handle, ability.cost)
+            ctx = ctx_for(
+                executor,
+                source=handle,
+                controller=seat,
+                x_value=0 if x_max is not None else None,
+            )
             plan, _ = build_payment_plan(world, ctx, ability.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
             options.append(
                 ActivationOption(
-                    source=handle, ability_idx=idx, ability=ability, payment=plan
+                    source=handle,
+                    ability_idx=idx,
+                    ability=ability,
+                    payment=plan,
+                    x_max=x_max,
                 )
             )
     # 12d granted rows (see docstring): every battlefield permanent of the
@@ -277,12 +340,22 @@ def legal_activations(
             assert isinstance(node, ActivatedAbility)
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
-            ctx = ctx_for(executor, source=handle, controller=seat)
+            x_max = activation_x_max(world, handle, node.cost)
+            ctx = ctx_for(
+                executor,
+                source=handle,
+                controller=seat,
+                x_value=0 if x_max is not None else None,
+            )
             plan, _ = build_payment_plan(world, ctx, node.cost, activation=handle)
             assert plan is not None  # ability_playable just greenlit
             options.append(
                 ActivationOption(
-                    source=handle, ability_idx=idx, ability=node, payment=plan
+                    source=handle,
+                    ability_idx=idx,
+                    ability=node,
+                    payment=plan,
+                    x_max=x_max,
                 )
             )
     options.sort(key=lambda o: o.order_key())
@@ -367,10 +440,13 @@ def legal_targets(
             # the executor loops — see ability_tree.count_semantics.
             announceable, k = count_semantics(count, n)
             if isinstance(count, QAtMost):
-                # C17: the DESIGNATION range is 1..n — an empty population
-                # leaves the slot infeasible (min 1 > max 0), which is the
-                # whole point of the pin: 0 is NOT a legal TARGET declaration.
-                min_count = 1
+                # V15 (2026-10-29): "up to N targets" is 0..N. CR 601.2c: the
+                # player announces how many targets they will choose; 115.6:
+                # zero may be chosen, and the spell or ability is then not
+                # targeted. C17 had pinned min 1, so an "up to one" with no
+                # candidate was uncastable (Liliana, Death Mage's +1 on an
+                # empty graveyard).
+                min_count = 0
                 max_count = k
             elif isinstance(count, QAtLeast):
                 min_count, max_count = count.n, k
@@ -568,8 +644,18 @@ def optional_offer(
         if isinstance(node, Atom) and node.verb is Verb.PAY:
             pay_cost = node.args.get("cost")
             if isinstance(pay_cost, Cost):
-                plan, _why = build_payment_plan(executor.world, ctx, pay_cost)
-                if plan is None:
+                # B-90 (a) (CR 605.3a): payable from the pool or by tapping
+                # the payer's {T}-only mana abilities while paying.
+                from MTG_bot.core.executor.legality import plan_mana_taps
+
+                if (
+                    plan_mana_taps(
+                        executor,
+                        controller,
+                        lambda c=pay_cost: build_payment_plan(executor.world, ctx, c)[1],
+                    )
+                    is None
+                ):
                     return MAY_VOCAB[1:]
     search_seen = False
     for node in walk(effect.inner):
@@ -592,7 +678,11 @@ def optional_offer(
                 SelectorMode.RANDOM,
             ):
                 continue  # ALL / ONE_OF / REST: no exact-count gate here
-            if isinstance(value.count, QUnbounded):
+            if isinstance(value.count, (QUnbounded, QAtMost)):
+                # m21-fidelity wave 4 (2026-10-30): "up to N" includes zero,
+                # so an empty population never makes it unactionable (Alpine
+                # Houndmaster's "a card named A and/or a card named B" with
+                # only A in the library is still a search worth firing).
                 continue
             if tail_of_search or value.referent in ("event", "result"):
                 continue  # produced mid-effect: not a pre-execution gate
@@ -637,21 +727,30 @@ def _cast_option_payable(
     """Can the effect-CAST of ``handle`` be PAID right now — the exact fold
     :func:`~MTG_bot.core.executor.stack.cast_card` performs at resolution:
     the atom's ``cost`` role when present (an EMPTY Cost is the corpus
-    cost-waiver idiom, CR 498.2 "without paying its mana cost" — nothing
-    to fold, always payable; a real Cost REPLACES the printed cost), else
-    the card's printed cost. The fold runs with cast_card's own context
+    cost-waiver idiom, CR 118.9 "without paying its mana cost"; a Cost
+    with parts is paid ON TOP of the printed cost, CR 601.2f), else the
+    card's printed cost, plus the spell's additional costs (V36:
+    legality.effect_cast_cost). The fold runs with cast_card's own context
     shape (source=the card, the effect cast's declared X default 0, CR
     107.4) and the same ``mana_use`` restriction read. One source of
     truth: this is literally the same :func:`build_payment_plan` call
     stack.py:1093 makes — legality and execution can never disagree."""
-    from MTG_bot.core.executor.legality import spell_record
+    from MTG_bot.core.executor.legality import effect_cast_cost, spell_record
 
     record = spell_record(executor, handle)
-    cost = (
-        cost_override
-        if cost_override is not None
-        else (record.mana_cost if record is not None else None)
+    node = (
+        next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
+        if record is not None
+        else None
     )
+    if node is not None:
+        cost = effect_cast_cost(record, node, cost_override)  # V36: + additional costs
+    else:
+        cost = (
+            cost_override
+            if cost_override is not None
+            else (record.mana_cost if record is not None else None)
+        )
     if cost is None or not cost.parts:
         return True  # waiver (CR 498.2) / costless: nothing to fold
     plan, _why = build_payment_plan(
@@ -858,9 +957,14 @@ def _cast_effect_actionable(
                 f"cast-gap {host}: CAST population "
                 f"admits {dropped} non-spell designees sel={sel!r}",
             )
-        return all(ok(c) for c in carriers)
+        # 2026-10-30 (coordinator, Radha/Snoop): casting NOTHING is not an
+        # action (CR 117.3); an empty population offered "fire" for a no-op.
+        return bool(carriers) and all(ok(c) for c in carriers)
     designees = sorted(cands)[: resolve(sel.count, ctx)]  # mirror the stand-in
-    return all(ok(c) for c in designees)
+    # An empty designation casts nothing (a nonland on top for Radha's land row,
+    # a non-Goblin for Conspicuous Snoop's): not an action (CR 117.3), so the
+    # may-offer narrows to skip instead of a phantom "fire".
+    return bool(designees) and all(ok(c) for c in designees)
 
 
 # ------------------------------------------------------------------ casting
@@ -1003,7 +1107,7 @@ def _designation_selector(selector: Selector) -> Selector:
     runtime keeps evaluating the ORIGINAL filter (the designation exists
     by then — ExecCtx.designation_union), and the slot keeps the original
     selector as its identity key (repr-match for per-slot designation)."""
-    from MTG_bot.core.ability_tree import Filter, FNot, FOr
+    from MTG_bot.core.ability_tree import FNot, FOr
 
     def strip(filter_: Filter) -> tuple[Filter, bool]:
         if isinstance(filter_, FAtom):
@@ -1036,12 +1140,189 @@ def _designation_selector(selector: Selector) -> Selector:
     return replace(selector, filter=stripped)
 
 
+def _designated_player_refs(value: object) -> set[ControllerRef]:
+    """Which designated-player refs this atom role reads (V21: "target player"
+    TARGET_PLAYER, "target opponent" TARGET_OPPONENT). A bare ControllerRef
+    (Duress's "target opponent"), a Zone it controls, a filter that reads the
+    bound player (E1 FIX-2), or (B-49 follow-up #3, 2026-10-29) a Selector over
+    zones it controls. Tormod's Crypt's "Exile target player's graveyard"
+    selects ALL cards in Zone(GRAVEYARD, TARGET_PLAYER). The word "target"
+    makes the player a target (CR 115.1), so it needs the player slot. Without
+    it the activation resolved with nothing bound and raised "TARGET_PLAYER
+    needs a bound target". The spell and activation lanes share this one
+    predicate; trigger designation (binding._designate) is unchanged."""
+    if isinstance(value, ControllerRef):
+        return {value} if value in DESIGNATED_PLAYER_REFS else set()
+    if isinstance(value, Zone):
+        return {value.controller} if value.controller in DESIGNATED_PLAYER_REFS else set()
+    if isinstance(value, Selector):
+        refs = filter_bound_player_refs(value.filter)
+        refs |= {z.controller for z in value.zones if z.controller in DESIGNATED_PLAYER_REFS}
+        return refs
+    return filter_bound_player_refs(value)
+
+
+def player_target_slot(
+    executor: Executor,
+    seat: Handle,
+    refs: set[ControllerRef],
+    *,
+    source: Handle | None = None,
+) -> TargetSlot:
+    """The synthesized designation slot of a designated player (V21). CR 115.1:
+    "target player" names any player, the caster included; "target opponent"
+    an opponent of the caster (CR 102.2, 102.3). A tree reading TARGET_OPPONENT
+    anywhere names an opponent: "that player" anaphora after "Target opponent
+    reveals their hand" read TARGET_PLAYER, and the designating word decides.
+    Before V21 both meant opponents only, so "target player" could not target
+    you (B-53). V44 (CR 702.16b, merged 2026-10-30): a player with protection
+    from ``source`` (the spell, or the ability's source) can't be its target."""
+    players = executor.world.player_order
+    opponent_only = ControllerRef.TARGET_OPPONENT in refs
+    candidates = tuple(
+        sorted(
+            h
+            for h in players
+            if not (opponent_only and h == seat)
+            and not protected_from(executor, h, source)
+        )
+    )
+    ref = ControllerRef.TARGET_OPPONENT if opponent_only else ControllerRef.TARGET_PLAYER
+    return TargetSlot(
+        selector=Selector(
+            count=QConst(1),
+            mode=SelectorMode.TARGET,
+            filter=FAnd(()),
+            zones=(Zone(ZoneKind.PLAYER, ref),),
+        ),
+        candidates=candidates,
+        min_count=1,
+        max_count=1,
+        forced=len(candidates) == 1,
+        synthetic=True,
+    )
+
+
+def modal_choose(node: SpellAbility) -> Choose | None:
+    """V17: a modal spell's mode menu (CR 700.2: options in a bulleted list
+    after "choose one" or similar), which the compiler makes the spell's
+    top-level Choose. A Choose inside a sentence ("your choice of deathtouch
+    or lifelink") is not a mode: it is chosen as the effect resolves (CR
+    608.2d) and stays a resolution ask."""
+    effect = node.effect
+    return effect if isinstance(effect, Choose) else None
+
+
+def with_modes(node: SpellAbility, modes: tuple[int, ...]) -> SpellAbility:
+    """V17: the spell as cast with the announced modes (CR 601.2b): only
+    those options, in printed order (CR 700.2d's "treated as if that mode
+    appeared that many times in sequence" reads the same way)."""
+    choose = modal_choose(node)
+    if choose is None:
+        return node
+    options = tuple(choose.options[i] for i in sorted(modes))
+    if not options:
+        return replace(node, effect=None)
+    return replace(node, effect=options[0] if len(options) == 1 else Seq(steps=options))
+
+
+def cast_mode_options(
+    executor: Executor,
+    node: SpellAbility,
+    *,
+    spell_handle: Handle,
+    seat: Handle,
+) -> list[tuple[int, tuple[int, ...]]]:
+    """V17 (CR 601.2b, 700.2a): the mode sets the caster may announce, as
+    ``(order index, option indices)`` in :func:`choose_options` order (the
+    order index is the runtime Choose's decision token). A set is legal only
+    if every target its modes need can be chosen (700.2a: a mode that would
+    be illegal for want of legal targets can't be chosen). Empty for a spell
+    that is not modal."""
+    choose = modal_choose(node)
+    if choose is None:
+        return []
+    legal: list[tuple[int, tuple[int, ...]]] = []
+    options = choose_options(executor, choose, source=spell_handle, controller=seat)
+    for i, option in enumerate(options):
+        slots = spell_target_slots(
+            executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs
+        )
+        if all(slot.min_count <= len(slot.candidates) for slot in slots):
+            legal.append((i, option.option_idxs))
+    return legal
+
+
+def role_target_selectors(value: object) -> list[Selector]:
+    """V25 (CR 115.1, 601.2c): the TARGET-mode Selectors a role value designates:
+    the value itself, or one nested in a quantity, as in "Target creature you
+    control deals damage equal to ITS power to another target creature" (Garruk,
+    Savage Herald's -2: the amount is QProp(referent=Selector(TARGET, creature you
+    control), POWER)). Every "target" word is a target of its own, so a nested one
+    gets its own slot; the slot walkers dedupe by repr, so a dealer role carrying
+    the same Selector is still one slot."""
+    from MTG_bot.core.ability_tree import PtDelta, QBin, QProp
+
+    if isinstance(value, Selector):
+        return [value] if value.mode is SelectorMode.TARGET else []
+    if isinstance(value, QProp) and isinstance(value.referent, Selector):
+        return role_target_selectors(value.referent)
+    if isinstance(value, QBin):
+        return role_target_selectors(value.left) + role_target_selectors(value.right)
+    if isinstance(value, PtDelta):
+        return role_target_selectors(value.magnitude)
+    return []
+
+
+def _spell_slot(
+    executor: Executor,
+    inner: Atom,
+    role: str,
+    value: Selector,
+    source: Handle,
+    seat: Handle,
+) -> TargetSlot:
+    """One TARGET selector's slot: the per-selector body both slot walkers share."""
+    # r19c (Rookie Mistake): candidates enumerate through the
+    # DESIGNATION face (IS_ANY_TARGET = potential-target tautology);
+    # the slot keeps the ORIGINAL selector as its identity — the
+    # cast lane repr-matches designations to the atom's own Selector
+    # and the runtime re-evaluates the un-stripped filter.
+    enum_value = _designation_selector(value)
+    slot = legal_targets(
+        executor.world,
+        executor,
+        enum_value,
+        source=source,
+        controller=seat,
+    )
+    if enum_value is not value:
+        slot = replace(slot, selector=value)
+    widened = _widen_any_target(executor, value, slot, source)
+    if widened is not None:
+        slot = widened
+    return _clamp_cast_target_slot(executor, inner, role, slot, source, seat)
+
+
+def _rotation_player_refs(node: object) -> set[ControllerRef]:
+    """m21-fidelity (2026-10-29): an EachPlayer whose ref is a designated player runs its effect
+    as that player (Run Afoul's "Target opponent sacrifices a creature of their choice with
+    flying", the Goremand edict shape with a target). Its atoms are YOU-relative, so no atom role
+    names the ref; the ref itself makes the player a target (CR 115.1) and needs the slot, or the
+    resolution raises "TARGET_PLAYER needs a bound target". V21 (merge 2026-10-30): either
+    designated ref, so the slot tells "target opponent" from "target player"."""
+    if isinstance(node, EachPlayer) and node.ref in DESIGNATED_PLAYER_REFS:
+        return {node.ref}
+    return set()
+
+
 def spell_target_slots(
     executor: Executor,
     node: SpellAbility,
     *,
     spell_handle: Handle,
     seat: Handle,
+    modes: tuple[int, ...] | None = None,
 ) -> list[TargetSlot]:
     """The TARGET-selection slots of a SPELL's effect tree: every
     TARGET-mode Selector reachable under the SpellAbility's effect, as the
@@ -1065,7 +1346,13 @@ def spell_target_slots(
     ENGINE's own player rule (exactly the one
     ``stack._validate_spell_targets`` re-checks, which stays the oracle),
     so a caller designates from a QUERY instead of mirroring the CR rule
-    (/03 row B-5 mirror #4, deleted)."""
+    (/03 row B-5 mirror #4, deleted).
+
+    ``modes`` (V17, CR 601.2c): for a modal spell, the option indices the
+    caster announced; only those modes' targets exist. None walks every mode
+    (the mode-blind union, which is what a caller gets before announcing)."""
+    if modes is not None and modal_choose(node) is not None:
+        node = with_modes(node, modes)
     slots: list[TargetSlot] = []
     seen: set[str] = set()
     if node.effect is None:
@@ -1077,49 +1364,22 @@ def spell_target_slots(
         # targetless spell and stack.py's resolution invariant fired.
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
         return [aura] if aura is not None else slots
-    reads_target_player = False
+    player_refs: set[ControllerRef] = set()
     for inner in walk(node.effect):
+        player_refs |= _rotation_player_refs(inner)
         if not isinstance(inner, Atom):
             continue
-        for _role, value in inner.args.pairs:
-            if (
-                value is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Zone)
-                and value.controller is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Selector)
-                and filter_reads_bound_player(value.filter)
-                or filter_reads_bound_player(value)
-            ):
-                reads_target_player = True
-            if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
-                continue
-            key = repr(value)
-            if key in seen:
-                continue
-            seen.add(key)
-            # r19c (Rookie Mistake): candidates enumerate through the
-            # DESIGNATION face (IS_ANY_TARGET = potential-target tautology);
-            # the slot keeps the ORIGINAL selector as its identity — the
-            # cast lane repr-matches designations to the atom's own Selector
-            # and the runtime re-evaluates the un-stripped filter.
-            enum_value = _designation_selector(value)
-            slot = legal_targets(
-                executor.world,
-                executor,
-                enum_value,
-                source=spell_handle,
-                controller=seat,
-            )
-            if enum_value is not value:
-                slot = replace(slot, selector=value)
-            widened = _widen_any_target(executor, value, slot)
-            if widened is not None:
-                slot = widened
-            slot = _clamp_cast_target_slot(
-                executor, inner, _role, slot, spell_handle, seat
-            )
-            slots.append(slot)
-    if not slots and not reads_target_player:
+        for _role, role_value in inner.args.pairs:
+            player_refs |= _designated_player_refs(role_value)
+            for value in role_target_selectors(role_value):  # V25: nested too
+                key = repr(value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                slots.append(
+                    _spell_slot(executor, inner, _role, value, spell_handle, seat)
+                )
+    if not slots and not player_refs:
         # 16e (CR 702.5a): an AURA spell carries no TARGET-mode selector
         # (its effect reads IS_ATTACHED_TO_SOURCE, not a designation) —
         # yet the cast REQUIRES an enchant target (CR 601.2c). The slot is
@@ -1129,28 +1389,130 @@ def spell_target_slots(
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
         if aura is not None:
             slots.append(aura)
-    if reads_target_player:
+    if player_refs:
         # 14b (B-8/B-5): the TARGET_PLAYER coordinate's designation slot —
-        # the CR population the runtime REQUIRES (an opponent seat of the
-        # caster, the same rule _validate_spell_targets re-checks), now
-        # answered by the query so no caller mirrors the rule.
-        opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
-        slots.append(
-            TargetSlot(
-                selector=Selector(
-                    count=QConst(1),
-                    mode=SelectorMode.TARGET,
-                    filter=FAnd(()),
-                    zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
-                ),
-                candidates=opponents,
-                min_count=1,
-                max_count=1,
-                forced=len(opponents) == 1,
-                synthetic=True,
-            )
+        # the CR population the runtime REQUIRES, now answered by the query
+        # so no caller mirrors the rule (V21: by which ref the tree reads;
+        # V44: a player with protection from the spell is no candidate).
+        slots.append(player_target_slot(executor, seat, player_refs, source=spell_handle))
+    return _affordable_target_slots(executor, slots, spell_handle, seat)
+
+
+def _reads_targets_source(filter_: object) -> bool:
+    """Does a filter ask whether the judged spell targets the filter's source?"""
+    from MTG_bot.core.ability_tree import FNot, FOr
+
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.TARGETS_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_reads_targets_source(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _reads_targets_source(filter_.inner)
+    return False
+
+
+def _affordable_target_slots(
+    executor: Executor, slots: list[TargetSlot], spell_handle: Handle, seat: Handle
+) -> list[TargetSlot]:
+    """V29 (CR 601.2f, 601.2h): with a target-dependent cost increase on the
+    battlefield ("Spells your opponents cast that target this creature cost {3}
+    more", Pursued Whale; Terror of the Peaks' 3 life), a candidate whose total
+    cost the caster cannot pay is not a live option: casting the spell at it is
+    illegal, and stack.cast refuses it. The slot drops such candidates, so the
+    menu holds only completions the cast accepts. Inert (no fold at all) unless a
+    battlefield CostModifier reads TARGETS_SOURCE, and only for a spell in the
+    caster's hand: the effect-cast lane designates no targets."""
+    from MTG_bot.core.ability_tree import CostModifier
+    from MTG_bot.core.state import ZONE_BATTLEFIELD
+
+    world = executor.world
+    if not slots or world.zone_of(spell_handle) is not world.players[seat].zone("hand"):
+        return slots
+    taxed = False
+    for player in world.player_order:
+        for host in world.players[player].zone(ZONE_BATTLEFIELD).entries:
+            record = executor.binder.handle_record.get(host)
+            if record is None:
+                continue
+            for node in record.abilities:
+                if isinstance(node, CostModifier) and (
+                    _reads_targets_source(node.filter)
+                    or _reads_targets_source(node.condition)
+                ):
+                    taxed = True
+    if not taxed:
+        return slots
+    out: list[TargetSlot] = []
+    for slot in slots:
+        keep = tuple(
+            c
+            for c in slot.candidates
+            if spell_castable(executor, seat, spell_handle, targets=(c,))[0] is None
         )
-    return slots
+        if keep != slot.candidates:
+            slot = replace(slot, candidates=keep, forced=len(keep) == 1)
+        out.append(slot)
+    return out
+
+
+def designation_bound(filter_: object) -> bool:
+    """V34: does a filter name the ability's own target (an IS_ANY_TARGET
+    conjunct)? Its other conjuncts then describe that target ("another target
+    creature with power 2 or less"), so they are targeting restrictions."""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_ANY_TARGET
+    if isinstance(filter_, FAnd):
+        return any(
+            isinstance(c, FAtom) and c.pred is FAtomPred.IS_ANY_TARGET
+            for c in filter_.children
+        )
+    return False
+
+
+def combat_target_filters(event: object) -> list[object]:
+    """V34: the designation-bound filters of a combat event's slots, the places
+    a "target creature can't be blocked / can't block" ability keeps its target
+    (Subira, Tulzidi Caravanner: DeclareBlockersEvent.blocked)."""
+    from MTG_bot.core.ability_tree import DeclareAttackersEvent, DeclareBlockersEvent
+
+    if isinstance(event, DeclareBlockersEvent):
+        slots = (event.filter, event.subject, event.blocked)
+    elif isinstance(event, DeclareAttackersEvent):
+        slots = (event.filter,)
+    else:
+        return []
+    return [f for f in slots if f is not None and designation_bound(f)]
+
+
+def _designation_only_slot(
+    executor: Executor, effect: object, source: Handle, seat: Handle
+) -> TargetSlot | None:
+    """V34 (CR 115.1, 602.2b): an ability whose ONLY trace of its target is an
+    IS_ANY_TARGET filter in a combat event slot ("{1}: Another target creature
+    with power 2 or less can't be blocked this turn", Subira, Tulzidi Caravanner;
+    ZNR Sneaking Guide, FDN Goblin Smuggler) still has a target, so it gets a
+    slot: one creature on the battlefield passing that filter (combat slots only
+    ever see creatures). Without it the act window activated the ability with no
+    designation and it did nothing. Single-target by construction: every such
+    encoding in M21/ZNR/FDN prints one target."""
+    for inner in walk(effect):
+        if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
+            continue
+        found = combat_target_filters(inner.args.get("event"))
+        if not found:
+            continue
+        restriction = max(
+            found, key=lambda f: len(f.children) if isinstance(f, FAnd) else 1
+        )
+        parts = restriction.children if isinstance(restriction, FAnd) else (restriction,)
+        selector = Selector(
+            QConst(1),
+            SelectorMode.TARGET,
+            FAnd((*parts, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+        )
+        return _spell_slot(executor, inner, "event", selector, source, seat)
+    return None
 
 
 def activation_target_slots(
@@ -1178,61 +1540,28 @@ def activation_target_slots(
     seen: set[str] = set()
     if effect is None:
         return slots
-    reads_target_player = False
+    player_refs: set[ControllerRef] = set()
     for inner in walk(effect):
+        player_refs |= _rotation_player_refs(inner)
         if not isinstance(inner, Atom):
             continue
-        for _role, value in inner.args.pairs:
-            if (
-                value is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Zone)
-                and value.controller is ControllerRef.TARGET_PLAYER
-                or isinstance(value, Selector)
-                and filter_reads_bound_player(value.filter)
-                or filter_reads_bound_player(value)
-            ):
-                reads_target_player = True
-            if not isinstance(value, Selector) or value.mode is not SelectorMode.TARGET:
-                continue
-            key = repr(value)
-            if key in seen:
-                continue
-            seen.add(key)
-            enum_value = _designation_selector(value)
-            slot = legal_targets(
-                executor.world,
-                executor,
-                enum_value,
-                source=source,
-                controller=seat,
-            )
-            if enum_value is not value:
-                slot = replace(slot, selector=value)
-            widened = _widen_any_target(executor, value, slot)
-            if widened is not None:
-                slot = widened
-            slot = _clamp_cast_target_slot(executor, inner, _role, slot, source, seat)
-            slots.append(slot)
-    if reads_target_player:
-        # Same synthesized opponent-seat slot as the spell lane (CR
-        # 601.2c's population rule is coordinate-agnostic: an activation
-        # asking for "target opponent" designates an opponent seat).
-        opponents = tuple(sorted(h for h in executor.world.player_order if h != seat))
-        slots.append(
-            TargetSlot(
-                selector=Selector(
-                    count=QConst(1),
-                    mode=SelectorMode.TARGET,
-                    filter=FAnd(()),
-                    zones=(Zone(ZoneKind.PLAYER, ControllerRef.TARGET_PLAYER),),
-                ),
-                candidates=opponents,
-                min_count=1,
-                max_count=1,
-                forced=len(opponents) == 1,
-                synthetic=True,
-            )
-        )
+        for _role, role_value in inner.args.pairs:
+            player_refs |= _designated_player_refs(role_value)
+            for value in role_target_selectors(role_value):  # V25: nested too
+                key = repr(value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                slots.append(_spell_slot(executor, inner, _role, value, source, seat))
+    if not slots:
+        bound = _designation_only_slot(executor, effect, source, seat)
+        if bound is not None:
+            slots.append(bound)
+    if player_refs:
+        # Same synthesized player slot as the spell lane (CR 601.2c's
+        # population rule is coordinate-agnostic; V44: protection from the
+        # ability's source removes a player).
+        slots.append(player_target_slot(executor, seat, player_refs, source=source))
     return slots
 
 
@@ -1321,17 +1650,25 @@ def _player_widening_applies(selector: Selector) -> bool:
 
 
 def _widen_any_target(
-    executor: Executor, selector: Selector, slot: TargetSlot
+    executor: Executor,
+    selector: Selector,
+    slot: TargetSlot,
+    source: Handle | None = None,
 ) -> TargetSlot | None:
     """Players join a "any target" population — the legacy universal
     ANY-zone shape or the r17-2 battlefield idiom (see
-    :func:`spell_target_slots`); None means "no widening applies"."""
+    :func:`spell_target_slots`); None means "no widening applies".
+    V44 (CR 702.16b): a player with protection from ``source`` (the spell, or
+    the source of the ability, doing the targeting) is not added; the cards
+    already faced the same veto in ``enumerate_candidates``. Runed Halo naming
+    Shock keeps its controller out of Shock's "any target"."""
     if not _player_widening_applies(selector):
         return None
     world = executor.world
     players = {h for h in world.players}
     if players & set(slot.candidates):
         return None
+    players = {h for h in players if not protected_from(executor, h, source)}
     candidates = tuple(sorted(set(slot.candidates) | players))
     forced = slot.forced
     if isinstance(selector.count, QConst):
@@ -1393,12 +1730,31 @@ def aura_enchant_slot(
     IS_ATTACHED_TO_SOURCE contributes its remaining filter (Enthralling
     Hold: TYPE_EQ Creature); with no such selector the corpus fallback is
     any permanent on the battlefield. The aura itself is never a
-    candidate (CR 702.5c "another object")."""
+    candidate (CR 702.5c "another object").
+
+    B-49 follow-up #2 (2026-10-29): the compiled ENCHANT keyword's own restriction comes
+    first. "Enchant creature" limits what the Aura spell can target (CR 303.4a,
+    702.5a), and an Aura cast through the effect-less carrier has no effect
+    tree to read it from: Dub, Capture Sphere and six more M21 Auras (and ZNR's
+    Bubble Snare) could be cast onto a land and stay there."""
+    from MTG_bot.core.executor.legality import spell_record
+
     world = executor.world
     if not is_aura_spell(world, spell_handle):
         return None
-    enchant_filter: FAnd | None = None
-    if node.effect is not None:
+    enchant_filter: Filter | None = None
+    record = spell_record(executor, spell_handle)
+    if record is not None:
+        enchant_filter = next(
+            (
+                ka.params[0]
+                for ka in record.keywords
+                if ka.keyword is Keyword.ENCHANT and ka.params
+            ),
+            None,
+        )
+    if enchant_filter is None and node.effect is not None:
+        effect_filter: FAnd | None = None
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
                 continue
@@ -1407,12 +1763,13 @@ def aura_enchant_slot(
                     continue
                 stripped = _strip_attached(value.filter)
                 if stripped is not None and (
-                    enchant_filter is None or len(stripped.children) > 0
+                    effect_filter is None or len(stripped.children) > 0
                 ):
-                    enchant_filter = stripped
+                    effect_filter = stripped
                     break
-            if enchant_filter is not None and len(enchant_filter.children) > 0:
+            if effect_filter is not None and len(effect_filter.children) > 0:
                 break
+        enchant_filter = effect_filter
     selector = Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
@@ -1453,9 +1810,10 @@ def verb_choose_options(
     options`` pins for Choose NODES (12d), extended to the atom.
 
     v1 scope is the corpus shape: a single pick (every compiled CHOOSE
-    atom carries ``count = QConst(1)``). An under-filled pool makes the
-    EMPTY row legal too (choosing nothing from fewer candidates than
-    demanded is the C17-clamp sibling); a MULTI-pick CHOOSE atom raises —
+    atom carries ``count = QConst(1)``). Only an under-filled pool makes the
+    EMPTY row legal (choosing nothing from fewer candidates than demanded is
+    the C17-clamp sibling; with count 1 that is the empty pool, returned as
+    the lone empty row); a MULTI-pick CHOOSE atom raises —
     combination-order for its tokens is a later round, and the corpus has
     zero rows needing it (flag, don't degrade)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
@@ -1488,5 +1846,10 @@ def verb_choose_options(
     if not pool:
         return ((),)
     rows: list[tuple[Handle, ...]] = [(h,) for h in pool]
-    rows.append(())  # the legal under-filled zero (C17 clamp sibling)
+    if len(pool) < want:
+        # the legal under-filled zero (C17 clamp sibling): only a pool that
+        # cannot fill the count may choose fewer. V19 (2026-10-29, B-51): the
+        # empty row was appended always, so Duress's mandatory "You choose a
+        # noncreature, nonland card from it" could choose nothing.
+        rows.append(())
     return tuple(rows)

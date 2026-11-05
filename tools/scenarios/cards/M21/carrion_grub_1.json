@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grub", "real": "Carrion Grub", "zone": "battlefield", "controller": 0},
+  {"key": "gy2", "name": "Old Bones", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "big", "name": "Big Beast", "type": "Creature", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 0},
+  {"key": "opp_huge", "name": "Opp Huge", "type": "Creature", "power": "7", "toughness": "7", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "opp_huge", "target": "big", "amount": 6},
+  {"op": "deal_damage", "source": "big", "target": "opp_huge", "amount": 7, "controller": 0}
+ ],
+ "expect": {
+  "zone": {"big": "graveyard", "opp_huge": "graveyard", "grub": "battlefield"},
+  "power": {"grub": 6},
+  "toughness": {"grub": 5}
+ },
+ "notes": "M21 G2 spec: Carrion Grub. '+X/+0, where X is the greatest power among creature cards in YOUR graveyard' is continuous: with a 2/2 in the graveyard it would be 2/5; after your 6/6 dies it is 6/5; the opponent's 7/7 dying (their graveyard) changes nothing."
+}

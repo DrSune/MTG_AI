@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "myr", "real": "Palladium Myr", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Palladium Myr", "key": "myr"},
+  {"op": "activate", "key": "myr", "idx": 0, "seat": 0, "expect_raise": "summoning sickness"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "myr", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"myr": "battlefield"},
+  "tapped": {"myr": true},
+  "mana_pool": {"0": {"C": 2}}
+ },
+ "notes": "Printed Palladium Myr (artifact creature): '{T}: Add {C}{C}.' The turn it enters it cannot tap for mana (summoning sickness, CR 302.6). On my next turn it taps for exactly two colorless mana."
+}
