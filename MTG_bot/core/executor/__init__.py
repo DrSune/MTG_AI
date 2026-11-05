@@ -668,7 +668,8 @@ class Executor:
         # ``control_overlay`` is the DERIVED effective-controller map the
         # executor read sites consult (later entries win, CR 613.2
         # timestamps), and ``control_gained_turn`` the CR 302.6 sickness
-        # clock (control-based, not ownership-based). A creature with no
+        # clock: the turn of each creature's last change of effective
+        # controller (control-based, not ownership-based). A creature with no
         # entry reads its zone owner, which is why the empty overlay keeps
         # every pre-16e replay byte-identical.
         self.control_entries: list[
@@ -3290,27 +3291,19 @@ class Executor:
         )
 
     def _recompute_control(self) -> bool:
-        """Rebuild the derived overlay and sickness clock from the live
-        entries; report whether ANY effective controller changed. CR 506.4a:
-        a permanent changing controllers during combat is removed from
-        combat — attackers, attacked record, and every block edge. The
-        sickness clock takes the EARLIEST live turn under the winning
-        controller (two stacked entries for the same controller never
-        re-inflict summoning sickness); a creature with no live entry keeps
-        the turn of its last change (CR 302.6: the owner who got it back is
-        in a fresh period until their next turn begins)."""
+        """Rebuild the derived overlay from the live entries; report whether
+        ANY effective controller changed. CR 506.4a: a permanent changing
+        controllers during combat is removed from combat — attackers,
+        attacked record, and every block edge. The sickness clock (CR 302.6)
+        is the turn of each creature's last change of effective controller,
+        either way (the owner who got it back is in a fresh period too), and
+        nothing else moves it: two stacked entries for the same controller
+        never re-inflict summoning sickness, and a recompute caused by some
+        other creature never dates a period back to an older entry."""
         prev = self.control_overlay
         overlay: dict[Handle, Handle] = {}
-        gained: dict[Handle, int] = dict(self.control_gained_turn)
-        live = {entry[1] for entry in self.control_entries}
-        for creature in live:
-            gained.pop(creature, None)
-        for _seq, creature, controller, _tag, _anchor, turn in self.control_entries:
-            if overlay.get(creature) == controller:
-                gained[creature] = min(gained[creature], turn)
-            else:
-                gained[creature] = turn
-            overlay[creature] = controller
+        for _seq, creature, controller, _tag, _anchor, _turn in self.control_entries:
+            overlay[creature] = controller  # later entries win (CR 613.2)
         self.control_overlay = overlay
         changed = [
             c
@@ -3322,8 +3315,7 @@ class Executor:
         # too — the journal ZONE_CHANGE path cannot see control changes,
         # so the marker dict carries both directions).
         for creature in changed:
-            gained[creature] = self.world.turn
-        self.control_gained_turn = gained
+            self.control_gained_turn[creature] = self.world.turn
         for creature in changed:
             if creature in self.attackers:
                 self.attackers.remove(creature)

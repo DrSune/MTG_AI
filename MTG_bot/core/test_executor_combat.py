@@ -764,3 +764,31 @@ class TestSicknessAfterControlChange(CombatCase):
         self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
         self.assertTrue(self.ex.gain_control(other, self.p0, "Eot"))
         self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
+
+    def test_regained_control_under_an_older_entry_stays_sick(self):
+        # p1 takes the creature (turn 2), p0 takes it back with an anchored
+        # effect (turn 3); the anchor dies on p1's turn 4, so p1 controls it
+        # again from now on: sick this turn. p1's older entry (turn 2) is
+        # still live, and an unrelated control change must not date p1's
+        # period back to it.
+        contested = self.synth("Contested", 2, 2, self.p0)
+        anchor = self.synth("Anchor", 0, 1, self.p0)
+        other = self.synth("Other", 1, 1, self.p0)
+        stock_libraries(self.world)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.advance_turn()  # turn 2, p1
+        self.assertTrue(self.ex.gain_control(contested, self.p1, "Permanent"))
+        self.ex.advance_turn()  # turn 3, p0
+        self.assertTrue(self.ex.gain_control(contested, self.p0, "Anchor", anchor))
+        self.ex.advance_turn()  # turn 4, p1: the anchor dies
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=contested,
+            controller=self.p1,
+            bindings={"target": anchor},
+        )
+        self.assertEqual(self.ex.controller_of(contested), self.p1)
+        self.assertNotIn(contested, legal_attackers(self.ex, self.p1))
+        self.assertTrue(self.ex.gain_control(other, self.p1, "Eot"))
+        self.assertNotIn(contested, legal_attackers(self.ex, self.p1))
