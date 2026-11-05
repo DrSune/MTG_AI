@@ -1100,11 +1100,40 @@ def _triage_check(pack: dict) -> list[str]:
     return bad
 
 
+class _Lanes(dict):
+    """A pack's expect block that records which lanes the runner reads. A lane it never reads
+    is a typo or a check that does not exist, and the pack would pass without testing it
+    (2026-11-05: card mappers wrote packs whose only lane was silently ignored)."""
+
+    def __init__(self, lanes: dict) -> None:
+        super().__init__(lanes)
+        self.read: set[str] = set()
+
+    def __getitem__(self, key):
+        self.read.add(key)
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        self.read.add(key)
+        return super().get(key, default)
+
+    def __contains__(self, key) -> bool:
+        self.read.add(key)
+        return super().__contains__(key)
+
+
 def run_pack(path: Path, supply) -> list[str]:
     pack = json.loads(path.read_text())
     bad = _triage_check(pack)
     if bad:
         return bad
+    lanes = pack["expect"] = _Lanes(pack.get("expect", {}))
+    errors = _run_pack(pack, supply)
+    unread = sorted(set(lanes) - lanes.read)
+    return errors + ([f"expect lanes this runner never checks: {unread}"] if unread else [])
+
+
+def _run_pack(pack: dict, supply) -> list[str]:
     try:
         runner = ScenarioRunner(pack, supply)
     except PackError as e:
