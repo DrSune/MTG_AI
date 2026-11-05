@@ -72,6 +72,7 @@ from MTG_bot.core.executor.events import (
 )
 from MTG_bot.core.executor.quantity import (
     ExecCtx,
+    _type_line_tokens,
     eval_filter,
     referent_handle,
     resolve,
@@ -1880,6 +1881,27 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
     )
 
 
+def _printed_match(filter_: Filter, type_line: str) -> bool:
+    """A CHOOSE_NAME ``name_filter`` judged on a card's printed type line (B-29): its type,
+    subtype and supertype words, under and/or/not. Any other predicate has no printed reading
+    here: flagged, never guessed."""
+    if isinstance(filter_, FAnd):
+        return all(_printed_match(c, type_line) for c in filter_.children)
+    if isinstance(filter_, FOr):
+        return any(_printed_match(c, type_line) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return not _printed_match(filter_.inner, type_line)
+    if isinstance(filter_, FAtom) and filter_.pred in (
+        FAtomPred.TYPE_EQ,
+        FAtomPred.SUBTYPE_EQ,
+        FAtomPred.SUPERTYPE_EQ,
+    ):
+        return filter_.string_value in _type_line_tokens(type_line)
+    raise NotImplementedError(
+        f"executor: CHOOSE_NAME name_filter {filter_!r} has no printed reading"
+    )
+
+
 def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
     """CHOOSE_NAME (13b, grammar round 7's R7-4 — Runed Halo's ETB "choose
     a card name"): the chosen name is RECORDED (executor.name_choices,
@@ -1893,24 +1915,34 @@ def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
     never fakes it.
 
     C15 enumerability for a free-text name: the pick is a decision token
-    out of the enumerable candidate NAMES — the card names present in the
-    world (the engine's own knowledge boundary), narrowed by the optional
-    ``name_filter`` (Necromentia's "a nonbasic card name" reading over
-    those identities). Seeded-random fallback is NOT offered: the name is
-    a player decision, so the decision channel owns it (the C15
-    take_contract raises when a caller skips it — never hidden
-    randomness for a choice a player makes)."""
+    out of the enumerable candidate NAMES, narrowed by the optional
+    ``name_filter`` (Necromentia's "a nonbasic card name"). B-29
+    (2026-11-05): in a dealt game the names are the format's card pool
+    (``executor.name_pool``, every card the deck builder could have used),
+    the filter judged on each card's printed type line, so the menu's
+    content and order never reveal a card in a hidden zone (the world's
+    names did: 14 of 51 random-game picks named a card found only in the
+    opponent's hand or library). A rig with no format (unit tests, scenario
+    packs) still names the world's non-token cards. Seeded-random fallback
+    is NOT offered: the name is a player decision, so the decision channel
+    owns it (the C15 take_contract raises when a caller skips it — never
+    hidden randomness for a choice a player makes)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
     name_filter = atom.args.get("name_filter")
     if name_filter is not None:
         assert isinstance(name_filter, Filter)  # role table: name_filter is a Filter
     candidates: set[str] = set()
-    for handle, card in ctx.world.cards.items():
-        if card.identity.is_token:
-            continue
-        if name_filter is not None and not eval_filter(name_filter, handle, ctx):
-            continue
-        candidates.add(card.identity.name)
+    if executor.name_pool:
+        for name, type_line in executor.name_pool:
+            if name_filter is None or _printed_match(name_filter, type_line):
+                candidates.add(name)
+    else:
+        for handle, card in ctx.world.cards.items():
+            if card.identity.is_token:
+                continue
+            if name_filter is not None and not eval_filter(name_filter, handle, ctx):
+                continue
+            candidates.add(card.identity.name)
     if not candidates:
         raise ValueError(
             "executor: CHOOSE_NAME has no enumerable candidates (empty world "

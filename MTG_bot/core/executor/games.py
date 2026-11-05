@@ -1180,6 +1180,10 @@ def _setup_game(
     executor.attach_pool(
         supply.pool
     )  # oracle-id bridge: everything later attaches by it
+    # B-29: a named card comes from the format's pool, never from the world.
+    executor.name_pool = tuple(
+        sorted({(supply.metas[oid].name, supply.metas[oid].type_line) for oid in supply.deckable})
+    )
     for seat, deck in zip(world.player_order, decks, strict=True):
         shuffled_library(executor, seat, deck)
         if trace is not None:

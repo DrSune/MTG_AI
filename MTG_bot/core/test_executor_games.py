@@ -2542,6 +2542,43 @@ class StallRuleTest(unittest.TestCase):
         self.assertEqual(first, _stall_fingerprint(game.executor))
 
 
+class ChooseNamePoolTest(unittest.TestCase):
+    """B-29 (2026-11-05): a dealt game names a card from the format's pool, every card the deck
+    builder could have used, never from the world: the world's names put the cards of hidden
+    zones (the opponent's hand and library) into the menu, and its order and size revealed them."""
+
+    def vocab(self, opponent_card: str, chooser: str = "Runed Halo") -> tuple[str, ...]:
+        supply = get_supply("castable")
+        oid = {m.name: o for o, m in supply.metas.items()}
+        decks = (
+            (oid[chooser],) + (oid["Plains"],) * (DECK_SIZE - 1),
+            (oid[opponent_card],) * 4 + (oid["Island"],) * (DECK_SIZE - 4),
+        )
+        game = _setup_game(7, supply, decks)
+        world = game.world
+        source = next(h for h, c in world.cards.items() if c.identity.name == chooser)
+        choose = next(n for a in supply.pool.results[oid[chooser]].card.abilities for n in walk(a)
+                      if isinstance(n, Atom) and n.verb is Verb.CHOOSE_NAME)
+        seen: list[tuple[str, ...]] = []
+        game.executor.decisions.provider = lambda vocab, what: seen.append(vocab) or vocab[0]
+        game.executor.apply_effect(choose, source=source, controller=world.player_order[0])
+        return seen[0]
+
+    def test_the_names_are_the_deckable_pool_whatever_is_hidden(self):
+        supply = get_supply("castable")
+        pool = tuple(sorted({supply.metas[o].name for o in supply.deckable}))
+        self.assertEqual(self.vocab("Shock"), pool)
+        self.assertEqual(self.vocab("Cancel"), pool)  # the opponent's library changes nothing
+
+    def test_a_name_filter_reads_the_printed_card(self):
+        # Necromentia: "Choose a card name other than a basic land card name."
+        vocab = self.vocab("Shock", chooser="Necromentia")
+        self.assertNotIn("Plains", vocab)
+        self.assertNotIn("Island", vocab)
+        self.assertIn("Necromentia", vocab)
+        self.assertIn("Shock", vocab)
+
+
 class _LoopDeckPolicy(RandomPolicy):
     """Deterministic policy: each turn, cast exactly one legal spell.
 

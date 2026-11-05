@@ -594,6 +594,12 @@ class Executor:
         # CHOOSE_NAME's write-side (Runed Halo): source permanent -> the
         # chosen name, read back by the NAME_CHOSEN filter predicate.
         self.name_choices: dict[Handle, str] = {}
+        # CHOOSE_NAME's read-side (B-29, 2026-11-05): the format's card pool,
+        # every card a deck builder of this game could have used (name, printed
+        # type line), set by games._setup_game. Public information: the names
+        # offered never depend on the game's hidden zones. Empty in a rig with
+        # no format (unit tests, scenario packs): the world's names then.
+        self.name_pool: tuple[tuple[str, str], ...] = ()
         # ------------------------------------------------- 13c emblems + attachments
         # Granted emblems are replayed state that is NOT world cards (an
         # emblem never enters a zone): (owner, emblem oracle_id) -> the
