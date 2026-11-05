@@ -149,25 +149,6 @@ def test_packed_collation_equals_collate(table) -> None:
     assert np.array_equal(clone.cards_f, packed.cards_f) and len(clone) == len(packed)
 
 
-class _CpuSlot:
-    """Synchronous inference for tests: the worker slot's request protocol on a CPU net."""
-
-    def __init__(self, net: torch.nn.Module) -> None:
-        self.net = net
-
-    @torch.no_grad()
-    def infer(self, req: tuple):
-        feats, want = req[5], (req[6] if len(req) > 6 else 0)
-        logits, value = self.net(M.collate([feats], "cpu"))
-        probs = torch.softmax(logits[0, : feats["opts_i"].shape[0]], -1)
-        a = int(probs.argmax())
-        if want == 0:
-            return a
-        if want == 1:
-            return a, float(value[0])
-        return a, float(value[0]), probs.tolist()
-
-
 class _BlockPlanner:
     """The heuristic, except that it plans its blocks with the searcher (rig.before_blocks)."""
 
@@ -202,7 +183,7 @@ def test_block_search_plans_at_the_pre_blocks_boundary(table) -> None:
     net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
     planned = answered = 0
     for seed in (21, 22, 23, 24):
-        searcher = Searcher(_CpuSlot(net), 0, "learner", table, k=2, d=1, skip_p=1.01, seed=seed)
+        searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, k=2, d=1, skip_p=1.01, seed=seed)
         planner = _BlockPlanner(searcher)
         res = play_game(seed, [planner, HeuristicAgent()], deck_mode="coherent")
         assert res["crash"] is None
