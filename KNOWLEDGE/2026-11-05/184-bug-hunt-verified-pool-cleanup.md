@@ -240,3 +240,17 @@ decks ("only 8 mana-capable cards, need 10"). The first round verified the cards
 127 cards the compiler translates on its own, basics and dual lands among them, had no verification.
 A second round (142 packets, 15 planted) is verifying them; approximating with unverified compiled
 cards is not an option (the M21 campaign found 29% of compiled trees wrong). r18 keeps training.
+
+## 12. r19: pre-registration (written before launch, 2026-11-06)
+Change vs r18 (one): one: --extend-sets M20 --mix-sets M20 --mix-share 0.25 (25% of training games dealt from the verified M20 pool, 232 cards; G5 soak 300 games: 0 crashes, 0 detector hits, 0 loops, no positive outlier). Everything else as r18.
+
+Hypothesis: r18's self-play improved head to head (v1 -> v4) but not against fixed anchors (Elo 405 -> 416, heuristic 0.65 throughout). New verified cards force play from components rather than card identities, which should lift the anchors (the owner's lever for a plateau, 2026-11-05).
+
+Predictions:
+- r18 last.pt on M20 vs heuristic (eval-only, before training): 0.55-0.65 (v6 of r15 scored 0.628 on compiled M20); falsified by below 0.50.
+- M21 Elo of r19's frozen versions: one version >= 441 (r18 v4 416 + one standard error) within 60 self-play updates; falsified by none above 441 by self-play update 80.
+- M21 ladder score vs heuristic: stays >= 0.62 (mixing does not dilute M21 play); falsified by two consecutive ladder evals below 0.60.
+
+M20 for training: two blind verification rounds (36/36 planted faults caught), 232 verified cards
+with 23 lands; G5 soak 300 games, 0 crashes, 0 detector hits, 0 loops; the two value-per-mana outliers
+are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
