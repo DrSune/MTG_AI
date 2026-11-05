@@ -1183,6 +1183,19 @@ class TriggerBinder:
         ):
             return False
         assert event.subject is not None  # the CAST row names the spell card
+        # 2026-11-05 (Gnarlback Rhino, "whenever you cast a spell that targets this
+        # creature"): TARGETS_SOURCE asks whether the judged spell targets the filter's
+        # source, and reads the ``target`` binding (quantity._eval_atom). This ctx is the
+        # trigger's own, so it had none and the filter never matched: the cast spell's
+        # declared targets (its stack frame, CR 601.2c) are bound here.
+        ctx.bindings["target"] = next(
+            (
+                list(frame.declared_targets)
+                for frame in self.executor.stack.frames
+                if frame.handle == event.subject
+            ),
+            [],
+        )
         return eval_filter(node.filter, event.subject, ctx)
 
     def _fitting_cast_ordinal(
