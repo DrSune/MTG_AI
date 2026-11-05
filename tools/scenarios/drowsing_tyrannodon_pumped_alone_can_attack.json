@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed (M21 originalText and current Oracle): 'As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.' There is no 'another': the Gatherer ruling of 2020-06-23 reads 'If Drowsing Tyrannodon's power is raised to 4 or greater, it will allow itself to attack.' Alone and 3/3 it can't attack; after Defiant Strike (+1/+0, and draw a card) it is 4/3 and attacks for 4 (20 -> 16). Pinned 2026-11-05 because an audit read the card as 'another creature' and asked for a fix: the compiled condition without FNot(IS_SOURCE) is the printed card.",
+ "cards": [
+  {"key": "t", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+  {"key": "strike", "real": "Defiant Strike", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "strike", "real": "Defiant Strike", "targets": ["t"]},
+  {"op": "combat", "seat": 0, "attack": {"t": true}}
+ ],
+ "expect": {
+  "attackers": {"t": true},
+  "life": {"1": 16},
+  "power": {"t": 4},
+  "zone": {"strike": "graveyard"}
+ }
+}
