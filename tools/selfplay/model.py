@@ -280,5 +280,10 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
     cfg = dict(ck["config"])
     n_cards, n_ir = cfg.pop("n_cards"), cfg.pop("n_ir")
     model = PolicyValueNet(n_cards, n_ir, table.ir_array(), **cfg)
-    model.load_state_dict(ck["state"])
+    state = ck["state"]
+    w = state["ask_emb.weight"]
+    if w.shape[0] < len(FT.ASK_KINDS):  # kinds appended since this checkpoint start as "other"
+        new = w[FT.ASK_INDEX["other"]].expand(len(FT.ASK_KINDS) - w.shape[0], -1)
+        state["ask_emb.weight"] = torch.cat([w, new])
+    model.load_state_dict(state)
     return model.to(device), table, ck.get("extra", {})
