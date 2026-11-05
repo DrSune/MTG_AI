@@ -470,3 +470,50 @@ while the policy kept moving ~0.014 KL per update (entropy 0.19, explained varia
 constant lr 1e-4 swamping what is left. Resumed at update 123 with `--lr 5e-5` (annealing),
 everything else unchanged. Next levers if this does not move the gates: larger batches
 (`--steps`), a better critic, opponent mix, a larger network.
+
+## 32. 2026-11-05: the leak that stopped r15, and where r15 got to
+
+r15 reached update 837: v4 (update 147), v5 (312), v6 (597); vs heuristic (ladder, unselected):
+v3 0.625, v4 0.671, v5 0.680, **v6 0.702** [0.647, 0.752] (old engine). It stopped itself at 05:40
+on the memory floor: MemAvailable fell ~60 MB per update for 700 updates. Cause:
+`features._STATIC_CACHE` kept every CardIdentity it saw alive (~31 per game); bounded now
+(b5685dc). The Elo steps v4->v5->v6 (~+25-32) are overstated - see §34.
+
+## 33. Mana pools never emptied (found by reading a game)
+
+`tools/selfplay/trace.py` on v6 vs heuristic: v6 tapped all mana on turn 5 and passed, then
+cast Gloom Sower ({5}{B}{B}) with four lands. Nothing emptied PlayerState.mana_pool: a
+tap-every-turn player banked 1, 3, 6, 10, 15 mana. Fixed (9ec13a9): a pool empties at the
+transition into its owner's next turn (CR 500.4 approximated - unspent mana stands in for lands
+held up through the opponent's turn, since the engine pays only from the pool). 17 scenario packs
+got a `mana` harness step, 2 new packs pin the rule, 3 tests re-anchored. In the fixed engine v6
+scores 0.650 vs the heuristic (0.702 when banking worked); r16 = PPO from v6 in the fixed game.
+
+## 34. Independent review: rating bias and five more fixes
+
+A fresh-context review (no shared conclusions) found: gate selection leaking into Elo (each
+freeze is the first of many noisy re-tests on the SAME deals to clear the bar; vs v5, 57 gates
+averaged 0.516, the freezing one 0.545), a scry context that could reveal a hidden card (3 of 471
+asks), PPO minibatches weighting long decisions ~15x short ones, crashed simulations scoring 0.0,
+resumes replaying seeds and dropping queued ladders, crash rows without their deal, and a block
+prior without the declared attackers. All fixed (7de96ec, d14b508): gates on fresh deal blocks,
+ratings from ladder games only (each new version vs random, heuristic and its predecessor on the
+fixed ladder deals), equal weight per decision, crashed worlds left out of a search mean.
+
+## 35. Generalisation to unseen cards (v6, fixed engine, vs heuristic, 150 deals x 2)
+
+| decks | unseen cards | score |
+|---|---|---|
+| M21 (trained) | 0 | **0.650** [0.594, 0.703] |
+| M21, every name masked | - | **0.605** [0.547, 0.660]; paired -0.048 [-0.086, -0.011] |
+| M20 fully compiled | 81 of 110 | **0.628** [0.572, 0.681] |
+| ZNR fully compiled | 100 of 105 | **0.600** [0.544, 0.654] |
+| M19 fully compiled | 84 of 102 | **0.553** [0.497, 0.609] |
+
+New cards get table rows in the trained component vocabulary (M20 99.2% of component tokens
+known, ZNR 97.7%, M19 99.0%) and the unknown name. The network keeps most of its edge on a
+similar core set and less elsewhere; names carry ~5 points. Only fully compiled cards are a fair
+test: in `castable` mode 212 of 306 new M20 cards deal with an unparsed sentence silently missing
+(Agonizing Syphon's whole effect); fully compiled new cards per set: ZNR 100, FDN 93, 10E 87,
+M19 84, M20 81 (compile census, 2026-11-05). Fidelity labels for the 147 new fully compiled
+M20+M19 cards are being produced (agents read text vs compiled tree).
