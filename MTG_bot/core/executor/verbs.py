@@ -2266,10 +2266,11 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
     the frozen world derives controller_of from the ZONE OWNER and R16-4
     ruled the overlay LIVES HERE, consulted at every controller-semantic
     executor read site. Carriers: Traitorous Greed (DurationEot, TARGET
-    selector) and Enthralling Hold (no Duration node — the continuous
-    effect of an aura ends when the aura stops existing, so a durationless
-    row is anchored to the SOURCE, and CR 704.5q's unattached-aura check
-    is what physically ends it). ``UntilLeaves`` pairs its C12 referent
+    selector) and Enthralling Hold (no Duration node over "enchanted
+    creature" — the continuous effect of an aura ends when the aura stops
+    existing, so that row alone is anchored to the SOURCE, and CR 704.5q's
+    unattached-aura check is what physically ends it; any other row lasts
+    its duration, CR 611.2a). ``UntilLeaves`` pairs its C12 referent
     anchor exactly like :func:`_apply_pt`. The controller slot is the
     STRICT YOU of the corpus (CR 611.2a "you gain control"); any other
     ControllerRef RAISES — flag, never guess. When the effective
@@ -2286,7 +2287,19 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
     tag = duration_tag(duration)
-    anchor: Handle | None = ctx.source  # durationless = the aura's continuous effect
+    # CR 611.2a: control a resolved spell or ability gives lasts as long as its duration says
+    # (with none stated, the game), whatever happens to its source: Sorin, Vampire Lord's
+    # granted "{T}: Gain control of target creature" outlasts the Vampire. The one row tied to
+    # its source is the Aura's "You control enchanted creature" (Enthralling Hold, compiled onto
+    # its spell): the Aura's own continuous effect, which ends when the Aura leaves.
+    target = atom.args.get("target")
+    anchor: Handle | None = None
+    if (
+        duration is None
+        and isinstance(target, Selector)
+        and _names_the_attached(target.filter)
+    ):
+        anchor = ctx.source
     if isinstance(duration, DurationUntilLeaves):
         anchor = referent_handle(duration.source, ctx)
     gained: list[Handle] = []
@@ -2304,6 +2317,17 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
             tag,
         )
     )
+
+
+def _names_the_attached(filter_: object) -> bool:
+    """Does the filter pick the permanent the source is attached to ("enchanted creature")?"""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_ATTACHED_TO_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_names_the_attached(child) for child in filter_.children)
+    if isinstance(filter_, FNot):
+        return _names_the_attached(filter_.inner)
+    return False
 
 
 def _v_attach(ctx: ExecCtx, atom: Atom) -> None:

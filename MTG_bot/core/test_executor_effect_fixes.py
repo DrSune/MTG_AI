@@ -21,7 +21,9 @@ CR 611.2a An effect a resolved spell or ability created lasts as long as its dur
           whatever happens to its source (B-50: Keen Glidemaster's flying, Pack Leader's damage
           prevention, Subira's "can't be blocked", Mu Yanling's "loses flying until your next
           turn" ended when the source left), and a "can't block" with no end or "until your next
-          turn" applies at all (known_bugs cant_block_needs_until_end_of_turn).
+          turn" applies at all (known_bugs cant_block_needs_until_end_of_turn). "Gain control of
+          target creature" with no duration lasts the game, not as long as the permanent whose
+          ability it was (known_bugs cr611_2a_control_ends_with_granter).
 """
 
 from __future__ import annotations
@@ -451,6 +453,21 @@ class TestCR6112aResolvedEffectsOutliveTheirSource(unittest.TestCase):
         self.assertFalse(r.ex.layers.keyword_of(drake, "FLYING"))
         r.run_step({"op": "advance_turn"})  # your next turn: it ends
         self.assertTrue(r.ex.layers.keyword_of(drake, "FLYING"))
+
+    def test_control_with_no_duration_lasts_after_the_source_leaves(self):
+        # Sorin, Vampire Lord's -8 grants Vampires "{T}: Gain control of target creature." The
+        # control has no duration: it lasts the game, not as long as the Vampire (known_bugs
+        # cr611_2a_control_ends_with_granter).
+        r = runner([bear("vamp", 0), bear("ogiant", 1)])
+        ogiant = r.handles["ogiant"]
+        r.ex.execute(Atom(Verb.GAIN_CONTROL, AtomArgs((
+            ("controller", ControllerRef.YOU),
+            ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),
+        ))), source=r.handles["vamp"], controller=r.p0, bindings={"target": [ogiant]})
+        r.run_step({"op": "move", "key": "vamp", "to": "graveyard"})
+        r.run_step({"op": "advance_turn"})
+        r.run_step({"op": "advance_turn"})
+        self.assertEqual(r.ex.controller_of(ogiant), r.p0)
 
     def cant_block(self, duration):
         """A resolved sorcery's "Creatures without flying can't block" (Tectonic Rift's second
