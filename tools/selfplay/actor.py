@@ -12,8 +12,8 @@ Messages, worker -> learner: ("infer", wid, group, [req]), ("done", wid, [result
 ("need", wid, n). Learner -> worker: ("ans", group, [(action, logp, value)]), ("jobs", [job]),
 ("stop",).
 
-A job: {"gid", "kind" ("train"|"eval"|"bc"), "seed", "deck_mode", "seats": [spec, spec],
-"greedy": [bool, bool], "record": [bool, bool]}; a seat spec is "learner", "eval", a frozen
+A job: {"gid", "kind" ("train"|"eval"|"bc"), "seed", "deck_mode", "set_code", "pool_mode",
+"seats": [spec, spec], "greedy": [bool, bool], "record": [bool, bool]}; a seat spec is "learner", "eval", a frozen
 version "v<k>", "snap:opp", "heuristic" or "random", and a network spec ending in "+search"
 searches its decisions (search.py, options in job["search"]).
 """
@@ -76,8 +76,10 @@ class NetAgent:
             from tools.selfplay.search import Searcher
 
             opts = job["search"]
-            self.searcher = Searcher(slot, job["gid"], self.spec, table, k=opts["k"], d=opts["d"],
-                                     skip_p=opts["skip_p"], seed=job["seed"] * 2 + seat)
+            self.searcher = Searcher(slot, job["gid"], self.spec, table,
+                                     pool_mode=job["pool_mode"], set_code=job["set_code"],
+                                     k=opts["k"], d=opts["d"], skip_p=opts["skip_p"],
+                                     seed=job["seed"] * 2 + seat)
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -182,7 +184,7 @@ class _Slot(threading.Thread):
                           # the deal, so an eval voids the seat-swapped pair (it raised before)
                           "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
                           "seats": job.get("seats"), "a_seat": job.get("a_seat"),
-                          "opp": job.get("opp")}
+                          "opp": job.get("opp"), "set_code": job.get("set_code")}
             self.worker.outbox.append(result)
 
 
@@ -220,17 +222,14 @@ class Worker:
                 agents.append(_UniformRandom(job["seed"] * 7 + seat))
             else:
                 raise ValueError(f"unknown seat spec {spec!r}")
-        allow = job.get("deck_allow")
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"],
-                        set_code=job.get("set_code", "M21"),
-                        pool_mode=job.get("pool_mode", "castable"),
-                        deck_allow=frozenset(allow) if allow else None)
+                        set_code=job["set_code"], pool_mode=job["pool_mode"])
         res["gid"] = job["gid"]
         res["kind"] = job["kind"]
         res["seats"] = job["seats"]
         res["a_seat"] = job.get("a_seat")
         res["opp"] = job.get("opp")
-        res["set_code"] = job.get("set_code", "M21")
+        res["set_code"] = job["set_code"]
         res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
                          for a in agents]
         res["overflow"] = [getattr(a, "overflow", 0) for a in agents]

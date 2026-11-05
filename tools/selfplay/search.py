@@ -144,9 +144,9 @@ def block_answer(ask: Any, plan: frozenset) -> int | None:
 
 
 class Searcher:
-    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, k: int = 4,
-                 d: int = 2, skip_p: float = 0.97, draw_value: float = -1.0,
-                 seed: int = 0) -> None:
+    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, pool_mode: str,
+                 set_code: str, k: int = 4, d: int = 2, skip_p: float = 0.97,
+                 draw_value: float = -1.0, seed: int = 0) -> None:
         self.slot = slot
         self.gid = gid
         # the network that ranks the candidates, plays both seats inside the simulations and
@@ -158,7 +158,10 @@ class Searcher:
         self.skip_p = skip_p
         self.draw_value = draw_value
         self.rng = random.Random(seed)
-        self.supply = get_supply("castable")
+        # the supply the searched game was dealt from: forks share its compiled cards (fork.py)
+        # and the opponent's hidden cards are re-drawn from its deckable pool (determinize)
+        self.supply = get_supply(pool_mode, set_code)
+        self.set_code = set_code
         self.stats = {"searched": 0, "skipped": 0, "sims": 0, "changed": 0, "sim_errors": 0}
 
     def choose(self, ask: Any, obs: Any, feats: dict) -> int:
@@ -319,7 +322,7 @@ class Searcher:
         agents[seat].forced = token
         agents[seat].attack_plan = attack_plan
         agents[seat].block_plan = block_plan
-        oracle = _ORACLES.get("M21") or OracleIndex.for_sets("M21")
+        oracle = _ORACLES.get(self.set_code) or OracleIndex.for_sets(self.set_code)
         router = SelfplayRouter(clone, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
                                 supply=self.supply)
         clone.executor.decisions.provider = router.answer

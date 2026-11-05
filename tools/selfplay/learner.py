@@ -46,12 +46,14 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from MTG_bot.core.executor.games import get_supply
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.actor import worker_main
 from tools.selfplay.ppo import chunks, pack_buffer
 from tools.selfplay.trainer import trainer_main
 
+TRAIN_SET = "M21"  # the set training games are dealt from (--mix-sets adds others)
 EVAL_SEED0 = 900_000
 # Gates draw a fresh block of deals each time (GATE_SEED0 + 1000 * gate number): re-testing a
 # learner on the same deals until one snapshot clears the bar selects luck on those deals.
@@ -165,8 +167,6 @@ class Learner:
         if args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init, "extra": extra})
-            from MTG_bot.core.executor.games import get_supply
-
             if args.refresh_table:
                 # the saved table describes the trees as compiled when it was built; rebuild
                 # its rows from the current compile (FT.CardTable.refresh)
@@ -189,26 +189,21 @@ class Learner:
             if args.mask_names:
                 self.model.mask_names = True
         else:
-            from MTG_bot.core.executor.games import get_supply
-
             supply = get_supply("castable")
             self.table = FT.CardTable.from_records(
                 {oid: r.card for oid, r in supply.pool.results.items()})
             self.model = M.build(self.table, d=args.d, layers=args.layers, heads=args.heads,
                                  ff=args.ff, name_dropout=args.name_dropout).to(self.device)
-        # --mix-allow: per set, the oracle ids a mixed training game may deal (lands always)
-        self.mix_allow: dict[str, list] = {}
         if args.mix_sets:
             missing = set(args.mix_sets.split(",")) - set(args.extend_sets.split(","))
             if missing:
                 raise ValueError(f"--mix-sets {sorted(missing)} must also be in --extend-sets")
-            if args.mix_allow:
-                allow = json.loads(Path(args.mix_allow).read_text())
-                self.mix_allow = {code: list(allow.get(code, [])) for code in
-                                  args.mix_sets.split(",")}
             self.log({"event": "mix", "sets": args.mix_sets, "share": args.mix_share,
-                      "pool": args.mix_pool,
-                      "allowed": {k: len(v) for k, v in self.mix_allow.items()}})
+                      "pool": args.pool})
+        # Every game deals from --pool. A set with no deckable card in it (e.g. 'verified' for a
+        # set whose cards nobody verified yet) fails here, not in every worker game it voids.
+        for code in sorted({TRAIN_SET, args.eval_set, *filter(None, args.mix_sets.split(","))}):
+            get_supply(args.pool, code)
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
         self.infer_models: dict[str, tuple] = {}
@@ -393,7 +388,8 @@ class Learner:
              record: list[bool], deck_mode: str) -> dict:
         self.gid += 1
         return {"gid": self.gid, "kind": kind, "seed": seed, "seats": seats, "greedy": greedy,
-                "record": record, "deck_mode": deck_mode}
+                "record": record, "deck_mode": deck_mode, "set_code": TRAIN_SET,
+                "pool_mode": self.args.pool}
 
     def _deck_mode(self) -> str:
         p = self.args.coherent_share
@@ -446,16 +442,12 @@ class Learner:
         return job
 
     def _mix(self, job: dict) -> None:
-        """--mix-sets: a --mix-share of training games is dealt from another set's curated cards
-        (--mix-allow), the rest from M21. Evaluations and ladders stay on M21."""
+        """--mix-sets: a --mix-share of training games is dealt from another set (from the same
+        --pool), the rest from TRAIN_SET. Evaluations and ladders deal from --eval-set."""
         a = self.args
         if not a.mix_sets or self.rng.random() >= a.mix_share:
             return
-        code = self.rng.choice(a.mix_sets.split(","))
-        job["set_code"] = code
-        job["pool_mode"] = a.mix_pool
-        if self.mix_allow.get(code):
-            job["deck_allow"] = self.mix_allow[code]
+        job["set_code"] = self.rng.choice(a.mix_sets.split(","))
 
     def _serve_need(self, wid: int, n: int) -> None:
         jobs = []
@@ -598,7 +590,10 @@ class Learner:
                 self.eval_rows.append(r)
                 self.eval_pending.discard(r["gid"])
                 row = {k: r.get(k) for k in ("gid", "seed", "deck_mode", "seats", "a_seat", "opp",
-                                              "outcome", "winner", "turns", "leaky", "crash")}
+                                              "outcome", "winner", "turns", "leaky", "crash",
+                                              "set_code")}
+                # the deal is (set, pool, seed, deck mode): paired.py pairs only equal deals
+                row["pool"] = self.args.pool
                 row["tag"] = self.eval_meta.get("tag")
                 with (self.run / "eval_rows.jsonl").open("a") as fh:
                     fh.write(json.dumps(row) + "\n")
@@ -630,9 +625,7 @@ class Learner:
             for seat in (0, 1):
                 if seats[seat] == "learner" and seats[1 - seat] != "learner":
                     self.train_results.append((seats[1 - seat], self.reward(
-                        r["outcome"], r["winner"], seat), r["turns"], r.get("set_code", "M21")))
-            if seats == ["learner", "learner"]:
-                self.train_results.append(("self", 0.0, r["turns"]))
+                        r["outcome"], r["winner"], seat), r["turns"], r["set_code"]))
 
     # ------------------------------------------------------------------ PPO
 
@@ -730,7 +723,6 @@ class Learner:
                     job["a_seat"] = a_seat
                     job["search"] = search
                     job["set_code"] = a.eval_set
-                    job["pool_mode"] = a.eval_pool
                     self.eval_jobs.append(job)
                     self.eval_pending.add(job["gid"])
 
@@ -923,7 +915,7 @@ class Learner:
                    ("past" if opp.startswith("v") else opp)].append(z)
             by_set: dict[str, list] = defaultdict(list)
             for row in res:
-                by_set[row[3] if len(row) > 3 else "M21"].append(row[1])
+                by_set[row[3]].append(row[1])
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,
                       "upd_s": round(time.time() - t1, 1), "collect_s": round(t1 - t0, 1),
                       # with --mix-sets: the training-game win rate per dealing set
@@ -1096,18 +1088,16 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="comma list of sets whose castable cards join the card table (names "
                         "unknown, components in the trained vocabulary)")
     p.add_argument("--eval-set", default="M21", help="the set evaluation decks are dealt from")
-    p.add_argument("--eval-pool", default="castable",
-                   help="pool mode of the evaluation decks: 'compiled' deals only cards whose "
-                        "whole text compiled ('castable' also deals partly parsed cards with the "
-                        "rest of their text missing; the two are equal on M21)")
+    p.add_argument("--pool", default="verified", choices=("verified", "compiled", "castable"),
+                   help="the cards every game deals from (training, mixed sets, evaluation; "
+                        "games.compile_supply): 'verified' = whose current compiled tree passed "
+                        "play-time verification; 'compiled' = whole text compiled; 'castable' "
+                        "also deals partly parsed cards with the rest of their text missing")
     p.add_argument("--mix-sets", default="",
                    help="comma list of sets some training games are dealt from (must also be "
                         "in --extend-sets)")
     p.add_argument("--mix-share", type=float, default=0.25,
                    help="share of training games dealt from --mix-sets")
-    p.add_argument("--mix-pool", default="compiled", help="pool mode of the mixed games")
-    p.add_argument("--mix-allow", default="",
-                   help="JSON {set: [oracle ids]}: the non-land cards a mixed game may deal")
     p.add_argument("--mask-names", action="store_true",
                    help="the --init network reads every card name as the unknown card")
     p.add_argument("--resume", default="",

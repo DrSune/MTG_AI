@@ -1,7 +1,9 @@
 """Paired comparison of two evaluations played on the same deals (``eval_rows.jsonl`` files).
 
 Both runs must have played the same deal seeds with the same seat assignments (the learner's
-fixed evaluation deals do). A deal pair is used only if neither run voided it. Prints each run's
+fixed evaluation deals do). A deal is (set, pool, seed, deck mode): rows pair only when all four
+match; rows written before the learner recorded set and pool carry neither and pair only with
+each other. A deal pair is used only if neither run voided it. Prints each run's
 score on the shared games and the mean per-deal difference with a bootstrap 95% interval over
 deals (the deal is the unit: its two seat-swapped games share the deal's luck).
 
@@ -33,7 +35,8 @@ def _load(path: str, tag: str | None, opp: str | None) -> dict:
             if opp and r.get("opp") != opp:
                 continue
             void = r["outcome"].startswith("void") or r.get("leaky")
-            out[(r["opp"], r["seed"], r["deck_mode"])][r["a_seat"]] = None if void else _score(r)
+            deal = (r["opp"], r.get("set_code"), r.get("pool"), r["seed"], r["deck_mode"])
+            out[deal][r["a_seat"]] = None if void else _score(r)
     return out
 
 
