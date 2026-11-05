@@ -20,10 +20,6 @@ box; that is no longer where work happens. Measured bring-up numbers are in
 | OS | Windows 11 | DGX OS (Ubuntu-derived), aarch64 |
 | Role | engine dev, spectator tool, tests | all self-play and all training |
 
-Because the two disagree on accelerator, **never write `torch.device("cuda")` directly.** Go through
-`MTG_bot/utils/device.py`. Existing violations live in `strategic_brain/student.py` and
-`strategic_brain/teacher.py` and should be fixed.
-
 ## The one fact that should drive every design decision
 
 The GB10's GPU has **no dedicated VRAM**. It reads the same LPDDR5X the ARM cores read, over the
@@ -89,7 +85,7 @@ A forward-pass check is **not sufficient**. Run a gradient, or the missing-heade
 stays invisible:
 
 ```bash
-.venv/bin/python -m pytest MTG_bot/strategic_brain/test_model.py -q
+.venv/bin/python -c "import torch; m = torch.nn.TransformerEncoderLayer(64, 4, batch_first=True).cuda(); m(torch.randn(2, 8, 64, device='cuda')).sum().backward(); print('gradient ok')"
 ```
 
 Measured device numbers, for comparison on any future re-image:

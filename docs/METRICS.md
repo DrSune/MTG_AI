@@ -4,7 +4,8 @@
 
 > **Note, 2026-10-24.** This catalogue was written against the legacy engine
 > (`MTG_bot/rule_engine/`, `strategic_brain/`). Its metric definitions still guide the live stack
-> (`MTG_bot/core/`, `tools/training/`), but its code citations point at dead code, and none of its
+> (`MTG_bot/core/`, `tools/selfplay/`), but its code citations point at code deleted on 2026-11-05
+> (`git show dbd6e9d:<path>`), and none of its
 > confirmatory metrics is computed today (docs/REVIEW_2026-10-24.md A-4, A-7). §17 stays binding.
 > The benchmark rows below were added against the live engine.
 **Scope:** every metric this project computes, defined precisely enough to implement, plus the

@@ -10,7 +10,7 @@ references metrics by name and does not redefine them.
 
 **Why it exists now, before training starts.** Nothing in the repository can currently tell you
 whether a change made the bot better. At HEAD (`bc14850`) the engine suite reported 10 passed / 29
-failed / 2 xfailed (historical; the current baseline is B0 in `CLAUDE.md`, 2026-10-24). The only scored benchmark pays a do-nothing policy **0.9000** on
+failed / 2 xfailed (historical; the current baseline is B1 in `CLAUDE.md`, 2026-11-05). The only scored benchmark pays a do-nothing policy **0.9000** on
 `scenarios/M21/level_2` and **0.2358** on `level_1`, because `benchmarker.py:143-163` scores life
 proximity and 25 of the level_2 files are byte-identical copies of a state already sitting at 18/20
 life. The only opponent is `deepcopy(student)` from at most 20 games ago (`train.py:89-91`), so win
@@ -221,11 +221,6 @@ split by chosen action class; split by phase and by step; and the non-trivial su
 1 after canonical dedup, no forced short-circuit).
 
 **Reported as** `n, min, p50, p90, p99, max, mean` for each. Never as a mean alone.
-
-**The instrument already exists.** `tools/latency/decisions.py:171-204` computes exactly this shape
-and has real output on disk at `reports/decision_counts_devbox.json`. Three changes make it serve
-this protocol: run it with the **model** in the loop instead of `random.choice`, key it by **seat**
-rather than player index, and emit **per-decision rows** rather than aggregates only.
 
 **Measured baseline, random policy, current engine, 24 games**
 (`reports/decision_counts_devbox.json`):

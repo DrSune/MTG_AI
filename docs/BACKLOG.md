@@ -17,16 +17,6 @@ are neutral; each one is teaching the agent something.
 | Scaffold | Where | Removal condition |
 |---|---|---|
 | **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
-| **K1 kill-test tooling limits** (offline tools, not the engine or the policy): 20 s wall clock per game, at most 60 rows per card per set, target scale clamped at 1e-3 | `tools/k1/gen.py` `--game-timeout`, `tools/k1/curve.py` `--cap`, `tools/k1/train.py` `y_std` clamp | The timeout drops straggling games, biasing data toward short games: remove once straggling games are understood (an engine stall rule or a perf fix). The row cap stands in for per-card loss weighting: replace it with weighting. The clamp lets a lane with no training variance dominate pooled R² (/166): take scales from the union pool, or drop such lanes from pooled R². |
-| **Thirteen shaping reward terms** — damage, life, board presence, board delta, cards, action discovery, mana generation, proactivity, penalties | `strategic_brain/environment.py:164-211` | Replace with outcome plus at most a couple of defensible terms. A 200-step game currently accrues about +20 of shaping against ±10 for the actual result, so the agent is optimising the shaping. Remove once the engine is correct enough that winning is learnable directly. |
-| **Proactivity bias** — subtracts up to 10 nats from every pass action's logit | `strategic_brain/student.py:126-129` | Delete. It is applied at collection but not at training, which pins the PPO ratio to e^±10 on every pass action. It exists to fight "the agent passes", which is a symptom of the reward and the dead action space, not of the policy. |
-| **`MAX_MOVES_PER_STEP = 500`** | `rule_engine/engine.py` | Replace with the loop detection in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md) plus a wall-clock truncate-and-bootstrap. Currently it pays −10 to whoever found a combo. |
-| **Five-repeat action block** | `strategic_brain/train.py:169` | Same. A combo body executed five times is exactly this pattern, so the anti-stall heuristic is a combo filter. |
-| **100-step stall detector and forced mana stripping** | `strategic_brain/train.py:160,180-183` | Same. It dismantles a combo's mana engine mid-assembly. |
-| **Epsilon-greedy exploration with a 0.15 floor** | `strategic_brain/train.py:94` | Replace with an entropy bonus in the loss. At 0.31, a third of all actions are uniform random and the policy is decoration. |
-| **Four `1 - games/10000` difficulty ramps, a CMC step function, and a permanent SQL ban on every life-gain card** | `strategic_brain/teacher.py` | Replace with a self-play league. The "teacher" itself takes no optimizer step, so it is a frozen random MLP blended 50/50 with `random.random()`. |
-| **Seven cards special-cased by literal name string** | `rule_engine/card_data_loader.py:86-119`, `rule_engine/engine.py:216,326,89` | Directly violates this project's own `EFFECT_SYSTEM_MANDATES.md`. Remove when the ability tree in [`DESIGN_CARD_POOL.md`](DESIGN_CARD_POOL.md) can express them. |
-| **Hardcoded `torch.device("cuda")`** | `strategic_brain/student.py:34`, `teacher.py:37` | Route through `MTG_bot/utils/device.py`. On the dev box these silently fall back to CPU. |
 | **Trigger quarantine after `MAX_TRIGGER_FIRES = 200`** (registered 2026-10-24) | `core/executor/binding.py:29-30,132,1137` | A rules deviation: the runaway source's trigger is switched off for the rest of the game, so combos silently die. Replace with the loop shortcut and CR 104.4b handling in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md). |
 | **`TURN_CAP = 60` scored as a draw** (registered 2026-10-24) | `core/executor/games.py:131,1405-1407`; `tools/training/train_rl_v1.py:53` | A non-rules safety rail, and with draw = 0 > loss = -1 it pays a losing policy to stall (D10). Score it as a loss for both seats in training, report it separately in eval; remove once a real match clock exists. |
 | **Stall rule = draw after 3 identical rounds** (registered 2026-10-24) | `core/executor/games.py:150,1370-1379` | Same incentive problem as the cap. Keep it as a progress probe, score it like the cap until optional-loop actions exist. |
@@ -345,13 +335,13 @@ These are forks, not tasks. See the report that accompanied this audit.
    at a time. Whoever writes the belief-and-search design answers this before shipping it.
 
 ## Tickets 2026-10-07 (from T4 P1b review, PRE-EXISTING — not campaign-gated)
-- B-19: rule_engine test_keywords::test_flying REAL logic failure (no-flying blocker can
+- B-19 [MOOT 2026-11-05: rule_engine deleted]: rule_engine test_keywords::test_flying REAL logic failure (no-flying blocker can
   block a flyer; can_be_blocked_by=True). Legacy module outside campaign gates — decide:
   fix or deprecate rule_engine (duplicate engine surface?).
-- B-20: test_model::test_reasoning_loop_can_actually_iterate fails (passes_taken={1} of 8)
+- B-20 [MOOT 2026-11-05: strategic_brain deleted]: test_model::test_reasoning_loop_can_actually_iterate fails (passes_taken={1} of 8)
   -> ALL historical multi-pass latency numbers rest on a broken loop. Re-validate or mark
   legacy before any latency claim.
-- B-21: strategic_brain + test_full_system: 21 further failures, legacy.
+- B-21 [MOOT 2026-11-05: deleted]: strategic_brain + test_full_system: 21 further failures, legacy.
 - B-22: campaign gate scope decision: does M21 campaign ever run repo-wide pytest, or is
   core+tools the permanent contract? (Owner; affects §7 review completeness claims.)
 
@@ -410,7 +400,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   struck again on 2026-10-19). Default to a timestamped path.
 - **B-32 Fuzz with the model, not only RandomPolicy**: model play crashes the engine in about 5% of
   games (10/200, 12/200, 9/200 in the bc10 evals) while RandomPolicy fuzz reported 0/4000.
-- **B-33 Legacy quarantine decision (owner)**: `rule_engine/` and `strategic_brain/` are dead.
+- **B-33 [DONE 2026-11-05, branch `cleanup/legacy`: both packages, `attic/` and `known_failures.txt` deleted] Legacy quarantine decision (owner)**: `rule_engine/` and `strategic_brain/` are dead.
   Their 21 failing tests now run as strict expected failures (`MTG_bot/known_failures.txt`); the two
   D3/D11 gates still fail visibly. Decide whether to move both packages to `attic/`.
 - **B-34 `RandomPolicy.is_mana_activation` counts pure-TAP effects as mana abilities**
@@ -418,7 +408,7 @@ These are forks, not tasks. See the report that accompanied this audit.
   classified as tapping for mana. RandomPolicy survives because it still designates targets; the
   bench router's tap-all crashed on it until `SeatRouter._is_mana` required ADD_MANA and no target.
   It also skews RandomPolicy's own act weighting. Fix the predicate.
-- **B-35 Training modules monkeypatch the engine process-wide at import time**:
+- **B-35 [MOOT 2026-11-05, branch `cleanup/legacy`: the four modules are deleted, so the guard test and the `seat=` ban can go] Training modules monkeypatch the engine process-wide at import time**:
   `tools/training/packrec.py:149-150`, `packrec_v2.py:120`, `dagger_rollout_v3.py:169` and
   `puzzle_cert` replace `ExecCtx.take_decision` the moment they are imported. So any process, a
   test run included, that imports one of them plays every later game through a wrapper with the
@@ -1375,7 +1365,7 @@ These are forks, not tasks. See the report that accompanied this audit.
     so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No carrier
     has both: Ugin's [−X] has no target.
 - **B-22 resolved provisionally (2026-10-24)**: the contract is `pytest MTG_bot` (default markers)
-  plus `tools/check.sh` for `pytest tools` and the packs; baseline B0 in CLAUDE.md. Owner may override.
+  plus `tools/check.sh` for `pytest tools` and the packs; baseline B1 in CLAUDE.md. Owner may override.
 
 ### Parked 2026-10-24: the public LLM leaderboard
 

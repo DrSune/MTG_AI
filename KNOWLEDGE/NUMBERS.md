@@ -5,6 +5,22 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-05 (dead-code cleanup, branch `cleanup/legacy`; OWNER_PREFERENCES #2)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| tracked files / lines, whole repo | 3,956 / 5,299,758 -> **2,945 / 1,089,507** | `git ls-files` + newline count | Python: 452 files / 195,824 lines -> **237 / 144,631** |
+| `pytest MTG_bot` (baseline B1) | **4567 passed / 39 deselected / 66 subtests**, 0 failed | `TORCH_DISABLE_NATIVE_JIT=1 .venv/bin/python -m pytest MTG_bot -q` | dbd6e9d: 2 failed / 4587 passed / 40 deselected / 23 xfailed; every test removed was a legacy one |
+| `pytest tools` | **2 failed / 101 passed** | `TORCH_DISABLE_NATIVE_JIT=1 .venv/bin/python -m pytest tools -q` | dbd6e9d: 7 failed / 313 passed / 35 skipped; the 2 left (`tools/audit/test_ontology_conformance.py` V5) fail on dbd6e9d too |
+| scenario packs | **668/668** | `.venv/bin/python tools/run_scenarios.py` | unchanged |
+| red-first battery | 13 passed / 26 failed | `.venv/bin/python -m pytest MTG_bot -m red_first -q` | identical on dbd6e9d |
+
+Deleted code is last present at **dbd6e9d** (`git show dbd6e9d:<path>`): every command in this file or
+in KNOWLEDGE that names `MTG_bot/rule_engine`, `MTG_bot/strategic_brain`, `attic/`, `tools/training`,
+`tools/eval`, `tools/search` (other than `fork.py`), `tools/k1`, `tools/k2`, `tools/latency`,
+`tools/teacher`, `tools/board`, `tools/ops`, `tools/selfplay/vs_legacy.py`, `tools/measure_grammar.py`,
+`tools/make_replay.py` or a deleted `tools/audit` script runs from that commit.
+
 ## 2026-11-03 (Claude takeover — tools/selfplay, M21 castable; KNOWLEDGE/2026-11-03/182)
 
 | Number | Value | Command | Notes |
