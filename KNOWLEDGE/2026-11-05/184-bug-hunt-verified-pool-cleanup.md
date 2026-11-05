@@ -129,3 +129,40 @@ Measured on the branches (fixers' own runs, same seeds before/after):
   Wilson. And teacher gates drew the ladder's fixed deals, so §32's "unselected" label for r15's
   frozen versions is wrong (v2-v6 froze on gates covering all 150 ladder deals). Gates now use
   per-deal intervals on fresh deal blocks, teacher gates included.
+
+## 7. Round two: red-team of round one, a second fix wave, and its red-team
+**Red-team of round one** (read-only agents, 2,000 games before and after each, plus adversarial
+scenarios): all 11 rules fixes SOLID; every original failure reproduced on 8c8100e and was gone
+on the integration branch; every rules invariant at 0. The player-loss fix exposed one older hole:
+simultaneous triggers resolved in fixed seat order, so a mutual-lethal trigger race always went to
+seat 0 (now reverse APNAP, CR 603.3b). Interface and learning: payment never missed a payment in
+~97,000 brute-force checks; name asks changed 0/200 under hidden-card rewrites (200/200 before);
+the void bootstrap leaves no escape; the bf16 acting / fp32 training ratio is unbiased (mean
+0.9996). Follow-ups fixed: crashed search worlds are scored neutrally (they were dropped: a move
+was scored only on the worlds it survived), the KL early stop acts per minibatch (it ran only
+between epochs, so never at --epochs 1), X rows in combat windows, Goblin Arsonist's may.
+
+**Second fix wave** (bugs the M20 mappers found, each checked first against the verified pool):
+- Effects: CR 400.7 new objects (43 verified cards kept effects after a bounce and replay),
+  last-known controller (Massacre Wurm on a stolen creature), effects outliving their source
+  (B-50, CR 611.2a), Frost Breath per controller (B-113), sacrifice choice, condition subject,
+  counter prevention, draw replacement.
+- Stack: CR 608.2b target recheck (88 verified cards have targets; Heartfire Immolator targeting
+  itself damaged itself in the graveyard), permission-cast timing (Idol of Endurance), APNAP,
+  modal triggers, no state-based actions mid-resolution (CR 704.3), dies-trigger binding,
+  "a spell that targets this", and compiler templates (a free player target in ZNR's Synchronized
+  Spellcraft; an orphaned "If you do" drawing a card on cast for 23 partly compiled cards).
+
+**Red-team of the second wave**: stack family six SOLID, two PARTIAL (triggers still pick targets
+at resolution; one player's simultaneous triggers are not ordered by the player: both deferred to
+docs/BACKLOG.md, weaker or rare); effects family seven SOLID, two PARTIAL and one regression, all
+from CR 400.7 being cut at two moments: granted deathtouch/lifelink lost by a source that left
+(regression; Heartfire Immolator, Pitchburn Devils, Goblin Arsonist), a dead card keeping its P/T
+boosts until end of turn (Carrion Grub read a pumped corpse as 6/5: stronger, steerable), and a
+stolen creature's dies trigger going to its owner (older). Being fixed with one departure cut and
+one last-known-information snapshot. Measured over 2,000 games each: 0 crashes, mean turns 24.27,
+seat 0 50.8%, 99.0% decisive, before and after.
+
+Not reproducible as filed, by the red-teams' account: the round-one claim that Idol of Endurance's
+timing bug was live in training (only the active player gets an activation window in the rig);
+the Mystic Forge and Cavalier packs needed corrections to show their bugs.
