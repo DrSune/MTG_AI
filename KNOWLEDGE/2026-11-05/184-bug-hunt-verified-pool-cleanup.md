@@ -74,5 +74,14 @@ verification (docs/PLAN_CARD_ONBOARDING.md).
 - Learner slimming in progress on fix/selfplay-slim: expert-iteration targets, the separate value
   network, the KL anchor and the card allow-list go; a run manifest comes in.
 - Branches: the two unmerged local-agent branches (rl/rl-v2-offline-core, era/dryrun-2026-11-03)
-  were pushed to origin so nothing is lost. Deleting the 21 merged local and 20 merged remote
-  branches needs the owner's go-ahead (the permission classifier blocked it).
+  were pushed to origin so nothing is lost. With the owner's go-ahead, the 21 local and 17 remote
+  branches whose tips are ancestors of main were deleted (`git merge-base --is-ancestor` checked
+  each; names and SHAs were recorded before deletion).
+- Checkpoints (owner's go-ahead): runs/selfplay 6.7 GB -> 439 MB. Kept every metrics, eval-row
+  and log file, and the four checkpoints still referenced: r15_ppo/v1.pt (the deployed search
+  model, /183 §25), r15_ppo/v6.pt (generalisation, §35), r16_ppo/last.pt and r17_ppo/last.pt.
+- Pack runner, second check: a decision word written by the pack that its ask does not offer
+  fails the pack (it used to fall back to the first word silently). 14 of 1,162 packs fail: queues
+  shifted by asks the merge added (B-78's zone choice, may-asks), keys that never resolve, a
+  negative assertion that rode on the fallback, and Necromentia naming a card the leaky name
+  vocabulary did not list. "first-legal" (5 packs, undocumented) is now an explicit word.
