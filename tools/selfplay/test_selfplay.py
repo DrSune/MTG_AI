@@ -421,3 +421,12 @@ def test_gae_bootstraps_a_truncated_game() -> None:
     assert np.isclose(end[-1], -0.2) and cut[-1] == 0.0
     # a cut-off game is never worth more than playing the position out would be expected to be
     assert np.allclose(cut, [(-0.6) + 0.95 * (-0.4), -0.4, 0.0])
+
+
+def test_learner_refuses_init_flags_without_init() -> None:
+    """--refresh-table, --extend-sets and --mask-names act on the --init checkpoint; without
+    --init they were silently ignored (2026-11-05 cleanup review)."""
+    from tools.selfplay.learner import parse
+    with pytest.raises(SystemExit):
+        parse(["--run", "/tmp/x", "--refresh-table"])
+    assert parse(["--run", "/tmp/x", "--init", "a.pt", "--refresh-table"]).refresh_table

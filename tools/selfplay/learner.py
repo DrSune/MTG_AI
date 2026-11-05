@@ -1175,7 +1175,11 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="answer inference from bf16 copies of the models (1.6-1.9x faster)")
     p.add_argument("--mem-floor-gib", type=float, default=8.0,
                    help="stop the run (emergency checkpoint) below this much MemAvailable")
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    needs_init = [f for f in ("refresh_table", "extend_sets", "mask_names") if getattr(args, f)]
+    if needs_init and not args.init:  # they act on the --init checkpoint; never ignore them
+        p.error(", ".join("--" + f.replace("_", "-") for f in needs_init) + " require --init")
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:

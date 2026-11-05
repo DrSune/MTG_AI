@@ -1431,3 +1431,16 @@ when every gate holds: the priority and full-stack rung has landed; the engine-e
 an agreed bound on a model-driven soak; engine, pool and harness hashes are frozen per season; the
 W&B key in history is revoked; a private split exists outside the public repo.
 
+
+## Self-play stack follow-ups (2026-11-05 cleanup, KNOWLEDGE/2026-11-05/184)
+- **Spawned workers import torch (~530 MB each, ~9.5 GB for 18 workers).** Spawn re-imports the
+  parent's main module (tools.selfplay.learner, which imports torch) in every child; the workers
+  themselves only send inference requests. Fix: launch through a torch-free entry module, or make
+  learner.py's torch imports lazy. Memory, not correctness.
+- **Optimizer state is not saved for resume.** A resumed run restarts AdamW's moments, so its
+  first updates differ from an uninterrupted run. Save the trainer's optimizer state with
+  state.pkl (the trainer process owns it).
+- **An eval running at a resume is lost** (queued ones survive). Re-queue in-flight evals.
+- **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
+  targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
+  columns, zero-initialised on load like new ask kinds.
