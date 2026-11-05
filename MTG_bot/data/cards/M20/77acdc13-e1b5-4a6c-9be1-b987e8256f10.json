@@ -197,5 +197,37 @@
  },
  "probe": {
   "sha": "95dfb26f18c6610845dc00f55bf4a36580bdd0030bd87ff69cffe45fc07ab5bd"
+ },
+ "verified": {
+  "tree_sha": "755c0bbc05ec81df7323eef01a19eb158a938764cdf762575e07d2c0cbf8a2b2",
+  "probe_sha": "95dfb26f18c6610845dc00f55bf4a36580bdd0030bd87ff69cffe45fc07ab5bd",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Look at the top seven cards of your library.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe library holds 6 cards, so the depth is not shown. Pack drawn_from_dreams_top_seven.json (10-card library: the picks reach Lib 3, the 7th card) PASS on live and this tree; the variant neg/drawn_from_dreams_eighth_card_wrong.json FAILS as it should: Lib 2 (8th) is not offered (one_of offers card:4..card:9 only).",
+    "issue": ""
+   },
+   {
+    "clause": "Put two of them into your hand and the rest on the bottom of your library in a random order.",
+    "status": "OK",
+    "evidence": "two to hand shown: [cast] two one_of asks, you:Library 0#1 and 1#1 move library -> hand; the rest are only 'targeted (by card/REST)'. Packs: drawn_from_dreams_top_seven.json (the five others at the bottom, any order) PASS; the diagnostic packs neg/drawn_from_dreams_fixed_order_seed{7,11,23,101}.json, which pin the bottom five in their original relative order (Lib 8, Lib 7, Lib 6, Lib 5, Lib 4), PASS for all four seeds, on the live tree and this tree.",
+    "issue": "'in a random order' is not implemented: the rest always keep their original relative order (known open gap tools/scenarios/known_bugs/2026-11-05/random_order_is_fixed: the IR has no order role). The player learns the exact order of the bottom cards, which printed text hides (a small hidden-information leak, stronger than printed). [orchestrator, B-81: a fixed 'random order' is information only; kept, as Garruk's Harbinger]"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/drawn_from_dreams_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 11,
+   "score": 0.8461538461538461,
+   "survived": [
+    "amount+1 at 1/0/effect/steps/0/args/count",
+    "amount-1 at 1/0/effect/steps/0/args/count"
+   ]
+  }
  }
 }
