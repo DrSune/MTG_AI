@@ -1,0 +1,44 @@
+{
+ "name": "mana_empties_at_owner_next_turn",
+ "note": "CR 500.4 approximation (2026-11-05, KNOWLEDGE/2026-11-03/183 §33): a pool empties at the transition into its owner's next turn; before this, pools never emptied and tapped mana banked forever (a four-land player cast a seven-mana creature).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  }
+ }
+}

@@ -2174,6 +2174,15 @@ class Executor:
                 # An END_TURN atom already closed the turn inside the op —
                 # never emit a second END_TURN marker for it.
                 self.end_turn()
+            # Mana empties (CR 500.4, approximated; KNOWLEDGE/2026-11-03/183 §33). The engine
+            # pays only from the pool and taps sources through explicit mana activations, so
+            # unspent mana stands in for lands held up through the opponent's turn; it empties
+            # (with its restricted-mana segments) at the transition into its owner's next
+            # turn. Before 2026-11-05 pools never emptied: tapped mana accumulated turn after
+            # turn and a four-land player cast a seven-mana creature on banked mana. Here, not
+            # in begin_turn, so a position built by hand (a scenario pack's mana) is kept.
+            self.world.players[nxt].mana_pool.clear()
+            self.mana_ledger.segments.pop(nxt, None)
         return self.begin_turn(nxt)
 
     def end_turn(self) -> int:

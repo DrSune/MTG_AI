@@ -54,6 +54,16 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "C": 8,
+    "R": 8,
+    "G": 8,
+    "W": 8
+   }
+  },
+  {
    "op": "cast",
    "key": "wd",
    "real": "Alpine Watchdog",

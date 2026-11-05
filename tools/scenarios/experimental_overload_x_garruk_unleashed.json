@@ -83,6 +83,14 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "U": 4,
+    "R": 4
+   }
+  },
+  {
    "op": "cast",
    "real": "Experimental Overload",
    "key": "eo",

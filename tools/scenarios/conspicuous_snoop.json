@@ -41,7 +41,12 @@
    "op": "advance_turn"
   },
   {
-   "op": "advance_turn"
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 30,
+    "R": 30
+   }
   },
   {
    "op": "advance_turn"
@@ -50,7 +55,12 @@
    "op": "advance_turn"
   },
   {
-   "op": "advance_turn"
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 30,
+    "R": 30
+   }
   },
   {
    "op": "advance_turn"
@@ -59,7 +69,12 @@
    "op": "advance_turn"
   },
   {
-   "op": "advance_turn"
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 30,
+    "R": 30
+   }
   },
   {
    "op": "advance_turn"
@@ -68,7 +83,40 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 30,
+    "R": 30
+   }
+  },
+  {
    "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 30,
+    "R": 30
+   }
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 30,
+    "R": 30
+   }
   },
   {
    "op": "activate",
@@ -107,5 +155,5 @@
    "1": 20
   }
  },
- "notes": "r20b: REVEAL payload static installs as a lifetime 'disclosure' layer (play-with-top-revealed is a zone-knowledge rule, the verb lane's recorded no-op doctrine extended to DurationPermanent statics). The compiled no-cost 'cast a Goblin from the top' activation is LIVE: with an empty library the may-offer answers 'skip' and the effect resolves doing nothing; Snoop stands. eval-granularity 2026-10-05: the activation now has a target: twelve cycles burn the fillers and\nGoblin Arsonist sits on top; 'fire' reveals the Goblin and casts it for free \u2014 battlefield/library\nlanes falsify the skip (null) replay."
+ "notes": "r20b: REVEAL payload static installs as a lifetime 'disclosure' layer (play-with-top-revealed is a zone-knowledge rule, the verb lane's recorded no-op doctrine extended to DurationPermanent statics). The compiled no-cost 'cast a Goblin from the top' activation is LIVE: with an empty library the may-offer answers 'skip' and the effect resolves doing nothing; Snoop stands. eval-granularity 2026-10-05: the activation now has a target: twelve cycles burn the fillers and\nGoblin Arsonist sits on top; 'fire' reveals the Goblin and casts it for free — battlefield/library\nlanes falsify the skip (null) replay."
 }

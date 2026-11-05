@@ -66,6 +66,13 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 2
+   }
+  },
+  {
    "op": "cast",
    "key": "s1",
    "real": "Shock",

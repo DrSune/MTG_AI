@@ -29,6 +29,8 @@ Pack vocabulary (all keys required as noted):
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
               "decisions": [str...]},
              {"op": "end_turn"} | {"op": "advance_turn"},
+             {"op": "mana", "seat": s, "add": {"R": 1}}   add to a seat's pool (a pool
+                                            empties at the transition into its owner's turn)
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
              {"op": "play", "key": k}       17a: the REAL land drop (CR
@@ -424,6 +426,16 @@ class ScenarioRunner:
             # minus ability with a big cost (Herald's -7) is payable.
             handle = self.handles[step["key"]]
             self.world.cards[handle].counters["LOYALTY"] = int(step["set"])
+        elif op == "mana":
+            # harness pool write (the loyalty/life convention): ADD mana to a seat's pool, the
+            # engine's stand-in for lands held up. Since 2026-11-05 a pool empties at the
+            # transition into its owner's turn (Executor.advance_turn, CR 500.4 approximation),
+            # so a pack that spends mana after its owner's turn has passed grants it here.
+            # Adding (never setting) keeps whatever the turn's own triggers produced visible.
+            pool = self.world.players[self.seats[int(step["seat"])]].mana_pool
+            for color, n in step["add"].items():
+                if int(n):
+                    pool[color] = pool.get(color, 0) + int(n)
         elif op == "life":
             # r20c (Speaker of the Heavens) harness ledger write (same
             # convention as the loyalty seed): set a seat's life directly.

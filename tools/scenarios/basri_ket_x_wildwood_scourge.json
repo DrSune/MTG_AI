@@ -40,6 +40,14 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "C": 4,
+    "G": 4
+   }
+  },
+  {
    "op": "cast",
    "key": "scourge",
    "real": "Wildwood Scourge",

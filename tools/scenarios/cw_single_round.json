@@ -55,10 +55,24 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "G": 2
+   }
+  },
+  {
    "op": "end_turn"
   },
   {
    "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
   },
   {
    "op": "combat",

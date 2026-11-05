@@ -30,6 +30,13 @@
    "op": "advance_turn"
   },
   {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2
+   }
+  },
+  {
    "op": "cast",
    "key": "r1"
   }

@@ -2335,10 +2335,15 @@ class StallRuleTest(unittest.TestCase):
         # asks consume policy RNG draws on the new sites, so the seeded
         # trajectory shifts again — still decisive, SAME loser, 30 turns
         # (double-run replay verified).
-        game = play_game(73, "all", SMOKE_DECK_PAIRS)
+        # RE-ANCHORED 2026-11-05 (KNOWLEDGE/2026-11-03/183 §33): mana pools empty at the
+        # transition into their owner's turn instead of banking forever, so random play
+        # casts less and seed 73 now runs to the turn cap (still no stall). Seed 60 is the
+        # longest decisive game among seeds 60-99 under the new rule: 59 turns, player 1
+        # loses (double-run replay verified).
+        game = play_game(60, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 30)
-        self.assertEqual(game.reason, "game over: player:0(life<=0)")
+        self.assertEqual(game.turns, 59)
+        self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

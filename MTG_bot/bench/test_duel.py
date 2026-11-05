@@ -47,8 +47,11 @@ def test_pass_against_itself_is_all_cap_draws_at_exactly_half() -> None:
 
 
 def test_uniform_beats_pass_on_the_same_deals() -> None:
+    # Turn cap 60 (the engine's TURN_CAP): since mana pools empty each turn (2026-11-05,
+    # CR 500.4 approximation) a uniform player must tap and cast within one turn, so it needs
+    # more turns to get a threat down than when tapped mana banked forever (cap 30 -> 6 draws).
     rng.seed_all(7, seed_frameworks=False)
-    deals = [DealSpec(seed=s, turn_cap=30) for s in range(1, 4)]
+    deals = [DealSpec(seed=s, turn_cap=60) for s in range(1, 4)]
     summary = summarize(
         run_match(uniform, passive, deals, name_a="uniform", name_b="pass")
     )
