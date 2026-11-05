@@ -240,10 +240,12 @@ class LayerRecord:
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
     PT target to its DurationLedger record id. ``resolved`` marks a record
-    a RESOLVED spell or ability created with a duration (B-59: a dispatched
-    "mandate"/"mandate_block" with fixed ``targets``): CR 611.2a, it lasts
-    as long as its duration says, so its source leaving the battlefield
-    does not end it (:meth:`LayerRegistry.detach_source` skips it).
+    a RESOLVED spell or ability created (B-59: a dispatched "mandate"/
+    "mandate_block" with fixed ``targets``; B-50: the runtime "grant",
+    "lose" and "type_grant" records): CR 611.2a, it lasts as long as its
+    duration says, so its source leaving the battlefield does not end it
+    (:meth:`LayerRegistry.detach_source` skips it; an UntilLeaves duration
+    still ends it, :meth:`LayerRegistry.expire_leaves`).
     """
 
     seq: int
@@ -290,7 +292,7 @@ class LayerRegistry:
         # to its other types") — rebuilt alongside the keyword/granted maps,
         # read by the TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ filter evaluator.
         self._types: dict[Handle, tuple[str, ...]] = {}
-        # B-59: the ``resolved`` records (a subset of ``records``), so the
+        # B-59: the resolved MANDATE records (a subset of ``records``), so the
         # per-departure :meth:`forget_departed` scan stays O(resolved).
         self._resolved: list[LayerRecord] = []
 
@@ -435,7 +437,7 @@ class LayerRegistry:
         — now a real layer; durations respected incl. until-end-of-turn
         grants, tested with an Embercleave-style EoT keyword grant)."""
         return self._new(
-            "grant", source, controller, ability, targets, duration=duration
+            "grant", source, controller, ability, targets, duration=duration, resolved=True
         )
 
     def register_lose(
@@ -449,7 +451,7 @@ class LayerRegistry:
         """The runtime LOSE_ABILITY verb (Soul-Sear family): removal matches
         printed AND granted payloads (see the module-level matchers)."""
         return self._new(
-            "lose", source, controller, ability, targets, duration=duration
+            "lose", source, controller, ability, targets, duration=duration, resolved=True
         )
 
     def _new(
@@ -751,7 +753,13 @@ class LayerRegistry:
         `_new_static`) covers the PRINTED Anthems-style GRANT_TYPE; this is
         the trigger-dispatched sibling. :meth:`type_overlay` reads both."""
         return self._new(
-            "type_grant", source, controller, (atom,), targets, duration=duration
+            "type_grant",
+            source,
+            controller,
+            (atom,),
+            targets,
+            duration=duration,
+            resolved=True,
         )
 
     def register_activation_grant(

@@ -17,6 +17,11 @@ CR 608.2h "Its controller" after the object left the battlefield is the controll
           on a creature Traitorous Greed took). CR 603.10a: a dies trigger looks back in time,
           so Massacre Wurm's "a creature an opponent controls dies, that player loses 2 life"
           reads the controller at death.
+CR 611.2a An effect a resolved spell or ability created lasts as long as its duration says,
+          whatever happens to its source (B-50: Keen Glidemaster's flying, Pack Leader's damage
+          prevention, Subira's "can't be blocked", Mu Yanling's "loses flying until your next
+          turn" ended when the source left), and a "can't block" with no end or "until your next
+          turn" applies at all (known_bugs cant_block_needs_until_end_of_turn).
 """
 
 from __future__ import annotations
@@ -29,10 +34,13 @@ from MTG_bot.core.ability_tree import (
     Conditional,
     ControllerRef,
     CounterKind,
+    DeclareBlockersEvent,
     DurationEot,
+    DurationUntilNextTurn,
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     Keyword,
     KeywordAbility,
     PtDelta,
@@ -382,6 +390,96 @@ class TestCR6082hLastKnownController(unittest.TestCase):
                     bear("obear", 1)], mana={"0": {"W": 2}})
         r.run_step({"op": "cast", "key": "x", "controller": 0, "targets": ["obear"]})
         self.assertEqual(self.token_seats(r, "Angel"), [1])
+
+
+
+class TestCR6112aResolvedEffectsOutliveTheirSource(unittest.TestCase):
+    def test_granted_flying_stays_when_the_granter_leaves(self):
+        r = runner([{"key": "kg", "real": "Keen Glidemaster", "zone": "battlefield", "controller": 0},
+                    bear("bear", 0)], mana={"0": {"U": 3}})
+        r.run_step({"op": "activate", "key": "kg", "idx": 0, "seat": 0, "targets": ["bear"]})
+        r.run_step({"op": "move", "key": "kg", "to": "graveyard"})
+        self.assertTrue(r.ex.layers.keyword_of(r.handles["bear"], "FLYING"))
+        r.run_step({"op": "end_turn"})
+        self.assertFalse(r.ex.layers.keyword_of(r.handles["bear"], "FLYING"))  # until end of turn
+
+    def test_cant_be_blocked_stays_when_subira_leaves(self):
+        r = runner([{"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield",
+                     "controller": 0}, bear("runner", 0), bear("obear", 1)], mana={"0": {"C": 1}})
+        r.run_step({"op": "activate", "key": "sub", "idx": 0, "seat": 0, "targets": ["runner"]})
+        r.run_step({"op": "move", "key": "sub", "to": "graveyard"})
+        self.assertTrue(r.ex.replacements.prevents_block_declaration(
+            r.handles["obear"], r.handles["runner"]))
+
+    def test_damage_prevention_stays_when_pack_leader_leaves(self):
+        r = runner([{"key": "pl", "real": "Pack Leader", "zone": "battlefield", "controller": 0},
+                    {"key": "dog", "name": "Dog", "type": "Creature — Dog", "power": "2",
+                     "toughness": "2", "zone": "battlefield", "controller": 0}])
+        pl, dog = r.handles["pl"], r.handles["dog"]
+        trigger = r.ex.binder.handle_record[pl].abilities[1]
+        r.ex.apply_effect(trigger.effect, source=pl, controller=r.p0)
+        r.run_step({"op": "move", "key": "pl", "to": "graveyard"})
+        ctx = r.ex._ctx(source=pl, controller=r.p1, bindings=None, decisions=())
+        self.assertIsNotNone(r.ex.replacements.prevented_card_damage(ctx, dog, combat=True))
+
+    def test_a_resolved_effect_about_its_source_ends_with_that_object(self):
+        # Ghostly Pilferer: "Discard a card: Ghostly Pilferer can't be blocked this turn." The
+        # effect outlives the Pilferer's leaving, but it is about that object: a Pilferer that
+        # comes back the same turn is a new object, and can be blocked (CR 400.7).
+        r = runner([{"key": "gp", "real": "Ghostly Pilferer", "zone": "battlefield", "controller": 0},
+                    {"key": "card", "name": "Card", "type": "Sorcery", "zone": "hand", "controller": 0},
+                    bear("obear", 1)])
+        r.run_step({"op": "activate", "key": "gp", "idx": 2, "seat": 0, "decisions": ["card"]})
+        gp, obear = r.handles["gp"], r.handles["obear"]
+        self.assertTrue(r.ex.replacements.prevents_block_declaration(obear, gp))
+        leave_and_return(r, "gp")
+        self.assertFalse(r.ex.replacements.prevents_block_declaration(obear, gp))
+
+    def test_lost_flying_stays_lost_until_the_next_turn_when_the_source_leaves(self):
+        # Mu Yanling, Sky Dancer's +2 (known_bugs b50_grant_ends_with_source): "Until your next
+        # turn, up to one target creature ... loses flying."
+        r = runner([bear("mu", 0), {"key": "drake", "name": "Drake", "type": "Creature — Drake",
+                                    "power": "3", "toughness": "3", "keywords": ["FLYING"],
+                                    "zone": "battlefield", "controller": 1}])
+        drake = r.handles["drake"]
+        r.ex.execute(Atom(Verb.LOSE_ABILITY, AtomArgs((
+            ("ability", KeywordAbility(Keyword.FLYING)), ("duration", DurationUntilNextTurn()),
+            ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),
+        ))), source=r.handles["mu"], controller=r.p0, bindings={"target": [drake]})
+        r.run_step({"op": "advance_turn"})  # the opponent's turn
+        r.run_step({"op": "move", "key": "mu", "to": "graveyard"})
+        self.assertFalse(r.ex.layers.keyword_of(drake, "FLYING"))
+        r.run_step({"op": "advance_turn"})  # your next turn: it ends
+        self.assertTrue(r.ex.layers.keyword_of(drake, "FLYING"))
+
+    def cant_block(self, duration):
+        """A resolved sorcery's "Creatures without flying can't block" (Tectonic Rift's second
+        sentence) with the given duration; the sorcery is in the graveyard."""
+        r = runner([{"key": "rift", "name": "Rift", "type": "Sorcery", "zone": "graveyard",
+                     "controller": 0}, bear("bear", 0), bear("giant", 1)])
+        nonflyer = FAnd((FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                         FNot(FAtom(FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING))))
+        roles = [("condition", UNIV), ("event", DeclareBlockersEvent(filter=nonflyer))]
+        if duration is not None:
+            roles.append(("duration", duration))
+        r.ex.execute(Atom(Verb.PREVENT_EFFECT, AtomArgs(tuple(roles))),
+                     source=r.handles["rift"], controller=r.p0)
+        return r, lambda: r.ex.replacements.prevents_block_declaration(
+            r.handles["giant"], r.handles["bear"])
+
+    def test_a_resolved_cant_block_with_no_end_applies(self):
+        r, vetoed = self.cant_block(None)
+        self.assertTrue(vetoed())
+        r.run_step({"op": "advance_turn"})
+        self.assertTrue(vetoed())
+
+    def test_a_resolved_cant_block_until_your_next_turn_applies(self):
+        r, vetoed = self.cant_block(DurationUntilNextTurn())
+        self.assertTrue(vetoed())
+        r.run_step({"op": "advance_turn"})  # the opponent's turn: still on
+        self.assertTrue(vetoed())
+        r.run_step({"op": "advance_turn"})  # your next turn: over
+        self.assertFalse(vetoed())
 
 
 if __name__ == "__main__":

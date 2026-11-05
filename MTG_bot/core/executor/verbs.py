@@ -1234,7 +1234,7 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
         if eval_filter(condition, h, ctx) and all(eval_filter(f, h, ctx) for f in bound)
     )
     ctx.replacements.register_prevention(
-        ctx.source, ctx.controller, condition, event, step, duration, targets
+        ctx.source, ctx.controller, condition, event, step, duration, targets, resolved=True
     )
     ctx.events.append(
         (

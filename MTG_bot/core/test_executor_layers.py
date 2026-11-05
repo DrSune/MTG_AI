@@ -400,17 +400,18 @@ class TestKeywordLayers(LayerCase):
         self.ex.begin_turn(self.p1)
         self.assertTrue(self.ex.layers.keyword_of(self.alpha, Keyword.TRAMPLE))
 
-    def test_lose_removes_a_printed_keyword_and_detach_restores(self):
+    def test_lose_removes_a_printed_keyword_and_outlives_its_source(self):
         self.attach(self.beta, [], keywords=(KeywordAbility(Keyword.FLYING),))
         self.assertTrue(self.ex.layers.keyword_of(self.beta, Keyword.FLYING))
         self.lose([self.beta], Keyword.FLYING, source=self.banner, ctrl=self.p0)
         self.assertFalse(self.ex.layers.keyword_of(self.beta, Keyword.FLYING))
-        # The LOSE layer's SOURCE is the aura, not the victim: detaching
-        # the victim keeps the printed keyword under the (still live) lose
-        # layer; detaching the AURA is what ends the LOSE layer.
+        # The LOSE layer was made by a resolving effect (the verb), not by a
+        # static ability of its source: detaching the source does not end it
+        # (CR 611.2a, B-50; this pin used to assert the opposite). With no
+        # duration stated it lasts the game.
         self.ex.binder.detach(self.banner)
         self.settle()
-        self.assertTrue(self.ex.layers.keyword_of(self.beta, Keyword.FLYING))
+        self.assertFalse(self.ex.layers.keyword_of(self.beta, Keyword.FLYING))
 
     def test_layer_seq_order_is_the_tiebreak(self):
         # later registration wins the SAME keyword (the dump-order rule):

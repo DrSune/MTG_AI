@@ -91,6 +91,7 @@ from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
+    _filter_names_the_source,
     controller_matches,
 )
 from MTG_bot.core.identity import Handle
@@ -138,7 +139,11 @@ class ReplacementRecord:
 
 @dataclass
 class PreventionRecord:
-    """One PREVENT_EFFECT record: event veto + step + affected set."""
+    """One PREVENT_EFFECT record: event veto + step + affected set.
+
+    ``resolved``: a resolving spell or ability made it (the PREVENT_EFFECT verb), not a static
+    ability. CR 611.2a: it lasts as long as its duration says, whatever happens to its source;
+    a static carrier works only while its source is on the battlefield."""
 
     seq: int
     source: Handle
@@ -150,6 +155,7 @@ class PreventionRecord:
     duration: Duration | None = None
     condition: Filter | None = None
     status: str = "live"  # live | dormant | expired
+    resolved: bool = False
 
 
 class ReplacementRegistry:
@@ -200,7 +206,7 @@ class ReplacementRegistry:
                 rec.status = "expired"
                 expired += 1
         for rec in self.preventions:
-            if rec.source == handle and rec.status != "expired":
+            if rec.source == handle and rec.status != "expired" and not rec.resolved:
                 rec.status = "expired"
                 expired += 1
         return expired
@@ -257,9 +263,11 @@ class ReplacementRegistry:
         step: Step | None,
         duration: Duration | None,
         targets: tuple[Handle, ...],
+        resolved: bool = False,
     ) -> PreventionRecord:
         """The PREVENT_EFFECT verb's runtime registration (targets already
-        materialized from the cast's designated set)."""
+        materialized from the cast's designated set, ``resolved`` True), and a
+        static carrier's (layers._new_static)."""
         self._seq += 1
         rec = PreventionRecord(
             seq=self._seq,
@@ -272,6 +280,7 @@ class ReplacementRegistry:
             event=event,
             step=step,
             targets=targets,
+            resolved=resolved,
         )
         self.preventions.append(rec)
         return rec
@@ -580,8 +589,8 @@ class ReplacementRegistry:
                 )
             if rec.targets and victim not in rec.targets:
                 continue
-            if not self._source_alive(rec.source):
-                continue
+            if not rec.resolved and not self._source_alive(rec.source):
+                continue  # a static carrier works while its source is there (CR 611.2a)
             rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
             if event.filter is not None and not eval_filter(
                 event.filter, victim, rec_ctx
@@ -883,10 +892,10 @@ class ReplacementRegistry:
                 if card in rec.targets:
                     return True
                 continue
-            if rec.duration is None and not self._source_alive(rec.source):
+            if not rec.resolved and not self._source_alive(rec.source):
                 # a static carrier works while its source is on the
-                # battlefield; a resolved effect with a duration outlives its
-                # source (CR 611.2a, the _pair_vetoed rule)
+                # battlefield; a resolved effect outlives its source (CR
+                # 611.2a, the _pair_vetoed rule)
                 continue
             ctx = self._rec_ctx(rec, card)
             if not self._condition_holds(rec, card, ctx):
@@ -944,15 +953,12 @@ class ReplacementRegistry:
         if rec.status == "expired":
             return False
         # C5 (Destructive Tampering "can't block this turn"): a RESOLVED
-        # until-end-of-turn effect outlives its source (CR 611.2a — the
-        # sorcery is long in the graveyard by the declare-blockers step).
-        # Only the time-bounded DurationEot shape is exempt — its single
-        # expiry is the EOT sweep (tag "Eot"). Static carriers (duration
-        # None, registered through the battlefield lifecycle) and WHILE-
-        # gated records keep the liveness gate exactly as before.
-        if not isinstance(rec.duration, DurationEot) and not self._source_alive(
-            rec.source
-        ):
+        # effect outlives its source (CR 611.2a — the sorcery is long in the
+        # graveyard by the declare-blockers step), whatever its duration: a
+        # "can't block" with no end or until your next turn applies too (it
+        # used to need DurationEot). Static carriers (registered through the
+        # battlefield lifecycle) keep the liveness gate.
+        if not rec.resolved and not self._source_alive(rec.source):
             return False
         ctx = self._rec_ctx(rec, subject)
         if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
@@ -1051,9 +1057,7 @@ class ReplacementRegistry:
             event = rec.event
             if not isinstance(event, AbilityActivatedEvent) or rec.status == "expired":
                 continue
-            if not isinstance(rec.duration, DurationEot) and not self._source_alive(
-                rec.source
-            ):
+            if not rec.resolved and not self._source_alive(rec.source):
                 continue
             ctx = self._rec_ctx(rec, permanent)
             if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
@@ -1097,10 +1101,22 @@ class ReplacementRegistry:
         filter instead. Returns the number of records touched."""
         touched = 0
         for rec in self.preventions:
-            if rec.status != "expired" and handle in rec.targets:
+            if rec.status == "expired":
+                continue
+            if handle in rec.targets:
                 rec.targets = tuple(t for t in rec.targets if t != handle)
                 if not rec.targets:
                     self._expire(rec)
+                touched += 1
+            elif (
+                rec.resolved
+                and rec.source == handle
+                and rec.condition is not None
+                and _filter_names_the_source(rec.condition)
+            ):
+                # "Ghostly Pilferer can't be blocked this turn": a resolved effect about its
+                # own source (CR 611.2a lets it outlive the source) ends with that object.
+                self._expire(rec)
                 touched += 1
         for repl in self.replacements:
             if repl.status != "expired" and handle in repl.designated:
