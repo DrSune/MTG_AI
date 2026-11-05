@@ -91,6 +91,7 @@ from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
+    _filter_names_the_source,
     controller_matches,
 )
 from MTG_bot.core.identity import Handle
@@ -138,7 +139,11 @@ class ReplacementRecord:
 
 @dataclass
 class PreventionRecord:
-    """One PREVENT_EFFECT record: event veto + step + affected set."""
+    """One PREVENT_EFFECT record: event veto + step + affected set.
+
+    ``resolved``: a resolving spell or ability made it (the PREVENT_EFFECT verb), not a static
+    ability. CR 611.2a: it lasts as long as its duration says, whatever happens to its source;
+    a static carrier works only while its source is on the battlefield."""
 
     seq: int
     source: Handle
@@ -150,6 +155,7 @@ class PreventionRecord:
     duration: Duration | None = None
     condition: Filter | None = None
     status: str = "live"  # live | dormant | expired
+    resolved: bool = False
 
 
 class ReplacementRegistry:
@@ -200,7 +206,7 @@ class ReplacementRegistry:
                 rec.status = "expired"
                 expired += 1
         for rec in self.preventions:
-            if rec.source == handle and rec.status != "expired":
+            if rec.source == handle and rec.status != "expired" and not rec.resolved:
                 rec.status = "expired"
                 expired += 1
         return expired
@@ -257,9 +263,11 @@ class ReplacementRegistry:
         step: Step | None,
         duration: Duration | None,
         targets: tuple[Handle, ...],
+        resolved: bool = False,
     ) -> PreventionRecord:
         """The PREVENT_EFFECT verb's runtime registration (targets already
-        materialized from the cast's designated set)."""
+        materialized from the cast's designated set, ``resolved`` True), and a
+        static carrier's (layers._new_static)."""
         self._seq += 1
         rec = PreventionRecord(
             seq=self._seq,
@@ -272,6 +280,7 @@ class ReplacementRegistry:
             event=event,
             step=step,
             targets=targets,
+            resolved=resolved,
         )
         self.preventions.append(rec)
         return rec
@@ -580,8 +589,8 @@ class ReplacementRegistry:
                 )
             if rec.targets and victim not in rec.targets:
                 continue
-            if not self._source_alive(rec.source):
-                continue
+            if not rec.resolved and not self._source_alive(rec.source):
+                continue  # a static carrier works while its source is there (CR 611.2a)
             rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
             if event.filter is not None and not eval_filter(
                 event.filter, victim, rec_ctx
@@ -680,6 +689,41 @@ class ReplacementRegistry:
                 continue
             rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
             if not self._condition_holds(rec, drawer, rec_ctx):
+                continue
+            return rec
+        return None
+
+    def prevents_counter_placement(
+        self, ctx: ExecCtx, card: Handle, kind: CounterKind
+    ) -> PreventionRecord | None:
+        """Can ``card`` not have ``kind`` counters put on it? Blightbeetle's "Creatures your
+        opponents control can't have +1/+1 counters put on them" registers a PREVENT_EFFECT
+        record over a CounterPlacedEvent; this is its consumer, consulted wherever counters
+        are put (the PUT_COUNTER verb, and the counters a permanent enters with, CR 122.6).
+        Judged in the record's coordinates like the other consults: the event's filter and the
+        record's condition over the receiving card, "opponents" relative to the record's
+        controller. A static carrier works while its source is on the battlefield; a resolved
+        record over designated objects covers those objects. A count slot on a prevention has
+        no carrier: the raise, never a guess."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if rec.status == "expired" or not isinstance(event, CounterPlacedEvent):
+                continue
+            if event.counter_kind is not kind:
+                continue
+            if event.count is not None:
+                raise NotImplementedError(
+                    "executor: a counter-placement prevention with a count slot has no "
+                    "carrier (flag, never guess)"
+                )
+            if rec.targets and card not in rec.targets:
+                continue
+            if not rec.resolved and not self._source_alive(rec.source):
+                continue
+            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            if not eval_filter(event.filter, card, rec_ctx):
+                continue
+            if not self._condition_holds(rec, card, rec_ctx):
                 continue
             return rec
         return None
@@ -883,10 +927,10 @@ class ReplacementRegistry:
                 if card in rec.targets:
                     return True
                 continue
-            if rec.duration is None and not self._source_alive(rec.source):
+            if not rec.resolved and not self._source_alive(rec.source):
                 # a static carrier works while its source is on the
-                # battlefield; a resolved effect with a duration outlives its
-                # source (CR 611.2a, the _pair_vetoed rule)
+                # battlefield; a resolved effect outlives its source (CR
+                # 611.2a, the _pair_vetoed rule)
                 continue
             ctx = self._rec_ctx(rec, card)
             if not self._condition_holds(rec, card, ctx):
@@ -944,15 +988,12 @@ class ReplacementRegistry:
         if rec.status == "expired":
             return False
         # C5 (Destructive Tampering "can't block this turn"): a RESOLVED
-        # until-end-of-turn effect outlives its source (CR 611.2a — the
-        # sorcery is long in the graveyard by the declare-blockers step).
-        # Only the time-bounded DurationEot shape is exempt — its single
-        # expiry is the EOT sweep (tag "Eot"). Static carriers (duration
-        # None, registered through the battlefield lifecycle) and WHILE-
-        # gated records keep the liveness gate exactly as before.
-        if not isinstance(rec.duration, DurationEot) and not self._source_alive(
-            rec.source
-        ):
+        # effect outlives its source (CR 611.2a — the sorcery is long in the
+        # graveyard by the declare-blockers step), whatever its duration: a
+        # "can't block" with no end or until your next turn applies too (it
+        # used to need DurationEot). Static carriers (registered through the
+        # battlefield lifecycle) keep the liveness gate.
+        if not rec.resolved and not self._source_alive(rec.source):
             return False
         ctx = self._rec_ctx(rec, subject)
         if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
@@ -1051,9 +1092,7 @@ class ReplacementRegistry:
             event = rec.event
             if not isinstance(event, AbilityActivatedEvent) or rec.status == "expired":
                 continue
-            if not isinstance(rec.duration, DurationEot) and not self._source_alive(
-                rec.source
-            ):
+            if not rec.resolved and not self._source_alive(rec.source):
                 continue
             ctx = self._rec_ctx(rec, permanent)
             if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
@@ -1088,6 +1127,38 @@ class ReplacementRegistry:
             if rec.tag == "Eot" and rec.status != "expired"
         )
 
+    def forget_departed(self, handle: Handle) -> int:
+        """CR 400.7: ``handle`` left the battlefield; if it returns it is a new object. A
+        prevention a resolved spell or ability locked onto it ("those creatures don't untap",
+        "can't be blocked this turn") no longer covers it, and a replacement scoped to it ("if
+        that creature would die this turn") no longer finds it. A prevention left with no
+        designated object expires: an empty ``targets`` means a static carrier, which reads its
+        filter instead. Returns the number of records touched."""
+        touched = 0
+        for rec in self.preventions:
+            if rec.status == "expired":
+                continue
+            if handle in rec.targets:
+                rec.targets = tuple(t for t in rec.targets if t != handle)
+                if not rec.targets:
+                    self._expire(rec)
+                touched += 1
+            elif (
+                rec.resolved
+                and rec.source == handle
+                and rec.condition is not None
+                and _filter_names_the_source(rec.condition)
+            ):
+                # "Ghostly Pilferer can't be blocked this turn": a resolved effect about its
+                # own source (CR 611.2a lets other effects outlive the source) ends with it.
+                self._expire(rec)
+                touched += 1
+        for repl in self.replacements:
+            if repl.status != "expired" and handle in repl.designated:
+                repl.designated = tuple(t for t in repl.designated if t != handle)
+                touched += 1
+        return touched
+
     def expire_leaves(self, anchor: Handle) -> int:
         return sum(
             self._expire(rec)
@@ -1102,7 +1173,14 @@ class ReplacementRegistry:
         """The UNTAP tick's expiry half: UNTIL_NEXT_STEP(UNTAP) prevents are
         consumed DURING the tick and expire right after it — the Frost
         Breath freeze therefore survives exactly one untap step and the
-        creature untaps on the following one (pinned by test)."""
+        creature untaps on the following one (pinned by test).
+
+        B-113: an owner-scoped record ("those creatures don't untap during
+        their controller's next untap step") is consumed per object: this
+        tick ends it only for the targets the active player controls, and
+        the record expires once no target is left. Frost Breath on one
+        creature of each player used to expire whole at the first player's
+        untap step, so the other player's creature untapped in its own."""
         expired = 0
         for rec in self.preventions:
             dur = rec.duration
@@ -1111,11 +1189,15 @@ class ReplacementRegistry:
             if rec.status == "expired":
                 continue
             if dur.owner_scoped:
-                if any(
-                    t.namespace == "card" and controller_of(t) == active
+                done = {
+                    t
                     for t in rec.targets
-                ):
-                    expired += self._expire(rec)
+                    if t.namespace == "card" and controller_of(t) == active
+                }
+                if done:
+                    rec.targets = tuple(t for t in rec.targets if t not in done)
+                    if not any(t.namespace == "card" for t in rec.targets):
+                        expired += self._expire(rec)
             else:
                 expired += self._expire(rec)
         return expired

@@ -647,13 +647,18 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
     source = damage_source(ctx, atom)
     if source is None:
         ctx.events.append((len(ctx.events), "DAMAGE_NO_DEALER", str(ctx.source)))
+        ctx.bindings["result"] = []  # no object was dealt damage this way
         return
     # CR 107.1b: a negative result (a negative power) means 0; CR 120.8: a
     # source that would deal 0 damage deals no damage at all.
     n = max(0, amount(ctx, atom, "amount"))
     if n == 0:
+        ctx.bindings["result"] = []
         return
     targets = role_handles(ctx, atom, "target")
+    # V11 follow-up: the result register names the objects this sentence dealt damage to, so
+    # "If a Dinosaur is dealt damage this way" (Marauding Raptor) judges them, not the source.
+    dealt: list[Handle] = []
     if source != ctx.source:
         # V3 (2026-10-29): the dealer is the damage source for everything
         # below (deathtouch, lifelink, source-keyed replacement and
@@ -727,7 +732,9 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         # exchange is a simultaneous double kill. The DAMAGE tuple keeps
         # feeding the journal's KIND_DAMAGE row (events.py), so "is dealt
         # damage" triggers (Brash Taunter) are unchanged.
-        _deal_damage_to_card(ctx, target, n_i)
+        if _deal_damage_to_card(ctx, target, n_i):
+            dealt.append(target)
+    ctx.bindings["result"] = dealt
 
 
 #: CR 120.1a: the only objects damage can be dealt to.
@@ -756,12 +763,13 @@ def _protection_prevents(ctx: ExecCtx, recipient: Handle, n: int) -> bool:
     return True
 
 
-def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
+def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
     """One card-side damage application: mark it, journal it, decide nothing.
     16c (CR 702.2b): when the SOURCE carries DEATHTOUCH the mark is flagged
     lethal-in-itself, so the state check buries a 3/3 under one point of
     Fetid Imp venom (the keyword is read through the layer registry, so a
-    granted deathtouch counts and a lost one stops counting)."""
+    granted deathtouch counts and a lost one stops counting). Returns whether
+    damage was dealt (False: not damageable, protected, or prevented)."""
     if ctx.executor is None:
         raise ValueError(
             "executor: card damage needs an executor-backed ExecCtx "
@@ -772,9 +780,9 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
         # a creature or a planeswalker (a land, a noncreature artifact): no
         # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
         # forced binding (a harness stimulus) did, and marked it (B-54).
-        return
+        return False
     if _protection_prevents(ctx, target, n):
-        return  # V44 (CR 702.16e): a permanent with protection from the source
+        return False  # V44 (CR 702.16e): a permanent with protection from the source
     # r20a (Pack Leader): prevention-before-apply for card damage. A live
     # DamageDealtEvent PreventionRecord (the PREVENT_EFFECT lane's first
     # damage consumer) vetoes the WHOLE mark (QUnbounded = "all"); the
@@ -797,7 +805,7 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
                     n,
                 )
             )
-            return
+            return False
     # r22b (Fiery Emancipation): the replacement lane over CARD damage. The
     # unified consult's QUANTITY-MODIFICATION half rewrites the mark before
     # it lands — the permanent lane (walker loyalty below, the damage
@@ -849,11 +857,12 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
         counters["LOYALTY"] = max(0, have - n)
         ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
         _lifelink_gain(ctx, n)
-        return
+        return True
     deathtouch = ctx.executor.layers.keyword_of(ctx.source, Keyword.DEATHTOUCH)
     ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
     _lifelink_gain(ctx, n)  # r20a: after the mark, on the dealt amount
+    return True
 
 
 def _fight_attacker(ctx: ExecCtx) -> Handle | None:
@@ -969,6 +978,25 @@ def _v_put_counter(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "count")
     cards = role_handles(ctx, atom, "target")
     for card in cards:
+        # Blightbeetle: a card that can't have these counters put on it gets none (and no
+        # replacement modifies a placement that does not happen).
+        barred = (
+            ctx.replacements.prevents_counter_placement(ctx, card, kind)
+            if ctx.replacements is not None
+            else None
+        )
+        if barred is not None:
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    "COUNTER_PREVENTED",
+                    str(card),
+                    str(barred.source),
+                    kind.name,
+                    n,
+                )
+            )
+            continue
         # r22b (Conclave Mentor): the CounterPlacedEvent replacement lane —
         # per RECEIVING card, the same consult-per-item shape the damage
         # lane uses. The queued 4-tuple carries (record, card, kind, n):
@@ -1179,6 +1207,9 @@ def _v_grant_or_lose(ctx: ExecCtx, atom: Atom, lose: bool) -> None:
             duration_tag(duration),
         )
     )
+    # V11 follow-up: "Target creature gains deathtouch and lifelink until end of turn. If it's a
+    # Vampire, ..." (Sorin, Imperious Bloodlord): the sentence names the objects it changed.
+    ctx.bindings["result"] = list(targets)
 
 
 def _v_grant(ctx: ExecCtx, atom: Atom) -> None:
@@ -1222,7 +1253,7 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
         if eval_filter(condition, h, ctx) and all(eval_filter(f, h, ctx) for f in bound)
     )
     ctx.replacements.register_prevention(
-        ctx.source, ctx.controller, condition, event, step, duration, targets
+        ctx.source, ctx.controller, condition, event, step, duration, targets, resolved=True
     )
     ctx.events.append(
         (
@@ -1487,35 +1518,47 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     count_q = atom.args.get("amount")
     assert count_q is None or isinstance(count_q, Quantity)
     n = 1 if count_q is None else resolve(count_q, ctx)
-    # r22b (Teferi's Ageless Insight): the CardDrawnEvent replacement lane.
-    # A live record whose event matches this draw queues its ACTION for the
-    # executor drain and the draw NEVER happens (CR 614.3a — the replaced
-    # event is replaced WHOLE, cards stay in the library). One record per
-    # draw is taken (first match): duplicate carriers chain through the
-    # drain's replaced_seq guard. The CR 616.1 choice is not asked here: the
-    # pools' draw replacements are one rewrite (Teferi's Ageless Insight,
-    # Alhammarret's Archive), so the order changes nothing (BACKLOG B-69;
-    # the damage lane asks, replacements._choose).
-    if ctx.replacements is not None:
-        repl = ctx.replacements.replacement_for_card_draw(ctx, player, n)
+    ex = ctx.executor
+    # CR 121.2: drawing N cards is N single card draws, and a draw replacement applies to each
+    # of them. r22b (Teferi's Ageless Insight): the CardDrawnEvent replacement lane. A live
+    # record whose event matches a draw queues its ACTION for the executor drain and that draw
+    # NEVER happens (CR 614.3a — the replaced event is replaced WHOLE, the card stays in the
+    # library). One record per draw is taken (first match): a second carrier applies to each
+    # draw of the first one's action (the drain's replaced_seq guard keeps a record from
+    # replacing its own, CR 614.5), so two Insights make one draw four cards; it used to be
+    # two, the second replacing "draw two" as one event. The CR 616.1 choice is not asked
+    # here: the pools' draw replacements are one rewrite (Teferi's Ageless Insight,
+    # Alhammarret's Archive), so the order changes nothing (BACKLOG B-69; the damage lane
+    # asks, replacements._choose). Unreplaced draws in a row share one DRAW audit row.
+    run = 0
+    for _ in range(n):
+        repl = (
+            ctx.replacements.replacement_for_card_draw(ctx, player, 1)
+            if ctx.replacements is not None
+            else None
+        )
         if repl is not None:
+            if run:
+                ctx.events.append((len(ctx.events), "DRAW", str(player), run))
+                run = 0
             ctx.pending_replacements.append(repl)
             ctx.events.append(
-                (len(ctx.events), "DRAW_REPLACED", str(player), str(repl.source), n)
+                (len(ctx.events), "DRAW_REPLACED", str(player), str(repl.source), 1)
             )
-            return
-    drawn = ctx.world.draw(player, n)
-    ctx.events.append((len(ctx.events), "DRAW", str(player), n))
-    ex = ctx.executor
-    if ex is not None and len(drawn) < n:
-        ex.drew_from_empty.add(player)  # CR 704.5b
-    # r22b: the CR 504.5 'the first draw of the draw step' register — the
-    # executor stamps the per-turn ordinal ONLY while the skeleton's draw
-    # step is open, so main-phase draws (Niya's Restock, Loot) never touch
-    # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
-    # reads the same pair of trackers).
-    if ex is not None and getattr(ex, "_draw_step_open", False):
-        ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
+            continue
+        drawn = ctx.world.draw(player, 1)
+        run += 1
+        if ex is not None and not drawn:
+            ex.drew_from_empty.add(player)  # CR 704.5b
+        # r22b: the CR 504.5 'the first draw of the draw step' register — the
+        # executor stamps the per-turn ordinal ONLY while the skeleton's draw
+        # step is open, so main-phase draws (Niya's Restock, Loot) never touch
+        # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
+        # reads the same pair of trackers).
+        if ex is not None and getattr(ex, "_draw_step_open", False):
+            ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
+    if run or not n:  # "draw 0 cards" keeps its audit row
+        ctx.events.append((len(ctx.events), "DRAW", str(player), run))
 
 
 def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
@@ -2254,10 +2297,11 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
     the frozen world derives controller_of from the ZONE OWNER and R16-4
     ruled the overlay LIVES HERE, consulted at every controller-semantic
     executor read site. Carriers: Traitorous Greed (DurationEot, TARGET
-    selector) and Enthralling Hold (no Duration node — the continuous
-    effect of an aura ends when the aura stops existing, so a durationless
-    row is anchored to the SOURCE, and CR 704.5q's unattached-aura check
-    is what physically ends it). ``UntilLeaves`` pairs its C12 referent
+    selector) and Enthralling Hold (no Duration node over "enchanted
+    creature" — the continuous effect of an aura ends when the aura stops
+    existing, so that row alone is anchored to the SOURCE, and CR 704.5q's
+    unattached-aura check is what physically ends it; any other row lasts
+    its duration, CR 611.2a). ``UntilLeaves`` pairs its C12 referent
     anchor exactly like :func:`_apply_pt`. The controller slot is the
     STRICT YOU of the corpus (CR 611.2a "you gain control"); any other
     ControllerRef RAISES — flag, never guess. When the effective
@@ -2274,7 +2318,19 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
     tag = duration_tag(duration)
-    anchor: Handle | None = ctx.source  # durationless = the aura's continuous effect
+    # CR 611.2a: control a resolved spell or ability gives lasts as long as its duration says
+    # (with none stated, the game), whatever happens to its source: Sorin, Vampire Lord's
+    # granted "{T}: Gain control of target creature" outlasts the Vampire. The one row tied to
+    # its source is the Aura's "You control enchanted creature" (Enthralling Hold, compiled onto
+    # its spell): the Aura's own continuous effect, which ends when the Aura leaves.
+    target = atom.args.get("target")
+    anchor: Handle | None = None
+    if (
+        duration is None
+        and isinstance(target, Selector)
+        and _names_the_attached(target.filter)
+    ):
+        anchor = ctx.source
     if isinstance(duration, DurationUntilLeaves):
         anchor = referent_handle(duration.source, ctx)
     gained: list[Handle] = []
@@ -2292,6 +2348,17 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
             tag,
         )
     )
+
+
+def _names_the_attached(filter_: object) -> bool:
+    """Does the filter pick the permanent the source is attached to ("enchanted creature")?"""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is FAtomPred.IS_ATTACHED_TO_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_names_the_attached(child) for child in filter_.children)
+    if isinstance(filter_, FNot):
+        return _names_the_attached(filter_.inner)
+    return False
 
 
 def _v_attach(ctx: ExecCtx, atom: Atom) -> None:

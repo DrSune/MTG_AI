@@ -257,13 +257,16 @@ class TestPlayerOrPlaneswalkerDesignation(R21aCase):
 
 
 class TestDurationEotSourceExemption(R21aCase):
-    """C5 (Destructive Tampering): a RESOLVED sorcery's DurationEot
-    prevention outlives its source (CR 611.2a — by the declare-blockers
-    step the spell is long in the graveyard). ``_pair_vetoed`` exempts
-    ONLY the DurationEot shape from the ``_source_alive`` battlefield
-    gate; static (duration None) and WHILE-gated records keep it."""
+    """C5 (Destructive Tampering): a RESOLVED sorcery's prevention outlives
+    its source (CR 611.2a — by the declare-blockers step the spell is long
+    in the graveyard). ``_pair_vetoed`` exempts every RESOLVED record
+    (``resolved``, set by the PREVENT_EFFECT verb) from the ``_source_alive``
+    battlefield gate, whatever its duration; static carriers keep it. (It
+    used to exempt only the DurationEot shape, so a "can't block" with no
+    end or until your next turn never applied: known_bugs
+    cant_block_needs_until_end_of_turn.)"""
 
-    def _tampering_record(self, duration):
+    def _tampering_record(self, duration, resolved=True):
         # The promoted pack's world (tools/scenarios/tampering_no_block.json)
         # in hand-registered shape: the spell has ALREADY resolved into the
         # graveyard by combat time (the pack's own expect.zone pins
@@ -282,6 +285,7 @@ class TestDurationEotSourceExemption(R21aCase):
             step=None,
             duration=duration,
             targets=(),
+            resolved=resolved,
         )
 
     def _flying_attacker(self):
@@ -322,11 +326,11 @@ class TestDurationEotSourceExemption(R21aCase):
             self.ex.replacements.prevents_block_declaration(self.beta, sky)
         )
 
-    def test_same_record_without_eot_duration_keeps_the_liveness_gate(self):
-        # duration=None is the static-carrier shape (battlefield lifecycle):
-        # the source-in-graveyard record is dead on arrival — the C5
-        # exemption must NOT leak beyond DurationEot.
-        self._tampering_record(None)
+    def test_static_carrier_keeps_the_liveness_gate(self):
+        # A static carrier (battlefield lifecycle, not resolved): the
+        # source-in-graveyard record is dead on arrival — the exemption must
+        # NOT leak to statics.
+        self._tampering_record(None, resolved=False)
         self.assertFalse(
             self.ex.replacements.prevents_block_declaration(self.beta, self.alpha)
         )

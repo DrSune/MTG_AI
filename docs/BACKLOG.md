@@ -564,6 +564,12 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Related: D6 (`tools/audit/detectors.py`) found a live end-of-turn grant layer bound to a card
     already in the graveyard (FDN soak, 300 games). Check that a card returning to the battlefield
     in the same turn is a new object (CR 400.7) and does not keep it.
+  - **[FIXED on `fix/w2-effects` 2026-11-05 (c958f64): runtime GRANT/LOSE/GRANT_TYPE layers and
+    PREVENT_EFFECT records are `resolved`, so `detach_source` and the prevention liveness gates
+    leave them alone (CR 611.2a). The CR 400.7 half (23db0f9, 8574444): an object that leaves
+    the battlefield drops out of those records as it leaves (B-59's `forget_departed`); its
+    P/T ledger entries are cut when it returns, so effects that read a departed object's power
+    still see it.]**
 - **B-51 [2026-10-29] `Verb.CHOOSE` always offers choosing nothing.**
   - `query.verb_choose_options` (`core/executor/query.py`) appends the empty pick `()` even when a
     legal candidate exists.
@@ -1351,6 +1357,10 @@ These are forks, not tasks. See the report that accompanied this audit.
   `untap:frost-ignored`; a uniform seat targeting its own creature). Weaker than printed for that
   creature. Each target needs its own controller's next untap step. Repro (fails today):
   `tools/scenarios/known_bugs/frost_breath_two_controllers_next_untap_steps.json`.
+  **[FIXED on `fix/w2-effects` 2026-11-05: `ReplacementRegistry.expire_at_step` consumes an
+  owner-scoped record per target (the active player's targets drop out, the record expires when
+  none is left). The repro is now the regression pack
+  `tools/scenarios/frost_breath_two_controllers_next_untap_steps.json`.]**
 - **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
   engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
   - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at

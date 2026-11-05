@@ -132,7 +132,9 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
             )
         if bound.namespace == "player":
             return [bound]
-        return [controller_of(ctx, bound)]
+        # CR 608.2h: a designated object that has left the battlefield ("that player" of
+        # Massacre Wurm's dies trigger) answers with the controller it last had there.
+        return [last_known_controller(ctx, bound)]
     raise NotImplementedError(
         f"executor: ControllerRef.{ref.name} has no player-side meaning here"
     )
@@ -1260,6 +1262,18 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and value.mode is not SelectorMode.TARGET
         and all(z.kind not in (ZoneKind.PLAYER, ZoneKind.ANY) for z in value.zones)
     )
+    # CR 701.21a: a player sacrifices a permanent of their own choice as the instruction
+    # resolves, so a sacrifice menu (a CHOOSE, or the ONE_OF the compiler promotes a count-1
+    # CHOOSE to) is never the ability's target designation, whether or not the targeted object
+    # could be on the menu. "You may sacrifice a Vampire. When you do, ~ deals 3 damage to any
+    # target" sacrificed the target instead (Sorin, Imperious Bloodlord). A TARGET-mode role
+    # stays the designation lane (the payment placeholder of legality._binding_atom).
+    sacrifice_choice = (
+        atom.verb is Verb.SACRIFICE
+        and isinstance(value, Selector)
+        and value.mode in (SelectorMode.CHOOSE, SelectorMode.ONE_OF)
+        and value.referent is None
+    )
     if (
         bound is not None
         and not anaphoric
@@ -1269,6 +1283,7 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
         and not graveyard_sweep
         and not foreign
         and not player_into_cards
+        and not sacrifice_choice
     ):
         # CR 702.26b / 608.2b: a designated permanent that has phased out
         # since it was designated does not exist, so the verb skips it.
@@ -1372,8 +1387,22 @@ def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Han
         if handle.namespace == "player":
             players.add(handle)
         elif handle in world.cards:
-            players.add(controller_of(ctx, handle))
+            players.add(last_known_controller(ctx, handle))
     return sorted(players)
+
+
+def last_known_controller(ctx: ExecCtx, handle: Handle) -> Handle:
+    """The player "its controller" names (CR 608.2h). An object that has left the battlefield
+    answers with the controller it last had there (``Executor.departed_controller``), not with
+    its owner: "Destroy target creature. Its controller loses 2 life" on a stolen creature
+    costs the player who stole it the life. Anything else answers with its effective
+    controller, as before."""
+    ex = ctx.executor
+    if ex is not None:
+        last = ex.departed_controller.get(handle)
+        if last is not None:
+            return last
+    return controller_of(ctx, handle)
 
 
 def amount(ctx: ExecCtx, atom: Atom, role: str) -> int:

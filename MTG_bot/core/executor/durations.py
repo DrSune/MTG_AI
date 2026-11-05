@@ -440,6 +440,14 @@ class DurationLedger:
                 expired += 1
         return expired
 
+    def forget(self, card: Handle) -> int:
+        """CR 400.7: ``card`` entered the battlefield as a new object, so no entry recorded for
+        an earlier object with the same handle applies to it. Terminal-expire them all (a
+        static's materialized entry too: the layer registry re-materializes it for the new
+        object). Called at the entry, not the departure: until then the entries answer for the
+        object as it last existed (its power while it is in the graveyard)."""
+        return self.expire(c.record_id for c in self._changes if c.target == card)
+
     def expire_leaves(self, anchor: Handle) -> int:
         """The UNTIL_LEAVES zone interceptor: terminal-expire every entry
         anchored to ``anchor``. Re-entering the zone does NOT restore (r5

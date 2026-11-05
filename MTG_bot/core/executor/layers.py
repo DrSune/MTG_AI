@@ -237,10 +237,12 @@ class LayerRecord:
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
     PT target to its DurationLedger record id. ``resolved`` marks a record
-    a RESOLVED spell or ability created with a duration (B-59: a dispatched
-    "mandate"/"mandate_block" with fixed ``targets``): CR 611.2a, it lasts
-    as long as its duration says, so its source leaving the battlefield
-    does not end it (:meth:`LayerRegistry.detach_source` skips it).
+    a RESOLVED spell or ability created (B-59: a dispatched "mandate"/
+    "mandate_block" with fixed ``targets``; B-50: the runtime "grant",
+    "lose" and "type_grant" records): CR 611.2a, it lasts as long as its
+    duration says, so its source leaving the battlefield does not end it
+    (:meth:`LayerRegistry.detach_source` skips it; an UntilLeaves duration
+    still ends it, :meth:`LayerRegistry.expire_leaves`).
     """
 
     seq: int
@@ -377,8 +379,22 @@ class LayerRegistry:
         UntilNextStep at its step, While while its condition holds,
         UntilLeaves when the source leaves. ``kind`` is ``"mandate"`` or
         ``"mandate_block"``, so legality reads it beside the static ones."""
+        return self._new_resolved(kind, source, controller, (atom,), targets, duration)
+
+    def _new_resolved(
+        self,
+        kind: str,
+        source: Handle,
+        controller: Handle,
+        payload: object,
+        targets: tuple[Handle, ...],
+        duration: Duration | None,
+    ) -> LayerRecord:
+        """A record a RESOLVED spell or ability made over the objects it designated: it outlives
+        its source (CR 611.2a, :meth:`detach_source` skips it) and drops an object that leaves
+        the battlefield (CR 400.7, :meth:`forget_departed`)."""
         layer = self._new(
-            kind, source, controller, (atom,), targets, duration=duration, resolved=True
+            kind, source, controller, payload, targets, duration=duration, resolved=True
         )
         self._resolved.append(layer)
         return layer
@@ -397,6 +413,15 @@ class LayerRegistry:
                 touched += 1
         return touched
 
+    def forget_materialized(self, handle: Handle) -> None:
+        """CR 400.7: ``handle`` entered the battlefield as a new object, and
+        ``DurationLedger.forget`` expired the old object's P/T entries, a static's
+        materialized one included. Drop the statics' links to them, so the next recompute
+        gives the new object an entry of its own (a leave-and-return inside one op meets no
+        recompute in between that would have found the link stale)."""
+        for layer in self.records:
+            layer.ledger_ids.pop(handle, None)
+
     def register_grant(
         self,
         source: Handle,
@@ -408,9 +433,7 @@ class LayerRegistry:
         """The runtime GRANT_ABILITY verb (12d: the PC-6 #3 raise-list item
         — now a real layer; durations respected incl. until-end-of-turn
         grants, tested with an Embercleave-style EoT keyword grant)."""
-        return self._new(
-            "grant", source, controller, ability, targets, duration=duration
-        )
+        return self._new_resolved("grant", source, controller, ability, targets, duration)
 
     def register_lose(
         self,
@@ -422,9 +445,7 @@ class LayerRegistry:
     ) -> LayerRecord:
         """The runtime LOSE_ABILITY verb (Soul-Sear family): removal matches
         printed AND granted payloads (see the module-level matchers)."""
-        return self._new(
-            "lose", source, controller, ability, targets, duration=duration
-        )
+        return self._new_resolved("lose", source, controller, ability, targets, duration)
 
     def _new(
         self,
@@ -724,9 +745,7 @@ class LayerRegistry:
         designates its objects once). The generic static path (:meth:
         `_new_static`) covers the PRINTED Anthems-style GRANT_TYPE; this is
         the trigger-dispatched sibling. :meth:`type_overlay` reads both."""
-        return self._new(
-            "type_grant", source, controller, (atom,), targets, duration=duration
-        )
+        return self._new_resolved("type_grant", source, controller, (atom,), targets, duration)
 
     def register_activation_grant(
         self,
@@ -833,9 +852,13 @@ class LayerRegistry:
         world = self.world
         # 13c: an emblem's synthetic handle is replayed state on the
         # EXECUTOR (emblems are not world cards), so its statics live
-        # while the emblem is granted.
-        if layer.source not in world.cards and (
-            layer.source not in self.executor.emblems.values()
+        # while the emblem is granted. A resolved record does not need its
+        # source (CR 611.2a: a token that made it may have ceased to exist,
+        # CR 704.5d), unless its duration is a condition read off the source.
+        if (
+            layer.source not in world.cards
+            and layer.source not in self.executor.emblems.values()
+            and (not layer.resolved or isinstance(layer.duration, DurationWhileCondition))
         ):
             return False
         if layer.from_static and layer.source in self.executor.phased_out:

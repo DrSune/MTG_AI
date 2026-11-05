@@ -1,25 +1,36 @@
 # Known engine bugs found by the M20 mappers, 2026-11-05
 
-Each folder holds a mapper's draft tree for an M20 card and the pack or trace that shows the bug.
-The cards are not dealt (their records are needs-atom, or the bug makes them weaker). Run a pack:
+Each folder holds a mapper's draft tree for an M20 card and the pack or trace that showed the bug.
+Run a pack against its draft:
 
     .venv/bin/python tools/cards/cardtool.py runpack M20 <pack.json> --card "<card>" --draft <draft.py>
 
-When a bug is fixed, its pack moves to tools/scenarios/ as a regression pack and the folder goes.
+Fixed bugs keep their folder until the M20 cards recorded `needs-atom` for them are re-mapped: the
+drafts are those cards' trees. The fixes carry their own regression tests in MTG_bot/core and
+tools/scenarios. Folders of bugs fixed on fix/w2-stack were removed there (CR 608.2b target
+recheck, permission-cast timing, modal triggers, TARGETS_SOURCE in cast filters, the free player
+target and orphaned "If you do" templates).
 
-- **cr400_7_effects_survive_zone_change** (Wakeroot Elemental): STRONGER. Effects with no end, and GRANT_TYPE with DurationUntilLeaves, stay on a permanent that leaves and returns (CR 400.7: it is a new object). A bounced and replayed Forest still attacks as a 5/5 and dies to Murder. Likely any permanent one-shot effect, including a permanent gain of control.
-- **sacrifice_takes_the_target** (Sorin, Imperious Bloodlord): STRONGER. In an ability that also has a target, SACRIFICE takes the targeted object instead of its controller's own choice: Sorin's +1 sacrifices a targeted opponent's creature even with no Vampire and still gains 3 life.
-- **if_its_reads_the_source** (Marauding Raptor / Sorin, Imperious Bloodlord): STRONGER/WEAKER. DEAL_DAMAGE and GRANT_ABILITY do not record the object they affected, so a following "if it's / if a X is ..." is judged on the source: Raptor pumps whenever any creature enters (trace.txt); Sorin's Vampire counter never happens (pack_vamp_counter.json, with m1/sorin/draft.py).
-- **up_to_one_none_chosen_crashes** (Cavalier of Dawn): CRASH (voids a game). With no target chosen for "destroy up to one target ...", the next step "Its controller creates a Golem" raises 'resolved to 0 players' (verbs.py ~1263).
-- **cr611_2a_control_ends_with_granter** (Sorin, Vampire Lord): WEAKER. Control gained through the granted "{T}: Gain control of target creature" ends when the Vampire that had the ability leaves; CR 611.2a: it lasts indefinitely.
-- **damage_trigger_binding_overrides_all** (Wildfire Elemental): WEAKER. On a damage trigger, binding.py _ctx (~1904) binds `target` to the damage dealer (a Brash Taunter workaround) and selectors.role_handles lets it override an ALL selector: "creatures you control get +1/+0" pumps only the dealer.
-- **b50_grant_ends_with_source** (Mu Yanling, Sky Dancer): WEAKER (B-50). The +2's "loses flying until your next turn" ends when Mu leaves the battlefield; the -2/-0 stays.
-- **random_order_is_fixed** (Drawn from Dreams): MINOR. Cards put on the bottom "in a random order" keep their original order. Not an executor-only fix: REST-to-bottom compiles one way for "in a random order" (Garruk's Harbinger, verified M21; Drawn from Dreams, Brightwood Tracker) and "in any order" (See the Truth, Anticipate, Goblin Ringleader), so MOVE_ZONE needs an order role the compiler writes (templates_b5b._build_rest_bottom_random documents it as lossy), and Garruk's Harbinger's tree then changes and needs verifying again (2026-11-05, fix/w2-stack).
+## Fixed (fix/w2-effects, KNOWLEDGE/2026-11-05/184)
+- **cr400_7_effects_survive_zone_change** (Wakeroot Elemental): effects survived a zone change.
+- **sacrifice_takes_the_target** (Sorin, Imperious Bloodlord): SACRIFICE took the target.
+- **if_its_reads_the_source** (Marauding Raptor), **conditional_judged_on_source** (Overgrowth
+  Elemental): conditions judged on the source, not the affected object.
+- **cr611_2a_control_ends_with_granter** (Sorin, Vampire Lord); **b50_grant_ends_with_source**
+  (Mu Yanling, Sky Dancer): effects ended with their source.
+- **damage_trigger_binding_overrides_all** (Wildfire Elemental); **cant_block_needs_until_end_of_turn**
+  (Tectonic Rift); **prevent_counter_placement_has_no_consumer** (Blightbeetle).
+- **discard_any_number_never_asked_and_dies_trigger_target** (Cavalier of Flame): the dies-trigger
+  half is fixed (fix/w2-stack); "discard any number" is still never asked (open, below).
 
-Second wave (M20 batches 5-9):
-
-- **conditional_judged_on_source** (Overgrowth Elemental): STRONGER. A Conditional after a step that names no object (GAIN_LIFE) is judged on the ability's source, not on the dying creature (`_conditional_subject`, executor/__init__.py ~450): Overgrowth Elemental, itself an Elemental, gets a +1/+1 counter whenever any other creature of yours dies. Same family as if_its_reads_the_source.
-- **discard_any_number_never_asked_and_dies_trigger_target** (Cavalier of Flame): WEAKER. "Discard any number of cards" is never asked; the whole hand goes (selectors._choose_lift_allowed folds every QUnbounded CHOOSE, the count-shape sub-project /141 deferred; verified M21 Siege Striker taps every untapped creature it can). The other half, a dies trigger with no target binding the dead creature as `target`, was fixed on 2026-11-05 (fix/w2-stack, binding._fire; regression test_executor_binding test_dies_trigger_with_no_target_does_not_bind_the_dead_creature), so pack_dies_burn.json went.
-- **prevent_counter_placement_has_no_consumer** (Blightbeetle): WEAKER. PREVENT_EFFECT on a counter-placement event registers, but PUT_COUNTER consults only replacements, so "creatures your opponents control can't have +1/+1 counters put on them" never applies.
-- **graveyard_abilities_never_activatable** (Sanitarium Skeleton): WEAKER, plus a costed no-op row. Abilities that work from the graveyard (CR 113.6k) are refused (legality.py ~1183 ability_playable); the same row is offered on the battlefield, where it pays {2}{B} and does nothing.
-- **cant_block_needs_until_end_of_turn** (Tectonic Rift): WEAKER. A spell's "can't block" effect applies only with an until-end-of-turn duration; permanent or until-your-next-turn durations never apply (seen with the deliberately wrong drafts).
+## Open
+- **up_to_one_none_chosen_crashes** (Cavalier of Dawn): CRASH. With no target chosen for "destroy up
+  to one target ...", the next step "Its controller creates a Golem" raises "resolved to 0 players"
+  (verbs.py ~1263). M20 only (not dealt).
+- **graveyard_abilities_never_activatable** (Sanitarium Skeleton): abilities that work from the
+  graveyard (CR 113.6k) are refused (legality.py ability_playable). M20 only.
+- **"Discard any number of cards"** (Cavalier of Flame, Necromentia, Siege Striker) is never asked:
+  an unbounded CHOOSE takes the whole population (the /141 deferral). Weaker than printed, never
+  stronger.
+- **random_order_is_fixed** (Drawn from Dreams; verified Garruk's Harbinger): "in a random order" and
+  "in any order" compile alike, so the order is neither random nor chosen. Needs an IR order role.

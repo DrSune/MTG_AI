@@ -450,16 +450,22 @@ def _ends_in_optional(effect: object) -> bool:
 
 
 def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
-    """What a bare Conditional's predicate is judged on (V11): the object the
-    previous sentence acted on (the result register, written by the atom just
-    before: ``ctx.result_fresh``) when the predicate only tests an object's
-    characteristics; None when that register names no single object; the
-    ability's source otherwise (a history predicate such as See the Truth's
-    "if this spell was cast from anywhere other than your hand", or no object
-    in the previous sentence)."""
-    if _tests_characteristics_only(pred) and ctx.result_fresh:
-        handles = ctx.binding_handles("result") or []
-        return handles[0] if len(handles) == 1 else None
+    """What a bare Conditional's predicate is judged on (V11), when the
+    predicate only tests an object's characteristics: the object the previous
+    sentence acted on (the result register, written by the atom just before:
+    ``ctx.result_fresh``), None when that register names no single object;
+    after a sentence that names no object ("you gain 1 life"), the object the
+    trigger's event names (Overgrowth Elemental's "If that creature was an
+    Elemental": the creature that died, not the Elemental whose ability it
+    is). The ability's source otherwise (a history predicate such as See the
+    Truth's "if this spell was cast from anywhere other than your hand")."""
+    if _tests_characteristics_only(pred):
+        if ctx.result_fresh:
+            handles = ctx.binding_handles("result") or []
+            return handles[0] if len(handles) == 1 else None
+        event = [h for h in ctx.binding_handles("event") or [] if h.namespace == "card"]
+        if len(event) == 1:
+            return event[0]
     return ctx.source
 
 
@@ -660,6 +666,12 @@ class Executor:
         self.departed_lki: dict[
             Handle, tuple[int | None, int | None, dict[str, int]]
         ] = {}
+        # CR 608.2h: "its controller" of an object that left the battlefield is the controller
+        # it last had there (Angelic Ascension's token, Liliana, Death Mage's life loss), not
+        # its owner, which the control overlay falls back to once the object is gone. Captured
+        # at the departure, dropped when the object moves again (a new object, CR 400.7).
+        # Derived state, NOT in the fingerprint (the departed_lki precedent).
+        self.departed_controller: dict[Handle, Handle] = {}
         # r20c (Speaker of the Heavens): the game's STARTING life per seat,
         # snapshotted at executor construction — the fact the frozen world
         # takes as a ``start_life`` parameter but never stores. LIFE_LEAD_-
@@ -1306,8 +1318,21 @@ class Executor:
                     state.identity, event.subject, state.counters
                 )
                 self.departed_lki[event.subject] = (power, toughness, dict(state.counters))
+                # CR 608.2h: read before the control entries end below.
+                self.departed_controller[event.subject] = self.controller_of(event.subject)
             elif event.zone_move[1] == ZONE_BATTLEFIELD:
                 self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
+                if from_state != ZONE_BATTLEFIELD:
+                    # CR 400.7: a P/T effect applied to the old object does not apply to
+                    # the new one. Handles are stable across zones, so its ledger entries
+                    # are cut here, at the entry: until then they answer for the object as
+                    # it last existed (Heartfire Immolator's "damage equal to its power"
+                    # after it was sacrificed). Grants and preventions end as it leaves
+                    # (forget_departed below).
+                    self.ledger.forget(event.subject)
+                    self.layers.forget_materialized(event.subject)
+            if from_state != ZONE_BATTLEFIELD:
+                self.departed_controller.pop(event.subject, None)  # it moved on: a new object
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
                 # V31b, CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to
@@ -1348,8 +1373,10 @@ class Executor:
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
             # B-59: the timed (resolved-layer) twin of the two discards
-            # above; a returning creature is a new object (CR 400.7).
+            # above; a returning creature is a new object (CR 400.7). The
+            # same for the resolved preventions and replacement designations.
             self.layers.forget_departed(anchor)
+            self.replacements.forget_departed(anchor)
             self.damage_policies.pop(anchor, None)
             # 16e: a departing permanent drops every control entry keyed on
             # it — as CREATURE (the stolen card itself) or as ANCHOR (the
@@ -1468,6 +1495,8 @@ class Executor:
                 n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
                 if not n:
                     continue
+                if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
+                    continue  # CR 122.6: entering with counters is putting them on it (Blightbeetle)
                 # CR 122.6: counters an object is given as it enters ARE counters
                 # put on it, so a counter-placement replacement applies (Conclave
                 # Mentor: "that many plus one"). Same consult and action run as the
