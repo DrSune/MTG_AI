@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "i", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
+  {"key": "cp", "real": "Containment Priest", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "i"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
+  {"op": "activate", "key": "i", "idx": 1, "seat": 0, "decisions": ["fire", "cp"]}
+ ],
+ "expect": {"zone": {"i": "battlefield", "cp": "battlefield"}},
+ "notes": "Control for idol_of_endurance_cast_follows_creature_timing: Containment Priest has flash (CR 702.8a), so the Idol's permission casts it on the opponent's turn."
+}
