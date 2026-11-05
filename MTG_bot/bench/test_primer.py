@@ -43,7 +43,7 @@ def test_verified_is_never_inferred_from_exercise(entries) -> None:
 
 def test_the_primer_states_the_engine_simplifications(entries) -> None:
     text = render_primer(entries)
-    assert "Mana pools do not empty" in text
+    assert "Mana pools empty at the end of every step and phase" in text
     assert "verified" not in text.lower().replace("not exercised", "")
 
 
