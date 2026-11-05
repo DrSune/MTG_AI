@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pf4d46c24e0 G4. Printed: 'Exile target creature or planeswalker that's black or red.' A white planeswalker is not a legal target: the cast at it is refused; a black planeswalker is legal and is exiled.",
+ "cards": [
+  {"key": "dd", "real": "Devout Decree", "zone": "hand", "controller": 0},
+  {"key": "wpw", "name": "White Walker", "type": "Legendary Planeswalker — Ajani", "loyalty": 4, "colors": ["W"], "zone": "battlefield", "controller": 1},
+  {"key": "bpw", "name": "Black Walker", "type": "Legendary Planeswalker — Sorin", "loyalty": 4, "colors": ["B"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Devout Decree", "key": "dd", "targets": ["wpw"], "decisions": ["top"], "expect_raise": "illegal target selection"},
+  {"op": "cast", "real": "Devout Decree", "key": "dd", "targets": ["bpw"], "decisions": ["top"]}
+ ],
+ "expect": {
+  "zone": {"dd": "graveyard", "wpw": "battlefield", "bpw": "exile"}
+ }
+}

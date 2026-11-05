@@ -1,0 +1,82 @@
+{
+ "name": "sorin_vampire_lord_minus8_late_vampire_gains_nothing",
+ "set": "M20",
+ "notes": "Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' The affected set is fixed when the ability resolves (CR 611.2c): a hasty Vampire that enters afterwards the same turn has no such ability, so its activation is refused and P1 keeps its creature.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sorin",
+   "real": "Sorin, Vampire Lord",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vamp",
+   "name": "Vamp One",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "late",
+   "name": "Late Vamp",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "keywords": [
+    "HASTE"
+   ],
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "sorin",
+   "set": 9
+  },
+  {
+   "op": "activate",
+   "key": "sorin",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "enter",
+   "key": "late"
+  },
+  {
+   "op": "activate",
+   "key": "late",
+   "idx": -1,
+   "seat": 0,
+   "targets": [
+    "ogiant"
+   ],
+   "expect_raise": "no granted ability"
+  }
+ ],
+ "expect": {
+  "controller": {
+   "ogiant": 1
+  },
+  "zone": {
+   "late": "battlefield"
+  }
+ }
+}

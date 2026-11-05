@@ -525,5 +525,59 @@
  },
  "probe": {
   "sha": "e9342ff77f75ef94696e1852a8405262e2b006d0a217bb404296e6a514f76091"
+ },
+ "verified": {
+  "tree_sha": "ef2a177a4c278c553eee1297a1332546b8866062b0bf86f9c4daa66fd750daad",
+  "probe_sha": "e9342ff77f75ef94696e1852a8405262e2b006d0a217bb404296e6a514f76091",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "[+1]: You gain life equal to the number of creatures you control plus the number of planeswalkers you control.",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: LOYALTY 5 -> 6; 'you gains 3 life' (you_bear + you_giant + Ajani itself = 3), life 20 -> 23; tree counts CONTROLLER_IS YOU creatures + planeswalkers",
+    "issue": ""
+   },
+   {
+    "clause": "[-2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate",
+    "status": "OK",
+    "evidence": "activate [1] from battlefield: LOYALTY 5 -> 3; '+ you:Ajani's Pridemate (battlefield, you, 2/2)', exactly one token; tree TokenSpec Creature - Cat Soldier, colors ('W',)",
+    "issue": ""
+   },
+   {
+    "clause": "with \"Whenever you gain life, put a +1/+1 counter on this token.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "no life gain after the token exists in the trace; pack ajani_pridemate_gains_counter.json PASS: opponent's lifelink gain adds nothing, your lifelink gain adds exactly one counter (2/2 -> 3/3); fails against a 4/4 expectation G3 pack ajani_pridemate_only_your_life_gain_counts.json PASS (the opponent gains life twice, you once: one counter, Pridemate 3/3); FAILS on the controller YOU->OPPONENT mutant of the token trigger (4/4).",
+    "issue": ""
+   },
+   {
+    "clause": "[0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: activate [2] at 20 life does nothing (condition false, consistent; loyalty stays 5). True branch only in packs: ajani_zero_exiles_at_fifteen_over.json PASS (life 35: Ajani, opp creature, opp artifact, opp artifact creature exiled; opp enchantment/land and your bear/relic stay); ajani_zero_nothing_at_fourteen_over.json PASS (life 34: nothing); wrong variants (charm exiled, graveyard instead of exile, exile at 34) fail",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_1.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_2.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_3.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_4.json"
+  ],
+  "mutation": {
+   "mutants": 23,
+   "killed": 14,
+   "score": 0.6086956521739131,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/amount/right/selector/filter",
+    "controller YOU->OPPONENT at 1/1/effect/args/tokens/abilities/0/event/actor/who",
+    "amount+1 at 1/1/effect/args/tokens/abilities/0/effect/args/count",
+    "amount+1 at 1/2/effect/pred/count",
+    "amount-1 at 1/2/effect/pred/count",
+    "zone EXILE->GRAVEYARD at 1/2/effect/then_effect/args/destination",
+    "widen filter (drop part 0) at 1/2/effect/then_effect/args/target/filter/children/0",
+    "widen filter (drop part 1) at 1/2/effect/then_effect/args/target/filter/children/0",
+    "controller OPPONENT->YOU at 1/2/effect/then_effect/args/target/filter/children/0/children/1/who"
+   ]
+  }
  }
 }

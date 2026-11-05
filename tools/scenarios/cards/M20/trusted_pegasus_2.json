@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "trusted_pegasus_granted_flying_wears_off",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "peg", "real": "Trusted Pegasus", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true}, "decisions": ["bear"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Your Bear": [], "Trusted Pegasus": ["FLYING"]},
+  "life": {"0": 20, "1": 16}
+ },
+ "notes": "Printed: '... gains flying until end of turn.' After the turn ends the Bear no longer flies; the Pegasus keeps its own flying."
+}

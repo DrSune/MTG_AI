@@ -467,5 +467,59 @@
  },
  "probe": {
   "sha": "b2180f214abd253ad18f8c277c73d191f9381d282d425cb01c7fe5f8166b9416"
+ },
+ "verified": {
+  "tree_sha": "27f955ebe081ecd4b276e2ae5316e1d886477782ee701360e428561f16e49531",
+  "probe_sha": "b2180f214abd253ad18f8c277c73d191f9381d282d425cb01c7fe5f8166b9416",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "[+1]: Up to one target creature gets +2/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "ability [0] slot 0..1 of all 8 creatures; [activate [0] targets=['you_bear']]: LOYALTY 4 -> 5, you_bear 2/2 -> 4/2, after the turn ends 4/2 -> 2/2; [activate [0] from battlefield] (no target): LOYALTY 4 -> 5 and nothing else",
+    "issue": ""
+   },
+   {
+    "clause": "[−2]: Sorin deals 4 damage to any target.",
+    "status": "OK",
+    "evidence": "ability [1] slot 1..1 of the 8 creatures, Sorin itself, you, opp; [activate [1] targets=['opp']]: opp is dealt 4 damage (by card), opp 20 -> 16, LOYALTY 4 -> 2; [targets=['opp_giant']]: dealt 4, dies",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 4 life.",
+    "status": "OK",
+    "evidence": "every [activate [1]] variant: you gains 4 life (by card/GAIN_LIFE), you 20 -> 24",
+    "issue": ""
+   },
+   {
+    "clause": "[−8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: ability [2] not activatable from battlefield: cost:loyalty:4<8. Pack sorin_vampire_lord_minus8.json: at 9 loyalty -8 leaves 1; each of P0's two Vampires taps to take a P1 creature (incl. P1's Vampire); control is still P0's after P1's turn and back. Pack sorin_vampire_lord_minus8_limits.json: P0's non-Vampire and P1's Vampire have no granted ability (no granted ability idx -1); P0's Vampire loses it once the turn ends. Pack sorin_vampire_lord_minus8_late_vampire.json: a hasty Vampire entering after -8 resolved has no such ability (CR 611.2c). All three PASS on the live tree and this packet's tree; mutants killed: grant DurationPermanent (limits pack), GAIN_CONTROL until end of turn (minus8 pack), grant to every creature you control (limits pack). G3 pack sorin_vampire_lord_minus8_ability_taps_the_vampire.json PASS (the granted ability taps the Vampire as it takes the Giant; a second activation is refused 'cost:tap:source_tapped'); FAILS on the dropped-{T} mutant (the second activation succeeds). G3 pack sorin_vampire_lord_minus8_ability_targets_one_creature.json PASS (the granted ability aimed at P1's artifact is refused at announcement 'illegal activation: target:selection:off_population'; aimed at the Giant it takes the Giant only, the Bear and artifact stay P1's); FAILS on the target->all mutant of the granted GAIN_CONTROL (the artifact designation is accepted).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/sorin_vampire_lord_1.json",
+   "tools/scenarios/cards/M20/sorin_vampire_lord_2.json",
+   "tools/scenarios/cards/M20/sorin_vampire_lord_3.json",
+   "tools/scenarios/cards/M20/sorin_vampire_lord_4.json",
+   "tools/scenarios/cards/M20/sorin_vampire_lord_5.json"
+  ],
+  "mutation": {
+   "mutants": 26,
+   "killed": 18,
+   "score": 0.6923076923076923,
+   "survived": [
+    "drop cost part 0 (CostTap) at 1/2/effect/args/ability/cost",
+    "controller YOU->OPPONENT at 1/2/effect/args/ability/effect/args/controller",
+    "target->all at 1/2/effect/args/ability/effect/args/target",
+    "amount+1 at 1/2/effect/args/ability/effect/args/target/count",
+    "until-end-of-turn->permanent at 1/2/effect/args/duration",
+    "widen filter (drop part 0) at 1/2/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/2/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/target/filter/children/0/who"
+   ]
+  }
  }
 }

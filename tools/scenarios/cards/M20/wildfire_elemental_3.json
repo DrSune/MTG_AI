@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "wildfire_elemental_pump_ends_with_the_turn",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (until-end-of-turn->permanent at 1/0/effect/args/duration). Printed: 'Whenever an opponent is dealt noncombat damage, creatures you control get +1/+0 until end of turn.' Seat 0 Shocks the opponent (20 -> 18): the trigger pumps seat 0's creatures for this turn only. After the turn ends the 3/3 Elemental and the 2/2 Bear are back to their printed power; the opponent's Bear was never pumped.",
+ "cards": [
+  {"key": "wild", "real": "Wildfire Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "controller": 0, "targets": ["p1"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"shock": "graveyard"},
+  "power": {"wild": 3, "bear": 2, "ob": 2},
+  "toughness": {"wild": 3, "bear": 2, "ob": 2}
+ }
+}

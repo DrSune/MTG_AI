@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pf4d46c24e0 G4. Printed: 'Exile target creature or planeswalker that's black or red. Scry 1.' Planeswalker half: seat 1's red planeswalker is a legal target and is exiled; seat 0 keeps the scry card on top.",
+ "cards": [
+  {"key": "dd", "real": "Devout Decree", "zone": "hand", "controller": 0},
+  {"key": "rpw", "name": "Red Walker", "type": "Legendary Planeswalker — Chandra", "loyalty": 4, "colors": ["R"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Devout Decree", "key": "dd", "targets": ["rpw"], "decisions": ["top"]}
+ ],
+ "expect": {
+  "zone": {"dd": "graveyard", "rpw": "exile"}
+ }
+}

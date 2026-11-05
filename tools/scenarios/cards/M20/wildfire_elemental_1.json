@@ -1,0 +1,14 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wild", "real": "Wildfire Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [{"op": "cast", "key": "shock", "controller": 0, "targets": ["p1"]}],
+ "expect": {"life": {"0": 20, "1": 18}, "power": {"wild": 4, "bear": 3, "ob": 2}, "toughness": {"wild": 3, "bear": 2, "ob": 2}},
+ "notes": "Wildfire Elemental (M20): 'Whenever an opponent is dealt noncombat damage, creatures you control get +1/+0 until end of turn.' Shock to the opponent: your Elemental and Bear get +1/+0; the opponent's Bear does not."
+}

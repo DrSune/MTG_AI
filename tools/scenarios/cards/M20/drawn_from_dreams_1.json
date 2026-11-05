@@ -1,0 +1,137 @@
+{
+ "name": "drawn_from_dreams_top_seven_two_to_hand_rest_bottom",
+ "set": "M20",
+ "notes": "Printed: 'Look at the top seven cards of your library. Put two of them into your hand and the rest on the bottom of your library in a random order.' P0's library reads Lib 9 (top) .. Lib 0, then six filler cards. The top seven are Lib 9..Lib 3; P0 takes Lib 9 and Lib 3 (the seventh card, so the look reaches exactly seven deep). The other five looked-at cards (Lib 8..Lib 4) go under everything, in any order; Lib 2, Lib 1, Lib 0 and the filler move up. No card was drawn.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "dfd",
+   "real": "Drawn from Dreams",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "l0",
+   "name": "Lib 0",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "name": "Lib 1",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "name": "Lib 2",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "name": "Lib 3",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l4",
+   "name": "Lib 4",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l5",
+   "name": "Lib 5",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l6",
+   "name": "Lib 6",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l7",
+   "name": "Lib 7",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l8",
+   "name": "Lib 8",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l9",
+   "name": "Lib 9",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "dfd",
+   "real": "Drawn from Dreams",
+   "controller": 0,
+   "decisions": [
+    "l9",
+    "l3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dfd": "graveyard",
+   "l9": "hand",
+   "l3": "hand",
+   "l8": "library",
+   "l4": "library",
+   "l2": "library"
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Lib 2",
+    "Lib 1",
+    "Lib 0",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

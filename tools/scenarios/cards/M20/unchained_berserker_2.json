@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_attacking_toughness_stays_1",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (amount+1 at 1/0/effect/args/toughness/magnitude). Printed: 'This creature gets +2/+0 as long as it's attacking.' The bonus is to power only: the 1/1 Berserker attacks as a 3/1. P1's green 1/1 Elf blocks it; each deals combat damage to the other and both die (the Berserker's toughness is still 1). No damage reaches P1.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "elf", "name": "Green Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ber": true}, "block": {"elf": "ber"}}
+ ],
+ "expect": {
+  "attackers": {"ber": true},
+  "blocked": {"ber": ["elf"]},
+  "damage_received": {"ber": 1, "elf": 3},
+  "zone": {"ber": "graveyard", "elf": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

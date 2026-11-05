@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "blood_for_bones_returns_one_to_hand",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (amount+1 at 1/0/effect/steps/1/args/cards/count). Printed: 'As an additional cost to cast this spell, sacrifice a creature. Return a creature card from your graveyard to the battlefield, then return another creature card from your graveyard to your hand.' One card to each zone. Seat 0 sacrifices its only creature, the Bear (no choice to make), then returns Fallen A (handle card:2) to the battlefield and Fallen B (card:3) to its hand. Fallen C, the sacrificed Bear and the noncreature Used Instant stay in the graveyard; seat 0's hand holds exactly one card.",
+ "cards": [
+  {"key": "bfb", "real": "Blood for Bones", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "fa", "name": "Fallen A", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "fb", "name": "Fallen B", "type": "Creature — Zombie", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0},
+  {"key": "fc", "name": "Fallen C", "type": "Creature — Zombie", "power": "4", "toughness": "4", "zone": "graveyard", "controller": 0},
+  {"key": "used", "name": "Used Instant", "type": "Instant", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Blood for Bones", "key": "bfb", "controller": 0, "decisions": ["card:2", "card:3"]}
+ ],
+ "expect": {
+  "zone": {"bfb": "graveyard", "bear": "graveyard", "fa": "battlefield", "fb": "hand", "fc": "graveyard", "used": "graveyard"},
+  "hand": {"0": 1},
+  "graveyard": {"0": ["Blood for Bones", "My Bear", "Fallen C", "Used Instant"]}
+ }
+}

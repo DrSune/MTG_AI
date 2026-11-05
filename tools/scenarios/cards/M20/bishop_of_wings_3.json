@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_only_your_angels_make_spirits",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (controller YOU->OPPONENT at 1/1/event/filter/children/0/who). Printed: 'Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.' Only Angels seat 0 controls count. Seat 1's two Angels die first: no token. Then seat 0's Angel dies: one 1/1 flying Spirit. Exactly one Spirit exists at the end.",
+ "cards": [
+  {"key": "bishop", "real": "Bishop of Wings", "zone": "battlefield", "controller": 0},
+  {"key": "angel", "name": "My Angel", "type": "Creature — Angel", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "oangel1", "name": "Opp Angel One", "type": "Creature — Angel", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "oangel2", "name": "Opp Angel Two", "type": "Creature — Angel", "power": "3", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "killer", "target": "oangel1", "amount": 9, "controller": 1},
+  {"op": "deal_damage", "source": "killer", "target": "oangel2", "amount": 9, "controller": 1},
+  {"op": "deal_damage", "source": "killer", "target": "angel", "amount": 9, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"angel": "graveyard", "oangel1": "graveyard", "oangel2": "graveyard", "bishop": "battlefield"},
+  "tokens": {"Spirit": 1},
+  "battlefield_pt": {"Spirit": [1, 1]},
+  "battlefield_keywords": {"Spirit": ["FLYING"]}
+ }
+}

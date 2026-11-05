@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "trusted_pegasus_only_the_target_gains_flying",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (target->all at 1/0/effect/args/target). Printed: 'Whenever this creature attacks, target attacking creature without flying gains flying until end of turn.' One target, not every attacker. Pegasus, Bear and Giant attack; the trigger targets the Bear. The Bear flies; the Giant, another attacking creature without flying, does not, so P1's non-flying Ogre may block the Giant only. Damage: Giant 4 to the Ogre, Ogre 2 to the Giant; P1 takes 2 (Pegasus) + 2 (Bear).",
+ "cards": [
+  {"key": "peg", "real": "Trusted Pegasus", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Your Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "2", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true, "giant": true}, "block": {"ogre": "giant"}, "decisions": ["bear"]}
+ ],
+ "expect": {
+  "attackers": {"peg": true, "bear": true, "giant": true},
+  "block_asks": {"ogre": "<giant>,NONE"},
+  "blocked": {"giant": ["ogre"], "bear": [], "peg": []},
+  "battlefield_keywords": {"Your Bear": ["FLYING"], "Your Giant": [], "Trusted Pegasus": ["FLYING"]},
+  "damage": {"giant": 2, "ogre": 4},
+  "life": {"0": 20, "1": 16}
+ }
+}

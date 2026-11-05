@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "trusted_pegasus_attack_trigger_gives_attacking_nonflier_flying",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "peg", "real": "Trusted Pegasus", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true}, "decisions": ["bear"]}
+ ],
+ "expect": {
+  "attackers": {"peg": true, "bear": true},
+  "not_asked_to_block": ["giant"],
+  "blocked": {"bear": [], "peg": []},
+  "battlefield_keywords": {"Your Bear": ["FLYING"]},
+  "life": {"0": 20, "1": 16}
+ },
+ "notes": "Printed: 'Whenever this creature attacks, target attacking creature without flying gains flying until end of turn.' Pegasus and Bear attack; the Bear gains flying, so the opponent's non-flying Giant can block neither: 4 damage."
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "chandras_flame_wave_graveyard_only_finds_one",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (amount+1 at 1/0/effect/steps/1/options/2/steps/0/args/cards/count, the graveyard-only search). Printed: '... Search your library and/or graveyard for a card named Chandra, Flame's Fury, reveal it, and put it into your hand ...' One card is found. Seat 0 targets seat 1 (20 -> 18) and searches its graveyard only (choice 2), which holds two copies; it takes the first (pack card 2, handle card:1): that copy goes to hand, the other stays in the graveyard.",
+ "cards": [
+  {"key": "wave", "real": "Chandra's Flame Wave", "zone": "hand", "controller": 0},
+  {"key": "c_gy1", "real": "Chandra, Flame's Fury", "zone": "graveyard", "controller": 0},
+  {"key": "c_gy2", "real": "Chandra, Flame's Fury", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "wave", "real": "Chandra's Flame Wave", "controller": 0, "targets": ["p1"], "decisions": ["2", "card:1"]}
+ ],
+ "expect": {
+  "zone": {"wave": "graveyard", "c_gy1": "hand", "c_gy2": "graveyard"},
+  "hand": {"0": 1},
+  "life": {"0": 20, "1": 18}
+ }
+}

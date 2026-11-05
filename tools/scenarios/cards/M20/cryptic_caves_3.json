@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "cryptic_caves_draw_needs_untapped_caves",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (drop cost part 2 (CostTap) at 1/1/cost). Printed: '{T}: Add {C}. {1}, {T}, Sacrifice this land: Draw a card. Activate only if you control five or more lands.' The draw ability costs {T} too. With the Caves and four other lands (five lands) and {W} floating, seat 0 taps the Caves for {C}; the draw ability is then refused (an already-tapped land cannot pay {T}), so the Caves stays on the battlefield, tapped, no card is drawn and the mana stays in the pool.",
+ "cards": [
+  {"key": "caves", "real": "Cryptic Caves", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "name": "Plains A", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Plains B", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
+  {"key": "l3", "name": "Plains C", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
+  {"key": "l4", "name": "Plains D", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "activate", "key": "caves", "idx": 0, "seat": 0},
+  {"op": "activate", "key": "caves", "idx": 1, "seat": 0, "expect_raise": "cost:tap:source_tapped"}
+ ],
+ "expect": {
+  "zone": {"caves": "battlefield"},
+  "tapped": {"caves": true},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {"W": 1, "C": 1}}
+ }
+}

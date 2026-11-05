@@ -1,0 +1,68 @@
+{
+ "name": "unchained_berserker_plus_2_only_while_attacking",
+ "set": "M20",
+ "notes": "Printed: 'Protection from white. This creature gets +2/+0 as long as it's attacking.' Unchained Berserker attacks alone: P1's white 2/2 is not offered a block (protection), P1's green 2/2 is; nobody blocks and P1 takes 3. Once combat is over the creature is no longer attacking and is 1/1 again.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ber",
+   "real": "Unchained Berserker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "white",
+   "name": "White Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "W"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "green",
+   "name": "Green Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "G"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ber": true
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "ber": 1
+  },
+  "toughness": {
+   "ber": 1
+  },
+  "block_asks": {
+   "green": "<ber>,NONE"
+  },
+  "life": {
+   "0": 20,
+   "1": 17
+  },
+  "not_asked_to_block": [
+   "white"
+  ]
+ }
+}

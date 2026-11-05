@@ -219,5 +219,54 @@
  },
  "probe": {
   "sha": "7dcf246be646cb0e66de7f7b37a6f1c974fc415c6d962fd96d0101778e07861a"
+ },
+ "verified": {
+  "tree_sha": "edad3aa913985e08c69fca12198c2a947b37cd2062658629b5e5d75326b8e3cc",
+  "probe_sha": "7dcf246be646cb0e66de7f7b37a6f1c974fc415c6d962fd96d0101778e07861a",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped, you: mana C+1.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}, {T}, Sacrifice this land: Draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'ability [1] not activatable from battlefield: condition:false' (fewer than five lands). Pack cryptic_caves_five_lands_draws: with the Caves + 4 lands, {1} is spent, the Caves goes to the graveyard and you draw one card; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result. G3 pack cryptic_caves_draw_needs_untapped_caves.json PASS (five lands, the Caves tapped for {C}: the draw ability is refused 'cost:tap:source_tapped', nothing drawn, Caves stays); FAILS on the dropped-{T} mutant (the tapped Caves still sacrifices and draws).",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only if you control five or more lands.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows only the refusal on the small standard board (condition:false). Packs: five lands -> allowed (cryptic_caves_five_lands_draws); four own lands + two opponent lands -> refused 'condition:false' (cryptic_caves_four_lands_refused); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/cryptic_caves_1.json",
+   "tools/scenarios/cards/M20/cryptic_caves_2.json",
+   "tools/scenarios/cards/M20/cryptic_caves_3.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 3,
+   "score": 0.21428571428571427,
+   "survived": [
+    "drop cost part 0 (CostManaGeneric) at 1/1/cost",
+    "drop cost part 1 (CostSacrifice) at 1/1/cost",
+    "drop cost part 2 (CostTap) at 1/1/cost",
+    "amount+1 at 1/1/cost/parts/0/amount",
+    "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
+    "widen filter (drop part 1) at 1/1/cost/parts/1/target/filter",
+    "controller YOU->OPPONENT at 1/1/cost/parts/1/target/filter/children/0/who",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller",
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count"
+   ]
+  }
  }
 }

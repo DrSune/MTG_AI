@@ -254,5 +254,50 @@
  },
  "probe": {
   "sha": "c87bb0882814a7a274ce5f2019e902854d55eebde8dc3a50baae1b908b4d124e"
+ },
+ "verified": {
+  "tree_sha": "1c0a2c108dc879f50cedcc30646d337b7b0b719818babeec2efa7afcbbe57ebc",
+  "probe_sha": "e969220cef0083aac48919f2afda451234f9c3e81c814fafb052d59641089a60",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever an Angel you control enters, you gain 4 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No Angel enters in G1 (non-Angel entries on either side correctly do nothing). Pack bishop_of_wings_1 (your Angel: +4; your Human and the opponent's Angel: nothing; life 24 / 20) passes; twin fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Only non-Angels die in G1 (correctly nothing). Pack bishop_of_wings_2 (your Angel dies: exactly one 1/1 flying Spirit; your Human and the opponent's Angel dying make none) passes; twin fails. G3 pack bishop_of_wings_only_your_angels_make_spirits.json PASS (two opponent Angels and then your Angel die: exactly one Spirit); FAILS on the controller YOU->OPPONENT mutant of the dies filter (two Spirits).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/bishop_of_wings_1.json",
+   "tools/scenarios/cards/M20/bishop_of_wings_2.json",
+   "tools/scenarios/cards/M20/bishop_of_wings_3.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 2,
+   "score": 0.13333333333333333,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "widen filter (drop part 2) at 1/0/event/subject",
+    "controller YOU->OPPONENT at 1/0/event/subject/children/0/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "amount-1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller",
+    "widen filter (drop part 0) at 1/1/event/filter",
+    "widen filter (drop part 2) at 1/1/event/filter",
+    "controller YOU->OPPONENT at 1/1/event/filter/children/0/who",
+    "amount+1 at 1/1/effect/args/count",
+    "amount+1 at 1/1/effect/args/tokens/power",
+    "amount+1 at 1/1/effect/args/tokens/toughness"
+   ]
+  }
  }
 }

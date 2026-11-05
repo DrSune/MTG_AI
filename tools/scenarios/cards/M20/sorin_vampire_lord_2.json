@@ -1,0 +1,26 @@
+{
+ "name": "sorin_vampire_lord_minus8_only_your_vampires_this_turn",
+ "set": "M20",
+ "notes": "Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' After -8, P0's non-Vampire has no such ability, and P1's Vampire did not gain it. P0's Vampire has it this turn, but not once the turn has ended (P0's next turn). Nothing changes control.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sorin", "real": "Sorin, Vampire Lord", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vamp One", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "ovamp", "name": "Opp Vamp", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "sorin", "set": 9},
+  {"op": "activate", "key": "sorin", "idx": 2, "seat": 0},
+  {"op": "activate", "key": "bear", "idx": -1, "seat": 0, "targets": ["ogiant"], "expect_raise": "no granted ability"},
+  {"op": "activate", "key": "ovamp", "idx": -1, "seat": 1, "targets": ["vamp"], "expect_raise": "no granted ability"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["ogiant"], "expect_raise": "no granted ability"}
+ ],
+ "expect": {
+  "counters": {"sorin": {"LOYALTY": 1}},
+  "controller": {"ogiant": 1, "ovamp": 1, "vamp": 0, "bear": 0}
+ }
+}

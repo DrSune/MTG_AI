@@ -248,5 +248,37 @@
  },
  "probe": {
   "sha": "5ded859076b836801c6dea5326d9c79830081af1683ecd0df036640d1b9d37c0"
+ },
+ "verified": {
+  "tree_sha": "549808c861160a98a7cf19dbab37cf473480862b9ec72d62529c571a244ad84d",
+  "probe_sha": "5ded859076b836801c6dea5326d9c79830081af1683ecd0df036640d1b9d37c0",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "As an additional cost to cast this spell, sacrifice a creature.",
+    "status": "OK",
+    "evidence": "[cast]: ask sacrifice [you_bear, you_giant] (your creatures only); the chosen creature dies (SACRIFICE) before the spell is cast; mana B-1 W-3.",
+    "issue": ""
+   },
+   {
+    "clause": "Return a creature card from your graveyard to the battlefield, then return another creature card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "ask one_of [you_bear, you_fallen] (creature cards in your graveyard, incl. the sacrificed one): the pick goes graveyard -> battlefield, the other creature card graveyard -> hand (e.g. [ask 2 -> you_fallen]: you_fallen -> battlefield 2/2, you_bear -> hand). G3 pack blood_for_bones_returns_one_to_hand.json PASS (three creature cards plus the sacrificed Bear in the graveyard: Fallen A to the battlefield, Fallen B to hand, the rest stay; swapping the picks fails the pack); FAILS on the amount+1 mutant of the to-hand step (two cards reach the hand).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/blood_for_bones_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 11,
+   "score": 0.8461538461538461,
+   "survived": [
+    "amount+1 at 1/0/effect/steps/1/args/cards/count",
+    "widen filter (drop part 0) at 1/0/additional_costs/0/parts/0/target/filter"
+   ]
+  }
  }
 }

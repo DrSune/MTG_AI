@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "sorin_vampire_lord_minus8_ability_taps_the_vampire",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (drop cost part 0 (CostTap) at 1/2/effect/args/ability/cost). Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' The granted ability costs {T}. Sorin at 9 loyalty uses -8 (1 left). Vamp One taps to gain control of P1's Giant and stays tapped; it cannot activate the ability a second time this turn (an already-tapped permanent cannot pay {T}), so P1 keeps its Bear.",
+ "cards": [
+  {"key": "sorin", "real": "Sorin, Vampire Lord", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vamp One", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "sorin", "set": 9},
+  {"op": "activate", "key": "sorin", "idx": 2, "seat": 0},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["ogiant"]},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["obear"], "expect_raise": "cost:tap:source_tapped"}
+ ],
+ "expect": {
+  "counters": {"sorin": {"LOYALTY": 1}},
+  "tapped": {"vamp": true, "ogiant": false, "obear": false},
+  "controller": {"ogiant": 0, "obear": 1, "vamp": 0}
+ }
+}

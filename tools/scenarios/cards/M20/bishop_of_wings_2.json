@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P78cafbd71b G4. Printed: 'Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.' Seat 0's Angel dies: one 1/1 flying Spirit token. Seat 0's non-Angel and seat 1's Angel dying make nothing, so exactly one Spirit exists.",
+ "cards": [
+  {"key": "bishop", "real": "Bishop of Wings", "zone": "battlefield", "controller": 0},
+  {"key": "angel", "name": "My Angel", "type": "Creature — Angel", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "human", "name": "My Human", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oangel", "name": "Opp Angel", "type": "Creature — Angel", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "killer", "target": "angel", "amount": 9, "controller": 1},
+  {"op": "deal_damage", "source": "killer", "target": "human", "amount": 9, "controller": 1},
+  {"op": "deal_damage", "source": "killer", "target": "oangel", "amount": 9, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"angel": "graveyard", "human": "graveyard", "oangel": "graveyard", "bishop": "battlefield"},
+  "tokens": {"Spirit": 1},
+  "battlefield_pt": {"Spirit": [1, 1]},
+  "battlefield_keywords": {"Spirit": ["FLYING"]}
+ }
+}

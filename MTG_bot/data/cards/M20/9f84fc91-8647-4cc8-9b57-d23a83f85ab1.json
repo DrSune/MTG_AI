@@ -550,5 +550,66 @@
  },
  "probe": {
   "sha": "e3181954d6b58ab72e92b1e3f990bd34bd56515c101a25a06ce24140ec7475e9"
+ },
+ "verified": {
+  "tree_sha": "00967267e54d501762792d761cc1420d1757b00a9cdc4ebfe690da24402e232c",
+  "probe_sha": "e3181954d6b58ab72e92b1e3f990bd34bd56515c101a25a06ce24140ec7475e9",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Chandra's Flame Wave deals 2 damage to target player and each creature that player controls.",
+    "status": "OK",
+    "evidence": "slot 1..1 of [you, opp]; [cast targets=['opp']]: opp is dealt 2 (20 -> 18), opp_flier, opp_tapped, opp_bear, opp_giant each dealt 2 (flier and bear die), your creatures untouched; [cast targets=['you']]: you 20 -> 18, you_bear dies, you_giant damage 2; cost R-2 W-3 = {3}{R}{R}",
+    "issue": ""
+   },
+   {
+    "clause": "Search your library and/or graveyard for a card named Chandra, Flame's Fury, reveal it, and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace shows only the zone-set ask choose [0, 1, 2] (both, library, graveyard); no such card on the board. Packs chandras_flame_wave_library.json (option 1: the card leaves the library for P0's hand, other library cards stay) and chandras_flame_wave_graveyard_no_shuffle.json (option 2: from the graveyard to hand) PASS on live and this tree; the variant where option 1 is expected to find a graveyard copy FAILS (it stays in the graveyard). G3 pack chandras_flame_wave_both_zones_finds_one.json PASS (choice 0, both zones, one copy in each: only the picked graveyard copy goes to hand, the library copy stays; picking the other copy fails the pack); FAILS on the amount+1 search-count mutant (both copies reach the hand). G3 pack chandras_flame_wave_library_only_finds_one.json PASS (choice 1, two library copies: one to hand, one stays); FAILS on the option-1 search count+1 mutant. G3 pack chandras_flame_wave_graveyard_only_finds_one.json PASS (choice 2, two graveyard copies: one to hand, one stays); FAILS on the option-2 search count+1 mutant. G3 pack chandras_flame_wave_both_zones_searches_your_library.json PASS (choice 0: the copy in your library goes to your hand, the opponent's library copy stays); FAILS on the option-0 library controller YOU->OPPONENT mutant (the opponent's copy goes to the opponent's hand, yours stays).",
+    "issue": ""
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "pack chandras_flame_wave_graveyard_no_shuffle.json pins the library unchanged after the graveyard-only search (PASS); the variant neg/chandras_flame_wave_both_zones_unshuffled_wrong.json (option 0 searches the library) FAILS because the library order changed: the library was shuffled.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/chandra's_flame_wave_1.json",
+   "tools/scenarios/cards/M20/chandra's_flame_wave_2.json",
+   "tools/scenarios/cards/M20/chandra's_flame_wave_3.json",
+   "tools/scenarios/cards/M20/chandra's_flame_wave_4.json",
+   "tools/scenarios/cards/M20/chandra's_flame_wave_5.json",
+   "tools/scenarios/cards/M20/chandra's_flame_wave_6.json"
+  ],
+  "mutation": {
+   "mutants": 31,
+   "killed": 11,
+   "score": 0.3548387096774194,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/steps/1/args/target/filter",
+    "amount+1 at 1/0/effect/steps/1/count",
+    "drop step 0 at 1/0/effect/steps/1/options/0",
+    "drop step 1 at 1/0/effect/steps/1/options/0",
+    "drop step 2 at 1/0/effect/steps/1/options/0",
+    "amount+1 at 1/0/effect/steps/1/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/steps/1/options/1",
+    "drop step 1 at 1/0/effect/steps/1/options/1",
+    "drop step 2 at 1/0/effect/steps/1/options/1",
+    "amount+1 at 1/0/effect/steps/1/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/steps/1/options/2",
+    "drop step 1 at 1/0/effect/steps/1/options/2",
+    "amount+1 at 1/0/effect/steps/1/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/options/2/steps/0/args/destination"
+   ]
+  }
  }
 }

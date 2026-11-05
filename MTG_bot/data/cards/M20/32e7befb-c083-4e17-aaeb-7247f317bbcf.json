@@ -166,5 +166,37 @@
  },
  "probe": {
   "sha": "8e6430b7f5ea80f8fa066e779aa55c6d3428c2732e50fcf86ef3ccedfc496c0c"
+ },
+ "verified": {
+  "tree_sha": "582a72b49493ead08465a6bfe118d2631986c1f38e4ec8b06daf9c51cd4b90f6",
+  "probe_sha": "b5a7a5e9a462a284e9355e8c0a0e5cd23370e509bec854fbfb75b6bba022ea00",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Protection from white (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything white.)",
+    "status": "OK",
+    "evidence": "keywords +PROTECTION (COLOR_HAS W); [this card is dealt 1 damage] and [this card is dealt lethal damage] by opp_giant (white on the probe board, tools/cards/probe.py EXTRA): same as without the card (no damage); [this creature attacks and opp_giant blocks it]: no block, opp 20 -> 17. Pack unchained_berserker_attacking_bonus.json: P1's white 2/2 is never asked to block, the green 2/2 is offered <ber>,NONE.",
+    "issue": ""
+   },
+   {
+    "clause": "This creature gets +2/+0 as long as it's attacking.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: opp is dealt 3 combat damage (1+2); Static: 1/1 when not attacking. Pack unchained_berserker_attacking_bonus.json: back to 1/1 once combat ends; PASS on live and this tree; the variant expecting 3 power after combat FAILS. G3 pack unchained_berserker_attacking_toughness_stays_1.json PASS (attacking 3/1 blocked by a green 1/1: both die, the toughness bonus is +0); FAILS on the amount+1 toughness mutant (a 3/2 survives the block).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/unchained_berserker_1.json",
+   "tools/scenarios/cards/M20/unchained_berserker_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

@@ -170,5 +170,38 @@
  },
  "probe": {
   "sha": "0091e1bd68337a579b459a7cd652831b010cd2aaaf410e31ea88255ac12ca8e8"
+ },
+ "verified": {
+  "tree_sha": "1f74a0ffd6e098ccbaae23531ddb7f933946109d50e668ec0880de5e3e5475a1",
+  "probe_sha": "4511e28d1c46a284115c0761ab9101dd984287962e9e1302662196bec99460b2",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever an opponent is dealt noncombat damage, creatures you control get +1/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No noncombat damage to an opponent in the trace; combat damage to opp ([attacks alone, unblocked]) correctly does not trigger. Packs: wildfire_elemental_noncombat_damage_pumps_your_creatures (Shock to the opponent: your Elemental 4/3 and Bear 3/2, the opponent's Bear 2/2), wildfire_elemental_damage_to_you_no_trigger; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result. G3 pack wildfire_elemental_pump_ends_with_the_turn.json PASS (Shock the opponent, end the turn: Elemental 3/3 and Bear 2/2 again); FAILS on the until-end-of-turn->permanent mutant (4 and 3 power stay).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/wildfire_elemental_1.json",
+   "tools/scenarios/cards/M20/wildfire_elemental_2.json",
+   "tools/scenarios/cards/M20/wildfire_elemental_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/filter/who",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/target/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

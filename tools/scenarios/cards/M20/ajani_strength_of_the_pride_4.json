@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "ajani_pridemate_only_your_life_gain_counts",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (controller YOU->OPPONENT at 1/1/effect/args/tokens/abilities/0/event/actor/who). Printed: '[-2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate with \"Whenever you gain life, put a +1/+1 counter on this token.\"' Only the token controller's life gain counts. Seat 0 makes the token (loyalty 5 -> 3). Seat 1 gains life twice (its lifelinker deals 2, then 1: 20 -> 23): no counter. Seat 0 gains life once (2: 20 -> 22): one counter, so the Pridemate is 3/3.",
+ "cards": [
+  {"key": "ajani", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "linker", "name": "Lifelinker", "type": "Creature", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "opplinker", "name": "Opp Lifelinker", "type": "Creature", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 1},
+  {"key": "wall", "name": "Wall", "type": "Creature", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1},
+  {"key": "mywall", "name": "My Wall", "type": "Creature", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ajani", "idx": 1, "seat": 0},
+  {"op": "deal_damage", "source": "opplinker", "target": "mywall", "amount": 2, "controller": 1},
+  {"op": "deal_damage", "source": "opplinker", "target": "mywall", "amount": 1, "controller": 1},
+  {"op": "deal_damage", "source": "linker", "target": "wall", "amount": 2}
+ ],
+ "expect": {
+  "counters": {"ajani": {"LOYALTY": 3}},
+  "tokens": {"Ajani's Pridemate": 1},
+  "battlefield_pt": {"Ajani's Pridemate": [3, 3]},
+  "life": {"0": 22, "1": 23},
+  "damage": {"wall": 2, "mywall": 3}
+ }
+}

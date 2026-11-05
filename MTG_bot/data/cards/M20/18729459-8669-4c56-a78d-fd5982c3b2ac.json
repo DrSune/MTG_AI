@@ -178,5 +178,41 @@
  },
  "probe": {
   "sha": "7acd31af7ca6ff1a02e5093b90a02941f5c201b5ce35b4ef5420d5486e329590"
+ },
+ "verified": {
+  "tree_sha": "5dad338f85f74b81f479367f6da7df939bb732b5ea98d40c869a524ece9bd2f1",
+  "probe_sha": "e028598c80e0942b04f3a43392b3b0710337049087fe67bfa3c9996091416b09",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying (This creature can't be blocked except by creatures with flying or reach.)",
+    "status": "OK",
+    "evidence": "cast: 'keywords +FLYING'; stimulus 'this creature attacks and opp_giant blocks it': no block row, opp dealt 2",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, target attacking creature without flying gains flying until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: trigger [0] fires when it attacks (not when you_bear attacks alone) but has no legal target. Packs: trusted_pegasus_gives_attacker_flying.json PASS (Pegasus + Bear attack; the Bear gains FLYING; the non-flying Giant is never offered a block; 4 damage); trusted_pegasus_flying_ends_at_end_of_turn.json PASS (Bear's flying gone after the turn, Pegasus keeps its own); control /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20_verify/work_v3/packs/trusted_pegasus_control_without_pegasus.json (without the Pegasus the Giant blocks the Bear). With two attacking non-fliers and an idle creature the target ask offers exactly the two attackers. Wrong variants fail G3 pack trusted_pegasus_only_the_target_gains_flying.json PASS (Pegasus, Bear and Giant attack, the trigger targets the Bear: the Bear flies, the Giant does not and P1's non-flying Ogre may block the Giant only; P1 20 -> 16); FAILS on the target->all mutant (the Giant flies too, no block ask, P1 -> 12).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/trusted_pegasus_1.json",
+   "tools/scenarios/cards/M20/trusted_pegasus_2.json",
+   "tools/scenarios/cards/M20/trusted_pegasus_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 3,
+   "score": 0.42857142857142855,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

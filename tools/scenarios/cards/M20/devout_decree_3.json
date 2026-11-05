@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "devout_decree_you_scry",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "G3 (controller YOU->OPPONENT at 1/0/effect/steps/1/args/controller). Printed: 'Exile target creature or planeswalker that's black or red. Scry 1.' The caster scries. Seat 0 exiles seat 1's red creature and puts the scried card (its own top card, Card Top) on the bottom of its library; seat 1's library, Opp Top first, is untouched.",
+ "cards": [
+  {"key": "dd", "real": "Devout Decree", "zone": "hand", "controller": 0},
+  {"key": "rgob", "name": "Red Goblin", "type": "Creature — Goblin", "power": "2", "toughness": "2", "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "top", "name": "Card Top", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "otop", "name": "Opp Top", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Devout Decree", "key": "dd", "targets": ["rgob"], "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"dd": "graveyard", "rgob": "exile", "top": "library", "otop": "library"},
+  "library": {
+   "0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Card Top"],
+   "1": ["Opp Top", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}

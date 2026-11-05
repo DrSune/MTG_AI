@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "name": "ajani_zero_exiles_ajani_and_opp_artifacts_creatures_at_35",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ajani", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "you_bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "you_relic", "name": "You Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opp_relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "opp_golem", "name": "Opp Golem", "type": "Artifact Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "opp_charm", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1},
+  {"key": "opp_land", "name": "Opp Plains", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 35},
+  {"op": "activate", "key": "ajani", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"ajani": "exile", "opp_bear": "exile", "opp_relic": "exile", "opp_golem": "exile",
+           "opp_charm": "battlefield", "opp_land": "battlefield", "you_bear": "battlefield", "you_relic": "battlefield"},
+  "life": {"0": 35, "1": 20}
+ },
+ "notes": "Printed: '[0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.' Starting life 20, life 35 (exactly 15 more): Ajani and every opponent artifact/creature go to exile; enchantments, lands and your own permanents stay."
+}

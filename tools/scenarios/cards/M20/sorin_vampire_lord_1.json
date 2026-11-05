@@ -1,0 +1,26 @@
+{
+ "name": "sorin_vampire_lord_minus8_each_vampire_steals",
+ "set": "M20",
+ "notes": "Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' Sorin at 9 loyalty uses -8 (1 left). Each of P0's two Vampires taps to take one of P1's creatures (the 4/4 and P1's own Vampire). The gained control has no duration: after P1's turn and back, P0 still controls both.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sorin", "real": "Sorin, Vampire Lord", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vamp One", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "vamp2", "name": "Vamp Two", "type": "Creature — Vampire", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "ovamp", "name": "Opp Vamp", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "sorin", "set": 9},
+  {"op": "activate", "key": "sorin", "idx": 2, "seat": 0},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["ogiant"]},
+  {"op": "activate", "key": "vamp2", "idx": -1, "seat": 0, "targets": ["ovamp"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "counters": {"sorin": {"LOYALTY": 1}},
+  "controller": {"ogiant": 0, "ovamp": 0, "vamp": 0, "vamp2": 0},
+  "zone": {"sorin": "battlefield", "ogiant": "battlefield", "ovamp": "battlefield"}
+ }
+}

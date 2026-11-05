@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "sorin_vampire_lord_minus8_ability_targets_one_creature",
+ "world": {"life": 20, "seed": 7},
+ "notes": "G3 (target->all at 1/2/effect/args/ability/effect/args/target). Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' The granted ability targets one creature. Sorin at 9 loyalty uses -8 (1 left). Vamp One's ability aimed at P1's artifact (not a creature) is refused as it is announced, before anything is paid; aimed at P1's Giant it resolves: P0 controls the Giant, P1 keeps its Bear and its artifact, and Vamp One is tapped.",
+ "cards": [
+  {"key": "sorin", "real": "Sorin, Vampire Lord", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vamp One", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "sorin", "set": 9},
+  {"op": "activate", "key": "sorin", "idx": 2, "seat": 0},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["orelic"], "expect_raise": "illegal activation: target:selection:off_population"},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["ogiant"]}
+ ],
+ "expect": {
+  "counters": {"sorin": {"LOYALTY": 1}},
+  "tapped": {"vamp": true},
+  "controller": {"ogiant": 0, "obear": 1, "orelic": 1, "vamp": 0}
+ }
+}

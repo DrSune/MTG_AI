@@ -1,0 +1,96 @@
+{
+ "name": "chandras_flame_wave_finds_chandra_in_library",
+ "set": "M20",
+ "notes": "Printed: 'Chandra's Flame Wave deals 2 damage to target player and each creature that player controls. Search your library and/or graveyard for a card named Chandra, Flame's Fury, reveal it, and put it into your hand. If you search your library this way, shuffle.' P0 targets P1 (20 -> 18; P1's 3/3 takes 2, P0's 2/2 takes none), searches the library only and puts Chandra, Flame's Fury into its hand. The other library cards stay in the library.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "wave",
+   "real": "Chandra's Flame Wave",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obig",
+   "name": "Opp Ox",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "liba",
+   "name": "Lib A",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Flame's Fury",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "libb",
+   "name": "Lib B",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "wave",
+   "real": "Chandra's Flame Wave",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wave": "graveyard",
+   "chandra": "hand",
+   "liba": "library",
+   "libb": "library",
+   "obig": "battlefield",
+   "mine": "battlefield"
+  },
+  "damage": {
+   "obig": 2
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}
