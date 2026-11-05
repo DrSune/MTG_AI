@@ -182,3 +182,21 @@ Predictions (metric: magnitude; falsifier):
 Kill criteria: K1: an engine error whose cause is a rules bug (crash rows in eval or training beyond 0.2%); K4: explained variance below 0 for 3 consecutive updates; K5: no confirmatory metric moves beyond its interval over two review windows past 30% of the budget; K7: throughput below 10 training games/s (r17 ran ~21) with no fix in sight; memory floor trips twice.
 Pre-flight (tools/selfplay/preflight.py, main 0dec22f): clean tree; 200 verified-pool games, 0 engine
 errors; 200/200 ended by a loss; byte-identical replay. Init runs/selfplay/r17_ppo/last.pt, --refresh-table.
+
+## 9. r18 teacher stage: predicted vs observed
+| Prediction (§8) | Observed | Hit |
+|---|---|---|
+| v0 (r17 last.pt) vs heuristic 0.45-0.58 on the corrected game | 0.6233 (ladder, 300 games); heuristic vs random 0.873 (Elo heuristic 324, v0 406) | **miss**: above the 0.62 falsifier. The skill transferred; the heuristic is relatively weaker in the new game (0.928 vs random before) |
+| teacher eval at update 20 >= v0 + 0.05 | it5 0.595 [0.564, 0.626], it10 0.605 [0.571, 0.639], it15 0.590 [0.558, 0.622], it20 0.6238 [0.589, 0.659] (fresh deals each, deal-level intervals) | **miss**: flat, as in r15-r17's teacher stages |
+| training void rate < 0.05% | 0 crashes in the pre-flight's 200 games; no crash rows in r18 so far | hit so far |
+
+Training health over updates 1-22: KL 0.006-0.034, explained variance ~0.72, entropy ~0.24, gradient
+norm < 0.8, 24-39 games/s (r17: ~21; casts no longer need a TAP_ALL_MANA step). The per-minibatch
+KL stop fired on updates 10 and 13 (it could never fire before, at --epochs 1). Stage forced to
+self-play at update 22 (gate 0.65 not reached); v1 frozen.
+
+Eyes on glass (tools/selfplay/trace.py, r18 at ~update 12, deal 900011): the starting player keeps
+7 cards on turn 1; casts tap exactly the lands they need; the network declines losing blocks (a
+2/2 into a 2/3) and attacks with everything when the opponent's only creature is tapped from its
+own attack. The heuristic cast Grim Tutor at 2 life and lost at once (CR 704.5a; the old engine
+let it play on until after combat): a teacher weakness, not an engine bug.
