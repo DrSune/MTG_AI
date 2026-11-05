@@ -239,6 +239,9 @@ def test_elo_seed_start_builds_fresh_block(monkeypatch):
                 }
             ],
             "headline_claims": [],
+            # elo.main prints these since 7e0ba44 (2026-10-27); the fake lacked them
+            "engine": {"git_head": "fake", "mtgbot_dirty_files": 0},
+            "unrated": [],
         }
 
     monkeypatch.setattr(elo, "run_ladder", fake_ladder)

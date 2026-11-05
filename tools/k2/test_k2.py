@@ -23,12 +23,13 @@ train = _load("k2_train", "train.py")
 
 def test_generation_is_deterministic_and_replays_never_diverge(monkeypatch) -> None:
     # The base game's random stream derives from the master seed, so seed it as main() does. A
-    # 16-turn cap keeps it fast; M21 game 2 then has informative asks (options whose boards
-    # differ). ReplayDivergence would raise out of play().
+    # 16-turn cap keeps it fast; M21 game 4 then has informative asks (options whose boards
+    # differ). ReplayDivergence would raise out of play(). re-pinned 2026-11-05: game 2 (and 1, 3)
+    # no longer has one in 16 turns since the seeded games moved; game 4 is the first that does.
     gen.rng.seed_all(20261028)
     monkeypatch.setattr(gen, "TURN_CAP", 16)
-    first = gen.play(("M21", "castable", 2, 60))
-    second = gen.play(("M21", "castable", 2, 60))
+    first = gen.play(("M21", "castable", 4, 60))
+    second = gen.play(("M21", "castable", 4, 60))
     assert first and first == second
     assert any(len({tuple(a) for a in row["after"]}) > 1 for row in first)
     for row in first:

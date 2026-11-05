@@ -118,9 +118,14 @@ def test_expand_act_menu_ask():
 
 
 def test_expand_attack_ask():
-    """Seed 20261010 turn 8 pre_combat: the active seat is asked ATTACK/
-    DECLINE for its creature — the pinned attack-kind position."""
-    pos = play_position(SEED, at_turn=8, boundary="pre_combat")
+    """Seed 20261011 turn 5 pre_combat: the active seat is asked ATTACK/
+    DECLINE for its creature — the pinned attack-kind position.
+
+    re-pinned 2026-11-05: the seeded games moved again (supply and engine
+    changes since 2026-10-29); seed 20261010 no longer reaches an attack ask
+    first at any pre_combat of turns 2-20 (its seat's first ask is a dual
+    land's colour). Scan: seeds 20261011.., turns 4-10, first hit."""
+    pos = play_position(SEED + 1, at_turn=5, boundary="pre_combat")
     att = _active_seat(pos.game)
     xs = expand(pos, att)
     assert xs.kind == "attack"
@@ -131,9 +136,12 @@ def test_expand_attack_ask():
 
 
 def test_expand_block_ask():
-    """Seed 14 turn 11 pre_combat random-vs-random: seat 0 attacks and the
-    defender's first ask is block: (pinned via a full seed scan)."""
-    pos = play_position(14, at_turn=11, boundary="pre_combat", policies="random")
+    """Seed 26 turn 13 pre_combat random-vs-random: the active seat attacks and
+    the defender's first ask is block: (pinned via a full seed scan).
+
+    re-pinned 2026-11-05: seed 14 (turns 4-15) no longer gives the defender a
+    block ask first; scan of seeds 0-39, turns 4-15, first hit."""
+    pos = play_position(26, at_turn=13, boundary="pre_combat", policies="random")
     att = _active_seat(pos.game)
     xs = expand(pos, 1 - att, default="random")
     assert xs.kind == "block"
