@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e5741c85-cd09-4ccb-ab39-3f3a62f98939",
+ "name": "Gauntlets of Light",
+ "text_sha": "cb89f872c067d458d3af64a3a3048663a5a90468f49b5a6126f7b790ebeef338",
+ "needs_atom": {
+  "missing": "'Enchanted creature ... assigns combat damage equal to its toughness rather than its power.': no damage-assignment policy for toughness-as-power (CR 510.1a variant). DAMAGE_ASSIGN_POLICY's scope vocabulary is only AS_UNBLOCKED (ability_tree._DAMAGE_ASSIGN_SCOPES) and combat damage reads power. (The +0/+2 and the granted '{2}{W}: Untap this creature.' have existing shapes: B11-attached-pt MODIFY_PT and GRANT_ABILITY of an ActivatedAbility.)",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

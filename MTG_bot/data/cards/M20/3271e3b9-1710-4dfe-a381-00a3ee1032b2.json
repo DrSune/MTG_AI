@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3271e3b9-1710-4dfe-a381-00a3ee1032b2",
+ "name": "Overgrowth Elemental",
+ "text_sha": "c4c4c1e23e10d536889acd0fa6fe9eca38895395f07a7af72d2704dee64450ec",
+ "needs_atom": {
+  "missing": "ENGINE: 'Whenever another creature you control dies, you gain 1 life. If that creature was an Elemental, put a +1/+1 counter on this creature.' The faithful tree Seq(GAIN_LIFE, Conditional(pred=SUBTYPE_EQ Elemental + TYPE_EQ Creature, then=PUT_COUNTER on the source)) is judged on the ability's SOURCE, not the dying creature: GAIN_LIFE writes no result register, so executor _conditional_subject (__init__.py:450) falls back to ctx.source, and Overgrowth Elemental is itself an Elemental. Every other creature you control dying adds a +1/+1 counter (stronger than printed). Pack: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m8/overgrowth/pack_nonelemental_dies.json (a Bear dies: expects +1 life and no counter; the engine adds one); draft in the same directory. Missing piece: a way for a Conditional to name the triggering event's object ('that creature', bindings['event']/the dies-trigger result), or a subject rule that reads it after a step that names no object.",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

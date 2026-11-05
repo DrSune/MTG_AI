@@ -1,0 +1,146 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "0c77b805-728d-4ae4-88a9-223f4b7b52e0",
+ "name": "Corpse Knight",
+ "text_sha": "b0c753ed02c31bbc4c6ad2deeaebf83a8050bcfedbcd618fb179932e314a80d5",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "LOSE_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "ALL_OPPONENTS"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Corpse Knight (M20). \"Whenever another creature you control enters, each opponent loses 1 life.\"\n# Event: Terror of the Peaks (B2b-other-enters-power-damage). Effect: Caged Zombie's\n# \"Each opponent loses N life\" (LOSE_LIFE, controller ALL_OPPONENTS).\ndrain = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.LOSE_LIFE, {\n        'amount': QConst(value=1),\n        'controller': ControllerRef.ALL_OPPONENTS,\n    }),\n)\nabilities = [drain, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever another creature you control enters, each opponent loses 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "94af31095653244ba2b07324f62412a639429c60454cee14881db45fd01b27b1"
+ }
+}

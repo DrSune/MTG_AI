@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3a747893-a514-4689-8486-ecccf654fecb",
+ "name": "Fry",
+ "text_sha": "8477a8dfe03e93155551d4bba0a883aa727059a6504b168917046c9cd5784dc8",
+ "needs_atom": {
+  "missing": "'This spell can't be countered.': no IR node makes a spell uncounterable (no 'is countered' EventSpec for PREVENT_EFFECT or a ReplacementAbility to hook, COUNTER_SPELL has no exemption, no keyword); the engine has no uncounterable flag. The damage sentence alone maps (Scorching Dragonfire's B5b-named-damage selector AND FOr(COLOR_HAS W, COLOR_HAS U)), but dropping the clause would let counterspells answer Fry (weaker than printed) and the guide forbids omitting clauses.",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

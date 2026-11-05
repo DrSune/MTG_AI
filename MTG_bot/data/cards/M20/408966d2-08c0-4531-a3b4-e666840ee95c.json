@@ -1,0 +1,510 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "408966d2-08c0-4531-a3b4-e666840ee95c",
+ "name": "Chandra, Flame's Fury",
+ "text_sha": "e07a1b05b2f2d4cffb294d09e71373dd5421d228b40b209bdf2caa14c3a8a756",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Planeswalker",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Player",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -2
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 4
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "CHOOSE"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "ANY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ],
+             "referent": "target"
+            },
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "PLAYER"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -8
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 10
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_PERMANENT"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "PLAYER"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 10
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "CHOOSE"
+               },
+               "filter": {
+                "tag": "FAnd",
+                "children": []
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "ANY"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "ANY"
+                 }
+                }
+               ],
+               "referent": "target"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Chandra, Flame's Fury (M20)\n# [+1]: Chandra deals 2 damage to any target.                               (compiled[0])\n# [-2]: Chandra deals 4 damage to target creature and 2 damage to that creature's controller.\n# [-8]: Chandra deals 10 damage to target player and each creature that player controls.\n\n# \"that creature's controller\" / \"that player\": an anaphoric read of the ability's one target\n# (CONTROLLER_IS with a referent='target' Selector, the Chandra's Incinerator shape), never a\n# second target slot.\n_the_target = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAnd(children=()),\n    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n    referent='target',\n)\n\nminus_two = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-2),)),\n    effect=Seq(\n        steps=(\n            A(Verb.DEAL_DAMAGE, {\n                'amount': QConst(value=4),\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n            A(Verb.DEAL_DAMAGE, {\n                'amount': QConst(value=2),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=_the_target),\n                    zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),),\n                ),\n            }),\n        ),\n    ),\n)\n\nminus_eight = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-8),)),\n    effect=Seq(\n        steps=(\n            A(Verb.DEAL_DAMAGE, {\n                'amount': QConst(value=10),\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n                    zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),),\n                ),\n            }),\n            A(Verb.DEAL_DAMAGE, {\n                'amount': QConst(value=10),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=_the_target),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n        ),\n    ),\n)\n\nabilities = [compiled[0], minus_two, minus_eight, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: Chandra deals 2 damage to any target.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "[−2]: Chandra deals 4 damage to target creature and 2 damage to that creature's controller.",
+    "ir": "abilities[1] (cost; effect.steps[0] 4 to target creature; effect.steps[1] 2 to the player who controls the target, CONTROLLER_IS referent='target')"
+   },
+   {
+    "clause": "[−8]: Chandra deals 10 damage to target player and each creature that player controls.",
+    "ir": "abilities[2] (cost; effect.steps[0] 10 to target player; effect.steps[1] 10 to each creature controlled by that target)"
+   },
+   {
+    "clause": "Cast (planeswalker spell)",
+    "ir": "abilities[3]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "'that creature's controller' / 'that player' read the ability's single target anaphorically (CONTROLLER_IS who=referent 'target' Selector, Chandra's Incinerator shape) instead of opening a second target slot (contrast ZNR Synchronized Spellcraft). -8 exercised by packs /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m6/packs/chandra_minus8_{opp,self}.json; -2 by chandra_minus2_{opp,self}.json"
+ },
+ "probe": {
+  "sha": "a4bcb33ce71714df0567505c584f6d921a8464b014f2b6af80388c8bd148b7b8"
+ }
+}

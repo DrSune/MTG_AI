@@ -1,0 +1,199 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a167d593-cded-43e1-b9bb-2287dbd0cbec",
+ "name": "Moment of Heroism",
+ "text_sha": "53a7377c99f973b0b45d59b96d9dc66d107308a52bc1b19b14324c79531d89db",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "LIFELINK"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Moment of Heroism (M20) -- Target creature gets +2/+2 and gains lifelink until end of turn.\n_target_creature = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n                    'target': _target_creature,\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.LIFELINK),\n                    'duration': DurationEot(),\n                    'target': _target_creature,\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Target creature gets +2/+2 and gains lifelink until end of turn.",
+    "ir": "abilities[0].effect.steps[0] (+2/+2 EOT) + abilities[0].effect.steps[1] (lifelink EOT)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Shape of Sure Strike (M21 B5b-seq-modpt-firststrike)."
+ },
+ "probe": {
+  "sha": "1ed5a2478939aba0900840a254447e1693b5ccace26a81d3316bd91a700e31f7"
+ }
+}

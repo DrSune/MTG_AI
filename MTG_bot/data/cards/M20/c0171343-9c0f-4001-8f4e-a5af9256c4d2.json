@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c0171343-9c0f-4001-8f4e-a5af9256c4d2",
+ "name": "Thunderkin Awakener",
+ "text_sha": "e18f7e4e6311f3175dcc3ca5215b0aba70f0d834c2c0825ea5f913a23f6931b8",
+ "needs_atom": {
+  "missing": "Three pieces of the attack trigger have no node. (1) 'with toughness less than this creature's toughness': there is no toughness-only comparison predicate (FAtomPred has POWER_LE/POWER_GE and the both-component PT_LE/PT_GE). (2) 'Return that card to the battlefield tapped and attacking': MOVE_ZONE's roles have tapped_on_enter but nothing that puts the object onto the battlefield attacking (only TokenSpec has enters_attacking). (3) 'Sacrifice it at the beginning of the next end step': a delayed trigger that remembers the returned card. DelayedTrigger keeps only node/source/controller (executor/binding.py DelayedBinding), so 'it' cannot be bound at the next end step.",
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,184 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "8331fcd2-b91d-45eb-8361-74aa73e4ff69",
+ "name": "Herald of the Sun",
+ "text_sha": "e3e9cdbb5d20294d23370f7fa0a72d4be4179e62934474a433daacc76e54d431",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "W",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 3
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "KEYWORD_HAS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": {
+             "tag": "Keyword",
+             "name": "FLYING"
+            },
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Herald of the Sun (M20) -- Flying (compiled)\n# {3}{W}: Put a +1/+1 counter on another target creature with flying.\npump = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostManaColor(color='W', amount=QConst(value=1)),\n            CostManaGeneric(amount=QConst(value=3)),\n        ),\n    ),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [pump, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "{3}{W}: Put a +1/+1 counter on another target creature with flying.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Cast (creature spell)",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "4c12de0f03fab746cb3f37b4d3813475fdddd06b60e2738664a1bfb273326e51"
+ }
+}

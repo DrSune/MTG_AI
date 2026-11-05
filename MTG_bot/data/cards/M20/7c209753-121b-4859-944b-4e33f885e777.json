@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7c209753-121b-4859-944b-4e33f885e777",
+ "name": "Vilis, Broker of Blood",
+ "text_sha": "248eb31461588b28018b4cb7e974a3ff8ab80ca4656cba3ad9b675cf4bf1aa59",
+ "needs_atom": {
+  "missing": "'Whenever you lose life, draw that many cards.': no life-loss EventSpec. The IR has LifeGainedEvent only; the journal records LIFE_LOST and player DAMAGE rows (events.py) but no event type matches them, so neither the trigger nor 'that many' (the amount of life lost, incl. damage and life paid as a cost) can be expressed. (The activated sentence maps: {B} + CostLife(2), MODIFY_PT -1/-1 DurationEot on target creature.)",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

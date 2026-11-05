@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "aa959340-c869-4caa-92c7-572bd8d23eef",
+ "name": "Field of the Dead",
+ "text_sha": "9299c8f01630ff791e8ae46464c768a0324a18c46e5edbdb56070d600054a60d",
+ "needs_atom": {
+  "missing": "'if you control seven or more lands with different names': no distinct-NAME count. NAME_PARTITION_COUNT_GE measures the largest same-name group (the opposite question), QDistinctColorCount counts colours, QCount counts objects. Needs a distinct-name count over a filter (lands you control) usable in the intervening-if condition (e.g. a QDistinctNameCount quantity or a NAME_DISTINCT_COUNT_GE predicate). The trigger itself ('this land or another land you control enters') and the Zombie token are expressible.",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,250 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9e0c5919-aed6-4d98-85c8-2658be78bdf0",
+ "name": "Master Splicer",
+ "text_sha": "4a72eddaf6635a836f0a099b75274fc5cf57057edce57f1e3b5878e867b50fb9",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Phyrexian Golem",
+         "type_line": "Artifact Creature — Phyrexian Golem",
+         "types": [
+          "Artifact",
+          "Creature"
+         ],
+         "subtypes": [
+          "Golem",
+          "Phyrexian"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 3
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 3
+         },
+         "keywords": [],
+         "abilities": []
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Golem",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Master Splicer (M20)\n# s1 (compiled): When this creature enters, create a 3/3 colorless Phyrexian Golem artifact creature token.\n# s2: Golems you control get +1/+1.  -- canonical form from `parse \"Zombies you control get +1/+1.\"` (B5c-zombies-pt)\ngolem_anthem = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Golem'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n)\nabilities = [compiled[0], golem_anthem, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 3/3 colorless Phyrexian Golem artifact creature token.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Golems you control get +1/+1.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "944002d9024362995c4bf563a5406050c384c61cfab62a8a756571bb567bd0a0"
+ }
+}

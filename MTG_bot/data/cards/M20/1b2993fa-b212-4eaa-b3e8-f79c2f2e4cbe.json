@@ -1,0 +1,234 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1b2993fa-b212-4eaa-b3e8-f79c2f2e4cbe",
+ "name": "Gruesome Scourger",
+ "text_sha": "63c159dfb63c20981987a95fd12d8c20b370292de0aeb10d05563e0ecd3f109d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Planeswalker",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_PERMANENT"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          },
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OPPONENT"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Gruesome Scourger (M20). \"When this creature enters, it deals damage to target opponent or\n# planeswalker equal to the number of creatures you control.\"\n# Event: Skeleton Archer's ETB. Amount: Kabira Takedown's census QCount (B9-census-damage-kabira).\n# Target: Chandra's Magmutt's player-or-planeswalker selector with the player side narrowed to\n# opponents, Zone(PLAYER, OPPONENT) (templates_b2b._target_opponent); same as Sorcerer of the Fang.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QCount(\n            selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        ),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FOr(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n                ),\n            ),\n            zones=(\n                Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n                Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.OPPONENT),\n            ),\n        ),\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, it deals damage to target opponent or planeswalker equal to the number of creatures you control.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "target opponent or planeswalker as Sorcerer of the Fang; amount = Kabira Takedown census. Packs: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/gruesome_scourger/pack_pw.json, /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/gruesome_scourger/pack_opp.json"
+ },
+ "probe": {
+  "sha": "79d4e529e8283038349590d0ce7ef5fe074e084f92d8ce41bd8a2e01dbdea317"
+ }
+}

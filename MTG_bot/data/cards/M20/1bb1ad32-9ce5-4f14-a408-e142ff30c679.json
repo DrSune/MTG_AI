@@ -1,0 +1,167 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1bb1ad32-9ce5-4f14-a408-e142ff30c679",
+ "name": "Scholar of the Ages",
+ "text_sha": "2dc1c86462d5a51850a157589389142a8b83b714ce880d609318690ec42f57bd",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 2
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Instant",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Sorcery",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Scholar of the Ages: \"When this creature enters, return up to two target instant\n# and/or sorcery cards from your graveyard to your hand.\"\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QAtMost(n=2),\n            mode=SelectorMode.TARGET,\n            filter=FOr(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, return up to two target instant and/or sorcery cards from your graveyard to your hand.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "6d08dd763b7cfb96c3ff3f01f81d10d3f7b97808c368d7d398a17189c3aa6a2b"
+ }
+}

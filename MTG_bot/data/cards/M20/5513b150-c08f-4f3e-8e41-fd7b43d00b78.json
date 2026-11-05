@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5513b150-c08f-4f3e-8e41-fd7b43d00b78",
+ "name": "Vivien, Nature's Avenger",
+ "text_sha": "0c360bb2ba1f6e7d6c400cd58bf4f9ac6434ffe18015f17ae31542a7ef5f1c49",
+ "needs_atom": {
+  "missing": "REVEAL-UNTIL DIG for the [-1]: 'Reveal cards from the top of your library until you reveal a creature card. Put that card into your hand and the rest on the bottom of your library in a random order.' No node iterates the library from the top until a card matching a filter is revealed, and no selector names 'the other revealed cards' to send them to the bottom in a random order. The only existing encoding (Transmogrify, B5b-transmogrify-reveal-creature: SEARCH over Zone(LIBRARY, position=TOP) + REVEAL count QUnbounded) looks at the top card only (documented divergence: a non-creature top card finds nothing), so it would play weaker than printed; Repeat takes a fixed count. The [+1] (Basri Ket's PUT_COUNTER x3 on up to one target creature) and [-6] (Garruk, Unleashed's MODIFY_PT+GRANT_ABILITY TRAMPLE Seq with a single target, +10/+10) map onto existing nodes.",
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05"
+ }
+}

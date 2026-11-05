@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "64ad5657-78e9-4f34-8877-18c4f51fff9a",
+ "name": "Glint-Horn Buccaneer",
+ "text_sha": "e9256a2f01f9bec00ba1961e220027c7b1b77b59f98b2989afce8381de7f430a",
+ "needs_atom": {
+  "missing": "DISCARD EVENT for 'Whenever you discard a card, this creature deals 1 damage to each opponent.': the IR's event classes (ability_tree._EV_CLASSES) have no discard event, and discard itself has two effect encodings (BACKLOG B-48: MOVE_ZONE hand->graveyard vs Verb.DISCARD). A ZoneChangeEvent hand->graveyard is not the keyword action (CR 701.8): it misses a discard that a replacement sends elsewhere (madness, Rest in Peace) and would fire on non-discard hand->graveyard moves. Also note for whoever adds it: '{1}{R}, Discard a card: Draw a card. Activate only if this creature is attacking.' maps (ActivatedAbility condition gate, Celestial Enforcer's shape), but the executor's combat phase runs uninterrupted with no activation window (executor/__init__.py:2075-2087, R16-1 v1 limit), so the attacking-only activation could never be used (weaker than printed) until combat has a priority window.",
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05"
+ }
+}

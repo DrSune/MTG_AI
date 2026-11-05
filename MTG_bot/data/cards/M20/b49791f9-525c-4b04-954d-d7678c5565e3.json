@@ -1,0 +1,179 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b49791f9-525c-4b04-954d-d7678c5565e3",
+ "name": "Vivien's Crocodile",
+ "text_sha": "7a1ddc32253637d7c5df2cee31987b2606e0162b22917c4f43e0305c19d9cb4b",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationWhileCondition",
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Vivien",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Planeswalker",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Vivien's Crocodile: \"This creature gets +1/+1 as long as you control a Vivien planeswalker.\"\n# (the B4-modify-pt-while-garruk shape with the subtype Vivien)\nstatic = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationWhileCondition(\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Vivien'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n            )),\n        ),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n)\nabilities = [static, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature gets +1/+1 as long as you control a Vivien planeswalker.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "5ec1d87a6c1fa3a1bd452c6d8ebdfbf76431f7616f8d4bacd30f6ecb153c77de"
+ }
+}

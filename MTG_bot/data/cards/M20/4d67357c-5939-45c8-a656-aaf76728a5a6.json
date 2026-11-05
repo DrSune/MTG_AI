@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "4d67357c-5939-45c8-a656-aaf76728a5a6",
+ "name": "Nightpack Ambusher",
+ "text_sha": "3220d06b77ab23d69ab97d983cb5bad8cf7db4d137270b7ed98835f702eff3b3",
+ "needs_atom": {
+  "missing": "'At the beginning of your end step, if you didn't cast a spell this turn, create a 2/2 green Wolf creature token.': no condition says 'you cast a spell this turn' for spells of every kind. INSTANT_OR_SORCERY_CAST_THIS_TURN reads only INSTANT/SORCERY rows of the CAST feed (quantity.py), WAS_CAST_THIS_TURN / CAST_THIS_TURN_FROM judge one object, and no quantity counts spells cast this turn. Needed: a turn-scoped 'who cast a spell this turn' predicate (the CAST-feed scan without the kind filter), used as FNot(...) in the trigger condition. The rest maps: Flash (compiled), 'Other Wolves and Werewolves you control get +1/+1.' (StaticAbility MODIFY_PT over FAnd(CONTROLLER_IS YOU, Creature, FOr(SUBTYPE_EQ Wolf, SUBTYPE_EQ Werewolf), FNot(IS_SOURCE))), and the TurnPhaseEvent END_TURN/YOU + CREATE_TOKEN Wolf of Griffin Aerie's shape.",
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f4e32fc1-1b8d-441e-8e76-71f19f98e925",
+ "name": "Leyline of the Void",
+ "text_sha": "da89b7bc74a9de12ea355ddc178103e7681e4f9382e27d83cd2236f8f60b0465",
+ "needs_atom": {
+  "missing": "'If this card is in your opening hand, you may begin the game with it on the battlefield.': no pregame / opening-hand action (CR 103.6). No IR node or event expresses 'begin the game with it on the battlefield', and the engine has no game-start hook for it (games.py only draws OPENING_HAND). The replacement sentence ('If a card would be put into an opponent's graveyard from anywhere, exile it instead.') looks expressible with Chandra, Flame's Catalyst's ReplacementAbility shape over ZoneChangeEvent to GRAVEYARD OPPONENT (untested).",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d373dc71-5196-43a0-8cc5-67e2a591aad0",
+ "name": "Twinblade Paladin",
+ "text_sha": "55095e9e0769f903293a48b6feae943412c6819b8f185f50e99914d56b06ae9d",
+ "needs_atom": {
+  "missing": "LIFE-TOTAL THRESHOLD predicate for 'As long as you have 25 or more life, this creature has double strike.': no FAtomPred compares a player's current life total with a number (e.g. FAtom(LIFE_GE, who=YOU, count=QConst(25)), or a generic quantity comparison over QProp(controller, LIFE)). The nearest, LIFE_LEAD_OVER_START_GE (quantity.py:1719, life minus the starting life total), equals 'life >= 25' only when the game starts at 20 life; in Commander (40) count=5 would demand 45 life, and no quantity names the starting life to offset it. The rest maps: the compiled B9-gain-life-counter-self trigger, and the static grant would be Thieves' Guild Enforcer's StaticAbility(condition=...) with GRANT_ABILITY DOUBLE_STRIKE on the source.",
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05"
+ }
+}

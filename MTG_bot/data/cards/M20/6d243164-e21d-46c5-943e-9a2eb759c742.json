@@ -1,0 +1,370 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6d243164-e21d-46c5-943e-9a2eb759c742",
+ "name": "Tomebound Lich",
+ "text_sha": "3c3eac5d5ecad108e6da16209ccf97678824356c1c5d62a8b25d742e1c2b44e5",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "DEATHTOUCH"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "LIFELINK"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FNot",
+      "inner": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "IS_PERMANENT"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "source": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "combat": true
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Tomebound Lich (M20)\n# Deathtouch, Lifelink (compiled keywords)\n# Whenever this creature enters or deals combat damage to a player, draw a card, then discard a card.\n# One printed ability with two trigger events; the IR has one event per TriggeredAbility, so it is\n# two nodes with the same effect (each event triggers it once, as printed).\n_loot = Seq(\n    steps=(\n        A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n            'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n)\non_enter = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=_loot,\n)\non_combat_damage = TriggeredAbility(\n    event=DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n        source=FAtom(pred=FAtomPred.IS_SOURCE),\n        combat=True,\n    ),\n    condition=None,\n    effect=_loot,\n)\nabilities = [on_enter, on_combat_damage, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Deathtouch",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Lifelink",
+    "ir": "keywords[1]"
+   },
+   {
+    "clause": "Whenever this creature enters or deals combat damage to a player, draw a card, then discard a card.",
+    "ir": "abilities[0] (enters) + abilities[1] (combat damage to a player), same draw-then-discard effect"
+   },
+   {
+    "clause": "Cast (creature spell)",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "'enters or deals combat damage to a player' = two TriggeredAbility nodes (IR: one event per node) with the same loot effect (B3-seq-draw-discard). Damage event shape of Jeskai Elder."
+ },
+ "probe": {
+  "sha": "8c6e83be4c13f4d2adb38f639314a8b0586d30926ddf7f2a36f31fd20a57fc81"
+ }
+}

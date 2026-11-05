@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6ff4ff67-ad08-447f-a112-1a071c1474a4",
+ "name": "Hanged Executioner",
+ "text_sha": "e536bbc443d1cffaf5042834a32af110aa02ba0f09ca8971c088deaed2f72590",
+ "needs_atom": {
+  "missing": "'{3}{W}, Exile this creature: Exile target creature.': no cost part exiles an object. CostPart is CostTap|CostManaColor|CostManaGeneric|CostManaHybrid|CostLife|CostSacrifice|CostDiscard|CostPutCounter|CostLoyalty (ability_tree.py Cost); exiling the source as an effect step instead of a cost is a different ability (CR 602.2: costs are paid before the ability exists). Needed: a CostExile(target=Selector) part, here over the source on the battlefield. The rest maps (Flying, the compiled ETB Spirit token, effect = MOVE_ZONE exile target creature).",
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05"
+ }
+}

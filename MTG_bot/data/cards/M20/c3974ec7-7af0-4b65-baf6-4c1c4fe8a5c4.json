@@ -1,0 +1,529 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c3974ec7-7af0-4b65-baf6-4c1c4fe8a5c4",
+ "name": "Ajani, Strength of the Pride",
+ "text_sha": "364de9c2a1e80e4d588b8ebe27a8285db04aa7213a8bc2ee73c46e8870ad2532",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "ADD"
+         },
+         "left": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         },
+         "right": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Planeswalker",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -2
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Ajani's Pridemate",
+         "type_line": "Creature — Cat Soldier",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Cat",
+          "Soldier"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "keywords": [],
+         "abilities": [
+          {
+           "tag": "TriggeredAbility",
+           "event": {
+            "tag": "LifeGainedEvent",
+            "actor": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            }
+           },
+           "condition": null,
+           "effect": {
+            "tag": "Atom",
+            "verb": {
+             "tag": "Verb",
+             "name": "PUT_COUNTER"
+            },
+            "args": {
+             "tag": "AtomArgs",
+             "pairs": [
+              [
+               "count",
+               {
+                "tag": "QConst",
+                "value": 1
+               }
+              ],
+              [
+               "counter_kind",
+               {
+                "tag": "CounterKind",
+                "name": "PLUS_1_PLUS_1"
+               }
+              ],
+              [
+               "target",
+               {
+                "tag": "Selector",
+                "count": {
+                 "tag": "QConst",
+                 "value": 1
+                },
+                "mode": {
+                 "tag": "SelectorMode",
+                 "name": "CHOOSE"
+                },
+                "filter": {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "IS_SOURCE"
+                 },
+                 "string_value": null,
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                "zones": [
+                 {
+                  "tag": "Zone",
+                  "kind": {
+                   "tag": "ZoneKind",
+                   "name": "BATTLEFIELD"
+                  },
+                  "controller": {
+                   "tag": "ControllerRef",
+                   "name": "ANY"
+                  }
+                 }
+                ]
+               }
+              ]
+             ]
+            }
+           }
+          }
+         ],
+         "colors": [
+          "W"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 0
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Conditional",
+     "pred": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "LIFE_LEAD_OVER_START_GE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": {
+       "tag": "QConst",
+       "value": 15
+      },
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "then_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "EXILE"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "OWNER"
+          }
+         }
+        ],
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FOr",
+           "children": [
+            {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FOr",
+               "children": [
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Artifact",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Creature",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                }
+               ]
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "OPPONENT"
+               },
+               "inner_filter": null
+              }
+             ]
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ]
+       ]
+      }
+     },
+     "else_effect": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Ajani, Strength of the Pride\n# s1 [+1]: You gain life equal to the number of creatures you control plus the\n#          number of planeswalkers you control.\n# s2 [−2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate\n#          with \"Whenever you gain life, put a +1/+1 counter on this token.\"\n# s3 [0]:  If you have at least 15 life more than your starting life total, exile\n#          Ajani and each artifact and creature your opponents control.\ndef _you_control(type_name):\n    return QCount(selector=Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value=type_name),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ))\n\nplus1 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QBin(op=QBinOp.ADD, left=_you_control('Creature'), right=_you_control('Planeswalker')),\n        'controller': ControllerRef.YOU,\n    }),\n)\n\npridemate_trigger = TriggeredAbility(\n    event=LifeGainedEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nminus2 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-2),)),\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name=\"Ajani's Pridemate\",\n            type_line='Creature — Cat Soldier',\n            types=('Creature',),\n            subtypes=('Cat', 'Soldier'),\n            power=QConst(value=2),\n            toughness=QConst(value=2),\n            keywords=(),\n            abilities=(pridemate_trigger,),\n            colors=('W',),\n        ),\n    }),\n)\n\nzero = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=0),)),\n    effect=Conditional(\n        pred=FAtom(pred=FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(value=15)),\n        then_effect=A(Verb.MOVE_ZONE, {\n            'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FOr(children=(\n                    FAtom(pred=FAtomPred.IS_SOURCE),\n                    FAnd(children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                        FOr(children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        )),\n                    )),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n)\nabilities = [plus1, minus2, zero, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: You gain life equal to the number of creatures you control plus the number of planeswalkers you control.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "[−2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate with \"Whenever you gain life, put a +1/+1 counter on this token.\"",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "[0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "e9342ff77f75ef94696e1852a8405262e2b006d0a217bb404296e6a514f76091"
+ }
+}

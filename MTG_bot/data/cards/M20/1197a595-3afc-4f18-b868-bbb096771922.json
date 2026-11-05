@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1197a595-3afc-4f18-b868-bbb096771922",
+ "name": "Leyline of Abundance",
+ "text_sha": "0801eea5559c57b6f64254a6b3104492f94f234f67d84dd12934ead6cdf6252f",
+ "needs_atom": {
+  "missing": "s1 'If this card is in your opening hand, you may begin the game with it on the battlefield.': no node for a pregame opening-hand action (CR 103.6); games.py deals the opening hand with no hook. s2 'Whenever you tap a creature for mana, add an additional {G}.': no event for 'tapped for mana' (AbilityActivatedEvent kinds are ANY/NON_MANA/LOYALTY, no MANA kind or {T}-in-cost test) and no triggered mana ability that resolves at once during payment (CR 605.1b).",
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05"
+ }
+}

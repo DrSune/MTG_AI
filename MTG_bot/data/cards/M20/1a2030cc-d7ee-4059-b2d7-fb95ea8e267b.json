@@ -1,0 +1,150 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1a2030cc-d7ee-4059-b2d7-fb95ea8e267b",
+ "name": "Gravedigger",
+ "text_sha": "f27b5a4cd1971fa6e0ff4b1250b7c839f8e1fae4a4e78839e1704a3dca3a18b8",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "HAND"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Gravedigger: \"When this creature enters, you may return target creature card\n# from your graveyard to your hand.\"\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may return target creature card from your graveyard to your hand.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "52e5cccf64632d41c9a585368368f6eb15cc2fddf64782eee85618c01ef8ca67"
+ }
+}

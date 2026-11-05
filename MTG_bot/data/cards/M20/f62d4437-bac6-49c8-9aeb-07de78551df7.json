@@ -1,0 +1,187 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f62d4437-bac6-49c8-9aeb-07de78551df7",
+ "name": "Pack Mastiff",
+ "text_sha": "d0d2c83a7b6f2200030fffca7f33fd5ba00c2098685140c7f24bfc5552eeb12a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "R",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "NAME_EQ"
+            },
+            "string_value": "Pack Mastiff",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Pack Mastiff (M20)\n# {1}{R}: Each creature you control named Pack Mastiff gets +1/+0 until end of turn.\npump = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostManaColor(color='R', amount=QConst(value=1)),\n            CostManaGeneric(amount=QConst(value=1)),\n        ),\n    ),\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(pred=FAtomPred.NAME_EQ, string_value='Pack Mastiff'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n    }),\n)\nabilities = [pump, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{1}{R}: Each creature you control named Pack Mastiff gets +1/+0 until end of turn.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Cast (creature spell)",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Packs: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m6/packs/pack_mastiff_{named,eot}.json"
+ },
+ "probe": {
+  "sha": "43e8f923997902c7287ebb3a1c0ee940a5a78cd2f72c04c3bb9b50b09b9362f6"
+ }
+}

@@ -1,0 +1,172 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b4cd7e4e-4b63-41a1-bfad-2840a96f84bb",
+ "name": "Blightbeetle",
+ "text_sha": "ef374df96abd89ab83a069aca32515deaae45a3d1bcad8f7c0822c486f83fc6f",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "PROTECTION"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "COLOR_HAS"
+      },
+      "string_value": null,
+      "color": "G",
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "OPPONENT"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "CounterPlacedEvent",
+         "counter_kind": {
+          "tag": "CounterKind",
+          "name": "PLUS_1_PLUS_1"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "OPPONENT"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Blightbeetle (M20)\n# Protection from green\n# Creatures your opponents control can't have +1/+1 counters put on them.\nkeywords = [\n    KeywordAbility(\n        keyword=Keyword.PROTECTION,\n        params=(FAtom(pred=FAtomPred.COLOR_HAS, color='G'),),\n    ),\n]\n_opp_creatures = FAnd(\n    children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ),\n)\nno_counters = StaticAbility(\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': _opp_creatures,\n        'event': CounterPlacedEvent(counter_kind=CounterKind.PLUS_1_PLUS_1, filter=_opp_creatures),\n    }),\n)\nabilities = [no_counters, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Protection from green",
+    "ir": "keywords[0] (PROTECTION, params COLOR_HAS G)"
+   },
+   {
+    "clause": "Creatures your opponents control can't have +1/+1 counters put on them.",
+    "ir": "abilities[0] (static PREVENT_EFFECT over CounterPlacedEvent PLUS_1_PLUS_1 on creatures opponents control)"
+   },
+   {
+    "clause": "Cast (creature spell)",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ENGINE (weaker than printed): a PREVENT_EFFECT over CounterPlacedEvent has no consumer; PUT_COUNTER consults only replacement_for_counter_placement, so the counter still lands (pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m6/packs/blightbeetle_counters.json FAILS on the engine; blightbeetle_own.json and blightbeetle_protection.json pass)."
+ },
+ "probe": {
+  "sha": "1e98b11ff29d809a7f7263a5449378959a598241e2df9d751b3c5c10dfab4a3b"
+ }
+}

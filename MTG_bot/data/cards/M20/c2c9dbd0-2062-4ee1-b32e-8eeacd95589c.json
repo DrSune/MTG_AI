@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c2c9dbd0-2062-4ee1-b32e-8eeacd95589c",
+ "name": "Shared Summons",
+ "text_sha": "57ae5f1178a9413a19e872de43e2b30bfb4eb16123c7936ed2a343e94c1b5bad",
+ "needs_atom": {
+  "missing": "DISTINCT-NAMES constraint for 'Search your library for up to two creature cards with different names, reveal them, put them into your hand, then shuffle.': no IR node constrains a multi-card pick to different names (the compiler says so at templates_b2b.py:528). Alpine Houndmaster's workaround (one QAtMost(1) pick per FIXED name) needs printed names; here the names are open, and NAME_EQ takes only a literal string (no 'name differs from the first pick' filter). A SEARCH QAtMost(2) over TYPE_EQ Creature without it can fetch two copies of one creature (stronger than printed). The rest maps: SEARCH -> hand, REVEAL count QUnbounded, SHUFFLE (Alpine Houndmaster / Fierce Empath shapes).",
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "dd86d11f-0bd8-49a9-936d-e407ea2c1818",
+ "name": "Mask of Immolation",
+ "text_sha": "c2a8118fe5c0ccb182709e94f9feab489e8b355b8d96a042065fa99b471c6657",
+ "needs_atom": {
+  "missing": "'create a 1/1 red Elemental creature token, then attach this Equipment to it': the created token cannot be named as 'it'. CREATE_TOKEN writes no 'result' register (verbs.py _v_create_token), and in the ETB firing 'result' is the Mask itself, so ATTACH(equipment=source, target=referent 'result') never reaches the token (pack mapped/m6/packs/mask_probe_attach.json: Mask stays unattached). Needs CREATE_TOKEN to publish the created token(s) as the result register (living-weapon style 'create ..., then attach to it').",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

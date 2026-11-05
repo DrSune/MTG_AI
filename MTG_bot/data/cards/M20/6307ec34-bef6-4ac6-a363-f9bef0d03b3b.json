@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6307ec34-bef6-4ac6-a363-f9bef0d03b3b",
+ "name": "Kaalia, Zenith Seeker",
+ "text_sha": "423b86d18954ed0c730d0f96b23e08ae3a7d0d1504144a32f1118c65e1dceafe",
+ "needs_atom": {
+  "missing": "'You may reveal an Angel card, a Demon card, and/or a Dragon card from among them and put them into your hand': a partition of ONE look window into per-category picks (at most one Angel, one Demon and one Dragon). A single ONE_OF has one filter and one count, so FOr(Angel, Demon, Dragon) with up to 3 lets three Angels go to hand (stronger than printed); three sequential ONE_OFs do not work because run_atom closes the look window after the first MOVE_ZONE (verbs.py run_atom: look_window = () for non-look verbs), so the next pick sees only the library's top card. Needs a multi-category partition pick (or a look window that persists across the sentence's picks).",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

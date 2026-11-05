@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9c975fda-471a-4d41-9bb6-ea42edc6a0e6",
+ "name": "Blood Burglar",
+ "text_sha": "b862892b055e2ce91e1dd54f27c00f6fa2648677b84de4fe5a88e9b489625af6",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "LIFELINK"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "TURN_OF"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05",
+  "draft_py": "# Blood Burglar: \"During your turn, this creature has lifelink.\"\n# Shape: M21 Radha, Heart of Keld's B5a-radha-first-strike (\"During your turn, Radha has first\n# strike.\") with KeywordAbility(LIFELINK).\nlifelink_your_turn = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.LIFELINK),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n    condition=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n)\nabilities = [lifelink_your_turn, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "During your turn, this creature has lifelink.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Radha, Heart of Keld shape (B5a-radha-first-strike) with LIFELINK. Packs: attacking on your turn gains 2; blocking on the opponent's turn gains nothing."
+ },
+ "probe": {
+  "sha": "972a968dcc6ab977cc742175ad2553ce4071c6c4b5eafe39d3dbb332e0ec3d88"
+ }
+}

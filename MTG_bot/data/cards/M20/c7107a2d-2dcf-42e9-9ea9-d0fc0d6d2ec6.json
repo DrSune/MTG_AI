@@ -1,0 +1,146 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c7107a2d-2dcf-42e9-9ea9-d0fc0d6d2ec6",
+ "name": "Impassioned Orator",
+ "text_sha": "8719dea890290aafea6a36d3d6d75cdea046515b19c80df205a6817e2b817f00",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Impassioned Orator (M20). \"Whenever another creature you control enters, you gain 1 life.\"\n# Event: Terror of the Peaks (B2b-other-enters-power-damage). Effect: B4-gain-life-n's\n# GAIN_LIFE (amount, controller YOU).\ngain = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [gain, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever another creature you control enters, you gain 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "1a2c8bc8747ec29b1f08b766c1a09f4f86ad5bd3242fbbbfd8c1d4c9db7f1c6a"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d0eeb863-6c1b-4e84-9199-e77f15724626",
+ "name": "Wolfrider's Saddle",
+ "text_sha": "366d3cc6d815b2f912a83fd4fbe882b78cb69305ebd97ff146c73e51aa2863c4",
+ "needs_atom": {
+  "missing": "'Equipped creature gets +1/+1 and can't be blocked by more than one creature.': no maximum-blocker restriction (CR 509.1b). DeclareBlockersEvent preventions judge one blocker/attacker pair at a time (replacements.py _pair_vetoed) and no predicate counts the blockers already declared on an attacker; MENACE is the opposite (minimum two). Without it the equipped creature could be double-blocked (weaker) and dropping the clause is not allowed. (The +1/+1 has the B5a-equipped-pt shape; the ETB 'create a 2/2 green Wolf creature token, then attach this Equipment to it' would need ATTACH to the created token via the result register, untested.)",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

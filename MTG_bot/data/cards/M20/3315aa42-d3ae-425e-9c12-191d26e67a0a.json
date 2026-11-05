@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3315aa42-d3ae-425e-9c12-191d26e67a0a",
+ "name": "Frilled Sandwalla",
+ "text_sha": "8c8fd9852d40eb9aa999d751330cdd83b1d1020b4ce193edc65978ce114af0e8",
+ "needs_atom": {
+  "missing": "'Activate only once each turn.': no activation-count limit. ActivatedAbility carries only a condition and a timing window (SORCERY/INSTANT); no FAtomPred or QThisTurn kind counts how often this ability was activated this turn, and the engine has no per-turn activation limit outside loyalty abilities (CostLoyalty). Without it the {1}{G}: +2/+2 until end of turn pump repeats (stronger than printed).",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

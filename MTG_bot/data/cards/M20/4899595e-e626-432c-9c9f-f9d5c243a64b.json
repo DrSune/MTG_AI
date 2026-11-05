@@ -1,0 +1,242 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "4899595e-e626-432c-9c9f-f9d5c243a64b",
+ "name": "Scampering Scorcher",
+ "text_sha": "a614128f14e1c0ad628259ee4b73a088dfc800a7779c002a85f0dfe4c001792a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Elemental",
+           "type_line": "Creature — Elemental",
+           "types": [
+            "Creature"
+           ],
+           "subtypes": [
+            "Elemental"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "keywords": [],
+           "abilities": [],
+           "colors": [
+            "R"
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "HASTE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "SUBTYPE_EQ"
+              },
+              "string_value": "Elemental",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Scampering Scorcher (M20): \"When this creature enters, create two 1/1 red Elemental creature tokens.\n#   Elementals you control gain haste until end of turn.\"\n# Both sentences are the one ETB trigger's effect: Seq(compiled CREATE_TOKEN, GRANT_ABILITY).\n# Grant shape: B4-grant-trample-eot-you (\"Creatures you control gain trample until end of turn.\") with\n# haste, and the tribal noun \"Elementals\" = SUBTYPE_EQ Elemental + TYPE_EQ Creature (guide; B5c-zombies-pt).\netb = compiled[0]\nelementals_haste = A(Verb.GRANT_ABILITY, {\n    'ability': KeywordAbility(keyword=Keyword.HASTE),\n    'duration': DurationEot(),\n    'target': Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elemental'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            ),\n        ),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\netb_full = TriggeredAbility(\n    event=etb.event,\n    condition=etb.condition,\n    effect=Seq(steps=(etb.effect, elementals_haste)),\n)\nabilities = [etb_full, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create two 1/1 red Elemental creature tokens.",
+    "ir": "abilities[0] (event; effect.steps[0])"
+   },
+   {
+    "clause": "Elementals you control gain haste until end of turn.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "6faebbcd8d4a263719e03923169ac429d3a35f1b48842f6bf7a18c59e68d1eae"
+ }
+}

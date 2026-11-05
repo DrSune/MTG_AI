@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "cf7352bf-3971-4bb7-88b9-65ab9a219289",
+ "name": "Loaming Shaman",
+ "text_sha": "1ad82979b9be1535abfc089e613eb0775817598ede1a0ee0b1f14ca7b73e2d3c",
+ "needs_atom": {
+  "missing": "'any number of target cards from their graveyard': a TARGET Selector with an unbounded count (0..all) — the IR refuses mode TARGET with QUnbounded (ability_tree.py Selector.__post_init__); and the ETB trigger needs two dependent target slots (target player, then target cards in THAT player's graveyard), which the trigger binder refuses (binding.py multi-slot NotImplementedError: a TARGET and a TARGET_PLAYER in one trigger).",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

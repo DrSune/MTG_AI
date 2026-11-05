@@ -1,0 +1,317 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ec714e79-10ec-43ea-a0ff-f8c9083fe015",
+ "name": "Growth Cycle",
+ "text_sha": "a052d3207c1094fa2adbbb411baed5741969a96326b6134403a099f6262210c9",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 3
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 3
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QBin",
+            "op": {
+             "tag": "QBinOp",
+             "name": "MUL"
+            },
+            "left": {
+             "tag": "QConst",
+             "value": 2
+            },
+            "right": {
+             "tag": "QCount",
+             "selector": {
+              "tag": "Selector",
+              "count": {
+               "tag": "QUnbounded"
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "ALL"
+              },
+              "filter": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "NAME_EQ"
+               },
+               "string_value": "Growth Cycle",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "GRAVEYARD"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                }
+               }
+              ]
+             }
+            }
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QBin",
+            "op": {
+             "tag": "QBinOp",
+             "name": "MUL"
+            },
+            "left": {
+             "tag": "QConst",
+             "value": 2
+            },
+            "right": {
+             "tag": "QCount",
+             "selector": {
+              "tag": "Selector",
+              "count": {
+               "tag": "QUnbounded"
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "ALL"
+              },
+              "filter": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "NAME_EQ"
+               },
+               "string_value": "Growth Cycle",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "GRAVEYARD"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                }
+               }
+              ]
+             }
+            }
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Growth Cycle (M20) instant.\n# s1 (compiled, B5b-modpt-plus): Target creature gets +3/+3 until end of turn.\n# s2: It gets an additional +2/+2 until end of turn for each card named Growth Cycle in your graveyard.\n#   \"It\" = the spell's target: a referent='target' selector (Strength of Solidarity's \"Put a +1/+1 counter on it\n#   for each ...\" and Invigorating Surge's \"that creature\").\n#   \"+2/+2 ... for each X\": QBin(MUL, QConst(2), <count>) (Grotag Bug-Catcher / Shepherd of Heroes \"N for each\").\n#   \"cards named Growth Cycle in your graveyard\": Frantic Inventory's QCount(ALL, NAME_EQ, GRAVEYARD YOU).\n#   Two sentences, one spell: the SpellAbility effect is Seq(s1, s2) in printed order.\nfirst = compiled[0].effect\nper_copy = QBin(\n    op=QBinOp.MUL,\n    left=QConst(value=2),\n    right=QCount(\n        selector=Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAtom(pred=FAtomPred.NAME_EQ, string_value='Growth Cycle'),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n    ),\n)\nadditional = A(Verb.MODIFY_PT, {\n    'duration': DurationEot(),\n    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=per_copy),\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n        referent='target',\n    ),\n    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=per_copy),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(first, additional)))]\n",
+  "clauses": [
+   {
+    "clause": "Target creature gets +3/+3 until end of turn.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "It gets an additional +2/+2 until end of turn for each card named Growth Cycle in your graveyard.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "de9a4c19542abaab3de2b6c75be3b03f2a42687218464aea9d2fccb93c08c328"
+ }
+}

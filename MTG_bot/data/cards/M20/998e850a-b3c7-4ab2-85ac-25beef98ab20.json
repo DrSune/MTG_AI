@@ -1,0 +1,175 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "998e850a-b3c7-4ab2-85ac-25beef98ab20",
+ "name": "Thicket Crasher",
+ "text_sha": "9ce8667f99502f60141e50f4822ae4596b606228a7c4edb4ba70b5febb42e425",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TRAMPLE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "TRAMPLE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Elemental",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Thicket Crasher (M20) -- Trample (compiled); Other Elementals you control have trample.\nlord = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.TRAMPLE),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elemental'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [lord, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Other Elementals you control have trample.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Cast (creature spell)",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Pack Leader 'Other Dogs' filter shape with GRANT_ABILITY (Garruk's Uprising). Pack: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m6/packs/thicket_crasher_lord.json"
+ },
+ "probe": {
+  "sha": "253ad79fcbe6c3979134341d955ff89e1b4bd27cb225bc61251e9d0cdf78da61"
+ }
+}

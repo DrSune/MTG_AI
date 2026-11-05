@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "564c785b-c2fb-4857-a5bf-a14ae2cf6c93",
+ "name": "Scuttlemutt",
+ "text_sha": "513beab7d6c62be9d2a469470f8c55349d7116b0eb69bf4c9a5ae37b6df3a102",
+ "needs_atom": {
+  "missing": "s2 '{T}: Target creature becomes the color or colors of your choice until end of turn.': no verb sets an object's colours (a colour-changing layer-5 effect, CR 613.1e), and no node chooses one or more colours at resolution; GRANT_TYPE carries card types/subtypes only.",
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05"
+ }
+}

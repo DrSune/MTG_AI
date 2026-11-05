@@ -1,0 +1,264 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b5dbb212-0399-475b-a831-921f7c76cdc4",
+ "name": "Maniacal Rage",
+ "text_sha": "ce9f2e8a94d3159528cd010c4e8eb71a86c3c8918f3ad29e2e3bc60b2540a54d",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_ATTACHED_TO_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "DeclareBlockersEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Maniacal Rage (M20) Aura. Enchant creature is compiled (keywords, with its filter).\n# s2: Enchanted creature gets +2/+2 and can't block.\n#   \"gets +2/+2 and has X\" statics are one StaticAbility(Seq(MODIFY_PT, ...)) (B11-attached-pt / B5a-enchant-pt-*),\n#   \"can't block\" is Faith's Fetters' PREVENT_EFFECT over DeclareBlockersEvent (condition = filter = the enchanted object);\n#   \"enchanted creature\" in a static = FAnd(IS_ATTACHED_TO_SOURCE, TYPE_EQ Creature) (guide).\nenchanted = FAnd(\n    children=(\n        FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ),\n)\nrage = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=enchanted,\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n            }),\n            A(Verb.PREVENT_EFFECT, {\n                'condition': enchanted,\n                'event': DeclareBlockersEvent(filter=enchanted),\n            }),\n        ),\n    ),\n)\nabilities = [rage, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Enchanted creature gets +2/+2 and can't block.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "0eafef8916aec7a5f1ee5e3e77698ace4777247ff0bb840b6e5616d4e9612115"
+ }
+}

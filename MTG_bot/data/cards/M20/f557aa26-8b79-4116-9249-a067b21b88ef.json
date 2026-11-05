@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f557aa26-8b79-4116-9249-a067b21b88ef",
+ "name": "Atemsis, All-Seeing",
+ "text_sha": "7697e5c521b2012e0f59f04e8372cdaeef81b6ecf4fe5999efe6c26551ab34a3",
+ "needs_atom": {
+  "missing": "'If cards with at least six different mana values are revealed this way, that player loses the game.': (1) no quantity or predicate for the number of DISTINCT mana values among a set of cards (QDistinctColorCount counts colours, NAME_PARTITION_COUNT_GE groups names, QAgg has no distinct aggregation); (2) LOSE_GAME takes no player role and makes the ability's controller lose (verbs.py _v_lose_game), so 'that player' (the opponent Atemsis dealt damage to) cannot be named; EachPlayer(ALL_OPPONENTS) would be wrong in multiplayer. The other sentences ('{2}{U}, {T}: Draw two cards, then discard a card.', the DamageDealtEvent to an opponent via OPPONENT_OF, the optional reveal) have existing shapes.",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

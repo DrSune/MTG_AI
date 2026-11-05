@@ -1,0 +1,224 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6494e3c4-5489-44a5-94b6-4ee2d7830896",
+ "name": "Boneclad Necromancer",
+ "text_sha": "0f2d1e049f9cf924521a49b932213fecab6dadf217d901625f7657a1b03cdd26",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MOVE_ZONE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "EXILE"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "OWNER"
+            }
+           }
+          ],
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "TARGET"
+            },
+            "filter": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "GRAVEYARD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "CREATE_TOKEN"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "count",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "tokens",
+           {
+            "tag": "TokenSpec",
+            "name": "Zombie",
+            "type_line": "Creature — Zombie",
+            "types": [
+             "Creature"
+            ],
+            "subtypes": [
+             "Zombie"
+            ],
+            "power": {
+             "tag": "QConst",
+             "value": 2
+            },
+            "toughness": {
+             "tag": "QConst",
+             "value": 2
+            },
+            "keywords": [],
+            "abilities": [],
+            "colors": [
+             "B"
+            ]
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Boneclad Necromancer (M20).\n# s1: \"When this creature enters, you may exile target creature card from a graveyard.\"\n# s2: \"If you do, create a 2/2 black Zombie creature token.\"\n# The compiler hung s2's token (B5b-token-zombie) on the creature's SpellAbility, which would make\n# a Zombie on cast with no exile; it belongs inside the ETB trigger behind MAY_DONE.\n# Shape: \"You may X. If you do, Y\" = Seq(OptionalEffect(X), Conditional(MAY_DONE, Y)) (guide;\n# Dire Fleet Warmonger). X: Scavenging Ooze's \"Exile target card from a graveyard.\"\n# (B3-exile-target-graveyard) with the creature-card filter of Liliana, Waker of the Dead's emblem.\nzombie_token = compiled[0].effect   # the compiler's B5b-token-zombie CREATE_TOKEN, kept as is\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.MOVE_ZONE, {\n                    'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n            Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=zombie_token),\n        ),\n    ),\n)\nabilities = [etb, SpellAbility(kind=SpellKind.CREATURE)]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may exile target creature card from a graveyard.",
+    "ir": "abilities[0].event, abilities[0].effect.steps[0] (OptionalEffect MOVE_ZONE target creature card in any graveyard -> exile)"
+   },
+   {
+    "clause": "If you do, create a 2/2 black Zombie creature token.",
+    "ir": "abilities[0].effect.steps[1] (Conditional MAY_DONE -> CREATE_TOKEN 2/2 black Zombie)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Compiler bug fixed in the record: B5b-token-zombie dropped 'If you do' and hung the token on the creature's SpellAbility (a Zombie on cast). Record: ETB Seq(OptionalEffect(exile target creature card from a graveyard), Conditional(MAY_DONE, token)) + effect-less creature carrier."
+ },
+ "probe": {
+  "sha": "be2ff07cd429f80c937aa8ac39f6e37de45d386c595c36cea204505ff75ada7a"
+ }
+}

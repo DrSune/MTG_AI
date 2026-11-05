@@ -1,0 +1,159 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "0b34f471-40da-4c7a-81df-245fc3d14092",
+ "name": "Flame Sweep",
+ "text_sha": "7c7c73a7d31a23e672eb8e1f3f980c1658814bf1d3dc2644e7c2b1689902abf8",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "KEYWORD_HAS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": {
+                "tag": "Keyword",
+                "name": "FLYING"
+               },
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Flame Sweep: \"Flame Sweep deals 2 damage to each creature except for creatures you\n# control with flying.\"  The compiler emits no abilities for this instant, so the\n# SpellAbility carrier holds the effect.\nspell = SpellAbility(\n    kind=SpellKind.INSTANT,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),\n                ))),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [spell]\n",
+  "clauses": [
+   {
+    "clause": "Flame Sweep deals 2 damage to each creature except for creatures you control with flying.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "4cd70fa1cc49c286d24fd07cacad423c13fe37f6235b5de00e81c37520b1bfd8"
+ }
+}

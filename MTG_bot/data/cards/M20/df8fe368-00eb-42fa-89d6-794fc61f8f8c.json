@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "df8fe368-00eb-42fa-89d6-794fc61f8f8c",
+ "name": "Unholy Indenture",
+ "text_sha": "cae07e6cd4b19b87a47e794a2dab312f26540be7dea984d621b2a7d5c6fa1b71",
+ "needs_atom": {
+  "missing": "s2 'return that card to the battlefield under your control with a +1/+1 counter on it': MOVE_ZONE has no enters-with-counters role (CR 122.6: the counter is on the permanent as it enters; only a card's own EtBState gives entering counters, executor/__init__.py:1405). Seq(MOVE_ZONE, PUT_COUNTER) puts it on after entry, so an enters trigger that reads power or counters (e.g. Garruk's Uprising) sees the creature without it. The rest maps: TriggeredAbility(CreatureDiesEvent(IS_ATTACHED_TO_SOURCE)), MOVE_ZONE cards=referent 'event', destination Zone(BATTLEFIELD, YOU); a mapper pack showed the trigger fires and returns an opponent's creature under your control.",
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05"
+ }
+}

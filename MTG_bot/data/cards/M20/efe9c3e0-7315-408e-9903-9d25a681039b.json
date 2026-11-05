@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "efe9c3e0-7315-408e-9903-9d25a681039b",
+ "name": "Golos, Tireless Pilgrim",
+ "text_sha": "ebfb6244b9a09ecd8d99b248a819b37fac6dae77aca8eef0d0ddf771e7063d90",
+ "needs_atom": {
+  "missing": "s2+s3 '{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library. You may play them this turn without paying their mana costs.': no node grants a turn-long permission to PLAY exiled cards. CAST is an immediate cast at resolution (verbs.py _v_cast), not a 'this turn' permission, it raises on lands (play includes a land drop from exile, CR 305.1), and it ignores timing. s1 (ETB optional SEARCH for a land card onto the battlefield tapped, then SHUFFLE) maps like Solemn Simulacrum.",
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05"
+ }
+}

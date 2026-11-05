@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "49a5c149-5067-4840-8385-c2989d7e5a34",
+ "name": "Leyline of Combustion",
+ "text_sha": "14c801abe4337d4c04a1ec51189f3e1a96fa36d7728df39421ee9ba787476f5d",
+ "needs_atom": {
+  "missing": "(1) 'If this card is in your opening hand, you may begin the game with it on the battlefield.': no pregame / opening-hand action (CR 103.6) in the IR or the engine (games.py only draws OPENING_HAND). (2) 'Whenever you and/or at least one permanent you control becomes the target of a spell or ability an opponent controls, this enchantment deals 2 damage to that player.': TargetingEvent fires once per targeted object, so a spell targeting you and two of your permanents would trigger three times instead of once (no once-per-targeting-spell batch over a player and their permanents), and 'that player' (the controller of the targeting spell or ability) has no untargeted damage-recipient expression.",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

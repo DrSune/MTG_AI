@@ -1,0 +1,126 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d09b0648-e324-4a16-b78c-d1849177c04f",
+ "name": "Sanitarium Skeleton",
+ "text_sha": "4185d4acc395d24d19add04790a238bfd771684ffe8d85ee851a256a35ed77ab",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Sanitarium Skeleton: \"{2}{B}: Return this card from your graveyard to your hand.\"\n# The effect moves the source out of the graveyard, so the ability functions only\n# there (CR 113.6k). Self-in-graveyard selector as in Silversmote Ghoul.\nact = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaColor(color='B', amount=QConst(value=1)),\n        CostManaGeneric(amount=QConst(value=2)),\n    )),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n    }),\n)\nabilities = [act, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{2}{B}: Return this card from your graveyard to your hand.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ENGINE (weaker than printed): the ability functions only from the graveyard (CR 113.6k) but legality.py ability_playable refuses any activation off the battlefield except a hand 'Discard this card:' cost (pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m5/skeleton/pack_from_gy.json: ValueError window:not_on_battlefield). On the battlefield the engine offers it (probe 'activate [0] from battlefield' pays {2}{B} and does nothing)."
+ },
+ "probe": {
+  "sha": "0b480785d3ca3cf17a859c68d5e3dc9180b0c97ade3feae2807cbba26c8cabe0"
+ }
+}

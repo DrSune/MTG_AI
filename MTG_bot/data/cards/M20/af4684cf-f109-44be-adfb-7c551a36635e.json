@@ -1,0 +1,258 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "af4684cf-f109-44be-adfb-7c551a36635e",
+ "name": "Bishop of Wings",
+ "text_sha": "b3cc76f374e1b687b41ffb271ff148a67e6a6fc2562ab52ae5785202256aa14e",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "SUBTYPE_EQ"
+        },
+        "string_value": "Angel",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 4
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "SUBTYPE_EQ"
+        },
+        "string_value": "Angel",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Spirit",
+         "type_line": "Creature — Spirit",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Spirit"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [
+          {
+           "tag": "Keyword",
+           "name": "FLYING"
+          }
+         ],
+         "abilities": [],
+         "colors": [
+          "W"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Bishop of Wings\n# s1: Whenever an Angel you control enters, you gain 4 life.\n# s2: Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.\n_angel_you_control = FAnd(children=(\n    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Angel'),\n    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n))\nenters = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=_angel_you_control,\n    ),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=4), 'controller': ControllerRef.YOU}),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=_angel_you_control),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Spirit',\n            type_line='Creature — Spirit',\n            types=('Creature',),\n            subtypes=('Spirit',),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(Keyword.FLYING,),\n            abilities=(),\n            colors=('W',),\n        ),\n    }),\n)\nabilities = [enters, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever an Angel you control enters, you gain 4 life.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "c87bb0882814a7a274ce5f2019e902854d55eebde8dc3a50baae1b908b4d124e"
+ }
+}

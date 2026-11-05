@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "be3dd4f6-794d-4bce-b71e-4b3477d5d388",
+ "name": "Vengeful Warchief",
+ "text_sha": "f558d56da975f0d3511cd37e00c56a7bce95fe0c364f07f3d62fd1b8a971ec35",
+ "needs_atom": {
+  "missing": "'Whenever you lose life for the first time each turn': no life-lost trigger event. EventSpec has LifeGainedEvent but nothing for a life DECREASE (damage to you or LOSE_LIFE / life paid, CR 119.3), although the journal records both (DAMAGE and LIFE_LOST rows, executor/events.py); and the trigger needs a first-time-this-turn ordinal over those losses (CardDrawnEvent's ordinal is the shape precedent).",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

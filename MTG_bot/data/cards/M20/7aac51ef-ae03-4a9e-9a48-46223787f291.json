@@ -1,0 +1,199 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7aac51ef-ae03-4a9e-9a48-46223787f291",
+ "name": "Uncaged Fury",
+ "text_sha": "1a6575776be2628787ffc11f5bc7f27ad956b4dfae072e6cfc5c1c0aa51f8289",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DOUBLE_STRIKE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Uncaged Fury (M20) -- Target creature gets +1/+1 and gains double strike until end of turn.\n_target_creature = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                    'target': _target_creature,\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.DOUBLE_STRIKE),\n                    'duration': DurationEot(),\n                    'target': _target_creature,\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Target creature gets +1/+1 and gains double strike until end of turn.",
+    "ir": "abilities[0].effect.steps[0] (+1/+1 EOT) + abilities[0].effect.steps[1] (double strike EOT)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Shape of Sure Strike (M21 B5b-seq-modpt-firststrike)."
+ },
+ "probe": {
+  "sha": "1dcd52fb5aea9ee46c9c27e7ff0573ba212e39c1001e1398169bd7a3d38aa38d"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ebe9dad7-d74d-4fa8-b17a-88ff79209379",
+ "name": "Heart-Piercer Bow",
+ "text_sha": "7769a7c3ed7d80902ff173eae054052bf2bdabad569d69ddaed3ab7db227afa1",
+ "needs_atom": {
+  "missing": "DEFENDING-PLAYER reference for 'Whenever equipped creature attacks, this Equipment deals 1 damage to target creature defending player controls.': no ControllerRef (YOU, OPPONENT, TARGET_PLAYER, ANY, ALL_OPPONENTS, OWNER, TARGET_OPPONENT) or Selector referent (source, controller, target, event, result) names the player the equipped creature is attacking (or the controller of the planeswalker it attacks); the executor tracks it (Executor.defending_player, attacked map) but the IR cannot point at it, and no compiled card encodes 'defending player'. CONTROLLER_IS OPPONENT is equal only in two-player games; in multiplayer (Commander) it widens the target to every opponent's creatures (stronger than printed). The rest maps: DeclareAttackersEvent(filter=IS_ATTACHED_TO_SOURCE) and the compiled Equip {1} (SORCERY timing kept).",
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05"
+ }
+}

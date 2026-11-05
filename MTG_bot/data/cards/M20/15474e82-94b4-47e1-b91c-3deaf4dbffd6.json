@@ -1,0 +1,505 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "15474e82-94b4-47e1-b91c-3deaf4dbffd6",
+ "name": "Ajani, Inspiring Leader",
+ "text_sha": "c4080140b1f762bb3f538019dd8b734e3ec593b18dc4bc0a240ec34cc4fb727d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 2
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PUT_COUNTER"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "counter_kind",
+          {
+           "tag": "CounterKind",
+           "name": "PLUS_1_PLUS_1"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -3
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "EXILE"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -10
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FLYING"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DOUBLE_STRIKE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05",
+  "draft_py": "# Ajani, Inspiring Leader (M20)\n# +2: You gain 2 life. Put two +1/+1 counters on up to one target creature.\n# -3: Exile target creature. Its controller gains 2 life.\n# -10: Creatures you control gain flying and double strike until end of turn.\n\n_creatures_you_control = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\n\nplus_two = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=2),)),\n    effect=Seq(\n        steps=(\n            A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n            A(Verb.PUT_COUNTER, {\n                'count': QConst(value=2),\n                'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                'target': Selector(\n                    count=QAtMost(n=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n        ),\n    ),\n)\n\nminus_three = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-3),)),\n    effect=Seq(\n        steps=(\n            A(Verb.MOVE_ZONE, {\n                'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n            A(Verb.GAIN_LIFE, {\n                'amount': QConst(value=2),\n                'controller': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                    referent='target',\n                ),\n            }),\n        ),\n    ),\n)\n\nminus_ten = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-10),)),\n    effect=Seq(\n        steps=(\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FLYING),\n                'duration': DurationEot(),\n                'target': _creatures_you_control,\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.DOUBLE_STRIKE),\n                'duration': DurationEot(),\n                'target': _creatures_you_control,\n            }),\n        ),\n    ),\n)\n\nabilities = [plus_two, minus_three, minus_ten, compiled[2]]\n",
+  "clauses": [
+   {
+    "clause": "[+2]: You gain 2 life.",
+    "ir": "abilities[0].cost + abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Put two +1/+1 counters on up to one target creature.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "[−3]: Exile target creature.",
+    "ir": "abilities[1].cost + abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "Its controller gains 2 life.",
+    "ir": "abilities[1].effect.steps[1]"
+   },
+   {
+    "clause": "[−10]: Creatures you control gain flying and double strike until end of turn.",
+    "ir": "abilities[2] (cost; effect.steps[0] flying, effect.steps[1] double strike, both DurationEot)"
+   },
+   {
+    "clause": "Cast (planeswalker spell)",
+    "ir": "abilities[3]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "-10 exercised by packs in /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m6/packs/ajani_minus10_*.json (flying+double strike, ends at EOT, late entrant unaffected)"
+ },
+ "probe": {
+  "sha": "fd4c059c508bcb34a0528f0a413efa2641a6a1e6c6fac366843643a305c29d10"
+ }
+}

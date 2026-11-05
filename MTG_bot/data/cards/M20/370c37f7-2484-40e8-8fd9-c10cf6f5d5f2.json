@@ -1,0 +1,215 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "370c37f7-2484-40e8-8fd9-c10cf6f5d5f2",
+ "name": "Manifold Key",
+ "text_sha": "9fa291e89d107e4de5e38d37f4e4248bfb9abdb7d2e0f51dca5b321a3e118008",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "UNTAP"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Artifact",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 3
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_ANY_TARGET"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_ANY_TARGET"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Manifold Key (M20) artifact.\n# s1: {1}, {T}: Untap another target artifact.\n#     frame B13-activated+B11-untap-np (\"{1}, {T}: Untap target artifact.\") + \"another\" = FNot(IS_SOURCE) (Selfless Savior).\n# s2: {3}, {T}: Target creature can't be blocked this turn.\n#     Goblin Smuggler / Sneaking Guide shape (B3/B9 target-cant-be-blocked) without the power/another restrictions:\n#     the target lives in the blocked slot as IS_ANY_TARGET (one-part filter written bare).\nuntap_artifact = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=1)), CostTap())),\n    effect=A(Verb.UNTAP, {\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nunblockable = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=3)), CostTap())),\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': FAtom(pred=FAtomPred.IS_ANY_TARGET),\n        'duration': DurationEot(),\n        'event': DeclareBlockersEvent(\n            filter=FAnd(children=()),\n            blocked=FAtom(pred=FAtomPred.IS_ANY_TARGET),\n        ),\n    }),\n)\nabilities = [untap_artifact, unblockable, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{1}, {T}: Untap another target artifact.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{3}, {T}: Target creature can't be blocked this turn.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "f3a9348aa73305453a08100c810a19b4f2bb3ca0da4f0f162865db076d022542"
+ }
+}

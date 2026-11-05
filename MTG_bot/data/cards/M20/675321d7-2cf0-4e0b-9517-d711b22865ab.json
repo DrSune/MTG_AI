@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "675321d7-2cf0-4e0b-9517-d711b22865ab",
+ "name": "Woodland Champion",
+ "text_sha": "9ee8de2adff1519807b71e8ffb859ffbf016de7c2893d417998750188fcadba4",
+ "needs_atom": {
+  "missing": "'Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature': a BATCHED zone-change trigger (CR 603.2c, once per set of tokens entering simultaneously) whose 'that many' is the batch size. ZoneChangeEvent fires once per object and only DECLARE_ATTACKERS firings record a group register (binding.py declare_attackers), so the closest tree (per-token trigger, one counter each) makes N counter events of 1 instead of one event of N: stronger than printed with Conclave Mentor (+1 per event: 2N instead of N+1) and Wildwood Scourge (one trigger per event).",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

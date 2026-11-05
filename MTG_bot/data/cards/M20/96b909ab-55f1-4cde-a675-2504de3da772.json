@@ -1,0 +1,450 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "96b909ab-55f1-4cde-a675-2504de3da772",
+ "name": "Cavalier of Thorns",
+ "text_sha": "04794fcec224be67f28741364765acb3f39339ca620e5ce5f9730b841ab4c689",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "REACH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "REVEAL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 5
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ONE_OF"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "TOP"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "REST"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "TOP"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MOVE_ZONE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "EXILE"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "OWNER"
+            }
+           }
+          ],
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "ANY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ],
+            "referent": "event"
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MOVE_ZONE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "TARGET"
+            },
+            "filter": {
+             "tag": "FNot",
+             "inner": {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "GRAVEYARD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "position": {
+             "tag": "ZonePosition",
+             "name": "TOP"
+            }
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Cavalier of Thorns (M20).\n# Reach: compiled keyword, kept.\n# s2+s3: \"When this creature enters, reveal the top five cards of your library. Put a land card from\n#   among them onto the battlefield and the rest into your graveyard.\"\n#   REVEAL top N (Tajuru Paragon's B6 reveal) opens the look window; the partition is Waker of\n#   Waves's / See the Truth's ONE_OF + REST over Zone(LIBRARY, YOU, TOP) (B5b-one-of-other,\n#   B5b-one-of-rest-bottom), the ONE_OF filtered to a land card and sent to the battlefield, the\n#   REST to your graveyard.\n# s4+s5: \"When this creature dies, you may exile it. If you do, put another target card from your\n#   graveyard on top of your library.\"\n#   Dies event of Spirit of Malevolence; \"You may X. If you do, Y\" = Seq(OptionalEffect(X),\n#   Conditional(MAY_DONE, Y)). \"it\" = the event referent (convention C2/C8, Containment Priest's\n#   exile action). Y: Epitaph Golem's graveyard-target MOVE_ZONE with \"another\" = FNot(IS_SOURCE)\n#   and \"on top of\" = position TOP (Teferi, Timeless Voyager).\ntop_of_library = Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP)\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=5)}),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.ONE_OF,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                    zones=(top_of_library,),\n                ),\n                'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            }),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.REST,\n                    filter=FAnd(children=()),\n                    zones=(top_of_library,),\n                ),\n                'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n            }),\n        ),\n    ),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.MOVE_ZONE, {\n                    'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                        referent='event',\n                    ),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': top_of_library,\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [etb, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, reveal the top five cards of your library.",
+    "ir": "abilities[0].event, abilities[0].effect.steps[0] (REVEAL 5)"
+   },
+   {
+    "clause": "Put a land card from among them onto the battlefield and the rest into your graveyard.",
+    "ir": "abilities[0].effect.steps[1] (ONE_OF land -> battlefield), abilities[0].effect.steps[2] (REST -> graveyard)"
+   },
+   {
+    "clause": "When this creature dies, you may exile it.",
+    "ir": "abilities[1].event, abilities[1].effect.steps[0] (OptionalEffect MOVE_ZONE event referent -> exile)"
+   },
+   {
+    "clause": "If you do, put another target card from your graveyard on top of your library.",
+    "ir": "abilities[1].effect.steps[1] (Conditional MAY_DONE -> MOVE_ZONE target card in your graveyard, not the source -> library TOP)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ETB: REVEAL 5 + ONE_OF land -> battlefield + REST -> graveyard (Waker of Waves / See the Truth partition). Dies: Seq(OptionalEffect(exile event referent), Conditional(MAY_DONE, target other card in your graveyard -> library TOP)). Packs: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/cavalier_thorns/pack_etb_land.json, /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/cavalier_thorns/pack_etb_two_lands.json, /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/cavalier_thorns/pack_dies_fire.json, /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/cavalier_thorns/pack_dies_skip.json"
+ },
+ "probe": {
+  "sha": "e419cb3e0174fe2567ef56b8efe2d214d664be98dc7c97c4d2c924c81ef586b8"
+ }
+}

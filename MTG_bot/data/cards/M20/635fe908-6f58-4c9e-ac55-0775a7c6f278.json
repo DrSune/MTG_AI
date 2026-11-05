@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "635fe908-6f58-4c9e-ac55-0775a7c6f278",
+ "name": "Angel of Vitality",
+ "text_sha": "02f03e978cfe57298a82e27221529b41f858ad8c82ce82cb2d184cca3dcbf223",
+ "needs_atom": {
+  "missing": "s3 'This creature gets +2/+2 as long as you have 25 or more life.': no predicate compares a player's current life total with a threshold (LIFE_LEAD_OVER_START_GE is relative to the starting life, so it would mean 25 only at 20 starting life and is wrong in Commander). Also s2 'If you would gain life, you gain that much life plus 1 instead.' maps to ReplacementAbility(LifeGainedEvent(you), GAIN_LIFE amount QBin(ADD, QProp(event, AMOUNT), 1)) like Conclave Mentor, but the engine's life-gain replacement drain (executor/__init__.py:1044, verbs.py _v_gain_life) publishes no event amount: the probe stimulus 'you gain 3 life' raises NotImplementedError 'QProp referent event only resolves inside a trigger firing'.",
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05"
+ }
+}

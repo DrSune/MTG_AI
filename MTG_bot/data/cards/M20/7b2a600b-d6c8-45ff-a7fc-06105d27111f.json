@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7b2a600b-d6c8-45ff-a7fc-06105d27111f",
+ "name": "Chandra, Awakened Inferno",
+ "text_sha": "bec3fb40b4d46ea68e9b4c028a75989f211eb50ef525b82c03aef48db751a74c",
+ "needs_atom": {
+  "missing": "s1 'This spell can't be countered.': no node expresses an uncounterable spell (no event for 'is countered' to PREVENT, COUNTER_SPELL has no exemption hook; grep finds no support in MTG_bot/core). Also s2 '[+2]: Each opponent gets an emblem with ...': GET_EMBLEM is role-less and gives the emblem to you only, and emblem cards cannot be probed yet (KeyError 'unknown card').",
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05"
+ }
+}

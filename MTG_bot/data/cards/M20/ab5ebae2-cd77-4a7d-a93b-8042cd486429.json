@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ab5ebae2-cd77-4a7d-a93b-8042cd486429",
+ "name": "Dungeon Geists",
+ "text_sha": "755cd3c0948a3bbed803b430b626f75987ac67752ec9a09bd444cfd66da1b134",
+ "needs_atom": {
+  "missing": "'That creature doesn't untap during its controller's untap step for as long as you control this creature': needs a TERMINAL 'for as long as you control <source>' duration (CR 611.2b: ends for good once you lose control of this creature or it leaves the battlefield). DurationUntilLeaves ignores a control change, so after Traitorous Greed (M21) takes the Geists the lock would persist (stronger than printed); DurationWhileCondition(you control the source) is dormant-not-terminal (durations.py: the entry comes back when the condition does), so the lock would resume when control returns or the Geists re-enters (stronger than printed). The rest is the Frost Breath shape: PREVENT_EFFECT(TapStateEvent untap, step UNTAP) on the trigger's target.",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

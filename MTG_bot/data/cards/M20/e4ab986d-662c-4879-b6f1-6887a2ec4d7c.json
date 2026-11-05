@@ -1,0 +1,103 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e4ab986d-662c-4879-b6f1-6887a2ec4d7c",
+ "name": "Disentomb",
+ "text_sha": "91075b4c46bf11bfc153f977b56bce4bdbf0938bcab2ba30fcc6435a93a8b0ab",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05",
+  "draft_py": "# Disentomb: \"Return target creature card from your graveyard to your hand.\"\n# Shape: B5b-return-cards-hand (\"Return target permanent card ...\" / \"up to two target creature\n# cards ...\") with count 1 and filter TYPE_EQ Creature (Shipwreck Dowser's MOVE_ZONE shape).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Return target creature card from your graveyard to your hand.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "B5b-return-cards-hand shape with count 1, TYPE_EQ Creature. Probe target slot offers only you_fallen."
+ },
+ "probe": {
+  "sha": "ef77e52c5335e4aa9ac4cae33a5a25b8f155ea433d6bdde753adbe20a7d9f5c2"
+ }
+}

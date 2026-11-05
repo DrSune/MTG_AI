@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "626e8acc-20da-496c-9a79-bfbf7529c01d",
+ "name": "Chandra, Acolyte of Flame",
+ "text_sha": "4e809126e487df9f9c3290cdb246104e8b2982bd8b6004958a4074187dc0dc21",
+ "needs_atom": {
+  "missing": "[0] 'Create two 1/1 red Elemental creature tokens. They gain haste. Sacrifice them at the beginning of the next end step.': no node makes a delayed trigger that remembers the objects the scheduling effect made. DelayedTrigger keeps only node/source/controller (executor/binding.py DelayedBinding), so 'them' (the two tokens) cannot be bound when the next end step comes; a token with its own end-step sacrifice ability is a different card. ENGINE (also blocks the card): B-99 is live for the [-2] rider 'If that spell would be put into your graveyard, exile it instead' (B5b-repl-graveyard-exile): the spell cast by CAST from the graveyard resolves into the graveyard and can be recast (stronger than printed). Pack: scratchpad round_m20/mapped/m9/chandra_acolyte/pack_b99.json with test_minus2_only.py (Raise the Alarm cast by the -2 ends in the graveyard, expected exile).",
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05"
+ }
+}

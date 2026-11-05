@@ -1,0 +1,137 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "68639a3d-2192-4921-8298-c76bb0cd6b02",
+ "name": "Moldervine Reclamation",
+ "text_sha": "d7168a5f4945554fff10380c8d0264191c19ccabe6aa3f85eaeda3fb04019f87",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Moldervine Reclamation (M20): Whenever a creature you control dies, you gain 1 life and draw a card.\n# Event: Basri's Lieutenant's CreatureDiesEvent filter (\"this creature or another creature you control\" = any creature you control).\n# Effect: Witch's Cauldron's \"You gain 1 life and draw a card.\" Seq.\ndies_trigger = TriggeredAbility(\n    event=CreatureDiesEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.GAIN_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [dies_trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever a creature you control dies, you gain 1 life and draw a card.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "d7607b82799bb31bdd9bfb46b9a7ce2c5292c847df8d23b8c1dd021105a05c09"
+ }
+}

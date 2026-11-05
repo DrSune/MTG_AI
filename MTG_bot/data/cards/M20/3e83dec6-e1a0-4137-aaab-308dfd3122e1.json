@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3e83dec6-e1a0-4137-aaab-308dfd3122e1",
+ "name": "Vivien, Arkbow Ranger",
+ "text_sha": "d45376abe1c644ed2c4eba7d3645c4114ea0e438345ff59dcf80e4e290b40425",
+ "needs_atom": {
+  "missing": "[−5] 'reveal a creature card you own from outside the game and put it into your hand': no outside-the-game zone (sideboard / wish) exists in ZoneKind or the engine. Also [+1] 'Distribute two +1/+1 counters among up to two target creatures': no distribution component (CR 601.2d: the amount divided among the chosen targets as they are announced, at least one each); PUT_COUNTER takes one count for every target. ([−3] is expressible with the Garruk, Savage Herald -2 bite shape.)",
+  "author": "claude-mapper-m20-6",
+  "date": "2026-11-05"
+ }
+}

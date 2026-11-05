@@ -1,0 +1,225 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e5e04968-d9b7-4bd5-b826-be9502360cd3",
+ "name": "Angelic Gift",
+ "text_sha": "d545483683e16d23c5ca43843e9efa6929b480b6853ff804f0fc1a73d5c3d800",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FLYING"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ATTACHED_TO_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-5",
+  "date": "2026-11-05",
+  "draft_py": "# Angelic Gift: s3 \"Enchanted creature has flying.\" (the B9-equipped-keyword /\n# Rousing Read grant shape). Printed order: ETB draw (compiled[0]), the grant,\n# then the Aura's cast carrier (compiled[1]).\ngrant = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FLYING),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [compiled[0], grant, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this Aura enters, draw a card.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Enchanted creature has flying.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "13aadaad9b05d295ed85976c5fd567cb4120bdef68c473dede6372eb2f9c17c7"
+ }
+}

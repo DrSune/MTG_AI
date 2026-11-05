@@ -1,0 +1,265 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f73416a8-40e5-4791-948f-147ef2221ee7",
+ "name": "Might of the Masses",
+ "text_sha": "4e2c6eabb15e66136bbd35b36abd98687e7f12c97e20402c5c567d6b28d3c64c",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QBin",
+          "op": {
+           "tag": "QBinOp",
+           "name": "MUL"
+          },
+          "left": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "right": {
+           "tag": "QCount",
+           "selector": {
+            "tag": "Selector",
+            "count": {
+             "tag": "QUnbounded"
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "ALL"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          }
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QBin",
+          "op": {
+           "tag": "QBinOp",
+           "name": "MUL"
+          },
+          "left": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "right": {
+           "tag": "QCount",
+           "selector": {
+            "tag": "Selector",
+            "count": {
+             "tag": "QUnbounded"
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "ALL"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          }
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Might of the Masses (M20).\n# \"Target creature gets +1/+1 until end of turn for each creature you control.\"\n# Target pump of Sure Strike / Bone Pit Brute (MODIFY_PT, TARGET creature, DurationEot) with the\n# guide's \"N for each X\" magnitude QBin(MUL, QConst(N), QCount(...)); \"creature you control\" is\n# the census of Basri's Solidarity / Kabira Outrider (CONTROLLER_IS YOU + TYPE_EQ Creature).\nper_creature = QBin(\n    op=QBinOp.MUL,\n    left=QConst(value=1),\n    right=QCount(\n        selector=Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    ),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.MODIFY_PT, {\n            'duration': DurationEot(),\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=per_creature),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=per_creature),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Target creature gets +1/+1 until end of turn for each creature you control.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/might_masses/pack_lock.json: +2/+2 with 2 creatures you control, count fixed at resolution (CR 608.2h)."
+ },
+ "probe": {
+  "sha": "5266dcf160284647aceca206b30313ac581d0352b49a70abcd400ff9722effe1"
+ }
+}

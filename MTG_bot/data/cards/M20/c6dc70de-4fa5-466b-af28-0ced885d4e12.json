@@ -1,0 +1,225 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c6dc70de-4fa5-466b-af28-0ced885d4e12",
+ "name": "Salvager of Ruin",
+ "text_sha": "2e3b4de4a57c7fd39b826b37171404e5f48298093ddc030d9954d2f155a1c60a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "MOVED_TO_ZONE_THIS_TURN"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null,
+            "from_zone": {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            },
+            "to_zone": {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_PERMANENT"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05",
+  "draft_py": "# Salvager of Ruin (M20).\n# \"Sacrifice this creature: Choose target permanent card in your graveyard that was put there\n#  from the battlefield this turn. Return it to your hand.\"\n# Cost: the sacrifice-self CostSacrifice of Obsessive Stitcher (B5c-cost-ub-sacrifice-return).\n# Effect: Fungal Rebirth's \"Return target permanent card from your graveyard to your hand.\"\n# (B5b-return-cards-hand: IS_PERMANENT, CR 110.1 type test) with the per-candidate history filter\n# MOVED_TO_ZONE_THIS_TURN (Necromentia's per-card shape in templates_b5b): this card moved from\n# the battlefield (anyone's: the text does not restrict it) to your graveyard this turn.\nsalvage = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostSacrifice(\n                target=Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.IS_SOURCE),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n    ),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.IS_PERMANENT),\n                    FAtom(\n                        pred=FAtomPred.MOVED_TO_ZONE_THIS_TURN,\n                        who=ControllerRef.YOU,\n                        from_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n                        to_zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                    ),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n    }),\n)\nabilities = [salvage, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Sacrifice this creature: Choose target permanent card in your graveyard that was put there from the battlefield this turn.",
+    "ir": "abilities[0] (cost: CostSacrifice of the source; target: effect.cards, IS_PERMANENT + MOVED_TO_ZONE_THIS_TURN battlefield->your graveyard)"
+   },
+   {
+    "clause": "Return it to your hand.",
+    "ir": "abilities[0].effect (MOVE_ZONE destination Zone(HAND, YOU))"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "target filter = IS_PERMANENT + per-candidate MOVED_TO_ZONE_THIS_TURN(battlefield ANY -> graveyard YOU, who YOU), Necromentia's per-card shape. Packs: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/salvager/pack_died.json, /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/salvager/pack_artifact.json (pass); /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/salvager/pack_self.json shows self-target refused (CR 601.2c)."
+ },
+ "probe": {
+  "sha": "eaf90b437ae61a1acfef763dcefaeb3dff77c118cb291b70eff7a3ce34d7ba7d"
+ }
+}

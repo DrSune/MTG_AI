@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "acdbaa99-18c9-4aa1-8797-69837ca7d8f5",
+ "name": "Rotting Regisaur",
+ "text_sha": "26d07727505a71220cab512e94a1426b6b5f7a4e3caeb5566ac42b4fe5512a66",
+ "needs_atom": {
+  "missing": "ENGINE: beginning-of-upkeep triggers resolve AFTER the draw step's draw. Executor.begin_turn (MTG_bot/core/executor/__init__.py:1960-1995) records the UPKEEP marker, draws inline (_turn_draw) and only then runs its single _settle, so 'At the beginning of your upkeep, discard a card.' chooses from the hand PLUS the card drawn this turn (stronger than printed: pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/rotting_regisaur/pack_stronger.json, the held card survives and the fresh draw is discarded) and, with an empty hand at upkeep, discards the drawn card (weaker: pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/rotting_regisaur/pack_order.json). The tree itself maps on existing nodes (draft /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m7/rotting_regisaur/draft.py: TurnPhaseEvent UPKEEP actor YOU + the B3-seq-draw-discard MOVE_ZONE hand->graveyard CHOOSE 1); write it once upkeep triggers settle before the draw (CR 503.1, 504.1).",
+  "author": "claude-mapper-m20-7",
+  "date": "2026-11-05"
+ }
+}

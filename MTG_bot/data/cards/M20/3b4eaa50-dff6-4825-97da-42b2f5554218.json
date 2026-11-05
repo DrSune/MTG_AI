@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3b4eaa50-dff6-4825-97da-42b2f5554218",
+ "name": "Knight of the Ebon Legion",
+ "text_sha": "6092bf3733b6c2cb60efecc75ed6a7f151374e337d9d94d29003982abd39fa95",
+ "needs_atom": {
+  "missing": "'At the beginning of your end step, if a player lost 4 or more life this turn, put a +1/+1 counter on this creature.': no condition for 'a player lost N or more life this turn'. FAtomPred has LIFE_GAINED_THIS_TURN_GE (gains only) and ThisTurnKind has LIFE_GAINED / CARDS_DRAWN / NONCOMBAT_DAMAGE; the journal records LIFE_LOST and player DAMAGE rows (events.py) but no IR predicate or quantity reads life lost this turn, for any player. (The pump sentence maps: MODIFY_PT +3/+3 and GRANT_ABILITY deathtouch, both DurationEot.)",
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "378fcd0f-1096-4769-9149-55b4a889ff56",
+ "name": "Gargos, Vicious Watcher",
+ "text_sha": "1785465a7d861a4de66c7c751da9ad908a835cf4862b0d0803f4ddda7b5360f1",
+ "needs_atom": {
+  "missing": "'Whenever a creature you control becomes the target of a spell, ...': TargetingEvent has only filter (the targeted object) and actor (the targeting object's controller), so it cannot say the targeting object is a SPELL. TargetingEvent(filter=creature you control) would also trigger on activated and triggered abilities (stronger than printed). Needed: a filter over the targeting object itself on TargetingEvent (e.g. a 'by' slot taking FAtom(STACK_KIND_EQ, 'SPELL'), whose vocabulary already exists). The rest maps: 'Hydra spells you cast cost {4} less to cast.' = CostModifier(SUBTYPE_EQ Hydra, YOU, CostDeltaReduceGeneric 4) as Watcher of the Spheres; 'Gargos fights up to one target creature you don't control' = FIGHT with Primal Might's QAtMost(1) target, attacker = the source.",
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05"
+ }
+}

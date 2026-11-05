@@ -1,0 +1,198 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "92f8c8b1-1fd5-4e80-b8a9-51671937aaf2",
+ "name": "Devout Decree",
+ "text_sha": "604b067669fe6ad15f6b55f3851a13cb83fc6ec1c444e755e41235e9386084c6",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "EXILE"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "COLOR_HAS"
+                },
+                "string_value": null,
+                "color": "B",
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "COLOR_HAS"
+                },
+                "string_value": null,
+                "color": "R",
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Planeswalker",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SCRY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05",
+  "draft_py": "# Devout Decree: \"Exile target creature or planeswalker that's black or red. Scry 1.\"\n# Exile: B5a-exile-cw-pw (Angelic Ascension) with the colour restriction ANDed on:\n# \"black or red\" = FOr of COLOR_HAS (guide: never COLOR_IN). Scry 1: the compiled B5b-scr step.\nexile = A(Verb.MOVE_ZONE, {\n    'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(children=(\n            FOr(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n            )),\n            FOr(children=(\n                FAtom(pred=FAtomPred.COLOR_HAS, color='B'),\n                FAtom(pred=FAtomPred.COLOR_HAS, color='R'),\n            )),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\nscry = compiled[0].effect   # A(Verb.SCRY, {'controller': YOU, 'count': QConst(1)})\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(exile, scry)))]\n",
+  "clauses": [
+   {
+    "clause": "Exile target creature or planeswalker that's black or red.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Scry 1.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Exile = B5a-exile-cw-pw (Angelic Ascension) AND FOr(COLOR_HAS B, COLOR_HAS R); Scry 1 = the compiled step, kept second. Packs: black planeswalker exiled, black-green creature exiled, green creature refused as a target."
+ },
+ "probe": {
+  "sha": "41fe9adafb875db09050cba9ee4b237f64716f95695f8b8388d70507564ce613"
+ }
+}

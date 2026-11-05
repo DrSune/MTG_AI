@@ -1,0 +1,318 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1690a782-9e54-4231-9a72-abae5ed7050c",
+ "name": "Dread Presence",
+ "text_sha": "e95c72ee14f4488c1b673d59790df2a4880443361ba6659b4a5d520046a1ea02",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "SUBTYPE_EQ"
+        },
+        "string_value": "Swamp",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Land",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "DRAW"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 1
+            }
+           ],
+           [
+            "controller",
+            {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "LOSE_LIFE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 1
+            }
+           ],
+           [
+            "controller",
+            {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "DEAL_DAMAGE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 2
+            }
+           ],
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "TARGET"
+             },
+             "filter": {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Planeswalker",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Player",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "GAIN_LIFE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 2
+            }
+           ],
+           [
+            "controller",
+            {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-8",
+  "date": "2026-11-05",
+  "draft_py": "# Dread Presence (M20)\n# \"Whenever a Swamp you control enters, choose one —\n#   • You draw a card and you lose 1 life.\n#   • This creature deals 2 damage to any target and you gain 2 life.\"\n# event: Landfall's ZoneChangeEvent (B7-landfall-trigger) with the land-type noun \"Swamp\" = SUBTYPE_EQ Swamp +\n#        TYPE_EQ Land (the guide's tribal-noun convention: subtype plus its card type; no land-type precedent parses).\n# modes: Elder Gargaroth's Choose(count=QConst(1), options=(...)); each mode is a Seq in printed order.\n# atoms: B5a-draw-one, B4-lose-life-n, B5b-damage-any (Shock's any-target selector), B4-gain-life-n.\nswamp_enters = ZoneChangeEvent(\n    from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n    to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n    subject=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Swamp'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n        ),\n    ),\n)\nany_target = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FOr(\n        children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Player'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nmode_draw = Seq(\n    steps=(\n        A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        A(Verb.LOSE_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    ),\n)\nmode_burn = Seq(\n    steps=(\n        A(Verb.DEAL_DAMAGE, {'amount': QConst(value=2), 'target': any_target}),\n        A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n    ),\n)\nswamp_trigger = TriggeredAbility(\n    event=swamp_enters,\n    condition=None,\n    effect=Choose(count=QConst(value=1), options=(mode_draw, mode_burn)),\n)\nabilities = [swamp_trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever a Swamp you control enters, choose one —",
+    "ir": "abilities[0] (event; effect = Choose count 1)"
+   },
+   {
+    "clause": "• You draw a card and you lose 1 life.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• This creature deals 2 damage to any target and you gain 2 life.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Engine (reported by mapper): a modal trigger designates and journals the target of its targeted mode before the mode is asked, even when the other mode is chosen; with no legal target the targeted mode is still offered (CR 700.2a). Packs in the mapper scratch dir."
+ },
+ "probe": {
+  "sha": "142d0a8e1f60872e9a0e045e511be3a108d0efbdfe3ba3ccdcf1b5d524744b45"
+ }
+}

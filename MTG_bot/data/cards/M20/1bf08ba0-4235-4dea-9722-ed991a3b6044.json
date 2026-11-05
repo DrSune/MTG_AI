@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1bf08ba0-4235-4dea-9722-ed991a3b6044",
+ "name": "Kethis, the Hidden Hand",
+ "text_sha": "2b74e0648edb9b99700fa24320e8723abcc5525ce2dfa8deab5131b988e47cbd",
+ "needs_atom": {
+  "missing": "'Exile two legendary cards from your graveyard: Until end of turn, each legendary card in your graveyard gains \"You may play this card from your graveyard.\"': (1) no cost part exiles cards (CostPart has CostSacrifice/CostDiscard but no CostExile; same gap as Hanged Executioner), and (2) no node grants cards in a graveyard a play permission until end of turn: GRANT_ABILITY targets objects, and a 'you may play/cast this card from your graveyard' permission is not live from the graveyard (B-100: Demonic Embrace's graveyard-cast row needs its source on the battlefield until the R5-2 permission lane; a land play needs R5-3 play_lands). The first sentence maps: 'Legendary spells you cast cost {1} less to cast.' = CostModifier(SUPERTYPE_EQ Legendary, YOU, CostDeltaReduceGeneric 1) as Watcher of the Spheres.",
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05"
+ }
+}

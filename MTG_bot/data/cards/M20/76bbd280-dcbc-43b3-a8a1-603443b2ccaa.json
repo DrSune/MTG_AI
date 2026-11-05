@@ -1,0 +1,152 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "76bbd280-dcbc-43b3-a8a1-603443b2ccaa",
+ "name": "Moorland Inquisitor",
+ "text_sha": "31f68136c6da8149aa3a05606567f3efc1467bcfc7c76f6fe5de8a22227afc62",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "W",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FIRST_STRIKE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-9",
+  "date": "2026-11-05",
+  "draft_py": "# Moorland Inquisitor: \"{2}{W}: This creature gains first strike until end of turn.\"\n# Shape: B3-grant-kw-self (\"{2}{W}: This creature gains flying until end of turn.\" parses) with\n# KeywordAbility(FIRST_STRIKE); the template's keyword list does not include first strike.\nfirst_strike = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaColor(color='W', amount=QConst(value=1)),\n        CostManaGeneric(amount=QConst(value=2)),\n    )),\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FIRST_STRIKE),\n        'duration': DurationEot(),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.IS_SOURCE),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [first_strike, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{2}{W}: This creature gains first strike until end of turn.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "B3-grant-kw-self shape with KeywordAbility(FIRST_STRIKE). Packs: activated, it kills a blocking 2/2 and survives; not activated, they trade."
+ },
+ "probe": {
+  "sha": "4286318e7f17df54122f95777706a9cbacfdef5cfa2e248868834ef22cf09194"
+ }
+}
