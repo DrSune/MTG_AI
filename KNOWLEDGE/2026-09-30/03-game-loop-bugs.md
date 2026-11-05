@@ -54,6 +54,10 @@ designation mirrors the CR rule the engine itself re-checks (an opponent seat); 
 is seeded `fire`/`skip`; CR 121.3 draw-from-empty loss is a harness state check (the 13a
 "state check, not a verb" ruling); the `{"target": sorted(targets)}` binding dict mirrors
 `stack.cast`'s own write so pre-cast enumeration sees the population the runtime will.
+**Superseded 2026-11-05** (branch `fix/rules-turn-combat`): the draw-from-empty loss is no longer
+harness-side. The engine's state-based check owns both player losses (`Executor._player_losses`:
+CR 704.5a life, 704.5b an attempted draw from an empty library since the last check) and ends a
+two-player game at that check (`GameOver`); the harness's check fired one draw early.
 
 ## The ledger (open rows, in kill-count order)
 
