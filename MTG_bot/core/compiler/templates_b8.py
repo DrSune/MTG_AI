@@ -849,54 +849,6 @@ def _build_x_to_creature_or_pw(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-def _build_four_and_x_controller(m: re.Match[str]) -> SentenceOutcome:
-    """``Synchronized Spellcraft deals 4 damage to target creature and X
-    damage to that creature's controller, where X is the number of
-    creatures in your party.`` — Seq of two damage atoms; the second
-    target is the controller-of-the-target fold: the 16a designation face
-    (selectors.py:437-448) — a TARGET-mode Selector with a PLAYER-side
-    zone reads the card designation's controller (Brash Taunter's
-    compiled echo), so the one "target creature" designation means BOTH
-    the creature and its player."""
-    return EffectOutcome(
-        effect=Seq(
-            steps=(
-                Atom(
-                    verb=Verb.DEAL_DAMAGE,
-                    args=AtomArgs(
-                        pairs=(
-                            ("target", _target_creature_on_battlefield()),
-                            ("amount", QConst(4)),
-                        )
-                    ),
-                ),
-                Atom(
-                    verb=Verb.DEAL_DAMAGE,
-                    args=AtomArgs(
-                        pairs=(
-                            (
-                                "target",
-                                Selector(
-                                    QConst(1),
-                                    SelectorMode.TARGET,
-                                    FAnd(children=()),
-                                    zones=(
-                                        Zone(
-                                            kind=ZoneKind.PLAYER,
-                                            controller=ControllerRef.ANY,
-                                        ),
-                                    ),
-                                ),
-                            ),
-                            ("amount", _party_count()),
-                        )
-                    ),
-                ),
-            )
-        )
-    )
-
-
 def _build_look_top_x_plus_three(m: re.Match[str]) -> SentenceOutcome:
     """``Look at the top X cards of your library, where X is three plus
     the number of creatures in your party.`` — the b5b look-at-top lane
@@ -1108,14 +1060,11 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         r"party\.$",
         _build_x_to_creature_or_pw,
     ),
-    _template(
-        "B8-party-four-and-x-controller",
-        "4 to creature and X to its controller",
-        r"^Synchronized Spellcraft deals 4 damage to target creature and X "
-        r"damage to that creature's controller, where X is the number of "
-        r"creatures in your party\.$",
-        _build_four_and_x_controller,
-    ),
+    # B8-party-four-and-x-controller (Synchronized Spellcraft) was withdrawn on 2026-11-05: the
+    # IR has no "that creature's controller" for a damage recipient. Written as a second TARGET
+    # selector over the PLAYER zone, it became a target slot of its own (V25 per-slot
+    # designation), so the caster chose who took the X damage (CR 115.1: that player is not a
+    # target). The sentence stays unparsed until such a recipient exists.
     _template(
         "B8-party-look-top-x",
         "look at top X = 3 + party",
