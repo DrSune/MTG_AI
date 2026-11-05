@@ -29,12 +29,16 @@ FIELDS = ("cards_i", "cards_f", "players_f", "glob_f", "ask_i", "opts_i", "opts_
 
 class PolicyValueNet(nn.Module):
     def __init__(self, n_cards: int, n_ir: int, ir_table: np.ndarray, d: int = 256,
-                 layers: int = 6, heads: int = 8, ff: int = 1024, name_dropout: float = 0.1):
+                 layers: int = 6, heads: int = 8, ff: int = 1024, name_dropout: float = 0.1,
+                 mask_names: bool = False):
         super().__init__()
         self.config = {"n_cards": n_cards, "n_ir": n_ir, "d": d, "layers": layers,
                        "heads": heads, "ff": ff, "name_dropout": name_dropout}
         self.d = d
         self.name_dropout = name_dropout
+        # every card name read as the unknown card (a generalisation probe: the network must
+        # play from components and live state alone); not saved in the config
+        self.mask_names = mask_names
         self.name_emb = nn.Embedding(n_cards, d)
         self.ir_emb = nn.Embedding(n_ir, d, padding_idx=0)
         self.register_buffer("ir_table", torch.as_tensor(ir_table, dtype=torch.long),
@@ -85,7 +89,10 @@ class PolicyValueNet(nn.Module):
         bsz, e = cards_i.shape[:2]
         card_idx = cards_i[..., 0]
         name_idx = card_idx
-        if self.training and self.name_dropout > 0:
+        if self.mask_names:
+            name_idx = torch.where(card_idx > FT.UNK, torch.full_like(card_idx, FT.UNK),
+                                   card_idx)
+        elif self.training and self.name_dropout > 0:
             drop = torch.rand(card_idx.shape, device=card_idx.device) < self.name_dropout
             name_idx = torch.where(drop & (card_idx > FT.UNK), torch.full_like(card_idx, FT.UNK),
                                    card_idx)
@@ -119,6 +126,22 @@ class PolicyValueNet(nn.Module):
         value = torch.tanh(self.value_head(h[:, 0]).squeeze(-1).float())
         assert logits.shape == (bsz, k)
         return logits, value
+
+
+def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
+    """Grow ``net`` to an extended table (FT.CardTable.extend): new name rows start as the
+    unknown-card embedding (what name dropout trained), the component table is rebuilt."""
+    old = net.name_emb.weight.data
+    n = len(table.oracle_ids)
+    if n > old.shape[0]:
+        emb = nn.Embedding(n, old.shape[1]).to(old.device, old.dtype)
+        emb.weight.data[: old.shape[0]] = old
+        emb.weight.data[old.shape[0]:] = old[FT.UNK]
+        net.name_emb = emb
+    net.ir_table = torch.as_tensor(table.ir_array(), dtype=torch.long,
+                                   device=net.ir_table.device)
+    net.config["n_cards"] = n
+    return net
 
 
 def _gather(ent_ext: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:

@@ -285,3 +285,26 @@ def test_scry_context_never_reads_under_the_viewed_window() -> None:
     finally:
         SelfplayRouter._context = orig
     assert checked >= 3 and not wrong, wrong
+
+
+def test_table_extension_reads_new_cards_through_known_components(table) -> None:
+    """New cards get rows in the SAME component vocabulary and the unknown-card name; a grown
+    network still answers the old cards exactly as before."""
+    from MTG_bot.core.executor.games import get_supply as supply_of
+
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
+    recs = {oid: r.card for oid, r in supply_of("castable", "M20").pool.results.items()}
+    t2, stats = table.extend(recs)
+    assert stats["added"] > 100 and stats["known_share"] > 0.95
+    assert t2.ir_vocab == table.ir_vocab and t2.oracle_ids[: len(table.oracle_ids)] == table.oracle_ids
+    recs_play = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
+    play_game(7, recs_play, deck_mode="coherent")
+    feats = recs_play[0].samples[5][0]
+    with torch.no_grad():
+        before, _ = net(M.collate([feats], "cpu"))
+        M.extend_cards(net, t2)
+        after, _ = net(M.collate([feats], "cpu"))
+    assert torch.allclose(before, after, atol=1e-5)
+    assert torch.equal(net.name_emb.weight[-1], net.name_emb.weight[FT.UNK])
+    assert net.ir_table.shape[0] == len(t2.oracle_ids)

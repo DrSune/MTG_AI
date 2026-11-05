@@ -105,6 +105,15 @@ def _bucket(value: Any) -> str:
     return f"num:{n}" if 0 <= n <= 5 else ("num:6+" if n > 5 else "num:neg")
 
 
+def card_tokens(rec: Any) -> list[str]:
+    """A compiled card's component tokens: face (types, subtypes, mana value) + its tree."""
+    tree = {"abilities": [to_dict(a) for a in rec.abilities],
+            "keywords": [to_dict(k) for k in rec.keywords]}
+    face = [f"type:{t}" for t in rec.types] + [f"sub:{t}" for t in rec.subtypes]
+    face += [f"mv:{_bucket(rec.mana_value)}"]
+    return face + ir_tokens(tree)
+
+
 def ir_tokens(node: Any) -> list[str]:
     """Pre-order tokens of a ``to_dict`` tree: tags, enum values, roles, strings, bucketed
     numbers. A card's own name never appears. (Same scheme as ``tools/k1/train.py``.)"""
@@ -170,14 +179,7 @@ class CardTable:
     def from_records(cls, records: dict[str, Any], max_ir: int = 128) -> CardTable:
         oids = ["<pad>", "<unk>"] + sorted(records)
         names = ["<pad>", "<unk>"] + [records[o].name for o in oids[2:]]
-        token_lists = [[], []]
-        for oid in oids[2:]:
-            rec = records[oid]
-            tree = {"abilities": [to_dict(a) for a in rec.abilities],
-                    "keywords": [to_dict(k) for k in rec.keywords]}
-            face = [f"type:{t}" for t in rec.types] + [f"sub:{t}" for t in rec.subtypes]
-            face += [f"mv:{_bucket(rec.mana_value)}"]
-            token_lists.append(face + ir_tokens(tree))
+        token_lists = [[], []] + [card_tokens(records[oid]) for oid in oids[2:]]
         vocab = ["<pad>"] + sorted({t for toks in token_lists for t in toks})
         vi = {t: i for i, t in enumerate(vocab)}
         ir = [[vi[t] for t in toks][:max_ir] for toks in token_lists]
@@ -185,6 +187,35 @@ class CardTable:
 
     def row(self, oracle_id: str) -> int:
         return self.index.get(oracle_id, UNK)
+
+    def extend(self, records: dict[str, Any]) -> tuple[CardTable, dict]:
+        """A copy with a row for every record this table lacks, in the SAME component
+        vocabulary (a network trained on this table reads the new cards through the components
+        it knows; components it never saw are dropped and counted). New names are unknown to
+        the network: extend_cards gives them the unknown-card name embedding."""
+        oids, names = list(self.oracle_ids), list(self.names)
+        ir = [list(x) for x in self.ir]
+        vi = {t: i for i, t in enumerate(self.ir_vocab)}
+        added = tokens = known = 0
+        unseen: dict[str, int] = {}
+        for oid in sorted(records):
+            if oid in self.index:
+                continue
+            toks = card_tokens(records[oid])
+            ids = [vi[t] for t in toks if t in vi]
+            for t in toks:
+                if t not in vi:
+                    unseen[t] = unseen.get(t, 0) + 1
+            tokens += len(toks)
+            known += len(ids)
+            oids.append(oid)
+            names.append(records[oid].name)
+            ir.append(ids[: self.max_ir])
+            added += 1
+        stats = {"added": added, "component_tokens": tokens, "known_share": round(
+            known / max(tokens, 1), 4), "unseen_components": sorted(
+            unseen.items(), key=lambda kv: -kv[1])[:20]}
+        return CardTable(oids, names, self.ir_vocab, ir, self.max_ir), stats
 
     def ir_array(self) -> np.ndarray:
         out = np.zeros((len(self.ir), self.max_ir), dtype=np.int64)

@@ -143,6 +143,20 @@ class Learner:
         if args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init, "extra": extra})
+            if args.extend_sets:
+                # cards of other sets the network never trained on: rows in its component
+                # vocabulary, names unknown (FT.CardTable.extend, M.extend_cards)
+                from MTG_bot.core.executor.games import get_supply
+
+                records = {}
+                for code in args.extend_sets.split(","):
+                    records.update({oid: r.card for oid, r in
+                                    get_supply("castable", code).pool.results.items()})
+                self.table, ext = self.table.extend(records)
+                M.extend_cards(self.model, self.table)
+                self.log({"event": "extend_sets", "sets": args.extend_sets, **ext})
+            if args.mask_names:
+                self.model.mask_names = True
         else:
             from MTG_bot.core.executor.games import get_supply
 
@@ -241,6 +255,7 @@ class Learner:
             cfg = {k: v for k, v in src.config.items() if k not in ("n_cards", "n_ir")}
             net = M.build(self.table, **cfg).to(self.device)
             net.load_state_dict(src.state_dict())
+            net.mask_names = getattr(src, "mask_names", False)
             net = net.to(torch.bfloat16).eval()
             torch.cuda.synchronize()
             self.infer_models[key] = (src, ver, net)
@@ -251,6 +266,7 @@ class Learner:
         cfg = {k: v for k, v in self.model.config.items() if k not in ("n_cards", "n_ir")}
         net = M.build(self.table, **cfg).to(self.device)
         net.load_state_dict(src.state_dict())
+        net.mask_names = getattr(src, "mask_names", False)
         net.eval()
         if self.cuda:
             torch.cuda.synchronize()  # the copy is complete before any stream reads it
@@ -902,6 +918,8 @@ class Learner:
                     job["opp"] = opp
                     job["a_seat"] = a_seat
                     job["search"] = search
+                    job["set_code"] = a.eval_set
+                    job["pool_mode"] = a.eval_pool
                     self.eval_jobs.append(job)
                     self.eval_pending.add(job["gid"])
 
@@ -1491,6 +1509,16 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--curriculum", action="store_true")
+    p.add_argument("--extend-sets", default="",
+                   help="comma list of sets whose castable cards join the card table (names "
+                        "unknown, components in the trained vocabulary)")
+    p.add_argument("--eval-set", default="M21", help="the set evaluation decks are dealt from")
+    p.add_argument("--eval-pool", default="castable",
+                   help="pool mode of the evaluation decks: 'compiled' deals only cards whose "
+                        "whole text compiled ('castable' also deals partly parsed cards with the "
+                        "rest of their text missing; the two are equal on M21)")
+    p.add_argument("--mask-names", action="store_true",
+                   help="the --init network reads every card name as the unknown card")
     p.add_argument("--resume", default="",
                    help="--curriculum: continue the run saved in this directory (state.pkl, "
                         "last.pt, value.pt, v<k>.pt)")
