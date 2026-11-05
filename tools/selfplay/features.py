@@ -216,6 +216,12 @@ class AskContext:
 
 
 _STATIC_CACHE: dict[int, tuple] = {}
+# The cache holds each identity it has seen (so an id cannot be reused while cached, which keeps
+# the `is` check sound), and the engine makes new identity objects every game: unbounded, it
+# leaked ~31 identities per game, ~60 MB per PPO update across the workers, and a 22-hour run
+# stopped on its memory floor (2026-11-05, KNOWLEDGE/2026-11-03/183 §32). Bounded: when full it
+# is cleared and refilled (a refill costs microseconds per identity).
+_CACHE_MAX = 8192
 
 
 def _static(identity: Any) -> tuple:
@@ -224,6 +230,8 @@ def _static(identity: Any) -> tuple:
     hit = _STATIC_CACHE.get(key)
     if hit is not None and hit[0] is identity:
         return hit[1]
+    if len(_STATIC_CACHE) >= _CACHE_MAX:
+        _STATIC_CACHE.clear()
     tl = identity.type_line or ""
     types = [1.0 if t in tl else 0.0 for t in TYPES]
     colors = [1.0 if c in (identity.colors or ()) else 0.0 for c in COLORS]
@@ -243,7 +251,12 @@ def _int_or_none(value: Any) -> int | None:
 
 
 class _OptCache(dict):
+    """Parsed option tokens. Bounded like _STATIC_CACHE: tokens pair per-game handles
+    ("cast:card:12@card:40"), so the set of distinct tokens keeps growing slowly."""
+
     def __missing__(self, tok: str) -> tuple:
+        if len(self) >= 4 * _CACHE_MAX:
+            self.clear()
         val = _parse_option(tok)
         self[tok] = val
         return val

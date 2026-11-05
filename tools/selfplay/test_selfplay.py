@@ -237,3 +237,18 @@ def test_pre_blocks_boundary_is_opt_in() -> None:
         seen[cls.__name__] = boundaries
     assert {"turn_top", "pre_combat", "post_combat"} <= seen["SeatRouter"]
     assert "pre_blocks" not in seen["SeatRouter"] and "pre_blocks" in seen["SelfplayRouter"]
+
+
+def test_feature_caches_are_bounded() -> None:
+    """features._static keeps each identity it has seen alive; unbounded it leaked ~31 per game
+    (a 22-hour run hit its memory floor). The cache must stay under its bound however many
+    distinct identity objects pass through."""
+    from MTG_bot.core.identity import CardIdentity
+
+    FT._STATIC_CACHE.clear()
+    for i in range(FT._CACHE_MAX + 500):
+        ident = CardIdentity(oracle_id="00000000-0000-0000-0000-000000000000", name=f"c{i}",
+                             type_line="Creature", power="1", toughness="1", cmc=1)
+        FT._static(ident)
+        assert len(FT._STATIC_CACHE) <= FT._CACHE_MAX
+    assert FT._static(ident) is FT._static(ident)  # still a cache
