@@ -332,11 +332,11 @@ def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
 # ------------------------------------------- the teacher on the 2026-11-05 menu (no TAP_ALL_MANA)
 
 
-def _teach(hand0=(), field0=(), field1=()):
+def _teach(hand0=(), field0=(), field1=(), **kw):
     """Seat 0's turn on an arranged board (MTG_bot/bench/test_router.py), the heuristic acting."""
     from MTG_bot.bench.test_router import P0, _arranged, _router
 
-    game, supply = _arranged(hand0=hand0, field0=field0, field1=field1)
+    game, supply = _arranged(hand0=hand0, field0=field0, field1=field1, **kw)
     router = _router(game, supply, HeuristicAgent())
     return game, router, P0
 
@@ -384,3 +384,28 @@ def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
     game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Forest",))
     router.take_acts(game, me)
     assert not any(a.card == "Wildwood Scourge" for a in router.acts)
+
+
+def test_heuristic_names_the_colour_its_treasure_is_for() -> None:
+    # Review 2026-11-05: the mana ask took the colour from identity.mana_cost, which no dealt card
+    # carries, so a Treasure sacrificed for Walking Corpse ({1}{B}) next to a Plains made {W}.
+    game, router, me = _teach(hand0=("Walking Corpse",), field0=("Plains",), tokens0=("Treasure",))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
+
+
+def test_heuristic_never_taps_mana_for_a_play_it_will_not_make() -> None:
+    # Wildwood Scourge with one {G} source is castable only at X = 0, which the teacher never casts.
+    game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Llanowar Visionary",))
+    router.take_acts(game, me)
+    assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped and router.acts == []
+
+
+def test_heuristic_aims_minus_n_at_the_opponent() -> None:
+    # "Target creature gets -4/-4" compiles to PtDelta(DECREASE, 4); the harm test read only
+    # negative numbers, so Grasp of Darkness was aimed at the teacher's own creature.
+    game, router, me = _teach(hand0=("Grasp of Darkness",), field0=("Swamp", "Swamp", "Walking Corpse"),
+                              field1=("Onakke Ogre",))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
+    assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"

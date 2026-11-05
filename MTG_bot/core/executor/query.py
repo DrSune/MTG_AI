@@ -1232,13 +1232,15 @@ def cast_mode_options(
     *,
     spell_handle: Handle,
     seat: Handle,
+    pay=None,
 ) -> list[tuple[int, tuple[int, ...]]]:
     """V17 (CR 601.2b, 700.2a): the mode sets the caster may announce, as
     ``(order index, option indices)`` in :func:`choose_options` order (the
     order index is the runtime Choose's decision token). A set is legal only
     if every target its modes need can be chosen (700.2a: a mode that would
-    be illegal for want of legal targets can't be chosen). Empty for a spell
-    that is not modal."""
+    be illegal for want of legal targets can't be chosen), each priced by
+    ``pay`` (:func:`spell_target_slots`). Empty for a spell that is not
+    modal."""
     choose = modal_choose(node)
     if choose is None:
         return []
@@ -1246,7 +1248,7 @@ def cast_mode_options(
     options = choose_options(executor, choose, source=spell_handle, controller=seat)
     for i, option in enumerate(options):
         slots = spell_target_slots(
-            executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs
+            executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs, pay=pay
         )
         if all(slot.min_count <= len(slot.candidates) for slot in slots):
             legal.append((i, option.option_idxs))

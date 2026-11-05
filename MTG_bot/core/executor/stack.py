@@ -440,6 +440,7 @@ def cast_modes(
     *,
     mode_choices: tuple[int, ...] = (),
     decisions: tuple[str, ...] = (),
+    pay=None,
 ) -> tuple[int, tuple[int, ...], tuple[str, ...]]:
     """V17 (CR 601.2b, 700.2a): announce a modal spell's modes as it is cast.
 
@@ -453,10 +454,11 @@ def cast_modes(
     (forced when only one is legal, never a phantom). A set whose modes need
     a target that cannot be chosen is not legal (700.2a); with no legal set
     the spell cannot be cast. An act window calls this before choosing
-    targets, then designates through ``spell_target_slots(..., modes=)``."""
+    targets, then designates through ``spell_target_slots(..., modes=)``;
+    ``pay`` prices the targets as that window pays (``spell_target_slots``)."""
     from MTG_bot.core.executor.query import cast_mode_options
 
-    legal = cast_mode_options(executor, node, spell_handle=handle, seat=seat)
+    legal = cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay)
     remaining = tuple(decisions)
     if mode_choices:
         wanted = tuple(sorted(int(m) for m in mode_choices))

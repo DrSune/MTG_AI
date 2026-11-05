@@ -72,7 +72,8 @@ def is_harmful(executor: Any, handle: Handle | None) -> bool:
     toks = _record_tokens(executor, executor.world.cards[handle].identity.oracle_id)
     if toks & HARM_VERBS:
         return True
-    return "Verb.MODIFY_PT" in toks and "num:neg" in toks
+    # -N/-N: the compiler writes PtDelta(direction=DECREASE) with a positive magnitude now
+    return "Verb.MODIFY_PT" in toks and ("num:neg" in toks or "PtDirection.DECREASE" in toks)
 
 
 def deals_damage(executor: Any, handle: Handle | None) -> bool:
@@ -94,6 +95,7 @@ def cast_token(token: str) -> tuple[Handle | None, bool, int]:
 
 class HeuristicAgent:
     name = "heuristic"
+    colour: str | None = None  # the colour a mana row was chosen for (_mana_row -> _mana)
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -161,7 +163,6 @@ class HeuristicAgent:
         lands = [i for i, t in enumerate(tokens) if t.startswith("land:")]
         if lands:
             return lands[0]
-        opp_creatures = any(self._is(h, "Creature") for h in self._controlled(self.opp))
         best, best_key = None, None
         for i, t in enumerate(tokens):
             if not t.startswith("cast:"):
@@ -169,15 +170,9 @@ class HeuristicAgent:
             h, kicked, x = cast_token(t)
             if h is None or h not in self.world.cards:
                 continue
-            ident = self.world.cards[h].identity
-            record = spell_record(self.ex, h)
-            if x == 0 and record is not None and record.mana_cost is not None \
-                    and _cost_has_x(record.mana_cost):
+            if (x == 0 and self._has_x(h)) or self._pointless(h):
                 continue  # X = 0 does nothing (Volcanic Geyser deals 0, Wildwood Scourge dies)
-            if not self._is(h, "Creature") and is_harmful(self.ex, h) and not opp_creatures \
-                    and not deals_damage(self.ex, h) and not self._is(h, "Planeswalker"):
-                continue  # removal with nothing to remove
-            key = ((ident.cmc or 0) + x, kicked, -i)
+            key = ((self.world.cards[h].identity.cmc or 0) + x, kicked, -i)
             if best_key is None or key > best_key:
                 best, best_key = i, key
         if best is not None:
@@ -194,8 +189,9 @@ class HeuristicAgent:
 
     def _mana_row(self, tokens: list[str]) -> int | None:
         """A creature's or a sacrifice's mana row (untapping creatures first), only when its mana
-        makes a spell in hand castable that the menu does not offer. A mana-cost filter (Prismite's
-        {2}: add one) never adds mana, so it is never used."""
+        makes a spell in hand one the menu would offer and this player would cast. A mana-cost
+        filter (Prismite's {2}: add one) never adds mana, so it is never used. The colour that
+        does it answers the mana ask the activation makes (``_mana``)."""
         rows = []
         for i, t in enumerate(tokens):
             parts = t.split(":")
@@ -212,41 +208,57 @@ class HeuristicAgent:
             return None
         offered = {cast_token(t)[0] for t in tokens if t.startswith("cast:")}
         short = [h for h in self._hand()
-                 if h not in offered and not self._is(h, "Land") and self._designable(h)]
+                 if h not in offered and not self._is(h, "Land") and not self._pointless(h)]
         for _sacrifice, i, h, idx in sorted(rows):
             ability = spell_record(self.ex, h).abilities[idx]
-            if any(self._castable_with(h, idx, ability, spell) for spell in short):
-                return i
+            for spell in short:
+                colour = self._enabling_colour(h, idx, ability, spell)
+                if colour is not None:
+                    self.colour = colour
+                    return i
         return None
 
-    def _designable(self, spell: Handle) -> bool:
-        """Could the menu offer ``spell`` with enough mana: one target slot at most, and enough
-        candidates in it (a counterspell with nothing on the stack has none)."""
+    def _has_x(self, spell: Handle) -> bool:
+        record = spell_record(self.ex, spell)
+        return record is not None and record.mana_cost is not None and _cost_has_x(record.mana_cost)
+
+    def _pointless(self, spell: Handle) -> bool:
+        """Removal with nothing to remove: a harmful non-creature, non-planeswalker spell that deals
+        no damage, while the opponent controls no creature."""
+        return (not self._is(spell, "Creature") and not self._is(spell, "Planeswalker")
+                and is_harmful(self.ex, spell) and not deals_damage(self.ex, spell)
+                and not any(self._is(h, "Creature") for h in self._controlled(self.opp)))
+
+    def _enabling_colour(self, source: Handle, idx: int, ability: Any, spell: Handle) -> str | None:
+        """The colour of this ability's mana (any colour for a Treasure) with which the menu would
+        offer ``spell`` (X at least 1): its total cost payable from the pool and the free sources,
+        a target's cost increase included, one target slot at most with a payable candidate. Asked
+        of the engine's own planner with the mana added on trial and taken back."""
+        got = _mana_atom_output(ability.effect, ctx_for(self.ex, source=source, controller=self.me))
         record = spell_record(self.ex, spell)
         node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
-        if node is None:
-            return False
-        slots = spell_target_slots(self.ex, node, spell_handle=spell, seat=self.me)
-        return len(slots) <= 1 and all(s.min_count <= len(s.candidates) for s in slots)
-
-    def _castable_with(self, source: Handle, idx: int, ability: Any, spell: Handle) -> bool:
-        """Is ``spell`` payable (the pool, then free sources) once this ability's mana is in the
-        pool? Asked of the engine's own planner, with the mana added on trial and taken back."""
-        got = _mana_atom_output(ability.effect, ctx_for(self.ex, source=source, controller=self.me))
-        if got is None:
-            return False
+        if got is None or node is None:
+            return None
         color, n = got
+        x = 1 if self._has_x(spell) else None
         policy = self.ex.layers.this_mana_filter(source)  # Vodalian Arcanist: instants and sorceries
         tags = (policy,) if policy is not None else ()
 
-        def check() -> str | None:
-            pay = plan_mana_taps(self.ex, self.me, lambda: spell_castable(self.ex, self.me, spell)[0])
-            return None if pay is not None else "short"
+        def pays(targets: tuple[Handle, ...]) -> bool:
+            return plan_mana_taps(
+                self.ex, self.me, lambda: spell_castable(self.ex, self.me, spell, x=x, targets=targets)[0]
+            ) is not None
 
-        return any(
-            _with_trial_mana(self.ex, self.me, [ManaTap(source, idx, (), (c, n, tags))], check) is None
-            for c in ((color,) if color else "WUBRG")
-        )
+        def offered() -> str | None:
+            if not pays(()):
+                return "short"
+            slots = spell_target_slots(self.ex, node, spell_handle=spell, seat=self.me, pay=pays)
+            return None if len(slots) <= 1 and all(s.min_count <= len(s.candidates) for s in slots) else "no"
+
+        for c in (color,) if color else "WUBRG":
+            if _with_trial_mana(self.ex, self.me, [ManaTap(source, idx, (), (c, n, tags))], offered) is None:
+                return c
+        return None
 
     def _target(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         src = None
@@ -356,11 +368,15 @@ class HeuristicAgent:
         return tokens.index("top")
 
     def _mana(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        colour, self.colour = self.colour, None  # the colour _mana_row chose this mana for
+        if colour in tokens:
+            return tokens.index(colour)
         need = {c: 0 for c in "WUBRG"}
         for h in self._hand():
-            cost = self.world.cards[h].identity.mana_cost or ""
-            for c in need:
-                need[c] += cost.count(c)
+            record = spell_record(self.ex, h)
+            for part in record.mana_cost.parts if record is not None and record.mana_cost else ():
+                if isinstance(part, CostManaColor) and part.color in need:
+                    need[part.color] += getattr(part.amount, "value", 1)
         best = max((c for c in "WUBRG" if c in tokens), key=lambda c: need[c], default=None)
         return tokens.index(best) if best is not None else None
 

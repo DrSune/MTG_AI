@@ -258,7 +258,7 @@ class SeatRouter:
                     # legal mode set can be designated with one slot at most.
                     designable = any(
                         len(spell_target_slots(executor, node, spell_handle=handle, seat=seat, modes=m, pay=pay)) <= 1
-                        for _t, m in cast_mode_options(executor, node, spell_handle=handle, seat=seat)
+                        for _t, m in cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay)
                     )
                     more = " (then choose its mode)"
                 if not designable:
@@ -350,7 +350,7 @@ class SeatRouter:
         if slots is None:
             # V17: a modal spell. The mode ask goes through the engine channel (this
             # router answers it, routed to this seat), then its own slots are designated.
-            _token, modes, _rest = cast_modes(executor, seat, source, node)
+            _token, modes, _rest = cast_modes(executor, seat, source, node, pay=pay)
             slots = spell_target_slots(executor, node, spell_handle=source, seat=seat, modes=modes, pay=pay)
             if len(slots) > 1:
                 self.stats[i]["hidden_rows"] += 1

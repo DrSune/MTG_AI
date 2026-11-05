@@ -958,6 +958,16 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.assertEqual(tap.source, f2)
         self.assertIsNone(plan_mana_taps(self.ex, self.p0, check, exclude=frozenset({f1, f2})))
 
+    def test_two_duals_sharing_a_colour_still_pay_both_colours(self):
+        # Review 2026-11-05: {R}{W} from an R/W and a B/R dual. One pick per shortfall took the
+        # R/W land for {R} (lower Handle) and then found no {W}; a dead end now tries the next.
+        from MTG_bot.core.ability_tree import Choose
+
+        crag = self.land("Crag", Choose(count=QConst(1), options=(add_mana("R"), add_mana("W"))))
+        caves = self.land("Caves", Choose(count=QConst(1), options=(add_mana("B"), add_mana("R"))))
+        taps = self.plan(CostManaColor("R", QConst(1)), CostManaColor("W", QConst(1)))
+        self.assertEqual({(t.source, t.production[0]) for t in taps}, {(caves, "R"), (crag, "W")})
+
     def test_any_colour_permission_lets_any_source_pay_a_coloured_symbol(self):
         # Chromatic Orrery: "You may spend mana as though it were mana of any color."
         from MTG_bot.core.ability_tree import StaticAbility

@@ -286,6 +286,18 @@ def test_life_is_paid_only_up_to_the_life_total() -> None:
     assert game.world.players[P0].life == 2
 
 
+def test_a_modal_spell_keeps_its_targeted_modes_under_a_target_tax() -> None:
+    # Review 2026-11-05: a modal spell's mode sets were priced against the pool alone, which is
+    # empty when the act window opens, so with a Pursued Whale anywhere on the battlefield every
+    # targeted mode was dropped and Return to Nature was not offered at all.
+    game, supply = _arranged(hand0=("Return to Nature",), field0=("Forest",) * 3, field1=("Meteorite", "Pursued Whale"))
+    rtn = _handle(game, "Return to Nature")
+    router = _router(game, supply)
+    assert f"cast:{rtn}" in _menu(router, game)
+    _play_row(router, game, f"cast:{rtn}")  # the one legal mode: destroy target artifact
+    assert game.world.zone_of(_handle(game, "Meteorite", P1)).kind == "graveyard"
+
+
 def test_a_dealt_game_names_cards_from_its_pool_so_name_asks_are_not_leaky() -> None:
     # B-29: the CHOOSE_NAME vocabulary listed the world's cards, hidden zones included, so the
     # router flagged every name ask leaky. A dealt game now lists the format's card pool.
