@@ -254,3 +254,17 @@ Predictions:
 M20 for training: two blind verification rounds (36/36 planted faults caught), 232 verified cards
 with 23 lands; G5 soak 300 games, 0 crashes, 0 detector hits, 0 loops; the two value-per-mana outliers
 are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
+
+## 13. r19 launched; prediction 1; the engine gains turn history and "can't be countered"
+- r18 ended at update 98 (v4 the last freeze, at 71). Prediction 1 of §12, measured before any M20
+  training: r18 last.pt on M20 vs heuristic **0.6033 [0.567, 0.640]** (300 games, 0 voids; coherent
+  0.66, stress 0.547): **hit** (0.55-0.65). On M21 the same network scores 0.65: most of its strength
+  carries over through the components.
+- r19 = r18 last.pt + `--extend-sets M20 --mix-sets M20 --mix-share 0.25`, everything else as r18.
+  The table refresh changed 0 M21 rows; the extension added 306 M20 rows, 99.7% of their component
+  tokens already trained. Pre-flight: pass.
+- Merged before the launch (49f10ca): one turn-history predicate family (EVENT_THIS_TURN,
+  SUBJECT_OF_EVENT_THIS_TURN over the turn's journal, read by the trigger binder's own matcher) and
+  "can't be countered" as a prevention of a CounteredEvent (the counterspell still targets and
+  resolves). 51 sentences newly parse, 25 cards newly fully compiled across the 19 sets; no compiled
+  tree changed; 100 seeded M21 games identical before and after. Gates: 5014 / 127 / 709.
