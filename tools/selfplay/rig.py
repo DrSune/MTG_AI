@@ -9,7 +9,7 @@ last ask, so without this an agent would declare each attacker blind to the othe
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from MTG_bot.bench.agents import AgentError, Observation
@@ -134,11 +134,28 @@ def outcome_of(game: Any) -> tuple[str, int | None]:
     return "draw-other", None
 
 
+_ALLOWED: dict[tuple, Any] = {}
+
+
+def allowed_supply(pool_mode: str, set_code: str, allow: frozenset | None) -> Any:
+    """The set's supply, its non-land deck cards cut to ``allow`` (a curated list of oracle
+    ids: e.g. new cards labelled faithful and simple). Lands are kept so deck recipes still find
+    their basics. Cached per (mode, set, list)."""
+    supply = get_supply(pool_mode, set_code)
+    if not allow:
+        return supply
+    key = (pool_mode, set_code, hash(allow))
+    if key not in _ALLOWED:
+        deck = tuple(o for o in supply.deckable if supply.metas[o].is_land or o in allow)
+        _ALLOWED[key] = replace(supply, deckable=deck)
+    return _ALLOWED[key]
+
+
 def play_game(seed: int, agents: list[Any], *, deck_mode: str = "stress",
               pool_mode: str = "castable", set_code: str = "M21", deck_pairs_seed: int = 1409,
-              turn_cap: int = TURN_CAP) -> dict[str, Any]:
+              turn_cap: int = TURN_CAP, deck_allow: frozenset | None = None) -> dict[str, Any]:
     """Play one game between ``agents[0]`` (seat 0) and ``agents[1]`` (seat 1)."""
-    supply = get_supply(pool_mode, set_code)
+    supply = allowed_supply(pool_mode, set_code, deck_allow)
     oracle = _ORACLES.get(set_code)
     if oracle is None:
         oracle = _ORACLES[set_code] = OracleIndex.for_sets(set_code)

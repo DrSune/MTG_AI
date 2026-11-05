@@ -165,6 +165,19 @@ class Learner:
                 {oid: r.card for oid, r in supply.pool.results.items()})
             self.model = M.build(self.table, d=args.d, layers=args.layers, heads=args.heads,
                                  ff=args.ff, name_dropout=args.name_dropout).to(self.device)
+        # --mix-allow: per set, the oracle ids a mixed training game may deal (lands always)
+        self.mix_allow: dict[str, list] = {}
+        if args.mix_sets:
+            missing = set(args.mix_sets.split(",")) - set(args.extend_sets.split(","))
+            if missing:
+                raise ValueError(f"--mix-sets {sorted(missing)} must also be in --extend-sets")
+            if args.mix_allow:
+                allow = json.loads(Path(args.mix_allow).read_text())
+                self.mix_allow = {code: list(allow.get(code, [])) for code in
+                                  args.mix_sets.split(",")}
+            self.log({"event": "mix", "sets": args.mix_sets, "share": args.mix_share,
+                      "pool": args.mix_pool,
+                      "allowed": {k: len(v) for k, v in self.mix_allow.items()}})
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
         if args.value_init:
@@ -532,8 +545,22 @@ class Learner:
                 opp = self.versions[-1]
         seat = self.rng.randrange(2)
         seats = ["learner", opp] if seat == 0 else [opp, "learner"]
-        return self._job("train", seed, seats, [False, False], [x == "learner" for x in seats],
-                         self._deck_mode())
+        job = self._job("train", seed, seats, [False, False], [x == "learner" for x in seats],
+                        self._deck_mode())
+        self._mix(job)
+        return job
+
+    def _mix(self, job: dict) -> None:
+        """--mix-sets: a --mix-share of training games is dealt from another set's curated cards
+        (--mix-allow), the rest from M21. Evaluations and ladders stay on M21."""
+        a = self.args
+        if not a.mix_sets or self.rng.random() >= a.mix_share:
+            return
+        code = self.rng.choice(a.mix_sets.split(","))
+        job["set_code"] = code
+        job["pool_mode"] = a.mix_pool
+        if self.mix_allow.get(code):
+            job["deck_allow"] = self.mix_allow[code]
 
     def _serve_need(self, wid: int, n: int) -> None:
         jobs = []
@@ -739,7 +766,7 @@ class Learner:
             for seat in (0, 1):
                 if seats[seat] == "learner" and seats[1 - seat] != "learner":
                     self.train_results.append((seats[1 - seat], self.reward(
-                        r["outcome"], r["winner"], seat), r["turns"]))
+                        r["outcome"], r["winner"], seat), r["turns"], r.get("set_code", "M21")))
             if seats == ["learner", "learner"]:
                 self.train_results.append(("self", 0.0, r["turns"]))
 
@@ -1124,11 +1151,17 @@ class Learner:
             tp = self.throughput(t0, g0, d0)
             res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
-            for opp, z, _ in res:
+            for opp, z, *_ in res:
                 wr["frozen" if opp == (self.versions[-1] if self.versions else "") else
                    ("past" if opp.startswith("v") else opp)].append(z)
+            by_set: dict[str, list] = defaultdict(list)
+            for row in res:
+                by_set[row[3] if len(row) > 3 else "M21"].append(row[1])
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,
                       "upd_s": round(time.time() - t1, 1), "collect_s": round(t1 - t0, 1),
+                      # with --mix-sets: the training-game win rate per dealing set
+                      **({"win_set": {k: round(float(np.mean([z > 0 for z in v])), 3)
+                                      for k, v in by_set.items()}} if len(by_set) > 1 else {}),
                       # training-game win rate per opponent group (sampled play, not the eval)
                       "win": {k: round(float(np.mean([z > 0 for z in v])), 3)
                               for k, v in wr.items()},
@@ -1213,7 +1246,7 @@ class Learner:
             window.append(self.bc)
             res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
-            for opp, z, _ in res:
+            for opp, z, *_ in res:
                 wr["frozen" if opp == self.versions[-1] else
                    ("past" if opp.startswith("v") else opp)].append(z)
             self.bc = [x for part in window for x in part] + [x for part in vwindow for x in part]
@@ -1417,7 +1450,7 @@ class Learner:
                 res = self.train_results
                 self.train_results = []
                 wr: dict[str, list] = defaultdict(list)
-                for opp, z, _ in res:
+                for opp, z, *_ in res:
                     if opp != "self":
                         wr[opp.split(":")[0]].append(z)
                 row = {"event": "iter", "it": self.it, **st, **tp, "upd_s": upd,
@@ -1517,6 +1550,14 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="pool mode of the evaluation decks: 'compiled' deals only cards whose "
                         "whole text compiled ('castable' also deals partly parsed cards with the "
                         "rest of their text missing; the two are equal on M21)")
+    p.add_argument("--mix-sets", default="",
+                   help="comma list of sets some training games are dealt from (must also be "
+                        "in --extend-sets)")
+    p.add_argument("--mix-share", type=float, default=0.25,
+                   help="share of training games dealt from --mix-sets")
+    p.add_argument("--mix-pool", default="compiled", help="pool mode of the mixed games")
+    p.add_argument("--mix-allow", default="",
+                   help="JSON {set: [oracle ids]}: the non-land cards a mixed game may deal")
     p.add_argument("--mask-names", action="store_true",
                    help="the --init network reads every card name as the unknown card")
     p.add_argument("--resume", default="",

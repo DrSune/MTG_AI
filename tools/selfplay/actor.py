@@ -290,14 +290,17 @@ class Worker:
         if value_p > 0:
             agents = [ValueSampler(a, self.table, value_p, job["seed"] * 2 + seat)
                       for seat, a in enumerate(agents)]
+        allow = job.get("deck_allow")
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"],
                         set_code=job.get("set_code", "M21"),
-                        pool_mode=job.get("pool_mode", "castable"))
+                        pool_mode=job.get("pool_mode", "castable"),
+                        deck_allow=frozenset(allow) if allow else None)
         res["gid"] = job["gid"]
         res["kind"] = job["kind"]
         res["seats"] = job["seats"]
         res["a_seat"] = job.get("a_seat")
         res["opp"] = job.get("opp")
+        res["set_code"] = job.get("set_code", "M21")
         inner = [getattr(a, "inner_agent", a) for a in agents]
         res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
                          for a in inner]
