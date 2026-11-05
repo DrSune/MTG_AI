@@ -215,3 +215,28 @@ verified**, 137 spec packs kept in tools/scenarios/cards/M20/ (pytest MTG_bot: 4
   agent is writing one mutant-killing pack per card.
 - Ruling applied alike to all five order cards: B-81 (significant = alters legal options or state
   outcomes): a fixed "random order" is information only (OK); a fixed "any order" removes a choice.
+
+## 11. r18 self-play: freezes without anchor gains; mixed sets blocked on M20's compiled cards
+| Version | Frozen at | Gate (deal-level 95%) | Ladder vs heuristic | Elo (random 0) |
+|---|---|---|---|---|
+| v1 | 22 (forced, end of teacher stage) | - | 0.637 | 400 |
+| v2 | 46 | 0.5217 [0.5025, 0.5409] vs v1 | 0.653 | 411 |
+| v3 | 66 | 0.5267 [0.5096, 0.5437] vs v2 | 0.647 | 411.5 |
+| v4 | 71 | 0.5200 [0.5055, 0.5345] vs v3 | 0.653 | 416 |
+(heuristic 307, v0 389; Elo standard error ~25.) Pre-registered "first freeze within 30 self-play
+updates": hit (24). With the old Wilson interval the update-45 gate ([0.482, 0.561]) would not have
+passed. One gate showed the learner significantly below the just-frozen version (update 50: 0.4767
+[0.4596, 0.4938]) and the next was even: update-to-update jitter of the greedy policy, which
+freezing on a passed gate then selects at a high point (a remedy: freeze an exponential moving
+average of the weights).
+
+Each version beats the previous head to head, but the anchors do not move: v2-v4 sit within one
+standard error and at 0.65 against the heuristic, as v1 did. Self-play here improves against
+itself, not in general. Rule fixed before the v4 ladder: if v4 is flat too, the next run changes one
+thing, mixed-set training on new verified cards (the owner's lever for a plateau, 2026-11-05).
+
+Blocked: M20's verified pool held 119 mapped cards but only 2 lands, and the G5 soak could not build
+decks ("only 8 mana-capable cards, need 10"). The first round verified the cards mappers wrote; the
+127 cards the compiler translates on its own, basics and dual lands among them, had no verification.
+A second round (142 packets, 15 planted) is verifying them; approximating with unverified compiled
+cards is not an option (the M21 campaign found 29% of compiled trees wrong). r18 keeps training.
