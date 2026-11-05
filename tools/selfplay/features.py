@@ -26,7 +26,7 @@ from typing import Any
 
 import numpy as np
 
-from MTG_bot.core.ability_tree import Phase, to_dict
+from MTG_bot.core.ability_tree import CounterKind, Phase, to_dict
 from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -44,6 +44,9 @@ ASK_KINDS = (
     "pad", "act", "attack", "block", "target", "choose", "one_of", "may", "scry", "mana",
     "order", "trample", "policy", "cw", "counter", "pay", "sacrifice", "discard", "tap", "name",
     "other",
+    # appended, never inserted: a checkpoint's rows keep their meaning, and model.load starts a
+    # kind added after the checkpoint as "other", which is how it was encoded before
+    "legend", "enchant", "x",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 
@@ -526,11 +529,11 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         if card.counters:
             other = 0
             for k, v in card.counters.items():
-                if k == "+1/+1":
+                if k == CounterKind.PLUS_1_PLUS_1.value:
                     f[F_P1] = v / 3.0
-                elif k == "-1/-1":
+                elif k == CounterKind.MINUS_1_MINUS_1.value:
                     f[F_M1] = v / 3.0
-                elif k.lower() == "loyalty":
+                elif k == CounterKind.LOYALTY.value:
                     f[F_LOYALTY] = v / 5.0
                 else:
                     other += v

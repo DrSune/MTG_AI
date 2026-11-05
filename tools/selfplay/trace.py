@@ -23,7 +23,6 @@ from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.heuristic import HeuristicAgent
-from tools.selfplay.label_noise import LocalSlot
 from tools.selfplay.rig import play_game
 
 
@@ -56,7 +55,7 @@ class Tracer:
 
 
 class TracedNet:
-    def __init__(self, slot: LocalSlot, table: FT.CardTable, tracer: Tracer, name: str,
+    def __init__(self, slot: M.LocalSlot, table: FT.CardTable, tracer: Tracer, name: str,
                  mask_names: bool = False) -> None:
         self.slot = slot
         self.table = table
@@ -121,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.opp != "heuristic":
         opp, _, _ = M.load(a.opp, "cuda")
         nets["opp"] = opp.to(torch.bfloat16).eval()
-    slot = LocalSlot(nets)
+    slot = M.LocalSlot(nets)
     tracer = Tracer(out)
     agents: list[Any] = [None, None]
     agents[a.net_seat] = TracedNet(slot, table, tracer, "net", a.mask_names)

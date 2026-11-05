@@ -655,9 +655,10 @@ class Probe:
             ("this card is dealt lethal damage", dmg("card", 99)),
             ("this card becomes tapped", ex(tap, 1, "opp_bear", "card")),
             ("turns pass: your end step, the opponent's turn, your next upkeep", turns),
-            ("from your hand, the card enters during the opponent's turn, then that turn ends",
-             enters_on_their_turn),
         ]
+        if "Emblem" not in self.card.types:  # an emblem is never in a hand (CR 114.1)
+            out.append(("from your hand, the card enters during the opponent's turn, then that "
+                        "turn ends", enters_on_their_turn))
         if self.lands:
             out.insert(2, ("you play a land", lambda r: play_land(r.ex, r.p0, r.handles["you_land_drop"])))
         if "Creature" in self.card.types:

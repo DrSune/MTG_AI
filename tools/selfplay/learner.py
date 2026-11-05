@@ -129,6 +129,22 @@ def mem_available_gib() -> float:
     return float("nan")
 
 
+def gae(vals: list[float], z: float, gamma: float, lam: float) -> list[float]:
+    """Generalised advantage estimates for one seat's decisions in one game, whose end pays
+    ``z`` after the last decision. A game cut off before its end passes ``z = vals[-1]``: the
+    truncated-episode bootstrap (Pardo et al. 2018, "Time Limits in Reinforcement Learning"),
+    with the last decision's own value standing in for the unobserved cut-off state, so the
+    decision that ran into the failure gets zero advantage."""
+    adv = [0.0] * len(vals)
+    last = 0.0
+    for t in range(len(vals) - 1, -1, -1):
+        next_v = vals[t + 1] if t + 1 < len(vals) else 0.0
+        delta = (z if t == len(vals) - 1 else 0.0) + gamma * next_v - vals[t]
+        last = delta + gamma * lam * last
+        adv[t] = last
+    return adv
+
+
 class Learner:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
@@ -754,22 +770,16 @@ class Learner:
         self.counts["overflow"] += sum(r.get("overflow", [0, 0]))
         for seat in (0, 1):
             steps = self.traj.pop((r["gid"], seat), None)
-            if not steps or void:
+            if not steps:
                 continue
-            z = self.reward(r["outcome"], r["winner"], seat)
             vals = [s[3] for s in steps]
-            n = len(steps)
-            adv = [0.0] * n
-            last = 0.0
-            for t in range(n - 1, -1, -1):
-                next_v = vals[t + 1] if t + 1 < n else 0.0
-                rew = z if t == n - 1 else 0.0
-                delta = rew + a.gamma * next_v - vals[t]
-                last = delta + a.gamma * a.lam * last
-                adv[t] = last
-            for t in range(n):
-                f, act, logp, v = steps[t]
-                self.buffer.append((f, act, logp, v, adv[t], adv[t] + v))
+            # A void game was cut off by an engine, agent or worker failure. Dropping it would
+            # make the failure an escape from a lost position (a policy learns to reach it);
+            # bootstrapping makes reaching it worth what the position was worth.
+            z = vals[-1] if void else self.reward(r["outcome"], r["winner"], seat)
+            adv = gae(vals, z, a.gamma, a.lam)
+            for (f, act, logp, v), ad in zip(steps, adv, strict=True):
+                self.buffer.append((f, act, logp, v, ad, ad + v))
         if not void:
             seats = r["seats"]
             for seat in (0, 1):

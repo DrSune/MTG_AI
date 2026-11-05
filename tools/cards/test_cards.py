@@ -60,3 +60,14 @@ def test_the_probe_plays_a_modal_spell_one_mode_at_a_time() -> None:
     assert "target slot (cast modes=[1]): 1..1 of [you_charm, opp_charm]" in text
     assert "[cast modes=[2] targets=['opp_fallen']]" in text
     assert "opp_relic moves battlefield -> graveyard (by card/DESTROY)" in text
+
+
+def test_the_probe_plays_an_emblem_without_putting_it_in_a_hand() -> None:
+    # 2026-11-05: the "from your hand, the card enters" stimulus raised KeyError 'unknown card'
+    # for every emblem (an emblem is never a card in a hand, CR 114.1), so `cardtool write`
+    # refused every emblem record. Basri Ket's emblem compiles in M21.
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, r in sup.pool.results.items() if r.card.name == "Basri Ket Emblem")
+    rep = probe.Probe(sup, "M21", oid).report()
+    assert not rep.errors
+    assert "from your hand" not in rep.text()

@@ -149,25 +149,6 @@ def test_packed_collation_equals_collate(table) -> None:
     assert np.array_equal(clone.cards_f, packed.cards_f) and len(clone) == len(packed)
 
 
-class _CpuSlot:
-    """Synchronous inference for tests: the worker slot's request protocol on a CPU net."""
-
-    def __init__(self, net: torch.nn.Module) -> None:
-        self.net = net
-
-    @torch.no_grad()
-    def infer(self, req: tuple):
-        feats, want = req[5], (req[6] if len(req) > 6 else 0)
-        logits, value = self.net(M.collate([feats], "cpu"))
-        probs = torch.softmax(logits[0, : feats["opts_i"].shape[0]], -1)
-        a = int(probs.argmax())
-        if want == 0:
-            return a
-        if want == 1:
-            return a, float(value[0])
-        return a, float(value[0]), probs.tolist()
-
-
 class _BlockPlanner:
     """The heuristic, except that it plans its blocks with the searcher (rig.before_blocks)."""
 
@@ -202,7 +183,7 @@ def test_block_search_plans_at_the_pre_blocks_boundary(table) -> None:
     net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
     planned = answered = 0
     for seed in (21, 22, 23, 24):
-        searcher = Searcher(_CpuSlot(net), 0, "learner", table, k=2, d=1, skip_p=1.01, seed=seed)
+        searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, k=2, d=1, skip_p=1.01, seed=seed)
         planner = _BlockPlanner(searcher)
         res = play_game(seed, [planner, HeuristicAgent()], deck_mode="coherent")
         assert res["crash"] is None
@@ -327,3 +308,72 @@ def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
     assert net.ir_emb.weight.shape[0] == len(table.ir_vocab) + 1
     assert torch.equal(net.ir_emb.weight[-1], torch.zeros(32))
     assert net.ir_table.shape[0] == len(table.oracle_ids) and net.config["n_ir"] == len(grown.ir_vocab)
+
+
+class _CounterProbe:
+    """Heuristic seat that, at its first act ask with a creature of its own on the battlefield,
+    puts the engine's own counter kinds on its creatures and records the encoding."""
+
+    name = "counter-probe"
+
+    def __init__(self, table: FT.CardTable) -> None:
+        self.inner = HeuristicAgent()
+        self.table = table
+        self.cards_f = None
+
+    def decide(self, ask, obs) -> int:
+        ex = obs.executor
+        if ask.kind == "act" and self.cards_f is None:
+            me = ex.world.player_order[ask.seat]
+            mine = [h for h in ex.world.players[me].zone("battlefield").entries
+                    if "Creature" in ex.world.cards[h].identity.type_line]
+            if mine:
+                for h in mine:
+                    ex.world.cards[h].counters.update({"PLUS_1_PLUS_1": 2, "MINUS_1_MINUS_1": 1})
+                self.cards_f = FT.encode(ex, ask.seat, ask, self.table, obs.ctx)["cards_f"]
+                for h in mine:
+                    ex.world.cards[h].counters.clear()
+        return self.inner.decide(ask, obs)
+
+
+def test_counters_reach_the_encoding(table) -> None:
+    """The engine keys counters by CounterKind value (PLUS_1_PLUS_1); the encoder read "+1/+1"
+    after the cards/integration merge, so both counter features were always zero."""
+    probe = _CounterProbe(table)
+    play_game(7, [probe, HeuristicAgent()], deck_mode="coherent")
+    assert probe.cards_f is not None
+    f = probe.cards_f.astype(np.float32)
+    assert np.isclose(f[:, FT.F_P1].max(), 2 / 3, atol=1e-3)
+    assert np.isclose(f[:, FT.F_M1].max(), 1 / 3, atol=1e-3)
+
+
+def test_every_engine_ask_kind_has_its_own_embedding_row() -> None:
+    """A kind missing from FT.ASK_KINDS is encoded as "other" (legend, enchant and x were)."""
+    from MTG_bot.bench.protocol import SITE_KINDS
+    assert {k for k in SITE_KINDS if k not in FT.ASK_INDEX} == set()
+
+
+def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    path = tmp_path / "old.pt"
+    M.save(str(path), net, table)
+    ck = torch.load(path, weights_only=False)
+    n_old = FT.ASK_INDEX["other"] + 1
+    ck["state"]["ask_emb.weight"] = ck["state"]["ask_emb.weight"][:n_old].clone()
+    torch.save(ck, path)
+    grown, _, _ = M.load(str(path))
+    w = grown.ask_emb.weight.data
+    assert w.shape[0] == len(FT.ASK_KINDS)
+    assert torch.equal(w[:n_old], net.ask_emb.weight.data[:n_old])
+    for k in FT.ASK_KINDS[n_old:]:
+        assert torch.equal(w[FT.ASK_INDEX[k]], w[FT.ASK_INDEX["other"]])
+
+
+def test_gae_bootstraps_a_truncated_game() -> None:
+    from tools.selfplay.learner import gae
+    vals = [0.2, -0.4, -0.8]
+    end = gae(vals, -1.0, 1.0, 0.95)
+    cut = gae(vals, vals[-1], 1.0, 0.95)
+    assert np.isclose(end[-1], -0.2) and cut[-1] == 0.0
+    # a cut-off game is never worth more than playing the position out would be expected to be
+    assert np.allclose(cut, [(-0.6) + 0.95 * (-0.4), -0.4, 0.0])

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "mu_yanling_plus_two_outlives_mu",
+ "world": {"life": 20, "seed": 75},
+ "cards": [
+  {"key": "mu", "real": "Mu Yanling, Sky Dancer", "zone": "battlefield", "controller": 0},
+  {"key": "drake", "name": "Drake", "power": "3", "toughness": "3", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "mu", "set": 2},
+  {"op": "activate", "key": "mu", "idx": 0, "seat": 0, "targets": ["drake"]},
+  {"op": "advance_turn"},
+  {"op": "move", "key": "mu", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"mu": "graveyard"},
+  "battlefield_pt": {"Drake": [1, 3]},
+  "battlefield_keywords": {"Drake": []}
+ },
+ "notes": "Printed: '[+2]: Until your next turn, up to one target creature gets -2/-0 and loses flying.' A resolved ability's effect lasts its stated duration whatever happens to its source (CR 611.2a): Mu Yanling leaving the battlefield during the opponent's turn ends neither the -2/-0 nor the loss of flying."
+}

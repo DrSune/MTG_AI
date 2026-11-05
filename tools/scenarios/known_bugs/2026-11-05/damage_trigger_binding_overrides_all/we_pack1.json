@@ -1,0 +1,85 @@
+{
+ "set": "M20",
+ "name": "wildfire_shock_opponent_pumps_team",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "we",
+   "real": "Wildfire Elemental",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "obig",
+   "name": "Opp Big",
+   "type": "Creature \u2014 Beast",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "y1",
+   "name": "You Lib",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 18
+  },
+  "power": {
+   "we": 4,
+   "bear": 3,
+   "obear": 2
+  },
+  "toughness": {
+   "we": 3,
+   "bear": 2
+  }
+ }
+}

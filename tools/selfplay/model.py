@@ -265,6 +265,27 @@ def collate_packed(p: Packed, idx: np.ndarray, device: torch.device | str) -> di
             for k, v in out.items()}
 
 
+class LocalSlot:
+    """In-process stand-in for an actor slot: answers inference requests in the worker protocol
+    (actor.py) synchronously and greedily, each spec's network on its own device and dtype."""
+
+    def __init__(self, nets: dict[str, nn.Module]) -> None:
+        self.nets = nets
+
+    @torch.no_grad()
+    def infer(self, req: tuple) -> Any:
+        spec, feats = req[2], req[5]
+        want = req[6] if len(req) > 6 else 0
+        net = self.nets[spec]
+        p = next(net.parameters())
+        b = {k: (v.to(p.dtype) if v.is_floating_point() else v)
+             for k, v in collate([feats], p.device).items()}
+        logits, value = net(b)
+        probs = torch.softmax(logits[0, : feats["opts_i"].shape[0]].float(), -1)
+        a, v = int(probs.argmax()), float(value.float()[0])
+        return a if want == 0 else (a, v) if want == 1 else (a, v, probs.tolist())
+
+
 def build(table: FT.CardTable, **kw: Any) -> PolicyValueNet:
     return PolicyValueNet(len(table.oracle_ids), len(table.ir_vocab), table.ir_array(), **kw)
 
@@ -280,5 +301,10 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
     cfg = dict(ck["config"])
     n_cards, n_ir = cfg.pop("n_cards"), cfg.pop("n_ir")
     model = PolicyValueNet(n_cards, n_ir, table.ir_array(), **cfg)
-    model.load_state_dict(ck["state"])
+    state = ck["state"]
+    w = state["ask_emb.weight"]
+    if w.shape[0] < len(FT.ASK_KINDS):  # kinds appended since this checkpoint start as "other"
+        new = w[FT.ASK_INDEX["other"]].expand(len(FT.ASK_KINDS) - w.shape[0], -1)
+        state["ask_emb.weight"] = torch.cat([w, new])
+    model.load_state_dict(state)
     return model.to(device), table, ck.get("extra", {})

@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "notes": "CR 400.7 / reminder text: the effect lasts only as long as that land remains on the battlefield. Animate the Forest, bounce it to hand, replay it next turn: it is a plain land again, so it is never asked to attack and deals no damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wk", "real": "Wakeroot Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 5}},
+ "steps": [
+  {"op": "activate", "key": "wk", "idx": 0, "seat": 0, "targets": ["land"]},
+  {"op": "move", "key": "land", "to": "hand"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "land"},
+  {"op": "combat", "seat": 0, "attack": {"land": true}}
+ ],
+ "expect": {"zone": {"land": "battlefield"}, "not_asked": ["land"], "life": {"1": 20}}
+}

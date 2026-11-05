@@ -48,6 +48,12 @@ class SelfplayRouter(SeatRouter):
             self._attackers = set()
             self._blocks = {}
 
+    def _declared_attackers(self) -> frozenset:
+        """This turn's attackers: the answers so far while attacks are being declared, plus the
+        engine's record once the declaration is complete, which also holds the attackers the
+        engine picks itself (a creature that must attack is never asked)."""
+        return frozenset(self._attackers).union(self.game.executor.attackers)
+
     def _context(self, what: str, seat: Handle, i: int) -> str:
         self._revealed = None
         if ask_kind(what) == "scry":
@@ -61,7 +67,7 @@ class SelfplayRouter(SeatRouter):
         self._sync_turn()
         token = super().answer(vocab, what)
         kind = ask_kind(what)
-        if kind == "attack" and token == "ATTACK":
+        if kind == "attack" and token != "DECLINE":  # ATTACK (the player) or a planeswalker
             h = _handle(":".join(what.split(":")[1:3]))
             if h is not None:
                 self._attackers.add(h)
@@ -89,7 +95,7 @@ class SelfplayRouter(SeatRouter):
         plan = getattr(self.drivers[defender], "plan_blocks", None)
         if plan is not None and game.over_reason() is None:
             self._sync_turn()
-            plan(game, defender, frozenset(self._attackers))
+            plan(game, defender, self._declared_attackers())
 
     def _decide(self, driver: Any, ask: Any) -> int:
         self._sync_turn()
@@ -104,7 +110,7 @@ class SelfplayRouter(SeatRouter):
             picked = int(tail) if tail.isdigit() else 0
         ctx = AskContext(
             revealed=self._revealed if ask.kind == "scry" else None,
-            declared_attackers=frozenset(self._attackers),
+            declared_attackers=self._declared_attackers(),
             declared_blocks=dict(self._blocks),
             picked=picked,
         )
