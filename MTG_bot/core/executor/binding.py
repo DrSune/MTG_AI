@@ -1835,27 +1835,18 @@ class TriggerBinder:
                     refs |= filter_bound_player_refs(value)
         return refs
 
-    @staticmethod
-    def _trigger_designates_target(node: _AnyTrigger) -> bool:
+    @classmethod
+    def _trigger_designates_target(cls, node: _AnyTrigger) -> bool:
         """r22a: does this trigger's effect carry a real TARGET designation
-        slot — a TARGET-mode Selector with no referent? Mirrors the
-        Selector collector in :meth:`_designate` (walk enters Optional-
-        /SeqEffect wrappers, so Goblin Arsonist's may-wrapped damage is
-        seen). A node that only reads the TARGET_PLAYER anaphora (Massacre
-        Wurm's "that player") answers False and keeps the 16a/18b dies
-        pre-bind in :meth:`_fire`; a printed "…to ANY target" (Pitchburn
-        Devils) answers True and routes to the designation ask."""
-        for inner in walk(node.effect):
-            if not isinstance(inner, Atom):
-                continue
-            for _role, value in inner.args.pairs:
-                if (
-                    isinstance(value, Selector)
-                    and value.mode is SelectorMode.TARGET
-                    and value.referent is None
-                ):
-                    return True
-        return False
+        slot — a TARGET-mode Selector with no referent (the collector of
+        :meth:`_designation_slots`; walk enters Optional-/SeqEffect wrappers,
+        so Goblin Arsonist's may-wrapped damage is seen)? A node that only
+        reads the TARGET_PLAYER anaphora (Massacre Wurm's "that player")
+        answers False and keeps the 16a/18b dies pre-bind in :meth:`_fire`;
+        a printed "…to ANY target" (Pitchburn Devils) answers True and
+        routes to the designation ask."""
+        selectors, _reads_player, _opponent_only = cls._designation_slots(node)
+        return bool(selectors)
 
     @classmethod
     def _designation_slots(cls, node: _AnyTrigger) -> tuple[list[Selector], bool, bool]:
