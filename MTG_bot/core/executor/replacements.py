@@ -1088,6 +1088,26 @@ class ReplacementRegistry:
             if rec.tag == "Eot" and rec.status != "expired"
         )
 
+    def forget_object(self, handle: Handle) -> int:
+        """CR 400.7: ``handle`` entered the battlefield as a new object. A prevention a resolved
+        spell or ability locked onto the old object ("those creatures don't untap", "can't be
+        blocked this turn") no longer covers it, and a replacement scoped to the old object
+        ("if that creature would die this turn") no longer finds it. A prevention left with no
+        designated object expires: an empty ``targets`` means a static carrier, which reads its
+        filter instead. Returns the number of records touched."""
+        touched = 0
+        for rec in self.preventions:
+            if rec.status != "expired" and handle in rec.targets:
+                rec.targets = tuple(t for t in rec.targets if t != handle)
+                if not rec.targets:
+                    self._expire(rec)
+                touched += 1
+        for repl in self.replacements:
+            if repl.status != "expired" and handle in repl.designated:
+                repl.designated = tuple(t for t in repl.designated if t != handle)
+                touched += 1
+        return touched
+
     def expire_leaves(self, anchor: Handle) -> int:
         return sum(
             self._expire(rec)

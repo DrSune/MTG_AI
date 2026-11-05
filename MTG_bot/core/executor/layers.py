@@ -110,6 +110,9 @@ _LAYER_PAYLOAD_VERBS = _PT_VERBS | {
     Verb.LOSE_ABILITY,
     Verb.GRANT_TYPE,
 }
+# The record kinds a resolving GRANT_ABILITY / LOSE_ABILITY / GRANT_TYPE atom registers, over the
+# objects it designated (fixed ``targets``, never a re-read selector).
+_DESIGNATED_KINDS = frozenset({"grant", "lose", "type_grant"})
 
 
 def _is_universal(filter_: Filter) -> bool:
@@ -391,6 +394,29 @@ class LayerRegistry:
         touched = 0
         for layer in self._resolved:
             if layer.status != "expired" and handle in layer.targets:
+                layer.targets = tuple(t for t in layer.targets if t != handle)
+                if not layer.targets:
+                    self._expire_layer(layer)
+                touched += 1
+        return touched
+
+    def forget_object(self, handle: Handle) -> int:
+        """CR 400.7: ``handle`` entered the battlefield as a new object. No ability grant, loss
+        or type grant a resolved spell or ability made applies to it: it drops out of those
+        records' designated targets (a record left with none expires). A static ability applies
+        to it afresh: the static's link to the old object's ledger entry is dropped (the entry
+        itself is expired by ``DurationLedger.forget``), so the next recompute gives the new
+        object an entry of its own. Called at the entry, not the departure, so the old object's
+        last known characteristics stay readable while it is off the battlefield. Returns the
+        number of designated records touched."""
+        touched = 0
+        for layer in self.records:
+            layer.ledger_ids.pop(handle, None)
+            if (
+                layer.kind in _DESIGNATED_KINDS
+                and layer.status != "expired"
+                and handle in layer.targets
+            ):
                 layer.targets = tuple(t for t in layer.targets if t != handle)
                 if not layer.targets:
                     self._expire_layer(layer)

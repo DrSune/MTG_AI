@@ -1282,6 +1282,15 @@ class Executor:
                 self.departed_lki[event.subject] = (power, toughness, dict(state.counters))
             elif event.zone_move[1] == ZONE_BATTLEFIELD:
                 self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
+                if from_state != ZONE_BATTLEFIELD:
+                    # CR 400.7: no effect a resolved spell or ability applied to the old
+                    # object (a pump, a granted ability or type, a "doesn't untap") applies
+                    # to the new one. Handles are stable across zones, so the records keyed
+                    # on this one are cut here; until the entry they answer for the old
+                    # object as it last existed.
+                    self.ledger.forget(event.subject)
+                    self.layers.forget_object(event.subject)
+                    self.replacements.forget_object(event.subject)
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
                 # V31b, CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to
