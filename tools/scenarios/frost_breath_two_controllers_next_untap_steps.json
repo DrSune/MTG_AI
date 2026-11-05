@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "B-113 repro (FAILS today). Printed: 'Tap up to two target creatures. Those creatures don't untap during their controller's next untap step.' Seat 1 casts Frost Breath on seat 0's turn at one creature of each seat. Seat 1's untap step comes first and Bear One stays tapped; the prevention record then expires, so Bear Zero untaps in seat 0's next untap step, which is its controller's next untap step after Frost Breath and must keep it tapped. Expected: both tapped.",
+ "notes": "B-113 regression (fixed on fix/w2-effects: replacements.expire_at_step consumes an owner-scoped untap prevention per target). Printed: 'Tap up to two target creatures. Those creatures don't untap during their controller's next untap step.' Seat 1 casts Frost Breath on seat 0's turn at one creature of each seat. Seat 1's untap step comes first and Bear One stays tapped; the record used to expire there, so Bear Zero untapped in seat 0's next untap step, which is its controller's next untap step after Frost Breath and must keep it tapped. Expected: both tapped.",
  "cards": [
   {
    "key": "bear0",

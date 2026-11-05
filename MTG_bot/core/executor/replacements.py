@@ -1138,7 +1138,14 @@ class ReplacementRegistry:
         """The UNTAP tick's expiry half: UNTIL_NEXT_STEP(UNTAP) prevents are
         consumed DURING the tick and expire right after it — the Frost
         Breath freeze therefore survives exactly one untap step and the
-        creature untaps on the following one (pinned by test)."""
+        creature untaps on the following one (pinned by test).
+
+        B-113: an owner-scoped record ("those creatures don't untap during
+        their controller's next untap step") is consumed per object: this
+        tick ends it only for the targets the active player controls, and
+        the record expires once no target is left. Frost Breath on one
+        creature of each player used to expire whole at the first player's
+        untap step, so the other player's creature untapped in its own."""
         expired = 0
         for rec in self.preventions:
             dur = rec.duration
@@ -1147,11 +1154,15 @@ class ReplacementRegistry:
             if rec.status == "expired":
                 continue
             if dur.owner_scoped:
-                if any(
-                    t.namespace == "card" and controller_of(t) == active
+                done = {
+                    t
                     for t in rec.targets
-                ):
-                    expired += self._expire(rec)
+                    if t.namespace == "card" and controller_of(t) == active
+                }
+                if done:
+                    rec.targets = tuple(t for t in rec.targets if t not in done)
+                    if not any(t.namespace == "card" for t in rec.targets):
+                        expired += self._expire(rec)
             else:
                 expired += self._expire(rec)
         return expired

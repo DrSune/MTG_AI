@@ -1361,6 +1361,10 @@ These are forks, not tasks. See the report that accompanied this audit.
   `untap:frost-ignored`; a uniform seat targeting its own creature). Weaker than printed for that
   creature. Each target needs its own controller's next untap step. Repro (fails today):
   `tools/scenarios/known_bugs/frost_breath_two_controllers_next_untap_steps.json`.
+  **[FIXED on `fix/w2-effects` 2026-11-05: `ReplacementRegistry.expire_at_step` consumes an
+  owner-scoped record per target (the active player's targets drop out, the record expires when
+  none is left). The repro is now the regression pack
+  `tools/scenarios/frost_breath_two_controllers_next_untap_steps.json`.]**
 - **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
   engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
   - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at
