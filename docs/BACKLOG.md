@@ -574,6 +574,12 @@ These are forks, not tasks. See the report that accompanied this audit.
   - Related: D6 (`tools/audit/detectors.py`) found a live end-of-turn grant layer bound to a card
     already in the graveyard (FDN soak, 300 games). Check that a card returning to the battlefield
     in the same turn is a new object (CR 400.7) and does not keep it.
+  - **[FIXED on `fix/w2-effects` 2026-11-05 (c958f64): runtime GRANT/LOSE/GRANT_TYPE layers and
+    PREVENT_EFFECT records are `resolved`, so `detach_source` and the prevention liveness gates
+    leave them alone (CR 611.2a). The CR 400.7 half (23db0f9, 8574444): an object that leaves
+    the battlefield drops out of those records as it leaves (B-59's `forget_departed`); its
+    P/T ledger entries are cut when it returns, so effects that read a departed object's power
+    still see it.]**
 - **B-51 [2026-10-29] `Verb.CHOOSE` always offers choosing nothing.**
   - `query.verb_choose_options` (`core/executor/query.py`) appends the empty pick `()` even when a
     legal candidate exists.
