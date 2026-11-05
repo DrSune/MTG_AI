@@ -68,6 +68,7 @@ from MTG_bot.core.identity import CardIdentity
 from tools.run_scenarios import ScenarioRunner
 
 UNIV = FAnd(())
+BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
 
 
 def runner(cards, mana=None, life=20):
@@ -135,6 +136,26 @@ class TestCR4007NewObject(unittest.TestCase):
         r.run_step({"op": "play", "key": "land"})
         self.assertEqual(r.ex.layers.type_overlay(land), ())
 
+    def test_a_granted_type_ends_as_the_permanent_leaves(self):
+        # Riddleform: "... you may have Riddleform become a 3/3 Sphinx creature with flying in
+        # addition to its other types until end of turn." Dead in combat, it is an enchantment
+        # card in the graveyard, not a creature card a "return target creature card" could take.
+        r = runner([{"key": "riddle", "name": "Riddle", "type": "Enchantment",
+                     "zone": "battlefield", "controller": 0}])
+        riddle = r.handles["riddle"]
+        r.ex.execute(
+            Atom(Verb.GRANT_TYPE, AtomArgs((
+                ("duration", DurationEot()),
+                ("target", Selector(QConst(1), SelectorMode.CHOOSE, FAtom(FAtomPred.IS_SOURCE),
+                                    zones=(BF_ANY,))),
+                ("types", ("Creature", "Sphinx")),
+            ))),
+            source=riddle, controller=r.p0,
+        )
+        self.assertEqual(r.ex.layers.type_overlay(riddle), ("Creature", "Sphinx"))
+        r.run_step({"op": "move", "key": "riddle", "to": "graveyard"})
+        self.assertEqual(r.ex.layers.type_overlay(riddle), ())
+
     def test_freeze_does_not_follow_the_creature_back(self):
         # Frost Breath on the opponent's Bear, which is then bounced and replayed: the new Bear
         # untaps as usual in its controller's next untap step.
@@ -182,8 +203,6 @@ class TestCR4007NewObject(unittest.TestCase):
         self.assertEqual(pt(r, "bear"), (6, 6))
 
 
-
-BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
 
 
 class TestCR70121SacrificeIsTheControllersChoice(unittest.TestCase):
@@ -412,6 +431,20 @@ class TestCR6112aResolvedEffectsOutliveTheirSource(unittest.TestCase):
         self.assertTrue(r.ex.layers.keyword_of(r.handles["bear"], "FLYING"))
         r.run_step({"op": "end_turn"})
         self.assertFalse(r.ex.layers.keyword_of(r.handles["bear"], "FLYING"))  # until end of turn
+
+    def test_a_grant_stays_when_its_token_source_ceases_to_exist(self):
+        # A token's ability granted flying; the token died and ceased to exist (CR 704.5d).
+        r = runner([{"key": "tok", "name": "Spirit", "type": "Creature — Spirit", "power": "1",
+                     "toughness": "1", "token": True, "zone": "battlefield", "controller": 0},
+                    bear("bear", 0)])
+        tok, bear_h = r.handles["tok"], r.handles["bear"]
+        r.ex.execute(Atom(Verb.GRANT_ABILITY, AtomArgs((
+            ("ability", KeywordAbility(Keyword.FLYING)), ("duration", DurationEot()),
+            ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),
+        ))), source=tok, controller=r.p0, bindings={"target": [bear_h]})
+        r.run_step({"op": "move", "key": "tok", "to": "graveyard"})
+        self.assertNotIn(tok, r.world.cards)
+        self.assertTrue(r.ex.layers.keyword_of(bear_h, "FLYING"))
 
     def test_cant_be_blocked_stays_when_subira_leaves(self):
         r = runner([{"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield",

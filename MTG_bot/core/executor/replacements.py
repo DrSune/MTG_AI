@@ -1127,11 +1127,11 @@ class ReplacementRegistry:
             if rec.tag == "Eot" and rec.status != "expired"
         )
 
-    def forget_object(self, handle: Handle) -> int:
-        """CR 400.7: ``handle`` entered the battlefield as a new object. A prevention a resolved
-        spell or ability locked onto the old object ("those creatures don't untap", "can't be
-        blocked this turn") no longer covers it, and a replacement scoped to the old object
-        ("if that creature would die this turn") no longer finds it. A prevention left with no
+    def forget_departed(self, handle: Handle) -> int:
+        """CR 400.7: ``handle`` left the battlefield; if it returns it is a new object. A
+        prevention a resolved spell or ability locked onto it ("those creatures don't untap",
+        "can't be blocked this turn") no longer covers it, and a replacement scoped to it ("if
+        that creature would die this turn") no longer finds it. A prevention left with no
         designated object expires: an empty ``targets`` means a static carrier, which reads its
         filter instead. Returns the number of records touched."""
         touched = 0
@@ -1150,7 +1150,7 @@ class ReplacementRegistry:
                 and _filter_names_the_source(rec.condition)
             ):
                 # "Ghostly Pilferer can't be blocked this turn": a resolved effect about its
-                # own source (CR 611.2a lets it outlive the source) ends with that object.
+                # own source (CR 611.2a lets other effects outlive the source) ends with it.
                 self._expire(rec)
                 touched += 1
         for repl in self.replacements:

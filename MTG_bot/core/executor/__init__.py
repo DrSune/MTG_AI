@@ -1297,14 +1297,14 @@ class Executor:
             elif event.zone_move[1] == ZONE_BATTLEFIELD:
                 self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
                 if from_state != ZONE_BATTLEFIELD:
-                    # CR 400.7: no effect a resolved spell or ability applied to the old
-                    # object (a pump, a granted ability or type, a "doesn't untap") applies
-                    # to the new one. Handles are stable across zones, so the records keyed
-                    # on this one are cut here; until the entry they answer for the old
-                    # object as it last existed.
+                    # CR 400.7: a P/T effect applied to the old object does not apply to
+                    # the new one. Handles are stable across zones, so its ledger entries
+                    # are cut here, at the entry: until then they answer for the object as
+                    # it last existed (Heartfire Immolator's "damage equal to its power"
+                    # after it was sacrificed). Grants and preventions end as it leaves
+                    # (forget_departed below).
                     self.ledger.forget(event.subject)
-                    self.layers.forget_object(event.subject)
-                    self.replacements.forget_object(event.subject)
+                    self.layers.forget_materialized(event.subject)
             if from_state != ZONE_BATTLEFIELD:
                 self.departed_controller.pop(event.subject, None)  # it moved on: a new object
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
@@ -1347,8 +1347,10 @@ class Executor:
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
             # B-59: the timed (resolved-layer) twin of the two discards
-            # above; a returning creature is a new object (CR 400.7).
+            # above; a returning creature is a new object (CR 400.7). The
+            # same for the resolved preventions and replacement designations.
             self.layers.forget_departed(anchor)
+            self.replacements.forget_departed(anchor)
             self.damage_policies.pop(anchor, None)
             # 16e: a departing permanent drops every control entry keyed on
             # it — as CREATURE (the stolen card itself) or as ANCHOR (the
