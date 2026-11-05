@@ -80,7 +80,7 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
     assert res["crash"] is None
     samples = recs[0].samples + recs[1].samples
     assert len(samples) > 20
-    for feats, idx, _wp in samples:
+    for feats, idx in samples:
         e = feats["cards_i"].shape[0]
         k = feats["opts_i"].shape[0]
         assert 2 <= k <= FT.MAX_OPTIONS and 0 <= idx < k
