@@ -32,7 +32,9 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
-from MTG_bot.core.executor.legality import mandated_attackers
+from MTG_bot.core.executor.legality import legal_attackers, mandated_attackers
+from MTG_bot.core.executor.query import legal_activations
+from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_HAND,
@@ -657,3 +659,84 @@ class TestEndOfCombat(CombatCase):
         self.assertNotIn(bird, self.world.cards)  # died at 0/0, ceased (704.5d)
         self.assertEqual(self.ex.attackers, [falconer])
         self.assertEqual(set(self.ex.attacked), {falconer})
+
+
+class TestSicknessAfterControlChange(CombatCase):
+    """CR 302.6: a creature attacks, or uses a {T} ability, only if its
+    controller has controlled it continuously since their most recent turn
+    began. Regression (2026-11-05 exploit audit, seed 7100010: Traitorous
+    Greed steals Crypt Lurker, Roaming Ghostlight bounces it, it is recast
+    and attacks the same turn)."""
+
+    def stock_libraries(self) -> None:
+        for seat in (self.p0, self.p1):
+            for i in range(6):
+                self.synth(f"Library {i}", 1, 1, seat, ZONE_LIBRARY)
+
+    def test_stolen_returned_bounced_and_recast_creature_is_sick(self):
+        # The return of control left a sickness marker for the old object;
+        # it must not excuse the new object's battlefield entry (CR 400.7).
+        victim = self.real("Chandra's Magmutt", self.p0)  # {T}: 1 damage
+        greed = self.real("Traitorous Greed", self.p1, ZONE_HAND)
+        ghost = self.real("Roaming Ghostlight", self.p1, ZONE_HAND)
+        self.stock_libraries()
+        self.begin()
+
+        def provider(vocab, what):
+            if str(victim) in vocab:
+                return str(victim)
+            for word in ("fire", "PASS", "DECLINE", "NONE", "skip"):
+                if word in vocab:
+                    return word
+            return vocab[0]
+
+        self.ex.decisions.provider = provider
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 2, p1 steals it until end of turn
+        self.world.players[self.p1].mana_pool.update({"R": 4})
+        cast(self.ex, self.p1, greed, targets=(victim,))
+        self.assertEqual(self.ex.controller_of(victim), self.p1)
+        self.ex.end_turn()  # control returns to p0
+        self.ex.advance_turn()  # turn 3, p0
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 4, p1 bounces it
+        self.world.players[self.p1].mana_pool.update({"U": 6})
+        cast(self.ex, self.p1, ghost)
+        self.assertEqual(self.world.zone_of(victim).kind, ZONE_HAND)
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 5, p0 recasts it
+        self.world.players[self.p0].mana_pool.update({"R": 2})
+        cast(self.ex, self.p0, victim)
+        self.assertEqual(self.world.zone_of(victim).kind, ZONE_BATTLEFIELD)
+        self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
+        tap_rows = [
+            o for o in legal_activations(self.world, self.ex, self.p0) if o.source == victim
+        ]
+        self.assertEqual(tap_rows, [])
+
+    def test_control_regained_this_turn_stays_sick_after_another_change(self):
+        # p0 gets its creature back on its own turn: a fresh control period,
+        # so it cannot attack this turn, and a later control change of an
+        # unrelated creature must not erase that.
+        victim = self.synth("Victim", 2, 2, self.p0)
+        anchor = self.synth("Anchor", 0, 1, self.p1)
+        other = self.synth("Other", 1, 1, self.p1)
+        self.stock_libraries()
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 2, p1 takes it while the anchor stays
+        self.assertTrue(self.ex.gain_control(victim, self.p1, "Anchor", anchor))
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 3, p0 destroys the anchor: control returns
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=victim,
+            controller=self.p0,
+            bindings={"target": anchor},
+        )
+        self.assertEqual(self.ex.controller_of(victim), self.p0)
+        self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
+        self.assertTrue(self.ex.gain_control(other, self.p0, "Eot"))
+        self.assertNotIn(victim, legal_attackers(self.ex, self.p0))

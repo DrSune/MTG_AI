@@ -3241,10 +3241,15 @@ class Executor:
         combat — attackers, attacked record, and every block edge. The
         sickness clock takes the EARLIEST live turn under the winning
         controller (two stacked entries for the same controller never
-        re-inflict summoning sickness)."""
+        re-inflict summoning sickness); a creature with no live entry keeps
+        the turn of its last change (CR 302.6: the owner who got it back is
+        in a fresh period until their next turn begins)."""
         prev = self.control_overlay
         overlay: dict[Handle, Handle] = {}
-        gained: dict[Handle, int] = {}
+        gained: dict[Handle, int] = dict(self.control_gained_turn)
+        live = {entry[1] for entry in self.control_entries}
+        for creature in live:
+            gained.pop(creature, None)
         for _seq, creature, controller, _tag, _anchor, turn in self.control_entries:
             if overlay.get(creature) == controller:
                 gained[creature] = min(gained[creature], turn)

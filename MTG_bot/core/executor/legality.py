@@ -2343,6 +2343,9 @@ def _controlled_since_turn_start(
     a CONTROL change is not a zone change — the overlay's gained-turn
     marker is the second half of this oracle (CR 302.6 is control-based,
     not ownership-based), and a returned owner is a fresh period too.
+    Both halves must hold: a marker left by an earlier control change does
+    not excuse a later battlefield entry (a stolen, returned, bounced and
+    recast creature is a new object, CR 400.7, and is sick).
 
     ``seat`` None or the active player anchors on the most recent UPKEEP
     marker (the attack lane: only the active player attacks). Any other
@@ -2363,8 +2366,9 @@ def _controlled_since_turn_start(
                 continue
             start = i
             break
-    if creature in executor.control_gained_turn:
-        return executor.control_gained_turn[creature] < world.turn - turns_since
+    gained = executor.control_gained_turn.get(creature)
+    if gained is not None and gained >= world.turn - turns_since:
+        return False  # control changed since that turn began
     for row in events[start + 1 :]:
         if (
             row.kind == KIND_ZONE_CHANGE
