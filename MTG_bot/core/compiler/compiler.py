@@ -925,12 +925,17 @@ def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
     this turn.", grammar round 8-C / round 14 history).
 
     The template compiles such a sentence into a free-cost ActivatedAbility
-    whose whole effect is ``OptionalEffect(Atom(CAST, cost=Cost()))`` — the
-    permission itself, not an action with consequences. It is EXEMPT from
+    whose whole effect is ``OptionalEffect(Atom(CAST))`` — the permission
+    itself, not an action with consequences. It is EXEMPT from
     activation-tail ownership (r14e adjudication): a rules sentence printed
     under the loyalty bullet it follows stays owned by that bullet, so the
     tail matcher must see through the permission row instead of mis-capturing
     the loyalty tail ("Add six {R}.") as the permission's own.
+
+    2026-11-05: the CAST pays the card's costs (no ``cost`` role) or waives
+    them (the empty Cost, "without paying its mana cost"); either is the same
+    row. Chandra, Heart of Fire's two permissions used to carry a waiver the
+    card does not print, and this predicate read only that form.
     """
     if not isinstance(slot, AbilityOutcome) or not isinstance(
         slot.ability, ActivatedAbility
@@ -943,7 +948,7 @@ def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
         isinstance(ab.effect, OptionalEffect)
         and isinstance(ab.effect.inner, Atom)
         and ab.effect.inner.verb is Verb.CAST
-        and ab.effect.inner.args.get("cost") == Cost(parts=())
+        and ab.effect.inner.args.get("cost") in (None, Cost(parts=()))
     )
 
 

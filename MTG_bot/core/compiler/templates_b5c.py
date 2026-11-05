@@ -2532,7 +2532,10 @@ def _build_play_cards_exiled_this_way(m: re.Match[str]) -> SentenceOutcome:
 
     Lossy (C11 class, verbatim): "play" covers lands too, CAST is the
     only from-zone permission verb (R9 item: PLAY-from-zone, or a land
-    role on CAST); "Until end of turn" — no CAST duration role.
+    role on CAST); "Until end of turn" — no CAST duration role. The cards
+    are played for their costs: no ``cost`` role (2026-11-05: it carried
+    the empty Cost, a "without paying its mana cost" waiver, CR 118.9, that
+    the card does not print).
     C16: open — whether to play, which exiled cards, how many."""
     atom = Atom(
         verb=Verb.CAST,
@@ -2547,7 +2550,6 @@ def _build_play_cards_exiled_this_way(m: re.Match[str]) -> SentenceOutcome:
                         zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
                     ),
                 ),
-                ("cost", Cost(parts=())),
             )
         ),
     )
