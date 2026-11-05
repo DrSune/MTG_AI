@@ -39,19 +39,29 @@ The MTG rules themselves are not heuristics — implement those exactly.
 |---|---|
 | `NORTH_STAR.md` | Charter. Read first. |
 | `docs/` | Design docs, open-problem write-ups, backlog, hardware notes |
-| `docs/ARCHITECTURE.md` | How the system actually fits together today |
 | `docs/DECISIONS.md` | Settled calls, and the register of questions needing deeper reasoning |
 | `docs/TRAINING_REVIEW_PROTOCOL.md` | **What to do before, during and after every training run** |
 | `docs/METRICS.md` | The metric catalogue. Check §17 before adding any metric |
 | `docs/COST_MODEL.md` | Why a parameter's cost depends on where you put it |
 | `docs/BACKLOG.md` | Parked ideas, with the reason they are parked |
+| `docs/PLAN_CARD_ONBOARDING.md`, `docs/MAPPER_GUIDE.md` | How a card gets a record, and the gates it passes |
 | `MTG_bot/core/` | **The rules engine**: compiler (oracle text to ability tree), executor, state |
 | `MTG_bot/bench/` | Benchmark core shared by the bot and LLM seats: per-seat view, agent protocol, duplicate duels, stats, rules track ([`docs/DESIGN_BENCHMARK.md`](docs/DESIGN_BENCHMARK.md)) |
-| `tools/training/`, `tools/eval/`, `tools/search/` | The live model (`PointerBC`), its training, the eval rig, search |
-| `MTG_bot/rule_engine/`, `MTG_bot/strategic_brain/` | **Legacy**, dead since mid-September 2026. Do not build on them. |
-| `MTG_bot/scenarios/` | Curriculum / puzzle scenarios |
-| `MTG_bot/visualizer/` | Spectator tooling |
-| `attic/` | Dead legacy code, kept for reference only. Do not extend. |
+| `MTG_bot/data/` | Set files (MTGJSON) and one record per mapped card (`data/cards/<SET>/`) |
+| `tools/selfplay/` | **The network that trains**: self-play PPO learner, model, heuristic opponent, decision-time search ([`tools/selfplay/README.md`](tools/selfplay/README.md)) |
+| `tools/cards/` | Card onboarding: mapping tool, gates, soak |
+| `tools/scenarios/`, `tools/run_scenarios.py` | The scenario packs (the executable rules-conformance suite) and their runner |
+| `tools/search/fork.py` | Clones a live game for the self-play search |
+| `tools/audit/` | Anomaly detectors (the card soak runs them), set intake (`new_set.py`), the ontology checker behind the red-first battery |
+| `tools/check.sh`, `tools/save.sh` | The pre-push gate; commit and push with the large-file guard |
+| `tools/gen_buckets.py` | Writes `/tmp/opencode/phase1_buckets/`, which the core template tests read. Rerun it after a reboot |
+| `KNOWLEDGE/`, `reports/` | The dated knowledge tree, and the evidence it cites |
+| `MTG_bot/docs/`, other `MTG_bot/*.md` and `*.txt`, top-level `ideas.md`, `notes.txt` and the other loose notes | Pre-rebuild notes about deleted code, kept as owner-idea sources ([`docs/OWNER_IDEAS.md`](docs/OWNER_IDEAS.md)). Not instructions |
+
+Deleted on 2026-11-05 and reachable with `git show dbd6e9d:<path>`: the pre-rebuild engine and
+model (`MTG_bot/rule_engine/`, `MTG_bot/strategic_brain/`), `attic/`, and the `PointerBC` stack the
+self-play stack replaced (`tools/training/`, `tools/eval/`, the rest of `tools/search/`). Unmerged
+work on that stack lives on the branches `rl/rl-v2-offline-core` and `era/dryrun-2026-11-03`.
 
 ## Environment facts that will bite you
 
@@ -64,10 +74,10 @@ training all run here. Measured bring-up detail in [`reports/SPARK_BRINGUP.md`](
   223.7 GB/s**, not the 273 GB/s spec figure.
 - **`python` does not exist here, only `python3`.** Inside the repo always use `.venv/bin/python`.
 - **A forward pass passing does not mean training works.** torch 2.14 routes some backward ops
-  through Triton, which JIT-compiles with `gcc` against CPython headers. `python3.12-dev` is not
-  installed, so the first gradient raises `Python.h: No such file or directory`. Until someone runs
-  `sudo apt install python3.12-dev`, export `TORCH_DISABLE_NATIVE_JIT=1` for anything that computes
-  a gradient. Prefer the NGC PyTorch container for real training runs; it ships the headers.
+  through Triton, which JIT-compiles with `gcc` against CPython headers (`python3.12-dev`). The
+  headers are installed: a bf16 CUDA backward pass runs without `TORCH_DISABLE_NATIVE_JIT`
+  (checked 2026-11-05). Commands that still set it to 1 are harmless; if a box lacks the headers,
+  the first gradient raises `Python.h: No such file or directory` and the variable is the fix.
 - There is **also a Windows Intel Arc box** (`torch 2.11.0+xpu`) used for dev and the spectator app.
   It cannot run CUDA. So code that assumes `torch.cuda` still breaks there.
 - **Never use the `random` module directly.** Go through `MTG_bot/utils/rng.py`:
@@ -75,15 +85,10 @@ training all run here. Measured bring-up detail in [`reports/SPARK_BRINGUP.md`](
   Sharing a stream couples two concerns' draw counts, which is what pre-flight P11 forbids. Add a name
   to `STREAM_NAMES` rather than reusing one. Call `seed_all(master_seed)` once at run start and record
   the seed in the manifest.
-- Use `MTG_bot/utils/device.py` for device selection (CUDA → XPU → MPS → CPU). Never call
-  `torch.device("cuda")` directly. Two live violations:
-  `strategic_brain/student.py:34` and `strategic_brain/teacher.py:37` both write
-  `torch.device("cuda" if torch.cuda.is_available() else "cpu")`, which happens to be right here and
-  silently selects CPU instead of XPU on the Windows box.
 - Disk here is 3.7 TB (1.1 TB used on 2026-10-24, mostly outside this repo), so the old C:-drive
   pressure note does not apply. Still keep large caches and checkpoints behind a configurable path,
   because the Windows box is tight. **Never commit a checkpoint**: GitHub rejects files over 100 MB
-  and one such blob makes `main` unpushable. Pin it in `tools/training/CHECKPOINTS.sha256` instead.
+  and one such blob makes `main` unpushable. Pin it in `reports/LARGE_FILES.sha256` instead.
 
 ## Git: commit and push often, to main
 
@@ -130,22 +135,18 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B0** (2026-10-24, measured at commit `e208075`, `TORCH_DISABLE_NATIVE_JIT=1`):
-  **2 failed / 3427 passed / 40 deselected / 23 xfailed / 53 subtests passed**, about 30 s. This is
-  the only recorded baseline; other docs point here. It includes the benchmark core's 59 tests
-  (`MTG_bot/bench/`, about 15 s). It is reproducible: `MTG_bot/conftest.py` seeds every
-  test, so the same numbers come back every run. The parts:
-  - The **2 failures** are the two by-design gates in `strategic_brain/test_model.py`, for D3
-    (every plan step trained) and D11 (learned halting). Their failure messages carry the measured
-    numbers. Do not "fix" them by weakening the assertion. Any *other* failure is a regression.
-  - The 23 xfails: 21 legacy failures are listed in `MTG_bot/known_failures.txt` and run as
-    **strict** xfails (an unexpected pass fails the run, which is the cue to delete the line), plus
-    2 older xfails.
-  - The 40 deselected: 39 are the R3b red-first battery (`-m red_first` gives 15 passed / 24
-    failed, recorded in `reports/r3b_red_prechange.txt`) and 1 is `slow`.
-  - The 428 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`).
-  - Companion numbers: `pytest tools -q` = 296 passed with the local checkpoints (about 8 min), or
-    267 passed + 29 skipped without them; `tools/run_scenarios.py` = 428/428.
+  **Baseline B1** (2026-11-05, branch `cleanup/legacy`, `TORCH_DISABLE_NATIVE_JIT=1`):
+  **4567 passed / 39 deselected / 66 subtests passed, nothing failed or xfailed**, about 40 s. Other
+  docs point here. It is reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
+  - **No expected failures: any failure is a regression.** B0 (2026-10-24) carried 2 by-design
+    failures and 23 xfails; all were legacy tests, deleted with `rule_engine/` and `strategic_brain/`.
+  - The 39 deselected are the R3b red-first battery (`MTG_bot/core/test_ontology_r3b.py`).
+    `-m red_first` gives 13 passed / 26 failed on 2026-11-05, the same on `main`; the 15 / 24 in
+    `reports/r3b_red_prechange.txt` is from 2026-10-24.
+  - The 668 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`).
+  - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
+    `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
+  - Companion numbers: `pytest tools -q` = 2 failed / 101 passed, about 15 s. The two failures are
+    the V5 census tests in `tools/audit/test_ontology_conformance.py`, red on `main` too since the
+    `cards/integration` merge (NUMBERS.md, /181). `tools/run_scenarios.py` = 668/668.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.
-  - Anything that computes a gradient needs `TORCH_DISABLE_NATIVE_JIT=1` until `python3.12-dev` is
-    installed.

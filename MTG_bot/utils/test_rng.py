@@ -100,40 +100,6 @@ def test_unknown_stream_raises_rather_than_silently_aliasing():
         rng.stream("not_a_declared_stream")
 
 
-def test_engine_setup_is_reproducible_under_a_seed():
-    """End-to-end through the real wiring: the same master seed must deal the same game."""
-    from MTG_bot.rule_engine.game_initializer import initialize_game_state
-    from MTG_bot.rule_engine import vocabulary as vocab
-
-    def deal():
-        _seeded(777)
-        g = initialize_game_state(list(range(1, 61)), list(range(1, 61)), shuffle=True)
-        p0 = g.players[0]
-        lib = g.get_entities_in_zone(p0, vocab.ID_ZONE_LIBRARY)
-        hand = g.get_entities_in_zone(p0, vocab.ID_ZONE_HAND)
-        starting_seat = g.players.index(g.active_player_id)
-        return [c.type_id for c in lib], [c.type_id for c in hand], starting_seat
-
-    assert deal() == deal()
-
-
-def test_changing_exploration_draws_does_not_change_the_deal():
-    """The same property as above, but through the real engine path, which is where it
-    actually has to hold. This is the one that makes a two-arm experiment valid."""
-    from MTG_bot.rule_engine.game_initializer import initialize_game_state
-    from MTG_bot.rule_engine import vocabulary as vocab
-
-    def deal(exploration_draws):
-        _seeded(777)
-        for _ in range(exploration_draws):
-            rng.stream("exploration").random()
-        g = initialize_game_state(list(range(1, 61)), list(range(1, 61)), shuffle=True)
-        lib = g.get_entities_in_zone(g.players[0], vocab.ID_ZONE_LIBRARY)
-        return [c.type_id for c in lib], g.players.index(g.active_player_id)
-
-    assert deal(0) == deal(1234)
-
-
 def test_auto_seed_is_recorded_so_an_unseeded_run_is_still_recoverable():
     """An unseeded run must never be silent. It auto-seeds and the seed is readable, so a
     manifest writer can record it (P1 and P11 both want the seed written down)."""
