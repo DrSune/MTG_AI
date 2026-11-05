@@ -1518,35 +1518,47 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     count_q = atom.args.get("amount")
     assert count_q is None or isinstance(count_q, Quantity)
     n = 1 if count_q is None else resolve(count_q, ctx)
-    # r22b (Teferi's Ageless Insight): the CardDrawnEvent replacement lane.
-    # A live record whose event matches this draw queues its ACTION for the
-    # executor drain and the draw NEVER happens (CR 614.3a — the replaced
-    # event is replaced WHOLE, cards stay in the library). One record per
-    # draw is taken (first match): duplicate carriers chain through the
-    # drain's replaced_seq guard. The CR 616.1 choice is not asked here: the
-    # pools' draw replacements are one rewrite (Teferi's Ageless Insight,
-    # Alhammarret's Archive), so the order changes nothing (BACKLOG B-69;
-    # the damage lane asks, replacements._choose).
-    if ctx.replacements is not None:
-        repl = ctx.replacements.replacement_for_card_draw(ctx, player, n)
+    ex = ctx.executor
+    # CR 121.2: drawing N cards is N single card draws, and a draw replacement applies to each
+    # of them. r22b (Teferi's Ageless Insight): the CardDrawnEvent replacement lane. A live
+    # record whose event matches a draw queues its ACTION for the executor drain and that draw
+    # NEVER happens (CR 614.3a — the replaced event is replaced WHOLE, the card stays in the
+    # library). One record per draw is taken (first match): a second carrier applies to each
+    # draw of the first one's action (the drain's replaced_seq guard keeps a record from
+    # replacing its own, CR 614.5), so two Insights make one draw four cards; it used to be
+    # two, the second replacing "draw two" as one event. The CR 616.1 choice is not asked
+    # here: the pools' draw replacements are one rewrite (Teferi's Ageless Insight,
+    # Alhammarret's Archive), so the order changes nothing (BACKLOG B-69; the damage lane
+    # asks, replacements._choose). Unreplaced draws in a row share one DRAW audit row.
+    run = 0
+    for _ in range(n):
+        repl = (
+            ctx.replacements.replacement_for_card_draw(ctx, player, 1)
+            if ctx.replacements is not None
+            else None
+        )
         if repl is not None:
+            if run:
+                ctx.events.append((len(ctx.events), "DRAW", str(player), run))
+                run = 0
             ctx.pending_replacements.append(repl)
             ctx.events.append(
-                (len(ctx.events), "DRAW_REPLACED", str(player), str(repl.source), n)
+                (len(ctx.events), "DRAW_REPLACED", str(player), str(repl.source), 1)
             )
-            return
-    drawn = ctx.world.draw(player, n)
-    ctx.events.append((len(ctx.events), "DRAW", str(player), n))
-    ex = ctx.executor
-    if ex is not None and len(drawn) < n:
-        ex.drew_from_empty.add(player)  # CR 704.5b
-    # r22b: the CR 504.5 'the first draw of the draw step' register — the
-    # executor stamps the per-turn ordinal ONLY while the skeleton's draw
-    # step is open, so main-phase draws (Niya's Restock, Loot) never touch
-    # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
-    # reads the same pair of trackers).
-    if ex is not None and getattr(ex, "_draw_step_open", False):
-        ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
+            continue
+        drawn = ctx.world.draw(player, 1)
+        run += 1
+        if ex is not None and not drawn:
+            ex.drew_from_empty.add(player)  # CR 704.5b
+        # r22b: the CR 504.5 'the first draw of the draw step' register — the
+        # executor stamps the per-turn ordinal ONLY while the skeleton's draw
+        # step is open, so main-phase draws (Niya's Restock, Loot) never touch
+        # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
+        # reads the same pair of trackers).
+        if ex is not None and getattr(ex, "_draw_step_open", False):
+            ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
+    if run or not n:  # "draw 0 cards" keeps its audit row
+        ctx.events.append((len(ctx.events), "DRAW", str(player), run))
 
 
 def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:

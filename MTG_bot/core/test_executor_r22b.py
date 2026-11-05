@@ -455,6 +455,25 @@ class TestTeferiDrawLane(R22bCase):
         self.assertEqual(len(self._library(self.p0)), lib_before - 2)
         self.assertEqual(len(self._rows("DRAW_REPLACED")), 1)
 
+    def test_two_insights_make_one_draw_four(self):
+        # CR 121.2, 614.5: each Insight replaces a single card draw once; the first turns the
+        # draw into two draws, and the second replaces each of those, so one draw is four
+        # cards (the ruling for Teferi's Ageless Insight; it used to give two: the second
+        # replaced the "draw two" as one event).
+        self._teferi(self.p0)
+        self._teferi(self.p0)
+        for name in ("Lib-A", "Lib-B", "Lib-C", "Lib-D", "Lib-E", "Lib-F"):
+            self.world.add_card(card_id(name), self.p0, ZONE_LIBRARY)
+        self.ex.begin_turn(self.p0)
+        hand_before, lib_before = self._hand(self.p0), len(self._library(self.p0))
+        self.ex.execute(
+            atom(Verb.DRAW, amount=QConst(1), controller=ControllerRef.YOU),
+            source=self.p0,
+            controller=self.p0,
+        )
+        self.assertEqual(self._hand(self.p0), hand_before + 4)
+        self.assertEqual(len(self._library(self.p0)), lib_before - 4)
+
     def test_no_replacement_without_teféri(self):
         self._stock()
         self.ex.begin_turn(self.p0)
