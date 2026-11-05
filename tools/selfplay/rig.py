@@ -51,7 +51,7 @@ class SelfplayRouter(SeatRouter):
     def _context(self, what: str, seat: Handle, i: int) -> str:
         self._revealed = None
         if ask_kind(what) == "scry":
-            k = self._scry_index[what]
+            k = self.scry_position(what)
             library = self.game.world.players[seat].zone("library").entries
             if k < len(library):
                 self._revealed = library[-1 - k]

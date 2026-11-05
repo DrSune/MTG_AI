@@ -252,3 +252,35 @@ def test_feature_caches_are_bounded() -> None:
         FT._static(ident)
         assert len(FT._STATIC_CACHE) <= FT._CACHE_MAX
     assert FT._static(ident) is FT._static(ident)  # still a cache
+
+
+def test_scry_context_never_reads_under_the_viewed_window() -> None:
+    """Every scry ask's 'revealed' card is one of the top n cards of that scry (two scries of the
+    same size in one act window used to point the second one under the window: a hidden card)."""
+    from MTG_bot.bench.protocol import ask_kind
+    from tools.selfplay.rig import SelfplayRouter
+
+    checked, wrong = 0, []
+    orig = SelfplayRouter._context
+
+    def ctx(self, what, seat, i):
+        nonlocal checked
+        out = orig(self, what, seat, i)
+        if ask_kind(what) == "scry":
+            n = int(what.rsplit(":", 1)[-1])
+            top = self.game.world.players[seat].zone("library").entries[-n:]
+            if self._revealed not in top:  # recorded, not asserted: play_game voids raises
+                wrong.append((self.game.world.turn, what, self._revealed))
+            checked += 1
+        return out
+
+    SelfplayRouter._context = ctx
+    try:
+        # the three seeds of 3000-3599 where one window held two scries of the same size
+        for seed in (3261, 3369, 3485):
+            agents = [HeuristicAgent(), HeuristicAgent()]
+            res = play_game(seed, agents, deck_mode="coherent" if seed % 3 else "stress")
+            assert res["crash"] is None, res["crash"]
+    finally:
+        SelfplayRouter._context = orig
+    assert checked >= 3 and not wrong, wrong

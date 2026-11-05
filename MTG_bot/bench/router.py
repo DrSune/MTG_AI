@@ -121,13 +121,24 @@ class SeatRouter:
         ask = engine_ask(self.lenses[i], executor, vocab, what, i, context=self._context(what, seat, i))
         return ask.options[self._decide(driver, ask)].token
 
+    def scry_position(self, what: str) -> int:
+        """Which card from the top the next ask of this scry is about. The engine asks once per
+        card, top first, all n asks under one key ``scry:<player>:<n>`` (verbs._v_scry), and the
+        counter resets only when an act window opens, so it is taken modulo n: a second scry of
+        the same size in one window starts at the top again. Without the modulo it pointed under
+        the viewed window - the wrong card, and one its owner has not seen (3 of 471 scry asks
+        in 600 heuristic games, 2026-11-05)."""
+        k = self._scry_index[what]
+        tail = what.rsplit(":", 1)[-1]
+        return k % int(tail) if tail.isdigit() and int(tail) > 0 else k
+
     def _context(self, what: str, seat: Handle, i: int) -> str:
         """Extra facts the decider legitimately has for this ask."""
         if ask_kind(what) != "scry":
             return ""
         # The k-th scry ask of one scry is about the k-th card from the top, which the scrying
         # player is looking at (verbs.py:1072-1082 asks top-first before moving anything).
-        k = self._scry_index[what]
+        k = self.scry_position(what)
         self._scry_index[what] += 1
         library = self.game.world.players[seat].zone("library").entries
         if k < len(library):
