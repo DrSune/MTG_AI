@@ -7,7 +7,11 @@ each other. A deal pair is used only if neither run voided it. Prints each run's
 score on the shared games and the mean per-deal difference with a bootstrap 95% interval over
 deals (the deal is the unit: its two seat-swapped games share the deal's luck).
 
-    .venv/bin/python -m tools.selfplay.paired A/eval_rows.jsonl B/eval_rows.jsonl [--tag T]
+    .venv/bin/python -m tools.selfplay.paired A/eval_rows.jsonl B/eval_rows.jsonl \
+        [--tag-a TAG] [--tag-b TAG] [--opp OPP]
+
+A file holding more than one evaluation tag (a run's eval_rows.jsonl usually does) needs its
+--tag-a/--tag-b: rows of different evaluations would otherwise overwrite each other per deal.
 """
 
 from __future__ import annotations
@@ -27,9 +31,11 @@ def _score(r: dict) -> float:
 
 def _load(path: str, tag: str | None, opp: str | None) -> dict:
     out: dict = defaultdict(dict)
+    tags = set()
     with open(path) as fh:
         for line in fh:
             r = json.loads(line)
+            tags.add(r.get("tag"))
             if tag and r.get("tag") != tag:
                 continue
             if opp and r.get("opp") != opp:
@@ -37,6 +43,9 @@ def _load(path: str, tag: str | None, opp: str | None) -> dict:
             void = r["outcome"].startswith("void") or r.get("leaky")
             deal = (r["opp"], r.get("set_code"), r.get("pool"), r["seed"], r["deck_mode"])
             out[deal][r["a_seat"]] = None if void else _score(r)
+    if tag is None and len(tags) > 1:
+        raise SystemExit(f"{path} holds {len(tags)} evaluations: pass its tag "
+                         f"({', '.join(sorted(str(t) for t in tags))})")
     return out
 
 

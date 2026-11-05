@@ -15,9 +15,10 @@ Honesty (OWNER_PREFERENCES #1): a fork copies the true hidden zones, so before s
 copy's own library is shuffled (its composition is known to its owner, its order is not) and
 every card in the opponent's hand and library is replaced by a card drawn uniformly from the
 dealt pool. The prior is the deal itself (decks are uniform samples of the pool), not anything
-read from the hidden zones. Known approximation: coherent two-colour decks are sampled as
-five-colour piles; the engine's own RNG stream is copied, so a coin flip simulated at the same
-engine step would match the real one (no M21 decision depends on that today).
+read from the hidden zones. Each world also gets its own engine seed: with the real game's seed a
+simulated coin flip equalled the real one 2,360 times in 2,360, and the search used it with
+Tavern Swindler (2026-11-05 audit). Known approximation: coherent two-colour decks are sampled
+as five-colour piles.
 
 Searched decisions are the clean points of this rig, where no engine call is in flight: the
 router's act loop, and the pre-combat boundary (the end of the act window), where whole attack
@@ -60,6 +61,9 @@ def determinize(game: Any, seat: int, supply: Any, rng: random.Random) -> None:
     ex = game.executor
     me = world.player_order[seat]
     opp = world.player_order[1 - seat]
+    # The engine's randomness is sha256(master_seed:op_seq:tag) (Executor._rng), so a copied seed
+    # replays the real game's future coin flips and shuffles: a new one per world.
+    world.master_seed = rng.randrange(1 << 62)
     rng.shuffle(world.players[me].zone(ZONE_LIBRARY).entries)
     pool = supply.deckable
     for zone in (ZONE_HAND, ZONE_LIBRARY):

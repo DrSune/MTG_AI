@@ -554,3 +554,39 @@ def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
     finally:
         rig.SelfplayRouter.take_acts = orig
     assert score == 1.0 and searcher.stats["sim_errors"] == 0
+
+
+def test_a_determinized_world_cannot_foresee_the_real_games_randomness() -> None:
+    """The engine draws randomness from sha256(master_seed:op_seq:tag); a fork kept the real
+    seed, so the search knew every future coin flip (Tavern Swindler, 2026-11-05 audit)."""
+    import random as _random
+
+    from MTG_bot.core.executor.games import get_supply
+    from tools.selfplay import rig
+    from tools.selfplay.search import determinize, fork
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    flips = []
+    for world in range(32):
+        clone = fork(game, supply)
+        determinize(clone, 0, supply, _random.Random(world))
+        flips.append(clone.executor._rng("coin").random() < 0.5)
+    real = game.executor._rng("coin").random() < 0.5
+    assert 4 < sum(f == real for f in flips) < 28  # about half agree, not all of them
+
+
+def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
+    """A deal's two seat-swapped games are anti-correlated, so the deal is the independent unit
+    (a Wilson interval over games was ~2x too wide); and the teacher gate, like the self-play
+    gate, never decides a freeze on the ladder's fixed deals (2026-11-05 audit)."""
+    from types import SimpleNamespace
+
+    from tools.selfplay import learner as L
+    assert L.deal_interval([0.5] * 200) == (0.5, 0.5)  # every deal split 1-0: no doubt at all
+    lo, hi = L.deal_interval([1.0, 0.5, 0.5, 0.0] * 50)  # hand: sd sqrt(25/199) = 0.3544, h 0.0491
+    assert (lo, hi) == (0.4509, 0.5491)
+    fake = SimpleNamespace(n_gates=0, eval_queue=[])
+    for kind in ("teacher", "gate", "ladder"):
+        L.Learner.queue_eval(fake, kind, kind, "eval", ["heuristic"], 10)
+    assert [q[5] for q in fake.eval_queue] == [L.GATE_SEED0, L.GATE_SEED0 + 1000, L.EVAL_SEED0]

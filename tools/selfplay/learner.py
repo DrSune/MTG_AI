@@ -68,14 +68,18 @@ TRAIN_SEED0 = 10_000_000
 BC_SEED0 = 5_000_000
 
 
-def wilson(wins: float, n: int, z: float = 1.96) -> tuple[float, float]:
-    if n == 0:
+def deal_interval(deal_scores: list[float], z: float = 1.96) -> tuple[float, float]:
+    """95% interval of the mean score over deals, each deal the mean of its two seat-swapped
+    games. The two games of a deal are anti-correlated (-0.40 to -0.87 against non-random
+    opponents, 2026-11-05 audit), so an interval over games as if independent (Wilson) was about
+    twice as wide and the gates too strict; the deal is the independent unit."""
+    n = len(deal_scores)
+    if n < 2:
         return (0.0, 1.0)
-    p = wins / n
-    den = 1 + z * z / n
-    c = (p + z * z / (2 * n)) / den
-    h = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / den
-    return (round(c - h, 4), round(c + h, 4))
+    mean = sum(deal_scores) / n
+    sd = math.sqrt(sum((x - mean) ** 2 for x in deal_scores) / (n - 1))
+    h = z * sd / math.sqrt(n)
+    return (round(max(0.0, mean - h), 4), round(min(1.0, mean + h), 4))
 
 
 def length_buckets(items: list, ratio: float = 1.4, min_n: int = 8) -> list[list]:
@@ -782,10 +786,12 @@ class Learner:
             voids = 0
             by_mode: dict[str, list] = defaultdict(lambda: [0.0, 0])
             turns = []
+            deal_scores = []
             for prs in pairs.values():
                 if any(p["outcome"].startswith("void") or p.get("leaky", 0) for p in prs):
                     voids += len(prs)
                     continue
+                deal = 0.0
                 for p in prs:
                     a_seat = p["a_seat"]
                     if p["outcome"] == "win":
@@ -793,12 +799,14 @@ class Learner:
                     else:
                         s = 0.5
                     score += s
+                    deal += s
                     n += 1
                     by_mode[p["deck_mode"]][0] += s
                     by_mode[p["deck_mode"]][1] += 1
                     turns.append(p["turns"])
+                deal_scores.append(deal / len(prs))
             out[opp] = {"score": round(score / max(n, 1), 4), "n": int(n),
-                        "ci95": wilson(score, int(n)), "voids": voids,
+                        "ci95": deal_interval(deal_scores), "voids": voids,
                         "by_mode": {m: round(v[0] / max(v[1], 1), 4) for m, v in by_mode.items()},
                         "turns": round(float(np.mean(turns)) if turns else 0.0, 1)}
         if search_stats:
@@ -844,7 +852,7 @@ class Learner:
     def queue_eval(self, kind: str, tag: str, seat: str, opponents: list[str],
                    deals: int) -> None:
         seed0 = EVAL_SEED0
-        if kind == "gate":
+        if kind in ("gate", "teacher"):  # both decide a freeze: never on the ladder's deals
             seed0 = GATE_SEED0 + 1000 * self.n_gates
             self.n_gates += 1
         self.eval_queue.append((kind, tag, seat, opponents, deals, seed0))
