@@ -123,5 +123,31 @@
  },
  "probe": {
   "sha": "0599f9ea60b735bb552799639412f2428dbc8ef7631010aeb9698a6f768911b3"
+ },
+ "verified": {
+  "tree_sha": "93127e811b2652a9c2172b5d7fec56721e1f374d803f898f97bb982892bfa505",
+  "probe_sha": "64fae0b879251a241961c63d143069ff08dc51e052a0fed64fdfa0d3ba09c2cb",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{5}{U}{U}: This creature can't be blocked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "G1: [activate [0]] pays U-2 W-5 (seven, two blue) but no combat follows. Packs frilled_sea_serpent_1 (the Wall may block only the other attacker; 4 damage through; exactly {5}{U}{U} spent) and frilled_sea_serpent_2 (blockable again next turn) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/frilled_sea_serpent_1.json",
+   "tools/scenarios/cards/M20/frilled_sea_serpent_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
  }
 }

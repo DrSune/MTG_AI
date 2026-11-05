@@ -224,5 +224,32 @@
  },
  "probe": {
   "sha": "494407ae486a44451535e16c6cdcbe0b29d809a652e283f3c4ddfbd9aa7afa54"
+ },
+ "verified": {
+  "tree_sha": "d3c35a021d6b3ba792bd3794554a1093154612aa85cdd4ff76992a3bf325a4a6",
+  "probe_sha": "bb0599f81b1b4a9f881e3c4b5daec545a6d2a7b86052c4546ff8fe07ea3373f4",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; [attacks and opp_giant blocks it]: not blocked",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create two Treasure tokens. (They're artifacts with \"{T}, Sacrifice this token: Add one mana of any color.\")",
+    "status": "OK",
+    "evidence": "[cast]: triggered ability [0] triggers; you:Treasure#1 and you:Treasure#2 move new -> battlefield (you, TREASURE); same on the opponent's-turn entry; the token spec (sacrifice-self + tap: ADD_MANA 1 ANY) is the compiler's Treasure as in the verified Gadrak, the Crown-Scourge; Keyword.TREASURE is a marker with no executor behaviour",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

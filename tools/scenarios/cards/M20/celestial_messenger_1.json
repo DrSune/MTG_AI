@@ -1,0 +1,10 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "msg", "real": "Celestial Messenger", "zone": "hand", "controller": 0}
+ ],
+ "steps": [{"op": "advance_turn"}, {"op": "mana", "seat": 0, "add": {"U": 2, "W": 2}}, {"op": "cast", "key": "msg", "controller": 0}],
+ "expect": {"zone": {"msg": "battlefield"}},
+ "notes": "Celestial Messenger (M20): Flash. It is cast during the opponent's turn and enters the battlefield."
+}

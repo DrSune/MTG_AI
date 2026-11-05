@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "undead_servant_one_in_graveyard_one_2_2_zombie",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "servant", "real": "Undead Servant", "zone": "hand", "controller": 0},
+  {"key": "gy1", "real": "Undead Servant", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "servant", "real": "Undead Servant"}
+ ],
+ "expect": {
+  "tokens": {"Zombie": 1},
+  "battlefield_pt": {"Zombie": [2, 2]}
+ },
+ "notes": "Printed: '... a 2/2 black Zombie creature token for each card named Undead Servant in your graveyard.' One in your graveyard: one 2/2 Zombie."
+}

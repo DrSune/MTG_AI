@@ -180,5 +180,38 @@
  },
  "probe": {
   "sha": "ead5f7aae928e0721322552fa58cdec55e56392834ca477440f39131538a4d16"
+ },
+ "verified": {
+  "tree_sha": "02395c6667fc03d2a91ade7bc669d86feb39a10a9775a2ddc6bbd9661c2c9ae1",
+  "probe_sha": "ead5f7aae928e0721322552fa58cdec55e56392834ca477440f39131538a4d16",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Destroy target creature or planeswalker that's green or white.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, opp_tapped, opp_giant] = exactly the green (you_bear, opp_tapped) and white (opp_giant) creatures of the probe board (probe.py EXTRA; red you_giant, black opp_bear, blue opp_flier excluded); each is destroyed. Planeswalker half (none on the board): noxious_grasp_destroys_white_planeswalker.json PASS (the opponent's Ajani destroyed), noxious_grasp_red_planeswalker_not_targetable.json PASS (Chandra refused; a white one accepted), noxious_grasp_multicolour_green_creature.json PASS (a green-blue creature counts as green). Wrong variants fail",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 1 life.",
+    "status": "OK",
+    "evidence": "every variant: 'you gains 1 life (by card/GAIN_LIFE)', you 20 -> 21; paid 'mana B-1 W-1' (= {1}{B})",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/noxious_grasp_1.json",
+   "tools/scenarios/cards/M20/noxious_grasp_2.json",
+   "tools/scenarios/cards/M20/noxious_grasp_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

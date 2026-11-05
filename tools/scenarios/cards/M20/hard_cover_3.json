@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hc", "real": "Hard Cover", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "New Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "enter", "key": "bear"},
+  {"op": "cast", "key": "hc", "controller": 0, "targets": ["bear"]},
+  {"op": "activate", "key": "bear", "idx": -1, "seat": 0, "decisions": ["first-legal"], "expect_raise": "summoning sickness"}
+ ],
+ "expect": {"attached": {"hc": "bear"}, "tapped": {"bear": false}, "hand": {"0": 0}, "toughness": {"bear": 4}},
+ "notes": "Hard Cover (M20): the granted '{T}: Draw a card, then discard a card.' is a {T} ability of the enchanted creature, so a creature that came under your control this turn cannot use it (CR 302.6)."
+}

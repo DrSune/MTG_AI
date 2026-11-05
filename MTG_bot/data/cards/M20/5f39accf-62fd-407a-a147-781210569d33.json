@@ -359,5 +359,53 @@
  },
  "probe": {
   "sha": "229a6ddef01d664d80f08884e9a7db030379aeaa8cbe8a995d4ed86fab047098"
+ },
+ "verified": {
+  "tree_sha": "8060f06e30e03a453b016346661faa88e733285d6a196be3bc4945b120a4884d",
+  "probe_sha": "229a6ddef01d664d80f08884e9a7db030379aeaa8cbe8a995d4ed86fab047098",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "[+1]: Until your next turn, up to one target creature gets -5/-0.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 0..1; LOYALTY 5 -> 6; e.g. opp_giant 4/4 -> -1/4 and no revert when your turn ends; no-target variant: only loyalty. Its end at your next turn is not in G1: packs mu_yanling_celestial_wind_3 (still -1/4 on the opponent's turn, attacks Mu for 0) and _4 (4/4 again on your next turn) pass; twins fail.",
+    "issue": ""
+   },
+   {
+    "clause": "[−3]: Return up to two target creatures to their owners' hands.",
+    "status": "OK",
+    "evidence": "ability [1] target slot 0..2; LOYALTY 5 -> 2; one target (yours to your hand, the opponent's to its hand), two targets (you: hand 5 -> 7), none.",
+    "issue": ""
+   },
+   {
+    "clause": "[−7]: Creatures you control with flying get +5/+5 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "G1: 'ability [2] not activatable from battlefield: cost:loyalty:5<7'. Packs mu_yanling_celestial_wind_1 (your flier 7/7; your ground creature and the opponent's flier unchanged) and _2 (ends with the turn) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/mu_yanling_celestial_wind_1.json",
+   "tools/scenarios/cards/M20/mu_yanling_celestial_wind_2.json",
+   "tools/scenarios/cards/M20/mu_yanling_celestial_wind_3.json",
+   "tools/scenarios/cards/M20/mu_yanling_celestial_wind_4.json"
+  ],
+  "mutation": {
+   "mutants": 18,
+   "killed": 9,
+   "score": 0.5,
+   "survived": [
+    "until-end-of-turn->permanent at 1/2/effect/args/duration",
+    "amount+1 at 1/2/effect/args/power/magnitude",
+    "amount-1 at 1/2/effect/args/power/magnitude",
+    "widen filter (drop part 0) at 1/2/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/2/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/target/filter/children/0/who",
+    "amount+1 at 1/2/effect/args/toughness/magnitude",
+    "amount-1 at 1/2/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P6c890a0c59 G4. Printed: '{3}, {T}: Target creature can't be blocked this turn.' Seat 0 pays {3} and taps the Key targeting its 3/3 Runner, then attacks with the Runner and a 2/2 Scout. Seat 1's 0/9 Wall may block only the Scout (its block ask offers the Scout and NONE, never the Runner); it blocks the Scout and the Runner's 3 damage goes through.",
+ "cards": [
+  {"key": "key", "real": "Manifold Key", "zone": "battlefield", "controller": 0},
+  {"key": "runner", "name": "Runner", "type": "Creature — Human", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "scout", "name": "Scout", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 3}},
+ "steps": [
+  {"op": "activate", "key": "key", "idx": 1, "seat": 0, "targets": ["runner"]},
+  {"op": "combat", "seat": 0, "attack": {"runner": true, "scout": true}, "block": {"wall": "scout"}}
+ ],
+ "expect": {
+  "attackers": {"runner": true, "scout": true},
+  "block_asks": {"wall": "<scout>,NONE"},
+  "blocked": {"scout": ["wall"], "runner": []},
+  "life": {"0": 20, "1": 17},
+  "damage": {"wall": 2},
+  "tapped": {"key": true}
+ }
+}

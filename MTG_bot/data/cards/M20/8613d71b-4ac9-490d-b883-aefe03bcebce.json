@@ -366,5 +366,50 @@
  },
  "probe": {
   "sha": "4c4bf2a221ca1185c6268b98001ea00f7abd54f2673481a23545736d48399170"
+ },
+ "verified": {
+  "tree_sha": "437b56c6c2fb8c5f0315152fbacf6061789a67324e5a181787d50ef118fea329",
+  "probe_sha": "4c4bf2a221ca1185c6268b98001ea00f7abd54f2673481a23545736d48399170",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "target slot (cast) lists only the six creatures; [enters during the opponent's turn] ask enchant lists only creatures.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +0/+2 and has \"{T}: Draw a card, then discard a card.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "+0/+2 shown (you_bear 2/2 -> 2/4, opp_giant 4/4 -> 4/6); the granted ability is never activated in the trace. Packs: hard_cover_grants_loot_and_toughness (tap: draw, then discard the chosen card; hand 1), hard_cover_on_opponents_creature_opponent_loots (the opponent owns the ability), hard_cover_granted_tap_respects_summoning_sickness (refused 'summoning sickness'); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/hard_cover_1.json",
+   "tools/scenarios/cards/M20/hard_cover_2.json",
+   "tools/scenarios/cards/M20/hard_cover_3.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 6,
+   "score": 0.3157894736842105,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "drop cost part 0 (CostTap) at 1/0/effect/steps/1/args/ability/cost",
+    "drop step 0 at 1/0/effect/steps/1/args/ability/effect",
+    "drop step 1 at 1/0/effect/steps/1/args/ability/effect",
+    "amount+1 at 1/0/effect/steps/1/args/ability/effect/steps/0/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/ability/effect/steps/0/args/controller",
+    "amount+1 at 1/0/effect/steps/1/args/ability/effect/steps/1/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/ability/effect/steps/1/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/ability/effect/steps/1/args/controller",
+    "zone GRAVEYARD->EXILE at 1/0/effect/steps/1/args/ability/effect/steps/1/args/destination",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
  }
 }

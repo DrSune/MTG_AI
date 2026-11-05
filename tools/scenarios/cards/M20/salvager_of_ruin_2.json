@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pfd86382eae G4. Printed: '... target permanent card in YOUR graveyard that was put there FROM THE BATTLEFIELD THIS TURN.' Illegal targets, each refused while the Salvager stays on the battlefield: a creature card already in seat 0's graveyard before this turn; seat 1's creature that died this turn (not your graveyard); seat 0's instant card that reached the graveyard this turn from the hand (not a permanent card, not from the battlefield); the Salvager itself (it is on the battlefield as targets are chosen).",
+ "cards": [
+  {"key": "salv", "real": "Salvager of Ruin", "zone": "battlefield", "controller": 0},
+  {"key": "old", "name": "Old Corpse", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "trick", "name": "My Trick", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "killer", "target": "obear", "amount": 9},
+  {"op": "move", "key": "trick", "to": "graveyard"},
+  {"op": "activate", "key": "salv", "idx": 0, "seat": 0, "targets": ["old"], "expect_raise": "illegal activation: target:selection:off_population"},
+  {"op": "activate", "key": "salv", "idx": 0, "seat": 0, "targets": ["obear"], "expect_raise": "illegal activation: target:selection:off_population"},
+  {"op": "activate", "key": "salv", "idx": 0, "seat": 0, "targets": ["trick"], "expect_raise": "illegal activation: target:selection:off_population"},
+  {"op": "activate", "key": "salv", "idx": 0, "seat": 0, "targets": ["salv"], "expect_raise": "illegal activation: target:selection:off_population"}
+ ],
+ "expect": {
+  "zone": {"salv": "battlefield", "old": "graveyard", "obear": "graveyard", "trick": "graveyard"},
+  "hand": {"0": 0, "1": 0}
+ }
+}

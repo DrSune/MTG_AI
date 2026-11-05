@@ -1,0 +1,58 @@
+{
+ "name": "dread_presence_only_your_swamps",
+ "set": "M20",
+ "notes": "Printed: 'Whenever a Swamp you control enters, ...'. A Forest P0 plays does not trigger it, and neither does a Swamp P1 plays on P1's turn: no mode is ever asked (a step without decisions raises at any ask), no life changes, nothing is drawn by P0.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dread",
+   "real": "Dread Presence",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "oswamp",
+   "real": "Swamp",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "forest",
+   "seat": 0
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "play",
+   "key": "oswamp",
+   "seat": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "forest": "battlefield",
+   "oswamp": "battlefield"
+  },
+  "hand": {
+   "0": 0,
+   "1": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

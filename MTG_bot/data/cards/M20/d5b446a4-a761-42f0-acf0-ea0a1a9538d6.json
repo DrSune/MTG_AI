@@ -154,5 +154,35 @@
  },
  "probe": {
   "sha": "96902a08b22ba542284fc7e82828d80ab38f813d17652b8fea92ef994b1552df"
+ },
+ "verified": {
+  "tree_sha": "9a4e7d3e85dfc4ef3a2add6b957b8474f0586ae45ef2f392fbcdfda5a8201115",
+  "probe_sha": "96902a08b22ba542284fc7e82828d80ab38f813d17652b8fea92ef994b1552df",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Return target creature or land card from a graveyard to its owner's hand.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_fallen, opp_fallen] (creature cards in either graveyard; you_used/opp_used not offered); you_fallen -> your hand; opp_fallen -> 'opp: hand 2 -> 3' (its owner's). Land half not on the board: pulse_of_murasa_returns_land_card.json PASS (a land card in the opponent's graveyard -> the opponent's hand) and pulse_of_murasa_instant_not_targetable.json PASS (an instant card refused; a land in its place is accepted). Wrong variants fail",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 6 life.",
+    "status": "OK",
+    "evidence": "both variants: 'you gains 6 life (by card/GAIN_LIFE)', you 20 -> 26; paid 'mana G-1 W-2' (= {2}{G})",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/pulse_of_murasa_1.json",
+   "tools/scenarios/cards/M20/pulse_of_murasa_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -153,5 +153,28 @@
  },
  "probe": {
   "sha": "419b9384fd343dba94cd8614eaca216232c029ab7360239ce28466df66439a99"
+ },
+ "verified": {
+  "tree_sha": "8715ff0e38643653e64bc477b1367b701729db73c8cc2326aa4a0b8fdcce8727",
+  "probe_sha": "aeb4bbf2dabfb7ab53e9bb3940e3f431cca56048ac90437f14c01f2a84299406",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{5}{B}, {T}: This creature deals 2 damage to target opponent or planeswalker.",
+    "status": "NOT_EXERCISED",
+    "evidence": "opponent part shown: ability [0] slot 1..1 of [opp] (no creature, not you); [activate [0] targets=['opp']]: card becomes tapped, you: mana B-1 W-5, opp is dealt 2 (20 -> 18). No planeswalker on the board. Pack sorcerer_of_the_fang_planeswalker.json: P0 and P1's creature refused (target:selection:off_population), P1's Chandra, Flame's Fury 4 -> 2 loyalty; PASS on live and this tree; the 3-damage mutant FAILS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/sorcerer_of_the_fang_1.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 11,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

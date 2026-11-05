@@ -1,0 +1,70 @@
+{
+ "name": "gift_of_paradise_enchanted_land_taps_for_two_of_one_color",
+ "set": "M20",
+ "notes": "Printed: 'Enchant land. When this Aura enters, you gain 3 life. Enchanted land has \"{T}: Add two mana of any one color.\"' P0 casts Gift of Paradise on its Forest (gains 3: 23), then taps the Forest for the granted ability choosing blue: P0's pool holds exactly two blue. The Forest is tapped.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gift",
+   "real": "Gift of Paradise",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "gift",
+   "real": "Gift of Paradise",
+   "controller": 0,
+   "targets": [
+    "f1"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "f1",
+   "idx": -1,
+   "seat": 0,
+   "decisions": [
+    "U"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gift": "battlefield"
+  },
+  "attached": {
+   "gift": "f1"
+  },
+  "life": {
+   "0": 23,
+   "1": 20
+  },
+  "tapped": {
+   "f1": true
+  },
+  "mana_pool": {
+   "0": {
+    "U": 2
+   },
+   "1": {}
+  }
+ }
+}

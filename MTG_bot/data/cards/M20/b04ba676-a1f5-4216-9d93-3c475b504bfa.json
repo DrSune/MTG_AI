@@ -171,5 +171,30 @@
  },
  "probe": {
   "sha": "5fb74989e73567f8519756802913a965c0d156aaae563e5da01fcc1a75b9a049"
+ },
+ "verified": {
+  "tree_sha": "a74c79e46fbb18ee1da98f7b9f78f23b68b6d199ae04b120b9d2a53beb95e9ed",
+  "probe_sha": "c4f20101f4c9020d19ed1713674b87e2f3287024153409ab872ce15d4b0e85ce",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Other Vampires you control get +1/+1.",
+    "status": "OK",
+    "evidence": "[cast]: you_vampire 2/2 -> 3/3, the card itself stays 3/3; Static section lists only you_vampire; [this card is dealt lethal damage]: you_vampire 3/3 -> 2/2. Pack thirsting_bloodlord_lord_scope.json (P1's Vampire and P0's non-Vampire stay 2/2) PASS on live and this tree, FAILS on the you<->opponent mutant.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/thirsting_bloodlord_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

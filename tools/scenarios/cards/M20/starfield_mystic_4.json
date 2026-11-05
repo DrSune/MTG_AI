@@ -1,0 +1,13 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "ench", "name": "My Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0},
+  {"key": "oench", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1},
+  {"key": "art", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "move", "key": "ench", "to": "graveyard"}, {"op": "move", "key": "oench", "to": "graveyard"}, {"op": "move", "key": "art", "to": "graveyard"}],
+ "expect": {"zone": {"ench": "graveyard", "oench": "graveyard", "art": "graveyard"}, "counters": {"mystic": {"PLUS_1_PLUS_1": 1}}, "power": {"mystic": 3}, "toughness": {"mystic": 3}},
+ "notes": "Starfield Mystic (M20): 'Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.' Your enchantment going to the graveyard gives one counter; the opponent's enchantment and your artifact give none."
+}

@@ -110,5 +110,26 @@
  },
  "probe": {
   "sha": "11b43f0dc25e3ba93b05ccccf7f14d1ef214f62be8934511ab435d4c88b1179a"
+ },
+ "verified": {
+  "tree_sha": "4e6c422668a920b087681da16f0aff3fa57e2a1355a8ee471c01477766f15e44",
+  "probe_sha": "290ad788a00ef9ea5c7e80ed6c920514c6bc47c8161fa1c8557f3073a2649035",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, you draw a card and you lose 1 life.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: triggered ability [0]; you draws you:Library 5#1 (hand 5 -> 6), you loses 1 life (20 -> 19); same when blocked; [another creature you control (you_bear) attacks]: none",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

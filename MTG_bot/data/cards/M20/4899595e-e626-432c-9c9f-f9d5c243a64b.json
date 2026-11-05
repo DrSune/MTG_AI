@@ -238,5 +238,34 @@
  },
  "probe": {
   "sha": "6faebbcd8d4a263719e03923169ac429d3a35f1b48842f6bf7a18c59e68d1eae"
+ },
+ "verified": {
+  "tree_sha": "0085cae73fdadd0f1071d598f018f0d67f7b02a35da8685c39307b045786947b",
+  "probe_sha": "c2fa075c23a101bbab76454a668922c73107f59a68b0fbafdb3e73fbc82d33a2",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create two 1/1 red Elemental creature tokens.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0]; '+ you:Elemental#1 (battlefield, you, 1/1, HASTE)', '+ you:Elemental#2 (...)' - exactly two 1/1 tokens under you; tree TokenSpec Creature - Elemental, colors ('R',). Also fires entering on the opponent's turn",
+    "issue": ""
+   },
+   {
+    "clause": "Elementals you control gain haste until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: 'card: keywords +HASTE', both tokens HASTE, 'you_elemental: keywords +HASTE', opp_elemental unchanged; 'after the turn ends': card, both tokens and you_elemental '-HASTE'; the opponent's-turn entry ends that turn with no haste left",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
  }
 }

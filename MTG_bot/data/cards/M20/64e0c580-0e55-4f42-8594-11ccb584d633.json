@@ -204,5 +204,37 @@
  },
  "probe": {
   "sha": "44433584c56cade65acace58f7e6d700467f7d7fe6423f6aa1ecaf2cf9f8f783"
+ },
+ "verified": {
+  "tree_sha": "3929a07e13ca4815b4f9ca98396911e4365bcb1449b229dd700bb075bfd34dbb",
+  "probe_sha": "67a97f08fdfa694f9a6088550ad964023093ccc5c3391f9edc41f89e8550c153",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever a creature you control with flying enters, this creature gets +1/+1 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Only non-fliers enter in G1 (correctly nothing). Packs waterkin_shaman_1 (two own fliers: 4/3; own ground creature and the opponent's flier: nothing) and waterkin_shaman_2 (ends with the turn) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/waterkin_shaman_1.json",
+   "tools/scenarios/cards/M20/waterkin_shaman_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 1,
+   "score": 0.125,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "widen filter (drop part 1) at 1/0/event/subject",
+    "controller YOU->OPPONENT at 1/0/event/subject/children/0/who",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

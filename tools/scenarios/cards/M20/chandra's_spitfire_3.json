@@ -1,0 +1,13 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spit", "real": "Chandra's Spitfire", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "ob", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [{"op": "cast", "key": "shock", "controller": 0, "targets": ["ob"]}],
+ "expect": {"life": {"0": 20, "1": 20}, "damage": {"ob": 2}, "power": {"spit": 1}},
+ "notes": "Chandra's Spitfire (M20): damage to an opponent's creature is not damage dealt to an opponent: no trigger."
+}

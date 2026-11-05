@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P85a9d02669 G4. Printed: 'Whenever ANOTHER BLUE creature YOU CONTROL enters, ...' None of these trigger it: the Denizen itself entering (not 'another'), a green creature of seat 0 entering, and a blue creature entering under seat 1. No asks, no mill: both graveyards stay empty.",
+ "cards": [
+  {"key": "srd", "real": "Sage's Row Denizen", "zone": "hand", "controller": 0},
+  {"key": "green", "name": "Green Elf", "type": "Creature — Elf", "power": "2", "toughness": "2", "colors": ["G"], "zone": "hand", "controller": 0},
+  {"key": "oblue", "name": "Opp Blue Merfolk", "type": "Creature — Merfolk", "power": "2", "toughness": "2", "colors": ["U"], "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "srd"},
+  {"op": "enter", "key": "green"},
+  {"op": "enter", "key": "oblue"}
+ ],
+ "expect": {
+  "zone": {"srd": "battlefield", "green": "battlefield", "oblue": "battlefield"},
+  "graveyard": {"0": [], "1": []}
+ }
+}

@@ -356,5 +356,51 @@
  },
  "probe": {
   "sha": "1b07a858e1f624026de53f4089e58bd5545904bf72bc1a6fa9faee82798c0727"
+ },
+ "verified": {
+  "tree_sha": "f1d1c55c3f6fe2c94e07c2872fd979f4372c18b46fc43b120d41c5be9d8e6136",
+  "probe_sha": "0bf0bf498343eb4dd51d0fe7c8478e0181319866dbaf49cdd59728ac824337da",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "This creature gets +2/+2 as long as there are three or more land cards in your graveyard.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no land card in the probe graveyards (the activation's sacrifice adds one). Packs elvish_reclaimer_two_lands_no_bonus.json (2 own lands + an instant, 3 lands in P1's graveyard: stays 1/2) and elvish_reclaimer_three_lands_bonus.json (a third own land moves battlefield -> graveyard: 3/4) PASS on live and this tree; the variant expecting P1's lands to count FAILS.",
+    "issue": ""
+   },
+   {
+    "clause": "{2}, {T}, Sacrifice a land: Search your library for a land card, put it onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "costs shown: [activate [1] from battlefield] card becomes tapped, you_land moves battlefield -> graveyard (SACRIFICE), you: mana W-2; the search finds nothing (no land in the probe library). Pack elvish_reclaimer_fetch_land_tapped.json: the sacrifice ask offers P0's two Forests; the Mountain picked from a library with a Plains and two non-lands enters tapped under P0, the rest stay; PASS on live and this tree; variants picking the Plains or expecting it untapped FAIL.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/elvish_reclaimer_1.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_2.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_3.json"
+  ],
+  "mutation": {
+   "mutants": 23,
+   "killed": 9,
+   "score": 0.391304347826087,
+   "survived": [
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude",
+    "amount-1 at 1/0/effect/args/toughness/magnitude",
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "amount+1 at 1/1/effect/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/1/effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/1/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/1/effect/steps/0/args/destination/controller"
+   ]
+  }
  }
 }

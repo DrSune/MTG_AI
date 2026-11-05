@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "scholar_of_the_ages_returns_at_most_two_instants_or_sorceries",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "scholar", "real": "Scholar of the Ages", "zone": "hand", "controller": 0},
+  {"key": "inst_a", "name": "Old Instant A", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "sorc_b", "name": "Old Sorcery B", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "inst_c", "name": "Old Instant C", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "dead_bear", "name": "Dead Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "opp_inst", "name": "Opp Old Instant", "type": "Instant", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2, "C": 5}},
+ "steps": [
+  {"op": "cast", "key": "scholar", "real": "Scholar of the Ages", "decisions": ["inst_a", "sorc_b", "inst_c"]}
+ ],
+ "expect": {
+  "zone": {"scholar": "battlefield", "inst_a": "hand", "sorc_b": "hand", "inst_c": "graveyard", "dead_bear": "graveyard", "opp_inst": "graveyard"},
+  "hand": {"0": 2, "1": 0}
+ },
+ "notes": "Printed: 'When this creature enters, return up to two target instant and/or sorcery cards from your graveyard to your hand.' Three eligible cards: the two chosen return, the third stays even though a third pick is offered in the decision list (no third target slot); a creature card and the opponent's instant are never eligible."
+}

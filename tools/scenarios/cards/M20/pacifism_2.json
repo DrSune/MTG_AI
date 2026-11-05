@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "pacifism_enchanted_creature_cant_block",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pac", "real": "Pacifism", "zone": "hand", "controller": 0},
+  {"key": "you_bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "key": "pac", "real": "Pacifism", "targets": ["opp_bear"]},
+  {"op": "combat", "seat": 0, "attack": {"you_bear": true}}
+ ],
+ "expect": {
+  "attached": {"pac": "opp_bear"},
+  "not_asked_to_block": ["opp_bear"],
+  "attackers": {"you_bear": true},
+  "blocked": {"you_bear": []},
+  "life": {"0": 20, "1": 18}
+ },
+ "notes": "Printed: 'Enchanted creature can't attack or block.' Pacifism on the opponent's Bear: your Bear attacks and the enchanted Bear is never offered a block; 2 damage to the opponent."
+}

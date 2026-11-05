@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hc", "real": "Hard Cover", "zone": "hand", "controller": 0},
+  {"key": "ob", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ojunk", "name": "Opp Junk", "type": "Creature — Filler", "power": "1", "toughness": "1", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "hc", "controller": 0, "targets": ["ob"]},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "ob", "idx": -1, "seat": 1, "decisions": ["ojunk"]}
+ ],
+ "expect": {"toughness": {"ob": 4}, "tapped": {"ob": true}, "zone": {"ojunk": "graveyard"}, "hand": {"0": 0, "1": 2}},
+ "notes": "Hard Cover (M20): on the opponent's creature the granted ability is the opponent's: on their turn (after their draw step: hand Opp Junk + 1) they tap the Bear, draw (3 cards) and discard Opp Junk (2). Your hand is unchanged."
+}

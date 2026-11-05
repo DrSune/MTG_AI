@@ -142,5 +142,28 @@
  },
  "probe": {
   "sha": "94af31095653244ba2b07324f62412a639429c60454cee14881db45fd01b27b1"
+ },
+ "verified": {
+  "tree_sha": "c8ec400fcdd214e2482e67b99e583289a3f9ff3ddb8e065c740a3147de2c4421",
+  "probe_sha": "fdb7071f41ac62e455a5d1315ed14b8c79e90392f1d0ac6808f7d7633b697ae6",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever another creature you control enters, each opponent loses 1 life.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control]: trigger [0], opp loses 1 life (20 -> 19); [you cast Raise the Alarm]: two Soldier tokens, two triggers, opp 20 -> 18; [you cast Yoked Ox]: one trigger; [a creature enters under the opponent's control]: none; [cast] and [the card enters during the opponent's turn]: the Knight itself does not trigger.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
  }
 }

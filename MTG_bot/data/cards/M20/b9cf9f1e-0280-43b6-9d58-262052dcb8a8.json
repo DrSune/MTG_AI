@@ -137,5 +137,32 @@
  },
  "probe": {
   "sha": "7148d7c083d3eb76929578d2086763d278a2490ed472290833232cd0dadc8995"
+ },
+ "verified": {
+  "tree_sha": "2e7926e0c56f577cecd7e6f90b68cb6fed414c63ef714b1aa3d53eba529f9d9a",
+  "probe_sha": "7148d7c083d3eb76929578d2086763d278a2490ed472290833232cd0dadc8995",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Target creature gains deathtouch until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast) 1..1 of all six creatures; e.g. [cast targets=['opp_giant']]: opp_giant keywords +DEATHTOUCH, after the turn ends -DEATHTOUCH.",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "every variant: you draws you:Library 5#1 (library 6 -> 5).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

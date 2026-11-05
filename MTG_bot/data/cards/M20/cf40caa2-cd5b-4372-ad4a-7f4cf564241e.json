@@ -200,5 +200,50 @@
  },
  "probe": {
   "sha": "f368d522d8de74410a553dd830e7edb135cde42981f7c23072679252df20d129"
+ },
+ "verified": {
+  "tree_sha": "fdcd7c440527c6d891afe5b6ae2dbb8a365b1eb966488f3ef25af0f5b5f7c2ee",
+  "probe_sha": "d954d72c4db57a7ea8a851bd1bd988cca76637030ea0fca641ba444c14a053ed",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows keywords +FLASH but never casts the card at instant speed (the opponent's-turn variant is a MOVE_ZONE). Pack celestial_messenger_flash_on_opponents_turn: cast on the opponent's turn, it enters; control pack control_griffin_no_flash_refused_on_opponents_turn shows a non-flash creature is refused there ('window:not_your_turn'); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block, opp is dealt 3.",
+    "issue": ""
+   },
+   {
+    "clause": "This creature gets +1/+1 as long as you control a Yanling planeswalker.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No Yanling planeswalker on the standard board ([cast] P/T 3/2). Packs: celestial_messenger_yanling_planeswalker_pumps (you cast Mu Yanling, Sky Dancer -> 4/3), celestial_messenger_bonus_ends_when_yanling_leaves (-> 3/2), celestial_messenger_opponents_yanling_no_bonus (opponent's Yanling -> 3/2); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/celestial_messenger_1.json",
+   "tools/scenarios/cards/M20/celestial_messenger_2.json",
+   "tools/scenarios/cards/M20/celestial_messenger_3.json",
+   "tools/scenarios/cards/M20/celestial_messenger_4.json",
+   "tools/scenarios/cards/M20/celestial_messenger_5.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 3,
+   "score": 0.375,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/duration/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/duration/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/duration/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

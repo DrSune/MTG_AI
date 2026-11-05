@@ -158,5 +158,38 @@
  },
  "probe": {
   "sha": "d407f26e8ab9b1cb162cf8b4967524032092598f201721638c4e4a329ded167e"
+ },
+ "verified": {
+  "tree_sha": "28ebf210cec85af84a26db00cde14ca4e827e9f8815f9a8413b3f2252b5239e7",
+  "probe_sha": "2fd7fdc423104aa110a771f69fd62a6ff2c031d71b4be481e27dc91f78b6e8d7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: only a main-phase cast ('keywords +FLASH'). Pack brineborn_cutthroat_flash_and_counter_on_opp_turn.json PASS: cast on the opponent's turn (turn_seats [0, 1]); the control /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20_verify/work_v3/packs/brineborn_cutthroat_non_flash_control.json shows a non-flash creature refused there ('illegal cast: window:not_your_turn')",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace shows only the negative: your Raise the Alarm and Yoked Ox cast on your own turn -> no trigger. Packs: brineborn_cutthroat_flash_and_counter_on_opp_turn.json PASS (its own flash cast does not count; your Raise the Alarm on the opponent's turn -> exactly one counter, 2/1 -> 3/2); brineborn_cutthroat_opponent_spell_no_counter.json PASS (your spell on your turn and the opponent's spell on their turn -> no counter). Wrong variants (two counters, none, counter from the opponent's spell) fail",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/brineborn_cutthroat_1.json",
+   "tools/scenarios/cards/M20/brineborn_cutthroat_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
  }
 }

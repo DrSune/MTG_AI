@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "of", "real": "Faerie Miscreant", "zone": "battlefield", "controller": 1},
+  {"key": "f2", "real": "Faerie Miscreant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [{"op": "cast", "key": "f2", "controller": 0}],
+ "expect": {"zone": {"f2": "battlefield"}, "hand": {"0": 0, "1": 0}},
+ "notes": "Faerie Miscreant (M20): only a Miscreant YOU control counts; with the opponent's Miscreant alone, yours draws nothing."
+}

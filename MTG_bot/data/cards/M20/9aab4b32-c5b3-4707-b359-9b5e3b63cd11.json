@@ -176,5 +176,35 @@
  },
  "probe": {
   "sha": "faf5f2a97f2ec5626486bbd53b2927d820c16b4d9562f0d58f037a19298e6e59"
+ },
+ "verified": {
+  "tree_sha": "c11499917637eab897575c5e751386df69168a158d9628612f07fe4672266d35",
+  "probe_sha": "faf5f2a97f2ec5626486bbd53b2927d820c16b4d9562f0d58f037a19298e6e59",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Reduce to Ashes deals 5 damage to target creature.",
+    "status": "OK",
+    "evidence": "target slot 1..1 of the six creatures; each [cast targets=[X]]: 'X is dealt 5 damage (by card/DEAL_DAMAGE)'; cost R-1 W-4.",
+    "issue": ""
+   },
+   {
+    "clause": "If that creature would die this turn, exile it instead.",
+    "status": "OK",
+    "evidence": "Every variant: the lethally damaged target 'moves battlefield -> exile (by card/MOVE_ZONE)', never to the graveyard. The 'this turn' bound is not in G1; packs reduce_to_ashes_1 (a 7/7 survives, dies later the same turn: exiled; an untargeted creature dying the same turn: graveyard) and reduce_to_ashes_2 (dies next turn: graveyard) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/reduce_to_ashes_1.json",
+   "tools/scenarios/cards/M20/reduce_to_ashes_2.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

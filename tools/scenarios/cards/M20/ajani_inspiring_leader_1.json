@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P6d9dafea82 G4. Printed: '[-10]: Creatures you control gain flying and double strike until end of turn.' Ajani at 10 loyalty pays -10 (0 loyalty: it goes to the graveyard). Both of seat 0's creatures gain flying and double strike; seat 1's creature gains nothing.",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Inspiring Leader", "zone": "battlefield", "controller": 0},
+  {"key": "m1", "name": "Mine One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "name": "Mine Two", "type": "Creature — Ox", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 10},
+  {"op": "activate", "key": "aj", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"aj": "graveyard"},
+  "battlefield_keywords": {"Mine One": ["DOUBLE_STRIKE", "FLYING"], "Mine Two": ["DOUBLE_STRIKE", "FLYING"], "Opp One": []}
+ }
+}

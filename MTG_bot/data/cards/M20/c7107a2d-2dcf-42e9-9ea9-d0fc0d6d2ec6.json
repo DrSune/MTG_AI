@@ -142,5 +142,28 @@
  },
  "probe": {
   "sha": "1a2c8bc8747ec29b1f08b766c1a09f4f86ad5bd3242fbbbfd8c1d4c9db7f1c6a"
+ },
+ "verified": {
+  "tree_sha": "31e4b9c1ee80dc45ad8879cfa7f251ece086cc9b43814a2599e5d650159974cd",
+  "probe_sha": "725c90c50c542ff9b8750e964915657267be0ccf294c564e6531d48cf28af854",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever another creature you control enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control]: you gains 1 life (20 -> 21); [you cast an instant or sorcery (Raise the Alarm)]: two Soldier tokens, two triggers, 20 -> 22; [you cast a creature (Yoked Ox)]: 20 -> 21; [a creature enters under the opponent's control]: none; [cast] (the card itself entering): no gain",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
  }
 }

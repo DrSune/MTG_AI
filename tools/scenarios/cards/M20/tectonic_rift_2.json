@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "name": "tectonic_rift_restriction_ends_with_the_turn",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rift", "real": "Tectonic Rift", "zone": "hand", "controller": 0},
+  {"key": "oland", "name": "Opp Land", "type": "Basic Land — Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "wall", "name": "Your Wall", "type": "Creature — Wall", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "rift", "real": "Tectonic Rift", "controller": 0, "targets": ["oland"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"giant": true}, "block": {"wall": "giant"}}
+ ],
+ "expect": {
+  "zone": {"oland": "graveyard", "wall": "battlefield"},
+  "blocked": {"giant": ["wall"]},
+  "damage": {"wall": 4},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Printed: '... can't block this turn.' On the opponent's next turn your non-flying Wall blocks their Giant again."
+}

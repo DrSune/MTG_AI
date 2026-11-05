@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pb5c8df7159 G4. Printed: 'Whenever a creature you control with flying enters, this creature gets +1/+1 until end of turn.' Two fliers enter under seat 0 (two triggers: +2/+2), a ground creature of seat 0 and a flier of seat 1 enter too (no trigger): the 2/1 Shaman is 4/3.",
+ "cards": [
+  {"key": "ws", "real": "Waterkin Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 0},
+  {"key": "f2", "name": "My Drake", "type": "Creature — Drake", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "hand", "controller": 0},
+  {"key": "g", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "of", "name": "Opp Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "f1"},
+  {"op": "enter", "key": "g"},
+  {"op": "enter", "key": "of"},
+  {"op": "enter", "key": "f2"}
+ ],
+ "expect": {
+  "zone": {"f1": "battlefield", "f2": "battlefield", "g": "battlefield", "of": "battlefield"},
+  "power": {"ws": 4},
+  "toughness": {"ws": 3}
+ }
+}

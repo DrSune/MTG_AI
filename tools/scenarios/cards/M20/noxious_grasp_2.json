@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "noxious_grasp_cannot_target_a_red_planeswalker",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grasp", "real": "Noxious Grasp", "zone": "hand", "controller": 0},
+  {"key": "opp_chandra", "real": "Chandra, Flame's Fury", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "grasp", "real": "Noxious Grasp", "targets": ["opp_chandra"], "expect_raise": "illegal target selection"}
+ ],
+ "expect": {
+  "zone": {"grasp": "hand", "opp_chandra": "battlefield"}
+ },
+ "notes": "Printed: '... that's green or white.' A red planeswalker is not a legal target."
+}

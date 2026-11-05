@@ -221,5 +221,45 @@
  },
  "probe": {
   "sha": "eaf90b437ae61a1acfef763dcefaeb3dff77c118cb291b70eff7a3ce34d7ba7d"
+ },
+ "verified": {
+  "tree_sha": "b99dfa19ec66b6eed475f74a1e2018e202a7f2e7de803ad331641d316de5a948",
+  "probe_sha": "6d838255efd9d6be6ddadf2717deccd4169e9ef022bb0acbc55495e8570cf466",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Sacrifice this creature: Choose target permanent card in your graveyard that was put there from the battlefield this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "G1: 'ability [0] skipped: a target slot needs 1, the board offers 0' (correct: nothing went from the battlefield to your graveyard this turn). Packs salvager_of_ruin_2 (refused for an older card, the opponent's creature that died this turn, an instant put into your graveyard from hand, and the Salvager itself) and salvager_of_ruin_3 (refused on a later turn) pass with 'target:selection:off_population' refusals.",
+    "issue": ""
+   },
+   {
+    "clause": "Return it to your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack salvager_of_ruin_1 (your creature that died this turn returns to your hand; the Salvager is sacrificed; the older card stays) passes; twin fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/salvager_of_ruin_1.json",
+   "tools/scenarios/cards/M20/salvager_of_ruin_2.json",
+   "tools/scenarios/cards/M20/salvager_of_ruin_3.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 4,
+   "score": 0.3333333333333333,
+   "survived": [
+    "drop cost part 0 (CostSacrifice) at 1/0/cost",
+    "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
+    "widen filter (drop part 1) at 1/0/cost/parts/0/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/filter/children/0/who",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/filter/children/0/to_zone/controller",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/args/destination"
+   ]
+  }
  }
 }

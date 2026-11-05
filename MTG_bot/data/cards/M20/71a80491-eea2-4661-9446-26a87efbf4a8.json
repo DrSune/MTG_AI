@@ -263,5 +263,43 @@
  },
  "probe": {
   "sha": "379c56f36b4c6356309f651f569ddcbcdfe305a9443893e636ddea8e0557c93c"
+ },
+ "verified": {
+  "tree_sha": "c5a9cc14525b82af72d6209e6f84f1d1bb27c8bd1594450086aa57adb9391a88",
+  "probe_sha": "8a7a05357b3d870597f0c78bf033b870f568d6da202a2f6c922fc664a602e9ce",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block, 'opp is dealt 3 damage'.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a noncreature spell, create a 1/1 white Spirit creature token with flying.",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Raise the Alarm)]: 'card's triggered ability [0] triggers', '+ you:Spirit (battlefield, you, 1/1, FLYING)'; [you cast a creature (Yoked Ox)]: nothing. Pack kykar_winds_fury_1 (the opponent's noncreature spell: no Spirit; yours: exactly one) passes; twin fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Sacrifice a Spirit: Add {R}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: 'you_spirit moves battlefield -> graveyard (by card/SACRIFICE)', 'you: mana R+1'.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/kykar_wind's_fury_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 11,
+   "score": 0.8461538461538461,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/cost/parts/0/target/filter",
+    "widen filter (drop part 2) at 1/1/cost/parts/0/target/filter"
+   ]
+  }
  }
 }

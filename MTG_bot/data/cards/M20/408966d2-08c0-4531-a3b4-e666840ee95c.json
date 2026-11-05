@@ -506,5 +506,52 @@
  },
  "probe": {
   "sha": "a4bcb33ce71714df0567505c584f6d921a8464b014f2b6af80388c8bd148b7b8"
+ },
+ "verified": {
+  "tree_sha": "6d184b7de8ee7ca8390000c9f21daf32b91983a645f42661ddd1bbf0fea8b9f9",
+  "probe_sha": "a4bcb33ce71714df0567505c584f6d921a8464b014f2b6af80388c8bd148b7b8",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "[+1]: Chandra deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 1..1 of [six creatures, card (Chandra herself), you, opp]; every variant: LOYALTY 4 -> 5 and exactly 2 damage to the chosen target (bear dies, giant marked 2, you/opp 20 -> 18; targeting herself 4 -> 5 -> 3)",
+    "issue": ""
+   },
+   {
+    "clause": "[-2]: Chandra deals 4 damage to target creature and 2 damage to that creature's controller.",
+    "status": "OK",
+    "evidence": "ability [1] target slot 1..1 of the six creatures only (no player slot); every variant: LOYALTY 4 -> 2, 4 damage to the creature, 2 to its controller (your creatures -> 'you is dealt 2', you 20 -> 18; opponent's -> 'opp is dealt 2', opp 20 -> 18)",
+    "issue": ""
+   },
+   {
+    "clause": "[-8]: Chandra deals 10 damage to target player and each creature that player controls.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: 'ability [2] not activatable from battlefield: cost:loyalty:4<8'. Packs: chandra_flames_fury_minus8_opponent.json PASS (loyalty 8 -> 0, Chandra to graveyard; opponent 20 -> 10; their Bear dies, their 6/12 keeps 10 damage; your Bear and their artifact untouched); chandra_flames_fury_minus8_self.json PASS (target yourself: you 10, your Bear dies, the opponent's side untouched, loyalty 9 -> 1). Wrong variants (11 damage, your creature hit, opponent hit) fail",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/chandra_flame's_fury_1.json",
+   "tools/scenarios/cards/M20/chandra_flame's_fury_2.json"
+  ],
+  "mutation": {
+   "mutants": 25,
+   "killed": 15,
+   "score": 0.6,
+   "survived": [
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "amount+1 at 1/2/effect/steps/0/args/amount",
+    "amount-1 at 1/2/effect/steps/0/args/amount",
+    "target->all at 1/2/effect/steps/0/args/target",
+    "amount+1 at 1/2/effect/steps/0/args/target/count",
+    "amount+1 at 1/2/effect/steps/1/args/amount",
+    "amount-1 at 1/2/effect/steps/1/args/amount",
+    "widen filter (drop part 0) at 1/2/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/steps/1/args/target/filter"
+   ]
+  }
  }
 }

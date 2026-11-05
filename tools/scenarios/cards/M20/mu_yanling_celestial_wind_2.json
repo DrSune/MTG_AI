@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pc9f143e977 G4. Printed: '[-7]: Creatures you control with flying get +5/+5 until end of turn.' The bonus ends with the turn: after the turn ends the flier is 2/2 again.",
+ "cards": [
+  {"key": "mu", "real": "Mu Yanling, Celestial Wind", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "mu", "set": 7},
+  {"op": "activate", "key": "mu", "idx": 2, "seat": 0},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"mu": "graveyard"},
+  "power": {"f1": 2},
+  "toughness": {"f1": 2}
+ }
+}

@@ -195,5 +195,28 @@
  },
  "probe": {
   "sha": "1ed5a2478939aba0900840a254447e1693b5ccace26a81d3316bd91a700e31f7"
+ },
+ "verified": {
+  "tree_sha": "c9362043cc0039fd40b5c57e2dcda8977b03b5bd320af6e531bc557f3b57b61c",
+  "probe_sha": "1ed5a2478939aba0900840a254447e1693b5ccace26a81d3316bd91a700e31f7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Target creature gets +2/+2 and gains lifelink until end of turn.",
+    "status": "OK",
+    "evidence": "target slot 1..1 of the six creatures; each [cast targets=[X]]: P/T +2/+2 and 'keywords +LIFELINK', both reverted 'after the turn ends'; cost W-2. Pack moment_of_heroism_1 (the granted lifelink still works in combat after the instant left the stack: life 24 / 16) passes; twin fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/moment_of_heroism_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

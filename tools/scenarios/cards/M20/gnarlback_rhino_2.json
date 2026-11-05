@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pc350197a7e G4. Printed: 'Whenever YOU cast a spell that targets THIS creature, draw a card.' Two non-triggers: seat 0 casts Titanic Growth at its other creature, and seat 1 casts Titanic Growth (an instant, on seat 0's turn) at the Rhino. Nobody draws.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "tg0", "real": "Titanic Growth", "zone": "hand", "controller": 0},
+  {"key": "tg1", "real": "Titanic Growth", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}, "1": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg0", "targets": ["bear"]},
+  {"op": "cast", "real": "Titanic Growth", "key": "tg1", "controller": 1, "targets": ["rhino"]}
+ ],
+ "expect": {
+  "zone": {"tg0": "graveyard", "tg1": "graveyard"},
+  "hand": {"0": 0, "1": 0},
+  "power": {"bear": 6, "rhino": 8}
+ }
+}

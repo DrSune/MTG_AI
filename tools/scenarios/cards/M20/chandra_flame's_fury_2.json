@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "chandra_flames_fury_minus8_target_yourself",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "chandra", "real": "Chandra, Flame's Fury", "zone": "battlefield", "controller": 0},
+  {"key": "you_bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "chandra", "set": 9},
+  {"op": "activate", "key": "chandra", "idx": 2, "seat": 0, "targets": ["p0"]}
+ ],
+ "expect": {
+  "life": {"0": 10, "1": 20},
+  "zone": {"chandra": "battlefield", "you_bear": "graveyard", "opp_bear": "battlefield"},
+  "counters": {"chandra": {"LOYALTY": 1}}
+ },
+ "notes": "Printed: '[-8]: Chandra deals 10 damage to target player and each creature that player controls.' Targeting yourself: you 20 -> 10 and your creature dies; the opponent and their creature are untouched; loyalty 9 -> 1."
+}

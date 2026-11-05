@@ -377,5 +377,40 @@
  },
  "probe": {
   "sha": "c256f4ceebef8dc76b69e5cc97fcc78d6c1716c19b797f3b38548eb86ccd9cbd"
+ },
+ "verified": {
+  "tree_sha": "95646d3832c26c495e26acf6b40e7fcf565bf41f3a2e22a2fea417784794d817",
+  "probe_sha": "c256f4ceebef8dc76b69e5cc97fcc78d6c1716c19b797f3b38548eb86ccd9cbd",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Equipped creature gets +10/+10 and loses flying.",
+    "status": "NOT_EXERCISED",
+    "evidence": "+10/+10 shown: [activate [1] targets=['you_bear']] you_bear 2/2 -> 12/12, [targets=['you_giant']] 4/4 -> 14/14. 'loses flying' not exercised (no flier of yours on the board). Pack colossus_hammer_loses_flying.json: a 1/1 flier equipped becomes 11/11 and P1's ground 2/2 is offered the block (<fly>,NONE), P1 20 -> 9. PASS on the live tree and on this packet's tree; FAILS on a mutant without the LOSE_ABILITY step (block_asks[grd]: 0 asks).",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {8} ({8}: Attach to target creature you control. Equip only as a sorcery.)",
+    "status": "OK",
+    "evidence": "ability [1] target slot 1..1 of [you_bear, you_giant] (your creatures only); [activate [1] targets=['you_bear']]: you: mana W-8, attaches (P/T change). Timing also checked by pack colossus_hammer_equip_sorcery_speed.json: refused on P1's turn (window:sorcery:not_own_turn) and for P1's creature (target:selection:off_population), then attaches; PASS on live and this tree, FAILS on a mutant without timing=SORCERY.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/colossus_hammer_1.json",
+   "tools/scenarios/cards/M20/colossus_hammer_2.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 15,
+   "score": 0.7894736842105263,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
  }
 }

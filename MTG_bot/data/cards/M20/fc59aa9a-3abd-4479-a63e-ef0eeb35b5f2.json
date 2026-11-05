@@ -199,5 +199,38 @@
  },
  "probe": {
   "sha": "30b6eeb7739721fc2eb5d05a81a4eeef20af46e9d37a08bc551161a48702a590"
+ },
+ "verified": {
+  "tree_sha": "6956db9335828bfcb473e0e7143b3b470e00de15dd63ebe34bdb211595120077",
+  "probe_sha": "dfacd4deb4a6ab6ff5dc3ec3261cd5a79c1dadfb1491a5e0c493e5ce574e8db0",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever another blue creature you control enters, target player mills two cards.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No blue creature enters in G1 (non-blue entries correctly do nothing). Packs sages_row_denizen_1 (target the opponent: it mills exactly its top two), _2 (target yourself: you mill two) and _3 (the Denizen itself, a green creature, the opponent's blue creature: no trigger) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/sage's_row_denizen_1.json",
+   "tools/scenarios/cards/M20/sage's_row_denizen_2.json",
+   "tools/scenarios/cards/M20/sage's_row_denizen_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 2,
+   "score": 0.2222222222222222,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 1) at 1/0/event/subject",
+    "widen filter (drop part 2) at 1/0/event/subject",
+    "controller YOU->OPPONENT at 1/0/event/subject/children/1/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "amount-1 at 1/0/effect/args/amount",
+    "zone GRAVEYARD->EXILE at 1/0/effect/args/destination"
+   ]
+  }
  }
 }

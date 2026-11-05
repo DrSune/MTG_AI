@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P816c4e09ee G4. Printed: 'Landfall - Whenever a land you control enters, put a +1/+1 counter on target Elemental you control. If you control eight or more lands, draw a card.' Seat 0 controls seven Forests and plays an eighth: Omnath (the only Elemental) gets a +1/+1 counter and seat 0, now at eight lands, draws a card (hand: the played Forest leaves, one card arrives).",
+ "cards": [
+  {"key": "om", "real": "Omnath, Locus of the Roil", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l3", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l4", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l5", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l6", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l7", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l8", "real": "Forest", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "l8", "seat": 0}
+ ],
+ "expect": {
+  "zone": {"l8": "battlefield"},
+  "counters": {"om": {"PLUS_1_PLUS_1": 1}},
+  "power": {"om": 4},
+  "hand": {"0": 1}
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P2cd676e4ca G4. Printed: 'Reduce to Ashes deals 5 damage to target creature. If that creature would die this turn, exile it instead.' The 7/7 survives the 5 damage, then dies the SAME turn to 2 more damage after the spell left the stack: it is exiled. Control: the 2/2 that was never targeted dies the same way and goes to the graveyard.",
+ "cards": [
+  {"key": "rta", "real": "Reduce to Ashes", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Big Ox", "type": "Creature — Ox", "power": "7", "toughness": "7", "zone": "battlefield", "controller": 1},
+  {"key": "bull", "name": "Bull", "type": "Creature — Ox", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 5}},
+ "steps": [
+  {"op": "cast", "real": "Reduce to Ashes", "key": "rta", "targets": ["ox"]},
+  {"op": "deal_damage", "source": "pinger", "target": "ox", "amount": 2},
+  {"op": "deal_damage", "source": "pinger", "target": "bull", "amount": 2}
+ ],
+ "expect": {
+  "zone": {"rta": "graveyard", "ox": "exile", "bull": "graveyard", "pinger": "battlefield"},
+  "damage_received": {"ox": 7, "bull": 2}
+ }
+}

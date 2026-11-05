@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hc", "real": "Hard Cover", "zone": "hand", "controller": 0},
+  {"key": "junk", "name": "Junk Card", "type": "Creature — Filler", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "hc", "controller": 0, "targets": ["bear"]},
+  {"op": "activate", "key": "bear", "idx": -1, "seat": 0, "decisions": ["junk"]}
+ ],
+ "expect": {"attached": {"hc": "bear"}, "power": {"bear": 2}, "toughness": {"bear": 4}, "tapped": {"bear": true}, "zone": {"junk": "graveyard"}, "hand": {"0": 1}, "graveyard": {"0": ["Junk Card"]}},
+ "notes": "Hard Cover (M20): 'Enchanted creature gets +0/+2 and has \"{T}: Draw a card, then discard a card.\"' The Bear is 2/4; tapping it draws a card (hand Junk + drawn card) and then you discard Junk Card (hand 1)."
+}

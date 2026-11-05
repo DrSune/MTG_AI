@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "pulse_of_murasa_cannot_target_a_noncreature_nonland_card",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pulse", "real": "Pulse of Murasa", "zone": "hand", "controller": 0},
+  {"key": "used", "name": "Used Trick", "type": "Instant", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "pulse", "real": "Pulse of Murasa", "targets": ["used"], "expect_raise": "illegal target selection"}
+ ],
+ "expect": {
+  "zone": {"used": "graveyard", "pulse": "hand"}
+ },
+ "notes": "Printed: 'target creature or land card'. An instant card in the graveyard is not a legal target."
+}

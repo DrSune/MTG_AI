@@ -201,5 +201,43 @@
  },
  "probe": {
   "sha": "115f4ff8465b49dd021cb1aa5c79bd0fdd3112528142f0a1599ec9189b134417"
+ },
+ "verified": {
+  "tree_sha": "5a3f193a72210acb055b30a68888796ab70a14fa7ce837cc393620af85de7890",
+  "probe_sha": "29ee3ed49929f91dd32d38bd396d993d7f88b58200952f96f221e95a190a4c3e",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block, opp is dealt 1.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, if you control another creature named Faerie Miscreant, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [cast] alone draws nothing (correct). Packs: faerie_miscreant_second_copy_draws (a second Miscreant draws: hand 1), faerie_miscreant_opponents_copy_no_draw (the opponent's Miscreant does not count); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/faerie_miscreant_1.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_2.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 3,
+   "score": 0.3,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 2) at 1/0/condition/inner_filter",
+    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
  }
 }

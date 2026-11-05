@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "pulse_of_murasa_returns_a_land_card_from_opponents_graveyard",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pulse", "real": "Pulse of Murasa", "zone": "hand", "controller": 0},
+  {"key": "opp_land", "name": "Opp Old Forest", "type": "Basic Land — Forest", "zone": "graveyard", "controller": 1},
+  {"key": "my_land", "name": "My Old Island", "type": "Basic Land — Island", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "pulse", "real": "Pulse of Murasa", "targets": ["opp_land"]}
+ ],
+ "expect": {
+  "zone": {"opp_land": "hand", "my_land": "graveyard", "pulse": "graveyard"},
+  "hand": {"0": 0, "1": 1},
+  "life": {"0": 26, "1": 20}
+ },
+ "notes": "Printed: 'Return target creature or land card from a graveyard to its owner's hand. You gain 6 life.' A land card in the opponent's graveyard goes to the opponent's (its owner's) hand; you gain 6."
+}

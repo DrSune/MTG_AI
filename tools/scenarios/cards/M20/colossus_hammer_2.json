@@ -1,0 +1,28 @@
+{
+ "name": "colossus_hammer_equip_only_as_a_sorcery",
+ "set": "M20",
+ "notes": "Printed: 'Equip {8} ({8}: Attach to target creature you control. Equip only as a sorcery.)' (CR 702.6a). On the opponent's turn the equip is refused before anything is paid; P0's creature stays 2/2. P1's own creature is never a legal equip target either: back on P0's turn, targeting it is refused, then equipping P0's 2/2 makes it 12/12 and spends the 8.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hammer", "real": "Colossus Hammer", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Their Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hammer"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 8}},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["mine"], "expect_raise": "window:sorcery:not_own_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 8}},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["theirs"], "expect_raise": "target:selection:off_population"},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["mine"]}
+ ],
+ "expect": {
+  "attached": {"hammer": "mine"},
+  "power": {"mine": 12, "theirs": 2},
+  "toughness": {"mine": 12, "theirs": 2},
+  "mana_pool": {"0": {}},
+  "controller": {"theirs": 1}
+ }
+}

@@ -182,5 +182,32 @@
  },
  "probe": {
   "sha": "03465038037ea88a96f11f8a9f7d21b57f669867c8fba006b4656283e9427ea0"
+ },
+ "verified": {
+  "tree_sha": "85ddcd6a11a5219012b9e927a923213803671173d0b7b3542f17c6c1b382d739",
+  "probe_sha": "5f6e2b5ca12fa11da089e187b86e1f99dacd82fa2543333a3b04fda0d64e839a",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block declared, 'opp is dealt 5 damage'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you may return target creature an opponent controls to its owner's hand.",
+    "status": "OK",
+    "evidence": "'ask target: [opp_flier, opp_tapped, opp_bear, opp_giant]' (opponent's only), 'ask may: [fire, skip]'; fire: target 'moves battlefield -> hand', opp hand 2 -> 3; [cast | ask 2 -> skip]: target stays.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

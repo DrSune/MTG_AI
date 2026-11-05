@@ -1,0 +1,97 @@
+{
+ "name": "elvish_reclaimer_sacrifice_a_land_fetch_a_land_tapped",
+ "set": "M20",
+ "notes": "Printed: '{2}, {T}, Sacrifice a land: Search your library for a land card, put it onto the battlefield tapped, then shuffle.' P0 pays {2}, taps Elvish Reclaimer and sacrifices one of its two Forests, then picks the Mountain (a Plains and two non-land cards are also in its library); the Mountain enters tapped under P0. The other Forest stays; the Plains and the non-land cards stay in the library (one land card is fetched).",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "rec",
+   "real": "Elvish Reclaimer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "lib1",
+   "name": "Lib Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib2",
+   "name": "Lib Trick",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "pln",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "rec",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "f2",
+    "mtn"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f1": "battlefield",
+   "f2": "graveyard",
+   "mtn": "battlefield",
+   "lib1": "library",
+   "lib2": "library",
+   "rec": "battlefield",
+   "pln": "library"
+  },
+  "tapped": {
+   "rec": true,
+   "mtn": true,
+   "f1": false
+  },
+  "controller": {
+   "mtn": 0
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

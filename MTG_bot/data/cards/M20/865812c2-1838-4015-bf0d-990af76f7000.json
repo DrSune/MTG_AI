@@ -138,5 +138,32 @@
  },
  "probe": {
   "sha": "11b0ad2aa6786d0cf3c34803bf737f152aaa8751361bb94808bc35ddc000c9f2"
+ },
+ "verified": {
+  "tree_sha": "6d07228e2d169ab579a4ba6183c297ee0dfb8c1dd4aaa2c1767363f4c6b949f7",
+  "probe_sha": "930452d36d5ab8ebc2d24daf60563642a3dd66258d0fb01240caadb23a0b504f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: no 'becomes tapped' event.",
+    "issue": ""
+   },
+   {
+    "clause": "This creature enters with a +1/+1 counter on it for each other creature you control.",
+    "status": "OK",
+    "evidence": "[cast]: counters {'PLUS_1_PLUS_1': 2} (you_bear, you_giant; the four opposing creatures not counted), P/T 4/4; same on [enters during the opponent's turn].",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

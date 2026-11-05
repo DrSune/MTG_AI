@@ -1,0 +1,67 @@
+{
+ "name": "gift_of_paradise_on_opponents_land",
+ "set": "M20",
+ "notes": "Printed: 'Enchant land. When this Aura enters, you gain 3 life. Enchanted land has \"{T}: Add two mana of any one color.\"' P0 casts it on P1's Forest: P0 (the Aura's controller) gains 3. The granted ability belongs to the land, so P1, its controller, taps it for two red into P1's pool; P0's pool stays empty.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gift",
+   "real": "Gift of Paradise",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "of",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "gift",
+   "real": "Gift of Paradise",
+   "controller": 0,
+   "targets": [
+    "of"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "of",
+   "idx": -1,
+   "seat": 1,
+   "decisions": [
+    "R"
+   ]
+  }
+ ],
+ "expect": {
+  "attached": {
+   "gift": "of"
+  },
+  "life": {
+   "0": 23,
+   "1": 20
+  },
+  "tapped": {
+   "of": true
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {
+    "R": 2
+   }
+  }
+ }
+}

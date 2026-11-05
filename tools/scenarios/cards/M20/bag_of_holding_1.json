@@ -1,0 +1,28 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_sacrifice_returns_only_cards_exiled_with_it",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "spare_b", "name": "Spare B", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "old_exile", "name": "Old Exile", "type": "Creature", "power": "2", "toughness": "2", "zone": "exile", "controller": 0},
+  {"key": "opp_exile", "name": "Opp Exile", "type": "Creature", "power": "2", "toughness": "2", "zone": "exile", "controller": 1}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_a"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"bag": "graveyard", "spare_a": "hand", "spare_b": "hand", "old_exile": "exile", "opp_exile": "exile"},
+  "hand": {"0": 4},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed: 'Whenever you discard a card, exile that card from your graveyard. / {2}, {T}: Draw a card, then discard a card. / {4}, {T}, Sacrifice this artifact: Return all cards exiled with this artifact to their owner's hand.' Loot away Spare A (exiled by the Bag's trigger); two turns later sacrifice the Bag: Spare A returns to hand, a card exiled earlier by something else (yours or the opponent's) stays in exile. Hand: 2 +1 draw -1 discard, +1 turn-3 draw, +1 returned = 4."
+}

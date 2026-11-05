@@ -148,5 +148,41 @@
  },
  "probe": {
   "sha": "4b38dbed95ccf80e64e0f14077170da32b20c9e57368a4b7769c6e1dd8115bcd"
+ },
+ "verified": {
+  "tree_sha": "bba0623478e8741ad44f0470ae70a42237164c9d1b0247520b859eb0aa22f41f",
+  "probe_sha": "a25a273ec1b59c07b2ece1f9c1dc3b1fa58057c1029214c7d33ad77a500dd682",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{T}: Add {G}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped, you: mana G+1 (you control 3 creatures: the Druid, you_bear, you_giant). Pack leafkin_druid_summoning_sick_cannot_tap: cast this turn, the {T} ability is refused (summoning sickness, CR 302.6).",
+    "issue": ""
+   },
+   {
+    "clause": "If you control four or more creatures, add {G}{G} instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Standard board has only 3 creatures you control, so only the {G} branch runs. Packs: leafkin_druid_four_creatures_gg (4 creatures you control -> mana_pool G:2) and leafkin_druid_three_own_plus_opp_g (3 own + 2 opponent creatures -> G:1) pass; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/leafkin_druid_1.json",
+   "tools/scenarios/cards/M20/leafkin_druid_2.json",
+   "tools/scenarios/cards/M20/leafkin_druid_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 4,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/0/effect/pred/count",
+    "amount+1 at 1/0/effect/then_effect/args/amount",
+    "amount-1 at 1/0/effect/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/then_effect/args/controller"
+   ]
+  }
  }
 }

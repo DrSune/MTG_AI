@@ -231,5 +231,37 @@
  },
  "probe": {
   "sha": "4593b2e04f67ce4efbf13b4f3f44f21c8ae0003b7765b83abab7d1c19ff3524f"
+ },
+ "verified": {
+  "tree_sha": "839ec348eec1f22b1360eccc61173415b77e1e5b87e138c7a7e50679ed1cfa3f",
+  "probe_sha": "9c71198ace614960665f7e98f59b5ed563028404910ad8c9ee02a164ef34e146",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, tap target creature an opponent controls.",
+    "status": "OK",
+    "evidence": "'ask target: [opp_flier, opp_tapped, opp_bear, opp_giant]' (opponent's only); e.g. 'opp_flier becomes tapped (by card/TAP)'.",
+    "issue": ""
+   },
+   {
+    "clause": "That creature doesn't untap during its controller's next untap step.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No variant reaches the opponent's next untap step. Packs frost_lynx_1 (stays tapped through the opponent's next untap step; an untargeted tapped creature untaps) and frost_lynx_2 (untaps at the following untap step) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/frost_lynx_1.json",
+   "tools/scenarios/cards/M20/frost_lynx_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "drop step 1 at 1/0/effect"
+   ]
+  }
  }
 }

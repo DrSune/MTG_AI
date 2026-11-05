@@ -1,0 +1,81 @@
+{
+ "name": "steel_overseer_counter_on_each_artifact_creature_you_control",
+ "set": "M20",
+ "notes": "Printed: '{T}: Put a +1/+1 counter on each artifact creature you control.' Steel Overseer and P0's other artifact creature get one counter each; P0's non-artifact creature, P0's non-creature artifact and P1's artifact creature get none. Steel Overseer taps.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ovs",
+   "real": "Steel Overseer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bot",
+   "name": "My Bot",
+   "type": "Artifact Creature \u2014 Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "relic",
+   "name": "My Relic",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obot",
+   "name": "Opp Bot",
+   "type": "Artifact Creature \u2014 Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "ovs",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "ovs": true
+  },
+  "counters": {
+   "ovs": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "bot": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "bear": {},
+   "relic": {},
+   "obot": {}
+  },
+  "power": {
+   "ovs": 2,
+   "bot": 2,
+   "bear": 2,
+   "obot": 1
+  }
+ }
+}

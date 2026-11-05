@@ -171,5 +171,37 @@
  },
  "probe": {
   "sha": "253ad79fcbe6c3979134341d955ff89e1b4bd27cb225bc61251e9d0cdf78da61"
+ },
+ "verified": {
+  "tree_sha": "1e5ea3f64de92597d4de7daa9a5873125889ef92d6994f675167d043d8459e36",
+  "probe_sha": "87bb74f25debc2021a67f4085b617c5f45b493ec8798876c0d9a950e18df85eb",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "OK",
+    "evidence": "cast: 'keywords +TRAMPLE'; blocked by the 4/4 opp_giant it assigns exactly lethal 4 (no excess to show). Excess shown by pack thicket_crasher_trample_and_granted_trample.json PASS: chump-blocked by a 1/1, it tramples 3 over",
+    "issue": ""
+   },
+   {
+    "clause": "Other Elementals you control have trample.",
+    "status": "OK",
+    "evidence": "cast and static: 'you_elemental: keywords +TRAMPLE'; opp_elemental and you_bear unchanged; when the Crasher dies 'you_elemental: keywords -TRAMPLE'. Same pack: your other Elemental (3/3) tramples 2 over a 1/1, your non-Elemental Bear deals none to the player (20 -> 15). Wrong variants fail",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/thicket_crasher_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 4,
+   "score": 0.6666666666666666,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 3) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

@@ -1,0 +1,66 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Pc9f143e977 G4. Printed: '[+1]: Until your next turn, up to one target creature gets -5/-0.' The -5/-0 outlasts seat 0's turn: on seat 1's turn its 4/4 is still -1/4; it attacks Mu Yanling and deals no damage, so her loyalty stays at 6 (5 + 1) and both players stay at 20.",
+ "cards": [
+  {
+   "key": "mu",
+   "real": "Mu Yanling, Celestial Wind",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oc",
+   "name": "Opp Brute",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "mu",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "oc"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "oc": "mu"
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "mu": {
+    "LOYALTY": 6
+   }
+  },
+  "power": {
+   "oc": -1
+  },
+  "toughness": {
+   "oc": 4
+  },
+  "attackers": {
+   "oc": true
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

@@ -1,0 +1,13 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mage", "real": "Dragon Mage", "zone": "battlefield", "controller": 0},
+  {"key": "h1", "name": "My Hand A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "o1", "name": "Opp Hand A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "wall", "name": "Opp Sky Wall", "type": "Creature — Wall", "power": "0", "toughness": "8", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [{"op": "combat", "seat": 0, "attack": {"mage": true}, "block": {"wall": "mage"}}],
+ "expect": {"life": {"0": 20, "1": 20}, "damage": {"wall": 5}, "hand": {"0": 1, "1": 1}, "zone": {"h1": "hand", "o1": "hand"}},
+ "notes": "Dragon Mage (M20): blocked by a flying 0/8, it deals its combat damage to the creature, not a player: no discard or draw."
+}

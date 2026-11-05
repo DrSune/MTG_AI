@@ -1,0 +1,60 @@
+{
+ "name": "dread_presence_swamp_enters_2_damage_and_gain_2",
+ "set": "M20",
+ "notes": "Printed: '... choose one - ...; This creature deals 2 damage to any target and you gain 2 life.' P0 plays a Swamp, picks the second mode and targets P1's 2/2: the 2/2 takes 2 from Dread Presence and dies, P0 goes to 22, nobody draws. A second Swamp the same turn is not playable (one land a turn), so the second land drop is checked in its own pack.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dread",
+   "real": "Dread Presence",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "swamp",
+   "real": "Swamp",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "swamp",
+   "seat": 0,
+   "decisions": [
+    "1",
+    "obear"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "swamp": "battlefield",
+   "obear": "graveyard",
+   "dread": "battlefield"
+  },
+  "damage_received": {
+   "obear": 2
+  },
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "0": 22,
+   "1": 20
+  }
+ }
+}

@@ -227,5 +227,37 @@
  },
  "probe": {
   "sha": "631ccb52e8593fb132853f5650c9285459fe2f87f19ff67fb1cd9f8ffcf77185"
+ },
+ "verified": {
+  "tree_sha": "5c73088775a1f64eeb8b1ad3cbce41d6fdd866b60208020528b65b86dc3bc32b",
+  "probe_sha": "2f5f98044fe31443e10e7af25a2cc372b696cc795b7eaac787dc0283bc3e2228",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, it gets +1/+0 ... for each Elemental you control.",
+    "status": "OK",
+    "evidence": "stimulus 'this creature attacks alone, unblocked': card's triggered ability [0] triggers; P/T 2/4 -> 4/4 with two Elementals you control (the Brawler and you_elemental; opp_elemental not counted); opp dealt 4, 20 -> 16. Blocked variant: deals 4 to opp_giant. No trigger when you_bear attacks",
+    "issue": ""
+   },
+   {
+    "clause": "until end of turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "stimulus variants never end the turn. Pack lavakin_brawler_attack_pump_counts_your_elementals_eot.json PASS: three Elementals of yours (opponent's two and a Bear not counted) -> attacks as 5/4, deals 5; after end_turn it is 2/4. Wrong variants (opponent Elementals counted, pump lasting) fail. Tree: duration DurationEot()",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/lavakin_brawler_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 5,
+   "score": 0.7142857142857143,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "widen filter (drop part 2) at 1/0/effect/args/power/magnitude/right/selector/filter"
+   ]
+  }
  }
 }

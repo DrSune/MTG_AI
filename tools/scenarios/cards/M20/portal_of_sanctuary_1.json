@@ -1,0 +1,27 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pbd5faedc63 G4. Printed: '{1}, {T}: Return target creature you control and each Aura attached to it to their owners' hands. Activate only during your turn.' Seat 0's Host carries seat 1's Pacifism and seat 0's own Pacifism; seat 0's other creature carries a third Pacifism. Activated on seat 0's turn targeting the Host: the Host and BOTH Auras attached to it go to their owners' hands (seat 1's Pacifism to seat 1's hand), while the Aura on the other creature stays attached.",
+ "cards": [
+  {"key": "portal", "real": "Portal of Sanctuary", "zone": "battlefield", "controller": 0},
+  {"key": "host", "name": "Host", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "host2", "name": "Other Host", "type": "Creature — Ox", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "opac", "real": "Pacifism", "zone": "battlefield", "controller": 1},
+  {"key": "mypac", "real": "Pacifism", "zone": "battlefield", "controller": 0},
+  {"key": "otherpac", "real": "Pacifism", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "enchant", "aura": "opac", "host": "host"},
+  {"op": "enchant", "aura": "mypac", "host": "host"},
+  {"op": "enchant", "aura": "otherpac", "host": "host2"},
+  {"op": "activate", "key": "portal", "idx": 0, "seat": 0, "targets": ["host"]}
+ ],
+ "expect": {
+  "zone": {"host": "hand", "opac": "hand", "mypac": "hand", "otherpac": "battlefield", "host2": "battlefield"},
+  "attached": {"otherpac": "host2"},
+  "hand": {"0": 2, "1": 1},
+  "tapped": {"portal": true},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,65 @@
+{
+ "name": "lotus_field_enters_tapped_and_sacrifices_two_lands",
+ "set": "M20",
+ "notes": "Printed: 'This land enters tapped. When this land enters, sacrifice two lands.' P0 plays Lotus Field with three Forests out and sacrifices two Forests of its choice; Lotus Field stays on the battlefield tapped, the third Forest stays, P1's land is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lotus",
+   "real": "Lotus Field",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "of",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "lotus",
+   "seat": 0,
+   "decisions": [
+    "f1",
+    "f2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lotus": "battlefield",
+   "f1": "graveyard",
+   "f2": "graveyard",
+   "f3": "battlefield",
+   "of": "battlefield"
+  },
+  "tapped": {
+   "lotus": true,
+   "f3": false
+  }
+ }
+}

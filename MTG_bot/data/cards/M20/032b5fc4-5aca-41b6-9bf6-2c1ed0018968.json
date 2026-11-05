@@ -152,5 +152,34 @@
  },
  "probe": {
   "sha": "0fe1346558a41dbe8bab488184643b37ef6c8143f6f47354b607d7b543f46d82"
+ },
+ "verified": {
+  "tree_sha": "483bb5fafb8cec85c2cb5f66a9a143999f11929a717c62cd47a485d6f49811de",
+  "probe_sha": "64e631e8e78e3d372603c1ce583b6c3a882fc62dd2e0d910565e779138c38d81",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "OK",
+    "evidence": "stimulus 'this creature attacks and opp_giant blocks it': COMBAT_DAMAGE ((4, opp_giant), (4, opp)) - lethal 4 to the 4/4 blocker, 4 tramples over, opp 20 -> 16; cast: 'keywords +TRAMPLE'",
+    "issue": ""
+   },
+   {
+    "clause": "Other creatures you control have trample.",
+    "status": "OK",
+    "evidence": "cast and static: you_bear, you_giant '+TRAMPLE'; your entering you_spare, Raise the Alarm's two Soldiers and Yoked Ox enter with TRAMPLE; the opponent's entering creature and opp creatures unchanged; when the Mammoth dies you_bear/you_giant '-TRAMPLE'; paid 'mana G-3 W-3' (= {3}{G}{G}{G})",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 4,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

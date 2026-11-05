@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P9738cd6e24 G4. Printed: 'Protection from black.' A black creature cannot block it (CR 702.16b). The Apostle and a 2/2 Scout attack; seat 1's black 0/9 Wall is offered only the Scout and NONE, blocks the Scout, and the Apostle's 2 damage goes through.",
+ "cards": [
+  {"key": "ap", "real": "Apostle of Purifying Light", "zone": "battlefield", "controller": 0},
+  {"key": "scout", "name": "Scout", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bwall", "name": "Black Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "colors": ["B"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ap": true, "scout": true}, "block": {"bwall": "scout"}}
+ ],
+ "expect": {
+  "block_asks": {"bwall": "<scout>,NONE"},
+  "blocked": {"scout": ["bwall"], "ap": []},
+  "life": {"0": 20, "1": 18},
+  "damage": {"bwall": 2}
+ }
+}

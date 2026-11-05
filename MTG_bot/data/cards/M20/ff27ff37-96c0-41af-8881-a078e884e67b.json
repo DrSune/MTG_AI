@@ -123,5 +123,32 @@
  },
  "probe": {
   "sha": "b6455623e263341edad07028777207f15be04a747630d211ba3c0b79d74b5af1"
+ },
+ "verified": {
+  "tree_sha": "68b03ccc3280d122b6f3f88b67bce7c2c948f26bcf452e3ca2f9694f51fb19e9",
+  "probe_sha": "b6455623e263341edad07028777207f15be04a747630d211ba3c0b79d74b5af1",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Sorin's Thirst deals 2 damage to target creature",
+    "status": "OK",
+    "evidence": "target slot (cast) 1..1 of the six creatures only (no artifact, enchantment or player); each [cast targets=[X]]: 'X is dealt 2 damage (by card/DEAL_DAMAGE)' (you_bear, opp_flier, opp_bear die; the 4/4s and 3/3 keep 2 damage until the turn ends).",
+    "issue": ""
+   },
+   {
+    "clause": "and you gain 2 life.",
+    "status": "OK",
+    "evidence": "every variant: 'you gains 2 life (by card/GAIN_LIFE)', you: life 20 -> 22; cost B-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

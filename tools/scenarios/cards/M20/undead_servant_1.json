@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "undead_servant_counts_only_servants_in_your_graveyard",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "servant", "real": "Undead Servant", "zone": "hand", "controller": 0},
+  {"key": "gy1", "real": "Undead Servant", "zone": "graveyard", "controller": 0},
+  {"key": "gy2", "real": "Undead Servant", "zone": "graveyard", "controller": 0},
+  {"key": "opp_gy", "real": "Undead Servant", "zone": "graveyard", "controller": 1},
+  {"key": "other_zombie", "name": "Your Fallen Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "servant", "real": "Undead Servant"}
+ ],
+ "expect": {
+  "zone": {"servant": "battlefield", "gy1": "graveyard", "gy2": "graveyard", "opp_gy": "graveyard"},
+  "tokens": {"Zombie": 2}
+ },
+ "notes": "Printed: 'When this creature enters, create a 2/2 black Zombie creature token for each card named Undead Servant in your graveyard.' Two in your graveyard -> two Zombies; the one in the opponent's graveyard and a differently named Zombie card do not count."
+}

@@ -1,0 +1,63 @@
+{
+ "name": "elvish_reclaimer_two_own_lands_in_graveyard_no_bonus",
+ "set": "M20",
+ "notes": "Printed: 'This creature gets +2/+2 as long as there are three or more land cards in your graveyard.' P0's graveyard holds two lands and an instant; P1's graveyard holds three lands. Only P0's own land cards count, so Elvish Reclaimer stays 1/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rec",
+   "real": "Elvish Reclaimer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "gi",
+   "name": "Spent Trick",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [],
+ "expect": {
+  "power": {
+   "rec": 1
+  },
+  "toughness": {
+   "rec": 2
+  }
+ }
+}

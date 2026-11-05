@@ -145,5 +145,40 @@
  },
  "probe": {
   "sha": "9c795907dfdeaf3495751f712046f179a1230be679f6a335a7e6584b8a649542"
+ },
+ "verified": {
+  "tree_sha": "1e3cdd1c43cfa8b298e67b28342cd137f79d31c6183f6f4bb3b922accd0e0f82",
+  "probe_sha": "9c795907dfdeaf3495751f712046f179a1230be679f6a335a7e6584b8a649542",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "This spell costs {1} less to cast if you control a creature with flying.",
+    "status": "NOT_EXERCISED",
+    "evidence": "You control no flier on the standard board (only opp_flier): [cast] pays the full {2}{U} (U-1 W-2), so the opponent's flier gives no reduction. Packs: winged_words_flier_reduces_cost (your flier: cast for U+W, pool empty), winged_words_opponents_flier_no_reduction (refused 'cost:mana_generic:1<2'); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   },
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "[cast]: you draw you:Library 5#1 and 4#1 (hand 6 -> 7, library 6 -> 4).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/winged_words_1.json",
+   "tools/scenarios/cards/M20/winged_words_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 4,
+   "score": 0.5,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/delta/amount",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter"
+   ]
+  }
  }
 }

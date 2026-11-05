@@ -126,5 +126,31 @@
  },
  "probe": {
   "sha": "49aa3ed6001548931d8cf5f1926e12868ea00e82a0a0022f7fc5d5ff2d251fdb"
+ },
+ "verified": {
+  "tree_sha": "b5b1b85557bba4c08aa9e255a231b6dbcdfd6d1231cc4cbc2d458a4ba1a6c2a9",
+  "probe_sha": "49aa3ed6001548931d8cf5f1926e12868ea00e82a0a0022f7fc5d5ff2d251fdb",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Put target creature with power 4 or greater on the bottom of its owner's library.",
+    "status": "OK",
+    "evidence": "target slot [you_giant, opp_giant] (only the power-4 creatures); each goes to its owner's library (opp library 6 -> 7). Bottom position: pack eternal_isolation_bottom_of_owners_library (the Giant is the last card of the opponent's library); eternal_isolation_power_3_not_a_target ('off_population'); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/eternal_isolation_1.json",
+   "tools/scenarios/cards/M20/eternal_isolation_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/cards/filter"
+   ]
+  }
  }
 }

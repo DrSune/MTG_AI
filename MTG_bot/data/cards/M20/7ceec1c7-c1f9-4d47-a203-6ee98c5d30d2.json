@@ -150,5 +150,32 @@
  },
  "probe": {
   "sha": "73bef3067bb6cd19d665bb21510c94ba5a9bccdbdca7619bc3ca9c5911e9e77f"
+ },
+ "verified": {
+  "tree_sha": "79e2eb7b853f0790a30a31f18172c9c591a4d19e702b83ffbab1b53c775c1476",
+  "probe_sha": "19d90686b3b759ad10ac82119be51a3f60b6d6ff29aa95fadd3e8f3e81674e0d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying (This creature can't be blocked except by creatures with flying or reach.)",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; [this creature attacks and opp_giant blocks it]: not blocked, opp 20 -> 15",
+    "issue": ""
+   },
+   {
+    "clause": "{5}{B}{B}: Return target creature card from your graveyard to the battlefield tapped.",
+    "status": "OK",
+    "evidence": "ability [0] slot 1..1 of [you_fallen] (not you_used, not the opponent's graveyard); [activate [0] targets=['you_fallen']]: you: mana B-2 W-5 (7 = {5}{B}{B}); you_fallen moves graveyard -> battlefield, becomes tapped (tapped False -> True, 2/2)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -155,5 +155,38 @@
  },
  "probe": {
   "sha": "4cd70fa1cc49c286d24fd07cacad423c13fe37f6235b5de00e81c37520b1bfd8"
+ },
+ "verified": {
+  "tree_sha": "ece760889b278f38021e8d6f25d93d6004a0c5f4b4bdffcb7f603a8b254fe54a",
+  "probe_sha": "4cd70fa1cc49c286d24fd07cacad423c13fe37f6235b5de00e81c37520b1bfd8",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flame Sweep deals 2 damage to each creature",
+    "status": "OK",
+    "evidence": "[cast]: each of the six creatures 'is dealt 2 damage' (you_bear, opp_flier, opp_bear die; giants and opp_tapped marked 2, cleared after the turn), no player damaged; the opponent's flier is hit; paid 'mana R-1 W-2' (= {2}{R})",
+    "issue": ""
+   },
+   {
+    "clause": "except for creatures you control with flying.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe board gives you no flier. Pack flame_sweep_spares_your_fliers_only.json PASS: your flier takes nothing; your non-flier, the opponent's flier and the opponent's Bear take 2 each. Wrong variants (your flier hit; the opponent's flier spared) fail. Tree: Creature and not (YOU, Creature, FLYING)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/flame_sweep_1.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 5,
+   "score": 0.625,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter/children/1/inner"
+   ]
+  }
  }
 }

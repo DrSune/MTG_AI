@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P20e697f06e G4. Printed: 'It gets an additional +2/+2 until end of turn for each card named Growth Cycle in your graveyard.' The additional bonus (one Growth Cycle in seat 0's graveyard: +2/+2 on top of +3/+3) ends with the turn: after the turn ends the 2/2 is 2/2 again.",
+ "cards": [
+  {"key": "gc", "real": "Growth Cycle", "zone": "hand", "controller": 0},
+  {"key": "gy1", "real": "Growth Cycle", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Growth Cycle", "key": "gc", "targets": ["bear"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"gc": "graveyard"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }
+}

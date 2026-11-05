@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "f1", "real": "Faerie Miscreant", "zone": "battlefield", "controller": 0},
+  {"key": "f2", "real": "Faerie Miscreant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [{"op": "cast", "key": "f2", "controller": 0}],
+ "expect": {"zone": {"f2": "battlefield"}, "hand": {"0": 1}},
+ "notes": "Faerie Miscreant (M20): 'When this creature enters, if you control another creature named Faerie Miscreant, draw a card.' You already control one Miscreant; casting a second draws a card (hand 1 -> 0 -> 1)."
+}

@@ -107,5 +107,28 @@
  },
  "probe": {
   "sha": "bfcabc9e2ccc4a0deb3d7543f40ba39bc39b19f6e4458d7b95da9b9afec2adaa"
+ },
+ "verified": {
+  "tree_sha": "64c2c6d7af84397499249abbdcb7f810363da05d8a38795148c35f871b40c8a4",
+  "probe_sha": "bfcabc9e2ccc4a0deb3d7543f40ba39bc39b19f6e4458d7b95da9b9afec2adaa",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Destroy all nonland permanents.",
+    "status": "OK",
+    "evidence": "[cast]: every creature, artifact and enchantment of both players is destroyed (you_bear .. opp_charm); you_land/opp_land untouched; mana W-6.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 1,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "pacifism_only_the_enchanted_creature_is_stopped",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pac", "real": "Pacifism", "zone": "hand", "controller": 0},
+  {"key": "you_bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opp_wall", "name": "Opp Wall", "type": "Creature", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "key": "pac", "real": "Pacifism", "targets": ["opp_bear"]},
+  {"op": "combat", "seat": 0, "attack": {"you_bear": true}, "block": {"opp_wall": "you_bear"}}
+ ],
+ "expect": {
+  "attached": {"pac": "opp_bear"},
+  "not_asked_to_block": ["opp_bear"],
+  "blocked": {"you_bear": ["opp_wall"]},
+  "damage": {"opp_wall": 2},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Printed: 'Enchanted creature can't attack or block.' Only the enchanted creature is stopped: the opponent's unenchanted Wall still blocks."
+}

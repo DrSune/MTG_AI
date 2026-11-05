@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "hand", "controller": 0},
+  {"key": "land", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "U": 1, "W": 1}},
+ "steps": [{"op": "cast", "key": "reef", "controller": 0, "decisions": ["skip"]}],
+ "expect": {"zone": {"reef": "battlefield", "land": "hand"}, "hand": {"0": 1}},
+ "notes": "Risen Reef (M20): the top card is a land but you decline; since you did not put it onto the battlefield, it goes into your hand."
+}

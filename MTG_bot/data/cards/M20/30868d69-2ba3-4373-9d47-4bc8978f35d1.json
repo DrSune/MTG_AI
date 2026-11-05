@@ -184,5 +184,26 @@
  },
  "probe": {
   "sha": "a20bb10976d5f61a4efd78cb5e4ea85666b6d507161624b672a9320731be5c6e"
+ },
+ "verified": {
+  "tree_sha": "a267ed2892eb6f0f62a9c93ca3be28d0dec00a0ae376cf58dbf12e0896ee7e45",
+  "probe_sha": "b224c1f5ae59aca0e9a7b81b9c0bb2f2b32346f0dc71a809c812addb139f6931",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, return another creature you control to its owner's hand.",
+    "status": "OK",
+    "evidence": "[cast] and [cast | ask 1 -> you_giant]: trigger [0]; 'ask choose: [you_bear, you_giant]' (your other creatures only: not itself, no opponent creature; a choice, not a target, as printed); exactly the chosen one 'moves battlefield -> hand'; paid 'mana U-1 W-3' (= {3}{U}); also on entering during the opponent's turn",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

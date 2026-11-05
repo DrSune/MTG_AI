@@ -88,5 +88,26 @@
  },
  "probe": {
   "sha": "c74b9d6a0a6b710445973f6d74924f46f93b81b446791a57bc7faad9f67bf650"
+ },
+ "verified": {
+  "tree_sha": "f84afc6fae45b725b4cc7191c521c386cba9d6c586709f2670d9b196101b8d34",
+  "probe_sha": "9b842c4ca08b674a8fdbd6632a5d7c9c87c5def8babd8e00b64701e8295582fc",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "This creature attacks each combat if able.",
+    "status": "OK",
+    "evidence": "[another creature you control (you_bear) attacks]: the card is declared too (DECLARE_ATTACKERS card 1, card becomes tapped), opp 20 -> 12; [on the opponent's turn, opp_bear attacks you]: same as without the card",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
  }
 }

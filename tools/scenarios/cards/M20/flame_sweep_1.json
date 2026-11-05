@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "flame_sweep_spares_only_creatures_you_control_with_flying",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sweep", "real": "Flame Sweep", "zone": "hand", "controller": 0},
+  {"key": "my_flier", "name": "My Drake", "type": "Creature — Drake", "power": "2", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "my_wall", "name": "My Wall", "type": "Creature — Wall", "power": "0", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "opp_flier", "name": "Opp Drake", "type": "Creature — Drake", "power": "2", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "sweep", "real": "Flame Sweep"}
+ ],
+ "expect": {
+  "zone": {"sweep": "graveyard", "my_flier": "battlefield", "my_wall": "battlefield", "opp_flier": "battlefield", "opp_bear": "graveyard"},
+  "damage": {"my_wall": 2, "opp_flier": 2},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Printed: 'Flame Sweep deals 2 damage to each creature except for creatures you control with flying.' Your flier takes nothing; your non-flier, the opponent's flier and the opponent's Bear each take 2 (the Bear dies); no player is dealt damage."
+}

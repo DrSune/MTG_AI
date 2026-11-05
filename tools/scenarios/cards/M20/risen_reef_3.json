@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "battlefield", "controller": 0},
+  {"key": "elem", "name": "Small Elemental", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "top", "name": "Top Spell", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "elem"}],
+ "expect": {"zone": {"elem": "battlefield", "top": "hand"}, "hand": {"0": 1}},
+ "notes": "Risen Reef (M20): another Elemental you control enters; the top card is not a land, so it goes into your hand."
+}

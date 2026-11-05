@@ -117,5 +117,26 @@
  },
  "probe": {
   "sha": "cf298e9171315b94311ab383e008d032fe2b5e88b7ba0b83f4f16a06f4343d21"
+ },
+ "verified": {
+  "tree_sha": "a1f5fb30eac223c012bae9f832ab0b3a8a1804aaf8397ca71625ad8394486361",
+  "probe_sha": "ef2333363d6b1920c09c7a1b5a6fccad9548746a599557c80aeca2a32273bcf5",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "During your turn, this creature has flying.",
+    "status": "OK",
+    "evidence": "[cast]: 'keywords +FLYING'; [this creature attacks and opp_giant blocks it]: no block; [on the opponent's turn, opp_bear attacks you]: 'card: keywords -FLYING'; [enters during the opponent's turn]: no flying.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

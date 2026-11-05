@@ -186,5 +186,26 @@
  },
  "probe": {
   "sha": "c975bc3bc57abf81e1d72d8f3964bc39ce2e2d3b4ac97caf40a512e6434fd3a6"
+ },
+ "verified": {
+  "tree_sha": "18e5ebf2e19a9f5f4649aeb3688c6693c88cbfdebfcac27172f0146670c2f020",
+  "probe_sha": "80049fa21bc2ef371e403967c8dbcd1d491bfd96b606c1d1303c8ea53af44c9c",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, target creature you control gets +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast] variants: trigger [0]; 'ask target: [you_bear, you_giant, card]' (your creatures only, itself included; no opponent creature); you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, itself 3/2 -> 4/3; each 'after the turn ends' back to printed size; paid 'mana W-3' (= {2}{W}); entering on the opponent's turn the pump ends with that turn",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

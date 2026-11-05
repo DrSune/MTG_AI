@@ -1,0 +1,67 @@
+{
+ "name": "master_splicer_golem_token_and_golems_you_control",
+ "set": "M20",
+ "notes": "Printed: 'When this creature enters, create a 3/3 colorless Phyrexian Golem artifact creature token. Golems you control get +1/+1.' P0 casts Master Splicer: one Phyrexian Golem token (3/3, 4/4 with the bonus). P0's other Golem becomes 3/3; P1's Golem stays 2/2; Master Splicer stays 1/1.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "spl",
+   "real": "Master Splicer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "golem",
+   "name": "My Golem",
+   "type": "Artifact Creature \u2014 Golem",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogolem",
+   "name": "Opp Golem",
+   "type": "Artifact Creature \u2014 Golem",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "spl",
+   "real": "Master Splicer",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "spl": "battlefield"
+  },
+  "tokens": {
+   "Phyrexian Golem": 1
+  },
+  "power": {
+   "spl": 1,
+   "golem": 3,
+   "ogolem": 2
+  },
+  "toughness": {
+   "spl": 1,
+   "golem": 3,
+   "ogolem": 2
+  }
+ }
+}

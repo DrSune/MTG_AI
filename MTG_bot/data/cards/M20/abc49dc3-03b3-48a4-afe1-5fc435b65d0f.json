@@ -236,5 +236,32 @@
  },
  "probe": {
   "sha": "3340fb2b80aac45691e3ee7aa2577727c5108fe527f671dc119480f4b48cac8e"
+ },
+ "verified": {
+  "tree_sha": "bfa26848edbb282928f0e534fc885a41afd7fa913251d9d7d00b253d28f57c76",
+  "probe_sha": "32f3c54db37306e04bbf60d043fd25ffb9c6844910eac5af3132cefdd777d938",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Ironroot Warlord's power is equal to the number of creatures you control.",
+    "status": "OK",
+    "evidence": "[cast] P/T 3/5 (you_bear, you_giant, card); [a creature enters under your control] 3/5 -> 4/5; [your creature (you_bear) dies] 3/5 -> 2/5; [a creature enters under the opponent's control] no change; toughness stays 5.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}{G}{W}: Create a 1/1 white Soldier creature token.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: mana G-1 W-4 (exactly five), '+ you:Soldier (battlefield, you, 1/1)', card 3/5 -> 4/5; no tap, as printed.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 11,
+   "killed": 11,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

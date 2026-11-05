@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pac85e80f17 G4. Printed: '{5}{U}{U}: This creature can't be blocked this turn.' The effect lasts this turn only: activated on turn 1, and on seat 0's next turn (turn 3) the Wall may block the Serpent again, and does.",
+ "cards": [
+  {"key": "fss", "real": "Frilled Sea Serpent", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2, "C": 5}},
+ "steps": [
+  {"op": "activate", "key": "fss", "idx": 0, "seat": 0},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"fss": true}, "block": {"wall": "fss"}}
+ ],
+ "expect": {
+  "blocked": {"fss": ["wall"]},
+  "life": {"0": 20, "1": 20},
+  "damage": {"wall": 4}
+ }
+}

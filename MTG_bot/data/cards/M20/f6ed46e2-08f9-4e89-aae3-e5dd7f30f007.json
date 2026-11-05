@@ -155,5 +155,44 @@
  },
  "probe": {
   "sha": "aa0985184a4d63d677ade45d08b9dcde0af302398857519ce163000613349e61"
+ },
+ "verified": {
+  "tree_sha": "dc8f0ed79966c33ffb9e9e0f7f89d0bbb30121ae8f6c1fb655cca4be2899be19",
+  "probe_sha": "aa0985184a4d63d677ade45d08b9dcde0af302398857519ce163000613349e61",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Choose up to two target permanent cards in your graveyard that were put there from the battlefield this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: target slot (cast) 0..0 of [] (you_fallen was not put there this turn); the cast with no target does nothing. Packs: brought_back_returns_two_permanents_tapped (your Bear killed and your Relic destroyed this turn are both legal targets); brought_back_old_graveyard_card_not_a_target, brought_back_discarded_card_not_a_target (hand -> graveyard this turn), brought_back_opponents_dead_creature_not_a_target all refused with 'illegal target selection: selection:off_population'; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   },
+   {
+    "clause": "Return them to the battlefield tapped.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack brought_back_returns_two_permanents_tapped: both return to the battlefield tapped, controller seat 0; the old graveyard card stays; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/brought_back_1.json",
+   "tools/scenarios/cards/M20/brought_back_2.json",
+   "tools/scenarios/cards/M20/brought_back_3.json",
+   "tools/scenarios/cards/M20/brought_back_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 2,
+   "score": 0.25,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/filter/children/0/who",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/filter/children/0/from_zone/controller",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/filter/children/0/to_zone/controller",
+    "controller YOU->OPPONENT at 1/0/effect/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/args/destination"
+   ]
+  }
  }
 }

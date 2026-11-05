@@ -114,5 +114,32 @@
  },
  "probe": {
   "sha": "43905fdfceb692166035ff7cc0757763b27e7c33b7972e51810ac55253719c87"
+ },
+ "verified": {
+  "tree_sha": "0242f3d514d671f89482adabc6879fe0c21462182aeab759676e3f2a81af4683",
+  "probe_sha": "568df17bd1b97b145ab08b517099277474b0097dc2b1aecde462c9db7735e041",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; [this creature attacks and opp_giant blocks it]: the non-flying giant cannot block the card and blocks the token (DECLARE_BLOCKERS opp_giant card:36) instead",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, create a 1/1 white Soldier creature token that's tapped and attacking.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: triggered ability [0] triggers; you:Soldier moves new -> battlefield (you, 1/1, tapped) and deals 1 combat damage to opp (it is attacking): opp 20 -> 18; tree: count 1, white, enters_tapped and enters_attacking; [another creature you control (you_bear) attacks]: none",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pc350197a7e G4. Printed: 'Whenever you cast a spell that targets this creature, draw a card.' Seat 0 casts Titanic Growth targeting the Rhino: it draws one card (hand 1 -> 0 on the cast, then 1) and the Rhino is 8/8.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["rhino"]}
+ ],
+ "expect": {
+  "zone": {"tg": "graveyard"},
+  "hand": {"0": 1},
+  "power": {"rhino": 8},
+  "toughness": {"rhino": 8}
+ }
+}

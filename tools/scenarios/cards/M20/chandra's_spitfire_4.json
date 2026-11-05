@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spit", "real": "Chandra's Spitfire", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [{"op": "cast", "key": "shock", "controller": 0, "targets": ["p1"]}, {"op": "end_turn"}],
+ "expect": {"life": {"1": 18}, "power": {"spit": 1}},
+ "notes": "Chandra's Spitfire (M20): the +3/+0 lasts until end of turn only."
+}

@@ -366,5 +366,38 @@
  },
  "probe": {
   "sha": "8c6e83be4c13f4d2adb38f639314a8b0586d30926ddf7f2a36f31fd20a57fc81"
+ },
+ "verified": {
+  "tree_sha": "706bd4b8c0272b43fd94c289c1b8899c33206a682f3883a2e2453d816ea70f26",
+  "probe_sha": "6d940742833149429c742c6ab554a8de193ad2d88a60022e4d01df59861e6d80",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Deathtouch",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: opp_giant dealt 1 damage and dies.",
+    "issue": ""
+   },
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "unblocked and blocked attacks: 'you gains 1 life (by card/DEAL_DAMAGE)'.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature enters or deals combat damage to a player, draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "[cast]: draw 'you:Library 5#1', then 'ask one_of' over the whole hand including the drawn card, the pick 'moves hand -> graveyard' (every pick variant shown); [this creature attacks alone, unblocked]: trigger [1], draw then discard; [blocked by opp_giant] (damage to a creature only): no trigger.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 19,
+   "killed": 19,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

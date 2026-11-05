@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pb5c8df7159 G4. Printed: '... this creature gets +1/+1 until end of turn.' The bonus from a flier entering ends with the turn: after the turn ends the Shaman is 2/1 again.",
+ "cards": [
+  {"key": "ws", "real": "Waterkin Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "f1"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"f1": "battlefield"},
+  "power": {"ws": 2},
+  "toughness": {"ws": 1}
+ }
+}

@@ -1,0 +1,11 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "griffin", "real": "Griffin Protector", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "bear"}, {"op": "end_turn"}],
+ "expect": {"power": {"griffin": 2}, "toughness": {"griffin": 3}},
+ "notes": "Griffin Protector (M20): the +1/+1 from a creature entering ends with the turn; the Griffin is 2/3 again."
+}

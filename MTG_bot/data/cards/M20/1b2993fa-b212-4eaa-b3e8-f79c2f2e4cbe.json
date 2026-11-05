@@ -230,5 +230,28 @@
  },
  "probe": {
   "sha": "79d4e529e8283038349590d0ce7ef5fe074e084f92d8ce41bd8a2e01dbdea317"
+ },
+ "verified": {
+  "tree_sha": "39f570cf4c0329ea3c98552c0b3fd615dc1f6263b8358a595702e77b086b585b",
+  "probe_sha": "39525dcf2a9b256e5c098a1981d6dcb2f3f9e525abbfe1ae5c624a050a08b0f0",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, it deals damage to target opponent or planeswalker equal to the number of creatures you control.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0]; 'opp is targeted', 'opp is dealt 3 damage', opp 20 -> 17 = you_bear + you_giant + the Scourger (the opponent's four creatures not counted); same on entering during the opponent's turn. Planeswalker half (none on the probe board): pack gruesome_scourger_hits_planeswalker.json PASS (2 creatures of yours -> 2 damage to the opponent's planeswalker, loyalty 5 -> 3, opponent's life untouched); the trigger's target ask offers exactly ('card:2' = that planeswalker, 'player:1'), never you. Wrong variant (opponent's creatures counted) fails",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/gruesome_scourger_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

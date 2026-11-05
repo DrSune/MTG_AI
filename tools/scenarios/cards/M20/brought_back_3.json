@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0},
+  {"key": "disc", "name": "Discarded Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [{"op": "move", "key": "disc", "to": "graveyard"}, {"op": "mana", "seat": 0, "add": {"W": 2}}, {"op": "cast", "key": "bb", "controller": 0, "targets": ["disc"], "expect_raise": "illegal"}],
+ "expect": {"zone": {"disc": "graveyard", "bb": "hand"}},
+ "notes": "Brought Back (M20): a permanent card put into your graveyard this turn from your HAND (not from the battlefield) is not a legal target."
+}

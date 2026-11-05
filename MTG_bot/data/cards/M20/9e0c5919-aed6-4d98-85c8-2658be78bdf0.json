@@ -246,5 +246,36 @@
  },
  "probe": {
   "sha": "944002d9024362995c4bf563a5406050c384c61cfab62a8a756571bb567bd0a0"
+ },
+ "verified": {
+  "tree_sha": "5bedb39dbbc767477299c8543249fd9145a5bba887a4e70e40c913c2ae03714d",
+  "probe_sha": "b783b1418bf57428b41107a0c85a8951f35743f4957c6527ee24653d7deaac10",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 3/3 colorless Phyrexian Golem artifact creature token.",
+    "status": "OK",
+    "evidence": "[cast]: triggered ability [0]; you:Phyrexian Golem moves new -> battlefield (you, 4/4 = 3/3 + the Golem bonus); token spec: Artifact Creature — Phyrexian Golem, 3/3, no colours, count 1",
+    "issue": ""
+   },
+   {
+    "clause": "Golems you control get +1/+1.",
+    "status": "OK",
+    "evidence": "[cast]: you_golem 2/2 -> 3/3 and the token 4/4, the Splicer stays 1/1; [this card is dealt 1 damage] (dies): you_golem 3/3 -> 2/2. Pack master_splicer_golems.json (one token; P1's Golem stays 2/2) PASS on live and this tree, FAILS on the you<->opponent mutant.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/master_splicer_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 2) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

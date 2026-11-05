@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "pacifism_enchanted_creature_cant_attack",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pac", "real": "Pacifism", "zone": "hand", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opp_giant", "name": "Opp Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "key": "pac", "real": "Pacifism", "targets": ["opp_bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"opp_giant": true}}
+ ],
+ "expect": {
+  "attached": {"pac": "opp_bear"},
+  "not_asked": ["opp_bear"],
+  "attackers": {"opp_bear": false, "opp_giant": true},
+  "life": {"0": 16, "1": 20}
+ },
+ "notes": "Printed: 'Enchant creature / Enchanted creature can't attack or block.' Pacifism on the opponent's Bear: on the opponent's turn the Bear is never offered an attack; the unenchanted Giant attacks for 4."
+}

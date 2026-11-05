@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P85a9d02669 G4. Printed: 'Whenever another blue creature you control enters, target player mills two cards.' A blue creature enters under seat 0; seat 0 targets seat 1, who mills exactly its top two cards (Library 5 and Library 4). Seat 0's graveyard stays empty.",
+ "cards": [
+  {"key": "srd", "real": "Sage's Row Denizen", "zone": "battlefield", "controller": 0},
+  {"key": "blue", "name": "Blue Merfolk", "type": "Creature — Merfolk", "power": "2", "toughness": "2", "colors": ["U"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "blue", "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "zone": {"blue": "battlefield"},
+  "graveyard": {"0": [], "1": ["Library 5", "Library 4"]},
+  "library": {"1": ["Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

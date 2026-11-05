@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "chandra_flames_fury_minus8_target_opponent_and_their_creatures",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "chandra", "real": "Chandra, Flame's Fury", "zone": "battlefield", "controller": 0},
+  {"key": "you_bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opp_titan", "name": "Opp Titan", "type": "Creature", "power": "6", "toughness": "12", "zone": "battlefield", "controller": 1},
+  {"key": "opp_relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "chandra", "set": 8},
+  {"op": "activate", "key": "chandra", "idx": 2, "seat": 0, "targets": ["p1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 10},
+  "zone": {"chandra": "graveyard", "opp_bear": "graveyard", "opp_titan": "battlefield", "you_bear": "battlefield", "opp_relic": "battlefield"},
+  "damage": {"opp_titan": 10}
+ },
+ "notes": "Printed: '[-8]: Chandra deals 10 damage to target player and each creature that player controls.' Loyalty 8 -> 0 (Chandra goes to the graveyard); the targeted opponent 20 -> 10; each of their creatures is dealt 10 (Bear dies, the 6/12 keeps 10 damage); your creature and their artifact are untouched."
+}

@@ -180,5 +180,34 @@
  },
  "probe": {
   "sha": "4c12de0f03fab746cb3f37b4d3813475fdddd06b60e2738664a1bfb273326e51"
+ },
+ "verified": {
+  "tree_sha": "3748b7a1c00206daab100d5e4b5b845123acd3241df3df22b93b70ca320e3869",
+  "probe_sha": "e9d94f48f05480f51d79a788dabb2cc289a0abb229c1e535175ced79e224c9d6",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block, 'opp is dealt 4 damage'.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}{W}: Put a +1/+1 counter on another target creature with flying.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 1..1 of [opp_flier] (itself and non-fliers excluded); W-4 paid; 'opp_flier gets 1 PLUS_1_PLUS_1', 1/1 -> 2/2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

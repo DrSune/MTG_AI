@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "old", "name": "Old Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "deal_damage", "source": "giant", "target": "bear", "amount": 2},
+  {"op": "move", "key": "relic", "to": "graveyard"},
+  {"op": "mana", "seat": 0, "add": {"W": 2}},
+  {"op": "cast", "key": "bb", "controller": 0, "targets": ["bear", "relic"]}
+ ],
+ "expect": {"zone": {"bear": "battlefield", "relic": "battlefield", "old": "graveyard", "bb": "graveyard"}, "tapped": {"bear": true, "relic": true}, "controller": {"bear": 0, "relic": 0}},
+ "notes": "Brought Back (M20): 'Choose up to two target permanent cards in your graveyard that were put there from the battlefield this turn. Return them to the battlefield tapped.' Your Bear died and your Relic was destroyed this turn: both return tapped, under your control; Old Bear (in the graveyard since before this turn) stays."
+}

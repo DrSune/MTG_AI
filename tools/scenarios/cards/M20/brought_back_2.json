@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0},
+  {"key": "old", "name": "Old Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [{"op": "cast", "key": "bb", "controller": 0, "targets": ["old"], "expect_raise": "illegal"}],
+ "expect": {"zone": {"old": "graveyard", "bb": "hand"}},
+ "notes": "Brought Back (M20): a creature card that was already in your graveyard before this turn is not a legal target."
+}

@@ -187,5 +187,39 @@
  },
  "probe": {
   "sha": "ede07497e5d33298116e8d2dce45bc66ca37f794813ba74f96b351a7c190b7e7"
+ },
+ "verified": {
+  "tree_sha": "0a78f17b8f2c741c914d83c54d91ffe234d5aeb905481e6cf40776446a2a503c",
+  "probe_sha": "e5a897afcf933686d3d8600827efe127d59fc72d9cc124989bf870d5021eb500",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "cast: 'keywords +FLYING'; stimulus 'this creature attacks and opp_giant blocks it': no block row, opp dealt 2 (a non-flier cannot block it); static: card keywords FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "Other creatures you control with flying get +1/+1.",
+    "status": "NOT_EXERCISED",
+    "evidence": "static diff shows only the negative half: the Eagle stays 2/3 (other), opp_flier unchanged (you control), you_bear/you_giant unchanged (with flying); the standard board has no flier of yours. Packs: empyrean_eagle_pumps_other_own_fliers.json PASS (your 1/1 flier -> 2/2; Eagle 2/3, your non-flier 2/2, opp flier 1/1); empyrean_eagle_bonus_ends_when_it_leaves.json PASS (flier back to 1/1 once the Eagle leaves). Wrong variants fail. Tree: static MODIFY_PT +1/+1 over YOU, Creature, FLYING, not IS_SOURCE",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/empyrean_eagle_1.json",
+   "tools/scenarios/cards/M20/empyrean_eagle_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 5,
+   "score": 0.625,
+   "survived": [
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P99ebc5af20 G4. Printed: 'When this creature enters, tap target creature an opponent controls. That creature doesn't untap during its controller's next untap step.' Cast on seat 0's turn targeting seat 1's Ox; seat 1's turn then begins: the Ox stays tapped through that untap step, while seat 1's other creature that started tapped untaps normally (control).",
+ "cards": [
+  {"key": "lynx", "real": "Frost Lynx", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature — Ox", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ctl", "name": "Opp Control", "type": "Creature — Ape", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Lynx", "key": "lynx", "decisions": ["ox"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"lynx": "battlefield"},
+  "tapped": {"ox": true, "ctl": false}
+ }
+}

@@ -210,5 +210,43 @@
  },
  "probe": {
   "sha": "bef3459f8196802b4d04cee5e0e9baa155506aa61365524a622cba73e05ef157"
+ },
+ "verified": {
+  "tree_sha": "2f82453d3c9a089e0d8c300b5f89d8ae323e3db583de26a56f5ea81921a7dea7",
+  "probe_sha": "bef3459f8196802b4d04cee5e0e9baa155506aa61365524a622cba73e05ef157",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "cast: 'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' - creatures only (no relic, charm, land or player); each [cast targets=[...]] puts the Aura on the battlefield; the enters-on-their-turn stimulus asks 'enchant' over the same six creatures; keyword ENCHANT params TYPE_EQ Creature",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature can't attack or block.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe never attaches the Aura in a combat stimulus (its snapshot has no attachment lane). Packs: pacifism_enchanted_cant_attack.json PASS (enchanted opp Bear never asked to attack, Giant attacks for 4); pacifism_enchanted_cant_block.json PASS (enchanted Bear never asked to block, 2 to the opponent); pacifism_other_creature_still_blocks.json PASS (an unenchanted Wall still blocks). Wrong variants fail. Tree: two static PREVENT_EFFECTs (DeclareAttackersEvent / DeclareBlockersEvent, IS_ATTACHED_TO_SOURCE and Creature), the Faith's Fetters shape",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/pacifism_1.json",
+   "tools/scenarios/cards/M20/pacifism_2.json",
+   "tools/scenarios/cards/M20/pacifism_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 1,
+   "score": 0.14285714285714285,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/event/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/event/filter"
+   ]
+  }
  }
 }

@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "name": "tectonic_rift_creatures_without_flying_cant_block_this_turn",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rift", "real": "Tectonic Rift", "zone": "hand", "controller": 0},
+  {"key": "oland", "name": "Opp Land", "type": "Basic Land — Mountain", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "drake", "name": "Opp Drake", "type": "Creature — Drake", "power": "1", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "rift", "real": "Tectonic Rift", "controller": 0, "targets": ["oland"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"drake": "bear"}}
+ ],
+ "expect": {
+  "zone": {"rift": "graveyard", "oland": "graveyard", "bear": "battlefield", "giant": "battlefield", "drake": "battlefield"},
+  "not_asked_to_block": ["giant"],
+  "blocked": {"bear": ["drake"]},
+  "damage": {"bear": 1, "drake": 2},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Printed: 'Destroy target land. Creatures without flying can't block this turn.' The land is destroyed; when your Bear attacks, the opponent's non-flying Giant is never offered a block, while their flying Drake still blocks."
+}

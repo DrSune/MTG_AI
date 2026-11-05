@@ -314,5 +314,63 @@
  },
  "probe": {
   "sha": "142d0a8e1f60872e9a0e045e511be3a108d0efbdfe3ba3ccdcf1b5d524744b45"
+ },
+ "verified": {
+  "tree_sha": "6a16cef3f714e742c125cad2bf925652b88c0f2c99054d13f15a736eda35b1fe",
+  "probe_sha": "86d60f8dd57ce910fdb065e8ffb0717e8dca276c84bdc745bc48d2de436d96d1",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever a Swamp you control enters, choose one —",
+    "status": "NOT_EXERCISED",
+    "evidence": "[you play a land -> none] (the probe's land is not a Swamp). Packs: dread_presence_swamp_draw_mode.json and dread_presence_swamp_damage_mode.json (P0 plays a Swamp: the mode ask choose ('0','1') appears); dread_presence_only_your_swamps.json (a Forest of P0's and a Swamp P1 plays on its turn ask nothing). All PASS on live and this tree; the widened 'any land you control' and 'a Swamp any player controls' mutants FAIL only_your_swamps.",
+    "issue": ""
+   },
+   {
+    "clause": "• You draw a card and you lose 1 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "pack dread_presence_swamp_draw_mode.json: mode 0 -> P0 draws one (hand 1), life 20 -> 19; the lose-2 mutant FAILS (life 18)",
+    "issue": ""
+   },
+   {
+    "clause": "• This creature deals 2 damage to any target and you gain 2 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "pack dread_presence_swamp_damage_mode.json: mode 1 targeting P1's 2/2: damage_received 2, it dies; P0 20 -> 22, no card drawn; the gain-3 mutant FAILS (life 23)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/dread_presence_1.json",
+   "tools/scenarios/cards/M20/dread_presence_2.json",
+   "tools/scenarios/cards/M20/dread_presence_3.json"
+  ],
+  "mutation": {
+   "mutants": 21,
+   "killed": 1,
+   "score": 0.047619047619047616,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "widen filter (drop part 2) at 1/0/event/subject",
+    "controller YOU->OPPONENT at 1/0/event/subject/children/0/who",
+    "amount+1 at 1/0/effect/count",
+    "drop step 0 at 1/0/effect/options/0",
+    "drop step 1 at 1/0/effect/options/0",
+    "amount+1 at 1/0/effect/options/0/steps/0/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/options/0/steps/0/args/controller",
+    "amount+1 at 1/0/effect/options/0/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/options/0/steps/1/args/controller",
+    "drop step 0 at 1/0/effect/options/1",
+    "drop step 1 at 1/0/effect/options/1",
+    "amount+1 at 1/0/effect/options/1/steps/0/args/amount",
+    "amount-1 at 1/0/effect/options/1/steps/0/args/amount",
+    "target->all at 1/0/effect/options/1/steps/0/args/target",
+    "amount+1 at 1/0/effect/options/1/steps/0/args/target/count",
+    "amount+1 at 1/0/effect/options/1/steps/1/args/amount",
+    "amount-1 at 1/0/effect/options/1/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/options/1/steps/1/args/controller"
+   ]
+  }
  }
 }

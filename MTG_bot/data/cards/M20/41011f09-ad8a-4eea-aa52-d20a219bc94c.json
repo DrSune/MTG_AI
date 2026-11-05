@@ -99,5 +99,26 @@
  },
  "probe": {
   "sha": "d9226d60104f40539f9370a9e3b93b617f0ae88377347175aa1c0f557707ed99"
+ },
+ "verified": {
+  "tree_sha": "561bb706932241fc84a2e3a581b0807ca2dbe40ab613e04bef191b3a115308b3",
+  "probe_sha": "d9226d60104f40539f9370a9e3b93b617f0ae88377347175aa1c0f557707ed99",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Return up to three target creatures to their owners' hands.",
+    "status": "OK",
+    "evidence": "target slot 0..3 of all six creatures; each target goes to its owner's hand (opp hand 2 -> 3); [targets you_bear, you_giant, opp_flier]: all three return; [cast] with no target: nothing; mana U-2 W-4.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

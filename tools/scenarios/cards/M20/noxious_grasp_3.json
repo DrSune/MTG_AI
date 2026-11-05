@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "noxious_grasp_destroys_a_green_blue_creature",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grasp", "real": "Noxious Grasp", "zone": "hand", "controller": 0},
+  {"key": "simic", "name": "Opp Hybrid Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "colors": ["G", "U"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "grasp", "real": "Noxious Grasp", "targets": ["simic"]}
+ ],
+ "expect": {
+  "zone": {"grasp": "graveyard", "simic": "graveyard"},
+  "life": {"0": 21, "1": 20}
+ },
+ "notes": "Printed: '... that's green or white.' A green-blue creature is green (CR 105.2): destroyed."
+}

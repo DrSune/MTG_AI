@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P5ea4275ccb G4. Printed: 'Target creature gets +2/+2 and gains lifelink until end of turn.' The granted lifelink works after the instant has left the stack: seat 0's 2/2 becomes 4/4, attacks unblocked, deals 4 to seat 1 and seat 0 gains 4.",
+ "cards": [
+  {"key": "moh", "real": "Moment of Heroism", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "real": "Moment of Heroism", "key": "moh", "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "zone": {"moh": "graveyard"},
+  "power": {"bear": 4},
+  "toughness": {"bear": 4},
+  "life": {"0": 24, "1": 16}
+ }
+}

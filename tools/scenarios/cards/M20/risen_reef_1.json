@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "hand", "controller": 0},
+  {"key": "land", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "U": 1, "W": 1}},
+ "steps": [{"op": "cast", "key": "reef", "controller": 0, "decisions": ["fire"]}],
+ "expect": {"zone": {"reef": "battlefield", "land": "battlefield"}, "tapped": {"land": true}, "hand": {"0": 0}},
+ "notes": "Risen Reef (M20): 'Whenever this creature or another Elemental you control enters, look at the top card of your library. If it's a land card, you may put it onto the battlefield tapped. If you don't put the card onto the battlefield, put it into your hand.' The Reef enters, the top card is a land, you choose to put it onto the battlefield: it enters tapped."
+}

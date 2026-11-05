@@ -171,5 +171,34 @@
  },
  "probe": {
   "sha": "da921ab5486bef1ef910d457ed0b7aa3a41179b41fbf3e4edb70acf9fa708a7d"
+ },
+ "verified": {
+  "tree_sha": "4be2d31717de83b65c37981e06f6942394312fa27783cebe3231f00bcc4fd751",
+  "probe_sha": "d42959b08d9c133afd386e5af2ddbb1895e330724621dedfa3d703a12c3f1a97",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING; [attacks and opp_giant blocks it]: not blocked",
+    "issue": ""
+   },
+   {
+    "clause": "{U}: This creature gets +1/-1 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: you: mana U-1, card P/T 1/2 -> 2/1; after the turn ends: 2/1 -> 1/2",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pbd5faedc63 G4. Printed: 'Activate only during your turn.' On seat 1's turn, seat 0's activation is refused (with {1} available and the Portal untapped); the creature stays and the Portal stays untapped.",
+ "cards": [
+  {"key": "portal", "real": "Portal of Sanctuary", "zone": "battlefield", "controller": 0},
+  {"key": "host", "name": "Host", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "portal", "idx": 0, "seat": 0, "targets": ["host"], "expect_raise": "illegal activation: condition:false"}
+ ],
+ "expect": {
+  "zone": {"host": "battlefield"},
+  "tapped": {"portal": false},
+  "turn_seats": [0, 1]
+ }
+}

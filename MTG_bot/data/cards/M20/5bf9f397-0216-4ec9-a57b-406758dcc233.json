@@ -169,5 +169,32 @@
  },
  "probe": {
   "sha": "d01f1fe8dc3db9c52153fc9a29017c0f2f34f5786d0e71e9dff4d6d4f7d23db9"
+ },
+ "verified": {
+  "tree_sha": "2711ddd6f9f168832e31c785c3df777e272867f3ba2bf01250d4a188b63a45b0",
+  "probe_sha": "0ca226d6f2cd11e04ecd047237578164badc1014463692f528633b5af01f9b59",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 2/2 black Zombie creature token for each card named Undead Servant in your graveyard.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: trigger [0] fires on cast and on entering during the opponent's turn, but no Undead Servant is in the graveyard, so zero tokens (consistent). Packs: undead_servant_one_zombie_per_servant_in_your_graveyard.json PASS (two in your graveyard -> two Zombies; one in the opponent's graveyard and a differently named Zombie card not counted); undead_servant_token_is_two_two.json PASS (one in graveyard -> one 2/2 Zombie). Wrong variants (three tokens, 3/3) fail. Tree: count 1 x QCount(NAME_EQ 'Undead Servant', GRAVEYARD YOU), TokenSpec Zombie 2/2 colors ('B',)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/undead_servant_1.json",
+   "tools/scenarios/cards/M20/undead_servant_2.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 1,
+   "score": 0.3333333333333333,
+   "survived": [
+    "amount+1 at 1/0/effect/args/count/left",
+    "controller YOU->OPPONENT at 1/0/effect/args/count/right/selector/zones/0/controller"
+   ]
+  }
  }
 }

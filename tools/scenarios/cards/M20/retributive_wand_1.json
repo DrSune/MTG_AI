@@ -1,0 +1,11 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wand", "real": "Retributive Wand", "zone": "battlefield", "controller": 0},
+  {"key": "ob", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "6", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [{"op": "move", "key": "wand", "to": "graveyard", "decisions": ["player:1"]}],
+ "expect": {"zone": {"wand": "graveyard", "ob": "battlefield"}, "life": {"0": 20, "1": 15}},
+ "notes": "Retributive Wand (M20): 'When this artifact is put into a graveyard from the battlefield, it deals 5 damage to any target.' The Wand goes from the battlefield to the graveyard; its trigger targets the opponent, who takes 5."
+}

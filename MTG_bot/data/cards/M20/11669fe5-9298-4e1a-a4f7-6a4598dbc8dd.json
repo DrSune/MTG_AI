@@ -158,5 +158,32 @@
  },
  "probe": {
   "sha": "9b951f2f6397cf87ea5a31d0499a1d55933df8aa3f8ebd9cb1d39f1a51ad8430"
+ },
+ "verified": {
+  "tree_sha": "a4da3d27f68371240e4e0f8cb3790667c25e580eeee1b01f53ae173644c68523",
+  "probe_sha": "9b951f2f6397cf87ea5a31d0499a1d55933df8aa3f8ebd9cb1d39f1a51ad8430",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Agonizing Syphon deals 3 damage to any target",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [six creatures, you, opp] (any target; no planeswalker on the board, the filter includes Planeswalker); each variant deals exactly 3 to the chosen target (bears/flier/3-3 die, giants marked 3, opp 20 -> 17); paid 'mana B-1 W-3' (= {3}{B})",
+    "issue": ""
+   },
+   {
+    "clause": "and you gain 3 life.",
+    "status": "OK",
+    "evidence": "every variant: 'you gains 3 life (by card/GAIN_LIFE)', you 20 -> 23 (targeting yourself: -3 +3 = 20)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

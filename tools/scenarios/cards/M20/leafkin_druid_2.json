@@ -1,0 +1,15 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "druid", "real": "Leafkin Druid", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "a1", "name": "Relic", "type": "Artifact", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "activate", "key": "druid", "idx": 0, "seat": 0}],
+ "expect": {"mana_pool": {"0": {"G": 1}}, "tapped": {"druid": true}},
+ "notes": "Leafkin Druid (M20): three creatures you control (and an artifact) plus two of the opponent's: fewer than four creatures you control, so tapping it adds only {G}."
+}

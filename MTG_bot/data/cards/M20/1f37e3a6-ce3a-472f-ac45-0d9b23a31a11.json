@@ -112,5 +112,26 @@
  },
  "probe": {
   "sha": "015f552f0fc8ca18f617351898965164adcae0eb47bacbeefff09cf4758002e3"
+ },
+ "verified": {
+  "tree_sha": "f95cac1b9c8bb43a3f602d29100007cf2023b6825e6c19ae539a57cd7206b213",
+  "probe_sha": "713fc06f8d88ea903cc2f72dfc64fe74718494cd2a1fcb0a92a6d4ac14d61af6",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{1}{R}{R}: This creature deals 1 damage to target player.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 1..1 of [you, opp] (players only); [activate [0] targets=['opp']]: opp is dealt 1 damage by card, life 20 -> 19, mana R-2 W-1 ({1}{R}{R}); same for 'you'.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

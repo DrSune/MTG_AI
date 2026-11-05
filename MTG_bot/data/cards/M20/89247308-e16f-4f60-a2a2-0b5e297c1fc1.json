@@ -186,5 +186,40 @@
  },
  "probe": {
   "sha": "efbfce16946ebf0576f77ab71d94b4c428c16e29bdec654788e7c50727bc549c"
+ },
+ "verified": {
+  "tree_sha": "5e7db60a390aeea0344643fdab3f717ecc1ee18b1e39bed2ea157c9e07193b1c",
+  "probe_sha": "efbfce16946ebf0576f77ab71d94b4c428c16e29bdec654788e7c50727bc549c",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "the probe offers modes [0] and [1], one per cast.",
+    "issue": ""
+   },
+   {
+    "clause": "• Reckless Air Strike deals 3 damage to target creature with flying.",
+    "status": "OK",
+    "evidence": "target slot (modes=[0]) 1..1 of [opp_flier] only; opp_flier is dealt 3 damage by card and dies.",
+    "issue": ""
+   },
+   {
+    "clause": "• Destroy target artifact.",
+    "status": "OK",
+    "evidence": "target slot (modes=[1]) [you_relic, opp_relic]; each is destroyed (DESTROY), mana R-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/options/0/args/target/filter"
+   ]
+  }
  }
 }

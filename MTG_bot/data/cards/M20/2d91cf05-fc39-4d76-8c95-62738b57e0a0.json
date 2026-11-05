@@ -217,5 +217,38 @@
  },
  "probe": {
   "sha": "e8290976db81019af993f2ab976aa53ec1d92f9790ca5fae895a0ffa80f7cde1"
+ },
+ "verified": {
+  "tree_sha": "766911b327494b437cc00ad567911ec90a1f62ddd4f924c4f44755d0574b5b74",
+  "probe_sha": "6785c38d8fb054ba4ac6dd514012e233eb883554c2cadc9a7d57cd6eca612628",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block, opp is dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever another creature you control enters, this creature gets +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control]: 2/3 -> 3/4; [Raise the Alarm]: two triggers, 4/5; [Yoked Ox]: 3/4; opponent's creature and the Griffin itself: no trigger. End of turn: packs griffin_protector_bonus_until_end_of_turn (3/4), griffin_protector_bonus_ends_at_end_of_turn (2/3 after end_turn); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/griffin_protector_1.json",
+   "tools/scenarios/cards/M20/griffin_protector_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 7,
+   "score": 0.7777777777777778,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
  }
 }

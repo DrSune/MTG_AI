@@ -164,5 +164,40 @@
  },
  "probe": {
   "sha": "7f7a9c919d02b4e6a3e4d68f4eecd4756d155b571ba0660bc8950192d9374132"
+ },
+ "verified": {
+  "tree_sha": "d6f958417cc597aa71bdb28189d717a34c0933011046995703b9dec7926cd892",
+  "probe_sha": "e145cb6897f5e0b5ee74f57719879a3ec69776f88bce0636cfe5c359f8a4c618",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, opp is dealt 5 combat damage (the non-flying 4/4 cannot block); [cast] keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: DECLARE_ATTACKERS card 1 with no 'card becomes tapped' event (compare any non-vigilant attacker).",
+    "issue": ""
+   },
+   {
+    "clause": "Other creatures you control have vigilance.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear, you_giant keywords +VIGILANCE, no opp_ creature changes; Raise the Alarm Soldier tokens and Yoked Ox enter with VIGILANCE, the opponent's entering creature does not; [another creature you control (you_bear) attacks]: no tap event; [this card is dealt lethal damage]: -VIGILANCE on you_bear/you_giant.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

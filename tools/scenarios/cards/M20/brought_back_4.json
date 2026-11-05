@@ -1,0 +1,13 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "giant", "name": "My Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [{"op": "deal_damage", "source": "giant", "target": "obear", "amount": 2}, {"op": "mana", "seat": 0, "add": {"W": 2}}, {"op": "cast", "key": "bb", "controller": 0, "targets": ["obear"], "expect_raise": "illegal"}],
+ "expect": {"zone": {"obear": "graveyard", "bb": "hand"}},
+ "notes": "Brought Back (M20): only cards in YOUR graveyard; the opponent's creature that died this turn is not a legal target."
+}

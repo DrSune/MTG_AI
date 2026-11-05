@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "empyrean_eagle_other_fliers_you_control_get_plus_one",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "eagle", "real": "Empyrean Eagle", "zone": "battlefield", "controller": 0},
+  {"key": "you_flier", "name": "You Flier", "type": "Creature", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "you_bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_flier", "name": "Opp Flier", "type": "Creature", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {
+  "power": {"eagle": 2, "you_flier": 2, "you_bear": 2, "opp_flier": 1},
+  "toughness": {"eagle": 3, "you_flier": 2, "you_bear": 2, "opp_flier": 1}
+ },
+ "notes": "Printed: 'Other creatures you control with flying get +1/+1.' Your other flier 1/1 -> 2/2; the Eagle itself stays 2/3; your non-flier and the opponent's flier are unchanged."
+}

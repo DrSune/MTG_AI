@@ -1,0 +1,29 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mage", "real": "Dragon Mage", "zone": "battlefield", "controller": 0},
+  {"key": "h1", "name": "My Hand A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h2", "name": "My Hand B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "o1", "name": "Opp Hand A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "o2", "name": "Opp Hand B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "o3", "name": "Opp Hand C", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "l1", "name": "Deep A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "l2", "name": "Deep B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "l3", "name": "Deep C", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "l4", "name": "Deep D", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "m1", "name": "Opp Deep A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 1},
+  {"key": "m2", "name": "Opp Deep B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 1},
+  {"key": "m3", "name": "Opp Deep C", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 1},
+  {"key": "m4", "name": "Opp Deep D", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 1}
+ ],
+ "steps": [{"op": "combat", "seat": 0, "attack": {"mage": true}}],
+ "expect": {
+  "life": {"0": 20, "1": 15},
+  "hand": {"0": 7, "1": 7},
+  "zone": {"h1": "graveyard", "h2": "graveyard", "o1": "graveyard", "o2": "graveyard", "o3": "graveyard"},
+  "graveyard": {"0": ["My Hand A", "My Hand B"], "1": ["Opp Hand A", "Opp Hand B", "Opp Hand C"]},
+  "lost": {"0": false, "1": false}
+ },
+ "notes": "Dragon Mage (M20): 'Whenever this creature deals combat damage to a player, each player discards their hand, then draws seven cards.' It hits the opponent for 5: you discard your 2 cards, the opponent their 3, and each draws exactly seven from a 10-card library (nobody decks)."
+}

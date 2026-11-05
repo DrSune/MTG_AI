@@ -132,5 +132,36 @@
  },
  "probe": {
   "sha": "cad037c2a39665216427a264299e28bf9401597bc193d82881d7c68b207d36d4"
+ },
+ "verified": {
+  "tree_sha": "61df73a4451054c9bb539a19b8513628e8f407aaa6a2150877b9b8172ac442e9",
+  "probe_sha": "b5340550a5cc921fe0cb89537440b0967866add9ea09406e6dd7189d3d47a8c5",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Protection from black",
+    "status": "NOT_EXERCISED",
+    "evidence": "Keyword present (Static 'card keywords: PROTECTION'), but no black object acts on it in G1 (the damage stimuli come from the white opp_giant). Packs apostle_of_purifying_light_1 (black damage prevented, red damage kills), _2 (a black Wall may block only the other attacker) and _3 (Murder cannot target it: 'illegal target selection') pass; twins fail.",
+    "issue": ""
+   },
+   {
+    "clause": "{2}: Exile target card from a graveyard.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 1..1 of [you_fallen, you_used, opp_fallen, opp_used] (both graveyards, any card type); each: 'moves graveyard -> exile', mana W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/apostle_of_purifying_light_1.json",
+   "tools/scenarios/cards/M20/apostle_of_purifying_light_2.json",
+   "tools/scenarios/cards/M20/apostle_of_purifying_light_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

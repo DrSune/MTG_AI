@@ -210,5 +210,34 @@
  },
  "probe": {
   "sha": "b2814a5409c6e8f741012cff1506c15992df1abc7c59f4a2ac5e4e14e19d2071"
+ },
+ "verified": {
+  "tree_sha": "41ef7306449c9cfc7d0fe030873e141c85a93039220cc867206f8a260c517685",
+  "probe_sha": "57590ff2b7efdf66dbdd3d13b0c5776a12fc55f55806f193a659b407a3f132b7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may discard a card.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask may: [fire, skip]'; fire -> 'ask one_of' over the five hand cards, the pick 'moves hand -> graveyard' (all five picks shown); [cast | ask 1 -> skip]: nothing discarded.",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, draw a card.",
+    "status": "OK",
+    "evidence": "every fire variant: 'you draws you:Library 5#1' after the discard; skip variant: no draw. Pack keldon_raider_1 (empty hand, fire: nothing discarded, no draw) passes; twin fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/keldon_raider_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

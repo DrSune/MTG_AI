@@ -110,5 +110,39 @@
  },
  "probe": {
   "sha": "29a735457a1ceaac21b1050e40a4382983df7dfd5124c151e5a3eb0292352bf5"
+ },
+ "verified": {
+  "tree_sha": "e05a0bebf1eb365514880b19ec0e241802f95304a78ea014a393177c20b1eda3",
+  "probe_sha": "d3cadfa6d6b19a57c2d9c99e6e5e1a282b886e5ae3ee64895145ac2355667cd0",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "Static: 'card keywords: TRAMPLE'.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell that targets this creature, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus spell targets it in G1. Packs gnarlback_rhino_1 (your Titanic Growth on it: one draw) and gnarlback_rhino_2 (your spell on another creature, the opponent's spell on it: no draw) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/gnarlback_rhino_1.json",
+   "tools/scenarios/cards/M20/gnarlback_rhino_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
  }
 }

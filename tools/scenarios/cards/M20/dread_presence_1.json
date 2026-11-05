@@ -1,0 +1,54 @@
+{
+ "name": "dread_presence_swamp_enters_draw_and_lose_1",
+ "set": "M20",
+ "notes": "Printed: 'Whenever a Swamp you control enters, choose one - You draw a card and you lose 1 life; or This creature deals 2 damage to any target and you gain 2 life.' P0 plays a Swamp with Dread Presence out and picks the first mode: P0 draws one card (hand 1 -> 0 after the land drop -> 1) and goes to 19 life. Nothing is damaged.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dread",
+   "real": "Dread Presence",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "swamp",
+   "real": "Swamp",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "swamp",
+   "seat": 0,
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "swamp": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "0": 19,
+   "1": 20
+  }
+ }
+}

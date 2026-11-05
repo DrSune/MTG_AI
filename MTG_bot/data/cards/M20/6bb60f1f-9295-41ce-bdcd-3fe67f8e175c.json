@@ -298,5 +298,34 @@
  },
  "probe": {
   "sha": "f44ce1e477340474179d8d7dfc432645836824d665aa04325583914c677502ad"
+ },
+ "verified": {
+  "tree_sha": "cdb9505a972870225b5cabadfbd535334c4a890b889a48289852b5d69362241d",
+  "probe_sha": "ab10c881e12cdd7b6e46e68570d2808b95988f9b7abd68cb9dd8206d6b59928a",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, each opponent exiles a card from their hand.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0] fires; 'ask one_of: [opp_spare, opp_trick]' (only the opponent's hand); the picked card 'moves hand -> exile', opp hand 2 -> 1; [cast | ask 1 -> opp_trick] exiles the other; also fires when entering from hand on the opponent's turn. The ask is the opponent's: EachPlayer(ALL_OPPONENTS) rotates the context controller (executor/__init__.py 1251-1270) and the ONE_OF pick asks ctx.controller",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{B}: This creature gets +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "activate [1]: paid 'mana B-1 W-2' (= {2}{B}); P/T 1/1 -> 2/2; 'after the turn ends: card: P/T 2/2 -> 1/1'. Tree byte-identical to parse template B3-modify-pt-self",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 17,
+   "killed": 16,
+   "score": 0.9411764705882353,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

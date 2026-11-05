@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "iso", "real": "Eternal Isolation", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [{"op": "cast", "key": "iso", "controller": 0, "targets": ["ogre"], "expect_raise": "target"}],
+ "expect": {"zone": {"ogre": "battlefield", "iso": "hand"}},
+ "notes": "Eternal Isolation (M20): a creature with power 3 is not a legal target."
+}

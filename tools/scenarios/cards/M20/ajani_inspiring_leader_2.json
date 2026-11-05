@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P6d9dafea82 G4. Printed: '[-10]: Creatures you control gain flying and double strike until end of turn.' Double strike in play: seat 0's 2/2 attacks after the -10 and seat 1's ground 2/2 cannot block it (flying), so it deals 2 first-strike and 2 regular damage: seat 1 goes to 16. After the turn ends both keywords are gone.",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Inspiring Leader", "zone": "battlefield", "controller": 0},
+  {"key": "m1", "name": "Mine One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 10},
+  {"op": "activate", "key": "aj", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"m1": true}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"aj": "graveyard"},
+  "blocked": {"m1": []},
+  "life": {"0": 20, "1": 16},
+  "battlefield_keywords": {"Mine One": [], "Opp One": []}
+ }
+}

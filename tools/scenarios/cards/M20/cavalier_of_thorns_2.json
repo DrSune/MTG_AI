@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Thorns", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Deep Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c2", "name": "Bear Four", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c3", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "c4", "name": "Bear Three", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c5", "name": "Bear Two", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c6", "name": "Bear One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 3, "W": 2}},
+ "steps": [{"op": "cast", "key": "cav", "controller": 0}],
+ "expect": {
+  "zone": {"cav": "battlefield", "c3": "battlefield", "c2": "graveyard", "c4": "graveyard", "c5": "graveyard", "c6": "graveyard", "c1": "library"},
+  "tapped": {"c3": false},
+  "library": {"0": ["Deep Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Cavalier of Thorns (M20): 'When this creature enters, reveal the top five cards of your library. Put a land card from among them onto the battlefield and the rest into your graveyard.' Top five: Bear One, Bear Two, Bear Three, Forest Card, Bear Four. The Forest enters (untapped), the four Bears go to the graveyard, and the sixth card (Deep Card) stays on top of the library."
+}

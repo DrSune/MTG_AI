@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P816c4e09ee G4. Printed: 'Landfall - Whenever a land you control enters, ...' A land entering under seat 1's control (seat 1's own land drop on its turn) does not trigger seat 0's Omnath: no counter.",
+ "cards": [
+  {"key": "om", "real": "Omnath, Locus of the Roil", "zone": "battlefield", "controller": 0},
+  {"key": "ol", "real": "Island", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "play", "key": "ol", "seat": 1}
+ ],
+ "expect": {
+  "zone": {"ol": "battlefield"},
+  "counters": {"om": {}}
+ }
+}

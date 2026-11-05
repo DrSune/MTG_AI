@@ -148,5 +148,28 @@
  },
  "probe": {
   "sha": "4286318e7f17df54122f95777706a9cbacfdef5cfa2e248868834ef22cf09194"
+ },
+ "verified": {
+  "tree_sha": "c3d12d8683f76ed750fc664790d091c7a287b1fc94909a61fdf7ec51dc4de00c",
+  "probe_sha": "3705be90b1396366b2158b485befa6ffc942d0a206dbccfed3b64c2976fead38",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{2}{W}: This creature gains first strike until end of turn. (It deals combat damage before creatures without first strike.)",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: you: mana W-3 ({2}{W}); card: keywords +FIRST_STRIKE; after the turn ends: card: keywords -FIRST_STRIKE",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

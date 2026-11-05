@@ -183,5 +183,32 @@
  },
  "probe": {
   "sha": "43e8f923997902c7287ebb3a1c0ee940a5a78cd2f72c04c3bb9b50b09b9362f6"
+ },
+ "verified": {
+  "tree_sha": "a8db62bc9ef0bb6138fbee1c0434107b6dc93af1f089a56a0fc3df3a05a0c530",
+  "probe_sha": "29f456995e343f4d6e19845f0a9796dd6e48bdb3ffd8a80da3ba8ad23e8479a4",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{1}{R}: Each creature you control named Pack Mastiff gets +1/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0]]: mana R-1 W-1, card P/T 2/2 -> 3/2, after the turn ends 3/2 -> 2/2; you_bear and you_giant unchanged. Scope packs: pack_mastiff_pumps_each_mastiff_you_control (both of your Mastiffs 3/2, the opponent's Mastiff and your Bear stay 2/2), pack_mastiff_bonus_ends_at_end_of_turn; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/pack_mastiff_1.json",
+   "tools/scenarios/cards/M20/pack_mastiff_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 9,
+   "score": 0.8181818181818182,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

@@ -134,5 +134,32 @@
  },
  "probe": {
   "sha": "17832c17ab272eadd95e1327ecaa9c5a96208038509ce7bdd7f6aa95c2bfb6e5"
+ },
+ "verified": {
+  "tree_sha": "6151eae0ac60494538ec85f59dba40351bfde0e4da79e54be7510edee0746abe",
+  "probe_sha": "887b37d86f9667ec459775ac0be01b16d886a0349858364927044a2c2a57d7a4",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Flying (This creature can't be blocked except by creatures with flying or reach.)",
+    "status": "OK",
+    "evidence": "cast: 'keywords +FLYING'; stimulus 'this creature attacks and opp_giant blocks it': no block row, opp dealt 5, life 20 -> 15",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, return it to its owner's hand.",
+    "status": "OK",
+    "evidence": "stimulus 'this card is dealt lethal damage': card's triggered ability [0] triggers; 'card dies'; 'card moves graveyard -> hand (by card/MOVE_ZONE)'; you: hand 5 -> 6. No trigger when you_bear or opp_bear dies (collapsed to 'same as without the card')",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

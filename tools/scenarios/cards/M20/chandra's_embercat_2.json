@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cat", "real": "Chandra's Embercat", "zone": "battlefield", "controller": 0},
+  {"key": "chandra", "real": "Chandra, Novice Pyromancer", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 3}},
+ "steps": [{"op": "activate", "key": "cat", "idx": 0, "seat": 0}, {"op": "cast", "key": "chandra", "controller": 0}],
+ "expect": {"zone": {"chandra": "battlefield"}, "mana_pool": {"0": {}}},
+ "notes": "Chandra's Embercat (M20): its {R} may pay for a Chandra planeswalker spell: {W}{W}{W} plus the Embercat's {R} cast Chandra, Novice Pyromancer ({3}{R})."
+}

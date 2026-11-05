@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P67137fb87b G4. Printed: 'When this creature enters, you may discard a card. If you do, draw a card.' Keldon Raider is seat 0's only card in hand, so after it is cast the hand is empty and no card can be discarded: 'If you do' is false (CR 118.12) and no card is drawn, even if seat 0 answers the may with fire. The hand stays empty.",
+ "cards": [
+  {"key": "kr", "real": "Keldon Raider", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "cast", "real": "Keldon Raider", "key": "kr", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"kr": "battlefield"},
+  "hand": {"0": 0},
+  "graveyard": {"0": []}
+ }
+}

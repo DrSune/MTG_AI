@@ -218,5 +218,48 @@
  },
  "probe": {
   "sha": "31eff957721e256df73c9176095c52e8cabd57b86d896b66c7d8edb1296b691f"
+ },
+ "verified": {
+  "tree_sha": "c6e1ae16535eb267f140ed07c865ad4f2e935999344ed3559b934c51708a3dfa",
+  "probe_sha": "31eff957721e256df73c9176095c52e8cabd57b86d896b66c7d8edb1296b691f",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Hexproof",
+    "status": "OK",
+    "evidence": "Static section: card keywords HEXPROOF",
+    "issue": ""
+   },
+   {
+    "clause": "This land enters tapped.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[play land]: the field is sacrificed to its own trigger (only two lands), so its tapped entry is never seen. Pack lotus_field_tapped_sacrifice_two.json: with three Forests out Lotus Field stays on the battlefield tapped; PASS on live and this tree; the mutant without EtBState(tapped=True) FAILS (tapped[lotus]: expected True, got False).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, sacrifice two lands.",
+    "status": "OK",
+    "evidence": "[play land]: triggered ability [1]; you_land and the card itself (the only two lands you control) move battlefield -> graveyard by SACRIFICE. Pack lotus_field_tapped_sacrifice_two.json: the ask offers only P0's lands (Lotus Field and its three Forests, not P1's Forest); f1 and f2 sacrificed, f3 and P1's land stay; the sacrifice-one mutant FAILS.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add three mana of any one color.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask mana [W, U, B, R, G] -> W: card becomes tapped, you: mana W+3; likewise U+3, B+3, R+3, G+3",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/lotus_field_1.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "amount+1 at 1/1/effect/args/target/count"
+   ]
+  }
  }
 }

@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pfd86382eae G4. Printed: '... that was put there from the battlefield THIS TURN.' Seat 0's Bear dies on turn 1; on seat 0's next turn (turn 3) it is no longer a legal target and the activation is refused.",
+ "cards": [
+  {"key": "salv", "real": "Salvager of Ruin", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "killer", "target": "bear", "amount": 9, "controller": 1},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "salv", "idx": 0, "seat": 0, "targets": ["bear"], "expect_raise": "illegal activation: target:selection:off_population"}
+ ],
+ "expect": {
+  "zone": {"salv": "battlefield", "bear": "graveyard"},
+  "turn_seats": [0, 1, 0]
+ }
+}

@@ -409,5 +409,49 @@
  },
  "probe": {
   "sha": "40261a2a32dd7aaf6ae27000d2d1eff88b8d0fd2c8f3a12a12dcc178752e9bab"
+ },
+ "verified": {
+  "tree_sha": "ada6d4bd193d01ea73bbb640b1ccc7fb0aa942b763ae70c6e92655998ed7a914",
+  "probe_sha": "40261a2a32dd7aaf6ae27000d2d1eff88b8d0fd2c8f3a12a12dcc178752e9bab",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Whenever you discard a card, exile that card from your graveyard.",
+    "status": "OK",
+    "evidence": "every [activate [1]] variant: card's triggered ability [0] triggers; the discarded card 'moves hand -> graveyard' then 'graveyard -> exile' (net hand -> exile). Tree: ZoneChangeEvent HAND(YOU) -> GRAVEYARD(YOU) (the IR has no discard event), MOVE_ZONE of the event's card to EXILE",
+    "issue": ""
+   },
+   {
+    "clause": "{2}, {T}: Draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "activate [1]: paid 'mana W-2', 'card becomes tapped'; 'you draws you:Library 5#1', then 'ask one_of' over your six hand cards including the one just drawn; exactly the chosen one is discarded (six variants)",
+    "issue": ""
+   },
+   {
+    "clause": "{4}, {T}, Sacrifice this artifact:",
+    "status": "OK",
+    "evidence": "activate [2]: 'card becomes tapped', 'card moves battlefield -> graveyard (by card/SACRIFICE)', paid 'mana W-4'",
+    "issue": ""
+   },
+   {
+    "clause": "Return all cards exiled with this artifact to their owner's hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "activate [2] on the probe board has nothing exiled with the Bag. Pack bag_of_holding_returns_cards_exiled_with_it.json PASS: loot away Spare A (exiled by the trigger), untap two turns later, sacrifice: Spare A returns to hand; a card exiled by something else (yours and the opponent's) stays; hand 4. Wrong variants (other exiled card returned; Spare A left in exile) fail",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/bag_of_holding_1.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 22,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/2/cost/parts/1/target/filter",
+    "zone HAND->BATTLEFIELD at 1/2/effect/args/destination"
+   ]
+  }
  }
 }

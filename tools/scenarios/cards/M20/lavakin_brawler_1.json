@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "lavakin_brawler_plus_one_per_your_elemental_until_eot",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "brawler", "real": "Lavakin Brawler", "zone": "battlefield", "controller": 0},
+  {"key": "elem1", "name": "Ember Sprite", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "elem2", "name": "Ash Wisp", "type": "Creature — Elemental Spirit", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "You Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_elem1", "name": "Opp Elemental A", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "opp_elem2", "name": "Opp Elemental B", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"brawler": true}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "attackers": {"brawler": true},
+  "life": {"0": 20, "1": 15},
+  "power": {"brawler": 2},
+  "toughness": {"brawler": 4}
+ },
+ "notes": "Printed: 'Whenever this creature attacks, it gets +1/+0 until end of turn for each Elemental you control.' You control three Elementals (the Brawler, two others; the Bear and the opponent's two Elementals do not count): it attacks as 5/4 and deals 5; after the turn ends it is 2/4 again."
+}

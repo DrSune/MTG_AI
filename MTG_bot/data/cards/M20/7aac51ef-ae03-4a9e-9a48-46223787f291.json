@@ -195,5 +195,26 @@
  },
  "probe": {
   "sha": "1dcd52fb5aea9ee46c9c27e7ff0573ba212e39c1001e1398169bd7a3d38aa38d"
+ },
+ "verified": {
+  "tree_sha": "4dcdadd93d1ad4e385801b8d7937a879afaa4c310fa7161689b9909f4ad96d9c",
+  "probe_sha": "1dcd52fb5aea9ee46c9c27e7ff0573ba212e39c1001e1398169bd7a3d38aa38d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Target creature gets +1/+1 and gains double strike until end of turn.",
+    "status": "OK",
+    "evidence": "slot 1..1 of all 6 creatures; [cast targets=['you_bear']]: you_bear 2/2 -> 3/3, keywords +DOUBLE_STRIKE; after the turn ends 3/3 -> 2/2, -DOUBLE_STRIKE; same on every target; cost R-1 W-2 = {2}{R}",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

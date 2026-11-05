@@ -239,5 +239,28 @@
  },
  "probe": {
   "sha": "fdbb44667e9eb26bf1f3377a0e746e3044a62311036033e00c318f80c7e4e303"
+ },
+ "verified": {
+  "tree_sha": "b9fc7690430a522eb3dc999e29a263fbf2d85a935f6ae4caa64ae993c04cc4dd",
+  "probe_sha": "fdbb44667e9eb26bf1f3377a0e746e3044a62311036033e00c318f80c7e4e303",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +2/+2 and gain trample until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear 2/2 -> 4/4 and you_giant 4/4 -> 6/6, both +TRAMPLE; no opponent creature changes; both revert after the turn ends; mana G-2 W-3.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 14,
+   "killed": 13,
+   "score": 0.9285714285714286,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

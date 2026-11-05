@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "name": "thicket_crasher_and_other_elemental_trample_over_chump_blockers",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "crasher", "real": "Thicket Crasher", "zone": "battlefield", "controller": 0},
+  {"key": "elem", "name": "My Elemental", "type": "Creature — Elemental", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "chump1", "name": "Chump One", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "chump2", "name": "Chump Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "chump3", "name": "Chump Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"crasher": true, "elem": true, "bear": true},
+   "block": {"chump1": "crasher", "chump2": "elem", "chump3": "bear"}}
+ ],
+ "expect": {
+  "blocked": {"crasher": ["chump1"], "elem": ["chump2"], "bear": ["chump3"]},
+  "zone": {"chump1": "graveyard", "chump2": "graveyard", "chump3": "graveyard"},
+  "battlefield_keywords": {"My Elemental": ["TRAMPLE"], "My Bear": [], "Thicket Crasher": ["TRAMPLE"]},
+  "damage": {"crasher": 1, "elem": 1, "bear": 1},
+  "life": {"0": 20, "1": 15}
+ },
+ "notes": "Printed: 'Trample / Other Elementals you control have trample.' Each attacker is chump-blocked by a 1/1: the Crasher (4) tramples 3 over, your other Elemental (3) tramples 2 over, your non-Elemental Bear (3) deals nothing to the player: 20 -> 15."
+}

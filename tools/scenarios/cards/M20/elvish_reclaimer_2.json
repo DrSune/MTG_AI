@@ -1,0 +1,53 @@
+{
+ "name": "elvish_reclaimer_third_land_in_graveyard_gives_plus2",
+ "set": "M20",
+ "notes": "Printed: 'This creature gets +2/+2 as long as there are three or more land cards in your graveyard.' P0's graveyard holds two lands; a third land of P0's goes from the battlefield to P0's graveyard, and Elvish Reclaimer becomes 3/4.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rec",
+   "real": "Elvish Reclaimer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "real": "Forest",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "f3",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f3": "graveyard"
+  },
+  "power": {
+   "rec": 3
+  },
+  "toughness": {
+   "rec": 4
+  }
+ }
+}

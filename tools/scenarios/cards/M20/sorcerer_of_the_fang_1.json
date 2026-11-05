@@ -1,0 +1,93 @@
+{
+ "name": "sorcerer_of_the_fang_hits_a_planeswalker",
+ "set": "M20",
+ "notes": "Printed: '{5}{B}, {T}: This creature deals 2 damage to target opponent or planeswalker.' P0 cannot target itself or a creature (both refused before anything is paid), then pays {5}{B}, taps Sorcerer of the Fang and deals 2 to P1's planeswalker (4 loyalty -> 2). P1's life is unchanged.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sorc",
+   "real": "Sorcerer of the Fang",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "opw",
+   "real": "Chandra, Flame's Fury",
+   "zone": "battlefield",
+   "controller": 1,
+   "counters": {
+    "LOYALTY": 4
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "sorc",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "p0"
+   ],
+   "expect_raise": "target:selection:off_population"
+  },
+  {
+   "op": "activate",
+   "key": "sorc",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "obear"
+   ],
+   "expect_raise": "target:selection:off_population"
+  },
+  {
+   "op": "activate",
+   "key": "sorc",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "opw"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "opw": {
+    "LOYALTY": 2
+   }
+  },
+  "zone": {
+   "opw": "battlefield",
+   "obear": "battlefield"
+  },
+  "tapped": {
+   "sorc": true
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

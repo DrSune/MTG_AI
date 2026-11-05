@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P0f57736747 G4. Printed: 'This creature gets +1/+1 as long as you control a Vivien planeswalker.' Seat 0 controls a Crocodile and a Vivien planeswalker: 4/4. Seat 1 controls its own Crocodile and a non-Vivien planeswalker (Ajani): it stays 3/3 (the opponent's Vivien does not count for it, and Ajani is not a Vivien).",
+ "cards": [
+  {"key": "croc", "real": "Vivien's Crocodile", "zone": "battlefield", "controller": 0},
+  {"key": "viv", "name": "Test Vivien", "type": "Legendary Planeswalker — Vivien", "loyalty": 4, "colors": ["G"], "zone": "battlefield", "controller": 0},
+  {"key": "croc2", "real": "Vivien's Crocodile", "zone": "battlefield", "controller": 1},
+  {"key": "aj", "name": "Test Ajani", "type": "Legendary Planeswalker — Ajani", "loyalty": 4, "colors": ["W"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {
+  "power": {"croc": 4, "croc2": 3},
+  "toughness": {"croc": 4, "croc2": 3}
+ }
+}

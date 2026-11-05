@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Pac85e80f17 G4. Printed: '{5}{U}{U}: This creature can't be blocked this turn.' Seat 0 pays exactly {5}{U}{U}, then attacks with the Serpent (4/6) and a 2/2 Scout. Seat 1's 0/9 Wall may block only the Scout (its block ask offers the Scout and NONE, never the Serpent); it blocks the Scout and the Serpent's 4 damage goes through.",
+ "cards": [
+  {"key": "fss", "real": "Frilled Sea Serpent", "zone": "battlefield", "controller": 0},
+  {"key": "scout", "name": "Scout", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 2, "C": 5}},
+ "steps": [
+  {"op": "activate", "key": "fss", "idx": 0, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"fss": true, "scout": true}, "block": {"wall": "scout"}}
+ ],
+ "expect": {
+  "attackers": {"fss": true, "scout": true},
+  "block_asks": {"wall": "<scout>,NONE"},
+  "blocked": {"scout": ["wall"], "fss": []},
+  "life": {"0": 20, "1": 16},
+  "damage": {"wall": 2},
+  "mana_pool": {"0": {}}
+ }
+}

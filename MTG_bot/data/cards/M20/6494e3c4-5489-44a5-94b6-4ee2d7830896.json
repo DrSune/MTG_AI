@@ -220,5 +220,32 @@
  },
  "probe": {
   "sha": "be2ff07cd429f80c937aa8ac39f6e37de45d386c595c36cea204505ff75ada7a"
+ },
+ "verified": {
+  "tree_sha": "7c6405d8b52f9fb8418c22e4c726101a76e422a24176c4d6c73f71113984b169",
+  "probe_sha": "d2b874303ef5eb851de4b7a566613cab3923d8aaa48d84025f820494a208d054",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may exile target creature card from a graveyard.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0]; 'ask target: [you_fallen, opp_fallen]' (creature cards in either graveyard; the sorceries you_used/opp_used not offered); 'ask may: [fire, skip]'; fire -> the target 'moves graveyard -> exile' (yours or the opponent's, two variants); [cast | ask 2 -> skip]: nothing exiled; paid 'mana B-2 W-3' (= {3}{B}{B})",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, create a 2/2 black Zombie creature token.",
+    "status": "OK",
+    "evidence": "fire variants: '+ you:Zombie (battlefield, you, 2/2)', exactly one; skip variant: no token. Tree: Conditional(MAY_DONE) CREATE_TOKEN 1 Zombie, colors ('B',)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

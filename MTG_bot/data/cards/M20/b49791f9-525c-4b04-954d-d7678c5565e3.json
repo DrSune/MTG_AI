@@ -175,5 +175,35 @@
  },
  "probe": {
   "sha": "5ec1d87a6c1fa3a1bd452c6d8ebdfbf76431f7616f8d4bacd30f6ecb153c77de"
+ },
+ "verified": {
+  "tree_sha": "cc516c2f7ddc5a81a060927542b1482af39137cc724bde65e315334aea9af50a",
+  "probe_sha": "847d19850a6fdd77b32e32bda251585a785decbd614cf061dc5f7e70b95f775d",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "This creature gets +1/+1 as long as you control a Vivien planeswalker.",
+    "status": "NOT_EXERCISED",
+    "evidence": "G1 shows only the false side (no Vivien on the probe board): [cast] P/T 3/3 and Static 'card on the battlefield: 3/3'. Packs viviens_crocodile_1 (your Vivien: 4/4; the opponent's Crocodile beside a non-Vivien planeswalker stays 3/3) and viviens_crocodile_2 (Vivien leaves: back to 3/3) pass; their wrong-expectation twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/vivien's_crocodile_1.json",
+   "tools/scenarios/cards/M20/vivien's_crocodile_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 1,
+   "score": 0.16666666666666666,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/duration/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/duration/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/duration/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

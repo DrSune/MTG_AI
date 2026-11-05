@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spit", "real": "Chandra's Spitfire", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [{"op": "cast", "key": "shock", "controller": 0, "targets": ["p1"]}],
+ "expect": {"life": {"0": 20, "1": 18}, "power": {"spit": 4}, "toughness": {"spit": 3}},
+ "notes": "Chandra's Spitfire (M20): 'Whenever an opponent is dealt noncombat damage, this creature gets +3/+0 until end of turn.' Shock deals 2 to the opponent: the 1/3 Spitfire is 4/3."
+}

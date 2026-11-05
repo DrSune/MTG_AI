@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "iso", "real": "Eternal Isolation", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [{"op": "cast", "key": "iso", "controller": 0, "targets": ["giant"]}],
+ "expect": {"zone": {"giant": "library", "iso": "graveyard"}, "library": {"1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Opp Giant"]}},
+ "notes": "Eternal Isolation (M20): 'Put target creature with power 4 or greater on the bottom of its owner's library.' The opponent's 4/4 goes to the BOTTOM of the opponent's library (top-first listing: the six filler cards, then the Giant)."
+}

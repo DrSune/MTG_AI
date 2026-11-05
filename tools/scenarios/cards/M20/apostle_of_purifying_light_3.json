@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P9738cd6e24 G4. Printed: 'Protection from black.' A black spell cannot target it (CR 702.16c): seat 1's Murder aimed at the Apostle is refused; the same Murder may still target seat 0's other creature.",
+ "cards": [
+  {"key": "ap", "real": "Apostle of Purifying Light", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "murder", "real": "Murder", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"B": 3}},
+ "steps": [
+  {"op": "cast", "real": "Murder", "key": "murder", "controller": 1, "targets": ["ap"], "expect_raise": "illegal target selection"},
+  {"op": "cast", "real": "Murder", "key": "murder", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"ap": "battlefield", "bear": "graveyard", "murder": "graveyard"}
+ }
+}

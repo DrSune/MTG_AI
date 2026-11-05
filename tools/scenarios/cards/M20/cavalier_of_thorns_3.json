@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Thorns", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Deep Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c2", "name": "Bear Four", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c3", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "c4", "name": "Bear Three", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "c5", "name": "Island Card", "type": "Basic Land — Island", "zone": "library", "controller": 0},
+  {"key": "c6", "name": "Bear One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 3, "W": 2}},
+ "steps": [{"op": "cast", "key": "cav", "controller": 0, "decisions": ["c5"]}],
+ "expect": {
+  "zone": {"cav": "battlefield", "c5": "battlefield", "c3": "graveyard", "c2": "graveyard", "c4": "graveyard", "c6": "graveyard", "c1": "library"}
+ },
+ "notes": "Cavalier of Thorns (M20): two lands among the top five; you choose one (Island Card) for the battlefield and the other land goes to the graveyard with the rest."
+}

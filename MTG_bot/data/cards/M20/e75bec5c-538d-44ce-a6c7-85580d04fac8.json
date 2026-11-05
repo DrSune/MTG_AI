@@ -160,5 +160,40 @@
  },
  "probe": {
   "sha": "2c3a96eaf92ded8c23f4db35cc76a40361fe40ee54d144f1d2cbfc747e034e9c"
+ },
+ "verified": {
+  "tree_sha": "c8dade5c46e794f3949048cfaabfcf0fb000a7a3c04a64419e8a64d800abfcc2",
+  "probe_sha": "971b1b98895fe6d97d3a86de5223e66b5cf236d9af2ecef2e4c0889d5f5daf84",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "{T}: Add {R}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped, you: mana R+1.",
+    "issue": ""
+   },
+   {
+    "clause": "Spend this mana only to cast an Elemental spell or a Chandra planeswalker spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace never spends the mana. Packs: chandras_embercat_mana_casts_elemental ({R}+{W} cast a second Embercat), chandras_embercat_mana_casts_chandra ({W}{W}{W}+{R} cast Chandra, Novice Pyromancer), chandras_embercat_mana_refused_for_other_spell (Pack Mastiff refused: 'cost:mana:R:0<1'), chandras_embercat_mana_refused_for_activated_ability (Mastiff's {1}{R} ability refused: 'cost:mana:R:0<1'); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/chandra's_embercat_1.json",
+   "tools/scenarios/cards/M20/chandra's_embercat_2.json",
+   "tools/scenarios/cards/M20/chandra's_embercat_3.json",
+   "tools/scenarios/cards/M20/chandra's_embercat_4.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 3,
+   "score": 0.6,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/args/filter/children/0",
+    "widen filter (drop part 1) at 1/1/effect/args/filter/children/0"
+   ]
+  }
  }
 }

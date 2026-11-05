@@ -1,0 +1,59 @@
+{
+ "name": "thirsting_bloodlord_other_vampires_you_control",
+ "set": "M20",
+ "notes": "Printed: 'Other Vampires you control get +1/+1.' P0's other Vampire becomes 3/3; Thirsting Bloodlord itself stays 3/3; P0's non-Vampire and P1's Vampire stay 2/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lord",
+   "real": "Thirsting Bloodlord",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vamp",
+   "name": "My Vamp",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ovamp",
+   "name": "Opp Vamp",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [],
+ "expect": {
+  "power": {
+   "lord": 3,
+   "vamp": 3,
+   "bear": 2,
+   "ovamp": 2
+  },
+  "toughness": {
+   "lord": 3,
+   "vamp": 3,
+   "bear": 2,
+   "ovamp": 2
+  }
+ }
+}

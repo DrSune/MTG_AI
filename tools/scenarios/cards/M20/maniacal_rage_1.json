@@ -1,0 +1,26 @@
+{
+ "name": "maniacal_rage_enchanted_creature_cant_block",
+ "set": "M20",
+ "notes": "Printed: 'Enchant creature. Enchanted creature gets +2/+2 and can't block.' P0 casts Maniacal Rage on P1's 2/2 (it becomes 4/4), then attacks with a 2/2. The enchanted creature is never offered a block; P1's other 2/2 is offered the attacker or no block. Nobody blocks (the pack names no block), so P1 takes 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rage", "real": "Maniacal Rage", "zone": "hand", "controller": 0},
+  {"key": "atk", "name": "Attacker", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ench", "name": "Enchanted Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "free", "name": "Free Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "rage", "real": "Maniacal Rage", "controller": 0, "targets": ["ench"]},
+  {"op": "combat", "seat": 0, "attack": {"atk": true}}
+ ],
+ "expect": {
+  "zone": {"rage": "battlefield", "ench": "battlefield", "atk": "battlefield"},
+  "attached": {"rage": "ench"},
+  "power": {"ench": 4, "free": 2},
+  "toughness": {"ench": 4, "free": 2},
+  "not_asked_to_block": ["ench"],
+  "block_asks": {"free": "<atk>,NONE"},
+  "life": {"0": 20, "1": 18}
+ }
+}

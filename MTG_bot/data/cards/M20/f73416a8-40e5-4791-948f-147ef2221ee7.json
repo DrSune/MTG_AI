@@ -261,5 +261,26 @@
  },
  "probe": {
   "sha": "5266dcf160284647aceca206b30313ac581d0352b49a70abcd400ff9722effe1"
+ },
+ "verified": {
+  "tree_sha": "d7a7edf4fbeedf463259c6ffa3bfe6b949049b86bd7aaeac8e914e006e8aa584",
+  "probe_sha": "5266dcf160284647aceca206b30313ac581d0352b49a70abcd400ff9722effe1",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Target creature gets +1/+1 until end of turn for each creature you control.",
+    "status": "OK",
+    "evidence": "You control 2 creatures, the opponent 4: every target gets +2/+2 (you_bear 2/2 -> 4/4, opp_giant 4/4 -> 6/6) and reverts after the turn ends; target slot lists all six creatures.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 11,
+   "killed": 11,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

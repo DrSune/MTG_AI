@@ -329,5 +329,40 @@
  },
  "probe": {
   "sha": "08913c697d4480b4364f7ad0c5640adfc4d6cebfc365d50213e44df6d43d3484"
+ },
+ "verified": {
+  "tree_sha": "da7d1a8d2eea6ff7a0dd963302e6f3803fc95356ee8245159cec4e0efb8795f0",
+  "probe_sha": "08913c697d4480b4364f7ad0c5640adfc4d6cebfc365d50213e44df6d43d3484",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "[+1]: Elementals you control get +2/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0]]: LOYALTY 5 -> 6, you_elemental 2/2 -> 4/2 and back after the turn ends; opp_elemental and non-Elementals unchanged.",
+    "issue": ""
+   },
+   {
+    "clause": "[−1]: Add {R}{R}.",
+    "status": "OK",
+    "evidence": "[activate [1]]: LOYALTY 5 -> 4, you: mana R+2.",
+    "issue": ""
+   },
+   {
+    "clause": "[−2]: Chandra deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "ability [2] target slot: eight creatures, Chandra, you, opp; each: LOYALTY 5 -> 3 and 2 damage (opp 20 -> 18; targeting herself 5 -> 1).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 18,
+   "killed": 17,
+   "score": 0.9444444444444444,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

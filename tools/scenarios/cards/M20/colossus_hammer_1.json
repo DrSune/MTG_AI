@@ -1,0 +1,25 @@
+{
+ "name": "colossus_hammer_equipped_flier_loses_flying",
+ "set": "M20",
+ "notes": "Printed: 'Equipped creature gets +10/+10 and loses flying. Equip {8}'. P0 equips Colossus Hammer to its 1/1 flier (8 generic), which becomes 11/11 without flying. It attacks; P1's ground 2/2 (no reach) is offered the block, which it can only be because the flier lost flying. Nobody blocks, P1 takes 11.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hammer", "real": "Colossus Hammer", "zone": "hand", "controller": 0},
+  {"key": "fly", "name": "Sky Bearer", "type": "Creature", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "grd", "name": "Ground Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 8}},
+ "steps": [
+  {"op": "enter", "key": "hammer"},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["fly"]},
+  {"op": "combat", "seat": 0, "attack": {"fly": true}}
+ ],
+ "expect": {
+  "attached": {"hammer": "fly"},
+  "power": {"fly": 11},
+  "toughness": {"fly": 11},
+  "block_asks": {"grd": "<fly>,NONE"},
+  "mana_pool": {"0": {}},
+  "life": {"0": 20, "1": 9}
+ }
+}

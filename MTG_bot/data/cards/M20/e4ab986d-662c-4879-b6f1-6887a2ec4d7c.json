@@ -99,5 +99,26 @@
  },
  "probe": {
   "sha": "ef77e52c5335e4aa9ac4cae33a5a25b8f155ea433d6bdde753adbe20a7d9f5c2"
+ },
+ "verified": {
+  "tree_sha": "439782ba1ae9e4ccda38d3c0bed57dcd622f82effc240177161bc1fd362fb473",
+  "probe_sha": "ef77e52c5335e4aa9ac4cae33a5a25b8f155ea433d6bdde753adbe20a7d9f5c2",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Return target creature card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "target slot (cast) 1..1 of [you_fallen] (not you_used, not the opponent's graveyard); you_fallen moves graveyard -> hand; mana B-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

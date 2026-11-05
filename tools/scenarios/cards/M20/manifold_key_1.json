@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P6c890a0c59 G4. Printed: '{1}, {T}: Untap another target artifact.' Seat 0's tapped Relic is untapped; Manifold Key taps and exactly {1} is spent. The opponent's tapped artifact, not targeted, stays tapped.",
+ "cards": [
+  {"key": "key", "real": "Manifold Key", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "key", "idx": 0, "seat": 0, "targets": ["relic"]}
+ ],
+ "expect": {
+  "tapped": {"key": true, "relic": false, "orelic": true},
+  "mana_pool": {"0": {}}
+ }
+}

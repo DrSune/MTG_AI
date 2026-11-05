@@ -1,0 +1,12 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "dog", "real": "Pack Mastiff", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [{"op": "cast", "key": "dog", "controller": 0, "expect_raise": "illegal cast"}],
+ "expect": {"zone": {"dog": "hand"}},
+ "notes": "Starfield Mystic (M20): only ENCHANTMENT spells cost {1} less; Pack Mastiff ({1}{R}) still needs two mana."
+}

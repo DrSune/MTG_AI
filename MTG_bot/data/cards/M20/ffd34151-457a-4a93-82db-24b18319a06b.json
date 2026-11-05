@@ -494,5 +494,51 @@
  },
  "probe": {
   "sha": "53796082cb80c13beea8e1f7a0cb92a7cb68faa53acb51aefd4456727005e6c2"
+ },
+ "verified": {
+  "tree_sha": "6ed018c68501f563ab0e009eac24405d4d26277ec9b1dd7aa982ce758dc6b242",
+  "probe_sha": "1ceb9dab59cee97adf7dc7c0f6ecc9fcc12b05fef86799022c57c4930b78677e",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When Omnath enters, it deals damage to any target equal to the number of Elementals you control.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask target' over creatures, the card itself and players; each target 'is dealt 2 damage' (Omnath + you_elemental; opp_elemental not counted).",
+    "issue": ""
+   },
+   {
+    "clause": "Landfall — Whenever a land you control enters, put a +1/+1 counter on target Elemental you control.",
+    "status": "OK",
+    "evidence": "[you play a land]: trigger [1], 'ask target: [you_elemental, card]' (opp_elemental excluded), 'you_elemental gets 1 PLUS_1_PLUS_1'. Pack omnath_locus_of_the_roil_3 (the opponent's land drop: no counter) passes; twin fails.",
+    "issue": ""
+   },
+   {
+    "clause": "If you control eight or more lands, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe board never reaches eight lands (no draw, consistent). Packs omnath_locus_of_the_roil_1 (eighth land: counter and one draw) and omnath_locus_of_the_roil_2 (seven own lands plus four opposing lands: counter, no draw) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_1.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_2.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_3.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 16,
+   "score": 0.6666666666666666,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/amount/selector/filter",
+    "widen filter (drop part 0) at 1/1/event/subject",
+    "drop step 1 at 1/1/effect",
+    "widen filter (drop part 2) at 1/1/effect/steps/0/args/target/filter",
+    "amount+1 at 1/1/effect/steps/1/pred/count",
+    "amount-1 at 1/1/effect/steps/1/pred/count",
+    "amount+1 at 1/1/effect/steps/1/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/then_effect/args/controller"
+   ]
+  }
  }
 }

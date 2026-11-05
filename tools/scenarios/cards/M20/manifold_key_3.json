@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P6c890a0c59 G4. Printed: '{3}, {T}: Target creature can't be blocked this turn.' The effect lasts this turn only: the Runner is made unblockable on turn 1, and on seat 0's next turn (turn 3) the Wall may block it again, and does.",
+ "cards": [
+  {"key": "key", "real": "Manifold Key", "zone": "battlefield", "controller": 0},
+  {"key": "runner", "name": "Runner", "type": "Creature — Human", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 3}},
+ "steps": [
+  {"op": "activate", "key": "key", "idx": 1, "seat": 0, "targets": ["runner"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"runner": true}, "block": {"wall": "runner"}}
+ ],
+ "expect": {
+  "blocked": {"runner": ["wall"]},
+  "life": {"0": 20, "1": 20},
+  "damage": {"wall": 3}
+ }
+}

@@ -489,5 +489,37 @@
  },
  "probe": {
   "sha": "c9340bca360c0adedc4ee9b4f170cd45e4b0ece78d781fc360dc65adee4bee41"
+ },
+ "verified": {
+  "tree_sha": "090757b8ee37f108f5dab743f1fe036c21059de59bab5caac32d4ded8b74a509",
+  "probe_sha": "e8577e3a6a0968ddb93296b891f07846069c211eaf10d4687d4cd7f9d691aaef",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Other Elementals you control get +1/+0.",
+    "status": "OK",
+    "evidence": "cast and static: 'you_elemental: P/T 2/2 -> 3/2'; the Trailblazer itself stays 2/2; opp_elemental and non-Elementals unchanged; when it dies 'you_elemental: P/T 3/2 -> 2/2'",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{R}{G}: This creature gets +1/+1 until end of turn for each Elemental you control.",
+    "status": "OK",
+    "evidence": "activate [1]: paid 'mana G-1 R-1 W-2' (= {2}{R}{G}); P/T 2/2 -> 4/4 with two Elementals you control (itself and you_elemental; opp_elemental not counted); 'after the turn ends: card: P/T 4/4 -> 2/2'",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 28,
+   "killed": 24,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/1/effect/args/power/magnitude/right/selector/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/1/effect/args/toughness/magnitude/right/selector/filter"
+   ]
+  }
  }
 }

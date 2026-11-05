@@ -163,5 +163,28 @@
  },
  "probe": {
   "sha": "6d08dd763b7cfb96c3ff3f01f81d10d3f7b97808c368d7d398a17189c3aa6a2b"
+ },
+ "verified": {
+  "tree_sha": "1108207cc321f789aba25cae7c063d11b63a016234d601976312f45ef2cb3e04",
+  "probe_sha": "4768e1ae5b931b2cc359bbd46583fc3dbc67eaedb4b4ff5edf3bc88ca378c1da",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, return up to two target instant and/or sorcery cards from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0]; 'ask target: [you_used, NONE]' (your sorcery only: your creature card and the opponent's sorcery not offered; NONE for 'up to'); you_used 'moves graveyard -> hand'; NONE variant returns nothing; paid 'mana U-2 W-5' (= {5}{U}{U}). The cap of two is not visible with one eligible card: pack scholar_of_the_ages_returns_up_to_two.json PASS (three eligible: the first ask offers exactly them plus NONE; the two chosen return, the third stays though a third pick is scripted). Wrong variant (three returned) fails",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/scholar_of_the_ages_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -1,0 +1,109 @@
+{
+ "set": "M20",
+ "name": "brightwood_tracker_takes_one_creature_from_top_four_rest_to_bottom",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "tracker",
+   "real": "Brightwood Tracker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "crea_e",
+   "name": "Creature E",
+   "type": "Creature \u2014 Elf",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "crea_d",
+   "name": "Creature D",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "land_c",
+   "name": "Land C",
+   "type": "Basic Land \u2014 Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "crea_b",
+   "name": "Creature B",
+   "type": "Creature \u2014 Wolf",
+   "power": "2",
+   "toughness": "2",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "inst_a",
+   "name": "Instant A",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "tracker",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "card:2"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "tracker": true
+  },
+  "zone": {
+   "crea_d": "hand",
+   "crea_b": "library",
+   "inst_a": "library",
+   "land_c": "library",
+   "crea_e": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Creature E",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "*",
+    "*",
+    "*"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: '{5}{G}, {T}: Look at the top four cards of your library. You may reveal a creature card from among them and put it into your hand. Put the rest on the bottom of your library in a random order.' Top four (top first): Instant A, Creature B, Land C, Creature D; Creature D goes to hand, the other three go to the bottom (order unasserted), the unseen fifth card (Creature E) is on top after. Decision words are literal (card:2 = Creature D by pack order): on an activate step a pack key would fall through the executor's decision pool to the runner's provider queue, which restarts at the first word."
+}

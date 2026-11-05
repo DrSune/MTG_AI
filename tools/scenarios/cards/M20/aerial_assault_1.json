@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "P3460e320ab G4. Printed: 'Destroy target tapped creature. You gain 1 life for each creature you control with flying.' Seat 0 controls two fliers and a ground creature; seat 1 controls a flier (does not count) and the tapped target. The target is destroyed and seat 0 gains exactly 2 life.",
+ "cards": [
+  {"key": "aa", "real": "Aerial Assault", "zone": "hand", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "f2", "name": "My Drake", "type": "Creature — Drake", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "g", "name": "My Ground Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "of", "name": "Opp Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "tgt", "name": "Opp Tapped Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"W": 3}},
+ "steps": [
+  {"op": "cast", "real": "Aerial Assault", "key": "aa", "targets": ["tgt"]}
+ ],
+ "expect": {
+  "zone": {"aa": "graveyard", "tgt": "graveyard", "f1": "battlefield", "f2": "battlefield", "of": "battlefield"},
+  "life": {"0": 22, "1": 20}
+ }
+}

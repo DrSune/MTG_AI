@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "gruesome_scourger_etb_damage_to_target_planeswalker",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gs", "real": "Gruesome Scourger", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "You Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_pw", "real": "Chandra, Flame's Fury", "zone": "battlefield", "controller": 1},
+  {"key": "opp_a", "name": "Opp A", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "opp_b", "name": "Opp B", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "opp_c", "name": "Opp C", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [
+  {"op": "loyalty", "key": "opp_pw", "set": 5},
+  {"op": "cast", "key": "gs", "real": "Gruesome Scourger", "decisions": ["opp_pw"]}
+ ],
+ "expect": {
+  "zone": {"gs": "battlefield", "opp_pw": "battlefield"},
+  "counters": {"opp_pw": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 20}
+ },
+ "notes": "Printed: 'When this creature enters, it deals damage to target opponent or planeswalker equal to the number of creatures you control.' You control two creatures (the Bear and the Scourger; the opponent's three do not count): 2 damage to the opponent's planeswalker, loyalty 5 -> 3; the opponent's life is untouched."
+}

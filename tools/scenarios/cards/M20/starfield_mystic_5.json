@@ -1,0 +1,11 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "ench", "name": "My Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "move", "key": "ench", "to": "exile"}],
+ "expect": {"zone": {"ench": "exile"}, "counters": {"mystic": {}}},
+ "notes": "Starfield Mystic (M20): an enchantment you control that is exiled (not put into a graveyard) gives no counter."
+}

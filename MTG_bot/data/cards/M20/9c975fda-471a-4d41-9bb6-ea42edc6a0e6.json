@@ -117,5 +117,26 @@
  },
  "probe": {
   "sha": "972a968dcc6ab977cc742175ad2553ce4071c6c4b5eafe39d3dbb332e0ec3d88"
+ },
+ "verified": {
+  "tree_sha": "06071c2e074990d23e44016ae21c875e1e9ff16c0fb2c640757a57233216cc6f",
+  "probe_sha": "2cd3dd153f6993920190d5c8648a3c432b0159798007c43f3f645761a2abf002",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "During your turn, this creature has lifelink.",
+    "status": "OK",
+    "evidence": "[cast] on your turn: 'keywords +LIFELINK'; attack stimuli: 'you gains 2 life (by card/DEAL_DAMAGE)', you 20 -> 22; entering during the opponent's turn: no LIFELINK; 'on the opponent's turn, opp_bear attacks you': 'card: keywords -LIFELINK'. Tree: static GRANT_ABILITY LIFELINK to itself, condition TURN_OF YOU",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

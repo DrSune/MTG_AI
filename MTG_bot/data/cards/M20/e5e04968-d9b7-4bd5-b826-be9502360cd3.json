@@ -221,5 +221,40 @@
  },
  "probe": {
   "sha": "13aadaad9b05d295ed85976c5fd567cb4120bdef68c473dede6372eb2f9c17c7"
+ },
+ "verified": {
+  "tree_sha": "a45c98d2182b97783416aa5794cb73fd68157c8bc5e140950455a8002488461e",
+  "probe_sha": "13aadaad9b05d295ed85976c5fd567cb4120bdef68c473dede6372eb2f9c17c7",
+  "date": "2026-11-05",
+  "reviewer": "claude-verifiers-m20v1",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "cast target slot 1..1 of the 6 creatures only; keywords +ENCHANT",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, draw a card.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']]: triggered ability [0], you draws you:Library 5#1 (library 6 -> 5); same on every target and on the opponent's-turn entry",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature has flying.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']]: you_bear keywords +FLYING; likewise you_giant, opp_tapped, opp_bear, opp_giant",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }
