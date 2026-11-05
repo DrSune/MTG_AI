@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     TurnPhaseEvent,
     Verb,
     Zone,
+    ZoneChangeEvent,
     ZoneKind,
 )
 from MTG_bot.core.executor import Executor
@@ -329,6 +330,33 @@ class TestDealtDamage(HistoryCase):
         self.assertFalse(self.judge(an_opponent_was_dealt_damage))
         self.damage(self.p1, 1)
         self.assertTrue(self.judge(an_opponent_was_dealt_damage))
+
+
+class TestEnteredThisTurn(HistoryCase):
+    def test_the_zone_change_that_made_the_object_is_its_own(self) -> None:
+        # "a creature that entered the battlefield this turn": the entry is the first event of
+        # the object it made (CR 400.7), so it belongs to the object's history.
+        entered = subject_of(
+            ZoneChangeEvent(
+                from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+                to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+            )
+        )
+        newcomer = self.world.add_card(card_id("New", "2", "2"), self.p0, ZONE_HAND)
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(ONE, SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),)),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=newcomer,
+            controller=self.p0,
+            bindings={"cards": newcomer},
+        )
+        self.assertTrue(self.judge(entered, newcomer))
+        self.assertFalse(self.judge(entered, self.source))  # on the battlefield before the turn
+        self.ex.advance_turn()
+        self.assertFalse(self.judge(entered, newcomer))
 
 
 class TestAttacked(HistoryCase):

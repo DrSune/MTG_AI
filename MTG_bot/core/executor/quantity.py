@@ -2110,9 +2110,10 @@ def _event_this_turn(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     each do not.
 
     SUBJECT_OF_EVENT_THIS_TURN reads only the rows whose subject is the
-    judged object, since its last zone change: an object that changes zones
+    judged object, from its last zone change on: an object that changes zones
     is a new object with no history (CR 400.7), so a creature dealt damage,
-    then bounced and cast again, was not "dealt damage this turn"."""
+    then bounced and cast again, was not "dealt damage this turn"; the zone
+    change that made it is its own ("entered the battlefield this turn")."""
     executor = ctx.executor
     if executor is None:
         raise NotImplementedError(
@@ -2122,8 +2123,13 @@ def _event_this_turn(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     assert atom.event is not None and atom.count is not None  # FAtom validates both
     rows = _turn_rows(ctx, atom.pred.name)
     if atom.pred is FAtomPred.SUBJECT_OF_EVENT_THIS_TURN:
-        since = _last_zone_change_clock(ctx, handle)
-        rows = [e for e in rows if e.subject == handle and e.clock > since]
+        from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+
+        # A zone change before this turn precedes every row of it, so the
+        # turn's own rows decide where the object began.
+        rows = [e for e in rows if e.subject == handle]
+        since = max((e.clock for e in rows if e.kind == KIND_ZONE_CHANGE), default=0)
+        rows = [e for e in rows if e.clock >= since]
     threshold = resolve(atom.count, ctx)
     totals: dict[Handle | None, int] = {}
     for row in rows:
@@ -2170,15 +2176,3 @@ def _measure(row: GameEvent) -> int:
     if row.kind in (KIND_LIFE_GAINED, KIND_LIFE_LOST, KIND_DAMAGE):
         return row.amount
     return 1
-
-
-def _last_zone_change_clock(ctx: ExecCtx, handle: Handle) -> int:
-    """The journal clock of ``handle``'s most recent zone change, 0 if it never
-    moved: the object it is now began there (CR 400.7). Players never move."""
-    from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
-
-    assert ctx.journal is not None  # _turn_rows raised before
-    for e in reversed(ctx.journal.events):
-        if e.kind == KIND_ZONE_CHANGE and e.subject == handle:
-            return e.clock
-    return 0
