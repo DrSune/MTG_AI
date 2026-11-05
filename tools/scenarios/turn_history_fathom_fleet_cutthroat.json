@@ -1,0 +1,60 @@
+{
+ "name": "turn_history_fathom_fleet_cutthroat",
+ "set": "M20",
+ "note": "Fathom Fleet Cutthroat: 'When this creature enters, destroy target creature an opponent controls that was dealt damage this turn.' P0's Bear deals 1 damage to P1's Hit Courser; the Cutthroat enters and its trigger destroys it. Falsified by turn_history_fathom_fleet_cutthroat_new_object. Red on main dd4ba95: the sentence did not parse.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cutthroat",
+   "real": "Fathom Fleet Cutthroat",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hit",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "spared",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bear",
+   "target": "hit",
+   "amount": 1
+  },
+  {
+   "op": "enter",
+   "key": "cutthroat",
+   "decisions": [
+    "hit"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cutthroat": "battlefield",
+   "hit": "graveyard",
+   "spared": "battlefield"
+  }
+ }
+}

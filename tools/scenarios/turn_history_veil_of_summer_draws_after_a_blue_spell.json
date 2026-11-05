@@ -1,0 +1,67 @@
+{
+ "name": "turn_history_veil_of_summer_draws_after_a_blue_spell",
+ "set": "M20",
+ "note": "Veil of Summer: 'Draw a card if an opponent has cast a blue or black spell this turn.' P1 counters P0's Centaur Courser with Convolute (a blue spell, cast this turn by an opponent), then P0 casts the Veil and draws. The turn's history is read after the Convolute has left the stack. Falsified by uncounterable_veil_of_summer, where no opponent cast anything first and the Veil draws nothing. Red on main dd4ba95: the sentence did not parse.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "courser",
+   "real": "Centaur Courser",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "veil",
+   "real": "Veil of Summer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "convolute",
+   "real": "Convolute",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 4
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Centaur Courser",
+   "key": "courser",
+   "decisions": [
+    "convolute"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Veil of Summer",
+   "key": "veil"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "courser": "graveyard",
+   "convolute": "graveyard",
+   "veil": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  },
+  "window_asks": {
+   "1": [
+    "convolute"
+   ]
+  }
+ }
+}

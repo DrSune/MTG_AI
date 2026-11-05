@@ -1,0 +1,49 @@
+{
+ "name": "turn_history_blood_ogre_bloodthirst",
+ "set": "M12",
+ "note": "Blood Ogre: 'Bloodthirst 1 (If an opponent was dealt damage this turn, this creature enters with a +1/+1 counter on it.)' (CR 702.54a). P0's Bear deals combat damage to P1, then the Ogre enters with a counter. Red on main dd4ba95: the line did not parse. Twin: turn_history_blood_ogre_no_damage.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Blood Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   }
+  },
+  {
+   "op": "enter",
+   "key": "ogre"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ogre": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "life": {
+   "1": 18
+  }
+ }
+}

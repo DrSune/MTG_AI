@@ -1,0 +1,67 @@
+{
+ "name": "turn_history_ogre_siegebreaker",
+ "set": "M20",
+ "note": "Ogre Siegebreaker: '{2}{B}{R}: Destroy target creature that was dealt damage this turn.' P0's Bear deals 1 damage to the Hit Courser (it survives, 3/3); the Ogre destroys it. The other Courser is untouched. Falsified by turn_history_ogre_siegebreaker_undamaged, which targets a creature not dealt damage. Red on main dd4ba95: the ability did not parse, so there was none to activate.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Ogre Siegebreaker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hit",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "spared",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bear",
+   "target": "hit",
+   "amount": 1
+  },
+  {
+   "op": "activate",
+   "key": "ogre",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "hit"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "hit": "graveyard",
+   "spared": "battlefield"
+  }
+ }
+}

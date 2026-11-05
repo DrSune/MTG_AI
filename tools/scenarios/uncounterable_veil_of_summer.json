@@ -1,0 +1,71 @@
+{
+ "name": "uncounterable_veil_of_summer",
+ "set": "M20",
+ "note": "Veil of Summer: 'Spells you control can't be countered this turn.' A one-shot effect lasting the turn that changes the rules, so it covers a spell cast after it resolved (CR 611.2c). P0 casts the Veil (P1 passes with Convolute in hand), then a Centaur Courser; P1 counters with Convolute, which resolves without countering it. No opponent cast a blue or black spell before the Veil, so it draws nothing ('Draw a card if an opponent has cast a blue or black spell this turn.'). Red on main dd4ba95: neither sentence parsed, so the Courser was countered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "veil",
+   "real": "Veil of Summer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "courser",
+   "real": "Centaur Courser",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "convolute",
+   "real": "Convolute",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 4
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Veil of Summer",
+   "key": "veil",
+   "decisions": [
+    "PASS"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Centaur Courser",
+   "key": "courser",
+   "decisions": [
+    "convolute"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "veil": "graveyard",
+   "courser": "battlefield",
+   "convolute": "graveyard"
+  },
+  "hand": {
+   "0": 0
+  },
+  "window_asks": {
+   "1": [
+    "PASS",
+    "convolute"
+   ]
+  }
+ }
+}

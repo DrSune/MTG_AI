@@ -1,0 +1,71 @@
+{
+ "name": "turn_history_ogre_siegebreaker_undamaged",
+ "set": "M20",
+ "note": "Twin of turn_history_ogre_siegebreaker: the Courser that was not dealt damage this turn is not a legal target, so the activation is refused (CR 602.2b, 115.1).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Ogre Siegebreaker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hit",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "spared",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bear",
+   "target": "hit",
+   "amount": 1
+  },
+  {
+   "op": "activate",
+   "key": "ogre",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "spared"
+   ],
+   "expect_raise": "illegal activation: target"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "hit": "battlefield",
+   "spared": "battlefield"
+  },
+  "damage": {
+   "hit": 1
+  }
+ }
+}

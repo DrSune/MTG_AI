@@ -1,0 +1,46 @@
+{
+ "name": "turn_history_goblin_boarders_raid",
+ "set": "FDN",
+ "note": "Goblin Boarders: 'Raid — This creature enters with a +1/+1 counter on it if you attacked this turn.' (CR 614.1c: part of the entering state). P0 attacks with a Bear, then the Boarders enter with a counter. Red on main dd4ba95: the sentence did not parse. Twin: turn_history_goblin_boarders_no_attack.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "boarders",
+   "real": "Goblin Boarders",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   }
+  },
+  {
+   "op": "enter",
+   "key": "boarders"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "boarders": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ }
+}

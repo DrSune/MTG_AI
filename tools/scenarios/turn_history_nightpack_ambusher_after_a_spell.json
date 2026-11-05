@@ -1,0 +1,49 @@
+{
+ "name": "turn_history_nightpack_ambusher_after_a_spell",
+ "set": "M20",
+ "note": "Twin of turn_history_nightpack_ambusher: P0 casts Shock this turn (any spell counts, not only instants and sorceries), so the end step creates no Wolf.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ambusher",
+   "real": "Nightpack Ambusher",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Wolf": 0
+  },
+  "life": {
+   "1": 18
+  }
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "name": "turn_history_searslicer_goblin_no_attack",
+ "set": "FDN",
+ "note": "Twin of turn_history_searslicer_goblin_raid: P0 declines to attack, so the end step creates no token.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "searslicer",
+   "real": "Searslicer Goblin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": false,
+    "searslicer": false
+   }
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Goblin": 0
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

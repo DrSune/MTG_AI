@@ -1,0 +1,61 @@
+{
+ "name": "uncounterable_shifting_ceratops",
+ "set": "M20",
+ "note": "Shifting Ceratops: 'This spell can't be countered.' (CR 113.6g: it functions on the stack; CR 101.2: the counter can't happen). P1's Convolute may still target it (the window offers it and P1 casts it), and it resolves, but the Ceratops is not countered and enters. P0 paid everything for the Ceratops, so Convolute's 'unless its controller pays {4}' is unpayable and never asked. Falsified by uncounterable_shifting_ceratops_twin, where the same Convolute counters a Centaur Courser. Red on main dd4ba95: the sentence did not parse and the Ceratops was countered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ceratops",
+   "real": "Shifting Ceratops",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "convolute",
+   "real": "Convolute",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 4
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Shifting Ceratops",
+   "key": "ceratops",
+   "decisions": [
+    "convolute"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ceratops": "battlefield",
+   "convolute": "graveyard"
+  },
+  "window_asks": {
+   "1": [
+    "convolute"
+   ]
+  },
+  "window_vocab": [
+   [
+    "PASS",
+    "convolute"
+   ]
+  ],
+  "kickback_asks": {
+   "0": []
+  }
+ }
+}
