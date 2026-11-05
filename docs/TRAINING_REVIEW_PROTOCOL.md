@@ -75,7 +75,9 @@ in `METRICS.md`, and the report renders the pair or neither.
 
 **A run that starts without these produces numbers nobody can trust, and the DGX hours spent on it
 are gone.** Every line is a hard blocker unless marked ADVISORY. Pre-flight writes
-`runs/<run_id>/preflight.json`; the run refuses to start without it.
+`runs/<run_id>/preflight.json`; the run refuses to start without it. For the self-play stack,
+`.venv/bin/python -m tools.selfplay.preflight <run>` implements P1, P8, P9 and P12 (2026-11-05);
+the test gates (P7) are `tools/check.sh`.
 
 ### 1.1 Code, config and data identity
 
