@@ -647,13 +647,18 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
     source = damage_source(ctx, atom)
     if source is None:
         ctx.events.append((len(ctx.events), "DAMAGE_NO_DEALER", str(ctx.source)))
+        ctx.bindings["result"] = []  # no object was dealt damage this way
         return
     # CR 107.1b: a negative result (a negative power) means 0; CR 120.8: a
     # source that would deal 0 damage deals no damage at all.
     n = max(0, amount(ctx, atom, "amount"))
     if n == 0:
+        ctx.bindings["result"] = []
         return
     targets = role_handles(ctx, atom, "target")
+    # V11 follow-up: the result register names the objects this sentence dealt damage to, so
+    # "If a Dinosaur is dealt damage this way" (Marauding Raptor) judges them, not the source.
+    dealt: list[Handle] = []
     if source != ctx.source:
         # V3 (2026-10-29): the dealer is the damage source for everything
         # below (deathtouch, lifelink, source-keyed replacement and
@@ -727,7 +732,9 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         # exchange is a simultaneous double kill. The DAMAGE tuple keeps
         # feeding the journal's KIND_DAMAGE row (events.py), so "is dealt
         # damage" triggers (Brash Taunter) are unchanged.
-        _deal_damage_to_card(ctx, target, n_i)
+        if _deal_damage_to_card(ctx, target, n_i):
+            dealt.append(target)
+    ctx.bindings["result"] = dealt
 
 
 #: CR 120.1a: the only objects damage can be dealt to.
@@ -756,12 +763,13 @@ def _protection_prevents(ctx: ExecCtx, recipient: Handle, n: int) -> bool:
     return True
 
 
-def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
+def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
     """One card-side damage application: mark it, journal it, decide nothing.
     16c (CR 702.2b): when the SOURCE carries DEATHTOUCH the mark is flagged
     lethal-in-itself, so the state check buries a 3/3 under one point of
     Fetid Imp venom (the keyword is read through the layer registry, so a
-    granted deathtouch counts and a lost one stops counting)."""
+    granted deathtouch counts and a lost one stops counting). Returns whether
+    damage was dealt (False: not damageable, protected, or prevented)."""
     if ctx.executor is None:
         raise ValueError(
             "executor: card damage needs an executor-backed ExecCtx "
@@ -772,9 +780,9 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
         # a creature or a planeswalker (a land, a noncreature artifact): no
         # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
         # forced binding (a harness stimulus) did, and marked it (B-54).
-        return
+        return False
     if _protection_prevents(ctx, target, n):
-        return  # V44 (CR 702.16e): a permanent with protection from the source
+        return False  # V44 (CR 702.16e): a permanent with protection from the source
     # r20a (Pack Leader): prevention-before-apply for card damage. A live
     # DamageDealtEvent PreventionRecord (the PREVENT_EFFECT lane's first
     # damage consumer) vetoes the WHOLE mark (QUnbounded = "all"); the
@@ -797,7 +805,7 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
                     n,
                 )
             )
-            return
+            return False
     # r22b (Fiery Emancipation): the replacement lane over CARD damage. The
     # unified consult's QUANTITY-MODIFICATION half rewrites the mark before
     # it lands — the permanent lane (walker loyalty below, the damage
@@ -849,11 +857,12 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> None:
         counters["LOYALTY"] = max(0, have - n)
         ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
         _lifelink_gain(ctx, n)
-        return
+        return True
     deathtouch = ctx.executor.layers.keyword_of(ctx.source, Keyword.DEATHTOUCH)
     ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
     _lifelink_gain(ctx, n)  # r20a: after the mark, on the dealt amount
+    return True
 
 
 def _fight_attacker(ctx: ExecCtx) -> Handle | None:
@@ -1179,6 +1188,9 @@ def _v_grant_or_lose(ctx: ExecCtx, atom: Atom, lose: bool) -> None:
             duration_tag(duration),
         )
     )
+    # V11 follow-up: "Target creature gains deathtouch and lifelink until end of turn. If it's a
+    # Vampire, ..." (Sorin, Imperious Bloodlord): the sentence names the objects it changed.
+    ctx.bindings["result"] = list(targets)
 
 
 def _v_grant(ctx: ExecCtx, atom: Atom) -> None:

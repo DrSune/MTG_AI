@@ -450,16 +450,22 @@ def _ends_in_optional(effect: object) -> bool:
 
 
 def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
-    """What a bare Conditional's predicate is judged on (V11): the object the
-    previous sentence acted on (the result register, written by the atom just
-    before: ``ctx.result_fresh``) when the predicate only tests an object's
-    characteristics; None when that register names no single object; the
-    ability's source otherwise (a history predicate such as See the Truth's
-    "if this spell was cast from anywhere other than your hand", or no object
-    in the previous sentence)."""
-    if _tests_characteristics_only(pred) and ctx.result_fresh:
-        handles = ctx.binding_handles("result") or []
-        return handles[0] if len(handles) == 1 else None
+    """What a bare Conditional's predicate is judged on (V11), when the
+    predicate only tests an object's characteristics: the object the previous
+    sentence acted on (the result register, written by the atom just before:
+    ``ctx.result_fresh``), None when that register names no single object;
+    after a sentence that names no object ("you gain 1 life"), the object the
+    trigger's event names (Overgrowth Elemental's "If that creature was an
+    Elemental": the creature that died, not the Elemental whose ability it
+    is). The ability's source otherwise (a history predicate such as See the
+    Truth's "if this spell was cast from anywhere other than your hand")."""
+    if _tests_characteristics_only(pred):
+        if ctx.result_fresh:
+            handles = ctx.binding_handles("result") or []
+            return handles[0] if len(handles) == 1 else None
+        event = [h for h in ctx.binding_handles("event") or [] if h.namespace == "card"]
+        if len(event) == 1:
+            return event[0]
     return ctx.source
 
 
