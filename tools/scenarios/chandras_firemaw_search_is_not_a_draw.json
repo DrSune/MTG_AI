@@ -1,5 +1,5 @@
 {"set": "M21", "world": {"life": 20, "seed": 7},
- "notes": "Printed: '... search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand.' Putting a searched card into your hand is not drawing it (CR 121.1). With your Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') on the battlefield, Firemaw's search finds Chandra in the library and the opponent mills nothing. Top Junk is listed last so the runner's opening draw (before the filler exists, so no mill) takes it.",
+ "notes": "Printed: '... search your library and/or graveyard for a card named Chandra, Flame's Catalyst, reveal it, and put it into your hand.' Putting a searched card into your hand is not drawing it (CR 121.1). With your Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') on the battlefield, Firemaw's search finds Chandra in the library and the opponent mills nothing. Top Junk is listed last so the runner's opening draw (before the filler exists, so no mill) takes it. Re-pinned 2026-11-05 (strict decision words): B-78 (10f41df) asks the and/or zone choice after the may, and the old second word 'ch' reached it (only the silent fallback made it pass). '0' searches the library and the graveyard, the only reading when this pack was written; the pick itself is not asked, because one card in the world has the name, so 'ch' is gone.",
  "cards": [
   {"key": "tut", "real": "Teferi's Tutelage", "zone": "battlefield", "controller": 0},
   {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
@@ -7,7 +7,7 @@
   {"key": "junk", "name": "Top Junk", "power": 1, "toughness": 1, "type": "Creature", "zone": "library", "controller": 0}
  ],
  "steps": [
-  {"op": "enter", "key": "fm", "decisions": ["fire", "ch"]}
+  {"op": "enter", "key": "fm", "decisions": ["fire", "0"]}
  ],
  "expect": {
   "zone": {"ch": "hand", "fm": "battlefield"},

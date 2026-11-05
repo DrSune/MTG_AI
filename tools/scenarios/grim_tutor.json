@@ -40,17 +40,19 @@
       "real": "Grim Tutor",
       "key": "gt",
       "decisions": [
-        "Cardinal"
+        "cardinal"
       ]
     }
   ],
   "expect": {
     "zone": {
       "gt": "graveyard",
-      "cardinal": "hand"
+      "cardinal": "hand",
+      "j1": "library"
     },
     "life": {
       "0": 17
     }
-  }
+  },
+  "notes": "Printed: 'Search your library for a card, put that card into your hand, then shuffle. You lose 3 life.' The pick names the card by its pack key: the search asks for one of the library's cards, by handle. Re-pinned 2026-11-05 (strict decision words): the word was the card's name 'Cardinal', which the pick never offers; only the silent fallback made it pass, by taking the first card, which happened to be Cardinal. Top Junk stays in the library."
 }

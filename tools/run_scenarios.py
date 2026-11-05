@@ -131,6 +131,14 @@ Pack vocabulary (all keys required as noted):
                                         controller's seat (CR 610.3c)
   setup cards may carry "counters": {"KIND": n}; an activate step's targets
   may name a player as "p0"/"p1".
+  any step may carry "expect_raise": "<text>": the step must raise, with the
+  text in its message (a refusal: "illegal target"). A step without
+  "decisions" raises at its first ask that is not a response window, and the
+  message names the ask and every word it offers: "mana:card:1 needs a
+  decision from ('W', 'U', 'B', 'R', 'G')". So expect_raise pins an ask's exact
+  words, which is how a pack says "X is not offered" (a decision word the ask
+  lacks fails the pack instead). The step stops at that ask; a pack puts it
+  last.
 """
 
 from __future__ import annotations

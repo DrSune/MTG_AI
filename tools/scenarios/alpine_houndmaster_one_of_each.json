@@ -6,14 +6,17 @@
   {"key": "dog1", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
   {"key": "dog2", "real": "Alpine Watchdog", "zone": "library", "controller": 0},
   {"key": "cur", "real": "Igneous Cur", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "hm2", "real": "Alpine Houndmaster", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"R": 1, "W": 1}},
  "steps": [
-  {"op": "cast", "key": "hm", "real": "Alpine Houndmaster", "decisions": ["fire", "dog1", "dog2"]}
+  {"op": "cast", "key": "hm", "real": "Alpine Houndmaster", "decisions": ["fire", "dog1", "cur"]},
+  {"op": "enter", "key": "hm2", "decisions": ["fire", "NONE"]}
  ],
  "expect": {
-  "zone": {"hm": "battlefield", "dog1": "hand", "dog2": "library", "drawn": "hand"}
+  "zone": {"hm": "battlefield", "hm2": "battlefield", "dog1": "hand", "dog2": "library", "cur": "hand", "drawn": "hand"},
+  "hand": {"0": 3}
  },
- "notes": "M21 G2 spec: Alpine Houndmaster. 'search your library for a card named Alpine Watchdog and/or a card named Igneous Cur': at most ONE card of each name. With two Watchdogs in the library, taking the first leaves the second unavailable; the answer 'dog2' for the second pick must not be honoured."
+ "notes": "M21 G2 spec: Alpine Houndmaster. 'search your library for a card named Alpine Watchdog and/or a card named Igneous Cur': at most ONE card of each name. With two Watchdogs in the library, taking the first leaves the second unavailable. Re-pinned 2026-11-05 (strict decision words; the pack used to answer the second pick with 'dog2', which only the silent fallback made pass): the first Houndmaster's search is two picks, the Watchdog's (dog1, dog2, NONE: the pack takes dog1) and the Cur's (cur, NONE: the pack takes cur), so one of each comes to hand and the second Watchdog stays. A second Houndmaster then enters and searches again: 'fire', then NONE at its Watchdog pick. Its Cur pick has nothing to find, so nothing more is asked and dog2 stays in the library (hand: drawn, dog1, cur). If any pick but the Watchdog's could take a Watchdog, dog2 reaches the hand and the pack fails: with the old single up-to-two pick over both names (before 620a7ad) the second Houndmaster's pick is forced onto dog2; with a Cur pick widened to both names, the second Houndmaster meets one more pick, which the pack has no word for (the runner then takes its first word, dog2)."
 }

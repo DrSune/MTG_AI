@@ -1,9 +1,10 @@
 {
  "set": "M21",
  "world": {"life": 20, "seed": 7},
- "notes": "Niambi controlled by seat 1 enters and returns seat 1's own creature (mana value 3) to its OWNER's hand, i.e. seat 1's hand; seat 1 gains 3 life. Seat 0's hand holds only its opening draw.",
+ "notes": "Niambi controlled by seat 1 enters and returns seat 1's own creature (mana value 3) to its OWNER's hand, i.e. seat 1's hand; seat 1 gains 3 life. Seat 0's hand holds only its opening draw. Re-pinned 2026-11-05 (strict decision words): with the Ox the only legal target, the target was designated without an ask, so 'ob' met the may and only the silent fallback made the pack pass. Seat 1's Opp Elk (mana value 2, listed first) makes the target a real ask: 'ob' designates the Ox over the Elk, 'fire' answers the may, and the 3 life (not 2) shows the chosen creature's mana value was read.",
  "cards": [
   {"key": "n", "real": "Niambi, Esteemed Speaker", "zone": "hand", "controller": 1},
+  {"key": "elk", "name": "Opp Elk", "type": "Creature", "power": 2, "toughness": 2, "cmc": 2, "zone": "battlefield", "controller": 1},
   {"key": "ob", "name": "Opp Ox", "type": "Creature", "power": 3, "toughness": 3, "cmc": 3, "zone": "battlefield", "controller": 1},
   {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
  ],
@@ -11,7 +12,7 @@
   {"op": "enter", "key": "n", "decisions": ["ob", "fire"]}
  ],
  "expect": {
-  "zone": {"n": "battlefield", "ob": "hand"},
+  "zone": {"n": "battlefield", "ob": "hand", "elk": "battlefield"},
   "hand": {"0": 1, "1": 1},
   "life": {"0": 20, "1": 23}
  }

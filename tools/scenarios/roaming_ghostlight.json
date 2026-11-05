@@ -18,6 +18,21 @@
       "type": "Creature",
       "zone": "battlefield",
       "controller": 0
+    },
+    {
+      "key": "goat",
+      "name": "Goat",
+      "power": "1",
+      "toughness": "1",
+      "type": "Creature",
+      "zone": "battlefield",
+      "controller": 0
+    },
+    {
+      "key": "g2",
+      "real": "Roaming Ghostlight",
+      "zone": "hand",
+      "controller": 0
     }
   ],
   "steps": [
@@ -25,13 +40,20 @@
       "op": "enter",
       "key": "g",
       "decisions": [
-        "zz"
+        "c"
       ]
+    },
+    {
+      "op": "enter",
+      "key": "g2",
+      "expect_raise": "needs a decision from ('card:2', 'NONE')"
     }
   ],
   "expect": {
     "zone": {
-      "c": "hand"
+      "c": "hand",
+      "goat": "battlefield"
     }
-  }
+  },
+  "notes": "Printed: 'When this creature enters, return up to one target non-Spirit creature to its owner's hand.' The enter trigger asks for its target (the Cow, the Goat or NONE: 18b's trigger designation channel); 'c' designates the Cow, which returns to its owner's hand. Re-pinned 2026-11-05 (strict decision words): the word was 'zz', which no ask offers; only the silent fallback made the pack pass, by taking the first word (the Cow then, but the Ghostlight itself if 'non-Spirit' were lost). A second Ghostlight then enters with no decision, so the step stops at its target ask, and expect_raise pins the words it offers to the Goat and NONE: neither Ghostlight (a Spirit) is ever offered."
 }
