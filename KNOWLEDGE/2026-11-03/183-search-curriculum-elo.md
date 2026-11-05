@@ -517,3 +517,19 @@ test: in `castable` mode 212 of 306 new M20 cards deal with an unparsed sentence
 (Agonizing Syphon's whole effect); fully compiled new cards per set: ZNR 100, FDN 93, 10E 87,
 M19 84, M20 81 (compile census, 2026-11-05). Fidelity labels for the 147 new fully compiled
 M20+M19 cards are being produced (agents read text vs compiled tree).
+
+## 36. New cards labelled; mixed-set training ready (2026-11-05)
+
+The 147 new M20+M19 cards that compile fully were labelled by three agents (text vs compiled
+tree, against M21 goldens and the executor): **142 FAITHFUL, 5 UNFAITHFUL** (tiers 55/68/23/1),
+`tools/audit/card_fidelity/` (README has the method and findings). The five failures repeat
+defects already in the M21 training pool: Goblin Smuggler's untargetable activation = Subira's;
+the "search your library and/or graveyard" shape (always shuffles, graveyard never searched
+alone) = Chandra's Firemaw, Garruk's Warsteed, Teferi's Wavecaster, Liliana's Scorn, Basri's
+Aegis. Fixed on the unmerged branch `cards/integration` (178 commits ahead of main).
+`tools/selfplay/mix_allow_m20_m19_t12.json` (122 faithful tier-1/2 non-land cards) feeds
+`--mix-sets M20,M19 --mix-allow ...`, the owner's lever if lower learning rates stop paying.
+
+r16 (fixed engine, from v6): at lr 1e-4 KL ran 0.04-0.065 per update (target 0.03) with the
+training win rate flat at 0.61-0.63 over 9 updates; resumed at update 9 with lr 3e-5 (v6 was
+trained at 2.5e-5).
