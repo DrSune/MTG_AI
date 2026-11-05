@@ -1507,3 +1507,10 @@ W&B key in history is revoked; a private split exists outside the public repo.
     loyalty never reaches an ultimate, the land drop is always a Plains, the library holds 6 cards,
     no planeswalker is on the board, and the "Aura" probe card is a 2/2 creature.
   - Pack runner: the deal_damage op cannot target a player; the `life` op is undocumented.
+- **Card gates: equivalent mutants and `mutate --out`** (2026-11-05). G3 counts a mutant as
+  surviving even when the engine never reads the part it changed, so no pack can kill it: Gods
+  Willing (its colour is chosen at resolution, so the five TARGET selectors bind one slot and an ALL
+  selector in that role resolves to the designation; gates.py `_twin_targets` skips abilities with
+  a Choose) and Blightbeetle (a static prevention never reads its atom's own `condition`). Add an
+  equivalent-mutant rule (a dead-role check) to `gates.mutants`. Separately, `cardtool.py mutate
+  --out` writes nothing (`cmd_mutate` never reads `args.out`).
