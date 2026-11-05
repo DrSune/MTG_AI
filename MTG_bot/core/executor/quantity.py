@@ -1838,6 +1838,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             ):
                 return True
         return False
+    if pred in (FAtomPred.EVENT_THIS_TURN, FAtomPred.SUBJECT_OF_EVENT_THIS_TURN):
+        return _event_this_turn(atom, handle, ctx)
     if pred is FAtomPred.TURN_OF:
         # r19b (Discontinuity's your-turn cost window): the active-seat
         # column answers directly — no journal read. WHO maps through the
@@ -2091,3 +2093,92 @@ def _turn_rows(ctx: ExecCtx, pred_name: str) -> list[GameEvent]:
             "history (this ExecCtx has no journal)"
         )
     return jrn.turn_window()
+
+
+def _event_this_turn(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
+    """EVENT_THIS_TURN / SUBJECT_OF_EVENT_THIS_TURN (2026-11-05): did the event
+    ``atom.event`` describes happen this turn, ``atom.count`` or more?
+
+    One reading for every "this turn" question an EventSpec can ask. The
+    turn's journal rows are matched by the trigger binder's own matcher, in
+    this ability's coordinates (its source and controller), so "an opponent",
+    "a blue or black spell" and "an opponent was dealt damage" mean here what
+    they mean in a trigger. A row counts 1, or its amount for life and damage
+    rows ("lost 4 or more life"), and the count is kept per individual
+    (:func:`_individual`): one player losing 4 life meets "a player lost 4 or
+    more life this turn" (Knight of the Ebon Legion); two players losing 2
+    each do not.
+
+    SUBJECT_OF_EVENT_THIS_TURN reads only the rows whose subject is the
+    judged object, since its last zone change: an object that changes zones
+    is a new object with no history (CR 400.7), so a creature dealt damage,
+    then bounced and cast again, was not "dealt damage this turn"."""
+    executor = ctx.executor
+    if executor is None:
+        raise NotImplementedError(
+            f"executor: filter pred {atom.pred.name} matches the turn's journal "
+            "with the trigger binder (bare ExecCtx)"
+        )
+    assert atom.event is not None and atom.count is not None  # FAtom validates both
+    rows = _turn_rows(ctx, atom.pred.name)
+    if atom.pred is FAtomPred.SUBJECT_OF_EVENT_THIS_TURN:
+        since = _last_zone_change_clock(ctx, handle)
+        rows = [e for e in rows if e.subject == handle and e.clock > since]
+    threshold = resolve(atom.count, ctx)
+    totals: dict[Handle | None, int] = {}
+    for row in rows:
+        if not executor.binder._match_node(atom.event, row, ctx.source, ctx.controller):
+            continue
+        who = _individual(row)
+        totals[who] = totals.get(who, 0) + _measure(row)
+        if totals[who] >= threshold:
+            return True
+    return False
+
+
+def _individual(row: GameEvent) -> Handle | None:
+    """Whom a turn-history row happened to or was done by, for a threshold: the
+    player who gained or lost the life, the player or object dealt the damage,
+    the player who drew the card or cast the spell. Other rows name no one and
+    count together ("three or more creatures died this turn")."""
+    from MTG_bot.core.executor.events import (
+        KIND_CARD_DRAWN,
+        KIND_CAST,
+        KIND_DAMAGE,
+        KIND_LIFE_GAINED,
+        KIND_LIFE_LOST,
+    )
+
+    if row.kind in (KIND_LIFE_GAINED, KIND_LIFE_LOST, KIND_DAMAGE):
+        return row.subject
+    if row.kind == KIND_CARD_DRAWN:
+        return row.draw[0]
+    if row.kind == KIND_CAST:
+        return row.cast[0]
+    return None
+
+
+def _measure(row: GameEvent) -> int:
+    """How much one row adds to a turn-history count: its amount for life and
+    damage rows ("lost 4 or more life"), else 1 (one card drawn, one spell)."""
+    from MTG_bot.core.executor.events import (
+        KIND_DAMAGE,
+        KIND_LIFE_GAINED,
+        KIND_LIFE_LOST,
+    )
+
+    if row.kind in (KIND_LIFE_GAINED, KIND_LIFE_LOST, KIND_DAMAGE):
+        return row.amount
+    return 1
+
+
+def _last_zone_change_clock(ctx: ExecCtx, handle: Handle) -> int:
+    """The journal clock of ``handle``'s most recent zone change, 0 if it never
+    moved: the object it is now began there (CR 400.7). Players never move."""
+    from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
+
+    assert ctx.journal is not None  # _turn_rows raised before
+    for e in reversed(ctx.journal.events):
+        if e.kind == KIND_ZONE_CHANGE and e.subject == handle:
+            return e.clock
+    return 0

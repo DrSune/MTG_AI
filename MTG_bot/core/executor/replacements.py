@@ -53,6 +53,7 @@ from MTG_bot.core.ability_tree import (
     BecomesBlockedEvent,
     CardDrawnEvent,
     ControllerRef,
+    CounteredEvent,
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
@@ -78,6 +79,8 @@ from MTG_bot.core.ability_tree import (
     Quantity,
     QUnbounded,
     ReplacementAbility,
+    Seq,
+    StaticAbility,
     Step,
     TapStateEvent,
     Verb,
@@ -1106,6 +1109,61 @@ class ReplacementRegistry:
             if event.actor is not None and not eval_filter(event.actor, activator, ctx):
                 continue
             if eval_filter(event.source, permanent, ctx):
+                return True
+        return False
+
+    def prevents_countering(self, spell: Handle) -> bool:
+        """2026-11-05 (CR 701.6a, 101.2): can't ``spell`` be countered? Yes when a
+        live PREVENT_EFFECT over a :class:`CounteredEvent` names it: a static
+        ability of a permanent ("Creature spells can't be countered.", Gaea's
+        Herald), a resolved effect ("Spells you control can't be countered this
+        turn.", Veil of Summer; it modifies the rules, so it covers spells cast
+        after it resolved, CR 611.2c), or the spell's own ability, which
+        functions on the stack (CR 113.6g, "This spell can't be countered.").
+        Each is judged in its own coordinates, like the other consults. Only
+        the counter fails: a counterspell may still target the spell."""
+        from MTG_bot.core.executor.legality import spell_record
+
+        executor = self.executor
+        record = spell_record(executor, spell)
+        if record is not None:
+            ctx = executor._ctx(
+                source=spell,
+                controller=executor.controller_of(spell),
+                bindings=None,
+                decisions=(),
+            )
+            for ability in record.abilities:
+                if not isinstance(ability, StaticAbility):
+                    continue
+                effect = ability.effect
+                atoms = effect.steps if isinstance(effect, Seq) else (effect,)
+                for atom in atoms:
+                    if not (isinstance(atom, Atom) and atom.verb is Verb.PREVENT_EFFECT):
+                        continue
+                    event = atom.args.get("event")
+                    if not isinstance(event, CounteredEvent):
+                        continue
+                    if ability.condition is not None and not eval_filter(
+                        ability.condition, spell, ctx
+                    ):
+                        continue
+                    if eval_filter(event.filter, spell, ctx):
+                        return True
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, CounteredEvent) or rec.status == "expired":
+                continue
+            if not rec.resolved and not self._source_alive(rec.source):
+                continue
+            if rec.targets:
+                if spell in rec.targets:
+                    return True
+                continue
+            ctx = self._rec_ctx(rec, spell)
+            if not self._condition_holds(rec, spell, ctx):
+                continue
+            if eval_filter(event.filter, spell, ctx):
                 return True
         return False
 
