@@ -1,0 +1,15 @@
+{
+ "name": "cavalier_of_dawn_up_to_one_chooses_none",
+ "set": "M20",
+ "note": "Cavalier of Dawn enters; the controller designates no target ('up to one'): nothing is destroyed and nobody creates a Golem.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Dawn", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "OppBear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Cavalier of Dawn", "key": "cav", "decisions": ["NONE"]}
+ ],
+ "expect": {"zone": {"cav": "battlefield", "obear": "battlefield"}, "tokens": {"Golem": 0}}
+}

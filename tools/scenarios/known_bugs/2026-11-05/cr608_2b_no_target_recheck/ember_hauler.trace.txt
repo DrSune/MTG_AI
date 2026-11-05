@@ -1,0 +1,181 @@
+# Probe: Ember Hauler (M20)
+## Cast or play from hand
+[cast]
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: card moves stack -> battlefield (by card/CAST)
+  change: card: zone hand -> battlefield; P/T - -> 2/2
+  change: you: hand 6 -> 5; mana R-2
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-7 U-9 W-9
+## Activated abilities, card in battlefield
+- ability [0] target slot: 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card, you, opp]
+[activate [0] from battlefield targets=['you_bear']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: you_bear is targeted (by card/TARGET)
+  event: you_bear is dealt 2 damage (by card/DEAL_DAMAGE)
+  event: you_bear moves battlefield -> graveyard
+  event: you_bear dies
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you_bear: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: mana W-1
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['you_giant']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: you_giant is targeted (by card/TARGET)
+  event: you_giant is dealt 2 damage (by card/DEAL_DAMAGE)
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you_giant: damage 0 -> 2
+  change: you: mana W-1
+  change: after the turn ends: you_giant: damage 2 -> 0
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['opp_flier']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: opp_flier is targeted (by card/TARGET)
+  event: opp_flier is dealt 2 damage (by card/DEAL_DAMAGE)
+  event: opp_flier moves battlefield -> graveyard
+  event: opp_flier dies
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: opp_flier: zone battlefield -> graveyard; P/T 1/1 -> -; keywords -FLYING
+  change: you: mana W-1
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['opp_tapped']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: opp_tapped is targeted (by card/TARGET)
+  event: opp_tapped is dealt 2 damage (by card/DEAL_DAMAGE)
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: opp_tapped: damage 0 -> 2
+  change: you: mana W-1
+  change: after the turn ends: opp_tapped: damage 2 -> 0
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['opp_bear']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: opp_bear is targeted (by card/TARGET)
+  event: opp_bear is dealt 2 damage (by card/DEAL_DAMAGE)
+  event: opp_bear moves battlefield -> graveyard
+  event: opp_bear dies
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: opp_bear: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: mana W-1
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['opp_giant']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: opp_giant is targeted (by card/TARGET)
+  event: opp_giant is dealt 2 damage (by card/DEAL_DAMAGE)
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: opp_giant: damage 0 -> 2
+  change: you: mana W-1
+  change: after the turn ends: opp_giant: damage 2 -> 0
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['card']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: card is targeted (by card/TARGET)
+  event: card is dealt 2 damage (by card/DEAL_DAMAGE)
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -; damage 0 -> 2
+  change: you: mana W-1
+  change: after the turn ends: card: damage 2 -> 0
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['you']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: you is targeted (by card/TARGET)
+  event: you is dealt 2 damage (by card/DEAL_DAMAGE)
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: life 20 -> 18; mana W-1
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+[activate [0] from battlefield targets=['opp']]
+  event: card moves battlefield -> graveyard (by card/SACRIFICE)
+  event: card dies
+  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 0, False, None
+  event: opp is targeted (by card/TARGET)
+  event: opp is dealt 2 damage (by card/DEAL_DAMAGE)
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: opp: life 20 -> 18
+  change: you: mana W-1
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-9 U-9 W-8
+## Triggers: stimuli with the card on the battlefield
+- the card has 0 triggered ability node(s)
+[stimulus: a creature enters under your control -> none] same as on the board without the card
+[stimulus: a creature enters under the opponent's control -> none] same as on the board without the card
+[stimulus: you play a land -> none] same as on the board without the card
+[stimulus: you draw a card -> none] same as on the board without the card
+[stimulus: you draw two cards, one after the other -> none] same as on the board without the card
+[stimulus: the opponent draws a card -> none] same as on the board without the card
+[stimulus: you gain 3 life -> none] same as on the board without the card
+[stimulus: you lose 2 life -> none] same as on the board without the card
+[stimulus: your creature (you_bear) dies -> none] same as on the board without the card
+[stimulus: an opponent's creature (opp_bear) dies -> none] same as on the board without the card
+[stimulus: this card is dealt 1 damage -> none]
+  event: card is dealt 1 damage (by opp_giant/DEAL_DAMAGE)
+  change: card: damage 0 -> 1
+[stimulus: this card is dealt lethal damage -> none]
+  event: card is dealt 99 damage (by opp_giant/DEAL_DAMAGE)
+  event: card moves battlefield -> graveyard
+  event: card dies
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+[stimulus: this card becomes tapped -> none]
+  event: card becomes tapped (by opp_bear/TAP)
+  change: card: tapped False -> True
+[stimulus: turns pass: your end step, the opponent's turn, your next upkeep -> none] same as on the board without the card
+[stimulus: from your hand, the card enters during the opponent's turn, then that turn ends -> none]
+  event: opp_tapped becomes untapped
+  event: opp:Library 5#2 moves library -> hand (by opp/DRAW)
+  event: opp draws opp:Library 5#2
+  event: card moves hand -> battlefield (by card/MOVE_ZONE)
+  change: card: zone hand -> battlefield; P/T - -> 2/2
+  change: + opp:Library 5#2 (hand, opp)
+  change: opp_tapped: tapped True -> False
+  change: opp: hand 2 -> 3; library 6 -> 5; mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: you: hand 6 -> 5; mana B-9 C-9 G-9 R-9 U-9 W-9
+[stimulus: this creature attacks alone, unblocked -> none]
+  event: card becomes tapped
+  event: DECLARE_ATTACKERS card 2
+  event: opp is dealt 2 damage (combat) (by card/DEAL_DAMAGE)
+  event: COMBAT_DAMAGE card (by card/COMBAT_DAMAGE) ((2, opp))
+  change: card: tapped False -> True
+  change: opp: life 20 -> 18; mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: you: mana B-9 C-9 G-9 R-9 U-9 W-9
+[stimulus: this creature attacks and opp_giant blocks it -> none]
+  event: card becomes tapped
+  event: DECLARE_ATTACKERS card 2
+  event: DECLARE_BLOCKERS opp_giant card, 2
+  event: card is dealt 4 damage (combat) (by opp_giant/DEAL_DAMAGE)
+  event: opp_giant is dealt 2 damage (combat) (by card/DEAL_DAMAGE)
+  event: COMBAT_DAMAGE opp_giant (by opp_giant/COMBAT_DAMAGE) ((4, card))
+  event: COMBAT_DAMAGE card (by card/COMBAT_DAMAGE) ((2, opp_giant))
+  event: card moves battlefield -> graveyard
+  event: card dies
+  change: card: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: opp_giant: damage 0 -> 2
+  change: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: you: mana B-9 C-9 G-9 R-9 U-9 W-9
+[stimulus: another creature you control (you_bear) attacks -> none] same as on the board without the card
+[stimulus: on the opponent's turn, opp_bear attacks you (no block) -> none] same as on the board without the card
+[stimulus: you cast an instant or sorcery (Raise the Alarm) -> none] same as on the board without the card
+[stimulus: you cast a creature (Yoked Ox) -> none] same as on the board without the card
+## Static: the board with the card on the battlefield vs without it
+- card on the battlefield: 2/2

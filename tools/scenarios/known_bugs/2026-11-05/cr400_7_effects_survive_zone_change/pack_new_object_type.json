@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "notes": "After the animated Forest is bounced and replayed it is a new object (CR 400.7): not a creature, so Murder cannot target it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wk", "real": "Wakeroot Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "murder", "real": "Murder", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 5}},
+ "steps": [
+  {"op": "activate", "key": "wk", "idx": 0, "seat": 0, "targets": ["land"]},
+  {"op": "move", "key": "land", "to": "hand"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "land"},
+  {"op": "mana", "seat": 0, "add": {"B": 3}},
+  {"op": "cast", "key": "murder", "real": "Murder", "controller": 0, "targets": ["land"], "expect_raise": "illegal"}
+ ],
+ "expect": {"zone": {"land": "battlefield", "murder": "hand"}}
+}
