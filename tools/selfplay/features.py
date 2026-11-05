@@ -46,7 +46,7 @@ ASK_KINDS = (
     "other",
     # appended, never inserted: a checkpoint's rows keep their meaning, and model.load starts a
     # kind added after the checkpoint as "other", which is how it was encoded before
-    "legend", "enchant", "x",
+    "legend", "enchant", "x", "replace",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 

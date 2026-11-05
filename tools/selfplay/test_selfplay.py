@@ -236,36 +236,24 @@ def test_feature_caches_are_bounded() -> None:
     assert FT._static(ident) is FT._static(ident)  # still a cache
 
 
-def test_scry_context_never_reads_under_the_viewed_window() -> None:
-    """Every scry ask's 'revealed' card is one of the top n cards of that scry (two scries of the
-    same size in one act window used to point the second one under the window: a hidden card)."""
-    from MTG_bot.bench.protocol import ask_kind
-    from tools.selfplay.rig import SelfplayRouter
-
-    checked, wrong = 0, []
-    orig = SelfplayRouter._context
-
-    def ctx(self, what, seat, i):
-        nonlocal checked
-        out = orig(self, what, seat, i)
-        if ask_kind(what) == "scry":
-            n = int(what.rsplit(":", 1)[-1])
-            top = self.game.world.players[seat].zone("library").entries[-n:]
-            if self._revealed not in top:  # recorded, not asserted: play_game voids raises
-                wrong.append((self.game.world.turn, what, self._revealed))
-            checked += 1
-        return out
-
-    SelfplayRouter._context = ctx
-    try:
-        # the three seeds of 3000-3599 where one window held two scries of the same size
-        for seed in (3261, 3369, 3485):
-            agents = [HeuristicAgent(), HeuristicAgent()]
-            res = play_game(seed, agents, deck_mode="coherent" if seed % 3 else "stress")
-            assert res["crash"] is None, res["crash"]
-    finally:
-        SelfplayRouter._context = orig
-    assert checked >= 3 and not wrong, wrong
+def test_scry_context_reveals_only_the_viewed_window() -> None:
+    """Every scry ask reveals one of the top n cards of that scry. The engine asks once per card
+    under one key per (player, n), and the counter resets only when an act window opens, so a
+    second scry of the same size in one window used to point under the window: a card its owner
+    had not seen. Driven directly, so it does not depend on a deal containing that window."""
+    from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+    from tools.selfplay import rig
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    lenses = [SeatLens(s, OracleIndex.for_sets("M21"), ViewOptions()) for s in (0, 1)]
+    router = rig.SelfplayRouter(game, [HeuristicAgent(), HeuristicAgent()], lenses, supply=supply)
+    seat = game.world.player_order[0]
+    library = game.world.players[seat].zone(ZONE_LIBRARY).entries
+    seen = []
+    for _ in range(4):  # two scries of two cards in one act window
+        router._context(f"scry:{seat}:2", seat, 0)
+        seen.append(router._revealed)
+    assert seen == [library[-1], library[-2], library[-1], library[-2]]
 
 
 def test_table_extension_reads_new_cards_through_known_components(table) -> None:
