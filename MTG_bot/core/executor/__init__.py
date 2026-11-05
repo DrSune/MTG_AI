@@ -1564,18 +1564,37 @@ class Executor:
         return sorted(out)
 
     def _protected_equipment(self) -> list[Handle]:
-        """V44 (CR 702.16d, 704.5n): the Equipment attached to a permanent with
-        protection from it (Handle-sorted). The sweep unattaches them; they stay
-        on the battlefield, and the next recompute ends the equipped bonuses."""
+        """CR 704.5n: the Equipment attached to an illegal permanent (Handle-sorted).
+        The sweep unattaches them; they stay on the battlefield, and the next
+        recompute ends the equipped bonuses. Illegal means (CR 301.5, 301.5c): the
+        host is not a creature (Riddleform once its "until end of turn" animation
+        ends), the Equipment is itself a creature (nothing here has reconfigure),
+        or (V44, CR 702.16d) the host has protection from the Equipment. Creature
+        is the live type line, the GRANT_TYPE overlay included: the TYPE_EQ
+        reading attack legality uses. A phased-out Equipment does not exist (CR
+        702.26b). The name predates the first two cases; it is kept so the sweep
+        that calls it stays unchanged."""
         world = self.world
-        return sorted(
-            card
-            for card, host in self.attachments.items()
-            if card in world.cards
-            and "EQUIP" in world.cards[card].identity.keywords
-            and world.zone_of(card).kind == ZONE_BATTLEFIELD
-            and protected_from(self, host, card)
-        )
+        creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        freed: list[Handle] = []
+        for card, host in self.attachments.items():
+            if (
+                card not in world.cards
+                or "EQUIP" not in world.cards[card].identity.keywords
+                or world.zone_of(card).kind != ZONE_BATTLEFIELD
+                or card in self.phased_out
+            ):
+                continue
+            ctx = self._ctx(
+                source=card, controller=self.controller_of(card), bindings=None, decisions=()
+            )
+            if (
+                not eval_filter(creature, host, ctx)
+                or eval_filter(creature, card, ctx)
+                or protected_from(self, host, card)
+            ):
+                freed.append(card)
+        return sorted(freed)
 
     def _zero_loyalty_walkers(self) -> list[Handle]:
         """r21a (CR 704.5h): planeswalkers on the battlefield with 0 or

@@ -219,6 +219,14 @@ class LedgerGroundTruth(unittest.TestCase):
                 ]
                 self.assertEqual(len(picks), want_count["value"], (key, picks))
                 continue
+            if key == ("M21", "Demonic Embrace"):
+                # re-pinned 2026-11-05 (B-100, CR 601.3): the ledger row is the discard cost
+                # of the activated row its graveyard-cast permission compiled to. That row is
+                # refused now (an activated ability cannot cast the card from its graveyard;
+                # no permission lane), so the live IR carries no such choice and the card is
+                # engine-unsupported. The ledger row stays the R3 record.
+                self.assertEqual([s for s in shapes if s[2] == tuple(n["zones"])], [], key)
+                continue
             want = want_count["value"]
             if key == ("M21", "Kinetic Augur"):
                 # re-pinned 2026-10-29: V15 changes Kinetic Augur's "discard

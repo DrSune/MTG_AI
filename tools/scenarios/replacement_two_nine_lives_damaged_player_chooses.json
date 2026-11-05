@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 616.1: when two or more replacement effects would modify how an event affects a player, the affected player chooses one to apply, then the ones still applicable are checked again (616.1e-f). Seat 1 Shocks seat 0, who controls two Nine Lives ('If a source would deal damage to you, prevent that damage and put an incarnation counter on this enchantment'). Seat 0 is asked which applies and answers the second one: it prevents the damage and gets the counter; the first one then has nothing left to replace. Before the fix two matching damage replacements raised NotImplementedError (replacements.py, B-69), which voided the game.",
+ "cards": [
+  {"key": "nl1", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+  {"key": "nl2", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "controller": 1, "targets": ["p0"], "decisions": ["nl2"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "counters": {"nl1": {}, "nl2": {"INCARNATION": 1}},
+  "zone": {"nl1": "battlefield", "nl2": "battlefield", "shock": "graveyard"}
+ }
+}

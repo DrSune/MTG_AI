@@ -457,7 +457,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         #   zones are dead, unless a "you may" above it enumerates them for its offer
         #   (query.optional_offer);
         # - a damage replacement whose action is a DEAL_DAMAGE rewrites the event's amount and never
-        #   runs the action (replacements.replacement_for_damage): the action's dealer is dead.
+        #   runs the action (replacements.replacements_for_damage): the action's dealer is dead.
         if isinstance(node, Atom) and node.verb in (Verb.SEARCH, Verb.MOVE_ZONE):
             dest = node.args.get("destination")
             if isinstance(dest, Zone) and dest.kind in _OWNER_ZONES and not _draw_idiom(node):

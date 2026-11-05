@@ -937,6 +937,85 @@ class TestInertFreeRows(unittest.TestCase):
         self.assertTrue(self.offered(r, "snoop"))
         self.assertNotIn(1, self.offered(r, "radha"))
 
+    def test_a_costed_row_that_can_never_act_is_not_offered(self):
+        """2026-11-05 (B-100): the phantom screen covers rows with a cost too. The row
+        Demonic Embrace's graveyard permission used to compile to ({pay 3 life, discard a
+        card}: you may cast this card from your graveyard) is offered only while its
+        source is on the battlefield, so the cast can never happen: activating it paid 3
+        life and a card for nothing. A real row whose effect merely does nothing right now
+        stays: paying a cost for an effect that does nothing is legal (CR 602.2), so Idol
+        of Endurance, with no card exiled with it, is still offered."""
+        from MTG_bot.core.ability_tree import (
+            ActivatedAbility,
+            Atom,
+            AtomArgs,
+            Cost,
+            CostDiscard,
+            CostLife,
+            FAnd,
+            FAtom,
+            FAtomPred,
+            OptionalEffect,
+            Selector,
+            SelectorMode,
+        )
+        from MTG_bot.core.executor.games import get_supply
+        from MTG_bot.core.test_executor_binding import record_of
+        from tools.run_scenarios import ScenarioRunner
+
+        r = ScenarioRunner(
+            {
+                "set": "M21",
+                "world": {"life": 20, "seed": 7},
+                "cards": [
+                    {"key": "idol", "real": "Idol of Endurance", "zone": "battlefield",
+                     "controller": 0},
+                    {"key": "aura", "name": "Graveyard Aura", "type": "Enchantment",
+                     "zone": "battlefield", "controller": 0},
+                    {"key": "junk", "name": "Junk", "type": "Sorcery", "zone": "hand",
+                     "controller": 0},
+                ],
+                "mana": {"0": {"W": 2}},
+                "steps": [],
+                "expect": {},
+            },
+            get_supply("all", "M21"),
+        )
+        row = ActivatedAbility(
+            cost=Cost(
+                parts=(
+                    CostLife(amount=QConst(3)),
+                    CostDiscard(
+                        target=Selector(
+                            QConst(1), SelectorMode.CHOOSE, FAnd(()),
+                            zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                        )
+                    ),
+                )
+            ),
+            effect=OptionalEffect(
+                inner=Atom(
+                    verb=Verb.CAST,
+                    args=AtomArgs(
+                        pairs=(
+                            (
+                                "source",
+                                Selector(
+                                    QConst(1), SelectorMode.CHOOSE,
+                                    FAtom(pred=FAtomPred.IS_SOURCE),
+                                    zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
+                                ),
+                            ),
+                        )
+                    ),
+                )
+            ),
+        )
+        aura = r.handles["aura"]
+        r.ex.attach_card(aura, record_of([row], oid=r.world.cards[aura].identity.oracle_id))
+        self.assertEqual(self.offered(r, "aura"), [])
+        self.assertIn(1, self.offered(r, "idol"))
+
 
 class TestV44Protection(FixerCase):
     """p1 also controls a red and a blue 1/1."""

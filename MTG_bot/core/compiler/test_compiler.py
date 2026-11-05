@@ -1645,6 +1645,46 @@ class TestDurationPermissionRows(unittest.TestCase):
         self.assertTrue(res.legality.engine_supported)
 
 
+class TestSelfCastPermissionRows(unittest.TestCase):
+    """2026-11-05 (BACKLOG B-100): "You may cast this card from your graveyard by paying 3
+    life and discarding a card in addition to paying its other costs." (Demonic Embrace) is
+    a permission to cast the card from its graveyard (CR 601.3). It compiled as an
+    activated ability {pay 3 life, discard a card}: "cast this card from your graveyard".
+    An activated ability is activated while the card is on the battlefield, so the cast
+    never happened and the row was a discard outlet the card does not have. The IR has no
+    permission lane (DESIGN_ATOM_ONTOLOGY R5-2), so the row is refused and the card is
+    engine-unsupported: it leaves the castable pool."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+
+        pool = ingest_pool(_M21_PATH)
+        cls.reg = build_full_registry()
+        cls.raw = {raw.identity.name: raw for raw in pool.values()}
+        cls.gated_verbs = set(SUPPORTED_VERBS_V2)
+
+    def test_demonic_embrace_graveyard_cast_is_refused(self) -> None:
+        res = compile_card(self.raw["Demonic Embrace"], self.reg)
+        self.assertEqual(
+            [ab for ab in res.card.abilities if isinstance(ab, ActivatedAbility)], []
+        )
+        self.assertEqual(
+            [type(ab).__name__ for ab in res.card.abilities], ["StaticAbility", "SpellAbility"]
+        )
+        self.assertTrue(any("from your graveyard" in g for g in res.known_gaps), res.known_gaps)
+        gated = compile_card(self.raw["Demonic Embrace"], self.reg, supported_verbs=self.gated_verbs)
+        self.assertFalse(gated.legality.engine_supported)
+
+    def test_demonic_embrace_leaves_the_castable_pool(self) -> None:
+        from MTG_bot.core.executor.games import get_supply
+
+        names = {m.name for oid, m in get_supply("castable", "M21").metas.items()
+                 if oid in get_supply("castable", "M21").deckable}
+        self.assertNotIn("Demonic Embrace", names)
+        self.assertIn("Dub", names)  # an Aura with no permission sentence stays
+
+
 class TestDynamicLoyaltyCostGate(unittest.TestCase):
     """B-49 follow-up #4 (2026-10-29): Ugin, the Spirit Dragon's [−X]. X is
     announced as the ability is activated (CR 601.2b via 602.2b). The

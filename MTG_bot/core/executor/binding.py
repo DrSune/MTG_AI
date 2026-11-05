@@ -825,6 +825,20 @@ class TriggerBinder:
             if key in self._declare_queued:
                 return
             self._declare_queued.add(key)
+        if not additional and node.condition is not None:
+            # CR 603.4: an intervening "if" is checked when the trigger event
+            # occurs, and the ability triggers only if it is true. The matcher
+            # runs before the settle's state-based sweep recomputes the layers,
+            # so they are brought up to date first (CR 603.10: the effects that
+            # exist right after the event; Warded Battlements' +1/+0 on the
+            # creatures just declared as attackers). An extra instance (CR
+            # 603.2e, ``additional``) is queued later, when the carrier
+            # resolves; its original passed this check.
+            self.executor.layers.recompute()
+            if not self._condition_holds(
+                node, event, source, self._ctx(source, controller, event)
+            ):
+                return
         self._seq += 1
         instance = self.world.queue_trigger(
             source, controller, f"{event.kind}#{self._seq}"
@@ -850,7 +864,8 @@ class TriggerBinder:
         is the filter's own FNot(IS_SOURCE)). The synthetic event carries
         the matched payload so the TRIGGER_ADDITIONAL verb can re-queue
         it; the subscriber's condition (Sanctum's "six or more Shrines")
-        gates at _fire time like any other trigger. CR 603.2e: an
+        gates like any other trigger's: when it triggers and again at _fire
+        time (CR 603.4). CR 603.2e: an
         extra-trigger carrier's OWN firings never fan out — the family's
         effect does not apply to instances of itself, which is what keeps
         two carriers from chasing each other (each adds its one extra per
@@ -1425,10 +1440,25 @@ class TriggerBinder:
             self.firings.pop(instance.clock, None)
         return len(ceased)
 
+    @staticmethod
+    def _condition_holds(
+        node: _AnyTrigger, event: GameEvent, source: Handle, ctx: ExecCtx
+    ) -> bool:
+        """CR 603.4: a trigger's condition (the intervening "if": "When X, if Y,
+        Z"), a Filter over the event's subject, or over the source when the event
+        names none, in the trigger's own coordinates. It is read twice by this one
+        function: when the trigger event occurs (``_queue``: false means the
+        ability does not trigger at all) and again as the ability resolves
+        (``_fire``: false means it does nothing)."""
+        if node.condition is None:
+            return True
+        subject = event.subject if event.subject is not None else source
+        return eval_filter(node.condition, subject, ctx)
+
     def _fire(self, payload: _Firing) -> None:
-        """One trigger resolution: the condition gate, the 18b TARGET-
-        designation channel, then the effect. May-offers ask the executor's
-        decision stream (14b, B-4)."""
+        """One trigger resolution: the condition gate (CR 603.4's second
+        check), the 18b TARGET-designation channel, then the effect. May-offers
+        ask the executor's decision stream (14b, B-4)."""
         event = payload.event
         ctx = self._ctx(payload.source, payload.controller, event)
         # r21b (Basri Ket's -2): a DECLARE_ATTACKERS firing records its WHOLE
@@ -1462,10 +1492,8 @@ class TriggerBinder:
                 )
             ]
         node = payload.node
-        if node.condition is not None:
-            subject = event.subject if event.subject is not None else payload.source
-            if not eval_filter(node.condition, subject, ctx):
-                return
+        if not self._condition_holds(node, event, payload.source, ctx):
+            return  # CR 603.4: the intervening "if" is checked again on resolution
         # 18b (CR 603.1): designate targets BEFORE applying — the frozen IR
         # puts the ability's TARGET coordinates on the TRIGGERED-ABILITY node
         # itself, and CR 603.1 chooses targets as the ability goes on the

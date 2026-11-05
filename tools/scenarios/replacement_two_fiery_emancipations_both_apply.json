@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 616.1e-f: after one replacement applies, the ones still applicable apply in turn, each once (CR 614.5). Two Fiery Emancipations ('If a source you control would deal damage to a permanent or player, it deals triple that damage instead') both apply to Shock's 2 damage: 2 -> 6 -> 18, the opponent goes to 2. Either order gives the same result, so nobody is asked: the step carries no decisions, and an ask would fail the pack. Before the fix two matching damage replacements raised NotImplementedError (B-69).",
+ "cards": [
+  {"key": "f1", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 0},
+  {"key": "f2", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "targets": ["p1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 2}
+ }
+}

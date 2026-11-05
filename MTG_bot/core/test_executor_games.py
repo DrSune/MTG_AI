@@ -220,7 +220,10 @@ class DeckSupplyTest(unittest.TestCase):
         # supported again: legality.activate announces X, CR 602.2b/606.6).
         # re-pinned 2026-10-29: phasing (PHASE_OUT, CR 702.26) changes 299 -> 301,
         # exactly Teferi, Master of Time and Teferi, Timeless Voyager.
-        self.assertEqual(len(self.supply.engine_ids), 301)
+        # re-pinned 2026-11-05 (B-100, CR 601.3): 301 -> 300, exactly Demonic Embrace
+        # leaves: its graveyard-cast permission is refused (no permission lane) and the
+        # card is marked unsupported, as the two Chandras' permissions are.
+        self.assertEqual(len(self.supply.engine_ids), 300)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -261,8 +264,10 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
         # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
         # re-pinned 2026-10-29: the activation X lane changes 298 -> 299, 278 -> 279 (Ugin back).
         # re-pinned 2026-10-29: phasing changes 299 -> 301, 279 -> 281 (the two Teferis).
-        self.assertEqual(len(m21.engine_ids), 301)
-        self.assertEqual(len(m21.deckable), 281)
+        # re-pinned 2026-11-05 (B-100, CR 601.3): 301 -> 300, 281 -> 280 (Demonic Embrace's
+        # refused graveyard-cast permission).
+        self.assertEqual(len(m21.engine_ids), 300)
+        self.assertEqual(len(m21.deckable), 280)
 
 
 class KickerLaneTest(unittest.TestCase):

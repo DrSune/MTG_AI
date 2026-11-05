@@ -63,9 +63,13 @@ class AskRoutingError(RuntimeError):
 #: Engine ask kinds whose tag's second field is the deciding player.
 #: ``x`` (2026-10-29): an activation's X announcement, ``x:<seat>:<source>:<digest>``
 #: (CR 602.2b -> 601.2b; the menu is 0..the live bound). ``legend`` (V22, 2026-10-29): the
-#: legend rule's keep choice, ``legend:<seat>:<digest>`` (CR 704.5j).
+#: legend rule's keep choice, ``legend:<seat>:<digest>`` (CR 704.5j). ``replace`` (B-69,
+#: 2026-11-05): which of several applicable replacement effects applies next,
+#: ``replace:<seat>:<digest>``, asked of the affected player or the controller of the affected
+#: permanent (CR 616.1); the options are the effects' sources.
 SEAT_IN_TAG = frozenset(
-    {"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "legend", "x"}
+    {"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "legend", "x",
+     "replace"}
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 OBJECT_IN_TAG = frozenset(
@@ -205,6 +209,7 @@ def engine_ask(
         "sacrifice": f"{about}: choose what to sacrifice.",
         "discard": f"{about}: choose what to discard.",
         "legend": "Legend rule: you control legendary permanents with the same name. Choose the one to keep; the others go to the graveyard.",
+        "replace": "Several replacement effects apply to the same event. Choose the one that applies first; the others apply afterwards if they still can.",
         "enchant": f"{about} enters the battlefield: choose what it enchants.",
         "tap": f"{about}: choose what to tap.",
         "name": "Choose a card name.",

@@ -748,10 +748,38 @@ These are forks, not tasks. See the report that accompanied this audit.
   `engine/verify-fixes-2` 2026-10-29 (V16): `replacements.prevents_untap` judges a static carrier's
   event filter over the card (CR 502.3).]**
 - **B-69 [same] Two damage replacements on one event raise `NotImplementedError`.**
+  **[FIXED on branch `fix/rules-objects` 2026-11-05]**
   - `replacements.py:424-425` does not model the affected player's ordering choice (CR 616.1).
   - About 0.25% of coherent M21 games crash on it (seeds 1176, 1356, 1439, 1603, 2230: Fiery
     Emancipation with Nine Lives, or two Fiery Emancipations).
   - Repro script on the B-49 branch: `cr6161_repro.py`.
+  - 2026-11-05: the crash voided the game, and voided games are dropped from training, so a
+    losing seat could escape through it: a trained network did (eval deal 900137, at 1 life it
+    cast a second Fiery Emancipation and attacked).
+  - Fix: `ReplacementRegistry.replacements_for_damage` returns every replacement that applies,
+    in order. When two or more apply, the damaged player or the controller of the damaged
+    permanent chooses one, asked as `replace:<seat>:<digest>` over the effects' sources (a
+    SEAT_IN_TAG kind in `bench/protocol.py`); it applies, the ones still applicable are checked
+    again (616.1e-f), each once (614.5). Only choices with a consequence are asked: when a
+    consuming record applies, the modifications change nothing (it still applies after them and
+    its action never reads the amount), so only the consumes are options (which Nine Lives gets
+    the counter; Nine Lives beside Fiery Emancipation is not asked); otherwise options that
+    rewrite the event identically (two Fiery Emancipations) are one option. Prevention that stops
+    all damage (protection, Pack Leader) still applies first: in any order the result is no
+    damage.
+  - Not changed: the draw, counter, life, dies and zone-change lanes still take the first
+    applicable record. Every pair the 19 compiled pools can put on one event there is two copies
+    of one effect (Teferi's Ageless Insight and Alhammarret's Archive's draw rewrite, Conclave
+    Mentor, the "exile it instead" dies records), so the order changes nothing today. A card that
+    makes the order matter in one of those lanes needs the same `_choose` there.
+  - Found beside it, not fixed (open): the draw lane replaces a DRAW of n cards as one event, so
+    with two Teferi's Ageless Insight one main-phase draw gives 2 cards. The CR gives 4: each card
+    drawn is its own draw (CR 121.2), and the second effect applies to each of the two draws the
+    first one made (614.5). Weaker than printed, never a crash.
+  - Packs: `replacement_two_nine_lives_damaged_player_chooses.json`,
+    `replacement_two_fiery_emancipations_both_apply.json`,
+    `replacement_fiery_and_nine_lives_nobody_is_asked.json` (the first version of the fix asked
+    there: found by review and removed).
 - **B-60c design decision: Kitesail Freebooter's "until this creature leaves the battlefield".**
   **[DECIDED and BUILT 2026-10-29 as option (1), ontology R5-1 after two adversarial gate rounds,
   branch `engine/r5a-until-leaves`; follow-ups in B-97]**
@@ -1148,10 +1176,21 @@ These are forks, not tasks. See the report that accompanied this audit.
     row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
     action), so the row can do nothing: the CAST head refuses with a cast-gap ledger row, the
     may-offer narrows to skip, and `query.legal_activations` no longer offers the row
-    (`query.inert_free_row`). R5-3's `play_lands` makes it playable.
-  - Demonic Embrace's "You may cast this card from your graveyard ..." row is an activated
-    ability, and activations need the source on the battlefield (`window:not_on_battlefield`), so
-    the graveyard cast is never available. R5-2's permission lane (a StaticAbility CAST) fixes it.
+    (`query.inert_row`). R5-3's `play_lands` makes it playable.
+  - Demonic Embrace's "You may cast this card from your graveyard ..." compiled to an activated
+    ability {pay 3 life, discard a card}: cast this card from your graveyard. Activations need the
+    source on the battlefield, so the graveyard cast was never available, and **the promise above
+    was false for it**: on the battlefield the row WAS offered, paid 3 life and a card, and did
+    nothing (a discard outlet the card does not have; a trained network picked it at 0.94-0.99,
+    237 life and 79 cards in 18 of 19 games, hunt_exploits/repro_embrace.py).
+    **[FIXED on branch `fix/rules-objects` 2026-11-05]**: the compiler refuses such a row
+    (`compiler.casts_itself_from_another_zone`, a KNOWN-GAP row) and marks the card
+    engine-unsupported, so it left the castable pool (M21 castable 281 -> 280, engine 301 -> 300).
+    The phantom screen (`query.inert_row`, was `inert_free_row`) also drops a row WITH a cost when
+    no step could ever act, which is exactly this shape; a real costed row whose effect does nothing
+    right now stays offered (Idol of Endurance with nothing exiled, CR 602.2). Across the 19 sets'
+    compiled pools no other card has the shape. R5-2's permission lane (PERMIT_CAST) brings the
+    card back.
   - Also: a CAST whose designation is empty (a nonland on top for Radha, a non-Goblin for
     Conspicuous Snoop) used to offer "fire" for a no-op; it now narrows to skip (CR 117.3).
 - **B-101 [fixer A, found 2026-10-30; numbered B-82 in 73e41cd (a duplicate of the
@@ -1309,6 +1348,14 @@ These are forks, not tasks. See the report that accompanied this audit.
     library is searched): M21 Basri's Aegis, Garruk's Warsteed, Liliana's Scorn, Sanctum of All
     and Teferi's Wavecaster. M21 verified 252 -> 247; every card pack passes (two re-pinned to
     answer the zone choice: garruk's_warsteed_4, teferi's_wavecaster_6).
+- **B-113 [2026-11-05, found by the `fix/rules-objects` invariant batch; on `main` too] Frost
+  Breath's "don't untap during their controller's next untap step" ends at the first untap step of
+  either player.** The PREVENT_EFFECT record (tag `UntilNextStep:UNTAP:owner`) covers both targets
+  and expires at the first untap step after it is made, so when the targets have different
+  controllers, the creature whose controller untaps second untaps anyway (3 of 1000 coherent games,
+  `untap:frost-ignored`; a uniform seat targeting its own creature). Weaker than printed for that
+  creature. Each target needs its own controller's next untap step. Repro (fails today):
+  `tools/scenarios/known_bugs/frost_breath_two_controllers_next_untap_steps.json`.
 - **B-112 [fixer 3, 2026-10-30, branch `engine/verify-fixes-3`] Residues of review wave 4's
   engine items (W4-6, W4-1, W4-4, W4-5 are fixed on that branch).**
   - Compiler lane: FDN Squad Rallier and Vivien Reid are castable although their look-at

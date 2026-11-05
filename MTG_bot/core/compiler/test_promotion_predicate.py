@@ -86,11 +86,15 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # re-pinned 2026-10-30 (m21-fidelity wave 4, Primal Might): the fight partner is a TARGET
 # (QAtMost(1)), so its CHOOSE leaves the core: CORE_LIFTABLE 22 -> 21 (one promotion fewer),
 # TOTAL 147 -> 146. Nothing else moved.
-TOTAL_SURFACES = 146
+# re-pinned 2026-11-05 (B-100, CR 601.3): Demonic Embrace's graveyard-cast permission is
+# refused instead of compiling to an activated row {pay 3 life, discard a card}: cast this
+# card from your graveyard. The row's discard CHOOSE and its CAST self-designation left the
+# census: COST_VICTIM 26 -> 25, SELF_DESIGNATION 51 -> 50, TOTAL 146 -> 144.
+TOTAL_SURFACES = 144
 CORE_LIFTABLE = 21
-SELF_DESIGNATION = 51
+SELF_DESIGNATION = 50
 ANAPHORIC_REFERENT = 35
-COST_VICTIM = 26
+COST_VICTIM = 25
 COUNT_NOT_ONE = 13
 
 # (card, verb) rows the predicate matches but the encoder keeps silent —

@@ -1138,6 +1138,21 @@ class TestStructuralAssertions(unittest.TestCase):
 
     # -- Damage --
 
+    def test_named_damage_never_takes_an_activation_cost_as_its_subject(self) -> None:
+        """2026-11-05 (the "another" census): the subject group matched across the colon of
+        an activated ability, so "<cost>: This creature deals 2 damage ..." (Elite Headhunter,
+        ELD) and "[−3]: Chandra deals 3 damage ..." (Chandra, Bold Pyromancer, DOM) compiled
+        to the card's SPELL effect: casting the creature or the planeswalker dealt the damage,
+        and the cost ("Sacrifice another creature or an artifact") vanished. CR 602.1:
+        "[Cost]: [Effect.]" is an activated ability, never a spell's effect."""
+        for sent in (
+            "{B/R}{B/R}{B/R}, Sacrifice another creature or an artifact: This creature deals "
+            "2 damage to target creature or planeswalker.",
+            "[−3]: Chandra deals 3 damage to target creature or planeswalker.",
+        ):
+            tids = [m.template.tid for m in self.reg.match(sent)]
+            self.assertNotIn("B5b-named-damage", tids, sent)
+
     def test_named_damage(self) -> None:
         """B5b-named-damage: DEAL_DAMAGE, target creature or planeswalker."""
         for sent, expected_amt in [

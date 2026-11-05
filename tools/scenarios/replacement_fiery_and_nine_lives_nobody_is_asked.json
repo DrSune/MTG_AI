@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 616.1 without a phantom ask (AGENTS §10): seat 1 controls Fiery Emancipation and Shocks seat 0, who controls Nine Lives. Both replacements apply to the 2 damage to seat 0, but the order changes nothing: Nine Lives still applies after Fiery Emancipation (matching never reads the amount) and its action never reads the amount (prevent the damage, one incarnation counter). So seat 0 is not asked and Nine Lives applies: life stays 20, one counter. The step carries no decisions, so an ask would fail the pack. This is the B-69 crash pair (eval deal 900137), which raised NotImplementedError before the fix; the first fix (a77cae9) asked seat 0 here, found by review.",
+ "cards": [
+  {"key": "fiery", "real": "Fiery Emancipation", "zone": "battlefield", "controller": 1},
+  {"key": "nl", "real": "Nine Lives", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "controller": 1, "targets": ["p0"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "counters": {"nl": {"INCARNATION": 1}},
+  "zone": {"nl": "battlefield", "fiery": "battlefield"}
+ }
+}

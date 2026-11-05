@@ -3035,8 +3035,12 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B5b-named-damage",
         name="<card> deals N damage to target creature or planeswalker",
         bucket=_BUCKET,
+        # The subject never spans a colon: "<cost>: ... deals N damage" is an
+        # activated ability (CR 602.1), never this spell effect (2026-11-05:
+        # Elite Headhunter and Chandra, Bold Pyromancer's [−3] compiled to the
+        # card's spell effect through it).
         pattern=re.compile(
-            r"^(.+) deals (\d+) damage to target creature or "
+            r"^([^:]+) deals (\d+) damage to target creature or "
             r"planeswalker\.$"
         ),
         priority=_PRIORITY,

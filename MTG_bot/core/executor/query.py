@@ -99,6 +99,7 @@ from MTG_bot.core.ability_tree import (
     count_semantics,
     walk,
 )
+from MTG_bot.core.compiler.compiler import casts_itself_from_another_zone
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
     ability_playable,
@@ -238,22 +239,31 @@ class OptionChoice:
 _NO_OP_VERBS = (Verb.LOOK_AT, Verb.REVEAL)
 
 
-def inert_free_row(
+def inert_row(
     executor: Executor, ability: ActivatedAbility, source: Handle, seat: Handle
 ) -> bool:
-    """A free activated ability (no cost) that cannot do anything right now: every
-    step is either a recorded no-op (LOOK_AT / REVEAL: the engine is omniscient,
-    looking changes nothing) or a "you may" whose offer is narrowed to skip
-    (CR 117.3: nothing it could do is possible). The compiler's permission-row
-    idiom ("you may play lands from the top of your library", Radha, Heart of
-    Keld) is such a row whenever nothing is castable through it, and for a land
-    it never is until the permission lane (DESIGN_ATOM_ONTOLOGY R5-2/R5-3). Offering
-    it would be a phantom option (AGENTS §10), so legal_activations leaves it out.
-    A row with a real cost or any unconditional step is never inert here."""
-    if ability.cost.parts:
-        return False
+    """An activated ability that cannot do anything. Offering it would be a phantom
+    option (AGENTS §10), so legal_activations leaves it out.
+
+    A free row (no cost) is inert right now when every step is either a recorded no-op
+    (LOOK_AT / REVEAL: the engine is omniscient, looking changes nothing) or a "you may"
+    whose offer is narrowed to skip (CR 117.3: nothing it could do is possible). The
+    compiler's permission-row idiom ("you may play lands from the top of your library",
+    Radha, Heart of Keld) is such a row whenever nothing is castable through it, and for
+    a land it never is until the permission lane (DESIGN_ATOM_ONTOLOGY R5-2/R5-3).
+
+    A row with a cost is inert only when no step could ever act: each step casts the
+    row's own source from a zone other than the battlefield, and the row is offered only
+    while the source is on the battlefield (``compiler.casts_itself_from_another_zone``;
+    Demonic Embrace's graveyard permission compiled to such a row and was a discard
+    outlet, B-100). A real row whose effect just does nothing right now stays: nothing in
+    activating an ability (CR 602.2) requires its effect to be able to act, and the cost
+    is paid (Idol of Endurance with no card exiled with it). Any unconditional step of a
+    free row makes it live."""
     effect = ability.effect
     steps = effect.steps if isinstance(effect, Seq) else (effect,)
+    if ability.cost.parts:
+        return all(casts_itself_from_another_zone(step) for step in steps)
     for step in steps:
         if isinstance(step, Atom) and step.verb in _NO_OP_VERBS:
             continue
@@ -303,7 +313,7 @@ def legal_activations(
                 continue
             if ability_playable(world, executor, handle, idx, seat=seat) is not None:
                 continue
-            if inert_free_row(executor, ability, handle, seat):
+            if inert_row(executor, ability, handle, seat):
                 continue  # a phantom option: it could do nothing (Radha's land row)
             # The X lane: the row carries the live X bound, its payment the
             # X = 0 witness (ability_playable's legality fold).

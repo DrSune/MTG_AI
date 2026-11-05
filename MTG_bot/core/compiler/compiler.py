@@ -961,6 +961,28 @@ def _is_duration_cast_permission(slot: _OutcomeSlot, sentence: str) -> bool:
     return _is_cast_permission_row(slot) and bool(_DURATION_PERMISSION_RE.search(sentence))
 
 
+def casts_itself_from_another_zone(effect: object) -> bool:
+    """Is ``effect`` a CAST of the card itself from a zone other than the battlefield
+    ("You may cast this card from your graveyard by paying 3 life and discarding a card
+    in addition to paying its other costs.", Demonic Embrace), optional or not? As an
+    activated ability's effect it can never happen: the ability is activated while the
+    card is on the battlefield, so the card is never in that zone. The printed sentence
+    is a permission that works from that zone (CR 601.3: a card is cast only where a
+    rule or effect allows it), and the IR has no permission lane yet
+    (DESIGN_ATOM_ONTOLOGY R5-2, PERMIT_CAST). ``compile_card`` refuses such a row and
+    ``query.inert_row`` never offers one."""
+    inner = effect.inner if isinstance(effect, OptionalEffect) else effect
+    if not isinstance(inner, Atom) or inner.verb is not Verb.CAST:
+        return False
+    source = inner.args.get("source")
+    return (
+        isinstance(source, Selector)
+        and source.filter == FAtom(pred=FAtomPred.IS_SOURCE)
+        and bool(source.zones)
+        and all(zone.kind is not ZoneKind.BATTLEFIELD for zone in source.zones)
+    )
+
+
 def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     """Index of the tail-most plain activated ability if it is the LAST
     meaningful processed entry, else None.
@@ -2318,6 +2340,21 @@ def compile_card(
                 )
                 permission_unsupported = True
                 continue
+            if isinstance(outcome.ability, ActivatedAbility) and casts_itself_from_another_zone(
+                outcome.ability.effect
+            ):
+                # 2026-11-05 (B-100): a card's permission to cast itself from another zone
+                # compiled as an activated ability of the permanent, which can never cast
+                # it and was a free discard outlet (Demonic Embrace). The IR has no
+                # permission lane, so the row is refused and the card is engine-unsupported.
+                known_gaps.append(
+                    "KNOWN-GAP (cast permission): "
+                    f"{raw.sentences[src]!r} refused (a permission to cast the card from "
+                    "another zone; no permission lane, DESIGN_ATOM_ONTOLOGY R5-2); the "
+                    "card is engine-unsupported"
+                )
+                permission_unsupported = True
+                continue
             ability_outcomes.append(outcome.ability)
             ability_src.append(src)
         elif isinstance(outcome, EffectOutcome):
@@ -2624,7 +2661,7 @@ def compile_card(
     known_gaps.extend(_star_pt_gaps(raw, card))
     engine_supported = _engine_supported(card, supported_verbs)
     if permission_unsupported and supported_verbs is not None:
-        engine_supported = False  # B-49 follow-up #1: a suppressed duration permission
+        engine_supported = False  # a suppressed permission (B-49 follow-up #1, B-100)
 
     legality = LegalityFlags(
         format_legal=True,
