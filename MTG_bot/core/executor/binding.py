@@ -1529,6 +1529,12 @@ class TriggerBinder:
         node = payload.node
         if not self._condition_holds(node, event, payload.source, ctx):
             return  # CR 603.4: the intervening "if" is checked again on resolution
+        if isinstance(node.effect, Choose) and self._modes_need_targets(node.effect):
+            # CR 603.3c: a modal trigger's mode is chosen as it is put on the stack, before
+            # its targets, and only the chosen mode's targets are chosen.
+            node = self._declare_mode(node, ctx)
+            if node is None:
+                return  # CR 700.2a: no mode can be chosen; the ability is removed
         # 18b (CR 603.1): designate targets BEFORE applying — the frozen IR
         # puts the ability's TARGET coordinates on the TRIGGERED-ABILITY node
         # itself, and CR 603.1 chooses targets as the ability goes on the
@@ -1576,7 +1582,7 @@ class TriggerBinder:
                 event.kind == KIND_CREATURE_DIES
                 and event.subject is not None
                 and not self._trigger_designates_target(node)
-                and self._designated_player_refs(node)
+                and self._designated_player_refs(node.effect)
             ):
                 # 16a's twin: in a DIES firing the antecedent the frozen IR
                 # compiles to TARGET_PLAYER IS the dead creature — players
@@ -1712,13 +1718,93 @@ class TriggerBinder:
                 return False
         return True
 
+    @classmethod
+    def _modes_need_targets(cls, choose: Choose) -> bool:
+        """Does any mode of a modal trigger designate (a TARGET selector or a designated
+        player)? A modal trigger without one keeps its mode ask at resolution, where the
+        runtime Choose makes it."""
+        if cls._designated_player_refs(choose):
+            return True
+        return any(
+            isinstance(value, Selector)
+            and value.mode is SelectorMode.TARGET
+            and value.referent is None
+            for inner in walk(choose)
+            if isinstance(inner, Atom)
+            for _role, value in inner.args.pairs
+        )
+
+    def _declare_mode(self, node: _AnyTrigger, ctx: ExecCtx) -> _AnyTrigger | None:
+        """CR 603.3c, 700.2a: choose a modal trigger's mode as it goes on the stack. The
+        menu is the option sets of :func:`query.choose_options` (its order index is the
+        token, as the runtime Choose reads it) whose required targets can be chosen now;
+        an exactly-n target needs n legal choices, an "up to" one none. Returns the trigger
+        narrowed to the chosen options, in printed order, or None when no set is legal."""
+        from MTG_bot.core.executor.offers import offer_or_autopick
+        from MTG_bot.core.executor.query import (
+            _widen_any_target,
+            choose_options,
+            legal_targets,
+        )
+
+        choose = node.effect
+        assert isinstance(choose, Choose)
+        options = choose_options(
+            self.executor,
+            choose,
+            source=ctx.source,
+            controller=ctx.controller,
+            bindings=ctx.bindings,
+        )
+
+        def fillable(effect: object) -> bool:
+            for inner in walk(effect):
+                if not isinstance(inner, Atom):
+                    continue
+                for _role, value in inner.args.pairs:
+                    if not (
+                        isinstance(value, Selector)
+                        and value.mode is SelectorMode.TARGET
+                        and value.referent is None
+                    ):
+                        continue
+                    need = value.count.value if isinstance(value.count, QConst) else 0
+                    slot = legal_targets(
+                        self.world,
+                        self.executor,
+                        value,
+                        source=ctx.source,
+                        controller=ctx.controller,
+                        bindings=ctx.bindings,
+                    )
+                    slot = _widen_any_target(self.executor, value, slot, ctx.source) or slot
+                    if len(slot.candidates) < need:
+                        return False
+            return True
+
+        legal = []
+        for i, option in enumerate(options):
+            picked = tuple(choose.options[j] for j in option.option_idxs)
+            effect = picked[0] if len(picked) == 1 else (Seq(steps=picked) if picked else None)
+            if effect is None or fillable(effect):
+                legal.append((str(i), option.option_idxs, effect))
+        if not legal:
+            return None
+        vocab = tuple(token for token, _idxs, _effect in legal)
+        digest = site_digest(tuple(idxs for _token, idxs, _effect in legal))
+        pick = offer_or_autopick(ctx, vocab, f"choose:{ctx.source}:{digest}")
+        effect = next(effect for token, _idxs, effect in legal if token == pick)
+        if effect is None:
+            return None  # the empty set of an "up to" choice: nothing happens
+        return TriggeredAbility(event=node.event, condition=node.condition, effect=effect)
+
     @staticmethod
-    def _designated_player_refs(node: _AnyTrigger) -> set[ControllerRef]:
-        """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) this trigger's
-        effect reads: a role value naming one, a zone it controls, or a filter reading the
-        bound player (the scan :meth:`_designate` makes)."""
+    def _designated_player_refs(effect: object) -> set[ControllerRef]:
+        """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a trigger's effect
+        reads: a role value naming one, a zone it controls, or a filter reading the bound
+        player (the scan :meth:`_designate` makes)."""
         refs: set[ControllerRef] = set()
-        for inner in walk(node.effect):
+        for inner in walk(effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
@@ -1809,7 +1895,7 @@ class TriggerBinder:
         """
         selectors: list[Selector] = []
         seen: set[str] = set()
-        player_refs = self._designated_player_refs(node)
+        player_refs = self._designated_player_refs(node.effect)
         reads_target_player = bool(player_refs)
         # V21: a "target opponent" read narrows the slot
         opponent_only = ControllerRef.TARGET_OPPONENT in player_refs

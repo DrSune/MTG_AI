@@ -18,6 +18,7 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     BecomesBlockedEvent,
     CardDrawnEvent,
+    Choose,
     CardRecord,
     ControllerRef,
     CounterKind,
@@ -690,6 +691,79 @@ class TestAPNAP(unittest.TestCase):
         )
         self.assertEqual((power, toughness), (1, 1))
         self.assertEqual(self.world.triggers, [])
+
+
+class TestModalTrigger(BindingCase):
+    """CR 603.3c: a modal triggered ability's mode is chosen as it is put on the stack, and its
+    targets are then chosen for that mode only; CR 700.2a: a mode that needs a target with no
+    legal choice can't be chosen. Voracious Hydra / Dread Presence (M20, known_bugs
+    modal_trigger_targets_before_mode): the trigger designated the targeted mode's target when
+    it fired and asked the mode only at resolution, so a target was asked for (and chosen) under
+    the other mode, and the targeted mode stayed on offer with nothing to target."""
+
+    def setUp(self):
+        super().setUp()
+        self.asks: list[tuple[tuple[str, ...], str]] = []
+        self.answers: dict[str, str] = {}
+
+        def provider(vocab, what):
+            self.asks.append((tuple(vocab), what))
+            for prefix, answer in self.answers.items():
+                if what.startswith(prefix) and answer in vocab:
+                    return answer
+            return vocab[0]
+
+        self.ex.decisions.provider = provider
+        # "When this creature enters, choose one: you gain 2 life; or this creature deals
+        # 3 damage to target creature an opponent controls."
+        opp_creature = FAnd(
+            (FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT), CREATURE)
+        )
+        burn = atom(
+            Verb.DEAL_DAMAGE,
+            amount=QConst(3),
+            target=Selector(QConst(1), SelectorMode.TARGET, opp_creature, zones=(BF_ANY,)),
+        )
+        self.hydra = self.world.add_card(card_id("Hydra", "1", "1"), self.p0, ZONE_HAND)
+        self.ex.attach_card(
+            self.hydra,
+            self.record_for(
+                self.hydra,
+                [etb_trigger(Choose(count=QConst(1), options=(gain(2), burn)))],
+            ),
+        )
+
+    def enter(self) -> None:
+        self.ex.execute(
+            enter(BF_OWNER), source=self.hydra, controller=self.p0, bindings={"cards": self.hydra}
+        )
+
+    def test_with_no_legal_target_only_the_other_mode_can_be_chosen(self):
+        self.enter()
+        self.assertEqual(self.life(self.p0), 22)  # the burn mode was not on offer
+        self.assertEqual([what for _v, what in self.asks if what.startswith("target")], [])
+        self.assertEqual([what for _v, what in self.asks if what.startswith("choose")], [])
+
+    def test_the_target_is_chosen_only_for_the_chosen_mode(self):
+        ogre = self.world.add_card(card_id("Ogre", "5", "5"), self.p1, ZONE_BATTLEFIELD)
+        self.world.add_card(card_id("Troll", "5", "5"), self.p1, ZONE_BATTLEFIELD)
+        self.answers["target"] = str(ogre)
+        self.answers["choose"] = "0"  # gain 2 life
+        self.enter()
+        self.assertEqual(self.life(self.p0), 22)
+        self.assertEqual([what for _v, what in self.asks if what.startswith("target")], [])
+        self.assertEqual(self.ex.damage, {})
+        self.answers["choose"] = "1"
+        self.asks.clear()
+        self.ex.execute(
+            atom(Verb.MOVE_ZONE, cards=all_bf(), destination=Zone(ZoneKind.HAND, ControllerRef.OWNER)),
+            source=self.hydra,
+            controller=self.p0,
+            bindings={"cards": self.hydra},
+        )
+        self.enter()
+        self.assertEqual(self.ex.damage, {ogre: 3})
+        self.assertIn("choose", [what.split(":")[0] for _v, what in self.asks])
 
 
 class TestDelayedTrigger(BindingCase):
