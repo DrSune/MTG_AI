@@ -14,7 +14,7 @@ When a bug is fixed, its pack moves to tools/scenarios/ as a regression pack and
 - **cr611_2a_control_ends_with_granter** (Sorin, Vampire Lord): WEAKER. Control gained through the granted "{T}: Gain control of target creature" ends when the Vampire that had the ability leaves; CR 611.2a: it lasts indefinitely.
 - **damage_trigger_binding_overrides_all** (Wildfire Elemental): WEAKER. On a damage trigger, binding.py _ctx (~1904) binds `target` to the damage dealer (a Brash Taunter workaround) and selectors.role_handles lets it override an ALL selector: "creatures you control get +1/+0" pumps only the dealer.
 - **b50_grant_ends_with_source** (Mu Yanling, Sky Dancer): WEAKER (B-50). The +2's "loses flying until your next turn" ends when Mu leaves the battlefield; the -2/-0 stays.
-- **random_order_is_fixed** (Drawn from Dreams): MINOR. Cards put on the bottom "in a random order" keep their original order.
+- **random_order_is_fixed** (Drawn from Dreams): MINOR. Cards put on the bottom "in a random order" keep their original order. Not an executor-only fix: REST-to-bottom compiles one way for "in a random order" (Garruk's Harbinger, verified M21; Drawn from Dreams, Brightwood Tracker) and "in any order" (See the Truth, Anticipate, Goblin Ringleader), so MOVE_ZONE needs an order role the compiler writes (templates_b5b._build_rest_bottom_random documents it as lossy), and Garruk's Harbinger's tree then changes and needs verifying again (2026-11-05, fix/w2-stack).
 
 Second wave (M20 batches 5-9):
 
