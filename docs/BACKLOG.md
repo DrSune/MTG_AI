@@ -1439,3 +1439,21 @@ W&B key in history is revoked; a private split exists outside the public repo.
 - **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
   targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
   columns, zero-initialised on load like new ask kinds.
+- **Windows cast X spells only at X = 0** (red-team 2026-11-05): the act menu has one row per
+  payable X, the counter and combat windows do not (Volcanic Geyser deals 0 there; the uniform
+  seat did it 6 times in 600 games). Give windows the same X rows. Next after fix/w2-stack merges.
+- **Creature mana cannot pay in counter or combat windows** (by design in fix/menu-mana, weaker
+  than printed): Llanowar Visionary cannot pay for Cancel in response; Vodalian Arcanist's mana is
+  unusable at instant speed. 0 of 15,473 window menus in 600 games would have changed. Fix: offer
+  the window cast once per payment that uses a creature source, like the act menu's mana rows.
+- **The payment rule's "most colours stay makeable" is greedy**: 102 of 32,717 random boards
+  (0.31%; 0 of 7,204 real-game casts) had a payment leaving a strict superset of colours
+  (Conclave Mentor with Blossoming Sands, Temple of Silence, Thornwood Falls, Swiftwater Cliffs).
+  Part of the automatic-payment scaffold; a learned payment choice retires it.
+- **Hybrid costs (latent; no verified card has one)**: the engine's `build_payment_plan` assigns
+  hybrid symbols greedily by printed colour (CR 118.13a lets the payer choose) and ignores
+  Chromatic Orrery for hybrid; the planner's Orrery shortcut misses 56 of 2,646 synthetic hybrid
+  payments the engine accepts.
+- **Off-policy lag**: 42-135% of each r17 batch was played on the previous weights (collection
+  overlaps the update). The importance ratio corrects it and the bf16/fp32 ratio is unbiased
+  (mean 0.9996), but the data is further off-policy than CleanRL assumes; watch the clip fraction.
