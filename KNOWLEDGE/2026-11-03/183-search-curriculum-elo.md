@@ -533,3 +533,30 @@ Aegis. Fixed on the unmerged branch `cards/integration` (178 commits ahead of ma
 r16 (fixed engine, from v6): at lr 1e-4 KL ran 0.04-0.065 per update (target 0.03) with the
 training win rate flat at 0.61-0.63 over 9 updates; resumed at update 9 with lr 3e-5 (v6 was
 trained at 2.5e-5).
+
+## 37. New era: cards/integration merged (a26578f); r17; card mapping and bug hunt by agents
+
+Owner, 2026-11-05: "I think we should merge if there is good work on the branch. Also you should
+fix all our current sets so all cards compile. Make sure to use agents ... Do another pass
+looking for bugs we are training on."
+
+- **Merge** of `cards/integration` (the M21 fidelity campaign, /177: blind review of every
+  castable M21 card, ~70 engine/compiler fixes, 281 castable M21, every other unmerged branch
+  contained). Main had trained the RL on the pre-campaign engine for days: per-step mana
+  emptying (the banked-mana bug, fixed there 2026-10-29 as V2), cleanup discard to seven (absent
+  on main), legend rule, planeswalker attacks, summoning sickness for {T}, zone-change hygiene,
+  protection, opponents deciding their own discards. Conflicts: 14 files (merge commit message has
+  the resolutions; main's own mana approximation dropped for V2). Measured on the merge: engine
+  suite 2 by-design / 4587 passed, packs 668/668, selfplay tests 10/10, 60 rig games 0 crashes.
+- **Card table refresh** (`--refresh-table`): the merge re-compiled 93 of M21's 305 rows and
+  added 11 component types; a checkpoint's table now rebuilds from the current compile.
+- **r17** = PPO from r16 in the merged engine (lr 5e-5, teacher stage up to 20 updates, then
+  significance-gated self-play). Heuristic vs random 0.928 (heuristic Elo 440).
+- **Card mapping** follows docs/PLAN_CARD_ONBOARDING.md and docs/MAPPER_GUIDE.md (records are
+  data; gates G0-G5; mapper never verifies; honeypot and planted-fault calibration). Status:
+  FDN 517 cards (55 verified, 334 worklist), M20 329 (212 worklist), M19 299 (186). Round M20
+  wave 1: five fresh-context mapper agents, ~24 cards each with ~10% hidden calibration cards;
+  verification by separate agents on blind packets with planted faults follows.
+- **Bug hunt** (three fresh-context agents on the merged engine): rule invariants over whole
+  games; the engine-to-network interface (escaping a loss by voiding a game, offered vs legal
+  actions, hidden information in the new ask kinds); exploits mined from the network's own play.
