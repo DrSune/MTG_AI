@@ -30,7 +30,9 @@ Pack vocabulary (all keys required as noted):
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
                                             (a target may be "p0"/"p1": a player)
-              "decisions": [str...]},
+              "decisions": [str...]},       each word must be offered by the ask it
+                                            answers (a pack key resolves to its handle;
+                                            "first-legal" takes the first offered word)
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
@@ -212,9 +214,18 @@ def _bf_target():
     )
 
 
+#: A decision word that takes the ask's first offered word: for an ask the pack does not test.
+#: Any other word must be one the ask offers, or the pack fails (a word the ask does not offer
+#: used to fall back to the first word silently, so a shifted queue still passed).
+FIRST_LEGAL = "first-legal"
+
+
 class ScenarioRunner:
     def __init__(self, pack: dict, supply, setup_provider=None):
         self.pack = pack
+        #: pack-written decision words an ask did not offer; the ask took a default instead,
+        #: so the pack did not test what it says (reported as failures by run_pack)
+        self.unoffered: list[str] = []
         world_cfg = pack.get("world", {})
         self.world = GameWorld(
             num_players=2,
@@ -367,7 +378,12 @@ class ScenarioRunner:
                 # takes the disciplined default "PASS" (queue exhaustion
                 # never crashes a window — the pack that wants another
                 # answer says so with a word).
-                got = queue.pop(0) if queue else ("PASS" if rung1 else vocab[0])
+                if not queue:
+                    answer = "PASS" if rung1 else vocab[0]
+                    if rung1:
+                        self.rung1_asks.append((what, tuple(vocab), answer))
+                    return answer
+                got = queue.pop(0)
                 if got in self.handles:
                     # 18b: a DESIGNATION answer may be given as a PACK KEY
                     # ("sheep", not "card:1") — resolved to the handle
@@ -375,7 +391,11 @@ class ScenarioRunner:
                     # order is deterministic, so the pin stays replay-exact
                     # and the pack says WHO, not an accident of numbering.
                     got = str(self.handles[got])
+                if got == FIRST_LEGAL:
+                    got = vocab[0]
                 answer = got if got in vocab else ("PASS" if rung1 else vocab[0])
+                if answer != got:
+                    self.unoffered.append(f"{what}: pack word {got!r} not offered in {tuple(vocab)}")
                 if rung1:
                     self.rung1_asks.append((what, tuple(vocab), answer))
                 return answer
@@ -665,6 +685,7 @@ class ScenarioRunner:
             if what.startswith("cw:"):
                 got = self._resolve_word(script.pop(0)) if script else "PASS"
                 if got not in vocab:
+                    self.unoffered.append(f"{what}: pack word {got!r} not offered in {tuple(vocab)}")
                     got = "PASS"
                 self.rung1_asks.append((what, tuple(vocab), got))
                 return got
@@ -687,6 +708,10 @@ class ScenarioRunner:
                 got = script.pop(0)
                 if got in self.handles:
                     got = str(self.handles[got])
+            if got == FIRST_LEGAL:
+                got = vocab[0]
+            if got is not None and got not in vocab:
+                self.unoffered.append(f"{what}: pack word {got!r} not offered in {tuple(vocab)}")
             if got is None:
                 if what.startswith("may:"):
                     got = "skip"
@@ -1161,9 +1186,10 @@ def _run_pack(pack: dict, supply) -> list[str]:
         if want is not None:
             return [f"step {step}: expected raise {want!r}, but it succeeded"]
     try:
-        return runner.check()
+        errors = runner.check()
     except Exception as e:  # noqa: BLE001 - one pack's check never aborts the sweep
-        return [f"check: {type(e).__name__}: {e}"]
+        errors = [f"check: {type(e).__name__}: {e}"]
+    return errors + runner.unoffered
 
 
 def main(argv=None) -> int:
