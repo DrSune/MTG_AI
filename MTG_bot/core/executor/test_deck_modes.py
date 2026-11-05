@@ -74,12 +74,15 @@ def test_coherent_games_play_to_a_result(m21) -> None:
     # CR 500.5) ends the random policy's banked mana, so its games run longer:
     # seed 1 now reaches the 60-turn cap. Every game still runs crash-free and
     # never stalls, and the other four end decisively.
+    # re-pinned 2026-11-05: CR 508.1a (only untapped creatures attack) slows
+    # the random policy, which taps its mana creatures at will: seeds 3 and 4
+    # now reach the 60-turn cap, the other three end decisively.
     decisive = 0
     for seed in range(1, 6):
         outcome = play_game(seed, pool_mode="castable", supply=m21, deck_mode="coherent")
         assert outcome.crash is None and not outcome.reason.startswith("STALL")
         decisive += "game over" in outcome.reason
-    assert decisive >= 4
+    assert decisive >= 3
 
 
 def test_an_unknown_mode_raises(m21) -> None:

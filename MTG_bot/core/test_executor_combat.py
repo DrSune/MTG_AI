@@ -32,7 +32,11 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
-from MTG_bot.core.executor.legality import legal_attackers, mandated_attackers
+from MTG_bot.core.executor.legality import (
+    attack_blocked_reason,
+    legal_attackers,
+    mandated_attackers,
+)
 from MTG_bot.core.executor.query import legal_activations
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import (
@@ -240,6 +244,22 @@ class TestDeclareAsks(CombatCase):
         # first strike, no FS partner: single wave, 2 damage once
         self.assertEqual(self.world.players[self.p1].life, 18)
         self.assertEqual(len(self.rows("COMBAT_DAMAGE")), 1)
+
+    def test_tapped_creature_is_never_asked(self):
+        # CR 508.1a: the creatures declared as attackers must be untapped.
+        # A creature tapped for mana or by an effect cannot attack.
+        tapped = self.synth("Tapped", 2, 2, self.p0)
+        alpha = self.synth("Alpha", 2, 2, self.p0)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.world.cards[tapped].tapped = True
+        self.assertEqual(
+            attack_blocked_reason(self.ex, self.p0, tapped), "tapped (CR 508.1a)"
+        )
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.asks_for(tapped), [])
+        self.assertEqual(len(self.asks_for(alpha)), 1)
+        self.assertEqual(self.world.players[self.p1].life, 18)  # only alpha
 
     def test_defender_is_never_asked(self):
         wall = self.real("Wall of Runes", self.p0)

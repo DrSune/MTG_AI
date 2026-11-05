@@ -33,6 +33,16 @@ tree); goldens/grammar/state.py untouched.
    no rows = ready. Haste bypasses; **tapped creatures attack** (tap is
    not a cost). `legal_attackers` = the ask enumeration;
    `mandated_attackers` = dispatched ledger ∪ live `"mandate"` layers.
+   **Superseded 2026-11-05** (branch `fix/rules-turn-combat`): "tapped
+   creatures attack" was wrong. CR 508.1a: the creatures declared as
+   attackers must be untapped; `attack_blocked_reason` (legality.py) now
+   returns "tapped (CR 508.1a)". The tap at declaration is still not a cost
+   and vigilance still skips it (CR 508.1f). The 2026-11-05 invariant audit
+   measured tapped attackers in 259 of 1,000 games (5.5% of all attacks:
+   mana creatures tapped for mana, Frost Breath and Capture Sphere victims).
+   Packs: `attack_tapped_creature_cannot_be_declared.json`,
+   `attack_mana_creature_tapped_for_mana_cannot_attack.json`,
+   `attack_frost_breath_frozen_creatures_cannot_attack.json`.
 4. **Binder** (CR 603.2): DeclareAttackers nodes dedup per
    (source, node, group) — Tide Skimmer/Mangara fire ONCE per declaration
    although every attacker emits its own row (pinned: 2 rows → 1 draw).

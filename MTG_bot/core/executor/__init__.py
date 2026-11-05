@@ -2200,8 +2200,9 @@ class Executor:
         BEFORE the declare rows (a "becomes tapped" trigger sits UNDER
         the attack triggers, CR 508.1m), then one DECLARE_ATTACKERS row
         per attacker - shared declare-group id, the binder's CR 603.2
-        dedup key. Tapped creatures are legal attackers (tapping to
-        declare is not a cost); sickness reads the journal (legality.py).
+        dedup key. Only untapped creatures are candidates (CR 508.1a;
+        the tap that follows is not a cost, CR 508.1f); sickness reads the
+        journal (legality.py).
         """
         world = self.world
         candidates = legal_attackers(self, seat)
