@@ -370,6 +370,23 @@ def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
         assert torch.equal(w[FT.ASK_INDEX[k]], w[FT.ASK_INDEX["other"]])
 
 
+def test_manifest_appends_one_entry_per_start(tmp_path) -> None:
+    """A resume adds a manifest entry; it never overwrites the first start's."""
+    import json
+
+    from tools.selfplay.learner import parse, write_manifest
+
+    write_manifest(tmp_path, parse(["--run", str(tmp_path), "--seed", "5"]))
+    write_manifest(tmp_path, parse(["--run", str(tmp_path), "--resume", str(tmp_path)]))
+    entries = json.loads((tmp_path / "manifest.json").read_text())
+    assert len(entries) == 2
+    assert entries[0]["args"]["seed"] == 5 and entries[0]["args"]["resume"] == ""
+    assert entries[1]["args"]["resume"] == str(tmp_path) and entries[1]["args"]["pool"] == "verified"
+    for e in entries:
+        assert len(e["git_commit"]) == 40 and isinstance(e["git_dirty"], bool)
+        assert e["torch"] == torch.__version__ and e["host"] and e["started"]
+
+
 def test_gae_bootstraps_a_truncated_game() -> None:
     from tools.selfplay.learner import gae
     vals = [0.2, -0.4, -0.8]

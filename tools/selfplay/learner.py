@@ -24,7 +24,8 @@ Evaluation: greedy play on fixed deals, each deal twice with the seats swapped (
 format); score = (wins + draws/2) / games, a voided game voids its pair. Ratings: Elo by
 Bradley-Terry over the ladder games, uniform random = 0.
 
-Every number goes to <run>/metrics.jsonl; checkpoints to <run>/*.pt.
+Every number goes to <run>/metrics.jsonl; checkpoints to <run>/*.pt. Each start of the learner
+(a resume too) appends what ran, from which code, where and when to <run>/manifest.json.
 """
 
 from __future__ import annotations
@@ -33,11 +34,15 @@ import argparse
 import json
 import math
 import multiprocessing as mp
+import platform
 import random
 import signal
+import socket
+import subprocess
 import sys
 import time
 from collections import Counter, defaultdict, deque
+from datetime import datetime
 from multiprocessing.connection import wait
 from pathlib import Path
 from typing import Any
@@ -53,6 +58,7 @@ from tools.selfplay.actor import worker_main
 from tools.selfplay.ppo import chunks, pack_buffer
 from tools.selfplay.trainer import trainer_main
 
+REPO = Path(__file__).resolve().parents[2]
 TRAIN_SET = "M21"  # the set training games are dealt from (--mix-sets adds others)
 EVAL_SEED0 = 900_000
 # Gates draw a fresh block of deals each time (GATE_SEED0 + 1000 * gate number): re-testing a
@@ -137,6 +143,43 @@ def mem_available_gib() -> float:
     return float("nan")
 
 
+def write_manifest(run: Path, args: argparse.Namespace) -> dict:
+    """Append this start of the learner to ``<run>/manifest.json``, a list with one entry per
+    start (a resume or a restart adds an entry, never overwrites one): the parsed arguments and
+    the command line, the git commit and whether the tree differs from it, the host, the Python
+    and torch versions and the start time."""
+    def git(*cmd: str) -> str | None:
+        try:
+            out = subprocess.run(["git", *cmd], cwd=REPO, capture_output=True, text=True,
+                                 timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return out.stdout if out.returncode == 0 else None
+
+    commit = git("rev-parse", "HEAD")
+    # untracked files count as dirty: card records on disk change what the pools deal
+    status = git("status", "--porcelain")
+    entry = {
+        "started": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "t": round(time.time(), 1),  # the clock of the metrics.jsonl rows
+        "host": socket.gethostname(),
+        "git_commit": commit.strip() if commit else None,
+        "git_dirty": bool(status.strip()) if status is not None else None,
+        "git_status": status.splitlines() if status else [],
+        "python": platform.python_version(),
+        "torch": torch.__version__,
+        "argv": sys.argv[1:],
+        "args": vars(args),
+    }
+    path = run / "manifest.json"
+    entries = json.loads(path.read_text()) if path.exists() else []
+    entries.append(entry)
+    tmp = path.with_name("manifest.json.tmp")
+    tmp.write_text(json.dumps(entries, indent=1, default=str) + "\n")
+    tmp.replace(path)
+    return entry
+
+
 def gae(vals: list[float], z: float, gamma: float, lam: float) -> list[float]:
     """Generalised advantage estimates for one seat's decisions in one game, whose end pays
     ``z`` after the last decision. A game cut off before its end passes ``z = vals[-1]``: the
@@ -158,6 +201,7 @@ class Learner:
         self.args = args
         self.run = Path(args.run)
         self.run.mkdir(parents=True, exist_ok=True)
+        write_manifest(self.run, args)
         self.device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu"
                                    else "cpu")
         self.cuda = self.device.type == "cuda"
