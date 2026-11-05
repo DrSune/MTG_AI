@@ -1323,6 +1323,7 @@ def spell_target_slots(
     spell_handle: Handle,
     seat: Handle,
     modes: tuple[int, ...] | None = None,
+    pay=None,
 ) -> list[TargetSlot]:
     """The TARGET-selection slots of a SPELL's effect tree: every
     TARGET-mode Selector reachable under the SpellAbility's effect, as the
@@ -1350,7 +1351,13 @@ def spell_target_slots(
 
     ``modes`` (V17, CR 601.2c): for a modal spell, the option indices the
     caster announced; only those modes' targets exist. None walks every mode
-    (the mode-blind union, which is what a caller gets before announcing)."""
+    (the mode-blind union, which is what a caller gets before announcing).
+
+    ``pay`` (2026-11-05): how a target-dependent total is priced, as
+    ``pay(targets) -> bool`` (:func:`_affordable_target_slots`). None prices it
+    against the pool alone, as :func:`stack.cast` pays; a caller that taps free
+    sources before casting (the bench menu, the response windows) passes its
+    own."""
     if modes is not None and modal_choose(node) is not None:
         node = with_modes(node, modes)
     slots: list[TargetSlot] = []
@@ -1362,8 +1369,12 @@ def spell_target_slots(
         # enchant designation (CR 601.2c). Returning here skipped the aura
         # ENCHANT synthesis below, so _validate_spell_targets saw a
         # targetless spell and stack.py's resolution invariant fired.
+        # 2026-11-05: and it skipped the V29 pricing, so Rousing Read was
+        # offered at an opponent's Pursued Whale it could not pay for.
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
-        return [aura] if aura is not None else slots
+        if aura is None:
+            return slots
+        return _affordable_target_slots(executor, [aura], spell_handle, seat, pay)
     player_refs: set[ControllerRef] = set()
     for inner in walk(node.effect):
         player_refs |= _rotation_player_refs(inner)
@@ -1395,7 +1406,7 @@ def spell_target_slots(
         # so no caller mirrors the rule (V21: by which ref the tree reads;
         # V44: a player with protection from the spell is no candidate).
         slots.append(player_target_slot(executor, seat, player_refs, source=spell_handle))
-    return _affordable_target_slots(executor, slots, spell_handle, seat)
+    return _affordable_target_slots(executor, slots, spell_handle, seat, pay)
 
 
 def _reads_targets_source(filter_: object) -> bool:
@@ -1412,7 +1423,7 @@ def _reads_targets_source(filter_: object) -> bool:
 
 
 def _affordable_target_slots(
-    executor: Executor, slots: list[TargetSlot], spell_handle: Handle, seat: Handle
+    executor: Executor, slots: list[TargetSlot], spell_handle: Handle, seat: Handle, pay=None
 ) -> list[TargetSlot]:
     """V29 (CR 601.2f, 601.2h): with a target-dependent cost increase on the
     battlefield ("Spells your opponents cast that target this creature cost {3}
@@ -1421,7 +1432,8 @@ def _affordable_target_slots(
     illegal, and stack.cast refuses it. The slot drops such candidates, so the
     menu holds only completions the cast accepts. Inert (no fold at all) unless a
     battlefield CostModifier reads TARGETS_SOURCE, and only for a spell in the
-    caster's hand: the effect-cast lane designates no targets."""
+    caster's hand: the effect-cast lane designates no targets. ``pay(targets)``
+    prices a candidate (default: the pool alone, ``spell_castable``)."""
     from MTG_bot.core.ability_tree import CostModifier
     from MTG_bot.core.state import ZONE_BATTLEFIELD
 
@@ -1442,13 +1454,14 @@ def _affordable_target_slots(
                     taxed = True
     if not taxed:
         return slots
+
+    def pool_pays(targets: tuple[Handle, ...]) -> bool:
+        return spell_castable(executor, seat, spell_handle, targets=targets)[0] is None
+
+    price = pay or pool_pays
     out: list[TargetSlot] = []
     for slot in slots:
-        keep = tuple(
-            c
-            for c in slot.candidates
-            if spell_castable(executor, seat, spell_handle, targets=(c,))[0] is None
-        )
+        keep = tuple(c for c in slot.candidates if price((c,)))
         if keep != slot.candidates:
             slot = replace(slot, candidates=keep, forced=len(keep) == 1)
         out.append(slot)

@@ -110,6 +110,33 @@ class TestCombatWindow(Rung2Case):
         self.assertEqual(sum(self.world.cards[h].tapped for h in mountains), 1)
         self.assertEqual(self.world.players[self.p1].mana_pool, {})
 
+    def test_a_taxed_target_is_priced_with_the_lands_the_window_taps(self):
+        # 2026-11-05 (CR 601.2f-h): Pursued Whale makes the defender's spells that target it cost
+        # {3} more. The window priced each target against the pool alone, which is empty in
+        # combat, so with a Whale on the battlefield no combat instant was ever offered.
+        whale = self.real("Pursued Whale", self.p0)
+        shock = self.real("Shock", self.p1, zone=ZONE_HAND)
+        self.begin()
+        self.mana(self.p1, R=1)
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        vocab = self.cw_asks()[0][0]
+        self.assertIn(f"{shock}@{self.p0}", vocab)
+        self.assertNotIn(f"{shock}@{whale}", vocab)  # {R} + {3}: one Mountain cannot pay
+
+    def test_a_taxed_target_the_lands_pay_is_offered_and_cast(self):
+        whale = self.real("Pursued Whale", self.p0)
+        shock = self.real("Shock", self.p1, zone=ZONE_HAND)
+        self.begin()
+        self.mana(self.p1, R=4)
+        self.answers[f"cw:{self.p1}"] = f"{shock}@{whale}"
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        self.assertIn(f"{shock}@{whale}", self.cw_asks()[0][0])
+        self.assertEqual(self.world.zone_of(shock).kind, ZONE_GRAVEYARD)  # cast, all four tapped
+        mountains = [h for h, c in self.world.cards.items() if c.identity.name == "Mountain"]
+        self.assertTrue(all(self.world.cards[h].tapped for h in mountains))
+
     def test_pass_writes_the_audit_row_and_combat_continues(self):
         brute = self.synth("Brute", 3, 3, self.p0)
         shock = self.real("Shock", self.p0, zone=ZONE_HAND)

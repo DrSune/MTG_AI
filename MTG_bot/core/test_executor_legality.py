@@ -934,6 +934,41 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.ex.fire_triggers()
         self.assertEqual(self.world.players[self.p1].life, 21)
 
+    # 2026-11-05: the act window's menu pays this way too (bench/router.py), so the rule is
+    # the only one that ever taps a source on a player's behalf.
+
+    def test_a_mana_creature_is_never_a_free_source(self):
+        # Tapping a creature costs its attack and its block: that is the player's choice.
+        self.land("Elf", add_mana("G"), type_line="Creature — Elf")  # not sick: on board, no entry row
+        self.assertIsNone(self.plan(CostManaColor("G", QConst(1))))
+
+    def test_generic_mana_keeps_the_scarce_colour_open(self):
+        self.land("Forest", add_mana("G"))
+        island = self.land("Island", add_mana("U"))
+        self.land("Island", add_mana("U"))
+        (tap,) = self.plan(CostManaGeneric(QConst(1)))
+        self.assertEqual(tap.source, island)  # the lone Forest still makes {G}
+
+    def test_an_excluded_source_is_never_tapped(self):
+        # An ability whose own cost is {T} cannot also tap its source for mana.
+        f1 = self.land("Forest", add_mana("G"))
+        f2 = self.land("Forest", add_mana("G"))
+        check = self.check(cost(CostManaGeneric(QConst(1))))
+        (tap,) = plan_mana_taps(self.ex, self.p0, check, exclude=frozenset({f1}))
+        self.assertEqual(tap.source, f2)
+        self.assertIsNone(plan_mana_taps(self.ex, self.p0, check, exclude=frozenset({f1, f2})))
+
+    def test_any_colour_permission_lets_any_source_pay_a_coloured_symbol(self):
+        # Chromatic Orrery: "You may spend mana as though it were mana of any color."
+        from MTG_bot.core.ability_tree import StaticAbility
+
+        orrery = self.world.add_card(card_id("Orrery", type_line="Artifact"), self.p0, ZONE_BATTLEFIELD)
+        policy = StaticAbility(effect=Atom(verb=Verb.MANA_POLICY, args=AtomArgs(pairs=(("scope", "ALL_YOURS"),))))
+        self.ex.attach_card(orrery, record_of([policy], oid=self.world.cards[orrery].identity.oracle_id))
+        island = self.land("Island", add_mana("U"))
+        (tap,) = self.plan(CostManaColor("G", QConst(1)))
+        self.assertEqual(tap.source, island)
+
 
 
 class TestSelflessSaviorAnotherTarget(unittest.TestCase):
