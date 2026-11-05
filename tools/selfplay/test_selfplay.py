@@ -179,8 +179,9 @@ class _BlockPlanner:
         self.plan, self.turn = None, -1
         self.planned = self.answered = 0
 
-    def plan_blocks(self, game, seat: int) -> None:
-        self.plan, self.turn = self.searcher.plan_blocks(game, seat), game.world.turn
+    def plan_blocks(self, game, seat: int, declared_attackers=frozenset()) -> None:
+        self.plan = self.searcher.plan_blocks(game, seat, declared_attackers)
+        self.turn = game.world.turn
         self.planned += self.plan is not None
 
     def decide(self, ask, obs) -> int:

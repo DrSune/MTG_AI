@@ -1,7 +1,8 @@
 """The PPO update over a packed buffer: shared by the learner (in-process) and trainer.py.
 
 Loss per minibatch: clipped policy gradient on normalised advantages, clipped value loss,
-entropy bonus, and optionally KL(learner || anchor) toward the newest frozen version. The net
+entropy bonus, and optionally KL(learner || anchor) toward the newest frozen version, scaled by
+the minibatch's share of the decisions so every decision weighs the same. The net
 runs in eval() mode (no name dropout): the ratio must compare the acting policy with the same
 function. Minibatches are length-sorted, capped by ``mb`` decisions and ``tok_budget`` padded
 tokens (activation memory is system memory on the Spark), collated once and reused by every
@@ -83,6 +84,10 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer, anchor: torch.
             v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
             vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
             loss = pg + a.vcoef * vloss - a.ent * ent.mean()
+            # Minibatches are length-sorted and token-capped, so they hold 190-4096 decisions;
+            # a mean loss per minibatch gave a long decision ~15x the weight of a short one.
+            # Scale so every decision weighs the same (2026-11-05 review).
+            scale = len(act_t) * len(batches) / max(n, 1)
             if a.kl_anchor > 0 and anchor is not None:
                 with torch.no_grad(), torch.autocast(device.type, dtype=torch.bfloat16,
                                                      enabled=cuda):
@@ -91,6 +96,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer, anchor: torch.
                 kl_anc = (logp_all.exp() * (logp_all - anc_logp)).sum(-1).mean()
                 loss = loss + a.kl_anchor * kl_anc
                 stats["kl_anchor"].append(kl_anc.item())
+            loss = loss * scale
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(loss):
                 stats["nonfinite"].append(1.0)

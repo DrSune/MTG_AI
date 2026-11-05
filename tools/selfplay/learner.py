@@ -27,6 +27,7 @@ import json
 import math
 import multiprocessing as mp
 import random
+import signal
 import sys
 import threading
 import time
@@ -46,6 +47,9 @@ from tools.selfplay.ppo import pack_buffer, ppo_train
 from tools.selfplay.trainer import trainer_main
 
 EVAL_SEED0 = 900_000
+# Gates draw a fresh block of deals each time (GATE_SEED0 + 1000 * gate number): re-testing a
+# learner on the same deals until one snapshot clears the bar selects luck on those deals.
+GATE_SEED0 = 2_000_000
 TRAIN_SEED0 = 10_000_000
 BC_SEED0 = 5_000_000
 
@@ -211,6 +215,7 @@ class Learner:
         self.bc_seed0 = BC_SEED0
         self.it = 0
         self.counts: Counter = Counter()
+        self.n_gates = 0
         self.train_results: list = []
         self.infer_batches = 0
         self.infer_items = 0
@@ -793,8 +798,10 @@ class Learner:
         for epoch in range(epochs):
             t0 = time.time()
             ls = []
-            for ch in self._chunks(train, a.mb, lambda x: x[0]["cards_i"].shape[0]
-                                   + x[0]["opts_i"].shape[0]):
+            chunks = self._chunks(train, a.mb, lambda x: x[0]["cards_i"].shape[0]
+                                  + x[0]["opts_i"].shape[0])
+            n_chunks = len(chunks)
+            for ch in chunks:
                 self.check_memory()
                 b = M.collate([train[i][0] for i in ch], self.device)
                 act = torch.tensor([train[i][1] for i in ch], device=self.device)
@@ -815,6 +822,8 @@ class Learner:
                 ce = -(tgt * torch.log_softmax(logits.float(), -1)).sum(-1)
                 pol = (ce * wp).sum() / wp.sum().clamp(min=1.0)
                 loss = (0.0 if value_only else pol) + vcoef * F.mse_loss(v, z)
+                # equal weight per decision across length-sorted, token-capped chunks
+                loss = loss * (len(ch) * n_chunks / max(len(train), 1))
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(net.parameters(), a.max_grad)
@@ -874,7 +883,8 @@ class Learner:
     # ------------------------------------------------------------------ eval
 
     def start_eval(self, tag: str, opponents: list[str] | None = None,
-                   seat: str | None = None, deals: int | None = None) -> None:
+                   seat: str | None = None, deals: int | None = None,
+                   seed0: int = EVAL_SEED0) -> None:
         a = self.args
         self.models["eval"] = self._copy(self.model)
         self.eval_rows = []
@@ -884,7 +894,7 @@ class Learner:
         search = self.search_opts()
         for opp in opponents or a.eval_opponents.split(","):
             for i in range(deals or a.eval_deals):
-                seed = EVAL_SEED0 + i
+                seed = seed0 + i
                 mode = "stress" if i % 2 == 0 else "coherent"
                 for a_seat in (0, 1):
                     seats = [me, opp] if a_seat == 0 else [opp, me]
@@ -993,7 +1003,11 @@ class Learner:
 
     def queue_eval(self, kind: str, tag: str, seat: str, opponents: list[str],
                    deals: int) -> None:
-        self.eval_queue.append((kind, tag, seat, opponents, deals))
+        seed0 = EVAL_SEED0
+        if kind == "gate":
+            seed0 = GATE_SEED0 + 1000 * self.n_gates
+            self.n_gates += 1
+        self.eval_queue.append((kind, tag, seat, opponents, deals, seed0))
 
     def _eval_rows_as_games(self, player: str) -> list[tuple[str, str, float]]:
         """The finished evaluation's games as (player, opponent, score), voided pairs dropped."""
@@ -1015,6 +1029,14 @@ class Learner:
             self.log({"event": "elo", "it": self.it, "ratings": elo,
                       "games": len(self.elo_games), "versions": list(self.versions)})
 
+    def _ladder_opponents(self, name: str) -> list[str]:
+        """A new version's rating games: random, the heuristic and its predecessor, on the
+        fixed ladder deals. Gate games never enter the ratings: a freeze is selected on them
+        (the first of many noisy re-tests to clear the bar), so they overstate the step
+        (r15: gates vs v5 averaged 0.516, the freezing one scored 0.545)."""
+        prev = self.versions[self.versions.index(name) - 1] if self.versions.index(name) else None
+        return ["random", "heuristic"] + ([prev] if prev else [])
+
     def _eval_tick(self) -> None:
         """Called once per iteration: finish a completed evaluation, start the next one."""
         a = self.args
@@ -1033,11 +1055,11 @@ class Learner:
                           "ci95": res.get("ci95"), "passed": passed})
                 if passed or self.it >= a.teacher_iters:
                     name = self.freeze(self.models["eval"])
-                    self.elo_games += self._eval_rows_as_games(name)
                     self.stage = "selfplay"
                     self.log({"event": "stage", "stage": "selfplay", "it": self.it,
                               "frozen": name, "forced": not passed})
-                    self.queue_eval("ladder", f"ladder:{name}", name, ["random"], a.ladder_deals)
+                    self.queue_eval("ladder", f"ladder:{name}", name,
+                                    self._ladder_opponents(name), a.ladder_deals)
             elif kind == "gate":
                 res = ev.get(opps[0], {})
                 passed = res.get("score", 0) >= a.gate_score and res.get("ci95", [0])[0] > 0.5
@@ -1045,16 +1067,16 @@ class Learner:
                           "ci95": res.get("ci95"), "passed": passed})
                 if passed:
                     name = self.freeze(self.models["eval"])
-                    self.elo_games += self._eval_rows_as_games(name)
-                    self.queue_eval("ladder", f"ladder:{name}", name, ["random", "heuristic"],
-                                    a.ladder_deals)
+                    self.queue_eval("ladder", f"ladder:{name}", name,
+                                    self._ladder_opponents(name), a.ladder_deals)
                     self.save("best.pt", {"version": name, "gate": res})
             self.eval_meta = {}
             self.eval_kind = {}
         if not self.eval_pending and not self.eval_meta and self.eval_queue:
-            kind, tag, seat, opps, deals = self.eval_queue.popleft()
+            kind, tag, seat, opps, deals, *rest = self.eval_queue.popleft()
             self.eval_kind = {"kind": kind, "seat": seat, "opps": opps}
-            self.start_eval(tag, opponents=opps, seat=seat, deals=deals)
+            self.start_eval(tag, opponents=opps, seat=seat, deals=deals,
+                            seed0=rest[0] if rest else EVAL_SEED0)
 
     def curriculum(self) -> None:
         """Teacher inter-play (BC) -> PPO against the teacher -> PPO against a frozen version of
@@ -1234,7 +1256,11 @@ class Learner:
 
         state = {"it": self.it, "stage": self.stage, "versions": self.versions,
                  "elo_games": self.elo_games, "window": list(window), "vwindow": list(vwindow),
-                 "vdata_window": list(vdata_window)}
+                 "vdata_window": list(vdata_window),
+                 # a resume continues the job ids (training seeds), the opponent draws, the gate
+                 # deal blocks and any queued evaluation (a freeze's ladder)
+                 "gid": self.gid, "rng": self.rng.getstate(), "n_gates": self.n_gates,
+                 "eval_queue": list(self.eval_queue)}
         tmp = self.run / "state.pkl.tmp"
         with tmp.open("wb") as fh:
             pickle.dump(state, fh, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1263,6 +1289,11 @@ class Learner:
         self.versions = list(st["versions"])
         self.stage = st["stage"]
         self.elo_games = list(st["elo_games"])
+        self.gid = st.get("gid", self.gid)
+        if "rng" in st:
+            self.rng.setstate(st["rng"])
+        self.n_gates = st.get("n_gates", 0)
+        self.eval_queue.extend(st.get("eval_queue", []))
         return st
 
     def run_eval(self, tag: str, seat: str) -> dict:
@@ -1328,6 +1359,9 @@ class Learner:
 
     def main(self) -> None:
         a = self.args
+        # SIGTERM as an exception, so the finally below stops the trainer and the workers (the
+        # default action killed the learner at once and orphaned its trainer process)
+        signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
         try:
             if a.eval_only:
                 self.eval_only()

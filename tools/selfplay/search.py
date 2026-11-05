@@ -123,6 +123,14 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
     return None
 
 
+def mean_score(values: list) -> float:
+    """A candidate's score over its sampled worlds. A world whose simulation crashed (None)
+    is left out: scored 0.0 it beat every losing leaf, so in a bad position the move that
+    crashes the engine won the search. Every world crashed: the worst score."""
+    ok = [v for v in values if v is not None]
+    return sum(ok) / len(ok) if ok else -1.0
+
+
 def block_answer(ask: Any, plan: frozenset) -> int | None:
     """The index a block ask gets under ``plan`` ((blocker, attacker) pairs; a blocker not in
     it blocks nothing), or None when the engine did not offer that word (it offers only words
@@ -185,8 +193,8 @@ class Searcher:
         worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
         scores = {}
         for i in order:
-            scores[i] = sum(self.simulate(obs.game, ask.seat, ask.options[i].token, world=w)
-                            for w in worlds) / self.d
+            scores[i] = mean_score([self.simulate(obs.game, ask.seat, ask.options[i].token,
+                                                  world=w) for w in worlds])
         best = max(order, key=lambda i: (scores[i], probs[i]))
         self.stats["searched"] += 1
         self.stats["changed"] += int(best != a0)
@@ -235,8 +243,8 @@ class Searcher:
         worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
         scores = {}
         for pl in uniq:
-            scores[pl] = sum(self.simulate(game, seat, None, attack_plan=pl, world=w)
-                             for w in worlds) / self.d
+            scores[pl] = mean_score([self.simulate(game, seat, None, attack_plan=pl, world=w)
+                                     for w in worlds])
         best = max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["plans"] = self.stats.get("plans", 0) + 1
         self.stats["plans_changed"] = self.stats.get("plans_changed", 0) + int(best != base)
@@ -251,7 +259,8 @@ class Searcher:
         self.plan_targets = {c: sum(wt for pl, wt in w if c in pl) for c in asked}
         return best | mandated
 
-    def plan_blocks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
+    def plan_blocks(self, game: Any, seat: int, declared_attackers: frozenset = frozenset(),
+                    max_plans: int = 6) -> frozenset | None:
         """At the pre-blocks boundary (the attackers are declared): the block assignment to
         declare, as (blocker, attacker) pairs, or None to let the network answer the asks.
 
@@ -280,8 +289,11 @@ class Searcher:
             opts = tuple(Option(str(a), str(a)) for a in legal) + (Option("NONE", "NONE"),)
             ask = Ask(seat=seat, kind="block", site=f"block:{b}:{world.turn}", prompt="",
                       options=opts, refuse=len(opts) - 1)
+            # the context a real block ask carries (rig._decide): the attackers the router saw
+            # declared this combat and the blocks so far
             feats = FT.encode(ex, seat, ask, self.table,
-                              FT.AskContext(declared_blocks=dict(declared)))
+                              FT.AskContext(declared_attackers=declared_attackers,
+                                            declared_blocks=dict(declared)))
             _, _, probs = self.slot.infer((self.gid, seat, self.spec, True, False, feats, 2))
             ranked = sorted(zip(probs, [*legal, None]), key=lambda x: -x[0])
             choices[b] = ranked
@@ -306,8 +318,8 @@ class Searcher:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
         worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
-        scores = {pl: sum(self.simulate(game, seat, None, block_plan=pl, world=w)
-                          for w in worlds) / self.d for pl in uniq}
+        scores = {pl: mean_score([self.simulate(game, seat, None, block_plan=pl, world=w)
+                                  for w in worlds]) for pl in uniq}
         best = max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["blocks"] = self.stats.get("blocks", 0) + 1
         self.stats["blocks_changed"] = self.stats.get("blocks_changed", 0) + int(best != base)
@@ -315,7 +327,7 @@ class Searcher:
 
     def simulate(self, game: Any, seat: int, token: str | None,
                  attack_plan: frozenset | None = None, world: int = 0,
-                 block_plan: frozenset | None = None) -> float:
+                 block_plan: frozenset | None = None) -> float | None:
         """Score one candidate: ``token`` is a main-phase option to play now (the copy finishes
         this act window), or None with ``attack_plan`` to start at the pre-combat boundary, or
         with ``block_plan`` at the pre-blocks boundary (the opponent's attack declared)."""
@@ -352,9 +364,9 @@ class Searcher:
 
             _play(clone, router, list(world.player_order), TURN_CAP, resumed=True,
                   stop_after=stop)
-        except Exception:  # noqa: BLE001 - a crashed simulation scores neutral, counted
+        except Exception:  # noqa: BLE001 - a crashed simulation is counted, left out of the mean
             self.stats["sim_errors"] += 1
-            return 0.0
+            return None
         if clone.over_reason() is not None:
             losers = [s for s in world.player_order if clone.is_loser(s)]
             if len(losers) == 1:

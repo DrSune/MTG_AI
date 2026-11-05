@@ -145,11 +145,11 @@ class NetAgent:
         self.attack_plan = self.searcher.plan_attacks(game, seat)
         self.plan_turn = game.world.turn
 
-    def plan_blocks(self, game: Any, seat: int) -> None:
+    def plan_blocks(self, game: Any, seat: int, declared_attackers: frozenset = frozenset()) -> None:
         """Called by the rig at the pre-blocks boundary (rig.SelfplayRouter.before_blocks)."""
         if self.searcher is None or not self.job.get("search", {}).get("blocks", False):
             return
-        self.block_plan = self.searcher.plan_blocks(game, seat)
+        self.block_plan = self.searcher.plan_blocks(game, seat, declared_attackers)
         self.block_turn = game.world.turn
 
 
@@ -240,7 +240,11 @@ class _Slot(threading.Thread):
             except Exception as error:  # noqa: BLE001 - reported, never hidden
                 result = {"gid": job["gid"], "kind": job["kind"], "outcome": "void-worker",
                           "winner": None, "crash": f"{type(error).__name__}: {error}",
-                          "trace": traceback.format_exc()[-2000:]}
+                          "trace": traceback.format_exc()[-2000:],
+                          # the deal, so an eval voids the seat-swapped pair (it raised before)
+                          "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
+                          "seats": job.get("seats"), "a_seat": job.get("a_seat"),
+                          "opp": job.get("opp")}
             self.worker.outbox.append(result)
 
 

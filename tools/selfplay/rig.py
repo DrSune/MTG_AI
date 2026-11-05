@@ -88,7 +88,8 @@ class SelfplayRouter(SeatRouter):
         defender = 1 - self._index(seat)
         plan = getattr(self.drivers[defender], "plan_blocks", None)
         if plan is not None and game.over_reason() is None:
-            plan(game, defender)
+            self._sync_turn()
+            plan(game, defender, frozenset(self._attackers))
 
     def _decide(self, driver: Any, ask: Any) -> int:
         self._sync_turn()
