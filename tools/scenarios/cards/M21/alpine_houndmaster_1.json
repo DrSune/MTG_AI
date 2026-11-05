@@ -6,7 +6,7 @@
   {"key": "cur1", "real": "Igneous Cur", "zone": "library", "controller": 0},
   {"key": "cur2", "real": "Igneous Cur", "zone": "library", "controller": 0},
   {"key": "other", "name": "Not A Dog", "type": "Creature — Hound", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"R": 1, "W": 1}},
  "steps": [{"op": "cast", "key": "hm", "real": "Alpine Houndmaster", "decisions": ["fire", "wd", "cur1"]}],

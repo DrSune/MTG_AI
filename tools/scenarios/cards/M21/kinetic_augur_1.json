@@ -9,7 +9,7 @@
   {"key": "oppsorc", "name": "Opp Rites", "type": "Sorcery", "zone": "graveyard", "controller": 1},
   {"key": "l1", "zone": "library", "controller": 0, "name": "LibA", "power": 1, "toughness": 1, "type": "Creature"},
   {"key": "l2", "zone": "library", "controller": 0, "name": "LibB", "power": 1, "toughness": 1, "type": "Creature"},
-  {"key": "drawn", "zone": "library", "controller": 0, "name": "Drawn", "power": 1, "toughness": 1, "type": "Creature"}
+  {"key": "drawn", "zone": "hand", "controller": 0, "name": "Drawn", "power": 1, "toughness": 1, "type": "Creature"}
  ],
  "steps": [
   {"op": "enter", "key": "aug", "decisions": ["c1", "NONE"]}

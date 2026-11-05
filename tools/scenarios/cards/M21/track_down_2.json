@@ -6,7 +6,7 @@
     {"key": "x1", "name": "Test Spell One", "type": "Instant", "zone": "library", "controller": 0},
     {"key": "x2", "name": "Test Spell Two", "type": "Sorcery", "zone": "library", "controller": 0},
     {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
-    {"key": "opener", "name": "Test Opener", "type": "Sorcery", "zone": "library", "controller": 0}
+    {"key": "opener", "name": "Test Opener", "type": "Sorcery", "zone": "hand", "controller": 0}
   ],
   "mana": {"0": {"G": 2}},
   "steps": [

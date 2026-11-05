@@ -431,7 +431,10 @@ class TestTeferiDrawLane(R22bCase):
         self._teferi(self.p0)
         self._stock()
         hand_before = self._hand(self.p0)
-        self.ex.begin_turn(self.p0)
+        # p0's own first turn has no draw step if p0 plays first (CR 103.8a),
+        # so p1 takes turn 1 and p0's turn 2 has the draw step under test.
+        self.ex.begin_turn(self.p1)
+        self.ex.advance_turn()
         self.assertEqual(self._hand(self.p0), hand_before + 1)
         self.assertEqual(len(self._library(self.p0)), 2)
         self.assertEqual(self._rows("DRAW_REPLACED"), [])

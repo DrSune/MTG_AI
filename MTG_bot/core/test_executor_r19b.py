@@ -78,6 +78,7 @@ from MTG_bot.core.test_executor_binding import (
     card_id,
     referent_sel,
 )
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 CREATURE_F = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
 
@@ -403,6 +404,7 @@ class CostModifierFoldTest(unittest.TestCase):
 
         self.world = GameWorld(num_players=2, start_life=20, master_seed=7)
         self.p0, self.p1 = self.world.player_order[0], self.world.player_order[1]
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
         self.ex.begin_turn(self.p0)
 

@@ -6,7 +6,7 @@
   {"key": "tome", "real": "Mazemind Tome", "zone": "battlefield", "controller": 0},
   {"key": "lower", "name": "Lower Card", "type": "Instant", "zone": "library", "controller": 0},
   {"key": "upper", "name": "Upper Card", "type": "Instant", "zone": "library", "controller": 0},
-  {"key": "opener", "name": "Opening Draw", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "opener", "name": "Opening Draw", "type": "Sorcery", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "activate", "key": "tome", "idx": 0, "seat": 0, "decisions": ["bottom"]}

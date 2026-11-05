@@ -10,7 +10,7 @@
   {"key": "disc", "name": "Discarded Beast", "power": "3", "toughness": "3", "type": "Creature", "zone": "hand", "controller": 0},
   {"key": "oc", "name": "Opp Doomed", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
   {"key": "pinger", "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
-  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"B": 3}},
  "steps": [

@@ -1,0 +1,23 @@
+{
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fb", "real": "Frost Breath", "zone": "hand", "controller": 0},
+  {"key": "one", "name": "Frost One", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "two", "name": "Frost Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "three", "name": "Warm Three", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Frost Breath", "key": "fb", "targets": ["one", "two"]},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"one": true, "two": true, "three": true}}
+ ],
+ "expect": {
+  "zone": {"fb": "graveyard"},
+  "not_asked": ["one", "two"],
+  "attackers": {"one": false, "two": false, "three": true},
+  "tapped": {"one": true, "two": true, "three": true},
+  "life": {"0": 18}
+ },
+ "notes": "CR 508.1a with Frost Breath ('Tap up to two target creatures. Those creatures don't untap during their controller's next untap step.'): the two frozen creatures stay tapped through p1's untap step, so on p1's turn they cannot be declared as attackers (2026-11-05 audit: Frost Breath and Capture Sphere never stopped an attack). Only the untouched creature attacks, for 2."
+}

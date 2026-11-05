@@ -525,3 +525,32 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
     assert FT._parse_option("cast:card:12:x3") == (FT.OPT_INDEX["cast"], c, None, 0, 3.0, 0.0)
     assert FT._parse_option("cast:card:12:k:x2") == (FT.OPT_INDEX["cast_kicked"], c, None, 0, 2.0, 1.0)
     assert FT._parse_option("cast:card:12") == (FT.OPT_INDEX["cast"], c, None, 0, 0.0, 0.0)
+
+
+def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
+    """The engine ends a game with GameOver at the loss check (CR 704.3, 704.5a). A candidate act
+    that won inside the search's own take_acts landed in the crashed-simulation branch, so the
+    search scored an immediate win as no evidence at all (Bad Deal at 2 life, 2026-11-05)."""
+    from MTG_bot.core.executor.games import get_supply
+    from tools.selfplay import rig
+    from tools.selfplay.search import Searcher
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
+                        set_code="M21", k=2, d=1, seed=0)
+
+    def winning_act(self, g, seat) -> None:  # the act drains the opponent to 0: the check ends it
+        opp = next(p for p in g.world.player_order if p != seat)
+        g.world.players[opp].life = 0
+        g.executor._player_losses()
+
+    orig = rig.SelfplayRouter.take_acts
+    rig.SelfplayRouter.take_acts = winning_act
+    try:
+        score = searcher.simulate(game, 0, "PASS")
+    finally:
+        rig.SelfplayRouter.take_acts = orig
+    assert score == 1.0 and searcher.stats["sim_errors"] == 0

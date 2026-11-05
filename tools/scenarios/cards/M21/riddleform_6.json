@@ -4,7 +4,7 @@
   {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
   {"key": "lower", "name": "Lower Card", "type": "Instant", "zone": "library", "controller": 0},
   {"key": "upper", "name": "Upper Card", "type": "Instant", "zone": "library", "controller": 0},
-  {"key": "opener", "name": "Opening Draw", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "opener", "name": "Opening Draw", "type": "Sorcery", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"U": 1, "C": 2}},
  "steps": [

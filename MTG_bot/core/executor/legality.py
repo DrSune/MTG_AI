@@ -2395,6 +2395,9 @@ def _controlled_since_turn_start(
     a CONTROL change is not a zone change — the overlay's gained-turn
     marker is the second half of this oracle (CR 302.6 is control-based,
     not ownership-based), and a returned owner is a fresh period too.
+    Both halves must hold: a marker left by an earlier control change does
+    not excuse a later battlefield entry (a stolen, returned, bounced and
+    recast creature is a new object, CR 400.7, and is sick).
 
     ``seat`` None or the active player anchors on the most recent UPKEEP
     marker (the attack lane: only the active player attacks). Any other
@@ -2415,8 +2418,9 @@ def _controlled_since_turn_start(
                 continue
             start = i
             break
-    if creature in executor.control_gained_turn:
-        return executor.control_gained_turn[creature] < world.turn - turns_since
+    gained = executor.control_gained_turn.get(creature)
+    if gained is not None and gained >= world.turn - turns_since:
+        return False  # control changed since that turn began
     for row in events[start + 1 :]:
         if (
             row.kind == KIND_ZONE_CHANGE
@@ -2433,14 +2437,15 @@ def attack_blocked_reason(
     """Why ``creature`` may not attack for ``seat`` right now, or ``None``
     when the declaration is legal. Encoded restrictions (CR 508.1 pre-
     check): creature-ness (the LIVE type line — GRANT_TYPE overlay aware),
-    controller, DEFENDER (CR 702.3b; Drowsing Tyrannodon's "can attack as
+    controller, untapped (CR 508.1a: the chosen creatures must be untapped,
+    so a creature tapped for mana or by Frost Breath cannot attack; attacking
+    then taps the rest, VIGILANCE excepted, CR 508.1f), DEFENDER (CR 702.3b;
+    Drowsing Tyrannodon's "can attack as
     though it didn't have defender" lifts it through a LOSE_ABILITY static),
     summoning sickness (CR 302.6) unless the
     creature has HASTE (CR 702.10a), and the PREVENT_EFFECT attack veto
     (16c — Faith's Fetters' "enchanted permanent can't attack", consumed
-    through the prevention registry). TAPPED creatures are legal attackers
-    (tapping to declare is not a cost — CR 508.1c skips VIGILANCE creatures
-    and re-taps nothing)."""
+    through the prevention registry)."""
     world = executor.world
     if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
         return "not on the battlefield"
@@ -2451,6 +2456,8 @@ def attack_blocked_reason(
     ctx = executor._ctx(source=creature, controller=seat, bindings=None, decisions=())
     if not eval_filter(_IS_CREATURE, creature, ctx):
         return "not a creature"
+    if world.cards[creature].tapped:
+        return "tapped (CR 508.1a)"
     if executor.layers.keyword_of(creature, Keyword.DEFENDER):
         return "defender (CR 702.3b)"
     if not executor.layers.keyword_of(creature, Keyword.HASTE) and not (
@@ -2529,7 +2536,7 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
 # attacker it cannot legally block, and NONE is dropped by the ASK LOOP in
 # the executor only when dropping it keeps the assembled assignment CR-
 # legal (must-be-blocked, menace repair). CR 509.1a: only UNTAPPED creatures
-# block (unlike attacking, where tap is legal); CR 509.1b: exactly one
+# block (as only untapped creatures attack, CR 508.1a); CR 509.1b: exactly one
 # attacker per blocker; multiple blockers per attacker ARE legal, which is
 # what the CR 510 order/trample asks in the damage step consume.
 

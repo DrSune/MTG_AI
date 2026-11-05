@@ -39,6 +39,7 @@ from MTG_bot.bench import CANARY
 from MTG_bot.bench.masking import NameMasker
 from MTG_bot.bench.protocol import ability_line
 from MTG_bot.bench.view import OracleIndex
+from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.games import get_supply
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -335,8 +336,15 @@ def build_items(
             continue
         initial = read_state(runner, labels, gold)
         replay = ScenarioRunner(pack, supply)
-        for step in pack.get("steps", ()):
-            replay.run_step(step)
+        left = list(pack.get("steps", ()))
+        while left:
+            try:
+                replay.run_step(left.pop(0))
+            except GameOver:  # a player lost (CR 704.5a/b): the game ended there
+                break
+        if left:
+            cov.excluded["the game ends before the last step"] += 1
+            continue
         final = read_state(replay, labels, gold)
         if final != gold:
             cov.reader_mismatch.append(path.stem)

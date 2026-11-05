@@ -26,7 +26,7 @@
    "type": "Creature",
    "power": "2",
    "toughness": "2",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0,
    "cmc": 2
   }

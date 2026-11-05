@@ -6,7 +6,7 @@
   {"key": "deep", "name": "Deep Card", "type": "Sorcery", "zone": "library", "controller": 0},
   {"key": "mid", "name": "Mid Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
   {"key": "top", "name": "Top Card", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Drawn", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "drawn", "name": "Drawn", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
   {"key": "gy", "name": "Grave Card", "type": "Instant", "zone": "graveyard", "controller": 0}
  ],
  "mana": {"0": {"B": 3}},

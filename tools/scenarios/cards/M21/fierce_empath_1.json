@@ -5,7 +5,7 @@
   {"key": "big6", "zone": "library", "controller": 0, "name": "Big Six", "type": "Creature — Beast", "power": 6, "toughness": 6, "cmc": 6},
   {"key": "mid5", "zone": "library", "controller": 0, "name": "Mid Five", "type": "Creature — Beast", "power": 5, "toughness": 5, "cmc": 5},
   {"key": "art7", "zone": "library", "controller": 0, "name": "Heavy Relic", "type": "Artifact", "cmc": 7},
-  {"key": "drawme", "zone": "library", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
+  {"key": "drawme", "zone": "hand", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
  ],
  "steps": [
   {"op": "enter", "key": "emp", "decisions": ["fire", "mid5"]}

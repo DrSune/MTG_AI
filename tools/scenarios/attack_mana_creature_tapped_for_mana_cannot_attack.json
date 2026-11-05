@@ -1,0 +1,18 @@
+{
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lv", "real": "Llanowar Visionary", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lv", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"lv": true, "bear": true}}
+ ],
+ "expect": {
+  "not_asked": ["lv"],
+  "attackers": {"lv": false, "bear": true},
+  "tapped": {"lv": true, "bear": true},
+  "life": {"1": 18}
+ },
+ "notes": "CR 508.1a: a creature tapped for mana in the main phase is not an untapped creature, so it cannot be declared as an attacker (2026-11-05 audit: mana creatures tapped for mana and then attacked). Llanowar Visionary's {T}: Add {G} is ability 1; the bear attacks alone for 2."
+}

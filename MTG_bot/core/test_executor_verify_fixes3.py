@@ -903,7 +903,8 @@ class TestInertFreeRows(unittest.TestCase):
                 {"key": "snoop", "real": "Conspicuous Snoop", "zone": "battlefield",
                  "controller": 0},
                 {"key": "top", "real": top, "zone": "library", "controller": 0},
-                {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library",
+                # In hand: the old opening draw took it (now skipped, CR 103.8a).
+                {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "hand",
                  "controller": 0},
             ],
             "mana": {"0": {"R": 1}},

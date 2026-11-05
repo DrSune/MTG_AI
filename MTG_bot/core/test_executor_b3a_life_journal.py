@@ -26,7 +26,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
-from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
 
@@ -96,11 +96,14 @@ class TestLifeLostFeed(LifeJournalCase):
         # re-pinned 2026-10-30: the verb no longer clamps at 0 (CR 119.3: the life
         # total is adjusted; 119.6: at 0 or less the player loses, as a state-based
         # action). The old pin cited a "CR 118.5.2a" that says no such thing.
-        self.ex.execute(
-            atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),
-            source=self.source,
-            controller=self.p0,
-        )
+        # 2026-11-05: that state-based action now exists (CR 704.5a) and ends
+        # the two-player game at the check after the op.
+        with self.assertRaises(GameOver):
+            self.ex.execute(
+                atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),
+                source=self.source,
+                controller=self.p0,
+            )
         self.assertEqual(self.life(self.p0), -10)
         lost = self.rows("LIFE_LOST")
         self.assertEqual([e.data for e in lost], [(30,)])

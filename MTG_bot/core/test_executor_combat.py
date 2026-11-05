@@ -32,7 +32,13 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
-from MTG_bot.core.executor.legality import mandated_attackers
+from MTG_bot.core.executor.legality import (
+    attack_blocked_reason,
+    legal_attackers,
+    mandated_attackers,
+)
+from MTG_bot.core.executor.query import legal_activations
+from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_HAND,
@@ -44,6 +50,7 @@ from MTG_bot.core.test_executor_verbs import (
     UNIV,
     atom,
     card_id,
+    stock_libraries,
     target_sel,
 )
 
@@ -210,11 +217,13 @@ class TestDeclareAsks(CombatCase):
         self.assertEqual(declared, [alpha])  # one row, the attacker only
         # the group id is shared per declaration:
         self.assertEqual(
-            {e.declare_group for e in self.rows("DECLARE_ATTACKERS")}, {1 + 1}
-        )  # op_seq: begin_turn's draw atom was op 1, declare is op 2
+            {e.declare_group for e in self.rows("DECLARE_ATTACKERS")}, {1}
+        )  # op_seq: the declaration is op 1 (re-pinned 2026-11-05: turn 1 has
+        # no draw step, CR 103.8a, so no draw atom takes op 1 before it)
 
     def test_decline_is_respected_and_no_ask_without_creatures(self):
         alpha = self.synth("Alpha", 2, 2, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self.default_answer = "DECLINE"
@@ -239,6 +248,22 @@ class TestDeclareAsks(CombatCase):
         self.assertEqual(self.world.players[self.p1].life, 18)
         self.assertEqual(len(self.rows("COMBAT_DAMAGE")), 1)
 
+    def test_tapped_creature_is_never_asked(self):
+        # CR 508.1a: the creatures declared as attackers must be untapped.
+        # A creature tapped for mana or by an effect cannot attack.
+        tapped = self.synth("Tapped", 2, 2, self.p0)
+        alpha = self.synth("Alpha", 2, 2, self.p0)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.world.cards[tapped].tapped = True
+        self.assertEqual(
+            attack_blocked_reason(self.ex, self.p0, tapped), "tapped (CR 508.1a)"
+        )
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.asks_for(tapped), [])
+        self.assertEqual(len(self.asks_for(alpha)), 1)
+        self.assertEqual(self.world.players[self.p1].life, 18)  # only alpha
+
     def test_defender_is_never_asked(self):
         wall = self.real("Wall of Runes", self.p0)
         alpha = self.synth("Alpha", 2, 2, self.p0)
@@ -251,6 +276,7 @@ class TestDeclareAsks(CombatCase):
 
     def test_sick_creature_not_asked_clean_next_turn(self):
         zhalafir = self.real("Historian of Zhalfir", self.p0, ZONE_HAND)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self.enter_battlefield(zhalafir, self.p0)  # enters THIS turn
@@ -409,6 +435,7 @@ class TestTriggerFeeds(CombatCase):
         self.synth("Beta", 1, 1, self.p0)
         for i in range(3):
             self.world.add_card(card_id(f"ML{i}"), self.p1, ZONE_LIBRARY)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         before = self.hand(self.p1)
@@ -465,6 +492,7 @@ class TestMandates(CombatCase):
         # turn's declaration and ends in the cleanup step (CR 514.2); the
         # dispatch ledger used to keep it until the creature left play.
         alpha = self.synth("Alpha", 2, 2, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self._dispatch_mandate(alpha, alpha, self.p0, DurationEot())
@@ -482,6 +510,7 @@ class TestMandates(CombatCase):
         # attack "until your next turn" — forced on p1's turn, over when
         # p0's next turn begins, so p1's following turn is free again.
         beta = self.synth("Beta", 2, 2, self.p1)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self._dispatch_mandate(beta, beta, self.p0, DurationUntilNextTurn())
@@ -500,6 +529,7 @@ class TestMandates(CombatCase):
         # The durationless dispatch keeps its old reading: it lasts until
         # the creature leaves the battlefield.
         alpha = self.synth("Alpha", 2, 2, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self._dispatch_mandate(alpha, alpha, self.p0)
@@ -556,6 +586,7 @@ class TestMandates(CombatCase):
         furor = self.real("Furor of the Bitten", self.p0)
         host = self.synth("Host", 3, 3, self.p0)
         self.synth("Other", 3, 3, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.attachments[furor] = host  # the aura-host edge (13c table)
         self.ex.begin_turn(self.p0)
@@ -638,3 +669,126 @@ class TestEndOfCombat(CombatCase):
         base = self.ex.state_fingerprint()
         self.ex.mandates.add(alpha)  # replayed state -> fingerprint moves
         self.assertNotEqual(self.ex.state_fingerprint(), base)
+
+    def test_an_attacker_that_leaves_the_battlefield_leaves_combat(self):
+        # CR 506.4: a permanent that leaves the battlefield is removed from
+        # combat. Regression (2026-11-05 exploit audit, seeds 7100026 and
+        # 7300040): Falconer Adept's Bird enters tapped and attacking as a
+        # 0/0 under Kaervek, dies and ceases to exist, and stayed in
+        # ``attackers``; the defender's block planning read the dead handle
+        # (KeyError, game voided).
+        falconer = self.real("Falconer Adept", self.p0)
+        self.real("Kaervek, the Spiteful", self.p1)  # other creatures -1/-1
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_attacks(self.p0)
+        declared = [e.subject for e in self.rows("DECLARE_ATTACKERS")]
+        self.assertEqual(len(declared), 2)  # Falconer and its Bird (CR 508.1i)
+        bird = declared[1]
+        self.assertNotIn(bird, self.world.cards)  # died at 0/0, ceased (704.5d)
+        self.assertEqual(self.ex.attackers, [falconer])
+        self.assertEqual(set(self.ex.attacked), {falconer})
+
+
+class TestSicknessAfterControlChange(CombatCase):
+    """CR 302.6: a creature attacks, or uses a {T} ability, only if its
+    controller has controlled it continuously since their most recent turn
+    began. Regression (2026-11-05 exploit audit, seed 7100010: Traitorous
+    Greed steals Crypt Lurker, Roaming Ghostlight bounces it, it is recast
+    and attacks the same turn)."""
+
+    def test_stolen_returned_bounced_and_recast_creature_is_sick(self):
+        # The return of control left a sickness marker for the old object;
+        # it must not excuse the new object's battlefield entry (CR 400.7).
+        victim = self.real("Chandra's Magmutt", self.p0)  # {T}: 1 damage
+        greed = self.real("Traitorous Greed", self.p1, ZONE_HAND)
+        ghost = self.real("Roaming Ghostlight", self.p1, ZONE_HAND)
+        stock_libraries(self.world)
+        self.begin()
+
+        def provider(vocab, what):
+            if str(victim) in vocab:
+                return str(victim)
+            for word in ("fire", "PASS", "DECLINE", "NONE", "skip"):
+                if word in vocab:
+                    return word
+            return vocab[0]
+
+        self.ex.decisions.provider = provider
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 2, p1 steals it until end of turn
+        self.world.players[self.p1].mana_pool.update({"R": 4})
+        cast(self.ex, self.p1, greed, targets=(victim,))
+        self.assertEqual(self.ex.controller_of(victim), self.p1)
+        self.ex.end_turn()  # control returns to p0
+        self.ex.advance_turn()  # turn 3, p0
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 4, p1 bounces it
+        self.world.players[self.p1].mana_pool.update({"U": 6})
+        cast(self.ex, self.p1, ghost)
+        self.assertEqual(self.world.zone_of(victim).kind, ZONE_HAND)
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 5, p0 recasts it
+        self.world.players[self.p0].mana_pool.update({"R": 2})
+        cast(self.ex, self.p0, victim)
+        self.assertEqual(self.world.zone_of(victim).kind, ZONE_BATTLEFIELD)
+        self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
+        tap_rows = [
+            o for o in legal_activations(self.world, self.ex, self.p0) if o.source == victim
+        ]
+        self.assertEqual(tap_rows, [])
+
+    def test_control_regained_this_turn_stays_sick_after_another_change(self):
+        # p0 gets its creature back on its own turn: a fresh control period,
+        # so it cannot attack this turn, and a later control change of an
+        # unrelated creature must not erase that.
+        victim = self.synth("Victim", 2, 2, self.p0)
+        anchor = self.synth("Anchor", 0, 1, self.p1)
+        other = self.synth("Other", 1, 1, self.p1)
+        stock_libraries(self.world)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 2, p1 takes it while the anchor stays
+        self.assertTrue(self.ex.gain_control(victim, self.p1, "Anchor", anchor))
+        self.ex.end_turn()
+        self.ex.advance_turn()  # turn 3, p0 destroys the anchor: control returns
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=victim,
+            controller=self.p0,
+            bindings={"target": anchor},
+        )
+        self.assertEqual(self.ex.controller_of(victim), self.p0)
+        self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
+        self.assertTrue(self.ex.gain_control(other, self.p0, "Eot"))
+        self.assertNotIn(victim, legal_attackers(self.ex, self.p0))
+
+    def test_regained_control_under_an_older_entry_stays_sick(self):
+        # p1 takes the creature (turn 2), p0 takes it back with an anchored
+        # effect (turn 3); the anchor dies on p1's turn 4, so p1 controls it
+        # again from now on: sick this turn. p1's older entry (turn 2) is
+        # still live, and an unrelated control change must not date p1's
+        # period back to it.
+        contested = self.synth("Contested", 2, 2, self.p0)
+        anchor = self.synth("Anchor", 0, 1, self.p0)
+        other = self.synth("Other", 1, 1, self.p0)
+        stock_libraries(self.world)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.ex.advance_turn()  # turn 2, p1
+        self.assertTrue(self.ex.gain_control(contested, self.p1, "Permanent"))
+        self.ex.advance_turn()  # turn 3, p0
+        self.assertTrue(self.ex.gain_control(contested, self.p0, "Anchor", anchor))
+        self.ex.advance_turn()  # turn 4, p1: the anchor dies
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=contested,
+            controller=self.p1,
+            bindings={"target": anchor},
+        )
+        self.assertEqual(self.ex.controller_of(contested), self.p1)
+        self.assertNotIn(contested, legal_attackers(self.ex, self.p1))
+        self.assertTrue(self.ex.gain_control(other, self.p1, "Eot"))
+        self.assertNotIn(contested, legal_attackers(self.ex, self.p1))

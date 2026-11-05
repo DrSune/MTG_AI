@@ -10,6 +10,7 @@ from MTG_bot.core.executor.games import get_supply, identity_of
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, GameWorld
 from MTG_bot.core.test_executor_binding import card_id
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 
 class StaticNoUntapTest(unittest.TestCase):
@@ -25,6 +26,7 @@ class StaticNoUntapTest(unittest.TestCase):
         self.held = self.world.add_card(card_id("Held", "2", "2"), self.p1, ZONE_BATTLEFIELD)
         self.free = self.world.add_card(card_id("Free", "3", "3"), self.p1, ZONE_BATTLEFIELD)
         self.world.cards[self.free].tapped = True
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex.attach_pool(supply.pool)
         self.ex.begin_turn(self.p0)
         self.world.players[self.p0].mana_pool.update({"U": 4})

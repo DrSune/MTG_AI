@@ -299,3 +299,17 @@ def test_untriaged_reclassification_fails_the_runner_gate():
         "by_ask_kind": {"choose": "engine gap, see legality.py"},
     }
     assert _triage_check(p2) == []
+
+
+def test_a_gold_line_that_ends_the_game_replays_green(supply):
+    """2026-11-05: a step that makes a player lose ends the game at that
+    state-based-action check (GameOver: CR 704.5a, or a LOSE_GAME effect).
+    The replay stops there exactly like run_scenarios.run_pack, and the
+    pack's lanes decide; a game end is not a failed step."""
+    from tools.run_scenarios import run_pack
+
+    packs = Path(__file__).resolve().parents[2] / "tools" / "scenarios"
+    for name in ("cp_devil_burn", "nine_lives_leaves_you_lose"):
+        path = packs / f"{name}.json"
+        assert run_pack(path, supply) == []
+        assert PC.replay(json.loads(path.read_text()), supply) is True, name

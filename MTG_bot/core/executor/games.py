@@ -105,8 +105,8 @@ from MTG_bot.core.compiler.coverage import (
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.errors import StateCorruptionError
-from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, activate
-from MTG_bot.core.executor.events import KIND_STALL_BREAK
+from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, GameOver, activate
+from MTG_bot.core.executor.events import KIND_GAME_LOST, KIND_STALL_BREAK
 from MTG_bot.core.executor.query import (
     ActivationOption,
     CastOption,
@@ -1075,6 +1075,14 @@ class TraceRecorder:
 
 
 # ---------------------------------------------------------------- game runner
+# GAME_LOST row reason -> the label game reasons carry.
+_LOSS_KINDS = {
+    "LIFE": "life<=0",
+    "EMPTY_LIBRARY": "draw from empty library (CR 704.5b)",
+    "LOSE_GAME": "LOSE_GAME",
+}
+
+
 @dataclass
 class Game:
     """One 2-player game of the compiled corpus: the world, the executor, and
@@ -1089,7 +1097,6 @@ class Game:
     multi_target_skips: int = 0
     infeasible_skips: int = 0
     player_target_designations: int = 0
-    empty_library_losers: set[Handle] = field(default_factory=set)
     # Rows the v1 designation channel cannot serve (>1 TARGET selector), learned
     # once and then filtered out of every later query batch. Counted, never
     # silent: ``multi_target_skips`` is a measured coverage ceiling.
@@ -1131,19 +1138,11 @@ class Game:
         card = self.world.cards.get(handle)
         return str(handle) if card is None else card.identity.name
 
-    def note_draw_step(self, seat: Handle) -> None:
-        """CR 121.3, harness-side: the draw step just ran (14a's
-        :meth:`Executor._turn_draw`), so an EMPTY library now means that player
-        lost the game the next time they would draw — which is this moment.
-        13a ruled the emptied-library loss a STATE CHECK, not a verb, and no
-        state check exists for it yet, so the harness owns it (/03 row B-6)."""
-        if not self.world.players[seat].zone(ZONE_LIBRARY).entries:
-            self.empty_library_losers.add(seat)
-
     def over_reason(self) -> str | None:
-        """The loss scan: CR 121.3 life total, the LOSE_GAME verb ledger the
-        executor keeps, and the harness's CR 121.3 draw-from-empty losers. Two
-        losers at once is a draw; one loser means the OTHER player survived."""
+        """Who lost, read off the executor's ledger: a LOSE_GAME effect or the
+        CR 704.5a/b state-based actions (``Executor._player_losses``, the one
+        place a player loses; the game ends at that check). Two losers at
+        once is a draw; one loser means the OTHER player won."""
         world = self.world
         losers = [seat for seat in world.player_order if self.is_loser(seat)]
         if not losers:
@@ -1154,19 +1153,14 @@ class Game:
         return f"{'draw' if len(losers) == 2 else 'game over'}: {names}"
 
     def is_loser(self, seat: Handle) -> bool:
-        world = self.world
-        return (
-            seat in self.executor.lost_players
-            or seat in self.empty_library_losers
-            or world.players[seat].life <= 0
-        )
+        return seat in self.executor.lost_players
 
     def loss_kind(self, seat: Handle) -> str:
-        if self.world.players[seat].life <= 0:
-            return "life<=0"
-        if seat in self.executor.lost_players:
-            return "LOSE_GAME"
-        return "draw from empty library (CR 121.3)"
+        """Why ``seat`` lost: its GAME_LOST journal row."""
+        for row in reversed(self.executor.journal.events):
+            if row.kind == KIND_GAME_LOST and row.subject == seat:
+                return _LOSS_KINDS[row.data[0]]
+        raise ValueError(f"{seat} has no GAME_LOST row")
 
 
 def _setup_game(
@@ -1424,6 +1418,29 @@ def _play(
     resumed: bool = False,
     stop_after: Any = None,
 ) -> None:
+    """Play ``game`` (:func:`_play_turns`) until it ends. A player who loses
+    ends the game at the state-based-action check that finds it, wherever
+    that is (CR 704.3, 704.5a/b, 104.2a): inside an act, between the combat
+    damage steps, in the end step or the draw step. The executor raises
+    :class:`GameOver` there, so nothing after that check happens."""
+    try:
+        _play_turns(game, policy, order, turn_cap, resumed, stop_after)
+    except GameOver:
+        reason = game.over_reason()
+        if reason is None:  # not this game's end: never swallowed
+            raise
+        game.turns = game.world.turn
+        game.reason = reason
+
+
+def _play_turns(
+    game: Game,
+    policy: RandomPolicy,
+    order: list[Handle],
+    turn_cap: int,
+    resumed: bool = False,
+    stop_after: Any = None,
+) -> None:
     """The turn loop. Turn 1 opens with ``begin_turn``; every later turn goes
     through ``advance_turn`` so the CR 500.7 extra-turn queue is popped (and the
     seat is the ENGINE's choice, read back off ``active_player``, not ours).
@@ -1458,7 +1475,6 @@ def _play(
     executor.decisions.provider = policy.answer
     if not resumed:
         executor.begin_turn(order[0])
-        game.note_draw_step(order[0])
     while True:
         seat = world.active_player
         assert seat is not None  # begin_turn/advance_turn always set it
@@ -1500,40 +1516,31 @@ def _play(
             # phase are counted separately (combat deaths vs crashes is
             # the semantic shift the engine numbers report).
             before = {s: world.players[s].life for s in world.player_order}
-            if not resume_blocks:
-                executor.combat_attacks(seat)
-                # PRE_BLOCKS exists only for a policy that plans blocks (a
-                # ``before_blocks`` hook): every other caller's stop_after
-                # sees exactly the historical boundaries.
-                before_blocks = getattr(policy, "before_blocks", None)
-                if before_blocks is not None:
-                    if stop_after is not None and stop_after(game, "pre_blocks"):
-                        return
-                    before_blocks(game, seat)
-            executor.combat_blocks(seat)
-            for s, life in before.items():
-                if life > 0 and world.players[s].life <= 0:
-                    game.combat_losses += 1
+            try:
+                if not resume_blocks:
+                    executor.combat_attacks(seat)
+                    # PRE_BLOCKS exists only for a policy that plans blocks (a
+                    # ``before_blocks`` hook): every other caller's stop_after
+                    # sees exactly the historical boundaries.
+                    before_blocks = getattr(policy, "before_blocks", None)
+                    if before_blocks is not None:
+                        if stop_after is not None and stop_after(game, "pre_blocks"):
+                            return
+                        before_blocks(game, seat)
+                executor.combat_blocks(seat)
+            finally:  # a combat death ends the game inside combat (GameOver)
+                for s, life in before.items():
+                    if life > 0 and world.players[s].life <= 0:
+                        game.combat_losses += 1
             if stop_after is not None and stop_after(game, "post_combat"):
                 return
         game.skip_next_combat = False  # turn was closed before any combat skip
         game.turns = world.turn
-        reason = game.over_reason()
-        if reason is not None:
-            game.reason = reason
-            return
         if game.turns >= turn_cap:
             game.reason = f"turn cap {turn_cap} reached (no loser)"
             return
         executor.end_turn()
-        late = game.over_reason()  # an end-of-turn sweep can be what kills a seat
-        if late is not None:
-            game.reason = late
-            return
         executor.advance_turn()
-        nxt = world.active_player
-        assert nxt is not None
-        game.note_draw_step(nxt)
 
 
 def _safe_coverage(game: Game, outcome: GameOutcome) -> None:

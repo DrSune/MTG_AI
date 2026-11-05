@@ -6,7 +6,7 @@
     {"key": "x1", "name": "Test Beast One", "type": "Creature — Beast", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
     {"key": "x2", "name": "Test Beast Two", "type": "Creature — Beast", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
     {"key": "spell", "name": "Test Spell", "type": "Instant", "zone": "library", "controller": 0},
-    {"key": "opener", "name": "Test Opener", "type": "Sorcery", "zone": "library", "controller": 0}
+    {"key": "opener", "name": "Test Opener", "type": "Sorcery", "zone": "hand", "controller": 0}
   ],
   "mana": {"0": {"G": 2}},
   "steps": [

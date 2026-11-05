@@ -4,7 +4,7 @@
   {"key": "fm", "real": "Chandra's Firemaw", "zone": "hand", "controller": 0},
   {"key": "ch_lib", "real": "Chandra, Flame's Catalyst", "zone": "library", "controller": 0},
   {"key": "ch_gy", "real": "Chandra, Flame's Catalyst", "zone": "graveyard", "controller": 0},
-  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Opening Draw", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "steps": [{"op": "enter", "key": "fm", "decisions": ["fire", "0", "ch_lib"]}],
  "expect": {"zone": {"fm": "battlefield", "ch_lib": "hand", "ch_gy": "graveyard", "drawn": "hand"}, "hand": {"0": 2}}}

@@ -35,7 +35,13 @@ from MTG_bot.core.executor.games import identity_of
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_LIBRARY
 from MTG_bot.core.test_executor_combat import CombatCase, _supply
-from MTG_bot.core.test_executor_verbs import UNIV, atom, card_id, target_sel
+from MTG_bot.core.test_executor_verbs import (
+    UNIV,
+    atom,
+    card_id,
+    stock_libraries,
+    target_sel,
+)
 
 
 class BlockerCase(CombatCase):
@@ -243,6 +249,7 @@ class TestPairLegality(BlockerCase):
         grog = self.synth("Grog", 2, 2, self.p0)
         anima = self.real("Tome Anima", self.p0)
         blocky = self.synth("Blocky", 2, 2, self.p1)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.answers[f"block:{blocky}"] = str(grog)
         self.ex.begin_turn(self.p0)
@@ -525,6 +532,7 @@ class TestMenaceAndMandate(BlockerCase):
         # dispatch ledger used to keep the lure until it left play.
         lure = self.synth("Lure", 1, 5, self.p0)
         blocker = self.synth("Blocky", 1, 5, self.p1)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.execute(
@@ -596,6 +604,7 @@ class TestTokenBinder(BlockerCase):
         # printed "can't block" PREVENTION must be LIVE (the binder found
         # a record for the token handle when its battlefield row settled)
         whale = self.real("Pursued Whale", self.p0, zone="hand")
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.enter_battlefield(whale, self.p0)  # journaled entry: ETB fires
         tokens = [

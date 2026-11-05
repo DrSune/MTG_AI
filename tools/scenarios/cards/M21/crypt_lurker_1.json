@@ -4,7 +4,7 @@
  "cards": [
   {"key": "cl", "real": "Crypt Lurker", "zone": "hand", "controller": 0},
   {"key": "trick", "name": "Trick", "type": "Instant", "zone": "hand", "controller": 0},
-  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "library", "controller": 0}
+  {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"B": 4}},
  "steps": [

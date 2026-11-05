@@ -31,7 +31,7 @@
    "key": "filler",
    "name": "Opening Draw",
    "type": "Instant",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0
   }
  ],

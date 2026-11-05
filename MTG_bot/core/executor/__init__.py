@@ -128,6 +128,7 @@ from MTG_bot.core.executor.events import (
     KIND_COMBAT_DAMAGE,
     KIND_DECLARE_ATTACKERS,
     KIND_DECLARE_BLOCKERS,
+    KIND_GAME_LOST,
     KIND_TAP_STATE,
     KIND_ZONE_CHANGE,
     EventJournal,
@@ -364,6 +365,7 @@ __all__ = [
     "ExecCtx",
     "Executor",
     "GameEvent",
+    "GameOver",
     "GrantedAbility",
     "LayerRecord",
     "LayerRegistry",
@@ -459,6 +461,16 @@ def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
         handles = ctx.binding_handles("result") or []
         return handles[0] if len(handles) == 1 else None
     return ctx.source
+
+
+class GameOver(Exception):
+    """The game ended at a state-based-action check (CR 704.3): at most one
+    player is still in it (CR 104.2a: that player wins; 104.4a: when all the
+    remaining players lose at once, the game is a draw). Raised by
+    :meth:`Executor._player_losses` so that no game action follows the check:
+    no trigger resolves, no damage step or turn step comes next. Who lost,
+    and why, is in ``Executor.lost_players`` and the GAME_LOST journal rows.
+    The game driver (``games._play``) catches it."""
 
 
 class Executor:
@@ -563,9 +575,13 @@ class Executor:
         # extra turn's player. None until advance_turn first rotates (the
         # first turn is the normal turn of whoever began it).
         self.normal_turn_seat: Handle | None = None
-        # LOSE_GAME ledger (the emptied-library CR 121.3 loss is the later
-        # state-check phase, not a verb).
+        # The players who lost: a LOSE_GAME effect (verbs._v_lose_game) or
+        # the CR 704.5a/b state-based actions (_player_losses).
         self.lost_players: list[Handle] = []
+        # CR 704.5b: the players who attempted to draw from an empty library
+        # since the last state-based-action check (_v_draw adds, the check
+        # reads and clears). Empty between ops, so not fingerprinted.
+        self.drew_from_empty: set[Handle] = set()
         # CR 606.3: handle -> turn of that permanent's last loyalty act.
         self.loyalty_clock: dict[Handle, int] = {}
         # FLIP_COIN's winner, read by the FLIP_WON conditional of a
@@ -658,7 +674,8 @@ class Executor:
         # ``control_overlay`` is the DERIVED effective-controller map the
         # executor read sites consult (later entries win, CR 613.2
         # timestamps), and ``control_gained_turn`` the CR 302.6 sickness
-        # clock (control-based, not ownership-based). A creature with no
+        # clock: the turn of each creature's last change of effective
+        # controller (control-based, not ownership-based). A creature with no
         # entry reads its zone owner, which is why the empty overlay keeps
         # every pre-16e replay byte-identical.
         self.control_entries: list[
@@ -1298,12 +1315,10 @@ class Executor:
             # came back tapped.
             if anchor in self.world.cards:
                 self.world.cards[anchor].tapped = False
-            # 16c: a departing permanent leaves no trace in the block record
-            # (a dead blocker stops blocking, a dead attacker forgets).
-            self.blocked_by.pop(anchor, None)
-            for blockers in self.blocked_by.values():
-                if anchor in blockers:
-                    blockers.remove(anchor)
+            # CR 506.4: a permanent that leaves the battlefield is removed
+            # from combat: a dead attacker stops attacking (it leaves the
+            # attack record) and a dead blocker stops blocking.
+            self._remove_from_combat({anchor})
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
             # B-59: the timed (resolved-layer) twin of the two discards
@@ -1663,6 +1678,31 @@ class Executor:
             losers.extend(h for h in cards if str(h) != kept)
         return sorted(losers)
 
+    def _player_losses(self) -> None:
+        """The player-loss state-based actions, the first lane of every check
+        (CR 704.3): a player with 0 or less life (704.5a), or who attempted to
+        draw from an empty library since the last check (704.5b), loses. Each
+        loser joins ``lost_players`` with a GAME_LOST row saying why. When at
+        most one player is left, the game is over (CR 104.2a; everyone at
+        once is a draw, 104.4a) and :class:`GameOver` ends it at this check.
+        A LOSE_GAME effect ended a two-player game when it resolved, so nobody
+        else loses at the check after it."""
+        players = self.world.player_order
+        remaining = [p for p in players if p not in self.lost_players]
+        if len(remaining) > 1:
+            for player in remaining:
+                if self.world.players[player].life <= 0:
+                    why = "LIFE"
+                elif player in self.drew_from_empty:
+                    why = "EMPTY_LIBRARY"
+                else:
+                    continue
+                self.lost_players.append(player)
+                self.journal.emit(KIND_GAME_LOST, player, None, "STATE_CHECK", (why,))
+        self.drew_from_empty.clear()
+        if self.lost_players and sum(p not in self.lost_players for p in players) <= 1:
+            raise GameOver(", ".join(str(p) for p in self.lost_players))
+
     def _state_checks(self) -> int:
         """The 16a state-based action sweep (CR 704.3: repeat until the
         table is stable), run at every settle point — the end of each
@@ -1687,6 +1727,8 @@ class Executor:
         number of batches performed."""
         batches = 0
         while True:
+            # CR 704.5a/b: a player who loses here ends a two-player game.
+            self._player_losses()
             # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
             # W4-4: one whose leave triggers are still queued waits for them.
             self._cease_tokens()
@@ -1985,9 +2027,13 @@ class Executor:
     def begin_turn(self, player: Handle) -> int:
         """Begin ``player``'s turn: active rotation, turn clock, the UNTAP
         step (12d), UPKEEP and FIRST_MAIN markers, per-turn event trackers
-        reset; drains triggers. Returns the firing count."""
+        reset; drains triggers. Returns the firing count. Each step resolves
+        its own triggers: the upkeep's before the draw step (CR 503.1a, 504),
+        the draw step's before the main phase. The first turn of a two-player
+        game has no draw step (CR 103.8a)."""
         if player not in self.world.players:
             raise ValueError(f"begin_turn: {player} is not a player of this world")
+        first_turn = not self._turn_started
         if self._turn_started:
             self.world.turn += 1
         self._turn_started = True
@@ -2011,14 +2057,22 @@ class Executor:
             self._run_returns(returning)
         self.journal.record_turn_phase(Phase.UPKEEP.name)
         self.phase = Phase.UPKEEP.name
-        # 14a: the DRAW step (CR 504.5-c), journalled INSIDE the skeleton so
-        # 'whenever you draw' triggers and the fingerprint see it, and AFTER
-        # the UPKEEP marker so beginning-of-upkeep triggers keep their CR
-        # ordering ahead of draw triggers.
-        self._turn_draw(player)
+        # CR 503.1a: what triggered in the untap step or at the beginning of
+        # the upkeep resolves in the upkeep, before the draw step (an upkeep
+        # discard never sees the card this turn draws).
+        fired = self._settle()
+        # 14a: the DRAW step (CR 504.1), journalled INSIDE the skeleton so
+        # 'whenever you draw' triggers and the fingerprint see it; its
+        # triggers and its state-based check (CR 704.5b) follow at once.
+        # CR 103.8a: in a two-player game the player who plays first skips
+        # the draw step of their first turn (103.8c: in other multiplayer
+        # games nobody skips it).
+        if not (first_turn and len(self.world.player_order) == 2):
+            self._turn_draw(player)
+            fired += self._settle()
         self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
         self.phase = Phase.FIRST_MAIN.name
-        return self._settle()
+        return fired + self._settle()
 
     def _turn_draw(self, player: Handle) -> None:
         """The CR 504.5-c draw step of the active player (14a).
@@ -2031,14 +2085,13 @@ class Executor:
         library->hand move as a MOVE_ZONE atom boundary.
 
         Two deliberate omissions, both the skeleton's existing discipline:
-        no nested ``_settle`` (the turn has exactly ONE settle, the one at
-        the tail of :meth:`begin_turn`, and a draw-armed trigger already
-        drains there in clock order behind the UPKEEP marker) and no nested
-        ``_consume_end_turn`` (an END_TURN requested by such a trigger
-        closes at the next op boundary, never mid-skeleton). An empty
-        library no-ops here (CR 121.2 through ``_v_draw``); CR 121.3's
-        'draw from empty = loss' is a STATE CHECK, not a verb (13a ruling),
-        and belongs to the caller's loss scan, not to this step.
+        no nested ``_settle`` (:meth:`begin_turn` settles right after this
+        step, so the draw step's triggers resolve before the main phase) and
+        no nested ``_consume_end_turn`` (an END_TURN requested by such a
+        trigger closes at the next op boundary, never mid-skeleton). An
+        empty library draws nothing here; ``_v_draw`` records the attempt
+        and the state-based check of that settle makes the player lose (CR
+        704.5b, :meth:`_player_losses`).
 
         ``source`` is the seat: no permanent drew this card, and the
         journal's cause column records the seat, which is what
@@ -2227,8 +2280,9 @@ class Executor:
         BEFORE the declare rows (a "becomes tapped" trigger sits UNDER
         the attack triggers, CR 508.1m), then one DECLARE_ATTACKERS row
         per attacker - shared declare-group id, the binder's CR 603.2
-        dedup key. Tapped creatures are legal attackers (tapping to
-        declare is not a cost); sickness reads the journal (legality.py).
+        dedup key. Only untapped creatures are candidates (CR 508.1a;
+        the tap that follows is not a cost, CR 508.1f); sickness reads the
+        journal (legality.py).
         """
         world = self.world
         candidates = legal_attackers(self, seat)
@@ -3147,9 +3201,9 @@ class Executor:
         return directly
 
     def _remove_from_combat(self, cards: set[Handle]) -> None:
-        """CR 506.4: the permanents stop attacking and blocking. An attacker
-        whose blocker left stays blocked (CR 509.1h): its entry keeps its
-        key, the same rule ``_on_zone_changes`` applies to a departure."""
+        """CR 506.4: the permanents stop attacking and blocking (phasing out,
+        leaving the battlefield). An attacker whose blocker left stays
+        blocked (CR 509.1h): its entry keeps its key."""
         if not cards:
             return
         self.attackers = [card for card in self.attackers if card not in cards]
@@ -3262,22 +3316,19 @@ class Executor:
         )
 
     def _recompute_control(self) -> bool:
-        """Rebuild the derived overlay and sickness clock from the live
-        entries; report whether ANY effective controller changed. CR 506.4a:
-        a permanent changing controllers during combat is removed from
-        combat — attackers, attacked record, and every block edge. The
-        sickness clock takes the EARLIEST live turn under the winning
-        controller (two stacked entries for the same controller never
-        re-inflict summoning sickness)."""
+        """Rebuild the derived overlay from the live entries; report whether
+        ANY effective controller changed. CR 506.4a: a permanent changing
+        controllers during combat is removed from combat — attackers,
+        attacked record, and every block edge. The sickness clock (CR 302.6)
+        is the turn of each creature's last change of effective controller,
+        either way (the owner who got it back is in a fresh period too), and
+        nothing else moves it: two stacked entries for the same controller
+        never re-inflict summoning sickness, and a recompute caused by some
+        other creature never dates a period back to an older entry."""
         prev = self.control_overlay
         overlay: dict[Handle, Handle] = {}
-        gained: dict[Handle, int] = {}
-        for _seq, creature, controller, _tag, _anchor, turn in self.control_entries:
-            if overlay.get(creature) == controller:
-                gained[creature] = min(gained[creature], turn)
-            else:
-                gained[creature] = turn
-            overlay[creature] = controller
+        for _seq, creature, controller, _tag, _anchor, _turn in self.control_entries:
+            overlay[creature] = controller  # later entries win (CR 613.2)
         self.control_overlay = overlay
         changed = [
             c
@@ -3289,8 +3340,7 @@ class Executor:
         # too — the journal ZONE_CHANGE path cannot see control changes,
         # so the marker dict carries both directions).
         for creature in changed:
-            gained[creature] = self.world.turn
-        self.control_gained_turn = gained
+            self.control_gained_turn[creature] = self.world.turn
         for creature in changed:
             if creature in self.attackers:
                 self.attackers.remove(creature)

@@ -232,7 +232,7 @@ def test_rest_partition_count_is_dead() -> None:
                   {"key": "c", "name": "Third", "type": "Instant", "zone": "library", "controller": 0},
                   {"key": "b", "name": "Second", "type": "Instant", "zone": "library", "controller": 0},
                   {"key": "a", "name": "First", "type": "Instant", "zone": "library", "controller": 0},
-                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "library", "controller": 0}],
+                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "hand", "controller": 0}],
                  [{"op": "activate", "key": "waker", "idx": 1, "seat": 0, "decisions": ["b"]}],
                  {"0": {"U": 1, "C": 1}})
     real = _game(pack)
@@ -313,7 +313,7 @@ def test_reveal_read_by_a_conditional_keeps_controller_live_and_count_dead() -> 
                   {"key": "x1", "name": "Beast One", "type": "Creature", "power": "2", "toughness": "2",
                    "zone": "library", "controller": 0},
                   {"key": "spell", "name": "Spell", "type": "Instant", "zone": "library", "controller": 0},
-                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "library", "controller": 0}],
+                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "hand", "controller": 0}],
                  [{"op": "cast", "key": "td", "decisions": ["top", "top", "top"]}], {"0": {"G": 2}})
     real = _game(pack)
     assert next(o for o in real[0].values() if o[0] == "Spell")[1] == "library"  # no draw
@@ -383,7 +383,7 @@ def test_owner_zone_destination_controller_is_dead() -> None:
     waker_pack = _pack([{"key": "waker", "real": "Waker of Waves", "zone": "hand", "controller": 0},
                         {"key": "b", "name": "Second", "type": "Instant", "zone": "library", "controller": 0},
                         {"key": "a", "name": "First", "type": "Instant", "zone": "library", "controller": 0},
-                        {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "library", "controller": 0}],
+                        {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "hand", "controller": 0}],
                        [{"op": "activate", "key": "waker", "idx": 1, "seat": 0, "decisions": ["b"]}],
                        {"0": {"U": 1, "C": 1}})
     for card, where, pack, moved in ((tutor, t_dest, tutor_pack, "Prize"), (rebirth, r_dest, rebirth_pack, "Old Relic"),
@@ -525,7 +525,7 @@ def test_reveal_from_a_look_window_is_dead() -> None:
                   {"key": "beast", "name": "Beast", "type": "Creature", "power": "3", "toughness": "3",
                    "zone": "library", "controller": 0},
                   {"key": "spell", "name": "Spell", "type": "Instant", "zone": "library", "controller": 0},
-                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "library", "controller": 0},
+                  {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "hand", "controller": 0},
                   *_library(1, "Theirs", 2)],
                  [{"op": "combat", "seat": 0, "attack": {"gh": True}, "may": {"gh": True}, "decisions": ["beast"]}])
 
@@ -562,7 +562,7 @@ def test_reveal_per_option_of_a_zone_choice_is_dead() -> None:
         pack = _pack([{"key": "ws", "real": "Garruk's Warsteed", "zone": "hand", "controller": 0},
                       {"key": "g_gy", "real": "Garruk, Savage Herald", "zone": "graveyard", "controller": 0},
                       {"key": "g_lib", "real": "Garruk, Savage Herald", "zone": "library", "controller": 0},
-                      {"key": "opener", "name": "Opener", "type": "Instant", "zone": "library", "controller": 0},
+                      {"key": "opener", "name": "Opener", "type": "Instant", "zone": "hand", "controller": 0},
                       *_library(1, "Theirs", 2)],
                      [{"op": "enter", "key": "ws", "decisions": ["fire", str(option), "g_gy" if option != 1 else "g_lib"]}])
         real = _game(pack)
@@ -594,7 +594,7 @@ def test_partitioned_search_destination_is_a_placeholder() -> None:
     basics = [{"key": k, "real": n, "zone": "library", "controller": 0}
               for k, n in (("forest", "Forest"), ("swamp", "Swamp"), ("island", "Island"))]
     pack = _pack([{"key": "cv", "real": "Cultivate", "zone": "hand", "controller": 0}, *basics,
-                  {"key": "opener", "name": "Opener", "type": "Instant", "zone": "library", "controller": 0}],
+                  {"key": "opener", "name": "Opener", "type": "Instant", "zone": "hand", "controller": 0}],
                  [{"op": "cast", "key": "cv", "decisions": ["card:1", "card:2", "card:1"]}], {"0": {"G": 1, "C": 2}})
     real = _game(pack)
     zones = {o[0]: o[1] for o in real[0].values() if o[0] in ("Forest", "Swamp", "Island")}

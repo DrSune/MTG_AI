@@ -18,7 +18,7 @@
   },
   {
    "key": "bait",
-   "zone": "library",
+   "zone": "hand",
    "controller": 0,
    "name": "Decoy",
    "power": 1,
@@ -45,12 +45,12 @@
   },
   "library": {
    "0": [
+    "Library 1",
+    "Library 3",
+    "Library 2",
     "Library 5",
     "Library 0",
-    "Library 3",
-    "Library 4",
-    "Library 1",
-    "Library 2"
+    "Library 4"
    ]
   }
  }

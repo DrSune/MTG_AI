@@ -1,0 +1,19 @@
+{
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tbear", "name": "Tapped Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "fresh", "name": "Fresh Bear", "type": "Creature — Bear", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "vig", "name": "Watchful Bear", "type": "Creature — Bear", "power": "1", "toughness": "1", "keywords": ["VIGILANCE"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"tbear": true, "fresh": true, "vig": true}}
+ ],
+ "expect": {
+  "not_asked": ["tbear"],
+  "asks": {"fresh": "ATTACK,DECLINE", "vig": "ATTACK,DECLINE"},
+  "attackers": {"tbear": false, "fresh": true, "vig": true},
+  "tapped": {"tbear": true, "fresh": true, "vig": false},
+  "life": {"1": 16}
+ },
+ "notes": "CR 508.1a: the creatures the active player declares as attackers must be untapped, so the tapped bear is never offered (it used to attack: 5.5% of all attacks in the 2026-11-05 invariant audit). CR 508.1f: declaring taps the untapped attackers (fresh) except a vigilance creature (vig stays untapped). p1 takes 3 + 1."
+}

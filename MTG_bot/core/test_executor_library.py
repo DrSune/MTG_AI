@@ -29,9 +29,12 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    Phase,
     QConst,
     Selector,
     SelectorMode,
+    TriggeredAbility,
+    TurnPhaseEvent,
     Verb,
     Zone,
     ZoneKind,
@@ -41,6 +44,7 @@ from MTG_bot.core.executor import (
     SUPPORTED_VERBS_V1,
     SUPPORTED_VERBS_V2,
     Executor,
+    GameOver,
     ability_playable,
     activate,
 )
@@ -50,12 +54,14 @@ from MTG_bot.core.executor.query import legal_search
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import record_of
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _GOLDEN_DIR = Path(__file__).parent / "golden" / "M21"
 _GOLDENS: dict[str, dict] = {}
@@ -178,16 +184,19 @@ class TestDraw(LibraryCase):
         self.assertEqual([r.subject for r in rows], [self.libs[3], self.libs[2]])
         self.assertEqual([r.data for r in rows], [(self.p0, 1), (self.p0, 2)])
 
-    def test_draw_on_empty_library_is_clean_noop(self):
-        # CR 121.2: the draw attempt on an empty library is free; the loss
-        # is a state-check, NOT part of the DRAW verb.
-        self._do(
-            atom(Verb.DRAW, controller=ControllerRef.OPPONENT, amount=QConst(3)),
-            controller=self.p0,
-        )
+    def test_draw_on_empty_library_moves_nothing_and_loses_at_the_check(self):
+        # The DRAW verb itself moves nothing from an empty library; the player
+        # who attempted it loses at the state-based-action check after the op
+        # (CR 704.5b), which ends a two-player game (CR 104.2a). Until
+        # 2026-11-05 the loss never came: no state check had the lane.
+        with self.assertRaises(GameOver):
+            self._do(
+                atom(Verb.DRAW, controller=ControllerRef.OPPONENT, amount=QConst(3)),
+                controller=self.p0,
+            )
         self.assertEqual(self.zone(self.p1, ZONE_HAND), [])
         self.assertEqual(self.journal_rows("CARD_DRAWN"), [])
-        self.assertEqual(self.ex.lost_players, [])
+        self.assertEqual(self.ex.lost_players, [self.p1])
         self.assertEqual(self.world.players[self.p1].life, 20)
 
 
@@ -432,6 +441,7 @@ class TestEndTurn(LibraryCase):
         self.assertFalse(self.ex.end_turn_requested)  # consumed at the op edge
 
     def test_advance_turn_after_early_end_turn_no_duplicate_marker(self):
+        stock_libraries(self.world)  # p1's turn draws (CR 704.5b)
         self.ex.begin_turn(self.p0)
         self._do(atom(Verb.END_TURN))
         self.ex.advance_turn()
@@ -442,10 +452,99 @@ class TestEndTurn(LibraryCase):
         self.assertEqual(self.ex.phase, "FIRST_MAIN")
 
 
+class TestFirstTurnDraw(LibraryCase):
+    """CR 103.8a: in a two-player game the player who plays first skips the
+    draw step of their first turn; 103.8c: in other multiplayer games nobody
+    skips it. Regression (2026-11-05 invariant audit: the starting player drew
+    on turn 1; seat 0 won 59.8% of heuristic mirrors, 55.3% with the skip)."""
+
+    def drawn(self, player):
+        return [e for e in self.journal_rows("CARD_DRAWN") if e.data[0] == player]
+
+    def test_the_starting_player_skips_the_first_draw_step(self):
+        self.ex.begin_turn(self.p0)
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.h1])
+        self.assertEqual(self.drawn(self.p0), [])
+        self.assertEqual(self.ex.phase, "FIRST_MAIN")
+
+    def test_every_later_turn_draws_the_other_players_first_too(self):
+        p1_card = self.world.add_card(card_id("P1 Top"), self.p1)
+        self.ex.begin_turn(self.p0)
+        self.ex.advance_turn()  # turn 2: p1's first turn has its draw step
+        self.assertEqual(self.zone(self.p1, ZONE_HAND), [p1_card])
+        self.ex.advance_turn()  # turn 3: p0 draws its top card (L4)
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.h1, self.libs[3]])
+
+    def test_no_player_skips_it_in_a_multiplayer_game(self):
+        world = GameWorld(num_players=3, start_life=20, master_seed=7)
+        first = world.player_order[0]
+        top = world.add_card(card_id("Top"), first)
+        Executor(world).begin_turn(first)
+        self.assertEqual(world.players[first].zone(ZONE_HAND).entries, [top])
+
+
+class TestUpkeepBeforeDraw(LibraryCase):
+    """CR 503.1a, 504.1: the abilities that trigger at the beginning of the
+    upkeep resolve in the upkeep step, before the draw step's draw.
+    Regression (2026-11-05, Rotting Regisaur's "At the beginning of your
+    upkeep, discard a card."): the draw came first, so the discard could take
+    the card just drawn (stronger than printed), and with an empty hand at
+    upkeep it discarded the draw (weaker)."""
+
+    def regisaur(self):
+        # The M20 mapping draft's IR for the trigger, on a test creature.
+        rex = self.world.add_card(card_id("Regisaur", "7", "6"), self.p0, ZONE_BATTLEFIELD)
+        hand = Zone(ZoneKind.HAND, ControllerRef.YOU)
+        discard = Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("cards", Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(hand,))),
+                    ("controller", ControllerRef.YOU),
+                    ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                    ("from", hand),
+                )
+            ),
+        )
+        upkeep = TurnPhaseEvent(
+            Phase.UPKEEP, FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        )
+        self.ex.attach_card(
+            rex,
+            record_of(
+                [TriggeredAbility(upkeep, None, discard)],
+                oid=self.world.cards[rex].identity.oracle_id,
+            ),
+        )
+        drawn = str(self.libs[3])  # the top card, drawn in p0's draw step
+        self.ex.decisions.provider = lambda vocab, what: drawn if drawn in vocab else vocab[0]
+
+    def to_p0s_draw_step_turn(self):
+        self.ex.begin_turn(self.p1)  # p1 plays first (CR 103.8a: no draw step)
+        self.ex.advance_turn()  # p0's turn 2: upkeep, then the draw step
+
+    def test_the_upkeep_discard_cannot_take_the_card_drawn_this_turn(self):
+        self.regisaur()
+        self.to_p0s_draw_step_turn()
+        self.assertEqual(self.zone(self.p0, ZONE_GRAVEYARD), [self.h1])
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.libs[3]])
+
+    def test_an_empty_hand_at_upkeep_discards_nothing(self):
+        self.world.move_to_zone(self.h1, self.p0, ZONE_EXILE)
+        self.regisaur()
+        self.to_p0s_draw_step_turn()
+        self.assertEqual(self.zone(self.p0, ZONE_GRAVEYARD), [])
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.libs[3]])
+
+
 # ----------------------------------------------------------- EXTRA_TURN
 
 
 class TestExtraTurn(LibraryCase):
+    def setUp(self):
+        super().setUp()
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
+
     def test_extra_turn_queue_drains_before_round_robin(self):
         self.ex.begin_turn(self.p0)  # turn 1: p0
         self._do(atom(Verb.EXTRA_TURN, count=QConst(2)))
@@ -512,7 +611,9 @@ class TestExtraTurn(LibraryCase):
 
 class TestLoseGame(LibraryCase):
     def test_lose_game_records_player_and_journal_row(self):
-        self._do(atom(Verb.LOSE_GAME))
+        # The loss ends a two-player game at the check after the op (CR 104.2a).
+        with self.assertRaises(GameOver):
+            self._do(atom(Verb.LOSE_GAME))
         self.assertEqual(self.ex.lost_players, [self.p0])
         rows = [e for e in self.ex.events if e[1] == "LOSE_GAME"]
         self.assertEqual(rows, [(rows[0][0], "LOSE_GAME", str(self.p0))])
@@ -524,6 +625,7 @@ class TestLoseGame(LibraryCase):
 class TestLoyaltyLedger(LibraryCase):
     def setUp(self):
         super().setUp()
+        stock_libraries(self.world)  # draws and turns: no deck-out (CR 704.5b)
         self.pw = self.world.add_card(
             card_id(
                 "Chandra, Flame's Catalyst",
@@ -776,6 +878,7 @@ class TestLoyaltyWindow(LibraryCase):
         self.basri = self.walker(
             "Basri Ket", self.p1, "3", "Legendary Planeswalker — Basri"
         )
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex.decisions.provider = lambda vocab, what: vocab[0]
         self.ex.begin_turn(self.p0)
 
@@ -897,6 +1000,7 @@ class TestReplayDeterminism(unittest.TestCase):
                 world.add_card(card_id(f"R{i}", type_line="Basic Land"), p0)
                 for i in (1, 2, 3, 4)
             ]
+            stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
             ex = Executor(world)
             ex.begin_turn(p0)
             ex.execute(
@@ -915,7 +1019,8 @@ class TestReplayDeterminism(unittest.TestCase):
             ex.advance_turn()  # the extra turn: p0 again
             ex.execute(atom(Verb.END_TURN), source=p0, controller=p0)
             ex.advance_turn()
-            ex.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
+            with self.assertRaises(GameOver):  # the game ends (CR 104.2a)
+                ex.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
             return ex.state_fingerprint()
 
         self.assertEqual(replay(), replay())
@@ -997,7 +1102,8 @@ class TestCapabilitySurface(unittest.TestCase):
         p0 = world.player_order[0]
         a = Executor(world)
         fp0 = a.state_fingerprint()
-        a.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
+        with self.assertRaises(GameOver):  # the game ends (CR 104.2a)
+            a.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
         self.assertNotEqual(fp0, a.state_fingerprint())
 
 

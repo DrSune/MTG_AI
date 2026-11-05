@@ -33,6 +33,7 @@ from typing import Any
 
 from MTG_bot.bench.protocol import Ask, Option
 from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.games import TURN_CAP, _play, get_supply, identity_of
 from MTG_bot.core.executor.legality import (
     block_pair_blocked_reason,
@@ -338,6 +339,8 @@ class Searcher:
 
             _play(clone, router, list(world.player_order), TURN_CAP, resumed=True,
                   stop_after=stop)
+        except GameOver:
+            pass  # the candidate itself ended the game (CR 704.3: the loss check ends it there)
         except Exception:  # noqa: BLE001 - a crashed simulation is counted, left out of the mean
             self.stats["sim_errors"] += 1
             return None

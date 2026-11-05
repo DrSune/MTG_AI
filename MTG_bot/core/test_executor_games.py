@@ -117,6 +117,7 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import card_id, reset_oracle_ids
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 UNIV = FAnd(())
 SMOKE_DECK_PAIRS = 1409  # the CLI default: the tests run the shipped recipe
@@ -658,6 +659,7 @@ class DecisionSurfaceTest(unittest.TestCase):
                 _atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
             ),
         )
+        stock_libraries(self.world)  # the DRAW option draws (CR 704.5b)
         asked: list[tuple[tuple[str, ...], str]] = []
 
         def provider(vocab: tuple[str, ...], what: str) -> str:
@@ -1503,6 +1505,7 @@ class Round14dJournalTest(unittest.TestCase):
         for a battlefield anchor, and both legs false once the turn
         window turns over (advance_turn)."""
         world, executor = self._world()
+        stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
         p0 = world.player_order[0]
         executor.begin_turn(p0)
         mover = world.add_card(
@@ -1655,6 +1658,7 @@ class Round14dJournalTest(unittest.TestCase):
         exile — the 12b cause column). Another source says no, and the
         relationship PERSISTS across turns (it is not windowed)."""
         world, executor = self._world()
+        stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
         p0 = world.player_order[0]
         executor.begin_turn(p0)
         idol = world.add_card(
@@ -2522,10 +2526,15 @@ class StallRuleTest(unittest.TestCase):
         # decisive (97 acts); engine/verify-fixes alone 46 turns, decisive (87).
         # Re-measured 2026-10-30 after cards/integration 9553ae1 (vfix2's lane) merged in:
         # the same 60-turn cap, no loser, 95 acts (double-run verified).
+        # re-pinned 2026-11-05: CR 508.1a (only untapped creatures attack) and
+        # CR 103.8a (the starting player skips the draw step of turn 1) shift
+        # the seeded trajectory. Decisive again: player 1 loses on turn 37,
+        # 65 acts, the stall rule does not fire (double-run replay verified:
+        # same fingerprint, turns and reason).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 60)
-        self.assertEqual(game.reason, "turn cap 60 reached (no loser)")
+        self.assertEqual(game.turns, 37)
+        self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

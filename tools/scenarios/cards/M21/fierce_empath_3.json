@@ -6,7 +6,7 @@
   {"key": "emp", "zone": "hand", "controller": 0, "real": "Fierce Empath"},
   {"key": "big6", "zone": "library", "controller": 0, "name": "Big Six", "type": "Creature — Beast", "power": 6, "toughness": 6, "cmc": 6},
   {"key": "big7", "zone": "library", "controller": 0, "name": "Big Seven", "type": "Creature — Beast", "power": 7, "toughness": 7, "cmc": 7},
-  {"key": "drawme", "zone": "library", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
+  {"key": "drawme", "zone": "hand", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
  ],
  "steps": [
   {"op": "enter", "key": "emp", "decisions": ["fire", "big7"]}

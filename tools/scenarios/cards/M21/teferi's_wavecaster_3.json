@@ -4,7 +4,7 @@
  "cards": [
   {"key": "w", "real": "Teferi's Wavecaster", "zone": "hand", "controller": 0},
   {"key": "tva", "real": "Teferi, Timeless Voyager", "zone": "library", "controller": 0},
-  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "enter", "key": "w", "decisions": ["fire", "1", "tva"]}

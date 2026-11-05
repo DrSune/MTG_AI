@@ -48,6 +48,7 @@ from MTG_bot.core.ability_tree import (
     walk,
 )
 from MTG_bot.core.compiler.coverage import build_full_registry
+from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.legality import ability_playable, activate
 from MTG_bot.core.executor.query import (
     activation_target_slots,
@@ -437,9 +438,12 @@ class Probe:
             return out
 
         r.ex.binder._queue = spy
+        game_over = False
         try:
             action(r)
             r.ex.fire_triggers()
+        except GameOver:  # a player lost (CR 704.5a/b, a LOSE_GAME effect): the game ended
+            game_over = True
         except Exception as exc:  # noqa: BLE001 — any raise inside a legal action is the finding
             v.error = f"{type(exc).__name__}: {exc}"[:300]
         finally:
@@ -450,7 +454,10 @@ class Probe:
         v.events = queued + [t for e in r.ex.journal.events[start:] if (t := self.render_event(r, e))]
         after = self.snapshot(r)
         v.changes = self.diff(before, after)
-        if end_turn and v.error is None:
+        if game_over:
+            v.changes.append("the game ends: " + ", ".join(
+                f"{_seat_name(r.world, p)} loses" for p in r.ex.lost_players))
+        if end_turn and v.error is None and not game_over:
             # what lasts: end the turn and diff again ("until end of turn" must wear off, a
             # permanent change must not; damage wears off in cleanup)
             r.ex.decisions.provider = provider

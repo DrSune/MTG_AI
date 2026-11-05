@@ -174,8 +174,10 @@ $PY tools/cards/cardtool.py --help
       handle; write `player:N` for a player; `first-legal` takes the first offered word.
     - Make each pack fail against a deliberately wrong draft before you rely on it.
   - Pack runner behaviour worth knowing:
-    - The opening `begin_turn` draws only when the pack lists library cards, and six filler
-      "Library N" cards go on top of the pack's own unless `"world": {"library_top": true}`.
+    - The opening `begin_turn` is turn 1 of a two-player game, so seat 0 skips its draw step
+      (CR 103.8a) and nothing is drawn at setup: declare a card in hand if the pack needs it there.
+      Six filler "Library N" cards go on top of the pack's own unless
+      `"world": {"library_top": true}`.
     - `end_turn` does not begin the next turn; `advance_turn` does.
     - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
     - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.

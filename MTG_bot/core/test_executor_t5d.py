@@ -62,6 +62,7 @@ from MTG_bot.core.test_executor_binding import (
     record_of,
     reset_oracle_ids,
 )
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 from pathlib import Path
 
@@ -127,6 +128,7 @@ class T5DEngineCase(unittest.TestCase):
         reset_oracle_ids()
         self.world = GameWorld(num_players=2, start_life=20, master_seed=54)
         self.p0, self.p1 = self.world.player_order[0], self.world.player_order[1]
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
 
     def shrine(self, owner, name="Shrine"):

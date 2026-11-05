@@ -44,7 +44,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
-from MTG_bot.core.executor import SUPPORTED_VERBS_V1, Executor
+from MTG_bot.core.executor import SUPPORTED_VERBS_V1, Executor, GameOver
 from MTG_bot.core.executor.verbs import token_oracle_id
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
@@ -76,6 +76,27 @@ def card_id(name, power=None, toughness=None, type_line="Creature", cmc=2):
         toughness=toughness,
         cmc=cmc,
     )
+
+
+# One fixed identity (no draw on the oracle-id counter) for library filler.
+_FILLER = CardIdentity(
+    oracle_id="0f111111-1111-2222-3333-444444444444",
+    name="Library Filler",
+    type_line="Artifact",
+    cmc=0,
+)
+
+
+def stock_libraries(world, n=8, seats=None):
+    """Put ``n`` filler cards at the BOTTOM of each player's library (or of
+    ``seats``). A test that advances turns draws a card each turn, and a
+    player who attempts to draw from an empty library loses the game (CR
+    704.5b); the filler sits under the test's own library cards."""
+    for seat in world.player_order if seats is None else seats:
+        entries = world.players[seat].zone(ZONE_LIBRARY).entries
+        for _ in range(n):
+            world.add_card(_FILLER, seat, ZONE_LIBRARY)
+            entries.insert(0, entries.pop())
 
 
 def atom(verb, **roles):
@@ -192,25 +213,31 @@ class TestLifeAndDamage(ExecutorCase):
             controller=self.p0,
         )
         self.assertEqual(self.world.players[self.p0].life, 23)
-        self.ex.execute(
-            atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),
-            source=self.alpha,
-            controller=self.p0,
-        )
+        # 2026-11-05: at -7 the player loses at the check after the op (CR
+        # 704.5a), which ends the two-player game.
+        with self.assertRaises(GameOver):
+            self.ex.execute(
+                atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),
+                source=self.alpha,
+                controller=self.p0,
+            )
         # re-pinned 2026-10-30: no clamp at 0 (CR 119.3, 119.6): 23 - 30.
         self.assertEqual(self.world.players[self.p0].life, -7)
 
     def test_deal_damage_to_player_clamps(self):
-        self.ex.execute(
-            atom(
-                Verb.DEAL_DAMAGE,
-                target=target_sel(UNIV, Zone(ZoneKind.PLAYER, ControllerRef.ANY)),
-                amount=QConst(25),
-            ),
-            source=self.alpha,
-            controller=self.p0,
-            bindings={"target": self.p1},
-        )
+        # 2026-11-05: at -5 the player loses at the check after the op (CR
+        # 704.5a), which ends the two-player game.
+        with self.assertRaises(GameOver):
+            self.ex.execute(
+                atom(
+                    Verb.DEAL_DAMAGE,
+                    target=target_sel(UNIV, Zone(ZoneKind.PLAYER, ControllerRef.ANY)),
+                    amount=QConst(25),
+                ),
+                source=self.alpha,
+                controller=self.p0,
+                bindings={"target": self.p1},
+            )
         # re-pinned 2026-10-30: damage is that much life lost, below 0 too (CR 120.3a,
         # 119.3); the old clamp at 0 recorded 25 damage as 20.
         self.assertEqual(self.world.players[self.p1].life, -5)

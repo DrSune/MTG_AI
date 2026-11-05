@@ -107,7 +107,9 @@ Pack vocabulary (all keys required as noted):
              "attached": {key: hostKey|null},  B-49 follow-up #2: the attachment table
              "hand": {"0": int},
              "lost": {"0": bool},          m21-fidelity 2026-10-29: the seat is
-                                            in executor.lost_players (LOSE_GAME),
+                                            in executor.lost_players (LOSE_GAME,
+                                            or CR 704.5a/b: a step that ends the
+                                            game is the last one that runs),
              "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
                                             totals (frozen _v_add_mana write;
                                             zero-equivalence both sides)
@@ -153,7 +155,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
-from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
 from MTG_bot.core.executor.games import get_supply, identity_of
 from MTG_bot.core.executor.stack import cast, play_land
@@ -305,8 +307,9 @@ class ScenarioRunner:
         for seat, colors in pack.get("mana", {}).items():
             for color, n in colors.items():
                 self.world.players[self.seats[int(seat)]].mana_pool[color] = n
-        # 16b: the clock opens for REAL (begin_turn: draw, markers,
-        # ledger) — a faked turn desynced world.turn and the sickness
+        # 16b: the clock opens for REAL (begin_turn: markers, ledger; turn 1
+        # of a two-player game, so seat 0 skips its draw step, CR 103.8a)
+        # — a faked turn desynced world.turn and the sickness
         # clock against advance_turn. The old fakes turn_open/phase
         # manually, which every combat pack now outgrows.
         # tools/cards probe (2026-10-29): a card pre-placed on the battlefield can trigger at this
@@ -1171,6 +1174,10 @@ def _run_pack(pack: dict, supply) -> list[str]:
         want = step.get("expect_raise")
         try:
             runner.run_step(step)
+        except GameOver:
+            # A player lost at a state-based-action check (CR 704.5a/b): the
+            # game is over, so no later step can happen. "lost" checks who.
+            break
         except Exception as e:
             if want is None:
                 return [f"step {step}: {type(e).__name__}: {e}"]

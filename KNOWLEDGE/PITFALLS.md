@@ -679,6 +679,7 @@
   constructor draws ONE card, popping the LAST-listed card — silently
   deleting a probe subject (Wavecaster's hidden Voyager). With an empty pack
   library the lane reads top-first Library 5..0.
+  **Superseded 2026-11-05 (CR 103.8a):** the opening `begin_turn` is turn 1 of a two-player game, so seat 0 skips its draw step and nothing is drawn at setup; a card the pack needs in hand is declared in hand.
 - **May-offer static gate vs result register (2026-09-30, round 17b B-9)**:
   `optional_offer` (executor/query.py:508-527) requires EVERY exact-count
   CHOOSE/TARGET/RANDOM selector in `effect.inner` to have candidates in the
@@ -702,6 +703,7 @@
   step 1 — the world then looks like an engine that mutated before a
   may-ask. Add a decoy card listed AFTER the target so the draw eats it,
   and pin lanes knowing the pop-last rule.
+  **Superseded 2026-11-05 (CR 103.8a):** the opening `begin_turn` is turn 1 of a two-player game, so seat 0 skips its draw step and nothing is drawn at setup; a card the pack needs in hand is declared in hand.
 
 - **Decision lanes are NOT interchangeable (2026-10-01, r19a)**: an ask
   answered through the per-op `decisions` POOL inside a cast effect is
@@ -890,7 +892,8 @@
   Creature fillers per seat AFTER the cards loop, so they own the library TOP
   forever — declared library cards sink below them, "Library i" handles come
   AFTER all declared keys, and `begin_turn` draws the last DECLARED library
-  card (fills are drawn later by real advances). (2) **TARGET selectors never
+  card (fills are drawn later by real advances; superseded 2026-11-05, CR 103.8a:
+  the opening turn draws nothing). (2) **TARGET selectors never
   ask a provider**: designations arrive only through the activate/cast op's
   `targets:` lane and must be selector candidates (`pass bindings={'target':
   ...}` is the loud flag); CHOOSE/ONE_OF accept decision words. (3) **Handle
@@ -1038,7 +1041,7 @@
 - refusal-not-completion law (2026-10-08): run_train refuses to start when the previous jsonl entry is UNFINISHED (correct guard — a kill leaves one); run_full_memory still prints exit rc=0 COMPLETE on such refusals (wrapper blind). After any manual kill of a training pid, the next launch needs --ignore-prev (verify pid dead first — the message says so). Read the DRIVER section of the launch log, not the wrapper banner, when a run "completes" without reports.
 
 - may-ask PHANTOM trap (2026-10-08): an ETB "you may" ask FIRES even when there is nothing to find/do — both branches then resolve identically and the cert flags `no_discrimination` ("expect-insensitive: gold call not needed by any lane"). Verify a may-ask's outcome actually differs under null BEFORE authoring lanes; give the board a real second resource or drop the ask.
-- `run_scenarios` library mechanics (2026-10-08): begin_turn draw consumes the LAST-ADDed pack library card (use a sacrificial "Draw Bait" as the last library card in typed-library packs); new opt-in `world.library_top` re-raises pack library cards above the 6 `Library N` filler in pack order — use it for every scry/look/peek pack, else asks present opaque filler (§10 blindness).
+- `run_scenarios` library mechanics (2026-10-08): begin_turn draw consumes the LAST-ADDed pack library card (use a sacrificial "Draw Bait" as the last library card in typed-library packs; superseded 2026-11-05, CR 103.8a: the opening turn draws nothing, the 88 packs built around it declare that card in hand); new opt-in `world.library_top` re-raises pack library cards above the 6 `Library N` filler in pack order — use it for every scry/look/peek pack, else asks present opaque filler (§10 blindness).
 - combat `block` map is **blocker → attacker** with site `block:<blocker handle>` and vocab = attackers + `NONE` (2026-10-08; attacker→blocker map is silently ignored).
 - Mana-color asks: `_COLORS_VOCAB[0] = W` — a gold of `W` on any `mana:<source>` ask is null-degenerate; chain-proof packs must seed the pool so ONLY the asked color completes a follow-up cast (wrong color → spell unpayable → zone/hand lanes falsify). Meteorite's activated `{T}` add is ability **idx 1** (idx 0 = the ETB trigger; activating a trigger raises `ability:not_activated:TriggeredAbility`).
 - process-pattern tools are self-matching traps (2026-10-08): pkill -f / pgrep -f match the SESSION shell whose argv contains the pattern string — it killed its own tool call and returned phantom pids twice. For orphan hunts, scan /proc/*/cmdline from python with self-exclusion; kill by exact pid only.

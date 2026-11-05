@@ -6,7 +6,7 @@
   {"key": "w", "real": "Waker of Waves", "zone": "hand", "controller": 0},
   {"key": "a", "name": "Alpha", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
   {"key": "b", "name": "Beta", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
-  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"U": 1, "C": 1}},
  "steps": [
