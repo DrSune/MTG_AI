@@ -1485,3 +1485,11 @@ W&B key in history is revoked; a private split exists outside the public repo.
 - **Target recheck gaps (not reachable in current games)**: Enthralling Hold's "as you cast it"
   restriction is re-read at resolution, so it fizzles if its target untaps; a target exiled and
   returned before resolution is still hit because handles survive zone changes (CR 400.7).
+- **Pack decision words no ask uses pass silently** (third silent-pass hole after unread expect
+  lanes and unoffered words, both closed 2026-11-05; flagged by the pack-repair agent and an M20
+  verifier). Measured over 1,182 packs: 224 have leftover words, but 189 are cast/activate steps
+  whose words the runner hands out twice (the spell's primed `decisions` and the provider's queue
+  copy), so the provider's copy stays unconsumed although the words were used. The other 35 are
+  genuine leftovers (enter 12, end_turn 10, combat 7, advance_turn 5, deal_damage 1; e.g.
+  faiths_fetters "skip", spirit_of_malevolence_dies_trigger "foe"). Fix: hand each word out once,
+  fail a step that leaves words unused, then repair the flagged packs with red evidence.
