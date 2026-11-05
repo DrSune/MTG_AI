@@ -1,0 +1,8 @@
+{
+ "set": "M20", "world": {"life": 20, "seed": 2},
+ "cards": [{"key": "skel", "real": "Sanitarium Skeleton", "zone": "graveyard", "controller": 0}],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [{"op": "activate", "key": "skel", "idx": 0, "seat": 0}],
+ "expect": {"zone": {"skel": "hand"}, "mana_pool": {"0": {}}},
+ "notes": "{2}{B}: return this card from your graveyard to your hand (the ability functions only in the graveyard, CR 113.6k)."
+}

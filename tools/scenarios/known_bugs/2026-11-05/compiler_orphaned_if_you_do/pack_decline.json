@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raider", "real": "Keldon Raider", "zone": "hand", "controller": 0},
+  {"key": "junk", "name": "Junk Card", "type": "Creature — Filler", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "cast", "key": "raider", "real": "Keldon Raider", "controller": 0, "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"raider": "battlefield", "junk": "hand"},
+  "hand": {"0": 1}
+ }
+}

@@ -1,0 +1,172 @@
+# Probe: Synchronized Spellcraft (ZNR)
+## Cast or play from hand
+- target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]
+- target slot (cast): 1..1 of [you, opp]
+[cast targets=['you_bear', 'you']]
+  event: you_bear is targeted (by card/TARGET)
+  event: you is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: you_bear is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: you_bear moves battlefield -> graveyard
+  event: you_bear dies
+  change: card: zone hand -> graveyard
+  change: you_bear: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['you_bear', 'opp']]
+  event: you_bear is targeted (by card/TARGET)
+  event: opp is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: you_bear is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: you_bear moves battlefield -> graveyard
+  event: you_bear dies
+  change: card: zone hand -> graveyard
+  change: you_bear: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['you_giant', 'you']]
+  event: you_giant is targeted (by card/TARGET)
+  event: you is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: you_giant is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: you_giant moves battlefield -> graveyard
+  event: you_giant dies
+  change: card: zone hand -> graveyard
+  change: you_giant: zone battlefield -> graveyard; P/T 4/4 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['you_giant', 'opp']]
+  event: you_giant is targeted (by card/TARGET)
+  event: opp is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: you_giant is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: you_giant moves battlefield -> graveyard
+  event: you_giant dies
+  change: card: zone hand -> graveyard
+  change: you_giant: zone battlefield -> graveyard; P/T 4/4 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_flier', 'you']]
+  event: opp_flier is targeted (by card/TARGET)
+  event: you is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_flier is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_flier moves battlefield -> graveyard
+  event: opp_flier dies
+  change: card: zone hand -> graveyard
+  change: opp_flier: zone battlefield -> graveyard; P/T 1/1 -> -; keywords -FLYING
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_flier', 'opp']]
+  event: opp_flier is targeted (by card/TARGET)
+  event: opp is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_flier is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_flier moves battlefield -> graveyard
+  event: opp_flier dies
+  change: card: zone hand -> graveyard
+  change: opp_flier: zone battlefield -> graveyard; P/T 1/1 -> -; keywords -FLYING
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_tapped', 'you']]
+  event: opp_tapped is targeted (by card/TARGET)
+  event: you is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_tapped is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_tapped moves battlefield -> graveyard
+  event: opp_tapped dies
+  change: card: zone hand -> graveyard
+  change: opp_tapped: zone battlefield -> graveyard; tapped True -> False; P/T 3/3 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_tapped', 'opp']]
+  event: opp_tapped is targeted (by card/TARGET)
+  event: opp is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_tapped is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_tapped moves battlefield -> graveyard
+  event: opp_tapped dies
+  change: card: zone hand -> graveyard
+  change: opp_tapped: zone battlefield -> graveyard; tapped True -> False; P/T 3/3 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_bear', 'you']]
+  event: opp_bear is targeted (by card/TARGET)
+  event: you is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_bear is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_bear moves battlefield -> graveyard
+  event: opp_bear dies
+  change: card: zone hand -> graveyard
+  change: opp_bear: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_bear', 'opp']]
+  event: opp_bear is targeted (by card/TARGET)
+  event: opp is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_bear is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_bear moves battlefield -> graveyard
+  event: opp_bear dies
+  change: card: zone hand -> graveyard
+  change: opp_bear: zone battlefield -> graveyard; P/T 2/2 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_giant', 'you']]
+  event: opp_giant is targeted (by card/TARGET)
+  event: you is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_giant is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_giant moves battlefield -> graveyard
+  event: opp_giant dies
+  change: card: zone hand -> graveyard
+  change: opp_giant: zone battlefield -> graveyard; P/T 4/4 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
+[cast targets=['opp_giant', 'opp']]
+  event: opp_giant is targeted (by card/TARGET)
+  event: opp is targeted (by card/TARGET)
+  event: card moves hand -> stack (by card/CAST)
+  event: you casts card
+  event: opp_giant is dealt 4 damage (by card/DEAL_DAMAGE)
+  event: card moves stack -> graveyard (by card/CAST)
+  event: opp_giant moves battlefield -> graveyard
+  event: opp_giant dies
+  change: card: zone hand -> graveyard
+  change: opp_giant: zone battlefield -> graveyard; P/T 4/4 -> -
+  change: you: hand 6 -> 5; mana R-1 W-4
+  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  change: after the turn ends: you: mana B-9 C-9 G-9 R-8 U-9 W-5
