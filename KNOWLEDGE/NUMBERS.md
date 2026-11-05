@@ -21,6 +21,16 @@ in KNOWLEDGE that names `MTG_bot/rule_engine`, `MTG_bot/strategic_brain`, `attic
 `tools/teacher`, `tools/board`, `tools/ops`, `tools/selfplay/vs_legacy.py`, `tools/measure_grammar.py`,
 `tools/make_replay.py` or a deleted `tools/audit` script runs from that commit.
 
+## 2026-11-05 (ontology checker re-baselined after the M21 fidelity campaign; branch fix/pack-queues)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| V4′ per-card CHOOSE census vs its 2026-10-20 baseline (183c980) | **40 changes on 26 cards**; CHOOSE nodes M21 145 -> **134** (104 -> **99** cards), ZNR 48 -> **49** (42 -> **40** cards) | `.venv/bin/python tools/audit/ontology_conformance.py` (then `--write-v4-baseline`) | each change has one commit (census at all 234 commits a26578f^1..f4905ee, plus a bisect on main): 3 ZNR Equipment from 1c526bc (B11 compiles "attach it to target creature you control"), 22 cards from the campaign (a26578f), Demonic Embrace from 88a91f4. No phantom choice: every added node is a printed choice ("up to", "of their choice", "any number", "and/or") or a self/anaphora reference that is never asked (probed) |
+| V5′ branchings the pytest view finds in no registered census (M21) | **13** -> **0** | `.venv/bin/python tools/audit/ontology_shape_census.py --out reports/ontology_census_2026-11-05_m21fid_post_full.json --cap 0` | registered by the new dated census (the 2026-10-19 file untouched): Choose of 3 zone options (Basri's Aegis, Chandra's Firemaw, Garruk's Warsteed, Liliana's Scorn, Teferi's Wavecaster; Sanctum of All), Choose of 5 / QAtLeast (Sublime Epiphany), DelayedTrigger on attacks (Basri Ket, Basri Devoted Paladin), EachPlayer TARGET_OPPONENT (Run Afoul) and TARGET_PLAYER (Peer into the Abyss), CHOOSE up to N (Kinetic Augur, Ugin, Alpine Houndmaster), CHOOSE on the stack (Experimental Overload), ONE_OF in the graveyard (the five tutors, Sanctum of All), TARGET on the stack (Cancel, Lofty Denial, Rewind, Sublime Epiphany; Miscast) |
+| uncapped shape census, M21 + ZNR | **554 cards, 1,238 abilities, 476 struct sigs, 115 branching rows**, 0 near-duplicate pairs (r0_post_full 2026-10-19: 546, 1,168, 469, 110) | same command | the script now measures the checkout it lives in (it read /home/sune/Desktop/MTG_AI from any worktree) and stamps its run date |
+| ontology conformance | errors **40 -> 0**, warns 7 (V3 4, V5 3) | `.venv/bin/python tools/audit/ontology_conformance.py` | V5 live-vs-committed WARN view: struct sigs new 135 / gone 128, branchings new 62 / gone 3 |
+| pytest tools | 7 failed / 335 passed / 35 skipped -> **342 passed / 35 skipped** | `TORCH_DISABLE_NATIVE_JIT=1 .venv/bin/python -m pytest tools -q` | 2 ontology tests (re-baselined above) + 5 stale seeded pins / one stale fake, failing on main since before the campaign merge (c98096e): search fork attack/block, k2, duel_elo schema, bc_v3 Elo fake |
+
 ## 2026-11-03 (Claude takeover — tools/selfplay, M21 castable; KNOWLEDGE/2026-11-03/182)
 
 | Number | Value | Command | Notes |

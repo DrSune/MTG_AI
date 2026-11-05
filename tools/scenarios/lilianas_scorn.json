@@ -51,7 +51,7 @@
    ],
    "decisions": [
     "fire",
-    "mage"
+    "0"
    ]
   }
  ],
@@ -66,5 +66,5 @@
    "0": 20
   }
  },
- "notes": "# re-pinned 2026-10-29: m21-fidelity makes the tutor part of the spell's resolution (it was a free activated row that never ran: this pack passed only because the opening draw put the named card, the sole library card, into the hand). Top Junk is now the card the opening draw takes, the cast answers the 'you may search' with fire and picks the named card, so the tutor itself must move it."
+ "notes": "# re-pinned 2026-10-29: m21-fidelity makes the tutor part of the spell's resolution (it was a free activated row that never ran: this pack passed only because the opening draw put the named card, the sole library card, into the hand). Top Junk is now the card the opening draw takes, the cast answers the 'you may search' with fire and picks the named card, so the tutor itself must move it. Re-pinned 2026-11-05 (strict decision words): B-78 (10f41df) asks the and/or zone choice after the may, and no word of the old queue ('fire', 'mage') is one it offers: the silent fallback answered it. '0' searches the library and the graveyard, the only reading when this pack was written; the pick itself is not asked, because one card in the world has the name, so 'mage' is gone."
 }

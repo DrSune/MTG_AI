@@ -1,13 +1,18 @@
 {"set": "M21", "world": {"life": 20, "seed": 7},
- "notes": "Rain of Revelation: the discard is mandatory ('then discard a card', not 'you may'). The pack answers the discard ask with 'NONE'; a mandatory menu has no such word, so the runner falls back to the first legal card. Expected: hand 4 -1 +3 -1 = 5, graveyard holds Rain plus exactly one discarded card (2 cards).",
+ "notes": "Rain of Revelation: the discard is mandatory ('then discard a card', not 'you may'). Seat 0: hand 4 -1 +3 -1 = 5, and the graveyard holds Rain plus exactly the one discarded card. Re-pinned 2026-11-05 (strict decision words): the pack answered the discard with 'NONE', which a mandatory menu does not offer, and only the silent fallback (the first card, Keep One) made it pass. Now seat 0 discards the first card it drew, Library 5, by its raw handle card:10 (filler cards have no pack key; the menu holds it only if the draw came first). Seat 1 then casts its own Rain (an instant) with no decision, so the step stops at seat 1's discard ask, and expect_raise pins the words that ask offers to exactly the three cards seat 1 drew: no NONE.",
  "cards": [
   {"key": "rain", "real": "Rain of Revelation", "zone": "hand", "controller": 0},
   {"key": "keep1", "name": "Keep One", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
   {"key": "keep2", "name": "Keep Two", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
-  {"key": "keep3", "name": "Keep Three", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0}
+  {"key": "keep3", "name": "Keep Three", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "rain1", "real": "Rain of Revelation", "zone": "hand", "controller": 1}
  ],
- "mana": {"0": {"U": 4}},
+ "mana": {"0": {"U": 4}, "1": {"U": 4}},
  "steps": [
-  {"op": "cast", "real": "Rain of Revelation", "key": "rain", "decisions": ["NONE"]}
+  {"op": "cast", "real": "Rain of Revelation", "key": "rain", "decisions": ["card:10"]},
+  {"op": "cast", "real": "Rain of Revelation", "key": "rain1", "controller": 1,
+   "expect_raise": "needs a decision from ('card:14', 'card:15', 'card:16')"}
  ],
- "expect": {"zone": {"rain": "graveyard"}, "hand": {"0": 5}, "library": {"0": ["Library 2", "Library 1", "Library 0"]}}}
+ "expect": {"zone": {"rain": "graveyard", "keep1": "hand", "keep2": "hand", "keep3": "hand"}, "hand": {"0": 5},
+            "library": {"0": ["Library 2", "Library 1", "Library 0"]},
+            "graveyard": {"0": ["Rain of Revelation", "Library 5"]}}}

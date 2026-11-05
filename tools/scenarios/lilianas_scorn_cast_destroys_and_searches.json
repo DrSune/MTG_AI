@@ -1,5 +1,5 @@
 {"set": "M21", "world": {"life": 20, "seed": 7},
- "notes": "Printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle.' Liliana, Death Mage is in the library under Top Junk (the opening draw takes Top Junk). Casting Scorn on the opponent's Doomed Beast destroys it, and answering 'fire' to the may puts Liliana into the hand.",
+ "notes": "Printed: 'Destroy target creature. You may search your library and/or graveyard for a card named Liliana, Death Mage, reveal it, and put it into your hand. If you search your library this way, shuffle.' Liliana, Death Mage is in the library under Top Junk (the opening draw takes Top Junk). Casting Scorn on the opponent's Doomed Beast destroys it, and answering 'fire' to the may puts Liliana into the hand. Re-pinned 2026-11-05 (strict decision words): B-78 (10f41df) asks the and/or zone choice after the may, and no word of the old queue ('fire', 'lil') is one it offers: the silent fallback answered it. '0' searches the library and the graveyard, the only reading when this pack was written; the pick itself is not asked, because one card in the world has the name, so 'lil' is gone.",
  "cards": [
   {"key": "ls", "real": "Liliana's Scorn", "zone": "hand", "controller": 0},
   {"key": "victim", "name": "Doomed Beast", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1},
@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"B": 5}},
  "steps": [
-  {"op": "cast", "key": "ls", "real": "Liliana's Scorn", "targets": ["victim"], "decisions": ["fire", "lil"]}
+  {"op": "cast", "key": "ls", "real": "Liliana's Scorn", "targets": ["victim"], "decisions": ["fire", "0"]}
  ],
  "expect": {
   "zone": {"ls": "graveyard", "victim": "graveyard", "lil": "hand", "junk": "hand"}

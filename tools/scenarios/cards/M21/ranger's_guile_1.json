@@ -1,6 +1,6 @@
 {
  "set": "M21",
- "notes": "Ranger's Guile, printed: 'Target creature you control gets +1/+1 and gains hexproof until end of turn. (It can't be the target of spells or abilities your opponents control.)' Cast on your bear (3/3, hexproof). Then the opponent's Goblin Arsonist dies; its dies trigger (an ability the OPPONENT controls) cannot target the hexproof bear even when the answer names it, so the 1 damage goes elsewhere and the bear has no damage marked.",
+ "notes": "Ranger's Guile, printed: 'Target creature you control gets +1/+1 and gains hexproof until end of turn. (It can't be the target of spells or abilities your opponents control.)' Cast on your bear (3/3, hexproof). Then the opponent's Goblin Arsonist dies; its dies trigger is an ability the OPPONENT controls, so it cannot target the hexproof bear, and the bear has no damage marked. Re-pinned 2026-11-05 (strict decision words): the pack answered the trigger's target with 'bear', which the ask does not offer, and only the silent fallback (player 0) made it pass. The step now has no decision, so it stops at the trigger's target ask, and expect_raise pins the words that ask offers to exactly the two players: never the bear.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "guile", "real": "Ranger's Guile", "zone": "hand", "controller": 0},
@@ -10,7 +10,8 @@
  "mana": {"0": {"G": 1}},
  "steps": [
   {"op": "cast", "real": "Ranger's Guile", "key": "guile", "targets": ["bear"]},
-  {"op": "deal_damage", "source": "bear", "target": "oars", "amount": 1, "decisions": ["bear", "fire"]}
+  {"op": "deal_damage", "source": "bear", "target": "oars", "amount": 1,
+   "expect_raise": "needs a decision from ('player:0', 'player:1')"}
  ],
  "expect": {
   "zone": {"guile": "graveyard", "oars": "graveyard", "bear": "battlefield"},

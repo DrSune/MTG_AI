@@ -6,15 +6,19 @@
   {"key": "f1", "real": "Forest", "zone": "hand", "controller": 1},
   {"key": "f2", "real": "Forest", "zone": "library", "controller": 1},
   {"key": "f3", "real": "Forest", "zone": "graveyard", "controller": 1},
-  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+  {"key": "drawn", "name": "Drawn", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "nec2", "real": "Necromentia", "zone": "hand", "controller": 0}
  ],
  "steps": [
   {"op": "mana", "seat": 0, "add": {"B": 2, "C": 1}},
-  {"op": "cast", "key": "nec", "controller": 0, "targets": ["p1"], "decisions": ["Forest"]}
+  {"op": "cast", "key": "nec", "controller": 0, "targets": ["p1"], "decisions": ["Drawn"]},
+  {"op": "mana", "seat": 0, "add": {"B": 2, "C": 1}},
+  {"op": "cast", "key": "nec2", "controller": 0, "targets": ["p1"],
+   "expect_raise": "name:card:5 needs a decision from ('Drawn', 'Library 0', 'Library 1', 'Library 2', 'Library 3', 'Library 4', 'Library 5', 'Necromentia')"}
  ],
  "expect": {
   "zone": {"nec": "graveyard", "f1": "hand", "f2": "library", "f3": "graveyard"},
   "tokens": {"Zombie": 0}
  },
- "notes": "Printed: 'Choose a card name other than a basic land card name.' Forest cannot be named: the word is not offered (the runner then takes the engine's first legal name, a filler), so the opponent's Forests in hand, library and graveyard all stay and no Zombie is created."
+ "notes": "Printed: 'Choose a card name other than a basic land card name.' Forest cannot be named. Re-pinned 2026-11-05 (strict decision words): the pack answered 'Forest', which the name ask does not offer, and only the silent fallback (the first name, Drawn) made it pass. Now the first Necromentia names Drawn, a card the opponent does not hold, so the opponent's Forests in hand, library and graveyard all stay and no Zombie is created. The second is cast with no decision, so the step stops at its name ask, and expect_raise pins the names that ask offers (a rig with no format offers the world's card names): every nonbasic name in the world, and no Forest."
 }
