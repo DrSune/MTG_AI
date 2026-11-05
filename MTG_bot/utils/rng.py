@@ -44,13 +44,12 @@ determinism problem that does not have to wait for that.
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import random
 from typing import Dict, Optional
 
-from MTG_bot.utils.logger import setup_logger
-
-logger = setup_logger("RNG")
+logger = logging.getLogger(__name__)  # handlers belong to the application, not a library
 
 # The four P11 requires, plus one. Deck construction is genuinely a different concern from
 # in-game shuffling: it runs once per matchup, off the per-decision path, and its draw count
