@@ -200,3 +200,18 @@ Eyes on glass (tools/selfplay/trace.py, r18 at ~update 12, deal 900011): the sta
 2/2 into a 2/3) and attacks with everything when the opponent's only creature is tapped from its
 own attack. The heuristic cast Grim Tutor at 2 life and lost at once (CR 704.5a; the old engine
 let it play on until after combat): a teacher weakness, not an engine bug.
+
+## 10. M20 verification round: 109 cards verified
+Gate G2 by four fresh-context verifiers (none mapped these cards): 150 blind packets, 129 real
+and 21 planted with deliberate faults. **Planted faults caught: 21/21** (95% CI 0.85-1.00; the
+plan's bar is 0.9). `round.py apply` re-ran every gate per card and stamped 108 records; Drawn from
+Dreams followed once the B-81 ruling was applied at clause level: **109 of 129 mapped M20 cards
+verified**, 137 spec packs kept in tools/scenarios/cards/M20/ (pytest MTG_bot: 4823 passed).
+- Not verified, review WRONG (engine gaps; trees correct): Tale's End (abilities never on the
+  stack, B-110), Mu Yanling Sky Dancer (empty emblem), Cavalier of Flame and Battalion Foot Soldier
+  ("any number" never asked), Sanitarium Skeleton (graveyard abilities), Anticipate, Cavalier of
+  Gales and Goblin Ringleader ("any order" never asked).
+- Not verified by G3 (12): a critical mutant the evidence could not tell apart from the card. An
+  agent is writing one mutant-killing pack per card.
+- Ruling applied alike to all five order cards: B-81 (significant = alters legal options or state
+  outcomes): a fixed "random order" is information only (OK); a fixed "any order" removes a choice.
