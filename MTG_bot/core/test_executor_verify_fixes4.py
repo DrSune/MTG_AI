@@ -88,6 +88,7 @@ from MTG_bot.core.test_executor_binding import (
     reset_oracle_ids,
 )
 from MTG_bot.core.test_executor_stack import any_target, spell_rec
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 YOU = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
 
@@ -238,6 +239,7 @@ class EndTheTurnTest(Case):
 
     def setUp(self):
         super().setUp()
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex.begin_turn(self.p0)
 
     def spell(self, name, effect):

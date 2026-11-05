@@ -74,6 +74,7 @@ from MTG_bot.core.state import (
     ZONE_LIBRARY,
     GameWorld,
 )
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _ORACLE_SEQ = itertools.count(100)
 
@@ -517,6 +518,7 @@ class TestEventKinds(BindingCase):
         self.assertEqual(self.life(self.p0), 23)  # 1 to the 2/2: survived, fired
 
     def test_turn_phase_markers_and_eot_sweep(self):
+        stock_libraries(self.world, seats=[self.p1])  # p1's turn draws (CR 704.5b)
         self.ex.attach_card(
             self.watch,
             self.record_for(

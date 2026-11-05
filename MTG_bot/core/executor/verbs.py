@@ -1473,8 +1473,9 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
 
 def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     """DRAW (13a): :meth:`GameWorld.draw` takes the top of the library
-    (last entry, zone order); an empty library no-ops (CR 121.2 — the draw
-    attempt itself is free; the loss is a state-check later). The journal
+    (last entry, zone order). A draw the library cannot cover draws
+    nothing more; the attempt is recorded and the player loses at the next
+    state-based-action check (CR 704.5b, ``Executor._player_losses``). The journal
     auto-detects the library->hand move and emits CARD_DRAWN with the
     (drawer, ordinal) payload (events.py) — this row is the 12a-style
     audit line, mirroring MILL/MOVE."""
@@ -1497,14 +1498,16 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
                 (len(ctx.events), "DRAW_REPLACED", str(player), str(repl.source), n)
             )
             return
-    ctx.world.draw(player, n)
+    drawn = ctx.world.draw(player, n)
     ctx.events.append((len(ctx.events), "DRAW", str(player), n))
+    ex = ctx.executor
+    if ex is not None and len(drawn) < n:
+        ex.drew_from_empty.add(player)  # CR 704.5b
     # r22b: the CR 504.5 'the first draw of the draw step' register — the
     # executor stamps the per-turn ordinal ONLY while the skeleton's draw
     # step is open, so main-phase draws (Niya's Restock, Loot) never touch
     # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
     # reads the same pair of trackers).
-    ex = ctx.executor
     if ex is not None and getattr(ex, "_draw_step_open", False):
         ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
 
@@ -1700,8 +1703,9 @@ def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
     """LOSE_GAME (13a; 13b audit-row fix): the frozen GameWorld carries no
     per-player lost flag (state.py is frozen) — so the loss lands on an
     EXECUTOR-side ledger, a documented divergence from a state-side flag;
-    game-over evaluation (and the emptied library's CR 121.3 loss) is the
-    later state-check phase. 13b quirk fix: the loss was ledger-only, a
+    the game ends at the next state-based-action check
+    (``Executor._player_losses``, which also owns the CR 704.5a/b losses).
+    13b quirk fix: the loss was ledger-only, a
     world-invisible mutation the STRUCTURED journal never saw (the
     fingerprint folded only the raw event-log row). It now also emits a
     GAME_LOST GameEvent row — subject the player — so every subscriber

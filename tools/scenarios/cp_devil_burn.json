@@ -9,15 +9,12 @@
   "mana": { "0": { "R": 2 } },
   "steps": [
     { "op": "life", "seat": 1, "set": 3 },
-    { "op": "activate", "key": "hobble", "idx": 0, "seat": 0, "targets": ["devil"], "decisions": ["devil", "player:1"] },
-    { "op": "combat", "seat": 0, "attack": { "hobble": true }, "block": { "guard": "hobble" } }
+    { "op": "activate", "key": "hobble", "idx": 0, "seat": 0, "targets": ["devil"], "decisions": ["devil", "player:1"] }
   ],
   "expect": {
     "life": { "1": 0 },
-    "zone": { "devil": "graveyard", "hobble": "graveyard", "foal": "battlefield", "guard": "battlefield" },
-    "damage": { "guard": 3 },
-    "attackers": { "hobble": true },
-    "blocked": { "hobble": ["guard"] }
+    "lost": { "0": false, "1": true },
+    "zone": { "devil": "graveyard", "hobble": "battlefield", "foal": "battlefield", "guard": "battlefield" }
   },
-  "notes": "CAST-PRIORITY (engine burn before the swing): Hobblefiend's {1}{R} activation SACRIFICES the Pitchburn Devils — the devil's death-burn (3 damage to any target) resolves FIRST, and the gold sends it to the FACE (exactly lethal at 3). Null answers vocab[0] — the sorted first living creature (Hobblefiend itself dies instead, face stays at 3, no guard damage row, no attacker: life/zone/damage lanes all falsify). The counter-granted trample makes the follow-up swing unplayable-around: Pit Guard 3/4 eats the 3/2 alive. The sacrifice-cost pick is itself an ask (two own creatures qualify) and is scripted first."
+  "notes": "CAST-PRIORITY (engine burn before the swing): Hobblefiend's {1}{R} activation SACRIFICES the Pitchburn Devils — the devil's death-burn (3 damage to any target) resolves FIRST, and the gold sends it to the FACE (exactly lethal at 3). Null answers vocab[0] — the sorted first living creature (Hobblefiend itself dies instead, face stays at 3, nobody loses: life/lost/zone lanes all falsify). 2026-11-05 (CR 704.5a, 104.2a): player 1 at 0 loses at the state-based-action check right after the activation, which ends the game; the follow-up swing this pack used to script (Pit Guard 3/4 eating the 3/2) can no longer happen and was removed. The sacrifice-cost pick is itself an ask (two own creatures qualify) and is scripted first."
 }

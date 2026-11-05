@@ -41,6 +41,7 @@ from MTG_bot.core.executor import (
     SUPPORTED_VERBS_V1,
     SUPPORTED_VERBS_V2,
     Executor,
+    GameOver,
     ability_playable,
     activate,
 )
@@ -56,6 +57,7 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import record_of
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _GOLDEN_DIR = Path(__file__).parent / "golden" / "M21"
 _GOLDENS: dict[str, dict] = {}
@@ -178,16 +180,19 @@ class TestDraw(LibraryCase):
         self.assertEqual([r.subject for r in rows], [self.libs[3], self.libs[2]])
         self.assertEqual([r.data for r in rows], [(self.p0, 1), (self.p0, 2)])
 
-    def test_draw_on_empty_library_is_clean_noop(self):
-        # CR 121.2: the draw attempt on an empty library is free; the loss
-        # is a state-check, NOT part of the DRAW verb.
-        self._do(
-            atom(Verb.DRAW, controller=ControllerRef.OPPONENT, amount=QConst(3)),
-            controller=self.p0,
-        )
+    def test_draw_on_empty_library_moves_nothing_and_loses_at_the_check(self):
+        # The DRAW verb itself moves nothing from an empty library; the player
+        # who attempted it loses at the state-based-action check after the op
+        # (CR 704.5b), which ends a two-player game (CR 104.2a). Until
+        # 2026-11-05 the loss never came: no state check had the lane.
+        with self.assertRaises(GameOver):
+            self._do(
+                atom(Verb.DRAW, controller=ControllerRef.OPPONENT, amount=QConst(3)),
+                controller=self.p0,
+            )
         self.assertEqual(self.zone(self.p1, ZONE_HAND), [])
         self.assertEqual(self.journal_rows("CARD_DRAWN"), [])
-        self.assertEqual(self.ex.lost_players, [])
+        self.assertEqual(self.ex.lost_players, [self.p1])
         self.assertEqual(self.world.players[self.p1].life, 20)
 
 
@@ -432,6 +437,7 @@ class TestEndTurn(LibraryCase):
         self.assertFalse(self.ex.end_turn_requested)  # consumed at the op edge
 
     def test_advance_turn_after_early_end_turn_no_duplicate_marker(self):
+        stock_libraries(self.world)  # p1's turn draws (CR 704.5b)
         self.ex.begin_turn(self.p0)
         self._do(atom(Verb.END_TURN))
         self.ex.advance_turn()
@@ -477,6 +483,10 @@ class TestFirstTurnDraw(LibraryCase):
 
 
 class TestExtraTurn(LibraryCase):
+    def setUp(self):
+        super().setUp()
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
+
     def test_extra_turn_queue_drains_before_round_robin(self):
         self.ex.begin_turn(self.p0)  # turn 1: p0
         self._do(atom(Verb.EXTRA_TURN, count=QConst(2)))
@@ -543,7 +553,9 @@ class TestExtraTurn(LibraryCase):
 
 class TestLoseGame(LibraryCase):
     def test_lose_game_records_player_and_journal_row(self):
-        self._do(atom(Verb.LOSE_GAME))
+        # The loss ends a two-player game at the check after the op (CR 104.2a).
+        with self.assertRaises(GameOver):
+            self._do(atom(Verb.LOSE_GAME))
         self.assertEqual(self.ex.lost_players, [self.p0])
         rows = [e for e in self.ex.events if e[1] == "LOSE_GAME"]
         self.assertEqual(rows, [(rows[0][0], "LOSE_GAME", str(self.p0))])
@@ -555,6 +567,7 @@ class TestLoseGame(LibraryCase):
 class TestLoyaltyLedger(LibraryCase):
     def setUp(self):
         super().setUp()
+        stock_libraries(self.world)  # draws and turns: no deck-out (CR 704.5b)
         self.pw = self.world.add_card(
             card_id(
                 "Chandra, Flame's Catalyst",
@@ -807,6 +820,7 @@ class TestLoyaltyWindow(LibraryCase):
         self.basri = self.walker(
             "Basri Ket", self.p1, "3", "Legendary Planeswalker — Basri"
         )
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex.decisions.provider = lambda vocab, what: vocab[0]
         self.ex.begin_turn(self.p0)
 
@@ -928,6 +942,7 @@ class TestReplayDeterminism(unittest.TestCase):
                 world.add_card(card_id(f"R{i}", type_line="Basic Land"), p0)
                 for i in (1, 2, 3, 4)
             ]
+            stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
             ex = Executor(world)
             ex.begin_turn(p0)
             ex.execute(
@@ -946,7 +961,8 @@ class TestReplayDeterminism(unittest.TestCase):
             ex.advance_turn()  # the extra turn: p0 again
             ex.execute(atom(Verb.END_TURN), source=p0, controller=p0)
             ex.advance_turn()
-            ex.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
+            with self.assertRaises(GameOver):  # the game ends (CR 104.2a)
+                ex.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
             return ex.state_fingerprint()
 
         self.assertEqual(replay(), replay())
@@ -1028,7 +1044,8 @@ class TestCapabilitySurface(unittest.TestCase):
         p0 = world.player_order[0]
         a = Executor(world)
         fp0 = a.state_fingerprint()
-        a.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
+        with self.assertRaises(GameOver):  # the game ends (CR 104.2a)
+            a.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
         self.assertNotEqual(fp0, a.state_fingerprint())
 
 

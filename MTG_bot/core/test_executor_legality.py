@@ -65,6 +65,7 @@ from MTG_bot.core.test_executor_binding import (
     record_of,
     reset_oracle_ids,
 )
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 
 def cost(*parts) -> Cost:
@@ -110,6 +111,7 @@ class LegalityCase(unittest.TestCase):
         self.beta = self.world.add_card(
             card_id("Beta", "1", "1"), self.p1, ZONE_BATTLEFIELD
         )
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
 
     def attach(self, abilities, handle=None) -> int:

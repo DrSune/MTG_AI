@@ -128,6 +128,7 @@ from MTG_bot.core.executor.events import (
     KIND_COMBAT_DAMAGE,
     KIND_DECLARE_ATTACKERS,
     KIND_DECLARE_BLOCKERS,
+    KIND_GAME_LOST,
     KIND_TAP_STATE,
     KIND_ZONE_CHANGE,
     EventJournal,
@@ -364,6 +365,7 @@ __all__ = [
     "ExecCtx",
     "Executor",
     "GameEvent",
+    "GameOver",
     "GrantedAbility",
     "LayerRecord",
     "LayerRegistry",
@@ -459,6 +461,16 @@ def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
         handles = ctx.binding_handles("result") or []
         return handles[0] if len(handles) == 1 else None
     return ctx.source
+
+
+class GameOver(Exception):
+    """The game ended at a state-based-action check (CR 704.3): at most one
+    player is still in it (CR 104.2a: that player wins; 104.4a: when all the
+    remaining players lose at once, the game is a draw). Raised by
+    :meth:`Executor._player_losses` so that no game action follows the check:
+    no trigger resolves, no damage step or turn step comes next. Who lost,
+    and why, is in ``Executor.lost_players`` and the GAME_LOST journal rows.
+    The game driver (``games._play``) catches it."""
 
 
 class Executor:
@@ -563,9 +575,13 @@ class Executor:
         # extra turn's player. None until advance_turn first rotates (the
         # first turn is the normal turn of whoever began it).
         self.normal_turn_seat: Handle | None = None
-        # LOSE_GAME ledger (the emptied-library CR 121.3 loss is the later
-        # state-check phase, not a verb).
+        # The players who lost: a LOSE_GAME effect (verbs._v_lose_game) or
+        # the CR 704.5a/b state-based actions (_player_losses).
         self.lost_players: list[Handle] = []
+        # CR 704.5b: the players who attempted to draw from an empty library
+        # since the last state-based-action check (_v_draw adds, the check
+        # reads and clears). Empty between ops, so not fingerprinted.
+        self.drew_from_empty: set[Handle] = set()
         # CR 606.3: handle -> turn of that permanent's last loyalty act.
         self.loyalty_clock: dict[Handle, int] = {}
         # FLIP_COIN's winner, read by the FLIP_WON conditional of a
@@ -1636,6 +1652,31 @@ class Executor:
             losers.extend(h for h in cards if str(h) != kept)
         return sorted(losers)
 
+    def _player_losses(self) -> None:
+        """The player-loss state-based actions, the first lane of every check
+        (CR 704.3): a player with 0 or less life (704.5a), or who attempted to
+        draw from an empty library since the last check (704.5b), loses. Each
+        loser joins ``lost_players`` with a GAME_LOST row saying why. When at
+        most one player is left, the game is over (CR 104.2a; everyone at
+        once is a draw, 104.4a) and :class:`GameOver` ends it at this check.
+        A LOSE_GAME effect ended a two-player game when it resolved, so nobody
+        else loses at the check after it."""
+        players = self.world.player_order
+        remaining = [p for p in players if p not in self.lost_players]
+        if len(remaining) > 1:
+            for player in remaining:
+                if self.world.players[player].life <= 0:
+                    why = "LIFE"
+                elif player in self.drew_from_empty:
+                    why = "EMPTY_LIBRARY"
+                else:
+                    continue
+                self.lost_players.append(player)
+                self.journal.emit(KIND_GAME_LOST, player, None, "STATE_CHECK", (why,))
+        self.drew_from_empty.clear()
+        if self.lost_players and sum(p not in self.lost_players for p in players) <= 1:
+            raise GameOver(", ".join(str(p) for p in self.lost_players))
+
     def _state_checks(self) -> int:
         """The 16a state-based action sweep (CR 704.3: repeat until the
         table is stable), run at every settle point — the end of each
@@ -1660,6 +1701,8 @@ class Executor:
         number of batches performed."""
         batches = 0
         while True:
+            # CR 704.5a/b: a player who loses here ends a two-player game.
+            self._player_losses()
             # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
             # W4-4: one whose leave triggers are still queued waits for them.
             self._cease_tokens()
@@ -2014,9 +2057,9 @@ class Executor:
         drains there in clock order behind the UPKEEP marker) and no nested
         ``_consume_end_turn`` (an END_TURN requested by such a trigger
         closes at the next op boundary, never mid-skeleton). An empty
-        library no-ops here (CR 121.2 through ``_v_draw``); CR 121.3's
-        'draw from empty = loss' is a STATE CHECK, not a verb (13a ruling),
-        and belongs to the caller's loss scan, not to this step.
+        library draws nothing here; ``_v_draw`` records the attempt and the
+        state-based check at the tail of :meth:`begin_turn` makes that
+        player lose (CR 704.5b, :meth:`_player_losses`).
 
         ``source`` is the seat: no permanent drew this card, and the
         journal's cause column records the seat, which is what

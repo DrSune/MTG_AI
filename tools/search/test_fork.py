@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 
+from MTG_bot.core.executor import GameOver
 from tools.search import (
     Position,
     expand,
@@ -144,5 +145,9 @@ def test_expand_over_game_is_empty(pos8):
     dead = fork(pos8.game, pos8.supply)
     dead.world.players[dead.world.player_order[0]].life = 0
     dead.world.players[dead.world.player_order[1]].life = 0
+    # 2026-11-05: both players lose at the next state-based-action check (CR
+    # 704.5a; at once, a draw, 104.4a), which ends the game there.
+    with pytest.raises(GameOver):
+        dead.executor._settle()
     xs = expand(Position(dead, pos8.supply, "turn_top"), 0)
     assert xs.kind == "over" and xs.options == ()

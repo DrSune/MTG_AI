@@ -35,6 +35,7 @@ from MTG_bot.core.executor.legality import legal_attackers
 from MTG_bot.core.executor.query import legal_targets
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
 from MTG_bot.core.test_executor_binding import atom, card_id, gain, record_of
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
 CREATURE = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
@@ -52,6 +53,7 @@ class PhasingCase(unittest.TestCase):
     def setUp(self) -> None:
         self.world = GameWorld(num_players=2, start_life=20, master_seed=26)
         self.p0, self.p1 = self.world.player_order
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
 
     def creature(self, name: str, seat, abilities=()):

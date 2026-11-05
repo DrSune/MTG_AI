@@ -117,6 +117,7 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import card_id, reset_oracle_ids
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 UNIV = FAnd(())
 SMOKE_DECK_PAIRS = 1409  # the CLI default: the tests run the shipped recipe
@@ -653,6 +654,7 @@ class DecisionSurfaceTest(unittest.TestCase):
                 _atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
             ),
         )
+        stock_libraries(self.world)  # the DRAW option draws (CR 704.5b)
         asked: list[tuple[tuple[str, ...], str]] = []
 
         def provider(vocab: tuple[str, ...], what: str) -> str:
@@ -1498,6 +1500,7 @@ class Round14dJournalTest(unittest.TestCase):
         for a battlefield anchor, and both legs false once the turn
         window turns over (advance_turn)."""
         world, executor = self._world()
+        stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
         p0 = world.player_order[0]
         executor.begin_turn(p0)
         mover = world.add_card(
@@ -1650,6 +1653,7 @@ class Round14dJournalTest(unittest.TestCase):
         exile — the 12b cause column). Another source says no, and the
         relationship PERSISTS across turns (it is not windowed)."""
         world, executor = self._world()
+        stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
         p0 = world.player_order[0]
         executor.begin_turn(p0)
         idol = world.add_card(

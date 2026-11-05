@@ -58,6 +58,7 @@ from MTG_bot.core.compiler.test_compiler import _oid, _raw_card
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, GameWorld
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _ORACLE_SEQ = itertools.count(1)
 
@@ -137,6 +138,7 @@ class DurationCase(unittest.TestCase):
         self.beta = self.world.add_card(
             card_id("Beta", "2", "2"), self.p1, ZONE_BATTLEFIELD
         )
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
 
     def pt(self, handle):
@@ -348,6 +350,7 @@ class TestFrostBreathCompiled(unittest.TestCase):
         self.gamma = self.world.add_card(
             card_id("Gamma", "1", "1"), self.p1, ZONE_BATTLEFIELD
         )
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
 
     def cast(self, *targets):
@@ -569,6 +572,7 @@ class TestReplayFingerprint(unittest.TestCase):
         beta = world.add_card(
             card_id("Beta", "2", "2", oid=_oid(2)), p1, ZONE_BATTLEFIELD
         )
+        stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
         ex = Executor(world)
         cond = DurationWhileCondition(FNot(FAtom(FAtomPred.IS_TAPPED)))
         ex.execute(

@@ -50,6 +50,7 @@ from MTG_bot.core.test_executor_verbs import (
     UNIV,
     atom,
     card_id,
+    stock_libraries,
     target_sel,
 )
 
@@ -222,6 +223,7 @@ class TestDeclareAsks(CombatCase):
 
     def test_decline_is_respected_and_no_ask_without_creatures(self):
         alpha = self.synth("Alpha", 2, 2, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self.default_answer = "DECLINE"
@@ -274,6 +276,7 @@ class TestDeclareAsks(CombatCase):
 
     def test_sick_creature_not_asked_clean_next_turn(self):
         zhalafir = self.real("Historian of Zhalfir", self.p0, ZONE_HAND)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self.enter_battlefield(zhalafir, self.p0)  # enters THIS turn
@@ -432,6 +435,7 @@ class TestTriggerFeeds(CombatCase):
         self.synth("Beta", 1, 1, self.p0)
         for i in range(3):
             self.world.add_card(card_id(f"ML{i}"), self.p1, ZONE_LIBRARY)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         before = self.hand(self.p1)
@@ -488,6 +492,7 @@ class TestMandates(CombatCase):
         # turn's declaration and ends in the cleanup step (CR 514.2); the
         # dispatch ledger used to keep it until the creature left play.
         alpha = self.synth("Alpha", 2, 2, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self._dispatch_mandate(alpha, alpha, self.p0, DurationEot())
@@ -505,6 +510,7 @@ class TestMandates(CombatCase):
         # attack "until your next turn" — forced on p1's turn, over when
         # p0's next turn begins, so p1's following turn is free again.
         beta = self.synth("Beta", 2, 2, self.p1)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self._dispatch_mandate(beta, beta, self.p0, DurationUntilNextTurn())
@@ -523,6 +529,7 @@ class TestMandates(CombatCase):
         # The durationless dispatch keeps its old reading: it lasts until
         # the creature leaves the battlefield.
         alpha = self.synth("Alpha", 2, 2, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.begin_turn(self.p0)
         self._dispatch_mandate(alpha, alpha, self.p0)
@@ -579,6 +586,7 @@ class TestMandates(CombatCase):
         furor = self.real("Furor of the Bitten", self.p0)
         host = self.synth("Host", 3, 3, self.p0)
         self.synth("Other", 3, 3, self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
         self.ex.attachments[furor] = host  # the aura-host edge (13c table)
         self.ex.begin_turn(self.p0)
@@ -689,18 +697,13 @@ class TestSicknessAfterControlChange(CombatCase):
     Greed steals Crypt Lurker, Roaming Ghostlight bounces it, it is recast
     and attacks the same turn)."""
 
-    def stock_libraries(self) -> None:
-        for seat in (self.p0, self.p1):
-            for i in range(6):
-                self.synth(f"Library {i}", 1, 1, seat, ZONE_LIBRARY)
-
     def test_stolen_returned_bounced_and_recast_creature_is_sick(self):
         # The return of control left a sickness marker for the old object;
         # it must not excuse the new object's battlefield entry (CR 400.7).
         victim = self.real("Chandra's Magmutt", self.p0)  # {T}: 1 damage
         greed = self.real("Traitorous Greed", self.p1, ZONE_HAND)
         ghost = self.real("Roaming Ghostlight", self.p1, ZONE_HAND)
-        self.stock_libraries()
+        stock_libraries(self.world)
         self.begin()
 
         def provider(vocab, what):
@@ -743,7 +746,7 @@ class TestSicknessAfterControlChange(CombatCase):
         victim = self.synth("Victim", 2, 2, self.p0)
         anchor = self.synth("Anchor", 0, 1, self.p1)
         other = self.synth("Other", 1, 1, self.p1)
-        self.stock_libraries()
+        stock_libraries(self.world)
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.end_turn()

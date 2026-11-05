@@ -46,6 +46,7 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import card_id
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _ANY = Selector(QConst(1), SelectorMode.TARGET, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),))
 
@@ -83,6 +84,7 @@ class ReturnRegistryTest(unittest.TestCase):
         self.world = GameWorld(num_players=2, start_life=20, master_seed=5)
         self.ex = Executor(self.world)
         self.p0, self.p1 = self.world.player_order
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex.begin_turn(self.p0)
         self.anchor = self.world.add_card(card_id("Anchor", "1", "1"), self.p0, ZONE_BATTLEFIELD)
 

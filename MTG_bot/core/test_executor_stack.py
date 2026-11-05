@@ -57,7 +57,7 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
 )
-from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.legality import (
     ability_playable,
     activate,
@@ -93,6 +93,7 @@ from MTG_bot.core.test_executor_binding import (
     record_of,
     reset_oracle_ids,
 )
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _OID = itertools.count(9000)
 
@@ -161,6 +162,7 @@ class StackCase(unittest.TestCase):
         reset_oracle_ids()
         self.world = GameWorld(num_players=2, start_life=20, master_seed=7)
         self.p0, self.p1 = self.world.player_order[0], self.world.player_order[1]
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
         self.ex.begin_turn(self.p0)
 
@@ -1264,11 +1266,14 @@ class TestJournalFingerprintRaises(StackCase):
         self.assertEqual(self.world.controller_of(spell), self.p0)
 
     def test_lose_game_emits_a_journal_row(self):
-        self.ex.execute(
-            atom(Verb.LOSE_GAME),
-            source=self.p0,
-            controller=self.p0,
-        )
+        # 2026-11-05: in a two-player game the loss ends the game at the
+        # state-based-action check after the effect (CR 104.2a, 704.3).
+        with self.assertRaises(GameOver):
+            self.ex.execute(
+                atom(Verb.LOSE_GAME),
+                source=self.p0,
+                controller=self.p0,
+            )
         evs = self.journal_events("GAME_LOST")
         self.assertEqual(len(evs), 1)
         self.assertEqual(evs[0].subject, self.p0)
