@@ -1,4 +1,4 @@
-"""The PPO update over a packed buffer: shared by the learner (in-process) and trainer.py.
+"""The PPO update over a packed buffer (run in trainer.py's process); ``chunks`` also batches BC.
 
 Loss per minibatch: clipped policy gradient on normalised advantages, clipped value loss and
 an entropy bonus, scaled by the minibatch's share of the decisions so every decision weighs the

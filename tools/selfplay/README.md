@@ -27,7 +27,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
 | `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. |
 | `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. |
-| `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. No torch in workers. |
+| `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run; paired comparison of two evaluations on the same deals. |
@@ -57,9 +57,10 @@ batch waits (`throttled`). Serve with `--infer-bf16` (KL to the trainer's numeri
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards
 whose current compiled tree passed play-time verification; M21: 263 cards), `compiled` (whole
 text compiled; M21: 281) or `castable` (also partly parsed cards; equal to compiled on M21).
-The learner stops at start when a dealt set has no card in the pool. `--mix-sets` deals a
-`--mix-share` of training games from other sets (they must also be in `--extend-sets`, which
-gives their cards table rows); `--eval-set` picks the evaluation set.
+The learner stops at start when a dealt set has no card in the pool, and a resume refuses a
+pool other than the one its run dealt from. `--mix-sets` deals a `--mix-share` of training
+games from other sets (they must also be in `--extend-sets`, which gives their cards table
+rows; it applies to a run started with `--init`); `--eval-set` picks the evaluation set.
 
 **Ratings.** Elo by Bradley-Terry over the ladder games of frozen players (`fit_elo`), with
 **uniform random = 0** (a seat choosing uniformly among the offered options at every ask). One
@@ -76,13 +77,16 @@ value head; candidates share sampled worlds. v1 + search: 0.651 vs the heuristic
 raw v1 (§25).
 
 **Resuming (`--resume DIR`).** `state.pkl` (iteration, stage, versions, rating games, job ids,
-the opponent-draw RNG, gate count, queued evaluations) is saved with `last.pt` and every
-`v<k>.pt`; resume into the same directory to keep one metrics history. PPO's AdamW moments
-restart.
+the opponent-draw RNG, gate count, queued evaluations, pool) is saved with `last.pt` and every
+`v<k>.pt`; resume into the same directory to keep one metrics history. A resume skips the
+teacher inter-play stage and must use the run's `--pool` (state files from before 2026-11-05:
+`castable`). PPO's AdamW moments restart; an evaluation still running when the run stopped is
+not resumed (queued ones are).
 
 **Run manifest.** Each start of the learner, a resume included, appends an entry to
-`<run>/manifest.json`: the parsed arguments and command line, the git commit and whether the
-tree is dirty (with `git status --porcelain`), host, Python and torch versions, start time.
+`<run>/manifest.json`: the parsed arguments, the git commit and whether the tree is dirty (with
+`git status --porcelain`; untracked files count, since card records on disk change the pools),
+host, Python and torch versions, start time.
 
 ## Run
 
@@ -94,7 +98,8 @@ tree is dirty (with `git status --porcelain`), host, Python and torch versions, 
     --ent 0.002 --teacher-iters 20 --teacher-gate 0.65 --eval-every 5 --eval-deals 200 \
     --gate-every 5 --gate-deals 300 --gate-score 0.5 --ladder-deals 150 --p-heuristic 0.15 \
     --p-past 0.15 --iters 3000 --save-every 1 --mem-floor-gib 12
-# continue it: the same command plus --resume runs/selfplay/r17_ppo
+# continue it: the same command plus --resume runs/selfplay/r17_ppo --pool castable (r17 dealt
+# castable cards; a run on the verified pool starts from its weights: --init .../r17_ppo/last.pt)
 # from scratch: teacher inter-play first
 .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --workers 18 --slots 16 \
     --groups 4 --d 512 --layers 8 --heads 8 --ff 2048 --bc-games 16000 --teacher-iters 40 \
@@ -110,7 +115,7 @@ tree is dirty (with `git status --porcelain`), host, Python and torch versions, 
 
 Before 2026-11-05 the training command also carried `--curriculum --adapt ppo --trainer-proc
 --kl-anchor 0`; those flags selected what is now the only behaviour and are gone. Runs before
-it dealt `castable` cards (`--pool castable` reproduces that).
+then dealt `castable` cards (`--pool castable` reproduces that).
 
 `runs/` is gitignored. Metrics: `runs/selfplay/NAME/metrics.jsonl` (events `iter`, `eval`,
 `teacher_gate`, `stage`, `gate`, `freeze`, `elo`, `bc_gen`, `bc_data`, `bc_epoch`, `progress`

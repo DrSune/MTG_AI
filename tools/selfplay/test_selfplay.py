@@ -387,6 +387,44 @@ def test_manifest_appends_one_entry_per_start(tmp_path) -> None:
         assert e["torch"] == torch.__version__ and e["host"] and e["started"]
 
 
+def test_resume_refuses_another_pool(table, tmp_path, monkeypatch) -> None:
+    """A run deals from one pool; a state file from before --pool existed was dealt castable."""
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    src = tmp_path / "src"
+    src.mkdir()
+    M.save(str(src / "last.pt"), M.build(table, d=32, layers=1, heads=4, ff=64), table)
+    (src / "state.pkl").write_bytes(pickle.dumps(
+        {"it": 3, "stage": "teacher", "versions": [], "elo_games": []}))
+
+    def learner(pool: str) -> L.Learner:
+        return L.Learner(L.parse(["--run", str(tmp_path / pool), "--device", "cpu", "--d", "32",
+                                  "--layers", "1", "--heads", "4", "--ff", "64", "--pool", pool]))
+
+    with pytest.raises(ValueError, match="'castable' pool"):
+        learner("verified").load_state(str(src))
+    assert learner("castable").load_state(str(src))["it"] == 3
+
+
+def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:
+    """A run resumed across the change holds old rows (no set, no pool) and new ones."""
+    import json
+
+    from tools.selfplay import paired
+
+    rows = []
+    for seed in (1, 2):
+        for a_seat in (0, 1):
+            old = {"opp": "heuristic", "seed": seed, "deck_mode": "stress", "a_seat": a_seat,
+                   "outcome": "win", "winner": a_seat}
+            rows += [old, {**old, "seed": seed + 10, "set_code": "M21", "pool": "verified"}]
+    path = tmp_path / "eval_rows.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    assert paired.main([str(path), str(path)]) == 0
+    assert json.loads(capsys.readouterr().out)["deals"] == 4
+
+
 def test_gae_bootstraps_a_truncated_game() -> None:
     from tools.selfplay.learner import gae
     vals = [0.2, -0.4, -0.8]

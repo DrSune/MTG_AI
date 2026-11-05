@@ -52,7 +52,8 @@ def main(argv: list[str] | None = None) -> int:
     A = _load(args.a, args.tag_a, args.opp)
     B = _load(args.b, args.tag_b, args.opp)
     diffs, sa, sb = [], [], []
-    for key in sorted(set(A) & set(B)):
+    # rows written before set and pool were recorded hold None there: sort None as ""
+    for key in sorted(set(A) & set(B), key=lambda k: tuple("" if x is None else x for x in k)):
         pa, pb = A[key], B[key]
         if set(pa) != {0, 1} or set(pb) != {0, 1}:
             continue

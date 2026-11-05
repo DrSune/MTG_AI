@@ -1,4 +1,4 @@
-"""The trainer process (--trainer-proc): PPO updates in their own process and CUDA context.
+"""The trainer process: PPO updates (ppo.py) in their own process and CUDA context.
 
 The learner keeps answering the workers on the current weights while this process trains on
 the previous batch; the GPU time-slices between the two contexts, so the workers never wait for

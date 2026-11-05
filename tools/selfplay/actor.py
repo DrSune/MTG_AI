@@ -6,7 +6,8 @@ baton back. The worker sends the posts of one slot group to the learner in one m
 the other group while it waits, so the CPU keeps working during GPU inference. Engine code never
 runs concurrently, so there are no data races on the engine's module-level caches.
 
-Workers never import torch.
+Workers do no torch work (spawn still imports torch in them: it re-imports learner.py as each
+worker's main module).
 
 Messages, worker -> learner: ("infer", wid, group, [req]), ("done", wid, [result]),
 ("need", wid, n). Learner -> worker: ("ans", group, [(action, logp, value)]), ("jobs", [job]),

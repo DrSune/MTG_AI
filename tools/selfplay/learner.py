@@ -145,9 +145,9 @@ def mem_available_gib() -> float:
 
 def write_manifest(run: Path, args: argparse.Namespace) -> dict:
     """Append this start of the learner to ``<run>/manifest.json``, a list with one entry per
-    start (a resume or a restart adds an entry, never overwrites one): the parsed arguments and
-    the command line, the git commit and whether the tree differs from it, the host, the Python
-    and torch versions and the start time."""
+    start (a resume or a restart adds an entry, never overwrites one): the parsed arguments, the
+    git commit and whether the tree differs from it, the host, the Python and torch versions and
+    the start time."""
     def git(*cmd: str) -> str | None:
         try:
             out = subprocess.run(["git", *cmd], cwd=REPO, capture_output=True, text=True,
@@ -157,8 +157,10 @@ def write_manifest(run: Path, args: argparse.Namespace) -> dict:
         return out.stdout if out.returncode == 0 else None
 
     commit = git("rev-parse", "HEAD")
-    # untracked files count as dirty: card records on disk change what the pools deal
-    status = git("status", "--porcelain")
+    # untracked files count as dirty: card records on disk change what the pools deal. No
+    # optional locks: a status that refreshes the index would hold index.lock against the
+    # commits of other agents working in the same checkout.
+    status = git("--no-optional-locks", "status", "--porcelain")
     entry = {
         "started": datetime.now().astimezone().isoformat(timespec="seconds"),
         "t": round(time.time(), 1),  # the clock of the metrics.jsonl rows
@@ -168,7 +170,6 @@ def write_manifest(run: Path, args: argparse.Namespace) -> dict:
         "git_status": status.splitlines() if status else [],
         "python": platform.python_version(),
         "torch": torch.__version__,
-        "argv": sys.argv[1:],
         "args": vars(args),
     }
     path = run / "manifest.json"
@@ -280,7 +281,6 @@ class Learner:
         self.train_results: list = []
         self.infer_batches = 0
         self.infer_items = 0
-        self.infer_time = 0.0
         self._mem_checked = 0.0
         self._start_workers()
 
@@ -404,7 +404,6 @@ class Learner:
             p.start()
             self.conns.append(a)
             self.procs.append(p)
-        self.wid_of = {id(c): i for i, c in enumerate(self.conns)}
 
     def stop_workers(self) -> None:
         if self.trainer is not None:
@@ -552,7 +551,6 @@ class Learner:
 
     @torch.no_grad()
     def infer(self, msgs: list) -> None:
-        t0 = time.perf_counter()
         answers = [[0] * len(reqs) for (_, _, reqs) in msgs]
         by_key: dict[str, list] = defaultdict(list)
         for mi, (_, _, reqs) in enumerate(msgs):
@@ -603,7 +601,6 @@ class Learner:
         for (conn, group, _), ans in zip(msgs, answers, strict=True):
             conn.send(("ans", group, ans))
         self.infer_batches += 1
-        self.infer_time += time.perf_counter() - t0
 
     # ------------------------------------------------------------------ results
 
@@ -670,8 +667,6 @@ class Learner:
                 if seats[seat] == "learner" and seats[1 - seat] != "learner":
                     self.train_results.append((seats[1 - seat], self.reward(
                         r["outcome"], r["winner"], seat), r["turns"], r["set_code"]))
-
-    # ------------------------------------------------------------------ PPO
 
     # ------------------------------------------------------------------ BC
 
@@ -825,12 +820,9 @@ class Learner:
     def eval_only(self) -> None:
         """Evaluate --init (as the "eval" seat, optionally with search) and exit."""
         a = self.args
-        self.models["eval"] = self.model
         if a.opp_ckpt:
             opp, _, _ = M.load(a.opp_ckpt, self.device)
             self.models["snap:opp"] = opp.eval()
-        self.eval_rows = []
-        self.eval_meta = {"tag": "eval-only", "it": 0, "t0": time.time(), "init": a.init}
         self.start_eval("eval-only")
         self.models["eval"] = self.model  # start_eval made a frozen copy; same weights
         self.phase = "idle"
@@ -996,7 +988,7 @@ class Learner:
         import pickle
 
         state = {"it": self.it, "stage": self.stage, "versions": self.versions,
-                 "elo_games": self.elo_games,
+                 "elo_games": self.elo_games, "pool": self.args.pool,
                  # a resume continues the job ids (training seeds), the opponent draws, the gate
                  # deal blocks and any queued evaluation (a freeze's ladder)
                  "gid": self.gid, "rng": self.rng.getstate(), "n_gates": self.n_gates,
@@ -1014,6 +1006,13 @@ class Learner:
         src = Path(run_dir)
         with (src / "state.pkl").open("rb") as fh:
             st = pickle.load(fh)
+        # A run deals from one pool: its ratings and evaluations compare games dealt from it.
+        # State files from before --pool existed were written by runs that dealt castable cards.
+        pool = st.get("pool", "castable")
+        if pool != self.args.pool:
+            raise ValueError(f"--resume {run_dir}: that run dealt from the {pool!r} pool, not "
+                             f"{self.args.pool!r}; resume it with --pool {pool}, or start a new "
+                             f"run from its weights with --init {src / 'last.pt'}")
         model, _, _ = M.load(str(src / "last.pt"), self.device)
         self.model.load_state_dict(model.state_dict())
         self.weights_changed(self.model)
