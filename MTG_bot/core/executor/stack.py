@@ -1388,7 +1388,16 @@ def cast_card(
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
-    triggers see it (CR 601.2m)."""
+    triggers see it (CR 601.2m).
+
+    2026-11-05 (CR 704.3): the spell is resolved here, inside the
+    resolution that cast it, and the two settles below stand for the
+    priority points that follow that resolution (its cast triggers above
+    the spell, then the spell, then its ETB triggers). That holds because
+    every compiled CAST is the last instruction of its effect (Idol of
+    Endurance, Conspicuous Snoop, Radha, Coveted Prize, Chandra, Flame's
+    Catalyst's [-2]). The cost payment above is part of the resolution
+    and does not settle (Executor._run_resolution)."""
     from MTG_bot.core.executor.legality import ctx_for, effect_cast_cost
 
     world = executor.world
