@@ -1,35 +1,41 @@
-"""The learner: GPU inference server for the workers, BC warm start, PPO self-play, evaluation.
+"""The learner: GPU inference server for the workers, the training curriculum, evaluation.
 
-Run::
+Run (full commands in README.md here)::
 
-    .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --workers 18 \
-        --bc-games 20000 --iters 400
+    .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --init CKPT ...
+    .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --init CKPT --eval-only
 
-Phases:
-1. BC (skipped with --init): heuristic-vs-heuristic games record (features, action) for both
-   seats; the network learns the action (cross-entropy) and the outcome (value MSE).
-2. PPO: workers play the learner against itself, frozen snapshots of itself (the league) and
-   the heuristic. Every learner decision is recorded with its log-probability and value; when
-   a game ends its seats get +1 (win), -1 (loss), ``--draw-reward`` (turn cap or stall) or 0
-   (both lose at once), and GAE turns that into per-decision advantages.
-3. Evaluation (every --eval-every iterations): a frozen copy of the learner plays the heuristic
-   greedily on fixed deals, each deal twice with the seats swapped (duplicate format). Score =
-   wins + draws/2 over decided-or-drawn games; voided games void their pair.
+The curriculum (KNOWLEDGE/2026-11-03/183 §3); the network it starts from is frozen as v0:
+1. Teacher inter-play, only for a network trained from scratch (--bc-games, no --init):
+   heuristic-vs-heuristic games record (features, action) for both seats; the network learns
+   the action (cross-entropy) and the outcome (value MSE).
+2. Teacher stage: PPO against the heuristic until a frozen copy of the learner scores
+   --teacher-gate against it (Wilson lower bound above 0.5) or --teacher-iters pass.
+3. Self-play stage: PPO against the newest frozen version, older versions (--p-past) and the
+   heuristic (--p-heuristic). Every --gate-every iterations a gate match on fresh deals freezes
+   the learner as the next version when it scores --gate-score with the lower bound above 0.5.
 
-Every number goes to ``<run>/metrics.jsonl``; checkpoints to ``<run>/*.pt``.
+PPO: every learner decision is recorded with its log-probability and value; when a game ends
+its seats get +1 (win), -1 (loss), --draw-reward (turn cap or stall) or 0 (both lose at once),
+and GAE turns that into per-decision advantages. Each update runs in the trainer process
+(trainer.py) while this process keeps serving the workers on the current weights.
+
+Evaluation: greedy play on fixed deals, each deal twice with the seats swapped (duplicate
+format); score = (wins + draws/2) / games, a voided game voids its pair. Ratings: Elo by
+Bradley-Terry over the ladder games, uniform random = 0.
+
+Every number goes to <run>/metrics.jsonl; checkpoints to <run>/*.pt.
 """
 
 from __future__ import annotations
 
 import argparse
-import contextlib
 import json
 import math
 import multiprocessing as mp
 import random
 import signal
 import sys
-import threading
 import time
 from collections import Counter, defaultdict, deque
 from multiprocessing.connection import wait
@@ -43,7 +49,7 @@ import torch.nn.functional as F
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.actor import worker_main
-from tools.selfplay.ppo import chunks, pack_buffer, ppo_train
+from tools.selfplay.ppo import chunks, pack_buffer
 from tools.selfplay.trainer import trainer_main
 
 EVAL_SEED0 = 900_000
@@ -205,23 +211,9 @@ class Learner:
                       "allowed": {k: len(v) for k, v in self.mix_allow.items()}})
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
-        self.infer_stream = None
         self.infer_models: dict[str, tuple] = {}
-        self.trainer = None
+        self.trainer = None  # the PPO trainer process, started at the first update
         self.tconn = None
-        if args.trainer_proc and args.async_update:
-            raise ValueError("--trainer-proc and --async-update are alternatives")
-        if args.async_update:
-            # Workers keep playing on this copy while the GPU trains self.model (sync_actor).
-            self.actor = self._copy(self.model)
-            self.models["learner"] = self.actor
-            # Inference stays on the default stream: with its own stream, concurrent training
-            # and inference kernels hit a device-side assert after ~5 iterations that never
-            # reproduced with CUDA_LAUNCH_BLOCKING=1 (2026-11-03). One stream serialises the GPU
-            # work; the gain kept is that workers keep playing while the update runs.
-        self.snaps: list[str] = []
-        self.opt = torch.optim.AdamW(self.model.parameters(), lr=args.lr, betas=(0.9, 0.99),
-                                     eps=1e-6, weight_decay=args.wd)
         n_params = sum(p.numel() for p in self.model.parameters())
         self.log({"event": "model", "params": n_params, "config": self.model.config,
                   "device": str(self.device), "args": vars(args)})
@@ -288,16 +280,11 @@ class Learner:
             torch.cuda.synchronize()  # the copy is complete before any stream reads it
         return net
 
-    def sync_actor(self) -> None:
-        if self.args.async_update:
-            self.actor.load_state_dict(self.model.state_dict())
-            self.weights_changed(self.actor)
-            if self.cuda:
-                torch.cuda.synchronize()
-
-    def _update_remote(self) -> dict:
-        """--trainer-proc: hand the batch to the trainer process and keep serving the workers
-        on the current weights until the new ones come back."""
+    def update(self) -> dict:
+        """One PPO update: hand the batch to the trainer process (its own CUDA context) and keep
+        serving the workers on the current weights until the new ones come back. The workers
+        play the next batch meanwhile; the PPO ratio and clipping account for its slightly
+        older weights."""
         a = self.args
         if self.trainer is None:
             ctx = mp.get_context("spawn")
@@ -327,34 +314,6 @@ class Learner:
         stats["send_s"] = round(send_s, 2)
         stats["overlap_steps"] = len(self.buffer)
         return stats
-
-    def update(self) -> dict:
-        """One PPO update. With --async-update it runs in a thread while this thread keeps
-        serving the workers on the actor copy (they otherwise sit idle for the whole update);
-        the next batch then starts with data from the previous weights, which the PPO ratio
-        and clipping account for."""
-        if self.args.trainer_proc:
-            return self._update_remote()
-        if not self.args.async_update:
-            return self.ppo_update()
-        buf, self.buffer = self.buffer, []
-        out: dict = {}
-
-        def work() -> None:
-            try:
-                out.update(self.ppo_update(buf))
-            except BaseException as error:  # noqa: BLE001 - re-raised in the main thread
-                out["error"] = error
-
-        th = threading.Thread(target=work, daemon=True)
-        th.start()
-        self.serve(lambda: not th.is_alive())
-        th.join()
-        if "error" in out:
-            raise out["error"]
-        self.sync_actor()
-        out["overlap_steps"] = len(self.buffer)
-        return out
 
     # ------------------------------------------------------------------ memory
 
@@ -455,30 +414,8 @@ class Learner:
             if len(self.buffer) >= self.args.steps:
                 self.counts["throttled"] += 1
                 return None
-            return self.train_job()
-        return None
-
-    def train_job(self) -> dict:
-        a = self.args
-        if self.stage:
             return self.curriculum_job()
-        r = self.rng.random()
-        seed = TRAIN_SEED0 + self.gid + 1
-        if r < a.p_self:
-            return self._job("train", seed, ["learner", "learner"], [False, False],
-                             [True, True], self._deck_mode())
-        if r < a.p_self + a.p_heuristic:
-            opp = "heuristic"
-        elif r < a.p_self + a.p_heuristic + a.p_random:
-            opp = "random"
-        elif self.snaps:
-            opp = self.rng.choice(self.snaps[-a.max_snaps:])
-        else:
-            opp = "heuristic"
-        seat = self.rng.randrange(2)
-        seats = ["learner", opp] if seat == 0 else [opp, "learner"]
-        record = [s == "learner" for s in seats]
-        return self._job("train", seed, seats, [False, False], record, self._deck_mode())
+        return None
 
     def search_opts(self) -> dict:
         a = self.args
@@ -585,8 +522,6 @@ class Learner:
         for mi, (_, _, reqs) in enumerate(msgs):
             for ri, req in enumerate(reqs):
                 by_key[req[2]].append((mi, ri, req))
-        stream_ctx = (torch.cuda.stream(self.infer_stream) if self.infer_stream is not None
-                      else contextlib.nullcontext())
         groups = []
         for key, items in by_key.items():
             for bucket in length_buckets(items, self.args.bucket_ratio, self.args.bucket_min):
@@ -594,28 +529,24 @@ class Learner:
         for key, items in groups:
             model = self._infer_net(key)
             bf16 = next(model.parameters()).dtype == torch.bfloat16
-            with stream_ctx:
-                b = M.collate([it[2][5] for it in items], self.device)
-                if bf16:
-                    b = {k: (v.to(torch.bfloat16) if v.dtype == torch.float32 else v)
-                         for k, v in b.items()}
-                with torch.autocast(self.device.type, dtype=torch.bfloat16,
-                                    enabled=self.cuda and not bf16):
-                    logits, value = model(b)
-                logits, value = logits.float(), value.float()
-            with stream_ctx:
-                greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
-                probs = torch.softmax(logits, -1)
-                sampled = torch.multinomial(probs, 1).squeeze(1)
-                act = torch.where(greedy, logits.argmax(-1), sampled)
-                logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
-                # read back on the SAME stream: a copy on the default stream would not wait for
-                # these kernels (with --async-update that race corrupted recorded logps -> NaN)
-                act_np = act.cpu().numpy()
-                logp_np = logp.cpu().numpy()
-                val_np = value.cpu().numpy()
-                probs_np = probs.float().cpu().numpy() if any(
-                    len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
+            b = M.collate([it[2][5] for it in items], self.device)
+            if bf16:
+                b = {k: (v.to(torch.bfloat16) if v.dtype == torch.float32 else v)
+                     for k, v in b.items()}
+            with torch.autocast(self.device.type, dtype=torch.bfloat16,
+                                enabled=self.cuda and not bf16):
+                logits, value = model(b)
+            logits, value = logits.float(), value.float()
+            greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
+            probs = torch.softmax(logits, -1)
+            sampled = torch.multinomial(probs, 1).squeeze(1)
+            act = torch.where(greedy, logits.argmax(-1), sampled)
+            logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
+            act_np = act.cpu().numpy()
+            logp_np = logp.cpu().numpy()
+            val_np = value.cpu().numpy()
+            probs_np = probs.float().cpu().numpy() if any(
+                len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
             for j, (mi, ri, req) in enumerate(items):
                 a = int(act_np[j])
                 # req[6] ("want"): 0/absent -> the action; 1 -> (action, value);
@@ -704,16 +635,6 @@ class Learner:
                 self.train_results.append(("self", 0.0, r["turns"]))
 
     # ------------------------------------------------------------------ PPO
-
-    def ppo_update(self, buf: list | None = None) -> dict:
-        if buf is None:
-            buf, self.buffer = self.buffer, []
-        payload = pack_buffer(buf)
-        del buf
-        out = ppo_train(self.model, self.opt, a=self.args, device=self.device,
-                        check=self.check_memory, release=self.release_cache, **payload)
-        self.weights_changed(self.model)
-        return out
 
     # ------------------------------------------------------------------ BC
 
@@ -852,23 +773,6 @@ class Learner:
         if search_stats:
             out["search"] = dict(search_stats)
         return out
-
-    # ------------------------------------------------------------------ league
-
-    def add_snapshot(self) -> str:
-        key = f"snap:{self.it}"
-        snap = M.build(self.table, **{k: v for k, v in self.model.config.items()
-                                      if k not in ("n_cards", "n_ir")}).to(self.device)
-        snap.load_state_dict(self.model.state_dict())
-        snap.eval()
-        self.models[key] = snap
-        self.snaps.append(key)
-        # keep only max_snaps on the GPU; games in flight against a dropped one finish on
-        # the newest snapshot instead
-        while len(self.snaps) > self.args.max_snaps:
-            old = self.snaps.pop(0)
-            self.models[old] = self.models[self.snaps[-1]]
-        return key
 
     def save(self, name: str, extra: dict | None = None) -> None:
         M.save(str(self.run / name), self.model, self.table,
@@ -1114,7 +1018,6 @@ class Learner:
         self.log({"event": "bc_gen_done", "games": self.bc_done, "samples": len(self.bc),
                   "secs": round(time.time() - t0, 1), "counts": dict(self.counts)})
         self.bc_train()
-        self.sync_actor()
         self.save("bc.pt")
 
     def main(self) -> None:
@@ -1126,61 +1029,11 @@ class Learner:
             if a.eval_only:
                 self.eval_only()
                 return
-            if a.curriculum:
-                if a.bc_games > 0 and not a.init:
-                    self.bc_phase()
-                self.curriculum()
-                return
-            if a.bc_games > 0 and not a.init:
+            # teacher inter-play only for a network trained from scratch; a resume restores
+            # the network from its run instead
+            if a.bc_games > 0 and not (a.init or a.resume):
                 self.bc_phase()
-            self.add_snapshot()  # the starting policy is the league's first member
-            self.models["snap:base"] = self.models[self.snaps[-1]]
-            self.start_eval("start")
-            self.phase = "ppo"
-            best = -1.0
-            for self.it in range(1, a.iters + 1):
-                t0, g0, d0 = time.time(), sum(self.counts[k] for k in
-                                              ("train:games", "eval:games", "bc:games")), self.infer_items
-                self.serve(lambda: len(self.buffer) >= a.steps)
-                tp = self.throughput(t0, g0, d0)
-                t1 = time.time()
-                st = self.update()
-                upd = round(time.time() - t1, 1)
-                res = self.train_results
-                self.train_results = []
-                wr: dict[str, list] = defaultdict(list)
-                for opp, z, *_ in res:
-                    if opp != "self":
-                        wr[opp.split(":")[0]].append(z)
-                row = {"event": "iter", "it": self.it, **st, **tp, "upd_s": upd,
-                       "collect_s": round(t1 - t0, 1),
-                       "vs": {k: round(float(np.mean(v)), 3) for k, v in wr.items()},
-                       "turns": round(float(np.mean([x[2] for x in res])) if res else 0, 1),
-                       "games": len(res), "mem_gib": round(mem_available_gib(), 1),
-                       "infer_bs": round(self.infer_items / max(self.infer_batches, 1), 1),
-                       "voids": self.counts["train:void"], "overflow": self.counts["overflow"]}
-                self.log(row)
-                if self.it % a.snap_every == 0:
-                    self.add_snapshot()
-                if self.eval_meta and not self.eval_pending and self.eval_rows:
-                    ev = self.eval_summary()
-                    self.log(ev)
-                    score = ev.get("heuristic", {}).get("score", -1)
-                    if score > best and ev.get("tag") != "start":
-                        best = score
-                        self.save("best.pt", {"eval": ev})
-                    self.eval_meta = {}
-                if self.it % a.eval_every == 0 and not self.eval_pending:
-                    self.start_eval(f"it{self.it}")
-                if self.it % a.save_every == 0:
-                    self.save("last.pt")
-            self.save("last.pt")
-            # final evaluation, waited for
-            if not self.eval_pending:
-                self.start_eval("final")
-            self.phase = "idle"
-            self.serve(lambda: not self.eval_pending)
-            self.log(self.eval_summary())
+            self.curriculum()
         finally:
             self.stop_workers()
 
@@ -1226,11 +1079,7 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--target-kl", type=float, default=0.03)
     p.add_argument("--draw-reward", type=float, default=-1.0)
     # opponents
-    p.add_argument("--p-self", type=float, default=0.5)
     p.add_argument("--p-heuristic", type=float, default=0.25)
-    p.add_argument("--p-random", type=float, default=0.0)
-    p.add_argument("--snap-every", type=int, default=5)
-    p.add_argument("--max-snaps", type=int, default=10)
     p.add_argument("--coherent-share", type=float, default=0.5)
     # eval
     p.add_argument("--eval-every", type=int, default=10)
@@ -1240,7 +1089,6 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-only", action="store_true", help="evaluate --init and exit")
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
-    p.add_argument("--curriculum", action="store_true")
     p.add_argument("--refresh-table", action="store_true",
                    help="rebuild the --init card table's rows from the current compile (after "
                         "an engine/compiler change re-compiled cards); new components learnable")
@@ -1263,8 +1111,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--mask-names", action="store_true",
                    help="the --init network reads every card name as the unknown card")
     p.add_argument("--resume", default="",
-                   help="--curriculum: continue the run saved in this directory (state.pkl, "
-                        "last.pt, v<k>.pt)")
+                   help="continue the run saved in this directory (state.pkl, last.pt, "
+                        "v<k>.pt)")
     p.add_argument("--teacher-iters", type=int, default=60,
                    help="max PPO iterations against the heuristic before frozen self-play")
     p.add_argument("--teacher-gate", type=float, default=0.65,
@@ -1283,8 +1131,6 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--search-skip-p", type=float, default=0.97,
                    help="no search when the network's top option has at least this probability")
     p.add_argument("--save-every", type=int, default=5)
-    p.add_argument("--trainer-proc", action="store_true",
-                   help="PPO updates in a separate process; the workers never wait for one")
     p.add_argument("--progress-every", type=float, default=300.0,
                    help="seconds between progress events while serving (0: off)")
     p.add_argument("--serve-wait", type=float, default=2.0,
@@ -1294,8 +1140,6 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--bucket-min", type=int, default=8, help="minimum requests per length bucket")
     p.add_argument("--infer-bf16", action="store_true",
                    help="answer inference from bf16 copies of the models (1.6-1.9x faster)")
-    p.add_argument("--async-update", action="store_true",
-                   help="train in a thread while the workers keep playing on an actor copy")
     p.add_argument("--mem-floor-gib", type=float, default=8.0,
                    help="stop the run (emergency checkpoint) below this much MemAvailable")
     return p.parse_args(argv)

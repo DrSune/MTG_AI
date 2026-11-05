@@ -66,7 +66,6 @@ class NetAgent:
         self.table = table
         self.fallback = HeuristicAgent()
         self.name = spec
-        self.decisions = 0
         self.overflow = 0
         self.searcher = None
         self.attack_plan = None
@@ -102,7 +101,6 @@ class NetAgent:
             if idx is not None:
                 return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
-        self.decisions += 1
         if self.searcher is not None and ask.kind == "act":
             return self.searcher.choose(ask, obs, feats)
         return int(self.slot.infer((self.job["gid"], self.seat, self.spec, self.greedy,
@@ -110,14 +108,14 @@ class NetAgent:
 
     def plan_combat(self, game: Any, seat: int) -> None:
         """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.take_acts)."""
-        if self.searcher is None or not self.job.get("search", {}).get("combat", True):
+        if self.searcher is None:
             return
         self.attack_plan = self.searcher.plan_attacks(game, seat)
         self.plan_turn = game.world.turn
 
     def plan_blocks(self, game: Any, seat: int, declared_attackers: frozenset = frozenset()) -> None:
         """Called by the rig at the pre-blocks boundary (rig.SelfplayRouter.before_blocks)."""
-        if self.searcher is None or not self.job.get("search", {}).get("blocks", False):
+        if self.searcher is None or not self.job["search"]["blocks"]:
             return
         self.block_plan = self.searcher.plan_blocks(game, seat, declared_attackers)
         self.block_turn = game.world.turn
@@ -235,7 +233,6 @@ class Worker:
         res["set_code"] = job.get("set_code", "M21")
         res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
                          for a in agents]
-        res["net_decisions"] = [getattr(a, "decisions", 0) for a in agents]
         res["overflow"] = [getattr(a, "overflow", 0) for a in agents]
         bc = [a.samples if isinstance(a, RecordingHeuristic) else None for a in agents]
         if any(s is not None for s in bc):
