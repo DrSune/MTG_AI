@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 603.4 (intervening 'if'): the ability checks its condition when the trigger event occurs and triggers only if it is true; if it triggers, it checks again on resolution. Printed: 'When this creature enters, if you control another creature with power 4 or greater, this creature deals 2 damage to each opponent.' Turret Ogre enters alone, so it never triggers. The entry's triggers are held (hold_triggers: the 'in response' stand-in) and a 4/4 enters before anything resolves: there is still nothing to resolve, the opponent stays at 20. Before the fix the condition was read only at resolution (binding.py _fire), so the firing was queued anyway and dealt 2 once the 4/4 had arrived (18). Companion: intervening_if_false_on_resolution.json.",
+ "cards": [
+  {"key": "ogre", "real": "Turret Ogre", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "ogre", "hold_triggers": true},
+  {"op": "enter", "key": "giant"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield", "giant": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

@@ -421,16 +421,20 @@ class Probe:
 
         r.ex.decisions.provider = provider
         # Trigger firings are queued, not journalled: spy on the binder's queue to see which of
-        # the card's triggered abilities fired (by node position in the card's record).
+        # the card's triggered abilities fired (by node position in the card's record). Only a
+        # firing the binder actually queued counts: one whose intervening "if" is false when the
+        # event happens does not trigger (CR 603.4).
         queued: list[str] = []
         real_queue = r.ex.binder._queue
         card_h = r.handles.get("card")
 
-        def spy(source, controller, node, event, additional=False):
-            if source == card_h:
+        def spy(source, controller, node, event, *args, **kwargs):
+            before = len(r.ex.binder.firings)
+            out = real_queue(source, controller, node, event, *args, **kwargs)
+            if source == card_h and len(r.ex.binder.firings) > before:
                 idx = next((i for i, ab in enumerate(self.card.abilities) if ab is node or ab == node), "?")
                 queued.append(f"card's triggered ability [{idx}] triggers")
-            return real_queue(source, controller, node, event, additional)
+            return out
 
         r.ex.binder._queue = spy
         try:

@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 603.4, the second check: Turret Ogre enters while a 4/4 is on the battlefield, so its intervening-'if' ability triggers. The 4/4 leaves before the ability resolves (hold_triggers, then a move to the graveyard), so the condition is false on resolution and the ability does nothing: the opponent stays at 20. Companion of intervening_if_false_when_the_event_happens.json; this half held before the 2026-11-05 fix too.",
+ "cards": [
+  {"key": "giant", "name": "Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "real": "Turret Ogre", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "ogre", "hold_triggers": true},
+  {"op": "move", "key": "giant", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield", "giant": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

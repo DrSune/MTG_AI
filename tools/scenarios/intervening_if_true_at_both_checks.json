@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 603.4, the positive control for the two intervening_if packs: Turret Ogre enters while a 4/4 is on the battlefield and the 4/4 is still there on resolution, so the ability triggers and resolves: 2 damage to each opponent (20 -> 18). The held triggers resolve at the next step's settle (a land-free 'enter' of a 1/1).",
+ "cards": [
+  {"key": "giant", "name": "Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "real": "Turret Ogre", "zone": "hand", "controller": 0},
+  {"key": "elf", "name": "Elf", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "ogre", "hold_triggers": true},
+  {"op": "enter", "key": "elf"}
+ ],
+ "expect": {
+  "zone": {"ogre": "battlefield", "giant": "battlefield", "elf": "battlefield"},
+  "life": {"0": 20, "1": 18}
+ }
+}
