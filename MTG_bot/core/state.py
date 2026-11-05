@@ -104,12 +104,12 @@ class PlayerState:
 class TriggerInstance:
     """A triggered ability waiting to resolve.
 
-    Ordering is the whole point. ``order_key`` is (controller seat, clock):
-    seat first is APNAP (the active player acts first), clock second breaks
-    ties among one player's own triggers in the order they were created. This
-    is the deterministic replacement for the legacy set-difference trigger
-    scan. Phase 2 replaces this queue with the real APNAP stack, keeping the
-    same ordering invariant.
+    ``order_key`` is (controller seat, clock), the order ``pending_triggers``
+    lists them in. It is not the order they resolve in: the executor's drain
+    (``TriggerBinder._pop_next``) resolves them as the stack would, the
+    non-active player's simultaneous triggers first (CR 603.3b: the active
+    player puts theirs on the stack first, and the stack resolves from the
+    top).
     """
 
     source: Handle  # the card handle the trigger belongs to
@@ -264,15 +264,8 @@ class GameWorld:
         return trig
 
     def pending_triggers(self) -> List[TriggerInstance]:
-        """Triggers in deterministic order (APNAP seat, then clock)."""
+        """Triggers in deterministic order (seat, then clock); not their resolution order."""
         return sorted(self.triggers, key=lambda t: t.order_key)
-
-    def resolve_next_trigger(self) -> Optional[TriggerInstance]:
-        """Pop and return the next trigger in deterministic order, else None."""
-        if not self.triggers:
-            return None
-        self.triggers.sort(key=lambda t: t.order_key)
-        return self.triggers.pop(0)
 
     # --------------------------------------------------------------- canonical
 

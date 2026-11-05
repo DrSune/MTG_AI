@@ -593,10 +593,12 @@ class TestAPNAP(unittest.TestCase):
         )
 
     def test_simultaneous_etbs_resolve_in_apnap_order(self):
-        # Both creatures enter in ONE op (simultaneous). The drain order is
-        # the world's APNAP order_key (controller_seat first): p0's trigger
-        # resolves first, p1's LAST — and the last SET_PT (5/5) wins the
-        # ledger fold.
+        # Both creatures enter in ONE op (simultaneous). CR 603.3b: the active
+        # player (p0) puts its trigger on the stack first and p1's goes on top,
+        # so p1's resolves first and p0's LAST — the last SET_PT (1/1) wins the
+        # ledger fold. (Until 2026-11-05 this test pinned the reverse: the
+        # drain sorted by seat index, so seat 0's trigger always resolved
+        # first.)
         self.ex.attach_card(self.c0, self.set_pt_rec(self.c0, 1))
         self.ex.attach_card(self.c1, self.set_pt_rec(self.c1, 5))
         both = sorted([self.c0, self.c1])
@@ -609,8 +611,53 @@ class TestAPNAP(unittest.TestCase):
         power, toughness = self.ex.ledger.effective_pt(
             self.world.cards[self.target].identity, self.target
         )
-        self.assertEqual((power, toughness), (5, 5))
+        self.assertEqual((power, toughness), (1, 1))
         self.assertEqual(self.world.triggers, [])  # fully drained
+
+    def test_a_trigger_from_a_resolving_trigger_goes_above_the_waiting_ones(self):
+        # CR 405.5 with 603.3: a trigger is put on the stack the next time a player would
+        # receive priority, above the ones still waiting. c0 (p0, active) and c1 (p1) enter
+        # together; p1's ETB resolves first (CR 603.3b) and makes p1 draw, which triggers p0's
+        # Watcher ("whenever an opponent draws a card"). The Watcher's trigger resolves next,
+        # before p0's older ETB, so p0's ETB (1/1) is the last SET_PT. The drain used to pick
+        # the oldest trigger of the lowest seat, so the Watcher's 7/7 resolved last.
+        watcher = self.world.add_card(card_id("Watcher", "1", "1"), self.p0, ZONE_BATTLEFIELD)
+        watch = TriggeredAbility(
+            event=CardDrawnEvent(
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
+            ),
+            condition=None,
+            effect=atom(
+                Verb.SET_PT,
+                target=named_sel("Target"),
+                duration=DurationEot(),
+                power=QConst(7),
+                toughness=QConst(7),
+            ),
+        )
+        self.ex.attach_card(
+            watcher, record_of([watch], oid=self.world.cards[watcher].identity.oracle_id)
+        )
+        self.ex.attach_card(self.c0, self.set_pt_rec(self.c0, 1))
+        draw = etb_trigger(
+            atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1))
+        )
+        self.ex.attach_card(
+            self.c1, record_of([draw], oid=self.world.cards[self.c1].identity.oracle_id)
+        )
+        stock_libraries(self.world, seats=[self.p1])
+        both = sorted([self.c0, self.c1])
+        self.ex.execute(
+            enter(BF_OWNER),
+            source=both[0],
+            controller=self.p0,
+            bindings={"cards": both},
+        )
+        power, toughness = self.ex.ledger.effective_pt(
+            self.world.cards[self.target].identity, self.target
+        )
+        self.assertEqual((power, toughness), (1, 1))
+        self.assertEqual(self.world.triggers, [])
 
 
 class TestDelayedTrigger(BindingCase):

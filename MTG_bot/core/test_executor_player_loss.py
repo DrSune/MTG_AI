@@ -110,6 +110,44 @@ class TestLifeLoss(LossCase):
         )
 
 
+class TestSimultaneousTriggerOrder(LossCase):
+    """CR 603.3b: triggered abilities that triggered since a player last received priority are
+    put on the stack in APNAP order, the active player's first, so the non-active player's
+    resolve first (the stack resolves from the top, CR 405.5). Both players at 3 life; the
+    active player's Pitchburn Devils attacks into the other Devils, both die, and each dies
+    trigger ("it deals 3 damage to any target") aims at the opponent. The non-active player's
+    trigger resolves first, so the active player is at 0 at the check after it and loses
+    (CR 704.5a). The drain used to resolve by seat index, so seat 0 always won the race
+    (2 of 2,000 integration games ended in such a drain, rules red-team 2026-11-05)."""
+
+    def _race(self, active: int) -> None:
+        ap, nap = self.world.player_order[active], self.world.player_order[1 - active]
+        devils_ap = self.real("Pitchburn Devils", ap)
+        devils_nap = self.real("Pitchburn Devils", nap)
+        stock_libraries(self.world, seats=[self.p0, self.p1])
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        if active == 1:
+            self.ex.end_turn()
+            self.ex.advance_turn()
+        self.assertEqual(self.world.active_player, ap)
+        self.world.players[self.p0].life = 3
+        self.world.players[self.p1].life = 3
+        self.answers[f"block:{devils_nap}"] = str(devils_ap)
+        self.answers[f"target:{ap}:{devils_ap}"] = str(nap)
+        self.answers[f"target:{nap}:{devils_nap}"] = str(ap)
+        with self.assertRaises(GameOver):
+            self.ex.combat_step(ap)
+        self.assertEqual(self.ex.lost_players, [ap])
+        self.assertEqual(self.world.players[nap].life, 3)
+
+    def test_seat_0_active_loses_the_race(self):
+        self._race(0)
+
+    def test_seat_1_active_loses_the_race(self):
+        self._race(1)
+
+
 class TestDrawFromEmptyLibrary(LossCase):
     def test_drawing_the_last_card_is_not_a_loss(self):
         self.synth("Last Card", 1, 1, self.p1, ZONE_LIBRARY)
