@@ -1467,6 +1467,8 @@ class Executor:
                 n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
                 if not n:
                     continue
+                if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
+                    continue  # CR 122.6: entering with counters is putting them on it (Blightbeetle)
                 # CR 122.6: counters an object is given as it enters ARE counters
                 # put on it, so a counter-placement replacement applies (Conclave
                 # Mentor: "that many plus one"). Same consult and action run as the

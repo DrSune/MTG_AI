@@ -978,6 +978,25 @@ def _v_put_counter(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "count")
     cards = role_handles(ctx, atom, "target")
     for card in cards:
+        # Blightbeetle: a card that can't have these counters put on it gets none (and no
+        # replacement modifies a placement that does not happen).
+        barred = (
+            ctx.replacements.prevents_counter_placement(ctx, card, kind)
+            if ctx.replacements is not None
+            else None
+        )
+        if barred is not None:
+            ctx.events.append(
+                (
+                    len(ctx.events),
+                    "COUNTER_PREVENTED",
+                    str(card),
+                    str(barred.source),
+                    kind.name,
+                    n,
+                )
+            )
+            continue
         # r22b (Conclave Mentor): the CounterPlacedEvent replacement lane —
         # per RECEIVING card, the same consult-per-item shape the damage
         # lane uses. The queued 4-tuple carries (record, card, kind, n):

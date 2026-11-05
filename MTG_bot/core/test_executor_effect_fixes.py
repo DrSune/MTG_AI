@@ -37,10 +37,12 @@ from MTG_bot.core.ability_tree import (
     Conditional,
     ControllerRef,
     CounterKind,
+    CounterPlacedEvent,
     DamageDealtEvent,
     DeclareBlockersEvent,
     DurationEot,
     DurationUntilNextTurn,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -54,6 +56,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StaticAbility,
     TriggeredAbility,
     Verb,
     Zone,
@@ -61,6 +64,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 from MTG_bot.core.executor.games import get_supply
+from MTG_bot.core.identity import CardIdentity
 from tools.run_scenarios import ScenarioRunner
 
 UNIV = FAnd(())
@@ -539,6 +543,64 @@ class TestDamageTriggerPreBind(unittest.TestCase):
         ))), source=r.handles["bear"], controller=r.p0, bindings={"target": [r.p1]})
         self.assertEqual(r.world.players[r.p1].life, 18)
         self.assertEqual((pt(r, "we"), pt(r, "bear"), pt(r, "obear")), ((3, 2), (3, 2), (2, 2)))
+
+
+
+def record(r, key, abilities):
+    """Attach ``abilities`` to the pack card ``key`` (a synthetic creature)."""
+    h = r.handles[key]
+    identity = r.world.cards[h].identity
+    return r.ex.attach_card(h, CardRecord(
+        oracle_id=identity.oracle_id, name=identity.name, type_line=identity.type_line,
+        types=("Creature",), subtypes=(), supertypes=(), colors=(),
+        color_identity=frozenset(), mana_cost=None, mana_value=2, power=QConst(1),
+        toughness=QConst(1), loyalty=None, keywords=(), abilities=tuple(abilities),
+        is_token=False))
+
+
+class TestCounterPlacementPrevention(unittest.TestCase):
+    def blightbeetle(self):
+        r = runner([bear("beetle", 0), bear("mine", 0), bear("theirs", 1)])
+        opp_creatures = FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                              FAtom(FAtomPred.TYPE_EQ, string_value="Creature")))
+        record(r, "beetle", [StaticAbility(effect=Atom(Verb.PREVENT_EFFECT, AtomArgs((
+            ("condition", opp_creatures),
+            ("event", CounterPlacedEvent(counter_kind=CounterKind.PLUS_1_PLUS_1,
+                                         filter=opp_creatures)),
+        ))))])
+        return r
+
+    def put_counter(self, r, key):
+        r.ex.execute(counter_on(Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),
+                     source=r.handles["mine"], controller=r.p0,
+                     bindings={"target": [r.handles[key]]})
+        return dict(r.world.cards[r.handles[key]].counters)
+
+    def test_an_opponents_creature_gets_no_counter(self):
+        r = self.blightbeetle()
+        self.assertEqual(self.put_counter(r, "theirs"), {})
+        self.assertEqual(self.put_counter(r, "mine"), {"PLUS_1_PLUS_1": 1})
+        r.run_step({"op": "move", "key": "beetle", "to": "graveyard"})
+        self.assertEqual(self.put_counter(r, "theirs"), {"PLUS_1_PLUS_1": 1})
+
+    def test_an_opponents_creature_enters_without_its_counters(self):
+        # CR 122.6: the counters a permanent enters with are put on it, so Blightbeetle stops
+        # them too ("enters with two +1/+1 counters" under the opponent).
+        r = self.blightbeetle()
+        grower = r.world.add_card(CardIdentity(
+            oracle_id="99999999-0000-0000-0000-0000000000ee", name="Grower",
+            type_line="Creature — Hydra", power="0", toughness="0", cmc=2), r.p1, "hand")
+        rec = CardRecord(
+            oracle_id="99999999-0000-0000-0000-0000000000ee", name="Grower",
+            type_line="Creature — Hydra", types=("Creature",), subtypes=("Hydra",),
+            supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=2,
+            power=QConst(0), toughness=QConst(0), loyalty=None, keywords=(),
+            abilities=(EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(2)),)),),
+            is_token=False)
+        r.ex.binder.records[rec.oracle_id] = rec
+        r.handles["grower"] = grower
+        r.run_step({"op": "enter", "key": "grower"})
+        self.assertEqual(dict(r.world.cards[grower].counters), {})
 
 
 if __name__ == "__main__":

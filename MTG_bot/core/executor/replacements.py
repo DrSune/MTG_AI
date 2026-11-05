@@ -693,6 +693,41 @@ class ReplacementRegistry:
             return rec
         return None
 
+    def prevents_counter_placement(
+        self, ctx: ExecCtx, card: Handle, kind: CounterKind
+    ) -> PreventionRecord | None:
+        """Can ``card`` not have ``kind`` counters put on it? Blightbeetle's "Creatures your
+        opponents control can't have +1/+1 counters put on them" registers a PREVENT_EFFECT
+        record over a CounterPlacedEvent; this is its consumer, consulted wherever counters
+        are put (the PUT_COUNTER verb, and the counters a permanent enters with, CR 122.6).
+        Judged in the record's coordinates like the other consults: the event's filter and the
+        record's condition over the receiving card, "opponents" relative to the record's
+        controller. A static carrier works while its source is on the battlefield; a resolved
+        record over designated objects covers those objects. A count slot on a prevention has
+        no carrier: the raise, never a guess."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if rec.status == "expired" or not isinstance(event, CounterPlacedEvent):
+                continue
+            if event.counter_kind is not kind:
+                continue
+            if event.count is not None:
+                raise NotImplementedError(
+                    "executor: a counter-placement prevention with a count slot has no "
+                    "carrier (flag, never guess)"
+                )
+            if rec.targets and card not in rec.targets:
+                continue
+            if not rec.resolved and not self._source_alive(rec.source):
+                continue
+            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            if not eval_filter(event.filter, card, rec_ctx):
+                continue
+            if not self._condition_holds(rec, card, rec_ctx):
+                continue
+            return rec
+        return None
+
     def replacement_for_counter_placement(
         self,
         ctx: ExecCtx,
