@@ -85,3 +85,47 @@ verification (docs/PLAN_CARD_ONBOARDING.md).
   shifted by asks the merge added (B-78's zone choice, may-asks), keys that never resolve, a
   negative assertion that rode on the fallback, and Necromentia naming a card the leaky name
   vocabulary did not list. "first-legal" (5 packs, undocumented) is now an explicit word.
+
+## 5. Round one merged: integration/2026-11-05
+Branches: fix/selfplay-cleanup, fix/rules-objects, fix/selfplay-slim, fix/menu-mana,
+fix/rules-turn-combat. Merge fixes made on the way:
+- fix/rules-objects renamed `query.inert_free_row` to `inert_row`; the router still imported the
+  old name (a semantic conflict no textual merge shows).
+- The engine now ends a game by raising `GameOver` at the loss check. The search applied a
+  candidate act outside `_play`, so a candidate that won at once was counted as a crashed
+  simulation (Bad Deal at 2 life). Caught there now; test red without it.
+- X rows (`cast:<card>[:k][:x<N>]`) reached the network as casts of no card with X 0: the option
+  parser now reads the suffix.
+- The engine's new `replace` ask (CR 616.1) got its own embedding row; the test that every engine
+  ask kind has a row caught it.
+- The teacher sanity test (8 of 10 wins vs random) failed a working teacher 9% of the time once
+  random play no longer needed TAP_ALL_MANA; now 14 of 20 (p = 0.005).
+
+Measured on the branches (fixers' own runs, same seeds before/after):
+- Rules: 0 tapped attacks in 7,639 attacks, 0 first-turn draws, 0 loss-invariant hits in 600
+  games (audit baseline: 1,097 / 4,243 / 141 hits in 4,243 games); seat 0 wins 55.5% of
+  heuristic mirrors (59.8% before the CR 103.8a fix); 0 crashes in 2,000 games (3 B-69 crashes).
+- Menu, heuristic vs heuristic over 300 deals: creature mana tapped in main phases 301 -> 31,
+  Prismite loops 703 -> 0, counterspell asks 0 -> 27, X spells cast at X = 0 29/29 -> 1/36 (mean
+  X 2.75); teacher vs random 0.907 -> 0.887 (random no longer pays TAP_ALL_MANA first).
+- Not a bug, contrary to the exploit audit: Drowsing Tyrannodon may enable itself (no "another"
+  in its text; 2020-06-23 ruling). Checking that claim found a real one: the "<name> deals N
+  damage" template swallowed activation costs (Elite Headhunter, Chandra Bold Pyromancer).
+
+## 6. Information hygiene and measurement audit (fresh-context agent)
+- **The search foresaw the real game's coin flips**: a fork copied the engine seed and the
+  engine's randomness is sha256(master_seed:op_seq:tag), so 2,360/2,360 simulated flips equalled
+  the real one, and the search activated Tavern Swindler on 9/16 winning flips vs 1/15 losing ones
+  (Fisher p = 0.006). Each simulated world now draws its own seed.
+- Clean: determinized hands and libraries (673 searches replayed with the opponent's hidden cards
+  rewritten: identical choices and scores; a deliberately leaky determinize changed 14/28, so the
+  test can see a leak), the encoder (15,126 decisions), the heuristic (15,134), Elo (matches an
+  independent Bradley-Terry fit to 0.1), seed disjointness, both seatings per deal, voids
+  dropping the pair.
+- **Gates were too strict**: Wilson over games treats a deal's two seat-swapped games as
+  independent, but they are anti-correlated (-0.40 to -0.87); the deal-level interval is 0.55x
+  as wide (r15 median). Corrections to /183: §31's "none significant" is wrong for it95 (0.5396,
+  deal-level [0.516, 0.564]); 43 of r15's 159 gates were significant at the deal level, 7 by
+  Wilson. And teacher gates drew the ladder's fixed deals, so §32's "unselected" label for r15's
+  frozen versions is wrong (v2-v6 froze on gates covering all 150 ladder deals). Gates now use
+  per-deal intervals on fresh deal blocks, teacher gates included.
