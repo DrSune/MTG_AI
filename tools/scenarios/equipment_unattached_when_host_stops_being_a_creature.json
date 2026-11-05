@@ -1,0 +1,26 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 301.5 (an Equipment can't legally be attached to an object that isn't a creature) and CR 704.5n (an Equipment attached to an illegal permanent becomes unattached and stays on the battlefield). Casting Short Sword animates Riddleform ('fire': a 3/3 Sphinx creature until end of turn) and the Sword is equipped to it (4/4). When the turn ends Riddleform is an enchantment again, so the state-based action unattaches the Sword. Next turn a second Short Sword animates Riddleform again: it is a plain 3/3, the first Sword still unattached. Before the fix the sweep unattached Equipment only for protection (executor _protected_equipment), so the Sword stayed on the enchantment and its +1/+1 came back free every time Riddleform animated (hunt_invariants seed 451, turn 21).",
+ "cards": [
+  {"key": "rf", "real": "Riddleform", "zone": "battlefield", "controller": 0},
+  {"key": "sw", "real": "Short Sword", "zone": "hand", "controller": 0},
+  {"key": "sw2", "real": "Short Sword", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "cast", "key": "sw", "real": "Short Sword", "decisions": ["fire"]},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "sw", "idx": 1, "seat": 0, "targets": ["rf"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "cast", "key": "sw2", "real": "Short Sword", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"sw": "battlefield", "sw2": "battlefield", "rf": "battlefield"},
+  "attached": {"sw": null, "sw2": null},
+  "power": {"rf": 3},
+  "toughness": {"rf": 3}
+ }
+}
