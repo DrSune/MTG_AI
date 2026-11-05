@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7c0ef3b7-b368-4a5b-8cbe-bf1f47610f74",
+ "name": "Daggersail Aeronaut",
+ "text_sha": "4b5d2e87611c30beb64bf514a52fe924c66b7327b02716cd7181d7bbbeedcd13",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FLYING"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "TURN_OF"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Daggersail Aeronaut: \"During your turn, this creature has flying.\"  (Radha template B5a-radha-first-strike)\nflying_on_my_turn = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FLYING),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n    condition=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n)\nabilities = [flying_on_my_turn, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "During your turn, this creature has flying.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Radha template (B5a-radha-first-strike) with FLYING: StaticAbility GRANT_ABILITY on self, condition TURN_OF YOU. Probe: flying on own turn (giant cannot block), lost on the opponent's turn."
+ },
+ "probe": {
+  "sha": "cf298e9171315b94311ab383e008d032fe2b5e88b7ba0b83f4f16a06f4343d21"
+ }
+}

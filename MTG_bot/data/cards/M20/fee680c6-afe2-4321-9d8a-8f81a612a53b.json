@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "fee680c6-afe2-4321-9d8a-8f81a612a53b",
+ "name": "Sorin, Imperious Bloodlord",
+ "text_sha": "bf5cc6c5a6236373d948a0cb730216f1557e267190bb1cad4699934687fe1d1f",
+ "needs_atom": {
+  "missing": "ENGINE: stronger than printed. '[+1]: You may sacrifice a Vampire. When you do, Sorin deals 3 damage to any target and you gain 3 life' as Tolarian Kraken's OptionalEffect(Seq(SACRIFICE(CHOOSE your Vampire creature), DEAL_DAMAGE 3 any target, GAIN_LIFE 3)): the SACRIFICE 'target' role is hijacked by the ability's designated target (selectors.role_handles binding-first; the V28 'foreign' exemption does not fire), so it 'sacrifices' the TARGETED creature, even an opponent's, with no Vampire at all. Pack scratchpad round_m20/mapped/m1/sorin/pack_sac_novamp.json: no Vampire, target Opp Bear, 'fire' -> Opp Bear goes to the graveyard and you gain 3 (expected: nothing happens); pack_sac.json: your Vampire stays, the targeted Opp Bear is sacrificed. Also WEAKER: '[+1] ... If it's a Vampire, put a +1/+1 counter on it' never fires: GRANT_ABILITY writes no result register, so the bare Conditional is judged on Sorin (pack_vamp_counter.json: no counter on the targeted Vampire). The [-3] maps (OptionalEffect MOVE_ZONE hand->battlefield, Vampire creature card).",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

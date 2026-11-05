@@ -1,0 +1,471 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "753dcc18-3697-49c5-80c6-2d8dc8ee8c9a",
+ "name": "Sorin, Vampire Lord",
+ "text_sha": "b74263f94768b00c12bac88bf563a606a0f38e5893a83ae7d490f9d4479097f3",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -2
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 4
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Planeswalker",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Player",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 4
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -8
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "ActivatedAbility",
+         "cost": {
+          "tag": "Cost",
+          "parts": [
+           {
+            "tag": "CostTap",
+            "target": null
+           }
+          ]
+         },
+         "effect": {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "GAIN_CONTROL"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ],
+            [
+             "target",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "TARGET"
+              },
+              "filter": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "BATTLEFIELD"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "ANY"
+                }
+               }
+              ]
+             }
+            ]
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Vampire",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Sorin, Vampire Lord. The compiler attached \"You gain 4 life.\" to the planeswalker's cast carrier\n# (casting Sorin would gain 4 life); it belongs to the [-2]. The carrier is the effect-less\n# SpellAbility(PLANESWALKER) and the gain-life atom moves into the [-2]'s Seq.\n# [+1]: Garruk, Unleashed's \"up to one target creature\" MODIFY_PT with \"+2/+0\" (toughness +0).\n# [-2]: Chandra's \"deals N damage to any target\" loyalty shape, then the compiler's own\n#       \"You gain 4 life.\" atom.\n# [-8]: GRANT_ABILITY until end of turn to each Vampire you control (tribal noun = SUBTYPE_EQ plus\n#       TYPE_EQ Creature), the granted ability \"{T}: Gain control of target creature.\" being\n#       Traitorous Greed's GAIN_CONTROL without a duration (indefinite).\ngain_life = compiled[0].effect\nplus1 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        'target': Selector(\n            count=QAtMost(n=1),\n            mode=SelectorMode.TARGET,\n            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n    }),\n)\nminus2 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-2),)),\n    effect=Seq(steps=(\n        A(Verb.DEAL_DAMAGE, {\n            'amount': QConst(value=4),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FOr(children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Player'),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n        gain_life,\n    )),\n)\nminus8 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-8),)),\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': ActivatedAbility(\n            cost=Cost(parts=(CostTap(),)),\n            effect=A(Verb.GAIN_CONTROL, {\n                'controller': ControllerRef.YOU,\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n        ),\n        'duration': DurationEot(),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Vampire'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [plus1, minus2, minus8, SpellAbility(kind=SpellKind.PLANESWALKER)]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: Up to one target creature gets +2/+0 until end of turn.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "[−2]: Sorin deals 4 damage to any target.",
+    "ir": "abilities[1].cost, abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "You gain 4 life.",
+    "ir": "abilities[1].effect.steps[1]"
+   },
+   {
+    "clause": "[−8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Compiler fix: the compiled tree put 'You gain 4 life.' on the planeswalker's cast carrier (casting Sorin gained 4 life); it is moved into the [-2] and the carrier is effect-less (pack sorin/pack_cast_no_life.json). ENGINE (weaker than printed): a durationless GAIN_CONTROL is anchored to its source (verbs._v_gain_control, 'durationless = the aura's continuous effect'), so a creature stolen with the granted '{T}: Gain control of target creature.' returns when that Vampire leaves the battlefield; CR 611.2a says it lasts indefinitely. Repro: sorin/repro_control_ends_when_vampire_leaves.json (FAILS today). Passing packs: pack_minus8_sorin_dies (the grant survives Sorin dying at 0 loyalty), pack_minus8_grant_ends, pack_minus8_not_others, pack_minus2, pack_cast_no_life. pack_minus8_control_lasts fails for the same engine reason."
+ },
+ "probe": {
+  "sha": "b2180f214abd253ad18f8c277c73d191f9381d282d425cb01c7fe5f8166b9416"
+ }
+}

@@ -1,0 +1,154 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7ceec1c7-c1f9-4d47-a203-6ee98c5d30d2",
+ "name": "Gravewaker",
+ "text_sha": "166249db946596ad8edef64b5d119a6bb3504a411a47733865e990de53c5d90c",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 5
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ],
+       [
+        "tapped_on_enter",
+        {
+         "tag": "Bool",
+         "value": true
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Gravewaker: the compiler's own \"{5}{B}{B}: Return target creature card from your graveyard to the\n# battlefield.\" (frame B13-activated + B5b-return-creatures-battlefield) plus \"tapped\", which is the\n# MOVE_ZONE role tapped_on_enter (Silversmote Ghoul's \"... to the battlefield tapped\").\nreanimate = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaColor(color='B', amount=QConst(value=1)),\n        CostManaColor(color='B', amount=QConst(value=1)),\n        CostManaGeneric(amount=QConst(value=5)),\n    )),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n        'tapped_on_enter': True,\n    }),\n)\nabilities = [reanimate, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "{5}{B}{B}: Return target creature card from your graveyard to the battlefield tapped.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "73bef3067bb6cd19d665bb21510c94ba5a9bccdbdca7619bc3ca9c5911e9e77f"
+ }
+}

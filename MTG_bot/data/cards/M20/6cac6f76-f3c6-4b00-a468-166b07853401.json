@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6cac6f76-f3c6-4b00-a468-166b07853401",
+ "name": "Shifting Ceratops",
+ "text_sha": "1b396eefaa1c552aef37e8bb255cfed251ace01b90b55165b570bda066b0131c",
+ "needs_atom": {
+  "missing": "Clause 'This spell can't be countered.': no node makes a spell uncounterable. SpellAbility carries only kind/effect/additional_costs, COUNTER_SPELL accepts any spell on the stack, and no exemplar in the 19 sets parses the clause. Dropping it would leave the card counterable. Not the blocker: 'Protection from blue' is KeywordAbility(PROTECTION, params=(FAtom(COLOR_HAS, color='U'),)); '{G}: This creature gains your choice of reach, trample, or haste until end of turn.' fits Alchemist's Gift's Choose of GRANT_ABILITY options (DurationEot) over the self selector.",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

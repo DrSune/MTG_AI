@@ -1,0 +1,302 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6bb60f1f-9295-41ce-bdcd-3fe67f8e175c",
+ "name": "Yarok's Fenlurker",
+ "text_sha": "6cd0e55e2019716207cb64c7836042c6f6b75526caeb893306186862d7323337",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "EachPlayer",
+     "ref": {
+      "tag": "ControllerRef",
+      "name": "ALL_OPPONENTS"
+     },
+     "effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "CHOOSE"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": []
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "EXILE"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "OWNER"
+          }
+         }
+        ],
+        [
+         "from",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "HAND"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Yarok's Fenlurker: \"When this creature enters, each opponent exiles a card from their hand.\"\n# Goremand / Ruin Crab's EachPlayer(ALL_OPPONENTS, ...) with the inner effect YOU-relative (the\n# rotated opponent). The inner atom is the compiler's hand-move lane (Liliana's Steward's discard\n# shape: cards CHOOSE 1 from hand, controller = the chooser, from = HAND), with the exile\n# destination Zone(EXILE, OWNER) of every compiled \"exile\" (not a discard: no journal_kind).\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=EachPlayer(\n        ref=ControllerRef.ALL_OPPONENTS,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n            'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, each opponent exiles a card from their hand.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{2}{B}: This creature gets +1/+1 until end of turn.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The canonicalizer promotes the hand pick to ONE_OF (the compiler exempts Goremand / Liliana's Steward by name, PICK_ASK_FORCE_SILENT L-27). Inside EachPlayer the ONE_OF ask's deciding seat (asking_seat) is the rotated opponent, so the opponent chooses; the one_of tag carries no seat, and collectors that credit asks to the active player (B-53 open item) would let the caster choose."
+ },
+ "probe": {
+  "sha": "f44ce1e477340474179d8d7dfc432645836824d665aa04325583914c677502ad"
+ }
+}

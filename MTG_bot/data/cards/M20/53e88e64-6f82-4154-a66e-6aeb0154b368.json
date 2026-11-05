@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "53e88e64-6f82-4154-a66e-6aeb0154b368",
+ "name": "Rule of Law",
+ "text_sha": "f06b3d8af87f55e7a4e2c9f2038e6262f0f85b356463c0d1db016b9067cdffda",
+ "needs_atom": {
+  "missing": "Static cast-count prohibition: 'Each player can't cast more than one spell each turn.' No template or compiled card expresses a casting prohibition, and the engine has none to read: legality.spell_castable / spell_window_reason consult no PREVENT_EFFECT over CastSpellEvent (only the activation lock, prohibited:activation_lock, exists for AbilityActivatedEvent). A PREVENT_EFFECT(event=CastSpellEvent(filter=FAnd(()), ordinal=2)) static would validate but never stop a cast. Needed: a cast lock honoured by cast legality, per caster per turn (every player, CR 101.2: the prohibition wins).",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

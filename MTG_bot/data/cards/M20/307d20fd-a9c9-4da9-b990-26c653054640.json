@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "307d20fd-a9c9-4da9-b990-26c653054640",
+ "name": "Savage Gorger",
+ "text_sha": "77a488c4212b8a8441f26c61c33880b7c9e5f49b401f8b116d817d2a0c6d8eba",
+ "needs_atom": {
+  "missing": "Turn-scoped life-loss condition: 'if an opponent lost life this turn'. FAtomPred has LIFE_GAINED_THIS_TURN_GE and ThisTurnKind has LIFE_GAINED / CARDS_DRAWN / NONCOMBAT_DAMAGE, but nothing reads life lost this turn by a player (from damage or life loss). Needed: e.g. FAtomPred.LIFE_LOST_THIS_TURN_GE with who=OPPONENT and count 1 (or QThisTurn LIFE_LOST). The end-step trigger (TurnPhaseEvent END_TURN, actor YOU) and the +1/+1 counter on itself are expressible (Sabertooth Mauler shape).",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

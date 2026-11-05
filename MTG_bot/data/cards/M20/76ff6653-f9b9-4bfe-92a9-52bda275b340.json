@@ -1,0 +1,174 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "76ff6653-f9b9-4bfe-92a9-52bda275b340",
+ "name": "Wildfire Elemental",
+ "text_sha": "b8d8a062de95625ae518351d12184a57f20b6400bc1fab55cdd0767a4f86f816",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "OPPONENT_OF"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     },
+     "combat": false
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Wildfire Elemental: \"Whenever an opponent is dealt noncombat damage, creatures you control get +1/+0\n# until end of turn.\"\n# Event: Chandra's Pyreling's DamageDealtEvent(OPPONENT_OF you, combat=False) without its source filter\n# (any source). Effect: Burn Bright's \"Creatures you control get +2/+0 until end of turn\" with +1.\ntrigger = TriggeredAbility(\n    event=DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FAtom(pred=FAtomPred.OPPONENT_OF, who=ControllerRef.YOU),\n        combat=False,\n    ),\n    condition=None,\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever an opponent is dealt noncombat damage, creatures you control get +1/+0 until end of turn.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ENGINE (weaker than printed): a DamageDealtEvent firing pre-binds bindings['target'] = the damage dealer (executor/binding.py _ctx, the Brash Taunter hack), and selectors.role_handles keeps a referent-less ALL selector binding-first, so 'creatures you control get +1/+0' pumps only the dealer: Shock at the opponent pumps nothing (pack mapped/m3/we_pack1.json fails: we 3, bear 2); with a creature dealer only that creature is pumped (we_diag_op_all.json)."
+ },
+ "probe": {
+  "sha": "0091e1bd68337a579b459a7cd652831b010cd2aaaf410e31ea88255ac12ca8e8"
+ }
+}

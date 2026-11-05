@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7df8a8aa-1856-4fe6-a543-5de65da4f49f",
+ "name": "Legion's End",
+ "text_sha": "1ecf168d8207e85f319dfc27827d091a2d02626c8c3ec4d3b8721606a67049b0",
+ "needs_atom": {
+  "missing": "Same-name-as-referent filter: 'all other creatures that player controls with the same name as that creature' and 'exiles all cards with that name from their hand and graveyard'. FAtomPred.NAME_EQ takes only a literal string_value (no referent slot; FAtom.referent is IS_ATTACHED_TO-only), NAME_CHOSEN needs a CHOOSE_NAME pick, and nothing binds the targeted creature's name for later filters. Needed: a name-equality predicate against a referent object (e.g. NAME_EQ with referent='target'). The target (opponent's creature, CMC_LE 2), the exiles and the reveal are otherwise expressible.",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

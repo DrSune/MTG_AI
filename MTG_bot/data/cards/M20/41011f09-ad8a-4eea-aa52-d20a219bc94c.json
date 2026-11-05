@@ -1,0 +1,103 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "41011f09-ad8a-4eea-aa52-d20a219bc94c",
+ "name": "Captivating Gyre",
+ "text_sha": "593a21a814725abbd1a9607bddc711487c02c42230451a6203bbe910e149c7c9",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 3
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05",
+  "draft_py": "# Captivating Gyre (M20). \"Return up to three target creatures to their owners' hands.\" Read the\n# Tides' bullet (B5c-bullet-return-two-creatures-hand) with up to three. The compiler gives the\n# sorcery no tree, so the SpellAbility carrying the effect is added here.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QAtMost(n=3),\n                mode=SelectorMode.TARGET,\n                filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Return up to three target creatures to their owners' hands.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "d9226d60104f40539f9370a9e3b93b617f0ae88377347175aa1c0f557707ed99"
+ }
+}

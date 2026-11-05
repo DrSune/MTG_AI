@@ -1,0 +1,159 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f6ed46e2-08f9-4e89-aae3-e5dd7f30f007",
+ "name": "Brought Back",
+ "text_sha": "f616b034ac943c39a951501f66e2db8eaf3609eb80f9a4008067d3483f13ad4f",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 2
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "MOVED_TO_ZONE_THIS_TURN"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null,
+            "from_zone": {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            },
+            "to_zone": {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_PERMANENT"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ],
+       [
+        "tapped_on_enter",
+        {
+         "tag": "Bool",
+         "value": true
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Brought Back: \"Choose up to two target permanent cards in your graveyard that were put there from\n# the battlefield this turn. Return them to the battlefield tapped.\" One MOVE_ZONE whose cards are\n# the targets: Sanguine Indulgence's \"up to two target ... cards from your graveyard\" (QAtMost(2)\n# TARGET over Zone(GRAVEYARD, YOU)) with Fungal Rebirth's \"permanent card\" (IS_PERMANENT) and\n# Barrin's \"put into your <zone> from the battlefield this turn\" (MOVED_TO_ZONE_THIS_TURN, per card);\n# \"Return them to the battlefield\" is Rise Again's destination and \"tapped\" the tapped_on_enter role.\n# The compiler gave no tree at all; the instant carrier is added.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QAtMost(n=2),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.IS_PERMANENT),\n                    FAtom(\n                        pred=FAtomPred.MOVED_TO_ZONE_THIS_TURN,\n                        who=ControllerRef.YOU,\n                        from_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n                        to_zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                    ),\n                )),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n            'tapped_on_enter': True,\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Choose up to two target permanent cards in your graveyard that were put there from the battlefield this turn.",
+    "ir": "abilities[0].effect (role cards)"
+   },
+   {
+    "clause": "Return them to the battlefield tapped.",
+    "ir": "abilities[0].effect (roles destination, tapped_on_enter)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler built no tree; the instant carrier is added. The probe board has no card put into a graveyard this turn (0..0 targets). Packs brought_back/pack_return.json (a creature and an enchantment that went to your graveyard this turn return tapped; the opponent's and an older card stay) and pack_illegal_old.json (an older graveyard card is off the target population) pass."
+ },
+ "probe": {
+  "sha": "aa0985184a4d63d677ade45d08b9dcde0af302398857519ce163000613349e61"
+ }
+}

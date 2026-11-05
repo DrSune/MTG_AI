@@ -1,0 +1,115 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6f525ccd-4776-492c-a1f9-8bce5740fb28",
+ "name": "Vampire Opportunist",
+ "text_sha": "d7351a6c4205a3911ac789a84b2d8523d82b073a2d806b5185ce1468d46d68b7",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 6
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "ALL_OPPONENTS"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Vampire Opportunist: \"{6}{B}: Each opponent loses 2 life and you gain 2 life.\"\n# Effect: Spirit of Malevolence's drain Seq; cost order as Caged Zombie (colour, then generic).\ndrain = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaColor(color='B', amount=QConst(value=1)),\n        CostManaGeneric(amount=QConst(value=6)),\n    )),\n    effect=Seq(steps=(\n        A(Verb.LOSE_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.ALL_OPPONENTS}),\n        A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n    )),\n)\nabilities = [drain, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{6}{B}: Each opponent loses 2 life and you gain 2 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Spirit of Malevolence's drain Seq (LOSE_LIFE ALL_OPPONENTS, GAIN_LIFE YOU) as an activated ability, cost parts ordered as Caged Zombie."
+ },
+ "probe": {
+  "sha": "0c81315e195b87330440d6b4d83b916e9ac6d381fdc81e8c7b763e581a6081d2"
+ }
+}

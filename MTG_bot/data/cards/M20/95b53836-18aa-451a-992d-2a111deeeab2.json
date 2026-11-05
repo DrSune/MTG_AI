@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "95b53836-18aa-451a-992d-2a111deeeab2",
+ "name": "Yarok, the Desecrated",
+ "text_sha": "e3d1f6af676d9f8489dc1843583f04d80c551f391a658c860cb3756a9996fb7d",
+ "needs_atom": {
+  "missing": "A trigger-cause axis on AbilityTriggerEvent: 'If a permanent entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time' (Panharmonicon family, CR 603.2) applies only to triggers whose triggering event is a permanent entering the battlefield. AbilityTriggerEvent(filter) reads only the triggering ability's SOURCE permanent (binding._fan_ability_triggers), and no condition predicate reads the triggering event, so the Sanctum of All shape (AbilityTriggerEvent(CONTROLLER_IS YOU) -> TRIGGER_ADDITIONAL 1) would double every trigger of every permanent you control (attacks, upkeep, dies...): stronger than printed. Needs e.g. AbilityTriggerEvent.cause: an EventSpec the original triggering event must match (ZoneChangeEvent to the battlefield, any permanent). Deathtouch and lifelink are compiled.",
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05"
+ }
+}

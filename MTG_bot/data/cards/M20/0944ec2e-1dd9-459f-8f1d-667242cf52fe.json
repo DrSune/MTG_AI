@@ -1,0 +1,228 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "0944ec2e-1dd9-459f-8f1d-667242cf52fe",
+ "name": "Rapacious Dragon",
+ "text_sha": "6c2ab470f72434080f1bade599281c42b74fb0f5a1a397c744894c497696fe3b",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TREASURE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Treasure",
+         "type_line": "Artifact",
+         "types": [
+          "Artifact"
+         ],
+         "subtypes": [],
+         "power": null,
+         "toughness": null,
+         "keywords": [
+          {
+           "tag": "Keyword",
+           "name": "TREASURE"
+          }
+         ],
+         "abilities": [
+          {
+           "tag": "ActivatedAbility",
+           "cost": {
+            "tag": "Cost",
+            "parts": [
+             {
+              "tag": "CostSacrifice",
+              "target": {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "CHOOSE"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_SOURCE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "BATTLEFIELD"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "ANY"
+                 }
+                }
+               ]
+              }
+             },
+             {
+              "tag": "CostTap",
+              "target": null
+             }
+            ]
+           },
+           "effect": {
+            "tag": "Atom",
+            "verb": {
+             "tag": "Verb",
+             "name": "ADD_MANA"
+            },
+            "args": {
+             "tag": "AtomArgs",
+             "pairs": [
+              [
+               "amount",
+               {
+                "tag": "QConst",
+                "value": 1
+               }
+              ],
+              [
+               "color",
+               {
+                "tag": "String",
+                "value": "ANY"
+               }
+              ],
+              [
+               "controller",
+               {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              ]
+             ]
+            }
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Rapacious Dragon: \"When this creature enters, create two Treasure tokens.\"\n# ETB event: Valorous Steed's B2a-valorous-steed trigger. Token: the Treasure TokenSpec exactly as the\n# compiler writes it in Gadrak, the Crown-Scourge's B2a-gadrak-treasures (verified, M21), count 2.\ntreasure = TokenSpec(\n    name='Treasure',\n    type_line='Artifact',\n    types=('Artifact',),\n    subtypes=(),\n    power=None,\n    toughness=None,\n    keywords=(Keyword.TREASURE,),\n    abilities=(\n        ActivatedAbility(\n            cost=Cost(parts=(\n                CostSacrifice(target=Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                )),\n                CostTap(),\n            )),\n            effect=A(Verb.ADD_MANA, {\n                'amount': QConst(value=1),\n                'color': 'ANY',\n                'controller': ControllerRef.YOU,\n            }),\n        ),\n    ),\n)\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {'count': QConst(value=2), 'tokens': treasure}),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, create two Treasure tokens.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "494407ae486a44451535e16c6cdcbe0b29d809a652e283f3c4ddfbd9aa7afa54"
+ }
+}

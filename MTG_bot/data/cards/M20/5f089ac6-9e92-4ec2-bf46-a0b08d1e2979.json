@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5f089ac6-9e92-4ec2-bf46-a0b08d1e2979",
+ "name": "Thought Distortion",
+ "text_sha": "7a6eb1524058217cd9f4a0d035187f0f7a13ae8a2ba6d8c4b08446a5a52eb737",
+ "needs_atom": {
+  "missing": "Clause 'This spell can't be countered.': no node makes a spell uncounterable (SpellAbility has only kind/effect/additional_costs; COUNTER_SPELL accepts any spell; no exemplar parses the clause), the same gap as Shifting Ceratops. Not the blocker: the compiled 'Target opponent reveals their hand.' and 'Exile all noncreature, nonland cards from that player's hand and graveyard.' (a MOVE_ZONE to exile over the target opponent's hand and graveyard zones).",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

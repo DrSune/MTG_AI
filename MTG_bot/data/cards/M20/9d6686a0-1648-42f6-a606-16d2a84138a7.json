@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9d6686a0-1648-42f6-a606-16d2a84138a7",
+ "name": "Embodiment of Agonies",
+ "text_sha": "128d471a08a667ced3e2eace179c08c003a2fc46422595c0881d0aa770f699e5",
+ "needs_atom": {
+  "missing": "Clause 'This creature enters with a +1/+1 counter on it for each different mana cost among nonland cards in your graveyard.': no quantity counts DISTINCT mana costs among a selector's cards. QDistinctColorCount counts colours only, and QCount counts cards, not different costs. Missing: a distinct-mana-cost count (e.g. a QDistinct over the MANA_COST of Selector(nonland cards, your graveyard)), keeping {2}{B} and {1}{B}{B} apart. Cards with no mana cost have none to count. Not the blocker: 'Flying, deathtouch' compiles, and EtBState already resolves non-constant counter quantities (m21-fidelity).",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

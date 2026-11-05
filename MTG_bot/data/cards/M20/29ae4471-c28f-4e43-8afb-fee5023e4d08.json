@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "29ae4471-c28f-4e43-8afb-fee5023e4d08",
+ "name": "Diamond Knight",
+ "text_sha": "d3d5cae5e0510c261c2147f1c1f3a712adc739f71b1bc08934d89139a9919185",
+ "needs_atom": {
+  "missing": "Clauses 'As this creature enters, choose a color.' and 'Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.': no node chooses a colour or reads back a chosen colour. Only card names have the pair (CHOOSE_NAME / NAME_CHOSEN, Runed Halo). Missing: a colour choice made as the permanent enters (CR 614.12) and a filter predicate that tests a spell's colour against the colour chosen for the source (CR 607.2 linked abilities). The rest exists: Vigilance compiles; the trigger is Spellgorger Weird's CastSpellEvent(actor you) + PUT_COUNTER(+1/+1) on the source. Emulating it with five granted triggers from an ETB trigger is a trigger, not 'as enters', and is not the printed ability.",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

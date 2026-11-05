@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d5b33c1a-6e15-4a08-b834-38b0465b0cfb",
+ "name": "Pattern Matcher",
+ "text_sha": "2879c3d6ce70f9c9413d617025eb88539ae8a60b089285b948cb6c179af56121",
+ "needs_atom": {
+  "missing": "A per-candidate name-equality filter against other objects: 'search your library for a card with the same name as another creature you control' needs FAtom 'the candidate's name equals the name of some object matching <filter>' (here: another creature you control, FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature, FNot(IS_SOURCE)) on the battlefield). NAME_EQ takes only a literal string; NAME_CHOSEN needs a separate CHOOSE_NAME step the card does not have (naming first commits to one name before the search: a different, weaker decision); NAME_PARTITION_COUNT_GE is a board-state group count with no candidate ('no pairwise name-equality vocabulary', quantity.py). The rest is expressible: ETB + OptionalEffect(Seq(SEARCH to hand, REVEAL, SHUFFLE)).",
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,262 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "43a86d36-9653-4498-a533-8b30b919cdbf",
+ "name": "Gift of Paradise",
+ "text_sha": "2a42e517bf92cf504ddabef1b0b1077f91f9b03391b5e98769ae01501670f77e",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Land",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "ActivatedAbility",
+         "cost": {
+          "tag": "Cost",
+          "parts": [
+           {
+            "tag": "CostTap",
+            "target": null
+           }
+          ]
+         },
+         "effect": {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "ADD_MANA"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 2
+             }
+            ],
+            [
+             "color",
+             {
+              "tag": "String",
+              "value": "ANY"
+             }
+            ],
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ]
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ATTACHED_TO_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Gift of Paradise, sentence 3: 'Enchanted land has \"{T}: Add two mana of any one color.\"'\n# Enchanted-permanent static (Rousing Read: IS_ATTACHED_TO_SOURCE + type) granting the parsed ability\n# \"{T}: Add two mana of any one color.\" (frame B13-activated+B5a-add-any-color).\nenchanted_land = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ngranted = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.ADD_MANA, {'amount': QConst(value=2), 'color': 'ANY', 'controller': ControllerRef.YOU}),\n)\nstatic = StaticAbility(effect=A(Verb.GRANT_ABILITY, {'ability': granted, 'target': enchanted_land}))\nabilities = [compiled[0], static, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "Enchant land",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this Aura enters, you gain 3 life.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Enchanted land has \"{T}: Add two mana of any one color.\"",
+    "ir": "abilities[1] (GRANT_ABILITY of effect.ability = the parsed '{T}: Add two mana of any one color.')"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Static GRANT_ABILITY to the enchanted land (Rousing Read's IS_ATTACHED_TO_SOURCE+type selector, TYPE_EQ Land) of the parsed '{T}: Add two mana of any one color.' (one colour decision for both mana, verbs.py _v_add_mana). Packs /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/gift_pack.json (own land: UU) and /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/gift_pack_opp.json (opponent's land: its controller gets RR) pass; seat 0 activating the opponent's enchanted land is refused (not_controller)."
+ },
+ "probe": {
+  "sha": "9ea36c00a3ebbe56a948543c27fda6a4126f0d492742ab9e9fb07697f40975f4"
+ }
+}

@@ -1,0 +1,144 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "31be5bf4-9950-456c-8365-74b48e132ef5",
+ "name": "Bone to Ash",
+ "text_sha": "f22d92c9c3953ef5911846a5775caf8d32cbd0c3e2d4d6eb2fd4c5d9d8ab3980",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "COUNTER_SPELL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "STACK_KIND_EQ"
+              },
+              "string_value": "SPELL",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "STACK"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Bone to Ash: \"Counter target creature spell.\" (the Anticognition/Miscast shape with one type),\n# then the compiler's \"Draw a card.\" as the second step of the instant's Seq.\ncounter = A(Verb.COUNTER_SPELL, {\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value='SPELL'),\n        )),\n        zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),\n    ),\n})\ndraw = compiled[0].effect\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(counter, draw)))]\n",
+  "clauses": [
+   {
+    "clause": "Counter target creature spell.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Draw a card.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The probe board has no spell on the stack. Packs in the mapper scratch dir (bone_to_ash/pack_creature.json, pack_noncreature.json) pass: a creature spell is countered and the caster draws; Bone to Ash is never offered against Shock."
+ },
+ "probe": {
+  "sha": "d040440396a5b03bc1e4f3ad132597c22b3ece2e73518fc978af73ccc36996ac"
+ }
+}

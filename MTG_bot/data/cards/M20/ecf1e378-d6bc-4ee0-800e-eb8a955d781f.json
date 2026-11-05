@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ecf1e378-d6bc-4ee0-800e-eb8a955d781f",
+ "name": "Aether Gust",
+ "text_sha": "28a18abde272ff59d9dd9b49b62fe79eb0680db72b83e3264e6cf6f66adf7ccb",
+ "needs_atom": {
+  "missing": "A choice made by the target's OWNER: 'Its owner puts it on their choice of the top or bottom of their library.' Choose (top MOVE_ZONE vs bottom MOVE_ZONE) is decided by the spell's controller, which is stronger than printed (the caster would always pick bottom). EachPlayer cannot hand the choice to the owner: it has no OWNER ref (executor/selectors.py players_for_ref raises NotImplementedError for OWNER), and EachPlayer(TARGET_PLAYER) resolves a card target to its CONTROLLER (selectors.py:125-134), not its owner, which differs for a stolen permanent (M20 Act of Treason) or spell. Needed: a chooser = owner of the bound target (an OWNER player ref for EachPlayer, or a chooser role on Choose). The first sentence maps fine: Verb.CHOOSE over a TARGET selector on BATTLEFIELD+STACK with FOr(COLOR_HAS R, COLOR_HAS G).",
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05"
+ }
+}

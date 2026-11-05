@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9a664735-6e38-407f-9d2f-a6d279cd6309",
+ "name": "Repeated Reverberation",
+ "text_sha": "03b501d7cdaf0d8c0317209f791a6636acc21b971b27cc7af7d007f600440c3d",
+ "needs_atom": {
+  "missing": "COPY of a spell or an activated (loyalty) ability, twice, with new targets: 'copy that spell or ability twice. You may choose new targets for the copies.' Verb.COPY exists in the IR (source role only, no count) but has no executor handler (absent from SUPPORTED_VERBS_V2). Also needs a one-shot delayed trigger 'when you next cast an instant spell, cast a sorcery spell, or activate a loyalty ability this turn' over two event kinds (CastSpellEvent and AbilityActivatedEvent kind=LOYALTY) that fires once and expires at end of turn.",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

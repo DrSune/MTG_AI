@@ -1,0 +1,223 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b2eb7a64-a307-4a78-a25d-63fb3ae1e237",
+ "name": "Cryptic Caves",
+ "text_sha": "b1fb01b8d17c07443f5abb5ae6b5a5e94d3c5b9c4b2903ab028623f57b8b8245",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "C"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "CONTROLLER_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 5
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Land",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Cryptic Caves. Kept: \"{T}: Add {C}.\" (compiler, abilities[0]).\n# 2. \"{1}, {T}, Sacrifice this land: Draw a card.\" -- Silversmote Ghoul's B5c-cost-b-sacrifice-draw\n#    with Fabled Passage's {T} and a generic {1}.\n# 3. \"Activate only if you control five or more lands.\" -- the activation gate rides on the ability's\n#    condition, as Celestial Enforcer's B5a-activate-only-flying, CONTROLLER_COUNT_GE 5 over lands.\ndraw = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaGeneric(amount=QConst(value=1)),\n        CostSacrifice(target=Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.IS_SOURCE),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        )),\n        CostTap(),\n    )),\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=5),\n        inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n    ),\n)\nabilities = [*compiled, draw]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{1}, {T}, Sacrifice this land: Draw a card.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "Activate only if you control five or more lands.",
+    "ir": "abilities[1].condition"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "7dcf246be646cb0e66de7f7b37a6f1c974fc415c6d962fd96d0101778e07861a"
+ }
+}

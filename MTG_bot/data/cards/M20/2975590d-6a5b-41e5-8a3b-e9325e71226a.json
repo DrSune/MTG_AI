@@ -1,0 +1,203 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "2975590d-6a5b-41e5-8a3b-e9325e71226a",
+ "name": "Starfield Mystic",
+ "text_sha": "31f1eef164a25319771dab90adfbba24690938bf5f95018ae04378993017b787",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "TYPE_EQ"
+     },
+     "string_value": "Enchantment",
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "GRAVEYARD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Enchantment",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Starfield Mystic.\n# s1: Watcher of the Spheres' CostModifier (\"Creature spells with flying you cast cost {1} less\")\n#     with the filter \"Enchantment spells\".\n# s2: no compiled exemplar for \"is put into a graveyard from the battlefield\". The event is a\n#     ZoneChangeEvent BATTLEFIELD -> GRAVEYARD: the from side is Nine Lives' leave shape\n#     (Zone(BATTLEFIELD, YOU)), \"a graveyard\" is any graveyard, and \"an enchantment you control\"\n#     follows the landfall / \"another creature you control enters\" convention (zone controller YOU\n#     plus CONTROLLER_IS YOU and the type in the subject). The effect is Lorescale Coatl's\n#     \"put a +1/+1 counter on this creature\".\ndiscount = CostModifier(\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n)\ngrow = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        to_zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),\n        subject=FAnd(children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n        )),\n    ),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [discount, grow, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Enchantment spells you cast cost {1} less to cast.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Neither clause is exercised on the probe board. Packs in starfield_mystic/ pass: pack_discount (Leyline of Sanctity for WWW), pack_no_discount_without (control), pack_no_discount_other (Prismite not discounted), pack_counter (opponent's enchantment and an exiled one give nothing; yours to the graveyard gives one counter). No compiled exemplar exists for 'is put into a graveyard from the battlefield'; the event follows Nine Lives' leave shape plus the '<type> you control' subject convention. Engine note: the binder matches the from-zone by zone OWNER and the subject after the move, so an enchantment you control but do not own would not count (LKI edge, general)."
+ },
+ "probe": {
+  "sha": "102b489267c2e9ea6d0264871c9080154bd48dec74ac1ad80c1f393a5e3c00b4"
+ }
+}

@@ -1,0 +1,554 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9f84fc91-8647-4cc8-9b57-d23a83f85ab1",
+ "name": "Chandra's Flame Wave",
+ "text_sha": "7a963f1570ead9111e6cda0827580f5bf22ce4b0a7091f15de9fac5f1b62f026",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "DEAL_DAMAGE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 2
+            }
+           ],
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QUnbounded"
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ALL"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "PLAYER"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "TARGET_PLAYER"
+               }
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "DEAL_DAMAGE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 2
+            }
+           ],
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QUnbounded"
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ALL"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "CONTROLLER_IS"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": {
+                 "tag": "ControllerRef",
+                 "name": "TARGET_PLAYER"
+                },
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "tag": "Choose",
+       "count": {
+        "tag": "QConst",
+        "value": 1
+       },
+       "options": [
+        {
+         "tag": "Seq",
+         "steps": [
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SEARCH"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "cards",
+              {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "ONE_OF"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "NAME_EQ"
+                },
+                "string_value": "Chandra, Flame's Fury",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "GRAVEYARD"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                },
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "LIBRARY"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                }
+               ]
+              }
+             ],
+             [
+              "destination",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "HAND"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          },
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "REVEAL"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "controller",
+              {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             ],
+             [
+              "count",
+              {
+               "tag": "QConst",
+               "value": 1
+              }
+             ]
+            ]
+           }
+          },
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SHUFFLE"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "zone",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          }
+         ]
+        },
+        {
+         "tag": "Seq",
+         "steps": [
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SEARCH"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "cards",
+              {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "ONE_OF"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "NAME_EQ"
+                },
+                "string_value": "Chandra, Flame's Fury",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "LIBRARY"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                }
+               ]
+              }
+             ],
+             [
+              "destination",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "HAND"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          },
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "REVEAL"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "controller",
+              {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             ],
+             [
+              "count",
+              {
+               "tag": "QConst",
+               "value": 1
+              }
+             ]
+            ]
+           }
+          },
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SHUFFLE"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "zone",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          }
+         ]
+        },
+        {
+         "tag": "Seq",
+         "steps": [
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SEARCH"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "cards",
+              {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "ONE_OF"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "NAME_EQ"
+                },
+                "string_value": "Chandra, Flame's Fury",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "GRAVEYARD"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                }
+               ]
+              }
+             ],
+             [
+              "destination",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "HAND"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          },
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "REVEAL"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "controller",
+              {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             ],
+             [
+              "count",
+              {
+               "tag": "QConst",
+               "value": 1
+              }
+             ]
+            ]
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Chandra's Flame Wave\n# s1 \"Chandra's Flame Wave deals 2 damage to target player and each creature that player controls.\"\n#    The designated player is TARGET_PLAYER (Mind Rot); the query synthesizes the one player slot\n#    and both atoms read its binding. Player-zone ALL selector as Storm Caller; \"that player\n#    controls\" as CONTROLLER_IS TARGET_PLAYER.\n# s2+s3 \"Search your library and/or graveyard for a card named Chandra, Flame's Fury, reveal it, and put\n#    it into your hand. If you search your library this way, shuffle.\" Basri's Aegis tree (both zones,\n#    library only, graveyard only; SHUFFLE only where the library is searched), mandatory: no OptionalEffect.\ndamage = Seq(steps=(\n    A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.TARGET_PLAYER),),\n        ),\n    }),\n    A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n))\nname = FAtom(pred=FAtomPred.NAME_EQ, string_value=\"Chandra, Flame's Fury\")\ngy = Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU)\nlib = Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)\nhand = Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)\ndef search(zones):\n    return A(Verb.SEARCH, {\n        'cards': Selector(count=QConst(value=1), mode=SelectorMode.ONE_OF, filter=name, zones=zones),\n        'destination': hand,\n    })\nreveal = A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)})\nshuffle = A(Verb.SHUFFLE, {'zone': lib})\ntutor = Choose(\n    count=QConst(value=1),\n    options=(\n        Seq(steps=(search((gy, lib)), reveal, shuffle)),\n        Seq(steps=(search((lib,)), reveal, shuffle)),\n        Seq(steps=(search((gy,)), reveal)),\n    ),\n)\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(damage, tutor)))]\n",
+  "clauses": [
+   {
+    "clause": "Chandra's Flame Wave deals 2 damage to target player and each creature that player controls.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Search your library and/or graveyard for a card named Chandra, Flame's Fury, reveal it, and put it into your hand.",
+    "ir": "abilities[0].effect.steps[1] (Choose: options[0] both zones, options[1] library, options[2] graveyard; each SEARCH + REVEAL)"
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "ir": "abilities[0].effect.steps[1].options[0].steps[2], options[1].steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "s1: DEAL_DAMAGE 2 to Zone(PLAYER, TARGET_PLAYER) (ALL, Storm Caller shape) and to ALL creatures CONTROLLER_IS TARGET_PLAYER; the query synthesizes one player slot (you or opp). s2+s3: Basri's Aegis and/or tutor tree without OptionalEffect (the search is mandatory); replaces the compiler's stray OptionalEffect(SHUFFLE) from the fallback parse of s3. Packs /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/flamewave_pack_lib.json, _gy, _both, _libonly_miss pass."
+ },
+ "probe": {
+  "sha": "e3181954d6b58ab72e92b1e3f990bd34bd56515c101a25a06ce24140ec7475e9"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d8c95a86-2f05-44f9-8ed7-b1798eaed42f",
+ "name": "Chandra's Regulator",
+ "text_sha": "f3d296aa25dad7577408ecac65322641694654f23d9340c5d8bd7c5df9649a8b",
+ "needs_atom": {
+  "missing": "COPY of an activated ability on the stack: 'If you do, copy that ability. You may choose new targets for the copy.' Verb.COPY exists in the IR (source role only) but has no executor handler (absent from SUPPORTED_VERBS_V2), and nothing addresses the triggering loyalty ability (AbilityActivatedEvent referent) as a stack object to copy with a new-targets choice. The trigger (AbilityActivatedEvent kind=LOYALTY, Chandra planeswalker), the optional PAY {1} and the discard-cost draw ability are expressible.",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

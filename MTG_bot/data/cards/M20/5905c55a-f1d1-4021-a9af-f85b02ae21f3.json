@@ -1,0 +1,114 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5905c55a-f1d1-4021-a9af-f85b02ae21f3",
+ "name": "Audacious Thief",
+ "text_sha": "a99af2509783e4f09fa9f48a8ec3200f28406ab3d8a0f9147fdd0e1b067757dc",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Audacious Thief: \"Whenever this creature attacks, you draw a card and you lose 1 life.\"\n# Library Larcenist's attack trigger; the compound effect is a Seq in printed order (Spirit of\n# Malevolence's \"... and you gain 1 life\"), the lose-life atom is Grim Tutor's.\nattack = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n            A(Verb.LOSE_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [attack, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, you draw a card and you lose 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "11b43f0dc25e3ba93b05ccccf7f14d1ef214f62be8934511ab435d4c88b1179a"
+ }
+}

@@ -1,0 +1,184 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b17f4960-9603-4a81-8dc8-e09e8b822357",
+ "name": "Noxious Grasp",
+ "text_sha": "7ae4529781ab39968812610b51f7521247139b45a8e79b96638016ff3cd8f4c1",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "COLOR_HAS"
+                },
+                "string_value": null,
+                "color": "G",
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "COLOR_HAS"
+                },
+                "string_value": null,
+                "color": "W",
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Planeswalker",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Noxious Grasp: \"Destroy target creature or planeswalker that's green or white. You gain 1 life.\"\n# Finishing Blow's DESTROY (creature or planeswalker) narrowed by \"that's green or white\", an FOr\n# of COLOR_HAS (guide: never COLOR_IN; Quirion Dryad's colour shape). Then the compiled gain-1.\nspell = compiled[0]\ndestroy = A(Verb.DESTROY, {\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(\n            children=(\n                FOr(\n                    children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                    ),\n                ),\n                FOr(\n                    children=(\n                        FAtom(pred=FAtomPred.COLOR_HAS, color='G'),\n                        FAtom(pred=FAtomPred.COLOR_HAS, color='W'),\n                    ),\n                ),\n            ),\n        ),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(destroy, spell.effect)))]\n",
+  "clauses": [
+   {
+    "clause": "Destroy target creature or planeswalker that's green or white.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "You gain 1 life.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "ead5f7aae928e0721322552fa58cdec55e56392834ca477440f39131538a4d16"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "060deaff-44d6-4f03-9568-bcb7add80255",
+ "name": "Drakuseth, Maw of Flames",
+ "text_sha": "8b80f34ae710db05025a4802e3faa12b1082ccc79c564f4031d99d0285fbaea7",
+ "needs_atom": {
+  "missing": "ENGINE: per-slot target designation on a TRIGGERED ability. The tree is expressible with existing nodes (attack trigger; Seq of DEAL_DAMAGE 4 to one 'any target' slot, then DEAL_DAMAGE 3 to a QAtMost(2) TARGET slot whose filter carries IS_ANY_TARGET for 'other targets', the Rookie Mistake / Volcanic Salvo shapes), but the executor raises at every attack: 'NotImplementedError: executor: trigger Seq(...) carries 2 designation slots; per-slot designation is /06 arc 3 (never guess-bind the second)' (G1 probe, stimuli 'this creature attacks alone, unblocked' and 'attacks and opp_giant blocks it'). Spells and activated abilities have the positional multi-slot lane (stack._validate_positional, legality.activation_target_reason); triggers do not. Draft: scratchpad round_m20/mapped/m1/drakuseth/draft.py.",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

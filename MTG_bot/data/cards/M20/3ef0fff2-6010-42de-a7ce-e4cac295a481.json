@@ -1,0 +1,92 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3ef0fff2-6010-42de-a7ce-e4cac295a481",
+ "name": "Rubblebelt Recluse",
+ "text_sha": "364d014f5c38ce29955e02f6189d0ab9504a90bd8fd5bcbf67667cf22d4d2d63",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MANDATE_ATTACK"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Rubblebelt Recluse: \"This creature attacks each combat if able.\"\n# MANDATE_ATTACK static (Pirate / Furor of the Bitten) over the guide's \"this creature\" selector.\nmust_attack = StaticAbility(effect=A(Verb.MANDATE_ATTACK, {\n    'cards': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n}))\nabilities = [must_attack, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature attacks each combat if able.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "MANDATE_ATTACK static (Pirate / Furor of the Bitten) over the guide's 'this creature' selector. Pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/recluse_pack.json passes: declared false it still attacks, never asked. ENGINE (general, not this card): legality.attack_blocked_reason lets TAPPED creatures attack (against CR 508.1a), so a tapped Recluse is forced to attack too; /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/diag_tapped_vanilla.json shows a tapped vanilla bear attacking."
+ },
+ "probe": {
+  "sha": "c74b9d6a0a6b710445973f6d74924f46f93b81b446791a57bc7faad9f67bf650"
+ }
+}

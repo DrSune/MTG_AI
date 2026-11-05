@@ -1,0 +1,127 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ff27ff37-96c0-41af-8881-a078e884e67b",
+ "name": "Sorin's Thirst",
+ "text_sha": "2d25cc64555e1611ab22fa3d605083ff33c45cdb0f45a7b1b95dfbbbe6ef81c1",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Sorin's Thirst: \"Sorin's Thirst deals 2 damage to target creature and you gain 2 life.\"\n# \"X and you gain N life\" is Seq(X, GAIN_LIFE) (Spirit of Malevolence, Scavenging Ooze); the damage\n# step is Silent Dart's DEAL_DAMAGE to target creature.\neffect = Seq(steps=(\n    A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n    A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n))\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=effect)]\n",
+  "clauses": [
+   {
+    "clause": "Sorin's Thirst deals 2 damage to target creature and you gain 2 life.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "b6455623e263341edad07028777207f15be04a747630d211ba3c0b79d74b5af1"
+ }
+}

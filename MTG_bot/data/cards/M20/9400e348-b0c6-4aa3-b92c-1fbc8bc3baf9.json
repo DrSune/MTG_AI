@@ -1,0 +1,235 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9400e348-b0c6-4aa3-b92c-1fbc8bc3baf9",
+ "name": "Frost Lynx",
+ "text_sha": "90951b2ef6454edf3639d01213fb1226fc23952cc7a72feb19f25dbba8ab627a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "TAP"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "OPPONENT"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_ANY_TARGET"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationUntilNextStep",
+           "step": {
+            "tag": "Step",
+            "name": "UNTAP"
+           },
+           "owner_scoped": true
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "TapStateEvent",
+           "tapped": false,
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ANY_TARGET"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          }
+         ],
+         [
+          "step",
+          {
+           "tag": "Step",
+           "name": "UNTAP"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Frost Lynx: \"When this creature enters, tap target creature an opponent controls. That creature\n# doesn't untap during its controller's next untap step.\"\n# The compiler's ETB tap is kept; the second sentence is Frost Breath's B5c-those-no-untap-next\n# step (singular target), appended in a Seq like Frost Breath's spell effect.\netb = compiled[0]\nno_untap = A(Verb.PREVENT_EFFECT, {\n    'condition': FAtom(pred=FAtomPred.IS_ANY_TARGET),\n    'duration': DurationUntilNextStep(step=Step.UNTAP),\n    'event': TapStateEvent(tapped=False, filter=FAtom(pred=FAtomPred.IS_ANY_TARGET)),\n    'step': Step.UNTAP,\n})\ntrigger = TriggeredAbility(event=etb.event, condition=etb.condition,\n                           effect=Seq(steps=(etb.effect, no_untap)))\nabilities = [trigger, *compiled[1:]]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, tap target creature an opponent controls.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "That creature doesn't untap during its controller's next untap step.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "4593b2e04f67ce4efbf13b4f3f44f21c8ae0003b7765b83abab7d1c19ff3524f"
+ }
+}

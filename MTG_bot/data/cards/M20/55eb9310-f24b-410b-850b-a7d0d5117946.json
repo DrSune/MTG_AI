@@ -1,0 +1,152 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "55eb9310-f24b-410b-850b-a7d0d5117946",
+ "name": "Leafkin Druid",
+ "text_sha": "4eb070de843fd9724a485cb25ca9b01a24b1fbe39f1cdedc888841c0427f398e",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Conditional",
+     "pred": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_COUNT_GE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": {
+       "tag": "QConst",
+       "value": 4
+      },
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TYPE_EQ"
+       },
+       "string_value": "Creature",
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "then_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "ADD_MANA"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 2
+         }
+        ],
+        [
+         "color",
+         {
+          "tag": "String",
+          "value": "G"
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ]
+       ]
+      }
+     },
+     "else_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "ADD_MANA"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 1
+         }
+        ],
+        [
+         "color",
+         {
+          "tag": "String",
+          "value": "G"
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Leafkin Druid: \"{T}: Add {G}. / If you control four or more creatures, add {G}{G} instead.\"\n# \"X. If cond, Y instead.\" is Conditional(pred=cond, then_effect=Y, else_effect=X) (Life Goes On, Lofty Denial, Cinderclasm).\nmana = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=Conditional(\n        pred=FAtom(\n            pred=FAtomPred.CONTROLLER_COUNT_GE,\n            count=QConst(value=4),\n            inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n        then_effect=A(Verb.ADD_MANA, {'amount': QConst(value=2), 'color': 'G', 'controller': ControllerRef.YOU}),\n        else_effect=A(Verb.ADD_MANA, {'amount': QConst(value=1), 'color': 'G', 'controller': ControllerRef.YOU}),\n    ),\n)\nabilities = [mana, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Add {G}.",
+    "ir": "abilities[0] (cost {T}; effect.else_effect adds {G})"
+   },
+   {
+    "clause": "If you control four or more creatures, add {G}{G} instead.",
+    "ir": "abilities[0].effect (pred CONTROLLER_COUNT_GE 4 Creature; then_effect adds {G}{G})"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Instead-shape of Life Goes On / Lofty Denial: Conditional(CONTROLLER_COUNT_GE 4 Creature, then ADD_MANA 2 G, else ADD_MANA 1 G) inside the compiler's {T} ability; '{G}{G}' as amount 2 per the '{T}: Add {C}{C}.' template. is_mana_ability still holds. Packs /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/leafkin_pack4.json (GG with four) and /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/leafkin_pack3.json (G with three; opponent creatures do not count) pass."
+ },
+ "probe": {
+  "sha": "4b38dbed95ccf80e64e0f14077170da32b20c9e57368a4b7769c6e1dd8115bcd"
+ }
+}

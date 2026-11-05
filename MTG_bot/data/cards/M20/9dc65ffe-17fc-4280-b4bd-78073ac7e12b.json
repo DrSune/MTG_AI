@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9dc65ffe-17fc-4280-b4bd-78073ac7e12b",
+ "name": "Leyline of Anticipation",
+ "text_sha": "f7601957221c8af90452a2441006ed7fb11a18a7b4bd9203354ff334d28b59e7",
+ "needs_atom": {
+  "missing": "Clause 'If this card is in your opening hand, you may begin the game with it on the battlefield.' (CR 103.6, an opening-hand action taken before the first turn): no node or engine hook acts on a card in the opening hand before the game starts. Also missing: 'You may cast spells as though they had flash.', a static permission letting you cast every spell at instant speed; no exemplar or node in the 19 sets (the Flash keyword covers only the card that has it).",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ac8952c9-bd30-48cd-b964-7e6271f9cbc8",
+ "name": "Sephara, Sky's Blade",
+ "text_sha": "b32fad41a64df26ad226786d9c014f9b71f27013be1df9f18cb398e9df131704",
+ "needs_atom": {
+  "missing": "Optional alternative cost (CR 118.9, 601.2b): 'You may pay {W} and tap four untapped creatures you control with flying rather than pay this spell's mana cost.' SpellAbility has additional_costs (paid ON TOP of the mana cost) and KickerAbility (an optional extra), but no slot for a cost paid INSTEAD of the mana cost; a CostModifier with CostDeltaWaiveMana would waive the {4}{W}{W}{W} without the {W} and the four-creature tap (stronger than printed). Needs an alternative-cost node holding Cost(CostManaColor W 1, CostTap(target=Selector(4 untapped creatures you control with flying))) offered at cast. Mappable: Flying, lifelink (compiled) and 'Other creatures you control with flying have indestructible' (GRANT_ABILITY static).",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7c520355-1ab8-4d6d-9a29-0f63d6b60024",
+ "name": "Cavalier of Dawn",
+ "text_sha": "8c98dced753cef3d5037f1e1d14c25ebbb314152195091ed0e5c39f24c8b3dcb",
+ "needs_atom": {
+  "missing": "ENGINE: 'destroy up to one target nonland permanent. Its controller creates a 3/3 colorless Golem artifact creature token.' When the controller designates no target (the trigger's NONE word, a legal choice, CR 115.6), the Golem step has no antecedent and must do nothing, but verbs._v_create_token raises 'CREATE_TOKEN controller role resolved to 0 players (need exactly 1)' (core/executor/verbs.py:1263-1268): an engine crash on a legal choice. The G1 probe never reaches the NONE variant (MAX_PER_ACTION), so a review would not see it. Repro: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m2/cavalier_of_dawn/pack_none.json run with /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m2/cavalier_of_dawn/draft.py (the complete tree: B11-destroy-np with QAtMost(1) + B5b-its-controller-token + B13-dies return-to-hand); pack_target.json and pack_dies.json beside it pass.",
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05"
+ }
+}

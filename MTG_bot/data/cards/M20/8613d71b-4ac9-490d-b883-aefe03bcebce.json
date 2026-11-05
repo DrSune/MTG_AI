@@ -1,0 +1,370 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "8613d71b-4ac9-490d-b883-aefe03bcebce",
+ "name": "Hard Cover",
+ "text_sha": "d5cb284c436446fd9f0d5d8dcecc735a3c5794dcaa4d9ffcbd507e344a4d6012",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 0
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "ActivatedAbility",
+           "cost": {
+            "tag": "Cost",
+            "parts": [
+             {
+              "tag": "CostTap",
+              "target": null
+             }
+            ]
+           },
+           "effect": {
+            "tag": "Seq",
+            "steps": [
+             {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "DRAW"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "amount",
+                 {
+                  "tag": "QConst",
+                  "value": 1
+                 }
+                ],
+                [
+                 "controller",
+                 {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                ]
+               ]
+              }
+             },
+             {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "MOVE_ZONE"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "cards",
+                 {
+                  "tag": "Selector",
+                  "count": {
+                   "tag": "QConst",
+                   "value": 1
+                  },
+                  "mode": {
+                   "tag": "SelectorMode",
+                   "name": "CHOOSE"
+                  },
+                  "filter": {
+                   "tag": "FAnd",
+                   "children": []
+                  },
+                  "zones": [
+                   {
+                    "tag": "Zone",
+                    "kind": {
+                     "tag": "ZoneKind",
+                     "name": "HAND"
+                    },
+                    "controller": {
+                     "tag": "ControllerRef",
+                     "name": "YOU"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                [
+                 "controller",
+                 {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                ],
+                [
+                 "destination",
+                 {
+                  "tag": "Zone",
+                  "kind": {
+                   "tag": "ZoneKind",
+                   "name": "GRAVEYARD"
+                  },
+                  "controller": {
+                   "tag": "ControllerRef",
+                   "name": "YOU"
+                  }
+                 }
+                ],
+                [
+                 "from",
+                 {
+                  "tag": "Zone",
+                  "kind": {
+                   "tag": "ZoneKind",
+                   "name": "HAND"
+                  },
+                  "controller": {
+                   "tag": "ControllerRef",
+                   "name": "YOU"
+                  }
+                 }
+                ]
+               ]
+              }
+             }
+            ]
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05",
+  "draft_py": "# Hard Cover (M20). \"Enchanted creature gets +0/+2 and has \"{T}: Draw a card, then discard a card.\"\"\n# Infernal Scarring's static (B5a-enchant-pt-death-draw: a Seq of MODIFY_PT and GRANT_ABILITY over\n# the enchanted creature) with +0/+2 and, as the granted ability, Obsessive Stitcher's loot\n# (B3-seq-draw-discard). The Enchant keyword and the Aura carrier are the compiler's, kept.\nenchanted = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nloot = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=Seq(\n        steps=(\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n                ),\n                'controller': ControllerRef.YOU,\n                'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n        ),\n    ),\n)\nstatic = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n                'target': enchanted,\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n            }),\n            A(Verb.GRANT_ABILITY, {'ability': loot, 'target': enchanted}),\n        ),\n    ),\n)\nabilities = [static, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Enchanted creature gets +0/+2 and has \"{T}: Draw a card, then discard a card.\"",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "G1 shows +0/+2 on every legal host but never activates the granted loot. Packs in /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m0/hard_cover: pack_loot_own.json (draw then discard, creature taps), pack_loot_opponent.json (on an opponent's creature the opponent loots)."
+ },
+ "probe": {
+  "sha": "4c4bf2a221ca1185c6268b98001ea00f7abd54f2673481a23545736d48399170"
+ }
+}

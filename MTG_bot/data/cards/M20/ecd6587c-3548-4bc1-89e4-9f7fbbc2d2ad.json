@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "ecd6587c-3548-4bc1-89e4-9f7fbbc2d2ad",
+ "name": "Cerulean Drake",
+ "text_sha": "4559bbc7e3c65f15ded7e0b950302ca54e2b6ec45daeba7b5e5a57189343aa8d",
+ "needs_atom": {
+  "missing": "A spell filter 'that targets you' (a player): 'Sacrifice this creature: Counter target spell that targets you.' COUNTER_SPELL's target selector needs a predicate true for a stack spell one of whose targets is the player YOU. FAtomPred.TARGETS_SOURCE has no slots and tests only the ability's source object (the Drake itself, Terror of the Peaks' 'that target this creature'), so it would counter the wrong set of spells; no TARGETS_PLAYER/who slot exists. Mappable: Flying (compiled), Protection from red (KeywordAbility PROTECTION with COLOR_HAS 'R', the Basri's Lieutenant param shape), the sacrifice-self cost.",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

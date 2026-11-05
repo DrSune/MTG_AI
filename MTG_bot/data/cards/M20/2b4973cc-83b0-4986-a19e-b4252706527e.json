@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "2b4973cc-83b0-4986-a19e-b4252706527e",
+ "name": "Icon of Ancestry",
+ "text_sha": "414a8851836a26a942a59f2e630cf7cceb6c9c632cffb0c46c2e47b332e77369",
+ "needs_atom": {
+  "missing": "Creature-type choice: 'As this artifact enters, choose a creature type' needs a choose-a-creature-type verb (the creature-type sibling of Verb.CHOOSE_NAME, made as the permanent enters, CR 614.12) and a filter predicate 'of the chosen type' that reads it back (the sibling of FAtomPred.NAME_CHOSEN). Both the +1/+1 static ('Creatures you control of the chosen type get +1/+1') and the activated ability's 'reveal a creature card of the chosen type from among them' depend on it; no Verb or FAtomPred in ability_tree.py names a chosen subtype.",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

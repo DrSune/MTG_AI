@@ -1,0 +1,356 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "08e2fead-53e9-445b-8fd1-c108bb09d81c",
+ "name": "Cavalier of Gales",
+ "text_sha": "b838e476b4b2b15a7ebd9a19a6fbd45602d79100a2a4e303c36f80850ac22b19",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 2
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "position": {
+            "tag": "ZonePosition",
+            "name": "TOP"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SHUFFLE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "zone",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SCRY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Cavalier of Gales.\n# ETB: Rain of Revelation's \"Draw three cards, then discard a card.\" with the hand move sent to the\n# top of your library instead of the graveyard: the hand-move lane (cards CHOOSE 2 from your hand,\n# controller = the chooser, from = HAND) with destination Zone(LIBRARY, YOU, TOP) (Teferi,\n# Timeless Voyager's \"on top of ... library\").\n# Dies: \"it\" is the source card, now in a graveyard (Archfiend's Vessel / Mazemind Tome's\n# IS_SOURCE \"it\" over its current zone; Silversmote Ghoul's graveyard source). \"Shuffle it into its\n# owner's library\" = put it into Zone(LIBRARY, OWNER), then SHUFFLE that library (Grim Tutor's\n# shuffle step); then Stormwing Entity's \"scry 2\".\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(steps=(\n        A(Verb.DRAW, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n        A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=2),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),\n            'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    )),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=Seq(steps=(\n        A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),\n            ),\n            'destination': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.OWNER),\n        }),\n        A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.OWNER)}),\n        A(Verb.SCRY, {'controller': ControllerRef.YOU, 'count': QConst(value=2)}),\n    )),\n)\nabilities = [etb, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, draw three cards, then put two cards from your hand on top of your library in any order.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "When this creature dies, shuffle it into its owner's library, then scry 2.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ENGINE (weaker than printed): 'in any order' is not the player's choice; the hand-move lane moves the picked cards in Handle order (verbs._v_move_zone 'for card in sorted(cards)'), so both pick orders give the same library order. The put-back asks carry the 'discard:' tag although nothing is discarded. The SHUFFLE is a raw event the probe does not render; a diagnostic run shows the card shuffled into the library (without the step it sits at the bottom). Packs cavalier_of_gales/pack_etb.json and pack_dies.json pass."
+ },
+ "probe": {
+  "sha": "bd31ce383d543a2e08d5c2135b2a0b2e0ac8121886f3c2f0a02baee924fc0a4c"
+ }
+}

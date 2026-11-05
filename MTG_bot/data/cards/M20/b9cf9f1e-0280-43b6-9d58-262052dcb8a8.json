@@ -1,0 +1,141 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b9cf9f1e-0280-43b6-9d58-262052dcb8a8",
+ "name": "Bladebrand",
+ "text_sha": "ef9215f0526b7ddee808de89b418cb62e95ce430221c29579e4e351ea93ee031",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DEATHTOUCH"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Bladebrand: \"Target creature gains deathtouch until end of turn. / Draw a card.\"\ngrant = A(Verb.GRANT_ABILITY, {\n    'ability': KeywordAbility(keyword=Keyword.DEATHTOUCH),\n    'duration': DurationEot(),\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\ndraw = A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(grant, draw)))]\n",
+  "clauses": [
+   {
+    "clause": "Target creature gains deathtouch until end of turn.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Draw a card.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "GRANT_ABILITY deathtouch EOT on a TARGET creature (Keen Glidemaster shape), then the compiler's DRAW, in one instant Seq."
+ },
+ "probe": {
+  "sha": "7148d7c083d3eb76929578d2086763d278a2490ed472290833232cd0dadc8995"
+ }
+}

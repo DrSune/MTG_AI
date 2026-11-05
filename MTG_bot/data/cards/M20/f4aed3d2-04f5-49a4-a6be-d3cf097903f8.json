@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f4aed3d2-04f5-49a4-a6be-d3cf097903f8",
+ "name": "Bristling Boar",
+ "text_sha": "3a0231ed661074a21fdb03f4f232394c609701bd1ac7dbfb1b4f2654ae03726d",
+ "needs_atom": {
+  "missing": "A maximum-blockers restriction: 'This creature can't be blocked by more than one creature' (CR 509.1b-c, a blocking restriction on the number of creatures blocking this attacker, at most 1). DeclareBlockersEvent has filter/subject/blocked axes but no blocker-count axis, PREVENT_EFFECT over it can only forbid a block outright ('can't be blocked', Tome Anima), and the executor's block declaration (executor/__init__.py _declare_blockers, completable()) knows only MENACE's minimum of two. Nothing expresses 'at most one blocker'; a whole-block prevention would be stronger than printed.",
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05"
+ }
+}

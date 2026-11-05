@@ -1,0 +1,158 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "d5b446a4-a761-42f0-acf0-ea0a1a9538d6",
+ "name": "Pulse of Murasa",
+ "text_sha": "aef5e48be5d0df2d424fe77d7aaea6aae56c9bcc4e931441f7c9325f70a97f66",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Land",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 6
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Pulse of Murasa: \"Return target creature or land card from a graveyard to its owner's hand. You\n# gain 6 life.\"  Step 1: Unsummon's MOVE_ZONE (to the owner's hand) over a graveyard of ANY player\n# (Return to Nature's \"from a graveyard\" zone), filter \"creature or land\" as an FOr of TYPE_EQ.\n# Step 2: the compiler's own gain-6 atom, kept.\nspell = compiled[0]\nret = A(Verb.MOVE_ZONE, {\n    'cards': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FOr(\n            children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            ),\n        ),\n        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),\n    ),\n    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(ret, spell.effect)))]\n",
+  "clauses": [
+   {
+    "clause": "Return target creature or land card from a graveyard to its owner's hand.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "You gain 6 life.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "96902a08b22ba542284fc7e82828d80ab38f813d17652b8fea92ef994b1552df"
+ }
+}

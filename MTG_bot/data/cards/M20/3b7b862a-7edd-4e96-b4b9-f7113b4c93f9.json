@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3b7b862a-7edd-4e96-b4b9-f7113b4c93f9",
+ "name": "Loyal Pegasus",
+ "text_sha": "63905d0cf166c55a26f14e48dd06a72a7dea41d711ecbadfbd1831027246c13e",
+ "needs_atom": {
+  "missing": "Declaration-level restriction 'can't attack or block alone' (CR 506.5): an attack (block) including this creature is legal only if at least one other creature is declared as an attacker (blocker) in the same declaration. The PREVENT_EFFECT over DeclareAttackersEvent/DeclareBlockersEvent shapes (Pirate's 'can't block', Gadrak's 'can't attack unless ...') judge each creature or a game-state condition, and neither event has a group-size slot (the engine's _group_size exists only for the BATTALION trigger); a plain 'can't attack or block' would be weaker than printed, dropping the clause stronger.",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

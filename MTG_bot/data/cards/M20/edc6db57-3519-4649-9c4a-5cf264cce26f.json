@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "edc6db57-3519-4649-9c4a-5cf264cce26f",
+ "name": "Wakeroot Elemental",
+ "text_sha": "56cf10bf0dd967a722ef4ed1414b777e77d075b153a8c7436b1fcbe4bff55f45",
+ "needs_atom": {
+  "missing": "ENGINE: stronger than printed. 'It becomes a 5/5 Elemental creature with haste. It's still a land.' maps as Riddleform's SET_PT 5/5 + GRANT_TYPE (Creature, Elemental) + GRANT_ABILITY haste on referent 'target', but the engine keeps the effect on the CARD after the land leaves the battlefield (CR 400.7: the returned land is a new object; the reminder text says the effect lasts only while that land remains). Pack scratchpad round_m20/mapped/m1/wakeroot/pack_new_object.json: animate the Forest, bounce it, replay it two turns later -> it attacks as a 5/5 haste creature (opp 20 -> 15). With DurationUntilLeaves(source='target') on all three atoms (draft2.py) the SET_PT ends but GRANT_TYPE does not: the replayed Forest is still a creature (pack_new_object_type.json: Murder can target it). Needs indefinite/until-leaves continuous effects, GRANT_TYPE included, to end when the affected object changes zones. Untap, 5/5, haste and persistence while on the battlefield all play right (pack_animate/pack_untap/pack_lasts.json).",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

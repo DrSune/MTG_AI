@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "3d92f2e6-27df-4329-b552-cf905f7616ba",
+ "name": "Flood of Tears",
+ "text_sha": "8e053da93d9c512e38163f0bca1269669f5a42fd2618456d7582c68009d0dcc4",
+ "needs_atom": {
+  "missing": "Clause 'If you return four or more nontoken permanents you control this way, you may put a permanent card from your hand onto the battlefield.': no node counts how many of the objects the first step returned were nontoken permanents you controlled (judged as they left the battlefield, so a stolen permanent counts and your permanent an opponent controlled does not) and compares that count to 4. THIS_WAY_COUNT counts tapped creatures only (Siege Striker), THAT_MANY_COUNT counts every moved object unfiltered, Conditional takes a Filter, and no FAtomPred compares a quantity with a threshold. Not the blocker: 'Return all nonland permanents to their owners' hands.' is MOVE_ZONE over FAnd(IS_PERMANENT, FNot(TYPE_EQ Land)) to Zone(HAND, OWNER).",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

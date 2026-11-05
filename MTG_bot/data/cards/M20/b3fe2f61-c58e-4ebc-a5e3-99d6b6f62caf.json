@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b3fe2f61-c58e-4ebc-a5e3-99d6b6f62caf",
+ "name": "Marauding Raptor",
+ "text_sha": "24bcf9e3aee71ea0a2178475562160c2e80adcf0ed21a6876202b49ed5e86da3",
+ "needs_atom": {
+  "missing": "ENGINE: 'If a Dinosaur is dealt damage this way, this creature gets +2/+0 until end of turn' has no correct subject. The natural tree (trigger: DEAL_DAMAGE 2 to the entering creature via referent 'event', then Conditional(pred=Dinosaur creature, then=self +2/+0 EOT)) plays STRONGER than printed: DEAL_DAMAGE writes no result register (verbs.run_atom/result_fresh), so the bare Conditional falls back to ctx.source, the Raptor itself, which is a Dinosaur, and it pumps on every creature entering. G1 probe of the draft (scratchpad round_m20/mapped/m1/raptor/trace.txt): stimuli 'a creature enters under your control' (you_spare) and 'you cast a creature (Yoked Ox)' both show 'card: P/T 2/3 -> 4/3'. Needs DEAL_DAMAGE to publish the objects actually dealt damage (after prevention) as the result register, or a 'dealt damage this way' predicate. Clauses 1-2 (CostModifier creature spells {1} less; the enters trigger dealing 2 to it) map with existing nodes.",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

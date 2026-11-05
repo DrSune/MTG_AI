@@ -1,0 +1,201 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "a97da5a9-17fc-4367-81e1-17ff81601a63",
+ "name": "Anticipate",
+ "text_sha": "949a171ee9947efcc6328bf9f9841cb64f5b26d8db0e6710f244ffe32884d561",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOOK_AT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ONE_OF"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "REST"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "BOTTOM"
+             }
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05",
+  "draft_py": "# Anticipate: \"Look at the top three cards of your library. / Put one of them into your hand and the\n# rest on the bottom of your library in any order.\"  Sentence 2: See the Truth's B5b-one-of-rest-bottom tree.\nlook = A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=3)})\ntop = (Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),)\none_and_rest = Seq(steps=(\n    A(Verb.MOVE_ZONE, {\n        'cards': Selector(count=QConst(value=1), mode=SelectorMode.ONE_OF, filter=FAnd(children=()), zones=top),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n    }),\n    A(Verb.MOVE_ZONE, {\n        'cards': Selector(count=QConst(value=1), mode=SelectorMode.REST, filter=FAnd(children=()), zones=top),\n        'destination': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.BOTTOM),\n    }),\n))\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(look, one_and_rest)))]\n",
+  "clauses": [
+   {
+    "clause": "Look at the top three cards of your library.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Put one of them into your hand and the rest on the bottom of your library in any order.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Sentence 2 is See the Truth's B5b-one-of-rest-bottom tree (ONE_OF to hand, REST to library bottom), nested in the instant's Seq after the compiler's LOOK_AT, as See the Truth compiles. Spec pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/anticipate_pack.json: chosen card to hand, the other two to the bottom, the fourth card becomes the top."
+ },
+ "probe": {
+  "sha": "35f6f41e266e6b6ba792348f4e1670abc6cef38d215ee0c6d2ba34e92fcf3487"
+ }
+}

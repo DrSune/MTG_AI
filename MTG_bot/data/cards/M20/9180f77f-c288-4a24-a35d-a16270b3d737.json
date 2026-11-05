@@ -1,0 +1,118 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9180f77f-c288-4a24-a35d-a16270b3d737",
+ "name": "Skyknight Vanguard",
+ "text_sha": "d4143716211bcb88e8e1032a2ee8cee9b55f52636976b96a5f52ba100e1edccd",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Soldier",
+         "type_line": "Creature — Soldier",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Soldier"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "W"
+         ],
+         "enters_tapped": true,
+         "enters_attacking": true
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Skyknight Vanguard: \"Whenever this creature attacks, create a 1/1 white Soldier creature token that's\n# tapped and attacking.\" (Flying: the compiler's keyword, kept.)\n# Shape: Falconer Adept's B2b-falconer-adept with Raise the Alarm's Soldier TokenSpec (no flying).\ntrigger = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Soldier',\n            type_line='Creature — Soldier',\n            types=('Creature',),\n            subtypes=('Soldier',),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(),\n            abilities=(),\n            colors=('W',),\n            enters_tapped=True,\n            enters_attacking=True,\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever this creature attacks, create a 1/1 white Soldier creature token that's tapped and attacking.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "43905fdfceb692166035ff7cc0757763b27e7c33b7972e51810ac55253719c87"
+ }
+}

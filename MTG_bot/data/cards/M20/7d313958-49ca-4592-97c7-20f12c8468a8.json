@@ -1,0 +1,211 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "7d313958-49ca-4592-97c7-20f12c8468a8",
+ "name": "Ember Hauler",
+ "text_sha": "df800db26a12e82799e764664b9d04fc00ddca8afb5a0d28a18c830bb26cc266",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Planeswalker",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Player",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Ember Hauler: \"{1}, Sacrifice this creature: It deals 2 damage to any target.\"\n# Shape: Silent Dart's \"{4}, {T}, Sacrifice this artifact: It deals 3 damage to target creature.\"\n# (B5c-cost-sacrifice-dmg) without {T}, with Shock's \"any target\" selector (B5b-damage-any).\nability = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaGeneric(amount=QConst(value=1)),\n        CostSacrifice(target=Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.IS_SOURCE),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        )),\n    )),\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FOr(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Player'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [ability, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{1}, Sacrifice this creature: It deals 2 damage to any target.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Engine: targeting itself, the sacrificed card is still dealt 2 damage in the graveyard (variant 'activate [0] targets=[card]'); no CR 608.2b illegal-target recheck at resolution."
+ },
+ "probe": {
+  "sha": "5bf6d8b9b64aae44d9a4fdadd8da22c5f70af0c47a81777c87e648a3a36ab7b9"
+ }
+}

@@ -1,0 +1,203 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "fc59aa9a-3abd-4479-a63e-ef0eeb35b5f2",
+ "name": "Sage's Row Denizen",
+ "text_sha": "d5d877595c675ace3bd64a1c2ffd4b1364a0c0573dac60f41411e541c428aea4",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "COLOR_HAS"
+        },
+        "string_value": null,
+        "color": "U",
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "TARGET_PLAYER"
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "GRAVEYARD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "TARGET_PLAYER"
+         }
+        }
+       ],
+       [
+        "from",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "LIBRARY"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "TARGET_PLAYER"
+         }
+        }
+       ],
+       [
+        "journal_kind",
+        {
+         "tag": "String",
+         "value": "MILL"
+        }
+       ],
+       [
+        "pop_order",
+        {
+         "tag": "String",
+         "value": "TOP"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Sage's Row Denizen: \"Whenever another blue creature you control enters, target player mills two cards.\"\n# Event: Watcher of the Spheres' \"another creature you control with flying enters\" shape with COLOR_HAS U\n# in place of the flying test. Effect: Teferi's Tutelage's \"target opponent mills two cards\" with\n# TARGET_PLAYER (\"target player\": any player, V21).\nevent = ZoneChangeEvent(\n    from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n    to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n    subject=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        FAtom(pred=FAtomPred.COLOR_HAS, color='U'),\n        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n    )),\n)\nmill = A(Verb.MOVE_ZONE, {\n    'amount': QConst(value=2),\n    'controller': ControllerRef.TARGET_PLAYER,\n    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),\n    'from': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.TARGET_PLAYER),\n    'journal_kind': 'MILL',\n    'pop_order': 'TOP',\n})\nabilities = [TriggeredAbility(event=event, condition=None, effect=mill), *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever another blue creature you control enters, target player mills two cards.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "30b6eeb7739721fc2eb5d05a81a4eeef20af46e9d37a08bc551161a48702a590"
+ }
+}

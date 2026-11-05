@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "002965be-a36f-4a09-9ce0-c6535bca1703",
+ "name": "Veil of Summer",
+ "text_sha": "370e9bc45696da6d05cc13c5bf05383626d8f812762a70a23eaf38042e569e7a",
+ "needs_atom": {
+  "missing": "(1) 'Spells you control can't be countered this turn.': no node makes a spell uncounterable (no template, no COUNTER_SPELL veto in the executor; the guide lists 'can't be countered' as a needs-atom piece). (2) 'Draw a card if an opponent has cast a blue or black spell this turn.': no turn-scoped cast predicate takes a spell filter (INSTANT_OR_SORCERY_CAST_THIS_TURN is fixed to instant/sorcery; WAS_CAST_THIS_TURN / CAST_THIS_TURN_FROM read one object), so 'a blue or black spell cast by an opponent this turn' (FOr of COLOR_HAS U/B) cannot be tested. Sentence 3 (you and your permanents gain hexproof from blue and from black until end of turn) looks expressible (HEXPROOF with an FOr COLOR_HAS param, granted to Zone(PLAYER, YOU) as Runed Halo and to permanents you control).",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "cc6e6e16-da2b-4fc0-91ad-b76f0a101306",
+ "name": "Masterful Replication",
+ "text_sha": "e3f0e246b0bc70bf657bfb93c65258d645529cf500b255c9d83ffc036857e116",
+ "needs_atom": {
+  "missing": "Mode 2, 'Choose target artifact you control. Each other artifact you control becomes a copy of that artifact until end of turn.': no node makes a permanent become a copy of another permanent (CR 707.2, layer 1) for a duration. Verb.COPY has only a 'source' role, no target/affected set and no duration, and is not in SUPPORTED_VERBS_V2. Mode 1 ('Create two 3/3 colorless Golem artifact creature tokens.') is expressible as CREATE_TOKEN, but a modal spell cannot be written with one of its two modes dropped.",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

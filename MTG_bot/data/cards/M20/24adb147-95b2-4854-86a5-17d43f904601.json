@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "24adb147-95b2-4854-86a5-17d43f904601",
+ "name": "Loxodon Lifechanter",
+ "text_sha": "8a7995ccb02d424f53f0e8cbb7ddd89f623444380a1ced372837f425d5453f85",
+ "needs_atom": {
+  "missing": "Clause 'When this creature enters, you may have your life total become the total toughness of creatures you control.': no atom sets a life total (CR 119.5); the Verb set has GAIN_LIFE/LOSE_LIFE only. Composing it as a Seq of GAIN_LIFE(SUB(total, life)) and LOSE_LIFE(SUB(life, total)) is not the same: each step re-reads the life total, so a life-gain replacement (ORI Alhammarret's Archive doubling the gain) makes the second step take the excess back, which a single set-life does not. Missing: a SET_LIFE atom (player, amount) that gains or loses the difference as one event. The quantity exists: QProp(referent=Selector(creatures you control), field=TOUGHNESS, agg=SUM), as in Volcanic Salvo's total power. Not the blocker: '{5}{W}: This creature gets +X/+X until end of turn, where X is your life total.' is MODIFY_PT with QProp('controller', LIFE).",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

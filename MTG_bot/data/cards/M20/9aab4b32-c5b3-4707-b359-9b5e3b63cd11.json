@@ -1,0 +1,180 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "9aab4b32-c5b3-4707-b359-9b5e3b63cd11",
+ "name": "Reduce to Ashes",
+ "text_sha": "c8956eb83de85c290664d183fb6a8747ca4d45fda19d146145083c62409f5dbf",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ReplacementAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_ANY_TARGET"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "action": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "EXILE"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "ANY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ],
+         "referent": "event"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 5
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Reduce to Ashes: \"Reduce to Ashes deals 5 damage to target creature. If that creature would die this\n# turn, exile it instead.\"\n# The compiler's damage spell is kept; the second sentence is Scorching Dragonfire's\n# B5b-repl-die-exile ReplacementAbility, placed before the SpellAbility as in that verified card.\nrepl = ReplacementAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_ANY_TARGET)),\n    condition=None,\n    action=A(Verb.MOVE_ZONE, {\n        'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n            referent='event',\n        ),\n    }),\n)\nabilities = [repl, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Reduce to Ashes deals 5 damage to target creature.",
+    "ir": "abilities[1].effect"
+   },
+   {
+    "clause": "If that creature would die this turn, exile it instead.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "faf5f2a97f2ec5626486bbd53b2927d820c16b4d9562f0d58f037a19298e6e59"
+ }
+}

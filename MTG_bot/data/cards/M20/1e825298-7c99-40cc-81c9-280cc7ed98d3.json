@@ -1,0 +1,306 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1e825298-7c99-40cc-81c9-280cc7ed98d3",
+ "name": "Mu Yanling, Sky Dancer",
+ "text_sha": "c4bbde105cfb65413aa8cdd972dcd50788936c18b916a8c51a8695af68ba8c1c",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 2
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationUntilNextTurn"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "DECREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "DECREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 0
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FLYING"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationUntilNextTurn"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -3
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Elemental Bird",
+         "type_line": "Creature — Elemental Bird",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Bird",
+          "Elemental"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 4
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 4
+         },
+         "keywords": [
+          {
+           "tag": "Keyword",
+           "name": "FLYING"
+          }
+         ],
+         "abilities": [],
+         "colors": [
+          "U"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -8
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GET_EMBLEM"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": []
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05",
+  "draft_py": "# Mu Yanling, Sky Dancer (M20). \"[+2]: Until your next turn, up to one target creature gets -2/-0\n# and loses flying.\" Garruk, Unleashed's loyalty +1 shape (B5c-loyalty-pt-trample: a Seq of\n# MODIFY_PT and a keyword change over one \"up to one target creature\" selector) with Rookie\n# Mistake's \"-2/-0\" (DECREASE 2 / DECREASE 0), Soul Sear's LOSE_ABILITY for \"loses flying\", and\n# DurationUntilNextTurn for \"until your next turn\" on both steps. The compiled [-3] and [-8] and\n# the planeswalker carrier are kept, in printed order after the [+2].\ntarget = Selector(\n    count=QAtMost(n=1),\n    mode=SelectorMode.TARGET,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nplus_two = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=2),)),\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'duration': DurationUntilNextTurn(),\n                'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=2)),\n                'target': target,\n                'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=0)),\n            }),\n            A(Verb.LOSE_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FLYING),\n                'duration': DurationUntilNextTurn(),\n                'target': target,\n            }),\n        ),\n    ),\n)\nabilities = [plus_two, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "[+2]: Until your next turn, up to one target creature gets -2/-0 and loses flying.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "[−3]: Create a 4/4 blue Elemental Bird creature token with flying.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "[−8]: You get an emblem with \"Islands you control have '{T}: Draw a card.'\"",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "G1 starts at loyalty 2, so only the +2 is exercised there. Packs in /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m0/mu_yanling: pack_plus_two_persists.json / pack_plus_two_ends.json (lasts through the opponent's turn, ends at your next turn), pack_minus_three.json (4/4 flying Bird). WEAKER THAN PRINTED, two engine/pool issues: (1) B-50 is live: pack_plus_two_survives_mu_leaving.json fails, because the 'loses flying' layer expires when Mu Yanling leaves the battlefield (the -2/-0 stays); (2) the -8's emblem is empty because the card 'Mu Yanling, Sky Dancer Emblem' is unmapped (its sentence is UNPARSED); pack_minus_eight_emblem.json fails until that emblem card has a record."
+ },
+ "probe": {
+  "sha": "a996f3a9f55991ef5f54af6cf21f08d0bf8482e8348bb47ae6280d1382059bc2"
+ }
+}

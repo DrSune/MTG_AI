@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "6dfb50d7-359b-4644-90e3-7ecdacee7c12",
+ "name": "Scheming Symmetry",
+ "text_sha": "3cb1d6e32186f93e03f07625450fad6ff775336da033b4b2082f650d28c7c973",
+ "needs_atom": {
+  "missing": "Clauses 'Choose two target players. Each of them searches their library for a card, then shuffles and puts that card on top.': no node designates two target players and runs an effect once per designated player with that player acting. EachPlayer takes only a ControllerRef (no TARGET designation, no count of 2), and TARGET_PLAYER / TARGET_OPPONENT name one designated player. EachPlayer(ANY) would be 'each player' (untargeted, every player in multiplayer), not the printed card. Also check that the per-player step can express 'search for a card, shuffle, then put that card on top' (a SEARCH whose found card goes to the library top after the shuffle).",
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05"
+ }
+}

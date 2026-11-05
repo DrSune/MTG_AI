@@ -1,0 +1,173 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5bf9f397-0216-4ec9-a57b-406758dcc233",
+ "name": "Undead Servant",
+ "text_sha": "fb92bb1d5c103cc7b4d421fc1e4e680b86457be9f130ea04348e88363855795a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "MUL"
+         },
+         "left": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "right": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "NAME_EQ"
+            },
+            "string_value": "Undead Servant",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Zombie",
+         "type_line": "Creature — Zombie",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Zombie"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "B"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Undead Servant: the ETB frame (B13-etb + B11-create-tokens) with the \"for each X\" count of the\n# guide and Liliana, Death Mage's graveyard census: 1 x the cards named Undead Servant in YOUR graveyard.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QBin(\n            op=QBinOp.MUL,\n            left=QConst(value=1),\n            right=QCount(selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAtom(pred=FAtomPred.NAME_EQ, string_value='Undead Servant'),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            )),\n        ),\n        'tokens': TokenSpec(\n            name='Zombie',\n            type_line='Creature — Zombie',\n            types=('Creature',),\n            subtypes=('Zombie',),\n            power=QConst(value=2),\n            toughness=QConst(value=2),\n            keywords=(),\n            abilities=(),\n            colors=('B',),\n        ),\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 2/2 black Zombie creature token for each card named Undead Servant in your graveyard.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The probe graveyard holds no Undead Servant, so the trigger makes 0 tokens there. Packs undead_servant/pack_count.json (2 in your graveyard, 1 in the opponent's -> 2 Zombies) and pack_none.json pass."
+ },
+ "probe": {
+  "sha": "d01f1fe8dc3db9c52153fc9a29017c0f2f34f5786d0e71e9dff4d6d4f7d23db9"
+ }
+}

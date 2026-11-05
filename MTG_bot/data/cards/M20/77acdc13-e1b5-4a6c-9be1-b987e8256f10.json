@@ -1,0 +1,201 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "77acdc13-e1b5-4a6c-9be1-b987e8256f10",
+ "name": "Drawn from Dreams",
+ "text_sha": "80c01d3c7b0b7f54a43c8ea99f85c09ee4713a5e005b9be5ddc4cc531767bc2e",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOOK_AT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 7
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 2
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ONE_OF"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "REST"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "BOTTOM"
+             }
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Drawn from Dreams: \"Look at the top seven cards of your library. Put two of them into your hand\n# and the rest on the bottom of your library in a random order.\"  See the Truth's compiled shape:\n# LOOK_AT, then the sentence's own Seq of a ONE_OF pick (here k=2, the T2 k-of-n lane) into the\n# hand and the REST onto the library bottom (Garruk's Harbinger: \"in a random order\" is the same\n# REST-to-bottom move).\ntop = Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP)\neffect = Seq(\n    steps=(\n        A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=7)}),\n        Seq(\n            steps=(\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=2),\n                        mode=SelectorMode.ONE_OF,\n                        filter=FAnd(children=()),\n                        zones=(top,),\n                    ),\n                    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.REST,\n                        filter=FAnd(children=()),\n                        zones=(top,),\n                    ),\n                    'destination': Zone(\n                        kind=ZoneKind.LIBRARY,\n                        controller=ControllerRef.YOU,\n                        position=ZonePosition.BOTTOM,\n                    ),\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=effect)]\n",
+  "clauses": [
+   {
+    "clause": "Look at the top seven cards of your library.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Put two of them into your hand and the rest on the bottom of your library in a random order.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "95dfb26f18c6610845dc00f55bf4a36580bdd0030bd87ff69cffe45fc07ab5bd"
+ }
+}

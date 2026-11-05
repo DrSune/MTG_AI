@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "994bc16d-fdc6-475c-96df-beeb4d5aa03e",
+ "name": "Mystic Forge",
+ "text_sha": "b4321b551deacda85633db392a9570006dbb9adb7e880a43c85f3c7305eb055b",
+ "needs_atom": {
+  "missing": "ENGINE / permission lane: 'You may cast artifact spells and colorless spells from the top of your library' is a casting permission that keeps normal timing (CR 601.3). The only expressible form is the compiler's free-activated-row idiom (Conspicuous Snoop / Radha: ActivatedAbility(cost=Cost(), OptionalEffect(CAST(top of library)))), and CAST casts outside the normal timing (stack.cast_card: 'No window check'), so an artifact creature is cast from the top on the opponent's turn. Repro: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m2/mystic_forge/diag_instant_speed.json with /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m2/mystic_forge/draft_idiom.py (Prismite ends on the battlefield). CAST also has no target channel, so an artifact or colorless spell with targets would raise. Needs the R5-2/R5-3 permission lane (a static CAST permission checked by legal_casts with the spell's own timing). 'Look at the top card any time' (a no-op LOOK_AT row) and '{T}, Pay 1 life: Exile the top card of your library' are expressible.",
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05"
+ }
+}

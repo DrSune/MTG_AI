@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1432db6a-9466-48f6-9011-60728c437608",
+ "name": "Ogre Siegebreaker",
+ "text_sha": "bfa0b2c27e1cf3c435a2ea09a9e6a42aecff11f98383a6a62655c69022142f25",
+ "needs_atom": {
+  "missing": "Filter predicate for 'target creature that was dealt damage this turn': no FAtomPred tests whether an object was dealt damage during the current turn (the turn-scoped family has DIED_THIS_TURN, ENTERED_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN, WAS_CAST_THIS_TURN, but nothing over the journal's damage rows per recipient). Needed: e.g. FAtomPred.DEALT_DAMAGE_THIS_TURN on the object (any source, combat or not). The rest ({2}{B}{R} activated DESTROY of a TARGET creature) is expressible.",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

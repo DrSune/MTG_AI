@@ -1,0 +1,205 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "f6f39a85-28b9-49f3-ab90-2ff99169de42",
+ "name": "Battalion Foot Soldier",
+ "text_sha": "32f559cef9b999c81bff03dbe182fadac9da608d827d957d6e961339270f9eef",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Seq",
+      "steps": [
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SEARCH"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QUnbounded"
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "NAME_EQ"
+             },
+             "string_value": "Battalion Foot Soldier",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       },
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "REVEAL"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ],
+          [
+           "count",
+           {
+            "tag": "QUnbounded"
+           }
+          ]
+         ]
+        }
+       },
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SHUFFLE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "zone",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Battalion Foot Soldier: \"When this creature enters, you may search your library for any number\n# of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.\"\n# Fierce Empath's optional ETB tutor (SEARCH to hand, REVEAL, SHUFFLE; no SEARCH controller role,\n# guide D12) with Alpine Houndmaster's NAME_EQ filter and \"reveal them\" (QUnbounded), and\n# Chandra, Heart of Fire's \"any number of\" = CHOOSE with QUnbounded.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=Seq(\n            steps=(\n                A(Verb.SEARCH, {\n                    'cards': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.NAME_EQ, string_value='Battalion Foot Soldier'),\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n                A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QUnbounded()}),\n                A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n            ),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search your library for any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "c37c98f37f8dd63b147c1e325a4b21089cbbc8efa053d37c4f92e1a31c017a71"
+ }
+}

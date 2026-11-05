@@ -1,0 +1,130 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "8f69a103-d557-4d28-847e-aa94a440e908",
+ "name": "Eternal Isolation",
+ "text_sha": "968109c333bbe78e9765579262f388229fdaca6a5cf4e18a45b242adc38206ec",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "POWER_GE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": {
+             "tag": "QConst",
+             "value": 4
+            },
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "LIBRARY"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         },
+         "position": {
+          "tag": "ZonePosition",
+          "name": "BOTTOM"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Eternal Isolation: Put target creature with power 4 or greater on the bottom of its owner's library.\n# Shapes: Teferi, Timeless Voyager's \"Put target creature on top of its owner's library.\" (MOVE_ZONE to\n# Zone(LIBRARY, OWNER, position)) with BOTTOM; the target filter from parse \"Destroy target creature\n# with power 4 or greater.\" (B5a-destroy-power-ge).\neffect = A(Verb.MOVE_ZONE, {\n    'cards': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n    'destination': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.OWNER, position=ZonePosition.BOTTOM),\n})\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=effect)]\n",
+  "clauses": [
+   {
+    "clause": "Put target creature with power 4 or greater on the bottom of its owner's library.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "49aa3ed6001548931d8cf5f1926e12868ea00e82a0a0022f7fc5d5ff2d251fdb"
+ }
+}

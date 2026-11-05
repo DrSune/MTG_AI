@@ -1,0 +1,222 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "134d5b82-7940-4b33-a922-7f9d1f403e50",
+ "name": "Lotus Field",
+ "text_sha": "c5bc018e72171a56140985b7ebf81d53ae6a2420856109f8148f21b9b610592f",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "HEXPROOF"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": true,
+    "initial_counters": []
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "SACRIFICE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "ANY"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-3",
+  "date": "2026-11-05",
+  "draft_py": "# Lotus Field. Kept from the compiler: Hexproof (keyword) and \"This land enters tapped.\" (EtBState).\n# 3. \"When this land enters, sacrifice two lands.\" -- Crypt Lurker's SACRIFICE (B2a-crypt-lurker)\n#    over lands you control, count 2, mandatory.\netb_sac = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.SACRIFICE, {\n        'target': Selector(\n            count=QConst(value=2),\n            mode=SelectorMode.CHOOSE,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\n# 4. \"{T}: Add three mana of any one color.\" -- parse \"{T}: Add two mana of any one color.\"\n#    (frame B13-activated+B5a-add-any-color) with amount 3.\nmana = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.ADD_MANA, {'amount': QConst(value=3), 'color': 'ANY', 'controller': ControllerRef.YOU}),\n)\nabilities = [*compiled, etb_sac, mana]\n",
+  "clauses": [
+   {
+    "clause": "Hexproof",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "This land enters tapped.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "When this land enters, sacrifice two lands.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "{T}: Add three mana of any one color.",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [
+   "numbers in the text but not in the tree: [1]"
+  ],
+  "notes": "G0 warning 'numbers in the text but not in the tree: [1]' is the 'one' of 'any one color' (a single-colour restriction, ADD_MANA color ANY picks one colour for all 3), not a quantity."
+ },
+ "probe": {
+  "sha": "31eff957721e256df73c9176095c52e8cabd57b86d896b66c7d8edb1296b691f"
+ }
+}

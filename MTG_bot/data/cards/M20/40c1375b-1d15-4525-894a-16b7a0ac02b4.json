@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "40c1375b-1d15-4525-894a-16b7a0ac02b4",
+ "name": "Renowned Weaponsmith",
+ "text_sha": "c266666bab5e834bdfaecf34ab821f17ce1cb22b81f823f6f9e4bf48eadff494",
+ "needs_atom": {
+  "missing": "Mana-spend restriction with an activation use: 'Spend this mana only to cast artifact spells or activate abilities of artifacts.' MANA_POLICY scope=THIS_MANA has one filter, read over the spell being cast (legality._mana_use_ok); it has no use-kind axis to also allow activating abilities whose source is an artifact, and the engine never lets THIS_MANA-tagged mana pay an activation cost. A filter of TYPE_EQ Artifact alone would mean 'only to cast artifact spells' (dropping the activation use). Needed: a MANA_POLICY use axis (cast spell / activate ability of a source) or equivalent. The {T}: Add {C}{C} ability (compiled) and the {U},{T} named-card tutor (SEARCH with FOr of NAME_EQ, REVEAL, SHUFFLE, as Fierce Empath) are expressible.",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

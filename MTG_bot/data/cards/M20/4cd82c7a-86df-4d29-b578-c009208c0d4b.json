@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "4cd82c7a-86df-4d29-b578-c009208c0d4b",
+ "name": "Agent of Treachery",
+ "text_sha": "15912db114058c240b49f24bc370721a873c19d9a3fbeb2278e39b43d923c31f",
+ "needs_atom": {
+  "missing": "An ownership filter predicate: 'At the beginning of your end step, if you control three or more permanents you don't own, draw three cards.' The condition is CONTROLLER_COUNT_GE 3 over 'permanents you don't own', which needs an FAtomPred testing the object's OWNER (e.g. OWNER_IS who=YOU, negated); FAtomPred has CONTROLLER_IS only, and a control-only count would fire on your own permanents (stronger than printed). Mappable: the ETB 'gain control of target permanent' (GAIN_CONTROL, no duration) and the end-step trigger/draw-3 shape.",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

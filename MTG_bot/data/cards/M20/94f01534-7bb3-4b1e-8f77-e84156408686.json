@@ -1,0 +1,360 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "94f01534-7bb3-4b1e-8f77-e84156408686",
+ "name": "Elvish Reclaimer",
+ "text_sha": "30bccbef95d942bc598386c8a2b29e77968cf78e06df956fa864189afb763d1a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "ZONE_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 3
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Land",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "GRAVEYARD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Land",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SEARCH"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "tapped_on_enter",
+          {
+           "tag": "Bool",
+           "value": true
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SHUFFLE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "zone",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05",
+  "draft_py": "# Elvish Reclaimer (M20).\n# s1 \"This creature gets +2/+2 as long as there are three or more land cards in your graveyard.\"\n#    Thieves' Guild Enforcer's conditional static (B5a-aslong-opp-gy-count, C9: the \"as long as\"\n#    lives in StaticAbility.condition) with who/zone = you/your graveyard, inner_filter = land\n#    cards, count 3, and the self pump +2/+2.\n# s2 \"{2}, {T}, Sacrifice a land: Search your library for a land card, put it onto the battlefield\n#    tapped, then shuffle.\" Portcullis Vine's \"{2}, {T}, Sacrifice a <thing>\" cost\n#    (B5c-cost-sacrifice-defender) with a land, and Fabled Passage's search-to-battlefield-tapped\n#    + shuffle (B5c-cost-sacrifice-search) over \"a land card\"; SEARCH without the controller role\n#    (MAPPER_GUIDE, divergence D12).\nstatic = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n    }),\n    condition=FAtom(\n        pred=FAtomPred.ZONE_COUNT_GE,\n        count=QConst(value=3),\n        who=ControllerRef.YOU,\n        inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    ),\n)\nreclaim = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostManaGeneric(amount=QConst(value=2)),\n            CostSacrifice(\n                target=Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n            CostTap(),\n        ),\n    ),\n    effect=Seq(\n        steps=(\n            A(Verb.SEARCH, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                    zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                ),\n                'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n                'tapped_on_enter': True,\n            }),\n            A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n        ),\n    ),\n)\nabilities = [static, reclaim, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature gets +2/+2 as long as there are three or more land cards in your graveyard.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{2}, {T}, Sacrifice a land: Search your library for a land card, put it onto the battlefield tapped, then shuffle.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "G1's board has no land cards in the graveyard or library, so neither the +2/+2 nor the search result shows there. Packs in /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m0/elvish_reclaimer: pack_sac_search.json (sacrifice the third land: 3/4, library land enters tapped), pack_drops.json (bonus ends when a land leaves the graveyard), pack_three.json, pack_opp_lands.json (the opponent's graveyard does not count)."
+ },
+ "probe": {
+  "sha": "1b07a858e1f624026de53f4089e58bd5545904bf72bc1a6fa9faee82798c0727"
+ }
+}

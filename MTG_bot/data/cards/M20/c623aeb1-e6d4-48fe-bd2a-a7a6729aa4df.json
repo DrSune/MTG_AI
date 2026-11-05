@@ -1,0 +1,149 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c623aeb1-e6d4-48fe-bd2a-a7a6729aa4df",
+ "name": "Winged Words",
+ "text_sha": "3991bbad3b42ccb12bcf214bae3d56cdf8db7d66889d4abeebf3f316861aa6b3",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "IS_SOURCE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "CONTROLLER_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "KEYWORD_HAS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": {
+         "tag": "Keyword",
+         "name": "FLYING"
+        },
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Winged Words: Sanguine Indulgence's self CostModifier (\"This spell costs {3} less to cast if ...\")\n# with {1} and Celestial Enforcer's condition \"if you control a creature with flying\". The\n# compiler's \"Draw two cards.\" spell is kept, after it.\nreduce = CostModifier(\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=1),\n        inner_filter=FAnd(children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),\n        )),\n    ),\n)\nabilities = [reduce, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This spell costs {1} less to cast if you control a creature with flying.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Draw two cards.",
+    "ir": "abilities[1].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The probe board gives you no flier, so the reduction is not exercised there. Packs winged_words/pack_reduced.json (cast with {U}{U} while you control a flier) and pack_not_reduced.json (only the opponent has a flier: not castable with {U}{U}) pass."
+ },
+ "probe": {
+  "sha": "9c795907dfdeaf3495751f712046f179a1230be679f6a335a7e6584b8a649542"
+ }
+}

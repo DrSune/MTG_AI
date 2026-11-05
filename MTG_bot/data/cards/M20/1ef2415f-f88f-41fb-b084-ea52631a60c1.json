@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1ef2415f-f88f-41fb-b084-ea52631a60c1",
+ "name": "Rienne, Angel of Rebirth",
+ "text_sha": "126107fc19d928595f48fcd0f5f41096f72c0ede7077919d63a1519ffaea9392",
+ "needs_atom": {
+  "missing": "Delayed trigger bound to the triggering object: 'return it to its owner's hand at the beginning of the next end step' (the creature card that died). DelayedTrigger exists, but the executor's DelayedBinding (executor/binding.py) keeps only source and controller, so the delayed MOVE_ZONE has no referent for 'it' when the end-step event fires (referent='event' would read the end-step event). Also missing: a one-shot 'next end step' lifetime (CR 603.7): the only delayed windows are Eot/UntilNextTurn, so a creature dying during the end step would never return. Mappable: Flying (compiled) and 'Other multicolored creatures you control get +1/+0' (Pack Leader's static with COLOR_COUNT_GE 2).",
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05"
+ }
+}

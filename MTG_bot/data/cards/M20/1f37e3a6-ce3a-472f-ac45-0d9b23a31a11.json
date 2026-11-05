@@ -1,0 +1,116 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "1f37e3a6-ce3a-472f-ac45-0d9b23a31a11",
+ "name": "Pyroclastic Elemental",
+ "text_sha": "0a9a61fa600867dd27ea3fea32133796406cd4d534c8a2401cbb2d92e959d05b",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "R",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "R",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-0",
+  "date": "2026-11-05",
+  "draft_py": "# Pyroclastic Elemental (M20). \"{1}{R}{R}: This creature deals 1 damage to target player.\"\n# The cost and the atom follow Chandra's Magmutt / Flamewave Invoker (B3-deal-dmg-const-player-or-\n# planeswalker); the target is a player only, the PLAYER-zone TARGET selector that \"target\n# opponent\" uses (templates_b2b._target_opponent) with controller ANY: any player (CR 115.1).\ndmg = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostManaColor(color='R', amount=QConst(value=1)),\n            CostManaColor(color='R', amount=QConst(value=1)),\n            CostManaGeneric(amount=QConst(value=1)),\n        ),\n    ),\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=1),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [dmg, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{1}{R}{R}: This creature deals 1 damage to target player.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "015f552f0fc8ca18f617351898965164adcae0eb47bacbeefff09cf4758002e3"
+ }
+}

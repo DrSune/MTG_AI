@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "b7d231eb-255d-4505-89a9-0c6824622209",
+ "name": "Barkhide Troll",
+ "text_sha": "920a938d75d64ee6113c9d06ec87f606988a3ac51aefd4527a38b4c601811fe2",
+ "needs_atom": {
+  "missing": "Remove-counter cost part: '{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.' The CostPart union (CostTap, CostManaColor/Generic/Hybrid, CostLife, CostSacrifice, CostDiscard, CostPutCounter, CostLoyalty) has no part that removes counters of a kind from an object as a cost (CostLoyalty is loyalty-only and CostPutCounter only adds). Needed: e.g. CostRemoveCounter(counter_kind, target, count). The rest is expressible: 'enters with a +1/+1 counter' is EtBState(initial_counters=((PLUS_1_PLUS_1, QConst(1)),)) (Malefic Scythe shape) and the effect is GRANT_ABILITY hexproof EOT on itself (B3-grant-kw-self).",
+  "author": "claude-mapper-m20-4",
+  "date": "2026-11-05"
+ }
+}

@@ -1,0 +1,363 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5f39accf-62fd-407a-a147-781210569d33",
+ "name": "Mu Yanling, Celestial Wind",
+ "text_sha": "1e95a1740d0a87534616e997616ce2932b9bbfa34a9822bfc1e54bfeded30bb5",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationUntilNextTurn"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "DECREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 5
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "DECREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -3
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 2
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -7
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 5
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "KEYWORD_HAS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": {
+             "tag": "Keyword",
+             "name": "FLYING"
+            },
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 5
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-2",
+  "date": "2026-11-05",
+  "draft_py": "# Mu Yanling, Celestial Wind. Loyalty abilities are ActivatedAbility(cost=Cost((CostLoyalty(d),)))\n# in printed order, then the compiler's planeswalker carrier.\n# [+1]: Garruk, Unleashed's \"up to one target creature\" MODIFY_PT with Beyeen Veil's \"-N/-0\"\n#       (power DECREASE 5, toughness DECREASE 0) and \"Until your next turn\" = DurationUntilNextTurn.\n# [-3]: Read the Tides' \"Return up to two target creatures to their owners' hands.\"\n# [-7]: Burn Bright's \"Creatures you control get +N/+N until end of turn\" with Watcher of the\n#       Spheres' \"with flying\" (KEYWORD_HAS FLYING).\nplus1 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationUntilNextTurn(),\n        'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=5)),\n        'target': Selector(\n            count=QAtMost(n=1),\n            mode=SelectorMode.TARGET,\n            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=0)),\n    }),\n)\nminus3 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-3),)),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QAtMost(n=2),\n            mode=SelectorMode.TARGET,\n            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n    }),\n)\nminus7 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-7),)),\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=5)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=5)),\n    }),\n)\nabilities = [plus1, minus3, minus7, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: Until your next turn, up to one target creature gets -5/-0.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "[−3]: Return up to two target creatures to their owners' hands.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "[−7]: Creatures you control with flying get +5/+5 until end of turn.",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The probe cannot reach -7 (5 loyalty) and ends only the current turn. Packs in mu_yanling/ pass: pack_plus1_opp_turn (still -1/4 on the opponent's turn), pack_plus1_ends (4/4 at your next turn), pack_minus7 (only your fliers +5/+5), pack_minus7_eot."
+ },
+ "probe": {
+  "sha": "229a6ddef01d664d80f08884e9a7db030379aeaa8cbe8a995d4ed86fab047098"
+ }
+}

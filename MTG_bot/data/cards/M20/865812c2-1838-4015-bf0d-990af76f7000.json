@@ -1,0 +1,142 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "865812c2-1838-4015-bf0d-990af76f7000",
+ "name": "Squad Captain",
+ "text_sha": "50c5e9a2db46e1b1747681db799ffbb50617caf54c4f16639de4127f2973f919",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "VIGILANCE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": false,
+    "initial_counters": [
+     [
+      {
+       "tag": "CounterKind",
+       "name": "PLUS_1_PLUS_1"
+      },
+      {
+       "tag": "QCount",
+       "selector": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QUnbounded"
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "ALL"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          {
+           "tag": "FNot",
+           "inner": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    ]
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Squad Captain: \"This creature enters with a +1/+1 counter on it for each other creature you\n# control.\"  A replacement on entry (CR 614.1c): EtBState with a counted quantity. \"a ... counter\n# for each\" is the bare count (the compiler's \"a <noun> for each\" idiom, Emeria Captain); \"other\"\n# is FNot(IS_SOURCE) (the entering permanent is already on the battlefield when the stamp runs).\netb_state = EtBState(\n    initial_counters=(\n        (\n            CounterKind.PLUS_1_PLUS_1,\n            QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n    ),\n)\nabilities = [etb_state, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "This creature enters with a +1/+1 counter on it for each other creature you control.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "11b0ad2aa6786d0cf3c34803bf737f152aaa8751361bb94808bc35ddc000c9f2"
+ }
+}

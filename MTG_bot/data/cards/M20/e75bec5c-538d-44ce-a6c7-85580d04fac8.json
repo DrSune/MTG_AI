@@ -1,0 +1,164 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "e75bec5c-538d-44ce-a6c7-85580d04fac8",
+ "name": "Chandra's Embercat",
+ "text_sha": "1ce28520d8d6549b35e78c9d9e01bb308b8288584f70b5aadc68d61b488114dd",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "R"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MANA_POLICY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "filter",
+        {
+         "tag": "FOr",
+         "children": [
+          {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "SUBTYPE_EQ"
+             },
+             "string_value": "Chandra",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Planeswalker",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "SUBTYPE_EQ"
+           },
+           "string_value": "Elemental",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        }
+       ],
+       [
+        "scope",
+        {
+         "tag": "String",
+         "value": "THIS_MANA"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Chandra's Embercat: \"{T}: Add {R}. Spend this mana only to cast an Elemental spell or a Chandra\n# planeswalker spell.\"  Vodalian Arcanist's layout: the compiled mana ability, then a THIS_MANA\n# MANA_POLICY static. \"an Elemental spell\" is a bare SUBTYPE_EQ (Windrider Wizard's \"Wizard\n# spell\"); \"a Chandra planeswalker\" is Keral Keep Disciples' SUBTYPE_EQ Chandra + TYPE_EQ\n# Planeswalker.\npolicy = StaticAbility(\n    effect=A(Verb.MANA_POLICY, {\n        'filter': FOr(\n            children=(\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elemental'),\n                FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Chandra'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                    ),\n                ),\n            ),\n        ),\n        'scope': 'THIS_MANA',\n    }),\n)\nabilities = [compiled[0], policy, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Add {R}.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Spend this mana only to cast an Elemental spell or a Chandra planeswalker spell.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "2c3a96eaf92ded8c23f4db35cc76a40361fe40ee54d144f1d2cbfc747e034e9c"
+ }
+}

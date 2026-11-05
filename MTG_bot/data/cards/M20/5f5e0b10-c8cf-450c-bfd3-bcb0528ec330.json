@@ -1,0 +1,214 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "5f5e0b10-c8cf-450c-bfd3-bcb0528ec330",
+ "name": "Pacifism",
+ "text_sha": "c774ef200c4d4e01838370a5a7129d20da6ee5a693a38f5700fe592099e6fed0",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_ATTACHED_TO_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "DeclareAttackersEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_ATTACHED_TO_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "DeclareBlockersEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m20-1",
+  "date": "2026-11-05",
+  "draft_py": "# Pacifism: \"Enchanted creature can't attack or block.\"  Faith's Fetters' compiled static\n# (template B5a-enchant-cant-attack-block), keeping its first two steps (attack, block) and leaving\n# out the activated-ability step Pacifism does not print. The event filters name \"creature\" the\n# way Capture Sphere's \"Enchanted creature doesn't untap ...\" does (B5a-enchant-no-untap):\n# FAnd(IS_ATTACHED_TO_SOURCE, TYPE_EQ Creature), with the bare IS_ATTACHED_TO_SOURCE condition.\nenchanted_creature = FAnd(\n    children=(\n        FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ),\n)\nstatic = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.PREVENT_EFFECT, {\n                'condition': FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                'event': DeclareAttackersEvent(filter=enchanted_creature),\n            }),\n            A(Verb.PREVENT_EFFECT, {\n                'condition': FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                'event': DeclareBlockersEvent(filter=enchanted_creature),\n            }),\n        ),\n    ),\n)\nabilities = [static, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Enchanted creature can't attack or block.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "bef3459f8196802b4d04cee5e0e9baa155506aa61365524a622cba73e05ef157"
+ }
+}
