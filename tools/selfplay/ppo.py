@@ -1,9 +1,8 @@
 """The PPO update over a packed buffer: shared by the learner (in-process) and trainer.py.
 
-Loss per minibatch: clipped policy gradient on normalised advantages, clipped value loss,
-entropy bonus, and optionally KL(learner || anchor) toward the newest frozen version, scaled by
-the minibatch's share of the decisions so every decision weighs the same. The net
-runs in eval() mode (no name dropout): the ratio must compare the acting policy with the same
+Loss per minibatch: clipped policy gradient on normalised advantages, clipped value loss and
+an entropy bonus, scaled by the minibatch's share of the decisions so every decision weighs the
+same. The net runs in eval() mode (no name dropout): the ratio must compare the acting policy with the same
 function. Minibatches are length-sorted, capped by ``mb`` decisions and ``tok_budget`` padded
 tokens (activation memory is system memory on the Spark), collated once and reused by every
 epoch. Non-finite steps are skipped and counted.
@@ -39,7 +38,7 @@ def chunks(lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
     return out
 
 
-def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer, anchor: torch.nn.Module | None,
+def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
               packed: M.Packed, act: np.ndarray, logp: np.ndarray, v_old: np.ndarray,
               adv: np.ndarray, ret: np.ndarray, a: Any, device: torch.device,
               check: Callable[[], None] | None = None,
@@ -87,16 +86,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer, anchor: torch.
             # Minibatches are length-sorted and token-capped, so they hold 190-4096 decisions;
             # a mean loss per minibatch gave a long decision ~15x the weight of a short one.
             # Scale so every decision weighs the same (2026-11-05 review).
-            scale = len(act_t) * len(batches) / max(n, 1)
-            if a.kl_anchor > 0 and anchor is not None:
-                with torch.no_grad(), torch.autocast(device.type, dtype=torch.bfloat16,
-                                                     enabled=cuda):
-                    anc_logits, _ = anchor(b)
-                anc_logp = torch.log_softmax(anc_logits.float(), -1)
-                kl_anc = (logp_all.exp() * (logp_all - anc_logp)).sum(-1).mean()
-                loss = loss + a.kl_anchor * kl_anc
-                stats["kl_anchor"].append(kl_anc.item())
-            loss = loss * scale
+            loss = loss * (len(act_t) * len(batches) / max(n, 1))
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(loss):
                 stats["nonfinite"].append(1.0)

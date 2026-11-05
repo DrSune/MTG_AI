@@ -209,7 +209,6 @@ class Learner:
         self.infer_models: dict[str, tuple] = {}
         self.trainer = None
         self.tconn = None
-        self.sent_anchor: str | None = None
         if args.trainer_proc and args.async_update:
             raise ValueError("--trainer-proc and --async-update are alternatives")
         if args.async_update:
@@ -308,14 +307,9 @@ class Learner:
             self.trainer = ctx.Process(target=trainer_main, args=(child, ckpt, vars(a)),
                                        daemon=True)
             self.trainer.start()
-        anchor = self.versions[-1] if self.versions and a.kl_anchor > 0 else None
-        if anchor is not None and anchor != self.sent_anchor:
-            state = {k: v.detach().cpu() for k, v in self.models[anchor].state_dict().items()}
-            self.tconn.send(("anchor", anchor, state))
-            self.sent_anchor = anchor
         buf, self.buffer = self.buffer, []
         t0 = time.perf_counter()
-        self.tconn.send(("update", pack_buffer(buf), anchor))
+        self.tconn.send(("update", pack_buffer(buf)))
         send_s = time.perf_counter() - t0
         del buf
         self.serve(lambda: self.tconn.poll() or not self.trainer.is_alive())
@@ -716,8 +710,7 @@ class Learner:
             buf, self.buffer = self.buffer, []
         payload = pack_buffer(buf)
         del buf
-        anchor = self.models.get(self.versions[-1]) if self.versions else None
-        out = ppo_train(self.model, self.opt, anchor, a=self.args, device=self.device,
+        out = ppo_train(self.model, self.opt, a=self.args, device=self.device,
                         check=self.check_memory, release=self.release_cache, **payload)
         self.weights_changed(self.model)
         return out
@@ -1283,8 +1276,6 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                         "(and the 95%% interval is above 0.5)")
     p.add_argument("--ladder-deals", type=int, default=100)
     p.add_argument("--p-past", type=float, default=0.1, help="selfplay games vs older versions")
-    p.add_argument("--kl-anchor", type=float, default=0.0,
-                   help="weight of KL(learner || newest frozen version) in the PPO loss")
     p.add_argument("--search-blocks", action="store_true",
                    help="searching seats also plan their blocks at the pre-blocks boundary")
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")
