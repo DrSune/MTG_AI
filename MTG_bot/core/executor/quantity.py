@@ -2131,6 +2131,8 @@ def _event_this_turn(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         since = max((e.clock for e in rows if e.kind == KIND_ZONE_CHANGE), default=0)
         rows = [e for e in rows if e.clock >= since]
     threshold = resolve(atom.count, ctx)
+    if threshold <= 0:
+        return True  # at least nothing: holds with an empty history
     totals: dict[Handle | None, int] = {}
     for row in rows:
         if not executor.binder._match_node(atom.event, row, ctx.source, ctx.controller):
@@ -2144,9 +2146,10 @@ def _event_this_turn(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
 
 def _individual(row: GameEvent) -> Handle | None:
     """Whom a turn-history row happened to or was done by, for a threshold: the
-    player who gained or lost the life, the player or object dealt the damage,
-    the player who drew the card or cast the spell. Other rows name no one and
-    count together ("three or more creatures died this turn")."""
+    player who gained or lost the life, the player or object dealt the damage
+    (its recipient, never its dealer), the player who drew the card or cast the
+    spell. Other rows name no one and count together ("three or more creatures
+    died this turn")."""
     from MTG_bot.core.executor.events import (
         KIND_CARD_DRAWN,
         KIND_CAST,
@@ -2166,8 +2169,10 @@ def _individual(row: GameEvent) -> Handle | None:
 
 def _measure(row: GameEvent) -> int:
     """How much one row adds to a turn-history count: its amount for life and
-    damage rows ("lost 4 or more life"), else 1 (one card drawn, one spell)."""
+    damage rows ("lost 4 or more life"), its number of counters for a counter
+    row, else 1 (one card drawn, one spell)."""
     from MTG_bot.core.executor.events import (
+        KIND_COUNTER_PLACED,
         KIND_DAMAGE,
         KIND_LIFE_GAINED,
         KIND_LIFE_LOST,
@@ -2175,4 +2180,6 @@ def _measure(row: GameEvent) -> int:
 
     if row.kind in (KIND_LIFE_GAINED, KIND_LIFE_LOST, KIND_DAMAGE):
         return row.amount
+    if row.kind == KIND_COUNTER_PLACED:
+        return row.counter[1]
     return 1

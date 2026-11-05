@@ -210,20 +210,60 @@ class TestSpellsYouControlThisTurn(UncounterableCase):
 
 
 class TestStaticOnAPermanent(UncounterableCase):
-    def herald(self):
-        """A permanent with "Creature spells can't be countered.\""""
-        subject = FAnd((SPELL, CREATURE))
+    def herald(self, zone=ZONE_BATTLEFIELD, *, yours=False):
+        """A permanent with "Creature spells [you control] can't be countered.\""""
+        subject = FAnd((SPELL, CREATURE, YOURS)) if yours else FAnd((SPELL, CREATURE))
         return self.give(
             "Herald",
             SpellKind.CREATURE,
+            cost=Cost((CostManaColor("G", QConst(1)),)),
             seat=self.p0,
-            zone=ZONE_BATTLEFIELD,
+            zone=zone,
             type_line="Creature",
             types=("Creature",),
             power="1",
             toughness="1",
             extra_abilities=(StaticAbility(effect=cant_be_countered(subject)),),
         )
+
+    def test_it_does_not_protect_its_own_spell(self) -> None:
+        # CR 113.6: a permanent's static ability works on the battlefield. Only an ability that
+        # says the object itself can't be countered works on the stack (CR 113.6g).
+        herald = self.herald(zone=ZONE_HAND)
+        self.mana(self.p0, G=1)
+        cancel = self.counterspell("Cancel", self.p1)
+        self.mana(self.p1, U=1)
+        self.script(str(cancel))
+        self.ex_cast(self.p0, herald)
+        self.assertEqual(self.zone_kind(herald), ZONE_GRAVEYARD)
+        self.assertEqual(len(self.counters_rows()), 1)
+
+    def test_you_follows_the_permanents_controller(self) -> None:
+        # "Creature spells you control can't be countered." (Destiny Spinner's shape): after P1
+        # gains control of the permanent, "you" is P1 (CR 109.5, 611.3a).
+        herald = self.herald(yours=True)
+        self.ex.execute(
+            atom(Verb.GAIN_CONTROL, target=any_target(), controller=ControllerRef.YOU),
+            source=herald,
+            controller=self.p1,
+            bindings={"target": herald},
+        )
+        self.assertEqual(self.ex.controller_of(herald), self.p1)
+        bear = self.creature_spell("Bear")
+        self.mana(self.p0, G=1)
+        cancel = self.counterspell("Cancel", self.p1)
+        self.mana(self.p1, U=1)
+        self.script(str(cancel))
+        self.ex_cast(self.p0, bear)
+        self.assertEqual(self.zone_kind(bear), ZONE_GRAVEYARD)  # P0's spell: not protected now
+        self.ex.advance_turn()
+        cub = self.creature_spell("Cub", seat=self.p1)
+        self.mana(self.p1, G=1)
+        cancel2 = self.counterspell("Cancel 2", self.p0)
+        self.mana(self.p0, U=1)
+        self.script(str(cancel2))
+        self.ex_cast(self.p1, cub)
+        self.assertEqual(self.zone_kind(cub), ZONE_BATTLEFIELD)  # P1's spell: protected
 
     def test_creature_spells_only_while_it_is_on_the_battlefield(self) -> None:
         herald = self.herald()

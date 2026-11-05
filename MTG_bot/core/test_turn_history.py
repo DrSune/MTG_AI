@@ -121,6 +121,22 @@ def test_history_atoms_validate(slots, message) -> None:
         FAtom(FAtomPred.EVENT_THIS_TURN, **slots)
 
 
+@pytest.mark.parametrize(
+    ("pred", "event", "message"),
+    [
+        # a permanent's cast is its spell's (CR 400.7c): WAS_CAST_THIS_TURN reads it
+        (FAtomPred.SUBJECT_OF_EVENT_THIS_TURN, CastSpellEvent(filter=UNIV), "WAS_CAST_THIS_TURN"),
+        # the untap step precedes the turn's journal window
+        (FAtomPred.EVENT_THIS_TURN, at.TapStateEvent(tapped=False, filter=UNIV), "untap"),
+        # how much damage is the count, never the event's amount
+        (FAtomPred.EVENT_THIS_TURN, DamageDealtEvent(amount=QConst(3), filter=UNIV), "count"),
+    ],
+)
+def test_history_refuses_what_it_cannot_read(pred, event, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        FAtom(pred, event=event, count=ONE)
+
+
 def test_other_preds_refuse_the_event_slot() -> None:
     with pytest.raises(ValueError, match="does not take slot 'event'"):
         FAtom(FAtomPred.IS_SOURCE, event=LifeLostEvent())
@@ -384,6 +400,34 @@ class TestAttacked(HistoryCase):
         self.assertFalse(self.judge(you_attacked, controller=self.p1))
         self.ex.advance_turn()
         self.assertFalse(self.judge(you_attacked, controller=self.p1))  # p1's turn: no attack yet
+
+
+class TestCounts(HistoryCase):
+    def test_counters_count_by_the_counter(self) -> None:
+        placed = happened(
+            at.CounterPlacedEvent(counter_kind=CounterKind.PLUS_1_PLUS_1, filter=UNIV), count=2
+        )
+        self.ex.execute(
+            atom(
+                Verb.PUT_COUNTER,
+                target=any_target(),
+                counter_kind=CounterKind.PLUS_1_PLUS_1,
+                count=QConst(2),
+            ),
+            source=self.source,
+            controller=self.p0,
+            bindings={"target": self.source},
+        )
+        self.assertTrue(self.judge(placed))  # one row of two counters
+
+    def test_at_least_zero_always_holds(self) -> None:
+        # a count that resolves to 0 asks for nothing: true with an empty history
+        none_needed = FAtom(
+            FAtomPred.EVENT_THIS_TURN,
+            event=LifeLostEvent(),
+            count=at.QBin(at.QBinOp.SUB, QConst(1), QConst(1)),
+        )
+        self.assertTrue(self.judge(none_needed))
 
 
 class TestEveryEntryPoint(HistoryCase):

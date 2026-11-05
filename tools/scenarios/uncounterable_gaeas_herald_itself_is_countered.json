@@ -1,0 +1,52 @@
+{
+ "name": "uncounterable_gaeas_herald_itself_is_countered",
+ "set": "10E",
+ "note": "Gaea's Herald's 'Creature spells can't be countered.' is a static ability of the permanent: it works from the battlefield (CR 113.6), not while the Herald is itself a spell (only 'this spell can't be countered' works on the stack, CR 113.6g). P1's Cancel counters the Herald being cast. Found by the fresh-eyes review of this branch: the first consult read every 'can't be countered' static off the spell's own record, so the Herald entered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "herald",
+   "real": "Gaea's Herald",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Gaea's Herald",
+   "key": "herald",
+   "decisions": [
+    "cancel"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "herald": "graveyard",
+   "cancel": "graveyard"
+  },
+  "window_asks": {
+   "1": [
+    "cancel"
+   ]
+  }
+ }
+}

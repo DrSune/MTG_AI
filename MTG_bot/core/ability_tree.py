@@ -1669,6 +1669,26 @@ class FAtom:
                     f"FAtom: {self.pred.name} cannot read {type(self.event).__name__} "
                     "(no journal history the matcher can judge)"
                 )
+            if isinstance(self.event, TapStateEvent) and not self.event.tapped:
+                raise ValueError(
+                    f"FAtom: {self.pred.name} cannot read untapping: the untap step "
+                    "precedes the journal's turn window (journal.turn_window)"
+                )
+            if isinstance(self.event, DamageDealtEvent) and not isinstance(
+                self.event.amount, QUnbounded
+            ):
+                raise ValueError(
+                    f"FAtom: {self.pred.name} reads how much damage from its count; "
+                    "the DamageDealtEvent amount must be QUnbounded"
+                )
+            if self.pred is FAtomPred.SUBJECT_OF_EVENT_THIS_TURN and isinstance(
+                self.event, CastSpellEvent
+            ):
+                # the permanent a spell became has its cast before its entry (CR 400.7c)
+                raise ValueError(
+                    "FAtom: SUBJECT_OF_EVENT_THIS_TURN cannot read a cast: use "
+                    "WAS_CAST_THIS_TURN, which follows a spell onto the battlefield"
+                )
         if (
             self.pred is FAtomPred.CONTROLLER_IS
             and self.who

@@ -1120,7 +1120,9 @@ class ReplacementRegistry:
         turn.", Veil of Summer; it modifies the rules, so it covers spells cast
         after it resolved, CR 611.2c), or the spell's own ability, which
         functions on the stack (CR 113.6g, "This spell can't be countered.").
-        Each is judged in its own coordinates, like the other consults. Only
+        Each is judged in its own coordinates, like the other consults; "you"
+        of a permanent's static is its controller now (CR 109.5: a stolen
+        Sphinx of the Final Word protects its new controller's spells). Only
         the counter fails: a counterspell may still target the spell."""
         from MTG_bot.core.executor.legality import spell_record
 
@@ -1142,7 +1144,13 @@ class ReplacementRegistry:
                     if not (isinstance(atom, Atom) and atom.verb is Verb.PREVENT_EFFECT):
                         continue
                     event = atom.args.get("event")
-                    if not isinstance(event, CounteredEvent):
+                    # CR 113.6g: only an ability that says THIS object can't be
+                    # countered works on the stack; "Creature spells can't be
+                    # countered." works from the battlefield (CR 113.6), so it
+                    # does not protect its own spell.
+                    if not isinstance(event, CounteredEvent) or not _filter_names_the_source(
+                        event.filter
+                    ):
                         continue
                     if ability.condition is not None and not eval_filter(
                         ability.condition, spell, ctx
@@ -1160,7 +1168,13 @@ class ReplacementRegistry:
                 if spell in rec.targets:
                     return True
                 continue
-            ctx = self._rec_ctx(rec, spell)
+            ctx = executor._ctx(
+                source=rec.source,
+                # a resolved effect keeps its controller (CR 611.2c); a static's is its source's
+                controller=rec.controller if rec.resolved else executor.controller_of(rec.source),
+                bindings=None,
+                decisions=(),
+            )
             if not self._condition_holds(rec, spell, ctx):
                 continue
             if eval_filter(event.filter, spell, ctx):

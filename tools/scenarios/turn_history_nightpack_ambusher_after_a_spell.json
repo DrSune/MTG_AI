@@ -1,7 +1,7 @@
 {
  "name": "turn_history_nightpack_ambusher_after_a_spell",
  "set": "M20",
- "note": "Twin of turn_history_nightpack_ambusher: P0 casts Shock this turn (any spell counts, not only instants and sorceries), so the end step creates no Wolf.",
+ "note": "Twin of turn_history_nightpack_ambusher: P0 casts a Centaur Courser this turn. Any spell counts, a creature spell too (an instant-or-sorcery reading would still make a Wolf), so the end step creates no Wolf.",
  "world": {
   "life": 20,
   "seed": 7
@@ -14,25 +14,22 @@
    "controller": 0
   },
   {
-   "key": "shock",
-   "real": "Shock",
+   "key": "courser",
+   "real": "Centaur Courser",
    "zone": "hand",
    "controller": 0
   }
  ],
  "mana": {
   "0": {
-   "R": 1
+   "G": 3
   }
  },
  "steps": [
   {
    "op": "cast",
-   "real": "Shock",
-   "key": "shock",
-   "targets": [
-    "p1"
-   ]
+   "real": "Centaur Courser",
+   "key": "courser"
   },
   {
    "op": "end_turn"
@@ -42,8 +39,8 @@
   "tokens": {
    "Wolf": 0
   },
-  "life": {
-   "1": 18
+  "zone": {
+   "courser": "battlefield"
   }
  }
 }
