@@ -1514,3 +1514,33 @@ W&B key in history is revoked; a private split exists outside the public repo.
   a Choose) and Blightbeetle (a static prevention never reads its atom's own `condition`). Add an
   equivalent-mutant rule (a dead-role check) to `gates.mutants`. Separately, `cardtool.py mutate
   --out` writes nothing (`cmd_mutate` never reads `args.out`).
+## Turn history and "can't be countered" follow-ups (2026-11-06, branch `engine/turn-history-uncounterable`)
+- **Collapse the legacy turn-history atoms onto `EVENT_THIS_TURN`** (AGENTS §9: one meaning, one
+  encoding). DIED_THIS_TURN, LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+  INSTANT_OR_SORCERY_CAST_THIS_TURN, MOVED_TO_ZONE_THIS_TURN and WAS_CAST_THIS_TURN are each
+  `EVENT_THIS_TURN` / `SUBJECT_OF_EVENT_THIS_TURN` over an existing EventSpec. They stay because
+  M21 trees must stay byte-identical; the condition grammar emits them for their old wordings so
+  there is one encoding per meaning today. Two behaviours change in the move and need a decision:
+  the general atom counts a threshold per individual (LIFE_GAINED/CARDS_DRAWN with `who=OPPONENT`
+  sum over all opponents, wrong in multiplayer), and DIED_THIS_TURN's existential fallback for a
+  non-creature judged handle becomes an explicit choice of atom. Do it at an era boundary, with the
+  goldens and verified trees re-pinned.
+- **History inherits B-102**: `EVENT_THIS_TURN` over `DeclareAttackersEvent` reads the journal
+  through `binding._match_node`, so a creature put onto the battlefield attacking (joined row,
+  CR 508.4) counts as an attack. "You attacked this turn" is unaffected (such a creature only
+  enters during a declared attack); "attacked with N or more creatures" would be. The B-102 fix in
+  `_match_node` fixes both lanes.
+- **CounteredEvent has no trigger or history reader**: the countered spell has left the stack
+  when its COUNTER row is matched, so a "spell" filter cannot be judged afterwards
+  (binding._UNSUPPORTED_EVENTS refuses a trigger on it; the history atoms reject it). Needs the
+  spell's last known information on the row before "whenever a spell is countered" or "if a spell
+  was countered this turn" can be written.
+- **Still needs an atom** (from the same 92 needs-atom records): "Activate only once each turn"
+  (Frilled Sandwalla) needs the ability's identity on `AbilityActivatedEvent` (the row has the
+  index; no filter names "this ability"); "you've cast another spell this turn" (Illusory Angel) is
+  a cast restriction; conditional uncounterability (Banefire's "If X is 5 or more", Exquisite
+  Firecraft's spell mastery), "can't be countered by blue or black spells" (Autumn's Veil) and the
+  compound "cost {1} less to cast and can't be countered" (Thryx, Cunning Nightbonder) have no
+  template; "Each opponent who cast a spell this turn" (Angelic Arbiter) needs a per-player judged
+  history; Vengeful Warchief and Vilis can now use LifeLostEvent as a trigger.
+

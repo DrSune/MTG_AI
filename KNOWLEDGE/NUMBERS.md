@@ -5,6 +5,15 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-06 (turn history and "can't be countered", branch `engine/turn-history-uncounterable`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| compile delta over the 19 sets (pure compiler, no card records), main dd4ba95 -> branch | **51 sentences newly parse, 25 cards newly fully compiled**; M21 **0 trees changed**; 0 sentences stop parsing, 0 new ambiguities, 0 tree changes on a card fully compiled before | `.venv/bin/python tools/audit/compile_census.py snapshot <checkout> <out.json>` on an export of main and on the branch, then `... diff before.json after.json` (script held by **2391da7**, deleted after) | per set (sentences / cards): ZNR 1/1, M20 9/2, KHM 3/0, 10E 1/1, M10 1/0, M11 3/1, M12 11/8, M14 1/0, M15 1/1, ORI 2/1, M19 2/0, DOM 1/1, WAR 3/2, FDN 9/5, THB 1/0, IKO 2/2; M21, M13, ELD 0/0. Cards: Cragplate Baloth; Fathom Fleet Cutthroat, Ogre Siegebreaker; Gaea's Herald; Bloodcrazed Goblin; Blood Ogre, Bloodrage Vampire, Carnage Wurm, Duskhunter Bat, Furyborn Hellkite, Gorehorn Minotaurs, Stormblood Berserker, Vampire Outcasts; Terra Stomper (M15, ORI); Relic Runner; Dovin's Veto, Vraska's Finisher; Goblin Boarders, Searslicer Goblin, Skyship Buccaneer, Sphinx of the Final Word, Storm Fleet Spy; Lurking Deadeye, Nightsquad Commando |
+| `pytest MTG_bot` | **4922 passed** / 39 deselected / 66 subtests (main: 4857) | `.venv/bin/python -m pytest MTG_bot -q` | +65 tests: test_turn_history.py 25, test_executor_uncounterable.py 8, compiler/test_templates_b14.py 32 |
+| new scenario packs on main dd4ba95 vs branch | **7/19 -> 19/19** (the 7 that pass on main are exactly the falsifying twins) | `.venv/bin/python tools/run_scenarios.py --dir <dir of the 19 packs>` in each checkout | all packs: 689/689 -> **708/708** (`tools/run_scenarios.py`) |
+| frames differential (specific template vs frame + clause, M21/ZNR/M20/KHM) | **75 agree / 0 differ** (was 73 / 0); the 2 new agreements are intervening-if compositions (Griffin Aerie, Twinblade Assassins) | `.venv/bin/python -m pytest MTG_bot/core/compiler/test_frames.py -q` | the condition grammar rebuilds M21's LIFE_GAINED_THIS_TURN_GE and DIED_THIS_TURN byte for byte |
+
 ## 2026-11-05 (dead-code cleanup, branch `cleanup/legacy`; OWNER_PREFERENCES #2)
 
 | Number | Value | Command | Notes |
