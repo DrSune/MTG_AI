@@ -73,6 +73,7 @@ from MTG_bot.core.compiler import (
     templates_b10,
     templates_b11,
     templates_b12,
+    templates_b14,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
@@ -108,6 +109,7 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b10,
     templates_b11,
     templates_b12,
+    templates_b14,  # 2026-11-05: can't be countered, turn-history statics
 )
 
 

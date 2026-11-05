@@ -11,8 +11,10 @@ templates build for the same meaning (identity law, DESIGN_ATOM_ONTOLOGY §6):
 
 * a target noun phrase: one card type or two joined by "or", or "nonland permanent"; optional
   "you control" / "an opponent controls" / "you don't control"; optional "with <keyword>" or
-  "with power N or less|greater". The pattern IS the grammar (built from the same tables the
-  builder reads), so a pattern can never match a phrase its builder cannot encode (B-36).
+  "with power N or less|greater"; optional "that was dealt damage this turn" (2026-11-05, the
+  turn-history atom of conditions.py: Ogre Siegebreaker, Fathom Fleet Cutthroat). The pattern IS
+  the grammar (built from the same tables the builder reads), so a pattern can never match a
+  phrase its builder cannot encode (B-36).
 * the verbs over it: destroy, exile, return to its owner's hand, tap, untap.
 * exile it "until this <permanent> leaves the battlefield" (ontology R5-1, CR 610.3).
 * "Enchanted|Equipped creature gets +P/+T [and has <keywords>]." statics.
@@ -58,6 +60,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.compiler.conditions import WAS_DEALT_DAMAGE_THIS_TURN
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
@@ -119,11 +122,13 @@ _CTL_RE: Final[str] = r"(?P<ctl>you control|an opponent controls|you don't contr
 _WITH_RE: Final[str] = (
     rf"with (?:(?P<wkw>{_KW_ALT})|power (?P<pw>\d+) or (?P<pdir>less|greater))"
 )
-#: "target <types> [<controller>] [with ...]" in either suffix order.
+#: "target <types> [<controller>] [with ...] [that was dealt damage this turn]", the first two
+#: suffixes in either order.
 _NP_RE: Final[str] = (
     rf"target {_TYPES_RE}"
     rf"(?:(?: {_CTL_RE})?(?: {_WITH_RE})?|(?: {_WITH_RE.replace('?P<', '?P<w2')})(?: "
     rf"{_CTL_RE.replace('?P<', '?P<c2')}))"
+    r"(?P<dealt> that was dealt damage this turn)?"
 )
 _KW_LIST_RE: Final[str] = rf"(?P<kws>(?:{_KW_ALT})(?:(?:, and |, | and )(?:{_KW_ALT}))*)"
 
@@ -165,6 +170,8 @@ def _np_filter(m: re.Match[str]) -> Filter:
         direction = m.group("pdir") or m.group("w2pdir")
         pred = FAtomPred.POWER_LE if direction == "less" else FAtomPred.POWER_GE
         conjuncts.append(FAtom(pred=pred, count=QConst(int(power))))
+    if m.group("dealt"):
+        conjuncts.append(WAS_DEALT_DAMAGE_THIS_TURN)
     if not conjuncts:
         return base
     return FAnd(children=(base, *conjuncts))

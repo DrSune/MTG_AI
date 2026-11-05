@@ -125,6 +125,7 @@ class TestRegistry(unittest.TestCase):
                 "B10",
                 "B11",
                 "B12",
+                "B14",  # 2026-11-05: can't be countered, turn-history statics
             },
         )
 
