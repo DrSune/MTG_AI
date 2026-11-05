@@ -1514,3 +1514,13 @@ W&B key in history is revoked; a private split exists outside the public repo.
   a Choose) and Blightbeetle (a static prevention never reads its atom's own `condition`). Add an
   equivalent-mutant rule (a dead-role check) to `gates.mutants`. Separately, `cardtool.py mutate
   --out` writes nothing (`cmd_mutate` never reads `args.out`).
+- **A permanent's cost-reducing static applies to its own cast** (verifier, M20 round 2, 2026-11-05):
+  legality.py ~783 puts the spell being cast into `mod_hosts` and applies all its CostModifiers.
+  Right for "this spell costs {N} less" (IS_SOURCE; CR 601.2f), wrong for a permanent's static
+  ability, which functions only on the battlefield (CR 604.3, 113.6): Warden of Evos Isle ({2}{U},
+  flying; "creature spells with flying you cast cost {1} less") is cast for {1}{U}. Stronger than
+  printed. Not live: no verified card both matches its own modifier and has generic mana to reduce
+  (Watcher of the Spheres matches but costs {W}{U}); verification kept Warden out. Fix before such a
+  card is dealt: apply only self-referential modifiers to the spell being cast.
+- **The probe raises KeyError on tokens** in the "from your hand, the card enters" stimulus
+  (probe.py ~670 skips it for emblems only), so G1 counts an engine error for every token.
