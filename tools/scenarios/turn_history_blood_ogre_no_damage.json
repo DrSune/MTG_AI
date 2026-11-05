@@ -1,0 +1,58 @@
+{
+ "name": "turn_history_blood_ogre_no_damage",
+ "set": "M12",
+ "note": "Twin of turn_history_blood_ogre_bloodthirst: the Bear deals damage to P1's creature, not to P1. An opponent's creature is not an opponent, so the Ogre enters without a counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Blood Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Wall",
+   "power": "0",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bear",
+   "target": "wall",
+   "amount": 2
+  },
+  {
+   "op": "enter",
+   "key": "ogre"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ogre": {}
+  },
+  "life": {
+   "1": 20
+  },
+  "damage": {
+   "wall": 2
+  }
+ }
+}

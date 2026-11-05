@@ -1,0 +1,44 @@
+{
+ "name": "turn_history_goblin_boarders_no_attack",
+ "set": "FDN",
+ "note": "Twin of turn_history_goblin_boarders_raid: no attack this turn, no counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "boarders",
+   "real": "Goblin Boarders",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": false
+   }
+  },
+  {
+   "op": "enter",
+   "key": "boarders"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "boarders": {}
+  }
+ }
+}

@@ -1,0 +1,60 @@
+{
+ "name": "turn_history_fathom_fleet_cutthroat_new_object",
+ "set": "M20",
+ "note": "Twin of turn_history_fathom_fleet_cutthroat: after the damage, the Hit Courser is returned to its owner's hand and put back onto the battlefield. It is a new object that was not dealt damage this turn (CR 400.7), so the trigger has no legal target and is removed (CR 603.3d): nothing is destroyed.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cutthroat",
+   "real": "Fathom Fleet Cutthroat",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hit",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "bear",
+   "target": "hit",
+   "amount": 1
+  },
+  {
+   "op": "move",
+   "key": "hit",
+   "to": "hand"
+  },
+  {
+   "op": "move",
+   "key": "hit",
+   "to": "battlefield"
+  },
+  {
+   "op": "enter",
+   "key": "cutthroat"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cutthroat": "battlefield",
+   "hit": "battlefield"
+  }
+ }
+}

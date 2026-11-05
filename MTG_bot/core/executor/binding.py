@@ -64,6 +64,7 @@ from MTG_bot.core.ability_tree import (
     Choose,
     Conditional,
     ControllerRef,
+    CounteredEvent,
     CounterKind,
     CounterPlacedEvent,
     CreatureDiesEvent,
@@ -82,6 +83,7 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     LifeGainedEvent,
+    LifeLostEvent,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -119,6 +121,7 @@ from MTG_bot.core.executor.events import (
     KIND_DECLARE_ATTACKERS,
     KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
+    KIND_LIFE_LOST,
     KIND_TAP_STATE,
     KIND_TARGETING,
     KIND_TURN_PHASE,
@@ -176,6 +179,12 @@ _UNSUPPORTED_EVENTS: dict[type, str] = {
         "12e (step-level subscription emitter; 12d's untap tick is an "
         "executor step that emits TapState/phase events, not StepEvents)"
     ),
+    # 2026-11-05: "can't be countered" reads CounteredEvent (a PREVENT_EFFECT,
+    # consumed while the spell is on the stack). No trigger reads it yet: the
+    # drain would match the COUNTER row after the spell has left the stack, so
+    # a "spell" filter could not be judged on the object as it was.
+    CounteredEvent: "a prevention event only (no trigger feed: the countered "
+    "spell has left the stack by the time the journal row is matched)",
 }
 
 # Delayed-trigger window tags the end-of-turn sweep expires. ``UntilNextTurn``
@@ -1090,6 +1099,18 @@ class TriggerBinder:
             return self._match_damage(node, event, source, controller)
         if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):
             assert event.subject is not None  # the gaining player
+            ctx = self._match_ctx(source, controller, event)
+            return node.actor is None or eval_filter(node.actor, event.subject, ctx)
+        if (
+            isinstance(node, LifeLostEvent)
+            and kind in (KIND_LIFE_LOST, KIND_DAMAGE)
+            and event.subject is not None
+            and event.subject.namespace == "player"
+        ):
+            # 2026-11-05: life lost, the LifeGainedEvent twin. A player is dealt
+            # damage by losing that much life (CR 120.3a; the DAMAGE row of a
+            # player is journalled from the life change), and every other loss,
+            # a payment included (CR 119.4), is a LIFE_LOST row.
             ctx = self._match_ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, event.subject, ctx)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
@@ -2102,10 +2123,15 @@ class TriggerBinder:
             # it, so TARGET_PLAYER means "the controller of the source of
             # that damage" instead of the 12c prompt raise.
             bindings["target"] = event.cause
-        amount = event.amount if event.kind in (KIND_DAMAGE, KIND_LIFE_GAINED) else None
+        amount = (
+            event.amount
+            if event.kind in (KIND_DAMAGE, KIND_LIFE_GAINED, KIND_LIFE_LOST)
+            else None
+        )
         # r20a (Light of Promise): a LIFE_GAINED row's data[0] IS the amount
         # gained, so QProp(referent='event', field=AMOUNT) resolves inside a
-        # life-gained firing exactly as it does inside a damage firing.
+        # life-gained firing exactly as it does inside a damage firing; a
+        # LIFE_LOST row's is the amount lost (2026-11-05, LifeLostEvent).
         # r23a (Wildwood Scourge, CR 614.1c): a spell cast with a declared X
         # carries that X into every firing this ENTRY generates — stack.cast
         # recorded it as the spell landed. The read is NON-destructive on

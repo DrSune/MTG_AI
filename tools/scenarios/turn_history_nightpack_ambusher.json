@@ -1,0 +1,27 @@
+{
+ "name": "turn_history_nightpack_ambusher",
+ "set": "M20",
+ "note": "Nightpack Ambusher: 'At the beginning of your end step, if you didn't cast a spell this turn, create a 2/2 green Wolf creature token.' P0 casts nothing; at P0's end step a Wolf is created. Falsified by turn_history_nightpack_ambusher_after_a_spell. Red on main dd4ba95: the sentence did not parse.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ambusher",
+   "real": "Nightpack Ambusher",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Wolf": 1
+  }
+ }
+}

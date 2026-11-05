@@ -127,6 +127,14 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   to the "target" referent (Invigorating Surge). All items are additive;
   no template opts in yet (phase 8-B flips), so all 305 goldens stay
   byte-identical through 8-A.
+- **turn history and "can't be countered" (2026-11-05)**, pinned by
+  test_turn_history.py: ``FAtomPred.EVENT_THIS_TURN`` ("an event the
+  ``event`` slot describes happened this turn, ``count`` or more") and
+  ``FAtomPred.SUBJECT_OF_EVENT_THIS_TURN`` (the judged object was that
+  event's subject), the FAtom ``event`` slot (an EventSpec, omit-when-None),
+  and two events: ``LifeLostEvent`` (actor) and ``CounteredEvent`` (filter;
+  "can't be countered" is a PREVENT_EFFECT over it). Additive: every earlier
+  tree keeps its bytes.
 - **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
   orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
   Phase-1 hypothesis, not the post-hoc truth.
@@ -743,6 +751,25 @@ class FAtomPred(Enum):
         # required string_value is the closed vocabulary _STACK_KINDS
         # (SPELL / ACTIVATED / TRIGGERED); validated per predicate
         # (_FATOM_STRING_VOCAB).
+    )
+    # Turn history (2026-11-05): ONE reading of "what happened this turn" for
+    # every event the trigger vocabulary can describe. ``event`` is an
+    # EventSpec, matched against the turn's journal rows exactly as a trigger
+    # would match it; ``count`` is how much of it must have happened (rows, or
+    # the amounts of life and damage rows), within one individual: the player
+    # who lost or gained the life, drew the card or cast the spell, or the
+    # object dealt the damage ("a player lost 4 or more life this turn").
+    EVENT_THIS_TURN = (
+        "EVENT_THIS_TURN"  # "if an opponent lost life this turn" (Savage
+        # Gorger), "if you didn't cast a spell this turn" (FNot, Nightpack
+        # Ambusher), "an opponent has cast a blue or black spell this turn"
+        # (Veil of Summer). Required event + count.
+    )
+    SUBJECT_OF_EVENT_THIS_TURN = (
+        "SUBJECT_OF_EVENT_THIS_TURN"  # the JUDGED object is the subject of
+        # such an event this turn, as the object it is now (CR 400.7): "target
+        # creature that was dealt damage this turn" (Ogre Siegebreaker,
+        # Fathom Fleet Cutthroat). Required event + count.
     )
 
 
@@ -1466,6 +1493,10 @@ class FAtom:
                       grammar round 8, R8-9: dual-filter comparison
                       "controls more X than Y"); omitted when None —
                       byte-stable for pre-round-8 trees
+       event        — an EventSpec (EVENT_THIS_TURN /
+                      SUBJECT_OF_EVENT_THIS_TURN, 2026-11-05: the event
+                      the turn's history is searched for); omitted when
+                      None — byte-stable for every earlier tree
     """
 
     pred: FAtomPred
@@ -1487,6 +1518,10 @@ class FAtom:
     # right_inner_filter the other). Omit-when-None, byte-stable for
     # pre-round-8 trees (the R4-4/R7-1 slot precedent).
     right_inner_filter: Filter | None = None
+    # event (2026-11-05, turn history): the EventSpec EVENT_THIS_TURN and
+    # SUBJECT_OF_EVENT_THIS_TURN search the turn's journal for. Omit-when-
+    # None, so every earlier FAtom keeps its exact bytes.
+    event: EventSpec | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.pred, FAtomPred):
@@ -1550,6 +1585,10 @@ class FAtom:
             raise ValueError(
                 f"FAtom: referent must be one of _QPROP_STR_REFERENTS, got {self.referent!r}"
             )
+        if self.event is not None and not _is_event(self.event):
+            raise ValueError(
+                f"FAtom: event must be an EventSpec, got {type(self.event).__name__}"
+            )
 
         vocab = _FATOM_STRING_VOCAB.get(self.pred)
         if vocab is not None and self.string_value is not None and self.string_value not in vocab:
@@ -1574,6 +1613,7 @@ class FAtom:
             "to_zone",
             "referent",
             "right_inner_filter",
+            "event",
         ):
             value = getattr(self, slot)
             unset = value is None or (slot == "colors" and value == ())
@@ -1596,6 +1636,7 @@ class FAtom:
                     "to_zone",
                     "referent",
                     "right_inner_filter",
+                    "event",
                 )
             ):
                 raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
@@ -1613,6 +1654,41 @@ class FAtom:
             and self.count.value < 1
         ):
             raise ValueError("FAtom: HAS_COUNTER requires count >= 1")
+        if self.pred in (FAtomPred.EVENT_THIS_TURN, FAtomPred.SUBJECT_OF_EVENT_THIS_TURN):
+            # Turn history: "at least once" is QConst(1), written out (the
+            # generic loop above does not enforce the count slot).
+            if self.count is None:
+                raise ValueError(f"FAtom: {self.pred.name} requires slot 'count'")
+            if isinstance(self.count, QConst) and self.count.value < 1:
+                raise ValueError(f"FAtom: {self.pred.name} requires count >= 1")
+            if isinstance(self.event, (StepEvent, AbilityTriggerEvent, CounteredEvent)):
+                # no history to read: the first two are never journalled, and a
+                # countered spell has left the stack before its row could be
+                # matched (a "spell" filter cannot be judged afterwards)
+                raise ValueError(
+                    f"FAtom: {self.pred.name} cannot read {type(self.event).__name__} "
+                    "(no journal history the matcher can judge)"
+                )
+            if isinstance(self.event, TapStateEvent) and not self.event.tapped:
+                raise ValueError(
+                    f"FAtom: {self.pred.name} cannot read untapping: the untap step "
+                    "precedes the journal's turn window (journal.turn_window)"
+                )
+            if isinstance(self.event, DamageDealtEvent) and not isinstance(
+                self.event.amount, QUnbounded
+            ):
+                raise ValueError(
+                    f"FAtom: {self.pred.name} reads how much damage from its count; "
+                    "the DamageDealtEvent amount must be QUnbounded"
+                )
+            if self.pred is FAtomPred.SUBJECT_OF_EVENT_THIS_TURN and isinstance(
+                self.event, CastSpellEvent
+            ):
+                # the permanent a spell became has its cast before its entry (CR 400.7c)
+                raise ValueError(
+                    "FAtom: SUBJECT_OF_EVENT_THIS_TURN cannot read a cast: use "
+                    "WAS_CAST_THIS_TURN, which follows a spell onto the battlefield"
+                )
         if (
             self.pred is FAtomPred.CONTROLLER_IS
             and self.who
@@ -2136,6 +2212,45 @@ class LifeGainedEvent:
 
 
 @dataclass(frozen=True)
+class LifeLostEvent:
+    """A player lost life (2026-11-05): "if an opponent lost life this turn"
+    (Savage Gorger), "if a player lost 4 or more life this turn" (Knight of
+    the Ebon Legion). The twin of :class:`LifeGainedEvent`: ``actor`` is
+    evaluated over the LOSING player (None = any player). Damage dealt to a
+    player makes that player lose that much life (CR 120.3a), and paying life
+    is losing it (CR 119.4), so the journal's player DAMAGE rows and its
+    LIFE_LOST rows are both this event."""
+
+    actor: Filter | None = None
+
+    def __post_init__(self) -> None:
+        if self.actor is not None and not _is_filter(self.actor):
+            raise ValueError(
+                f"LifeLostEvent: actor must be a Filter, got {type(self.actor).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class CounteredEvent:
+    """A spell or ability was countered (CR 701.6a) — 2026-11-05. ``filter``
+    selects the countered object, the event's subject. Its consumer is
+    PREVENT_EFFECT, "can't be countered", judged while the spell is still on
+    the stack: "This spell can't be countered." (Shifting Ceratops; CR 113.6g,
+    it functions on the stack), "Spells you control can't be countered this
+    turn." (Veil of Summer). Such a spell may still be targeted by a
+    counterspell; it is just not countered (CR 101.2). No trigger or history
+    reads it yet (binding._UNSUPPORTED_EVENTS)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"CounteredEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
 class SacrificeEvent:
     """A permanent was sacrificed (T3 round F: "whenever you
     sacrifice a permanent"). The sacrificed permanent is the event
@@ -2209,8 +2324,10 @@ EventSpec = (
     | TargetingEvent
     | CardDrawnEvent
     | LifeGainedEvent
+    | LifeLostEvent
     | SacrificeEvent
     | AbilityActivatedEvent
+    | CounteredEvent
 )
 
 
@@ -3570,8 +3687,10 @@ _EV_CLASSES = (
     TargetingEvent,
     CardDrawnEvent,
     LifeGainedEvent,
+    LifeLostEvent,
     SacrificeEvent,
     AbilityActivatedEvent,
+    CounteredEvent,
 )
 _D_CLASSES = (
     DurationEot,
@@ -3804,6 +3923,16 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # — who = the side the subject must NOT be on (ControllerRef or
     # referent Selector, the CONTROLLER_IS single-slot precedent).
     FAtomPred.OPPONENT_OF: (frozenset({"who"}), frozenset({"who"})),
+    # Turn history (2026-11-05): the event searched for and how much of it
+    # (count >= 1 and its presence are checked in FAtom.__post_init__).
+    FAtomPred.EVENT_THIS_TURN: (
+        frozenset({"event", "count"}),
+        frozenset({"event", "count"}),
+    ),
+    FAtomPred.SUBJECT_OF_EVENT_THIS_TURN: (
+        frozenset({"event", "count"}),
+        frozenset({"event", "count"}),
+    ),
 }
 
 # Atom role -> allowed value types. "types" is a tuple of card-type strings
@@ -4182,8 +4311,10 @@ _DATACLASSES: tuple[type, ...] = (
     TargetingEvent,
     CardDrawnEvent,
     LifeGainedEvent,
+    LifeLostEvent,
     SacrificeEvent,
     AbilityActivatedEvent,
+    CounteredEvent,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -4294,6 +4425,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("referent", "opt:str"),
         # right_inner_filter (grammar round 8, R8-9): omit-when-None.
         ("right_inner_filter", "opt:filter"),
+        # event (2026-11-05, turn history): omit-when-None.
+        ("event", "opt:event"),
     ),
     "DurationEot": (),
     "DurationPermanent": (),
@@ -4367,6 +4500,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("ordinal", "opt:int"),
     ),
     "LifeGainedEvent": (("actor", "opt:filter"),),
+    # 2026-11-05: the life-loss twin (actor omitted when None, as above).
+    "LifeLostEvent": (("actor", "opt:filter"),),
     "SacrificeEvent": (("actor", "opt:filter"),),
     # R5-7: replaces LoyaltyActivatedEvent; kind is required (no default).
     "AbilityActivatedEvent": (
@@ -4374,6 +4509,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("kind", "enum:AbilityKind"),
         ("actor", "opt:filter"),
     ),
+    # 2026-11-05: "can't be countered" (CR 701.6a): filter over the countered object.
+    "CounteredEvent": (("filter", "filter"),),
     "LiteralName": (("name", "str"),),
     "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
     "TokenSpec": (
@@ -4557,8 +4694,10 @@ _EVENT_TAGS = frozenset(
         "TargetingEvent",
         "CardDrawnEvent",
         "LifeGainedEvent",
+        "LifeLostEvent",
         "SacrificeEvent",
         "AbilityActivatedEvent",
+        "CounteredEvent",
     }
 )
 _COST_DELTA_TAGS = frozenset(
@@ -4676,6 +4815,7 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # event row that carries it.
     "TurnPhaseEvent": frozenset({"actor"}),
     "LifeGainedEvent": frozenset({"actor"}),
+    "LifeLostEvent": frozenset({"actor"}),  # 2026-11-05, the LifeGainedEvent twin
     "SacrificeEvent": frozenset({"actor"}),
     "AbilityActivatedEvent": frozenset({"actor"}),
     "TargetingEvent": frozenset({"actor"}),  # R5-6
@@ -4688,8 +4828,10 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # pre-round-7 FAtom keeps its exact bytes.
     # right_inner_filter (grammar round 8, R8-9): same discipline — every
     # pre-round-8 FAtom keeps its exact bytes.
+    # event (2026-11-05, turn history): same discipline — every earlier FAtom
+    # keeps its exact bytes.
     "FAtom": frozenset(
-        {"zone", "from_zone", "to_zone", "referent", "right_inner_filter"}
+        {"zone", "from_zone", "to_zone", "referent", "right_inner_filter", "event"}
     ),
     # color/enters_tapped/enters_attacking (grammar round 8, R8-2/R8-4):
     # TokenSpec had NO row before round 8 — without it, every existing

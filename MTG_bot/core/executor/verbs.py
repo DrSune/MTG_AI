@@ -2484,6 +2484,13 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         if ctx.journal is not None:
             ctx.journal.emit(KIND_KICKBACK, spell, ctx.source, "KICKBACK", (answer,))
 
+    if ex.replacements.prevents_countering(spell):
+        # 2026-11-05 (CR 101.2, 701.6a): the spell can't be countered. The
+        # counterspell targeted it legally and resolves, and its other
+        # instructions happen; this one does nothing. Nothing was countered,
+        # so there is no COUNTER row.
+        ctx.events.append((len(ctx.events), "NOT_COUNTERED", str(spell), str(ctx.source)))
+        return
     frame.countered = True
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())

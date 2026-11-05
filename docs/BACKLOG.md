@@ -1524,3 +1524,54 @@ W&B key in history is revoked; a private split exists outside the public repo.
   card is dealt: apply only self-referential modifiers to the spell being cast.
 - **The probe raises KeyError on tokens** in the "from your hand, the card enters" stimulus
   (probe.py ~670 skips it for emblems only), so G1 counts an engine error for every token.
+## Turn history and "can't be countered" follow-ups (2026-11-06, branch `engine/turn-history-uncounterable`)
+- **Collapse the legacy turn-history atoms onto `EVENT_THIS_TURN`** (AGENTS §9: one meaning, one
+  encoding). DIED_THIS_TURN, LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+  INSTANT_OR_SORCERY_CAST_THIS_TURN and MOVED_TO_ZONE_THIS_TURN are each `EVENT_THIS_TURN` /
+  `SUBJECT_OF_EVENT_THIS_TURN` over an existing EventSpec. They stay because M21 trees must stay
+  byte-identical; the condition grammar emits them for their old wordings so there is one encoding
+  per meaning today. Two behaviours change in the move and need a decision: the general atom
+  counts a threshold per individual (LIFE_GAINED/CARDS_DRAWN with `who=OPPONENT` sum over all
+  opponents, wrong in multiplayer), and DIED_THIS_TURN's existential fallback for a non-creature
+  judged handle becomes an explicit choice of atom. Do it at an era boundary, with the goldens and
+  verified trees re-pinned. WAS_CAST_THIS_TURN stays: a permanent's cast row comes before its
+  entry, and only it follows the spell onto the battlefield (CR 400.7c; the fresh-eyes review
+  showed that folding it would make Containment Priest exile every cast creature), so
+  `SUBJECT_OF_EVENT_THIS_TURN` refuses a CastSpellEvent.
+- **History inherits B-102**: `EVENT_THIS_TURN` over `DeclareAttackersEvent` reads the journal
+  through `binding._match_node`, so a creature put onto the battlefield attacking (joined row,
+  CR 508.4) counts as an attack. "You attacked this turn" is unaffected (such a creature only
+  enters during a declared attack); "attacked with N or more creatures" would be. The B-102 fix in
+  `_match_node` fixes both lanes.
+- **CounteredEvent has no trigger or history reader**: the countered spell has left the stack
+  when its COUNTER row is matched, so a "spell" filter cannot be judged afterwards
+  (binding._UNSUPPORTED_EVENTS refuses a trigger on it; the history atoms reject it). Needs the
+  spell's last known information on the row before "whenever a spell is countered" or "if a spell
+  was countered this turn" can be written.
+- **A permanent's static records keep the controller they were attached with** (fresh-eyes
+  review, 2026-11-06): `layers._new_static` registers a static PREVENT_EFFECT with the controller
+  of the moment, and GAIN_CONTROL does not re-register it, so "you" in a stolen permanent's static
+  still means the old controller in `prevents_activation`, the attack/block consults
+  (`_rec_ctx`), and possibly the layer statics. `prevents_countering` reads the source's current
+  controller (test `test_you_follows_the_permanents_controller`); the other consults need the same
+  (CR 109.5), with packs for a stolen "can't block" or anthem static.
+- **The journal records a player's net life change per atom** (events.py `record_atom`): a
+  lifelink source dealing damage to its own controller (10E Orcish Artillery with Loxodon
+  Warhammer) leaves no DAMAGE, LIFE_LOST or LIFE_GAINED row, though that player lost 3 and gained 3
+  (CR 120.3a, 702.15b). Every history and trigger reader inherits it (EVENT_THIS_TURN, bloodthirst,
+  LIFE_GAINED_THIS_TURN_GE, "whenever you gain life"). Fix: journal player damage and lifelink gains
+  from the verbs' own tuples, not the life diff.
+- **What the history atoms do not read** (refused or documented, 2026-11-06): untap-step rows
+  precede `journal.turn_window()` (no turn-start marker), so "became untapped this turn" is refused;
+  a damage threshold counts per recipient, never per dealer ("a source you controlled dealt 5 or
+  more damage" needs a dealer grouping); `binding._match_damage` ignores `DamageDealtEvent.amount`,
+  so the history atoms require QUnbounded there and read "how much" from their count.
+- **Still needs an atom** (from the same 92 needs-atom records): "Activate only once each turn"
+  (Frilled Sandwalla) needs the ability's identity on `AbilityActivatedEvent` (the row has the
+  index; no filter names "this ability"); "you've cast another spell this turn" (Illusory Angel) is
+  a cast restriction; conditional uncounterability (Banefire's "If X is 5 or more", Exquisite
+  Firecraft's spell mastery), "can't be countered by blue or black spells" (Autumn's Veil) and the
+  compound "cost {1} less to cast and can't be countered" (Thryx, Cunning Nightbonder) have no
+  template; "Each opponent who cast a spell this turn" (Angelic Arbiter) needs a per-player judged
+  history; Vengeful Warchief and Vilis can now use LifeLostEvent as a trigger.
+

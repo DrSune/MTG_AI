@@ -1,0 +1,53 @@
+{
+ "name": "turn_history_bloodcrazed_goblin_attacks_after_a_bolt",
+ "set": "M11",
+ "note": "Twin of turn_history_bloodcrazed_goblin_cant_attack: Lightning Bolt deals 3 damage to P1 first, so the Goblin may attack, and does.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "goblin",
+   "real": "Bloodcrazed Goblin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bolt",
+   "real": "Lightning Bolt",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Lightning Bolt",
+   "key": "bolt",
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "goblin": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "goblin": true
+  },
+  "life": {
+   "1": 15
+  }
+ }
+}

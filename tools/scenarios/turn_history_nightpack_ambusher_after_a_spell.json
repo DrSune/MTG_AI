@@ -1,0 +1,46 @@
+{
+ "name": "turn_history_nightpack_ambusher_after_a_spell",
+ "set": "M20",
+ "note": "Twin of turn_history_nightpack_ambusher: P0 casts a Centaur Courser this turn. Any spell counts, a creature spell too (an instant-or-sorcery reading would still make a Wolf), so the end step creates no Wolf.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ambusher",
+   "real": "Nightpack Ambusher",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "courser",
+   "real": "Centaur Courser",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Centaur Courser",
+   "key": "courser"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Wolf": 0
+  },
+  "zone": {
+   "courser": "battlefield"
+  }
+ }
+}
