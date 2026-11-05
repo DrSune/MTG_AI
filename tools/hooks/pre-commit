@@ -5,8 +5,7 @@
 # same check, but agents commit without it; a hook runs for everyone.
 #
 # Install (once per clone): ln -sf ../../tools/hooks/pre-commit .git/hooks/pre-commit
-# Large evidence stays on disk, pinned by sha256: reports/LARGE_FILES.sha256 and
-# tools/training/CHECKPOINTS.sha256.
+# Large evidence stays on disk, pinned by sha256 in reports/LARGE_FILES.sha256.
 set -euo pipefail
 limit=$((95 * 1024 * 1024))
 too_big=()
@@ -20,6 +19,6 @@ if (( ${#too_big[@]} )); then
     echo "pre-commit: REFUSED, staged files over 95 MB (GitHub rejects 100 MB):" >&2
     printf '  %s\n' "${too_big[@]}" >&2
     echo "Unstage them (git rm --cached <path>), keep them on disk, and record a sha256 in" >&2
-    echo "reports/LARGE_FILES.sha256 (or tools/training/CHECKPOINTS.sha256 for checkpoints)." >&2
+    echo "reports/LARGE_FILES.sha256." >&2
     exit 1
 fi

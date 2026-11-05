@@ -20,7 +20,7 @@ else
     if [ -f "$f" ] && [ "$(stat -c %s "$f")" -gt "$limit" ]; then echo "$f"; fi
   done)
   if [ -n "$big" ]; then
-    echo "REFUSED: staged files over 95 MB (record a sha256 instead, see tools/training/CHECKPOINTS.md):" >&2
+    echo "REFUSED: staged files over 95 MB (keep them on disk, record a sha256 in reports/LARGE_FILES.sha256):" >&2
     echo "$big" >&2
     exit 1
   fi
