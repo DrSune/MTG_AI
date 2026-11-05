@@ -166,3 +166,19 @@ seat 0 50.8%, 99.0% decisive, before and after.
 Not reproducible as filed, by the red-teams' account: the round-one claim that Idol of Endurance's
 timing bug was live in training (only the active player gets an activation window in the rig);
 the Mystic Forge and Cavalier packs needed corrections to show their bugs.
+
+## 8. r18: pre-registration (written before launch, 2026-11-05)
+Epoch: 2026-11-05 integration: the corrected rules (tapped attackers, player-loss SBAs, first draw, upkeep order, CR 400.7, CR 608.2b, APNAP), automatic payment instead of TAP_ALL_MANA, X rows, the verified pool (263 M21 cards). Earlier runs played a different game: no number before this epoch is comparable.
+
+Hypothesis: PPO continued from r17's weights on the corrected game and the verified pool first recovers against the heuristic (itself stronger now: no tap-out, X spells, fixed targeting) and then improves in self-play, and the strength it shows is now strength at Magic, not at engine bugs.
+
+Predictions (metric: magnitude; falsifier):
+- v0 (r17 last.pt) vs heuristic, opening ladder: 0.45-0.58; falsified by below 0.40 (the network is broken by the new action space) or above 0.62 (the fixes did not change the game it learned).
+- teacher eval at update 20: at least v0 + 0.05; falsified by no gain beyond the deal-level interval by update 20.
+- training void rate: below 0.05% of games; falsified by above 0.2% (an engine crash source is live).
+- network X > 0 share of its X casts by update 20: above 0.5; falsified by X = 0 in most of its X casts (it does not read the X rows).
+- self-play gates after the teacher stage: deal-level lower bound > 0.5; falsified by no freeze in 50 self-play updates.
+
+Kill criteria: K1: an engine error whose cause is a rules bug (crash rows in eval or training beyond 0.2%); K4: explained variance below 0 for 3 consecutive updates; K5: no confirmatory metric moves beyond its interval over two review windows past 30% of the budget; K7: throughput below 10 training games/s (r17 ran ~21) with no fix in sight; memory floor trips twice.
+Pre-flight (tools/selfplay/preflight.py, main 0dec22f): clean tree; 200 verified-pool games, 0 engine
+errors; 200/200 ended by a loss; byte-identical replay. Init runs/selfplay/r17_ppo/last.pt, --refresh-table.
