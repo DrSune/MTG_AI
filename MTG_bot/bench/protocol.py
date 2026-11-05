@@ -11,9 +11,10 @@ kind not in the registry raises ``UnknownAskSite`` when ``strict``, so a new eng
 answered by the wrong player in silence.
 
 **Labels.** A card is named only if the decider may know it: it is in a zone visible to them, or
-the engine offered it to them as a choice (``SeatLens.describe``). ``name:`` asks are flagged
-``leaky``: the engine's CHOOSE_NAME vocabulary lists every card in the world, hidden zones
-included (``verbs.py:1543-1556``, BACKLOG B-29).
+the engine offered it to them as a choice (``SeatLens.describe``). A ``name:`` ask lists the
+format's card pool in a dealt game (``executor.name_pool``, B-29 fixed 2026-11-05), public
+information; it is flagged ``leaky`` only in a rig with no format, where the engine still lists
+the world's cards, hidden zones included (``verbs._v_choose_name``).
 """
 
 from __future__ import annotations
@@ -224,7 +225,7 @@ def engine_ask(
         prompt=prompt,
         options=tuple(Option(t, label(t)) for t in vocab),
         refuse=refuse,
-        leaky=kind == "name",
+        leaky=kind == "name" and not executor.name_pool,
     )
 
 

@@ -3,10 +3,11 @@
 It is deliberately simple and deterministic (no RNG), and it reads only what its seat may know:
 the public board, its own hand, and the cards an ask offers. Its rules, in order of the asks:
 
-* act: tap all mana first (pools never empty, so it is free), play a land, cast the highest
-  mana value spell (kicked when offered), activate a planeswalker, otherwise pass. A harmful
-  non-damage spell is not cast while the opponent controls no creature. Other activated
-  abilities are never used.
+* act: play a land, cast the highest mana value spell (kicked when offered, the largest X, never
+  X = 0; the menu pays from lands and mana rocks), activate a planeswalker, otherwise pass. A
+  harmful non-damage spell is not cast while the opponent controls no creature. A creature's or a
+  Treasure's mana is used only when its mana makes a spell in hand castable, never a mana-cost
+  filter (Prismite). Other activated abilities are never used.
 * target: a harmful source (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
   creature, then the opponent; a helpful one at its own best creature, then itself.
 * attack: attack unless an untapped opposing creature that can block it would kill it and
@@ -14,15 +15,35 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
 * block: a free kill, else chump the biggest attacker when the attack is lethal, else a block
   it survives, else no block.
 * scry/discard/sacrifice/mana/one_of: small land-count and mana-value rules (see the methods).
+* name: the opponent's most expensive card in a public zone (battlefield, graveyard, exile).
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from MTG_bot.core.ability_tree import to_dict
+from MTG_bot.core.ability_tree import (
+    CostManaColor,
+    CostManaGeneric,
+    CostManaHybrid,
+    CostSacrifice,
+    SpellAbility,
+    is_mana_ability,
+    to_dict,
+)
+from MTG_bot.core.executor.legality import (
+    ManaTap,
+    _cost_has_x,
+    _mana_atom_output,
+    _with_trial_mana,
+    ctx_for,
+    plan_mana_taps,
+    spell_castable,
+    spell_record,
+)
+from MTG_bot.core.executor.query import spell_target_slots
 from MTG_bot.core.identity import Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
 from tools.selfplay.features import _handle, ir_tokens
 
 HARM_VERBS = {
@@ -59,6 +80,16 @@ def deals_damage(executor: Any, handle: Handle | None) -> bool:
         return False
     toks = _record_tokens(executor, executor.world.cards[handle].identity.oracle_id)
     return "Verb.DEAL_DAMAGE" in toks or "Verb.LOSE_LIFE" in toks
+
+
+def cast_token(token: str) -> tuple[Handle | None, bool, int]:
+    """``cast:<card>[:k][:x<N>]`` (the router's cast row) -> (card, kicked, X)."""
+    rest, x = token[5:], 0
+    head, sep, tail = rest.rpartition(":x")
+    if sep and tail.isdigit():
+        rest, x = head, int(tail)
+    kicked = rest.endswith(":k")
+    return _handle(rest[:-2] if kicked else rest), kicked, x
 
 
 class HeuristicAgent:
@@ -127,8 +158,6 @@ class HeuristicAgent:
     # -------------------------------------------------------------------- asks
 
     def _act(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
-        if "TAP_ALL_MANA" in tokens:
-            return tokens.index("TAP_ALL_MANA")
         lands = [i for i, t in enumerate(tokens) if t.startswith("land:")]
         if lands:
             return lands[0]
@@ -137,25 +166,87 @@ class HeuristicAgent:
         for i, t in enumerate(tokens):
             if not t.startswith("cast:"):
                 continue
-            kicked = t.endswith(":k")
-            h = _handle(t[5:-2] if kicked else t[5:])
+            h, kicked, x = cast_token(t)
             if h is None or h not in self.world.cards:
                 continue
             ident = self.world.cards[h].identity
+            record = spell_record(self.ex, h)
+            if x == 0 and record is not None and record.mana_cost is not None \
+                    and _cost_has_x(record.mana_cost):
+                continue  # X = 0 does nothing (Volcanic Geyser deals 0, Wildwood Scourge dies)
             if not self._is(h, "Creature") and is_harmful(self.ex, h) and not opp_creatures \
                     and not deals_damage(self.ex, h) and not self._is(h, "Planeswalker"):
                 continue  # removal with nothing to remove
-            key = (ident.cmc or 0, kicked, -i)
+            key = ((ident.cmc or 0) + x, kicked, -i)
             if best_key is None or key > best_key:
                 best, best_key = i, key
         if best is not None:
             return best
+        mana = self._mana_row(tokens)
+        if mana is not None:
+            return mana
         for i, t in enumerate(tokens):
             if t.startswith("act:"):
                 h = _handle(":".join(t.split(":")[1:3]))
                 if h is not None and h in self.world.cards and self._is(h, "Planeswalker"):
                     return i
         return tokens.index("PASS") if "PASS" in tokens else None
+
+    def _mana_row(self, tokens: list[str]) -> int | None:
+        """A creature's or a sacrifice's mana row (untapping creatures first), only when its mana
+        makes a spell in hand castable that the menu does not offer. A mana-cost filter (Prismite's
+        {2}: add one) never adds mana, so it is never used."""
+        rows = []
+        for i, t in enumerate(tokens):
+            parts = t.split(":")
+            if parts[0] != "act" or len(parts) != 4:
+                continue
+            h, idx = _handle(f"{parts[1]}:{parts[2]}"), int(parts[3])
+            record = spell_record(self.ex, h) if h is not None and idx >= 0 else None
+            if record is None or not is_mana_ability(record.abilities[idx]):
+                continue
+            cost = record.abilities[idx].cost.parts
+            if not any(isinstance(p, (CostManaColor, CostManaGeneric, CostManaHybrid)) for p in cost):
+                rows.append((any(isinstance(p, CostSacrifice) for p in cost), i, h, idx))
+        if not rows:
+            return None
+        offered = {cast_token(t)[0] for t in tokens if t.startswith("cast:")}
+        short = [h for h in self._hand()
+                 if h not in offered and not self._is(h, "Land") and self._designable(h)]
+        for _sacrifice, i, h, idx in sorted(rows):
+            ability = spell_record(self.ex, h).abilities[idx]
+            if any(self._castable_with(h, idx, ability, spell) for spell in short):
+                return i
+        return None
+
+    def _designable(self, spell: Handle) -> bool:
+        """Could the menu offer ``spell`` with enough mana: one target slot at most, and enough
+        candidates in it (a counterspell with nothing on the stack has none)."""
+        record = spell_record(self.ex, spell)
+        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
+        if node is None:
+            return False
+        slots = spell_target_slots(self.ex, node, spell_handle=spell, seat=self.me)
+        return len(slots) <= 1 and all(s.min_count <= len(s.candidates) for s in slots)
+
+    def _castable_with(self, source: Handle, idx: int, ability: Any, spell: Handle) -> bool:
+        """Is ``spell`` payable (the pool, then free sources) once this ability's mana is in the
+        pool? Asked of the engine's own planner, with the mana added on trial and taken back."""
+        got = _mana_atom_output(ability.effect, ctx_for(self.ex, source=source, controller=self.me))
+        if got is None:
+            return False
+        color, n = got
+        policy = self.ex.layers.this_mana_filter(source)  # Vodalian Arcanist: instants and sorceries
+        tags = (policy,) if policy is not None else ()
+
+        def check() -> str | None:
+            pay = plan_mana_taps(self.ex, self.me, lambda: spell_castable(self.ex, self.me, spell)[0])
+            return None if pay is not None else "short"
+
+        return any(
+            _with_trial_mana(self.ex, self.me, [ManaTap(source, idx, (), (c, n, tags))], check) is None
+            for c in ((color,) if color else "WUBRG")
+        )
 
     def _target(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         src = None
@@ -308,3 +399,15 @@ class HeuristicAgent:
 
     def _pay(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         return tokens.index("PAY") if "PAY" in tokens else None
+
+    def _name(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        seen: dict[str, float] = {}
+        for kind in (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE):
+            zone = self.world.players[self.opp].zones.get(kind)
+            for h in zone.entries if zone else ():
+                ident = self.world.cards[h].identity
+                if not ident.is_token:
+                    seen[ident.name] = float(ident.cmc or 0)
+        names = set(tokens)
+        best = max((n for n in seen if n in names), key=lambda n: (seen[n], n), default=None)
+        return tokens.index(best) if best is not None else None

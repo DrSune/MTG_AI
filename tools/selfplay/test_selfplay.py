@@ -327,3 +327,60 @@ def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
     assert net.ir_emb.weight.shape[0] == len(table.ir_vocab) + 1
     assert torch.equal(net.ir_emb.weight[-1], torch.zeros(32))
     assert net.ir_table.shape[0] == len(table.oracle_ids) and net.config["n_ir"] == len(grown.ir_vocab)
+
+
+# ------------------------------------------- the teacher on the 2026-11-05 menu (no TAP_ALL_MANA)
+
+
+def _teach(hand0=(), field0=(), field1=()):
+    """Seat 0's turn on an arranged board (MTG_bot/bench/test_router.py), the heuristic acting."""
+    from MTG_bot.bench.test_router import P0, _arranged, _router
+
+    game, supply = _arranged(hand0=hand0, field0=field0, field1=field1)
+    router = _router(game, supply, HeuristicAgent())
+    return game, router, P0
+
+
+def _named(game, name):
+    return next(h for h, c in game.world.cards.items() if c.identity.name == name)
+
+
+def test_heuristic_taps_a_mana_creature_only_for_a_spell_it_casts() -> None:
+    game, router, me = _teach(hand0=("Fierce Empath",), field0=("Forest", "Forest", "Forest", "Llanowar Visionary"))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Fierce Empath")).kind == "battlefield"
+    assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped  # the lands paid
+    game, router, me = _teach(hand0=("Fierce Empath",), field0=("Forest", "Forest", "Llanowar Visionary"))
+    router.take_acts(game, me)
+    assert game.world.zone_of(_named(game, "Fierce Empath")).kind == "battlefield"
+    assert game.world.cards[_named(game, "Llanowar Visionary")].tapped  # its {G} was the third mana
+
+
+def test_heuristic_never_trades_two_mana_for_one() -> None:
+    # Prismite's "{2}: Add one mana of any color" was activated 752 times in 300 games.
+    game, router, me = _teach(hand0=("Pursued Whale",), field0=("Island", "Island", "Prismite"))
+    router.take_acts(game, me)
+    assert not any(a.card == "Prismite" for a in router.acts)
+
+
+def test_heuristic_casts_an_x_spell_at_its_largest_x() -> None:
+    game, router, me = _teach(hand0=("Volcanic Geyser",), field0=("Mountain", "Mountain", "Island", "Island", "Island"),
+                              field1=("Walking Corpse",))
+    router.take_acts(game, me)
+    assert [a.detail for a in router.acts if a.card == "Volcanic Geyser"] == ["1t:x3"]
+
+
+def test_heuristic_names_the_opponents_most_expensive_public_card() -> None:
+    from MTG_bot.core.ability_tree import Atom, AtomArgs, Verb
+
+    game, _router, me = _teach(field0=("Plains",), field1=("Walking Corpse", "Pursued Whale"))
+    source = _named(game, "Plains")
+    game.executor.apply_effect(Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=())), source=source, controller=me)
+    assert game.executor.name_choices[source] == "Pursued Whale"
+
+
+def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
+    # Only X = 0 is payable ({G} for Wildwood Scourge): a 0/0 that dies at once is not a play.
+    game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Forest",))
+    router.take_acts(game, me)
+    assert not any(a.card == "Wildwood Scourge" for a in router.acts)
