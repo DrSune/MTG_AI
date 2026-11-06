@@ -40,7 +40,7 @@ from MTG_bot.core.state import (
     ZONE_LIBRARY,
 )
 
-PAD, UNK = 0, 1
+UNK = 1
 
 ASK_KINDS = (
     "pad", "act", "attack", "block", "target", "choose", "one_of", "may", "scry", "mana",

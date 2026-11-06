@@ -244,7 +244,7 @@ class Worker:
         slot.go.release()
         self.main_wake.acquire()
 
-    def _handle(self, msg: tuple) -> Any:
+    def _handle(self, msg: tuple) -> None:
         kind = msg[0]
         if kind == "ans":
             self.answers[msg[1]] = msg[2]
@@ -253,7 +253,6 @@ class Worker:
             self.need_sent = 0
         elif kind == "stop":
             self.stopping = True
-        return msg
 
     def _wait_answers(self, group: int) -> list:
         while self.answers[group] is None and not self.stopping:

@@ -303,7 +303,7 @@ class Learner:
             cfg = {k: v for k, v in src.config.items() if k not in ("n_cards", "n_ir")}
             net = M.build(self.table, **cfg).to(self.device)
             net.load_state_dict(src.state_dict())
-            net.mask_names = getattr(src, "mask_names", False)
+            net.mask_names = src.mask_names
             net = net.to(torch.bfloat16).eval()
             torch.cuda.synchronize()
             self.infer_models[key] = (src, ver, net)
@@ -314,7 +314,7 @@ class Learner:
         cfg = {k: v for k, v in self.model.config.items() if k not in ("n_cards", "n_ir")}
         net = M.build(self.table, **cfg).to(self.device)
         net.load_state_dict(src.state_dict())
-        net.mask_names = getattr(src, "mask_names", False)
+        net.mask_names = src.mask_names
         net.eval()
         if self.cuda:
             torch.cuda.synchronize()  # the copy is complete before any stream reads it
@@ -580,8 +580,8 @@ class Learner:
                 dump = self.run / f"nonfinite_infer_it{self.it}.pt"
                 torch.save({"batch": {k: v.cpu() for k, v in b.items()}, "rows": rows, "key": key,
                             "logits": logits.cpu()}, dump)
-                detail = [{"ask_i": int(b["ask_i"][r]) if "ask_i" in b else None,
-                           "options": int(b["opt_mask"][r].sum()) if "opt_mask" in b else None,
+                detail = [{"ask_i": int(b["ask_i"][r]),
+                           "options": int(b["opt_mask"][r].sum()),
                            "logits_nan": bool(torch.isnan(logits[r]).any()),
                            "all_neg_inf": bool(torch.isneginf(logits[r]).all())} for r in rows[:8]]
                 raise RuntimeError(f"non-finite policy probabilities in {len(rows)} of {len(items)} rows "

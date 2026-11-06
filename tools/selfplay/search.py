@@ -82,17 +82,16 @@ class SimAgent:
     """A network seat inside a simulation: greedy, never recorded. ``forced`` answers the first
     act ask (the candidate being evaluated)."""
 
-    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable,
-                 forced: str | None = None) -> None:
+    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable) -> None:
         self.slot = slot
         self.gid = gid
         self.spec = spec
         self.table = table
-        self.forced = forced
         self.fallback = HeuristicAgent()
         self.name = f"sim:{spec}"
         self.decisions = 0
 
+    forced: str | None = None
     attack_plan: frozenset | None = None
     block_plan: frozenset | None = None
 
@@ -158,7 +157,7 @@ def block_answer(ask: Any, plan: frozenset) -> int | None:
 class Searcher:
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, pool_mode: str,
                  set_code: str, k: int = 4, d: int = 2, skip_p: float = 0.97,
-                 draw_value: float = -1.0, seed: int = 0) -> None:
+                 seed: int = 0) -> None:
         self.slot = slot
         self.gid = gid
         # the network that ranks the candidates, plays both seats inside the simulations and
@@ -168,7 +167,6 @@ class Searcher:
         self.k = k
         self.d = d
         self.skip_p = skip_p
-        self.draw_value = draw_value
         self.rng = random.Random(seed)
         # the supply the searched game was dealt from: forks share its compiled cards (fork.py)
         # and the opponent's hidden cards are re-drawn from its deckable pool (determinize)
@@ -180,7 +178,7 @@ class Searcher:
         """The searched option index for one act ask (feats: its encoding)."""
         n = len(ask.options)
         a0, _, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
-        if max(probs) >= self.skip_p or obs.game is None:
+        if max(probs) >= self.skip_p:
             self.stats["skipped"] += 1
             return int(a0)
         order = sorted(range(n), key=lambda i: -probs[i])[: self.k]
@@ -357,7 +355,7 @@ class Searcher:
                 return 1.0 if losers[0] != me else -1.0
             return 0.0
         if (clone.reason or "").startswith(("turn cap", "STALL")):
-            return self.draw_value
+            return -1.0
         return self.leaf_value(router, clone, seat)
 
     def leaf_value(self, router: SelfplayRouter, clone: Any, seat: int) -> float:

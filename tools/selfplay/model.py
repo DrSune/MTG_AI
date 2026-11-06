@@ -24,9 +24,6 @@ from torch import nn
 
 from tools.selfplay import features as FT
 
-FIELDS = ("cards_i", "cards_f", "players_f", "glob_f", "ask_i", "opts_i", "opts_f")
-
-
 class PolicyValueNet(nn.Module):
     def __init__(self, n_cards: int, n_ir: int, ir_table: np.ndarray, d: int = 256,
                  layers: int = 6, heads: int = 8, ff: int = 1024, name_dropout: float = 0.1,
