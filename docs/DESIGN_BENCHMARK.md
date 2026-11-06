@@ -337,7 +337,6 @@ Registered in [`BACKLOG.md`](BACKLOG.md) with removal conditions:
 - k = 3 strikes per decision;
 - payment is automatic: the pool first, then the free sources (lands, plain mana rocks) the engine
   picks; other mana abilities are act rows (since 2026-11-05, replacing `TAP_ALL_MANA`);
-- rows with more than one target slot are hidden, mirroring the engine;
 - one act window per main phase, the engine's (no priority passing; both main phases since 2026-11-06);
 - stateless prompts;
 - hidden-card labels are conservative (a legitimately revealed card shows as "unrevealed").

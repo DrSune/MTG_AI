@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pm", "real": "Primal Might", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Cub", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "power": "4", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 4}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:pm:x3", "bear", "ogre"]}
+ ],
+ "expect": {
+  "zone": {"pm": "graveyard", "bear": "battlefield", "cub": "battlefield", "ogre": "graveyard"},
+  "power": {"bear": 5},
+  "damage": {"bear": 4}
+ },
+ "notes": "Printed Primal Might: 'Target creature you control gets +X/+X until end of turn. Then it fights up to one target creature you don't control.' Cast the way a dealt game casts it, from the act menu: the row carries X (CR 601.2b), then one target question per instance of 'target' (CR 601.2c): the first offers only my creatures (Bear, Cub), the second only the opponent's (Opp Ogre, or none). X = 3 makes Bear 5/5; it fights the 4/2 Ogre, which dies, and Bear survives 4 damage. Until 2026-11-06 the menu hid every spell with two target slots, so this card was never cast in a game."
+}

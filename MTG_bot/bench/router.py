@@ -24,14 +24,18 @@ BACKLOG:
   sacrifice (Treasure), a mana-cost filter (Prismite's {2}). Pool mana lasts until this main
   phase ends (CR 500.5). The engine's response windows pay the same way. Which free sources pay
   is a scaffold (BACKLOG): a learned payment choice removes it.
-- **Rows the engine cannot designate are hidden and counted:** more than one target slot, or a
-  slot with too few candidates (``games.py:653-661``).
-- **Targets are asked one at a time** from the slot's candidates, then validated by the engine's
-  oracle (``validate_target_selection``). A slot with exactly one legal filler is filled without
-  asking, as the engine's own phantom gate does (``offers.py:47-70``).
-- **A modal spell announces its modes first** (CR 601.2b, V17): ``stack.cast_modes`` asks the
-  engine's ``choose:`` question over the legal mode sets, then only the chosen modes' targets are
-  asked.
+- **A row whose targets cannot all be chosen is hidden and counted** (CR 601.2c:
+  ``stack.can_designate``, a slot with too few candidates or an "another target" left without one).
+- **Targets are asked slot by slot, one question per pick** (CR 601.2c: each word "target" is
+  announced in turn), site ``pick:<source>:<slot>:<picks so far>``, over the candidates
+  ``stack.slot_options`` leaves: none already picked for that slot (CR 115.3) and none that would
+  leave a later slot without a legal target, so no illegal pair is ever offered. DONE ends a slot
+  once it has its minimum (an "up to" slot may stay empty). A slot with exactly one legal filler
+  is filled without asking, as the engine's own phantom gate does (``offers.py:47-70``). The rig
+  reads the targets chosen so far in ``targets_so_far``.
+- **X and modes come first** (CR 601.2b): X is part of the row (``cast:<card>:x<N>``), and a modal
+  spell's modes are announced by ``stack.cast_modes`` (the engine's ``choose:`` question over the
+  legal mode sets, V17) before only the chosen modes' targets are asked.
 - **At most ``MAX_ACTS_PER_STEP`` acts per window**, the engine's own cap: one window per main
   phase, the prompt naming which.
 
@@ -82,9 +86,15 @@ from MTG_bot.core.executor.query import (
     inert_row,
     modal_choose,
     spell_target_slots,
-    validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, cast_modes, land_playable, play_land
+from MTG_bot.core.executor.stack import (
+    can_designate,
+    cast,
+    cast_modes,
+    land_playable,
+    play_land,
+    slot_options,
+)
 from MTG_bot.core.state import ZONE_BATTLEFIELD
 
 if TYPE_CHECKING:
@@ -111,6 +121,9 @@ class SeatRouter:
         self.stats: list[Counter[str]] = [Counter() for _ in self.drivers]
         self.acts: list[Act] = []  # read by games._describe_crash
         self._scry_index: Counter[str] = Counter()
+        #: The targets chosen so far in the declaration being asked (``_targets``), every
+        #: earlier slot's and this slot's earlier picks; rig.py puts them in the AskContext.
+        self.targets_so_far: tuple[Handle, ...] = ()
 
     # ------------------------------------------------------------- helpers
 
@@ -228,11 +241,11 @@ class SeatRouter:
         for handle in sorted(world.players[seat].zone("hand").entries):
             if land_playable(executor, seat, handle) is None:
                 menu.append((Option(f"land:{handle}", f"play land {lens.describe(executor, handle)}"), ("land", handle)))
-            elif (handle,) not in game.unsupported_rows:
+            else:
                 menu.extend(self._cast_rows(executor, seat, i, handle))
         free = {(taps[0].source, taps[0].ability_idx) for taps in _mana_tap_options(executor, seat)}
         for source, idx, ability in _activated_abilities(executor, seat):
-            if (source, idx) in free or (source, idx) in game.unsupported_rows:
+            if (source, idx) in free:
                 continue  # a free source's mana is paid automatically, never offered as a row
             row = self._activation_row(executor, seat, i, source, idx, ability)
             if row is not None:
@@ -260,16 +273,13 @@ class SeatRouter:
                 slots: list[Any] | None = None  # a modal spell's slots follow its modes (_execute)
                 if modal_choose(node) is None:
                     slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat, pay=pay)
-                    designable = len(slots) <= 1 and all(s.min_count <= len(s.candidates) for s in slots)
-                    more = " (then choose targets)" if slots and not slots[0].forced else ""
+                    designable = can_designate(slots)
+                    more = " (then choose targets)" if any(not s.forced for s in slots) else ""
                 else:
                     # V17 (CR 601.2b-c): the modes are announced first (an engine ask, in
                     # _execute), and only the chosen modes' targets exist. Offered when some
-                    # legal mode set can be designated with one slot at most.
-                    designable = any(
-                        len(spell_target_slots(executor, node, spell_handle=handle, seat=seat, modes=m, pay=pay)) <= 1
-                        for _t, m in cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay)
-                    )
+                    # mode set is legal, i.e. its targets can be chosen (CR 700.2a).
+                    designable = bool(cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay))
                     more = " (then choose its mode)"
                 if not designable:
                     self.stats[i]["hidden_rows"] += 1
@@ -291,7 +301,7 @@ class SeatRouter:
             return None  # a phantom option: it could do nothing (Radha's land row)
         mana = is_mana_ability(ability)
         slots = [] if mana else list(activation_target_slots(executor, ability.effect, source=source, seat=seat))
-        if len(slots) > 1 or any(s.min_count > len(s.candidates) for s in slots):
+        if not can_designate(slots):
             self.stats[i]["hidden_rows"] += 1
             return None
         lens = self.lenses[i]
@@ -301,40 +311,47 @@ class SeatRouter:
         option = Option(f"act:{source}:{idx}", f"activate {lens.describe(executor, source)}: {what}{adds}")
         return option, ("activate", source, idx, slots, exclude)
 
-    def _targets(self, game: Game, slots: Sequence[Any], i: int, source: Handle) -> tuple[Handle, ...] | None:
-        chosen: list[Handle] = []
+    def _targets(self, game: Game, slots: Sequence[Any], i: int, source: Handle) -> tuple:
+        """The designation, asked slot by slot (CR 601.2c; the module docstring): one slot's
+        targets, or for several slots one tuple per slot (``stack.designate_slots``)."""
         executor = game.executor
         lens = self.lenses[i]
-        for slot in slots:
+        name = lens.describe(executor, source)
+        groups: list[tuple[Handle, ...]] = []
+        for j, slot in enumerate(slots):
+            picked: list[Handle] = []
             if slot.forced:
-                picked = sorted(slot.candidates)[: slot.max_count]
-            else:
-                picked = []
-                while len(picked) < min(slot.max_count, len(slot.candidates)):
-                    remaining = [c for c in sorted(slot.candidates) if c not in picked]
-                    options = [Option(str(c), lens.describe(executor, c, offered=True)) for c in remaining]
-                    refuse = None
-                    if len(picked) >= slot.min_count:
-                        refuse = len(options)
-                        options.append(Option("DONE", "no more targets"))
-                    ask = Ask(
-                        seat=i,
-                        kind="target",
-                        site=f"pick:{source}:{len(picked)}",
-                        prompt=f"Choose a target for {lens.describe(executor, source)}.",
-                        options=tuple(options),
-                        refuse=refuse,
-                    )
-                    token = options[self._decide(self.drivers[i], ask)].token
-                    if token == "DONE":
-                        break
-                    picked.append(next(c for c in remaining if str(c) == token))
-                picked.sort()
-            if validate_target_selection(slot, picked) is not None:
-                self.stats[i]["invalid_targets"] += 1
-                return None
-            chosen.extend(picked)
-        return tuple(chosen)
+                picked = list(slot_options(slots, tuple(groups)))[: slot.max_count]
+            while not slot.forced and len(picked) < slot.max_count:
+                remaining = slot_options(slots, tuple(groups), picked)
+                if not remaining:
+                    break
+                options = [Option(str(c), lens.describe(executor, c, offered=True)) for c in remaining]
+                refuse = None
+                if len(picked) >= slot.min_count:
+                    refuse = len(options)
+                    options.append(Option("DONE", "no more targets"))
+                self.targets_so_far = (*(h for g in groups for h in g), *picked)
+                prompt = f"Choose a target for {name}."
+                if len(slots) > 1:
+                    so_far = ", ".join(lens.describe(executor, h) for h in self.targets_so_far)
+                    prompt = f"Choose target {j + 1} of {len(slots)} for {name}" + (
+                        f" (chosen so far: {so_far})." if so_far else ".")
+                ask = Ask(
+                    seat=i,
+                    kind="target",
+                    site=f"pick:{source}:{j}:{len(picked)}",
+                    prompt=prompt,
+                    options=tuple(options),
+                    refuse=refuse,
+                )
+                token = options[self._decide(self.drivers[i], ask)].token
+                if token == "DONE":
+                    break
+                picked.append(next(c for c in remaining if str(c) == token))
+            groups.append(tuple(sorted(picked)))
+        self.targets_so_far = ()
+        return groups[0] if len(slots) == 1 else tuple(groups)
 
     def _execute(self, game: Game, seat: Handle, i: int, option: Option, payload: Any) -> None:
         executor = game.executor
@@ -348,8 +365,6 @@ class SeatRouter:
         if kind == "activate":
             _, source, idx, slots, exclude = payload
             targets = self._targets(game, slots, i, source) if slots else ()
-            if targets is None:
-                return
             game.attempted = f"act:{game.name_of(source)}#{idx}"
             tap_for_payment(executor, seat, _activation_taps(executor, seat, source, idx, exclude) or ())
             activate(executor, source, idx, seat=seat, targets=targets)
@@ -362,22 +377,19 @@ class SeatRouter:
             # router answers it, routed to this seat), then its own slots are designated.
             _token, modes, _rest = cast_modes(executor, seat, source, node, pay=pay)
             slots = spell_target_slots(executor, node, spell_handle=source, seat=seat, modes=modes, pay=pay)
-            if len(slots) > 1:
-                self.stats[i]["hidden_rows"] += 1
-                return
         targets = self._targets(game, slots, i, source) if slots else ()
-        if targets is None:
-            return
-        taps = _cast_taps(executor, seat, source, kicked, x, targets)
+        flat = targets if len(slots) <= 1 else tuple(h for group in targets for h in group)
+        taps = _cast_taps(executor, seat, source, kicked, x, flat)
         if taps is None:
-            # Each candidate is priced alone; several picks of one slot can together cost more
-            # than the pool and the free sources pay (two taxed targets). Counted; nothing is cast.
+            # Each candidate is priced alone; several targets can together cost more than the
+            # pool and the free sources pay (two taxed targets, CR 601.2f): the cast is illegal
+            # and nothing happens. Counted.
             self.stats[i]["unpayable_targets"] += 1
             return
         game.attempted = f"cast:{game.name_of(source)}"
         tap_for_payment(executor, seat, taps)
         cast(executor, seat, source, x=x, kicked=kicked, mode_choices=modes, targets=targets)
-        self._log(i, "cast", source, f"{len(targets)}t" + ("" if x is None else f":x{x}"))
+        self._log(i, "cast", source, f"{len(flat)}t" + ("" if x is None else f":x{x}"))
 
 
 def _cast_taps(

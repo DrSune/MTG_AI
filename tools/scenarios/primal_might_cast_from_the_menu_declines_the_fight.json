@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pm", "real": "Primal Might", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Cub", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "power": "5", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:pm:x1", "bear", "DONE"]}
+ ],
+ "expect": {
+  "zone": {"pm": "graveyard", "bear": "battlefield", "giant": "battlefield"},
+  "power": {"bear": 3},
+  "damage": {}
+ },
+ "notes": "Printed Primal Might: '... Then it fights up to one target creature you don't control.' 'Up to one' lets the second target be left unchosen (CR 601.2c: the player announces how many targets): the menu's second target question offers DONE. Bear gets +1/+1 (3/3) and fights nobody, so the 5/5 Giant is not dealt damage and Bear is not either."
+}

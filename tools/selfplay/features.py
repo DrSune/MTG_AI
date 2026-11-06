@@ -10,7 +10,7 @@ One decision encodes to (shapes; E = card entities, K = options):
 * ``cards_i``  int16  [E, 5]   card vocab id, zone, controller, owner, attached-to entity
 * ``cards_f``  float32[E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost
 * ``players_f``float32[2, PF]  me then the opponent: life, zone counts, mana pool, board counts
-* ``glob_f``   float32[GF]     turn, whose turn, stack size, ask details
+* ``glob_f``   float32[GF]     turn, whose turn, stack size, ask details (a target ask's slot)
 * ``ask_i``    int32  [1]      ask kind (the act menu's says which main phase)
 * ``opts_i``   int32  [K, 4]   option type, entity ref, second entity ref, ability index
 * ``opts_f``   float32[K, 2]   number value, kicked
@@ -84,9 +84,17 @@ F_KW_OTHER = F_KW0 + len(KEYWORDS)
 F_POWER, F_TOUGH, F_DAMAGE, F_P1, F_M1, F_LOYALTY, F_COUNTERS, F_CMC, F_DECL_BLOCKERS = range(
     F_KW_OTHER + 1, F_KW_OTHER + 10
 )
-CF = F_DECL_BLOCKERS + 1
-PF = 16
-GF = 8
+# Columns are appended, never inserted: model.load gives a checkpoint the columns added after it
+# with zero weights, so an old network reads them as absent.
+# 2026-11-06 (several target slots, CR 601.2c): the cards (F_TARGETED) and players (P_TARGETED)
+# chosen as targets so far in the declaration being asked, and glob_f[G_SLOT], the target slot
+# a target ask is about (0 = the first or only one).
+F_TARGETED = F_DECL_BLOCKERS + 1
+CF = F_TARGETED + 1
+P_TARGETED = 16
+PF = P_TARGETED + 1
+G_SLOT = 8
+GF = G_SLOT + 1
 
 OPTION_TYPES = (
     "pad", "PASS", "TAP_ALL_MANA", "land", "cast", "cast_kicked", "activate", "ATTACK",
@@ -290,13 +298,17 @@ class CardTable:
 class AskContext:
     """Facts about the current decision that the game rig knows and the engine state does not
     show yet: the card being scried, attackers declared so far this combat, blocks so far, and the
-    ask's count (``picked``): the targets picked so far for a target pick, the cards still to put
-    on the bottom (this one included) for a mulligan's bottom ask."""
+    ask's count (``picked``): the targets picked so far for a target pick's slot, the cards still
+    to put on the bottom (this one included) for a mulligan's bottom ask. A target pick also
+    carries its slot (``slot``, 0 = the first or only target slot of the spell or ability) and
+    the cards and players chosen as its targets so far (``targeted``, every slot's)."""
 
     revealed: Handle | None = None
     declared_attackers: frozenset = frozenset()
     declared_blocks: dict = field(default_factory=dict)  # blocker -> attacker
     picked: int = 0
+    slot: int = 0
+    targeted: frozenset = frozenset()
 
 
 _STATIC_CACHE: dict[int, tuple] = {}
@@ -535,6 +547,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         else:
             p, t = pp, pt
         f[F_TOKEN] = is_token
+        f[F_TARGETED] = h in ctx.targeted
         f[F_ASK_SOURCE] = h == source
         f[F_OFFERED] = h in offered
         f[F_REVEALED] = (zone in (ZONE_LIBRARY, ZONE_HAND) and ctrl != me_h) or zone == ZONE_LIBRARY
@@ -592,6 +605,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         row[13] = creatures / 10.0
         row[14] = untapped_lands / 10.0
         row[15] = ph in executor.lost_players
+        row[P_TARGETED] = ph in ctx.targeted
 
     glob_f = np.zeros(GF, dtype=np.float32)
     glob_f[0] = world.turn / 20.0
@@ -602,6 +616,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     glob_f[5] = len(ctx.declared_attackers) / 5.0
     glob_f[6] = len(attackers) / 5.0
     glob_f[7] = 1.0 if ask.refuse is not None else 0.0
+    glob_f[G_SLOT] = ctx.slot / 3.0
 
     k = len(parsed)
     opts_i = np.zeros((k, 4), dtype=np.int32)

@@ -50,7 +50,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field, fields, is_dataclass
-from itertools import count
+from itertools import combinations, count
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
@@ -302,8 +302,7 @@ def _validate_spell_targets(
     channel (compiled "target opponent", a ControllerRef with NO selector
     to validate — the grammar's documented representational gap) is
     checked as a player-coordinate rule: an opponent seat of the caster.
-    Multi-selector spells STAY loud: one designation tuple cannot serve
-    two different populations."""
+    Several selectors are designated per slot (:func:`designate_slots`)."""
     from MTG_bot.core.executor.query import (
         spell_target_slots,
         validate_target_selection,
@@ -337,85 +336,116 @@ def _validate_spell_targets(
                 )
         return
     if len(slots) > 1:
-        # r19c (arc 3): per-slot POSITIONAL designation — the same rule the
-        # cast lane's _plan_cast_designation applies.
-        _validate_positional(slots, targets)
+        designate_slots(slots, targets)
         return
     reason = validate_target_selection(slots[0], targets)
     if reason is not None:
         raise ValueError(f"executor: cast: illegal target selection: {reason}")
 
 
-def _validate_positional(
-    slots: list,
-    targets: tuple[Handle, ...],
-    skip: frozenset[int] | set[int] = frozenset(),
-) -> None:
-    """r19c (arc 3 closes): MULTI-slot designation is POSITIONAL — the i-th
-    entry of the cast's ``targets`` designates the i-th TARGET selector in
-    WALK ORDER, each validated against its OWN slot (the same
-    ``validate_target_selection`` oracle — §8.3 identity, one population
-    per selector, no cross-slot hijack). Scope: every slot exactly-one
-    (QConst(1)); an up-to/one-or-more multi-slot keeps the loud raise (no
-    corpus card needs it, and a greedy split would be a guess). A handle
-    MAY repeat across slots — the CR's "another target" clause lives in the
-    selector's own filter (IS_ANY_TARGET), which is the rules' answer, not
-    a second opinion invented here."""
-    from MTG_bot.core.executor.query import validate_target_selection
+#: One designation of several target slots (CR 601.2c): per slot, the targets
+#: announced for it, () for an "up to" slot left empty.
+SlotGroups = tuple[tuple[Handle, ...], ...]
 
-    if any(s.max_count > 1 for s in slots) or not _optional_slots_trail(slots):
-        raise NotImplementedError(
-            "executor: cast: multi-slot designation supports exactly-one "
-            "TARGET selectors and trailing up-to-one ones only (r19c)"
-        )
+
+def slot_groups(slots: list, targets: Sequence) -> SlotGroups:
+    """The designation of each of ``slots``, in walk order (CR 601.2c: the
+    targets are announced for each instance of the word "target"). Two
+    spellings of ``targets``: one tuple of handles per slot (() leaves an "up
+    to" slot empty, a slot of "two target creatures" takes two), or flat, the
+    i-th handle designating the i-th slot and the slots after the last handle
+    empty (one target per slot: packs and tests). Raises ``ValueError`` on a
+    count that fits neither."""
+    if targets and all(not isinstance(t, Handle) for t in targets):
+        if len(targets) != len(slots):
+            raise ValueError(
+                f"{len(slots)} TARGET slots need {len(slots)} designations, got {len(targets)}"
+            )
+        return tuple(tuple(group) for group in targets)
+    if any(not isinstance(t, Handle) for t in targets):
+        raise ValueError("a designation is one tuple per slot or one handle per slot, not both")
     required = sum(1 for s in slots if s.min_count >= 1)
     if not required <= len(targets) <= len(slots):
         need = f"{required} to {len(slots)}" if required < len(slots) else f"{len(slots)}"
-        raise ValueError(
-            f"executor: cast: {len(slots)} TARGET slots need {need} "
-            f"designations, got {len(targets)}"
-        )
-    for i, (slot, one) in enumerate(zip(slots, targets)):
+        raise ValueError(f"{len(slots)} TARGET slots need {need} designations, got {len(targets)}")
+    return tuple((t,) for t in targets) + ((),) * (len(slots) - len(targets))
+
+
+def designate_slots(
+    slots: list,
+    targets: Sequence,
+    *,
+    skip: frozenset[int] | set[int] = frozenset(),
+    stand_in=None,
+    lane: str = "cast",
+) -> dict[str, tuple[Handle, ...]]:
+    """r19c, 2026-11-06: a MULTI-slot designation (CR 601.2c), the cast and
+    activation lanes' one rule. :func:`slot_groups` reads ``targets``; each
+    slot's group is validated against its OWN slot by the query's oracle
+    (``validate_target_selection``: its population, its count, and no object
+    twice for one word "target", CR 115.3), and an "another target" slot must
+    not share a target with another slot (:func:`another_target_reason`). The
+    same object MAY fill two plain "target" words (CR 115.3). Returns the
+    repr-keyed per-slot map the effect runtime threads into
+    ExecCtx.slot_designations; a slot left empty maps to (), so its TARGET
+    selector acts on nothing instead of reading the spell-wide binding.
+    ``skip``: slots auto-designated by the self-clause (CR 115.4,
+    :func:`_plan_cast_designation`), trusted by construction. ``stand_in``:
+    the handle a slot is judged on (the activation lane's synthesized player
+    slot reads a card as its controller). Raises
+    ``ValueError("executor: <lane>: ...")``."""
+    from MTG_bot.core.executor.query import validate_target_selection
+
+    try:
+        groups = slot_groups(slots, targets)
+    except ValueError as e:
+        raise ValueError(f"executor: {lane}: {e}") from None
+    for i, (slot, group) in enumerate(zip(slots, groups, strict=True)):
         if i in skip:
-            # forced auto-designation (CR 115.4 self-clause): the handle IS
-            # the spell, population enumeration cannot see it yet — the
-            # designation is trusted BY CONSTRUCTION, not by a pass.
             continue
-        reason = validate_target_selection(slot, (one,))
+        judged = group if stand_in is None else tuple(stand_in(slot, h) for h in group)
+        reason = validate_target_selection(slot, tuple(sorted(judged)))
         if reason is not None:
-            raise ValueError(f"executor: cast: illegal target selection: {reason}")
-    reason = another_target_reason(slots[: len(targets)], targets)
+            raise ValueError(f"executor: {lane}: illegal target selection: {reason}")
+    reason = another_target_reason(slots, groups)
     if reason is not None:
-        raise ValueError(f"executor: cast: illegal target selection: {reason}")
+        raise ValueError(f"executor: {lane}: illegal target selection: {reason}")
+    return {repr(slot.selector): tuple(sorted(g)) for slot, g in zip(slots, groups, strict=True)}
 
 
-def _optional_slots_trail(slots: list) -> bool:
-    """m21-fidelity wave 4 (2026-10-30, Primal Might's "then it fights up to
-    one target creature you don't control"): an "up to one target" slot may
-    be left empty (CR 115.6, V15's 0..1 count), and positional designation
-    stays unambiguous only while every such slot comes after every required
-    one: the i-th designation fills the i-th slot, and the trailing slots
-    the designation does not reach are the empty ones. An optional slot
-    before a required one would need a split guess, so it stays loud."""
-    seen_optional = False
-    for slot in slots:
-        if slot.min_count == 0:
-            seen_optional = True
-        elif seen_optional:
-            return False
-    return True
+def can_designate(slots: list, chosen: SlotGroups = ()) -> bool:
+    """Can the slots after the designated ``chosen`` (one group per slot so
+    far) each still take its minimum number of targets without breaking an
+    "another target" (CR 601.2c: a spell or ability with a target that cannot
+    be chosen cannot be cast or activated)? For one slot: it has enough
+    candidates. The drivers' gate before they offer a row."""
+    if another_target_reason(slots[: len(chosen)], chosen) is not None:
+        return False
+    if len(chosen) == len(slots):
+        return True
+    slot = slots[len(chosen)]
+    return any(
+        can_designate(slots, (*chosen, group))
+        for group in combinations(slot.candidates, slot.min_count)
+    )
 
 
-def positional_slot_designations(slots: list, targets: Sequence[Handle]) -> dict:
-    """The repr-keyed per-slot map for a validated positional designation:
-    the i-th handle designates the i-th slot, and a trailing up-to-one slot
-    the designation does not reach maps to () (no target chosen, CR 115.6),
-    so its TARGET selector resolves to nothing instead of falling back to
-    the spell-wide binding."""
-    return {
-        repr(slot.selector): ((targets[i],) if i < len(targets) else ())
-        for i, slot in enumerate(slots)
-    }
+def slot_options(slots: list, chosen: SlotGroups, picked: Sequence[Handle] = ()) -> tuple[Handle, ...]:
+    """The candidates the next pick of slot ``len(chosen)`` may take, after
+    the earlier slots' groups ``chosen`` and this slot's ``picked``: not
+    already picked for this slot (CR 115.3), and leaving the designation
+    completable, this slot up to its minimum and every later slot
+    (:func:`can_designate`). The drivers ask one target question per pick
+    from this (CR 601.2c), so no illegal pair is ever offered, and a slot's
+    minimum reached, ending it there is completable too."""
+    slot = slots[len(chosen)]
+
+    def completes(group: tuple[Handle, ...]) -> bool:
+        rest = [c for c in sorted(slot.candidates) if c not in group]
+        need = max(0, slot.min_count - len(group))
+        return any(can_designate(slots, (*chosen, (*group, *more))) for more in combinations(rest, need))
+
+    return tuple(c for c in sorted(slot.candidates) if c not in picked and completes((*picked, c)))
 
 
 def recheck_targets(
@@ -424,12 +454,14 @@ def recheck_targets(
     targets: Sequence[Handle],
     *,
     own: Handle | None = None,
+    designations: dict[str, tuple[Handle, ...]] | None = None,
 ) -> tuple[tuple[Handle, ...], dict[str, tuple[Handle, ...]] | None]:
     """CR 608.2b: as a spell or ability resolves, each of its targets is checked again against
     the slot it was chosen for, ``slots`` recomputed now (the same populations the choice
     was made from: zone, filter, protection and hexproof). Returns the targets still legal,
-    and for a positional multi-slot designation the per-slot map with each illegal slot
-    emptied (its TARGET selector then acts on nothing; CR 608.2b: an illegal target is not
+    and for a multi-slot designation (``designations``, :func:`designate_slots`' map) the
+    per-slot map with each illegal target dropped from its slot (that slot's TARGET selector
+    then acts on what is left, possibly nothing; CR 608.2b: an illegal target is not
     affected). With every target illegal the first value is empty and the caller does not
     resolve the spell or ability. ``own`` is a spell's own handle, the self-clause
     designation trusted by construction (CR 115.4, _plan_cast_designation). On a
@@ -449,22 +481,23 @@ def recheck_targets(
         if not slots:
             return tuple(targets), None
         return tuple(h for h in targets if legal(slots[0], h)), None
+    assert designations is not None, "a multi-slot recheck reads the designation per slot"
     kept = {
-        repr(slot.selector): (
-            (targets[i],) if i < len(targets) and legal(slot, targets[i]) else ()
-        )
-        for i, slot in enumerate(slots)
+        repr(slot.selector): tuple(h for h in designations[repr(slot.selector)] if legal(slot, h))
+        for slot in slots
     }
     return tuple(sorted(h for one in kept.values() for h in one)), kept
 
 
-def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
+def another_target_reason(slots: list, targets: Sequence) -> str | None:
     """V13 (2026-10-29): "target creature ... and another target creature"
     (Rookie Mistake, Garruk, Savage Herald's -2). The compiler marks the
     "another" slot with FAtom(IS_ANY_TARGET) (templates_b5c: the documented
-    distinct-target encoding); its target must differ from every other slot's
+    distinct-target encoding); its targets must differ from every other slot's
     (CR 115.3 lets one object fill several "target" words; "another" forbids
-    it here). None when the designation is legal."""
+    it here). ``targets``: one group per slot, or one handle per slot. None
+    when the designation is legal."""
+    groups = [(t,) if isinstance(t, Handle) else tuple(t) for t in targets]
     for i, slot in enumerate(slots):
         marked = any(
             isinstance(n, FAtom) and n.pred is FAtomPred.IS_ANY_TARGET
@@ -472,9 +505,10 @@ def another_target_reason(slots: list, targets: Sequence[Handle]) -> str | None:
         )
         if not marked:
             continue
-        others = {t for j, t in enumerate(targets) if j != i}
-        if targets[i] in others:
-            return f"another_target:{targets[i]} is already a target"
+        others = {t for j, group in enumerate(groups) if j != i for t in group}
+        shared = sorted(set(groups[i]) & others)
+        if shared:
+            return f"another_target:{shared[0]} is already a target"
     return None
 
 
@@ -581,10 +615,10 @@ def _plan_cast_designation(
       is exactly one and the Slate cannot state it any other way. Any
       slot that leaves a real choice stays loud (count_below_min), never a
       guess;
-    * **multi-slot designation** (601.2c): several exactly-one TARGET
-      selectors designate POSITIONALLY (:func:`_validate_positional`) and
-      return the repr-keyed per-slot map the effect runtime threads into
-      ExecCtx.slot_designations.
+    * **multi-slot designation** (601.2c): several TARGET selectors
+      designate slot by slot (:func:`designate_slots`), an "up to" slot
+      possibly empty, and return the repr-keyed per-slot map the effect
+      runtime threads into ExecCtx.slot_designations.
 
     Returns ``(designated_targets, slot_designations, remaining_decisions,
     declared_modes, node)``, ``node`` narrowed to the declared modes (its
@@ -666,11 +700,11 @@ def _plan_cast_designation(
                 raise ValueError(f"executor: cast: illegal target selection: {reason}")
         return targets, {}, remaining, modes, node
 
-    _validate_positional(slots, targets, skip=auto_skip)
-    slot_designations = positional_slot_designations(slots, targets)
+    slot_designations = designate_slots(slots, targets, skip=auto_skip)
     # a Choose-pruned multi-slot spell lands in the len==1 branch above;
     # a mode the caller supplied AND a multi-slot residue would mean the
-    # option STILL fans slots — positional threading covers it unchanged.
+    # option STILL fans slots — per-slot threading covers it unchanged.
+    targets = tuple(h for slot in slots for h in slot_designations[repr(slot.selector)])
     return targets, slot_designations, remaining, modes, node
 
 
@@ -834,10 +868,11 @@ def _modal_counter_sets(
     that cannot choose legal targets can't be chosen; "counter target
     activated or triggered ability" is never offered, as abilities never sit
     on this engine's stack) and one of its COUNTER_SPELL slots accepts the
-    frame (the window answers this frame). Two engine limits narrow the
-    menu, never guessing past them: the cast lane threads several slots only
-    when each is exactly-one and their selectors differ (``_validate_positional``,
-    the repr-keyed slot map), so a set breaking that is left out."""
+    frame (the window answers this frame). Two limits narrow the menu, never
+    guessing past them: this window's declaration asks exactly one target
+    per slot (:func:`_declare_modal_counter`), and slots are keyed by their
+    selector (the repr-keyed slot map), so a set with another slot shape or
+    two equal selectors is left out."""
     from dataclasses import replace
 
     from MTG_bot.core.executor.query import (
@@ -1119,7 +1154,7 @@ def cast(
     x: int | None = None,
     kicked: bool = False,
     mode_choices: tuple[int, ...] = (),
-    targets: tuple[Handle, ...] = (),
+    targets: tuple[Handle, ...] | SlotGroups = (),
     decisions: tuple[str, ...] = (),
 ) -> SpellObject:
     """The folded CR 601.2 → 601.4 move (the ``CAST`` decision of the
@@ -1136,7 +1171,9 @@ def cast(
     2. **modes** (601.2d) — recorded on the frame; the effect tree's
        Choose nodes CONSUME the 12d ORDER tokens from ``decisions``.
     3. **targets** (601.2c) — validated through ``validate_target_
-       selection`` (or the player-coordinate TARGET_PLAYER rule).
+       selection`` (or the player-coordinate TARGET_PLAYER rule). A spell
+       with several target slots takes one tuple per slot
+       (:func:`designate_slots`), or one handle per slot.
     4. **X + total cost** (601.2f) — ``x`` binds ``ExecCtx.x_value`` and
        folds into the plan (a QX cost too big for the pool becomes an
        illegal-cast reason, never a guess).
@@ -1201,7 +1238,7 @@ def cast(
 
     # 2-3: declaration — r19c: modes (601.2b) then targets (601.2c) through
     # the PLAN lane, which owns auto-designation, the Choose-mode prune and
-    # positional multi-slot validation (and thereby the validation itself).
+    # per-slot multi-slot validation (and thereby the validation itself).
     targets, slot_designations, decisions, declared_modes, target_node = _plan_cast_designation(
         executor,
         seat,
@@ -1287,6 +1324,7 @@ def cast(
             spell_target_slots(executor, target_node, spell_handle=handle, seat=seat),
             targets,
             own=handle,
+            designations=slot_designations or None,
         )
         if not legal_now:
             # Every target is illegal: the spell doesn't resolve. It is removed from

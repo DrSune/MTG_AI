@@ -311,5 +311,12 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
         grown = [w[index[grown_from.get(k, "other")]] for k in names[w.shape[0]:]]
         if grown:
             state[key] = torch.cat([w, torch.stack(grown)])
+    # feature columns appended since this checkpoint (features.F_TARGETED, P_TARGETED, G_SLOT)
+    # get zero weights: the old network reads them as absent and computes what it computed before
+    for key, width in (("card_f.weight", FT.CF), ("player_f.weight", FT.PF),
+                       ("glob_f.weight", FT.GF)):
+        w = state[key]
+        if w.shape[1] < width:
+            state[key] = torch.cat([w, w.new_zeros(w.shape[0], width - w.shape[1])], dim=1)
     model.load_state_dict(state)
     return model.to(device), table, ck.get("extra", {})

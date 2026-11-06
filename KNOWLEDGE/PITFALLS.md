@@ -838,7 +838,7 @@
   a TARGET-mode Selector AND any `ControllerRef.TARGET_PLAYER` read (even a derived
   "that creature's controller" zone) gets the 14b synthesized positional slot
   (query.py:1226 `player_target_slot`) — cast needs BOTH designations, positional, walk order
-  (`_validate_positional`). Scenario packs supply the player via the r22b
+  (`_validate_positional`, `designate_slots` since 2026-11-06). Scenario packs supply the player via the r22b
   `decisions: ["player:N"]` token; auto-designation only fires when ZERO targets are
   given. `binding_one("target")` = FIRST designation, so TARGET_PLAYER still resolves
   controller-of-target. Pack-side fix; never touch the frozen slot synthesis.
