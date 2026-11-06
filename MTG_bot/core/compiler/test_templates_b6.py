@@ -577,9 +577,6 @@ class TestInsteadFoldFailurePaths(unittest.TestCase):
 _KICKER_HEAD = (
     "Kicker {2}{G} (You may pay an additional {2}{G} as you cast this spell.)"
 )
-_KICKER_HEAD_U = (
-    "Kicker {2}{U} (You may pay an additional {2}{U} as you cast this spell.)"
-)
 _KICKER_HEAD_B = (
     "Kicker {2}{B} (You may pay an additional {2}{B} as you cast this spell.)"
 )
@@ -865,8 +862,6 @@ class TestHonestResidue(unittest.TestCase):
         import os
 
         m21 = os.path.join(os.path.dirname(__file__), "..", "..", "data", "M21.json")
-        if not os.path.exists(m21):
-            self.skipTest("M21.json not present")
         with open(m21) as f:
             cards = json.load(f)["data"]["cards"]
 

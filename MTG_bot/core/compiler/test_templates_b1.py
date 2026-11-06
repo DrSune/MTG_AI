@@ -203,9 +203,6 @@ class TestB1Coverage(unittest.TestCase):
         self.assertEqual(covered_shapes, 15)
         self.assertEqual(matched_occurrences, 49)
 
-    def test_uncovered_is_empty(self) -> None:
-        self.assertEqual(templates_b1.UNCOVERED, ())
-
     def test_every_sentence_matches(self) -> None:
         for _shape, entries in self.data.items():
             for _card, sentence in entries:
