@@ -522,6 +522,67 @@ long games, and should a CR-legitimate loop draw (once optional-loop actions exi
 differently from a cap? It matters because it decides whether long, grindy and combo decks, which
 the niche-deck clause of rank 1 protects, are learnable at all.
 
+## D20 — The learning signal: compare decisions by playouts on shared futures (lambda = 1, luck cancelled)
+**2026-11-06. Owner approved: "we get the best of both worlds here. The disadvantages are on a level I
+can accept. Proceed."**
+
+**The problem, measured.** The PPO pipeline was audited end to end and is correct (KNOWLEDGE
+2026-11-05/184 §25), yet the learner does not even learn to beat a fixed copy of itself (§22-23):
+its gradient is below its noise. One useful optimizer step needs B* ≈ 2.2M decisions (~48k games,
+~47 min of play at 17 games/s) with GAE lambda 0.95; with lambda = 1 no signal was detected up to
+2.65M; seat-swapped deal pairing and control variates do not lower it; a privileged critic was
+estimated at only 1.3-1.8x and the owner dropped it (§26). The reason: one ±1 result per game is
+spread over ~60 decisions, and after the value head has absorbed the deal, most of the noise is what
+happens later (draws, the opponent's choices).
+
+**The call.** The core learning signal becomes per-decision comparisons. At a decision where the
+policy is unsure (plus a share of confident ones), several alternative actions are each played out
+to the end of the game (gamma = lambda = 1, no value bootstrap) on the same sampled futures (common
+random numbers: identical draws and identical guesses at hidden cards for every alternative), over
+many futures, and the policy is trained toward the alternatives that did better on average. Outcome
+RL remains for fine-tuning. The owner's description: take points of the game, replay them with
+different decisions, and see where each leads. The established name is expert iteration (AlphaZero's
+loop); unlike evolutionary methods it varies single decisions, not the whole network, so each game
+yields dense, per-decision signal.
+
+**Why this is the owner's full credit (OWNER_PREFERENCES #6).** Each compared decision is credited
+with its own result played to the end of the game. Luck cancels in the comparison, because every
+alternative meets the same luck, but stays in the problem: the target is the average over many
+possible futures, so the policy still learns to play the odds (play around likely cards, keep outs,
+value flexibility). Duplicate bridge is the analogy: luck leaves the scoring, not the decisions.
+
+**Guards, one per known failure mode.**
+1. Futures are sampled from the player's beliefs (the public-information sampler now, the opponent
+   simulator later), never the true hidden state. Clairvoyant futures would credit plays that work
+   only with knowledge the player lacks (OWNER_PREFERENCES #1).
+2. Later decisions inside a playout come from the policy itself, not a per-world optimising search:
+   per-world optimisation is strategy fusion, the classic flaw of perfect-information Monte Carlo.
+3. The opponent inside playouts is a mix, so the policy does not overfit one opponent model.
+4. Playouts go where the policy is unsure, not everywhere.
+
+**Cost against its baseline** (the owner asked for one). Outcome PPO: ~47 min of play per useful
+step. One playout label: ~0.5-1 s (4 alternatives x 8 futures x the rest of the game), ~100k labels
+a day on the whole machine (plan estimate). Whether the labels trade up, more learning per
+machine-hour, is the first experiment's question, and it is decided by measurement.
+
+**What it depends on, and what overturns it** (the plan's first gates, ~3 days):
+- E1: search with full playouts plays clearly better than the raw network (at least +0.04 over 300
+  seat-swapped pairs) and its labels reach a useful step in at most a tenth of PPO's machine time.
+  Killed below +0.02 or under 3x.
+- E2: beliefs from public history beat a no-history belief (hand NLL at least 25% lower, calibration
+  error under 0.05).
+- E3: the network generalises the labels: held-out agreement rises from 10k to 100k labels, and the
+  100k model beats its generator by at least +0.03. A flat curve keeps search for play time only.
+If E1 or E3 fails, the fallbacks are large-batch outcome PPO (~2.2M decisions per step) and, only if
+the owner reopens it, a privileged critic (PerfectDou's gains in DouDizhu were larger than our
+estimate). The October search-label attempt failed on an older engine and network (NUMBERS.md
+2026-10-15); E1 and E3 are what distinguish this attempt from that one.
+
+**Relation to earlier decisions.** D6 (memory and BPTT as a hypothesis) is taken up in the same
+plan: memory and the opponent simulator feed the beliefs the playouts sample from. D15 (the Teacher
+is a curator with a critic; the drafter a generative policy) is unchanged; the deal curriculum is
+built under it. The owner's design of the parts is docs/OWNER_VISION_LEARNING.md.
+
 ## Deferred pending information
 
 **The deployment target's clock is unknown**, and it changes the arithmetic. **Superseded in

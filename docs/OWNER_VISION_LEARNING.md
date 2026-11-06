@@ -30,6 +30,12 @@ the value network explains only ~3% of who wins (KNOWLEDGE 2026-11-05/184 §25).
 this was "full rollout BPTT"; the standard term is Monte-Carlo credit. BPTT (backpropagation through
 time) is training a network with memory, which is section 3.
 
+**How it is realised (DECISIONS D20, 2026-11-06).** Outcome-only credit measured too noisy to learn
+from on this machine (~2.2M decisions per useful step; lambda = 1 alone even noisier). So each
+compared decision is played out to the end of the game (gamma = lambda = 1) against its alternatives
+on identical sampled futures: luck cancels in the comparison but stays in the problem the policy
+solves. Futures come from the player's beliefs, never the true hidden state.
+
 ## 2. Generalise through components; never memorise
 
 Owner: the network learns what card components do and how they relate to the board and to other

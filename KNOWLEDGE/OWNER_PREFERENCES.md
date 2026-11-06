@@ -31,4 +31,7 @@ numbered day folders.
    is the game's result (+1 win, -1 loss), and it reaches every decision of the game undiminished:
    Magic is too long-horizon and complex for discounted or bootstrapped credit, which waters the
    signal down. Generalise through card components, never memorise; learn from very many games, with
-   batches large enough that each update carries signal. Why and what follows: docs/OWNER_VISION_LEARNING.md.
+   batches large enough that each update carries signal. Realised (DECISIONS D20, 2026-11-06) by
+   comparing a decision's alternatives, each played out to the end of the game on the same sampled
+   futures: luck cancels in the comparison but stays in the problem. Why and what follows:
+   docs/OWNER_VISION_LEARNING.md.
