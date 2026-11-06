@@ -1055,6 +1055,62 @@ def open_combat_window(executor: Executor) -> None:
                      int(x_tag) if x_tag else None)
 
 
+def _response_window(executor: Executor, frame: SpellObject) -> None:
+    """RUNG-1 (CR 608.2's first slice): the RESPONSE WINDOW of a spell just
+    cast, after its cast triggers have settled and before it resolves. Every
+    opponent of its caster, in seat order, MAY answer the frame with a
+    counterspell. One round, seat-ordered, no priority re-asks (the
+    documented narrowing in the module docstring); a dead frame ends the
+    round early; a seat with nothing to offer is skipped WITHOUT an ask
+    (C15) and without a journal row. The nested ``cast`` is the LIFO push:
+    the counter resolves ON TOP of this frame, and its own window opens
+    recursively (a counter can be countered). Answers arrive through the 14b
+    channel's provider lane: ``executor.decisions.take`` DIRECTLY, bypassing
+    the pool, because the per-op ``decisions=`` pool belongs to the spell's
+    declaration (modes/targets), and letting a window answer consume it
+    would silently re-target the cast (the contamination the pin tests).
+
+    Both cast lanes open it: :func:`cast` and the CAST atom's
+    :func:`cast_card` (2026-11-06). A spell cast through a permission or by
+    an effect is a spell on the stack like one cast from hand (CR 601.2i,
+    117.3c, 608.1), so it gets the same chances to be answered."""
+    world = executor.world
+    handle, seat = frame.handle, frame.controller
+    digest = site_digest((str(handle), frame.declared_clock))
+    for responder in world.player_order:
+        if responder == seat:
+            continue
+        if frame.countered or world.zone_of(handle).kind != ZONE_STACK:
+            break
+        vocab = _counter_vocab(executor, responder, handle)
+        if len(vocab) <= 1:
+            continue
+        executor.journal.emit(KIND_WINDOW_OPEN, handle, responder, "WINDOW", (vocab,))
+        answer = executor.decisions.take(vocab, f"counter:{responder}:{digest}", seat=responder)
+        if answer == "PASS":
+            executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
+            continue
+        counter = parse_handle_tag(answer)
+        counter_record = spell_record(executor, counter)
+        counter_node = next(
+            (a for a in counter_record.abilities if isinstance(a, SpellAbility)), None
+        ) if counter_record is not None else None
+        if counter_node is not None and isinstance(counter_node.effect, Choose):
+            # R5-10 (CR 601.2b-c): a modal counter declares its mode set, then
+            # its targets, through visible asks; the window never picks a mode.
+            modes, chosen = _declare_modal_counter(
+                executor, responder, counter, counter_node, handle
+            )
+            # B-90 (a), CR 601.2g: the mana abilities are activated after the
+            # declaration (601.2b-c), while the cost is paid.
+            tap_for_payment(
+                executor, responder, _window_taps(executor, responder, counter, chosen) or ()
+            )
+            cast(executor, responder, counter, mode_choices=modes, targets=chosen)
+            continue
+        _window_cast(executor, responder, counter, handle)
+
+
 def cast(
     executor: Executor,
     seat: Handle,
@@ -1206,52 +1262,7 @@ def cast(
     assert executor.stack.top() is frame  # LIFO: this cast is the top frame
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
     executor._settle()  # cast triggers resolve first
-
-    # 6b (RUNG-1, CR 608.2's first slice): the RESPONSE WINDOW. Every
-    # opponent in seat order MAY answer the frame with a counterspell.
-    # One round, seat-ordered, no priority re-asks (documented narrowing
-    # above); a dead frame ends the round early; a seat with nothing to
-    # offer is skipped WITHOUT an ask (C15) and without a journal row.
-    # The nested ``cast`` is the LIFO push — the counter resolves ON TOP
-    # of this frame, and its own window opens recursively (a counter can
-    # be countered). Answers arrive through the 14b channel's provider
-    # lane: ``executor.decisions.take`` DIRECTLY, bypassing the pool —
-    # the per-op ``decisions=`` pool belongs to THIS spell's declaration
-    # (modes/targets), and letting a window answer consume it would
-    # silently re-target the cast (the contamination the pin tests).
-    digest = site_digest((str(handle), frame.declared_clock))
-    for responder in world.player_order:
-        if responder == seat:
-            continue
-        if frame.countered or world.zone_of(handle).kind != ZONE_STACK:
-            break
-        vocab = _counter_vocab(executor, responder, handle)
-        if len(vocab) <= 1:
-            continue
-        executor.journal.emit(KIND_WINDOW_OPEN, handle, responder, "WINDOW", (vocab,))
-        answer = executor.decisions.take(vocab, f"counter:{responder}:{digest}", seat=responder)
-        if answer == "PASS":
-            executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
-            continue
-        counter = parse_handle_tag(answer)
-        counter_record = spell_record(executor, counter)
-        counter_node = next(
-            (a for a in counter_record.abilities if isinstance(a, SpellAbility)), None
-        ) if counter_record is not None else None
-        if counter_node is not None and isinstance(counter_node.effect, Choose):
-            # R5-10 (CR 601.2b-c): a modal counter declares its mode set, then
-            # its targets, through visible asks; the window never picks a mode.
-            modes, chosen = _declare_modal_counter(
-                executor, responder, counter, counter_node, handle
-            )
-            # B-90 (a), CR 601.2g: the mana abilities are activated after the
-            # declaration (601.2b-c), while the cost is paid.
-            tap_for_payment(
-                executor, responder, _window_taps(executor, responder, counter, chosen) or ()
-            )
-            cast(executor, responder, counter, mode_choices=modes, targets=chosen)
-            continue
-        _window_cast(executor, responder, counter, handle)
+    _response_window(executor, frame)  # 6b
 
     # 7: resolution. The effect runs WITHOUT an intervening settle — the
     # spell leaves the stack and the PUT happens before anything its
@@ -1461,10 +1472,14 @@ def cast_card(
     corpus' cost-waiver idiom (CR 118.9 "without paying its mana cost"),
     and a Cost WITH parts is paid on top of the printed cost (additional
     costs, CR 601.2f; legality.effect_cast_cost), plus the spell's own
-    additional costs either way (V36, CR 118.9d). No window
-    check (effects cast outside the normal timing — CR 601.2b exemptions;
-    v1 documents no further exemption bookkeeping), no response.
-    Returns ``True`` when the spell was cast and resolved.
+    additional costs either way (V36, CR 118.9d). No timing check here (an
+    effect casts while it resolves, outside the normal timing; a
+    permission's timing is judged before the cast,
+    ``query.cast_designee_ok``). The spell is on the stack like one cast
+    from hand (CR 601.2i, 117.3c, 608.1), so after its cast triggers it
+    gets the same counter window (2026-11-06, :func:`_response_window`;
+    before, no opponent was ever asked). Returns ``True`` when the spell
+    was cast and resolved, ``False`` when it was countered.
 
     ``targets`` (CR 603.3: an effect that lets you cast a spell still
     gets its normal target choices — the effect's caster designates them
@@ -1472,10 +1487,10 @@ def cast_card(
     ATOM side has no target channel (the CAST role table is
     ``source``/``cost`` only), so ``verbs._v_cast`` passes an empty
     tuple: an effect-designated spell WITH targets can only be cast
-    through this API directly — the corpus' cast-from-effect cards
-    (Idol, Snoop, the Chandras) designate target-less creature casts,
-    and the gap is flagged by the spell's own unbound-target raise, never
-    a silent no-target resolution.
+    through this API directly. The gap is flagged by the spell's own
+    unbound-target raise, never a silent no-target resolution, and it is
+    live: Chandra, Flame's Catalyst's [-2] recasting a targeted red spell
+    raises (docs/BACKLOG.md, "Permission and effect casts").
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
@@ -1484,7 +1499,8 @@ def cast_card(
     2026-11-05 (CR 704.3): the spell is resolved here, inside the
     resolution that cast it, and the two settles below stand for the
     priority points that follow that resolution (its cast triggers above
-    the spell, then the spell, then its ETB triggers). That holds because
+    the spell, then the response window and the spell, then its ETB
+    triggers). That holds because
     every compiled CAST is the last instruction of its effect (Idol of
     Endurance, Conspicuous Snoop, Radha, Coveted Prize, Chandra, Flame's
     Catalyst's [-2]). The cost payment above is part of the resolution
@@ -1567,8 +1583,11 @@ def cast_card(
     executor.stack.push(frame)
     executor.journal.emit_cast(handle, caster, node.kind.name, frame.from_zone, x)
     executor._settle()
+    _response_window(executor, frame)
     popped = executor.stack.pop()
     assert popped is frame
+    if frame.countered:
+        return False  # CR 701.6a: removed from the stack, none of its effects occur
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
     if chosen:

@@ -239,3 +239,45 @@ def test_vanilla_token_does_not_inherit_a_same_named_tokens_abilities() -> None:
     rec = g.ex.binder.handle_record.get(mine[0])
     assert rec is None or not rec.abilities, (
         f"the vanilla Pirate picked up {len(rec.abilities)} abilities of the Whale's Pirate")
+
+
+def _countered_through_permission(g, permission, spell, mana) -> None:
+    """Activate ``permission``'s cast row (index 1) and fire it; the opponent, holding Cancel and
+    {U}{U}{U}, answers the counter window with it. 2026-11-06 (CR 601.2i, 117.3c, 608.1): a spell
+    cast through a permission is cast like one from hand, so it gets the same window; it used to
+    resolve at once, Cancel never offered."""
+    from MTG_bot.core.executor.legality import activate
+
+    cancel = g.one(g.p1, "Cancel", ZONE_LIBRARY)
+    g.to_hand(cancel)
+    _pool(g, g.p0, **mana)
+    _pool(g, g.p1, U=3)
+    g.answers = {"may:": "fire", "counter:": str(cancel)}
+    activate(g.ex, permission, 1, seat=g.p0)
+    assert any(what.startswith(f"counter:{g.p1}:") for what, _ in g.asks), g.asks
+    assert g.zone(spell) == ZONE_GRAVEYARD, "countered: into its owner's graveyard (CR 400.7)"
+    assert g.zone(cancel) == ZONE_GRAVEYARD
+
+
+def test_idol_of_endurance_cast_can_be_countered() -> None:
+    from MTG_bot.core.state import ZONE_EXILE
+
+    g = G("M21", ("Idol of Endurance", "Walking Corpse"), ("Cancel",), filler="Plains", filler1="Island")
+    idol = g.one(g.p0, "Idol of Endurance", ZONE_LIBRARY)
+    corpse = g.one(g.p0, "Walking Corpse", ZONE_LIBRARY)
+    g.world.move_to_zone(corpse, g.p0, ZONE_GRAVEYARD)
+    g.ex.begin_turn(g.p0)
+    g.enter(idol)
+    assert g.zone(corpse) == ZONE_EXILE, "its enter trigger exiles the Corpse with the Idol"
+    _countered_through_permission(g, idol, corpse, {"W": 1, "C": 1})
+
+
+def test_conspicuous_snoop_cast_from_the_top_can_be_countered() -> None:
+    g = G("M21", ("Conspicuous Snoop", "Goblin Arsonist"), ("Cancel",), filler="Mountain",
+          filler1="Island")
+    snoop = g.one(g.p0, "Conspicuous Snoop", ZONE_LIBRARY)
+    goblin = g.one(g.p0, "Goblin Arsonist", ZONE_LIBRARY)
+    g.ex.begin_turn(g.p0)
+    g.enter(snoop)
+    g.to_library_top(goblin)  # unbound, as a dealt library card is
+    _countered_through_permission(g, snoop, goblin, {"R": 1})

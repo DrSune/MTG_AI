@@ -24,6 +24,7 @@ from MTG_bot.core.ability_tree import (
     Cost,
     CostManaColor,
     CostManaGeneric,
+    OptionalEffect,
     QConst,
     Selector,
     SelectorMode,
@@ -34,9 +35,10 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor.stack import cast
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
-from MTG_bot.core.test_executor_binding import UNIV
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
+from MTG_bot.core.test_executor_binding import UNIV, card_id
 from MTG_bot.core.test_executor_stack import (
+    ANY_ZONE,
     INSTANT_OR_SORCERY,
     StackCase,
     any_target,
@@ -267,6 +269,58 @@ class TestResponseWindow(Rung1Case):
         self.assertEqual([e.subject for e in counters], [cancel])
         # two windows opened: p1 asked about shock, p0 asked about cancel.
         self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 2)
+        self.assertEqual(self.ex.stack.frames, [])
+
+
+class TestEffectCastWindow(Rung1Case):
+    """2026-11-06 (CR 601.2i, 117.3c, 608.1): a spell the CAST atom casts (an effect's "you may
+    cast", and the permission rows of Idol of Endurance and Conspicuous Snoop) is on the stack
+    like a spell cast from hand, so the opponents get the same counter window before it
+    resolves. It used to resolve at once and no opponent was ever asked."""
+
+    def cast_from_exile(self):
+        """Run "you may cast it without paying its mana cost" on an exiled instant that gains
+        its caster 3 life; the pool answers the may-offer, so only the window reaches the
+        provider."""
+        exiled = self.give(
+            "Exiled Spell",
+            SpellKind.INSTANT,
+            cost=Cost((CostManaGeneric(QConst(4)),)),
+            effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(3)),
+            zone=ZONE_EXILE,
+        )
+        sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,))
+        self.ex.apply_effect(
+            OptionalEffect(atom(Verb.CAST, source=sel, cost=Cost(()))),
+            source=self.world.add_card(card_id("Caster", "1", "1"), self.p0, ZONE_BATTLEFIELD),
+            controller=self.p0,
+            bindings={"source": exiled},
+            decisions=("fire",),
+        )
+        return exiled
+
+    def test_the_counter_window_opens_and_counters_it(self):
+        cancel = self.counterspell("Cancel", self.p1)
+        self.mana(self.p1, U=1)
+        self.script(str(cancel))
+        exiled = self.cast_from_exile()
+        ((vocab, what),) = self.asks
+        self.assertEqual(vocab, ("PASS", str(cancel)))
+        self.assertTrue(what.startswith(f"counter:{self.p1}:"))
+        self.assertEqual(self.world.players[self.p0].life, 20)  # its effect never ran
+        self.assertEqual(self.zone_kind(exiled), ZONE_GRAVEYARD)  # CR 400.7
+        self.assertEqual(self.zone_kind(cancel), ZONE_GRAVEYARD)
+        self.assertEqual([e.subject for e in self.journal_events("COUNTER")], [exiled])
+        self.assertEqual(self.ex.stack.frames, [])
+
+    def test_pass_lets_it_resolve(self):
+        self.counterspell("Cancel", self.p1)
+        self.mana(self.p1, U=1)
+        self.script("PASS")
+        exiled = self.cast_from_exile()
+        self.assertEqual(len(self.journal_rows("WINDOW_PASS")), 1)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+        self.assertEqual(self.zone_kind(exiled), ZONE_GRAVEYARD)  # an instant resolved
         self.assertEqual(self.ex.stack.frames, [])
 
 
