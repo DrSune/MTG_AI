@@ -407,6 +407,9 @@ def train(a: argparse.Namespace) -> None:
             opt.step()
             sched.step()
             ls.append(lo.item())
+            if len(ls) % 500 == 0:
+                print(json.dumps({"epoch": epoch, "step": len(ls), "loss": round(float(
+                    np.mean(ls[-500:])), 4), "secs": round(time.time() - t0, 1)}), flush=True)
         torch.save({"config": net.config, "state": net.state_dict(), "table": table.to_json(),
                     "epoch": epoch}, a.out)
         print(json.dumps({"epoch": epoch, "loss": round(float(np.mean(ls)), 4),
