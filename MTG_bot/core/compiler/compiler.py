@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, fields, is_dataclass, replace
-from typing import Any, cast, get_args
+from typing import Any, cast
 
 from MTG_bot.core.ability_tree import (
     QX,
@@ -453,8 +453,6 @@ def parse_mana_cost(raw: str | None) -> Cost | None:
             context={"raw": raw},
         )
     tokens = _MANA_TOKEN_RE.findall(raw)
-    if not tokens:
-        return None
     parts: list[CostPart] = []
     for tok in tokens:
         if tok == "X":
@@ -522,8 +520,6 @@ _TRIGGER_PREFIXES: tuple[str, ...] = (
     "At the beginning",
     "At combat",
     "At the start",
-    "Whenever a",
-    "Whenever the",
 )
 _ACTIVATED_PREFIXES: tuple[str, ...] = (
     "{T}",
@@ -841,7 +837,6 @@ def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
         if (
             isinstance(prev, AbilityOutcome)
             and isinstance(prev.ability, ActivatedAbility)
-            and prev.ability.cost is not None
             and any(isinstance(p, CostLoyalty) for p in prev.ability.cost.parts)
         ):
             return j
@@ -893,7 +888,7 @@ def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
     ):
         return False
     ab = slot.ability
-    if ab.cost is not None and ab.cost.parts:
+    if ab.cost.parts:
         return False
     return (
         isinstance(ab.effect, OptionalEffect)
@@ -965,11 +960,8 @@ def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
         if isinstance(prev, AbilityOutcome) and isinstance(
             prev.ability, ActivatedAbility
         ):
-            cost = prev.ability.cost
-            if cost is not None and any(isinstance(p, CostLoyalty) for p in cost.parts):
+            if any(isinstance(p, CostLoyalty) for p in prev.ability.cost.parts):
                 return None  # the loyalty chain owns its own tails
-            if prev.ability.effect is None:
-                return None  # pure cost carrier: nothing to append to
             return j
         return None
     return None
@@ -1230,11 +1222,9 @@ def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
 
 
 def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKind:
-    """Derive the SpellAbility kind for a castable card from its type line.
-
-    Mirrors the assembly branches in compile_card: the creature and
-    planeswalker branches win first, then the else-branch ordering
-    (Instant, Sorcery, Enchantment, Artifact, fallback Sorcery)."""
+    """Derive the SpellAbility kind for a castable card from its type line,
+    in compile_card's assembly order: creature, planeswalker, then Instant,
+    Sorcery, Enchantment, Artifact, fallback Sorcery."""
     if is_creature:
         return SpellKind.CREATURE
     if "Planeswalker" in types:
@@ -1319,12 +1309,7 @@ def _one_of_search_picks(node: object) -> object:
 def _flip_search_picks_in(ability: Ability) -> Ability:
     """Typed wrapper: the rewrite rebuilds nodes in place and never
     changes a node's type, so the Ability in is an Ability out."""
-    flipped = _one_of_search_picks(ability)
-    if not isinstance(flipped, get_args(Ability)):  # pragma: no cover — invariant
-        raise StateCorruptionError(
-            "compile_card: search-pick rewrite changed an Ability node type"
-        )
-    return cast(Ability, flipped)
+    return cast(Ability, _one_of_search_picks(ability))
 
 
 # The STRUCTURAL PROMOTION RULE (docs/T4_PICK_ENUMERATION.md §2'): a
@@ -1431,12 +1416,7 @@ def _pick_ask_promotions(
         key = (name, verb or "")
         if key in PICK_ASK_FORCE_SILENT:
             return node
-        shape = (
-            node.mode is SelectorMode.CHOOSE
-            and node.count == QConst(1)
-            and node.referent is None
-        )
-        if shape and _is_liftable_pick(node, in_cost):
+        if _is_liftable_pick(node, in_cost):
             return replace(node, mode=SelectorMode.ONE_OF)
         # FORCE_ASK tripwire: gated on CHOOSE, not on the predicate's own
         # shape, so a row for a referent or count near-miss is seen too.
@@ -1468,15 +1448,7 @@ def _pick_ask_promotions(
 def _promote_liftable_picks(abilities: list[Ability], name: str) -> list[Ability]:
     """Run the structural promotion pass over each ability; type-pinned like
     _flip_search_picks_in."""
-    out: list[Ability] = []
-    for ab in abilities:
-        promoted = _pick_ask_promotions(ab, name, False, None)
-        if not isinstance(promoted, get_args(Ability)):  # pragma: no cover
-            raise StateCorruptionError(
-                f"compile_card({name}): pick-ask promotion changed node type"
-            )
-        out.append(cast(Ability, promoted))
-    return out
+    return [cast(Ability, _pick_ask_promotions(ab, name, False, None)) for ab in abilities]
 
 
 def _kicker_slot_effect(slot: object) -> Effect | None:
@@ -1498,10 +1470,7 @@ def _kicker_slot_with_effect(slot: _OutcomeSlot, new_effect: Effect) -> _Outcome
     mirrors the continuation merge rebuilds)."""
     if isinstance(slot, EffectOutcome):
         return EffectOutcome(effect=new_effect)
-    if not isinstance(slot, AbilityOutcome):  # pragma: no cover - defensive
-        raise StateCorruptionError(
-            "kicker fold: unmergeable slot " + type(slot).__name__
-        )
+    assert isinstance(slot, AbilityOutcome)
     ab = slot.ability
     if isinstance(ab, StaticAbility):
         return AbilityOutcome(ability=StaticAbility(effect=new_effect))
@@ -1623,10 +1592,8 @@ def _star_pt_gaps(raw: RawCard, card: CardRecord) -> list[str]:
 def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bool:
     """The engine-support verdict for a built card (``supported_verbs=None`` is the
     ungated pass: always True). Shared with the card-record path."""
-    if supported_verbs is None:
-        engine_supported = True
-    else:
-        engine_supported = True
+    engine_supported = True
+    if supported_verbs is not None:
         # The BackFace subtree is EXCLUDED: the engine never plays a face,
         # so a face-only verb must never flip a front-face-supported card's
         # verdict (nor drop it from engine supply).
@@ -2078,12 +2045,7 @@ def compile_card(
                         )
                     )
                 elif isinstance(ab, SpellAbility):
-                    if ab.effect is None:
-                        # Unreachable: the search loop above skips
-                        # effect-less SpellAbilities. Consume the
-                        # continuation, matching the existing
-                        # fall-through for non-mergeable entries.
-                        continue
+                    assert ab.effect is not None  # the search skips effect-less spells
                     merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
                         ability=SpellAbility(
@@ -2330,17 +2292,7 @@ def compile_card(
         # Instant/Sorcery/Enchantment/other: fold all effects into one
         # SpellAbility.
         if effect_outcomes:
-            # Determine SpellKind
-            if "Instant" in types:
-                kind = SpellKind.INSTANT
-            elif "Sorcery" in types:
-                kind = SpellKind.SORCERY
-            elif "Enchantment" in types:
-                kind = SpellKind.ENCHANTMENT
-            elif "Artifact" in types:
-                kind = SpellKind.ARTIFACT
-            else:
-                kind = SpellKind.SORCERY  # fallback
+            kind = _spell_kind_from_types(types, False)
             combined = (
                 effect_outcomes[0]
                 if len(effect_outcomes) == 1
@@ -2492,7 +2444,6 @@ def compile_card(
         try:
             face_result = compile_card(_as_single_faced(raw), registry)
         except (ValueError, StateCorruptionError):
-            face_result = None
             back_face_unparsed = tuple(
                 (s, "face-compile-failed") for s in raw.back_face.sentences
             )
