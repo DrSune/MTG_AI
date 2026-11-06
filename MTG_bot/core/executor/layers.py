@@ -699,6 +699,11 @@ class LayerRegistry:
                 )
         selector = atoms[0].args.get("target")
         assert isinstance(selector, Selector)  # role table: target is required
+        if any(a.args.get("target") != selector for a in atoms[1:]):
+            raise NotImplementedError(
+                "executor: StaticAbility steps on different populations are "
+                "not layer-parseable (a layer record holds one selector)"
+            )
         records.append(
             self._new(
                 "static",

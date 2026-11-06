@@ -326,6 +326,21 @@ class TestDurationRoleRegistrationContract(DurationRoleCase):
         )
         self.assertEqual(self.pt(handle), (2, 2))
 
+    def test_steps_on_different_populations_flag_not_guess(self) -> None:
+        # One layer record carries one selector: a static whose steps target
+        # different populations would apply every step to the first one's
+        # (2026-11-06, an FDN verifier on Death Baron, whose two populations
+        # happen to agree). No card in the 19 sets has the shape; refuse it.
+        other = atom(Verb.MODIFY_PT,
+                     target=Selector(QConst(1), SelectorMode.ALL, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                                     zones=(BF_ANY,)),
+                     power=PtDelta(PtDirection.INCREASE, QConst(1)))
+        handle = self._attach_synth(StaticAbility(effect=Seq(steps=(self_pump(), other))), "TwoCrowds")
+        self.assertEqual(self.static_layers(handle), [])
+        self.assertTrue(any("one selector" in s for s in self.ex.unparseable_statics),
+                        f"different populations must refuse loudly: {self.ex.unparseable_statics}")
+        self.assertEqual(self.pt(handle), (2, 2))
+
 
 if __name__ == "__main__":
     unittest.main()
