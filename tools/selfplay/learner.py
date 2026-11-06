@@ -577,6 +577,18 @@ class Learner:
             logits, value = logits.float(), value.float()
             greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
             probs = torch.softmax(logits, -1)
+            bad = ~torch.isfinite(probs).all(-1)
+            if bool(bad.any()):  # one bad row kills the whole batch's multinomial: keep the evidence
+                rows = bad.nonzero().flatten().tolist()
+                dump = self.run / f"nonfinite_infer_it{self.it}.pt"
+                torch.save({"batch": {k: v.cpu() for k, v in b.items()}, "rows": rows, "key": key,
+                            "logits": logits.cpu()}, dump)
+                detail = [{"ask_i": int(b["ask_i"][r]) if "ask_i" in b else None,
+                           "options": int(b["opt_mask"][r].sum()) if "opt_mask" in b else None,
+                           "logits_nan": bool(torch.isnan(logits[r]).any()),
+                           "all_neg_inf": bool(torch.isneginf(logits[r]).all())} for r in rows[:8]]
+                raise RuntimeError(f"non-finite policy probabilities in {len(rows)} of {len(items)} rows "
+                                   f"(net {key}): {detail}; batch saved to {dump}")
             sampled = torch.multinomial(probs, 1).squeeze(1)
             act = torch.where(greedy, logits.argmax(-1), sampled)
             logp = torch.log_softmax(logits, -1).gather(1, act[:, None]).squeeze(1)
