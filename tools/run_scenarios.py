@@ -602,7 +602,12 @@ class ScenarioRunner:
                 # Voyager's "target opponent"; V21's "target player" may be the
                 # caster), any other word a pack key.
                 targets=tuple(self._target_handle(k) for k in step.get("targets", ())),
-                decisions=tuple(step.get("decisions", ())),
+                # 2026-11-06: no decisions pool. The step's words answer its asks through the
+                # provider alone (run_step), in arrival order. As the pool as well, each word
+                # reached two lanes: the pool answered a permission row's may-offer with "fire",
+                # then the provider handed the same "fire" to the counter window the cast opens
+                # (CR 601.2i), so no pack could answer both. All 729 packs ran identically
+                # either way (errors, decision journal, final fingerprint).
                 # 2026-10-29 activation X lane (CR 602.2b -> 601.2b): an explicit
                 # announcement; absent, X is asked through the decision channel.
                 x=step.get("x"),
