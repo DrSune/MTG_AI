@@ -285,3 +285,21 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
   that card, under a synthetic id; the records serve only the scenario runner's by-name lane. The
   nine M20 tokens G0 had refused now fail G1 instead (their reviewers read the pre-fix probe trace,
   which still had the KeyError stimulus): correct, and left for a later round.
+- **Mistake, 2026-11-06:** a checkpoint prune deleted the four checkpoints the cleanup above had kept
+  because NUMBERS.md commands cite them (r15_ppo/v1.pt, r15_ppo/v6.pt, r16_ppo/last.pt,
+  r17_ppo/last.pt); no copy survived. The six NUMBERS rows are annotated. All are numbers of the
+  pre-integration game, which no current number is compared with. Remedy: a checkpoint a NUMBERS
+  command cites is now pinned in reports/LARGE_FILES.sha256, and nothing pinned is pruned.
+
+## 15. r19 so far: v2 frozen, the anchors flat; most deals decide themselves (2026-11-06)
+| Version | Frozen at | Gate vs predecessor (deal-level 95%) | Ladder vs heuristic | Elo (random 0) |
+|---|---|---|---|---|
+| v0 | init (r18 last.pt) | - | 0.648 | 425 |
+| v1 | 12 (teacher gate 0.67 [0.636, 0.704]) | - | 0.643 | 423 |
+| v2 | 26 | 0.518 [0.5015, 0.535] vs v1 | 0.660 | 428 |
+- The teacher gate passes on the point estimate (>= 0.65, lower bound > 0.5; learner.py:901); v1's
+  true level was ~0.645, so its pass ended the stage early; it is not evidence of a gain.
+- M20 vs heuristic, the same 150 deals as prediction 1, same code and pool (run from the pinned
+  worktree): r19 v2 **0.6233** [0.586, 0.660] vs r18 last 0.6033; paired +0.020 [-0.013, +0.053].
+  **124 of 150 deals ended alike for both networks**: the cards decide most deals, so a 150-deal
+  comparison only resolves differences of ~0.03 and a +0.02 gain needs several hundred deals.

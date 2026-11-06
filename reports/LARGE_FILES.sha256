@@ -5,3 +5,9 @@
 # reports/episodes_iter1.jsonl: RL pilot iteration-1 episodes (1000 games, 393 MB), committed in
 #   /161 (9c67adf) and dropped from the unpushed history 2026-10-27 (docs/COMMIT_MAP_2026-10-27.tsv).
 2e09d72b5f0caaf1540688f1180a2024c05f1741409e424a6da552d79206ab30  reports/episodes_iter1.jsonl
+# Checkpoints that a NUMBERS.md command or a run's --init cites (2026-11-06). Prune nothing listed
+#   here; add a checkpoint when a recorded number starts citing it, drop it when nothing does.
+#   r18 last.pt is r19's --init and the network of prediction 1 (KNOWLEDGE/2026-11-05/184 §13);
+#   r18 v4.pt is r18's last frozen version (§11).
+b726e89d516b1ef16b06711ae4350fc38c9ff5fe5253ebf97b90ae727af2c97a  runs/selfplay/r18_ppo/last.pt
+f70a003ce7e205e71140f97a0c31799b877849d6ab52e946b0b655236614bc35  runs/selfplay/r18_ppo/v4.pt

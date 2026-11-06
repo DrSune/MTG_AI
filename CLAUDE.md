@@ -89,6 +89,8 @@ training all run here. Measured bring-up detail in [`reports/SPARK_BRINGUP.md`](
   pressure note does not apply. Still keep large caches and checkpoints behind a configurable path,
   because the Windows box is tight. **Never commit a checkpoint**: GitHub rejects files over 100 MB
   and one such blob makes `main` unpushable. Pin it in `reports/LARGE_FILES.sha256` instead.
+  Before pruning checkpoints, keep every one pinned there or cited by a `KNOWLEDGE/NUMBERS.md`
+  command (2026-11-06: a prune deleted four cited ones).
 
 ## Git: commit and push often, to main
 
