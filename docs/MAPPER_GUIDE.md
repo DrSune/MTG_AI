@@ -215,7 +215,10 @@ so judge every packet on its own.
 For each printed clause:
 - **OK:** the trace shows it happening exactly as printed: right objects, right numbers, right
   timing, and only the legal choices offered (check the target slots the probe lists).
-- **WRONG:** the trace or the tree contradicts the text. Say how.
+- **WRONG:** the trace or the tree contradicts the text. Say how. A choice the text gives a player
+  that the engine never asks ("any number", "in any order") is WRONG: it alters legal options. A
+  fixed order where the text says "random order" is information only, so OK (B-81 ruling, KNOWLEDGE
+  2026-11-05/184 §10).
 - **NOT_EXERCISED:** nothing in the trace shows the clause (a trigger whose event the board cannot
   produce, a condition never true). Write a spec pack for it (below).
 
