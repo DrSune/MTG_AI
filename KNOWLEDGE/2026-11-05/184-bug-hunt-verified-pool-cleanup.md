@@ -303,3 +303,8 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
   worktree): r19 v2 **0.6233** [0.586, 0.660] vs r18 last 0.6033; paired +0.020 [-0.013, +0.053].
   **124 of 150 deals ended alike for both networks**: the cards decide most deals, so a 150-deal
   comparison only resolves differences of ~0.03 and a +0.02 gain needs several hundred deals.
+- By deck mode (same pairs): coherent deals differ between the two networks 24% of the time and
+  split 1-1 (deck-decided) 65%; stress deals differ 11% and split 85%. Stress decks are five-colour
+  piles with ~13.4 lands of 60 (games.py build_deck), so mana decides them: a coherent deal holds
+  about twice the skill signal, and half of training (`--coherent-share 0.5`) and of every gate and
+  ladder is stress. Candidate for r20, after r19's falsifier at self-play update 80.
