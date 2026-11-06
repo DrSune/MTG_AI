@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "name": "sporeweb_weaver_spell_can_be_countered_by_blue",
+ "notes": "CR 113.6 / 702.11b: hexproof is a static ability of a permanent and does not function while the card is a spell on the stack (Carnage Tyrant and Sphinx of the Final Word rulings: counterspells can target such a spell). Sporeweb Weaver (hexproof from blue) is cast; the opponent's blue Cancel may target the spell and counters it. Found by an FDN verifier (2026-11-06); the engine had hexproof working on the stack since 2026-10-07.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "weaver",
+   "real": "Sporeweb Weaver",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 3
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Sporeweb Weaver",
+   "key": "weaver",
+   "controller": 0,
+   "decisions": [
+    "cancel"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "weaver": "graveyard",
+   "cancel": "graveyard"
+  },
+  "window_asks": {
+   "1": [
+    "cancel"
+   ]
+  }
+ }
+}

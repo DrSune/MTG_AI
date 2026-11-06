@@ -391,51 +391,29 @@ class TestHexproofLanes(HexproofCase):
 
 
 class TestHexproofOnStack(HexproofCase):
-    """Fresh-eyes MAJOR (2026-10-07): CR 702.11b covers the creature
-    SPELL on the stack, but the binder's continuous lifecycle fires only
-    on battlefield entry (stack.py gates both attach lanes on
-    ``dest == ZONE_BATTLEFIELD``). The identity-seeded NAME gate still
-    passed on the stack, so the empty live-row scan collapsed "hexproof
-    from blue" into a BARE veto — an opponent's red Counterspell was
-    wrongly refused against Sporeweb Weaver's spell (both quality cards
-    ARE in the M21 pool: Weaver blue, Garruk's Harbinger black). The fix
-    sources the stack rows from the compiled record: quality stays
-    quality, bare stays total."""
+    """CR 702.11b defines hexproof on a permanent, and a permanent card's
+    abilities function only on the battlefield (CR 113.6): an opponent may
+    target a hexproof creature SPELL, so a counterspell can counter it.
+    From 2026-10-07 to 2026-11-06 the engine vetoed such targets (M21's
+    Sporeweb Weaver could not be countered by a blue Cancel: stronger than
+    printed), found by an FDN verifier."""
 
-    def test_stack_hexproof_from_blue_still_lets_red_source_target(self):
-        spell = self.hexproof_spell("Sporeweb Weaver", self.p1, hexproof_from=("U",))
-        self.assertEqual(self.world.zone_of(spell).kind, ZONE_STACK)
-        red = self.spell_source("Shock", ("R",), self.p0)
-        self.assertIn(spell, self.targetable_stack_spells(red, self.p0))
-
-    def test_stack_hexproof_from_blue_vetoes_blue_source(self):
-        spell = self.hexproof_spell("Sporeweb Weaver", self.p1, hexproof_from=("U",))
-        blue = self.spell_source("Cancel", ("U",), self.p0)
-        self.assertNotIn(spell, self.targetable_stack_spells(blue, self.p0))
-
-    def test_stack_bare_hexproof_vetoes_every_opponent_source(self):
+    def test_opponent_may_target_a_bare_hexproof_spell(self):
         spell = self.hexproof_spell("Nine Lives", self.p1)  # bare printed
+        self.assertEqual(self.world.zone_of(spell).kind, ZONE_STACK)
         for colors in (("U",), ("R",)):
             src = self.spell_source(f"React {colors}", colors, self.p0)
-            self.assertNotIn(spell, self.targetable_stack_spells(src, self.p0))
+            self.assertIn(spell, self.targetable_stack_spells(src, self.p0))
+
+    def test_opponent_blue_source_may_target_a_hexproof_from_blue_spell(self):
+        spell = self.hexproof_spell("Sporeweb Weaver", self.p1, hexproof_from=("U",))
+        blue = self.spell_source("Cancel", ("U",), self.p0)
+        self.assertIn(spell, self.targetable_stack_spells(blue, self.p0))
 
     def test_controller_can_target_own_hexproof_spell_on_stack(self):
         spell = self.hexproof_spell("Sporeweb Weaver", self.p1, hexproof_from=("U",))
-        # Own BLUE source: the color row WOULD veto an opponent, but the
-        # 702.11b direction clause frees the controller's own targeting.
         own = self.spell_source("Bounce", ("U",), self.p1)
         self.assertIn(spell, self.targetable_stack_spells(own, self.p1))
-
-    def test_stack_without_registered_record_reads_bare(self):
-        # Defensive edge: an identity-seeded name with NO compiled record
-        # cannot occur through spell_castable in the real pipeline, but if
-        # one ever reaches the stack the read is BARE (over-block), never
-        # a silent hexproof-blind target.
-        spell = self.hexproof_spell(
-            "Phantom Idol", self.p1, hexproof_from=("U",), register=False
-        )
-        red = self.spell_source("Shock", ("R",), self.p0)
-        self.assertNotIn(spell, self.targetable_stack_spells(red, self.p0))
 
 
 ANY_PLAYER = Zone(ZoneKind.PLAYER, ControllerRef.ANY)

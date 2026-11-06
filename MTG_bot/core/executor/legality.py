@@ -126,7 +126,6 @@ from MTG_bot.core.state import (
     PLAYER_ZONES,
     ZONE_BATTLEFIELD,
     ZONE_HAND,
-    ZONE_STACK,
     GameWorld,
 )
 
@@ -474,10 +473,15 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     always targets their own object freely. The candidate's controller
     is read through ``controller_of`` (16e GAIN_CONTROL overlay aware).
 
-    Zone relevance (CR 113.10): the keyword functions only while the
-    object is a permanent on the battlefield or a spell on the stack —
-    the identity-seeded keyword names are zone-less, so this consumer
-    guard is what keeps a hexproof card in a graveyard an ordinary
+    Zone relevance (CR 702.11b "on a permanent"; CR 113.6): the keyword
+    functions only on the battlefield. A creature spell is not a
+    permanent, so an opponent's counterspell may target a hexproof spell
+    (Sporeweb Weaver is countered by a blue Cancel; Carnage Tyrant and
+    Sphinx of the Final Word print "can't be countered" for this reason).
+    The engine had it working on the stack from 2026-10-07 (KNOWLEDGE
+    2026-10-07/42) until an FDN verifier found it on 2026-11-06. The
+    identity-seeded keyword names are zone-less, so this consumer guard
+    is what keeps a hexproof card off the battlefield an ordinary
     target. A candidate the layers registry does not know (a player
     seat: 702.11 protects the hexproof OBJECT, never its controller; a
     token/overlay without a map entry) is never vetoed here.
@@ -485,16 +489,16 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     Filter rows evaluate against ``ctx.source`` exactly as the block
     consumer evaluates against the attacker: printed identity colors
     via ``eval_filter`` (COLOR_HAS reads the source card's own
-    identity), so an opponent's blue Cancel trips Spined Megalodon's
-    COLOR_HAS-U row and a red Shock does not."""
+    identity), so an opponent's blue spell trips a hexproof-from-blue
+    permanent's COLOR_HAS-U row and a red Shock does not."""
     layers = ctx.layers
     if layers is None:
         return False
     world = ctx.world
     if candidate not in world.cards:
         return False  # player seat / off-world handle: never hexproof here
-    if world.zone_of(candidate).kind not in (ZONE_BATTLEFIELD, ZONE_STACK):
-        return False  # keyword off the battlefield/stack: dead (113.10)
+    if world.zone_of(candidate).kind != ZONE_BATTLEFIELD:
+        return False  # a permanent's keyword: dead anywhere else (CR 113.6)
     rows = layers.hexproof_of(candidate)
     if not rows:
         return False
