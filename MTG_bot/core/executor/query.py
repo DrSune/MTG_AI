@@ -439,7 +439,7 @@ def legal_targets(
         if isinstance(count, (QConst, QAtMost, QAtLeast)):
             # Same shared answer as the ONE_OF branch and the executor
             # loops — see ability_tree.count_semantics.
-            announceable, k = count_semantics(count, n)
+            _, k = count_semantics(count, n)
             if isinstance(count, QAtMost):
                 # "Up to N targets" is 0..N. CR 601.2c: the player announces
                 # how many targets they will choose; 115.6: zero may be
@@ -459,7 +459,7 @@ def legal_targets(
                 forced = k == n  # unique filler = whole population
         else:
             want = resolve(count, ctx)  # QX raises cleanly (X_VALUE)
-            announceable, k = count_semantics(QConst(want), n)
+            _, k = count_semantics(QConst(want), n)
             min_count = max_count = k
             forced = k == n
     else:  # CHOOSE — up-to, resolution-time, the EMPTY set is legal
@@ -886,7 +886,7 @@ def register_cast_gap(executor: Executor, host: Handle, note: str) -> None:
     _register_cast_gap(executor, f"cast-gap {name}: {note}")
 
 
-def cast_refusal_note(executor: Executor, host: Handle, bad: Sequence[Handle]) -> str:
+def cast_refusal_note(executor: Executor, bad: Sequence[Handle]) -> str:
     """Ledger text naming each refused CAST designee WITH its reason,
     read through the same primitives the gate uses:
     ``not a SpellAbility carrier`` (land / face-shape outside the cast
@@ -1144,7 +1144,6 @@ def _designation_selector(selector: Selector) -> Selector:
     runtime keeps evaluating the ORIGINAL filter (the designation exists
     by then — ExecCtx.designation_union), and the slot keeps the original
     selector as its identity key (repr-match for per-slot designation)."""
-    from MTG_bot.core.ability_tree import FNot, FOr
 
     def strip(filter_: Filter) -> tuple[Filter, bool]:
         if isinstance(filter_, FAtom):
@@ -1164,11 +1163,9 @@ def _designation_selector(selector: Selector) -> Selector:
             if not changed:
                 return filter_, False
             return FAnd(tuple(kids)), True
-        if isinstance(filter_, (FOr, FNot)):
-            # deliberately NOT stripped: a disjunct / negation of an
-            # anaphora stays conservative (loud candidate empties stay
-            # loud) — the corpus 'another target' idiom ANDs it.
-            return filter_, False
+        # FOr / FNot are deliberately NOT stripped: a disjunct / negation of
+        # an anaphora stays conservative (loud candidate empties stay loud) —
+        # the corpus 'another target' idiom ANDs it.
         return filter_, False
 
     stripped, changed = strip(selector.filter)
@@ -1644,8 +1641,6 @@ def _clamp_cast_target_slot(
 
 
 def _is_universal(filter_: object) -> bool:
-    from MTG_bot.core.ability_tree import FAnd
-
     return isinstance(filter_, FAnd) and len(filter_.children) == 0
 
 
@@ -1669,7 +1664,7 @@ def _is_any_target_idiom(filter_: object) -> bool:
         for child in filter_.children
         if isinstance(child, FAtom)
     }
-    return len(filter_.children) == 3 and kinds == {
+    return kinds == {
         (FAtomPred.TYPE_EQ, "Creature"),
         (FAtomPred.TYPE_EQ, "Planeswalker"),
         (FAtomPred.TYPE_EQ, "Player"),
@@ -1849,12 +1844,10 @@ def verb_choose_options(
     Choose NODES, extended to the atom.
 
     v1 scope is the corpus shape: a single pick (every compiled CHOOSE
-    atom carries ``count = QConst(1)``). Only an under-filled pool makes the
-    EMPTY row legal (choosing nothing from fewer candidates than demanded,
-    like the up-to clamp; with count 1 that is the empty pool, returned as
-    the lone empty row); a MULTI-pick CHOOSE atom raises — no combination
-    order is defined for its tokens, and the corpus has zero rows needing
-    one (flag, don't degrade)."""
+    atom carries ``count = QConst(1)``). An empty pool yields the lone EMPTY
+    row (choosing nothing is legal only when there is nothing to choose); a
+    MULTI-pick CHOOSE atom raises — no combination order is defined for its
+    tokens, and the corpus has zero rows needing one (flag, don't degrade)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     selector = atom.args.get("target")
@@ -1882,10 +1875,4 @@ def verb_choose_options(
         )
     if not pool:
         return ((),)
-    rows: list[tuple[Handle, ...]] = [(h,) for h in pool]
-    if len(pool) < want:
-        # the legal under-filled zero: only a pool that cannot fill the count
-        # may choose fewer (Duress's "You choose a noncreature, nonland card
-        # from it" is mandatory).
-        rows.append(())
-    return tuple(rows)
+    return tuple((h,) for h in pool)

@@ -26,8 +26,6 @@ from dataclasses import replace
 
 from MTG_bot.core.executor.events import KIND_ABILITY_TRIGGERED
 from MTG_bot.core.ability_tree import (
-    Ability,
-    ActivationWindow,
     Atom,
     AtomArgs,
     CardRecord,
@@ -63,7 +61,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.offers import offer_or_autopick
-from MTG_bot.core.executor.durations_min import duration_tag
+from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_COUNTER,
     KIND_GAME_LOST,
@@ -100,10 +98,9 @@ from MTG_bot.core.state import (
     ZONE_LIBRARY,
 )
 
-_COLORS_VOCAB = ("W", "U", "B", "R", "G", "C")
 # "One mana of any color" is one of the five colors (CR 105.1, 106.1a); colorless is
 # a type of mana, not a color (CR 106.1b), so {C} is not an answer to an any-color
-# choice. A fixed "Add {C}" stays valid (_COLORS_VOCAB).
+# choice. A fixed "Add {C}" stays valid.
 _ANY_COLOR_VOCAB = ("W", "U", "B", "R", "G")
 
 
@@ -563,8 +560,7 @@ def _source_has(ctx: ExecCtx, keyword: Keyword) -> bool:
     lki = last_known(ctx.source, ctx)
     if lki is not None:
         return keyword.name in lki.keywords
-    layers = ctx.layers if ctx.layers is not None else ctx.executor.layers
-    return layers.keyword_of(ctx.source, keyword)
+    return ctx.layers.keyword_of(ctx.source, keyword)
 
 
 def _v_trigger_additional(ctx: ExecCtx, atom: Atom) -> None:
@@ -781,7 +777,7 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
         rec = ctx.replacements.prevented_card_damage(
             ctx,
             target,
-            combat=bool(getattr(ctx.executor, "_combat_wave_open", False)),
+            combat=bool(ctx.executor._combat_wave_open),
         )
         if rec is not None:
             ctx.events.append(
@@ -810,7 +806,7 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
             target,
             ctx.source,
             n,
-            combat=bool(getattr(ctx.executor, "_combat_wave_open", False)),
+            combat=bool(ctx.executor._combat_wave_open),
         ):
             if new_n is None:
                 raise NotImplementedError(
@@ -1165,11 +1161,6 @@ def _v_grant_or_lose(ctx: ExecCtx, atom: Atom, lose: bool) -> None:
     targets; the Duration vocab (incl. until-end-of-turn) is what ends it —
     layers never expire silently."""
     ability = atom.args.get("ability")
-    if not isinstance(ability, Ability):
-        raise ValueError(  # noqa: TRY004 — domain contract, see activate()
-            f"executor: {atom.verb.name} ability role needs an Ability node, "
-            f"got {type(ability).__name__}"
-        )
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
     layers = _layers_or_raise(ctx, atom.verb.name)
@@ -1363,10 +1354,6 @@ def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
     color = atom.args.get("color")
     if color is None or color == "ANY":
         color = ctx.take_decision(_ANY_COLOR_VOCAB, f"mana:{ctx.source}")
-    elif isinstance(color, str) and color in _COLORS_VOCAB:
-        pass
-    else:
-        raise ValueError(f"executor: ADD_MANA colour {color!r} not in {_COLORS_VOCAB}")
     pool = ctx.world.players[player].mana_pool
     pool[color] = pool.get(color, 0) + n
     ctx.events.append((len(ctx.events), "ADD_MANA", str(player), color, n))
@@ -1489,8 +1476,8 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     like MILL/MOVE."""
     player = role_player(ctx, atom, "controller")
     count_q = atom.args.get("amount")
-    assert count_q is None or isinstance(count_q, Quantity)
-    n = 1 if count_q is None else resolve(count_q, ctx)
+    assert isinstance(count_q, Quantity)
+    n = resolve(count_q, ctx)
     ex = ctx.executor
     # CR 121.2: drawing N cards is N single card draws, and a draw replacement applies to each
     # of them. The CardDrawnEvent replacement lane (Teferi's Ageless Insight): a live record
@@ -1505,7 +1492,7 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     run = 0
     for _ in range(n):
         repl = (
-            ctx.replacements.replacement_for_card_draw(ctx, player, 1)
+            ctx.replacements.replacement_for_card_draw(ctx, player)
             if ctx.replacements is not None
             else None
         )
@@ -1527,7 +1514,7 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
         # step is open, so main-phase draws (Niya's Restock, Loot) never touch
         # it and NOT_FIRST_DRAW_THIS_STEP answers False for them (quantity.py
         # reads the same pair of trackers).
-        if ex is not None and getattr(ex, "_draw_step_open", False):
+        if ex is not None and ex._draw_step_open:
             ex.draw_step_ordinal[player] = ex.draw_step_ordinal.get(player, 0) + 1
     if run or not n:  # "draw 0 cards" keeps its audit row
         ctx.events.append((len(ctx.events), "DRAW", str(player), run))
@@ -1694,8 +1681,8 @@ def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
     (``advance_turn`` keeps that rotation)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
     count_q = atom.args.get("count")
-    assert count_q is None or isinstance(count_q, Quantity)
-    n = 1 if count_q is None else resolve(count_q, ctx)
+    assert isinstance(count_q, Quantity)
+    n = resolve(count_q, ctx)
     executor.extra_turn_queue[0:0] = [ctx.controller] * n
     ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
 
@@ -1766,8 +1753,6 @@ def _v_pay(ctx: ExecCtx, atom: Atom) -> None:
 
     executor = _executor_or_raise(ctx, atom.verb.name)
     cost = atom.args.get("cost")
-    if not isinstance(cost, Cost):
-        raise TypeError(f"executor: PAY needs a Cost role, got {cost!r}")
     pctx = ctx_for(executor, source=ctx.source, controller=ctx.controller)
     # CR 605.3a: the payer may tap mana abilities while paying; the same taps
     # query.optional_offer proved sufficient when it offered "fire".
@@ -1810,8 +1795,6 @@ def _v_cast(ctx: ExecCtx, atom: Atom) -> None:
     executor = _executor_or_raise(ctx, atom.verb.name)
     cards = role_handles(ctx, atom, "source")
     cost = atom.args.get("cost")  # None = the spell's own printed cost
-    if cost is not None and not isinstance(cost, Cost):
-        raise ValueError(f"executor: CAST cost role must be a Cost, got {cost!r}")
     for card in cards:
         cast_card(
             executor,
@@ -1838,9 +1821,6 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
     the corpus compiles count=1 only."""
     from MTG_bot.core.executor.query import verb_choose_options
 
-    selector = atom.args.get("target")
-    if not isinstance(selector, Selector):
-        raise TypeError(f"executor: CHOOSE needs a target Selector, got {selector!r}")
     count_role = atom.args.get("count")
     if count_role is not None:
         assert isinstance(count_role, Quantity)  # role table: count is a Quantity
@@ -1882,11 +1862,6 @@ def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
         pick = ctx.take_decision(ask_vocab, what)
         pick = alias.get(pick, pick)
     chosen = rows[int(pick)]
-    if len(chosen) < want:
-        # the under-filled zero row picked when candidates ran out
-        ctx.bindings["result"] = list(chosen)
-        ctx.events.append((len(ctx.events), "CHOOSE", str(ctx.source)))
-        return
     ctx.bindings["result"] = list(chosen)
     ctx.events.append(
         (len(ctx.events), "CHOOSE", str(ctx.source), tuple(str(h) for h in chosen))
@@ -1984,10 +1959,6 @@ def _v_mana_policy(ctx: ExecCtx, atom: Atom) -> None:
 
     executor = _executor_or_raise(ctx, atom.verb.name)
     scope = atom.args.get("scope")
-    if scope not in ("THIS_MANA", "ALL_YOURS"):
-        raise ValueError(
-            f"executor: MANA_POLICY scope {scope!r} not in the closed pair"
-        )
     layers: LayerRegistry = executor.layers
     layers.register_mana_policy(ctx.source, ctx.controller, atom)
     layers.recompute()  # the permission must be LIVE before the next plan
@@ -2005,11 +1976,6 @@ def _v_get_emblem(ctx: ExecCtx, atom: Atom) -> None:
     anchor to the OWNER (the emblem's "you"). CR 113.7: getting a second
     copy of the same emblem does nothing — the (owner, emblem oid) table is
     the idempotence gate, recorded as a duplicate event, never a rebind."""
-    if atom.args.pairs:  # AtomArgs is never falsy — inspect the tuple
-        raise ValueError(
-            f"executor: GET_EMBLEM carries no roles (role table empty), got "
-            f"{sorted(str(k) for k, _ in atom.args.pairs)}"
-        )
     executor = _executor_or_raise(ctx, atom.verb.name)
     record = executor.binder.handle_record.get(ctx.source)
     if record is None:
@@ -2115,16 +2081,9 @@ def _v_grant_activation(ctx: ExecCtx, atom: Atom) -> None:
     (controller, loyalty once-per-turn, costs, conditions) is untouched —
     the permission relaxes timing, never legitimacy."""
     executor = _executor_or_raise(ctx, atom.verb.name)
-    filter_ = atom.args.get("filter")
-    if filter_ is None or not isinstance(filter_, (FAnd, FOr, FNot, FAtom)):
-        raise ValueError(f"executor: GRANT_ACTIVATION needs a Filter, got {filter_!r}")
     window = atom.args.get("window")
-    if window is not None and window is not ActivationWindow.INSTANT:
-        raise NotImplementedError(
-            f"executor: GRANT_ACTIVATION window {window!r} has no consumer "
-            "(13c implements the INSTANT relaxation only)"
-        )
     layers = executor.layers
+    # Validates the filter and window first (layers._validate_activation_grant).
     layers.register_activation_grant(ctx.source, ctx.controller, atom)
     layers.recompute()  # the permission must be LIVE before the next query
     ctx.events.append(
@@ -2227,15 +2186,11 @@ def _v_damage_assign_policy(ctx: ExecCtx, atom: Atom) -> None:
     This handler covers the DISPATCH shape: the scope word is recorded on
     the executor keyed by the ability's source (the damage step consumes
     ledger ∪ layers), so a directly-dispatched policy atom behaves exactly
-    like its granted twin. The scope vocabulary is checked, never guessed."""
+    like its granted twin. Atom validation limits the scope to its closed
+    vocabulary (AS_UNBLOCKED)."""
     if ctx.executor is None:
         raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
     scope = atom.args.get("scope")
-    if scope != "AS_UNBLOCKED":
-        raise NotImplementedError(
-            f"executor: DAMAGE_ASSIGN_POLICY scope {scope!r} has no consumer "
-            "(16c ships AS_UNBLOCKED only — the grammar's closed scope vocab)"
-        )
     ctx.executor.damage_policies[ctx.source] = str(scope)
     ctx.events.append((len(ctx.events), atom.verb.name, str(ctx.source), str(scope)))
 

@@ -50,7 +50,6 @@ from MTG_bot.core.ability_tree import (
     QX,
     AbilityActivatedEvent,
     Atom,
-    BecomesBlockedEvent,
     CardDrawnEvent,
     ControllerRef,
     CounteredEvent,
@@ -102,14 +101,6 @@ from MTG_bot.core.identity import Handle
 if TYPE_CHECKING:  # pragma: no cover - typing-only
     from MTG_bot.core.compiler.compiler import CardRecord
     from MTG_bot.core.executor import Executor
-
-# The declaration/block event kinds :meth:`ReplacementRegistry.combat_preventions`
-# lists. Combat damage is DamageDealtEvent(combat=True), the damage path's.
-_COMBAT_EVENTS = (
-    DeclareAttackersEvent,
-    DeclareBlockersEvent,
-    BecomesBlockedEvent,
-)
 
 
 @dataclass
@@ -300,9 +291,8 @@ class ReplacementRegistry:
         """A record's condition is judged over the EVENT SUBJECT (the
         TriggeredAbility convention the frozen grammar shares with
         replacements/preventions); the WHILE duration's filter is a state
-        predicate over the source (StaticAbility convention)."""
-        if rec.status == "expired":
-            return False
+        predicate over the source (StaticAbility convention). Callers pass
+        live records only."""
         if isinstance(rec.duration, DurationWhileCondition):
             if not self._source_alive(rec.source):
                 return False
@@ -635,7 +625,7 @@ class ReplacementRegistry:
         return None
 
     def replacement_for_card_draw(
-        self, ctx: ExecCtx, drawer: Handle, amount: int
+        self, ctx: ExecCtx, drawer: Handle
     ) -> ReplacementRecord | None:
         """Teferi's Ageless Insight: the apply-pipeline interceptor
         for a CARD-DRAW event (replacement before apply, mirrored from
@@ -777,9 +767,7 @@ class ReplacementRegistry:
             return rec
         return None
 
-    def replacement_for_death(
-        self, card: Handle, replaced_seq: frozenset[int] = frozenset()
-    ) -> ReplacementRecord | None:
+    def replacement_for_death(self, card: Handle) -> ReplacementRecord | None:
         """Scorching Dragonfire: the state-check interceptor for a
         CREATURE-DIES event — the die lane mirrors the damage/life hooks
         (replacement before apply): the SBA loop consults this BEFORE
@@ -800,13 +788,12 @@ class ReplacementRegistry:
         card is bound as ``event`` so the replacement's ACTION (EXILE
         referent=event) resolves. A Permanent-sourced record must still be
         on the battlefield; the Eot half is exempt (the spell has
-        resolved). ``replaced_seq`` is the CR 614.4a chain guard (the SBA
-        callers pass none)."""
+        resolved)."""
         for rec in sorted(self.replacements, key=lambda r: r.seq):
             event = rec.event
             if not isinstance(event, CreatureDiesEvent):
                 continue
-            if rec.status != "live" or rec.seq in replaced_seq:
+            if rec.status != "live":
                 continue
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
@@ -925,7 +912,7 @@ class ReplacementRegistry:
                 # battlefield; a resolved effect outlives its source (CR
                 # 611.2a, as in _live_ctx)
                 continue
-            ctx = self._rec_ctx(rec, card)
+            ctx = self._rec_ctx(rec)
             if not self._condition_holds(rec, card, ctx):
                 continue
             if not eval_filter(event.filter, card, ctx):
@@ -933,19 +920,9 @@ class ReplacementRegistry:
             return True
         return False
 
-    def combat_preventions(self) -> tuple[PreventionRecord, ...]:
-        """The LIVE attack/block prevents (Faith's Fetters / Capture
-        Sphere family), an audit view: the CR 508/509 declaration legality
-        in legality.py reads them through the pair consults below."""
-        return tuple(
-            rec
-            for rec in self.preventions
-            if rec.status != "expired" and isinstance(rec.event, _COMBAT_EVENTS)
-        )
-
     # ------------------------------------------------ declaration consumers
 
-    def _rec_ctx(self, rec, attacker: Handle) -> ExecCtx:
+    def _rec_ctx(self, rec) -> ExecCtx:
         """The consult context in the RECORD's own coordinates (the con-
         troller rule the replacement/prevention filters follow): source =
         the preventing permanent, controller = its controller, and the
@@ -977,7 +954,7 @@ class ReplacementRegistry:
         subject over the BLOCKER and blocked over the ATTACKER; attack
         records filter over the ATTACKER (an ``attacked`` slot has no
         corpus carrier — the raise, never a silent ignore)."""
-        ctx = self._live_ctx(rec, subject)
+        ctx = self._live_ctx(rec)
         if ctx is None:
             return False
         event = rec.event
@@ -1015,7 +992,7 @@ class ReplacementRegistry:
             return self._slot_holds(rec, event.filter, subject, ctx)
         return False
 
-    def _live_ctx(self, rec, subject: Handle) -> ExecCtx | None:
+    def _live_ctx(self, rec) -> ExecCtx | None:
         """The consult context of a combat prevention that applies now, or None."""
         if rec.status == "expired":
             return None
@@ -1027,7 +1004,7 @@ class ReplacementRegistry:
         # keep the liveness gate.
         if not rec.resolved and not self._source_alive(rec.source):
             return None
-        ctx = self._rec_ctx(rec, subject)
+        ctx = self._rec_ctx(rec)
         if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
             rec.duration.filter, rec.source, ctx
         ):
@@ -1046,7 +1023,7 @@ class ReplacementRegistry:
             event = rec.event
             if not isinstance(event, DeclareBlockersEvent) or event.count is None:
                 continue
-            ctx = self._live_ctx(rec, attacker)
+            ctx = self._live_ctx(rec)
             if ctx is None:
                 continue
             if event.subject is not None or event.filter != FAnd(()):
@@ -1124,7 +1101,7 @@ class ReplacementRegistry:
                 continue
             if not rec.resolved and not self._source_alive(rec.source):
                 continue
-            ctx = self._rec_ctx(rec, permanent)
+            ctx = self._rec_ctx(rec)
             if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
                 rec.duration.filter, rec.source, ctx
             ):

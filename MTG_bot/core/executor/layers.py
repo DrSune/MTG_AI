@@ -87,12 +87,12 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges the import cycle
 
 class GrantedAbility(NamedTuple):
     """One granted ability as :mod:`legality` consumes it: the typed IR
-    node, the granting permanent, and the layer seq that ordered it (the
-    canonical granted-ability index basis)."""
+    node and the granting permanent (:meth:`LayerRegistry.granted_abilities`
+    keeps them in layer-seq order, the canonical granted-ability index
+    basis)."""
 
     node: Ability
     granter: Handle
-    seq: int
 
 
 _PT_VERBS = frozenset({Verb.MODIFY_PT, Verb.SET_PT})
@@ -219,9 +219,9 @@ class LayerRecord:
     permissions) / ``"land_play"`` (ADD_LAND_PLAY allowances — the last two
     permission kinds are selector-less, like mana_policy),
     ``"mandate"`` / ``"mandate_block"`` (MANDATE_ATTACK / MANDATE_BLOCK
-    rules — "attacks each combat if able"; selector-bearing like the
-    generic static, read at every declare-attackers / declare-blockers by
-    the legality surface), and
+    rules — "attacks each combat if able"; the legality surface resolves
+    the atom's ``cards`` selector at every declare-attackers /
+    declare-blockers), and
     ``"disclosure"`` (REVEAL/LOOK_AT payload statics — the recorded zone-
     knowledge fact, selector-less and inert at re-apply by rules right).
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
@@ -333,9 +333,8 @@ class LayerRegistry:
                     if "not layer-parseable" not in str(e):
                         raise
                     flag = f"{handle}: {e}"
-                    sink = getattr(self.executor, "unparseable_statics", None)
-                    if sink is not None and flag not in sink:
-                        sink.append(flag)
+                    if flag not in self.executor.unparseable_statics:
+                        self.executor.unparseable_statics.append(flag)
         for layer in self.records[first_new:]:
             layer.from_static = True  # CR 702.26b: see LayerRecord.from_static
         return count
@@ -516,12 +515,12 @@ class LayerRegistry:
         # not a layer payload — Furor of the Bitten compiles the enchanted
         # creature's "+2/+2 AND attacks if able" as one static, so the
         # mandate atoms are SPLIT OUT and registered as "mandate" permission
-        # layers (selector-bearing, liveness exactly like any static record
-        # — Furor leaving ends the mandate with it); the remaining atoms
-        # take the ordinary layer path below. MANDATE_BLOCK (Canopy Stalker
-        # "must be blocked if able", CR 509.1h) splits the same way into
-        # "mandate_block" layers, and PREVENT_EFFECT atoms (the PREVENTION
-        # static family — Tome Anima "can't be blocked", Faith's Fetters'
+        # layers (the atom's ``cards`` selector names the subjects; liveness
+        # exactly like any static record — Furor leaving ends the mandate
+        # with it); the remaining atoms take the ordinary layer path below.
+        # MANDATE_BLOCK (Canopy Stalker "must be blocked if able", CR 509.1h)
+        # splits the same way into "mandate_block" layers, and PREVENT_EFFECT
+        # atoms (the PREVENTION static family — Tome Anima "can't be blocked", Faith's Fetters'
         # two-part attack/block veto) route to the REPLACEMENT registry as
         # lifetime PreventionRecords — the same record shape the activated
         # prevents register, consumed by the block/attack legality. The
@@ -572,7 +571,6 @@ class LayerRegistry:
                 handle,
                 controller,
                 (mandate,),
-                selector=cast(Selector, mandate.args.get("cards")),
                 condition=static.condition,
                 duration=_static_while_duration([mandate]),
             )
@@ -584,7 +582,6 @@ class LayerRegistry:
                 handle,
                 controller,
                 (mandate,),
-                selector=cast(Selector, mandate.args.get("cards")),
                 condition=static.condition,
                 duration=_static_while_duration([mandate]),
             )
@@ -701,20 +698,14 @@ class LayerRegistry:
         )
         return records
 
-    def register_mana_policy(
-        self,
-        source: Handle,
-        controller: Handle,
-        atom: Atom,
-        duration: Duration | None = None,
-    ) -> LayerRecord:
+    def register_mana_policy(self, source: Handle, controller: Handle, atom: Atom) -> LayerRecord:
         """The RUNTIME-dispatched MANA_POLICY atom (the handler path,
         ``verbs._v_mana_policy`` — an atom executed as an effect). It joins
-        the SAME record list as the static-attached policies, so recompute,
-        EoT/UNTIL_ expiry sweeps and detach all treat it identically (a
-        duration-scoped permission dies like any other layer — corpus:
+        the SAME record list as the static-attached policies, so recompute
+        and detach treat it identically; it carries no duration (the role
+        table has none), so it lives while its anchor does (corpus:
         Orrery/Vodalian arrive via attach, not dispatch)."""
-        return self._new("mana_policy", source, controller, (atom,), duration=duration)
+        return self._new("mana_policy", source, controller, (atom,))
 
     def register_type_grant(
         self,
@@ -736,20 +727,14 @@ class LayerRegistry:
         return self._new_resolved("type_grant", source, controller, (atom,), targets, duration)
 
     def register_activation_grant(
-        self,
-        source: Handle,
-        controller: Handle,
-        atom: Atom,
-        duration: Duration | None = None,
+        self, source: Handle, controller: Handle, atom: Atom
     ) -> LayerRecord:
         """The RUNTIME-dispatched GRANT_ACTIVATION permission (Teferi,
         Master of Time's static registers through :meth:`_new_static`; this
         is the handler path for a granted/inline shape). Selector-less
         permission layer, validated like the static branch."""
         _validate_activation_grant(atom)
-        return self._new(
-            "activation_grant", source, controller, (atom,), duration=duration
-        )
+        return self._new("activation_grant", source, controller, (atom,))
 
     def register_land_play(
         self,
@@ -1119,9 +1104,7 @@ class LayerRegistry:
             if payload.keyword.name not in names:
                 names.append(payload.keyword.name)
         elif isinstance(payload, Ability):
-            granted.setdefault(target, []).append(
-                GrantedAbility(payload, layer.source, layer.seq)
-            )
+            granted.setdefault(target, []).append(GrantedAbility(payload, layer.source))
 
     @staticmethod
     def _apply_remove(keywords, granted, target, payload) -> None:
@@ -1195,13 +1178,9 @@ class LayerRegistry:
             if layer.kind != "activation_grant" or layer.status != "live":
                 continue
             for atom in layer.atoms:
-                window = atom.args.get("window")
-                if window is not None and window is not ActivationWindow.INSTANT:
-                    continue  # non-instant windows have no consumer (validator)
-                filter_ = atom.args.get("filter")
-                assert isinstance(
-                    filter_, (FAnd, FOr, FNot, FAtom)
-                )  # validator: GRANT_ACTIVATION needs one
+                # _validate_activation_grant ran at registration: a Filter and
+                # an INSTANT (or absent) window.
+                filter_ = cast(Filter, atom.args.get("filter"))
                 if eval_filter(
                     filter_,
                     handle,
@@ -1226,7 +1205,8 @@ class LayerRegistry:
     def live_mandate_block_layers(self) -> list[LayerRecord]:
         """MANDATE_BLOCK (Canopy Stalker, CR 509.1h): every
         LIVE ``"mandate_block"`` layer, same anchor rule as the attack
-        side (the selector resolves in the layer's own coordinates)."""
+        side (the ``cards`` selector resolves in the layer's own
+        coordinates)."""
         return [
             layer
             for layer in self.records
@@ -1261,17 +1241,7 @@ class LayerRegistry:
                     stack.append(step.inner)
             return False
 
-        return any(carries(g.node) for g in self._granted.get(handle, ())) or any(
-            layer.kind == "policy"
-            and layer.status == "live"
-            and (layer.source == handle or handle in layer.targets)
-            and any(
-                atom.verb is Verb.DAMAGE_ASSIGN_POLICY
-                and atom.args.get("scope") == "AS_UNBLOCKED"
-                for atom in layer.atoms
-            )
-            for layer in self.records
-        )
+        return any(carries(g.node) for g in self._granted.get(handle, ()))
 
     def protection_rows(self, handle: Handle) -> tuple[tuple[Filter, Handle, Handle], ...]:
         """CR 702.16a: the live protection qualities on a permanent OR A PLAYER,
@@ -1393,8 +1363,7 @@ class LayerRegistry:
             if layer.controller != controller:
                 continue
             for payload in layer.atoms:
-                assert isinstance(payload, QConst)  # register_land_play wraps
-                total += payload.value
+                total += cast(QConst, payload).value  # both producers wrap a QConst
         return total
 
     # ---------------------------------------------------------- determinism
@@ -1421,6 +1390,3 @@ class LayerRegistry:
             )
             for layer in sorted(self.records, key=lambda l: l.seq)
         )
-
-    def __len__(self) -> int:
-        return len(self.records)

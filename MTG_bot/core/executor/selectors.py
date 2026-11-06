@@ -291,6 +291,14 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
     kind = zone_ir.kind
     if kind is ZoneKind.PLAYER:
         return players_for_ref(zone_ir.controller, ctx)
+    ref = zone_ir.controller
+    if ref is ControllerRef.OWNER:
+        # Every card zone raises on OWNER at runtime (the QUERY side answers
+        # OWNER via legality.source_owner).
+        raise NotImplementedError(
+            "executor: OWNER in selector enumeration needs per-candidate "
+            "owner scoping (12b)"
+        )
     if kind is ZoneKind.ANY:
         # Zone(ANY) at RUNTIME: the same seat-order × PLAYER_ZONES loop
         # legality._zone_handles runs for the QUERY side, so query and
@@ -299,30 +307,18 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         # The controller ref is deliberately NOT a filter here: ANY spans
         # every player's zones. HIDDEN zones (libraries, the opponent's
         # hand) ride along: the executor is omniscient.
-        if zone_ir.controller is ControllerRef.OWNER:
-            raise NotImplementedError(
-                "executor: OWNER in selector enumeration needs per-candidate "
-                "owner scoping (12b)"
-            )
         handles_all: list[Handle] = []
         for player in ctx.world.player_order:
             for any_kind in PLAYER_ZONES:
                 handles_all.extend(ctx.world.players[player].zone(any_kind).entries)
         return existing(ctx, handles_all)
-    ref = zone_ir.controller
     if kind is ZoneKind.STACK:
         # ZONE_KIND_TO_STATE has no STACK entry: each seat's parked frames
         # are enumerated through :func:`stack.stack_zone` (the per-player
         # ZONE_STACK slot created on first use), the SAME source the query
         # side reads, so query and runtime enumerate one population. TOP =
         # the last entry = the top frame (LIFO order-preserving, the stack's
-        # own convention). OWNER raises, as for every zone at runtime (the
-        # QUERY side answers OWNER via legality.source_owner).
-        if ref is ControllerRef.OWNER:
-            raise NotImplementedError(
-                "executor: OWNER in selector enumeration needs per-candidate "
-                "owner scoping (12b)"
-            )
+        # own convention).
         from MTG_bot.core.executor.stack import stack_zone
 
         stack_handles: list[Handle] = []
@@ -337,11 +333,6 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
                 stack_handles.extend(entries)
         return stack_handles
     state_kind = ZONE_KIND_TO_STATE[kind]
-    if ref is ControllerRef.OWNER:
-        raise NotImplementedError(
-            "executor: OWNER in selector enumeration needs per-candidate "
-            "owner scoping (12b)"
-        )
     handles: list[Handle] = []
     for player in players_for_ref(ref, ctx):
         entries = ctx.world.players[player].zone(state_kind).entries
@@ -362,7 +353,7 @@ def existing(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
     The ONE chokepoint every selector and query enumeration passes
     (``enumerate_zone`` here, ``legality._zone_handles`` for its own
     OWNER/ANY lanes). Order-preserving; free when nothing is phased out."""
-    if ctx.executor is None or not getattr(ctx.executor, "phased_out", None):
+    if ctx.executor is None or not ctx.executor.phased_out:
         return handles
     return [h for h in handles if not phased_out(ctx, h)]
 
@@ -382,7 +373,7 @@ def _is_any_target_idiom(filter_: object) -> bool:
         for child in filter_.children
         if isinstance(child, FAtom)
     }
-    return len(filter_.children) == 3 and kinds == {
+    return kinds == {
         (FAtomPred.TYPE_EQ, "Creature"),
         (FAtomPred.TYPE_EQ, "Planeswalker"),
         (FAtomPred.TYPE_EQ, "Player"),
@@ -398,8 +389,7 @@ def _is_any_universal(sel: Selector) -> bool:
     same population the query offers (CR 109.5)."""
     zones = sel.zones
     if bool(
-        sel.filter is not None
-        and isinstance(sel.filter, FAnd)
+        isinstance(sel.filter, FAnd)
         and not sel.filter.children
     ) and any(z.kind is ZoneKind.ANY for z in zones):
         return True
@@ -476,17 +466,10 @@ def referent_absent(exc: BaseException) -> bool:
     return False
 
 
-# The CHOOSE ask: a CHOOSE the effect runtime resolves is asked of the
-# deciding player when _choose_lift_allowed allows it; any other CHOOSE
-# keeps the silent deterministic slice. Oracle ids listed here keep the
-# slice regardless (keyed by oracle_id, mirroring GROUND_TRUTH_CHOOSER in
-# tools/audit/r3_lane_ledger.py). Empty: a sacrifice menu is asked of the
-# player who controls it (sacrificing_player), so no card is held back.
-R3_CHOOSE_DEFERRED_ORACLES: frozenset[str] = frozenset()
-
-
 def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
     """May this CHOOSE ask the decider instead of taking the silent slice?
+    A CHOOSE the effect runtime resolves is asked of the deciding player when
+    this allows it; any other CHOOSE keeps the silent deterministic slice.
 
     The rules of ``tools.audit.r3_lane_ledger.lift_verdict``, on live IR
     (the ledger's lanes are pinned by :mod:`MTG_bot.core.test_ontology_r3`):
@@ -526,15 +509,8 @@ def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
     if len(zones) > 1 and any(z.controller is ControllerRef.ANY for z in zones):
         return False  # a merged multi-seat menu
     src = ctx.source
-    if src.namespace != "card" or src not in ctx.world.cards:
-        # A synthetic player-handle source (unit-world idiom) keeps the
-        # silent slice.
-        return False
-    card_state = ctx.world.cards.get(ctx.source)
-    identity = getattr(card_state, "identity", None)
-    if str(getattr(identity, "oracle_id", "") or "") in (R3_CHOOSE_DEFERRED_ORACLES):
-        return False
-    return True
+    # A synthetic player-handle source (unit-world idiom) keeps the silent slice.
+    return src.namespace == "card" and src in ctx.world.cards
 
 
 def resolve_selector(
@@ -690,9 +666,6 @@ def resolve_selector(
     # POSITIONAL, so the clamp checks only the HEAD of the RAW slice. A
     # clamp-drop of a BOUND TARGET designation (CR 603.3 mode) registers a
     # ledger row below. Referent lanes stay fully OUT.
-    def cast_ok(h: Handle) -> bool:
-        return ok is None or ok(h)
-
     pre_clamp = candidates
     executor = ctx.executor  # branch-guarded non-None below; local narrows
     positional = (
@@ -704,10 +677,10 @@ def resolve_selector(
     )
     if ok is not None and executor is not None and sel.referent is None:
         if not positional:
-            candidates = [h for h in candidates if cast_ok(h)]
+            candidates = [h for h in candidates if ok(h)]
         else:
             head = sorted(pre_clamp)[: resolve(sel.count, ctx)]
-            bad = [h for h in head if not cast_ok(h)]
+            bad = [h for h in head if not ok(h)]
             if bad:
                 # Refusal, not re-pick: the positional designee fails the
                 # cast gate, so the effect has no legal designation and
@@ -728,7 +701,7 @@ def resolve_selector(
                     executor,
                     ctx.source,
                     "finite CAST head cannot execute: "
-                    + cast_refusal_note(executor, ctx.source, bad),
+                    + cast_refusal_note(executor, bad),
                 )
                 candidates = []
             # Clean head: leave the RAW population to the mode fold
@@ -857,13 +830,13 @@ def resolve_selector(
                 register_cast_gap,
             )
 
-            dropped = [h for h in bound if h in pre_clamp and not cast_ok(h)]
+            dropped = [h for h in bound if h in pre_clamp and not ok(h)]
             if dropped:
                 register_cast_gap(
                     executor,
                     ctx.source,
                     "CAST TARGET designation left the legal set: "
-                    + cast_refusal_note(executor, ctx.source, dropped),
+                    + cast_refusal_note(executor, dropped),
                 )
         if any(z.kind is ZoneKind.PLAYER for z in sel.zones):
             # A CARD designation on a PLAYER-SIDE designation (∃ over the

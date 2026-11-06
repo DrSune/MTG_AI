@@ -142,16 +142,13 @@ SECOND_MAIN = "SECOND_MAIN"
 MAIN_PHASES = frozenset({None, Phase.FIRST_MAIN.name, SECOND_MAIN})
 
 # The mana-pool key convention written by ``_v_add_mana`` (verbs.py): pool
-# keys are exactly _COLORS_VOCAB = W U B R G C. CostManaColor is payable
-# only from its own key (CR 118.3a "removing the indicated mana").
+# keys are exactly W U B R G C. CostManaColor is payable only from its own
+# key (CR 118.3a "removing the indicated mana").
 MANA_KEYS = ("W", "U", "B", "R", "G", "C")
 # Generic mana draws from any key, colourless first: colourless pays no
 # coloured symbol (CR 106.1b), so a later coloured cost stays payable when it
 # can be (CR 601.2h: the payer chooses which mana pays).
 GENERIC_KEYS = ("C", "W", "U", "B", "R", "G")
-
-# The payment fold's canonical step order (deterministic journal sequence).
-PAYMENT_ORDER = ("mana", "tap", "sacrifice", "discard", "counter", "loyalty", "life")
 
 
 # ------------------------------------------------------------- mana segments
@@ -305,18 +302,6 @@ class PaymentPlan:
     # Deferred shapes and hand-built plans carry the default ().
     tap_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
     discard_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
-
-    def is_empty(self) -> bool:
-        """True for a free activation (empty Cost parts — legal MTG)."""
-        return not (
-            self.mana
-            or self.tap
-            or self.sacrifice
-            or self.discard
-            or self.counters
-            or self.loyalty
-            or self.life
-        )
 
 
 # ---------------------------------------------------------------- contexts
@@ -588,10 +573,8 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         if sel.referent == "target":
             bound = ctx.binding_handles("target")
             candidates = bound if bound is not None else []
-        elif sel.referent in ("source", "controller"):
-            candidates = resolve_selector(sel, ctx)
         else:
-            candidates = resolve_selector(sel, ctx)  # event/result; unknown raises
+            candidates = resolve_selector(sel, ctx)  # an unknown referent raises
     else:
         candidates = []
         for zone_spec in sel.zones:  # the zones field IS the legal-zone set
@@ -633,7 +616,7 @@ def _required_count(sel: Selector, ctx: ExecCtx, available: int) -> int:
 # ---------------------------------------------------------------- payment
 
 
-def _mana_use_ok(executor: Executor, ctx: ExecCtx, mana_use: Handle | None):
+def _mana_use_ok(ctx: ExecCtx, mana_use: Handle | None):
     """The spend-validator's filter judge: does a restriction Filter
     accept this payment's use? The use subject is the SPELL being paid for
     (Vodalian Arcanist's compiled filter is a CastSpellEvent-shape
@@ -707,7 +690,7 @@ def build_payment_plan(
         all_yours = ex.mana_permission(ctx.controller)
         if ex.mana_ledger.has(ctx.controller):
             shortfall = ex.mana_ledger.restricted_amounts(
-                ctx.controller, _mana_use_ok(ex, ctx, mana_use)
+                ctx.controller, _mana_use_ok(ctx, mana_use)
             )
             for key, blocked in shortfall.items():
                 left = remaining.get(key, 0) - blocked
@@ -759,7 +742,6 @@ def build_payment_plan(
         and judge == ctx.source
         and judge.namespace == "card"
     ):
-        assert judge is not None
         activation_lane = mana_use is None
         mod_hosts: list[Handle] = [judge]
         for seat in world.player_order:
@@ -1086,7 +1068,6 @@ def _ability_discards_its_source(ability: ActivatedAbility) -> bool:
 
     return any(
         isinstance(part, CostDiscard)
-        and part.target is not None
         # SINGLETON-HAND predicate on the zone set: the printed "Discard
         # this card:" window opens for a cost that discards from the hand
         # ALONE, never for a widened hand-or-graveyard cost shape (testing
@@ -1265,10 +1246,7 @@ def ability_playable(
     if ability.condition is not None:
         if not eval_filter(ability.condition, handle, ctx):
             return "condition:false"
-    plan, reason = build_payment_plan(world, ctx, ability.cost, activation=handle)
-    if plan is None:
-        return reason
-    return None
+    return build_payment_plan(world, ctx, ability.cost, activation=handle)[1]
 
 
 # ------------------------------------------------------- spell casting gate
@@ -1341,14 +1319,11 @@ def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> 
 
 
 def _cost_has_x(cost: Cost) -> bool:
-    for part in cost.parts:
-        if isinstance(part, (CostManaColor, CostManaGeneric, CostManaHybrid)):
-            amount = part.amount
-            if isinstance(amount, QX):
-                return True
-            if isinstance(amount, QBin) and _qty_has_x(amount):
-                return True
-    return False
+    return any(
+        isinstance(part, (CostManaColor, CostManaGeneric, CostManaHybrid))
+        and _qty_has_x(part.amount)
+        for part in cost.parts
+    )
 
 
 def _qty_has_x(quantity: Quantity) -> bool:
@@ -1598,38 +1573,34 @@ def _binding_atom(verb: Verb, role: str, handles: Sequence[Handle], **extra) -> 
     return Atom(verb=verb, args=AtomArgs(pairs=tuple(pairs.items())))
 
 
-def _loyalty_death_check(
+def _ask_cost_choices(
     executor: Executor,
+    options: tuple[tuple[tuple[Handle, ...], int], ...],
+    lane: str,
+    *,
     source: Handle,
     controller: Handle,
-    loyalty_after: int | None = None,
-) -> None:
-    """CR 704.2: a planeswalker with 0 or less loyalty is put into its
-    owner's graveyard. :func:`pay_costs` calls this right after a loyalty
-    payment, with ``loyalty_after`` the loyalty the payment left. The settle
-    that closes the payment's own atom (apply_effect) already buries a
-    walker paid down to 0 through the state check (CR 704.5i,
-    ``Executor._zero_loyalty_walkers``), so this call finds it gone; it
-    stays as the backstop for a caller without that settle.
-
-    It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
-    the stand-in for the state-based move to the graveyard; destroy
-    *replacement* effects (Rest in Peace) would see it as a destroy."""
-    world = executor.world
-    state = world.cards.get(source)
-    if state is None or state.identity.loyalty is None:
-        return  # not a planeswalker — nothing to check
-    if world.zone_of(source).kind != ZONE_BATTLEFIELD:
-        return
-    have = _loyalty_of(world, source) if loyalty_after is None else loyalty_after
-    if have > 0:
-        return
-    executor.apply_effect(
-        _binding_atom(Verb.DESTROY, "target", [source]),
-        source=source,
-        controller=controller,
-        bindings={"target": [source]},
-    )
+) -> tuple[Handle, ...]:
+    """The payer's picks from a plan's recorded (pool, need) segments, Handle-sorted. A
+    segment with no real choice (len(pool) <= need) is auto-filled; otherwise each pick is
+    asked through the decision channel (ask key ``<lane>:<seat>:<source>:<digest>``,
+    vocabulary = the Handle strings)."""
+    ctx = ctx_for(executor, source=source, controller=controller)
+    chosen: list[Handle] = []
+    for pool, need in options:
+        remaining = [h for h in pool if h not in chosen]
+        if len(remaining) <= need:
+            chosen.extend(remaining[:need])
+            continue
+        for _pick in range(need):
+            vocab = tuple(str(h) for h in sorted(remaining))
+            answer = ctx.take_decision(
+                vocab, f"{lane}:{controller}:{source}:{site_digest(vocab)}"
+            )
+            pick = next(h for h in remaining if str(h) == answer)
+            chosen.append(pick)
+            remaining.remove(pick)
+    return tuple(sorted(chosen))
 
 
 def pay_costs(
@@ -1675,7 +1646,7 @@ def pay_costs(
             # demonstrate its use (see ManaLedger.consume).
             ctx = ctx_for(executor, source=source, controller=controller)
             executor.mana_ledger.consume(
-                controller, plan.mana, _mana_use_ok(executor, ctx, mana_use)
+                controller, plan.mana, _mana_use_ok(ctx, mana_use)
             )
     if plan.tap:
         # WHICH permanent taps is the payer's decision when the recorded
@@ -1684,23 +1655,9 @@ def pay_costs(
         # the witness pick.
         tapped = plan.tap
         if plan.tap_options:
-            ctx = ctx_for(executor, source=source, controller=controller)
-            chosen_t: list[Handle] = []
-            for pool, need in plan.tap_options:
-                remaining_t = [h for h in pool if h not in chosen_t]
-                if len(remaining_t) <= need:
-                    chosen_t.extend(remaining_t[:need])
-                    continue
-                for _pick in range(need):
-                    vocab = tuple(str(h) for h in sorted(remaining_t))
-                    answer = ctx.take_decision(
-                        vocab,
-                        f"tap:{controller}:{source}:{site_digest(vocab)}",
-                    )
-                    pick = next(h for h in remaining_t if str(h) == answer)
-                    chosen_t.append(pick)
-                    remaining_t.remove(pick)
-            tapped = tuple(sorted(chosen_t))
+            tapped = _ask_cost_choices(
+                executor, plan.tap_options, "tap", source=source, controller=controller
+            )
         executor.apply_effect(
             _binding_atom(Verb.TAP, "target", tapped),
             source=source,
@@ -1719,25 +1676,9 @@ def pay_costs(
         # (default () options) pays the witness.
         victims = plan.sacrifice
         if plan.sacrifice_options:
-            ctx = ctx_for(executor, source=source, controller=controller)
-            chosen: list[Handle] = []
-            for pool, need in plan.sacrifice_options:
-                remaining = [h for h in pool if h not in chosen]
-                if len(remaining) <= need:
-                    chosen.extend(remaining[:need])
-                    continue
-                picks: list[Handle] = []
-                for _pick in range(need):
-                    vocab = tuple(str(h) for h in sorted(remaining))
-                    answer = ctx.take_decision(
-                        vocab,
-                        f"sacrifice:{controller}:{source}:{site_digest(vocab)}",
-                    )
-                    pick = next(h for h in remaining if str(h) == answer)
-                    picks.append(pick)
-                    remaining.remove(pick)
-                chosen.extend(picks)
-            victims = tuple(sorted(chosen))
+            victims = _ask_cost_choices(
+                executor, plan.sacrifice_options, "sacrifice", source=source, controller=controller
+            )
         executor.apply_effect(
             _binding_atom(Verb.SACRIFICE, "target", victims),
             source=source,
@@ -1750,23 +1691,9 @@ def pay_costs(
         # of Handle order.
         burned = plan.discard
         if plan.discard_options:
-            ctx = ctx_for(executor, source=source, controller=controller)
-            chosen_d: list[Handle] = []
-            for pool, need in plan.discard_options:
-                remaining_d = [h for h in pool if h not in chosen_d]
-                if len(remaining_d) <= need:
-                    chosen_d.extend(remaining_d[:need])
-                    continue
-                for _pick in range(need):
-                    vocab = tuple(str(h) for h in sorted(remaining_d))
-                    answer = ctx.take_decision(
-                        vocab,
-                        f"discard:{controller}:{source}:{site_digest(vocab)}",
-                    )
-                    pick = next(h for h in remaining_d if str(h) == answer)
-                    chosen_d.append(pick)
-                    remaining_d.remove(pick)
-            burned = tuple(sorted(chosen_d))
+            burned = _ask_cost_choices(
+                executor, plan.discard_options, "discard", source=source, controller=controller
+            )
         executor.apply_effect(
             # A cost discard is a MOVE_ZONE (HAND -> GY) of the designated cards.
             _binding_atom(
@@ -1796,9 +1723,10 @@ def pay_costs(
         )
     if plan.loyalty:
         # The loyalty ledger steps through the same journalled counter
-        # verbs (PUT/REMOVE with CounterKind.LOYALTY), then the zero-loyalty
-        # planeswalker death check (CR 704.2) runs.
-        loyalty_before = _loyalty_of(world, source)
+        # verbs (PUT/REMOVE with CounterKind.LOYALTY). A walker paid down to 0
+        # keeps a zeroed LOYALTY key, so the state check that settles this step
+        # puts it into its owner's graveyard (CR 704.5i,
+        # ``Executor._zero_loyalty_walkers``).
         executor.apply_effect(
             _binding_atom(
                 Verb.PUT_COUNTER if plan.loyalty > 0 else Verb.REMOVE_COUNTER,
@@ -1810,12 +1738,6 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"target": [source]},
-        )
-        _loyalty_death_check(
-            executor,
-            source,
-            controller,
-            loyalty_before + plan.loyalty,
         )
     if plan.life:
         executor.apply_effect(
@@ -1864,7 +1786,7 @@ def activation_target_reason(
         return None
 
     def designated(slot, handle: Handle) -> Handle:
-        if getattr(slot, "synthetic", False) and handle.namespace == "card":
+        if slot.synthetic and handle.namespace == "card":
             return executor.controller_of(handle)
         return handle
 
@@ -1930,8 +1852,6 @@ def activate(
         # Same oracle-registry fallback as ability_playable — a hand
         # activation (Waker of Waves) has no bridge record.
         record = spell_record(executor, handle)
-        if record is None:  # pragma: no cover - ability_playable just checked
-            raise ValueError(f"executor: illegal activation: bridge:no_record:{handle}")
         ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):  # pragma: no cover — checked
         # ValueError, not TypeError: "illegal activation" is the documented
@@ -1995,14 +1915,12 @@ def activate(
     bindings: dict[str, Binding] = {}
     chosen = sorted(flat)
     if chosen:
-        bindings["target"] = chosen
         # TARGETING feed. Clock-order caveat of the FOLDED move: the targets
         # are validated before payment but journalled after it, so these
         # rows land after the payment rows — a compromise of the one-call
         # surface, not CR 602.2b's declare-then-pay order.
         executor.journal.emit_targeting(handle, seat, chosen)
     effect = ability.effect
-    assert effect is not None  # ActivatedAbility.effect is a required field
     # CR 602.2b, 601.2c: an ability with several targets ("Target creature
     # you control deals damage equal to its power to another target creature",
     # Garruk, Savage Herald's -2) designates per slot, exactly as the cast lane

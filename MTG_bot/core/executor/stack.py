@@ -165,9 +165,6 @@ class SpellStack:
             raise ValueError("executor: stack resolution with an empty stack")
         return self.frames.pop()
 
-    def top(self) -> SpellObject | None:
-        return self.frames[-1] if self.frames else None
-
     def dump(self) -> tuple[tuple[object, ...], ...]:
         """Canonical LIFO view (bottom → top) for the replay fingerprint:
         a parked card MUST change this row — the hidden-state-hole guard
@@ -261,11 +258,7 @@ def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | Non
     turn, plays = executor.land_ledger.get(seat, (world.turn, 0))
     if turn != world.turn:
         plays = 0
-    allowance = (
-        1
-        + executor.extra_land_plays
-        + (executor.layers.land_play_bonus(seat) if executor.layers else 0)
-    )
+    allowance = 1 + executor.extra_land_plays + executor.layers.land_play_bonus(seat)
     if plays >= allowance:
         return f"land:used_this_turn:{plays}>={allowance}"
     return None
@@ -458,7 +451,7 @@ def recheck_targets(
         if handle == own or handle in slot.candidates:
             return True
         return (
-            getattr(slot, "synthetic", False)
+            slot.synthetic
             and handle.namespace == "card"
             and executor.controller_of(handle) in slot.candidates
         )
@@ -609,7 +602,6 @@ def _plan_cast_designation(
     slots are the ones the targets were chosen for; resolution checks them
     again, CR 608.2b). Validation of the finished designation happens
     HERE — :func:`cast` must not re-validate mode-blind."""
-    from MTG_bot.core.ability_tree import FAtomPred
     from MTG_bot.core.executor.query import (
         filter_has_pred,
         modal_choose,
@@ -686,31 +678,14 @@ def _plan_cast_designation(
     return targets, slot_designations, remaining, modes, node
 
 
-def _tree_has_counter(node: object) -> bool:
-    """Does an IR subtree (SpellAbility effect trees, Seq/Choose/
-    Conditional shapes) contain a COUNTER_SPELL atom? Generic dataclass
-    walk, so it does not re-encode the effect grammar; the IR is a finite
-    tree (no cycles), so the recursion terminates."""
-    if isinstance(node, Atom):
-        return node.verb is Verb.COUNTER_SPELL
-    if is_dataclass(node) and not isinstance(node, Handle):
-        for f in fields(node):
-            value = getattr(node, f.name)
-            if isinstance(value, (list, tuple)):
-                if any(_tree_has_counter(item) for item in value):
-                    return True
-            elif _tree_has_counter(value):
-                return True
-    return False
-
-
 def _tree_verb_closure(node: object, acc: set) -> set:
-    """Every Atom verb inside an IR subtree (the same generic dataclass
-    walk as :func:`_tree_has_counter`). The windows' engine-support gate
-    asks for the FULL closure, not just the counter atom: a card that
-    counters a spell but also executes COPY (Sublime Epiphany) is not
-    executable by the engine, so a vocab that promises executability must
-    not offer it."""
+    """Every Atom verb inside an IR subtree (SpellAbility effect trees,
+    Seq/Choose/Conditional shapes). Generic dataclass walk, so it does not
+    re-encode the effect grammar; the IR is a finite tree (no cycles), so
+    the recursion terminates. The windows' engine-support gate asks for the
+    FULL closure, not just the counter atom: a card that counters a spell
+    but also executes COPY (Sublime Epiphany) is not executable by the
+    engine, so a vocab that promises executability must not offer it."""
     if isinstance(node, Atom):
         acc.add(node.verb)
     elif is_dataclass(node) and not isinstance(node, Handle):
@@ -764,7 +739,11 @@ def _counter_vocab(
         if record is None:
             continue
         node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
-        if node is None or node.effect is None or not _tree_has_counter(node.effect):
+        if (
+            node is None
+            or node.effect is None
+            or Verb.COUNTER_SPELL not in _tree_verb_closure(node.effect, set())
+        ):
             continue
         if not _tree_verb_closure(node, set()) <= set(HANDLERS):
             continue
@@ -955,22 +934,6 @@ def _declare_modal_counter(
 _COMBAT_INSTANT_ATOMS = frozenset({Verb.DEAL_DAMAGE, Verb.MODIFY_PT, Verb.SET_PT})
 
 
-def _tree_has_any_atom(node: object, verbs: frozenset) -> bool:
-    """Does an IR subtree contain ANY atom of ``verbs``? (The generic
-    dataclass walk of :func:`_tree_has_counter`, generalised.)"""
-    if isinstance(node, Atom):
-        return node.verb in verbs
-    if is_dataclass(node) and not isinstance(node, Handle):
-        for f in fields(node):
-            value = getattr(node, f.name)
-            if isinstance(value, (list, tuple)):
-                if any(_tree_has_any_atom(item, verbs) for item in value):
-                    return True
-            elif _tree_has_any_atom(value, verbs):
-                return True
-    return False
-
-
 def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
     """The response vocabulary for one seat in the combat instant window:
     PASS plus one ``<card>@<target>`` token per legal (instant,
@@ -989,7 +952,6 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
       auto-designate — burn has a whole population);
     * **modeless declaration** — a ``Choose`` fan can never open here
       (the lane casts with one target and no mode)."""
-    from MTG_bot.core.ability_tree import Choose
     from MTG_bot.core.executor.query import (
         spell_target_slots,
         validate_target_selection,
@@ -1008,7 +970,7 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
             node is None
             or node.effect is None
             or node.kind is not SpellKind.INSTANT
-            or not _tree_has_any_atom(node.effect, _COMBAT_INSTANT_ATOMS)
+            or _COMBAT_INSTANT_ATOMS.isdisjoint(_tree_verb_closure(node.effect, set()))
         ):
             continue
         if isinstance(node.effect, Choose):
@@ -1196,11 +1158,7 @@ def cast(
     # same zero-floor rule lands the value on the frame and the CAST row,
     # or the fold would pay {X}=0 while the journal claims no declaration.
     if x is None:
-        from MTG_bot.core.executor.legality import (
-            _cost_has_x,
-            kicker_of,
-            spell_cost,
-        )
+        from MTG_bot.core.executor.legality import kicker_of
 
         declared_extra = tuple(node.additional_costs)
         if kicked:
@@ -1269,7 +1227,6 @@ def cast(
     park(executor, seat, handle)
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
-    assert executor.stack.top() is frame  # LIFO: this cast is the top frame
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
     executor._settle()  # cast triggers resolve first
     _response_window(executor, frame)  # 6b
@@ -1505,7 +1462,7 @@ def cast_card(
     because every compiled CAST is the last instruction of its effect
     (Idol of Endurance, Coveted Prize). The cost payment above is part of
     the resolution and does not settle (Executor._run_resolution)."""
-    from MTG_bot.core.executor.legality import ctx_for, effect_cast_cost
+    from MTG_bot.core.executor.legality import effect_cast_cost
 
     world = executor.world
     record = spell_record(executor, handle)

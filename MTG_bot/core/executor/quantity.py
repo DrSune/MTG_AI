@@ -58,7 +58,7 @@ from MTG_bot.core.ability_tree import (
     ZonePosition,
 )
 from MTG_bot.core.executor.decisions import DecisionStream
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.events import GameEvent
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -219,9 +219,7 @@ class ExecCtx:
     # like look_window.
     may_done: dict[str, bool] = field(default_factory=dict)
 
-    def take_decision(
-        self, vocab: tuple[str, ...], what: str, *, seat: Handle | None = None
-    ) -> str:
+    def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
         lane can answer (never a default).
 
@@ -237,14 +235,12 @@ class ExecCtx:
         3. the stream's ask-time PROVIDER: the engine hands the exact
            vocabulary to the external answerer at the moment of demand.
 
-        ``seat`` names the deciding player when it is not this context's
-        controller; the provider sees it as ``DecisionStream.asking_seat``.
-        No call site passes it: a site whose decider is not the controller
-        asks through :meth:`take_decision_of`. The scry site relies on its
-        controller being the scrying player, and the bench router's tag check
-        raises loudly if a card ever breaks that.
+        The provider sees this context's controller as the deciding player
+        (``DecisionStream.asking_seat``); a site whose decider is another
+        player asks through :meth:`take_decision_of`. The scry site relies on
+        its controller being the scrying player, and the bench router's tag
+        check raises loudly if a card ever breaks that.
         """
-        decider = self.controller if seat is None else seat
         if self.decision_idx < len(self.decisions):
             choice = self.decisions[self.decision_idx]
             if choice in vocab:
@@ -263,12 +259,12 @@ class ExecCtx:
             # ``test_mismatched_word_is_never_consumed``).
             if self.stream is not None:
                 try:
-                    return self.stream.take(vocab, what, seat=decider)
+                    return self.stream.take(vocab, what, seat=self.controller)
                 except ValueError:
                     pass
             raise ValueError(f"executor: {what} decision {choice!r} not in {vocab}")
         if self.stream is not None:
-            return self.stream.take(vocab, what, seat=decider)
+            return self.stream.take(vocab, what, seat=self.controller)
         raise ValueError(
             f"executor: {what} needs a decision from {vocab}, "
             f"got only {len(self.decisions)} supplied"
@@ -312,7 +308,7 @@ def phased_out(ctx: ExecCtx, handle: Handle) -> bool:
     it does not exist? The status lives on the executor; a bare ExecCtx (no
     executor) has no phasing."""
     executor = ctx.executor
-    return executor is not None and handle in getattr(executor, "phased_out", ())
+    return executor is not None and handle in executor.phased_out
 
 
 def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
@@ -324,11 +320,9 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
     """
     if isinstance(quantity, QConst):
         return quantity.value
-    if isinstance(quantity, QAtMost):
-        # resolve reports the ceiling; callers clamp to what is actually
-        # available (0..n) before acting.
-        return quantity.n
-    if isinstance(quantity, QAtLeast):
+    if isinstance(quantity, (QAtMost, QAtLeast)):
+        # n: QAtMost reports its ceiling (callers clamp to what is actually
+        # available, 0..n, before acting), QAtLeast its floor.
         return quantity.n
     if isinstance(quantity, QBin):
         left = resolve(quantity.left, ctx)
@@ -648,10 +642,7 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
     # read of an undefined property stays the strict ValueError in
     # _prop_value (never a zero). An all-undefined population falls to the
     # empty-set 0 below.
-    aggregate_pt = isinstance(prop.referent, Selector) and prop.field in (
-        QPropField.POWER,
-        QPropField.TOUGHNESS,
-    )
+    aggregate_pt = prop.field in (QPropField.POWER, QPropField.TOUGHNESS)
     values = []
     for handle in resolve_selector(prop.referent, ctx):
         if aggregate_pt:
@@ -983,21 +974,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # PLUS_1_PLUS_1, count=None): _FATOM_RULES marks count required,
         # but FAtom.__post_init__ does not enforce "count", so the shape
         # reaches both the query lane (enumerate_candidates) and the runtime
-        # gate. Readings, by slot:
-        #   * counter_kind unbound: "has a counter" without naming WHICH
-        #     counter is not answerable from the world, so it raises
-        #     (FAtom.__post_init__ already requires this slot).
-        #   * count unbound: the existence reading the pred's own name
-        #     states, "with a {kind} counter on it" ⇔ count >= 1. NOT a zero
-        #     default: a threshold of 0 makes the pred vacuously True for
-        #     every object (every creature would be a legal Tempered Veteran
-        #     target). A BOUND count resolves through the ordinary quantity
-        #     lane (its own refusals propagate).
-        if atom.counter_kind is None:
-            raise NotImplementedError(
-                "executor: filter pred HAS_COUNTER has no bound counter_kind "
-                "(12c query surface — which counter is asked for?)"
-            )
+        # gate. An unbound count is the existence reading the pred's own
+        # name states, "with a {kind} counter on it" ⇔ count >= 1. NOT a
+        # zero default: a threshold of 0 makes the pred vacuously True for
+        # every object (every creature would be a legal Tempered Veteran
+        # target). A BOUND count resolves through the ordinary quantity lane
+        # (its own refusals propagate). counter_kind is a required slot.
+        assert atom.counter_kind is not None
         if handle.namespace != "card":
             return False  # characteristic absent (the KEYWORD_HAS convention)
         threshold = 1 if atom.count is None else resolve(atom.count, ctx)
@@ -1010,8 +993,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return world.cards[handle].counters.get(atom.counter_kind.name, 0) >= threshold
     if pred is FAtomPred.CONTROLLER_IS:
         who = atom.who
-        if who is None:
-            return False
+        assert who is not None
         from MTG_bot.core.executor.selectors import controller_matches, controller_of
 
         if handle.namespace != "card":
@@ -1047,8 +1029,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         )
 
         who = atom.who
-        if who is None:
-            return False
+        assert who is not None
         if isinstance(who, Selector):
             side = [
                 c if c.namespace == "player" else controller_of(ctx, c)
@@ -1067,9 +1048,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # of the step": the exclusion names a step, and no step is open.
         from MTG_bot.core.executor.selectors import players_for_ref
 
-        if atom.who is None:
-            return False
-        if isinstance(atom.who, Selector):
+        if not isinstance(atom.who, ControllerRef):
             raise NotImplementedError(
                 "executor: NOT_FIRST_DRAW_THIS_STEP with a referent-Selector "
                 "who has no corpus carrier (flag, never guess) — r22b"
@@ -1086,7 +1065,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "executor: NOT_FIRST_DRAW_THIS_STEP needs the executor's "
                 "draw-step tracker (bare ExecCtx has none) — r22b"
             )
-        if not getattr(ex, "_draw_step_open", False):
+        if not ex._draw_step_open:
             return True
         return ex.draw_step_ordinal.get(seats[0], 0) > 0
     if pred is FAtomPred.FLIP_WON:
@@ -1126,8 +1105,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # (``may:<source>:<digest>``) and a FORCED offer (query-narrowed
         # skip-only) is auto-picked into the JOURNAL, never asked into
         # ask_log, so the guard reads the journal (asked + auto-picked,
-        # occurrence order), prefix-matching the site. ask_log is consulted
-        # only when the journal holds nothing for the site.
+        # occurrence order), prefix-matching the site.
         site = f"may:{ctx.source}"
         if site in ctx.may_done:
             # CR 118.12: the optional action's outcome in this resolution:
@@ -1139,10 +1117,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         def at_site(what: str) -> bool:
             return what == site or what.startswith(f"{site}:")
 
-        for log in (ex.decisions.journal, ex.decisions.ask_log):
-            for what, answer in reversed(log):
-                if at_site(what):
-                    return answer == "fire"
+        for what, answer in reversed(ex.decisions.journal):
+            if at_site(what):
+                return answer == "fire"
         raise NotImplementedError(
             f"executor: MAY_DONE has no may-offer record for {site} — the "
             "conditional has no antecedent (unanswered question, flagged "
@@ -1157,7 +1134,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # controller). Handle-free like FLIP_WON: the same answer for every
         # candidate the filter gates, and it judges a sacrificed source
         # correctly (Fabled Passage is already in the graveyard here).
-        assert atom.count is not None
+        assert atom.count is not None and atom.inner_filter is not None
         threshold = resolve(atom.count, ctx)
         from MTG_bot.core.executor.selectors import controller_of
 
@@ -1167,10 +1144,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 world.zone_of(card).kind == ZONE_BATTLEFIELD
                 and not phased_out(ctx, card)  # CR 702.26b: not counted
                 and controller_of(ctx, card) == ctx.controller
-                and (
-                    atom.inner_filter is None
-                    or eval_filter(atom.inner_filter, card, ctx)
-                )
+                and eval_filter(atom.inner_filter, card, ctx)
             ):
                 counted += 1
                 if counted >= threshold:
@@ -1216,14 +1190,14 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             resolve_selector,
         )
 
-        assert atom.count is not None and atom.zone is not None
+        assert (
+            atom.count is not None
+            and atom.zone is not None
+            and atom.who is not None
+            and atom.inner_filter is not None
+        )
         threshold = resolve(atom.count, ctx)
         zone_ir = atom.zone
-        if atom.who is None:
-            raise NotImplementedError(
-                "executor: ZONE_COUNT_GE with no WHO has no consumer (R6-2 "
-                "requires the player slot; flag, never guess YOU)"
-            )
         state_kind = ZONE_KIND_TO_STATE.get(zone_ir.kind)
         if state_kind is None:
             raise NotImplementedError(
@@ -1233,16 +1207,11 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         who = atom.who
         if isinstance(who, ControllerRef):
             players = players_for_ref(who, ctx)
-        elif isinstance(who, Selector):
+        else:
             players = [
                 c if c.namespace == "player" else controller_of(ctx, c)
                 for c in resolve_selector(who, ctx)
             ]
-        else:
-            raise NotImplementedError(
-                f"executor: ZONE_COUNT_GE who {who!r} is neither a "
-                "ControllerRef nor a Selector (R6-2 closed vocabulary)"
-            )
         for player in players:
             entries = ctx.world.players[player].zone(state_kind).entries
             # The Zone's OPTIONAL position bounds the population (Conspicuous
@@ -1255,11 +1224,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 entries = entries[-1:]
             elif position is ZonePosition.BOTTOM:
                 entries = entries[:1]
-            counted = sum(
-                1
-                for h in entries
-                if atom.inner_filter is None or eval_filter(atom.inner_filter, h, ctx)
-            )
+            counted = sum(1 for h in entries if eval_filter(atom.inner_filter, h, ctx))
             if counted >= threshold:
                 return True
         return False
@@ -1601,19 +1566,17 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
 
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)
-        drawners: set[Handle] | None = None
-        if atom.who is not None:
-            if not isinstance(atom.who, ControllerRef):
-                raise NotImplementedError(
-                    "executor: CARDS_DRAWN_THIS_TURN_GE with a Selector seat "
-                    "has no consumer (the corpus carries ControllerRef)"
-                )
-            drawners = set(players_for_ref(atom.who, ctx))
+        if not isinstance(atom.who, ControllerRef):
+            raise NotImplementedError(
+                "executor: CARDS_DRAWN_THIS_TURN_GE with a Selector seat "
+                "has no consumer (the corpus carries ControllerRef)"
+            )
+        drawners = set(players_for_ref(atom.who, ctx))
         drawn = 0
         for row in _turn_rows(ctx, pred.name):
             if row.kind != KIND_CARD_DRAWN:
                 continue
-            if drawners is None or row.draw[0] in drawners:
+            if row.draw[0] in drawners:
                 drawn += 1
                 if drawn >= threshold:
                     return True
@@ -1651,19 +1614,17 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
 
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)
-        gainers: set[Handle] | None = None
-        if atom.who is not None:
-            if not isinstance(atom.who, ControllerRef):
-                raise NotImplementedError(
-                    "executor: LIFE_GAINED_THIS_TURN_GE with a Selector seat "
-                    "has no consumer (the corpus carries ControllerRef)"
-                )
-            gainers = set(players_for_ref(atom.who, ctx))
+        if not isinstance(atom.who, ControllerRef):
+            raise NotImplementedError(
+                "executor: LIFE_GAINED_THIS_TURN_GE with a Selector seat "
+                "has no consumer (the corpus carries ControllerRef)"
+            )
+        gainers = set(players_for_ref(atom.who, ctx))
         gained = 0
         for row in _turn_rows(ctx, pred.name):
             if row.kind != KIND_LIFE_GAINED:
                 continue
-            if gainers is None or row.subject in gainers:
+            if row.subject in gainers:
                 gained += row.amount
                 if gained >= threshold:
                     return True

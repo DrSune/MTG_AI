@@ -1,6 +1,5 @@
 """The executor-side P/T ledger and the Duration vocabulary that expires its entries.
 
-:mod:`MTG_bot.core.executor.durations_min` re-exports this module under its old name.
 state.py is frozen, so the :class:`DurationLedger` *is* the replayed state — its
 :meth:`dump` feeds the executor's replay fingerprint, so every expiry decision this module
 makes is deterministic and audited.
@@ -133,7 +132,7 @@ class PtChange:
     created_clock: int
     was_power: int | None
     was_toughness: int | None
-    record_id: int = 0
+    record_id: int
 
 
 @dataclass(frozen=True)
@@ -380,9 +379,6 @@ class DurationLedger:
         """``live`` | ``while_off`` | ``expired`` for one ledger entry."""
         return self._dormant.get(record_id, STATUS_LIVE)
 
-    def meta(self, record_id: int) -> DurationMeta | None:
-        return self._meta.get(record_id)
-
     def set_while(self, record_id: int, holds: bool) -> bool:
         """Set one WHILE entry's condition truth; returns True if the
         status actually toggled (the recompute's change signal)."""
@@ -522,6 +518,3 @@ class DurationLedger:
             )
             for c in self._changes
         )
-
-    def __len__(self) -> int:
-        return len(self._changes)

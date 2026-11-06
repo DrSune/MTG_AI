@@ -108,11 +108,6 @@ class DecisionStream:
         key: DecisionKey = (tuple(vocab), what)
         self._fifo.setdefault(key, deque()).extend(answers)
 
-    def has(self, vocab: Sequence[str], what: str) -> bool:
-        """Does the FIFO for this key hold an answer?"""
-        queue = self._fifo.get((tuple(vocab), what))
-        return bool(queue)
-
     # --------------------------------------------------------------- demand
 
     def take(self, vocab: Sequence[str], what: str, *, seat: Handle | None = None) -> str:

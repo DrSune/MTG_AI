@@ -899,11 +899,7 @@ def game_name(world: GameWorld, handle: object) -> str:
     if isinstance(handle, str) and ":" in handle:
         namespace, _, index = handle.partition(":")
         if namespace == "card":
-            try:
-                parsed = Handle("card", int(index))
-            except ValueError:  # pragma: no cover - dump() writes ns:int
-                return handle
-            card = world.cards.get(parsed)
+            card = world.cards.get(Handle("card", int(index)))
             if card is not None:
                 return f"{card.identity.name} ({handle})"
     return str(handle)
@@ -1233,10 +1229,7 @@ def _handle_from_str(text: str) -> Handle | None:
     namespace, _, index = text.partition(":")
     if namespace not in ("card", "emblem"):
         return None
-    try:
-        return Handle(namespace, int(index))
-    except ValueError:  # pragma: no cover - dump() always writes "ns:int"
-        return None
+    return Handle(namespace, int(index))
 
 
 @dataclass
@@ -1245,8 +1238,6 @@ class GameOutcome:
 
     seed: int
     pool_mode: str
-    deck_a: str = ""
-    deck_b: str = ""
     turns: int = 0
     survived: bool = False
     reason: str = ""
@@ -1327,12 +1318,7 @@ def play_game(
     if recorder is not None:
         recorder.attach(game)
         game.trace = recorder
-    outcome = GameOutcome(
-        seed=seed,
-        pool_mode=pool_mode,
-        deck_a=_deck_label(decks[0], supply),
-        deck_b=_deck_label(decks[1], supply),
-    )
+    outcome = GameOutcome(seed=seed, pool_mode=pool_mode)
     policy = RandomPolicy(seed)
     if recorder is not None:
         # _play registers ``policy.answer`` as the ask-time provider;
@@ -1661,10 +1647,6 @@ def deal_decks(
         build(rng.randrange(1 << 40), supply),
         build(rng.randrange(1 << 40), supply),
     )
-
-
-def _deck_label(deck: tuple[str, ...], supply: Supply) -> str:
-    return f"{sum(1 for oid in deck if supply.metas[oid].is_land)}L/{len(set(deck))}U"
 
 
 # ---------------------------------------------------------------------- stats

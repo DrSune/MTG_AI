@@ -15,9 +15,9 @@ control changes, phasing, emblems, attachments) and runs:
 Each Atom runs inside an atom boundary: the :class:`EventJournal` diffs the world around it and
 emits the events triggers match on. A top-level op ends by settling: state-based actions, then
 the matched triggers in APNAP order, with the check repeated after each one. A self-retriggering
-source is quarantined and listed in ``trigger_loops`` instead of looping (``MAX_TRIGGER_FIRES``).
-Casting, costs, legality and the legal-move enumerations live in :mod:`.stack`,
-:mod:`.legality` and :mod:`.query`; this package re-exports their public names.
+source is quarantined and listed in ``trigger_loops`` instead of looping
+(``binding.MAX_TRIGGER_FIRES``). Casting, costs, legality and the legal-move enumerations live in
+:mod:`.stack`, :mod:`.legality` and :mod:`.query`.
 
 Design rules:
 
@@ -72,9 +72,9 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
-from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES, TriggerBinder
+from MTG_bot.core.executor.binding import TriggerBinder
 from MTG_bot.core.executor.decisions import DecisionStream, site_digest
-from MTG_bot.core.executor.durations import DurationLedger, PtChange
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.events import (
     KIND_COMBAT_DAMAGE,
     KIND_DECLARE_ATTACKERS,
@@ -85,73 +85,30 @@ from MTG_bot.core.executor.events import (
     EventJournal,
     GameEvent,
 )
-from MTG_bot.core.executor.layers import GrantedAbility, LayerRecord, LayerRegistry
+from MTG_bot.core.executor.layers import LayerRegistry
 from MTG_bot.core.executor.legality import (
     SECOND_MAIN,
     ManaLedger,
-    PaymentPlan,
     ability_playable,
     activate,
     block_pair_blocked_reason,
     blocker_askable,
-    build_payment_plan,
     legal_attackers,
     mandated_attackers,
     mandated_to_be_blocked,
-    pay_costs,
     protected_from,
-    spell_castable,
-    spell_record,
 )
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, LastKnown, eval_filter
-from MTG_bot.core.executor.query import (
-    ActivationOption,
-    CastOption,
-    OptionChoice,
-    TargetSlot,
-    choose_options,
-    legal_activations,
-    legal_casts,
-    legal_search,
-    legal_targets,
-    optional_offer,
-    rest_of,
-    spell_target_slots,
-    validate_target_selection,
-    verb_choose_options,
-)
-from MTG_bot.core.executor.replacements import (
-    PreventionRecord,
-    ReplacementRecord,
-    ReplacementRegistry,
-)
+from MTG_bot.core.executor.query import choose_options, optional_offer
+from MTG_bot.core.executor.replacements import ReplacementRecord, ReplacementRegistry
 from MTG_bot.core.executor.returns import ReturnRegistry, ReturnRow
 from MTG_bot.core.executor.selectors import (
     atom_target_slot_key as _atom_target_slot_key,
 )
-from MTG_bot.core.executor.selectors import (
-    players_for_ref,
-    resolve_selector,
-)
-from MTG_bot.core.executor.stack import (
-    SpellObject,
-    SpellStack,
-    cast,
-    cast_card,
-    is_land_card,
-    land_playable,
-    open_combat_window,
-    park,
-    play_land,
-    stack_zone,
-)
-from MTG_bot.core.executor.verbs import (
-    HANDLERS,
-    damage_source,
-    run_atom,
-    token_oracle_id,
-)
+from MTG_bot.core.executor.selectors import players_for_ref
+from MTG_bot.core.executor.stack import SpellStack, open_combat_window
+from MTG_bot.core.executor.verbs import HANDLERS, damage_source, run_atom
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -160,38 +117,6 @@ from MTG_bot.core.state import (
     ZONE_HAND,
     ZONE_STACK,
     GameWorld,
-)
-
-# The first 24-verb capability set, a literal rather than derived from the dispatch table so
-# it never widens. Only tests read it, and DISCARD, EXILE and MILL in it have no handler.
-# ``SUPPORTED_VERBS_V2`` is the live set.
-SUPPORTED_VERBS_V1 = frozenset(
-    {
-        Verb.MOVE_ZONE,
-        Verb.EXILE,
-        Verb.SACRIFICE,
-        Verb.DESTROY,
-        Verb.DISCARD,
-        Verb.MILL,
-        Verb.GAIN_LIFE,
-        Verb.LOSE_LIFE,
-        Verb.DEAL_DAMAGE,
-        Verb.TAP,
-        Verb.UNTAP,
-        Verb.PUT_COUNTER,
-        Verb.REMOVE_COUNTER,
-        Verb.MODIFY_PT,
-        Verb.SET_PT,
-        Verb.CREATE_TOKEN,
-        Verb.ADD_MANA,
-        Verb.SCRY,
-        Verb.SHUFFLE,
-        Verb.LOOK_AT,
-        Verb.REVEAL,
-        Verb.GRANT_ABILITY,
-        Verb.LOSE_ABILITY,
-        Verb.PREVENT_EFFECT,
-    }
 )
 
 # The live capability set: exactly the verbs ``run_atom`` dispatches to a handler, derived from
@@ -285,56 +210,11 @@ def _combat_damage_atom(amount: int, recipient: object) -> Atom:
 
 __all__ = [
     "MAX_HAND_SIZE",
-    "MAX_TRIGGER_FIRES",
-    "SUPPORTED_VERBS_V1",
     "SUPPORTED_VERBS_V2",
-    "ActivationOption",
-    "Binding",
-    "CastOption",
-    "DurationLedger",
-    "Event",
-    "EventJournal",
-    "ExecCtx",
     "Executor",
-    "GameEvent",
     "GameOver",
-    "GrantedAbility",
-    "LayerRecord",
-    "LayerRegistry",
-    "ManaLedger",
-    "OptionChoice",
-    "PaymentPlan",
-    "PreventionRecord",
-    "PtChange",
-    "ReplacementRecord",
-    "ReplacementRegistry",
-    "SpellObject",
-    "SpellStack",
-    "TargetSlot",
-    "TriggerBinder",
     "ability_playable",
     "activate",
-    "build_payment_plan",
-    "cast",
-    "cast_card",
-    "choose_options",
-    "is_land_card",
-    "land_playable",
-    "legal_activations",
-    "legal_casts",
-    "legal_search",
-    "legal_targets",
-    "optional_offer",
-    "park",
-    "pay_costs",
-    "play_land",
-    "rest_of",
-    "spell_castable",
-    "spell_record",
-    "spell_target_slots",
-    "stack_zone",
-    "validate_target_selection",
-    "verb_choose_options",
 ]
 
 
@@ -2146,7 +2026,7 @@ class Executor:
         # Declare blockers (CR 509) - after the attack-trigger drain
         # (CR 508.3: the triggers resolve BEFORE the blocking player gets
         # the declaration duty), before any damage step.
-        fired += self._declare_blockers(seat)
+        self._declare_blockers(seat)
         # CR 509.4: the declare-blockers turn-based action ends, both
         # players get passes, and the BLOCK triggers (Snarespinner's
         # "blocks a creature with flying" pump, Gloom Sower's life swap,
@@ -2164,7 +2044,7 @@ class Executor:
         if self.attackers:
             open_combat_window(self)
         self.empty_mana_pools()  # end of the declare blockers step
-        fired += self._combat_damage(seat)
+        fired += self._combat_damage()
         self.empty_mana_pools()  # end of the combat damage step
         # End of combat: the settle runs the state-based actions; the attack
         # record closes with the phase (CR 506.4 - nothing "is attacking"
@@ -2265,7 +2145,7 @@ class Executor:
 
     # ----------------------------------------------------- declare blockers
 
-    def _declare_blockers(self, seat: Handle) -> int:
+    def _declare_blockers(self, seat: Handle) -> None:
         """CR 509. ONE ask per defending creature that could legal-
         ly block at least one attacker, Handle-sorted, site
         ``block:<card>:<turn>``: the vocabulary is the attackers that perma-
@@ -2293,7 +2173,7 @@ class Executor:
         defender = self.defending_player
         attackers = self._live_attackers(seat)
         if defender is None or not attackers:
-            return 0
+            return
         assigned: dict[Handle, list[Handle]] = {}
         candidates = sorted(
             card
@@ -2303,7 +2183,7 @@ class Executor:
             and blocker_askable(self, card, attackers)
         )
         if not candidates:
-            return 0
+            return
         mandated = mandated_to_be_blocked(self) & set(attackers)
         by_word = {str(a): a for a in attackers}
         # The pair matrix is precomputed once — asks mutate no state, so
@@ -2423,7 +2303,6 @@ class Executor:
                 f"executor: the blocks obey fewer requirements than the {most} a declaration "
                 "can (CR 509.1c — the ask narrowing should have prevented this)"
             )
-        fired = 0
         for attacker in sorted(assigned):
             for blocker in assigned[attacker]:
                 self.blocked_by.setdefault(attacker, []).append(blocker)
@@ -2434,7 +2313,6 @@ class Executor:
                     "BLOCK_STEP",
                     (attacker, self._declare_group),
                 )
-        return fired
 
     def join_attack(self, creature: Handle) -> None:
         """CR 508.1i - a creature PUT ONTO THE BATTLEFIELD ATTACKING
@@ -2504,7 +2382,7 @@ class Executor:
             and self.controller_of(card) == seat
         ]
 
-    def _combat_damage(self, seat: Handle) -> int:
+    def _combat_damage(self) -> int:
         """CR 702.7/702.4 first-strike / double-strike split. If anything
         ATTACKING OR BLOCKING has first or double strike there is a FIRST
         COMBAT DAMAGE STEP for the FS union DS carriers, then the settle's
@@ -2535,10 +2413,10 @@ class Executor:
         }
         fired = 0
         if first or doubled:
-            fired += self._damage_wave(seat, sorted(first | doubled))
+            fired += self._damage_wave(sorted(first | doubled))
             dealers = live(dealers)  # a first-strike kill removes the dealer
         normal = [h for h in dealers if h not in first or h in doubled]
-        fired += self._damage_wave(seat, sorted(normal))
+        fired += self._damage_wave(sorted(normal))
         return fired
 
     def _combat_dealers(self) -> list[Handle]:
@@ -2749,7 +2627,7 @@ class Executor:
         # canonical row order keeps the journal deterministic.
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
 
-    def _damage_wave(self, seat: Handle, dealers: list[Handle]) -> int:
+    def _damage_wave(self, dealers: list[Handle]) -> int:
         """One combat-damage substep: EVERY dealer's legal assignment is
         announced first (CR 510.1: all announcements, then all damage —
         nothing a later dealer's ask could read has mutated yet), then the
@@ -2763,8 +2641,6 @@ class Executor:
         however it splits), and the settle after the wave is the step's SBA
         + trigger drain. CR 120.7: a 0-power attacker deals no damage at
         all — no life change, no DAMAGE row, no combat-damage event."""
-        defender = self.defending_player
-        assert defender is not None
         strikes: list[tuple[Handle, tuple[tuple[int, Handle], ...]]] = []
         for dealer in dealers:
             identity = self.world.cards[dealer].identity
@@ -3368,8 +3244,3 @@ class Executor:
             ).encode()
         )
         return h.hexdigest()
-
-    # Executor-attribute aliases of two module-level helpers; nothing in
-    # MTG_bot or tools reaches them this way.
-    resolve_selector = staticmethod(resolve_selector)
-    token_oracle_id = staticmethod(token_oracle_id)

@@ -39,7 +39,7 @@ from dataclasses import dataclass, field
 from typing import cast
 
 from MTG_bot.core.ability_tree import Phase
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -281,9 +281,8 @@ class GameEvent:
 
     @property
     def kicked(self) -> bool:
-        """CAST rows only (CR 702.27a): was the kicker cost paid? A
-        payload without the flag reads False."""
-        return len(self.data) > 5 and bool(self.data[5])
+        """CAST rows only (CR 702.27a): was the kicker cost paid?"""
+        return bool(self.data[5])
 
     @property
     def declare_group(self) -> int:
@@ -601,11 +600,11 @@ class EventJournal:
                     cause_verb,
                     (
                         from_state,
-                        was[0] if was else owner,
+                        was[0],
                         identity.type_line,
                         was_power,
                         was_toughness,
-                        stolen_by if stolen_by is not None else (was[0] if was else owner),
+                        stolen_by if stolen_by is not None else was[0],
                         identity.is_token,
                     ),
                 )

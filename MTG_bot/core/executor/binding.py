@@ -107,13 +107,12 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.durations_min import duration_tag
+from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_ABILITY_ACTIVATED,
     KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
-    KIND_COMBAT_DAMAGE,  # noqa: F401 — journal feed only: emitted, never subscribed
     KIND_COUNTER_PLACED,
     KIND_CREATURE_DIES,
     KIND_DAMAGE,
@@ -209,11 +208,6 @@ def _required_target_keys(effect: object) -> frozenset[str]:
     if isinstance(effect, EachPlayer):
         return _required_target_keys(effect.effect)
     return frozenset()  # DelayedTrigger (CR 603.7c)
-
-
-def _is_universal(filter_: Filter) -> bool:
-    """The grammar's universal filter: an empty conjunction (``FAnd(())``)."""
-    return isinstance(filter_, FAnd) and len(filter_.children) == 0
 
 
 def _is_subject_identity(filter_: Filter) -> bool:
@@ -623,10 +617,6 @@ class TriggerBinder:
                 f"executor: {card_name} trigger event {kind.__name__} is "
                 f"{_UNSUPPORTED_EVENTS[kind]}"
             )
-        if isinstance(event, DamageDealtEvent):
-            # the source filter and the combat scope are read at match time
-            # (_match_damage), so every damage node binds.
-            return
         if isinstance(event, DeclareBlockersEvent) and event.count is not None:
             # only the blocker-limit prevention reads the count (a block row is
             # one pair, so a trigger matched on it would ignore the count)
@@ -720,14 +710,6 @@ class TriggerBinder:
                         entry.source, entry.controller, entry.node, event, delayed=True
                     )
             self._lifecycle(event, attach=False)
-        # Defensive flush: record_atom always journals the pair, so
-        # a pending handle should never outlive the pass. If a hand-built
-        # journal row (a test, or a future verb) ever splits the ZC/CD
-        # twins across drains, the invariant "a departed permanent is
-        # detached by the end of the pass" still holds.
-        for handle in sorted(self._pending_dies_detach):
-            self.detach(handle)
-        self._pending_dies_detach.clear()
 
     def _lifecycle(self, event: GameEvent, attach: bool) -> None:
         if event.kind == KIND_CREATURE_DIES and not attach:
@@ -917,7 +899,7 @@ class TriggerBinder:
         effect does not apply to instances of itself, which is what keeps
         two carriers from chasing each other (each adds its one extra per
         ORIGINAL firing; the extras carry no triggering event)."""
-        effect = getattr(payload.node, "effect", None)
+        effect = payload.node.effect
         if isinstance(effect, Atom) and effect.verb is Verb.TRIGGER_ADDITIONAL:
             return
         subscribers = [
@@ -938,7 +920,7 @@ class TriggerBinder:
                 cause_verb="TRIGGER",
                 data=(payload,),
             )
-            ctx = self._match_ctx(handle, ctrl, synth)
+            ctx = self._ctx(handle, ctrl, synth)
             if eval_filter(ability.event.filter, payload.source, ctx):
                 self._queue(handle, ctrl, ability, synth)
 
@@ -1042,10 +1024,10 @@ class TriggerBinder:
             return False
         if kind == KIND_CREATURE_DIES and isinstance(node, CreatureDiesEvent):
             assert event.subject is not None  # the journal always names the dead
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return eval_filter(node.filter, event.subject, ctx)
         if kind == KIND_CARD_DRAWN and isinstance(node, CardDrawnEvent):
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             drawer, ordinal = event.draw
             if node.actor is not None and not eval_filter(node.actor, drawer, ctx):
                 return False
@@ -1056,13 +1038,13 @@ class TriggerBinder:
             if node.tapped != event.tapped_new:
                 return False
             assert event.subject is not None
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return eval_filter(node.filter, event.subject, ctx)
         if kind == KIND_TURN_PHASE and isinstance(node, TurnPhaseEvent):
             phase_name, active = event.phase
             if node.phase.name != phase_name:
                 return False
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, active, ctx)
         if kind == KIND_DECLARE_ATTACKERS and isinstance(node, DeclareAttackersEvent):
             # The attack feed. The filter reads the DECLARED creature
@@ -1071,7 +1053,7 @@ class TriggerBinder:
             # object off the executor's attack record: the defending player
             # or a planeswalker that player controls (CR 508.1b).
             assert event.subject is not None  # the row names the attacker
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             if node.attacked is not None:
                 attacked = self.executor.attacked.get(event.subject)
                 if attacked is None or not eval_filter(node.attacked, attacked, ctx):
@@ -1092,7 +1074,7 @@ class TriggerBinder:
             # gives the node no subject field of its own, the event name
             # carries the anchor.
             assert event.subject is not None  # the row names the blocker
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             blocker = event.subject
             attacker, _group = event.declare_blockers
             if isinstance(node, DeclareBlockersEvent):
@@ -1112,7 +1094,7 @@ class TriggerBinder:
             return self._match_damage(node, event, source, controller)
         if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):
             assert event.subject is not None  # the gaining player
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, event.subject, ctx)
         if (
             isinstance(node, LifeLostEvent)
@@ -1124,7 +1106,7 @@ class TriggerBinder:
             # damage by losing that much life (CR 120.3a; the DAMAGE row of a
             # player is journalled from the life change), and every other loss,
             # a payment included (CR 119.4), is a LIFE_LOST row.
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, event.subject, ctx)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
             return self._match_cast(node, event, source, controller)
@@ -1140,7 +1122,7 @@ class TriggerBinder:
             # three-valued shape as the damage lane: card-shape preds are
             # FALSE outright, undecidable preds raise.
             assert event.subject is not None  # the row names its object
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             # The actor filter reads the targeting spell's or ability's
             # controller, journalled as data[1] (events.emit_targeting) — "a
             # spell or ability an opponent controls" (Warden of the Woods).
@@ -1150,8 +1132,6 @@ class TriggerBinder:
                 if not eval_filter(node.actor, actor, ctx):
                     return False
             if event.subject.namespace == "player":
-                if _is_universal(node.filter):
-                    return True
                 if _is_subject_identity(node.filter):
                     return False
                 return _player_subject_verdict(node.filter, event.subject, ctx)
@@ -1172,7 +1152,7 @@ class TriggerBinder:
                 return False
             if node.kind is AbilityKind.LOYALTY and loyalty is None:
                 return False
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             if node.actor is not None and not eval_filter(node.actor, event.cause, ctx):
                 return False
             return eval_filter(node.source, event.subject, ctx)
@@ -1198,7 +1178,7 @@ class TriggerBinder:
         it; Quirion Dryad's "a spell that's white, blue, black, or red" is
         the FOr of COLOR_HAS W/U/B/R (any of them, CR 105.2)."""
         caster = event.cast[0]
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
             return False
         if not self._cast_fits(node, event, source, controller):
@@ -1213,7 +1193,7 @@ class TriggerBinder:
         """Does one CAST row's spell fit the node's spell description: its
         from-zone pair and its filter (the SPELL card is the row's subject)?"""
         caster, _ordinal, _kind, from_zone, _x, _kicked = event.cast
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if node.from_zone is not None and not self._cast_zone_matches(
             node.from_zone, caster, from_zone, ctx
         ):
@@ -1276,11 +1256,6 @@ class TriggerBinder:
             return True
         return controller_matches(zone_ir.controller, caster, ctx)
 
-    def _match_ctx(
-        self, source: Handle, controller: Handle, event: GameEvent
-    ) -> ExecCtx:
-        return self._ctx(source, controller, event)
-
     def _match_zone_change(
         self,
         node: ZoneChangeEvent,
@@ -1289,7 +1264,7 @@ class TriggerBinder:
         controller: Handle,
     ) -> bool:
         from_state, to_state, owner_before, owner_after = event.zone_move
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if not self._zone_matches(node.from_zone, from_state, owner_before, ctx):
             return False
         if not self._zone_matches(node.to_zone, to_state, owner_after, ctx):
@@ -1335,7 +1310,7 @@ class TriggerBinder:
         ):
             return False
         assert owner_before is not None  # a battlefield move has an owner
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         return node.actor is None or eval_filter(node.actor, owner_before, ctx)
 
     def _match_counter(
@@ -1349,7 +1324,7 @@ class TriggerBinder:
         if node.counter_kind.name != kind_name:
             return False
         assert event.subject is not None
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if not eval_filter(node.filter, event.subject, ctx):
             return False
         if node.count is None:
@@ -1364,7 +1339,7 @@ class TriggerBinder:
         controller: Handle,
     ) -> bool:
         subject = event.subject
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         # The node's SCOPE fields: Garruk's Harbinger's "deals combat damage
         # to a player" and Subira's delayed tail both compile ``combat: true``
         # + a ``source`` filter over the DEALER. The DAMAGE row carries the
@@ -1377,8 +1352,6 @@ class TriggerBinder:
             if dealer is None or not eval_filter(node.source, dealer, ctx):
                 return False
         if subject is not None and subject.namespace == "player":
-            if _is_universal(node.filter):
-                return True
             if _is_subject_identity(node.filter):
                 return False  # a player is never the source CARD (Brash Taunter)
             # Hooded Blightfang: the player-damage row must be
@@ -1455,9 +1428,7 @@ class TriggerBinder:
                 fired = 0
                 continue
             instance = self._pop_next()
-            payload = self.firings.pop(instance.clock, None)
-            if payload is None:  # pragma: no cover - instances only via _queue
-                continue
+            payload = self.firings.pop(instance.clock)
             self._fire(payload)
             per_source[instance.source] = per_source.get(instance.source, 0) + 1
             fired += 1
@@ -1500,9 +1471,7 @@ class TriggerBinder:
         order: it is the one a player putting them on the stack newest-first would get),
         Handle and bind order breaking ties."""
         def key(t):
-            payload = self.firings.get(t.clock)
-            if payload is None:  # pragma: no cover - instances only via _queue
-                return (0, 0, t.clock, str(t.source), -1)
+            payload = self.firings[t.clock]
             return (-payload.batch, -payload.apnap, t.clock, str(t.source), payload.seq)
 
         chosen = min(self.world.triggers, key=key)
@@ -2067,7 +2036,7 @@ class TriggerBinder:
             return True
         picks: list[Handle] = []
         pool = list(candidates)
-        for pick_no in range(wanted):
+        for _ in range(wanted):
             if len(pool) == 1 and not optional_stop:
                 picks.append(pool[0])  # auto-fill: one legal filler, no ask
                 break
@@ -2134,7 +2103,6 @@ class TriggerBinder:
             event.kind == KIND_ZONE_CHANGE
             and event.subject is not None
             and event.subject == source
-            and len(event.data) >= 2
             and event.data[1] == ZONE_BATTLEFIELD
         ):
             x_value = ex.etb_x.get(source, 0)
@@ -2143,7 +2111,7 @@ class TriggerBinder:
             ledger=ex.ledger,
             controller=controller,
             source=source,
-            bindings=dict(bindings),
+            bindings=bindings,
             x_value=x_value,  # CR 614.1c cast-declared X at ETB
             decisions=(),  # firings answer through ex.decisions
             stream=ex.decisions,

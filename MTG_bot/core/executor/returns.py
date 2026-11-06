@@ -271,6 +271,3 @@ class ReturnRegistry:
             )
             for r in self.rows
         )
-
-    def __len__(self) -> int:
-        return len(self.rows)
