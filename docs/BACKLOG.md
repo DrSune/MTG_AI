@@ -818,6 +818,13 @@ These are forks, not tasks. See the report that accompanied this audit.
     encode "one or more" as a QAtLeast condition. The coordinator recommends a GENERAL form of (1):
     once-per-event vs once-per-object is one trigger axis (dies, enters, damage too), so an
     attack-only field would become a second encoding of it (AGENTS §9).
+  - Damage today (2026-11-06, `binding._queue`): a `DamageDealtEvent` with no `source` filter ("is
+    dealt damage") fires once per recipient per combat damage step (CR 510.2); one with a `source`
+    filter fires per DAMAGE row (per dealer and recipient). That is right for "a source you control
+    deals ... to an opponent" and "deals combat damage to a player", wrong for "one or more ...
+    deal" (Feline Sovereign, not verified) and for a dealer trigger with no recipient ("whenever
+    this creature deals damage") split by trample or several blockers (none compiled). The general
+    field would replace that reading.
 - **B-107 [vfix2, V15 residue, 2026-10-29; numbered B-80 in 6ec0078, renumbered 2026-10-30 for the
   same reason] Untargeted "up to N" still compiles as an exact count.**
   - V15 made "up to N target ..." 0..N (CR 601.2c, 115.6) and Kinetic Augur's "discard up to two"
@@ -1576,8 +1583,11 @@ W&B key in history is revoked; a private split exists outside the public repo.
   `handle_record` for every zone, while `_setup_game` attaches the pool before the decks are dealt.
   So no pack could see the fetched-land bug fixed with this entry (a pack fetching a land passed on
   the broken engine; only a test through `_setup_game` was red). Make the runner bind like a game
-  (battlefield, stack and graveyard at setup; hand and library unbound), then audit the
-  `handle_record.get(...)` readers for cards in hand or library.
+  (battlefield, stack and graveyard at setup; hand and library unbound). The
+  `handle_record.get(...)` readers are audited (2026-11-06, branch `fix/live-play-bugs`): only the
+  CR 601.2f cost fold read a card in hand that way, so a dealt card's own "this spell costs" modifier
+  never applied (Volcanic Salvo was never offered); it reads `spell_record` now. The other readers
+  read battlefield permanents, which are bound on entry.
 - **No mulligan** (2026-11-06, the r19 game review): every player keeps the opening seven (CR 103.5,
   the London mulligan, is not implemented). The network kept a 0-land hand; the heuristic sat on one
   land for whole games. Real play mulligans those hands, so every such game is decided by the deal.
