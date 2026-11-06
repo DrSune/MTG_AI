@@ -1,16 +1,16 @@
-"""Turn history (2026-11-05): "what happened this turn" as one mechanism.
+"""Turn history: "what happened this turn" as one mechanism.
 
 ``FAtomPred.EVENT_THIS_TURN`` asks whether an event happened this turn, ``count`` or more;
 ``SUBJECT_OF_EVENT_THIS_TURN`` whether the judged object was that event's subject. The event is an
 EventSpec, matched against the turn's journal rows by the trigger binder's own matcher, so the
-trigger vocabulary and the history vocabulary are one. ``LifeLostEvent`` joins the events (CR
+trigger vocabulary and the history vocabulary are one. ``LifeLostEvent`` is one of them (CR
 120.3a: damage to a player is life lost; CR 119.4: so is paying life).
 
-Cards that needed this (needs-atom records): Savage Gorger and Stromkirk Bloodthief ("if an
-opponent lost life this turn"), Knight of the Ebon Legion ("a player lost 4 or more life"),
-Nightpack Ambusher ("if you didn't cast a spell"), Veil of Summer ("an opponent has cast a blue or
-black spell"), Ogre Siegebreaker and Fathom Fleet Cutthroat ("creature that was dealt damage this
-turn"), and raid ("if you attacked this turn").
+Cards that read it: Savage Gorger and Stromkirk Bloodthief ("if an opponent lost life this
+turn"), Knight of the Ebon Legion ("a player lost 4 or more life"), Nightpack Ambusher ("if you
+didn't cast a spell"), Veil of Summer ("an opponent has cast a blue or black spell"), Ogre
+Siegebreaker and Fathom Fleet Cutthroat ("creature that was dealt damage this turn"), and raid
+("if you attacked this turn").
 """
 
 from __future__ import annotations
@@ -267,7 +267,7 @@ class TestSpellsCast(HistoryCase):
         self.assertFalse(self.judge(YOU_CAST_A_SPELL))
         cast(self.ex, self.p0, bear)
         self.assertTrue(self.judge(YOU_CAST_A_SPELL))
-        self.assertFalse(self.judge(legacy))  # the old pred reads instants and sorceries only
+        self.assertFalse(self.judge(legacy))  # this pred reads instants and sorceries only
         self.assertFalse(self.judge(FNot(YOU_CAST_A_SPELL)))  # "if you didn't cast a spell"
         self.assertFalse(self.judge(YOU_CAST_A_SPELL, controller=self.p1))
 
@@ -487,7 +487,7 @@ class TestEveryEntryPoint(HistoryCase):
 
 
 class TestTriggerLane(HistoryCase):
-    """The two new events are trigger events too: one matcher serves both lanes."""
+    """The history events on the trigger lane: one matcher serves both lanes."""
 
     def _permanent_with(self, trigger) -> object:
         rec = spell_rec(

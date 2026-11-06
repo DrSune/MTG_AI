@@ -1,28 +1,23 @@
-"""The full Duration vocabulary on the executor-side ledger (round 12d,
-plan /06 §12d, ruling 1).
+"""The executor-side P/T ledger and the Duration vocabulary that expires its entries.
 
-This module supersedes :mod:`MTG_bot.core.executor.durations_min` (which
-stays as a re-export shim so every 12a/12b import path keeps working — the
-ledger class name ``DurationLedger`` is CARRIED, per the 12d delegation's
-migration option). Ruling 1 stands: state.py is frozen and the
-:class:`DurationLedger` *is* the replayed state — its :meth:`dump` feeds the
-executor's replay fingerprint, so every expiry decision this module makes is
-deterministic and audited.
+state.py is frozen, so the :class:`DurationLedger` *is* the replayed state — its
+:meth:`dump` feeds the executor's replay fingerprint, so every expiry decision this module
+makes is deterministic and audited.
 
-The vocab, and where each expiry point is driven from (12d wiring, all
-inside :class:`~MTG_bot.core.executor.Executor`):
+The vocab, and where each expiry point is driven from (all inside
+:class:`~MTG_bot.core.executor.Executor`):
 
   * ``DurationEot`` — ``"Eot"``: the end-of-turn sweep (``end_turn`` calls
-    :meth:`sweep_at_eot`, unchanged 12a behaviour — a PHYSICAL removal,
-    because a verb-level Eot buff has no continuing identity to audit).
+    :meth:`sweep_at_eot`) — a PHYSICAL removal, because a verb-level Eot buff
+    has no continuing identity to audit.
   * ``DurationWhileCondition`` — ``"While"``: re-evaluated on journal-
     relevant events (:meth:`settle_while`, driven from the executor's
     recompute pass after every public op). A while-off entry is DORMANT, not
     deleted — the grant follows the condition's truth, so it must come back
     when the condition does; the entry (and its dormancy status) stays in
     the dump either way.
-  * ``DurationUntilNextStep(step, owner_scoped)`` — ``"UntilNextStep:<STEP>
-    [:owner|:active]"``: expired by the matching step tick (the 12d untap
+  * ``DurationUntilNextStep(step, owner_scoped)`` — ``"UntilNextStep:<STEP>:
+    <owner|active>"``: expired by the matching step tick (the untap
     step; :meth:`expire_at_step`). ``owner_scoped`` True binds the tick to
     the affected object's CONTROLLER's turn ("their controller's next untap
     step" — Frost Breath); False binds it to the next step of the active
@@ -30,22 +25,20 @@ inside :class:`~MTG_bot.core.executor.Executor`):
     the Frost Breath freeze therefore survives exactly one untap tick.
   * ``DurationUntilLeaves`` — ``"UntilLeaves"``: a zone interceptor — the
     executor's journal hook calls :meth:`expire_leaves` when the anchor
-    permanent LEAVES the tracked zone. Per the r5 convention (re-entry does
-    not restore a spent duration), a return to the zone does NOT restore
+    permanent LEAVES the tracked zone. A return to the zone does NOT restore
     the entry: the expiry is terminal.
   * ``DurationUntilNextTurn`` — ``"UntilNextTurn"``: expires at the
-    recorded controller's next ``begin_turn`` (:meth:`expire_until_next_turn`)
-    — the precise next-turn-start expiry the 12a module deferred. (The 12b
-    delayed-trigger matcher keeps its documented Eot-window stand-in; that
-    is :mod:`binding`'s own table, not this ledger.)
+    recorded controller's next ``begin_turn`` (:meth:`expire_until_next_turn`).
+    (A delayed trigger's window is :mod:`binding`'s own table, swept at end
+    of turn, not this ledger.)
   * ``DurationPermanent`` — ``"Permanent"``: only another effect removes it.
 
-**PT resolution rule (12d ruling, documented):** effective P/T = printed
-BASE, then every modifier — verb-recorded and layer-materialized — folded
-in **timestamp order, then Handle/insertion order** (:meth:`_effective`).
-C18 was-snapshots take that same base-first fold at application time (they
-read the stack, never a "baked" value), and the journal's dies snapshot
-keeps reading :meth:`effective_pt` exactly as 12b pinned it.
+**PT resolution rule:** effective P/T = printed BASE, then every modifier —
+verb-recorded and layer-materialized — every set before every delta (CR 613.4),
+each group in **timestamp order, then Handle/insertion order**, then the P/T
+counters (:meth:`_effective`). Was-snapshots take that same fold at
+application time (they read the stack, never a "baked" value), and the
+journal's dies snapshot reads :meth:`effective_pt`.
 """
 
 from __future__ import annotations
@@ -68,7 +61,7 @@ from MTG_bot.core.identity import CardIdentity, Handle
 
 # Duration IR node -> ledger expiry tag. The tag is the canonical identity
 # of the expiry class: it rides in every dump row and in the layer /
-# prevention records of 12d's other registries.
+# prevention records of the other registries.
 _DURATION_TAG: dict[type, str] = {
     DurationEot: "Eot",
     DurationPermanent: "Permanent",
@@ -77,8 +70,8 @@ _DURATION_TAG: dict[type, str] = {
     DurationUntilLeaves: "UntilLeaves",
 }
 
-# The one expiry 12a implements (and still the only PHYSICAL sweep — every
-# 12d expiry tombstones instead, so the audit trail replays).
+# The only PHYSICAL sweep: every other expiry tombstones instead, so the
+# audit trail replays.
 EOT_TAG = "Eot"
 
 # The status tags a dump row can carry. Absent from ``_dormant`` == "live".
@@ -90,10 +83,8 @@ STATUS_EXPIRED = "expired"
 def duration_tag(duration: Duration | None) -> str:
     """The ledger expiry tag for a Duration IR node; absent = permanent.
 
-    12d: every member of the frozen Duration union tags — the 12a
-    NotImplementedError-raising default for WHILE/UNTIL_NEXT_STEP/UNTIL_
-    LEAVES is replaced by the real machinery below. An unknown node still
-    raises: flag, don't degrade."""
+    Every member of the frozen Duration union tags; an unknown node raises:
+    flag, don't degrade."""
     if duration is None:
         return "Permanent"
     if isinstance(duration, DurationUntilNextStep):
@@ -124,12 +115,11 @@ class PtChange:
     """One recorded P/T modification.
 
     ``kind`` is ``"delta"`` (MODIFY_PT: additive) or ``"set"`` (SET_PT:
-    absolute, later sets win over earlier ones). V27 (CR 613.4): every set
+    absolute, later sets win over earlier ones). CR 613.4: every set
     applies before every delta (sublayers 7a/7b before 7c), whatever the clock
-    order. The ``was_*`` pair is the C18 was-snapshot of the *effective*
-    P/T at application time. ``record_id`` is the ledger's monotone id (0 =
-    the legacy/verb path predating 12d bookkeeping — never linked to a
-    layer; layer-materialized entries carry their ledger-assigned id).
+    order. The ``was_*`` pair is the was-snapshot of the *effective*
+    P/T at application time. ``record_id`` is the ledger's monotone id, from
+    1 (a layer links its materialized entries by it).
     """
 
     target: Handle
@@ -142,15 +132,15 @@ class PtChange:
     created_clock: int
     was_power: int | None
     was_toughness: int | None
-    record_id: int = 0
+    record_id: int
 
 
 @dataclass(frozen=True)
 class DurationMeta:
-    """The expiry bookkeeping of one ledger entry whose Duration needs more
-    than the Eot sweep: the WHILE condition (with its eval coordinates),
-    the UNTIL_NEXT_STEP scope, the UNTIL_LEAVES anchor, or the UNTIL_NEXT_
-    TURN owner. Plain Eot/Permanent entries carry no meta."""
+    """The expiry bookkeeping of one ledger entry: the WHILE condition (with
+    its eval coordinates), the UNTIL_NEXT_STEP scope, the UNTIL_LEAVES
+    anchor, or the UNTIL_NEXT_TURN owner. Plain Eot/Permanent entries carry
+    just the tag and the controller."""
 
     tag: str
     condition: Filter | None = None  # WHILE: the condition's Filter
@@ -166,14 +156,14 @@ class DurationLedger:
     """The executor-side record of temporary and permanent P/T changes.
 
     :meth:`effective_pt` folds the entries for one card as documented on the
-    module docstring (base, then timestamp-then-order applications, skipping
-    dormant/expired tombstones), which is what lethal-damage checks, QProp
-    POWER/TOUGHNESS and the 12b dies snapshot read.
+    module docstring (skipping dormant/expired tombstones), which is what
+    lethal-damage checks, QProp POWER/TOUGHNESS and the journal's dies
+    snapshot read.
     """
 
     def __init__(self) -> None:
         self._changes: list[PtChange] = []
-        # B-52: record_id -> its CURRENT PtChange, kept in step with
+        # record_id -> its CURRENT PtChange, kept in step with
         # _changes, so :meth:`revalue` reads an entry in O(1) on every
         # layer recompute.
         self._by_id: dict[int, PtChange] = {}
@@ -199,15 +189,15 @@ class DurationLedger:
         controller: Handle | None = None,
         leaves_anchor: Handle | None = None,
     ) -> PtChange:
-        """Append one change, snapshotting the target's effective P/T (C18).
+        """Append one change, snapshotting the target's effective P/T (the
+        was-snapshot).
 
-        12d additions: pass the Duration IR node (``duration``) for the
-        condition-carrying vocabularies — WHILE re-evaluates against
-        ``source`` in the recording ``controller``'s context, UNTIL_NEXT_
-        STEP records the step + owner-scope, UNTIL_NEXT_TURN records the
-        owner, UNTIL_LEAVES gets its tracked object as ``leaves_anchor``
-        (the caller resolves the C12 referent string — the ledger never
-        parses English)."""
+        Pass the Duration IR node (``duration``) for the condition-carrying
+        vocabularies — WHILE re-evaluates against ``source`` in the recording
+        ``controller``'s context, UNTIL_NEXT_STEP records the step +
+        owner-scope, UNTIL_NEXT_TURN records the owner, UNTIL_LEAVES gets its
+        tracked object as ``leaves_anchor`` (the caller resolves the referent
+        string — the ledger never parses English)."""
         if change_kind not in ("delta", "set"):
             raise ValueError(f"DurationLedger: unknown change kind {change_kind!r}")
         was_power, was_toughness = self._effective(identity, target)
@@ -247,14 +237,14 @@ class DurationLedger:
         power_set: int | None,
         toughness_set: int | None,
     ) -> bool:
-        """B-52: give one entry its CURRENT value, in place.
+        """Give one entry its CURRENT value, in place.
 
         A static ability's effect is not locked in (CR 611.3a): a counted
         P/T value ("power equal to the number of instant and sorcery cards
         in your graveyard", "+1/+1 for each soul counter") follows its count
         both ways. It stays the SAME effect with the same timestamp (CR
         613.7a), so the entry keeps its record id, its created_clock (its
-        place in the timestamp fold) and its C18 was-snapshot; only the
+        place in the timestamp fold) and its was-snapshot; only the
         numbers move. Returns True when they actually changed (the
         recompute's change signal); an unknown id raises (flag, don't
         degrade)."""
@@ -316,15 +306,15 @@ class DurationLedger:
         counters: dict[str, int] | None = None,
     ) -> tuple[int | None, int | None]:
         """(power, toughness) after every LIVE recorded change, in the
-        documented base -> timestamp -> order fold.
+        documented fold.
 
-        r19a (Basri's Solidarity): ``counters`` — the card's live counter
-        map (world.cards[h].counters) — folds the P/T counters PLUS the
-        ledger. CR 613.3b: the +1/+1-counter layer comes AFTER the
+        ``counters`` — the card's live counter map (world.cards[h].counters)
+        — folds the P/T counters PLUS the ledger (Basri's Solidarity).
+        CR 613.3b: the +1/+1-counter layer comes AFTER the
         timestamp-ordered continuous-effect layer, so the counter sum is
         applied after the fold, and it stacks on top of a SET_PT the same
-        way a counter stacks on "becomes a 1/1". Callers that pass no map
-        get the pre-19a byte-exact fold."""
+        way a counter stacks on "becomes a 1/1". Without a map no counter
+        is folded."""
         return self._effective(identity, card, counters)
 
     def _effective(
@@ -336,13 +326,13 @@ class DurationLedger:
         power = parse_pt(identity.power)
         toughness = parse_pt(identity.toughness)
         stack = self._fold_stack(card)
-        # V27 (CR 613.4): within layer 7 the sublayers apply in order, and only
+        # CR 613.4: within layer 7 the sublayers apply in order, and only
         # WITHIN a sublayer does timestamp order decide: 7a characteristic-defining
-        # abilities and 7b "set" effects first, then 7c modifications and counters.
-        # A pure timestamp fold let a later set (Kinetic Augur's power CDA, as it
-        # entered) erase an earlier +1/+1 (Glorious Anthem). Sets keep their
-        # timestamp order among themselves (7a vs 7b is not told apart here: no
-        # dealt card pairs a CDA with a 7b effect), then every delta, then counters.
+        # abilities and 7b "set" effects first, then 7c modifications and counters,
+        # so a later set (Kinetic Augur's power CDA, as it enters) does not erase
+        # an earlier +1/+1 (Glorious Anthem). Sets keep their timestamp order among
+        # themselves (7a vs 7b is not told apart here: no dealt card pairs a CDA
+        # with a 7b effect), then every delta, then counters.
         stack = [c for c in stack if c.kind != "delta"] + [
             c for c in stack if c.kind == "delta"
         ]
@@ -388,9 +378,6 @@ class DurationLedger:
     def status(self, record_id: int) -> str:
         """``live`` | ``while_off`` | ``expired`` for one ledger entry."""
         return self._dormant.get(record_id, STATUS_LIVE)
-
-    def meta(self, record_id: int) -> DurationMeta | None:
-        return self._meta.get(record_id)
 
     def set_while(self, record_id: int, holds: bool) -> bool:
         """Set one WHILE entry's condition truth; returns True if the
@@ -450,8 +437,8 @@ class DurationLedger:
 
     def expire_leaves(self, anchor: Handle) -> int:
         """The UNTIL_LEAVES zone interceptor: terminal-expire every entry
-        anchored to ``anchor``. Re-entering the zone does NOT restore (r5
-        convention — expiry is terminal)."""
+        anchored to ``anchor``. Re-entering the zone does NOT restore: expiry
+        is terminal."""
         return self.expire(
             rid
             for rid, meta in list(self._meta.items())
@@ -488,10 +475,10 @@ class DurationLedger:
         )
 
     def sweep_at_eot(self) -> int:
-        """End-of-turn expiry sweep (the Eot tag only — 12a semantics kept
-        byte-identical: a PHYSICAL removal, because a verb-level Eot buff
-        has no continuing identity). Every other vocabulary expires through
-        its own tombstoning path so the audit trail replays."""
+        """End-of-turn expiry sweep (the Eot tag only): a PHYSICAL removal,
+        because a verb-level Eot buff has no continuing identity. Every other
+        vocabulary expires through its own tombstoning path so the audit
+        trail replays."""
         keep = [c for c in self._changes if c.tag != EOT_TAG]
         expired = len(self._changes) - len(keep)
         gone = {c.record_id for c in self._changes} - {c.record_id for c in keep}
@@ -510,8 +497,8 @@ class DurationLedger:
         return tuple(c for c in self._changes if c.target == card)
 
     def dump(self) -> tuple[tuple[object, ...], ...]:
-        """A deterministic canonical view for the replay fingerprint. 12d
-        extends each row with the layer-link id and the expiry status
+        """A deterministic canonical view for the replay fingerprint. Each row
+        ends with the record id (the layer link) and the expiry status
         (live / while_off / expired) so every condition cycle and expiry is
         fingerprint-audited."""
         return tuple(
@@ -531,6 +518,3 @@ class DurationLedger:
             )
             for c in self._changes
         )
-
-    def __len__(self) -> int:
-        return len(self._changes)

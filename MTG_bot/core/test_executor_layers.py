@@ -1,4 +1,4 @@
-"""Round-12d pins: continuous layers (plan /06 §12d). Covers the
+"""Continuous layers. Covers the
 StaticAbility anthem half (set-membership recompute, condition cycles,
 materialized PT entries folding with verb PTs), keyword_of over printed +
 granted + lost keywords (seq-order basis), the GRANT_ABILITY/LOSE_ABILITY
@@ -295,10 +295,10 @@ def _your_graveyard_count() -> QCount:
 
 
 class TestCountedStatic(LayerCase):
-    """B-52 (2026-10-29): a counted static P/T value is continuously
-    recomputed (CR 611.3a: a static ability's effect is not locked in;
-    CR 613.4a/c: a characteristic-defining or modifying P/T effect applies
-    the value of the moment). It used to freeze at its first value."""
+    """A counted static P/T value is continuously recomputed (CR 611.3a:
+    a static ability's effect is not locked in; CR 613.4a/c: a
+    characteristic-defining or modifying P/T effect applies the value of
+    the moment)."""
 
     def bury(self, name):
         card = self.world.add_card(card_id(name, type_line="Instant"), self.p0)
@@ -407,8 +407,7 @@ class TestKeywordLayers(LayerCase):
         self.assertFalse(self.ex.layers.keyword_of(self.beta, Keyword.FLYING))
         # The LOSE layer was made by a resolving effect (the verb), not by a
         # static ability of its source: detaching the source does not end it
-        # (CR 611.2a, B-50; this pin used to assert the opposite). With no
-        # duration stated it lasts the game.
+        # (CR 611.2a). With no duration stated it lasts the game.
         self.ex.binder.detach(self.banner)
         self.settle()
         self.assertFalse(self.ex.layers.keyword_of(self.beta, Keyword.FLYING))
@@ -450,7 +449,7 @@ class TestKeywordLayers(LayerCase):
             ],
         )
         # The ETB must ride a journalled atom (raw world moves are not
-        # what the journal diffs — the enter-atom is the 12b convention).
+        # what the journal diffs — the enter-atom is the convention).
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,

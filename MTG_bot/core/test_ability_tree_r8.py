@@ -1,49 +1,38 @@
-"""Grammar round 7 — nine additive items (2026-09-28).
+"""Grammar pins: the "result" referent, CHOOSE and CHOOSE_NAME, two
+predicates, DurationUntilLeaves, two event counts, the ONE_OF / REST
+selector modes, FIGHT, LOSE_ABILITY, and the compiler's "Otherwise" merge.
 
-Round-7 scope (spec: KNOWLEDGE/2026-09-28/03-grammar-round7-decision.md;
-file-name offset is intentional — round-7 grammar ships in the r8 file,
-following the r6-in-r7 precedent):
-
-- R7-1: referent vocabulary ``"result"`` appended to
-  ``_QPROP_STR_REFERENTS`` (the object(s) the previous sentence acted on —
-  C12 anaphora referent); ``Verb.CHOOSE`` (pick a set FROM the target
-  pool, Duress/Kitesail "You choose … from it"); ``FAtomPred.
-  IS_ATTACHED_TO`` with a REQUIRED ``referent`` slot (Turn to Slag) — the
-  FAtom str slot follows the R4-4 zone-slot precedent (omit-when-None,
-  byte-stable).
-- R7-2: ``DurationUntilLeaves`` (Kitesail Cabinet "until this creature
-  leaves the battlefield", Idol of Endurance) — referent-string field,
-  default "source", vocabulary-validated; ``_VERB_ROLES[GAIN_CONTROL]``
-  gains the optional ``duration`` role (Traitorous).
-- R7-3: compiler ``_CONTINUATION_PREFIXES`` += ("Otherwise", "When you
-  do"); ``_merge_otherwise`` attaches the parsed effect as the
-  ``else_effect`` of the previous Conditional, C13 fallback to the
-  default merge. "When you do" prefix registered; its event binding
-  (Tolarian Kraken, antecedent "you may pay {1}") has NO clean existing
-  event — the row stays queued (batch-phase concern).
-- R7-4: ``Verb.CHOOSE_NAME`` {name_filter?} + ``FAtomPred.NAME_CHOSEN``
-  (no slots; Runed Halo / Necromentia).
-- R7-5/6: ``QPropField.THIS_WAY_COUNT`` / ``THAT_MANY_COUNT`` — event
-  referent, AMOUNT validation family (Siege Striker, Kinetic Augur).
-- R7-7: ``SelectorMode.ONE_OF`` / ``REST`` — the split-selection pair
-  (Waker of Waves, See the Truth, Cultivate); ONE_OF needs a concrete
-  count (TARGET family), REST ignores count (ALL family).
-- R7-8: ``Verb.FIGHT`` {target} (Brash Taunter, Primal Might) —
-  executor deferred per the MANDATE_BLOCK orphan precedent.
-- R7-9: ``Verb.LOSE_ABILITY`` mirrors ``GRANT_ABILITY`` (Soul Sear);
-  ``QProp.COUNTER_COUNT`` referent validation relaxed to
-  "event" | "source" (Malefic Scythe's SOUL counters on this Equipment —
-  supersedes the r6 "qprop_cc_source" rejection case).
+- ``"result"`` in ``_QPROP_STR_REFERENTS`` is the object(s) the previous
+  sentence acted on; ``Verb.CHOOSE`` picks a set FROM the target pool
+  (Duress/Kitesail "You choose … from it"); ``FAtomPred.IS_ATTACHED_TO``
+  has a REQUIRED ``referent`` str slot (Turn to Slag), omitted when None
+  like the zone slots.
+- ``DurationUntilLeaves`` (Kitesail Cabinet "until this creature leaves
+  the battlefield", Idol of Endurance) — referent-string field, default
+  "source", vocabulary-validated; ``_VERB_ROLES[GAIN_CONTROL]`` has the
+  optional ``duration`` role (Traitorous).
+- the compiler's ``_merge_otherwise`` attaches an "Otherwise" sentence as
+  the ``else_effect`` of the previous Conditional, falling back to the
+  default merge when there is none.
+- ``Verb.CHOOSE_NAME`` {name_filter?} + ``FAtomPred.NAME_CHOSEN`` (no
+  slots; Runed Halo / Necromentia).
+- ``QPropField.THIS_WAY_COUNT`` / ``THAT_MANY_COUNT`` — event referent
+  only, like AMOUNT (Siege Striker, Kinetic Augur).
+- ``SelectorMode.ONE_OF`` / ``REST`` — the split-selection pair (Waker of
+  Waves, See the Truth, Cultivate); ONE_OF needs a concrete count (like
+  TARGET), REST ignores count (like ALL).
+- ``Verb.FIGHT`` {target} (Brash Taunter, Primal Might);
+  ``Verb.LOSE_ABILITY`` mirrors ``GRANT_ABILITY`` (Soul Sear);
+  ``QProp.COUNTER_COUNT`` accepts the "source" referent (Malefic Scythe's
+  SOUL counters on this Equipment).
 
 Guards:
-- every pre-round-7 pinned fingerprint (the r6 + r7 pin sets) stays
-  byte-identical — all nine items are additive;
-- bare FAtom (no referent) serializes WITHOUT the new key — pinned
-  against an explicit expected dict;
+- a bare FAtom (no referent) serializes WITHOUT the key — pinned against
+  an explicit expected dict;
 - the "result" referent serializes as a PLAIN STRING on both Selector and
   QProp (byte-shape pins);
-- round-7 constructs round-trip through ``to_dict``/``from_dict`` with
-  pinned fingerprints; rejections at every new validation point.
+- the constructs round-trip through ``to_dict``/``from_dict`` with pinned
+  fingerprints; every validation point rejects bad input.
 """
 
 from __future__ import annotations
@@ -54,8 +43,6 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
 from MTG_bot.core.compiler.compiler import (
     _CONTINUATION_PREFIXES,
     _is_continuation,
@@ -70,18 +57,17 @@ from MTG_bot.core.compiler.templates import (
 )
 from MTG_bot.core.identity import CardIdentity
 
-# ---- builders for the round-7 constructs -----------------------------------
+# ---- builders --------------------------------------------------------------
 
 _UNIVERSAL = at.FAnd(())
 _NEUTRAL = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _LIB_OPP = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.OPPONENT)
-_IS_SOURCE = at.FAtom(at.FAtomPred.IS_SOURCE)
 
 
 def _result_sel() -> at.Selector:
-    """R7-1: the anaphoric "it/them" — a referent="result" selector
-    (convention C2: CHOOSE + QConst(1) + the neutral zone)."""
+    """The anaphoric "it/them" — a referent="result" selector (CHOOSE +
+    QConst(1) + the neutral zone)."""
     return at.Selector(
         at.QConst(1),
         at.SelectorMode.CHOOSE,
@@ -127,7 +113,7 @@ def _mill_atom() -> at.Atom:
 
 
 def _atom_choose() -> at.Atom:
-    """R7-1: Duress/Kitesail — choose a card FROM the looked-at pool."""
+    """Duress/Kitesail — choose a card FROM the looked-at pool."""
     return at.Atom(
         at.Verb.CHOOSE,
         at.AtomArgs(pairs=(("target", _pool_sel()), ("count", at.QConst(1)))),
@@ -135,12 +121,12 @@ def _atom_choose() -> at.Atom:
 
 
 def _atom_choose_name_bare() -> at.Atom:
-    """R7-4: Runed Halo s1 — a free choice of card name, no filter."""
+    """Runed Halo s1 — a free choice of card name, no filter."""
     return at.Atom(at.Verb.CHOOSE_NAME, at.AtomArgs(pairs=()))
 
 
 def _atom_choose_name_filtered() -> at.Atom:
-    """R7-4: Necromentia s1 — "choose a nonbasic card name"."""
+    """Necromentia s1 — "choose a nonbasic card name"."""
     return at.Atom(
         at.Verb.CHOOSE_NAME,
         at.AtomArgs(
@@ -155,13 +141,13 @@ def _atom_choose_name_filtered() -> at.Atom:
 
 
 def _atom_fight() -> at.Atom:
-    """R7-8: Brash Taunter — "This creature fights another target
+    """Brash Taunter — "This creature fights another target
     creature" (attacker = the source object, never a role)."""
     return at.Atom(at.Verb.FIGHT, at.AtomArgs(pairs=(("target", _target_sel()),)))
 
 
 def _atom_lose_ability() -> at.Atom:
-    """R9a: Soul Sear — "that permanent loses indestructible until end of
+    """Soul Sear — "that permanent loses indestructible until end of
     turn"; roles mirror GRANT_ABILITY."""
     return at.Atom(
         at.Verb.LOSE_ABILITY,
@@ -176,8 +162,8 @@ def _atom_lose_ability() -> at.Atom:
 
 
 def _atom_gain_control_duration() -> at.Atom:
-    """R7-2: Traitorous — "gain control of target creature until end of
-    turn": the new optional duration role."""
+    """Traitorous — "gain control of target creature until end of turn":
+    the optional duration role."""
     return at.Atom(
         at.Verb.GAIN_CONTROL,
         at.AtomArgs(
@@ -191,61 +177,60 @@ def _atom_gain_control_duration() -> at.Atom:
 
 
 def _dur_until_leaves() -> at.DurationUntilLeaves:
-    """R7-2: default "source" anchor (Kitesail Cabinet's own creature)."""
+    """The default "source" anchor (Kitesail Cabinet's own creature)."""
     return at.DurationUntilLeaves()
 
 
 def _dur_until_leaves_result() -> at.DurationUntilLeaves:
-    """R7-2 with a non-default vocabulary referent anchor."""
+    """A non-default vocabulary referent anchor."""
     return at.DurationUntilLeaves(source="result")
 
 
 def _sel_one_of() -> at.Selector:
-    """R7-7: "put one of them in your hand" (Waker of Waves)."""
+    """ONE_OF: "put one of them in your hand" (Waker of Waves)."""
     return at.Selector(
         at.QConst(1), at.SelectorMode.ONE_OF, _UNIVERSAL, zones=(_BF_YOU,)
     )
 
 
 def _sel_rest() -> at.Selector:
-    """R7-7: "put the rest on the bottom" (See the Truth) — count ignored
+    """REST: "put the rest on the bottom" (See the Truth) — count ignored
     like ALL."""
     return at.Selector(at.QConst(1), at.SelectorMode.REST, _UNIVERSAL, zones=(_BF_YOU,))
 
 
 def _fatom_is_attached() -> at.FAtom:
-    """R7-1: "Destroy target Equipment attached to that/source" (Turn to
-    Slag) — the new required referent str slot."""
+    """Turn to Slag: "Destroy target Equipment attached to that/source" —
+    the required referent str slot."""
     return at.FAtom(at.FAtomPred.IS_ATTACHED_TO, referent="source")
 
 
 def _fatom_name_chosen() -> at.FAtom:
-    """R7-4: "cards with that name" (Runed Halo s2, Necromentia s2) — the
+    """NAME_CHOSEN: "cards with that name" (Runed Halo s2, Necromentia s2) — the
     CHOOSE_NAME read-back, no slots like IS_TAPPED."""
     return at.FAtom(at.FAtomPred.NAME_CHOSEN)
 
 
 def _qprop_this_way() -> at.QProp:
-    """R7-5: "for each creature tapped this way" (Siege Striker)."""
+    """THIS_WAY_COUNT: "for each creature tapped this way" (Siege Striker)."""
     return at.QProp(referent="event", field=at.QPropField.THIS_WAY_COUNT)
 
 
 def _qprop_that_many() -> at.QProp:
-    """R7-6: "discard up to two … draw that many" (Kinetic Augur)."""
+    """THAT_MANY_COUNT: "discard up to two … draw that many" (Kinetic Augur)."""
     return at.QProp(referent="event", field=at.QPropField.THAT_MANY_COUNT)
 
 
 def _qprop_cc_source() -> at.QProp:
-    """R9b: Malefic Scythe — SOUL counter count of the SOURCE Equipment
-    (the r6 rejection relaxed; kind detail stays executor-side, QProp
-    carries no counter-kind field)."""
+    """Malefic Scythe — SOUL counter count of the SOURCE Equipment (the
+    counter kind stays executor-side: QProp carries no counter-kind
+    field)."""
     return at.QProp(referent="source", field=at.QPropField.COUNTER_COUNT)
 
 
 def _conditional_else() -> at.Conditional:
-    """R7-3 merge TARGET: the pre-existing else_effect field, pinned as a
-    regression anchor for _merge_otherwise (Garruk, Savage Herald s2
-    after the Otherwise merge)."""
+    """The shape _merge_otherwise produces: a Conditional with an
+    else_effect (Garruk, Savage Herald s2 after the Otherwise merge)."""
     return at.Conditional(
         pred=at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
         then_effect=_draw_atom(1),
@@ -261,7 +246,7 @@ def _conditional_bare() -> at.Conditional:
     )
 
 
-# ---- pinned fingerprints (captured after the round-7 edits) ----------------
+# ---- pinned fingerprints ---------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -350,22 +335,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 # ---- tests ----------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS,
-    ids=[n for n, _, _ in R6._NEW_PINS + R7._NEW_PINS],
-)
-def test_pinned_pre_r8_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: every pre-round-7 pinned tree (the r6 + r7 pin
-    sets) serializes identically — all nine round-7 items are additive."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r8_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -374,8 +343,7 @@ def test_r8_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     back = at.from_dict(d["tag"], d)
     assert back == node, f"{name}: from_dict(to_dict(x)) != x"
     assert at.canonical_json(back) == at.canonical_json(node)
-    if fp != "PENDING":
-        assert at.fingerprint(back) == at.fingerprint(node) == fp
+    assert at.fingerprint(back) == at.fingerprint(node) == fp
 
 
 def test_r8_table_members() -> None:
@@ -392,15 +360,15 @@ def test_r8_table_members() -> None:
     assert at.FAtomPred.IS_ATTACHED_TO in at.FAtomPred
     assert at.FAtomPred.NAME_CHOSEN in at.FAtomPred
     # DurationUntilLeaves is registered everywhere DurationWhileCondition
-    # is (r6 R6-3 role-table-precedent for registration checks).
+    # is.
     assert at.DurationUntilLeaves in at._D_CLASSES
     assert at.DurationUntilLeaves in at._DATACLASSES
     assert "DurationUntilLeaves" in at._DURATION_TAGS
     spec = dict(at._SPECS["DurationUntilLeaves"])
     assert spec == {"source": "str"}
-    # the appended vocabulary tail (r5 pinned the pre-r7 four order)
+    # "result" ends the referent vocabulary (test_ability_tree_r5 pins the order)
     assert at._QPROP_STR_REFERENTS[-1] == "result"
-    # FAtom referent: opt slot + omit-if-empty (R4-4 precedent)
+    # FAtom referent: opt slot + omit-if-empty (like the zone slots)
     assert dict(at._SPECS["FAtom"])["referent"] == "opt:str"
     assert "referent" in at._OMIT_IF_EMPTY["FAtom"]
 
@@ -415,9 +383,9 @@ def test_verb_role_tables_r7() -> None:
         "name_filter": False,
     }
     assert at._VERB_ROLES[at.Verb.FIGHT] == {"target": True}
-    # R9a: exact mirror of GRANT_ABILITY
+    # LOSE_ABILITY: exact mirror of GRANT_ABILITY
     assert at._VERB_ROLES[at.Verb.LOSE_ABILITY] == at._VERB_ROLES[at.Verb.GRANT_ABILITY]
-    # R7-2: GAIN_CONTROL widened, previous required roles unchanged
+    # GAIN_CONTROL: optional duration; target and controller required
     assert at._VERB_ROLES[at.Verb.GAIN_CONTROL] == {
         "target": True,
         "controller": True,
@@ -427,8 +395,7 @@ def test_verb_role_tables_r7() -> None:
 
 
 def test_gain_control_without_duration_still_builds() -> None:
-    """R7-2: the pre-round-7 GAIN_CONTROL shape (no duration) keeps
-    building — the role is optional, validation-only."""
+    """GAIN_CONTROL without a duration builds: the role is optional."""
     bare = at.Atom(
         at.Verb.GAIN_CONTROL,
         at.AtomArgs(
@@ -451,12 +418,12 @@ def test_fatom_is_attached_rule_and_serialization() -> None:
         frozenset(),
     )
     d = at.to_dict(_fatom_is_attached())
-    # the referent slot serializes as a PLAIN STRING (C12: data, not node)
+    # the referent slot serializes as a PLAIN STRING (data, not a node)
     assert d["referent"] == "source"
 
 
 def test_bare_fatom_omits_referent_byte_shape() -> None:
-    """Byte-shape pin: a pre-round-7 FAtom gains NO 'referent' key."""
+    """Byte-shape pin: a FAtom without a referent has NO 'referent' key."""
     assert at.to_dict(at.FAtom(at.FAtomPred.IS_TAPPED)) == {
         "tag": "FAtom",
         "pred": {"tag": "FAtomPred", "name": "IS_TAPPED"},
@@ -475,15 +442,15 @@ def test_bare_fatom_omits_referent_byte_shape() -> None:
 
 
 def test_result_referent_plain_string_byte_pins() -> None:
-    """R7-1/C12: 'result' serializes as a plain string on both Selector
+    """'result' serializes as a plain string on both Selector
     and QProp — pinned against explicit expected dicts."""
     assert at.to_dict(_result_sel()) == {
         "tag": "Selector",
         "count": {"tag": "QConst", "value": 1},
         "mode": {"tag": "SelectorMode", "name": "CHOOSE"},
         "filter": {"tag": "FAnd", "children": []},
-        # R0 zone-fold: single required zones SET (C2 referent ⇒ the
-        # neutral Zone(ANY, ANY) alone). The scalar 'zone' key is deleted.
+        # a referent selector's zones set is the neutral Zone(ANY, ANY)
+        # alone; there is no scalar 'zone' key.
         "zones": [
             {
                 "tag": "Zone",
@@ -505,7 +472,7 @@ def test_result_referent_plain_string_byte_pins() -> None:
 
 
 def test_selector_mode_family_validation() -> None:
-    """R7-7: ONE_OF belongs to the TARGET count family (concrete count
+    """ONE_OF belongs to the TARGET count family (concrete count
     required); REST to the ALL family (count ignored, separate test)."""
     with pytest.raises(ValueError):
         at.Selector(
@@ -521,8 +488,7 @@ def test_rest_ignores_unbounded_count() -> None:
 
 
 def test_conditional_else_effect_roundtrip_pin() -> None:
-    """The pre-existing else_effect field, pinned as a regression anchor
-    for the R7-3 Otherwise merge."""
+    """The else_effect field the Otherwise merge fills, pinned."""
     node = _conditional_else()
     d = at.to_dict(node)
     assert d["tag"] == "Conditional"
@@ -535,8 +501,7 @@ def test_conditional_else_effect_roundtrip_pin() -> None:
 
 
 def test_qprop_counter_count_source_now_builds() -> None:
-    """R9b: the r6 qprop_cc_source rejection is superseded — COUNTER_COUNT
-    reads the source's counters (Malefic Scythe)."""
+    """COUNTER_COUNT reads the source's counters (Malefic Scythe)."""
     node = _qprop_cc_source()
     d = at.to_dict(node)
     assert d["referent"] == "source"
@@ -544,7 +509,7 @@ def test_qprop_counter_count_source_now_builds() -> None:
     assert at.from_dict("QProp", d) == node
 
 
-# ---- R7-3 compiler: prefixes + the Otherwise merge -------------------------
+# ---- compiler: prefixes + the Otherwise merge ------------------------------
 
 
 def _oid(n: int) -> str:
@@ -615,8 +580,8 @@ def test_merge_otherwise_attaches_in_seq_tail() -> None:
 
 
 def test_merge_otherwise_c13_fallbacks() -> None:
-    """C13: no attachable Conditional (bare Atom / already-else'd
-    Conditional) falls back to the DEFAULT merge — never a failure."""
+    """No attachable Conditional (bare Atom / already-else'd Conditional)
+    falls back to the DEFAULT merge — never a failure."""
     fallback = _merge_otherwise(_draw_atom(1), _mill_atom())
     assert fallback == at.Seq(steps=(_draw_atom(1), at.OptionalEffect(_mill_atom())))
     taken = _merge_otherwise(_conditional_else(), _mill_atom())
@@ -658,8 +623,8 @@ def test_compile_otherwise_end_to_end() -> None:
 
 
 def test_compile_otherwise_without_conditional_c13() -> None:
-    """C13 end-to-end: an Otherwise with no preceding Conditional still
-    compiles via the legacy optional-step merge (no parse failure)."""
+    """End to end: an Otherwise with no preceding Conditional still
+    compiles via the default optional-step merge (no parse failure)."""
     raw = _raw_card(
         "Orphan Otherwise",
         2,
@@ -697,7 +662,7 @@ def test_compile_otherwise_without_conditional_c13() -> None:
 
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     return [
-        # R7-1: CHOOSE role arity
+        # CHOOSE role arity
         (
             "choose_missing_target",
             lambda: at.Atom(at.Verb.CHOOSE, at.AtomArgs(pairs=())),
@@ -709,7 +674,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.AtomArgs(pairs=(("target", _pool_sel()), ("cards", _pool_sel()))),
             ),
         ),
-        # R7-4: CHOOSE_NAME takes ONLY the optional name_filter
+        # CHOOSE_NAME takes ONLY the optional name_filter
         (
             "choose_name_target_role",
             lambda: at.Atom(
@@ -724,7 +689,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.AtomArgs(pairs=(("name_filter", "notabasic"),)),  # type: ignore[list-item]
             ),
         ),
-        # R7-8: FIGHT requires target, takes nothing else
+        # FIGHT requires target, takes nothing else
         (
             "fight_missing_target",
             lambda: at.Atom(at.Verb.FIGHT, at.AtomArgs(pairs=())),
@@ -738,7 +703,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 ),
             ),
         ),
-        # R9a: LOSE_ABILITY mirrors GRANT_ABILITY arity
+        # LOSE_ABILITY mirrors GRANT_ABILITY arity
         (
             "lose_ability_missing_ability",
             lambda: at.Atom(
@@ -759,7 +724,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 ),
             ),
         ),
-        # R7-2: DurationUntilLeaves referent vocabulary (C12)
+        # DurationUntilLeaves referent vocabulary
         (
             "dur_leaves_english",
             lambda: at.DurationUntilLeaves(source="this creature"),
@@ -768,14 +733,14 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             "dur_leaves_event_ok_but_int",
             lambda: at.DurationUntilLeaves(source=1),  # type: ignore[arg-type]
         ),
-        # R7-7: ONE_OF is the TARGET count family
+        # ONE_OF is the TARGET count family
         (
             "one_of_unbounded",
             lambda: at.Selector(
                 at.QUnbounded(), at.SelectorMode.ONE_OF, _UNIVERSAL, zones=(_BF_YOU,)
             ),
         ),
-        # R7-7: referent selectors keep convention C2 (mode CHOOSE only)
+        # referent selectors are mode CHOOSE only
         (
             "rest_referent_selector",
             lambda: at.Selector(
@@ -786,7 +751,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 referent="result",
             ),
         ),
-        # R7-1: FAtom.referent slot arity + vocabulary
+        # FAtom.referent slot arity + vocabulary
         (
             "is_attached_missing_referent",
             lambda: at.FAtom(at.FAtomPred.IS_ATTACHED_TO),
@@ -805,12 +770,12 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             "name_chosen_any_slot",
             lambda: at.FAtom(at.FAtomPred.NAME_CHOSEN, referent="result"),
         ),
-        # R7-1: "result" rejected outside the vocabulary check path
+        # a referent on a predicate without the slot fails the slot rule
         (
             "fatom_referent_on_plain_pred",
             lambda: at.FAtom(at.FAtomPred.IS_TAPPED, referent="result"),
         ),
-        # R7-5/6: THIS_WAY/THAT_MANY are event-coupled (AMOUNT family)
+        # THIS_WAY/THAT_MANY take only the event referent (like AMOUNT)
         (
             "this_way_source_referent",
             lambda: at.QProp(referent="source", field=at.QPropField.THIS_WAY_COUNT),
@@ -819,12 +784,12 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             "that_many_result_referent",
             lambda: at.QProp(referent="result", field=at.QPropField.THAT_MANY_COUNT),
         ),
-        # R9b: the relaxation is source-only — controller still raises
+        # COUNTER_COUNT does not take the controller referent
         (
             "cc_controller_referent",
             lambda: at.QProp(referent="controller", field=at.QPropField.COUNTER_COUNT),
         ),
-        # R7-9b boundary: AMOUNT stays strictly event-coupled
+        # AMOUNT takes only the event referent
         (
             "amount_source_referent",
             lambda: at.QProp(referent="source", field=at.QPropField.AMOUNT),

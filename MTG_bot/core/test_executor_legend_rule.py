@@ -1,4 +1,4 @@
-"""V22 (2026-10-29): the legend rule, CR 704.5j.
+"""The legend rule, CR 704.5j.
 
 "If two or more legendary permanents with the same name are controlled by the same player, that
 player chooses one of them, and the rest are put into their owners' graveyards." It is a state-based
@@ -94,8 +94,7 @@ class LegendRuleTest(unittest.TestCase):
         token = self.add(replace(legend(), oracle_id="cccccccc-1111-2222-3333-444444444444", is_token=True), self.p0)
         self.keep = [card]
         self.settle()
-        # re-pinned 2026-10-30: the merge of cards/integration (V35, CR 704.5d) changes where the
-        # token ends: it goes to the graveyard and then ceases to exist, so it is in no zone.
+        # The token goes to the graveyard and then ceases to exist (CR 704.5d), so it is in no zone.
         self.assertEqual(self.zones(card), [ZONE_BATTLEFIELD])
         self.assertNotIn(token, self.world.cards)
 

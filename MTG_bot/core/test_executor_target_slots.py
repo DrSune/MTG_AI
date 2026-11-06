@@ -7,9 +7,8 @@ the text says "another". As the spell or ability resolves each target is checked
 its own instance, and an illegal one is not affected (CR 608.2b).
 
 ``stack.designate_slots`` reads a designation per slot (one tuple of handles per slot, or one
-handle per slot), for the cast and the activation lanes alike. Before 2026-11-06 it read only one
-handle per slot with the "up to" slots last, and the activation lane only one handle for every
-slot. The drivers ask one target question per slot from ``stack.slot_options``
+handle per slot), for the cast and the activation lanes alike. The drivers ask one target
+question per slot from ``stack.slot_options``
 (MTG_bot/bench/test_router.py has the dealt-game side).
 """
 
@@ -46,7 +45,7 @@ from MTG_bot.core.test_executor_stack import StackCase
 from MTG_bot.core.test_executor_verbs import atom
 
 CREATURE = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
-ANOTHER = FAtom(FAtomPred.IS_ANY_TARGET)  # the compiled "another target" mark (V13)
+ANOTHER = FAtom(FAtomPred.IS_ANY_TARGET)  # the compiled "another target" mark
 
 
 def target(count, who=ControllerRef.ANY, *extra) -> Selector:

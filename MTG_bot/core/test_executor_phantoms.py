@@ -1,12 +1,10 @@
-"""T5-F1 (§10 PHANTOM-ASK elimination, charter 2026-10-08/50).
+"""No phantom asks: a decision site whose offer surface has one word does not ask.
 
-The §10 violation class: a decision site that ASKS with a one-word offer
-surface. stack.py:442 (forced auto-designation, CR 601.2c) already carries
-the correct rule — a single option the bounds force is CONSUMED, never
-presented as a decision. This suite pins the systemic fix: the shared
-primitive ``executor.offers.offer_or_autopick`` adopted by every decision
-generator (the runtime Choose lane, the may lane + its query-narrowed
-optional_offer sites, and future lanes):
+A single option the bounds force is CONSUMED, never presented as a decision
+(the rule ``stack._plan_cast_designation`` follows for forced
+auto-designation, CR 601.2c). Every decision generator (the runtime Choose
+lane, the may lane + its query-narrowed optional_offer sites) goes through
+the shared primitive ``executor.offers.offer_or_autopick``:
 
 1. a Choose clamped to ONE option set from a multi-option menu asks
    nothing — the option runs silently, the consumption rides the stream's
@@ -15,11 +13,11 @@ optional_offer sites, and future lanes):
 2. a may-offer the query narrowed to ("skip",) auto-skips: the provider is
    NEVER called (no degenerate training row is even capturable), ask_log
    stays clean;
-3. two may-offers on ONE source carry DISTINCT site tags (the digest
-   fix) and per-(vocab, what) FIFO primings pair to their OWN sites;
-4. multi-candidate surfaces STILL ask (no over-autopick — C15);
-5. an EMPTY offer surface raises explicitly (the zero-candidate edge:
-   mirrors the old exhaustion raise, made a site-contract error);
+3. two may-offers on ONE source carry DISTINCT site tags (the site
+   digest) and per-(vocab, what) FIFO primings pair to their OWN sites;
+4. multi-candidate surfaces STILL ask (no over-autopick);
+5. an EMPTY offer surface raises explicitly (the zero-candidate edge is a
+   site-contract error);
 6. MAY_DONE reads an auto-consumed offer from the journal (the
    "you may pay {2}. If you do" rider with an empty pool answers FALSE,
    it does not re-ask and does not go loud).
@@ -90,7 +88,7 @@ class TestChooseClampIsSilent(PhantomCase):
     def test_clamped_choose_never_asks_and_state_matches_answering(self):
         # Choose + QConst(2) over a TWO-option menu: the bounds clamp
         # (min=max=2 over |options|=2) leaves exactly ONE legal option set,
-        # so the vocab is ("0",) — a §10 phantom. The primitive consumes it.
+        # so the vocab is ("0",) — a phantom ask. The primitive consumes it.
         asked = self.spy()
         self.ex.apply_effect(
             Choose(QConst(2), (gain(1), gain(2))),
@@ -107,13 +105,11 @@ class TestChooseClampIsSilent(PhantomCase):
         self.assertEqual(answer, "0")
 
     def test_phantom_eats_no_supply_and_state_matches_answering(self):
-        # Pre-fix, this tree asked TWICE (phantom choose + real may site)
-        # and the pool word scripted for the may site could be EATEN by
-        # the phantom's ask. Post-fix the forced choose consults NO
-        # supply lane (provider untouched, pool word stays parked), so
-        # the may site still gets its scripted "fire" — and the world
-        # matches the world that had answered the phantom by hand
-        # (both consume option-set "0" = gain 1 AND gain 2 = +3).
+        # The forced choose consults NO supply lane (provider untouched,
+        # pool word stays parked), so it cannot eat the pool word scripted
+        # for the may site: the may site still gets its scripted "fire" —
+        # and the world matches the world that had answered the phantom by
+        # hand (both consume option-set "0" = gain 1 AND gain 2 = +3).
         asked: list[tuple[tuple[str, ...], str]] = []
 
         def provider(vocab, what):
@@ -138,8 +134,8 @@ class TestChooseClampIsSilent(PhantomCase):
 class TestNarrowedMayOffer(PhantomCase):
     def test_skip_only_offer_autoskips_without_an_ask(self):
         # "You may pay {2}" with an empty pool: optional_offer narrows to
-        # ("skip",) (CR 117.3). Billing that as a decision is the §10
-        # phantom — the provider/bc recorder must never even SEE it.
+        # ("skip",) (CR 117.3). Billing that as a decision is a phantom
+        # ask — the provider must never even SEE it.
         asked = self.spy()
         self.ex.apply_effect(
             OptionalEffect(inner=PAY_2), source=self.alpha, controller=self.p0
@@ -171,8 +167,8 @@ class TestNarrowedMayOffer(PhantomCase):
 
 class TestTwoMayOffersOneSource(PhantomCase):
     """Minimal 2-trigger scenario: one carrier card whose TWO ETB triggers
-    each hold a may-offer. Pre-fix both asked under ``may:<source>`` and
-    FIFO primings mispaired; the per-site digest tag separates them."""
+    each hold a may-offer. The per-site digest tag separates them (under a
+    bare ``may:<source>`` tag FIFO primings would mispair)."""
 
     def setUp(self):
         super().setUp()

@@ -1,7 +1,6 @@
-"""Round-19b regression tests: the silent-semantics fix batch (wave 2b).
-
-Each test pins the FIXED reading of one r19b root cause and the green
-behaviour it had to leave untouched:
+"""Attached-to anaphora, discard self-exclusion, the dies replacement, cost
+folds, END_TURN's self-exile and the look window, each pinned with the
+behaviour it must leave untouched:
 
 1. IS_ATTACHED_TO write-direction + the ALL-mode population exemption in
    role_handles (Turn to Slag: "destroy all Equipment attached to that
@@ -14,7 +13,7 @@ behaviour it had to leave untouched:
    graveyard move, the ACTION exiles the referent).
 4. CostModifier folding into build_payment_plan (Discontinuity's {2}{U}
    your-turn window, the min-clamp, the no-colour-spill rule) plus the
-   three new turn-history preds: TURN_OF, LIFE_GAINED_THIS_TURN_GE,
+   turn-history preds TURN_OF, LIFE_GAINED_THIS_TURN_GE and
    INSTANT_OR_SORCERY_CAST_THIS_TURN.
 5. END_TURN's self-exile (Discontinuity, CR 716.4a): the extra-turn
    request is the witness that routes the spell's stack->GY move to
@@ -270,7 +269,7 @@ class LookWindowTest(BindingCase):
 
 
 class AttachedAnaphoraTest(BindingCase):
-    """Fix 1: IS_ATTACHED_TO's write direction + the population exemption."""
+    """IS_ATTACHED_TO's write direction + the population exemption."""
 
     def setUp(self):
         super().setUp()
@@ -327,7 +326,7 @@ class AttachedAnaphoraTest(BindingCase):
 
 
 class DiscardCostTest(unittest.TestCase):
-    """Fix 2: CR 601.2h — the cast in hand never pays its own discard."""
+    """CR 601.2h — the cast in hand never pays its own discard."""
 
     def setUp(self):
         from MTG_bot.core.test_executor_binding import reset_oracle_ids
@@ -389,7 +388,7 @@ class DiscardCostTest(unittest.TestCase):
 
 
 class CostModifierFoldTest(unittest.TestCase):
-    """Fix 4: the CR 601.2f fold + the TURN_OF / history preds."""
+    """The CR 601.2f fold + the TURN_OF / history preds."""
 
     def setUp(self):
         from MTG_bot.core.test_executor_binding import reset_oracle_ids
@@ -548,7 +547,7 @@ class CostModifierFoldTest(unittest.TestCase):
                 ctx,
             )
         )
-        # INSTANT_OR_SORCERY_CAST_THIS_TURN rides the 13b CAST feed.
+        # INSTANT_OR_SORCERY_CAST_THIS_TURN rides the journal's CAST feed.
         fam = FAtom(FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN, who=ControllerRef.YOU)
         self.assertFalse(eval_filter(fam, sp, ctx))
         shock = self._spell("Shock", Cost((CostManaColor("R", QConst(1)),)))
@@ -565,7 +564,7 @@ class CostModifierFoldTest(unittest.TestCase):
 
 
 class EndTurnExileTest(unittest.TestCase):
-    """Fix 5: the extra-turn request re-routes the spell's own put."""
+    """The extra-turn request re-routes the spell's own put."""
 
     def setUp(self):
         from MTG_bot.core.test_executor_binding import reset_oracle_ids
@@ -628,7 +627,7 @@ class EndTurnExileTest(unittest.TestCase):
 
 
 class DeathReplacementTest(unittest.TestCase):
-    """Fix 3: Scorching Dragonfire's designation-scoped dies window."""
+    """Scorching Dragonfire's designation-scoped dies window."""
 
     def setUp(self):
         from MTG_bot.core.test_executor_binding import reset_oracle_ids
@@ -682,7 +681,7 @@ class DeathReplacementTest(unittest.TestCase):
         cast(self.ex, self.p0, scorch, targets=(victim,))
         self.assertEqual(self.world.zone_of(victim).kind, ZONE_EXILE)
         self.assertEqual(self.world.zone_of(scorch).kind, ZONE_GRAVEYARD)
-        # the consumed death emits no CREATURE_DIES row (documented v1
+        # the consumed death emits no CREATURE_DIES row (a documented
         # stand-in) — but the loud STATE_CHECK witness IS journalled
         kinds = {e[1] for e in self.ex.events}
         self.assertNotIn("CREATURE_DIES", kinds)

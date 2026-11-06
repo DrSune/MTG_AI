@@ -1,6 +1,6 @@
-"""V20 (2026-10-29, B-66): a spell's own "you can't choose ... as this spell's target as you cast
-it" restricts its target choice (CR 113.6e; Enthralling Hold: "You can't choose an untapped creature
-as this spell's target as you cast it")."""
+"""A spell's own "you can't choose ... as this spell's target as you cast it" restricts its target
+choice (CR 113.6e; Enthralling Hold: "You can't choose an untapped creature as this spell's target
+as you cast it")."""
 
 from __future__ import annotations
 

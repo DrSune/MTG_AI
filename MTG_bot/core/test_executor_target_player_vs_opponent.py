@@ -1,6 +1,5 @@
-"""V21 (2026-10-29): "target player" (TARGET_PLAYER) may designate any player, the caster included
-(CR 115.1); "target opponent" (TARGET_OPPONENT) only an opponent (CR 102.2). They shared one token
-before, so "target player" could never be you (B-53)."""
+"""The two player-target words: "target player" (TARGET_PLAYER) may designate any player, the
+caster included (CR 115.1); "target opponent" (TARGET_OPPONENT) only an opponent (CR 102.2)."""
 
 from __future__ import annotations
 

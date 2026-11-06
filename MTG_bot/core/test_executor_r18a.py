@@ -1,26 +1,19 @@
-"""Round-18a: the six SILENT-semantic classes of the wave-1b ledger, pinned.
+"""Printed semantics that must not be lost without a raise.
 
-Every class from the wave-1b validation ledger (doc 18) that LOST printed
-semantics without a raise gets its repro pinned here:
-
-1. if-do free rider (CR 611.1) — "you may X. If you do, Y" ran Y even on
-   ``skip`` (Crypt Lurker drew after a skipped sacrifice). The compiler now
-   merges the tail as ``Conditional(MAY_DONE, Y)`` and the executor answers
-   MAY_DONE by CONSUMING the 14b channel's logged may-offer outcome — it
+1. The if-do gate (CR 611.1, 118.12): "you may X. If you do, Y" runs Y only
+   when X was done (Crypt Lurker does not draw after a skipped sacrifice).
+   The compiler merges the tail as ``Conditional(MAY_DONE, Y)``, and the
+   executor answers MAY_DONE by CONSUMING the logged may-offer outcome — it
    never re-asks the question.
-2/3. choice-theft via the offer gate (C15) — ``optional_offer`` narrowed a
-   may-offer to ``("skip",)`` when an exact-count selector was UNDERSUPPLIED
-   (wanted 2, had 1) or when its population was produced MID-effect by a
-   SEARCH (the 13a re-search tail / result register). CR 117.3 only removes
-   actions there are zero candidates for; the runtime CHOOSE resolves what
-   exists (C17 clamp), so the gate now compares to ZERO and never gates a
-   search-fed tail.
-4. (template fidelity) — pinned in the compiler suites (turret/uprising
-   AMENDED pins) and exercised live by the repatriated packs.
-5. scry-bottom window no-op (CR 701.1) — pinned at the AMENDED
-   ``test_scry_consumes_decisions_top_first``; the printed bottom branch is
-   green in ``scry_bottom_temple.json``.
-6. (turret "another") — AMENDED template pin + ``turret_ogre.json``.
+2. The offer gate: ``optional_offer`` narrows a may-offer to ``("skip",)``
+   only when a branch has ZERO candidates (CR 117.3). An UNDERSUPPLIED
+   exact-count selector (wanted 2, had 1) keeps both branches, since the
+   runtime CHOOSE resolves what exists, and a population a SEARCH produces
+   MID-effect (a re-search tail, the result register) never gates.
+3. A FILTERED library->hand MOVE tail is the search result designation,
+   never the blind top-n draw idiom.
+4. Turret Ogre / Garruk's Uprising: the "if you control (another) a
+   creature with power 4 or greater" gates read the battlefield population.
 """
 
 import unittest
@@ -107,7 +100,7 @@ class IfDoGateTest(unittest.TestCase):
         self.assertEqual(self.life(), 20 + 2 + 5)
 
     def test_skip_gates_the_tail(self):
-        # THE wave-1b repro: answering skip must NOT deliver the tail.
+        # Answering skip must NOT deliver the tail.
         self.ex.apply_effect(
             self.plan, source=self.src, controller=self.p0, decisions=("skip",)
         )
@@ -133,8 +126,8 @@ class IfDoGateTest(unittest.TestCase):
         self.assertEqual(self.life(), 20 + 3 + 5)
 
     def test_a_mandatory_step_that_happened_runs_the_tail(self):
-        # m21-fidelity wave 4 (ruling (a), CR 118.12): "[Do something]. If you do" asks
-        # whether the mandatory step actually happened. Exiling the source changes the game.
+        # CR 118.12: "[Do something]. If you do" asks whether the mandatory step actually
+        # happened. Exiling the source changes the game.
         plan = Seq(
             steps=(
                 atom(Verb.MOVE_ZONE, target=_this(), destination=_exile()),
@@ -170,7 +163,7 @@ class IfDoGateTest(unittest.TestCase):
             )
 
     def test_compiled_lurker_gates_its_draw(self):
-        # The REAL compiled row (golden file): the continuation is now the
+        # The REAL compiled row (golden file): the continuation is the
         # gated Conditional, not a free-rider sibling.
         rec = record("Crypt Lurker")
         first = rec.abilities[0]
@@ -186,7 +179,7 @@ class IfDoGateTest(unittest.TestCase):
 
 
 class OfferGateTest(unittest.TestCase):
-    """Classes 2/3 (C15/CR 117.3): only ILLEGAL branches narrow the offer."""
+    """Class 2 (CR 117.3): only ILLEGAL branches narrow the offer."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -204,8 +197,8 @@ class OfferGateTest(unittest.TestCase):
 
     def test_undersupplied_exact_count_keeps_both_branches(self):
         # Alpine Houndmaster's compile: WANT two named, the library holds
-        # ONE — the runtime CHOOSE honestly takes one (C17 clamp), so the
-        # offer must NOT be stolen.
+        # ONE — the runtime CHOOSE takes the one there is, so the offer
+        # must NOT be stolen.
         self.world.add_card(card_id("Watchdog", "2", "2"), self.p0, ZONE_LIBRARY)
         sel = Selector(
             QConst(2),
@@ -267,7 +260,7 @@ class OfferGateTest(unittest.TestCase):
     def test_result_referent_tail_is_not_gated_pre_execution(self):
         # Teferi's Wavecaster shape: the tail reads the result register the
         # SEARCH writes mid-execution — no pre-execution candidates exist
-        # BY DESIGN (14e register), so the gate must not consume the ask.
+        # BY DESIGN (the result register), so the gate must not consume the ask.
         search = atom(
             Verb.SEARCH,
             cards=Selector(
@@ -283,7 +276,7 @@ class OfferGateTest(unittest.TestCase):
             controller=ControllerRef.YOU,
             amount=QConst(1),
         )
-        move = atom(  # referent-selector variant (register read; C2 neutral zone)
+        move = atom(  # referent-selector variant (register read; neutral zone)
             Verb.MOVE_ZONE,
             cards=Selector(
                 QConst(1),
@@ -299,8 +292,8 @@ class OfferGateTest(unittest.TestCase):
 
 
 class FilteredMoveTailTest(unittest.TestCase):
-    """Class 3 runtime half: a FILTERED library->hand MOVE tail is the
-    search result designation, never the blind top-n draw idiom."""
+    """Class 3: a FILTERED library->hand MOVE tail is the search result
+    designation, never the blind top-n draw idiom."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -331,14 +324,14 @@ class FilteredMoveTailTest(unittest.TestCase):
             source=self.src,
             controller=self.p0,
         )
-        # The old draw idiom hoovered the top card into hand regardless.
-        # Nothing matches NAME_EQ, so the library keeps BOTH cards in
+        # Nothing matches NAME_EQ, so nothing moves (the blind draw idiom
+        # would take the top card): the library keeps BOTH cards in
         # insertion order (self.bottom is the top entry).
         self.assertEqual(lib.entries, [self.top, self.bottom])
         self.assertEqual(self.world.players[self.p0].zone(ZONE_HAND).entries, [])
 
     def test_unfiltered_top_move_still_draws(self):
-        # Regression: the DRAW idiom (unfiltered, referent-less) is intact.
+        # The DRAW idiom (unfiltered, referent-less) takes the top card.
         # Top of library = last inserted = self.bottom.
         self.ex.execute(
             atom(
@@ -380,11 +373,10 @@ class CompilerMergeTest(unittest.TestCase):
             "If you do, gain 4 life.",
         )
         assert isinstance(merged, Seq)
-        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a). CR 118.12 reads a
-        # mandatory "[Do something]. If you do" as it reads the "may" form (did the player do
-        # it), so the tail is the same Conditional(MAY_DONE, tail): one meaning, one encoding.
-        # It was the plain sibling, which ran even when the antecedent could not be done
-        # (Archfiend's Vessel's Demon after the Vessel left the battlefield).
+        # CR 118.12 reads a mandatory "[Do something]. If you do" as it reads the "may" form
+        # (did the player do it), so the tail is the same Conditional(MAY_DONE, tail): one
+        # meaning, one encoding. A plain sibling would run even when the antecedent could not
+        # be done (Archfiend's Vessel's Demon after the Vessel left the battlefield).
         self.assertEqual(len(merged.steps), 2)
         gate = merged.steps[-1]
         assert isinstance(gate, Conditional)
@@ -405,7 +397,7 @@ class CompilerMergeTest(unittest.TestCase):
         self.assertIsInstance(gate.then_effect, OptionalEffect)
 
     def test_turret_and_uprising_conditions_are_existential(self):
-        # Classes 4/6: the "if you control (another) a creature with power
+        # Class 4: the "if you control (another) a creature with power
         # N+" gates read the battlefield POPULATION (count 1), not the
         # ability's own source.
         for name in ("Turret Ogre", "Garruk's Uprising"):

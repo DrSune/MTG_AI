@@ -1,20 +1,15 @@
-"""geyser-FIX batch — "any target" hidden-zone leak pins (R17-2, 2026-10-05).
+"""Pins for printed "any target" (CR 109.5 / CR 115.1d): it designates a
+CREATURE, a PLANESWALKER or a PLAYER — never a card hiding in a hand or
+library.
 
-RED-FIRST file (KNOWLEDGE/2026-10-05/05 §0.1, blueprint step 1): printed
-"any target" (CR 109.5 / CR 115.1d) designates a CREATURE, a PLANESWALKER
-or a PLAYER — never a card hiding in an opponent's hand or library. The
-pre-fix compiler emitted the idiom as ``Selector(TARGET, FAnd(),
-Zone(ANY, ANY))`` and the query lane enumerated every card in every zone,
-so the offered decision surface contained opponent-hidden handles (D10 /
-E3: 116 hidden candidates over 24 probe games at 4dbe864).
-
-These pins compile the REAL M21 records (pool + registry — the same route
-the goldens take) and pin the candidate set of the Geyser slot against a
-fully populated 2-player world. PRE-fix they fail exactly where the leak
-is (red as intended at HEAD); POST-fix the candidate set is battlefield
-creatures + planeswalkers + both players, EXACTLY — and Shock's
-player-reach (the idiom's player side, delivered by the engine's
-widening, not by the filter) stays green end to end.
+The pins compile the REAL M21 records (pool + registry — the same route the
+goldens take) and pin the candidate set of the Volcanic Geyser slot against
+a fully populated 2-player world: battlefield creatures + planeswalkers +
+both players, EXACTLY. A filter over every zone would offer the opponent's
+hidden hand and library. Shock's player-reach (the idiom's player side,
+delivered by the engine's widening, not by the filter) is pinned end to
+end, and the query offer lane and the selectors legality lane must hold one
+opinion on every shape.
 """
 
 from __future__ import annotations
@@ -140,7 +135,7 @@ class GeyserCase(unittest.TestCase):
         self.ex.attach_card(handle, rec)
         return handle, rec
 
-    def slot_of(self, handle, rec):
+    def slot_of(self, handle):
         node = next(
             a
             for a in self.ex.binder.handle_record[handle].abilities
@@ -167,9 +162,10 @@ class GeyserCase(unittest.TestCase):
 class TestGeyserHiddenZoneLeak(GeyserCase):
     def test_compiled_geyser_selector_is_the_battlefield_idiom(self):
         """Compiler lane: the printed idiom compiles to the RESTRICTED
-        shape — FOr(TYPE Creature / TYPE Planeswalker) over
-        Zone(BATTLEFIELD, ANY). The player side is NOT in the filter: it
-        joins via the engine's idiom widening (CR 109.5)."""
+        shape — FOr(TYPE Creature / Planeswalker / Player) over
+        Zone(BATTLEFIELD, ANY). The Player branch matches no card: it marks
+        the idiom, and the players join via the engine's widening (CR
+        109.5)."""
         rec = compiled("Volcanic Geyser")
         node = next(a for a in rec.abilities if isinstance(a, SpellAbility))
         assert isinstance(node.effect, Atom)
@@ -191,19 +187,19 @@ class TestGeyserHiddenZoneLeak(GeyserCase):
         self.assertNotIsInstance(sel.filter, FAnd)
 
     def test_geyser_candidates_exclude_opponent_hidden_zones(self):
-        """Query lane (the D10 / E3 leak): the Geyser slot offers ONLY
+        """Query lane: the Geyser slot offers ONLY
         battlefield creatures + planeswalkers + both players — no hand,
         no library, not even the spell card in the caster's own hand."""
-        handle, rec = self.give_spell("Volcanic Geyser")
-        slot = self.slot_of(handle, rec)
+        handle, _rec = self.give_spell("Volcanic Geyser")
+        slot = self.slot_of(handle)
         self.assert_clean_shape(slot.candidates)
 
     def test_shock_reaches_players_and_not_hidden_cards(self):
         """Shock-family guard: the same restricted idiom must STILL name
         both players (the widening survives the type filter) while the
         hidden population stays out."""
-        handle, rec = self.give_spell("Shock")
-        slot = self.slot_of(handle, rec)
+        handle, _rec = self.give_spell("Shock")
+        slot = self.slot_of(handle)
         self.assertIn(self.p1, slot.candidates)
         self.assertIn(self.p0, slot.candidates)
         self.assert_clean_shape(slot.candidates)
@@ -234,10 +230,10 @@ class TestGeyserHiddenZoneLeak(GeyserCase):
 
 
 class TestTwinPredicatesAgree(unittest.TestCase):
-    """§8.3 identity: the query offer lane (query._player_widening_applies)
-    and the selectors runtime legality lane (_is_any_universal) must be
-    the SAME opinion on the same shapes — if they diverge, a designation
-    the query offered gets dropped at resolution (or vice versa)."""
+    """The query offer lane (query._player_widening_applies) and the
+    selectors runtime legality lane (_is_any_universal) must be the SAME
+    opinion on the same shapes — if they diverge, a designation the query
+    offered gets dropped at resolution (or vice versa)."""
 
     def test_offer_and_resolution_legality_are_one_opinion(self):
         self._shapes()
@@ -331,10 +327,8 @@ class TestTwinPredicatesAgree(unittest.TestCase):
 
 
 class TestKeeperClassesStayBroad(GeyserCase):
-    """R17-2 classification tail: the sweep's KEEP classes must not move.
-    Cancel prints "target spell" (public STACK) — its slot keeps the
-    stack population and the universal player-widening that the STACK
-    zone never had to begin with (no player seats on a spell target)."""
+    """A "target spell" slot (Cancel) is not the any-target idiom: it keeps
+    the public STACK population, and no player joins a spell target."""
 
     def test_cancel_stack_slot_unchanged(self):
         handle, _rec = self.give_spell("Cancel")

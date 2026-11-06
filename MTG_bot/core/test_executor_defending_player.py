@@ -1,4 +1,4 @@
-"""The defending player (2026-11-06): ``ControllerRef.DEFENDING_PLAYER``.
+"""The defending player: ``ControllerRef.DEFENDING_PLAYER``.
 
 CR 506.2: during the combat phase of a two-player game the nonactive player is the defending
 player. CR 508.5: an ability of an attacking creature, or one that names an attacking creature,

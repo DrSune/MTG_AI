@@ -1,7 +1,4 @@
-"""Round-16a pins: marked damage, the SBA lethal sweep, and Verb.FIGHT.
-
-Replaces the 15-round instant-lethal shortcut (BINDING plan
-KNOWLEDGE/2026-09-30/11-round16-combat-plan.md §16a):
+"""Marked damage, the SBA lethal sweep, Verb.FIGHT, and who deals damage.
 
 * damage LANDS AS A MARK on the executor-side ``Executor.damage`` ledger
   (CR 120.1), cleared when the permanent leaves the battlefield (CR 120.6)
@@ -13,7 +10,9 @@ KNOWLEDGE/2026-09-30/11-round16-combat-plan.md §16a):
   attribution cause=None / cause_verb="STATE_CHECK" — no card gets
   credited for the state check;
 * Verb.FIGHT (CR 701.12) is a non-combat simultaneous damage exchange
-  riding the SAME marks, so a mutual kill kills both in one atom.
+  riding the SAME marks, so a mutual kill kills both in one atom;
+* a DEAL_DAMAGE ``dealer`` is the source of the damage (Hunter's Edge), and
+  "creatures that died this turn" counts death events.
 """
 
 from __future__ import annotations
@@ -209,7 +208,7 @@ class TestFight(ExecutorCase):
         self.assertEqual(self.ex.damage[delta], 2)
 
     def test_attacker_falls_back_to_the_result_register(self):
-        # The orphan-verb contract (R7-8): a FIGHT atom carries no attacker
+        # The orphan-verb contract: a FIGHT atom carries no attacker
         # role.  A battlefield source wins (Brash's activation); otherwise
         # the last ACTION's result register (Primal Might's +X/+X creature).
         self.ex.execute(
@@ -223,9 +222,9 @@ class TestFight(ExecutorCase):
         self.assertEqual(self.ex.damage[self.gamma], 1)
 
     def test_an_empty_result_register_is_no_fight(self):
-        # m21-fidelity wave 4 (2026-10-30): Primal Might's own creature left (its +X/+X
-        # atom acted on nothing, so the register is EMPTY) while its fight target is still
-        # legal, so the spell resolves. CR 701.14b: neither creature fights or deals damage.
+        # Primal Might's own creature left (its +X/+X atom acted on nothing, so the
+        # register is EMPTY) while its fight target is still legal, so the spell
+        # resolves. CR 701.14b: neither creature fights or deals damage.
         self.ex.execute(
             atom(Verb.FIGHT, target=target_sel()),
             source=self.h1,  # the spell's card, not a battlefield fighter
@@ -236,7 +235,7 @@ class TestFight(ExecutorCase):
         self.assertEqual(self.ex.damage, {})
 
     def test_no_legal_foe_is_not_a_fight(self):
-        # C17 clamp: an empty designation does not raise and touches nobody.
+        # An empty designation does not raise and touches nobody.
         before = len(self.ex.journal.events)
         self.ex.execute(
             atom(Verb.FIGHT, target=target_sel()),
@@ -284,10 +283,10 @@ def _bite(amount=None):
 
 
 class TestNamedDealer(ExecutorCase):
-    """V3 (2026-10-29): a DEAL_DAMAGE ``dealer`` is the source of the damage
-    (CR 120.1, 120.2b): its deathtouch and lifelink apply, the journal names
-    it as the cause, and a gone dealer deals nothing. Zero or negative
-    amounts deal no damage (CR 107.1b, 120.8)."""
+    """A DEAL_DAMAGE ``dealer`` is the source of the damage (CR 120.1,
+    120.2b): its deathtouch and lifelink apply, the journal names it as the
+    cause, and a gone dealer deals nothing. Zero or negative amounts deal no
+    damage (CR 107.1b, 120.8)."""
 
     def setUp(self):
         super().setUp()
@@ -373,7 +372,7 @@ def _died_census(*extra):
 
 
 class TestDiedThisTurnCensus(ExecutorCase):
-    """V7 (2026-10-29): "creatures that died [under your control] this turn"
+    """The census "creatures that died [under your control] this turn"
     counts death events (CR 700.4), judged as each creature last existed on
     the battlefield (CR 603.10a), never graveyard contents."""
 

@@ -1,13 +1,13 @@
-"""Tests for the round-12b trigger binding layer (/06 §12b).
+"""The trigger binding layer.
 
 Pins: compiled-ability attachment (oracle-id bridge identity-checked,
 detach-on-leave / re-register-on-re-enter), the structured event journal
-(zone moves, C18 dies was-snapshots, draws with per-turn ordinals,
+(zone moves, dies was-snapshots, draws with per-turn ordinals,
 counters, taps, damage, life, turn-phase markers), the APNAP fire loop with
-Handle tie-break, may-offer decisions consumed in fire order, the C22
+Handle tie-break, may-offer decisions consumed in fire order, the
 DelayedTrigger window with its end-of-turn expiry, the 200-fire loop
-tripwire, honest NotImplementedError on combat/cast/targeting event nodes —
-and the P12 replay fingerprint across a scripted multi-trigger chain.
+tripwire, which event nodes bind and which still raise NotImplementedError —
+and the replay fingerprint across a scripted multi-trigger chain.
 """
 
 import itertools
@@ -126,14 +126,14 @@ ANOTHER_CREATURE = FAnd((FNot(IS_SOURCE), CREATURE))
 
 
 def referent_sel(referent: str, filter_: Filter = UNIV) -> Selector:
-    """The C2 convention referent selector (bound object, never a search)."""
+    """The referent selector convention (bound object, never a search)."""
     return Selector(
         QConst(1), SelectorMode.CHOOSE, filter_, zones=(ANY_ANY,), referent=referent
     )
 
 
 def named_sel(name: str) -> Selector:
-    """Deterministic CHOOSE designation by printed name (12a stand-in)."""
+    """Deterministic CHOOSE designation by printed name."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -148,8 +148,8 @@ def all_bf() -> Selector:
 
 def enter(dest: Zone) -> Atom:
     """MOVE_ZONE with the cards role filled by a placeholder Selector — the
-    designated objects ride in via ``bindings={"cards": ...}`` (12a
-    convention; the selector is never resolved when a binding exists)."""
+    designated objects ride in via ``bindings={"cards": ...}`` (the
+    selector is never resolved when a binding exists)."""
     return atom(
         Verb.MOVE_ZONE,
         cards=Selector(QConst(9), SelectorMode.ALL, UNIV, zones=(ANY_ANY,)),
@@ -192,7 +192,7 @@ def gain(n, who=ControllerRef.YOU) -> Atom:
 
 
 def mill_one() -> Atom:
-    # T4 P1a: the mill shape is the merged MOVE_ZONE atom.
+    # The mill shape: MOVE_ZONE with the MILL journal kind.
     return atom(
         Verb.MOVE_ZONE,
         controller=ControllerRef.YOU,
@@ -207,9 +207,8 @@ def mill_one() -> Atom:
 
 
 def draw_one() -> Atom:
-    # re-pinned 2026-10-29: V23 changes what counts as a draw: only a DRAW atom
-    # draws (CR 121.1, 121.5). This helper was a library-to-hand MOVE_ZONE, which
-    # the journal used to log as a draw; the tests using it mean a real draw.
+    # Only a DRAW atom draws (CR 121.1, 121.5); the tests using this helper mean
+    # a real draw.
     return atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1))
 
 
@@ -356,11 +355,10 @@ class TestAttachment(BindingCase):
 
 class TestEventKinds(BindingCase):
     def test_dies_trigger_with_no_target_does_not_bind_the_dead_creature(self):
-        # known_bugs discard_any_number_never_asked_and_dies_trigger_target (M20 Cavalier of
-        # Flame): "When this creature dies, it deals 1 damage to each creature your opponents
-        # control" has no target. The dies firing bound the dead creature as ``target`` for
-        # the "that player" anaphora (Massacre Wurm), and the ALL selector's role read that
-        # binding first, so the damage went to the dead creature and no opponent's creature.
+        # Cavalier of Flame (M20): "When this creature dies, it deals 1 damage to each
+        # creature your opponents control" has no target. The dead creature the dies firing
+        # binds for the "that player" anaphora (Massacre Wurm) must not become the ALL
+        # selector's ``target``: the damage goes to each opponent's creature.
         opp_creature = self.world.add_card(card_id("Opp Bear", "2", "2"), self.p1, ZONE_BATTLEFIELD)
         each_opp_creature = Selector(
             QUnbounded(),
@@ -399,7 +397,7 @@ class TestEventKinds(BindingCase):
             ),
         )
         # Buff the victim 2/2 -> +2/+0 (ledger), then destroy: the trigger
-        # pays the WAS power (4) — the C18 snapshot, not the printed value.
+        # pays the WAS power (4) — the was-snapshot, not the printed value.
         victim = self.world.add_card(
             card_id("Victim", "2", "2"), self.p0, ZONE_BATTLEFIELD
         )
@@ -422,8 +420,8 @@ class TestEventKinds(BindingCase):
         self.assertEqual(self.life(self.p0), 24)
         dies = [e for e in self.ex.journal.events if e.kind == "CREATURE_DIES"]
         self.assertEqual(len(dies), 1)
-        # re-pinned 2026-10-29: V7 appends the controller and the token flag
-        # as of death (CR 603.10a) to the row.
+        # The row carries the controller and the token flag as of death
+        # (CR 603.10a).
         _from, was_owner, was_type, was_p, was_t, was_controller, was_token = dies[0].data
         self.assertEqual((was_p, was_t), (4, 2))
         self.assertEqual(was_type, "Creature")
@@ -629,9 +627,7 @@ class TestAPNAP(unittest.TestCase):
         # Both creatures enter in ONE op (simultaneous). CR 603.3b: the active
         # player (p0) puts its trigger on the stack first and p1's goes on top,
         # so p1's resolves first and p0's LAST — the last SET_PT (1/1) wins the
-        # ledger fold. (Until 2026-11-05 this test pinned the reverse: the
-        # drain sorted by seat index, so seat 0's trigger always resolved
-        # first.)
+        # ledger fold.
         self.ex.attach_card(self.c0, self.set_pt_rec(self.c0, 1))
         self.ex.attach_card(self.c1, self.set_pt_rec(self.c1, 5))
         both = sorted([self.c0, self.c1])
@@ -652,8 +648,7 @@ class TestAPNAP(unittest.TestCase):
         # receive priority, above the ones still waiting. c0 (p0, active) and c1 (p1) enter
         # together; p1's ETB resolves first (CR 603.3b) and makes p1 draw, which triggers p0's
         # Watcher ("whenever an opponent draws a card"). The Watcher's trigger resolves next,
-        # before p0's older ETB, so p0's ETB (1/1) is the last SET_PT. The drain used to pick
-        # the oldest trigger of the lowest seat, so the Watcher's 7/7 resolved last.
+        # before p0's older ETB, so p0's ETB (1/1) is the last SET_PT.
         watcher = self.world.add_card(card_id("Watcher", "1", "1"), self.p0, ZONE_BATTLEFIELD)
         watch = TriggeredAbility(
             event=CardDrawnEvent(
@@ -696,10 +691,8 @@ class TestAPNAP(unittest.TestCase):
 class TestModalTrigger(BindingCase):
     """CR 603.3c: a modal triggered ability's mode is chosen as it is put on the stack, and its
     targets are then chosen for that mode only; CR 700.2a: a mode that needs a target with no
-    legal choice can't be chosen. Voracious Hydra / Dread Presence (M20, known_bugs
-    modal_trigger_targets_before_mode): the trigger designated the targeted mode's target when
-    it fired and asked the mode only at resolution, so a target was asked for (and chosen) under
-    the other mode, and the targeted mode stayed on offer with nothing to target."""
+    legal choice can't be chosen (Voracious Hydra, Dread Presence: no target is asked for under
+    the other mode, and the targeted mode is not on offer with nothing to target)."""
 
     def setUp(self):
         super().setUp()
@@ -790,7 +783,7 @@ class TestDelayedTrigger(BindingCase):
             controller=self.p0,
             bindings={"cards": subira},
         )
-        self.assertEqual(len(self.ex.binder.delayed), 1)  # scheduled (C22)
+        self.assertEqual(len(self.ex.binder.delayed), 1)  # scheduled
         a = self.world.add_card(card_id("A", "1", "1"), self.p0, ZONE_HAND)
         self.ex.execute(
             enter(BF_YOU),
@@ -817,29 +810,14 @@ class TestDelayedTrigger(BindingCase):
 
 class TestRaises(BindingCase):
     def test_combat_cast_targeting_step_event_nodes_raise_on_bind(self):
-        # AMENDED (13b): CastSpellEvent LEFT this list — the spell stack
-        # shipped, the journal emits CAST rows (executor.events.emit_cast),
-        # and binding.py._match_cast subscribes them (the cast-trigger
-        # corpus: Quirion Dryad, Mangara, Double Vision, Ghostly Pilferer,
-        # Spellgorger Weird, Riddleform, Rin and Seri — bound and fired in
-        # test_executor_stack.py).
-        # AMENDED 2026-10-01 (round 16b): DeclareAttackersEvent +
-        # CombatDamageEvent LEFT this list too — the COMBAT skeleton ships
-        # both feeds (DECLARE_ATTACKERS / COMBAT_DAMAGE journal rows,
-        # binder matchers in binding.py) and bind CLEAN (checked below).
-        # R2 (2026-10-20, /140): CombatDamageEvent FOLDED into
-        # DamageDealtEvent — the combat feed is now the DAMAGE journal rows
-        # (is_combat=True) and the folded shape binds CLEAN (checked below).
-        # AMENDED 2026-10-02 (round 16c): DeclareBlockersEvent +
-        # BecomesBlockedEvent LEFT this list too — the blocker step ships
-        # the feed (DECLARE_BLOCKERS pair rows, binder matchers) and both
-        # bind CLEAN (checked below). Step raises stays.
-        # AMENDED 2026-10-01 (round 20b): TargetingEvent LEFT this list —
-        # the designation feed ships (journal.emit_targeting rows at the
-        # cast 601.2c designation, the folded activate and the trigger
-        # designation lane; binding.py._match_node KIND_TARGETING subscribes
-        # them; firing semantics pinned in test_executor_r20b — Warden of
-        # the Woods lane).
+        # A StepEvent still raises on bind. The other feeds bind CLEAN
+        # (checked below): DeclareAttackersEvent (DECLARE_ATTACKERS rows),
+        # combat damage as DamageDealtEvent(combat=True) (DAMAGE rows with
+        # is_combat=True), DeclareBlockersEvent / BecomesBlockedEvent
+        # (DECLARE_BLOCKERS pair rows) and TargetingEvent (the TARGETING
+        # rows journal.emit_targeting writes at every designation;
+        # binding.py._match_node subscribes them). CastSpellEvent binds too
+        # (CAST rows, binding.py._match_cast; fired in test_executor_stack.py).
         for event in (
             StepEvent(Phase.COMBAT, Step.DECLARE_ATTACKERS, ControllerRef.YOU),
         ):
@@ -848,7 +826,7 @@ class TestRaises(BindingCase):
                 self.assertRaises(NotImplementedError),
             ):
                 self.attach_trigger(self.watch, event, gain(1))
-        # 16b: the two combat feeds that LEFT the table bind clean now.
+        # The combat feeds bind clean.
         self.assertEqual(
             self.attach_trigger(
                 self.watch, DeclareAttackersEvent(filter=UNIV), gain(1)
@@ -858,8 +836,7 @@ class TestRaises(BindingCase):
         self.assertEqual(
             self.attach_trigger(
                 self.watch,
-                # R2 fold (/140): the folded combat-damage shape — the
-                # former CombatDamageEvent(filter=UNIV) trigger.
+                # Combat damage: DamageDealtEvent with combat=True.
                 DamageDealtEvent(
                     amount=QUnbounded(), filter=UNIV, source=FAnd(()), combat=True
                 ),
@@ -867,7 +844,7 @@ class TestRaises(BindingCase):
             ),
             1,
         )
-        # 16c: the block feed binds clean (the matcher semantics — filter/
+        # The block feed binds clean (the matcher semantics — filter/
         # SUBJECT over the blocker, blocked over the attacker, the anchored
         # BecomesBlockedEvent reading — are pinned in test_executor_blockers).
         self.assertEqual(
@@ -878,7 +855,7 @@ class TestRaises(BindingCase):
             self.attach_trigger(self.watch, BecomesBlockedEvent(filter=UNIV), gain(1)),
             1,
         )
-        # 20b: the designation feed binds clean (the TARGETING row matcher,
+        # The designation feed binds clean (the TARGETING row matcher,
         # the player-subject guard and the IS_SOURCE/IS_TARGET semantics
         # are pinned in test_executor_r20b).
         self.assertEqual(
@@ -887,9 +864,8 @@ class TestRaises(BindingCase):
         )
 
     def test_damage_source_and_combat_scopes_bind(self):
-        # AMENDED 2026-10-02 (round 16c): the scope fields are CONSUMED by
-        # _match_damage (dealer=cause filter, combat flag on the DAMAGE
-        # row), so the pre-16c bind-time raise is retired — Harbinger/
+        # The scope fields are CONSUMED by _match_damage (dealer=cause
+        # filter, combat flag on the DAMAGE row), so the Harbinger/
         # Subira/Pyreling/Incinerator shapes bind and scope-filter (the
         # firing semantics are pinned in test_executor_blockers).
         self.assertEqual(
@@ -911,10 +887,9 @@ class TestRaises(BindingCase):
         )
 
     def test_trigger_loop_tripwire_quarantines_the_loop_source(self):
-        # AMENDED r23a (2026-10-02, games seeds 17/50): the tripwire
-        # GUARDS instead of raising — Chandra's Incinerator's real-world
-        # self-retrigger killed GAMES, and "flag it, never run it" means
-        # flag, not kill. Looper's own ETB shuffles itself graveyard->
+        # The tripwire GUARDS instead of raising: "flag it, never run it"
+        # means flag, not kill the game (Chandra's Incinerator can
+        # self-retrigger). Looper's own ETB shuffles itself graveyard->
         # battlefield: MAX fires resolve, then the culprit source is
         # QUARANTINED (queued firings dropped, future _queue calls drop),
         # the event is recorded loudly in executor.trigger_loops, and the
@@ -941,18 +916,16 @@ class TestRaises(BindingCase):
         self.assertIn(looper, self.ex.binder.quarantined)
         # The drain COMPLETED (not aborted): the queue and every firing
         # payload are consumed, and the quarantined source left nothing
-        # behind. The _queue gate keeps it out for good; games seeds
-        # 17/50 pin the end-to-end absorption in test_executor_games.
+        # behind. The _queue gate keeps it out for good.
         self.assertFalse(self.ex.world.triggers)
         self.assertFalse(any(str(s) == str(looper) for s in self.ex.binder.firings))
 
 
 class TestMayAndDeterminism(BindingCase):
     def test_may_offer_consumes_decisions_in_fire_order(self):
-        """AMENDED 14b (B-4 rebuild): the positional trigger_decisions
-        stream is DELETED; may-offers answer through the executor's
-        vocabulary-addressed stream — the two firings ask under their own
-        source's key, so each answers per key, in ask order."""
+        """May-offers answer through the executor's vocabulary-addressed
+        stream — the two firings ask under their own source's key, so each
+        answers per key, in ask order."""
         first = self.world.add_card(card_id("E1", "1", "1"), self.p0, ZONE_HAND)
         second = self.world.add_card(card_id("E2", "1", "1"), self.p0, ZONE_HAND)
         for e in (first, second):
@@ -960,9 +933,9 @@ class TestMayAndDeterminism(BindingCase):
                 e, self.record_for(e, [etb_trigger(OptionalEffect(gain(2)))])
             )
         both = sorted([first, second])
-        # AMENDED T5-F1: the may site tag carries the offer digest, so two
-        # may-offers on one source are two keys (a source-only tag
-        # mispaired their primings). The digest is value-based, so the
+        # The may site tag carries the offer digest, so two may-offers on
+        # one source are two keys (a source-only tag would mispair their
+        # primings). The digest is value-based, so the
         # structurally identical trigger effect re-digests here.
         offer = OptionalEffect(gain(2))
         self.ex.decisions.push(
@@ -1023,20 +996,10 @@ class TestMayAndDeterminism(BindingCase):
         ex.execute(draw_one(), source=watcher, controller=p0)
         ex.end_turn()
         # Chain fired: ETB drew, the draw trigger milled, the direct draw
-        # drew again and milled again.
-        # AMENDED 14a (2026-09-30): the turn skeleton gained its DRAW step
-        # (CR 504.5-c, `Executor._turn_draw`) — begin_turn now draws for the
-        # active seat, so the chain runs ONE MORE draw at its head: 3 cards
-        # end in hand. The library is 5 deep and the feed is now 3 draws + 3
-        # mill attempts, so the third mill finds an empty library (CR 121.2
-        # no-op through _v_mill) and the graveyard stays 2 deep. Pre-14a this
-        # pinned 2/2 because the skeleton had NO draw step at all (the games
-        # harness found it: without a per-turn draw a real game stalls). The
-        # chain's SHAPE is unchanged — one extra link at the head.
-        # AMENDED 2026-11-05 (CR 103.8a): begin_turn(p0) is the first turn of a
-        # two-player game, and the player who plays first skips that draw
-        # step, so the head link is gone again: ETB draw + mill, direct draw +
-        # mill = 2 in hand, 2 in the graveyard, 1 left in the library.
+        # drew again and milled again. begin_turn(p0) is the first turn of a
+        # two-player game, and the player who plays first skips its draw
+        # step (CR 103.8a): ETB draw + mill, direct draw + mill = 2 in hand,
+        # 2 in the graveyard, 1 left in the library.
         self.assertEqual(len(world.players[p0].zone(ZONE_HAND).entries), 2)
         self.assertEqual(len(world.players[p0].zone(ZONE_GRAVEYARD).entries), 2)
         return ex.state_fingerprint()

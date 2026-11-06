@@ -1,33 +1,18 @@
-"""Round-14a test suite: the random-policy full-M21 game harness, and the
-repro pin for every crash the first 30 games produced.
+"""The random-policy full-M21 game harness, and engine behaviour that dealt games exercise.
 
-Two jobs.
-
-1. The harness must be trustworthy before any PC-7 number written from it
-   means anything: one seed must replay to the SAME world fingerprint (the
-   mission's "pinned replay test seed S game state fingerprints equal across
-   two runs"), the deck builder must obey its own documented composition rules,
-   and the policy's decision stream must come from the query surface — which is
+1. The harness must be trustworthy before any number written from it means
+   anything: one seed replays to the SAME world fingerprint, the deck builder
+   obeys its own documented composition rules, and the policy answers the
+   engine's asks, whose vocabulary is the query surface's own enumeration —
    testable by making the query surface NARROW and checking the policy follows
-   (:class:`DecisionSurfaceTest`). That is the C15 contract as an assertion, not
-   as a comment about it.
+   (:class:`DecisionSurfaceTest`).
 
-2. Every crash class the 14a smoke run produced gets a test here, seed-pinned
-   through the real seed -> deck -> policy derivation, asserting the CURRENT
-   behaviour, with an ``AMENDED`` marker on the line that flips when the engine
-   fixes it. These tests are the executable half of
-   ``KNOWLEDGE/2026-09-30/03-game-loop-bugs.md``, which names them per row.
-
-   * B-2 (Zone(STACK) target query) is FIXED here, so its test asserts the
-     fixed answer and the marker is a history note, not a TODO.
-   * B-4 (the mid-drain trigger decision channel) is OPEN and is why PC-7
-     survival is 0%: no query enumerates the triggers an op is about to arm, so
-     a positional ``trigger_decisions`` stream cannot be built for them.
-   * B-7 (CONTROLLER_COUNT_GE), B-8 (TARGET_PLAYER designation) and B-9 (the
-     ``result``/``event`` referents outside a trigger firing) are the other
-     measured ceilings. B-8 has a documented CR-rule workaround on the policy
-     side, so its test asserts the workaround works AND names the query it
-     stands in for.
+2. The engine shapes real games reach, each pinned on the real compiled card
+   or a minimal world: stack-zone targets, a land's own ETB ask mid-op,
+   synthesized player slots, the ``result``/``event`` referents, kicker and
+   X-kicker casts, the journal-backed history predicates, control and Aura
+   lifecycles, the stall rule, the act windows of both main phases, and dealt
+   cards binding their records.
 """
 
 from __future__ import annotations
@@ -173,60 +158,19 @@ class DeckSupplyTest(unittest.TestCase):
             self.assertTrue(meta.engine_supported and meta.playable, meta.name)
 
     def test_engine_count_is_the_gated_293(self) -> None:
-        # The honest 12e number, from the SUPPORTED_VERBS_V2-gated pass: an
-        # ungated compile stamps every card supported (NUMBERS.md 2026-09-30),
-        # so a harness that skipped the second pass would report 305.
-        # AMENDED 2026-09-30 (round 16a): 286 -> 288 — FIGHT joined the
-        # dispatched set, and the gate picked up exactly its two FIGHT
-        # carriers (Brash Taunter, Primal Might), zero losses. Verified by
-        # diffing the gated compile with and without Verb.FIGHT.
-        # AMENDED (round 16b): 288 -> 291 — MANDATE_ATTACK joined, and the
-        # gate picked up exactly its three carriers (Furor of the Bitten,
-        # Pursued Whale, the Pirate token — the same with/without diff was
-        # re-run, NUMBERS 2026-10-01). The DECKABLE set is unchanged: none
-        # of the three is put-into-playable, so the engine decks themselves
-        # are untouched by the flip; the "all" pool now CARRIES them.
-        # AMENDED 2026-10-02 (round 16c): 291 -> 293 — MANDATE_BLOCK and
-        # DAMAGE_ASSIGN_POLICY joined, and the with/without gate diff (run
-        # again 16c) picked up exactly their two carriers (Canopy Stalker,
-        # Garruk Savage Herald), zero losses, deckable unchanged again.
-        # AMENDED 2026-10-02 (round 16e): 293 -> 297 — GAIN_CONTROL and
-        # ATTACH joined; the with/without gate diff (run again 16e) picked
-        # up EXACTLY the four control/attachment carriers (Traitorous
-        # Greed, Enthralling Hold, Short Sword, Malefic Scythe), zero
-        # losses. Deckable unchanged: none of the four is a creature, so
-        # the engine decks are untouched — the two sorceries ride the
-        # castable lane, the equipment the activation lane.
-        # AMENDED (RUNG-1 response-window arc): 297 -> 301 — COUNTER_SPELL
-        # joined with the stack.cast response window, and the gate picked
-        # up EXACTLY its four carriers (Cancel, Miscast, Rewind, Lofty
-        # Denial — measure_grammar --with-engine-flags: 301/305), zero
-        # losses. Deckable unchanged: all four are instants, the castable
-        # lane; the window now answers for them when they are cast.
-        # AMENDED 2026-10-29 (B-49 follow-up #1): 301 -> 299 — exactly the two Chandras
-        # (Flame's Catalyst, Heart of Fire) leave: their duration-limited cast
-        # permissions are suppressed and the gate marks them unsupported.
-        # AMENDED 2026-10-29 (B-49 follow-up #4): 299 -> 298 — exactly Ugin, the
-        # Spirit Dragon leaves: a [−X] loyalty cost needs an X declaration the
-        # activation lane does not have, so the shape gate marks it unsupported.
-        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299 (Ugin is
-        # supported again: legality.activate announces X, CR 602.2b/606.6).
-        # re-pinned 2026-10-29: phasing (PHASE_OUT, CR 702.26) changes 299 -> 301,
-        # exactly Teferi, Master of Time and Teferi, Timeless Voyager.
-        # re-pinned 2026-11-05 (B-100, CR 601.3): 301 -> 300, exactly Demonic Embrace
-        # leaves: its graveyard-cast permission is refused (no permission lane) and the
-        # card is marked unsupported, as the two Chandras' permissions are.
+        # The SUPPORTED_VERBS_V2-gated count: an ungated compile stamps every
+        # card supported, so a harness that skipped the second pass would
+        # report 305. Re-pin it only after diffing the gated compile with and
+        # without the change: a change must move exactly the cards it affects.
         self.assertEqual(len(self.supply.engine_ids), 300)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
-    """/99 (KNOWLEDGE/2026-10-18/99): the ZNR supply used to CRASH on one
-    printed shape — Nighthawk Scavenger, P/T "1+*" — whose '*' is defined
-    by "the number of card types among cards in your opponents' graveyards"
-    (a derived census the frozen Quantity grammar cannot express; encoding
-    it is a grammar round, not a parse kludge). The supply path now
-    EXCLUDES the refusing shape and registers it as census-consistent
-    ShapeGap rows — loud (stderr line + ledger), never silent."""
+    """The ZNR supply EXCLUDES the one printed shape the compiler refuses —
+    Nighthawk Scavenger, P/T "1+*", whose '*' is "the number of card types
+    among cards in your opponents' graveyards" (a derived count the Quantity
+    grammar cannot express) — and registers it as a ShapeGap row: loud
+    (stderr line + ledger), never silent."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -245,33 +189,22 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
         self.assertIn("1+*", gap.error)
 
     def test_exclusion_is_the_only_one(self) -> None:
-        # /93 certified Nighthawk as the ONLY non-digit P/T in ZNR; a second
+        # Nighthawk is the ONLY non-digit P/T in ZNR; a second
         # gap row means a new shape crash got swallowed — that is a finding.
         self.assertEqual(len(self.supply.shape_gaps), 1)
 
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        # B-49 follow-up #1 (2026-10-29): 301 -> 299 engine, 281 -> 279 deckable (the two
-        # Chandras whose duration permissions are suppressed).
-        # B-49 follow-up #4 (2026-10-29): 299 -> 298, 279 -> 278 (Ugin's [−X]).
-        # re-pinned 2026-10-29: the activation X lane changes 298 -> 299, 278 -> 279 (Ugin back).
-        # re-pinned 2026-10-29: phasing changes 299 -> 301, 279 -> 281 (the two Teferis).
-        # re-pinned 2026-11-05 (B-100, CR 601.3): 301 -> 300, 281 -> 280 (Demonic Embrace's
-        # refused graveyard-cast permission).
-        self.assertEqual(len(m21.engine_ids), 300)
         self.assertEqual(len(m21.deckable), 280)
 
 
 class KickerLaneTest(unittest.TestCase):
-    """ZND-1e (cast/cost lane): a KickerAbility is a cast OPTION, not a
-    second spell. The legality fold charges printed + kicker cost when
-    ``kicked=True``, rejects the flag on non-kickers, and the compiler
-    carries a kicker-only noncreature head (Roost of Drakes: no effect
-    sentence, so no SpellAbility node was
-    ever built — the card was ``cast:not_a_spell``).
-    (ZND-1g amended: the X-kicker refusal was replaced by a real priced
-    lane — see XKickerLaneTest below.)"""
+    """A KickerAbility is a cast OPTION, not a second spell. The legality
+    fold charges printed + kicker cost when ``kicked=True``, rejects the
+    flag on non-kickers, and the compiler gives a kicker-only noncreature
+    head a SpellAbility carrier (Roost of Drakes has no effect sentence, yet
+    it is a spell). X-valued kickers: XKickerLaneTest below."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -352,16 +285,16 @@ class KickerLaneTest(unittest.TestCase):
 
 
 class XKickerLaneTest(unittest.TestCase):
-    """ZND-1g (X-valued kicker PLAYABLE, /95 closed): Thieving Skydiver
+    """An X-valued kicker: Thieving Skydiver
     ``Kicker {X}. X can't be 0.`` Its printed cost {1}{U} carries no X, so
     the kicker {X} is the spell's ONLY X — CR 107.4a gives ONE declared
     value per object, feeding both the cost fold and the ETB filter. The
     cast's ``x`` IS that single announcement (no separate kicker-X slot).
 
-    Adopted X-law = the engine's STANDING zero-floor precedent (CR 107.1):
-    X=0 is a legal declaration, so a kick with X=0 pays {0} and IS a legal
-    kick. The printed "X can't be 0." is UNPARSED (the frozen grammar has
-    no X-bound atom), so the engine cannot enforce a constraint it cannot
+    The X law is the engine's zero floor (CR 107.1): X=0 is a legal
+    declaration, so a kick with X=0 pays {0} and IS a legal kick. The
+    printed "X can't be 0." is UNPARSED (the grammar has no X-bound
+    atom), so the engine cannot enforce a constraint it cannot
     see — a REGISTERED effect gap, never a silent side-channel check. The
     card stays engine-UNSUPPORTED (its gated ETB control-gain effect is
     unparsed), so it is addressed from the ``all`` supply."""
@@ -398,7 +331,7 @@ class XKickerLaneTest(unittest.TestCase):
         self.assertEqual(plan.mana, (("U", 4),), plan.mana)
 
     def test_x_kicker_zero_floor_is_a_legal_kick(self) -> None:
-        # Adopted law (CR 107.1): X=0 pays {0} yet still marks the cast
+        # CR 107.1: X=0 pays {0} yet still marks the cast
         # kicked — {1}{U}{0} = 2 total, same as the un-kicked base.
         handle = self._hand(6)
         reason, _node, _rec, plan = spell_castable(
@@ -452,10 +385,10 @@ class XKickerLaneTest(unittest.TestCase):
 
 
 class PermanentKickerBlinkTest(unittest.TestCase):
-    """ZND-1e blink law (/100 deferred caveat, closed): WAS_KICKED for a
-    handle ON the battlefield is ENTRY-BOUND, not window-bound. A kicked
-    permanent that leaves and re-enters is a NEW object that was never
-    cast (CR 400.7), so its gated EtBState must not re-apply (CR 614.1c)
+    """WAS_KICKED for a handle ON the battlefield is ENTRY-BOUND, not
+    window-bound. A kicked permanent that leaves and re-enters is a NEW
+    object that was never cast (CR 400.7), so its gated EtBState must not
+    re-apply (CR 614.1c)
     and "if it was kicked" follows the ENTRY's provenance (the entry
     ZONE_CHANGE row's from_state), not the stale CAST row. Exercised with
     the engine's REAL out-and-back primitives (MOVE_ZONE exile lane +
@@ -558,10 +491,9 @@ class PermanentKickerBlinkTest(unittest.TestCase):
         self.assertEqual(self.world.cards[self.handle].counters, {})
 
     def test_kicked_permanent_lane_survives_the_turn_boundary(self) -> None:
-        # Entry-bound (whole journal) beats the old window read: a kicked
-        # permanent that is STILL the same object next turn was still
-        # kicked (CR 702.27a — the property does not expire with the
-        # window; the pre-fix window read answered False here).
+        # Entry-bound (whole journal), not window-bound: a kicked permanent
+        # that is STILL the same object next turn was still kicked
+        # (CR 702.27a — the property does not expire with the window).
         cast(self.executor, self.p0, self.handle, kicked=True)
         self.executor.end_turn()
         self.executor.advance_turn()
@@ -570,7 +502,7 @@ class PermanentKickerBlinkTest(unittest.TestCase):
 
 
 class ReplayDeterminismTest(unittest.TestCase):
-    """The mission's replay gate, as a test."""
+    """One seed replays to the same fingerprint; different seeds diverge."""
 
     def test_one_seed_two_runs_identical_fingerprint(self) -> None:
         first = play_game(3, "castable", SMOKE_DECK_PAIRS, turn_cap=8)
@@ -590,12 +522,8 @@ class ReplayDeterminismTest(unittest.TestCase):
 
 
 class DecisionSurfaceTest(unittest.TestCase):
-    """C15, tested, 14b shape: the ENGINE asks with the query's own
-    vocabulary at the demand site, and the policy answers that
-    enumeration — AMENDED (was: the policy walked the effect tree and
-    built a positional stream from the queries). The walk was only ever
-    possible because the harness mirrored two CR literals and re-derived
-    the pending-trigger demand; the ask-time channel deletes the need."""
+    """The ENGINE asks with the query's own vocabulary at the demand site,
+    and the policy answers that enumeration."""
 
     def setUp(self) -> None:
         reset_oracle_ids()
@@ -607,14 +535,12 @@ class DecisionSurfaceTest(unittest.TestCase):
 
     def test_may_offer_narrowing_autopicks_the_forced_answer(self) -> None:
         # "You may pay {2}" with an empty pool: query.py narrows the offer
-        # to skip (CR 117.3). AMENDED T5-F1 (§10 phantom class): a
-        # skip-only surface is NOT an ask — the shared phantom gate
-        # (offers.offer_or_autopick, stack.py:442's rule) consumes it
+        # to skip (CR 117.3). A skip-only surface is NOT an ask — the
+        # shared phantom gate (offers.offer_or_autopick) consumes it
         # silently, so a blind "fire" provider is never consulted and
-        # the illegal decision CANNOT be made (stronger than the 14b
-        # channel-rejection this replaced: nothing is offered at all).
+        # the illegal decision CANNOT be made: nothing is offered at all.
         # The consumption is journalled, not asked: answered() — the
-        # public ask lane BC consumes — stays empty.
+        # public ask lane — stays empty.
         effect = OptionalEffect(
             _atom(Verb.PAY, cost=Cost(parts=(CostManaGeneric(QConst(2)),)))
         )
@@ -661,7 +587,7 @@ class DecisionSurfaceTest(unittest.TestCase):
         self.executor.decisions.provider = provider
         self.executor.apply_effect(effect, source=self.source, controller=self.p0)
         # the ask vocabulary equals the query surface's own option-set
-        # enumeration (§8.3 query/runtime identity, now delivered AT the ask)
+        # enumeration (query/runtime identity, delivered AT the ask)
         self.assertEqual(len(asked), 1)
         vocab, what = asked[0]
         self.assertTrue(what.startswith(f"choose:{self.source}:"))
@@ -669,9 +595,8 @@ class DecisionSurfaceTest(unittest.TestCase):
         self.assertEqual(vocab, ("0", "1"))
 
     def test_unimplemented_node_raises_from_the_engine(self) -> None:
-        # Repeat is real IR and unimplemented (12e). 14b: with the walk
-        # deleted the harness reports the engine's OWN raise (it no longer
-        # mirrors the gate — it plays into it).
+        # Repeat is real IR and unimplemented: the harness reports the
+        # engine's OWN raise (it does not mirror the gate — it plays into it).
         with self.assertRaises(NotImplementedError):
             self.executor.apply_effect(
                 Repeat(
@@ -685,7 +610,7 @@ class DecisionSurfaceTest(unittest.TestCase):
             )
 
     def test_loud_exhaustion_no_default(self) -> None:
-        # C15/C16: an empty stream with no pool and no answerer raises —
+        # An empty stream with no pool and no answerer raises —
         # the engine never defaults a decision.
         effect = OptionalEffect(
             _atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1))
@@ -695,14 +620,12 @@ class DecisionSurfaceTest(unittest.TestCase):
 
 
 class CrashLedgerTest(unittest.TestCase):
-    """One test per crash class the first 30 games produced."""
+    """Stack-zone targets, a land's own ETB ask, the world-count gate, the synthesized
+    opponent slot, the result register, ONE_OF/REST designation and the undeclared X."""
 
     def test_b2_stack_zone_targets_are_enumerable(self) -> None:
-        """B-2 FIXED 14a. AMENDED (was ``assertRaises(NotImplementedError)``,
-        'Zone(STACK) enumeration needs the stack'): that raise was round-12
-        truth and 13b made it stale. The M21 consumer is Unsubstantiate's
-        BATTLEFIELD + STACK target selector, which made legal_casts call the
-        spell castable and spell_target_slots raise on the next question."""
+        """Zone(STACK) targets enumerate the parked spells. The M21 consumer
+        is Unsubstantiate's BATTLEFIELD + STACK target selector."""
         reset_oracle_ids()
         world = GameWorld(num_players=2, master_seed=2)
         p0 = world.player_order[0]
@@ -730,15 +653,13 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertEqual(slot.candidates, (spell,))
 
     def test_b4_scry_armed_by_the_land_drop_itself_is_answered(self) -> None:
-        """B-4 FIXED 14b (was the PC-7 blocker, 22/30 kills). The M21
-        check-land cycle — drop the land, ITS OWN ETB scry asks mid-op —
-        now answers through the vocabulary-addressed channel: the scry ask
-        arrives with ('top','bottom') + the 'scry:<player>:<n>' tag the
+        """The M21 check-land cycle — drop the land, ITS OWN ETB scry asks
+        mid-op — answers through the vocabulary-addressed channel: the scry
+        ask arrives with ('top','bottom') + the 'scry:<player>:<n>' tag the
         moment the drain reaches it, and the provider answers without the
         caller having enumerated anything. Scripted proof below (direct,
-        no policy path), then the seed-pinned game check that the old
-        rejection message is gone. Replay fingerprint pinned (the
-        decision history rides the seeded stream: two runs agree)."""
+        no policy path). Replay fingerprint pinned (the decision history
+        rides the seeded stream: two runs agree)."""
         supply = get_supply("all")
         record = _record_named(supply, "Temple of Epiphany")
         answers: list[tuple[tuple[str, ...], str]] = []
@@ -781,19 +702,12 @@ class CrashLedgerTest(unittest.TestCase):
         fp_b, _ = play_once(41)
         answers.clear()
         self.assertEqual(fp_a, fp_b)
-        # and the seed-pinned game class: the old positional rejection is gone.
-        outcome = play_game(0, "all", SMOKE_DECK_PAIRS, turn_cap=8)
-        crash = outcome.crash
-        if crash is not None:  # other ledger classes may still kill it —
-            self.assertNotIn("SCRY decision", crash["message"])
 
     def test_b7_controller_count_ge_filter_raises_from_the_query(self) -> None:
-        """B-7 CONTAINER — FIXED 14d (was: the query raised for an
-        engine-supported card). AMENDED 14d (was: assertRaises on the same
-        direct path; the row text below kept as history). The world-count
-        version of CONTROLLER_COUNT_GE answers at the SAME query entry
-        point (ctx_for now carries the journal, and this pred is pure
-        world-state): 3 lands < 4 is False, and the 4th land flips it."""
+        """The world-count CONTROLLER_COUNT_GE (Fabled Passage) answers at
+        the query entry point (ctx_for carries the journal, and this pred
+        is pure world-state): 3 lands < 4 is False, and the 4th land flips
+        it."""
         supply = get_supply("all")
         record = _record_named(supply, "Fabled Passage")
         pred = next(
@@ -831,13 +745,12 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertTrue(eval_filter(pred, permanent, ctx))  # 4 lands >= 4
 
     def test_b8_target_player_coordinate_rides_the_synthesized_slot(self) -> None:
-        """B-8/B-5 CLOSED 14b. 'target opponent' compiles to a
-        ControllerRef.TARGET_PLAYER coordinate with NO Selector — the slot
-        query now SYNTHESIZES the designation slot (candidates = the
-        opponent seats, the engine's own CR population), so the policy
-        designates from the query instead of mirroring the rule, and
-        ``stack._validate_spell_targets`` stays the oracle. AMENDED (was:
-        the mirrored-rule workaround + the _names_a_player IR probe)."""
+        """'target opponent' compiles to a ControllerRef.TARGET_OPPONENT
+        coordinate with NO Selector — the slot query SYNTHESIZES the
+        designation slot (candidates = the opponent seats, the engine's own
+        CR population), so the policy designates from the query instead of
+        mirroring the rule, and ``stack._validate_spell_targets`` stays the
+        oracle."""
         supply = get_supply("all")
         record = _record_named(supply, "Duress")
         node = next(a for a in record.abilities if isinstance(a, SpellAbility))
@@ -880,25 +793,17 @@ class CrashLedgerTest(unittest.TestCase):
         )
 
     def test_b9_result_referent_resolves_from_resolution_producers(self) -> None:
-        """B-9 CLOSED 14e (was: cast-time atoms reading the ``result``
-        referent raised — the register existed only inside a trigger firing;
-        8/11 of the 14d engine-30 wall, dominant face Feat of Resistance).
-        The producer-write design: the register is the ctx's ``result``
-        binding slot, written by the object-action verbs (SEARCH/CHOOSE
-        since 14c, TAP/UNTAP/PUT_COUNTER/MOVE_ZONE since 14e) INSIDE one
-        effect execution, and per-resolution because every ExecCtx carries
-        a fresh bindings dict. AMENDED (was: assertRaises on the Seasoned
-        Hallowblade cast).
+        """The ``result`` register is the ctx's ``result`` binding slot,
+        written by the object-action verbs (SEARCH, CHOOSE, TAP, UNTAP,
+        PUT_COUNTER, MOVE_ZONE) INSIDE one effect execution, and
+        per-resolution because every ExecCtx carries a fresh bindings dict.
 
         (a) Feat of Resistance resolves at CAST: PUT_COUNTER writes the
             designated creature, the color Choose asks, GRANT reads it.
-        (b) Seasoned Hallowblade's tail is the activation's (B-17 capture):
-            paying DISCARD runs Seq(TAP; GRANT) — the blade turns
-            indestructible. Casting it now raises the B-1 ``not_a_spell``
-            flag (capture moved the crash, per the ruling: the accidental
-            SpellAbility node is gone).
-        (c) A read with NO producer in its own execution still RAISES
-            (flag, never guess) — and the write never leaked out of the
+        (b) Seasoned Hallowblade's tail is the activation's: paying DISCARD
+            runs Seq(TAP; GRANT) — the blade turns indestructible.
+        (c) A read with NO producer in its own execution RAISES (flag,
+            never guess) — and the write never leaked out of the
             activation that made it (per-resolution, not card-global)."""
         supply = get_supply("all")
         # (a) the cast-resolution face
@@ -940,10 +845,9 @@ class CrashLedgerTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError) as cm:
             executor.apply_effect(grant, source=blade, controller=p0)
         self.assertIn("producer", str(cm.exception))
-        # …and a hand cast no longer trips the B-1 not_a_spell flag: C4
-        # gave the creature a cast-lane carrier, so legality now reaches
-        # the mana gate and fails there on an empty pool (the raise
-        # MOVED, it did not disappear — B-9 still resolves above).
+        # …and the blade in hand is a spell (the creature has a cast-lane
+        # carrier): legality reaches the mana gate and fails there on an
+        # empty pool.
         hand_spell = world.add_card(identity_of(blade_rec), p0, ZONE_HAND)
         world.active_player = p0
         executor.turn_open = True
@@ -953,15 +857,14 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertIn("cost:mana", str(cm.exception))
 
     def test_new_rest_one_of_designation_is_the_12c_gap(self) -> None:
-        """AMENDED 14c (B-13 FIXED): the split-selection pair designates
-        through the vocabulary-addressed decision channel — the 12c prompt
-        the 14b streams finally serve. ONE_OF asks with the Handle-sorted
-        candidate list as the EXACT vocabulary (C15: enumerate-then-answer,
-        no prose); an answer no lane can give RAISES loudly (never a
-        default); REST is the deterministic complement — no ask (query.
-        rest_of's runtime twin)."""
+        """The split-selection pair designates through the
+        vocabulary-addressed decision channel. ONE_OF asks with the
+        Handle-sorted candidate list as the EXACT vocabulary
+        (enumerate-then-answer, no prose); an answer no lane can give
+        RAISES loudly (never a default); REST is the deterministic
+        complement — no ask (query.rest_of's runtime twin)."""
         # (a) one candidate: forced, no decision consumed (exactly-one
-        #     legal filler auto-fills, /06 §1.4).
+        #     legal filler auto-fills).
         reset_oracle_ids()
         world = GameWorld(num_players=2, start_life=20, master_seed=7)
         p0 = world.player_order[0]
@@ -1080,21 +983,15 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertIn("needs a decision", str(cm.exception))
 
     def test_qx_undeclared_x_resolves_the_whole_cast(self) -> None:
-        """AMENDED 14c (QX CLOSED at cast): CR 601.2f declares X WITH the
-        total cost, so when the caller passes no x the legality fold's
-        documented X=0 witness (CR 107.1) is the DECLARATION — the frame's
-        x_value and the effect's QX read it (the 13b wiring gap: a QX in
-        an effect quantity instead of the cost stayed unbound and died at
-        quantity.resolve).
-        AMENDED 2026-09-30 (round 16a): FIGHT joined HANDLERS, so Primal
-        Might has no unimplemented class left and the X=0 cast RESOLVES
-        end to end — the pin flips from "got PAST the QX raise" to the
-        full resolution: spell to graveyard, the QX=0 witness deal leaves
-        NO damage mark (mark_damage ignores n<=0), the ally survives, and
-        the FIGHT's CHOOSE over an empty opponent population fights
-        nobody (C17). The unbound raise itself is untouched OUTSIDE a
-        cast (ctx.x_value None in any other context still flags — pinned
-        by 13b's suite)."""
+        """CR 601.2f declares X WITH the total cost, so when the caller
+        passes no x the legality fold's documented X=0 witness (CR 107.1)
+        is the DECLARATION — the frame's x_value and the effect's QX (a QX
+        in an effect quantity, not the cost) read it. Primal Might's X=0
+        cast RESOLVES end to end: spell to graveyard, the QX=0 witness deal
+        leaves NO damage mark (mark_damage ignores n<=0), the ally
+        survives, and the FIGHT's CHOOSE over an empty opponent population
+        fights nobody. Outside a cast an unbound QX (ctx.x_value None)
+        still raises."""
         supply = get_supply("all")
         record = _record_named(supply, "Primal Might")
         reset_oracle_ids()
@@ -1136,9 +1033,9 @@ class CrashLedgerTest(unittest.TestCase):
 
 
 class Round14cFixTest(unittest.TestCase):
-    """Round-14c close-out pins: one green test per crash class the round
-    fixed, written against the exact crash shape the ledger row records
-    (KNOWLEDGE/2026-09-30/03-game-loop-bugs.md B-15/B-16/B-18 + QX)."""
+    """Designation through non-target roles, anaphoric selectors, the
+    actor's own hand for DISCARD, history predicates and stack
+    enumeration."""
 
     def _world(self, seed: int = 7) -> tuple[GameWorld, Executor]:
         reset_oracle_ids()
@@ -1146,7 +1043,7 @@ class Round14cFixTest(unittest.TestCase):
         return world, Executor(world)
 
     def test_b15_cards_role_target_designation_flows(self) -> None:
-        """B-15 FIXED (Rise Again / Read the Tides): the TARGET-mode
+        """Rise Again / Read the Tides: the TARGET-mode
         Selector riding in a non-``target`` ROLE resolves through the
         spell's designation (CR 601.2c — one designation, every "target"
         means it); UNdesignated keeps the loud raise."""
@@ -1168,7 +1065,7 @@ class Round14cFixTest(unittest.TestCase):
         executor.phase = "FIRST_MAIN"
         cast(executor, p0, spell, targets=(recruit,))
         self.assertEqual(world.zone_of(recruit).kind, ZONE_BATTLEFIELD)
-        # UNDESIGNATED stays loud (the 12c raise is untouched):
+        # UNDESIGNATED stays loud:
         _world2, executor2 = self._world(8)
         executor2.attach_pool(supply.pool)
         with self.assertRaises(ValueError) as cm:
@@ -1189,12 +1086,12 @@ class Round14cFixTest(unittest.TestCase):
         self.assertIn("TARGET selector has no designation", str(cm.exception))
 
     def test_b16_target_binding_does_not_clobber_referent_selector(self) -> None:
-        """B-16 FIXED (Necromentia): an ANAPHORIC Selector (referent set)
-        resolves itself — the spell-level ``target`` designation (the
-        designated OPPONENT) no longer hijacks the role and feeds a player
-        handle to controller_of (KeyError 'unknown card player:0'). The
-        SEARCH atom also lands its found cards in the ``result`` register
-        (the 13b CHOOSE read-back convention Necromentia's EXILE reads)."""
+        """Necromentia: an ANAPHORIC Selector (referent set) resolves
+        itself — the spell-level ``target`` designation (the designated
+        OPPONENT) does not hijack the role (a player handle must never reach
+        controller_of). The SEARCH atom also lands its found cards in the
+        ``result`` register (the CHOOSE read-back convention Necromentia's
+        EXILE reads)."""
         world, executor = self._world()
         p0, p1 = world.player_order
         card = world.add_card(
@@ -1260,15 +1157,14 @@ class Round14cFixTest(unittest.TestCase):
         self.assertEqual(world.zone_of(land).kind, ZONE_EXILE)
 
     def test_b18_discard_scoped_to_the_actors_live_hand(self) -> None:
-        """B-18 FIXED (Bad Deal): the DISCARD selection pool is the ACTOR'S
-        own hand re-read at take time (CR 701.8a). Bad Deal's compiled
-        Zone(HAND, ANY) spans both hands and the Handle-sorted stand-in
-        used to grab the CASTER'S low handles — the not-in-hand raise
-        ended the game. Caster's hand now stays intact."""
+        """Bad Deal: the DISCARD selection pool is the ACTOR'S own hand
+        re-read at take time (CR 701.8a). Bad Deal's compiled Zone(HAND,
+        ANY) spans both hands; the Handle-sorted stand-in must not grab the
+        CASTER'S low handles. The caster's hand stays intact."""
         world, executor = self._world()
         p0, p1 = world.player_order
-        # caster's card FIRST (lowest handle — exactly what the old
-        # sorted stand-in reached for), then the actor's two.
+        # caster's card FIRST (lowest handle — what a sorted pick over both
+        # hands would reach for), then the actor's two.
         mine = world.add_card(
             CardIdentity(oracle_id=_oid(90), name="Mine", type_line="Creature"),
             p0,
@@ -1308,14 +1204,12 @@ class Round14cFixTest(unittest.TestCase):
         self.assertEqual(world.players[p1].zone(ZONE_HAND).entries, [])
 
     def test_new_moved_to_zone_this_turn_pred_stays_unimplemented(self) -> None:
-        """B-7 FAMILY — FIXED 14d. AMENDED 14d (was: both history preds
-        RAISED through the ctx_for path — the dominant games class, 13/22
-        crashes). The journal now rides every ExecCtx (query included), so
-        the preds ANSWER: with no matching journalled row this turn the
-        honest answer is False (the history is a record, and an empty
-        record is an answer — unlike FLIP_WON's no-antecedent raise, which
-        stands below unchanged). Positive legs live in
-        Round14dJournalTest (real moves/casts make the same preds True)."""
+        """The journal rides every ExecCtx (query included), so the history
+        preds ANSWER: with no matching journalled row this turn the honest
+        answer is False (the history is a record, and an empty record is an
+        answer — unlike FLIP_WON's no-antecedent raise, below). Positive
+        legs live in Round14dJournalTest (real moves/casts make the same
+        preds True)."""
         world, executor = self._world()
         p0 = world.player_order[0]
         card = world.add_card(
@@ -1347,13 +1241,12 @@ class Round14cFixTest(unittest.TestCase):
             self.assertFalse(eval_filter(filt, card, ctx))  # no row = no move
         with self.assertRaises(NotImplementedError) as cm:
             eval_filter(FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU), card, ctx)
-        self.assertIn("FLIP_WON", str(cm.exception))  # B-17, no flip yet
+        self.assertIn("FLIP_WON", str(cm.exception))  # no flip yet
 
     def test_b7_history_preds_stay_loud_on_a_bare_ctx(self) -> None:
         """The no-half-preds rule: a context that carries NO journal cannot
         answer a history predicate, and must raise naming the pred (the
-        FLIP_WON / NAME_CHOSEN convention). Only the 14d family is answered
-        here; the untouched members of the vocab still raise."""
+        FLIP_WON / NAME_CHOSEN convention)."""
         world, executor = self._world()
         p0 = world.player_order[0]
         card = world.add_card(
@@ -1392,26 +1285,18 @@ class Round14cFixTest(unittest.TestCase):
             with self.assertRaises(NotImplementedError) as cm:
                 eval_filter(filt, card, bare)
             self.assertIn(filt.pred.name, str(cm.exception))
-        # a vocab member STILL unimplemented (games never demanded it).
-        # r19b AMENDMENT: TURN_OF moved out of this role — Discontinuity's
-        # cost window made the grammar demand it, and it answers from the
-        # active-seat column (no journal), so a bare ctx cannot keep it
-        # loud; its regression lives in test_executor_r19b.
-        # r23a AMENDMENT: TARGETS_SOURCE moved out of THIS role too — the
-        # Pursued Whale cost-fold crash class demanded it, and it now
-        # answers as the IS_ANY_TARGET mirror (does the judged object's
-        # designation contain the ctx's SOURCE). A bare ctx designates
-        # NOTHING, so the documented pre-declaration reading is a
-        # conservative False (no designation can hold the source); the
-        # True/False fold behaviour is pinned in test_executor_r23a.
+        # TARGETS_SOURCE needs no journal: it is the IS_ANY_TARGET mirror
+        # (does the judged object's designation contain the ctx's SOURCE).
+        # A bare ctx designates NOTHING, so the pre-declaration reading is a
+        # conservative False; the fold behaviour is pinned in
+        # test_executor_r23a.
         self.assertFalse(eval_filter(FAtom(FAtomPred.TARGETS_SOURCE), card, bare))
 
     def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
-        """B-19 — FIXED 14d. AMENDED 14d (was: an Unsubstantiate-shape
-        MOVE_ZONE over Zone(STACK) died with a bare KeyError, B-2's runtime
-        twin). Runtime enumeration now reads the parked frames through
-        stack.stack_zone (the SAME source legal_targets has read since the
-        14a F-2 fix), so the spell returns to its owner's hand."""
+        """Runtime enumeration of Zone(STACK) reads the parked frames
+        through stack.stack_zone (the SAME source legal_targets reads), so
+        an Unsubstantiate-shape MOVE_ZONE returns the spell to its owner's
+        hand."""
         world, executor = self._world()
         p0 = world.player_order[0]
         spell = world.add_card(
@@ -1439,10 +1324,9 @@ class Round14cFixTest(unittest.TestCase):
         self.assertEqual(world.zone_of(spell).kind, ZONE_HAND)
 
     def test_b19_stack_enumeration_owner_scope_stays_loud(self) -> None:
-        """The honest half of the B-19 fix: OWNER-scoped STACK enumeration
-        keeps the 12b selector raise (every zone carries that flag at
-        runtime), and an empty designation over the stack resolves to
-        nothing, not a crash."""
+        """OWNER-scoped STACK enumeration keeps the selector raise (every
+        zone carries that flag at runtime), and an empty designation over
+        the stack resolves to nothing, not a crash."""
         world, executor = self._world()
         p0 = world.player_order[0]
         with self.assertRaises(NotImplementedError) as cm:
@@ -1479,11 +1363,10 @@ class Round14cFixTest(unittest.TestCase):
 
 
 class Round14dJournalTest(unittest.TestCase):
-    """Round-14d B-7 close-out pins: one POSITIVE green test per
-    journal-backed predicate the games actually hit (the ledger's 13/22
-    dominant class), driven by REAL journalled atoms — plus the C18-row
-    dies test and the cross-turn exile-with persistence. The turn window
-    is begin_turn's UPKEEP marker (events.py turn_window)."""
+    """One POSITIVE test per journal-backed predicate the games hit, driven
+    by REAL journalled atoms — plus the dies-row test and the cross-turn
+    exile-with persistence. The turn window is begin_turn's UPKEEP marker
+    (events.py turn_window)."""
 
     def _world(self, seed: int = 7) -> tuple[GameWorld, Executor]:
         reset_oracle_ids()
@@ -1547,7 +1430,7 @@ class Round14dJournalTest(unittest.TestCase):
 
     def test_cast_this_turn_from_reads_the_cast_row(self) -> None:
         """CAST_THIS_TURN_FROM (See the Truth / Archfiend's Vessel): the
-        13b CAST row's (caster, from_zone) columns answer the handle-
+        CAST row's (caster, from_zone) columns answer the handle-
         scoped pred — from HAND yes, from the GRAVEYARD no, and the same
         row makes See-the-Truth's FNot(HAND) shape read False."""
         world, executor = self._world()
@@ -1583,7 +1466,7 @@ class Round14dJournalTest(unittest.TestCase):
 
     def test_entered_and_died_this_turn_handle_scoped(self) -> None:
         """ENTERED_THIS_TURN_FROM (Archfiend's Vessel's FOr twin) and
-        DIED_THIS_TURN (Gadrak's Treasure count, C18 row): real MOVE_ZONE
+        DIED_THIS_TURN (Gadrak's Treasure count, the dies row): real MOVE_ZONE
         atoms journalled by the executor make each pred true for the
         card that moved/died and false for a card that merely sits in the
         same zone."""
@@ -1624,7 +1507,7 @@ class Round14dJournalTest(unittest.TestCase):
         self.assertTrue(eval_filter(entered, risen, ctx))
         self.assertFalse(eval_filter(entered, sitter, ctx))
         self.assertFalse(eval_filter(died, risen, ctx))
-        # now let it die (battlefield -> graveyard): the C18 row appears
+        # now let it die (battlefield -> graveyard): the dies row appears
         executor.apply_effect(
             _atom(
                 Verb.MOVE_ZONE,
@@ -1647,7 +1530,7 @@ class Round14dJournalTest(unittest.TestCase):
         """IS_EXILED_WITH_SOURCE (Idol of Endurance / Chandra, Heart of
         Fire; Necromentia's name-exile station's sibling): the WORLD half
         (in exile now) plus the HISTORY half (the SOURCE caused the
-        exile — the 12b cause column). Another source says no, and the
+        exile — the journal's cause column). Another source says no, and the
         relationship PERSISTS across turns (it is not windowed)."""
         world, executor = self._world()
         stock_libraries(world)  # turns advance: no deck-out (CR 704.5b)
@@ -1697,11 +1580,10 @@ class Round14dJournalTest(unittest.TestCase):
 
 
 class Round14eWorldPredTest(unittest.TestCase):
-    """Round 14e: the WORLD-evaluated preds the 14d wall named — POWER_GE
-    (Legion's Judgment "power 4 or greater" family) and CMC_LE (Eliminate /
-    Idol of Endurance / Ugin's mana-value thresholds). Pure world/identity
-    reads, answered at EVERY eval entry point with no journal (the raise
-    they replace was 3/11 engine30, 2/11 of the 10-pools)."""
+    """The WORLD-evaluated preds POWER_GE (Legion's Judgment "power 4 or
+    greater" family) and CMC_LE (Eliminate / Idol of Endurance / Ugin's
+    mana-value thresholds): pure world/identity reads, answered at EVERY
+    eval entry point with no journal."""
 
     def _setup(self) -> tuple[GameWorld, Executor]:
         supply = get_supply("all")
@@ -1753,7 +1635,7 @@ class Round14eWorldPredTest(unittest.TestCase):
 
     def test_cmc_le_qx_outside_a_cast_stays_loud(self) -> None:
         # Ugin/Idol compile the threshold with {X}: QX rides the CAST's
-        # declared value (14c CR 601.2f); unbound outside a cast it keeps
+        # declared value (CR 601.2f); unbound outside a cast it keeps
         # raising naming the quantity — no guessed zero for a filter pred.
         world, executor = self._setup()
         p0 = world.player_order[0]
@@ -1765,14 +1647,13 @@ class Round14eWorldPredTest(unittest.TestCase):
 
 
 class Round14fSurfaceTest(unittest.TestCase):
-    """Round 14f: the three surfaces the 14e census named honestly —
-    KEYWORD_HAS (the LIVE keyword oracle: printed ∪ granted − lost, the
+    """KEYWORD_HAS (the LIVE keyword oracle: printed ∪ granted − lost, the
     same registry combat legality calls), EachPlayer (per-player
     sub-executions with the CONTROLLER rotated — the templates compile the
     inner effect YOU-relative), and the Chandra permission row's
-    CROSS-resolution population read (14e's residual: the compiled row
-    now emits the IS_EXILED_WITH_SOURCE population, so a LATER activation
-    answers from the journal, not the dead per-resolution register)."""
+    CROSS-resolution population read (the compiled row emits the
+    IS_EXILED_WITH_SOURCE population, so a LATER activation answers from
+    the journal, not a per-resolution register)."""
 
     def _world(self) -> tuple[GameWorld, Executor]:
         supply = get_supply("all")
@@ -1831,7 +1712,7 @@ class Round14fSurfaceTest(unittest.TestCase):
         self.assertTrue(eval_filter(pred, bat, ctx))
 
     def test_keyword_has_bare_ctx_stays_loud(self) -> None:
-        # The no-half-preds rule (14d convention): a context with no layer
+        # The no-half-preds rule: a context with no layer
         # registry raises naming the pred — never a printed-only guess.
         world, executor = self._world()
         p0 = world.player_order[0]
@@ -1909,7 +1790,7 @@ class Round14fSurfaceTest(unittest.TestCase):
         self.assertEqual(world.players[p1].life, 21)
 
     def test_goremand_face_each_opponent_sacrifices_theirs(self) -> None:
-        # The REAL compiled node (the 14e castable-pool repro's own tree):
+        # The REAL compiled node (Goremand's own tree):
         # each opponent's creature dies, the controller's survives.
         supply = get_supply("all")
         record = _record_named(supply, "Goremand")
@@ -1933,12 +1814,10 @@ class Round14fSurfaceTest(unittest.TestCase):
     # ---------------------------------------- Chandra cross-resolution read
 
     def test_chandra_permission_population_answers_from_the_journal(self) -> None:
-        # 14e's residual at the exact seam: a card exiled by the source in
-        # an EARLIER resolution is in the permission's population when a
-        # FRESH execution (fresh bindings dict, NO result register — the
-        # situation a later activation is in) resolves the compiled row's
-        # Selector. Before the fidelity fix this raised "no producer atom
-        # wrote one in this execution".
+        # A card exiled by the source in an EARLIER resolution is in the
+        # permission's population when a FRESH execution (fresh bindings
+        # dict, NO result register — the situation a later activation is
+        # in) resolves the compiled row's Selector.
         world, executor = self._world()
         p0, _p1 = world.player_order
         chandra = world.add_card(
@@ -1969,7 +1848,7 @@ class Round14fSurfaceTest(unittest.TestCase):
             SelectorMode.CHOOSE,
             FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
             zones=(Zone(ZoneKind.EXILE, ControllerRef.YOU),),
-        )  # the shape the B4-cast-them row now compiles
+        )  # the shape the B4-cast-them-this-turn template compiles
         ctx = ctx_for(executor, source=chandra, controller=p0)
         self.assertEqual(resolve_selector(selector, ctx), [top])
         # and the read is CAUSE-scoped: another source's exiles are not it
@@ -1996,11 +1875,10 @@ class Round14fSurfaceTest(unittest.TestCase):
 
 
 class Round16eControlTest(unittest.TestCase):
-    """Round-16e control-overlay + aura lifecycle pins (the smoke that
-    proved the pipeline, now permanent): one-turn steal, enchant-the-
+    """Control overlay and Aura lifecycle: one-turn steal, enchant-the-
     creature cast ordering (CR 303.4a/608.2a), the no-legal-target cast
     gate (CR 601.2e), the aura-death control return, and the unattached-
-    aura state check (CR 704.5q). Ledger: KNOWLEDGE/2026-09-30/15-*.md."""
+    aura state check (CR 704.5q)."""
 
     def _world(self, seed: int = 7) -> tuple[GameWorld, Executor]:
         reset_oracle_ids()
@@ -2031,8 +1909,8 @@ class Round16eControlTest(unittest.TestCase):
         )
         spell = world.add_card(identity_of(record), p0, ZONE_HAND)
         self._arm(world, executor, p0)
-        # re-pinned 2026-10-29: V4 changes "Add one mana of any color" to offer
-        # the five colors only (CR 105.1, 106.1a); "C" was never a color.
+        # "Add one mana of any color" offers the five colors only (CR 105.1,
+        # 106.1a); colorless is not a color.
         cast(executor, p0, spell, targets=(victim,), decisions=("R",))
         self.assertEqual(executor.controller_of(victim), p0)
         executor.end_turn()
@@ -2062,9 +1940,9 @@ class Round16eControlTest(unittest.TestCase):
             p1,
             ZONE_BATTLEFIELD,
         )
-        # re-pinned 2026-10-29: V20 (B-66) applies the Aura's "You can't choose
-        # an untapped creature as this spell's target as you cast it", so the
-        # victim must be tapped to be a legal target.
+        # The Aura's "You can't choose an untapped creature as this spell's
+        # target as you cast it" (CR 113.6e): the victim must be tapped to be
+        # a legal target.
         world.cards[victim].tapped = True
         cast(executor, p0, aura, targets=(victim,))
         self.assertEqual(world.zone_of(aura).kind, ZONE_BATTLEFIELD)
@@ -2110,21 +1988,18 @@ _SNARE_OID = "00000000-1111-2222-3333-666666666666"
 
 
 class AuraEffectlessLegalityTest(unittest.TestCase):
-    """ZNR fuzz 2026-10-19 (21/500, seed 73, Bubble Snare): an aura whose
-    SpellAbility carries NO effect — its gameplay rides entirely on
-    sibling abilities — made :func:`spell_target_slots` early-return with
-    ZERO slots, so the 16e synthesized ENCHANT designation never fired:
-    the cast lane saw a targetless spell, legality passed the zero-target
-    cast, and stack.py:910's resolution invariant raised. The harvest
-    hole (query lane) is the root cause. Pins:
+    """An aura whose SpellAbility carries NO effect (Bubble Snare: its
+    gameplay rides entirely on sibling abilities) still gets the synthesized
+    ENCHANT designation from :func:`spell_target_slots`, so the cast lane
+    never sees a targetless spell. Pins:
       * an effectless aura harvests exactly one REQUIRED (min=1)
-        synthetic enchant slot (regression pin on the early return);
+        synthetic enchant slot;
       * no legal designee => spell_castable refuses AND a direct cast
         raises before the stack push — designation refusal never casts
         (refusal-consistency law);
       * the policy's ask (select_targets) declines the empty population
         and, with a designee, designates BEFORE resolution and the aura
-        resolves ATTACHED (the fuzz path that used to crash)."""
+        resolves ATTACHED."""
 
     @staticmethod
     def _snare_pool() -> PoolCompile:
@@ -2182,7 +2057,7 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
         world, executor, p0, node, aura = self._armed()
         self.assertTrue(is_aura_spell(world, aura))
         # The harvest pin: zero-effect aura SpellAbility still yields the
-        # one REQUIRED enchant slot (min=1) — pre-fix this returned [].
+        # one REQUIRED enchant slot (min=1).
         slots = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
         self.assertEqual(len(slots), 1)
         self.assertTrue(slots[0].synthetic)
@@ -2211,7 +2086,7 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
         )
         # With a designee the slot populates, legality clears, the ASK
         # answers from the slot BEFORE the cast, and resolution attaches
-        # (CR 303.4a) — the exact path seed 73 crashed on.
+        # (CR 303.4a).
         slots = spell_target_slots(executor, node, spell_handle=aura, seat=p0)
         self.assertEqual(slots[0].candidates, (host,))
         self.assertIsNone(spell_castable(executor, p0, aura)[0])
@@ -2224,12 +2099,10 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
 
 
 class AuraEnchantRestrictionTest(unittest.TestCase):
-    """B-49 follow-up #2 (2026-10-29): "Enchant creature" limits what an Aura spell can
-    target (CR 303.4a, 702.5a). An Aura cast through the effect-less carrier
-    has no effect tree to read the restriction from, so its enchant slot fell
-    back to any permanent: Dub, Capture Sphere and six more M21 Auras, and
-    ZNR's Bubble Snare, could be cast onto a land and stay there. The compiled
-    ENCHANT keyword now carries the Enchant line's filter and the slot reads it."""
+    """"Enchant creature" limits what an Aura spell can target (CR 303.4a, 702.5a). An
+    Aura cast through the effect-less carrier has no effect tree to read the restriction
+    from, so the compiled ENCHANT keyword carries the Enchant line's filter and the
+    enchant slot reads it: Dub, Capture Sphere or Bubble Snare is never cast onto a land."""
 
     def _slot_names(self, set_code: str, aura_name: str) -> set[str]:
         supply = get_supply("all", set_code)
@@ -2282,14 +2155,11 @@ class AuraEnchantRestrictionTest(unittest.TestCase):
 
 
 class TormodsCryptTargetPlayerTest(unittest.TestCase):
-    """B-49 follow-up #3 (2026-10-29): "Exile target player's graveyard" names
-    the player only inside a selector's zone, Zone(GRAVEYARD, TARGET_PLAYER).
-    The activation lane's scan missed that read, so no player slot was built,
-    the policy designated nothing, and the activation raised "TARGET_PLAYER
-    needs a bound target" once the B-49 carrier made the Crypt castable (14% of
-    stress and 24% of coherent castable games). "target player" is a target
-    (CR 115.1). The slot is the existing synthesized one; since V21 (2026-10-29)
-    it offers every player, the caster included (B-53)."""
+    """"Exile target player's graveyard" names the player only inside a
+    selector's zone, Zone(GRAVEYARD, TARGET_PLAYER). "target player" is a
+    target (CR 115.1), so the activation lane's scan reads that zone and
+    builds the synthesized player slot, which offers every player, the
+    caster included."""
 
     def _armed(self):
         supply = get_supply("all", "M21")
@@ -2316,13 +2186,13 @@ class TormodsCryptTargetPlayerTest(unittest.TestCase):
         (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
         self.assertTrue(slot.synthetic)
         self.assertEqual((slot.min_count, slot.max_count), (1, 1))
-        # re-pinned 2026-10-29: V21 fixes B-53: "target player" is any player (CR 115.1).
+        # "target player" is any player (CR 115.1).
         self.assertEqual(slot.candidates, (p0, p1))
 
     def test_the_designated_activation_exiles_exactly_that_graveyard(self) -> None:
         world, executor, p0, _p1, record, crypt, mine, theirs = self._armed()
         (slot,) = activation_target_slots(executor, record.abilities[0].effect, source=crypt, seat=p0)
-        # re-pinned 2026-10-29: V21: the slot names both seats now; designate the opponent.
+        # The slot names both seats; designate the opponent.
         self.assertIn(_p1, slot.candidates)
         activate(executor, crypt, 0, seat=p0, targets=(_p1,))
         self.assertEqual([world.zone_of(h).kind for h in theirs], [ZONE_EXILE, ZONE_EXILE])
@@ -2453,87 +2323,12 @@ class StallRuleTest(unittest.TestCase):
         self.assertEqual(rows[0][5], f"({REPEAT_ROUNDS},)")
 
     def test_long_decisive_corpus_game_untouched(self) -> None:
-        # Seed 73, full engine pool: the longest decisive corpus game.
-        # It grinds through many rounds but its world genuinely changes
-        # every round, so the stall rule must not fire.  Pinned at HEAD
-        # with the stall rule present (baseline reports/games_2026-10-05);
-        # RE-ANCHORED 2026-10-08 T5-F1: mandated attackers are auto-picked
-        # (phantom gate) instead of billing the policy RNG one draw each,
-        # so the seeded trajectory shifts — still decisive, same loser,
-        # 50 turns.
-        # RE-ANCHORED 2026-10-20 R3 (/141 §6): the lifted effect-lane CHOOSE
-        # asks consume policy RNG draws on the new sites, so the seeded
-        # trajectory shifts again — still decisive, SAME loser, 30 turns
-        # (double-run replay verified).
-        # RE-ANCHORED 2026-10-29 (B-49 + follow-up #3): the B-49 carrier made
-        # Tormod's Crypt castable, and player 0 casts and activates it. That
-        # activation crashed at turn 4 ("TARGET_PLAYER needs a bound target")
-        # until its player slot existed; it now exiles player 1's graveyard.
-        # Still crash-free and decisive, SAME loser, 36 turns (double-run
-        # replay verified). Neither Chandra in these decks is cast.
-        # re-pinned 2026-10-29: V10 changes Kinetic Augur's discard (seat 0,
-        # card:7) from the engine's lowest-handle pick to two asks of the
-        # discarding player (CR 701.9b), which draw policy RNG. Still
-        # decisive, SAME loser, 32 turns (double-run replay verified).
-        # re-pinned 2026-10-29: m21-fidelity folds Liliana's Scorn's tutor into
-        # its resolution (it was a free activated row that never ran), and the
-        # seat casting Scorn (turns 13 and 25) now gets the may-search ask and
-        # its search/shuffle, so the seeded trajectory shifts. The game is no
-        # longer decisive: it runs to the 60-turn cap with no loser, crash-free,
-        # its world changing every round (141 acts), so the stall rule still
-        # must not and does not fire (double-run replay verified: same
-        # fingerprint, turns and reason).
-        # re-pinned 2026-10-29: V36 changes the cleanup step: the active
-        # player now discards down to seven (CR 514.1), asking the policy
-        # which cards, so hands no longer grow without limit and the seeded
-        # trajectory shifts. Still crash-free and decisive, SAME loser,
-        # 58 turns (double-run replay verified, equal fingerprints).
-        # re-pinned 2026-10-29: V37 changes "end the turn" (CR 724.1): player 1
-        # casts Discontinuity here, which now skips the end step (it used to
-        # run two) and closes that turn's act window. Still crash-free and
-        # decisive, SAME loser, 50 turns (double-run replay verified, equal
-        # fingerprints).
-        # re-pinned 2026-10-29 (cards/integration merged into engine/verify-fixes-4):
-        # with m21-fidelity, V36 and V37 together the game is decisive again,
-        # SAME loser as before, 50 turns (double-run replay verified, equal
-        # fingerprints).
-        # re-pinned 2026-10-30 (cards/integration 6c10726 merged into
-        # engine/verify-fixes-2): with V10's 32 turns above superseded by every
-        # lane together, the final state differs from integration's (another
-        # fingerprint) but the game is still decisive, SAME loser, 50 turns and
-        # 97 acts (double-run replay verified, equal fingerprints).
-        # re-pinned 2026-10-29 (on engine/verify-fixes, before its merge): V2 (mana empties as each step and phase ends,
-        # CR 500.5; no more banked mana) changes the trajectory: still
-        # decisive, SAME loser, 48 turns. B-90 (a) (response windows tap mana
-        # abilities while paying, CR 605.3a) shifts it again: still decisive,
-        # SAME loser, 46 turns (double-run replay verified).
-        # re-pinned 2026-10-30 (cards/integration merged into engine/verify-fixes):
-        # V2 and B-90 (a) together with m21-fidelity, V36 and V37 shift the
-        # seeded trajectory again. The game is no longer decisive: it runs to
-        # the 60-turn cap with no loser, crash-free (95 acts; many late acts
-        # tap lands for mana the random policy then leaves unspent, and it
-        # empties, CR 500.5), so the stall rule still must not and does not
-        # fire (double-run replay verified: same fingerprint, turns and
-        # reason). Measured on the two parents: integration alone 50 turns,
-        # decisive (97 acts); engine/verify-fixes alone 46 turns, decisive (87).
-        # Re-measured 2026-10-30 after cards/integration 9553ae1 (vfix2's lane) merged in:
-        # the same 60-turn cap, no loser, 95 acts (double-run verified).
-        # re-pinned 2026-11-05: CR 508.1a (only untapped creatures attack) and
-        # CR 103.8a (the starting player skips the draw step of turn 1) shift
-        # the seeded trajectory. Decisive again: player 1 loses on turn 37,
-        # 65 acts, the stall rule does not fire (double-run replay verified:
-        # same fingerprint, turns and reason).
-        # re-pinned 2026-11-06 (B-74): the random policy also acts in the
-        # second main phase (CR 505.1), so the trajectory shifts. Still
-        # decisive, now player 0 loses on turn 54, 161 acts, the stall rule
-        # does not fire (double-run replay verified: same fingerprint and
-        # digest).
-        # re-pinned 2026-11-06 (engine/london-mulligan): every dealt game now
-        # runs the London mulligan before turn 1 (CR 103.5), the random policy
-        # answering. Here player 0 mulligans six times and keeps one card, so
-        # the trajectory shifts. Still decisive: player 1 loses on turn 51,
-        # 119 acts, the stall rule does not fire (double-run replay verified:
-        # same fingerprint and digest).
+        # Seed 73, full engine pool: a long decisive corpus game. Its world
+        # genuinely changes every round, so the stall rule must not fire. Any
+        # engine or policy change that shifts the seeded trajectory moves the
+        # pinned turn count and loser: re-pin them after a double-run replay
+        # check (same fingerprint and digest), never by loosening the stall
+        # assertion.
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
         self.assertEqual(game.turns, 51)
@@ -2560,9 +2355,9 @@ class StallRuleTest(unittest.TestCase):
 
 
 class ChooseNamePoolTest(unittest.TestCase):
-    """B-29 (2026-11-05): a dealt game names a card from the format's pool, every card the deck
-    builder could have used, never from the world: the world's names put the cards of hidden
-    zones (the opponent's hand and library) into the menu, and its order and size revealed them."""
+    """A dealt game names a card from the format's pool, every card the deck builder could have
+    used, never from the world: the world's names would put the cards of hidden zones (the
+    opponent's hand and library) into the menu, and its order and size would reveal them."""
 
     def vocab(self, opponent_card: str, chooser: str = "Runed Halo") -> tuple[str, ...]:
         supply = get_supply("castable")
@@ -2611,7 +2406,7 @@ class _WindowLog:
 
 
 class BothMainPhasesDriverTest(unittest.TestCase):
-    """B-74 (2026-11-06), CR 505.1: the turn loop gives the active player an act window in each
+    """CR 505.1: the turn loop gives the active player an act window in each
     main phase, the second one after combat, and a game resumed inside a turn never replays that
     turn's combat (the search resumes forks inside both act windows)."""
 
@@ -2688,11 +2483,10 @@ if __name__ == "__main__":
 
 
 class EffectEnteredPermanentTest(unittest.TestCase):
-    """2026-11-06 (reviewing r19's games): a dealt card that an effect puts onto the battlefield
-    (a fetched or ramped land, Risen Reef's land, a reanimated card never on the battlefield) had no
-    abilities: ``_setup_game`` attaches the pool before the decks are dealt, so no library card has
-    a bound record, and battlefield entry registered only cards that already had one. Fetched lands
-    made no mana. It now binds by oracle id, as graveyard entry already did."""
+    """A dealt card that an effect puts onto the battlefield (a fetched or ramped land, Risen
+    Reef's land, a reanimated card never on the battlefield) has its abilities: ``_setup_game``
+    attaches the pool before the decks are dealt, so no library card has a bound record, and
+    battlefield entry binds by oracle id, as graveyard entry does."""
 
     def test_a_land_put_onto_the_battlefield_from_the_library_taps_for_mana(self) -> None:
         from MTG_bot.core.executor.legality import _mana_tap_options
@@ -2720,13 +2514,11 @@ class EffectEnteredPermanentTest(unittest.TestCase):
 
 
 class DealtSpellOwnCostModifierTest(unittest.TestCase):
-    """2026-11-06 (reviewing r19's games): Volcanic Salvo ({10}{R}{R}, "This spell costs {X} less
-    to cast, where X is the total power of creatures you control") was never offered with 13 power
-    and 7 lands. The CR 601.2f fold read the spell's own modifier through the per-handle record,
-    which a dealt card in hand does not have (``_setup_game`` attaches the pool before dealing; a
-    card is bound when it is cast, played or put onto the battlefield), so every affordability
-    check, the cast's included, priced the printed cost: ``cost:mana_generic:5<10``. A pack could
-    not see it: the pack runner binds every placed card."""
+    """Volcanic Salvo ({10}{R}{R}, "This spell costs {X} less to cast, where X is the total power
+    of creatures you control") is offered with 13 power and 7 lands. The CR 601.2f fold reads the
+    spell's own modifier for a dealt card in hand, which has no per-handle record (``_setup_game``
+    attaches the pool before dealing; a card is bound when it is cast, played or put onto the
+    battlefield). A pack cannot pin this: the pack runner binds every placed card."""
 
     def test_volcanic_salvo_in_a_dealt_hand_costs_x_less(self) -> None:
         from MTG_bot.core.executor.legality import plan_mana_taps, tap_for_payment

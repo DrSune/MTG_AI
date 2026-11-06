@@ -1,55 +1,54 @@
-"""M21 verification campaign, engine fixer 3 (2026-10-29): one test class per finding.
+"""Zone, ownership, cost, targeting and protection rules: one test class per rule.
 
-V31  A planeswalker brought to exactly 0 loyalty is put into its owner's graveyard
-     (CR 704.5i) on every path: counter removal, a loyalty cost, damage. Its loyalty
-     counters cease to exist when it leaves the battlefield (CR 122.2), so a re-entry
-     starts from the printed loyalty (CR 306.5b).
-V31b Counters on an object cease to exist when it moves to another zone (CR 122.2).
-V24  Ownership never changes (CR 108.3): a moving card lands in its owner's hand,
-     library, graveyard or exile whatever player the destination names (CR 400.3),
-     and a permanent put onto the battlefield under another player's control is a
-     control entry on the owner's zone (CR 110.2a).
-V23  Only a draw is a draw (CR 121.1, 121.5): a library-to-hand move by any other verb
-     is a zone change, not CARD_DRAWN. An atom boundary opened inside another (a CAST
-     atom resolving a spell, a cost paid through journalled verbs) journals each change
-     once: the enclosing boundary no longer re-emits it.
-V33  "Discard your hand" as a cost discards every card in hand, and an empty hand pays
-     it (CR 118.3, 701.9a).
-V36  A spell cast by an effect pays its own additional costs on top of the mana cost or
-     the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
-V35  A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7),
-     after its leave triggers have fired.
-V29  A cost increase for spells that target a permanent is folded with the declared
-     targets (CR 601.2f), and a target whose total the caster cannot pay is not offered.
-     End to end in the terror_* and pursued_whale_* packs.
-V25  A target nested in a quantity ("deals damage equal to its power", where "its" is
-     a target) gets its own slot, and each TARGET selector reads its own designation:
-     Garruk, Savage Herald's -2 (packs garruk_herald_minus_two_*).
-V34  An ability whose only trace of its target is IS_ANY_TARGET in a combat slot gets a
-     target slot (Subira's {1}), and the targeting restriction is checked at resolution
-     and not re-read afterwards (CR 608.2b; pack subira_unblockable_lasts_after_pump).
-V28  A CHOOSE selector is never handed a TARGET designation it could not select
-     (Rewind's "untap up to four lands" was handed the countered spell; CR 608.2c).
-V30  A trigger whose effect moves its own card out of the graveyard functions only in
-     the graveyard (CR 113.6m): Silversmote Ghoul's end-step return.
-CAST cost role (coordinator, 2026-10-30): a CAST atom's Cost WITH parts is paid on top
-     of the mana cost (CR 601.2f); only an EMPTY Cost waives the mana cost (118.9).
-Radha's land row (coordinator, 2026-10-30): a free row that can do nothing is not
-     offered (no phantom option), and running it with a land on top never raises.
-V44  Protection (CR 702.16) on a permanent or a player, from any quality (a colour, a
-     type, a name, everything): it can't be targeted (b), enchanted or equipped (c-d,
-     SBAs 704.5m-n), dealt damage (e) or blocked (f) by a source with the quality. A
-     protected creature may block such a creature. Each fighting creature is the source
-     of its own damage (CR 701.12b). End to end in the protection packs (Baneslayer
-     Angel, Basri's Lieutenant, Feat of Resistance, Feline Sovereign, Runed Halo,
-     Sparkhunter Masticore).
-W4-6 A search's ONE_OF/REST partition divides the cards the search found (Cultivate:
-     one onto the battlefield, the other into your hand; CR 701.23a).
-W4-1 "Create that many" after "whenever one or more nontoken creatures attack" counts
-     the attackers the trigger's own filter names (Basri Ket's -2; CR 603.2c).
-W4-4 State-based actions are performed, repeatedly, before triggered abilities
-     resolve, and again after each one (CR 117.5, 704.3).
-W4-5 "If it entered from your graveyard" reads this object's own entry (CR 400.7).
+* A planeswalker brought to exactly 0 loyalty is put into its owner's graveyard
+  (CR 704.5i) on every path: counter removal, a loyalty cost, damage. Its loyalty
+  counters cease to exist when it leaves the battlefield (CR 122.2), so a re-entry
+  starts from the printed loyalty (CR 306.5b).
+* Counters on an object cease to exist when it moves to another zone (CR 122.2).
+* Ownership never changes (CR 108.3): a moving card lands in its owner's hand,
+  library, graveyard or exile whatever player the destination names (CR 400.3),
+  and a permanent put onto the battlefield under another player's control is a
+  control entry on the owner's zone (CR 110.2a).
+* Only a draw is a draw (CR 121.1, 121.5): a library-to-hand move by any other verb
+  is a zone change, not CARD_DRAWN. An atom boundary opened inside another (a CAST
+  atom resolving a spell, a cost paid through journalled verbs) journals each change
+  once: the enclosing boundary does not re-emit it.
+* "Discard your hand" as a cost discards every card in hand, and an empty hand pays
+  it (CR 118.3, 701.9a).
+* A spell cast by an effect pays its own additional costs on top of the mana cost or
+  the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
+* A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7),
+  after its leave triggers have fired.
+* A cost increase for spells that target a permanent is folded with the declared
+  targets (CR 601.2f), and a target whose total the caster cannot pay is not offered.
+  End to end in the terror_* and pursued_whale_* packs.
+* A target nested in a quantity ("deals damage equal to its power", where "its" is
+  a target) gets its own slot, and each TARGET selector reads its own designation:
+  Garruk, Savage Herald's -2 (packs garruk_herald_minus_two_*).
+* An ability whose only trace of its target is IS_ANY_TARGET in a combat slot gets a
+  target slot (Subira's {1}), and the targeting restriction is checked at resolution
+  and not re-read afterwards (CR 608.2b; pack subira_unblockable_lasts_after_pump).
+* A CHOOSE selector is never handed a TARGET designation it could not select
+  (Rewind's "untap up to four lands" ignores the countered spell; CR 608.2c).
+* A trigger whose effect moves its own card out of the graveyard functions only in
+  the graveyard (CR 113.6m): Silversmote Ghoul's end-step return.
+* A CAST atom's Cost WITH parts is paid on top of the mana cost (CR 601.2f); only an
+  EMPTY Cost waives the mana cost (118.9).
+* A free row that can do nothing is not offered (no phantom option), and running it
+  with a land on top never raises (Radha, Heart of Keld's land row).
+* Protection (CR 702.16) on a permanent or a player, from any quality (a colour, a
+  type, a name, everything): it can't be targeted (b), enchanted or equipped (c-d,
+  SBAs 704.5m-n), dealt damage (e) or blocked (f) by a source with the quality. A
+  protected creature may block such a creature. Each fighting creature is the source
+  of its own damage (CR 701.12b). End to end in the protection packs (Baneslayer
+  Angel, Runed Halo).
+* A search's ONE_OF/REST partition divides the cards the search found (Cultivate:
+  one onto the battlefield, the other into your hand; CR 701.23a).
+* "Create that many" after "whenever one or more nontoken creatures attack" counts
+  the attackers the trigger's own filter names (Basri Ket's -2; CR 603.2c).
+* State-based actions are performed, repeatedly, before triggered abilities
+  resolve, and again after each one (CR 117.5, 704.3).
+* "If it entered from your graveyard" reads this object's own entry (CR 400.7).
 """
 
 from __future__ import annotations
@@ -126,8 +125,8 @@ class TestV31LoyaltyZero(FixerCase):
         pw = self.walker(self.p1, "5")
         self.world.cards[pw].counters["LOYALTY"] = 2  # a seeded, used walker
         self.remove_loyalty(pw, 2)
-        # CR 704.5i: 0 loyalty puts it into its owner's graveyard; before V31 the
-        # zeroed key was deleted and the walker read its printed 5 again.
+        # CR 704.5i: 0 loyalty puts it into its owner's graveyard (a zeroed key
+        # must never read as the printed 5 again).
         self.assertEqual(self.world.zone_of(pw).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.controller_of(pw), self.p1)
         self.assertEqual(dict(self.world.cards[pw].counters), {})
@@ -244,9 +243,8 @@ class TestV31bCountersCeaseOnZoneChange(FixerCase):
         self.assertEqual(dict(self.world.cards[self.beta].counters), {})
         dies = [e for e in self.ex.journal.events if e.kind == KIND_CREATURE_DIES]
         self.assertEqual(len(dies), 1)
-        # (from, owner, type line, was power, was toughness, ...): it died a 2/2.
-        # re-pinned 2026-10-30: V7 (engine/verify-fixes) appends the controller
-        # and the token flag as of death (data[5:7]), so the P/T is data[3:5].
+        # (from, owner, type line, was power, was toughness, controller, token
+        # flag): it died a 2/2.
         self.assertEqual(dies[0].dies[3:5], (2, 2))
 
     def test_counters_on_a_card_entering_the_battlefield_are_kept(self):
@@ -286,7 +284,7 @@ class TestV24OwnershipNeverChanges(FixerCase):
         )
 
     def test_owners_hand_written_as_any_is_the_owners_hand(self):
-        # B-43 (Barrin, Niambi, Roaming Ghostlight): Zone(HAND, ANY) went to seat 0.
+        # Zone(HAND, ANY) (Barrin, Niambi, Roaming Ghostlight) is the owner's hand.
         self.move(self.beta, Zone(ZoneKind.HAND, ControllerRef.ANY), self.p0)
         self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_HAND)
         self.assertEqual(self.world.controller_of(self.beta), self.p1)
@@ -324,7 +322,7 @@ class TestV24OwnershipNeverChanges(FixerCase):
 
     def test_return_to_the_battlefield_without_a_controller_is_the_instructed_player(self):
         # CR 110.2a: Zone(BATTLEFIELD, ANY) ("return ... to the battlefield") puts it
-        # under the effect's controller; it used to land on seat 0's battlefield.
+        # under the effect's controller.
         self.move(
             self.corpse,
             Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
@@ -447,7 +445,7 @@ class TestV23NestedBoundariesJournalOnce(FixerCase):
         self.assertEqual(journal.open_depth(), 0)
 
     def test_an_outer_change_made_before_an_inner_atom_is_still_journalled(self):
-        # vfix's raw mana tap inside a running PAY atom (CR 605.3b, no nested atom)
+        # The raw mana tap inside a running PAY atom (CR 605.3b, no nested atom)
         # happens BEFORE pay_costs runs a nested sacrifice: the fold moves only the
         # keys the inner boundary changed, so the outer diff still sees the tap.
         journal = self.ex.journal
@@ -903,7 +901,7 @@ class TestInertFreeRows(unittest.TestCase):
                 {"key": "snoop", "real": "Conspicuous Snoop", "zone": "battlefield",
                  "controller": 0},
                 {"key": "top", "real": top, "zone": "library", "controller": 0},
-                # In hand: the old opening draw took it (now skipped, CR 103.8a).
+                # In hand: the first player skips the turn-1 draw (CR 103.8a).
                 {"key": "junk", "name": "Top Junk", "type": "Sorcery", "zone": "hand",
                  "controller": 0},
             ],
@@ -927,7 +925,7 @@ class TestInertFreeRows(unittest.TestCase):
         self.assertEqual(r.world.cards[r.world.players[r.p0].zone("library").entries[-1]].identity.name, "Mountain")
         self.assertNotIn(1, self.offered(r, "radha"))  # nothing castable: phantom
         # Running the row anyway (a direct activation) casts nothing and raises
-        # nothing: the land stays on top (weaker than printed until R5-3).
+        # nothing: the land stays on top (weaker than printed).
         from MTG_bot.core.executor.legality import activate
 
         activate(r.ex, r.handles["radha"], 1, seat=r.p0, decisions=("fire", "fire"))
@@ -939,13 +937,12 @@ class TestInertFreeRows(unittest.TestCase):
         self.assertNotIn(1, self.offered(r, "radha"))
 
     def test_a_costed_row_that_can_never_act_is_not_offered(self):
-        """2026-11-05 (B-100): the phantom screen covers rows with a cost too. The row
-        Demonic Embrace's graveyard permission used to compile to ({pay 3 life, discard a
-        card}: you may cast this card from your graveyard) is offered only while its
-        source is on the battlefield, so the cast can never happen: activating it paid 3
-        life and a card for nothing. A real row whose effect merely does nothing right now
-        stays: paying a cost for an effect that does nothing is legal (CR 602.2), so Idol
-        of Endurance, with no card exiled with it, is still offered."""
+        """The phantom screen covers rows with a cost too. A row ({pay 3 life, discard
+        a card}: you may cast this card from your graveyard) is activatable only while its
+        source is on the battlefield, so the cast can never happen: it is not offered. A
+        real row whose effect merely does nothing right now stays: paying a cost for an
+        effect that does nothing is legal (CR 602.2), so Idol of Endurance, with no card
+        exiled with it, is still offered."""
         from MTG_bot.core.ability_tree import (
             ActivatedAbility,
             Atom,

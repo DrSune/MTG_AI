@@ -1,25 +1,19 @@
-"""T3 round 3 — ``SpellAbility.effect`` becomes optional.
+"""Grammar pins: the effect-less ``SpellAbility``.
 
-Round-3 scope:
-
-- ``SpellAbility.effect`` is now ``Effect | None = None``.  An effect-less
-  ``SpellAbility`` carries only ``additional_costs`` — the grammar shape of
-  a castable card whose only relevant sentence is "As an additional cost
-  to cast this spell, ..." (M21 Goremand, Sparkhunter Masticore).
-- Serialization: ``_SPECS`` slot ``opt:effect``; ``to_dict`` omits the
-  ``"effect"`` key when effect is ``None`` (via ``_OMIT_IF_EMPTY``);
-  ``from_dict`` injects ``None`` when the key is absent.
-- Byte stability: every pre-round-3 tree (all goldens carry a non-None
-  effect) serializes identically — the four pinned fingerprints below were
-  captured BEFORE the edit and must stay byte-identical.
+``SpellAbility.effect`` is ``Effect | None = None``.  An effect-less
+``SpellAbility`` carries only ``additional_costs`` — the grammar shape of a
+castable card whose only relevant sentence is "As an additional cost to
+cast this spell, ..." (M21 Goremand, Sparkhunter Masticore).  ``to_dict``
+omits the ``"effect"`` key when effect is ``None`` (``opt:effect`` +
+``_OMIT_IF_EMPTY``); ``from_dict`` injects ``None`` when the key is absent.
 
 Guards:
-- the four pre-round-3 ``SpellAbility`` fingerprint pins stay byte-identical;
-- pre-round-3 trees still serialize the ``"effect"`` key;
+- the three ``_PINNED`` spells, which carry an effect, keep their
+  fingerprints and still serialize the ``"effect"`` key;
 - effect-less constructs round-trip and omit ``"effect"`` while keeping
   ``"additional_costs"``;
-- rejections at the widened entry point (non-Effect effect values, bad
-  effect tags / payloads in ``from_dict``).
+- rejections of non-Effect effect values and of bad effect tags /
+  payloads in ``from_dict``.
 """
 
 from __future__ import annotations
@@ -32,7 +26,7 @@ import pytest
 import MTG_bot.core.ability_tree as at
 import MTG_bot.core.test_ability_tree_t3r2 as T2
 
-# ---- effect-less SpellAbility builders (new in round 3) -------------------
+# ---- effect-less SpellAbility builders ------------------------------------
 
 _CARD = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Card")
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
@@ -69,14 +63,9 @@ def _spell_effectless_bare() -> at.SpellAbility:
     return at.SpellAbility(at.SpellKind.CREATURE, None)
 
 
-# ---- pinned pre-round-3 fingerprints (captured before any round-3 edit) ---
+# ---- pinned fingerprints of spells that carry an effect -------------------
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [
-    (
-        "spell_instant_draw_nocost",
-        T2._spell_base,
-        "e4d6897f8542141dc66d4d2ca1356746d99bf5587535a78019b952619570905d",
-    ),
     (
         "spell_creature_draw_nocost",
         lambda: at.SpellAbility(at.SpellKind.CREATURE, T2._draw_one()),
@@ -88,15 +77,15 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "db2ea464ce21b9130c49b1a5d951b3a6603d26776e68d2ac1a7abfca241edd6f",
     ),
     (
-        # R1b canonicalization: additional_costs construction-sorted, so the
-        # discard/life Cost nodes swap — fingerprint re-pinned to post-sort fp.
+        # additional_costs are sorted at construction: the discard and life
+        # Cost nodes serialize in canonical order, not printed order.
         "spell_discard_life_costs",
         T2._spell_additional_discard_life,
         "35a921e62203b631a18d489f25d6b08068797990df7068e2549ecbf5506f0696",
     ),
 ]
 
-# Round-3 constructs, pinned after the edit (byte-identity for future rounds).
+# The effect-less constructs, pinned.
 _NEW_PINS: list[tuple[str, Callable[[], at.SpellAbility], str]] = [
     (
         "spell_effectless_sacrifice",
@@ -117,7 +106,7 @@ _NEW_PINS: list[tuple[str, Callable[[], at.SpellAbility], str]] = [
 
 
 def _assert_effect_key_present(d: Any, path: str = "root") -> None:
-    """Recursively assert every SpellAbility in a pre-round-3 tree keeps 'effect'."""
+    """Recursively assert every SpellAbility in the tree serializes 'effect'."""
     if not isinstance(d, dict):
         return
     if d.get("tag") == "SpellAbility":

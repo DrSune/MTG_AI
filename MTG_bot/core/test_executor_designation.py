@@ -1,37 +1,38 @@
-"""Round-18b: the trigger-resolution DESIGNATION channel, pinned.
+"""The trigger-resolution DESIGNATION channel.
 
-The wave-1b suspects (doc 18) died on one class: a triggered ability whose
-effect carries a TARGET coordinate raised "no designation" because only the
-CAST lane designated (CR 601.2c). CR 603.1 gives every triggered ability
-its targets at the moment it goes on the stack — for the engine's direct-
-resolution model that means BEFORE the effect's first verb runs.
+A triggered ability whose effect carries a TARGET coordinate gets its
+targets at the moment it goes on the stack (CR 603.1, 601.2c) — for the
+engine's direct-resolution model that means BEFORE the effect's first verb
+runs.
 
 Pinned here:
 
-1. designate-then-apply — candidates from the engine's OWN 12c query
-   surface (§8.3), vocabulary = the Handle-sorted candidate list (the
-   ONE_OF ask's C15 shape), site tag ``target:<seat>:<source>:<digest>``
+1. designate-then-apply — candidates from the engine's OWN query
+   surface, vocabulary = the Handle-sorted candidate list (the
+   ONE_OF ask's shape), site tag ``target:<seat>:<source>:<digest>``
    (the ability's CONTROLLER answers — cross-seat firings ask cross-seat
    keys);
-2. the §1.4 auto-fill (one legal filler, no ask) and the CR 603.4
-   zero-candidate answer: bind EMPTY — the ability resolves doing nothing;
-   never a crash, never a guess;
-3. the C17 multi-pick shape: the first ``QAtMost`` pick mandatory (min 1
-   designation), later picks carry the ``"NONE"`` stop token;
-4. TARGET_PLAYER routing (event-kind driven): DAMAGE → the dealer (16a),
-   CREATURE_DIES → the dead creature (18b, Massacre Wurm's "that player"),
-   self-origin firings → the opponent seats (Kitesail/Tutelage; duel: one
-   seat → forced auto-fill, no ask);
-5. a multi-slot trigger keeps the loud raise (per-slot designation is
-   /06 arc 3 — never guess-bind the second);
+2. the auto-fill (one legal filler, no ask) and the CR 603.3d
+   zero-candidate answer: the ability is removed from the stack and does
+   nothing; never a crash, never a guess ("up to" may choose zero, and a
+   target only one mode needs leaves the other mode choosable);
+3. the ``QAtMost`` multi-pick shape: every pick, the first included,
+   carries the ``"NONE"`` stop token (CR 601.2c, 115.6);
+4. TARGET_PLAYER routing (event-kind driven): DAMAGE → the dealer,
+   CREATURE_DIES → the dead creature (Massacre Wurm's "that player"),
+   self-origin "target opponent" firings → the opponent seats (Tutelage;
+   duel: one seat → forced auto-fill, no ask);
+5. a multi-slot trigger keeps the loud raise (never guess-bind the second);
 6. Zone(ANY) runtime enumeration == the query lane's population (seat ×
-   PLAYER_ZONES, the OMNISCIENT v1 reading — hidden-info gap documented in
-   doc 2026-10-01/20), and the universal "any target" legality set
-   includes the seats (CR 109.5);
+   PLAYER_ZONES, the OMNISCIENT reading: hidden zones included), and the
+   universal "any target" legality set includes the seats (CR 109.5);
 7. query-lane pred parity: CMC_GE / ZONE_COUNT_GE /
    NAME_PARTITION_COUNT_GE answer through ONE evaluator on both lanes,
-   and THAT_MANY_COUNT reads the 14e result register — an unset register
-   stays a loud read.
+   and THAT_MANY_COUNT reads the result register — an unset register
+   stays a loud read;
+8. CONTROLLER_IS follows the live controller (a GAIN_CONTROL override moves
+   it) while the OWNER axis stays positional, and the designation scan reads
+   a CONTROLLER_IS TARGET_OPPONENT wrapped in an FAnd.
 """
 
 import unittest
@@ -171,9 +172,9 @@ class TestDesignateThenApply(DesignationCase):
         self.assertTrue(what.startswith(f"target:{self.p0}:{archer}:"))
 
     def test_ask_vocabulary_is_the_sorted_candidate_list(self):
-        # Vocab = exactly the Handle-sorted candidates (C15/C16, no prose)
-        # and the answer is consumed as the designation (C2: the effect's
-        # TARGET atom means THAT pick).
+        # Vocab = exactly the Handle-sorted candidates (no prose) and the
+        # answer is consumed as the designation (the effect's TARGET atom
+        # means THAT pick).
         charger = self.carrier(self.p0, "Daybreak Charger")
         dummy = self.world.add_card(
             card_id("Dummy", "2", "2"), self.p0, ZONE_BATTLEFIELD
@@ -198,7 +199,7 @@ class TestDesignateThenApply(DesignationCase):
         self.assertTrue(what.startswith(f"target:{self.p0}:{charger}:"))
 
     def test_forced_single_candidate_never_asks(self):
-        # §1.4 auto-fill: one legal filler designates silently — asking a
+        # Auto-fill: one legal filler designates silently — asking a
         # question with one legal answer is noise, not a decision.
         mutt = self.carrier(self.p0, "Rambunctious Mutt")
         art = self.world.add_card(
@@ -227,10 +228,9 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(self.asks, [])
 
     def test_zero_candidates_resolves_doing_nothing(self):
-        # CR 603.3d (B-55; this comment used to cite 603.4, the intervening-
-        # if rule): the ability that cannot designate is REMOVED FROM THE
-        # STACK — not the 12c crash, not a guess. Artifact carrier, no
-        # creature you control anywhere.
+        # CR 603.3d: the ability that cannot designate is REMOVED FROM THE
+        # STACK — not a crash, not a guess. Artifact carrier, no creature
+        # you control anywhere.
         amulet = self.carrier(self.p0, "Amulet", type_line="Artifact")
         self.attach(
             amulet,
@@ -247,7 +247,7 @@ class TestDesignateThenApply(DesignationCase):
             name="Amulet",
         )
         self.never_ask()
-        self.enter(amulet)  # pre-18b this raised at the TARGET selector
+        self.enter(amulet)  # no raise at the TARGET selector
         self.assertEqual(dict(self.world.cards[amulet].counters), {})
 
     def _counter_then_gain(self, count):
@@ -268,12 +268,9 @@ class TestDesignateThenApply(DesignationCase):
         )
 
     def test_required_target_missing_removes_the_whole_ability(self):
-        # B-55, CR 603.3d: a trigger whose required target has no legal
-        # choice is removed from the stack, so its UNTARGETED step never
-        # happens either. Before the fix the effect ran with an empty
-        # binding: the counter fizzled, the 3 life still arrived (stronger
-        # than printed), and ATTACH-with-no-host raised (Cliffhaven
-        # Kitesail, Pirate's Cutlass).
+        # CR 603.3d: a trigger whose required target has no legal choice
+        # is removed from the stack, so its UNTARGETED step never happens
+        # either: no 3 life.
         amulet = self.carrier(self.p0, "Amulet", type_line="Artifact")
         self.attach(amulet, etb_trigger(self._counter_then_gain(QConst(1))), name="Amulet")
         self.never_ask()
@@ -307,9 +304,8 @@ class TestDesignateThenApply(DesignationCase):
         self.assertEqual(self.world.players[self.p0].life, 23)
 
     def test_up_to_multi_pick_carries_the_none_token(self):
-        # re-pinned 2026-10-29: V15 changes the TARGET+QAtMost range to 0..n
-        # (CR 601.2c, 115.6), so EVERY pick offers the "NONE" stop token, the
-        # first included (C17 had made the first pick mandatory).
+        # The TARGET+QAtMost range is 0..n (CR 601.2c, 115.6), so EVERY
+        # pick offers the "NONE" stop token, the first included.
         acolyte = self.carrier(self.p0, "Basri's Acolyte")
         d1 = self.world.add_card(
             card_id("Dummy One", "2", "2"), self.p0, ZONE_BATTLEFIELD
@@ -346,7 +342,7 @@ class TestTargetPlayerRouting(DesignationCase):
     def test_dies_binds_the_anaphoric_controller(self):
         # Massacre Wurm's twin: "whenever a creature an opponent controls
         # dies, that player loses 2 life" — TARGET_PLAYER is EVENT-bound
-        # to the dead creature (16a's DAMAGE-dealer ruling mirrored): NO
+        # to the dead creature (the DAMAGE-dealer routing mirrored): NO
         # ask, the controller folds out of the subject.
         wurm = self.world.add_card(
             card_id("Massacre Wurm", "5", "5"), self.p0, ZONE_BATTLEFIELD
@@ -382,8 +378,8 @@ class TestTargetPlayerRouting(DesignationCase):
         self.assertEqual(self.world.players[self.p1].life, 18)
 
     def test_self_fire_designates_the_opponent_seat(self):
-        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
-        # now names any player, so this IR would ask over both seats).
+        # "Target opponent" is TARGET_OPPONENT (a TARGET_PLAYER names any player, so it
+        # would ask over both seats).
         # Tutelage's twin: "whenever YOU draw a card, target opponent mills
         # one" — a self-origin firing has no anaphoric antecedent, so the
         # opponent seat is designated (duel: one seat → auto-fill, no ask).
@@ -413,9 +409,8 @@ class TestTargetPlayerRouting(DesignationCase):
         )
         self.never_ask()
         self.enter(dower)  # arms the draw trigger
-        # re-pinned 2026-10-29: V23 changes what counts as a draw: only a DRAW atom
-        # draws (CR 121.1, 121.5); the library-to-hand MOVE_ZONE this test used was
-        # logged as a draw. Drawme is the top card, so the draw takes it.
+        # Only a DRAW atom draws (CR 121.1, 121.5); a library-to-hand MOVE_ZONE
+        # is not a draw. Drawme is the top card, so the draw takes it.
         self.ex.execute(
             atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1)),
             source=dower,
@@ -427,10 +422,10 @@ class TestTargetPlayerRouting(DesignationCase):
 
 class TestZoneAnyEnumeration(DesignationCase):
     def test_runtime_union_equals_query_lane(self):
-        # §8.3 identity: selectors.enumerate_zone(ANY) IS legality
+        # Query/runtime identity: selectors.enumerate_zone(ANY) IS legality
         # ._zone_handles(ANY) — seat × PLAYER_ZONES order, omniscient
-        # (libraries and the opponent's hidden hand ride along: the v1
-        # OMNISCIENT policy, model gap documented, never silently hidden).
+        # (libraries and the opponent's hidden hand ride along: the
+        # OMNISCIENT policy, a known model gap, never silently hidden).
         for i in range(3):
             self.world.add_card(card_id(f"L{i}"), self.p0, ZONE_LIBRARY)
         self.world.add_card(card_id("H0"), self.p1, ZONE_HAND)
@@ -474,8 +469,8 @@ class TestZoneAnyEnumeration(DesignationCase):
 
 class TestMultiSlotStaysLoud(DesignationCase):
     def test_two_distinct_targets_raise_never_guess_bind(self):
-        # /06 arc 3, parity with the cast lane: one designation channel
-        # cannot serve two DISTINCT TARGET slots — the raise stands.
+        # One trigger designation channel cannot serve two DISTINCT TARGET
+        # slots — the raise stands.
         twin = self.carrier(self.p0, "Twin Carrier")
         self.attach(
             twin,
@@ -511,8 +506,8 @@ class TestMultiSlotStaysLoud(DesignationCase):
 
 
 class TestQueryLanePredParity(DesignationCase):
-    """14d's one-evaluator rule: query context and effect context answer
-    the SAME for every pred round 18b wired."""
+    """One evaluator: query context and effect context answer the SAME
+    for these preds."""
 
     def test_cmc_ge_one_evaluator_both_lanes(self):
         cheap = self.world.add_card(card_id("Cheap", "1", "1", cmc=5), self.p0)
@@ -565,7 +560,7 @@ class TestQueryLanePredParity(DesignationCase):
         self.assertFalse(eval_filter(gy_gate, anchor, ctx))
 
     def test_name_partition_is_mine_only(self):
-        # C26 (Chrome Replicator): EXACT-name partitions among the
+        # Chrome Replicator: EXACT-name partitions among the
         # permanents the ABILITY CONTROLLER controls — the opponent's
         # twins never count toward mine.
         a = self.world.add_card(card_id("Twin"), self.p0, ZONE_BATTLEFIELD)
@@ -586,7 +581,7 @@ class TestQueryLanePredParity(DesignationCase):
         self.assertIsNotNone(b)
 
     def test_that_many_reads_the_result_register(self):
-        # Kinetic Augur's wiring: DISCARD writes the 14e producer register
+        # Kinetic Augur's wiring: DISCARD writes the result register
         # and the continuation counts it — "discard two, gain life equal
         # to the number of cards discarded" answers 2, not a guess.
         augur = self.carrier(self.p0, "Kinetic Augur")
@@ -631,14 +626,14 @@ class TestQueryLanePredParity(DesignationCase):
         self.assertEqual(self.world.players[self.p0].life, 22)
 
     def test_that_many_unset_stays_a_loud_read(self):
-        # 16b made THIS_WAY's absence a benign 0 (a declined may legitimately
+        # THIS_WAY's absence is a benign 0 (a declined may legitimately
         # leaves it unwritten); THAT_MANY has NO zero-reading — the compiler
         # only places it in a mandatory continuation, so a missing
         # antecedent is a missing question: flag, never guess 0.
         anchor = self.world.add_card(
             card_id("Anchor", "2", "2"), self.p0, ZONE_BATTLEFIELD
         )
-        # The frozen grammar pins THAT_MANY to the 'event' referent, so the
+        # The grammar pins THAT_MANY to the 'event' referent, so the
         # probe ctx carries an EVENT subject but NO result producer — the
         # register read itself, not the handle read, must stay loud.
         ctx = ctx_for(
@@ -656,11 +651,11 @@ class TestQueryLanePredParity(DesignationCase):
 
 
 class TestE1ControllerAxis(DesignationCase):
-    """E1 merge (KNOWLEDGE/2026-10-10/65): CONTROLLER_IS is the ONE
-    direction axis, judged through the live ``controller_of`` read — a
-    GAIN_CONTROL override moves it — while the OWNER axis stays purely
-    positional (the zone seat). The folded BF/ANY selector shape (seat
-    in the zone dropped, direction as a filter atom) must agree."""
+    """CONTROLLER_IS is the ONE direction axis, judged through the live
+    ``controller_of`` read — a GAIN_CONTROL override moves it — while the
+    OWNER axis stays purely positional (the zone seat). The folded BF/ANY
+    selector shape (seat in the zone dropped, direction as a filter atom)
+    must agree."""
 
     def _stolen(self):
         prey = self.world.add_card(
@@ -712,15 +707,13 @@ class TestE1ControllerAxis(DesignationCase):
 
 
 class TestTargetPlayerNestedFilter(DesignationCase):
-    """FIX-2 (65-e1-merge): the designation scan reads CONTROLLER_IS
-    TARGET_PLAYER THROUGH an FAnd bundle — pre-fold the wrapped atom was
-    invisible to the scan (Teferi, Timeless Voyager's verdict was
-    ``(0, False)``, the lane never opened); post-fold the opponent seat
-    is designated and the filter-bound selector enumerates through it."""
+    """The designation scan reads CONTROLLER_IS TARGET_OPPONENT THROUGH an
+    FAnd bundle (Teferi, Timeless Voyager's shape): the opponent seat is
+    designated and the filter-bound selector enumerates through it."""
 
     def _tp_wrapped(self, mode):
-        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT (TARGET_PLAYER
-        # now names any player, so this IR would ask over both seats).
+        # "Target opponent" is TARGET_OPPONENT (a TARGET_PLAYER names any player, so it
+        # would ask over both seats).
         dower = self.carrier(self.p0)
         theirs = self.world.add_card(
             card_id("Theirs", "1", "1"), self.p1, ZONE_BATTLEFIELD
@@ -760,7 +753,7 @@ class TestTargetPlayerNestedFilter(DesignationCase):
 
     def test_wrapped_player_filter_opens_the_lane(self):
         # Teferi TV's (0, True) shape: no TARGET-mode selector, the ONLY
-        # TARGET_PLAYER touchpoint is the filter wrapped in FAnd.
+        # target-player touchpoint is the filter wrapped in FAnd.
         dower, theirs, mine = self._tp_wrapped(SelectorMode.CHOOSE)
         self.never_ask()  # duel: one opponent seat -> forced auto-fill
         self.enter(dower)
@@ -772,8 +765,8 @@ class TestTargetPlayerNestedFilter(DesignationCase):
         self.assertEqual(self.world.zone_of(mine).kind, ZONE_BATTLEFIELD)
 
     def test_target_slot_plus_player_lane_stays_loud(self):
-        # the arc-3 boundary: a TARGET-mode selector AND a separate
-        # TARGET_PLAYER read is two slots — never guess-bind the second.
+        # A TARGET-mode selector AND a separate target-player read is two
+        # slots — never guess-bind the second.
         dower, _theirs, _mine = self._tp_wrapped(SelectorMode.TARGET)
         with self.assertRaises(NotImplementedError):
             self.enter(dower)

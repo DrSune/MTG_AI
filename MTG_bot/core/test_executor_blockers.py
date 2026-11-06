@@ -1,9 +1,8 @@
-"""Round-16c pins: blockers, damage assignment, the blocked-side feeds
-(doc /11 §16c, BINDING).
+"""Blockers, damage assignment, and the blocked-side feeds.
 
 Every one of these runs the REAL executor against compiled pool cards:
 the per-blocker ask contract (site ``block:<card>:<turn>``, vocabulary =
-the attackers that permanent may legally block + NONE, C15 narrowing for
+the attackers that permanent may legally block + NONE, narrowed for
 the must-be-blocked mandate and the menace repair), the CR 509.1 pair
 legality consumers (tapped, defender, flying/reach, attacker-side protection,
 static AND runtime PREVENT_EFFECT records, the live draw clock), the
@@ -45,7 +44,7 @@ from MTG_bot.core.test_executor_verbs import (
 
 
 class BlockerCase(CombatCase):
-    """CombatCase with the 16c ask-answer contract: answers are keyed by
+    """CombatCase with the block ask-answer contract: answers are keyed by
     SITE PREFIX (handle tags carry a turn suffix), block sites default to
     NONE, order/trample sites to 0, policy sites to AS_BLOCKED."""
 
@@ -72,8 +71,8 @@ class BlockerCase(CombatCase):
         return seen[0]
 
     def forced_attack(self, handle) -> str:
-        """T5-F1 (§10): a MANDATED attacker's one-word ATTACK surface is
-        auto-picked and journalled, never asked (phantom gate)."""
+        """A MANDATED attacker's one-word ATTACK surface is auto-picked and
+        journalled, never asked (phantom gate)."""
         tag = f"attack:{handle}:"
         self.assertEqual(
             [a for a in self.seen_asks if a[1].startswith(tag)],
@@ -87,8 +86,8 @@ class BlockerCase(CombatCase):
         return hits[0]
 
     def forced_block(self, handle) -> str:
-        """T5-F1 (§10): a block surface narrowed to ONE legal word is
-        auto-picked by the phantom gate — NOT asked. Proves the absence of
+        """A block surface narrowed to ONE legal word is auto-picked by the
+        phantom gate — NOT asked. Proves the absence of
         the ask and returns the journalled forced answer."""
         tag = f"block:{handle}:"
         self.assertEqual(
@@ -145,7 +144,7 @@ class TestBlockBasics(BlockerCase):
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.damage_plan(alpha), ((2, beta),))
         self.assertEqual(self.damage_plan(beta), ((2, alpha),))
-        # 2 marked on a 2/2: the settle's SBA buries both (16a ledger)
+        # 2 marked on a 2/2: the settle's SBA buries both (the damage ledger)
         self.assertEqual(self.world.zone_of(alpha).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(beta).kind, ZONE_GRAVEYARD)
         # end-of-combat bookkeeping: the block record closes with the phase
@@ -158,7 +157,7 @@ class TestBlockBasics(BlockerCase):
         self.world.cards[beta].tapped = True
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # CR 509.1a: a tapped creature cannot block - not even asked (C15)
+        # CR 509.1a: a tapped creature cannot block - not even asked
         self.assertEqual([a for a in self.seen_asks if a[1].startswith("block:")], [])
         self.assertEqual(self.rows("DECLARE_BLOCKERS"), [])
         self.assertEqual(self.world.players[self.p1].life, 18)
@@ -183,8 +182,8 @@ class TestPairLegality(BlockerCase):
         self.answers[f"block:{spider}"] = str(flyer)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # a creature legal against NOTHING is never asked at all (C15:
-        # no empty offer - the flying pair was the only candidate)
+        # a creature legal against NOTHING is never asked at all (no
+        # empty offer - the flying pair was the only candidate)
         self.assertEqual(
             [a for a in self.seen_asks if a[1].startswith(f"block:{blocky}")], []
         )
@@ -196,12 +195,10 @@ class TestPairLegality(BlockerCase):
         self.assertEqual(self.world.zone_of(flyer).kind, ZONE_GRAVEYARD)  # 3 on a 2/2
 
     def test_a_protected_blocker_may_block_the_quality(self):
-        # re-pinned 2026-10-30: V44 changes the blocker side of protection. CR
-        # 702.16f restricts only the protected ATTACKER ("can't be blocked by
+        # CR 702.16f restricts only the protected ATTACKER ("can't be blocked by
         # creatures that have the stated quality"), so Baneslayer Angel
         # (protection from Demons and from Dragons) may block a Demon, and the
-        # Demon's damage to it is prevented (702.16e). The old pin had the Angel
-        # vetoed from the pair and never asked.
+        # Demon's damage to it is prevented (702.16e).
         attacker = self.world.add_card(
             card_id("Test Demon", "6", "6", type_line="Creature — Demon"),
             self.p0,
@@ -237,7 +234,7 @@ class TestPairLegality(BlockerCase):
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
         # protection was the ONLY pair for the Demon: legal against nothing,
-        # the engine honestly does not ask at all (C15)
+        # the engine does not ask at all
         self.assertEqual([a for a in self.seen_asks if a[1].startswith(f"block:{demon}")], [])
         self.assertEqual(self.blocked_map(), {})
         self.assertEqual(self.world.players[self.p1].life, 15)
@@ -257,7 +254,7 @@ class TestPairLegality(BlockerCase):
         # this turn's window - the static gate opens for the whole turn
         self.draw_for(self.p0, 2)
         self.ex.combat_step(self.p0)
-        # the block ask offered Blocky exactly Grog (Anima vetoed, C15)
+        # the block ask offered Blocky exactly Grog (Anima vetoed)
         self.assertEqual(self.vocab_for(blocky), (str(grog), "NONE"))
         self.assertEqual(self.blocked_map(), {str(grog): [str(blocky)]})
         # Anima lands its 3 unblocked
@@ -355,14 +352,12 @@ class TestAssignment(BlockerCase):
         self.assertEqual(self.damage_plan(blocker), ((2, dino),))
 
     def test_trample_excess_ask_opens_only_above_total_lethal(self):
-        # AMENDED r18a (CR 611.1): Dire Fleet Warmonger's combat trigger is
-        # "you may sacrifice another creature. If you do, +2/+2 and trample"
-        # — with nothing to sacrifice the offer is skip-only and the tail
-        # is now GATED on that answer. The old pin froze the free-rider bug
-        # (the +2/+2 landed WITHOUT the sacrifice, manufacturing 2 excess
-        # trample damage out of a skipped optional). Honest 3/3 trample at
-        # a 0/3 wall: 3 is exactly lethal, the excess ask stays SHUT and
-        # the player takes nothing.
+        # CR 611.1: Dire Fleet Warmonger's combat trigger is "you may
+        # sacrifice another creature. If you do, +2/+2 and trample" — with
+        # nothing to sacrifice the offer is skip-only and the tail is GATED
+        # on that answer, so no +2/+2 lands. A 3/3 trample at a 0/3 wall: 3
+        # is exactly lethal, the excess ask stays SHUT and the player takes
+        # nothing.
         dino = self.real("Dire Fleet Warmonger", self.p0)  # 3/3 trample
         wall = self.synth("Wall", 0, 3, self.p1)
         self.begin()
@@ -449,21 +444,18 @@ class TestMenaceAndMandate(BlockerCase):
         self.ex.combat_step(self.p0)
         # one blocker in front of menace: CR 702.113 - the pair alone is
         # illegal (the inclusion rule needs a second blocker), and the
-        # honest space collapses to NONE alone — T5-F1: a one-word surface
-        # is a FORCED outcome consumed by the phantom gate, not a §10
-        # phantom ask (journal row proves the resolve).
+        # honest space collapses to NONE alone — a one-word surface is a
+        # FORCED outcome consumed by the phantom gate, not a phantom ask
+        # (journal row proves the resolve).
         self.assertEqual(self.forced_block(solo), "NONE")
         self.assertEqual(self.world.players[self.p1].life, 16)
 
     def test_seed1269_first_blocker_never_offered_an_unpairable_menace(self):
-        # the fuzz crash (ZNR seed 1269, RuntimeError@1721): the OLD ask
-        # gated the first menace word on remaining CANDIDATES
-        # (remaining_after >= 1), not on pair-LEGAL completions. Alpha
-        # got the Brute word because a second blocker existed — but that
-        # second blocker was the Shacklegeist, which "blocks only
-        # creatures with flying" and can NEVER pair behind the non-flying
-        # menace. The committed assignment stranded the Brute at one
-        # blocker and the final CR 702.113 invariant raised.
+        # The first menace word is gated on pair-LEGAL completions, not on
+        # remaining CANDIDATES: a second blocker exists, but it is the
+        # Shacklegeist, which "blocks only creatures with flying" and can
+        # NEVER pair behind the non-flying menace, so Alpha is not offered
+        # the Brute (one blocker alone would break CR 702.113).
         brute = self.real("Bone Pit Brute", self.p0)  # 4/5 menace
         self.real("Baneslayer Angel", self.p0)  # 5/5 flying (blocks: flying only)
         gamma = self.synth("Gamma", 1, 1, self.p0)  # plain third attacker
@@ -472,7 +464,7 @@ class TestMenaceAndMandate(BlockerCase):
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # /115: the Brute word is GONE from Alpha's vocabulary — the tail
+        # the Brute word is GONE from Alpha's vocabulary — the tail
         # has no creature that can legally pair behind it (Kuhn matching);
         # the plain attacker and NONE remain and the ask still exists.
         v = self.vocab_for(alpha)
@@ -491,10 +483,10 @@ class TestMenaceAndMandate(BlockerCase):
         self.begin()
         self.answers[f"block:{first}"] = str(brute)
         # the LAST unasked blocker in front of a menace attacker stuck at
-        # one gets no NONE word (C15: the legal space is just the attacker)
+        # one gets no NONE word (the legal space is just the attacker)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # T5-F1: the forced pair is auto-picked (journalled), not asked
+        # the forced pair is auto-picked (journalled), not asked
         self.assertEqual(self.forced_block(second), str(brute))
         self.assertEqual(self.blocked_map(), {str(brute): [str(first), str(second)]})
         # 4 damage in Handle order: 2 lethal each - both blockers die, the
@@ -514,7 +506,7 @@ class TestMenaceAndMandate(BlockerCase):
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # T5-F1: the mandate narrowed the space to the stalker alone —
+        # the mandate narrowed the space to the stalker alone —
         # the phantom gate consumes the forced block, journalling it.
         self.assertEqual(self.forced_block(blocker), str(stalker))
         self.assertEqual(self.blocked_map(), {str(stalker): [str(blocker)]})
@@ -525,11 +517,10 @@ class TestMenaceAndMandate(BlockerCase):
         self.assertEqual(self.world.zone_of(blocker).kind, ZONE_GRAVEYARD)
 
     def test_dispatched_must_be_blocked_this_turn_ends_at_cleanup(self):
-        # B-59 (2026-10-29, FDN Joraga Invocation's shape): "must be blocked
-        # this turn if able" is a RESOLVED effect with a duration (CR
-        # 611.2a, 509.1h). This turn the only blocker is forced onto the
-        # lure; after the cleanup step (CR 514.2) it may stay home. The
-        # dispatch ledger used to keep the lure until it left play.
+        # FDN Joraga Invocation's shape: "must be blocked this turn if
+        # able" is a RESOLVED effect with a duration (CR 611.2a, 509.1h).
+        # This turn the only blocker is forced onto the lure; after the
+        # cleanup step (CR 514.2) it may stay home.
         lure = self.synth("Lure", 1, 5, self.p0)
         blocker = self.synth("Blocky", 1, 5, self.p1)
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
@@ -580,8 +571,8 @@ class TestFeeds(BlockerCase):
         self.assertEqual(self.world.players[self.p0].life, 20)  # no swap
 
     def test_damage_rows_carry_the_combat_flag_and_scope_binds(self):
-        # the 16c DAMAGE row shape: data (amount, True) under the wave
-        # flag, consumed by a DamageDealtEvent node carrying combat=true
+        # the combat DAMAGE row shape: data (amount, True), consumed by a
+        # DamageDealtEvent node carrying combat=true
         alpha = self.synth("Alpha", 2, 2, self.p0)
         self.begin()
         record = None
@@ -600,9 +591,9 @@ class TestFeeds(BlockerCase):
 
 class TestTokenBinder(BlockerCase):
     def test_whale_etb_pirate_token_binds_its_own_rule_lines(self):
-        # the token-record registration (/13 named gap): the Pirate's
-        # printed "can't block" PREVENTION must be LIVE (the binder found
-        # a record for the token handle when its battlefield row settled)
+        # the token-record registration: the Pirate's printed "can't
+        # block" PREVENTION must be LIVE (the binder found a record for the
+        # token handle when its battlefield row settled)
         whale = self.real("Pursued Whale", self.p0, zone="hand")
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
@@ -634,20 +625,19 @@ class TestTokenBinder(BlockerCase):
         self.ex.begin_turn(self.p1)
         self.ex.combat_step(self.p1)
         for creature in (token, vanilla):
-            # T5-F1: the mandate makes ATTACK the only word — the phantom
+            # the mandate makes ATTACK the only word — the phantom
             # gate consumes it silently; the journal is the evidence.
             self.forced_attack(creature)
         self.assertEqual(self.world.players[self.p0].life, 20 - 3)
 
 
 class TestBlockedWithNoBlockerLeft(BlockerCase):
-    """B-61: an attacker stays BLOCKED when every creature blocking it has
-    left combat (CR 509.1h). CR 510.1c: such a creature assigns no combat
+    """An attacker stays BLOCKED when every creature blocking it has left
+    combat (CR 509.1h). CR 510.1c: such a creature assigns no combat
     damage, unless it has trample, which then assigns all of it to the
-    player it attacks (CR 702.19e). Before the fix ``_assign_damage`` sent
-    the whole damage to the player for any attacker with no live blocker,
-    so a double striker that killed its blocker in the first-strike step
-    hit the player in the regular step."""
+    player it attacks (CR 702.19e). So a double striker that killed its
+    blocker in the first-strike step hits the player in the regular step
+    only with trample."""
 
     def striker(self, name, power, toughness, *keywords):
         identity = dataclasses.replace(
@@ -711,7 +701,7 @@ class TestBlockedWithNoBlockerLeft(BlockerCase):
     def test_herald_policy_still_offers_the_player_with_no_blocker_left(self):
         # "assign its combat damage as though it weren't blocked" still
         # applies when no blocker is left, so the regular step ASKS the
-        # policy too (before the fix it skipped the ask and hit the player).
+        # policy too.
         ds, chump, asked = self.herald_fight("AS_BLOCKED", "UNBLOCKED")
         self.assertEqual(asked, [("AS_BLOCKED", "UNBLOCKED")] * 2)
         # first strike AS_BLOCKED kills the chump; regular step UNBLOCKED

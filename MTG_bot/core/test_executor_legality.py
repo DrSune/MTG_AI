@@ -1,15 +1,16 @@
-"""Tests for the round-12c activation legality + cost payment layer
-(/06 §12c, executor/legality.py).
+"""Tests for activation legality and cost payment (executor/legality.py).
 
 Pins: the CR 117.3 resource floors (tapped permanent can't tap, candidate
 counts, life resources), the CR 119.4 life-payment rule (legal iff
-life >= amount — reaching EXACTLY 0 is legal, the mission's "> 1"
-question settled; 0-life always payable per 119.4b), the mana fold on the
-``_v_add_mana`` pool key convention (colour-specific vs generic vs hybrid),
-the C20 sorcery window against the turn skeleton + the explicit
-stack_empty param, the honest notimpl flags (CostLoyalty, QX amounts),
-pay_costs running through the journalled 12a verbs (TapState/ZONE_CHANGE
-events fire from costs), and the folded activate move end to end.
+life >= amount — reaching EXACTLY 0 is legal; 0-life always payable per
+119.4b), the mana fold on the ``_v_add_mana`` pool key convention
+(colour-specific vs generic vs hybrid), the sorcery window against the
+turn skeleton + the explicit stack_empty param, the loyalty-cost source
+gate, the notimpl flag for an undeclared X, pay_costs running through the
+journalled verbs (TapState/ZONE_CHANGE events fire from costs), and the
+folded activate move end to end. Also: {T} abilities and summoning
+sickness, unspent mana emptying, the mana-source planner, and "another
+target".
 """
 
 import unittest
@@ -210,8 +211,8 @@ class TestManaFold(LegalityCase):
         self.assertIsNone(plan, msg=f"colorless paid a green symbol: {plan}")
 
     def test_generic_spends_colourless_before_a_colour(self):
-        # Round-3 finding (2026-11-06): B2 R2 C4 paying {2}{B}{R} left C4, so a following {B}
-        # failed. Colourless pays no coloured symbol (CR 106.1b): it pays the {2} first.
+        # Colourless pays no coloured symbol (CR 106.1b), so it pays the {2} first: B2 R2 C4
+        # paying {2}{B}{R} keeps a B for a following {B}.
         self.pool(self.p0, B=2, R=2, C=4)
         plan, _ = self.plan(
             CostManaGeneric(QConst(2)), CostManaColor("B", QConst(1)), CostManaColor("R", QConst(1))
@@ -240,8 +241,8 @@ class TestManaFold(LegalityCase):
         self.assertEqual(reason, "cost:mana_generic:1<2")
 
     def test_qx_amount_raises_clean_notimpl(self):
-        # The Slate's X_VALUE NUM field (design space §1.3) is a caller
-        # declaration the executor has not wired: clean flag, never guess.
+        # A QX amount with no declared X (cast/activate bind it): clean
+        # flag, never guess.
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
         with self.assertRaises(NotImplementedError):
             build_payment_plan(self.world, ctx, cost(CostManaGeneric(QX())))
@@ -275,14 +276,12 @@ class TestLifeCost(LegalityCase):
         self.assertEqual((plan.life, reason), (0, None))
 
     def test_loyalty_cost_requires_loyalty_identity(self):
-        # AMENDED (round 13b, quirk fix): 13a pinned "+1 on a non-PW is
-        # payable" — that asymmetry was wrong. CR 606.1b ("a loyalty
-        # ability can't be activated unless the permanent has loyalty")
-        # gates the SOURCE, not the sign: Alpha has no printed loyalty and
-        # no LOYALTY counters, so EITHER sign of a loyalty cost now
-        # returns the same reason. A seeded LOYALTY counter (or a printed
-        # CardIdentity.loyalty) restores the ordinary resource check —
-        # that's the token-with-loyalty edge the CR really allows.
+        # CR 606.1b ("a loyalty ability can't be activated unless the
+        # permanent has loyalty") gates the SOURCE, not the sign: Alpha has
+        # no printed loyalty and no LOYALTY counters, so EITHER sign of a
+        # loyalty cost returns the same reason. A seeded LOYALTY counter (or
+        # a printed CardIdentity.loyalty) restores the ordinary resource
+        # check — the token-with-loyalty edge the CR allows.
         ctx = ctx_for(self.ex, source=self.alpha, controller=self.p0)
         plan, reason = build_payment_plan(self.world, ctx, cost(CostLoyalty(-2)))
         self.assertEqual((plan, reason), (None, "cost:loyalty:not_planeswalker"))
@@ -339,9 +338,8 @@ class TestSelectorCosts(LegalityCase):
 
 
 class TestTimingWindow(LegalityCase):
-    """C20: SORCERY = own main phase (skeleton's active seat) + empty
-    stack (an explicit pre-casting query param — the executor has no
-    stack). Default/INSTANT = any turn."""
+    """SORCERY = own main phase (skeleton's active seat) + empty stack
+    (an explicit pre-casting query param). Default/INSTANT = any turn."""
 
     def test_sorcery_window_matrix(self):
         self.attach([ability(cost(), timing=ActivationWindow.SORCERY)])
@@ -383,23 +381,8 @@ class TestConditionGate(LegalityCase):
 
     def test_unsupported_condition_pred_raises(self):
         # flag, never guess: a pred outside the vocab crashes the probe.
-        # AMENDED 2026-09-30 (round 13c): NAME_CONTAINS left this probe —
-        # it is in-vocab now (the GRANT_ACTIVATION filter's "a Teferi
-        # planeswalker" gate evaluates it over the printed name).
-        # AMENDED 2026-09-30 (round 14e): CMC_LE left this probe too — the
-        # identity-mana-value read is answered now (Eliminate/Idol/Ugin).
-        # AMENDED 2026-10-01 (round 18b): CMC_GE left this probe — its
-        # identity read is answered now (Fierce Empath's CMC-6-or-greater
-        # search filter, the CMC_LE twin).
-        # AMENDED 2026-10-01 (round 20c): LIFE_LEAD_OVER_START_GE left this
-        # probe — the R9-2 net-life gate is answered now (Speaker of the
-        # Heavens' activation gate: current life minus the executor's
-        # starting-life snapshot). AMENDED 2026-10-01 (round 21b):
-        # CONTROLLER_COUNT_GT left this probe — the R8-9 dual-filter
-        # comparison is answered now (Garruk, Unleashed's -2 "if an
-        # opponent controls more creatures than you"). CONTROLLER_COUNT_LE
-        # (the family's unimplemented sibling — no corpus card compiles it
-        # yet) keeps the probe.
+        # CONTROLLER_COUNT_LE is the unimplemented sibling of
+        # CONTROLLER_COUNT_GT.
         self.attach(
             [
                 ability(
@@ -476,8 +459,8 @@ class TestActivateFold(LegalityCase):
         self.assertIn("source_tapped", str(caught.exception))
 
     def test_any_colour_offers_the_five_colours_only(self):
-        # V4 (2026-10-29): "one mana of any color" is W, U, B, R or G (CR 105.1,
-        # 106.1a); colorless is not a color.
+        # "One mana of any color" is W, U, B, R or G (CR 105.1, 106.1a);
+        # colorless is not a color.
         self.attach([ability(cost(CostTap()), effect=add_mana("ANY"))])
         seen = []
 
@@ -491,8 +474,8 @@ class TestActivateFold(LegalityCase):
         self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 1})
 
     def test_an_illegal_target_is_refused_before_anything_is_paid(self):
-        # V8 (2026-10-29): activate() validates its targets against the
-        # ability's target slot (as cast() does), before the costs (CR 602.2b).
+        # activate() validates its targets against the ability's target slot
+        # (as cast() does), before the costs (CR 602.2b).
         yours = Selector(
             QConst(1),
             SelectorMode.TARGET,
@@ -515,9 +498,8 @@ class TestActivateFold(LegalityCase):
         self.attach([ability(cost(CostTap(), CostSacrifice(sel)))])
         activate(self.ex, self.alpha, 0, seat=self.p0)
         self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
-        # re-pinned 2026-10-29: V43 changes the flag the graveyard card carries. CR 110.5d: a card
-        # off the battlefield is neither tapped nor untapped, so the tap cost's payment is pinned
-        # by its journal row, ahead of the sacrifice, instead of by a stale flag.
+        # CR 110.5d: a card off the battlefield is neither tapped nor untapped, so the tap cost's
+        # payment is pinned by its journal row, ahead of the sacrifice.
         self.assertFalse(self.world.cards[self.alpha].tapped)
         rows = [
             r[1]
@@ -531,7 +513,7 @@ SICK = "summoning sickness (CR 302.6) without haste"
 
 
 class TestSummoningSickness(LegalityCase):
-    """V1 (2026-10-29): CR 302.6 / 602.5a. A creature's ability with {T} in
+    """CR 302.6 / 602.5a. A creature's ability with {T} in
     its cost needs the creature under its controller's control since their
     most recent turn began; haste exempts it (CR 702.10). Setup permanents
     (Alpha, Beta) carry no entry rows and read ready."""
@@ -672,7 +654,7 @@ class TestSummoningSickness(LegalityCase):
 
 
 class TestManaEmpties(LegalityCase):
-    """V2 (2026-10-29): CR 500.5 / 106.4. Unspent mana empties as each step
+    """CR 500.5 / 106.4. Unspent mana empties as each step
     and phase ends; within the main phase it stays for the next act."""
 
     def empty_rows(self):
@@ -724,7 +706,7 @@ class TestManaEmpties(LegalityCase):
 
 
 class TestManaAbilitiesWhilePaying(LegalityCase):
-    """B-90 (a), 2026-10-29: CR 601.2g / 605.3a. A payment asked outside the
+    """CR 601.2g / 605.3a. A payment asked outside the
     act window may tap the payer's untapped mana abilities whose cost is only
     {T}: a minimal set the planner proves sufficient, never all."""
 
@@ -803,7 +785,7 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
             controller=self.p0,
             bindings={"cards": elf},
         )
-        self.attach([ability(cost(CostTap()), effect=add_mana("G"))], elf)  # V1: sick
+        self.attach([ability(cost(CostTap()), effect=add_mana("G"))], elf)  # sick (CR 302.6)
         forest = self.land("Forest", add_mana("G"))
         self.world.cards[forest].tapped = True
         self.assertIsNone(self.plan(CostManaColor("G", QConst(1))))
@@ -850,13 +832,12 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.assertEqual(before, after)
         self.assertFalse(any(self.world.cards[h].tapped for h in self.world.cards))
 
-    # B-109 (R5-7, pinned at the cards/integration merge 2026-10-30): the planner
-    # picks sources through ability_playable, so the CR 602.5 activation lock binds
-    # it; and every tap it makes journals its ABILITY_ACTIVATED row (CR 602.2,
+    # The planner picks sources through ability_playable, so the CR 602.5 activation
+    # lock binds it; and every tap it makes journals its ABILITY_ACTIVATED row (CR 602.2,
     # 605.3b: one per activation, mana abilities included).
 
     def lock(self, host, kind):
-        """An Aura carrying R5-7's activation lock of ``kind`` on ``host``
+        """An Aura carrying an activation lock of ``kind`` on ``host``
         (Faith's Fetters' shape, test_ontology_r5_activation.aura_record)."""
         from MTG_bot.core.test_ontology_r5_activation import aura_record
 
@@ -946,8 +927,8 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.ex.fire_triggers()
         self.assertEqual(self.world.players[self.p1].life, 21)
 
-    # 2026-11-05: the act window's menu pays this way too (bench/router.py), so the rule is
-    # the only one that ever taps a source on a player's behalf.
+    # The act window's menu pays this way too (bench/router.py), so the rule is the only
+    # one that ever taps a source on a player's behalf.
 
     def test_a_mana_creature_is_never_a_free_source(self):
         # Tapping a creature costs its attack and its block: that is the player's choice.
@@ -983,8 +964,8 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.assertIsNone(plan_mana_taps(self.ex, self.p0, check, exclude=frozenset({f1, f2})))
 
     def test_two_duals_sharing_a_colour_still_pay_both_colours(self):
-        # Review 2026-11-05: {R}{W} from an R/W and a B/R dual. One pick per shortfall took the
-        # R/W land for {R} (lower Handle) and then found no {W}; a dead end now tries the next.
+        # {R}{W} from an R/W and a B/R dual: taking the R/W land for {R} (lower Handle) leaves
+        # no {W}, so a dead end tries the next pick.
         from MTG_bot.core.ability_tree import Choose
 
         crag = self.land("Crag", Choose(count=QConst(1), options=(add_mana("R"), add_mana("W"))))
@@ -1006,7 +987,7 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
 
 
 class TestSelflessSaviorAnotherTarget(unittest.TestCase):
-    """V5 (2026-10-29): Selfless Savior's "Sacrifice this creature: Another
+    """Selfless Savior's "Sacrifice this creature: Another
     target creature you control gains indestructible until end of turn."
     "Another" excludes the Savior itself, so alone it has no legal target and
     its ability is not a free sacrifice outlet (CR 601.2c, 602.2b)."""
@@ -1045,10 +1026,10 @@ class TestSelflessSaviorAnotherTarget(unittest.TestCase):
 
 
 class TestAnotherTarget(unittest.TestCase):
-    """V13 (2026-10-29): "another target creature". Relative to the source
-    (Brash Taunter's "This creature fights another target creature") the
-    source is not a legal target; relative to another target (Rookie Mistake,
-    Garruk's -2) the two targets must differ (CR 115.3)."""
+    """The word "another" in "another target creature". Relative to the
+    source (Brash Taunter's "This creature fights another target creature")
+    the source is not a legal target; relative to another target (Rookie
+    Mistake, Garruk's -2) the two targets must differ (CR 115.3)."""
 
     def test_brash_taunter_cannot_fight_itself(self):
         from MTG_bot.core.ability_tree import ActivatedAbility
@@ -1097,11 +1078,10 @@ class TestAnotherTarget(unittest.TestCase):
         self.assertIsNone(another_target_reason([first, first], (b, b)))  # two plain "target"s may share
 
     def test_garruk_savage_herald_minus_two_has_two_slots_and_the_first_deals(self):
-        # Pinned at the cards/integration merge (2026-10-30), V3 with vfix3's V25:
-        # "[-2]: Target creature you control deals damage equal to its power to
-        # another target creature." Exactly two target slots, designated in walk
-        # order, and the DEAL_DAMAGE dealer is the first slot (CR 120.2b): the
-        # creature deals the damage, not Garruk.
+        # Garruk, Savage Herald's "[-2]: Target creature you control deals damage
+        # equal to its power to another target creature." Exactly two target slots,
+        # designated in walk order, and the DEAL_DAMAGE dealer is the first slot
+        # (CR 120.2b): the creature deals the damage, not Garruk.
         from MTG_bot.core.ability_tree import ActivatedAbility, CostLoyalty, walk
         from MTG_bot.core.executor.games import get_supply, identity_of
         from MTG_bot.core.executor.query import activation_target_slots

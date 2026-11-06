@@ -1,61 +1,29 @@
-"""Grammar round 9 / phase 9-A — nine additive items + the Do-merge (2026-09-28).
+"""Grammar pins: activation timing windows, the life-lead predicate, mana
+policies, the untap-step prevention, delayed triggers, distinct-colour counts,
+granted activations, revealed-until durations, and the compiler's "When you
+do" merge.
 
-Round-9 scope (spec: KNOWLEDGE 2026-09-28/11; file-name offset is
-intentional — round-9 grammar ships in the r10 file, following the
-r6-in-r7 / r7-in-r8 / r8-in-r9 precedent):
-
-- R9-1: ``ActivationWindow`` + ``ActivatedAbility.timing`` trailing
-  optional (C20: "Activate only as a sorcery" — Steward class). The
-  omit-when-None rule is DUAL-registered (_SPECS opt-tag + the NEW
-  _OMIT_IF_EMPTY ActivatedAbility row {condition, timing}); the bare
-  activation byte-shape pin below is the golden-storm guard.
-- R9-2: ``FAtomPred.LIFE_LEAD_OVER_START_GE`` — count-only rule
-  ({count}={count}), the net-life-lead predicate ("Speaker of the
-  Heavens" class).
-- R9-3: ``Verb.MANA_POLICY`` {scope, filter?} — the closed
-  ``_MANA_POLICY_SCOPES`` vocabulary (C21: THIS_MANA event-anchored vs
-  ALL_YOURS permission), AtomArgs validates scope strings against it.
-- R9-4: ``Step.UNTAP`` + ``DurationUntilNextStep`` (owner_scoped, Frost
-  Breath) + the PREVENT_EFFECT ``step`` role (R9-4 doc /10 pairing).
-- R9-5: ``DelayedTrigger`` — a new Effect-union member living INSIDE its
-  creator (C22: the duration is REQUIRED — a lifetime-less delayed
-  trigger is just a TriggeredAbility).
-- R9-6: ``QDistinctColorCount`` — distinct-colour count over a Selector
-  (Orrery), QCount's registration shape mirrored.
-- R9-7: ``Verb.GRANT_ACTIVATION`` {filter, window?} — the Teferi
-  NAME_CONTAINS gate + the R9-1 window the extra activation joins.
-- R9-8: REVEAL ``duration`` role (deferred-until reveals).
-- R9-9: the "When you do" merge (compiler): the continuation joins the
-  INSIDE of the prior cost-paying OptionalEffect (C24 — a sibling
-  append would fabricate an independent optional); any other prior falls
-  back to the default continuation merge (C13 discipline). Continuation
-  rebuilds of ActivatedAbility preserve ``timing``.
-
-Guards:
-- every pre-round-9 pinned fingerprint (the r6 + r7 + r8 + r9 pin sets)
-  stays byte-identical — all 9-A items are additive;
-- the bare ActivatedAbility serializes WITHOUT the "timing" (and
-  "condition") keys — pinned against explicit key-absence (dual-
-  registration PITFALLS 2026-09-28: missing _OMIT_IF_EMPTY row = golden
-  storm);
-- DelayedTrigger with condition=None round-trips through the explicit
-  null key (no omit row needed — opt:filter decodes null);
-- round-9 constructs round-trip through ``to_dict``/``from_dict`` with
-  pinned fingerprints; rejections at every new validation point.
+- ``ActivatedAbility.timing`` (``ActivationWindow``, "Activate only as a
+  sorcery") is omit-when-None, registered in both _SPECS and _OMIT_IF_EMPTY:
+  a bare activation serializes WITHOUT "timing" and "condition";
+- ``DelayedTrigger`` is an Effect-union member living INSIDE its creator;
+  its duration is required (a delayed trigger with no lifetime is just a
+  TriggeredAbility), and condition=None round-trips as an explicit null;
+- the "When you do" continuation joins the INSIDE of the prior cost-paying
+  OptionalEffect (a sibling step would fabricate an independent optional);
+  any other prior falls back to the default continuation merge, and an
+  ActivatedAbility rebuild keeps its ``timing``;
+- the constructs here round-trip with pinned fingerprints, and every
+  validation point rejects bad input.
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
-import MTG_bot.core.test_ability_tree_r8 as R8
-import MTG_bot.core.test_ability_tree_r9 as R9
 from MTG_bot.core.compiler.compiler import (
     _CONTINUATION_PREFIXES,
     _append_optional_to_seq,
@@ -64,21 +32,18 @@ from MTG_bot.core.compiler.compiler import (
     _merge_do_continuation,
     compile_card,
 )
-from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
-    Template,
     TemplateRegistry,
 )
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.test_ability_tree_r8 import _raw_card, _template
 
 # ---- shared atoms / selectors ------------------------------------------------
 
 _UNIVERSAL = at.FAnd(())
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _ANY_ZONE = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
-_LIB_ANY = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.ANY)
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 _PERMANENT = at.FAtom(at.FAtomPred.IS_PERMANENT)
 _TEFERI = at.FAtom(at.FAtomPred.NAME_CONTAINS, string_value="Teferi")
@@ -110,8 +75,8 @@ def _tap_target() -> at.Atom:
 
 
 def _pay_atom() -> at.Atom:
-    """The R9-9 antecedent: "you may pay {1}" — the PAY verb the
-    "When you do" search keys on."""
+    """The "When you do" antecedent: "you may pay {1}", the PAY verb the
+    merge searches for."""
     return at.Atom(
         at.Verb.PAY,
         at.AtomArgs(
@@ -120,11 +85,11 @@ def _pay_atom() -> at.Atom:
     )
 
 
-# ---- builders for the round-9 constructs ------------------------------------
+# ---- builders ----------------------------------------------------------------
 
 
 def _steward_activated() -> at.ActivatedAbility:
-    """R9-1/C20: a Steward-class activation pinned to the sorcery window."""
+    """A Steward-class activation pinned to the sorcery window."""
     return at.ActivatedAbility(
         cost=at.Cost(parts=(at.CostManaGeneric(at.QConst(2)),)),
         effect=_draw_atom(1),
@@ -133,12 +98,12 @@ def _steward_activated() -> at.ActivatedAbility:
 
 
 def _life_lead() -> at.FAtom:
-    """R9-2: "you've gained 7 life more than you started with" style gate."""
+    """A "you've gained 7 life more than you started with" style gate."""
     return at.FAtom(at.FAtomPred.LIFE_LEAD_OVER_START_GE, count=at.QConst(7))
 
 
 def _vodalian_policy() -> at.Atom:
-    """R9-3/C21: scope=THIS_MANA — the restriction anchors to THIS mana."""
+    """scope=THIS_MANA — the restriction anchors to THIS mana."""
     return at.Atom(
         at.Verb.MANA_POLICY,
         at.AtomArgs(pairs=(("scope", "THIS_MANA"),)),
@@ -146,7 +111,7 @@ def _vodalian_policy() -> at.Atom:
 
 
 def _orrery_policy() -> at.Atom:
-    """R9-3/C21: scope=ALL_YOURS with a filter over the spell shape —
+    """scope=ALL_YOURS with a filter over the spell shape —
     "you may spend mana as though it were mana of any color …"."""
     return at.Atom(
         at.Verb.MANA_POLICY,
@@ -155,8 +120,8 @@ def _orrery_policy() -> at.Atom:
 
 
 def _frost_breath() -> at.Atom:
-    """R9-4: PREVENT_EFFECT of the untap (TapStateEvent tapped=False)
-    during Step.UNTAP under DurationUntilNextStep — the doc /10 pair."""
+    """Frost Breath: PREVENT_EFFECT of the untap (TapStateEvent
+    tapped=False) during Step.UNTAP under DurationUntilNextStep."""
     return at.Atom(
         at.Verb.PREVENT_EFFECT,
         at.AtomArgs(
@@ -174,12 +139,12 @@ def _frost_breath() -> at.Atom:
 
 
 def _dur_next_untap() -> at.DurationUntilNextStep:
-    """R9-4: the bare duration node — owner-relative next untap step."""
+    """The bare duration node — owner-relative next untap step."""
     return at.DurationUntilNextStep(step=at.Step.UNTAP)
 
 
 def _subira_delay() -> at.DelayedTrigger:
-    """R9-5/C22: Subira's "When a creature you control enters this turn"
+    """Subira's "When a creature you control enters this turn"
     — an ETB trigger created inside an effect, live for the turn."""
     return at.DelayedTrigger(
         duration=at.DurationEot(),
@@ -192,7 +157,7 @@ def _subira_delay() -> at.DelayedTrigger:
 
 
 def _orrery_draw() -> at.Atom:
-    """R9-6: Orrery's "Draw a card for each color among permanents you
+    """Orrery's "Draw a card for each color among permanents you
     control" — DRAW counts through QDistinctColorCount."""
     return at.Atom(
         at.Verb.DRAW,
@@ -213,7 +178,7 @@ def _orrery_draw() -> at.Atom:
 
 
 def _teferi_grant() -> at.Atom:
-    """R9-7: "an additional loyalty ability of a Teferi planeswalker you
+    """Teferi: "an additional loyalty ability of a Teferi planeswalker you
     control" — NAME_CONTAINS gate + the sorcery window joined."""
     return at.Atom(
         at.Verb.GRANT_ACTIVATION,
@@ -224,7 +189,7 @@ def _teferi_grant() -> at.Atom:
 
 
 def _snoop_reveal() -> at.Atom:
-    """R9-8: REVEAL under a duration — the card stays revealed until the
+    """REVEAL under a duration — the card stays revealed until the
     anchoring object leaves (DurationUntilLeaves default "source")."""
     return at.Atom(
         at.Verb.REVEAL,
@@ -238,7 +203,7 @@ def _snoop_reveal() -> at.Atom:
     )
 
 
-# ---- pinned fingerprints (captured after the round-9 edits) -----------------
+# ---- pinned fingerprints -----------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -299,7 +264,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 ]
 
 _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
-    # R9-1: timing must be an ActivationWindow member, never a bare str.
+    # timing must be an ActivationWindow member, never a bare str.
     (
         "timing_str",
         lambda: at.ActivatedAbility(
@@ -316,12 +281,12 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             timing=True,  # type: ignore[arg-type]
         ),
     ),
-    # R9-2: the count-only rule rejects any other slot.
+    # The count-only rule rejects any other slot.
     (
         "life_lead_extra_slot",
         lambda: at.FAtom(at.FAtomPred.LIFE_LEAD_OVER_START_GE, string_value="seven"),
     ),
-    # R9-3/C21: the scope vocabulary stays closed.
+    # The scope vocabulary stays closed.
     (
         "mana_policy_bad_scope",
         lambda: at.Atom(
@@ -333,7 +298,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
         "mana_policy_missing_scope",
         lambda: at.Atom(at.Verb.MANA_POLICY, at.AtomArgs(pairs=())),
     ),
-    # R9-4: step must be a Step; owner_scoped must be a bool.
+    # step must be a Step; owner_scoped must be a bool.
     (
         "dur_next_step_str",
         lambda: at.DurationUntilNextStep(step="UNTAP"),  # type: ignore[arg-type]
@@ -358,8 +323,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             ),
         ),
     ),
-    # R9-5/C22: every DelayedTrigger slot is type-checked (None only for
-    # condition).
+    # Every DelayedTrigger slot is type-checked (None only for condition).
     (
         "delay_bad_duration",
         lambda: at.DelayedTrigger(
@@ -408,12 +372,12 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             effect=_CREATURE,  # type: ignore[arg-type]
         ),
     ),
-    # R9-6: the counted population must be a Selector.
+    # The counted population must be a Selector.
     (
         "distinct_cc_not_selector",
         lambda: at.QDistinctColorCount(_CREATURE),  # type: ignore[arg-type]
     ),
-    # R9-7: filter REQUIRED on GRANT_ACTIVATION; window must be an
+    # filter REQUIRED on GRANT_ACTIVATION; window must be an
     # ActivationWindow.
     (
         "grant_missing_filter",
@@ -433,7 +397,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             at.AtomArgs(pairs=(("filter", _TEFERI), ("window", at.Step.UNTAP))),  # type: ignore[arg-type]
         ),
     ),
-    # R9-8: duration must be a Duration; unknown roles stay rejected.
+    # duration must be a Duration; unknown roles stay rejected.
     (
         "reveal_duration_bad_type",
         lambda: at.Atom(
@@ -462,26 +426,6 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
     ),
 ]
 
-# ---- re-pin: every pre-round-9 tree stays byte-identical --------------------
-
-
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS + R9._NEW_PINS,
-    ids=[n for n, _, _ in R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS + R9._NEW_PINS],
-)
-def test_pinned_pre_r10_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: every pre-round-9 pinned tree (the r6 + r7 + r8 +
-    r9 pin sets) serializes identically — all 9-A items are additive, no
-    template opts in yet."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r10_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -499,13 +443,13 @@ def test_r10_rejections(name: str, fn: Callable[[], object]) -> None:
         fn()
 
 
-# ---- R9-1: ActivationWindow + the omit-when-None golden-storm guard ---------
+# ---- ActivationWindow + the omit-when-None guard -----------------------------
 
 
 def test_bare_activated_ability_omits_timing_and_condition() -> None:
-    """The dual-registration guard (PITFALLS 2026-09-28): a pre-round-9
-    activation (no timing, no condition) must serialize with NEITHER
-    key — a missing _OMIT_IF_EMPTY row would golden-storm all 305."""
+    """The dual-registration guard: an activation with no timing and no
+    condition serializes with NEITHER key; a missing _OMIT_IF_EMPTY row
+    would change the bytes of every golden activated ability."""
     bare = at.ActivatedAbility(
         cost=at.Cost(parts=(at.CostManaGeneric(at.QConst(1)),)), effect=_draw_atom(1)
     )
@@ -517,7 +461,7 @@ def test_bare_activated_ability_omits_timing_and_condition() -> None:
 
 def test_timing_key_shape_and_roundtrip() -> None:
     d = at.to_dict(_steward_activated())
-    # enums serialize as tagged dicts (ControllerRef precedent)
+    # enums serialize as tagged dicts
     assert isinstance(d, dict) and d.get("timing") == {
         "tag": "ActivationWindow",
         "name": "SORCERY",
@@ -527,13 +471,13 @@ def test_timing_key_shape_and_roundtrip() -> None:
     assert at.fingerprint(back) == at.fingerprint(_steward_activated())
 
 
-# ---- R9-2: the count-only life-lead rule (count enforcement OFF house rule) --
+# ---- the count-only life-lead rule -------------------------------------------
 
 
 def test_life_lead_bare_count_builds_and_roundtrips() -> None:
-    """House convention (ZONE_COUNT_GE precedent): FAtom required-slot
-    enforcement excludes "count" — the bare predicate builds; the
-    pinned count round-trips."""
+    """FAtom required-slot enforcement excludes "count" (as for
+    ZONE_COUNT_GE): the bare predicate builds; the pinned count
+    round-trips."""
     bare = at.FAtom(at.FAtomPred.LIFE_LEAD_OVER_START_GE)
     d = at.to_dict(bare)
     assert isinstance(d, dict) and d.get("pred") == {
@@ -546,11 +490,11 @@ def test_life_lead_bare_count_builds_and_roundtrips() -> None:
     assert at.from_dict(full["tag"], full) == _life_lead()
 
 
-# ---- R9-5: DelayedTrigger's explicit-null condition --------------------------
+# ---- DelayedTrigger's explicit-null condition --------------------------------
 
 
 def test_delayed_trigger_null_condition_roundtrip() -> None:
-    """No _OMIT_IF_EMPTY row for the new class: condition=None serializes
+    """DelayedTrigger has no _OMIT_IF_EMPTY row: condition=None serializes
     the explicit null key and opt:filter decodes it back."""
     dt = _subira_delay()
     d = at.to_dict(dt)
@@ -579,7 +523,7 @@ def test_delayed_trigger_conditioned_roundtrip() -> None:
     assert at.from_dict(sd["tag"], sd) == seq
 
 
-# ---- R9-3/C21: the closed scope vocabulary -----------------------------------
+# ---- the closed scope vocabulary ---------------------------------------------
 
 
 def test_mana_policy_scope_vocab() -> None:
@@ -604,14 +548,14 @@ def test_r10_table_members() -> None:
     assert "DelayedTrigger" in at._EFFECT_TAGS
     # the union tag literals that make embedded enum pairs decode
     assert "Step" in at._ATOM_VALUE_TAGS and "ActivationWindow" in at._ATOM_VALUE_TAGS
-    # R9-2 rule row: count-only, both sides
+    # LIFE_LEAD_OVER_START_GE rule row: count-only, both sides
     req, opt = at._FATOM_RULES[at.FAtomPred.LIFE_LEAD_OVER_START_GE]
     assert req == frozenset({"count"}) and opt == frozenset({"count"})
-    # new role types
+    # role types
     assert at._ROLE_TYPES["filter"] == at._F_CLASSES
     assert at._ROLE_TYPES["step"] == (at.Step,)
     assert at._ROLE_TYPES["window"] == (at.ActivationWindow,)
-    # the role deltas on the pre-existing verbs
+    # the roles this file's constructs add to existing verbs
     assert at._VERB_ROLES[at.Verb.PREVENT_EFFECT]["step"] is False
     assert at._VERB_ROLES[at.Verb.REVEAL]["duration"] is False
     assert at._VERB_ROLES[at.Verb.GRANT_ACTIVATION] == {
@@ -619,15 +563,13 @@ def test_r10_table_members() -> None:
         "window": False,
     }
     assert at._VERB_ROLES[at.Verb.MANA_POLICY] == {"scope": True, "filter": False}
-    # the dual-registration row (without it: golden storm)
+    # the dual-registration row (without it every golden activation gains keys)
     assert at._OMIT_IF_EMPTY["ActivatedAbility"] == frozenset({"condition", "timing"})
     assert at.Step.UNTAP in tuple(at.Step)
     assert at.ActivationWindow.SORCERY in tuple(at.ActivationWindow)
-    # verb-count stays inside the global pin's range (test_ability_tree.py)
-    assert 30 <= len(at.Verb) <= 50
 
 
-# ---- R9-9 unit level: the Do-merge + the PAY search --------------------------
+# ---- unit level: the Do-merge + the PAY search -------------------------------
 
 
 def test_do_prefix_registered() -> None:
@@ -636,8 +578,8 @@ def test_do_prefix_registered() -> None:
 
 
 def test_merge_do_continuation_injects_inside_pay_optional() -> None:
-    """C24: Tolarian Kraken — the continuation joins the INSIDE of the
-    prior cost-paying optional, never a sibling step."""
+    """Tolarian Kraken: the continuation joins the INSIDE of the prior
+    cost-paying optional, never a sibling step."""
     prior = at.OptionalEffect(inner=_pay_atom())
     cont = at.OptionalEffect(inner=_tap_target())
     merged = _merge_do_continuation(prior, cont)
@@ -659,10 +601,10 @@ def test_merge_do_continuation_seq_inner_append() -> None:
 
 
 def test_merge_do_continuation_c13_fallbacks() -> None:
-    """C13: no cost-paying optional prior (bare draw / un-optional PAY)
-    falls back to the DEFAULT continuation merge — never a failure.
-    (The default merge wraps the continuation in its own optional layer —
-    existing house behaviour, r8 fallback pin.)"""
+    """No cost-paying optional prior (bare draw / un-optional PAY) falls
+    back to the DEFAULT continuation merge, never a failure. (The default
+    merge wraps the continuation in its own optional layer, as pinned in
+    test_ability_tree_r8.py.)"""
     cont = at.OptionalEffect(inner=_tap_target())
     fallback = _merge_do_continuation(_draw_atom(1), cont)
     assert fallback == _append_optional_to_seq(_draw_atom(1), cont)
@@ -701,46 +643,7 @@ def test_contains_pay_atom_nested_traversal() -> None:
     assert not _contains_pay_atom(at.Seq(steps=(_draw_atom(1), _tap_target())))
 
 
-# ---- E2E fixtures (r8 house style) -------------------------------------------
-
-
-def _oid(n: int) -> str:
-    return f"00000000-0000-0000-0000-{n:012d}"
-
-
-def _raw_card(name: str, n: int, sentences: tuple[str, ...]) -> RawCard:
-    return RawCard(
-        identity=CardIdentity(oracle_id=_oid(n), name=name),
-        type_line="Instant",
-        types=("Instant",),
-        subtypes=(),
-        supertypes=(),
-        colors=(),
-        color_identity=frozenset(),
-        mana_cost_raw=None,
-        mana_value=0,
-        power_raw=None,
-        toughness_raw=None,
-        loyalty_raw=None,
-        keywords=(),
-        sentences=sentences,
-        layout="normal",
-        is_token=False,
-        is_emblem=False,
-        token_name_refs=(),
-        related_names=(),
-    )
-
-
-def _template(tid: str, pattern: str, build: Callable[[re.Match[str]], object]):  # type: ignore[type-arg]
-    return Template(
-        tid=tid,
-        name=tid,
-        bucket="B5",
-        pattern=re.compile(pattern),
-        priority=1,
-        build=build,  # type: ignore[arg-type]
-    )
+# ---- end to end --------------------------------------------------------------
 
 
 _PAY_SENT = "You may pay {1}."
@@ -776,8 +679,8 @@ def test_compile_do_continuation_end_to_end() -> None:
 
 
 def test_compile_do_continuation_without_pay_c13() -> None:
-    """C13 end-to-end: a Do-continuation with no payment antecedent
-    still compiles via the legacy optional-step merge."""
+    """End to end: a Do-continuation with no payment antecedent still
+    compiles via the default optional-step merge."""
     raw = _raw_card("Orphan Do", 2, sentences=("Draw a card.", _DO_TAP_SENT))
     reg = TemplateRegistry()
     reg.register(
@@ -807,9 +710,8 @@ def test_compile_do_continuation_without_pay_c13() -> None:
 
 
 def test_compile_do_continuation_preserves_timing() -> None:
-    """R9-1 x R9-9: a Do-continuation merged into an ActivatedAbility
-    must NOT drop the timing window (the rebuild passes timing=ab.timing
-    — the whole point of the round-9 rebuild fix)."""
+    """A Do-continuation merged into an ActivatedAbility must NOT drop the
+    timing window (the rebuild passes timing=ab.timing)."""
     raw = _raw_card("Steward Do", 3, sentences=("{2}: You may pay {1}.", _DO_TAP_SENT))
     reg = TemplateRegistry()
     reg.register(

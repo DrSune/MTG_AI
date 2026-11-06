@@ -1,44 +1,24 @@
-"""R2 F4 damage-fold battery (KNOWLEDGE/2026-10-20/140-r2-binding-spec, BINDING).
+"""Combat damage is ``DamageDealtEvent`` with ``combat=True``: there is no
+separate combat-damage event. Pinned on the three cards that print "deals
+combat damage to a player" (Jeskai Elder, Feline Sovereign [M21]; Nimble
+Trapfinder [ZNR]):
 
-Pins the CDE -> DDE fold of the three combat-damage-event cards
-(Jeskai Elder, Feline Sovereign [M21]; Nimble Trapfinder [ZNR]):
-
-* fold SHAPE pins — each card's compiled damage-event node is exactly
-  ``DamageDealtEvent{amount:QUnbounded, filter:FAnd(()) [universal
-  recipient marker, executor _is_universal binding.py:177], source:<per-card
-  dealer filter>, combat:True}`` (the F4 shell; the dealer filter moves
-  VERBATIM from the old CDE filter, byte-identical per
-  tools/audit/atom_sortdelta_r2.py);
-* convergence — post-fold Jeskai Elder event bytes == Garruk's Harbinger's
-  event bytes VERBATIM (independent compiles; the §9 merge proof);
-* D9 fire-parity — the folded encoding fires EXACTLY where the CDE lane
-  fired: (a) combat damage fires, (b) non-combat damage does not,
+* shape — each card's compiled damage-event node is exactly
+  ``DamageDealtEvent{amount:QUnbounded, filter:"a player" (FNot
+  IS_PERMANENT), source:<per-card dealer filter>, combat:True}``;
+* convergence — Jeskai Elder's event equals Garruk's Harbinger's (independent
+  compiles) except for the recipient, which the two cards print differently;
+* fire parity — (a) combat damage fires, (b) non-combat damage does not,
   (c) Feline: non-Cat combat damage does not;
-* SPLIT over-fire (D13, ACCEPTED divergence, spec §6 BREAK-1): a split
-  assignment journals one DAMAGE row per (amount, recipient), so a
-  multi-blocker split 1+2 fires the folded trigger TWICE where the CDE
-  fired once (one COMBAT_DAMAGE row per dealer). CR 603.2 says one "deals
-  combat damage" event per dealer -> this is a known DDE-lane over-fire
-  that ships TODAY on the ten existing DDE{combat:true} cards. ORCHESTRATOR
-  RULING (a): ACCEPT — the pin asserts the OVER-FIRE COUNT (2), it is not
-  a fix; the recipient-SET journal-row redesign is engine-lane ticket
-  ZND-8;
-* population zero — no compiled ``CombatDamageEvent`` node survives in
-  either pool (the dead-vocabulary deletion census assert).
-
-Red-first law: the shape/convergence/census/split legs are RED pre-fold and
-GREEN post-fold; the fire-parity legs pin behavioral equivalence and hold
-across the fold by construction.
-
-B-57 (2026-10-29) ended the fold's one lossy drop: the recipient is no
-longer the universal ``FAnd(())`` marker but "a player" (``FNot(
-IS_PERMANENT)``; Harbinger: "a player or planeswalker"), because under the
-marker a blocked creature fired off its blocker (stronger than printed).
-So the shape pins name the new recipient, the convergence proof compares
-the shell without the recipient, the three cards' split legs (damage to
-two creature blockers) now fire ZERO times, and the D13 lane over-fire is
-pinned on a recipient-universal node instead. ``TestRecipientFidelity``
-judges the compiled recipients over every kind of damage recipient.
+* split over-fire — a split assignment journals one DAMAGE row per (amount,
+  recipient), so a 1+2 split into two blockers fires a recipient-universal
+  node TWICE, where CR 603.2 says one "deals combat damage" event per dealer.
+  The test pins that count (2); it is a known over-fire, not a fix. The
+  three cards' "to a player" nodes fire ZERO times on that split;
+* recipient fidelity — the binder's damage matcher over a player, a live
+  creature, a dead creature and a planeswalker;
+* designation validation — a dealer pre-bind stands as a TARGET slot's
+  designation only when it passes the slot's filter.
 """
 
 from __future__ import annotations
@@ -75,10 +55,6 @@ QCONST1 = QConst(1)
 
 REPO = Path(__file__).resolve().parents[2]
 
-# Type names, not class imports: the battery must survive the deletion of
-# the CombatDamageEvent class itself (dead-vocabulary round).
-DAMAGE_EVENT_NAMES = frozenset({"CombatDamageEvent", "DamageDealtEvent"})
-
 _ZNR: dict | None = None
 
 
@@ -106,9 +82,8 @@ def _znr_record(name: str):
 
 
 def _damage_events(root) -> list:
-    """Every damage-event IR node reachable from ``root`` (walks dataclass
-    fields and containers; keyed by type NAME so it works both pre- and
-    post-deletion of the CDE class)."""
+    """Every DamageDealtEvent node reachable from ``root`` (walks dataclass
+    fields and containers)."""
 
     out: list = []
 
@@ -122,7 +97,7 @@ def _damage_events(root) -> list:
                 walk(v)
             return
         if dataclasses.is_dataclass(x) and not isinstance(x, type):
-            if type(x).__name__ in DAMAGE_EVENT_NAMES:
+            if isinstance(x, DamageDealtEvent):
                 out.append(x)
             for f in dataclasses.fields(x):
                 walk(getattr(x, f.name))
@@ -131,18 +106,18 @@ def _damage_events(root) -> list:
     return out
 
 
-# --- the fold-law source filters (spec /140 §2(1)) -----------------------
+# --- the damage-event filters ---------------------------------------------
 IS_SOURCE = FAtom(pred=FAtomPred.IS_SOURCE)
 UNIV_FAND = FAnd(())
-# B-57: the recipient filters. "A player" = not a permanent (CR 120.1: only
+# The recipient filters. "A player" = not a permanent (CR 120.1: only
 # players, creatures, planeswalkers and battles can be dealt damage).
 TO_A_PLAYER = FNot(FAtom(pred=FAtomPred.IS_PERMANENT))
 TO_A_PLAYER_OR_PW = FOr(
     (TO_A_PLAYER, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"))
 )
-# Feline's dealer filter: the printed cats FAnd moves VERBATIM into
-# DDE.source (sortdelta content law); host shape = the Subira precedent
-# FAnd[TYPE_EQ Creature, ..., CONTROLLER_IS YOU] over the source slot.
+# Feline's dealer filter: the printed cats FAnd sits VERBATIM in
+# DamageDealtEvent.source — FAnd[TYPE_EQ Creature, ..., CONTROLLER_IS YOU],
+# as for Subira.
 FELINE_CATS = FAnd(
     children=(
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -178,8 +153,8 @@ class R2FoldCase(BlockerCase):
             f"(still {type(node).__name__})",
         )
         self.assertIsInstance(node.amount, QUnbounded)
-        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
-        # universal FAnd(()) marker to "a player" (all three cards say so).
+        # the recipient is "a player" (all three cards say so); a universal
+        # FAnd(()) recipient would also fire on damage to a blocker
         self.assertEqual(node.filter, TO_A_PLAYER)
         self.assertIs(node.combat, True)
         self.assertEqual(node.source, source_filter)
@@ -190,16 +165,15 @@ class R2FoldCase(BlockerCase):
         return node
 
     def event_of(self, record, card_name: str):
-        """The card's single damage-event node, UNFOLDED-tolerant: the
-        fire-parity legs run it as-is on both sides of the fold, so the
-        CDE path's behavior is recorded pre-change and the DDE path's
-        post-fold by the SAME assertions."""
+        """The card's single damage-event node, without the shape
+        assertions of ``folded_event`` (the fire-parity legs run the node as
+        compiled)."""
         events = _damage_events(record)
         self.assertEqual(len(events), 1, f"{card_name}: damage-event count")
         return events[0]
 
     # -- scenario drivers -------------------------------------------------
-    def attack_unblocked(self, dealer) -> None:
+    def attack_unblocked(self) -> None:
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
@@ -229,7 +203,7 @@ class R2FoldCase(BlockerCase):
 
 
 class TestFoldShape(R2FoldCase):
-    """The F4 shell: compiled bytes are the sortdelta-predicted DDE."""
+    """Each card's compiled damage-event node, pinned."""
 
     def test_jeskai_elder_compiles_folded_dde(self):
         rec = _m21_record("Jeskai Elder")
@@ -240,43 +214,21 @@ class TestFoldShape(R2FoldCase):
         self.folded_event(rec, FELINE_CATS, "Feline Sovereign")
 
     def test_nimble_trapfinder_compiles_folded_dde(self):
-        # ZNR has no golden store: this compile-side pin + the guards and
-        # fuzz cover the third card (spec §6 evidence caveat).
+        # ZNR has no golden store: this compile-side pin covers the third
+        # card.
         rec = _znr_record("Nimble Trapfinder")
         self.folded_event(rec, IS_SOURCE, "Nimble Trapfinder")
 
-    def test_cde_population_zero_both_pools(self):
-        """Dead-vocabulary census: no compiled CombatDamageEvent node
-        survives anywhere in either pool."""
-        supply = _supply()
-        m21 = [
-            oid
-            for oid, r in supply.pool.results.items()
-            if any(
-                type(n).__name__ == "CombatDamageEvent" for n in _damage_events(r.card)
-            )
-        ]
-        znr = [
-            oid
-            for oid, r in sorted(_znr_results().items())
-            if any(
-                type(n).__name__ == "CombatDamageEvent" for n in _damage_events(r.card)
-            )
-        ]
-        self.assertEqual((m21, znr), ([], []))
-
-
 class TestConvergence(R2FoldCase):
     def test_post_fold_jeskai_bytes_equal_harbinger(self):
-        """§9 merge proof: the folded wording-variant compiles byte-
-        identical to the DDE it merges into (independent compiles)."""
+        """Jeskai Elder's wording compiles byte-identical to Garruk's
+        Harbinger's event (independent compiles), recipient aside."""
         jes = self.folded_event(_m21_record("Jeskai Elder"), IS_SOURCE, "Jeskai Elder")
         harb_events = _damage_events(_m21_record("Garruk's Harbinger"))
         self.assertEqual(len(harb_events), 1)
-        # re-pinned 2026-10-29: B-57 fix changes the recipients, which the
-        # two cards print differently ("a player" vs "a player or
-        # planeswalker"), so the bytes now differ there and ONLY there: the
-        # shell (amount, source, combat) is still byte-identical.
+        # The two cards print different recipients ("a player" vs "a player
+        # or planeswalker"), so the bytes differ there and ONLY there: the
+        # shell (amount, source, combat) is byte-identical.
         self.assertEqual(jes.filter, TO_A_PLAYER)
         self.assertEqual(harb_events[0].filter, TO_A_PLAYER_OR_PW)
         self.assertEqual(
@@ -286,15 +238,14 @@ class TestConvergence(R2FoldCase):
 
 
 class TestFireParity(R2FoldCase):
-    """D9 precondition: the CHOSEN encoding fires exactly where the CDE
-    lane fired — (a) combat fires, (b) non-combat silent, (c) Feline
-    non-Cat silent."""
+    """The encoding fires exactly where "deals combat damage" does — (a)
+    combat fires, (b) non-combat silent, (c) Feline non-Cat silent."""
 
     def test_jeskai_node_fires_on_combat_damage(self):
         node = self.event_of(_m21_record("Jeskai Elder"), "Jeskai Elder")
         dealer = self.synth("Dealer", 3, 3, self.p0)
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.world.players[self.p1].life, 17)  # 3 dealt
         self.assertEqual(self.life_gain(), 1)  # exactly one fire
 
@@ -313,7 +264,7 @@ class TestFireParity(R2FoldCase):
         node = self.event_of(_znr_record("Nimble Trapfinder"), "Nimble Trapfinder")
         dealer = self.synth("Dealer", 3, 3, self.p0)
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.life_gain(), 1)
 
     def test_nimble_node_silent_on_noncombat_damage(self):
@@ -333,14 +284,14 @@ class TestFireParity(R2FoldCase):
             ZONE_BATTLEFIELD,
         )
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.life_gain(), 1)
 
     def test_feline_node_silent_on_noncat_combat_damage(self):
         node = self.event_of(_m21_record("Feline Sovereign"), "Feline Sovereign")
         dealer = self.synth("NotACat", 3, 3, self.p0)  # Creature, no Cat
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.world.players[self.p1].life, 17)  # dealt
         self.assertEqual(self.life_gain(), 0)  # dealer filter rejected
 
@@ -348,14 +299,11 @@ class TestFireParity(R2FoldCase):
         """Compiled record -> attach_pool -> binder -> DESTROY ask: the
         real card fires once on combat damage and its effect lands.
 
-        RED pre-fold BY LANE MECHANICS: the CDE lane fired on the
-        COMBAT_DAMAGE row (subject = the DEALER), so the DESTROY target's
-        CONTROLLER_IS who=event-reference resolved to the dealer handle —
-        no permanent is controlled BY A CREATURE and the effect could
-        never find a candidate. The folded DDE lane fires on the DAMAGE
-        row (subject = the damaged recipient), so "that player" finally
-        binds the rules-faithful damaged player (CR 603.2 referent, the
-        anaphora round-4 row #9 always meant)."""
+        The trigger matches the DAMAGE row (subject = the damaged
+        recipient), so "that player" binds the damaged player (CR 603.2)
+        and the DESTROY target finds that player's permanent. (A row whose
+        subject were the DEALER would bind a creature, and no permanent is
+        controlled BY A CREATURE.)"""
         self.real("Feline Sovereign", self.p0)  # the trigger-carrier
         trophy = self.world.add_card(
             card_id("Trophy", None, None, type_line="Artifact"),
@@ -368,28 +316,17 @@ class TestFireParity(R2FoldCase):
         targeting = [e for e in self.rows("TARGETING") if e.subject == trophy]
         self.assertEqual(len(targeting), 1)  # exactly one fire
 
-    def life_gain(self) -> int:
-        return self.world.players[self.p0].life - 20
-
 
 class TestSplitOverFire(R2FoldCase):
-    """D13 ACCEPTED over-fire pin (spec §6 BREAK-1, orchestrator ruling
-    (a)). CR 603.2: one "deals combat damage" event per dealer however the
-    assignment splits — the CDE lane journaled exactly that (ONE
-    COMBAT_DAMAGE row per dealer, which KEEPS emitting per BREAK-2). The
-    DDE lane matches the per-(amount, recipient) DAMAGE rows instead, so a
-    1+2 split into two blockers fires TWICE. That deficiency is DDE-LANE-
-    WIDE and ships TODAY on the ten existing DDE{combat:true} cards
-    (Harbinger over-fires on splits now); the fold extends it 10 -> 13.
-    This test PINS the accepted count 2 — it is NOT a fix; the correct
-    recipient-SET journal-row design is engine-lane ticket ZND-8.
+    """Known over-fire, pinned at its count. CR 603.2: one "deals combat
+    damage" event per dealer however the assignment splits, but the
+    trigger matches the per-(amount, recipient) DAMAGE rows, so a 1+2
+    split into two blockers fires a recipient-universal node ("whenever
+    this creature deals combat damage", no recipient) TWICE. This PINS the
+    count 2 — it is NOT a fix; the fix is a recipient-SET journal row.
 
-    re-pinned 2026-10-29: B-57 fix changes the three cards' recipient to "a
-    player", and a split between two blockers deals no damage to a player,
-    so their legs now fire ZERO times (the old count 2 was the B-57 bug on
-    top of D13). The D13 lane over-fire itself is unchanged and is pinned on
-    a recipient-universal node ("whenever this creature deals combat
-    damage", no recipient), where it still fires twice."""
+    The three cards' recipient is "a player", and a split between two
+    blockers deals no damage to a player, so their legs fire ZERO times."""
 
     def split_fires(self, node, cat_dealer: bool) -> tuple:
         dealer = self.world.add_card(
@@ -414,7 +351,7 @@ class TestSplitOverFire(R2FoldCase):
         return plan
 
     def test_split_fires_twice_on_a_recipient_universal_node(self):
-        # D13 ACCEPTED: 2 fires for one CR-603.2 event (over-fire, pinned).
+        # the known over-fire: 2 fires for one CR 603.2 event
         node = DamageDealtEvent(
             amount=QUnbounded(), filter=UNIV_FAND, source=IS_SOURCE, combat=True
         )
@@ -422,28 +359,27 @@ class TestSplitOverFire(R2FoldCase):
         self.assertEqual(self.life_gain(), 2)
 
     def test_split_into_two_blockers_fires_zero_jeskai(self):
-        # re-pinned 2026-10-29: B-57 fix changes 2 -> 0 (no player was dealt
-        # damage; the old 2 fired off the two blockers).
+        # no player was dealt damage
         node = self.event_of(_m21_record("Jeskai Elder"), "Jeskai Elder")
         self.split_fires(node, cat_dealer=False)
         self.assertEqual(self.life_gain(), 0)
 
     def test_split_into_two_blockers_fires_zero_nimble(self):
-        # re-pinned 2026-10-29: B-57 fix changes 2 -> 0 (see jeskai).
+        # no player was dealt damage (see jeskai)
         node = self.event_of(_znr_record("Nimble Trapfinder"), "Nimble Trapfinder")
         self.split_fires(node, cat_dealer=False)
         self.assertEqual(self.life_gain(), 0)
 
     def test_split_into_two_blockers_fires_zero_feline(self):
-        # Feline = max exposure (wide cats + double-block lines, spec §6).
-        # re-pinned 2026-10-29: B-57 fix changes 2 -> 0 (see jeskai).
+        # Feline = max exposure (wide cats + double-block lines); no player
+        # was dealt damage (see jeskai)
         node = self.event_of(_m21_record("Feline Sovereign"), "Feline Sovereign")
         self.split_fires(node, cat_dealer=True)
         self.assertEqual(self.life_gain(), 0)
 
 
 class TestRecipientFidelity(R2FoldCase):
-    """B-57: the compiled recipients, judged by the binder's own damage
+    """The compiled recipients, judged by the binder's own damage
     matcher over every kind of combat-damage recipient: a player, a live
     creature, a creature the damage already killed (IS_PERMANENT is the
     type-line test, so it still answers "not a player"), and a planeswalker
@@ -521,21 +457,19 @@ class TestRecipientFidelity(R2FoldCase):
 
 
 class TestDesignationValidation(R2FoldCase):
-    """BREAK-3 (R2 diff-gate, probe4 Variant A port): the 16a DAMAGE
-    dealer pre-bind may only stand as a TARGET slot's FROZEN DESIGNATION
-    when it PASSES that slot's filter. Pre-fix, resolve_selector took the
-    bound handle with ZERO validation, so a non-event filter (here
-    CONTROLLER_IS OPPONENT) misfired: no ask, no TARGETING journal row,
-    and the dealer destroyed ITSELF while the trophy lived. The fix
-    (binding.py ``_prebind_legal_for_targets``) validates the designation
-    through the SAME ``query.legal_targets`` population the ask lane uses
-    and lifts on failure — CR 603.1 then designates properly."""
+    """The DAMAGE dealer pre-bind may only stand as a TARGET slot's FROZEN
+    DESIGNATION when it PASSES that slot's filter:
+    ``TriggerBinder._prebind_legal_for_targets`` validates it through the
+    SAME ``query.legal_targets`` population the ask lane uses and lifts it
+    on failure, so CR 603.1 designates properly. Unvalidated, a non-event
+    filter (here CONTROLLER_IS OPPONENT) would misfire: no ask, no
+    TARGETING journal row, and the dealer destroying ITSELF while the
+    trophy lives."""
 
     def test_non_event_filter_target_asks_not_the_dealer(self):
-        """Ported probe4 Variant A: damage trigger whose DESTROY targets
-        an OPPONENT's artifact. Correct behavior: the trophy dies and the
-        dealer lives (single legal filler -> auto-designated by §1.4, the
-        TARGETING row journalled either way)."""
+        """A damage trigger whose DESTROY targets an OPPONENT's artifact:
+        the trophy dies and the dealer lives (the single legal candidate is
+        auto-designated; the TARGETING row is journalled either way)."""
         destroy = atom(
             Verb.DESTROY,
             target=target_sel(
@@ -569,9 +503,7 @@ class TestDesignationValidation(R2FoldCase):
         self.ex.combat_step(self.p0)
         # Precondition: the trigger fired (GAIN_LIFE ran).
         self.assertEqual(self.world.players[self.p0].life, 21)
-        # CORRECT outcome: the trophy died, the dealer lived. Pre-fix the
-        # dealer destroyed itself and the trophy lived (red recorded in
-        # /tmp/r2_break3_red.log).
+        # The trophy died, the dealer lived.
         self.assertEqual(
             self.world.zone_of(trophy).kind,
             "graveyard",
@@ -588,10 +520,9 @@ class TestDesignationValidation(R2FoldCase):
         self.assertEqual(len(targeting), 1)  # the designation IS an event
 
     def test_target_player_reader_keeps_the_16a_prebind(self):
-        """Variant B (pinned PRESERVATION, Brash Taunter's lane): a node
-        that READS TARGET_PLAYER keeps the dealer pre-bind exactly as 16a
-        bound it — no ask lane, the echo folds dealer -> controller (p0
-        here)."""
+        """A node that READS TARGET_PLAYER keeps the dealer pre-bind
+        (Brash Taunter's lane) — no ask lane, the echo folds dealer ->
+        controller."""
         echo = atom(
             Verb.DEAL_DAMAGE,
             target=target_sel(

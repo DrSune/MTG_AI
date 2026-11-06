@@ -1,12 +1,9 @@
-"""Round-21a regression tests: the wave-4 prevention-condition, planeswalker
-damage, and player-or-PW designation batch.
-
-Each test pins one r21a root cause and the machinery that fixed it:
+"""Prevention-condition sides, planeswalker damage, and player-or-planeswalker designation.
 
 1. PREVENTION CONDITION SIDES (Ghostly Pilferer): the block consult judges
    ``rec.condition`` over BOTH sides of a declaration pair — the GP shape's
-   IS_SOURCE condition names the BLOCKED side (the old subject-only reading
-   evaluated it against the BLOCKER, silently disabling the veto), while a
+   IS_SOURCE condition names the BLOCKED side (judged against the BLOCKER
+   alone it would never veto), while a
    hypothetical "this creature can't block" activation names the BLOCKER
    side; either way the pair vetoes, and the blocker/blocked slot filters
    still gate which pairs are affected. The attack consult keeps the
@@ -107,8 +104,8 @@ class TestPreventionConditionSides(R21aCase):
 
     def test_blocked_side_condition_vetoes_ghostly_pilferer_shape(self):
         # GP's runtime shape: the condition's IS_SOURCE names the BLOCKED
-        # (protected) side. The old subject-only (blocker) evaluation read
-        # this as never-matching and the forced block sailed through.
+        # (protected) side; judged against the blocker alone it would never
+        # match and the forced block would sail through.
         self._register(
             source=self.alpha,
             controller=self.p0,
@@ -125,9 +122,8 @@ class TestPreventionConditionSides(R21aCase):
         )
 
     def test_blocker_side_condition_vetoes_the_blocker_pairs(self):
-        # The r21a both-sides reading: a condition naming the BLOCKER (a
-        # future "this creature can't block" activation) vetoes too — the
-        # old code judged it against the attacker only and never vetoed.
+        # The both-sides reading: a condition naming the BLOCKER (a
+        # future "this creature can't block" activation) vetoes too.
         # Directionality is carried by the event slots: the blocker-side
         # filter (IS_SOURCE over the BLOCKER) keeps the record OFF any pair
         # where the source only shows up as the BLOCKED side.
@@ -178,7 +174,7 @@ class TestPlaneswalkerDamage(R21aCase):
 
     def test_unseeded_ledger_falls_back_to_printed_loyalty(self):
         # The rig never seeds counters: missing LOYALTY key means PRINTED
-        # loyalty, never zero (the 13a printed-value twin).
+        # loyalty, never zero.
         pw = self._walker(self.p1, "5")
         self._hit(pw, 2)
         self.assertEqual(dict(self.world.cards[pw].counters), {"LOYALTY": 3})
@@ -217,9 +213,9 @@ class TestPlaneswalkerDamage(R21aCase):
 class TestPlayerOrPlaneswalkerDesignation(R21aCase):
     def test_bound_walker_survives_the_player_or_pw_selector(self):
         # The compiled "target player or planeswalker" selector shape:
-        # Zone(PLAYER) + zones=(BATTLEFIELD,). The old blanket player-side
-        # exemption self-resolved it through the PLAYER zone alone and
-        # silently re-pointed the damage at the player.
+        # Zone(PLAYER) + zones=(BATTLEFIELD,). A blanket player-side
+        # exemption would self-resolve it through the PLAYER zone alone and
+        # silently re-point the damage at the player.
         pw = self._walker(self.p1, "4")
         sel = Selector(
             QConst(1),
@@ -239,7 +235,7 @@ class TestPlayerOrPlaneswalkerDesignation(R21aCase):
     def test_pure_player_selector_still_self_resolves(self):
         # The exemption stays for PURE TARGET_PLAYER selectors (no zones):
         # a card handle bound under the role is re-resolved through the
-        # selector's own zone (the Brash Taunter 16a convention holds).
+        # selector's own zone (the Brash Taunter convention).
         sel = Selector(
             QConst(1),
             SelectorMode.TARGET,
@@ -257,17 +253,14 @@ class TestPlayerOrPlaneswalkerDesignation(R21aCase):
 
 
 class TestDurationEotSourceExemption(R21aCase):
-    """C5 (Destructive Tampering): a RESOLVED sorcery's prevention outlives
+    """Destructive Tampering: a RESOLVED sorcery's prevention outlives
     its source (CR 611.2a — by the declare-blockers step the spell is long
     in the graveyard). ``_pair_vetoed`` exempts every RESOLVED record
     (``resolved``, set by the PREVENT_EFFECT verb) from the ``_source_alive``
-    battlefield gate, whatever its duration; static carriers keep it. (It
-    used to exempt only the DurationEot shape, so a "can't block" with no
-    end or until your next turn never applied: known_bugs
-    cant_block_needs_until_end_of_turn.)"""
+    battlefield gate, whatever its duration; static carriers keep it."""
 
     def _tampering_record(self, duration, resolved=True):
-        # The promoted pack's world (tools/scenarios/tampering_no_block.json)
+        # The pack's world (tools/scenarios/tampering_no_block.json)
         # in hand-registered shape: the spell has ALREADY resolved into the
         # graveyard by combat time (the pack's own expect.zone pins
         # tb:graveyard BEFORE the block ask), and the Choose-branch '1'
@@ -308,7 +301,7 @@ class TestDurationEotSourceExemption(R21aCase):
         return sky
 
     def test_graveyard_sourced_eot_record_vetoes_non_flying_block(self):
-        # The promoted pack's core claim, consult-level: the spell sits in
+        # The pack's core claim, consult-level: the spell sits in
         # the graveyard, yet the Eot record still refuses Beta (no flying)
         # the block on Alpha.
         self._tampering_record(DurationEot())
@@ -337,8 +330,7 @@ class TestDurationEotSourceExemption(R21aCase):
 
     def test_none_duration_with_alive_source_still_vetoes(self):
         # The gate's positive side: the same static-shape record sourced on
-        # the battlefield vetoes exactly as before C5 (Ghostly Pilferer
-        # lifecycle unchanged).
+        # the battlefield vetoes (the Ghostly Pilferer lifecycle).
         carrier = self.world.add_card(
             card_id("Carrier", type_line="Enchantment"), self.p0, ZONE_BATTLEFIELD
         )

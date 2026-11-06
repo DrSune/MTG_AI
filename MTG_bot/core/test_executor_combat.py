@@ -1,18 +1,13 @@
-"""Round-16b pins: the COMBAT skeleton (doc /11 §16b, BINDING).
+"""The COMBAT skeleton.
 
 The declare-ask contract, the whole-set legality check, the summoning-
 sickness / defender / haste / vigilance consumers, the first/double-
-strike damage split through the 16a marked-damage funnel, the
+strike damage split through the marked-damage funnel, the
 DeclareAttackersEvent / CombatDamageEvent feeds (per-attacker rows,
-CR 603.2 group dedup), the MANDATE_ATTACK narrowing (C15) and the
+CR 603.2 group dedup), the MANDATE_ATTACK narrowing and the
 end-of-combat bookkeeping — every one exercised through the REAL
-executor against compiled pool cards, not fixtures.
-
-v1 limits pinned AS DESIGNED (16c scope, doc /11): no blockers (all
-attackers unblocked, damage to the defending player), the compiler-side
-enters_attacking drop (Falconer's Bird enters plain — the IR spec flags
-are None; the executor honors the flag when present, pinned by the
-Basri-Ket-spec rule, not simulated).
+executor against compiled pool cards, not fixtures. Blocking is
+test_executor_blockers'.
 """
 
 from __future__ import annotations
@@ -103,7 +98,7 @@ class CombatCase(unittest.TestCase):
     def provider(self, vocab, what):
         self.seen_asks.append((tuple(vocab), what))
         # Site tags are PREFIX-matched (run_scenarios/blockers convention):
-        # T5-F1 may-offers carry a per-offer digest suffix on the site key,
+        # may-offers carry a per-offer digest suffix on the site key,
         # so the pack-side answer is keyed by its handle prefix.
         answer = self.default_answer
         for key, value in self.answers.items():
@@ -121,9 +116,8 @@ class CombatCase(unittest.TestCase):
         return [a for a in self.seen_asks if a[1].startswith(tag)]
 
     def forced_attack(self, handle) -> str:
-        """T5-F1 (§10): a mandated attacker's one-word ATTACK surface is
-        auto-picked and journalled by the phantom gate — no ask reaches a
-        provider (the old narrowed-vocab ASK pins live here now)."""
+        """A mandated attacker's one-word ATTACK surface is auto-picked and
+        journalled by the phantom gate — no ask reaches a provider."""
         tag = f"attack:{handle}:"
         self.assertEqual(
             [a for a in self.seen_asks if a[1].startswith(tag)],
@@ -210,8 +204,8 @@ class TestDeclareAsks(CombatCase):
         # the group id is shared per declaration:
         self.assertEqual(
             {e.declare_group for e in self.rows("DECLARE_ATTACKERS")}, {1}
-        )  # op_seq: the declaration is op 1 (re-pinned 2026-11-05: turn 1 has
-        # no draw step, CR 103.8a, so no draw atom takes op 1 before it)
+        )  # op_seq: the declaration is op 1 (turn 1 has no draw step,
+        # CR 103.8a, so no draw atom takes op 1 before it)
 
     def test_decline_is_respected_and_no_ask_without_creatures(self):
         alpha = self.synth("Alpha", 2, 2, self.p0)
@@ -360,9 +354,9 @@ class TestDamageSteps(CombatCase):
         self.ex.combat_step(self.p0)
         self.assertEqual(self.world.players[self.p1].life, 20 - (2 + 3))
         rows = self.rows("COMBAT_DAMAGE")
-        # 16c note: the COMBAT_DAMAGE row now carries the dealer's whole
-        # assignment ((amount, recipient) pairs); these dealers are un-
-        # blocked so each row is the single-pair case.
+        # The COMBAT_DAMAGE row carries the dealer's whole assignment
+        # ((amount, recipient) pairs); these dealers are unblocked so each
+        # row is the single-pair case.
         amounts = [a for r in rows for a, _recip in r.combat_damage[0]]
         self.assertEqual(amounts, sorted(amounts))
         self.assertEqual(sorted(amounts), [2, 3])
@@ -407,8 +401,7 @@ class TestTriggerFeeds(CombatCase):
             h for h in self.world.cards if self.world.cards[h].identity.name == "Bird"
         ]
         self.assertEqual(len(birds), 2)
-        # re-pinned 2026-10-30 (m21-fidelity, fixer 4's finding): the compiled
-        # Bird spec now keeps Falconer's "that's tapped and attacking"
+        # The compiled Bird spec keeps Falconer's "that's tapped and attacking"
         # (enters_tapped/enters_attacking, CR 508.4), so each Bird joins the
         # attack record and deals its 1 combat damage: 20 - (2 + 2 + 1 + 1).
         self.assertEqual(self.world.players[self.p1].life, 20 - (2 + 2 + 1 + 1))
@@ -454,7 +447,7 @@ class TestMandates(CombatCase):
         self.ex.mandates.add(alpha)  # the dispatched shape
         self.default_answer = "DECLINE"
         self.ex.combat_step(self.p0)
-        self.forced_attack(alpha)  # mandated: consumed, never asked (T5-F1)
+        self.forced_attack(alpha)  # mandated: consumed, never asked
         self.assertEqual(self.asks_for(beta)[0][0], ("ATTACK", "DECLINE"))
         self.assertTrue(self.world.cards[alpha].tapped)  # attacked anyway
         self.assertFalse(self.world.cards[beta].tapped)  # declined
@@ -479,10 +472,9 @@ class TestMandates(CombatCase):
         self.seen_asks.clear()
 
     def test_dispatched_mandate_this_turn_ends_at_cleanup(self):
-        # B-59 (2026-10-29): "target creature attacks this turn if able" is
-        # a RESOLVED effect with a duration (CR 611.2a). It forces this
-        # turn's declaration and ends in the cleanup step (CR 514.2); the
-        # dispatch ledger used to keep it until the creature left play.
+        # "target creature attacks this turn if able" is a RESOLVED effect
+        # with a duration (CR 611.2a). It forces this turn's declaration and
+        # ends in the cleanup step (CR 514.2).
         alpha = self.synth("Alpha", 2, 2, self.p0)
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
@@ -518,8 +510,8 @@ class TestMandates(CombatCase):
         self.assertEqual(self.world.players[self.p0].life, 18)
 
     def test_dispatched_mandate_without_duration_persists(self):
-        # The durationless dispatch keeps its old reading: it lasts until
-        # the creature leaves the battlefield.
+        # A durationless dispatch lasts until the creature leaves the
+        # battlefield.
         alpha = self.synth("Alpha", 2, 2, self.p0)
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
@@ -580,12 +572,13 @@ class TestMandates(CombatCase):
         self.synth("Other", 3, 3, self.p0)
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.begin()
-        self.ex.attachments[furor] = host  # the aura-host edge (13c table)
+        self.ex.attachments[furor] = host  # the aura-host edge
         self.ex.begin_turn(self.p0)
         self.default_answer = "DECLINE"
         self.ex.combat_step(self.p0)
-        # the mandate half: ATTACK is the only word — T5-F1 consumes the
-        # forced surface silently (journal evidence), and the host attacks.
+        # the mandate half: ATTACK is the only word — the phantom gate
+        # consumes the forced surface silently (journal evidence), and the
+        # host attacks.
         self.forced_attack(host)
         self.assertTrue(self.world.cards[host].tapped)
         # the PT half: +2/+2 materialized -> 5 damage, not 3
@@ -607,26 +600,22 @@ class TestMandates(CombatCase):
         self.assertEqual(self.world.players[self.p1].life, 15)  # declined
 
     def test_pursued_whale_etb_runs_clean_token_static_gap_pinned(self):
-        # The 16a crash class was this trigger; 16b it runs CLEAN. The
-        # real compiled shape (verified, doc-claim corrected): the ETB is
-        # EachPlayer -> CREATE_TOKEN only; the "can't block / attack if
-        # able" rules ride the PIRATE'S TokenSpec.abilities (the token's
-        # own statics), and TOKEN handles never get binder records (the
-        # pre-existing _lifecycle gap, doc B-class) -> the hoisted rule
-        # does NOT mandate anyone yet. 16c scope: token-record
-        # registration, then this mandate + the DeclareBlockersEvent
-        # half of the same token light up together.
+        # The real compiled shape: the ETB is EachPlayer -> CREATE_TOKEN
+        # only; the "can't block / attack if able" rules ride the PIRATE'S
+        # TokenSpec.abilities (the token's own statics, exercised in
+        # test_executor_blockers). The ETB runs clean, and a static mandate
+        # is a layer record, never the dispatched ``mandates`` ledger.
         whale = self.real("Pursued Whale", self.p0, ZONE_HAND)
         alpha = self.synth("Alpha", 2, 2, self.p0)
         self.begin()
         self.ex.begin_turn(self.p0)
-        self.enter_battlefield(whale, self.p0)  # no raise: the 16b proof
+        self.enter_battlefield(whale, self.p0)  # no raise
         pirates = [
             h for h in self.world.cards if self.world.cards[h].identity.name == "Pirate"
         ]
         self.assertEqual(len(pirates), 1)  # EachPlayer: p1 got theirs
         self.assertEqual(self.world.controller_of(pirates[0]), self.p1)
-        self.assertEqual(self.ex.mandates, set())  # gap pinned, not hidden
+        self.assertEqual(self.ex.mandates, set())  # nothing dispatched
         self.ex.combat_step(self.p0)
         self.assertEqual(self.asks_for(alpha)[0][0], ("ATTACK", "DECLINE"))
         self.assertEqual(self.world.players[self.p1].life, 18)  # only alpha
@@ -637,10 +626,9 @@ class TestEndOfCombat(CombatCase):
         alpha = self.synth("Alpha", 4, 4, self.p0)
         self.begin()
         self.ex.begin_turn(self.p0)
-        # mark Alpha mid-combat-phase through the public funnel: an
-        # attacker that DIES to a declare-time state is a 16c shape;
-        # here we pin the bookkeeping instead: attackers empty after the
-        # phase, damage marks NOT cleared until the cleanup step.
+        # mark Alpha through the public funnel and pin the bookkeeping:
+        # attackers empty after the phase, damage marks NOT cleared until
+        # the cleanup step.
         self.ex.execute(
             atom(Verb.DEAL_DAMAGE, target=target_sel(), amount=QConst(3)),
             source=alpha,
@@ -664,11 +652,10 @@ class TestEndOfCombat(CombatCase):
 
     def test_an_attacker_that_leaves_the_battlefield_leaves_combat(self):
         # CR 506.4: a permanent that leaves the battlefield is removed from
-        # combat. Regression (2026-11-05 exploit audit, seeds 7100026 and
-        # 7300040): Falconer Adept's Bird enters tapped and attacking as a
-        # 0/0 under Kaervek, dies and ceases to exist, and stayed in
-        # ``attackers``; the defender's block planning read the dead handle
-        # (KeyError, game voided).
+        # combat. Falconer Adept's Bird enters tapped and attacking as a 0/0
+        # under Kaervek, dies and ceases to exist, so it leaves
+        # ``attackers`` (the defender's block planning must never read a
+        # dead handle).
         falconer = self.real("Falconer Adept", self.p0)
         self.real("Kaervek, the Spiteful", self.p1)  # other creatures -1/-1
         self.begin()
@@ -685,9 +672,8 @@ class TestEndOfCombat(CombatCase):
 class TestSicknessAfterControlChange(CombatCase):
     """CR 302.6: a creature attacks, or uses a {T} ability, only if its
     controller has controlled it continuously since their most recent turn
-    began. Regression (2026-11-05 exploit audit, seed 7100010: Traitorous
-    Greed steals Crypt Lurker, Roaming Ghostlight bounces it, it is recast
-    and attacks the same turn)."""
+    began: a creature stolen (Traitorous Greed), bounced (Roaming
+    Ghostlight) and recast is a new object, sick that turn."""
 
     def test_stolen_returned_bounced_and_recast_creature_is_sick(self):
         # The return of control left a sickness marker for the old object;

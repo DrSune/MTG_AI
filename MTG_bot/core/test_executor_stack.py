@@ -1,11 +1,10 @@
-"""Round-13b test suite: the spell stack, the casting pipeline, the CAST
-event feed, the mana-policy consumers and the PLAY_LAND move.
+"""The spell stack, the casting pipeline, the CAST event feed, the
+mana-policy consumers and the PLAY_LAND move:
 
-Coverage contract (mission /11 §13b):
   * CR 601.2 order end-to-end (legality -> declaration -> payment ->
     stack -> resolution -> put), instant AND permanent destinations;
   * the SpellKind window table (instants ungated, everything else
-    sorcery-timed on 13a's phase clock);
+    sorcery-timed on the phase clock, in either main phase);
   * target designation through the query's OWN oracle, including the
     ANY-target player widening and the TARGET_PLAYER coordinate channel;
   * the crafted QX spell (X-floor witness, declared-X fold, too-big X
@@ -18,7 +17,7 @@ Coverage contract (mission /11 §13b):
   * PAY / CHOOSE / CHOOSE_NAME / MANA_POLICY (Vodalian THIS_MANA, Orrery
     ALL_YOURS) and their legality-gate consumers;
   * the fingerprint completeness fold (a stack frame must change the
-    executor fingerprint) and replay identity WITH the new folds.
+    executor fingerprint) and replay identity WITH the stack folds.
 """
 
 from __future__ import annotations
@@ -269,7 +268,7 @@ class TestCastPipeline(StackCase):
         self.assertEqual(kind, "INSTANT")
         self.assertEqual(from_zone, "hand")
         self.assertIsNone(xval)
-        self.assertFalse(kicked)  # ZND-1e: Shock has no kicker
+        self.assertFalse(kicked)  # Shock has no kicker
         # the park AND the put both ride the journal: hand->stack (601.2h)
         # then stack->graveyard (601.2j). The stack zone is visible to the
         # journal even though the WORLD fingerprint skips it.
@@ -347,10 +346,8 @@ class TestCastPipeline(StackCase):
         creature = self.world.add_card(
             card_id("Victim", "1", "1"), self.p1, ZONE_BATTLEFIELD
         )
-        # AMENDED r19c (was assertRaises(NotImplementedError), "more than one
-        # TARGET selector needs per-slot designation (arc 3)"): arc 3 LANDED —
-        # multi-slot casts now designate POSITIONALLY (the i-th target fills
-        # the i-th exactly-one slot). Under-supply stays loud with the
+        # Multi-slot casts designate POSITIONALLY (the i-th target fills the
+        # i-th exactly-one slot). Under-supply is loud with the
         # designation-count shape; the full positive path is pinned in
         # test_executor_r19c.py.
         with self.assertRaises(ValueError) as cm:
@@ -549,7 +546,7 @@ class TestLandDrop(StackCase):
         second = self.world.add_card(
             card_id("Plains2", type_line="Land"), self.p0, ZONE_HAND
         )
-        self.ex.extra_land_plays = 1  # the 13c ADD_LAND_PLAY hook
+        self.ex.extra_land_plays = 1  # the ADD_LAND_PLAY hook
         play_land(self.ex, self.p0, self.plains)
         play_land(self.ex, self.p0, second)
         self.assertEqual(self.ex.land_ledger[self.p0], (self.world.turn, 2))
@@ -561,12 +558,11 @@ class TestLandDrop(StackCase):
         self.assertIn("used_this_turn", reason)
 
     def test_etb_state_tapped_land_enters_tapped(self):
-        # 17a regression pin: the compiled EtBState node ("enters the
-        # battlefield tapped" — every M21 checkland and temple) is
-        # consumed by the journal's battlefield-ENTRY hook, so the real
-        # land drop stamps it. A plain land without the node stays
-        # untapped, and the stamp is NOT a tap event (CR 614.1c: an
-        # entered state never "becomes tapped").
+        # The compiled EtBState node ("enters the battlefield tapped" —
+        # every M21 checkland and temple) is consumed by the journal's
+        # battlefield-ENTRY hook, so the real land drop stamps it. A plain
+        # land without the node stays untapped, and the stamp is NOT a tap
+        # event (CR 614.1c: an entered state never "becomes tapped").
         rec = spell_rec(
             "Checkland",
             SpellKind.SORCERY,
@@ -626,7 +622,7 @@ class TestLandDrop(StackCase):
         self.mana(self.p0, R=1)
         rows = legal_casts(self.world, self.ex, self.p0)
         handles = [r.handle for r in rows]
-        self.assertEqual(handles, sorted(handles))  # Handle-sorted (§5.5)
+        self.assertEqual(handles, sorted(handles))  # Handle-sorted
         land_row = next(r for r in rows if r.handle == self.plains)
         spell_row = next(r for r in rows if r.handle == shock)
         self.assertTrue(land_row.land)
@@ -638,7 +634,7 @@ class TestLandDrop(StackCase):
 
 
 class TestBothMainPhases(StackCase):
-    """B-74 (2026-11-06), CR 505.1: a turn has two main phases with combat between them. Sorcery
+    """CR 505.1: a turn has two main phases with combat between them. Sorcery
     speed (CR 117.1a, 505.6a, 302.1, 307.1) and the land play (CR 305.1, 505.6b) hold in both,
     the land play once per turn in total (CR 305.2); nothing sorcery-speed holds during combat
     or on another player's turn. The phase clock is the real turn's: ``combat_attacks`` opens combat,
@@ -798,10 +794,9 @@ class TestCastTriggerFeed(StackCase):
         self.assertEqual(self.world.players[self.p0].life, life0 + 1)  # fired
 
     def test_a_spell_that_targets_the_watcher_fires_it(self):
-        # known_bugs targets_source_in_cast_filter_never_matches (M20 Gnarlback Rhino):
-        # "Whenever you cast a spell that targets this creature, ..." is a CastSpellEvent
-        # whose filter is TARGETS_SOURCE. The matcher judged it with the trigger's own target
-        # bindings, so it never matched; it reads the cast spell's declared targets now.
+        # M20 Gnarlback Rhino: "Whenever you cast a spell that targets this creature, ..." is
+        # a CastSpellEvent whose filter is TARGETS_SOURCE. The matcher reads the cast spell's
+        # declared targets, not the trigger's own target bindings.
         watcher = self.watch(
             CastSpellEvent(
                 FAtom(pred=FAtomPred.TARGETS_SOURCE),
@@ -937,16 +932,14 @@ class TestEffectCast(StackCase):
             )
 
     def test_cast_land_designation_raises(self):
-        # AMENDED r23a (Radha batch) → T5-F1: with a LAND bound as the
-        # CAST atom's source, the may-offer now honestly narrows to skip
-        # — CR 117.3 removes an action whose population holds no
-        # SpellAbility carrier, and the gate reads the SAME routed
-        # population the runtime would cast (query/runtime identity).
-        # T5-F1 (§10): the skip-only surface is a FORCED outcome, not a
-        # decision — the phantom gate auto-skips (no channel raise, the
-        # scripted 'fire' stays parked) and the land verifiably stays
-        # put. Loudness for the ILLEGAL request survives in the BARE
-        # (non-may) CAST layer below, unchanged.
+        # With a LAND bound as the CAST atom's source, the may-offer
+        # narrows to skip — CR 117.3 removes an action whose population
+        # holds no SpellAbility carrier, and the gate reads the SAME routed
+        # population the runtime would cast (query/runtime identity). The
+        # skip-only surface is a FORCED outcome, not a decision — the
+        # phantom gate auto-skips (no channel raise, the scripted 'fire'
+        # stays parked) and the land verifiably stays put. The BARE
+        # (non-may) CAST layer below stays loud for the ILLEGAL request.
         land_id = card_id("Wasteland", type_line="Land")
         land = self.world.add_card(land_id, self.p0, ZONE_EXILE)
         self.ex.attach_card(
@@ -1005,15 +998,12 @@ class TestPayVerb(StackCase):
         self.assertNotIn("G", self.world.players[self.p0].mana_pool)  # paid
 
     def test_fire_on_unpayable_autopicks_skip_and_parks_supply(self):
-        """AMENDED T5-F1 (§10 phantom class): the 14b channel-rejection
-        ('fire' not in the skip-only vocab) was loud but PHANTOM — a
-        skip-only surface is not a decision. The shared phantom gate
+        """A skip-only surface is not a decision. The shared phantom gate
         (offers.offer_or_autopick) consumes the forced skip BEFORE any
         supply lane, so the scripted 'fire' is never consumed and stays
-        parked for the next REAL site (r19c parked-word semantics):
-        inside the Seq the pay-offer auto-skips and 'fire' still fires
-        the following payable offer. The illegal decision cannot even be
-        offered now."""
+        parked for the next REAL site: inside the Seq the pay-offer
+        auto-skips and 'fire' fires the following payable offer. The
+        illegal decision is never offered."""
         src = self.world.add_card(card_id("Urns2", "1", "1"), self.p0, ZONE_BATTLEFIELD)
         unpayable = self.pay_offer(CostManaColor("G", QConst(2)))
         self.ex.apply_effect(
@@ -1082,8 +1072,8 @@ class TestChooseVerb(StackCase):
             ),
         )
         rows = verb_choose_options(self.ex, probe, source=spell, controller=self.p0)
-        # re-pinned 2026-10-29: V19 (B-51): no empty row while a candidate
-        # exists ("You choose a ... card" is mandatory). ORDER contract.
+        # No empty row while a candidate exists ("You choose a ... card" is
+        # mandatory). ORDER contract.
         self.assertEqual(rows, ((first,), (second,)))
         cast(self.ex, self.p0, spell, targets=(self.p1,), decisions=("1",))
         self.assertEqual(self.world.zone_of(second).kind, ZONE_GRAVEYARD)  # pick "1"
@@ -1176,7 +1166,7 @@ class TestChooseName(StackCase):
 
 
 class TestManaPolicy(StackCase):
-    """The R9-3 consumers: Vodalian Arcanist's THIS_MANA, Orrery's ALL_YOURS."""
+    """The MANA_POLICY consumers: Vodalian Arcanist's THIS_MANA, Orrery's ALL_YOURS."""
 
     def vodalian(self):
         pol = StaticAbility(
@@ -1339,7 +1329,7 @@ class TestJournalFingerprintRaises(StackCase):
         self.assertEqual(base, self.ex.state_fingerprint())  # popped clean
         # (the WORLD fingerprint never sees stack frames at all —
         # ZONE_STACK is outside PLAYER_ZONES; this fold is the only
-        # witness, which is exactly the completeness hole /11 risk-1 named)
+        # witness)
 
     def test_park_moves_and_zone_lookup_works(self):
         spell = self.shock()
@@ -1348,7 +1338,7 @@ class TestJournalFingerprintRaises(StackCase):
         self.assertEqual(self.world.controller_of(spell), self.p0)
 
     def test_lose_game_emits_a_journal_row(self):
-        # 2026-11-05: in a two-player game the loss ends the game at the
+        # In a two-player game the loss ends the game at the
         # state-based-action check after the effect (CR 104.2a, 704.3).
         with self.assertRaises(GameOver):
             self.ex.execute(
@@ -1362,11 +1352,8 @@ class TestJournalFingerprintRaises(StackCase):
         self.assertEqual(evs[0].data, ("LOSE_GAME",))
 
     def test_counter_spell_off_stack_raises(self):
-        # superseded by RUNG-1 (response-window arc): COUNTER_SPELL is a
-        # real handler now — the old pin (loud NotImplementedError at
-        # dispatch) tested the pre-window engine. The LOUD flag stays,
-        # one level deeper: countering a card that is not a framed spell
-        # on the stack raises — never a silent no-op (North Star).
+        # Countering a card that is not a framed spell on the stack
+        # raises — never a silent no-op.
         spell = self.shock()  # in hand, NOT framed on the stack
         with self.assertRaises(ValueError) as cm:
             self.ex.execute(
@@ -1462,23 +1449,20 @@ class TestJournalFingerprintRaises(StackCase):
 
 
 class TestEtBSeedPTFold(StackCase):
-    """H5 adjudication (malefic_scythe_x_wildwood_scourge): the "enters
-    with X +1/+1 counters" SEED — both EtB shapes — folds into effective
-    P/T exactly once (CR 614.1c placement, CR 122.1c/613.3d layer). The
-    pair-hunt suspect was NOT an engine fold bug: Wildwood Scourge is
-    printed 0/0 (corpus M21.json, Scryfall FDN #236 — the frozen golden
-    agrees), so the suspected "printed 1" observation WAS the fold
-    (0 printed + 1 EtB counter). These pins lock the fold, the no-double-
-    count with effect-GRANTED placement (one counter map is the single
-    source of truth), the X=0 death, and the counter-after-static layer
-    order the Malefic Scythe equip lane rides."""
+    """The "enters with X +1/+1 counters" SEED folds into effective P/T
+    exactly once (CR 614.1c placement, CR 122.1c/613.3d layer); Wildwood
+    Scourge is printed 0/0 (pack malefic_scythe_x_wildwood_scourge). These
+    pins lock the fold, the no-double-count with effect-GRANTED placement
+    (one counter map is the single source of truth), the X=0 death, and
+    the counter-after-static layer order the Malefic Scythe equip lane
+    rides."""
 
     def scourge_shape(self, name="Wild Hydra"):
-        """The OLD corpus Wildwood Scourge stand-in: printed 0/0 Hydra whose
-        ETB TriggeredAbility puts QX +1/+1 counters on the entering object.
-        The corpus now compiles the printed replacement ("enters with X
+        """A trigger-shaped Wildwood Scourge stand-in: printed 0/0 Hydra
+        whose ETB TriggeredAbility puts QX +1/+1 counters on the entering
+        object. The corpus compiles the printed replacement ("enters with X
         +1/+1 counters", CR 614.1c) as EtBState(QX), :meth:`etb_state_x_shape`;
-        this trigger shape stays as the CR 117.5 control: a 0/0 dies to the
+        this trigger shape is the CR 117.5 control: a 0/0 dies to the
         state-based check before its enter trigger can resolve."""
         etb_x = TriggeredAbility(
             event=ZoneChangeEvent(ANY_ZONE, BF_ANY, subject=FAtom(FAtomPred.IS_SOURCE)),
@@ -1503,7 +1487,7 @@ class TestEtBSeedPTFold(StackCase):
         )
 
     def etb_state_x_shape(self, name="Wild Hydra"):
-        """The corpus Wildwood Scourge shape today: printed 0/0 with
+        """The corpus Wildwood Scourge shape: printed 0/0 with
         EtBState(PLUS_1_PLUS_1 x QX), the cast X seeding the counters as it
         enters (CR 614.1c), so no state-based check sees it as a 0/0."""
         return self.give(
@@ -1523,9 +1507,9 @@ class TestEtBSeedPTFold(StackCase):
         return self.ex.ledger.effective_pt(state.identity, handle, dict(state.counters))
 
     def test_etb_x_seed_folds_into_effective_pt(self):
-        # re-pinned 2026-10-30: W4-4 changes the trigger stand-in's outcome (see
-        # the next test), so the fold is pinned on the corpus's EtBState shape.
-        # cast X=2 -> 2 counters, and the P/T layer SEES them: 0 + 2.
+        # The fold is pinned on the corpus's EtBState shape (the trigger
+        # stand-in dies first, see the next test): cast X=2 -> 2 counters,
+        # and the P/T layer SEES them: 0 + 2.
         hydra = self.etb_state_x_shape()
         cast(self.ex, self.p0, hydra, x=2)
         self.assertEqual(self.world.zone_of(hydra).kind, ZONE_BATTLEFIELD)
@@ -1533,16 +1517,15 @@ class TestEtBSeedPTFold(StackCase):
         self.assertEqual(self.pt(hydra), (2, 2))
 
     def test_a_zero_toughness_creature_dies_before_its_enter_trigger(self):
-        # W4-4 (CR 117.5, 704.5f): state-based actions are performed before a
+        # CR 117.5, 704.5f: state-based actions are performed before a
         # triggered ability resolves, so the trigger stand-in's 0/0 is put into
-        # the graveyard first, X=2 or not. The settle used to resolve the
-        # trigger first, and the counters saved it.
+        # the graveyard first, X=2 or not.
         hydra = self.scourge_shape()
         cast(self.ex, self.p0, hydra, x=2)
         self.assertEqual(self.world.zone_of(hydra).kind, ZONE_GRAVEYARD)
 
     def test_etb_state_seed_folds_into_effective_pt(self):
-        # the EtBState CONSTANT-counter shape (the suspect's named lane):
+        # the EtBState CONSTANT-counter shape:
         # _apply_etb_state stamps as the permanent enters (CR 614.1c),
         # the same world counter map effective_pt reads.
         worm = self.give(

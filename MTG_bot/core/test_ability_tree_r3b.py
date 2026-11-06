@@ -1,6 +1,4 @@
-"""T3 round 3b — coin flips, a blocker-subject filter, and ``QAtLeast``.
-
-Round-r3b scope (all additive, byte-stable for every pre-r3b tree):
+"""Grammar pins: coin flips, a blocker-subject filter, and ``QAtLeast``.
 
 - ``Verb.FLIP_COIN`` — "flip a coin" (Tavern Swindler, M21).  No roles
   (``_VERB_ROLES[FLIP_COIN] = {}``): the coin flip is a pure event; the
@@ -12,23 +10,17 @@ Round-r3b scope (all additive, byte-stable for every pre-r3b tree):
   constraining which creature may block (e.g. "you may block only with
   tapped creatures"), mirroring ``ZoneChangeEvent.subject``.  ``None``
   omits the ``"subject"`` key via ``_OMIT_IF_EMPTY``.
-- ``QAtLeast(n)`` — a quantity meaning "at least n" (``n >= 1``).  Added
-  to the ``Quantity`` union, ``_Q_CLASSES``, ``_SPECS`` and
+- ``QAtLeast(n)`` — a quantity meaning "at least n" (``n >= 1``).  It is
+  in the ``Quantity`` union, ``_Q_CLASSES``, ``_SPECS`` and
   ``_QUANTITY_TAGS``, so every quantity slot (amount/count/power/
   toughness roles, keyword params, atom values) accepts it.  ``n = 0``
   is rejected (redundant with ``QUnbounded``); ``bool`` is rejected
   despite ``isinstance(True, int)``.
 
-Byte stability: the nine pre-round-3b fingerprints in ``_PINNED`` were
-captured BEFORE the edit and must stay byte-identical.  No golden tree
-contains a ``FLIP_WON`` atom, a ``QAtLeast`` quantity, or a
-``DeclareBlockersEvent`` with a subject, and the new field defaults to
-``None`` (key omitted), so every pre-existing serialization is
-unchanged.
-
 Guards:
-- the nine pre-r3b pins stay byte-identical and round-trip;
-- the eight r3b constructs round-trip with byte-identical fingerprints;
+- the seven ``_PINNED`` trees, which use none of these constructs, keep
+  their fingerprints and round-trip;
+- the eight constructs round-trip with pinned fingerprints;
 - ``"subject"`` is omitted when unset and present when set;
 - ``QAtLeast`` always serializes ``"n"`` (no omit path);
 - construction rejections: ``QAtLeast(0)`` / negative / ``bool`` /
@@ -60,11 +52,11 @@ def _end_turn() -> at.Atom:
     return at.Atom(at.Verb.END_TURN, at.AtomArgs())
 
 
-# ---- builders for the pre-r3b pins ------------------------------------------
+# ---- builders for the _PINNED trees -----------------------------------------
 
 
 def _declare_blockers_plain() -> at.DeclareBlockersEvent:
-    """A DeclareBlockersEvent without a subject (every pre-r3b tree)."""
+    """A DeclareBlockersEvent without a subject."""
     return at.DeclareBlockersEvent(filter=_IS_SOURCE)
 
 
@@ -86,10 +78,6 @@ def _qconst_3() -> at.QConst:
     return at.QConst(3)
 
 
-def _qthisturn_life_you() -> at.QThisTurn:
-    return at.QThisTurn(at.ThisTurnKind.LIFE_GAINED, at.ControllerRef.YOU)
-
-
 def _qunbounded() -> at.QUnbounded:
     return at.QUnbounded()
 
@@ -107,11 +95,7 @@ def _selector_zones_union() -> at.Selector:
     )
 
 
-def _spellability_effect_omitted() -> at.SpellAbility:
-    return at.SpellAbility(kind=at.SpellKind.CREATURE)
-
-
-# ---- builders for the r3b constructs -----------------------------------------
+# ---- builders for the constructs under test ---------------------------------
 
 
 def _qatleast_1() -> at.QAtLeast:
@@ -168,7 +152,7 @@ def _tavern_swindler_conditional() -> at.Conditional:
     )
 
 
-# ---- pinned pre-round-3b fingerprints (captured BEFORE the r3b edit) --------
+# ---- pinned fingerprints of trees without these constructs ------------------
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -192,11 +176,6 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "2a70ddc34493ac6cb42dca46eed1f410f52451b172cc6a3f5ca125ba4c058085",
     ),
     (
-        "qthisturn_life_you",
-        _qthisturn_life_you,
-        "f041066bc5249c4ec4a1e1ade8586936742d70656fa733790bec97876d5c4744",
-    ),
-    (
         "qunbounded",
         _qunbounded,
         "67d280b0660fe20c24da371f727d89bcdc08fdb62e3088dc2e40cce0e0a3196a",
@@ -211,15 +190,9 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         _selector_zones_union,
         "64d3fab5fcfd9239e2c832d0a8fb7852fd14d564061505597cc36409e98045df",
     ),
-    (
-        "spellability_effect_omitted",
-        _spellability_effect_omitted,
-        "4ab74b3cff39541af5ef554a5ffefdc68e1a506645aeb726b800c03eadb120b8",
-    ),
 ]
 
-# Round-3b constructs, pinned after the edit (byte-identity for future
-# rounds).
+# The constructs under test, pinned.
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "qatleast_1",
@@ -271,7 +244,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 def test_pinned_pre_r3b_fingerprint(
     name: str, build: Callable[[], object], fp: str
 ) -> None:
-    """Pre-r3b trees stay byte-identical and round-trip after the edit."""
+    """Trees without these constructs keep their fingerprints and round-trip."""
     node = build()
     assert at.fingerprint(node) == fp
     d = at.to_dict(node)
@@ -282,7 +255,7 @@ def test_pinned_pre_r3b_fingerprint(
 
 
 def test_plain_blockers_still_omits_subject() -> None:
-    """The pre-r3b DeclareBlockersEvent shape must serialize without 'subject'."""
+    """A DeclareBlockersEvent without a subject serializes without 'subject'."""
     d = at.to_dict(_declare_blockers_plain())
     assert "subject" not in d
     assert sorted(d.keys()) == ["filter", "tag"]

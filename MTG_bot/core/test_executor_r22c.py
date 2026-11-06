@@ -1,37 +1,22 @@
-"""r22c — wave-5 fix batch C: the loyalty-activation feed + falsifiability
-pins for the batch's three STOP verdicts.
+"""The loyalty-activation feed, and three executor readings of given filters.
 
-THE FIX (Keral Keep Disciples, promoted to tools/scenarios, 282 packs):
-the journal ships an activation feed, emitted at the payment point of
-legality.activate — since ontology R5-7 one ABILITY_ACTIVATED row per
-activation, mana abilities included, carrying the paid loyalty delta (None
-for a non-loyalty ability) — and :class:`TriggerBinder` subscribes
-``AbilityActivatedEvent`` nodes (r22c's LoyaltyActivatedEvent is the
-node with ``kind=LOYALTY``): actor over the activating player (the row's
-cause), source over the permanent (the row's subject — Keral's "a
-Chandra planeswalker").
+The journal emits one ABILITY_ACTIVATED row per activation at the payment
+point of legality.activate, mana abilities included, carrying the paid
+loyalty delta (None for a non-loyalty ability). :class:`TriggerBinder`
+matches ``AbilityActivatedEvent`` nodes against it (``kind=LOYALTY`` keys
+on the cost): actor over the activating player (the row's cause), source
+over the permanent (the row's subject — Keral Keep Disciples' "a Chandra
+planeswalker").
 
-THE PINS (campaign law: a STOP must be falsifiable, not fatalistic —
-each proves the EXECUTOR lane honest, locating the defect on the
-compiler/grammar side where the IR/goldens are frozen):
+The other classes pin what the executor answers for a given filter:
 
-* Shrine census family (Harvest / Calm Waters / Stone Fangs STOP): the
-  compiler idiom bakes the census as ``QCount`` over a ``NAME_EQ
-  "Shrine"`` filter (templates_b2a.py, pinned by its own goldens) — and
-  the frozen grammar reads NAME_EQ as the EXACT card name, so the
-  honest count is 0 (no card is named "Shrine"). These tests prove the
-  executor's census lane is sound: a hand-built ``TYPE_EQ "Shrine"``
-  census (the working sanctum_of_all_search_fire idiom) counts the
-  shrines; the NAME_EQ census answers an honest 0.
-* Adherent of Hope STOP: the compiled condition evaluates HONESTLY
-  against the single trigger subject (True for a Basri planeswalker,
-  False for Adherent itself) — what is missing is a "you control"
-  quantifier the compiler never emitted, not an executor bug.
-* Chandra's Pyreling STOP: the DAMAGE row carries subject = victim,
-  cause = dealer, data = the amount ONLY — no destination slot exists
-  beyond the subject, and the universal compiled filter honestly (but
-  over-broadly) matches damage dealt to your OWN creature; the "to an
-  opponent" clause is unexpressible in the frozen filter vocabulary.
+* Shrine census (the sanctum census-X family): ``TYPE_EQ "Shrine"`` counts
+  the Shrines; ``NAME_EQ "Shrine"`` is the EXACT card name, so it counts 0.
+* Adherent of Hope's condition is evaluated against the single trigger
+  subject: True for a Basri planeswalker, False for Adherent itself.
+* Chandra's Pyreling: the DAMAGE row carries subject = victim, cause =
+  dealer, data = the amount ONLY, so a universal filter also matches damage
+  dealt to your OWN creature.
 """
 
 import unittest
@@ -110,9 +95,9 @@ def add_mana_atom(color="R", n=1) -> Atom:
 
 
 class LoyaltyFeedCase(unittest.TestCase):
-    """r22c: the activation row of a loyalty ability + the Keral-style
-    subscription (R5-7: ABILITY_ACTIVATED rows, AbilityActivatedEvent of
-    kind LOYALTY)."""
+    """The activation row of a loyalty ability and the Keral-style
+    subscription (ABILITY_ACTIVATED rows, AbilityActivatedEvent of kind
+    LOYALTY)."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -187,11 +172,10 @@ class LoyaltyFeedCase(unittest.TestCase):
         self.assertEqual(self.world.players[self.p0].life, 20)
 
     def test_tap_activation_journals_a_non_loyalty_row(self):
-        # re-pinned 2026-10-30: R5-7 journals ONE row per activation, mana
-        # abilities included (the old feed journalled loyalty payments only).
-        # CR 606.2: no loyalty symbol in the cost, so the row carries no
-        # delta, and the LOYALTY-kind Keral trigger stays silent — the kind
-        # keys on the cost, never on the permanent's type.
+        # ONE row per activation, mana abilities included. CR 606.2: no
+        # loyalty symbol in the cost, so the row carries no delta, and the
+        # LOYALTY-kind Keral trigger stays silent — the kind keys on the
+        # cost, never on the permanent's type.
         spare = self.world.add_card(card_id("Spare"), self.p0, ZONE_BATTLEFIELD)
         self.ex.attach_card(
             spare,
@@ -216,8 +200,8 @@ class LoyaltyFeedCase(unittest.TestCase):
 
 
 class ShrineCensusCase(unittest.TestCase):
-    """STOP pin — the sanctum census-X family: the executor lane is sound;
-    the compiler's NAME_EQ idiom is the honest zero."""
+    """The Shrine census (the sanctum census-X family): TYPE_EQ counts the
+    Shrines; NAME_EQ is the exact card name and counts none."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -261,9 +245,8 @@ class ShrineCensusCase(unittest.TestCase):
         )
 
     def test_type_eq_shrine_census_counts_the_shrines(self):
-        # The working sanctum_of_all_search_fire idiom: if the compiler
-        # emitted THIS census, Stone Fangs-style life maths (and every
-        # sibling) resolves at the pack's expected numbers. 2 shrines.
+        # The type-line census the compiler emits (templates_b2a
+        # _shrine_count): 2 shrines.
         effect = self.census_gain(FAtom(FAtomPred.TYPE_EQ, string_value="Shrine"))
         self.ex.apply_effect(
             effect, source=next(iter(sorted(self.world.cards))), controller=self.p0
@@ -271,10 +254,9 @@ class ShrineCensusCase(unittest.TestCase):
         self.assertEqual(self.world.players[self.p0].life, 22)
 
     def test_name_eq_shrine_census_is_an_honest_zero(self):
-        # The FROZEN compiler idiom, verbatim: NAME_EQ means the EXACT
-        # card name (grammar docstring: "cards named Frantic Inventory").
-        # No card is named "Shrine", so 0 is the CORRECT answer — the
-        # engine is not broken; the IR says the wrong thing.
+        # NAME_EQ means the EXACT card name (grammar docstring: "cards
+        # named Frantic Inventory"). No card is named "Shrine", so 0 is the
+        # CORRECT answer.
         effect = self.census_gain(FAtom(FAtomPred.NAME_EQ, string_value="Shrine"))
         self.ex.apply_effect(
             effect, source=next(iter(sorted(self.world.cards))), controller=self.p0
@@ -283,9 +265,8 @@ class ShrineCensusCase(unittest.TestCase):
 
 
 class AdherentConditionCase(unittest.TestCase):
-    """STOP pin — adherent_of_hope: the compiled condition is evaluated
-    honestly against the single trigger subject; the missing piece is the
-    "there is a … you control" quantifier the compiler never emitted."""
+    """Adherent of Hope's condition shape is evaluated against the single
+    subject it is given, not as a "there is a … you control" quantifier."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -311,19 +292,17 @@ class AdherentConditionCase(unittest.TestCase):
         self.assertTrue(eval_filter(self.condition, self.basri, ctx))
 
     def test_condition_false_for_the_adherent_itself(self):
-        # The executor answers EXACTLY what the frozen IR asks against the
-        # one subject it carries — a 2/2 creature named Adherent of Hope.
-        # A "count Basri planeswalkers you control" reading was never in
-        # the tree (CONTROLLER_COUNT_GE existed; the compiler did not use
-        # it) — compiler STOP, precedent 19a Tampering.
+        # The executor answers EXACTLY what the filter asks of the one
+        # subject it is given — a 2/2 creature named Adherent of Hope. A
+        # "count Basri planeswalkers you control" reading is a different
+        # tree (CONTROLLER_COUNT_GE).
         ctx = ctx_for(self.ex, source=self.adherent, controller=self.p0)
         self.assertFalse(eval_filter(self.condition, self.adherent, ctx))
 
 
 class PyrelingFeedCase(unittest.TestCase):
-    """STOP pin — chandras_pyreling_opponent_filter: the DAMAGE row's
-    destination vocabulary ends at the subject; the compiled universal
-    filter honestly (over-broadly) matches ANY damage, own creatures
+    """Chandra's Pyreling: the DAMAGE row's destination vocabulary ends at
+    the subject; a universal filter matches ANY damage, own creatures
     included."""
 
     def setUp(self):
@@ -353,11 +332,9 @@ class PyrelingFeedCase(unittest.TestCase):
         self.assertEqual(row.data, (1,))  # noncombat: amount ONLY
 
     def test_universal_filter_overmatches_honestly(self):
-        # The compiled Pyreling node: filter=FAnd(()) (the "to an
-        # opponent" clause lost in compilation), combat=False. Dealing 1
-        # to YOUR OWN creature matches — the [2,3]-instead-of-[1,3]
-        # witness is honest execution of a lossy tree; the negative pack
-        # needs a destination pred the grammar does not ship.
+        # A Pyreling node with filter=FAnd(()) (no "to an opponent"
+        # clause) and combat=False: dealing 1 to YOUR OWN creature
+        # matches.
         pyre = self.world.add_card(card_id("Ash Pyreling"), self.p0, ZONE_BATTLEFIELD)
         self.ex.attach_card(
             pyre,

@@ -1,11 +1,11 @@
-"""The created token as a referent (2026-11-06): CREATE_TOKEN writes the ``result`` register.
+"""The created token as a referent: CREATE_TOKEN writes the ``result`` register.
 
-The ``result`` referent is "the object(s) the previous instruction acted on" (Selector docs, C12);
-the object verbs (TAP, MOVE_ZONE, SEARCH, ...) wrote it, and creating a token now does too, so
+The ``result`` referent is "the object(s) the previous instruction acted on" (Selector docs);
+the object verbs (TAP, MOVE_ZONE, SEARCH, ...) write it, and so does creating a token, so
 "create a 1/1 white Soldier creature token, then attach this Equipment to it" (Ancestral Blade)
 attaches to the token. CR 701.3b: an Equipment that can't be attached doesn't move, so when the
 Equipment has left the battlefield before the instruction, the token is still made and nothing is
-attached (the ATTACH used to raise). The Kaldheim Equipment pay first: "you may pay {2}. If you
+attached. The Kaldheim Equipment pay first: "you may pay {2}. If you
 do, ..." makes the token only when the payment was made (CR 118.12).
 """
 

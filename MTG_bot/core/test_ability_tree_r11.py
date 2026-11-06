@@ -1,60 +1,34 @@
-"""Grammar round 10 / phase 10-A — four additive items (2026-09-29).
+"""Grammar pins: activation gates (a timing window, a condition, or both),
+the name-partition and attack-count predicates, the attacked side of a
+declare-attackers event, and the damage-assignment policy verb.
 
-Round-10 scope (spec: KNOWLEDGE 2026-09-29/02; file-name offset is
-intentional — round-10 grammar ships in the r11 file, following the
-r6-in-r7 / r7-in-r8 / r8-in-r9 / r9-in-r10 precedent):
-
-- R10-1: ``ActivationGateOutcome`` gains a trailing-style ``window``
-  slot and ``condition`` becomes optional; ``__post_init__`` rejects a
-  both-None gate. The compiler attaches slot-disjointly (convention
-  C25): a window candidate requires ``timing is None``, a condition
-  candidate requires ``condition is None``, a both-set gate requires
-  both free; StateCorruptionError when nothing is attachable.
-- R10-2: ``FAtomPred.NAME_PARTITION_COUNT_GE`` {inner_filter, count}
-  (C26: largest exact-name group over the controller's inner_filter
-  objects >= count — Chrome Anchor's Replicator gate).
-- R10-3: ``DeclareAttackersEvent.attacked`` trailing optional (dual-
-  registered: _SPECS opt-tag + the NEW _OMIT_IF_EMPTY
-  DeclareAttackersEvent row; the bare-event byte pin below is the
-  golden-storm guard) + ``FAtomPred.ATTACK_AGAINST_COUNT_GE``
-  {count, inner_filter} (Mangara).
-- R10-4: ``Verb.DAMAGE_ASSIGN_POLICY`` {scope, filter?} with the closed
-  ``_DAMAGE_ASSIGN_SCOPES`` vocabulary (C28: the "You may" vertex lives
-  OUTSIDE the atom — the granted StaticAbility holds OptionalEffect);
-  AtomArgs validates the scope UNION, the enclosing Atom enforces the
-  verb's own vocabulary via ``_SCOPE_VOCAB_BY_VERB``.
-
-Guards:
-- every pre-round-10 pinned fingerprint (the r6..r10 pin sets) stays
-  byte-identical — all 10-A items are additive;
-- the bare DeclareAttackersEvent serializes WITHOUT the "attacked" key
+- ``ActivationGateOutcome`` rejects a gate with neither slot. The compiler
+  attaches slot-disjointly: a window needs a preceding ability with
+  ``timing is None``, a condition one with ``condition is None``, a compound
+  gate both; with nothing attachable it raises StateCorruptionError;
+- a bare ``DeclareAttackersEvent`` serializes WITHOUT the "attacked" key
   (pinned against the exact canonical JSON);
-- round-10 constructs round-trip through ``to_dict``/``from_dict`` with
-  pinned fingerprints; rejections at every new validation point.
+- AtomArgs validates a ``scope`` against the union of the scope
+  vocabularies, the enclosing Atom against its verb's own
+  (``_SCOPE_VOCAB_BY_VERB``);
+- the constructs here round-trip with pinned fingerprints, and every
+  validation point rejects bad input.
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
-import MTG_bot.core.test_ability_tree_r8 as R8
-import MTG_bot.core.test_ability_tree_r9 as R9
-import MTG_bot.core.test_ability_tree_r10 as R10
 from MTG_bot.core.compiler.compiler import compile_card
-from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     ActivationGateOutcome,
-    Template,
     TemplateRegistry,
 )
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.test_ability_tree_r8 import _raw_card, _template
 
 # ---- shared atoms / selectors ------------------------------------------------
 
@@ -89,7 +63,7 @@ _T_TAP = at.Cost(parts=(at.CostTap(),))
 _T_2TAP = at.Cost(parts=(at.CostManaGeneric(at.QConst(2)), at.CostTap()))
 
 
-# ---- pinned round-10 fingerprints (captured after the round-10 edits) --------
+# ---- pinned fingerprints ------------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -127,11 +101,11 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 ]
 
 _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
-    # R10-1: the both-None gate is a template bug.
+    # A gate with neither window nor condition is a template bug.
     ("gate_both_none", lambda: ActivationGateOutcome()),
-    # R10-2: inner_filter required, no other slots (CONTROLLER_COUNT_GE
-    # twin — the count requirement is carried by the template, like the
-    # pre-existing "count unsetness is not enforced" FAtom convention).
+    # inner_filter required, no other slots (as CONTROLLER_COUNT_GE); an
+    # unset count is not enforced, as for every FAtom: the template
+    # supplies it.
     (
         "name_partition_missing_inner",
         lambda: at.FAtom(at.FAtomPred.NAME_PARTITION_COUNT_GE, count=_TWO),
@@ -145,8 +119,8 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             string_value="Chrome Anchor",
         ),
     ),
-    # R10-3: same rule shape on ATTACK_AGAINST_COUNT_GE; the attacked
-    # slot must be a Filter.
+    # ATTACK_AGAINST_COUNT_GE has the same rule shape; the attacked slot
+    # must be a Filter.
     (
         "attacked_not_a_filter",
         lambda: at.DeclareAttackersEvent(
@@ -154,7 +128,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             attacked="you",  # type: ignore[arg-type]
         ),
     ),
-    # R10-4/C28: the scope vocabularies stay closed and verb-tight.
+    # The scope vocabularies stay closed and verb-tight.
     (
         "damage_policy_bogus_scope",
         lambda: at.Atom(
@@ -177,29 +151,6 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
 # ---- byte stability -----------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS + R9._NEW_PINS + R10._NEW_PINS,
-    ids=[
-        n
-        for n, _, _ in R6._NEW_PINS
-        + R7._NEW_PINS
-        + R8._NEW_PINS
-        + R9._NEW_PINS
-        + R10._NEW_PINS
-    ],
-)
-def test_pinned_pre_r11_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: every pre-round-10 pinned tree stays identical —
-    all 10-A items are additive, no template opts in yet."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r11_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -217,7 +168,7 @@ def test_r11_rejections(name: str, fn: Callable[[], object]) -> None:
         fn()
 
 
-# ---- R10-1: the gate outcome dataclass (unit — no compiler) -------------------
+# ---- the gate outcome dataclass (unit, no compiler) ---------------------------
 
 
 def test_gate_outcome_window_only() -> None:
@@ -245,46 +196,7 @@ def test_gate_outcome_both_none_raises() -> None:
         ActivationGateOutcome()
 
 
-# ---- R10-1: compiler slot-disjoint attach (C25) --------------------------------
-
-
-def _oid(n: int) -> str:
-    return f"00000000-0000-0000-0000-{n:012d}"
-
-
-def _raw_card(name: str, n: int, sentences: tuple[str, ...]) -> RawCard:
-    return RawCard(
-        identity=CardIdentity(oracle_id=_oid(n), name=name),
-        type_line="Instant",
-        types=("Instant",),
-        subtypes=(),
-        supertypes=(),
-        colors=(),
-        color_identity=frozenset(),
-        mana_cost_raw=None,
-        mana_value=0,
-        power_raw=None,
-        toughness_raw=None,
-        loyalty_raw=None,
-        keywords=(),
-        sentences=sentences,
-        layout="normal",
-        is_token=False,
-        is_emblem=False,
-        token_name_refs=(),
-        related_names=(),
-    )
-
-
-def _template(tid: str, pattern: str, build: Callable[[re.Match[str]], object]):  # type: ignore[type-arg]
-    return Template(
-        tid=tid,
-        name=tid,
-        bucket="B5",
-        pattern=re.compile(pattern),
-        priority=1,
-        build=build,  # type: ignore[arg-type]
-    )
+# ---- compiler: slot-disjoint gate attach --------------------------------------
 
 
 def _r11_registry() -> TemplateRegistry:
@@ -334,7 +246,7 @@ def _r11_registry() -> TemplateRegistry:
 
 
 def test_window_gate_attaches_timing_condition_stays_free() -> None:
-    """(a) The Steward shape: a window-only gate fills ``timing`` and
+    """The Steward shape: a window-only gate fills ``timing`` and
     leaves ``condition`` None."""
     raw = _raw_card("Window Gate", 1, sentences=(_ACT_SENT, _GATE_SORCERY_SENT))
     res = compile_card(raw, _r11_registry())
@@ -346,8 +258,8 @@ def test_window_gate_attaches_timing_condition_stays_free() -> None:
 
 
 def test_condition_gate_preserves_existing_printed_timing() -> None:
-    """C25 asymmetry: a condition-only gate qualifies for an ability whose
-    ``timing`` is already printed (only the condition slot matters)."""
+    """A condition-only gate qualifies for an ability whose ``timing`` is
+    already printed (only the condition slot matters)."""
     raw = _raw_card(
         "Cond Gate",
         2,
@@ -381,9 +293,9 @@ def test_compound_gate_attaches_both_slots() -> None:
 
 
 def test_window_gate_falls_through_to_free_candidate() -> None:
-    """(c1) The nearest preceding ability has ``timing`` pre-filled, so
-    the window gate falls through to the earlier free candidate (C25
-    slot-disjoint pairing), NOT onto the timed ability."""
+    """The nearest preceding ability has ``timing`` pre-filled, so the
+    window gate falls through to the earlier free candidate (slot-disjoint
+    pairing), NOT onto the timed ability."""
     raw = _raw_card(
         "Fallthrough Gate",
         4,
@@ -400,8 +312,8 @@ def test_window_gate_falls_through_to_free_candidate() -> None:
 
 
 def test_window_gate_all_slots_busy_raises() -> None:
-    """(c2) Every preceding ability's window slot is already filled →
-    StateCorruptionError (existing orphan-gate semantics preserved)."""
+    """Every preceding ability's window slot is already filled: the gate is
+    an orphan → StateCorruptionError."""
     from MTG_bot.core.compiler.compiler import StateCorruptionError
 
     raw = _raw_card(
@@ -413,14 +325,13 @@ def test_window_gate_all_slots_busy_raises() -> None:
         compile_card(raw, _r11_registry())
 
 
-# ---- R10-3: the attacked omit-when-None byte pin (golden-storm guard) ---------
+# ---- the attacked omit-when-None byte pin -------------------------------------
 
 
 def test_bare_declare_attackers_omits_attacked_byte_pin() -> None:
-    """Dual-registration guard (PITFALLS 2026-09-28): a missing
-    _OMIT_IF_EMPTY row would add an "attacked": null key to EVERY
-    existing attack trigger — the bare event must serialize WITHOUT the
-    key."""
+    """Dual-registration guard: a missing _OMIT_IF_EMPTY row would add an
+    "attacked": null key to EVERY attack trigger; the bare event must
+    serialize WITHOUT the key."""
     node = at.DeclareAttackersEvent(filter=_UNIVERSAL)
     assert at.canonical_json(node) == (
         '{"filter":{"children":[],"tag":"FAnd"},"tag":"DeclareAttackersEvent"}'
@@ -440,7 +351,7 @@ def test_attacked_full_roundtrip() -> None:
     assert at.canonical_json(at.from_dict(d["tag"], d)) == at.canonical_json(node)
 
 
-# ---- R10-2/3/4: table membership pins ------------------------------------------
+# ---- table membership pins ----------------------------------------------------
 
 
 def test_r11_table_members() -> None:

@@ -1,5 +1,5 @@
-"""V17 (2026-10-29): a modal spell announces its modes as it is cast (CR 601.2b, 700.2a), and only
-the chosen modes' targets exist (CR 601.2c, 700.2c)."""
+"""A modal spell announces its modes as it is cast (CR 601.2b, 700.2a), and only the chosen
+modes' targets exist (CR 601.2c, 700.2c)."""
 
 from __future__ import annotations
 

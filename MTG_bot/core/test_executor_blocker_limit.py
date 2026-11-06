@@ -1,4 +1,4 @@
-""""Can't be blocked by more than one creature" (2026-11-06): a PREVENT_EFFECT over
+""""Can't be blocked by more than one creature": a PREVENT_EFFECT over
 ``DeclareBlockersEvent(count=QAtLeast(2))``.
 
 CR 509.1b: a restriction may limit how many creatures block an attacker. The prevention is of the
@@ -53,7 +53,7 @@ BIG_ONES = FAnd(
 
 
 def at_most_one_blocker(blocked) -> StaticAbility:
-    """"<blocked> can't be blocked by more than one creature." (the B15 carrier)"""
+    """"<blocked> can't be blocked by more than one creature." """
     event = DeclareBlockersEvent(FAnd(()), blocked=blocked, count=QAtLeast(2))
     return StaticAbility(
         effect=Atom(Verb.PREVENT_EFFECT, AtomArgs(pairs=(("condition", blocked), ("event", event))))
@@ -153,7 +153,7 @@ class TestOneBlockerAtMost(LimitCase):
 
 class TestRequirementsTheRestrictionsForbid(LimitCase):
     """CR 509.1c: a requirement that can't be obeyed is not, and the rest of the declaration
-    stands (the fresh-eyes review's repro; before, no blocker was asked at all)."""
+    stands."""
 
     def test_a_menace_attacker_under_the_limit_leaves_the_other_blocks_open(self) -> None:
         self.boar = self.custom("Boar", 4, 3, self.p0, (at_most_one_blocker(IS_SOURCE), MUST_BE_BLOCKED),
@@ -180,8 +180,7 @@ class TestRequirementsTheRestrictionsForbid(LimitCase):
 class TestTheDefenderChoosesWhoObeys(LimitCase):
     """CR 509.1c: the defending player chooses the blocks. "Must be blocked if able" is one
     requirement, obeyed by whichever creature blocks the attacker, and the declaration obeys as
-    many requirements as one that violates no restriction can. Until 2026-11-06 the first able
-    creature in handle order was made to block a must-be-blocked attacker, without an ask."""
+    many requirements as one that violates no restriction can."""
 
     def setup_walls(self) -> None:
         self.wall_a = self.synth("Wall A", 0, 5, self.p1)

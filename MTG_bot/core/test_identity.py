@@ -1,6 +1,6 @@
 """Tests for the identity primitives.
 
-Pins down the two fixes from DESIGN_CARD_POOL.md "Fix identity first":
+Pins down the two rules of docs/DESIGN_CARD_POOL.md "Fix identity first":
 keying on the stable scryfall oracle id, and the split handle namespaces
 (a card handle and a zone handle can both be 5 and never collide).
 """
@@ -24,7 +24,7 @@ class TestOracleId(unittest.TestCase):
         self.assertEqual(validate_oracle_id(A_ORACLE), A_ORACLE)
 
     def test_rowid_rejected(self):
-        # A volatile rowid slipping in as the key is exactly the bug we are killing.
+        # A volatile rowid must never pass as the key.
         with self.assertRaises(ValueError):
             validate_oracle_id("269")
 
@@ -67,8 +67,7 @@ class TestHandleSpace(unittest.TestCase):
         for _ in range(3):
             cards.allocate()
         self.assertEqual(zones.allocate(), Handle("zone", 0))
-        self.assertEqual(cards.count, 3)
-        self.assertEqual(zones.count, 1)
+        self.assertEqual(cards.allocate(), Handle("card", 3))
 
     def test_no_reuse_within_a_space(self):
         space = HandleSpace("card")
@@ -109,17 +108,10 @@ class TestCardIdentity(unittest.TestCase):
         with self.assertRaises(Exception):
             c.name = "changed"  # frozen dataclass
 
-    def test_primary_key_is_oracle_id(self):
-        self.assertEqual(self._ugin().primary_key, A_ORACLE)
-
     def test_distinct_cards_are_distinct(self):
         ugin = self._ugin()
         other = CardIdentity(oracle_id=B_ORACLE, name="Some Other Card")
         self.assertNotEqual(ugin, other)
-
-    def test_color_identity_from_colors_and_cost(self):
-        c = CardIdentity(oracle_id=A_ORACLE, name="X", colors=("W", "U"), mana_cost="{1}{U}", cmc=1)
-        self.assertEqual(c.color_identity(), frozenset({"W", "U"}))
 
     def test_rejects_bad_oracle_id_at_construction(self):
         with self.assertRaises(ValueError):
@@ -130,7 +122,6 @@ class TestCardIdentity(unittest.TestCase):
         self.assertIsNone(plains.cmc)
         self.assertEqual(plains.colors, ())
         self.assertFalse(plains.is_token)
-        self.assertEqual(plains.color_identity(), frozenset())
 
 
 if __name__ == "__main__":

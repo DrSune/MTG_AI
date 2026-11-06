@@ -1,32 +1,24 @@
-"""Ontology round R3 — silent-CHOOSE ask-lift battery (spec /141 §6 law).
-
-The 14 LIFT-NOW nodes (reports/r3_blindness.json L-B rows surviving the
-/141 §6 three-rule gate) stop collapsing their real choice into the
-Handle-sorted ``ordered[:k]`` stand-in and go through the 14b decision
-channel — the same lane r22a opened for sacrifice costs:
+"""CHOOSE asks: a real choice goes to the decider instead of collapsing into
+the Handle-sorted ``ordered[:k]`` slice.
 
 * cost lanes: ``legality.build_payment_plan`` records the FULL candidate
   pool per CostDiscard/CostTap segment (``discard_options`` /
   ``tap_options``, mirroring ``sacrifice_options``) and ``pay_costs``
-  re-opens the choice with seat-in ask keys
-  ``discard:<seat>:<source>:<digest>`` / ``tap:<seat>:<source>:<digest>``
-  when a segment really offers a choice (len(pool) > need);
-* effect lane: the finite-CHOOSE fold in
-  ``selectors.resolve_selector`` asks over the Handle-sorted menu when
-  the EFFECT-role lanes resolve it (ask-gated; the CAST-lane ``ok``
-  clamp, quantity/count and query callers stay silent BY CONSTRUCTION).
+  asks with seat-in keys ``discard:<seat>:<source>:<digest>`` /
+  ``tap:<seat>:<source>:<digest>`` when a segment really offers a choice
+  (len(pool) > need);
+* effect lane: the finite-CHOOSE fold in ``selectors.resolve_selector``
+  asks over the Handle-sorted menu when an EFFECT-role lane resolves it
+  (the CAST-lane ``ok`` clamp, quantity/count and query callers stay
+  silent BY CONSTRUCTION).
 
-Anti-lift pins (GREEN both sides, the guard law): QUnbounded CHOOSE
-stays silent (scope fold), ONE_OF over QUnbounded RAISES
-(NotImplementedError — the lane refuses to guess), forced segments
-(len(pool) == need) auto-fill without asking, IS_SOURCE self-costs stay
-silent, hand-built plans pay the frozen witness path, and the merged
-multi-seat / opponent-chooser classes (Bad Deal, Waker, Mind Rot,
-Goremand, Run Afoul → ZND-7(a)/ZND-9) never ask.
-
-RED-FIRST: every test whose name says ASKS FAILS before the wiring
-lands (silence is the pre-R3 behaviour); the pre-change log lives at
-/tmp/opencode/r3_red_prechange.log — expect exactly that RED set to flip.
+Silent by rule: a QUnbounded CHOOSE takes the whole population, ONE_OF over
+QUnbounded is refused, forced segments (len(pool) == need) auto-fill without
+asking, IS_SOURCE self-costs have no choice, hand-built plans pay their
+frozen path, and a PLAYER-zone CHOOSE never asks (whose choice it is is not
+encoded). The committed ledger reports/r3_blindness.json (the 14 lifted
+cards, the deferred classes) is held against the live compiled IR, and a
+sacrifice menu asks the player who controls it.
 """
 
 from __future__ import annotations
@@ -52,7 +44,6 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.coverage import _compile_pool_tolerant, build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
-from MTG_bot.core.executor import selectors
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
@@ -82,9 +73,9 @@ from MTG_bot.core.test_executor_legality import cost
 REPO = Path(__file__).resolve().parents[2]
 LEDGER = REPO / "reports" / "r3_blindness.json"
 
-# The /141 §6 rule-derived LIFT-NOW law (14 cards / 14 nodes). Zones and
-# counts are re-verified against the committed ledger AND the live
-# compiled IR below; this table carries the NAMES.
+# The lifted cards (14 cards / 14 nodes). Zones and counts are re-verified
+# against the committed ledger AND the live compiled IR below; this table
+# carries the NAMES.
 LIFT_CARDS = {
     ("M21", "Alpine Houndmaster"),
     ("M21", "Cultivate"),
@@ -160,7 +151,7 @@ def _tapped_handles(world):
 
 
 class LedgerGroundTruth(unittest.TestCase):
-    """Committed ledger + live compiled IR agree with the LIFT-NOW law."""
+    """The committed ledger and the live compiled IR agree on the lifted cards."""
 
     @classmethod
     def setUpClass(cls):
@@ -184,38 +175,31 @@ class LedgerGroundTruth(unittest.TestCase):
             want_count = json.loads(n["count"])
             self.assertEqual(want_count["tag"], "QConst")
             if key == ("M21", "Alpine Houndmaster"):
-                # re-pinned 2026-10-29: m21-fidelity replaced this up-to-two CHOOSE ("a card
-                # named Alpine Watchdog and/or a card named Igneous Cur") by one up-to-one pick
-                # per name. The ledger row stays the R3 evidence; the decision is still asked
-                # (no blindness): one pick over the row's zones per name, as many picks as the
-                # row's count.
-                # re-pinned 2026-10-30: m21-fidelity wave 4 makes each pick QAtMost(1) (CR
-                # 701.23b, a hidden-zone search may fail to find). The pick stays a CHOOSE and
-                # is asked through the resolve-time QAtMost lane (with a NONE stop) instead of
-                # the exactly-one ONE_OF channel.
+                # The ledger row is one up-to-two CHOOSE ("a card named Alpine Watchdog
+                # and/or a card named Igneous Cur"); the IR has one pick over the row's zones
+                # per name, as many picks as the row's count. Each pick is QAtMost(1) (CR
+                # 701.23b, a hidden-zone search may fail to find), asked through the
+                # resolve-time QAtMost lane with a NONE stop.
                 picks = [
                     s for s in shapes if s[2] == tuple(n["zones"]) and s[3] == repr(QAtMost(1))
                 ]
                 self.assertEqual(len(picks), want_count["value"], (key, picks))
                 continue
             if key == ("M21", "Demonic Embrace"):
-                # re-pinned 2026-11-05 (B-100, CR 601.3): the ledger row is the discard cost
-                # of the activated row its graveyard-cast permission compiled to. That row is
-                # refused now (an activated ability cannot cast the card from its graveyard;
-                # no permission lane), so the live IR carries no such choice and the card is
-                # engine-unsupported. The ledger row stays the R3 record.
+                # The ledger row is the discard cost of the activated row the graveyard-cast
+                # permission compiled to. That row is refused (CR 601.3: an activated ability
+                # cannot cast the card from its graveyard; there is no permission lane), so
+                # the live IR carries no such choice and the card is engine-unsupported.
                 self.assertEqual([s for s in shapes if s[2] == tuple(n["zones"])], [], key)
                 continue
             want = want_count["value"]
             if key == ("M21", "Kinetic Augur"):
-                # re-pinned 2026-10-29: V15 changes Kinetic Augur's "discard
-                # up to two" from the ledger's QConst(2) to QAtMost(2) (the
-                # player's 0..2); the ledger row is the R3 record.
+                # "discard up to two" is QAtMost(2) in the IR (the player's
+                # 0..2); the ledger row says QConst(2).
                 want = repr(QAtMost(2))
             if key == ("M21", "Ugin, the Spirit Dragon"):
-                # re-pinned 2026-10-30: m21-fidelity wave 4 changes Ugin's [-10] "put up to
-                # seven permanent cards" from the ledger's QConst(7) to QAtMost(7) (0..7, asked
-                # pick by pick with a NONE stop); the ledger row is the R3 record.
+                # Ugin's [-10] "put up to seven permanent cards" is QAtMost(7) in the IR
+                # (0..7, asked pick by pick with a NONE stop); the ledger row says QConst(7).
                 want = repr(QAtMost(7))
             hits = [s for s in shapes if s[2] == tuple(n["zones"]) and s[3] == want]
             self.assertTrue(hits, (key, n["zones"], want_count, shapes))
@@ -230,11 +214,9 @@ class LedgerGroundTruth(unittest.TestCase):
         self.assertEqual(seen, LIFT_CARDS)
 
     def test_deferred_classes_keep_their_silent_bytes(self):
-        # ZND-7(a): the merged multi-seat HAND:ANY L-B rows are NOT lifted
-        # (Bad Deal, Liliana, Waker of the Dead — the merged menu cannot
-        # say WHICH seat chooses, so asking would be blindness). Their
-        # compiled shape must stay byte-present (the ledger lane map is
-        # the adjudicator; this pins the IR did not move).
+        # The merged multi-seat HAND:ANY L-B rows (Bad Deal; Liliana, Waker
+        # of the Dead) are outside the lift set; their compiled HAND:ANY
+        # CHOOSE selector must still be present.
         lb_merged = {
             (n["set"], n["card"])
             for n in self.ledger["nodes"]
@@ -255,8 +237,8 @@ class LedgerGroundTruth(unittest.TestCase):
 class _RecorderMixin:
     def recorder(self, chooser=None):
         """Attach a provider recording (site, vocab) per ask. chooser(vocab)
-        answers; the default first word EQUALS the old silent pick, so the
-        falsifier tests always supply a differing answer."""
+        answers; the default first word EQUALS the silent slice's pick, so
+        the tests always supply a differing answer."""
         asks: list[tuple[str, tuple[str, ...]]] = []
 
         def prov(vocab, what):
@@ -268,8 +250,8 @@ class _RecorderMixin:
 
 
 class CostDiscardLift(unittest.TestCase, _RecorderMixin):
-    """Cost lane (8 disco nodes): 'discard N cards' is the payer's
-    decision, not an accident of Handle order (r22a law, extended)."""
+    """Cost lane: 'discard N cards' is the payer's decision, not an
+    accident of Handle order (as for sacrifice costs)."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -296,7 +278,6 @@ class CostDiscardLift(unittest.TestCase, _RecorderMixin):
         return plan
 
     def test_discard_cost_asks_and_the_answer_is_the_card(self):
-        # RED pre-R3: silent first-need pick.
         plan = self.plan_for(1)
         self.assertIsNotNone(
             getattr(plan, "discard_options", None),
@@ -318,7 +299,7 @@ class CostDiscardLift(unittest.TestCase, _RecorderMixin):
 
     def test_k_of_n_discard_asks_shrinking_menu(self):
         # Thrill of Possibility shape (k=2): two asks, the second menu
-        # EXCLUDES the first answer (RED pre-R3: two silent picks).
+        # EXCLUDES the first answer.
         plan = self.plan_for(2)
         answers = [str(self.h3), str(self.h1)]
         state = {"n": 0}
@@ -336,14 +317,14 @@ class CostDiscardLift(unittest.TestCase, _RecorderMixin):
         self.assertEqual(self.world.zone_of(self.h2).kind, ZONE_HAND)
 
     def test_unanswered_discard_cost_raises_never_a_silent_pick(self):
-        # C15: no lane can answer -> the ask RAISES (RED pre-R3: silence).
+        # No lane can answer -> the ask RAISES, never a silent pick.
         plan = self.plan_for(1)
         with self.assertRaises(ValueError) as cm:
             pay_costs(self.ex, plan, source=self.source, controller=self.p0)
         self.assertIn("discard:", str(cm.exception))
 
     def test_forced_hand_stays_silent_and_witness_identical(self):
-        # len(pool) == need -> §1.4 auto-fill: NO provider needed at all.
+        # len(pool) == need -> auto-fill: NO provider needed at all.
         self.world.move_to_zone(self.h3, self.p0, ZONE_LIBRARY)
         plan = self.plan_for(2)
         pay_costs(self.ex, plan, source=self.source, controller=self.p0)
@@ -351,8 +332,8 @@ class CostDiscardLift(unittest.TestCase, _RecorderMixin):
             self.assertEqual(self.world.zone_of(h).kind, ZONE_GRAVEYARD)
 
     def test_self_referential_discard_never_asks(self):
-        # IS_SOURCE printed self-cost (r20c carve-back): forced
-        # single-candidate, no decision, no ask (GREEN both sides).
+        # IS_SOURCE printed self-cost: forced single-candidate, no
+        # decision, no ask.
         self.h1_src = self.world.add_card(
             card_id("Selfie", "1", "1"), self.p0, ZONE_HAND
         )
@@ -405,7 +386,6 @@ class CostTapLift(unittest.TestCase, _RecorderMixin):
         return plan
 
     def test_tap_cost_asks_and_the_answer_is_the_permanent(self):
-        # RED pre-R3: cands[:1] silent witness.
         plan = self.plan_for()
         self.assertIsNotNone(
             getattr(plan, "tap_options", None),
@@ -439,7 +419,6 @@ class EffectChooseLift(unittest.TestCase, _RecorderMixin):
         self.ex = Executor(self.world)
 
     def test_tap_effect_choose_asks_and_answers_are_the_victims(self):
-        # RED pre-R3: ordered[:2] silent stand-in (the 12a law /141 lifts).
         answers = [str(self.c), str(self.a)]
         state = {"n": 0}
 
@@ -460,7 +439,7 @@ class EffectChooseLift(unittest.TestCase, _RecorderMixin):
         self.assertEqual(_tapped_handles(self.world), {self.a, self.c})
 
     def test_search_choose_asks_and_found_cards_follow_the_answer(self):
-        # Cultivate shape (RED pre-R3: blind first-n from the library).
+        # Cultivate shape.
         self.l1 = self.world.add_card(card_id("L1", "1", "1"), self.p0, ZONE_LIBRARY)
         self.l2 = self.world.add_card(card_id("L2", "1", "1"), self.p0, ZONE_LIBRARY)
         self.l3 = self.world.add_card(card_id("L3", "1", "1"), self.p0, ZONE_LIBRARY)
@@ -523,18 +502,16 @@ class SilentLanesStaySilent(unittest.TestCase, _RecorderMixin):
         self.assertEqual(_tapped_handles(self.world), {self.a, self.b, self.c})
 
     def test_one_of_qunbounded_raises_never_guesses(self):
-        # /141 §6 QUnbounded deferral, refusal law: the Selector TYPE
-        # refuses ONE_OF x QUnbounded at construction (ValueError) — the
-        # resolve_selector NotImplementedError lane (:681-685) is
-        # defense-in-depth for IR that bypassed the constructor. No lane
-        # ever guesses an unbounded partition pick.
+        # The Selector TYPE refuses ONE_OF x QUnbounded at construction
+        # (ValueError); resolve_selector's ONE_OF branch raises
+        # NotImplementedError on any count but QConst/QAtMost. No lane ever
+        # guesses an unbounded partition pick.
         with self.assertRaises(ValueError):
             Selector(QUnbounded(), SelectorMode.ONE_OF, UNIV, zones=(BF_ANY,))
 
     def test_cast_ok_lane_never_asks_positional_law_kept(self):
-        # The CAST positional slice (F2(3)) is NOT an effect decision:
-        # with ``ok`` supplied the fold never asks, whatever the
-        # population (GREEN both sides; guards the wiring guard).
+        # The CAST positional slice is NOT an effect decision: with ``ok``
+        # supplied the fold never asks, whatever the population.
         ctx = ctx_for(self.ex, source=self.source, controller=self.p0)
         asks = self.recorder()
         sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(BF_ANY,))
@@ -543,8 +520,8 @@ class SilentLanesStaySilent(unittest.TestCase, _RecorderMixin):
         self.assertEqual(out, [min((self.a, self.b, self.c))])
 
     def test_seat_zone_choose_stays_silent(self):
-        # ZND-9 direction class: a PLAYER-zone CHOOSE is not lifted — the
-        # chooser's seat is unencoded, asking would be blind.
+        # A PLAYER-zone CHOOSE is not lifted: the chooser's seat is
+        # unencoded, asking would be blind.
         ctx = ctx_for(self.ex, source=self.source, controller=self.p0)
         asks = self.recorder()
         sel = Selector(
@@ -558,27 +535,19 @@ class SilentLanesStaySilent(unittest.TestCase, _RecorderMixin):
 
 
 # ---------------------------------------------------------------------------
-# FIX-2 (R3 diff-gate follow-up /144 verdict): the deferral law must be
-# PINNED by tests, not prose — oracle-table contents, the reason-class map
-# for every non-lifted L-B row, and the Run Afoul behavior inversion.
+# The deferral law, pinned by tests: the reason-class map for every
+# non-lifted L-B row, and the Run Afoul behavior.
 # ---------------------------------------------------------------------------
 RUN_AFOUL_ORACLE = "5462cb38-7cd7-46e8-a273-35d0d1af45b4"
 
 
 class DeferredDeferralTable(unittest.TestCase):
-    """(a) table-content pin: who is oracle-deferred, and WHY every other
-    deferred class is deferred by a GATE RULE instead (so deleting one
-    mechanism cannot silently reclassify the others)."""
+    """Every deferred L-B row and the GATE RULE that defers its class (so
+    deleting one mechanism cannot silently reclassify the others)."""
 
     @classmethod
     def setUpClass(cls):
         cls.ledger = json.loads(LEDGER.read_text())
-
-    def test_oracle_table_is_exactly_run_afoul(self):
-        # re-pinned 2026-10-29: V10 changes Run Afoul's tree (CONTROLLER_IS
-        # TARGET_PLAYER) and asks a sacrifice menu's controller, so the
-        # direction is encoded and the table that held Run Afoul is empty.
-        self.assertEqual(selectors.R3_CHOOSE_DEFERRED_ORACLES, frozenset())
 
     def test_uuid_is_the_compiled_m21_run_afoul(self):
         rec = _pool("M21").get(RUN_AFOUL_ORACLE)
@@ -587,12 +556,10 @@ class DeferredDeferralTable(unittest.TestCase):
 
     def test_reason_class_map_covers_every_deferred_lb_row(self):
         merged, unbounded, opponent = set(), set(), set()
-        oid_of = {}
         for n in self.ledger["nodes"]:
             if n["lane"] != "L-B":
                 continue
             key = (n["set"], n["card"])
-            oid_of[key] = n["oracle_id"]
             if key in LIFT_CARDS:
                 continue
             if n["zones"] == ["HAND:ANY"]:
@@ -601,7 +568,7 @@ class DeferredDeferralTable(unittest.TestCase):
                 unbounded.add(key)
             else:
                 opponent.add(key)
-        # ZND-7(a) merged multi-seat menu — cannot say WHICH seat chooses:
+        # ledger class: merged multi-seat menu — the menu cannot say WHICH seat chooses:
         self.assertEqual(
             merged, {("M21", "Bad Deal"), ("M21", "Liliana, Waker of the Dead")}
         )
@@ -616,8 +583,8 @@ class DeferredDeferralTable(unittest.TestCase):
                 ("M21", "Siege Striker"),
             },
         )
-        # opponent-chooser / direction-unencoded (ZND-9 gate rule:
-        # chooser == card controller; Run Afoul additionally oracle-tabled):
+        # opponent-chooser / direction-unencoded (gate rule: chooser ==
+        # card controller):
         self.assertEqual(
             opponent,
             {
@@ -627,26 +594,15 @@ class DeferredDeferralTable(unittest.TestCase):
                 ("M21", "Run Afoul"),
             },
         )
-        # Every deferred card is OUTSIDE the lift set.
-        # re-pinned 2026-10-29: V10 changes the opponent-chooser and merged-
-        # menu classes from silent slices to asks of the deciding player, so
-        # no card is oracle-tabled any more (the ledger rows above stay the
-        # R3 historical classification).
+        # Every deferred card is OUTSIDE the lift set (the ledger rows above
+        # are the committed classification).
         deferred_cards = merged | unbounded | opponent
         self.assertFalse(deferred_cards & LIFT_CARDS)
-        for set_name, card_name in deferred_cards:
-            self.assertNotIn(
-                oid_of[(set_name, card_name)],
-                selectors.R3_CHOOSE_DEFERRED_ORACLES,
-                (card_name, "no card is oracle-tabled after V10"),
-            )
 
 
 class RunAfoulDeferralBehavior(unittest.TestCase, _RecorderMixin):
-    """(b) re-pinned 2026-10-29: V10 changes this class. It pinned that the
-    oracle table kept Run Afoul's BF:ANY CHOOSE silent, because asking would
-    have let the CASTER pick the opponent's sacrifice (the direction axis was
-    unencoded, ZND-9). The tree now says whose fliers (CONTROLLER_IS
+    """Asking the caster would let the CASTER pick the opponent's
+    sacrifice. Run Afoul's tree says whose fliers (CONTROLLER_IS
     TARGET_PLAYER) and the sacrifice lane asks the player who controls the
     menu (CR 701.21a), so the hazard is closed by structure: a sacrifice menu
     spanning two controllers raises, and a one-player menu is that player's

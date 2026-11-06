@@ -1,36 +1,36 @@
-"""Replacement effects + pre-application prevention records (round 12d,
-plan /06 §12d, C24: replacement-before-apply).
+"""Replacement effects + pre-application prevention records.
 
 Two veto-shaped vocabularies live here, both keyed on the journal's event
 shapes and both fingerprint-dumped:
 
   * :class:`ReplacementRecord` — a compiled :class:`ReplacementAbility`
-    node attached to a battlefield permanent (canonical row: Nine Lives,
-    whose template says "prevent that damage and put an incarnation counter
-    on this enchantment" — the grammar carries the PREVENTION inside the
-    replacement's action position, per the b5b row's own docstring: "the
-    replacement itself carries the prevention, no PREVENT atom"). The
+    node attached to a battlefield permanent, or to a resolving spell for
+    the rest of the turn (canonical row: Nine Lives, whose template says
+    "prevent that damage and put an incarnation counter on this
+    enchantment" — the grammar carries the PREVENTION inside the
+    replacement's action position, no PREVENT atom). The damage
     interceptor runs in :func:`~MTG_bot.core.executor.verbs._v_deal_damage`
     BEFORE the world mutation: a matching live replacement consumes the
     damage-to-a-player event (no life change happens, so the journal emits
     no DAMAGE row and nothing downstream can mis-fire), appends a
-    ``("REPLACED", …)`` audit row, and runs the replacement's ACTION as a
-    nested journalled effect through the executor (the incarnation counter
-    lands as a normal journalled PUT_COUNTER, arming Nine Lives' own
-    HAS_COUNTER-9 exile trigger — the golden drives the whole chain).
+    ``("DAMAGE_REPLACED", …)`` audit row, and runs the replacement's ACTION
+    as a nested journalled effect through the executor (the incarnation
+    counter lands as a normal journalled PUT_COUNTER, arming Nine Lives' own
+    HAS_COUNTER-9 exile trigger); a quantity rewrite (Fiery Emancipation)
+    modifies the amount in place instead. The life-gain, draw, counter,
+    death and zone-change lanes consume their events the same way.
     "First N times"-style partial replacements (a bounded event ``amount``)
     RAISE: the closed vocabulary models the cap as a trigger, not as a
     number on the replacement, and the executor does not guess caps.
 
-  * :class:`PreventionRecord` — the PREVENT_EFFECT verb (the Capture-
-    Sphere / Faith's-Fetters / Frost-Breath family). A veto-before-
-    application record: condition + event spec + optional step + duration.
-    The UNTAP consumer is live (12d's untap step consults
-    :meth:`ReplacementRegistry.prevents_untap` — the Frost Breath freeze);
-    the attack/block declaration consults are live since 16c, and the
-    activation lock (an AbilityActivatedEvent record, R5-7) is consulted
-    by legality's ``ability_playable`` through
-    :meth:`ReplacementRegistry.prevents_activation`.
+  * :class:`PreventionRecord` — a PREVENT_EFFECT, from the verb or a static
+    ability (the Capture Sphere / Faith's Fetters / Frost Breath family). A
+    veto-before-application record: condition + event spec + optional step
+    + duration. Consumers: the untap step
+    (:meth:`ReplacementRegistry.prevents_untap` — the Frost Breath freeze),
+    card damage, counter placement, the attack/block declarations,
+    activation (legality's ``ability_playable`` through
+    :meth:`ReplacementRegistry.prevents_activation`) and countering.
 
 Matching rules (documented, pinned): the player-subject filter of a
 DamageDealtEvent replacement is read with the PLAYER as subject —
@@ -50,7 +50,6 @@ from MTG_bot.core.ability_tree import (
     QX,
     AbilityActivatedEvent,
     Atom,
-    BecomesBlockedEvent,
     CardDrawnEvent,
     ControllerRef,
     CounteredEvent,
@@ -103,20 +102,11 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only
     from MTG_bot.core.compiler.compiler import CardRecord
     from MTG_bot.core.executor import Executor
 
-# Combat-side event kinds: registered + exposed, no consumer pre-12e.
-# R2 fold (/140): CombatDamageEvent deleted — folded combat-damage
-# replacements are DamageDealtEvent(combat=True) (handled by the damage
-# path); this tuple keeps the declaration/block kinds only.
-_COMBAT_EVENTS = (
-    DeclareAttackersEvent,
-    DeclareBlockersEvent,
-    BecomesBlockedEvent,
-)
-
 
 @dataclass
 class ReplacementRecord:
-    """One compiled ReplacementAbility node while its source is attached.
+    """One compiled ReplacementAbility node while its source is attached
+    (a resolving spell's: until end of turn, ``tag="Eot"``).
     The duration fields (``tag``/``duration``) stay on the shape because
     both registry kinds share the expiry API; node replacements are
     battlefield-lifetime (``tag="Permanent"``, the detach expires them)."""
@@ -129,8 +119,8 @@ class ReplacementRecord:
     tag: str = "Permanent"
     duration: Duration | None = None
     condition: Filter | None = None
-    status: str = "live"  # live | dormant | expired
-    # r19b (Scorching Dragonfire): the cast's designation snapshot, taken
+    status: str = "live"  # live | expired
+    # Scorching Dragonfire: the cast's designation snapshot, taken
     # when a SPELL-sourced (Eot) record registers. The record outlives the
     # resolution's ExecCtx, but its event filter (IS_ANY_TARGET "that
     # creature") still MEANS the designation — the PreventionRecord
@@ -157,7 +147,7 @@ class PreventionRecord:
     tag: str = "Permanent"
     duration: Duration | None = None
     condition: Filter | None = None
-    status: str = "live"  # live | dormant | expired
+    status: str = "live"  # live | expired
     resolved: bool = False
 
 
@@ -179,8 +169,7 @@ class ReplacementRegistry:
 
     def attach_source(self, handle: Handle, record: CardRecord) -> int:
         """Register the permanent's ReplacementAbility nodes (lifetime:
-        while attached — the detach half of the 12b lifecycle expires
-        them)."""
+        while attached — the binder's detach expires them)."""
         self.detach_source(handle)
         count = 0
         for node in record.abilities:
@@ -194,7 +183,7 @@ class ReplacementRegistry:
                         condition=node.condition,
                         status="live",
                         source=handle,
-                        controller=self.executor.controller_of(handle),  # 16e
+                        controller=self.executor.controller_of(handle),
                         event=node.event,
                         action=node.action,
                     )
@@ -221,19 +210,16 @@ class ReplacementRegistry:
         record: CardRecord,
         designated: tuple[Handle, ...] = (),
     ) -> int:
-        """r19a: a RESOLVING INSTANT/SORCERY's ReplacementAbility
-        nodes. A spell never attaches (it hits the graveyard), so the
+        """A RESOLVING INSTANT/SORCERY's ReplacementAbility nodes. A spell
+        never attaches (it hits the graveyard), so the
         battlefield lifecycle that normally registers replacements never
         sees it — yet the grammar carries the corpus' turn-shaped replacement
         idiom ("If that creature or planeswalker would die this turn, exile
-        it instead": Scorching Dragonfire, Obliterating Bolt, Blitz of the
-        Thunder-Raptor) as a card-level ReplacementAbility on the spell
-        itself. Registering at resolution start (stack.py) with an Eot tag is
-        the honest home: the effect is live from resolution to end of turn,
-        expires in the EOT sweep, and never survives the window its own text
-        names. (Life Goes On, the r19a case, no longer comes here: its
-        "instead" rewrites only its own life gain, so it compiles to a
-        Conditional amount — m21-fidelity item 4, 2026-10-29.)"""
+        it instead": Scorching Dragonfire, Obliterating Bolt) as a card-level
+        ReplacementAbility on the spell itself. Registering at resolution
+        start (stack.py) with an Eot tag is the honest home: the effect is
+        live from resolution to end of turn, expires in the EOT sweep, and
+        never survives the window its own text names."""
         count = 0
         for node in record.abilities:
             if isinstance(node, ReplacementAbility):
@@ -249,9 +235,9 @@ class ReplacementRegistry:
                         controller=controller,
                         event=node.event,
                         action=node.action,
-                        designated=designated,  # r19b Scorching: the cast's
-                        # designation rides the record — the dies window must
-                        # stay scoped to the object the spell named (CR 614.1)
+                        designated=designated,  # the cast's designation
+                        # rides the record — the dies window must stay
+                        # scoped to the object the spell named (CR 614.1)
                     )
                 )
                 count += 1
@@ -305,9 +291,8 @@ class ReplacementRegistry:
         """A record's condition is judged over the EVENT SUBJECT (the
         TriggeredAbility convention the frozen grammar shares with
         replacements/preventions); the WHILE duration's filter is a state
-        predicate over the source (StaticAbility convention)."""
-        if rec.status == "expired":
-            return False
+        predicate over the source (StaticAbility convention). Callers pass
+        live records only."""
         if isinstance(rec.duration, DurationWhileCondition):
             if not self._source_alive(rec.source):
                 return False
@@ -346,10 +331,9 @@ class ReplacementRegistry:
 
     @staticmethod
     def _is_player_only_filter(filter_: Filter) -> bool:
-        """r22b (Fiery Emancipation): is a DamageDealtEvent filter pure
-        PLAYER-COORDINATE — a predicate whose only meaning is "the damaged
-        object IS a named seat"? The 12d reading of a bare
-        ``CONTROLLER_IS YOU`` on a damage event is the CR's damaged-object
+        """Is a DamageDealtEvent filter pure PLAYER-COORDINATE — a predicate
+        whose only meaning is "the damaged object IS a named seat"? A bare
+        ``CONTROLLER_IS YOU`` on a damage event reads as the CR's damaged-object
         idiom "this damage is about to hit YOU" (Nine Lives), so such a
         record never reaches the CARD lane; a filter carrying even one
         card-shape leaf (TYPE_EQ ...) is read over the damaged object by
@@ -381,8 +365,8 @@ class ReplacementRegistry:
         amount: int,
         combat: bool,
     ) -> list[tuple[ReplacementRecord, int | None]]:
-        """r22b (Fiery Emancipation): the unified apply-pipeline interceptor
-        for a DAMAGE event, both lanes (C24 replacement-before-apply).
+        """The apply-pipeline interceptor for a DAMAGE event, both lanes
+        (player and card), before the damage applies.
         Returns the replacements that apply, in the order they apply, each
         ``(record, None)`` when the record CONSUMES the event (the Nine Lives
         doctrine — the damage never applies, the action runs in the drain)
@@ -391,11 +375,11 @@ class ReplacementRegistry:
         whose amount quantity rewrites the event's —
         ``QBin(MUL, 3, QProp(event, AMOUNT))`` — so exactly one journalled
         DAMAGE row lands, dealer attribution and lifelink stay on the dealt
-        amount, and the action's C-4 dealer surface is never executed). A
+        amount, and the action itself is never executed). A
         consume is always last: nothing is left to replace. Empty when
         nothing applies.
 
-        B-69 (2026-11-05), CR 616.1: when two or more records apply, the
+        CR 616.1: when two or more records apply, the
         affected player or the controller of the affected permanent chooses
         one (:meth:`_choose`); it applies, then the records that still apply
         are checked again, until none is left (616.1e-f). Each record applies
@@ -428,7 +412,7 @@ class ReplacementRegistry:
         The event's slots read as matchers over the about-to-happen event:
         ``amount`` accepts the two no-constraint idioms (QUnbounded "all",
         QX the compiler's amount placeholder) and flags the first-N cap
-        (12e: caps are counters + triggers, never guessed); ``combat`` True
+        (caps are counters + triggers, never guessed); ``combat`` True
         is the standing later-phase flag, False scopes to non-combat;
         ``source`` is a Filter over the DEALER, evaluated in the record's
         coordinates (the CONTROLLER_IS card branch resolves a spell
@@ -559,14 +543,11 @@ class ReplacementRegistry:
     def prevented_card_damage(
         self, ctx: ExecCtx, victim: Handle, combat: bool
     ) -> PreventionRecord | None:
-        """r20a (Pack Leader): the prevention-before-apply interceptor for
-        damage a CARD would be dealt. The PREVENT_EFFECT lane carried the
-        untap / block-declaration / attack-declaration consumers but never
-        a DAMAGE consumer, so a compiled DamageDealtEvent prevention (Pack
-        Leader's "prevent all combat damage ... Dogs" half) was compile-
-        but-never-apply. combat-scope mirrors the binding-side
-        DamageDealtEvent matcher (16c): ``combat=True`` matches combat
-        damage only, ``False`` only the rest, ``None`` anything. QUnbounded
+        """The prevention-before-apply interceptor for damage a CARD would
+        be dealt (Pack Leader's "prevent all combat damage ... Dogs" half).
+        combat-scope mirrors the binding-side DamageDealtEvent matcher:
+        ``combat=True`` matches combat damage only, ``False`` only the
+        rest, ``None`` anything. QUnbounded
         amount prevents ALL; the first-N cap flags (never guesses).
         CONTROLLER RULE as in the damage hook: every predicate is judged
         in the record's own coordinates (source=the preventing object,
@@ -607,11 +588,10 @@ class ReplacementRegistry:
     def replacement_for_life_gained(
         self, ctx: ExecCtx, player: Handle
     ) -> ReplacementRecord | None:
-        """r19a (Life Goes On): the apply-pipeline interceptor for a
-        LIFE-GAINED event (C24 replacement-before-apply, mirrored from the
-        damage hook). The subject of a LifeGainedEvent is the gaining
-        player, so the record's condition (DIED_THIS_TURN) is judged over
-        the PLAYER handle — quantity's existential reading answers it.
+        """The apply-pipeline interceptor for a LIFE-GAINED event
+        (replacement before apply, mirrored from the damage hook). The
+        subject of a LifeGainedEvent is the gaining player, so the record's
+        condition is judged over the PLAYER handle.
         CONTROLLER RULE as in the damage lane: every predicate is judged
         in the record's own coordinates.
 
@@ -645,10 +625,10 @@ class ReplacementRegistry:
         return None
 
     def replacement_for_card_draw(
-        self, ctx: ExecCtx, drawer: Handle, amount: int
+        self, ctx: ExecCtx, drawer: Handle
     ) -> ReplacementRecord | None:
-        """r22b (Teferi's Ageless Insight): the apply-pipeline interceptor
-        for a CARD-DRAW event (C24 replacement-before-apply, mirrored from
+        """Teferi's Ageless Insight: the apply-pipeline interceptor
+        for a CARD-DRAW event (replacement before apply, mirrored from
         the life lane — the draw never touches the library, so the journal
         sees no CARD_DRAWN row for it, and the replacement's DRAW action
         runs in the drain with the record's coordinates; the CR 614.4a
@@ -738,8 +718,8 @@ class ReplacementRegistry:
         kind: CounterKind,
         amount: int,
     ) -> ReplacementRecord | None:
-        """r22b (Conclave Mentor): the apply-pipeline interceptor for a
-        COUNTER-PLACEMENT event (C24 replacement-before-apply): the PUT-
+        """Conclave Mentor: the apply-pipeline interceptor for a
+        COUNTER-PLACEMENT event (replacement before apply): the PUT-
         COUNTER verb consults this per receiving card BEFORE the counter
         ledger is touched; a match consumes the placement (no counters
         land, so the state diff emits no COUNTER_PLACED row for it) and
@@ -754,9 +734,9 @@ class ReplacementRegistry:
         the same drain the single carrier uses).
 
         The event's ``count`` slot is the "one or more" matcher
-        (QAtLeast(1) — the grammar's R5-2 idiom): n >= 1 satisfies it;
+        (QAtLeast(1), the grammar's idiom): n >= 1 satisfies it;
         QUnbounded matches any placement. Any other shape is a cap the
-        executor does not guess (12e). The subject filter ("a creature
+        executor does not guess. The subject filter ("a creature
         you control") is a CARD-shape predicate, judged over the
         receiving card in the RECORD's coordinates — CONTROLLER RULE."""
         for rec in sorted(self.replacements, key=lambda r: r.seq):
@@ -787,17 +767,15 @@ class ReplacementRegistry:
             return rec
         return None
 
-    def replacement_for_death(
-        self, card: Handle, replaced_seq: frozenset[int] = frozenset()
-    ) -> ReplacementRecord | None:
-        """r19b (Scorching Dragonfire): the state-check interceptor for a
+    def replacement_for_death(self, card: Handle) -> ReplacementRecord | None:
+        """Scorching Dragonfire: the state-check interceptor for a
         CREATURE-DIES event — the die lane mirrors the damage/life hooks
-        (C24 replacement-before-apply): the SBA loop consults this BEFORE
+        (replacement before apply): the SBA loop consults this BEFORE
         moving the creature to the graveyard, and a match consumes the
         death (no graveyard move, no CREATURE_DIES journal row — see the
-        documented v1 gap in __init__.py's state-check drain).
+        documented gap in the executor's state-check drain).
 
-        B-62: both dying lanes of the SBA sweep consult it, the lethal
+        Both dying lanes of the SBA sweep consult it, the lethal
         creature AND the zero-loyalty planeswalker (CR 704.5i: both are put
         into a graveyard from the battlefield, which is dying, CR 700.4).
         The record's filter decides which dying object it covers, e.g.
@@ -810,12 +788,12 @@ class ReplacementRegistry:
         card is bound as ``event`` so the replacement's ACTION (EXILE
         referent=event) resolves. A Permanent-sourced record must still be
         on the battlefield; the Eot half is exempt (the spell has
-        resolved). The CR 614.4a chain guard rides ``replaced_seq``."""
+        resolved)."""
         for rec in sorted(self.replacements, key=lambda r: r.seq):
             event = rec.event
             if not isinstance(event, CreatureDiesEvent):
                 continue
-            if rec.status != "live" or rec.seq in replaced_seq:
+            if rec.status != "live":
                 continue
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
@@ -840,8 +818,8 @@ class ReplacementRegistry:
         ctx: ExecCtx,
     ) -> bool:
         """One ZoneChangeEvent endpoint vs the about-to-happen move — the
-        binding-side ``_zone_matches`` convention (12b) reused verbatim so
-        the trigger lane and the replacement lane read endpoints alike:
+        binding-side ``_zone_matches`` convention, so the trigger lane and
+        the replacement lane read endpoints alike:
         ANY matches, a created object's missing ``from`` matches ANY, and
         OWNER scopes to the card's owner (who in this frozen model is
         exactly the zone owner)."""
@@ -862,9 +840,9 @@ class ReplacementRegistry:
         to_state: str,
         replaced_seq: frozenset[int] = frozenset(),
     ) -> ReplacementRecord | None:
-        """r20b (Containment Priest): the apply-pipeline interceptor for a
+        """Containment Priest: the apply-pipeline interceptor for a
         ZONE-CHANGE event — the enter lane mirrors the death hook
-        (C24 replacement-before-apply): ``_v_move_zone`` consults this
+        (replacement before apply): ``_v_move_zone`` consults this
         BEFORE the battlefield move, and a match consumes the enter (no
         battlefield placement; the action — EXILE referent=event — runs
         through the pending-replacement drain with the moving card bound
@@ -872,7 +850,7 @@ class ReplacementRegistry:
 
         CONTROLLER RULE as in the other lanes: every predicate is judged
         in the RECORD's coordinates. The WAS_CAST_THIS_TURN condition
-        reads the journalled 601.2h CAST rows, so a spell that cast its
+        reads the journalled CR 601.2h CAST rows, so a spell that cast its
         way onto the battlefield is spared and a put-onto creature (which
         never touched the stack) is not. The CR 614.4a chain guard rides
         ``replaced_seq``; a Permanent-sourced record must still be on the
@@ -910,14 +888,13 @@ class ReplacementRegistry:
         TapStateEvent(tapped=False), step UNTAP, targets = the cast's
         designated creatures.)
 
-        V16 (2026-10-29, CR 502.3: "effects can keep one or more of a
-        player's permanents from untapping"): a STATIC carrier designates
+        CR 502.3 ("effects can keep one or more of a player's permanents
+        from untapping"): a STATIC carrier designates
         nothing; its affected set is the event's filter, judged over the card
         in the record's coordinates (Capture Sphere: "Enchanted creature
         doesn't untap during its controller's untap step" is IS_ATTACHED_TO_
         SOURCE ∧ creature, read off the Aura). A static carrier works while
-        its source is on the battlefield. Only designated records were
-        consulted before, so the Aura's creature untapped as usual."""
+        its source is on the battlefield."""
         for rec in sorted(self.preventions, key=lambda r: r.seq):
             if rec.status == "expired":
                 continue
@@ -933,9 +910,9 @@ class ReplacementRegistry:
             if not rec.resolved and not self._source_alive(rec.source):
                 # a static carrier works while its source is on the
                 # battlefield; a resolved effect outlives its source (CR
-                # 611.2a, the _pair_vetoed rule)
+                # 611.2a, as in _live_ctx)
                 continue
-            ctx = self._rec_ctx(rec, card)
+            ctx = self._rec_ctx(rec)
             if not self._condition_holds(rec, card, ctx):
                 continue
             if not eval_filter(event.filter, card, ctx):
@@ -943,20 +920,9 @@ class ReplacementRegistry:
             return True
         return False
 
-    def combat_preventions(self) -> tuple[PreventionRecord, ...]:
-        """The LIVE attack/block/combat prevents (Faith's Fetters / Capture
-        Sphere family). 16c: the consumers are live — the CR 508/509 de-
-        claration legality in legality.py calls the two pair consults
-        below; the dump stays for the audit trail."""
-        return tuple(
-            rec
-            for rec in self.preventions
-            if rec.status != "expired" and isinstance(rec.event, _COMBAT_EVENTS)
-        )
+    # ------------------------------------------------ declaration consumers
 
-    # ------------------------------------------- 16c: declaration consumers
-
-    def _rec_ctx(self, rec, attacker: Handle) -> ExecCtx:
+    def _rec_ctx(self, rec) -> ExecCtx:
         """The consult context in the RECORD's own coordinates (the con-
         troller rule the replacement/prevention filters follow): source =
         the preventing permanent, controller = its controller, and the
@@ -975,7 +941,7 @@ class ReplacementRegistry:
         record's coordinates. ``rec.condition`` is judged over the DECLAR-
         ATION'S OWN SIDE of the pair it restricts; the block consult judges
         it over BOTH sides, the attack consult over the attacker (its own
-        side). Both-sides is the r21a reading of the corpus inventory: the
+        side). Both sides is the reading the corpus inventory supports: the
         static carriers register their static's state gate (Tome Anima's
         draw clock, subject-independent) or NOTHING at all (Fetters/
         Shacklegeist carry the restriction in the event slots), Subira's
@@ -988,7 +954,7 @@ class ReplacementRegistry:
         subject over the BLOCKER and blocked over the ATTACKER; attack
         records filter over the ATTACKER (an ``attacked`` slot has no
         corpus carrier — the raise, never a silent ignore)."""
-        ctx = self._live_ctx(rec, subject)
+        ctx = self._live_ctx(rec)
         if ctx is None:
             return False
         event = rec.event
@@ -1026,19 +992,19 @@ class ReplacementRegistry:
             return self._slot_holds(rec, event.filter, subject, ctx)
         return False
 
-    def _live_ctx(self, rec, subject: Handle) -> ExecCtx | None:
+    def _live_ctx(self, rec) -> ExecCtx | None:
         """The consult context of a combat prevention that applies now, or None."""
         if rec.status == "expired":
             return None
-        # C5 (Destructive Tampering "can't block this turn"): a RESOLVED
+        # Destructive Tampering ("can't block this turn"): a RESOLVED
         # effect outlives its source (CR 611.2a — the sorcery is long in the
         # graveyard by the declare-blockers step), whatever its duration: a
-        # "can't block" with no end or until your next turn applies too (it
-        # used to need DurationEot). Static carriers (registered through the
-        # battlefield lifecycle) keep the liveness gate.
+        # "can't block" with no end or until your next turn applies too.
+        # Static carriers (registered through the battlefield lifecycle)
+        # keep the liveness gate.
         if not rec.resolved and not self._source_alive(rec.source):
             return None
-        ctx = self._rec_ctx(rec, subject)
+        ctx = self._rec_ctx(rec)
         if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
             rec.duration.filter, rec.source, ctx
         ):
@@ -1046,7 +1012,7 @@ class ReplacementRegistry:
         return ctx
 
     def blockers_allowed(self, attacker: Handle) -> int | None:
-        """2026-11-06 (CR 509.1b): the most creatures that may block ``attacker``, None for no
+        """CR 509.1b: the most creatures that may block ``attacker``, None for no
         limit. "This creature can't be blocked by more than one creature." is a prevention of
         the attacker becoming blocked by ``QAtLeast(2)`` creatures, so it allows one. Judged in
         the record's coordinates like the pair consults, the condition and the ``blocked`` slot
@@ -1057,7 +1023,7 @@ class ReplacementRegistry:
             event = rec.event
             if not isinstance(event, DeclareBlockersEvent) or event.count is None:
                 continue
-            ctx = self._live_ctx(rec, attacker)
+            ctx = self._live_ctx(rec)
             if ctx is None:
                 continue
             if event.subject is not None or event.filter != FAnd(()):
@@ -1076,11 +1042,11 @@ class ReplacementRegistry:
 
     @staticmethod
     def _slot_holds(rec, filter_, handle: Handle, ctx: ExecCtx) -> bool:
-        """V34 (CR 608.2b): a combat slot that names the ability's target
+        """CR 608.2b: a combat slot that names the ability's target
         (an IS_ANY_TARGET conjunct) means the creatures designated and checked
         when the ability resolved (_v_prevent locked them into rec.targets); its
         targeting restrictions are not read again. Any other slot is evaluated
-        live, as before."""
+        live."""
         from MTG_bot.core.executor.query import designation_bound
 
         if designation_bound(filter_):
@@ -1088,7 +1054,7 @@ class ReplacementRegistry:
         return eval_filter(filter_, handle, ctx)
 
     def prevents_block_declaration(self, blocker: Handle, attacker: Handle) -> bool:
-        """16c (CR 509 legality): does a live PREVENT_EFFECT veto the pair
+        """CR 509 legality: does a live PREVENT_EFFECT veto the pair
         ``blocker`` blocking ``attacker``? Static carriers (Tome Anima "can't
         be blocked as long as...", Pirate token "can't block", Shacklegeist
         "can block only creatures with flying", Faith's Fetters' block half)
@@ -1104,7 +1070,7 @@ class ReplacementRegistry:
         return False
 
     def prevents_attack_declaration(self, attacker: Handle) -> bool:
-        """16c (CR 508.1 legality): does a live PREVENT_EFFECT veto
+        """CR 508.1 legality: does a live PREVENT_EFFECT veto
         ``attacker``'s attack declaration (Faith's Fetters' "enchanted
         permanent can't attack" — the aura edge runs through the attach-
         ment oracle the filter reads)?"""
@@ -1119,7 +1085,7 @@ class ReplacementRegistry:
     def prevents_activation(
         self, permanent: Handle, activator: Handle, ability: object
     ) -> bool:
-        """R5-7 (CR 602.5, 602.5a's "prohibited from being activated"): does a
+        """CR 602.5 (602.5a's "prohibited from being activated"): does a
         live PREVENT_EFFECT over an :class:`AbilityActivatedEvent` forbid
         ``activator`` activating ``ability`` of ``permanent``? Faith's
         Fetters' "its activated abilities can't be activated unless they're
@@ -1135,7 +1101,7 @@ class ReplacementRegistry:
                 continue
             if not rec.resolved and not self._source_alive(rec.source):
                 continue
-            ctx = self._rec_ctx(rec, permanent)
+            ctx = self._rec_ctx(rec)
             if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
                 rec.duration.filter, rec.source, ctx
             ):
@@ -1151,7 +1117,7 @@ class ReplacementRegistry:
         return False
 
     def prevents_countering(self, spell: Handle) -> bool:
-        """2026-11-05 (CR 701.6a, 101.2): can't ``spell`` be countered? Yes when a
+        """CR 701.6a, 101.2: can't ``spell`` be countered? Yes when a
         live PREVENT_EFFECT over a :class:`CounteredEvent` names it: a static
         ability of a permanent ("Creature spells can't be countered.", Gaea's
         Herald), a resolved effect ("Spells you control can't be countered this
@@ -1228,9 +1194,8 @@ class ReplacementRegistry:
         return 1
 
     def sweep_at_eot(self) -> int:
-        # r19a: replacements join the EOT sweep (the spell-sourced
-        # "this turn" replacements live resolution -> Eot; the damage lane
-        # only ever had PERVENT_EFFECT prevents to sweep).
+        # Eot preventions and the spell-sourced "this turn" replacements
+        # (live from resolution to end of turn).
         return sum(
             self._expire(rec)
             for rec in (*self.preventions, *self.replacements)
@@ -1283,14 +1248,15 @@ class ReplacementRegistry:
         """The UNTAP tick's expiry half: UNTIL_NEXT_STEP(UNTAP) prevents are
         consumed DURING the tick and expire right after it — the Frost
         Breath freeze therefore survives exactly one untap step and the
-        creature untaps on the following one (pinned by test).
+        creature untaps on the following one (pinned by
+        ``test_freeze_survives_exactly_one_untap_tick``).
 
-        B-113: an owner-scoped record ("those creatures don't untap during
+        An owner-scoped record ("those creatures don't untap during
         their controller's next untap step") is consumed per object: this
         tick ends it only for the targets the active player controls, and
-        the record expires once no target is left. Frost Breath on one
-        creature of each player used to expire whole at the first player's
-        untap step, so the other player's creature untapped in its own."""
+        the record expires once no target is left (Frost Breath on one
+        creature of each player freezes each through its own controller's
+        untap step)."""
         expired = 0
         for rec in self.preventions:
             dur = rec.duration

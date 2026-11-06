@@ -1,5 +1,5 @@
-"""V15 (2026-10-29): "up to N target ..." may choose zero (CR 601.2c, 115.6); a spell or ability
-with zero targets chosen is not targeted. Real M21 cards."""
+"""A spell or ability with "up to N target ..." may choose zero (CR 601.2c, 115.6); with zero
+targets chosen it is not targeted. Real M21 cards."""
 
 from __future__ import annotations
 

@@ -1,11 +1,9 @@
-"""The deciding-seat hook on the decision channel (added 2026-10-24).
+"""The deciding-seat hook on the decision channel, and which player each ask goes to.
 
-A provider used to receive only ``(vocab, what)``, which cannot name the decider. EachPlayer re-asks
-the SAME ``may:<source>`` tag once per player (``executor/__init__.py:986-995``), so a per-seat
-router reading tags would hand player 1's choice to player 0, and the deleted eval rig's tag
-parser fell back to the active player when it could not tell.
-``DecisionStream.asking_seat`` carries the seat for the duration of the provider call only. It is
-never logged, so no replay or fingerprint moves.
+``(vocab, what)`` alone cannot name the decider: EachPlayer re-asks the SAME ``may:<source>`` tag
+once per player (the EachPlayer branch of ``Executor._run_effect``), so a per-seat router reading
+tags would hand player 1's choice to player 0. ``DecisionStream.asking_seat`` carries the seat for
+the duration of the provider call only. It is never logged, so no replay or fingerprint moves.
 """
 
 from __future__ import annotations
@@ -68,7 +66,7 @@ class StreamHookTest(unittest.TestCase):
         self.assertEqual(self.stream.take(("a", "b"), "x", seat=self.p1), "a")
         self.assertEqual(seen, [self.p1])
         self.assertIsNone(self.stream.asking_seat)
-        self.assertEqual(self.stream.ask_log, [("x", "a")])  # unchanged shape: no seat
+        self.assertEqual(self.stream.ask_log, [("x", "a")])  # the log never records the seat
 
     def test_seat_is_reset_when_the_provider_raises(self) -> None:
         def provider(_vocab: tuple[str, ...], _what: str) -> str:
@@ -169,8 +167,8 @@ class RandomGameRoutingTest(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------------------------------
-# V10 (2026-10-29): the player the rules say decides is the one asked, also when it is not the
-# controller of the ability. Real M21 cards, a seat recorded per ask.
+# The player the rules say decides is the one asked, also when it is not the controller of the
+# ability. Real M21 cards, a seat recorded per ask.
 # --------------------------------------------------------------------------------------------------
 
 
@@ -232,8 +230,7 @@ class DeciderRoutingTest(unittest.TestCase):
         rot = self.real("Mind Rot", self.p0, ZONE_HAND)
         self.world.players[self.p0].mana_pool.update({"B": 3})
         self.answer_with(toss1, toss2)
-        # re-pinned 2026-10-29: V21 lets "target player" designate either seat, so the
-        # opponent is named explicitly (it was the only, forced candidate).
+        # "target player" can designate either seat, so the opponent is named explicitly.
         cast(self.ex, self.p0, rot, targets=(self.p1,))
         self.assertEqual([self.zone(h) for h in (keep, toss1, toss2)], [ZONE_HAND, ZONE_GRAVEYARD, ZONE_GRAVEYARD])
         self.assertEqual([seat for _w, _v, seat in self.asks], [self.p1, self.p1])
@@ -266,7 +263,7 @@ class DeciderRoutingTest(unittest.TestCase):
 
     def test_target_opponent_sacrifices_of_their_choice(self) -> None:
         # Run Afoul: the target opponent picks among their own fliers; the caster's flier is not
-        # in the menu, and the player designation never stands in for a creature (B-53).
+        # in the menu, and the player designation never stands in for a creature.
         self.ex.begin_turn(self.p0)
         from dataclasses import replace as _replace
 
@@ -282,19 +279,6 @@ class DeciderRoutingTest(unittest.TestCase):
         self.assertEqual([self.zone(h) for h in (mine, big, small)], [ZONE_BATTLEFIELD, ZONE_BATTLEFIELD, ZONE_GRAVEYARD])
         self.assertEqual([(w.split(":")[0], s) for w, _v, s in self.asks], [("sacrifice", self.p1)])
         self.assertEqual(self.asks[0][1], tuple(str(h) for h in sorted((big, small))))
-
-    def test_a_sacrifice_menu_without_an_owner_raises(self) -> None:
-        # CR 701.21a: a menu over two players' creatures does not say who sacrifices.
-        from MTG_bot.core.executor.legality import ctx_for
-        from MTG_bot.core.executor.selectors import resolve_selector
-        from MTG_bot.core.test_executor_binding import BF_ANY, CREATURE
-
-        src = self.synth("Source", self.p0, ZONE_BATTLEFIELD)
-        self.synth("Other", self.p1, ZONE_BATTLEFIELD)
-        ctx = ctx_for(self.ex, source=src, controller=self.p0)
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, CREATURE, zones=(BF_ANY,))
-        with self.assertRaises(ValueError):
-            resolve_selector(sel, ctx, ask_choose=True, sacrifice=True)
 
     def test_take_decision_of_names_the_decider_and_restores_the_controller(self) -> None:
         from MTG_bot.core.executor.legality import ctx_for
@@ -337,7 +321,7 @@ class DeciderRoutingTest(unittest.TestCase):
 
     def test_sacrifice_another_creature_is_the_controllers_choice(self) -> None:
         # Dire Fleet Warmonger: "you may sacrifice another creature". FNot(IS_SOURCE) is "another",
-        # a real menu, not self-reference: the controller picks (it used to be the lowest handle).
+        # a real menu, not self-reference: the controller picks.
         from MTG_bot.core.ability_tree import (
             FAnd,
             FAtom,

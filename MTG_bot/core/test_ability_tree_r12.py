@@ -1,27 +1,17 @@
-"""Grammar round 11 / batch 6 — two additive members (2026-10-02).
+"""Grammar pins: the OPPONENT_OF predicate and CREATE_TOKEN's optional
+``controller`` role.
 
-Round-11 scope (authority: KNOWLEDGE/2026-10-02/10-grammar-round-ruling.md;
-file-name offset intentional — round-11 grammar ships in the r12 file, the
-r6-in-r7 / r10-in-r11 precedent):
+- ``FAtomPred.OPPONENT_OF`` {who} is the destination identity for "deals
+  damage to an opponent" (Chandra's Pyreling). ``who`` is a ControllerRef or
+  a referent Selector. It is player-total: a card subject never passes (CR
+  109.5: damage "to an opponent" is damage to a PLAYER). CONTROLLER_IS
+  would read a card subject's controller and fire the Pyreling trigger on
+  damage to an opponent's CREATURE.
+- ``Verb.CREATE_TOKEN`` takes an optional ``controller`` (ControllerRef or
+  Selector); no role means the ability's controller.
 
-- R11-1: ``FAtomPred.OPPONENT_OF`` {who} — the DESTINATION identity pred
-  for "deals damage to an opponent" (Chandra's Pyreling / Chandra's
-  Incinerator). ``who`` must be a ControllerRef or a referent Selector
-  (the CONTROLLER_IS precedent); it is player-total — a card subject can
-  never pass (CR 109.5: damage "to an opponent" is damage to a PLAYER).
-  Distinct from CONTROLLER_IS on purpose: over a card subject
-  CONTROLLER_IS reads the card's controller, which would fire the
-  Pyreling trigger on damage to an opponent's CREATURE — exactly the
-  negative the ruling forbids.
-- R11-2: ``Verb.CREATE_TOKEN`` gains the OPTIONAL role ``controller``
-  (_VERB_ROLES row {"tokens": True, "count": False, "controller": False};
-  _ROLE_TYPES["controller"] already accepts ControllerRef | Selector).
-  No role = the ability's controller: every pre-round-11 emission and
-  the whole frozen golden corpus are byte-unchanged except the two
-  anaphora cards the batch re-pinned.
-
-Guards pinned below: the closed tables, legality at both accepted
-carrier types, and rejection at every new validation point.
+Pinned: the closed tables, legality at both accepted carrier types, and a
+rejection at every validation point.
 """
 
 from __future__ import annotations
@@ -32,7 +22,8 @@ import MTG_bot.core.ability_tree as at
 
 
 def _referent_target_selector() -> at.Selector:
-    """The anaphora carrier the templates emit (R11-2 / Death-Mage twin)."""
+    """The "its controller" carrier the templates emit (Angelic Ascension's
+    token; the same shape as Liliana, Death Mage's life loss)."""
     return at.Selector(
         at.QConst(1),
         at.SelectorMode.CHOOSE,
@@ -42,7 +33,7 @@ def _referent_target_selector() -> at.Selector:
     )
 
 
-# ---- R11-1: OPPONENT_OF — table + legality --------------------------------
+# ---- OPPONENT_OF: table + legality ----------------------------------------
 
 
 def test_opponent_of_rules_row() -> None:
@@ -64,7 +55,7 @@ def test_opponent_of_with_referent_selector_legal() -> None:
     assert atom.who.referent == "target"
 
 
-# ---- R11-1: rejections at every new validation point ----------------------
+# ---- OPPONENT_OF: rejections at every validation point --------------------
 
 
 def test_opponent_of_requires_who() -> None:
@@ -84,13 +75,13 @@ def test_opponent_of_rejects_non_referent_selector() -> None:
 
 
 def test_opponent_of_rejects_bare_int() -> None:
-    # The generic FAtom who-type gate fires first; the R11-1 gate is the
-    # one behind it that admits referent Selectors but not non-referents.
+    # The generic FAtom who-type gate fires first; the OPPONENT_OF gate
+    # behind it admits referent Selectors but not non-referents.
     with pytest.raises(ValueError, match="who must be a ControllerRef"):
         at.FAtom(pred=at.FAtomPred.OPPONENT_OF, who=3)  # type: ignore[arg-type]
 
 
-# ---- R11-2: CREATE_TOKEN controller role -----------------------------------
+# ---- CREATE_TOKEN controller role -----------------------------------------
 
 
 def test_create_token_roles_row() -> None:
@@ -121,8 +112,8 @@ def _create(**roles: object) -> at.Atom:
 
 
 def test_create_token_without_controller_still_legal() -> None:
-    # The regression face of "optional": every pre-round-11 emission form
-    # must keep constructing (27 CREATE_TOKEN corpus rows ride on it).
+    # The role is optional: the plain form most CREATE_TOKEN rows emit
+    # still constructs.
     assert _create().verb is at.Verb.CREATE_TOKEN
 
 
@@ -140,7 +131,7 @@ def test_create_token_controller_wrong_type_rejected() -> None:
 
 
 def test_create_token_tokens_still_required() -> None:
-    # The new role does not loosen the required slot.
+    # The controller role does not loosen the required slot.
     with pytest.raises(ValueError, match="missing required roles"):
         at.Atom(
             verb=at.Verb.CREATE_TOKEN,

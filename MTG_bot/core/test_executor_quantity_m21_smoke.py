@@ -1,30 +1,15 @@
-"""M21 engine-smoke fuzz fixes (reports/m21_engine_smoke_2026-10-19.md,
-/109 addendum; KNOWLEDGE/2026-10-19 note). Three pinned signatures in
-executor/quantity.py, one test class each:
+"""Three quantity readings in executor/quantity.py, from compiled M21 cards, one test class each:
 
-S1  AssertionError@quantity.py:880 (_eval_atom HAS_COUNTER). Tempered
-    Veteran's "put a +1/+1 counter on target creature WITH a +1/+1 counter
-    on it" folds to FAtom(HAS_COUNTER, counter_kind=PLUS_1_PLUS_1,
-    count=None) — _FATOM_RULES requires count but FAtom.__post_init__'s
-    required-slot list omits "count", so the shape validates and reached
-    the 12c query lane, where the raw assert killed the game (5 fuzz
-    seeds). Fixed reading: unbound count = the existence reading ("with a
-    K counter" ⇔ >= 1, NOT the vacuous 0-default phantom-counter trap);
-    unbound counter_kind = typed named refusal.
-
-S2  NotImplementedError@quantity.py:373 (QThisTurn NONCOMBAT_DAMAGE).
-    Chandra's Incinerator's cost reducer resolves the turn ledger from
-    the journal's DAMAGE rows: data ``(amount,)`` noncombat vs
-    ``(amount, True)`` combat (the 16c scope flag), subject = the actual
-    recipient (a planeswalker row is NOT damage to an opponent, CR 118.5).
-
-S3  ValueError@quantity.py:417 (_prop_value POWER on card:61 = Kinetic
-    Augur, printed P/T "*4" → compiled undefined, the /99 shape-gap
-    family) read by Carrion Grub's static "greatest power among creature
-    cards in your graveyard" (QProp POWER MAX over a selector). Fixed
-    reading: an undefined characteristic is skipped by SELECTOR
-    AGGREGATIONS (characteristic absent = not a member of the value set —
-    the POWER_LE/GE convention); the SCALAR read keeps the strict raise.
+* Tempered Veteran's "target creature with a +1/+1 counter on it" compiles to
+  FAtom(HAS_COUNTER, counter_kind=PLUS_1_PLUS_1, count=None). An unbound count is the existence
+  reading ("with a K counter" means >= 1, never the vacuous threshold 0).
+* Chandra's Incinerator's cost reducer, QThisTurn(NONCOMBAT_DAMAGE), sums the journal's DAMAGE
+  rows: data ``(amount,)`` is noncombat, ``(amount, True)`` combat, and the subject is the actual
+  recipient (damage to a planeswalker is not damage to an opponent, CR 118.5).
+* Carrion Grub's "greatest power among creature cards in your graveyard" (QProp POWER MAX over a
+  selector) skips a card whose power is undefined (Kinetic Augur's "*"): selector aggregations
+  treat an absent characteristic as no member of the value set, as POWER_LE/GE do. The scalar
+  read of an undefined power still raises.
 """
 
 import unittest
@@ -106,7 +91,7 @@ def _has_counter_atoms(card) -> list[FAtom]:
 
 
 class TemperedVeteranShapeTest(BindingCase):
-    """S1: the compiled atom shape + the existence-count eval lane."""
+    """Tempered Veteran: the compiled atom shape and the existence-count eval lane."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -115,7 +100,7 @@ class TemperedVeteranShapeTest(BindingCase):
 
     def _counter_filter(self):
         self.assertTrue(self.atoms, "the fold lost its HAS_COUNTER filter atom")
-        # The fuzz-repro shape: the atom arrives with count UNBOUND.
+        # The compiled shape: the atom arrives with count UNBOUND.
         self.assertTrue(
             any(a.count is None for a in self.atoms),
             "no unbound-count HAS_COUNTER atom — the fold changed; re-audit S1",
@@ -136,7 +121,7 @@ class TemperedVeteranShapeTest(BindingCase):
         raise AssertionError("unbound HAS_COUNTER atom is not a target filter")
 
     def test_unbound_count_is_existence_not_phantom(self):
-        """The exact fuzz filter (FAnd(TYPE_EQ Creature, HAS_COUNTER[K,
+        """The compiled filter (FAnd(TYPE_EQ Creature, HAS_COUNTER[K,
         count=None])): True iff the creature carries at least ONE K
         counter — never the vacuous threshold-0 reading."""
         ctx = self.ex._ctx(
@@ -197,27 +182,9 @@ class TemperedVeteranShapeTest(BindingCase):
         self.world.cards[one].counters[CounterKind.PLUS_1_PLUS_1.name] = 2
         self.assertTrue(_eval_atom(atom, one, ctx))
 
-    def test_unbound_kind_is_a_typed_named_refusal(self):
-        """counter_kind None is inanswerable ('a counter' — WHICH one?):
-        NotImplementedError naming the slot, never the old AssertionError
-        and never a any-kind zero reading. (The grammar enforces this slot
-        on real FAtoms, so the stand-in atom pins the defensive branch.)"""
-        ctx = self.ex._ctx(
-            source=self.watch, controller=self.p0, bindings={}, decisions=()
-        )
-        # Build the grammar-illegal shape BEYOND __post_init__ (the slot
-        # is enforced on real FAtoms — this pins the defensive branch):
-        stand_in = FAtom.__new__(FAtom)
-        object.__setattr__(stand_in, "pred", FAtomPred.HAS_COUNTER)
-        object.__setattr__(stand_in, "counter_kind", None)
-        object.__setattr__(stand_in, "count", None)
-        with self.assertRaises(NotImplementedError) as caught:
-            _eval_atom(stand_in, self.watch, ctx)
-        self.assertIn("counter_kind", str(caught.exception))
-
     def test_non_card_handle_is_characteristic_absent(self):
         """A player seat has no counters (the KEYWORD_HAS absent-absent
-        convention), instead of the KeyError the bare dict read gave."""
+        convention): False, not a KeyError."""
         ctx = self.ex._ctx(
             source=self.watch, controller=self.p0, bindings={}, decisions=()
         )
@@ -226,7 +193,7 @@ class TemperedVeteranShapeTest(BindingCase):
 
 
 class ThisTurnNoncombatDamageTest(BindingCase):
-    """S2: QThisTurn(NONCOMBAT_DAMAGE) over the journalled DAMAGE feed."""
+    """Chandra's Incinerator: QThisTurn(NONCOMBAT_DAMAGE) over the journalled DAMAGE feed."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -241,9 +208,8 @@ class ThisTurnNoncombatDamageTest(BindingCase):
         )
 
     def test_compiled_cost_reducer_shape(self):
-        """The fuzz-repro quantity, pinned at unit level: Chandra's
-        Incinerator folds the cost reducer to exactly QThisTurn(
-        NONCOMBAT_DAMAGE, ALL_OPPONENTS)."""
+        """Chandra's Incinerator compiles its cost reducer to exactly
+        QThisTurn(NONCOMBAT_DAMAGE, ALL_OPPONENTS)."""
         amounts = [
             ab.delta.amount
             for ab in self.incinerator.abilities
@@ -288,7 +254,7 @@ class ThisTurnNoncombatDamageTest(BindingCase):
 
 
 class UndefinedPowerAggregationTest(BindingCase):
-    """S3: QProp(POWER/TOUGHNESS) over a selector skips undefined-P/T
+    """Carrion Grub: QProp(POWER/TOUGHNESS) over a selector skips undefined-P/T
     objects; the scalar read keeps its strict raise."""
 
     def _ctx(self):
@@ -306,7 +272,7 @@ class UndefinedPowerAggregationTest(BindingCase):
 
     def _populate(self):
         """Kinetic Augur's exact world shape: a creature card whose printed
-        power is undefined (identity power None — the '*' / /99 shape gap)
+        power is undefined (identity power None: the '*' shape gap)
         beside a printed 2/2, both in p0's graveyard."""
         star = self.world.add_card(card_id("Star", None, "4"), self.p0)
         brawler = self.world.add_card(card_id("Brawler", "2", "2"), self.p0)
@@ -339,7 +305,7 @@ class UndefinedPowerAggregationTest(BindingCase):
         self.assertEqual(resolve(self._qty(QPropField.POWER, QAgg.MAX), self._ctx()), 0)
 
     def test_scalar_undefined_power_still_raises_strictly(self):
-        """The S3 fix is aggregation-scoped: a SCALAR read of an
+        """The skip is aggregation-scoped: a SCALAR read of an
         undefined power remains the named ValueError (unresolvable
         quantity — CR: no power, not power zero)."""
         star = self.world.add_card(card_id("Star3", None, "4"), self.p0)

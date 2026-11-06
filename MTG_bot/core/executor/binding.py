@@ -1,14 +1,14 @@
-"""Compiled-ability attachment + trigger binding/fire (round 12b, /06 §12b).
+"""Compiled-ability attachment + trigger binding/fire.
 
-Builds on 12a's Executor: compiled ability IR (a ``CardRecord`` from
-``compile_pool`` / a ``CompileResult``) attaches to world Handles; every
+Compiled ability IR (a ``CardRecord`` from ``compile_pool`` / a
+``CompileResult``) attaches to world Handles; every
 world event the :class:`~MTG_bot.core.executor.events.EventJournal` derives
 is matched against the attached :class:`TriggeredAbility` nodes; a match
 queues a canonical :class:`~MTG_bot.core.state.TriggerInstance` through
 ``world.queue_trigger`` (the resolution order is the stack's, ``_pop_next``),
 and the binder drains the queue — condition -> may-offer -> effect through
-the 12a effect runner, whose mutations are journalled and matched in turn —
-firing until the queue empties.
+the executor's effect runner, whose mutations are journalled and matched in
+turn — firing until the queue empties.
 
 Contracts honoured:
 
@@ -22,26 +22,25 @@ Contracts honoured:
     first, so the non-active player's resolve first), within one player the
     order they triggered, then Handle and bind order, so one scripted game
     replays byte-identically (:meth:`TriggerBinder._pop_next`);
-  * **C18** — a dies firing binds ``event``/``result`` to the dead subject,
-    whose was-snapshot the journal carried; the event register makes 12a's
-    ``event``/``result`` QProp referents real;
-  * **C22** — ``DelayedTrigger`` effect nodes schedule into the same
-    matcher with a duration tag; the end-of-turn sweep expires the
+  * **was-snapshots** — a dies firing binds ``event``/``result`` to the dead
+    subject, whose was-snapshot the journal carried, so the ``event``/
+    ``result`` QProp referents read it;
+  * **delayed triggers** — ``DelayedTrigger`` effect nodes schedule into
+    the same matcher with a duration tag; the end-of-turn sweep expires the
     turn-window entries;
-  * **tripwire** — one drain resolves at most ``MAX_TRIGGER_FIRES``
-    trigger instances; beyond that the guard QUARANTINES its runaway
-    source (dropped firings recorded in ``executor.trigger_loops``) and
-    the drain continues — the loop is a bug to flag, never a bug to run;
-  * **flag, don't degrade** — combat/cast/step/targeting event nodes have
-    no emitter before the later phases: *binding* one RAISES
-    ``NotImplementedError`` naming the owning phase, instead of silently
-    arming a trigger that could never fire. Unsupported damage scopes
-    (source filter, combat damage) raise at bind time too.
+  * **tripwire** — after ``MAX_TRIGGER_FIRES`` trigger instances in one
+    drain the guard QUARANTINES the runaway source (dropped firings
+    recorded in ``executor.trigger_loops``) and the drain continues — the
+    loop is a bug to flag, never a bug to run;
+  * **flag, don't degrade** — an event node no journal feed serves
+    (``_UNSUPPORTED_EVENTS``, a blocker-count DeclareBlockersEvent) RAISES
+    ``NotImplementedError`` at *bind* time, instead of silently arming a
+    trigger that could never fire.
 
 May-offers: an ``OptionalEffect`` in a trigger effect answers through the
-executor's vocabulary-addressed decision stream (14b, B-4 ruling): the ask
-carries its own (vocab, what) key, so firings the drain itself arms are
-answerable — pinned deterministic by the replay test.
+executor's vocabulary-addressed decision stream: the ask carries its own
+(vocab, what) key, so firings the drain itself arms are answerable — pinned
+deterministic by ``TestMayAndDeterminism`` (test_executor_binding.py).
 """
 
 from __future__ import annotations
@@ -108,13 +107,12 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.durations_min import duration_tag
+from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_ABILITY_ACTIVATED,
     KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
-    KIND_COMBAT_DAMAGE,  # noqa: F401 — journal feed only since the R2 fold (/140): emitted, never subscribed
     KIND_COUNTER_PLACED,
     KIND_CREATURE_DIES,
     KIND_DAMAGE,
@@ -142,45 +140,20 @@ from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
 if TYPE_CHECKING:  # pragma: no cover - typing only, dodges the import cycle
     from MTG_bot.core.executor import Executor
 
-# Infinite-loop tripwire: one drain resolves at most this many trigger
-# instances (nested chains included). Exceeding it raises — we never spin.
+# Infinite-loop tripwire: after this many trigger instances in one drain
+# (nested chains included), fire_all quarantines the source that fired most
+# — we never spin.
 MAX_TRIGGER_FIRES = 200
 
-# EventSpec kinds with no emitter before the combat/target phases.
-# Binding one RAISES — flag, don't degrade. 13b: CastSpellEvent LEFT this
-# table — the spell stack ships the CAST feed (journal.emit_cast at
-# 601.2h) and :meth:`TriggerBinder._match_cast` subscribes the node
-# (controller / ordinal / from_zone / from_zone_not / filter — the full
-# corpus surface, seven cards, tested in test_executor_stack.py).
-# 16b: DeclareAttackersEvent and CombatDamageEvent LEFT this table — the
-# COMBAT skeleton ships both feeds (journal DECLARE_ATTACKERS rows per
-# declared attacker, group-deduped per ability; COMBAT_DAMAGE rows per
-# dealing creature) and :meth:`TriggerBinder._match_node` subscribes them.
-# R2 (2026-10-20, /140): CombatDamageEvent FOLDED into DamageDealtEvent —
-# the COMBAT_DAMAGE journal rows still emit (audit feed, BREAK-2) but no
-# trigger lane subscribes them any more: folded combat triggers bind the
-# DAMAGE rows through _match_damage (is_combat distinguishes them).
-# 16c: DeclareBlockersEvent and BecomesBlockedEvent LEFT this table too —
-# the blocker step ships the feed (journal DECLARE_BLOCKERS rows, one per
-# declaration PAIR: subject = the blocker, data = (attacker, group)) and
-# :meth:`TriggerBinder._match_node` subscribes both node kinds.
-# r20b (Warden of the Woods): TargetingEvent LEFT too — the three
-# designation lanes (spell 601.2c plan, activation 602.2b, the 18b trigger
-# channel) ship the journal TARGETING feed and ``_match_node`` subscribes
-# the node (filter over the designated object, the grammar's only slot).
-# r22c (Keral Keep Disciples): the activation event LEFT too — the
-# activation lane ships the journal feed (since R5-7 one ABILITY_ACTIVATED
-# row per activation, mana included, emitted at the payment point of
-# legality.activate) and ``_match_node`` subscribes AbilityActivatedEvent
-# (actor over the activating player, source over the object, kind over
-# the row's 605.1a verdict and loyalty delta).
+# EventSpec kinds no journal feed serves: binding one RAISES — flag, don't
+# degrade.
 _UNSUPPORTED_EVENTS: dict[type, str] = {
     StepEvent: (
         "12e (step-level subscription emitter; 12d's untap tick is an "
         "executor step that emits TapState/phase events, not StepEvents)"
     ),
-    # 2026-11-05: "can't be countered" reads CounteredEvent (a PREVENT_EFFECT,
-    # consumed while the spell is on the stack). No trigger reads it yet: the
+    # "can't be countered" reads CounteredEvent (a PREVENT_EFFECT,
+    # consumed while the spell is on the stack). No trigger reads it: the
     # drain would match the COUNTER row after the spell has left the stack, so
     # a "spell" filter could not be judged on the object as it was.
     CounteredEvent: "a prevention event only (no trigger feed: the countered "
@@ -188,19 +161,18 @@ _UNSUPPORTED_EVENTS: dict[type, str] = {
 }
 
 # Delayed-trigger window tags the end-of-turn sweep expires. ``UntilNextTurn``
-# piggybacks on the Eot sweep as a documented stand-in; the precise
-# next-turn-start expiry of the 12d Duration vocab applies to the LEDGER /
-# layer / prevention records — a DELAYED trigger keeps the turn-window
-# stand-in (delayed windows beyond the turn are 12e).
+# rides the Eot sweep as a stand-in: the precise next-turn-start expiry
+# applies to the ledger / layer / prevention records only, and a delayed
+# window beyond the turn raises (schedule_delayed).
 _SWEEP_TAGS = ("Eot", "UntilNextTurn")
 
 # Any trigger node: attached TriggeredAbility or scheduled DelayedTrigger —
-# both carry ``condition`` + ``effect`` (C22 convention).
+# both carry ``condition`` + ``effect``.
 _AnyTrigger = TriggeredAbility | DelayedTrigger
 
 
 def _required_target_keys(effect: object) -> frozenset[str]:
-    """B-55, CR 603.3d: the TARGET slots an ability must fill to be put on
+    """CR 603.3d: the TARGET slots an ability must fill to be put on
     the stack at all, keyed like :meth:`TriggerBinder._designate`'s
     collector (``repr`` of a referent-free TARGET-mode Selector).
 
@@ -238,27 +210,21 @@ def _required_target_keys(effect: object) -> frozenset[str]:
     return frozenset()  # DelayedTrigger (CR 603.7c)
 
 
-def _is_universal(filter_: Filter) -> bool:
-    """The grammar's universal filter: an empty conjunction (``FAnd(())``)."""
-    return isinstance(filter_, FAnd) and len(filter_.children) == 0
-
-
 def _is_subject_identity(filter_: Filter) -> bool:
-    """16a (Brash Taunter): the bare IS_SOURCE identity pred alone. It is
+    """Brash Taunter: the bare IS_SOURCE identity pred alone. It is
     DEFINED for any handle (handle == ctx.source, no card data read), and a
     PLAYER subject can never be a card ability's source — so over a player
     damage subject it is honestly FALSE, not undefined (the echo's own
-    player-damage row must not re-arm the "is dealt damage" trigger). The
-    raise stays for every other filter: its preds read card data a player
-    handle does not carry."""
+    player-damage row must not re-arm the "is dealt damage" trigger). Every
+    other filter over a player goes to :func:`_player_subject_verdict`."""
     return isinstance(filter_, FAtom) and filter_.pred is FAtomPred.IS_SOURCE
 
 
-# r20b (Hooded Blightfang): the preds whose answer over a PLAYER subject
-# is decidable without reading any card data — a player IS none of these
+# The preds whose answer over a PLAYER subject is decidable without reading
+# any card data (Hooded Blightfang's SUPERTYPE_EQ) — a player IS none of these
 # things, so each honest answer is FALSE (and TRUE under FNot). The rest
 # of the vocab genuinely reads card data a player handle does not carry,
-# and keeps the 12c raise: flag, never guess.
+# and raises: flag, never guess.
 _PLAYER_SHAPE_PREDS = frozenset(
     {
         FAtomPred.TYPE_EQ,
@@ -274,12 +240,11 @@ _PLAYER_SHAPE_PREDS = frozenset(
 
 
 def _player_subject_verdict(filter_: Filter, subject: Handle, ctx: ExecCtx) -> bool:
-    """16a (Brash)'s identity reading, widened r20b: the boolean-algebra
+    """A filter over a PLAYER subject: the boolean-algebra
     closure over the decidable player-subject preds. A player subject can
     never BE a card-shape thing, so those atoms answer FALSE outright; a
     player's CONTROLLER_IS is honestly the player itself. The nodes
-    compose. Any pred outside the decidable set keeps the original 12c
-    raise verbatim."""
+    compose. Any pred outside the decidable set raises."""
     if isinstance(filter_, FAnd):
         return all(_player_subject_verdict(c, subject, ctx) for c in filter_.children)
     if isinstance(filter_, FOr):
@@ -293,11 +258,10 @@ def _player_subject_verdict(filter_: Filter, subject: Handle, ctx: ExecCtx) -> b
             # a player is its own controller (CR 109.5's player half)
             return controller_matches(filter_.who, subject, ctx)
         if filter_.pred is FAtomPred.OPPONENT_OF:
-            # r25 (grammar round 11, R11-1): the destination identity pred
-            # is decidable over a player subject by definition — the atom
-            # is player-total (its _eval_atom branch reads only seats and
-            # bindings, never card data), so the shared oracle answers
-            # here too instead of the 12c raise.
+            # the destination identity pred is decidable over a player
+            # subject by definition — the atom is player-total (its
+            # _eval_atom branch reads only seats and bindings, never card
+            # data), so the shared oracle answers here too.
             return eval_filter(filter_, subject, ctx)
     raise NotImplementedError(
         "executor: DamageDealtEvent filter over a player subject is 12c's query surface"
@@ -309,7 +273,7 @@ def _compile_bridge(compiled: object) -> CardRecord:
     carrying ``.card`` — never a guess."""
     record = getattr(compiled, "card", compiled)
     if not isinstance(record, CardRecord):
-        raise ValueError(  # noqa: TRY004 - ValueError type guards are the 12a house convention
+        raise ValueError(  # noqa: TRY004 - ValueError type guards are the house convention
             "attach_card: need a CardRecord/CompileResult, got "
             f"{type(compiled).__name__}"
         )
@@ -334,7 +298,7 @@ class _Firing:
 
 @dataclass
 class DelayedBinding:
-    """A C22 DelayedTrigger scheduled into the 12b journal matcher."""
+    """A DelayedTrigger scheduled into the journal matcher."""
 
     seq: int
     tag: str
@@ -344,7 +308,7 @@ class DelayedBinding:
 
 
 def functions_from_graveyard(ability: object) -> bool:
-    """V30 (CR 113.6m: "An ability whose cost or effect specifies that it moves
+    """CR 113.6m ("An ability whose cost or effect specifies that it moves
     the object it's on out of a particular zone functions only in that zone"): a
     triggered ability whose effect moves its own source out of a graveyard
     ("return this card from your graveyard to the battlefield tapped", Silversmote
@@ -379,22 +343,22 @@ class TriggerBinder:
         self.executor = executor
         self.records: dict[str, CardRecord] = {}
         self.attached: dict[tuple[Handle, int], TriggeredAbility] = {}
-        # V30 (CR 113.6m): the triggers of cards IN A GRAVEYARD whose ability
+        # CR 113.6m: the triggers of cards IN A GRAVEYARD whose ability
         # functions only there (functions_from_graveyard). Kept apart from
         # ``attached`` so a battlefield departure's detach never drops them.
         self.attached_graveyard: dict[tuple[Handle, int], TriggeredAbility] = {}
         self.handle_record: dict[Handle, CardRecord] = {}
-        # 13c: emblem synthetic handles -> their OWNER. Emblems are not
+        # Emblem synthetic handles -> their OWNER. Emblems are not
         # world cards, so ``world.controller_of`` cannot answer "who is
         # this trigger's you?" — this side-table does, and every trigger
         # match path consults it through :meth:`_controller_of`.
         self.emblem_owner: dict[Handle, Handle] = {}
         self.firings: dict[int, _Firing] = {}
-        # r23a (tripwire guard, Chandra's Incinerator seeds 17/50): sources
-        # whose trigger self-retriggers the drain are QUARANTINED by
-        # fire_all; _queue then drops their firings for the rest of the
-        # game — "flag it, never run it". This is replayed state: the
-        # executor folds it into state_fingerprint through this object.
+        # Tripwire guard (Chandra's Incinerator): sources whose trigger
+        # self-retriggers the drain are QUARANTINED by fire_all; _queue then
+        # drops their firings for the rest of the game — "flag it, never
+        # run it". This is replayed state: the executor folds it into
+        # state_fingerprint through :meth:`dump`.
         self.quarantined: set[Handle] = set()
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
@@ -403,20 +367,19 @@ class TriggerBinder:
         # n-th firing began is put on the stack above every trigger waiting
         # from before, so it resolves first (_pop_next).
         self._stack_batch = 0
-        # 16b CR 603.2 dedup: (source, node-id, declare-group) for every
+        # CR 603.2 dedup: (source, node-id, declare-group) for every
         # DeclareAttackersEvent queue already made. The journal carries ONE
         # row per declared attacker (the grammar's filter is subject-
         # scoped), but a triggered ability triggers ONCE on the whole
         # declare action — the shared group id collapses the row fan-out.
         self._declare_queued: set[tuple[Handle, int, int]] = set()
-        # r20a (wave-3): cached synthetic keyword-trigger nodes, keyed
-        # (family, holder). ONE node object per (family, handle) keeps the
-        # CR 603.2 declare-dedup (which keys on id(node)) stable across the
-        # rows of one declaration, and dies with the handle's detach.
+        # Cached synthetic keyword-trigger nodes, keyed (family, holder).
+        # ONE node object per (family, handle) keeps the CR 603.2
+        # declare-dedup (which keys on id(node)) stable across the rows of
+        # one declaration.
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
-        # r22a (the self-dies law, /21 wave5a findings): a battlefield
-        # departure normally detaches the leaver's triggers on the
-        # ZONE_CHANGE journal row — but events.py:record_atom journals the
+        # A battlefield departure normally detaches the leaver's triggers on
+        # the ZONE_CHANGE journal row — but EventJournal.record_atom journals the
         # card's CREATURE_DIES row IMMEDIATELY after that row (same diff
         # iteration), and the dying permanent's own "when this dies"
         # trigger must still be attached when the dies row is matched. A
@@ -424,9 +387,9 @@ class TriggerBinder:
         # card's CREATURE_DIES parks its handle here; :meth:`_lifecycle`
         # runs the deferred detach at the dies row, after the match pass
         # queued the firing. Non-death departures (bounce/exile/hand) have
-        # no dies row and detach on the spot, exactly as before.
+        # no dies row and detach on the spot.
         self._pending_dies_detach: set[Handle] = set()
-        # V37 (CR 724.1c): while an effect ends the turn, state-based actions
+        # CR 724.1c: while an effect ends the turn, state-based actions
         # are checked but no triggered ability is put onto the stack; the
         # firings stay queued for the cleanup step (724.1f). Set and cleared
         # inside one Executor call, so never set between ops.
@@ -440,7 +403,7 @@ class TriggerBinder:
 
     def _controller_of(self, handle: Handle, event: GameEvent | None = None) -> Handle:
         """The trigger controller: the world's battlefield controller, or
-        for an emblem's synthetic handle (never a world card — 13c) the
+        for an emblem's synthetic handle (never a world card) the
         recorded OWNER. The emblem's "you" is its owner for every event
         match (CR 113.7 the emblem is controlled by its owner). Matched on
         ``event``, the object's own departure from the battlefield, it is the
@@ -452,20 +415,20 @@ class TriggerBinder:
         lki = departure_lki(handle, event, self.executor)
         if lki is not None:
             return lki.controller
-        # 16e: triggers ride the CURRENT controller (CR 603.7b).
+        # triggers ride the CURRENT controller (CR 603.7b).
         return self.executor.controller_of(handle)
 
     def bind_emblem(self, handle: Handle, record: CardRecord, owner: Handle) -> int:
-        """13c: bind a granted emblem's ability nodes. The emblem record is
+        """Bind a granted emblem's ability nodes. The emblem record is
         a token-shaped CardRecord (the compiler normalises emblem→token):
         TriggeredAbility nodes bind at (handle, idx) with the OWNER as
         controller (via :meth:`_controller_of`), StaticAbility nodes attach
         to the layer registry ANCHORED TO THE OWNER (Liliana's emblem
         grants haste to "creatures you control" — its ``you`` is the
         owner), and the synthetic handle never touches world zones, the
-        loyalty seed, or the castable-card surfaces (:func:
-        `legality.legal_activations` iterates world cards, so it can never
-        see this handle)."""
+        loyalty seed, or the castable-card surfaces
+        (:func:`legality.legal_activations` iterates world cards, so it can
+        never see this handle)."""
         triggers = []
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
@@ -477,20 +440,19 @@ class TriggerBinder:
         self.emblem_owner[handle] = owner
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
-        # 16c: same attach order as _register (replacements first - its
+        # Same attach order as _register (replacements first - its
         # idempotence sweep must not expire the layers' static prevents).
         self.executor.replacements.attach_source(handle, record)
         self.executor.layers.attach_source(handle, record, controller=owner)
         return len(triggers)
 
     def register_token(self, handle: Handle, record: CardRecord) -> None:
-        """16c (the token half of the /13 binder gap): file the token's
-        synthesized record under its synthetic oracle id and attach it to
-        the HANDLE, so the battlefield ZONE_CHANGE row's lifecycle regis-
-        tration (the SAME :meth:`_lifecycle` path a printed permanent uses)
-        finds a record and binds the token's rule lines — the Pursued
-        Whale Pirate's "can't block" prevention and the mandate layer its
-        "creatures you control attack if able" static becomes, anchored to
+        """File the token's synthesized record under its synthetic oracle id
+        and attach it to the HANDLE, so the battlefield ZONE_CHANGE row's
+        lifecycle registration (the SAME :meth:`_lifecycle` path a printed
+        permanent uses) finds a record and binds the token's rule lines — the
+        Pursued Whale Pirate's "can't block" prevention and the mandate layer
+        its "creatures you control attack if able" static becomes, anchored to
         the token's CONTROLLER. Pure registration: the world card already
         exists (CREATE_TOKEN put it there); no zones, no loyalty seed."""
         if handle not in self.world.cards:
@@ -552,7 +514,7 @@ class TriggerBinder:
         return count
 
     def _register_graveyard(self, handle: Handle, record: CardRecord) -> int:
-        """V30 (CR 113.6m): bind the record's graveyard-only triggers while the
+        """CR 113.6m: bind the record's graveyard-only triggers while the
         card is in a graveyard."""
         n = 0
         for idx, ability in enumerate(record.abilities):
@@ -565,7 +527,7 @@ class TriggerBinder:
 
     def _register(self, handle: Handle, record: CardRecord) -> int:
         """Bind the record's TriggeredAbility nodes at (handle, idx), and
-        12d: register the record's CONTINUOUS half (KeywordAbility +
+        register the record's CONTINUOUS half (KeywordAbility +
         StaticAbility nodes → the layer registry; ReplacementAbility nodes
         → the replacement registry) — one battlefield lifecycle for every
         ability shape. Check-then-commit: an unsupported event kind raises
@@ -576,12 +538,12 @@ class TriggerBinder:
             if isinstance(ability, TriggeredAbility):
                 self._check_event(ability.event, record.name)
                 if functions_from_graveyard(ability):
-                    continue  # V30, CR 113.6m: it does not function here
+                    continue  # CR 113.6m: it does not function here
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
-        # 13a loyalty ledger: the frozen CardState has no loyalty field, so
+        # Loyalty: the frozen CardState has no loyalty field, so
         # the printed CardIdentity.loyalty is seeded into the counters map
         # (CounterKind.LOYALTY) at battlefield registration — the one path
         # covering BOTH first attach and re-entry (the lifecycle re-registers
@@ -595,7 +557,7 @@ class TriggerBinder:
                 printed = 0
             if printed:
                 state.counters.setdefault(CounterKind.LOYALTY.name, printed)
-        # 16c ORDER MATTERS: replacements.attach_source opens with its own
+        # ORDER MATTERS: replacements.attach_source opens with its own
         # detach_source sweep (its idempotence rule), which would expire
         # the PreventionRecords that layers.attach_source registers for a
         # static PREVENT_EFFECT carrier (the Pursued Whale token's "can't
@@ -608,15 +570,15 @@ class TriggerBinder:
     def detach(self, handle: Handle, *, leaving: bool = True) -> int:
         """Battlefield departure: drop the handle's live bindings (the
         oracle-id record stays, ready for the re-entry re-registration) —
-        and 12d: its continuous layers and replacement records expire with
+        and its continuous layers and replacement records expire with
         it (their durations govern separately for records the permanent
         GRANTED elsewhere).
 
-        16e: ``leaving=False`` is the ATTACH-side idempotent refresh
+        ``leaving=False`` is the ATTACH-side idempotent refresh
         (attach_card/_register clear-then-rebind a handle that is
         ARRIVING, not departing). For a trigger-less permanent — an aura
         with only a StaticAbility — that refresh runs from _lifecycle AFTER
-        the cast already attached its aura edge, and the 13c departure
+        the cast already attached its aura edge, and the departure
         sweep below would erase it, feeding the CR 704.5q SBA a false
         unattached read. The attachment drop belongs to DEPARTURES only."""
         keys = [key for key in self.attached if key[0] == handle]
@@ -626,14 +588,13 @@ class TriggerBinder:
             self.executor.layers.detach_source(handle)
             self.executor.replacements.detach_source(handle)
             return len(keys)
-        # 13c: attachment is battlefield-to-battlefield (CR 303.4c/117.12 —
+        # Attachment is battlefield-to-battlefield (CR 303.4c/117.12 —
         # when either side of an aura/equipment pair leaves, the attachment
         # relationship ends). The executor's attachment table drops every
-        # edge touching the departing handle. (Emblems never detach: an
-        # emblem cannot leave the battlefield/ownership in the rules — no
-        # code path calls detach on an emblem handle.)
+        # edge touching the departing handle. (An emblem never departs:
+        # only bind_emblem's leaving=False refresh detaches one.)
         ex = self.executor
-        # r20c (Malefic Scythe): LKI capture BEFORE the prune — the edges
+        # Malefic Scythe: LKI capture BEFORE the prune — the edges
         # this sweep kills are the departing host's attachment truth for
         # the CREATURE_DIES row that follows the ZONE_CHANGE row in the
         # same journal batch (see Executor.detach_lki).
@@ -656,15 +617,8 @@ class TriggerBinder:
                 f"executor: {card_name} trigger event {kind.__name__} is "
                 f"{_UNSUPPORTED_EVENTS[kind]}"
             )
-        if isinstance(event, DamageDealtEvent):
-            # 16c: the source filter and the combat scope are CONSUMED at
-            # match time (the DAMAGE row's dealer/cause and the combat
-            # flag), so a scoped node like Garruk's Harbinger's or Subira's
-            # delayed tail binds clean — the pre-16c bind-time raise is
-            # retired with its consumers.
-            return
         if isinstance(event, DeclareBlockersEvent) and event.count is not None:
-            # 2026-11-06: only the blocker-limit prevention reads the count (a block row is
+            # only the blocker-limit prevention reads the count (a block row is
             # one pair, so a trigger matched on it would ignore the count)
             raise NotImplementedError(
                 f"executor: {card_name} trigger event DeclareBlockersEvent with a blocker "
@@ -688,7 +642,7 @@ class TriggerBinder:
         same pass in journal order: a permanent ENTERING re-registers
         before matching (its own ETB trigger is live — IS_SOURCE sees it),
         a permanent LEAVING detaches only after matching (its own dies
-        trigger still fires). ``upto`` (V37) stops before that journal
+        trigger still fires). ``upto`` stops before that journal
         position; it always falls between two atom boundaries, so it never
         splits a zone change from its dies row."""
         events = self.executor.journal.events
@@ -699,8 +653,7 @@ class TriggerBinder:
             self._lifecycle(event, attach=True)
             # Matching one event moves no card (queueing only appends trigger
             # instances), so each source's controller is looked up once per
-            # event: the per-card lookups were ~70% of this pass (2026-11-04
-            # profile, KNOWLEDGE/2026-11-03/183 §24).
+            # event: per-card lookups dominated this pass.
             ctrl_of: dict = {}
             for (handle, _idx), ability in sorted(
                 [*self.attached.items(), *self.attached_graveyard.items()],
@@ -709,11 +662,10 @@ class TriggerBinder:
                 ctrl = self._controller_memo(ctrl_of, handle, event)
                 if self._match_node(ability.event, event, handle, ctrl):
                     self._queue(handle, ctrl, ability, event)
-            # r20a (wave-3): GRANTED triggers. A StaticAbility GRANT_ABILITY
-            # layer parks its TriggeredAbility row in the layer registry —
-            # the ``attached`` map above only walks the card's PRINTED rows,
-            # so Light of Promise's granted life trigger and Infernal
-            # Scarring's granted dies-draw were compile-but-never-drain.
+            # GRANTED triggers. A StaticAbility GRANT_ABILITY layer parks its
+            # TriggeredAbility row in the layer registry — the ``attached``
+            # map above only walks the card's PRINTED rows (Light of
+            # Promise's granted life trigger lives here).
             # No battlefield gate, mirroring the attached loop's lifecycle:
             # the dies row must still see the grant while the aura is on.
             # Determinism: Handle order, then the registry's layer-seq order.
@@ -729,7 +681,7 @@ class TriggerBinder:
                         node.event, event, host, ctrl
                     ):
                         self._queue(host, ctrl, node, event)
-            # r20a: KEYWORD triggers (PROWESS / BATTALION). The compiler
+            # KEYWORD triggers (PROWESS / BATTALION). The compiler
             # folds printed keywords into CardRecord.keywords with NO
             # ability row (Blood Glutton compiles with an EMPTY abilities
             # tuple), so the engine constructs the canonical node itself —
@@ -758,24 +710,16 @@ class TriggerBinder:
                         entry.source, entry.controller, entry.node, event, delayed=True
                     )
             self._lifecycle(event, attach=False)
-        # r22a defensive flush: record_atom always journalled the pair, so
-        # a pending handle should never outlive the pass. If a hand-built
-        # journal row (a test, or a future verb) ever splits the ZC/CD
-        # twins across drains, the invariant "a departed permanent is
-        # detached by the end of the pass" still holds.
-        for handle in sorted(self._pending_dies_detach):
-            self.detach(handle)
-        self._pending_dies_detach.clear()
 
     def _lifecycle(self, event: GameEvent, attach: bool) -> None:
         if event.kind == KIND_CREATURE_DIES and not attach:
-            # r22a: the dies row was MATCHED above with the leaver still
+            # The dies row was MATCHED above with the leaver still
             # attached (the ZONE_CHANGE row deferred its detach here), so
             # the dead card's own "when this dies" trigger queued its
             # firing. The departure now runs — still BEFORE any
             # resolution: firings drain in a later settle round, and
             # detach_lki is read at RESOLUTION time (quantity.py), so
-            # the r20c LKI lane is untouched by the deferral.
+            # the LKI lane is untouched by the deferral.
             handle = event.subject
             if handle is not None and handle in self._pending_dies_detach:
                 self._pending_dies_detach.discard(handle)
@@ -790,10 +734,10 @@ class TriggerBinder:
             if record is None and handle in self.world.cards:
                 record = self.records.get(self.world.cards[handle].identity.oracle_id)
             if record is not None:
-                self._register_graveyard(handle, record)  # V30
+                self._register_graveyard(handle, record)  # CR 113.6m
         if not attach and from_state == ZONE_GRAVEYARD and to_state != ZONE_GRAVEYARD:
             for key in [k for k in self.attached_graveyard if k[0] == handle]:
-                del self.attached_graveyard[key]  # V30: it left the graveyard
+                del self.attached_graveyard[key]  # it left the graveyard
         if attach:
             if to_state == ZONE_BATTLEFIELD:
                 record = self.handle_record.get(handle)
@@ -802,9 +746,9 @@ class TriggerBinder:
                     # A dealt card an effect moves here (a fetched or ramped land) was never
                     # cast or played, so nothing bound its record (attach_pool runs before
                     # the decks are dealt): bind it by oracle id, as graveyard entry does.
-                    # Until 2026-11-06 such a permanent had no abilities (CR 113.6). Not a
-                    # token: its record comes only from CREATE_TOKEN, and the id is its name's
-                    # hash, so the registry would give a vanilla token another's abilities.
+                    # Not a token: its record comes only from CREATE_TOKEN, and the id is
+                    # its name's hash, so the registry would give a vanilla token another's
+                    # abilities.
                     record = self.records.get(card.identity.oracle_id)
                     if record is not None:
                         self.handle_record[handle] = record
@@ -813,12 +757,12 @@ class TriggerBinder:
                 ):
                     self._register(handle, record)
         elif from_state == ZONE_BATTLEFIELD and to_state != ZONE_BATTLEFIELD:
-            # r22a: record_atom journalled this card's CREATURE_DIES row
-            # immediately after this row (same diff iteration) — defer the
+            # When record_atom journalled this card's CREATURE_DIES row
+            # immediately after this row (same diff iteration), defer the
             # detach to it so the IS_SOURCE dies trigger is still attached
             # when its own event is matched. Any other departure (bounce,
             # exile, hand, or a graveyard move with no dies twin) detaches
-            # on the spot, exactly as before.
+            # on the spot.
             events = self.executor.journal.events
             nxt = (
                 events[self._seen_journal_len]
@@ -844,7 +788,7 @@ class TriggerBinder:
         delayed: bool = False,
     ) -> None:
         if source in self.quarantined:
-            # r23a tripwire guard: a flagged loop source never queues
+            # Tripwire guard: a flagged loop source never queues
             # again this game (its firing was already recorded loudly in
             # executor.trigger_loops).
             return
@@ -859,7 +803,7 @@ class TriggerBinder:
             and event.kind == KIND_DECLARE_ATTACKERS
             and isinstance(node.event, DeclareAttackersEvent)
         ):
-            # CR 603.2 once-per-declaration (16b): the per-attacker row
+            # CR 603.2 once-per-declaration: the per-attacker row
             # fan-out must queue ONE instance per ability per declare
             # group — Tide Skimmer's "attack with two or more" fires once,
             # a per-creature IS_SOURCE filter still fires once (its own
@@ -877,8 +821,8 @@ class TriggerBinder:
         ):
             # CR 510.2, 603.2c: a combat damage step deals all its damage at once, as
             # one event, so "whenever this creature is dealt damage" triggers once
-            # however many creatures dealt it damage (Sporeweb Weaver's ruling,
-            # 2020-06-23), and "that much damage" is all of it (Brash Taunter). A
+            # however many creatures dealt it damage (Sporeweb Weaver's ruling),
+            # and "that much damage" is all of it (Brash Taunter). A
             # trigger that names the dealer ("a source you control deals", "this
             # creature deals combat damage to a player") triggers per source, row by
             # row. Any other DAMAGE row is a whole event already: one DEAL_DAMAGE
@@ -916,13 +860,13 @@ class TriggerBinder:
         )
         self.firings[instance.clock] = payload
         if not additional:
-            # T5-D (Sanctum of All "whenever another Shrine you control's
+            # Sanctum of All ("whenever another Shrine you control's
             # ability triggers"): an ordinary queued firing feeds every
             # AbilityTriggerEvent subscriber in a SYNTHETIC match pass --
-            # no journal row is written (fingerprints byte-stable), and
-            # `additional` firings (CR 603.2e: an extra trigger has no
-            # triggering event) never feed it again, which is what keeps
-            # two extra-trigger carriers from chasing each other.
+            # no journal row is written, and `additional` firings (CR
+            # 603.2e: an extra trigger has no triggering event) never feed
+            # it again, which is what keeps two extra-trigger carriers from
+            # chasing each other.
             self._fan_ability_triggers(payload)
 
     def _combat_damage_event(self, event: GameEvent) -> GameEvent | None:
@@ -943,7 +887,7 @@ class TriggerBinder:
         return replace(event, data=(sum(e.amount for e in rows), *event.data[1:]))
 
     def _fan_ability_triggers(self, payload: _Firing) -> None:
-        """T5-D: queue one firing per AbilityTriggerEvent subscriber whose
+        """Queue one firing per AbilityTriggerEvent subscriber whose
         filter matches the triggering ability's SOURCE permanent, in the
         subscriber's coordinates (IS_SOURCE = the subscriber, so "another"
         is the filter's own FNot(IS_SOURCE)). The synthetic event carries
@@ -955,7 +899,7 @@ class TriggerBinder:
         effect does not apply to instances of itself, which is what keeps
         two carriers from chasing each other (each adds its one extra per
         ORIGINAL firing; the extras carry no triggering event)."""
-        effect = getattr(payload.node, "effect", None)
+        effect = payload.node.effect
         if isinstance(effect, Atom) and effect.verb is Verb.TRIGGER_ADDITIONAL:
             return
         subscribers = [
@@ -976,12 +920,12 @@ class TriggerBinder:
                 cause_verb="TRIGGER",
                 data=(payload,),
             )
-            ctx = self._match_ctx(handle, ctrl, synth)
+            ctx = self._ctx(handle, ctrl, synth)
             if eval_filter(ability.event.filter, payload.source, ctx):
                 self._queue(handle, ctrl, ability, synth)
 
     def _keyword_node(self, family: str, handle: Handle) -> TriggeredAbility:
-        """r20a: the canonical compiled-shape node for a printed keyword
+        """The canonical compiled-shape node for a printed keyword
         trigger, built ONCE per (family, holder) and cached — the cache
         keeps ``id(node)`` stable for the CR 603.2 declare-dedup. The
         shapes mirror the frozen-IR precedent (Quirion Dryad's compiled
@@ -1069,7 +1013,7 @@ class TriggerBinder:
     ) -> bool:
         """Does one IR event-spec node subscribe to one journalled event?
         Filters and counts evaluate in a match ctx (source = the bound
-        permanent, controller = its controller) via the 12a evaluator —
+        permanent, controller = its controller) via the shared evaluator —
         unsupported preds/quantities raise through it (flag, don't degrade)."""
         kind = event.kind
         if kind == KIND_ZONE_CHANGE:
@@ -1080,10 +1024,10 @@ class TriggerBinder:
             return False
         if kind == KIND_CREATURE_DIES and isinstance(node, CreatureDiesEvent):
             assert event.subject is not None  # the journal always names the dead
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return eval_filter(node.filter, event.subject, ctx)
         if kind == KIND_CARD_DRAWN and isinstance(node, CardDrawnEvent):
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             drawer, ordinal = event.draw
             if node.actor is not None and not eval_filter(node.actor, drawer, ctx):
                 return False
@@ -1094,34 +1038,31 @@ class TriggerBinder:
             if node.tapped != event.tapped_new:
                 return False
             assert event.subject is not None
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return eval_filter(node.filter, event.subject, ctx)
         if kind == KIND_TURN_PHASE and isinstance(node, TurnPhaseEvent):
             phase_name, active = event.phase
             if node.phase.name != phase_name:
                 return False
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, active, ctx)
         if kind == KIND_DECLARE_ATTACKERS and isinstance(node, DeclareAttackersEvent):
-            # 16b: the attack feed. The filter reads the DECLARED creature
+            # The attack feed. The filter reads the DECLARED creature
             # (IS_SOURCE = "whenever this creature attacks"); the optional
-            # ``attacked`` filter (R10-3) reads the attacker's ATTACKED
+            # ``attacked`` filter reads the attacker's ATTACKED
             # object off the executor's attack record: the defending player
-            # or a planeswalker that player controls (V41, CR 508.1b).
+            # or a planeswalker that player controls (CR 508.1b).
             assert event.subject is not None  # the row names the attacker
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             if node.attacked is not None:
                 attacked = self.executor.attacked.get(event.subject)
                 if attacked is None or not eval_filter(node.attacked, attacked, ctx):
                     return False
             return eval_filter(node.filter, event.subject, ctx)
-        # R2 fold (/140): the KIND_COMBAT_DAMAGE / CombatDamageEvent branch
-        # is GONE — folded combat triggers read the DAMAGE rows here
-        # (kind == KIND_DAMAGE, _match_damage, node.combat gating).
         if kind == KIND_DECLARE_BLOCKERS and isinstance(
             node, (DeclareBlockersEvent, BecomesBlockedEvent)
         ):
-            # 16c: the block feed, ONE row per declaration pair (subject =
+            # The block feed, ONE row per declaration pair (subject =
             # the BLOCKER, data = (attacker, group)). A DeclareBlockers-
             # Event node reads filter/SUBJECT over the blocker and the
             # BLOCKED slot over the attacker (Snarespinner's "blocks a
@@ -1133,7 +1074,7 @@ class TriggerBinder:
             # gives the node no subject field of its own, the event name
             # carries the anchor.
             assert event.subject is not None  # the row names the blocker
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             blocker = event.subject
             attacker, _group = event.declare_blockers
             if isinstance(node, DeclareBlockersEvent):
@@ -1153,7 +1094,7 @@ class TriggerBinder:
             return self._match_damage(node, event, source, controller)
         if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):
             assert event.subject is not None  # the gaining player
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, event.subject, ctx)
         if (
             isinstance(node, LifeLostEvent)
@@ -1161,11 +1102,11 @@ class TriggerBinder:
             and event.subject is not None
             and event.subject.namespace == "player"
         ):
-            # 2026-11-05: life lost, the LifeGainedEvent twin. A player is dealt
+            # Life lost, the LifeGainedEvent twin. A player is dealt
             # damage by losing that much life (CR 120.3a; the DAMAGE row of a
             # player is journalled from the life change), and every other loss,
             # a payment included (CR 119.4), is a LIFE_LOST row.
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             return node.actor is None or eval_filter(node.actor, event.subject, ctx)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
             return self._match_cast(node, event, source, controller)
@@ -1174,15 +1115,15 @@ class TriggerBinder:
             and event.cause_verb == "TARGET"
             and isinstance(node, TargetingEvent)
         ):
-            # r20b (Warden of the Woods): the designation feed — the filter
+            # Warden of the Woods: the designation feed — the filter
             # reads the DESIGNATED object (IS_SOURCE = "whenever THIS
             # becomes the target of a spell or ability"). A PLAYER subject
             # (a Duress-shaped cast) is answered with the same honest
             # three-valued shape as the damage lane: card-shape preds are
-            # FALSE outright, undecidable preds keep the 12c raise.
+            # FALSE outright, undecidable preds raise.
             assert event.subject is not None  # the row names its object
-            ctx = self._match_ctx(source, controller, event)
-            # R5-6: the actor filter reads the targeting spell's or ability's
+            ctx = self._ctx(source, controller, event)
+            # The actor filter reads the targeting spell's or ability's
             # controller, journalled as data[1] (events.emit_targeting) — "a
             # spell or ability an opponent controls" (Warden of the Woods).
             if node.actor is not None:
@@ -1191,21 +1132,19 @@ class TriggerBinder:
                 if not eval_filter(node.actor, actor, ctx):
                     return False
             if event.subject.namespace == "player":
-                if _is_universal(node.filter):
-                    return True
                 if _is_subject_identity(node.filter):
                     return False
                 return _player_subject_verdict(node.filter, event.subject, ctx)
             return eval_filter(node.filter, event.subject, ctx)
         if kind == KIND_ABILITY_ACTIVATED and isinstance(node, AbilityActivatedEvent):
-            # R5-7 (r22c's loyalty feed, generalised): one row per
-            # activation. ``kind`` reads the row's own classification, made
-            # at activation time by the one 605.1a classifier: NON_MANA
-            # skips mana abilities, LOYALTY keeps only abilities that paid a
-            # loyalty symbol (CR 606.2, a [0] included). ``actor`` reads the
+            # One row per activation. ``kind`` reads the row's own
+            # classification, made at activation time by the one CR 605.1a
+            # classifier: NON_MANA skips mana abilities, LOYALTY keeps only
+            # abilities that paid a loyalty symbol (CR 606.2, a [0]
+            # included). ``actor`` reads the
             # ACTIVATING player (the row's cause), ``source`` the object
-            # whose ability it is (Keral's "a Chandra planeswalker" — a
-            # Basri row evaluates FALSE here, the negative half of the pack).
+            # whose ability it is (Keral Keep Disciples' "a Chandra
+            # planeswalker" — a Basri row evaluates FALSE here).
             assert event.subject is not None  # the row names the object
             assert event.cause is not None  # the row names its activator
             _idx, mana, loyalty = event.activation
@@ -1213,7 +1152,7 @@ class TriggerBinder:
                 return False
             if node.kind is AbilityKind.LOYALTY and loyalty is None:
                 return False
-            ctx = self._match_ctx(source, controller, event)
+            ctx = self._ctx(source, controller, event)
             if node.actor is not None and not eval_filter(node.actor, event.cause, ctx):
                 return False
             return eval_filter(node.source, event.subject, ctx)
@@ -1222,7 +1161,7 @@ class TriggerBinder:
     def _match_cast(
         self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
     ) -> bool:
-        """13b: the CAST feed — CR 603.2's "whenever you cast" half. The
+        """The CAST feed — CR 603.2's "whenever you cast" half. The
         journalled tuple (``GameEvent.cast``) carries (caster, per-turn
         ordinal, spell kind, from-zone, X): ``controller`` scopes whose
         cast (OPPONENT = "an opponent casts" — Mangara, Ghostly Pilferer),
@@ -1230,16 +1169,16 @@ class TriggerBinder:
         spells the node describes (:meth:`_fitting_cast_ordinal` — "whenever
         you cast your second spell", Double Vision's first instant or sorcery
         ordinal 1), and the zone pair
-        is mutually exclusive in the grammar (R4-3): ``from_zone`` must
+        is mutually exclusive in the grammar: ``from_zone`` must
         equal the cast's source zone, ``from_zone_not`` EXCLUDES it
         (Ghostly Pilferer: "from anywhere other than their hand" — a zone
         whose controller ref scopes the caster, not the zone's owner: the
         cast came from the caster's zones). The filter reads the SPELL
         card (subject of the CAST row) — TYPE_EQ/SUBTYPE_EQ/COLOR_HAS over
         it; Quirion Dryad's "a spell that's white, blue, black, or red" is
-        the FOr of COLOR_HAS W/U/B/R (V39: any of them, CR 105.2)."""
+        the FOr of COLOR_HAS W/U/B/R (any of them, CR 105.2)."""
         caster = event.cast[0]
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if node.actor is not None and not eval_filter(node.actor, caster, ctx):
             return False
         if not self._cast_fits(node, event, source, controller):
@@ -1254,7 +1193,7 @@ class TriggerBinder:
         """Does one CAST row's spell fit the node's spell description: its
         from-zone pair and its filter (the SPELL card is the row's subject)?"""
         caster, _ordinal, _kind, from_zone, _x, _kicked = event.cast
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if node.from_zone is not None and not self._cast_zone_matches(
             node.from_zone, caster, from_zone, ctx
         ):
@@ -1264,10 +1203,10 @@ class TriggerBinder:
         ):
             return False
         assert event.subject is not None  # the CAST row names the spell card
-        # 2026-11-05 (Gnarlback Rhino, "whenever you cast a spell that targets this
+        # Gnarlback Rhino ("whenever you cast a spell that targets this
         # creature"): TARGETS_SOURCE asks whether the judged spell targets the filter's
         # source, and reads the ``target`` binding (quantity._eval_atom). This ctx is the
-        # trigger's own, so it had none and the filter never matched: the cast spell's
+        # trigger's own, which binds no target, so the cast spell's
         # declared targets (its stack frame, CR 601.2c) are bound here.
         ctx.bindings["target"] = next(
             (
@@ -1282,10 +1221,10 @@ class TriggerBinder:
     def _fitting_cast_ordinal(
         self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle
     ) -> int:
-        """The ordinal a CastSpellEvent's ``ordinal`` compares with (ontology
-        R5 engine item, Double Vision): the number of spells THIS caster cast
-        this turn that fit the node's description, up to and including this
-        one. "Your first instant or sorcery spell each turn" is the first
+        """The ordinal a CastSpellEvent's ``ordinal`` compares with (Double
+        Vision): the number of spells THIS caster cast this turn that fit
+        the node's description, up to and including this one. "Your first
+        instant or sorcery spell each turn" is the first
         instant or sorcery, so a creature cast before it does not use it up;
         the journal row's own ordinal counts every spell, which is exactly
         this count for an unfiltered node (Mangara's "second spell"). The
@@ -1317,11 +1256,6 @@ class TriggerBinder:
             return True
         return controller_matches(zone_ir.controller, caster, ctx)
 
-    def _match_ctx(
-        self, source: Handle, controller: Handle, event: GameEvent
-    ) -> ExecCtx:
-        return self._ctx(source, controller, event)
-
     def _match_zone_change(
         self,
         node: ZoneChangeEvent,
@@ -1330,7 +1264,7 @@ class TriggerBinder:
         controller: Handle,
     ) -> bool:
         from_state, to_state, owner_before, owner_after = event.zone_move
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if not self._zone_matches(node.from_zone, from_state, owner_before, ctx):
             return False
         if not self._zone_matches(node.to_zone, to_state, owner_after, ctx):
@@ -1376,7 +1310,7 @@ class TriggerBinder:
         ):
             return False
         assert owner_before is not None  # a battlefield move has an owner
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         return node.actor is None or eval_filter(node.actor, owner_before, ctx)
 
     def _match_counter(
@@ -1390,7 +1324,7 @@ class TriggerBinder:
         if node.counter_kind.name != kind_name:
             return False
         assert event.subject is not None
-        ctx = self._match_ctx(source, controller, event)
+        ctx = self._ctx(source, controller, event)
         if not eval_filter(node.filter, event.subject, ctx):
             return False
         if node.count is None:
@@ -1405,13 +1339,12 @@ class TriggerBinder:
         controller: Handle,
     ) -> bool:
         subject = event.subject
-        ctx = self._match_ctx(source, controller, event)
-        # 16c: the node's SCOPE fields are consumed (Garruk's Harbinger's
-        # "deals combat damage to a player" and Subira's delayed tail both
-        # compile ``combat: true`` + a ``source`` filter over the DEALER;
-        # pre-16c the matcher ignored them and the trigger fired on ANY
-        # damage event). The DAMAGE row carries the dealer as ``cause``
-        # and the combat flag as the optional second data element.
+        ctx = self._ctx(source, controller, event)
+        # The node's SCOPE fields: Garruk's Harbinger's "deals combat damage
+        # to a player" and Subira's delayed tail both compile ``combat: true``
+        # + a ``source`` filter over the DEALER. The DAMAGE row carries the
+        # dealer as ``cause`` and the combat flag as the optional second data
+        # element.
         if node.combat is not None and event.is_combat != node.combat:
             return False
         if node.source is not None:
@@ -1419,15 +1352,13 @@ class TriggerBinder:
             if dealer is None or not eval_filter(node.source, dealer, ctx):
                 return False
         if subject is not None and subject.namespace == "player":
-            if _is_universal(node.filter):
-                return True
             if _is_subject_identity(node.filter):
-                return False  # 16a: a player is never the source CARD (Brash)
-            # r20b (Hooded Blightfang): the player-damage row must be
+                return False  # a player is never the source CARD (Brash Taunter)
+            # Hooded Blightfang: the player-damage row must be
             # ANSWERABLE by a card-shape filter — the Blightfang's "deals
             # combat damage to a planeswalker" node reads SUPERTYPE_EQ over
             # its subject, and a player is honestly not one: FALSE, not a
-            # crash. Undecidable preds keep the 12c raise.
+            # crash. Undecidable preds raise.
             return _player_subject_verdict(node.filter, subject, ctx)
         assert subject is not None  # a damage event always names its subject
         return eval_filter(node.filter, subject, ctx)
@@ -1437,36 +1368,35 @@ class TriggerBinder:
     def fire_all(self, between: Callable[[], object] | None = None) -> int:
         """Drain the world's trigger queue in stack order (:meth:`_pop_next`:
         newest batch, then reverse APNAP, then trigger order; CR 603.3b).
-        Every firing runs through the 12a effect runner, whose journalled
-        events queue the next batch; loop until empty — the r23a tripwire
-        guard QUARANTINES a self-retriggering source (recorded in the
-        executor's trigger_loops ledger) and the drain continues.
-        14b (B-4 ruling): the drain consumes NO positional stream
-        — every demand a firing makes reaches the executor's
+        Every firing runs through the executor's effect runner, whose
+        journalled events queue the next batch; loop until empty — the
+        tripwire guard QUARANTINES a self-retriggering source (recorded in
+        the executor's trigger_loops ledger) and the drain continues.
+        The drain consumes NO positional stream — every demand a firing
+        makes reaches the executor's
         vocabulary-addressed decision channel (per-(vocab, what) FIFO /
         ask-time provider), so a trigger the op itself armed mid-drain is
         answerable exactly like one that was already pending.
-        W4-4 (CR 117.5, 704.3): ``between`` runs after each firing. The
+        CR 117.5, 704.3: ``between`` runs after each firing. The
         settle passes the state-based-action check, so the next trigger
         resolves only after the actions the last one made necessary (a
         creature it dealt lethal damage dies first)."""
         if self.hold:
-            return 0  # V37, CR 724.1c: no triggered ability is put onto the stack
+            return 0  # CR 724.1c: no triggered ability is put onto the stack
         fired = 0
         per_source: dict[Handle, int] = {}
         while self.world.triggers:
             if fired >= MAX_TRIGGER_FIRES:
-                # r23a (Chandra's Incinerator, games seeds 17/50): the
-                # tripwire GUARDS instead of killing the game. The culprit
+                # The tripwire GUARDS rather than kill the game. The culprit
                 # is the source this drain fired MOST — its effect's own
-                # events re-arm it (an Incinerator "whenever you deal
+                # events re-arm it (Chandra's Incinerator's "whenever you deal
                 # noncombat damage" trigger eating its own damage row).
                 # QUARANTINE it: drop its queued instances, block its
                 # _queue for the rest of the game, record the event loudly
                 # in executor.trigger_loops — "flag it, never run it" —
-                # and continue the drain with everything else. Only an
-                # eighth distinct runaway in ONE game re-raises: then the
-                # state itself is the anomaly, not a card.
+                # and continue the drain with everything else. With eight
+                # sources already quarantined in ONE game the next runaway
+                # raises: then the state itself is the anomaly, not a card.
                 culprit = next(
                     (
                         src
@@ -1498,9 +1428,7 @@ class TriggerBinder:
                 fired = 0
                 continue
             instance = self._pop_next()
-            payload = self.firings.pop(instance.clock, None)
-            if payload is None:  # pragma: no cover - instances only via _queue
-                continue
+            payload = self.firings.pop(instance.clock)
             self._fire(payload)
             per_source[instance.source] = per_source.get(instance.source, 0) + 1
             fired += 1
@@ -1510,7 +1438,7 @@ class TriggerBinder:
         return fired
 
     def pending_references(self) -> frozenset[Handle]:
-        """W4-4: the objects the queued firings still name: their source and their
+        """The objects the queued firings still name: their source and their
         event's subject and cause. A token that left the battlefield stays in the
         world (as its own last-known information) until the triggers its leaving
         caused have resolved; see ``Executor._cease_tokens``."""
@@ -1541,13 +1469,9 @@ class TriggerBinder:
         then the player last in APNAP order (the non-active player of a duel), then that
         player's own triggers in the order they triggered (the engine does not ask for that
         order: it is the one a player putting them on the stack newest-first would get),
-        Handle and bind order breaking ties. The drain used to sort by seat index, so seat
-        0's triggers resolved first whoever was active, and a mutual-lethal pair of dies
-        triggers always went to seat 0."""
+        Handle and bind order breaking ties."""
         def key(t):
-            payload = self.firings.get(t.clock)
-            if payload is None:  # pragma: no cover - instances only via _queue
-                return (0, 0, t.clock, str(t.source), -1)
+            payload = self.firings[t.clock]
             return (-payload.batch, -payload.apnap, t.clock, str(t.source), payload.seq)
 
         chosen = min(self.world.triggers, key=key)
@@ -1556,7 +1480,7 @@ class TriggerBinder:
         return chosen
 
     def cease_triggered_before(self, mark: int) -> int:
-        """V37, CR 724.1a: when an effect ends the turn, the abilities that
+        """CR 724.1a: when an effect ends the turn, the abilities that
         triggered before that process began and were never put onto the
         stack cease to exist. The journal rows before ``mark`` (where the
         END_TURN atom ran) are matched first, so the attach/detach lifecycle
@@ -1586,25 +1510,24 @@ class TriggerBinder:
 
     def _fire(self, payload: _Firing) -> None:
         """One trigger resolution: the condition gate (CR 603.4's second
-        check), the 18b TARGET-designation channel, then the effect. May-offers
-        ask the executor's decision stream (14b, B-4)."""
+        check), the TARGET-designation channel (:meth:`_designate`), then the
+        effect. May-offers ask the executor's decision stream."""
         event = payload.event
         ctx = self._ctx(payload.source, payload.controller, event)
-        # r21b (Basri Ket's -2): a DECLARE_ATTACKERS firing records its WHOLE
-        # declaration group — every journalled attacker row sharing the
-        # event's group id — into a dedicated ``declare_attackers`` register.
+        # Basri Ket's -2: a DECLARE_ATTACKERS firing records the attackers of
+        # its declaration group into a dedicated ``declare_attackers`` register.
         # The granted "whenever … attacks, create a token" continuation
         # counts the attackers with THAT_MANY_COUNT, whose primary reading
         # is the in-resolution ``result`` register (Kinetic Augur's
-        # precedence, untouched); the group register is the fallback that
+        # precedence); the group register is the fallback that
         # answers when the trigger itself IS the antecedent (no producer
         # atom ran in this resolution). Rows are journalled at declaration
-        # time, before the matcher drains any firing (16b's group dedup
-        # already relies on that ordering), so the group is complete here.
+        # time, before the matcher drains any firing (the CR 603.2 group dedup
+        # relies on that ordering too), so the group is complete here.
         if event.kind == KIND_DECLARE_ATTACKERS and event.subject is not None:
             group = event.declare_group
             spec = payload.node.event
-            # W4-1 (CR 603.2c): "Whenever one or more NONTOKEN creatures attack
+            # CR 603.2c: "Whenever one or more NONTOKEN creatures attack
             # this turn, create that many ..." (Basri Ket's -2): the antecedent
             # is the attackers the trigger's own event spec names, matched like
             # the row that fired it (filter and attacked object), not every
@@ -1629,23 +1552,22 @@ class TriggerBinder:
             node = self._declare_mode(node, ctx)
             if node is None:
                 return  # CR 700.2a: no mode can be chosen; the ability is removed
-        # 18b (CR 603.1): designate targets BEFORE applying — the frozen IR
+        # CR 603.1: designate targets BEFORE applying — the frozen IR
         # puts the ability's TARGET coordinates on the TRIGGERED-ABILITY node
         # itself, and CR 603.1 chooses targets as the ability goes on the
-        # stack, which for a firing means before its first verb runs. The
-        # 16a DAMAGE echo already bound its anaphoric antecedent in _ctx
-        # (the dealer); the 18b DIES twin (Massacre Wurm's "that player")
+        # stack, which for a firing means before its first verb runs. A
+        # DAMAGE firing already bound its anaphoric antecedent in _ctx
+        # (the dealer); a DIES firing (Massacre Wurm's "that player")
         # binds here; anything else the effect reads as target/TARGET_PLAYER
-        # gets a real designation ask through the 14b channel.
-        # R2 (2026-10-20, /140 fold): the 16a DAMAGE pre-bind is the
-        # TARGET_PLAYER-anaphora read (Brash Taunter's echo). A trigger
-        # whose printed TARGET slot designates from an EVENT-SUBJECT-
-        # parameterized population (Feline Sovereign's / Chandra's
-        # Incinerator's "that player controls", compiled as CONTROLLER_IS
-        # who=<Selector referent='event'>) can never be served by the
-        # dealer designation — the pre-bind must not swallow the 18b lane
+        # gets a real designation ask through :meth:`_designate`.
+        # The DAMAGE pre-bind is the TARGET_PLAYER-anaphora read (Brash
+        # Taunter's echo). A trigger whose printed TARGET slot designates
+        # from an EVENT-SUBJECT-parameterized population (Feline Sovereign's
+        # / Chandra's Incinerator's "that player controls", compiled as
+        # CONTROLLER_IS who=<Selector referent='event'>) can never be served
+        # by the dealer designation — the pre-bind must not swallow the ask
         # for it. The narrow gate keeps every TARGET_PLAYER reader (Brash
-        # Taunter's echo zone) exactly as 16a bound it.
+        # Taunter's echo zone) bound to the dealer.
         if (
             event.kind == KIND_DAMAGE
             and event.cause is not None
@@ -1658,22 +1580,16 @@ class TriggerBinder:
         ):
             # An effect that designates nothing has no use for the dealer pre-bind, and a
             # binding-first role would read it: "creatures you control get +1/+0" (Wildfire
-            # Elemental) pumped only the creature that dealt the damage.
-            # R2 diff-gate BREAK-3 fix: the shape gate alone was fail-OPEN
-            # on the other polarity — a TARGET slot with a NON-event filter
-            # (e.g. CONTROLLER_IS OPPONENT) kept the pre-bind, and
+            # Elemental) would pump only the creature that dealt the damage.
+            # The shape gate alone would keep the pre-bind for a TARGET slot
+            # with a NON-event filter (e.g. CONTROLLER_IS OPPONENT), and
             # resolve_selector takes a bound handle as FROZEN DESIGNATION
             # WITHOUT CONSULTING the selector's zones+filter, so the dealer
-            # resolved the slot against ITSELF (probe4 Variant A: the dealer
-            # destroyed itself, no ask, no journal). The validation lift
-            # closes that: the 16a dealer designation may only stand when
-            # it is actually LEGAL for every printed TARGET slot. Known-
-            # narrow by design, two ways: (i) the shape scan above never
-            # reads trigger CONDITIONS; (ii) its TARGET_PLAYER scan misses
-            # bare-role reads (LOSE_LIFE controller=TARGET_PLAYER) — for
-            # both, _designation's broader scan + loud multi-slot raise is
-            # the backstop (probe4 Variant D proved it catches the bare-
-            # role case when a lift opens the ask lane).
+            # would resolve the slot against ITSELF (destroy itself, no ask,
+            # no journal). So the dealer designation may only stand when
+            # it is actually LEGAL for every printed TARGET slot
+            # (_prebind_legal_for_targets, which documents the known-narrow
+            # cases and their backstop).
             del ctx.bindings["target"]
         if ctx.bindings.get("target") is None:
             if (
@@ -1682,30 +1598,30 @@ class TriggerBinder:
                 and not self._trigger_designates_target(node)
                 and self._designated_player_refs(node.effect)
             ):
-                # 16a's twin: in a DIES firing the antecedent the frozen IR
-                # compiles to TARGET_PLAYER IS the dead creature — players
-                # _for_ref folds a card designation to its controller, so
+                # The DAMAGE pre-bind's twin: in a DIES firing the antecedent
+                # the frozen IR compiles to TARGET_PLAYER IS the dead creature —
+                # players_for_ref folds a card designation to its controller, so
                 # "that player loses 2 life" means the creature's controller
                 # (the event's OWN filter scoped it to an opponent's creature
                 # when the card text says so). The event object is the
-                # honest antecedent, exactly the DAMAGE dealer ruling.
-                # r22a (Pitchburn Devils / Goblin Arsonist): the anaphora
-                # pre-bind is only the dead creature when the effect reads
-                # the anaphora. A printed "…to ANY target" carries a real
-                # TARGET Selector slot — CR 603.1 designates it through the
-                # 18b channel, and the pre-bind must never swallow the ask.
-                # 2026-11-05: and an effect that reads no designated player
-                # gets no pre-bind at all: a role reads its binding before its
-                # own selector, so "each creature your opponents control"
-                # (Cavalier of Flame) hit the dead creature instead.
+                # honest antecedent, exactly as the DAMAGE dealer pre-bind.
+                # The anaphora pre-bind is only the dead creature when the
+                # effect reads the anaphora. A printed "…to ANY target"
+                # (Pitchburn Devils) carries a real TARGET Selector slot —
+                # CR 603.1 designates it through _designate, and the pre-bind
+                # must never swallow the ask. An effect that reads no
+                # designated player gets no pre-bind at all: a role reads its
+                # binding before its own selector, so "each creature your
+                # opponents control" (Cavalier of Flame) would hit the dead
+                # creature instead.
                 ctx.bindings["target"] = event.subject
             elif not self._designate(node, ctx):
-                # B-55, CR 603.3d: a required target with no legal choice
+                # CR 603.3d: a required target with no legal choice
                 # removes the ability from the stack. None of its effect
                 # happens, its untargeted steps included.
                 return
-        # The 12a shared effect runner — the SAME dispatch execute() uses,
-        # journalled at its Atom boundaries by the Executor. r24 (/111):
+        # The shared effect runner — the SAME dispatch execute() uses,
+        # journalled at its Atom boundaries by the Executor, and
         # guarded like the spell lanes — a template mis-fold whose
         # anaphora has no producer skips LOUD (unresolved_effects) instead
         # of killing the match; every other error still propagates.
@@ -1713,7 +1629,7 @@ class TriggerBinder:
 
     @staticmethod
     def _filter_reads_event_ref(filter_: object) -> bool:
-        """R2 (/140): does this filter tree gate on CONTROLLER_IS whose
+        """Does this filter tree gate on CONTROLLER_IS whose
         ``who`` slot is an EVENT-REFERENT Selector (the frozen-IR shape of
         "that player controls" where THAT PLAYER is the event subject —
         Feline Sovereign's DESTROY, Chandra's Incinerator's burn)?"""
@@ -1740,13 +1656,12 @@ class TriggerBinder:
 
     @classmethod
     def _damage_designation_is_event_borne(cls, node: _AnyTrigger) -> bool:
-        """R2 narrow gate (/140): True iff the trigger's printed TARGET
+        """The narrow gate: True iff the trigger's printed TARGET
         slots designate from an event-subject-parameterized population
         (every TARGET-mode, referent-free Selector's filter reads the
         event-ref CONTROLLER_IS) AND the node reads the TARGET_PLAYER
-        designation nowhere (Brash Taunter's echo zone keeps its 16a
-        dealer pre-bind untouched). A node failing either side keeps the
-        pre-bind exactly as 16a bound it."""
+        designation nowhere (Brash Taunter's echo zone keeps its dealer
+        pre-bind). A node failing either side keeps the pre-bind."""
         targets: list[Selector] = []
         for inner in walk(node.effect):
             if not isinstance(inner, Atom):
@@ -1766,26 +1681,26 @@ class TriggerBinder:
         return all(cls._filter_reads_event_ref(sel.filter) for sel in targets)
 
     def _prebind_legal_for_targets(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
-        """R2 diff-gate BREAK-3 fix: may the 16a dealer pre-bind stand as
-        the FROZEN DESIGNATION of every printed TARGET slot of this
-        trigger? resolve_selector takes a bound handle without re-checking
-        the selector's filter, so the check must happen at the lift site.
-        ONE legality opinion (query/runtime identity, §8.3): the slot's
+        """May the dealer pre-bind stand as the FROZEN DESIGNATION of every
+        printed TARGET slot of this trigger? resolve_selector takes a bound
+        handle without re-checking the selector's filter, so the check must
+        happen at the lift site.
+        ONE legality opinion (query/runtime identity): the slot's
         population is :func:`query.legal_targets` — the SAME enumeration
         the :meth:`_designate` ask lane uses; the designation is legal iff
-        it is IN that population, with the 16a zone-side rule folded in: a
+        it is IN that population, with the zone-side rule folded in: a
         CARD designation legalises a PLAYER-side slot through its
         controller (exactly what makes Brash Taunter's echo lane work).
         A trigger with no TARGET slot needs nothing of the pre-bind and
         answers True (the dealer stays). Validation never asks; a failing
-        designation LIFTS the pre-bind and the 18b ask lane re-runs from
-        the selector's own filter. KNOWN-NARROW (diff-gate FIX-3, by
-        design): neither this check nor the shape gate above ever reads
-        the trigger's CONDITION, and the TARGET_PLAYER scan misses
+        designation LIFTS the pre-bind and the ask lane re-runs from
+        the selector's own filter. KNOWN-NARROW (by design): neither this
+        check nor the shape gate (:meth:`_damage_designation_is_event_borne`)
+        ever reads the trigger's CONDITION, and the TARGET_PLAYER scan misses
         BARE-ROLE reads (LOSE_LIFE controller=TARGET_PLAYER). A node
         whose lift opens both a TARGET slot and a bare-role read is
-        caught LOUD by _designation's broader scan + multi-slot raise
-        (probe4 Variant D proved the backstop) — never a silent bind."""
+        caught LOUD by :meth:`_designate`'s broader scan + multi-slot
+        raise — never a silent bind."""
         from MTG_bot.core.executor.query import legal_targets
 
         designated = ctx.bindings.get("target")
@@ -1812,7 +1727,7 @@ class TriggerBinder:
                     continue
                 owner = self.executor.controller_of(designated)
                 if owner is not None and owner in candidates:
-                    continue  # 16a: a CARD designation legalises a player
+                    continue  # a CARD designation legalises a player
                 return False
         return True
 
@@ -1918,12 +1833,12 @@ class TriggerBinder:
 
     @classmethod
     def _trigger_designates_target(cls, node: _AnyTrigger) -> bool:
-        """r22a: does this trigger's effect carry a real TARGET designation
+        """Does this trigger's effect carry a real TARGET designation
         slot — a TARGET-mode Selector with no referent (the collector of
         :meth:`_designation_slots`; walk enters Optional-/SeqEffect wrappers,
         so Goblin Arsonist's may-wrapped damage is seen)? A node that only
         reads the TARGET_PLAYER anaphora (Massacre Wurm's "that player")
-        answers False and keeps the 16a/18b dies pre-bind in :meth:`_fire`;
+        answers False and keeps the dies pre-bind in :meth:`_fire`;
         a printed "…to ANY target" (Pitchburn Devils) answers True and
         routes to the designation ask."""
         selectors, _reads_player, _opponent_only = cls._designation_slots(node)
@@ -1934,7 +1849,7 @@ class TriggerBinder:
         """The designations a trigger's effect makes: its distinct TARGET-mode,
         referent-free Selectors; whether it reads a designated player
         (:meth:`_designated_player_refs`); and whether that read is "target
-        opponent" only (V21)."""
+        opponent" only."""
         refs = cls._designated_player_refs(node.effect)
         selectors: list[Selector] = []
         seen: set[str] = set()
@@ -1961,57 +1876,52 @@ class TriggerBinder:
         return bool(selectors) or reads_target_player
 
     def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
-        """The 18b designation channel (CR 603.1, first PC-8 lift).
+        """The trigger designation channel (CR 603.1).
         Returns False when the ability is removed from the stack (CR
-        603.3d, B-55), True when it goes on and resolves.
+        603.3d), True when it goes on and resolves.
 
-        The TARGET-bearing trigger no longer crashes at its first verb: the
-        engine enumerates the candidates through its OWN 12c query surface
-        (``query.legal_targets`` — §8.3 query/runtime identity, no mirrored
-        population) and asks the 14b vocabulary-addressed channel for the
-        choice (ask id ``target:<source>:<digest>``, the ONE_OF ask's shape
-        — the Handle-sorted candidate list IS the vocabulary, C15-complete,
+        The engine enumerates the candidates through its OWN query surface
+        (``query.legal_targets`` — query/runtime identity, no mirrored
+        population) and asks the vocabulary-addressed decision channel for
+        the choice (the Handle-sorted candidate list IS the vocabulary,
         ``take_decision`` re-validates membership). The answer lands in
         ``ctx.bindings["target"]`` BEFORE the effect runs, the exact mirror
         of ``stack.cast``'s designate-then-apply.
 
         Routing table (per-card, event-kind driven — see _fire):
-        * DAMAGE firing → the dealer (16a, in _ctx);
-        * CREATURE_DIES firing → the dead creature (18b, in _fire);
+        * DAMAGE firing → the dealer (in _ctx);
+        * CREATURE_DIES firing → the dead creature (in _fire);
         * a single distinct TARGET-mode Selector → enumerated ask (below);
-        * a TARGET_PLAYER ControllerRef with no Selector (the "target
-          opponent" grammar gap, the 14b synthetic-slot twin) → the
-          ABILITY CONTROLLER's opponent seats; in the duel that is one
-          seat → auto-filled (§1.4 forced auto-fill, no ask);
+        * a designated-player read with no Selector ("target opponent",
+          "target player") → the ABILITY CONTROLLER's opponents, or every
+          player, minus those with protection from the source; one
+          candidate is auto-filled (no ask);
         * a multi-slot trigger (two distinct TARGETs, or a TARGET and a
-          TARGET_PLAYER) → the loud raise stands (the cast lane's
-          per-slot designation is /06 arc 3; this channel never guess-
-          binds a second slot).
+          TARGET_PLAYER) → raises (this channel has no per-slot
+          designation, and never guess-binds a second slot).
 
         The site tag carries the CONTROLLER seat (``target:<seat>:<source>:
         <digest>``, four segments like the combat lane): the answer belongs
         to the seat the rules gave the decision to, and a mirror pair of
         the same card asks two DIFFERENT keys (attribution, not collision).
 
-        Zero-candidate honesty: nothing enumerable means no decision exists
-        (C15); never a crash, never a guess. A REQUIRED slot (an exact
-        count the ability needs whatever mode it takes, see
+        Zero-candidate honesty: nothing enumerable means no decision exists;
+        never a crash, never a guess. A REQUIRED slot (an exact count the
+        ability needs whatever mode it takes, see
         :func:`_required_target_keys`) that cannot be filled removes the
-        ability from the stack (CR 603.3d, B-55): False, and none of the
-        effect runs. Before B-55 the binding was the empty set and the
-        effect ran anyway, so its untargeted steps still happened and an
-        ATTACH with no host raised. An "up to N" or mode-dependent slot
-        binds the EMPTY set and the ability resolves without it, since zero
-        targets (or another mode) is a legal choice.
+        ability from the stack (CR 603.3d): False, and none of the effect
+        runs. An "up to N" or mode-dependent slot binds the EMPTY set and
+        the ability resolves without it, since zero targets (or another
+        mode) is a legal choice.
 
-        Cardinality follows the frozen slot contract: ``QConst(1)``
-        designates exactly one (forced when one candidate);
+        Cardinality follows the frozen slot contract (``count_semantics``):
+        ``QConst(1)`` designates exactly one (forced when one candidate);
         ``QAtMost(n)`` asks pick-by-pick, every pick carrying the ``"NONE"``
-        stop token the block-ask lane established (V15, CR 601.2c/115.6: the
-        range is 0..n, the query lane's contract; zero picks = not targeted,
-        and one candidate is still a choice of it or none); ``QConst(n>1)`` asks n picks without
-        the stop token and clamps at exhaustion (C17's 0..remaining
-        sibling); ``QAtLeast``/QX-in-TARGET stays the flag it always was.
+        stop token (CR 601.2c/115.6: the range is 0..n; zero picks = not
+        targeted, and one candidate is still a choice of it or none);
+        ``QConst(n>1)`` asks n picks without the stop token, and fewer than
+        n candidates cannot fill it; ``QAtLeast``/QX in a trigger TARGET
+        raises.
         """
         selectors, reads_target_player, opponent_only = self._designation_slots(node)
         if not selectors and not reads_target_player:
@@ -2024,16 +1934,16 @@ class TriggerBinder:
                 "the second)"
             )
         if reads_target_player:
-            # The synthetic player slot (spell_target_slots' 14b twin): the
+            # The synthetic player slot (spell_target_slots' twin): the
             # candidate population is the ENGINE's player rule — the ability
             # controller's opponents for "target opponent", every player for
-            # "target player" (V21, CR 115.1, 102.2) — and the cross-seat
+            # "target player" (CR 115.1, 102.2) — and the cross-seat
             # ruling is CR 603.1's: the ABILITY's controller designates, so an
             # opponent's trigger asks the OPPONENT's seat (ctx.controller IS
             # that seat, the firing context was built from payload.controller).
             from MTG_bot.core.executor.legality import protected_from
 
-            # V44 (CR 702.16b): a player with protection from the source of the
+            # CR 702.16b: a player with protection from the source of the
             # ability can't be its target (Runed Halo naming the trigger's card).
             opponents = [
                 h
@@ -2045,11 +1955,9 @@ class TriggerBinder:
                 if not protected_from(self.executor, h, ctx.source)
             ]
             if not opponents:
-                ctx.bindings["target"] = []  # resolves without a player (a
-                # duel always has an opponent; the empty read is the honest
-                # multiplayer-shape answer, not a crash). Not a CR 603.3d
-                # removal: this slot cannot tell "target player" (you are a
-                # legal target) from "target opponent" (B-53).
+                ctx.bindings["target"] = []  # no legal player: the ability
+                # resolves without one (unlike a required TARGET slot, this
+                # player slot is not removed under CR 603.3d).
             elif len(opponents) == 1:
                 ctx.bindings["target"] = opponents[0]
             else:
@@ -2061,7 +1969,7 @@ class TriggerBinder:
                 ctx.bindings["target"] = next(
                     h for h in sorted(opponents) if str(h) == answer
                 )
-            # r20b: TARGETING feed — a genuine designation made here is an
+            # TARGETING feed — a genuine designation made here is an
             # event (pre-bound firings never reach this method). The empty
             # set emits nothing.
             designated = ctx.bindings["target"]
@@ -2073,7 +1981,7 @@ class TriggerBinder:
             return True
         selector = selectors[0]
         from MTG_bot.core.executor.query import (  # cycle-free at call time
-            _widen_any_target,  # the query lane's ONE widening opinion (13b)
+            _widen_any_target,  # the query lane's ONE widening opinion
             legal_targets,
         )
 
@@ -2083,23 +1991,20 @@ class TriggerBinder:
             selector,
             source=ctx.source,
             controller=ctx.controller,
-            # r23a (Feline Sovereign): the firing ctx's bindings ride into
+            # Feline Sovereign: the firing ctx's bindings ride into
             # the candidate enumeration. The trigger already bound the
-            # 'event' register (binding.py _ctx stamps event.subject before
+            # 'event' register (_ctx stamps event.subject before
             # designation), and the destroyed object's filter reads it —
             # "destroy target artifact or enchantment THAT CREATURE'S
             # CONTROLLER controls" compiles CONTROLLER_IS who=
-            # Selector(referent='event'). A fresh ctx without the firing
-            # bindings made that selector ask a register it never saw
-            # (selectors.py: 'event' has no register). legal_targets has
-            # taken bindings= since 14a B-8a for exactly this; the trigger
-            # lane was the last caller not passing it.
+            # Selector(referent='event'); without the firing bindings that
+            # selector would ask a register it never saw.
             bindings=ctx.bindings,
         )
         slot = _widen_any_target(self.executor, selector, slot, ctx.source) or slot
         candidates = sorted(slot.candidates)
         count = selector.count
-        # B-55, CR 603.3d: an exact-count slot the ability needs in every
+        # CR 603.3d: an exact-count slot the ability needs in every
         # mode, with too few legal choices, removes it from the stack.
         required = isinstance(count, QConst) and repr(selector) in (
             _required_target_keys(node.effect)
@@ -2116,16 +2021,12 @@ class TriggerBinder:
                 "through the 12c prompt (QX/QAtLeast in a trigger TARGET "
                 "is not a frozen-IR shape)"
             )
-        # T3 legality unification (doc 36, CR 601.2c): ONE answer for the
-        # count axis — QConst is EXACT, never clamped. A trigger that
-        # cannot complete its full-size designation rides the empty-slot
-        # lane above: removed from the stack when the slot is required
-        # (CR 603.3d, B-55), otherwise designate NOTHING and resolve.
-        # Asking over fewer than stated (the old unclamped loop running
-        # the menu dry) was the third divergent answer of the legality
-        # triad.
-        # V15 (CR 601.2c, 115.6): "up to N" may designate zero, so the stop
-        # word is offered from the first pick on (C17 had made it mandatory).
+        # CR 601.2c: ONE answer for the count axis (count_semantics) —
+        # QConst is EXACT, never clamped. A trigger that cannot complete its
+        # full-size designation is removed from the stack when the slot is
+        # required (CR 603.3d), otherwise designates NOTHING and resolves.
+        # CR 601.2c, 115.6: "up to N" may designate zero, so the stop
+        # word is offered from the first pick on.
         optional_stop = isinstance(count, QAtMost)
         announceable, wanted = count_semantics(count, len(candidates))
         if not announceable:
@@ -2135,9 +2036,9 @@ class TriggerBinder:
             return True
         picks: list[Handle] = []
         pool = list(candidates)
-        for pick_no in range(wanted):
+        for _ in range(wanted):
             if len(pool) == 1 and not optional_stop:
-                picks.append(pool[0])  # §1.4 auto-fill: one legal filler
+                picks.append(pool[0])  # auto-fill: one legal filler, no ask
                 break
             vocab = tuple(str(h) for h in pool)
             if optional_stop:
@@ -2152,8 +2053,8 @@ class TriggerBinder:
             picks.append(pick)
             pool.remove(pick)
         ctx.bindings["target"] = picks if len(picks) != 1 else picks[0]
-        # r20b: TARGETING feed — see the player-slot note above; an empty
-        # pick list (impossible past the zero-candidate return) emits none.
+        # TARGETING feed — see the player-slot note above; an empty
+        # pick list (an "up to N" answered NONE) emits none.
         self.executor.journal.emit_targeting(ctx.source, ctx.controller, picks)
         return True
 
@@ -2168,25 +2069,25 @@ class TriggerBinder:
         if event.subject is not None:
             bindings["event"] = event.subject
             if event.kind == KIND_CREATURE_DIES:
-                bindings["result"] = event.subject  # C18 was-snapshot subject
+                bindings["result"] = event.subject  # the was-snapshot subject
         if event.kind == KIND_DAMAGE and event.cause is not None:
-            # 16a (Brash Taunter): the frozen IR compiles the echo's
+            # Brash Taunter: the frozen IR compiles the echo's
             # "it deals that much damage to any target" as TARGET_PLAYER,
-            # which reads bindings["target"]. In a DAMAGE firing the
-            # designation the frozen comment names IS the dealer — bind
+            # which reads bindings["target"]. In a DAMAGE firing that
+            # designation IS the dealer — bind
             # it, so TARGET_PLAYER means "the controller of the source of
-            # that damage" instead of the 12c prompt raise.
+            # that damage" (_fire lifts the pre-bind where it does not fit).
             bindings["target"] = event.cause
         amount = (
             event.amount
             if event.kind in (KIND_DAMAGE, KIND_LIFE_GAINED, KIND_LIFE_LOST)
             else None
         )
-        # r20a (Light of Promise): a LIFE_GAINED row's data[0] IS the amount
+        # Light of Promise: a LIFE_GAINED row's data[0] IS the amount
         # gained, so QProp(referent='event', field=AMOUNT) resolves inside a
         # life-gained firing exactly as it does inside a damage firing; a
-        # LIFE_LOST row's is the amount lost (2026-11-05, LifeLostEvent).
-        # r23a (Wildwood Scourge, CR 614.1c): a spell cast with a declared X
+        # LIFE_LOST row's is the amount lost.
+        # Wildwood Scourge (CR 614.1c): a spell cast with a declared X
         # carries that X into every firing this ENTRY generates — stack.cast
         # recorded it as the spell landed. The read is NON-destructive on
         # purpose: _match_zone_change builds this same ctx for the matcher
@@ -2194,16 +2095,14 @@ class TriggerBinder:
         # entering permanent may legitimately mention X. The entry is
         # cleared when the permanent leaves the battlefield, so a later
         # re-entry carries no cast X. CR 107.3b: an object that was not cast
-        # (reanimated, put onto the battlefield) has X = 0, so its own ETB
-        # firing resolves X as 0. Every other undeclared X stays the loud 12c
-        # flag. Found 2026-10-27 by coherent decks (B-45, /164): Rise Again
-        # returning Wildwood Scourge raised NotImplementedError mid-game.
+        # (reanimated, put onto the battlefield — Rise Again returning
+        # Wildwood Scourge) has X = 0, so its own ETB firing resolves X as 0.
+        # Every other undeclared X stays the loud flag.
         x_value: int | None = None
         if (
             event.kind == KIND_ZONE_CHANGE
             and event.subject is not None
             and event.subject == source
-            and len(event.data) >= 2
             and event.data[1] == ZONE_BATTLEFIELD
         ):
             x_value = ex.etb_x.get(source, 0)
@@ -2212,35 +2111,35 @@ class TriggerBinder:
             ledger=ex.ledger,
             controller=controller,
             source=source,
-            bindings=dict(bindings),
-            x_value=x_value,  # r23a: CR 614.1c cast-declared X at ETB
-            decisions=(),  # 14b: firings answer through ex.decisions
+            bindings=bindings,
+            x_value=x_value,  # CR 614.1c cast-declared X at ETB
+            decisions=(),  # firings answer through ex.decisions
             stream=ex.decisions,
             events=ex.events,
             rng=ex.rng,
             token_counts=ex.token_counts,
             event=event,
             event_amount=amount,
-            # 12d: trigger-fired GRANT/LOSE/PREVENT atoms and damage
+            # trigger-fired GRANT/LOSE/PREVENT atoms and damage
             # replacements reach the registries through the ctx.
             layers=ex.layers,
             replacements=ex.replacements,
             executor=ex,
-            # 14d (B-7): the firing ctx reads the SAME journal the matcher
+            # the firing ctx reads the SAME journal the matcher
             # is draining (history preds at a trigger's condition gate).
             journal=ex.journal,
         )
 
-    # ------------------------------------------------------ delayed (C22)
+    # ------------------------------------------------------------ delayed
 
     def schedule_delayed(
         self, node: DelayedTrigger, source: Handle, controller: Handle
     ) -> None:
         """Register a DelayedTrigger effect node into the journal matcher.
-        Only the turn-window tags sweep in 12b; a permanent-window or any
-        longer duration RAISES (the 12d Duration vocab governs LEDGER,
-        layer and prevention records; delayed-trigger windows beyond the
-        turn are 12e) — never a leak. The scheduled EVENT kind gets the
+        Only the turn-window tags (``_SWEEP_TAGS``) sweep; a permanent-window
+        or any longer duration RAISES (the Duration vocab governs ledger,
+        layer and prevention records, not delayed-trigger windows) — never
+        a leak. The scheduled EVENT kind gets the
         same unsupported-kind flag-don't-degrade check as an attached
         trigger."""
         self._check_event(node.event, "DelayedTrigger")
@@ -2291,7 +2190,7 @@ class TriggerBinder:
             ("quarantined", quarantined),
         )
         if self.attached_graveyard:
-            # V30: present only when a graveyard trigger is bound, so a game
+            # present only when a graveyard trigger is bound, so a game
             # without one keeps its fingerprint bytes.
             dump += (
                 (

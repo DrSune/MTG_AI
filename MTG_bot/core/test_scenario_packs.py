@@ -1,14 +1,11 @@
-"""The scripted scenario packs as pytest cases (added 2026-10-24).
+"""The scripted scenario packs as pytest cases.
 
-The 428 packs under ``tools/scenarios/`` are the executable rules-conformance suite: a small
-world, one or two scripted engine actions, and the expected post-state. Until now they ran only
-through ``tools/run_scenarios.py``, outside the documented ``pytest MTG_bot`` contract, so HEAD
-could break them unnoticed. It did: the R0 Selector change left the runner calling the old API,
-and only 265/428 passed until the fix was committed. One test per pack makes a broken pack a
-named red test in the default run. The whole set costs about 1.3 s.
+The packs under ``tools/scenarios/`` are the executable rules-conformance suite: a small world,
+one or two scripted engine actions, and the expected post-state. One test per pack makes a broken
+pack a named red test in the default ``pytest MTG_bot`` run, so HEAD cannot break them unnoticed.
 
-Each pack's set code comes from its own top-level ``"set"`` key, as ``run_scenarios.main``
-reads it; packs without one ran on the M21 supply historically and still do.
+Each pack's set code comes from its own top-level ``"set"`` key, as ``run_scenarios.main`` reads
+it; a pack without one runs on the M21 supply.
 """
 
 from __future__ import annotations
@@ -37,7 +34,7 @@ def _set_code(path: Path) -> str:
 
 
 def test_pack_directory_is_complete() -> None:
-    # A shrinking pack directory is a silent coverage loss; 428 is the 2026-10-24 count.
+    # A shrinking pack directory is a silent coverage loss; 428 is a floor, not the count.
     assert len(PACKS) >= 428, f"only {len(PACKS)} packs in {PACK_DIR}"
 
 

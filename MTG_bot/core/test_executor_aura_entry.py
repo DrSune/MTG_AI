@@ -1,5 +1,5 @@
-"""V32 (2026-10-29): an Aura put onto the battlefield without being cast enters attached to what the
-player it enters under chooses (CR 303.4f, not targeting); with nothing legal it stays put (303.4g)."""
+"""An Aura put onto the battlefield without being cast enters attached to what the player it
+enters under chooses (CR 303.4f, not targeting); with nothing legal it stays put (303.4g)."""
 
 from __future__ import annotations
 

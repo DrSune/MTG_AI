@@ -1,33 +1,29 @@
-"""Round-21b regression tests: the wave-4 silent-semantic fixes.
-
-Each class pins one 21b root cause plus the green behaviour it had to
-leave untouched (promoted packs epitaph_golem_bottom / garruk_minus_two /
-basri_ket_minus_two / caged_zombie_died_condition / tormods_crypt carry
-the end-to-end readings; these are the UNIT fences under them):
+"""Five unit readings under the packs epitaph_golem_bottom, garruk_minus_two,
+basri_ket_minus_two, caged_zombie_died_condition and tormods_crypt, each class with the
+behaviour it must leave untouched:
 
 1. The ACTIVATION-LANE cost fold (Sanctum of Tranquil Light): a
    CostModifier with an exactly-IS_SOURCE filter folds when the JUDGE is
    an activation source, so "activated abilities you control cost {5}
-   less to activate" stops silently charging the printed cost. The lane
-   is pinned to the IS_SOURCE shape — a universal filter does NOT fold
-   there — and a caller that passes no activation is byte-identical to
-   the pre-21b plan (the cast-lane five and the bare PAY atoms).
+   less to activate" discounts the printed cost. Only the IS_SOURCE
+   shape folds there (a universal filter does NOT), and a caller that
+   passes no activation (the cast lane, the bare PAY atoms) gets no fold.
 2. CONTROLLER_COUNT_GT (Garruk, Unleashed's -2): the dual-filter
    battlefield census — each side's count is its OWN filter (the
    compiled atom carries CONTROLLER_IS atoms inside), TRUE iff the
    inner (opponent) side strictly beats the right_inner (you) side.
 3. THAT_MANY_COUNT's trigger-antecedent register (Basri Ket's -2): the
-   14e ``result`` register keeps strict precedence; the 21b
+   ``result`` register keeps strict precedence; the
    ``declare_attackers`` register answers ONLY when result is absent;
-   both absent still RAISES (flag, never guess).
+   both absent RAISES (flag, never guess).
 4. DIED_THIS_TURN's battlefield narrowing (Caged Zombie): a creature-
    typed handle SITTING ON THE BATTLEFIELD can never be the dead
    creature, so its gate is the existential reading (a dies row anywhere
    answers True); off-battlefield creature-typed handles keep the
    strict per-handle census (Gadrak), and the dead subject itself is
-   still True.
+   True.
 5. The graveyard-sweep exemption in role_handles (Tormod's Crypt): the
-   five-condition corpus pin (ALL + EXILE + universal empty-FAnd +
+   five-condition shape (ALL + EXILE + universal empty-FAnd +
    GRAVEYARD + TARGET_PLAYER) makes the bound target a PLAYER
    designation and sweeps the whole graveyard; every other binding
    keeps binding-first semantics.
@@ -89,15 +85,13 @@ def gt(inner: FAnd, right: FAnd) -> FAtom:
 
 
 class ActivationFoldTest(LegalityCase):
-    """Fix 1: the IS_SOURCE CostModifier folds on the activation lane."""
+    """Sanctum of Tranquil Light: the IS_SOURCE CostModifier folds on the activation lane."""
 
     HOST = CostManaGeneric(QConst(5))
 
     def sanctum(self, filter_ir=None, host=None):
         """Attach a {5}-activation plus a CostModifier discounting ITS
-        OWN source by {5} — the compiled Sanctum shape (the hand-built IR
-        stands in for the compiler's NAME_EQ defect, which is a separate
-        STOP witness in tools/audit/suspects/)."""
+        OWN source by {5}: the Sanctum shape, built by hand."""
         mod = CostModifier(
             filter=FAtom(FAtomPred.IS_SOURCE) if filter_ir is None else filter_ir,
             controller_ref=ControllerRef.YOU,
@@ -132,7 +126,7 @@ class ActivationFoldTest(LegalityCase):
 
     def test_legacy_caller_is_byte_identical(self):
         # no activation kwarg at all (the bare PAY-atom / query shape):
-        # the fold stays dead exactly as before 21b
+        # no fold
         self.sanctum()
         self.pool(self.p0, W=1)
         plan, reason = self.plan_for()
@@ -169,7 +163,7 @@ class ActivationFoldTest(LegalityCase):
 
 
 class ControllerCountGtTest(LegalityCase):
-    """Fix 2: the dual-filter population comparison (Garruk -2)."""
+    """The dual-filter population comparison (Garruk -2)."""
 
     def ctx(self):
         return self.ex._ctx(
@@ -239,13 +233,13 @@ class ControllerCountGtTest(LegalityCase):
 
 
 class ThatManyRegisterTest(LegalityCase):
-    """Fix 3: ``result`` precedence over the 21b ``declare_attackers``
+    """``result`` precedence over the ``declare_attackers``
     fallback, and the double-absence raise."""
 
     THAT = QProp("event", QPropField.THAT_MANY_COUNT)
 
     def resolve_with(self, **bindings):
-        # the trigger firing always carries the event subject (12b) —
+        # the trigger firing always carries the event subject —
         # THAT_MANY lives behind that referent read, registers underneath
         ctx = ctx_for(
             self.ex,
@@ -268,7 +262,7 @@ class ThatManyRegisterTest(LegalityCase):
 
     def test_declaration_fallback_answers_when_result_absent(self):
         # Basri's -2: the TRIGGER is the antecedent; the group rides in
-        # on the 21b register
+        # on the declare_attackers register
         self.assertEqual(
             self.resolve_with(declare_attackers=[self.alpha, self.beta]), 2
         )
@@ -282,7 +276,7 @@ class ThatManyRegisterTest(LegalityCase):
 
 
 class DiedBattlefieldTest(BindingCase):
-    """Fix 4: creature-typed handles ON the battlefield read
+    """Caged Zombie: creature-typed handles ON the battlefield read
     existentially; off-battlefield handles keep the strict census."""
 
     def ctx(self, source):
@@ -338,7 +332,7 @@ class DiedBattlefieldTest(BindingCase):
 
 
 class GraveyardSweepTest(BindingCase):
-    """Fix 5: the Tormod exemption sweeps the target's WHOLE graveyard;
+    """Tormod's Crypt: the exemption sweeps the target's WHOLE graveyard;
     every other binding-first shape is untouched."""
 
     def tormod(self, mode=SelectorMode.ALL):

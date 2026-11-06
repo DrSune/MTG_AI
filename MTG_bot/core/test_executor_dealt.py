@@ -1,8 +1,6 @@
 """Rules checks through a DEALT game (games._setup_game), the way training deals them: no card in a
 hand or library has a bound record until it is cast, played or enters. The scenario-pack runner
-binds every placed card, so packs cannot see bugs on this path (2026-11-06: fetched lands made no
-mana and "this spell costs less" never applied in games; both passed every pack). Written by the
-red team that reviewed those fixes; the fixes' own tests were too weak to stop a plausible wrong fix."""
+binds every placed card, so packs cannot see this path."""
 
 from __future__ import annotations
 
@@ -243,9 +241,8 @@ def test_vanilla_token_does_not_inherit_a_same_named_tokens_abilities() -> None:
 
 def _countered_through_permission(g, permission, spell, mana) -> None:
     """Activate ``permission``'s cast row (index 1) and fire it; the opponent, holding Cancel and
-    {U}{U}{U}, answers the counter window with it. 2026-11-06 (CR 601.2i, 117.3c, 608.1): a spell
-    cast through a permission is cast like one from hand, so it gets the same window; it used to
-    resolve at once, Cancel never offered."""
+    {U}{U}{U}, answers the counter window with it. A spell cast through a permission is cast like
+    one from hand, so it gets the same window (CR 601.2i, 117.3c, 608.1)."""
     from MTG_bot.core.executor.legality import activate
 
     cancel = g.one(g.p1, "Cancel", ZONE_LIBRARY)

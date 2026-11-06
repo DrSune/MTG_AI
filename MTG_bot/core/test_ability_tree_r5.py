@@ -1,38 +1,30 @@
-"""T3 round 5 — five additive grammar items (2026-09-24).
+"""Grammar pins: draw ordinals, the loyalty-activation event, casts from
+outside a zone, three zone-history predicates, and object anaphora.
 
-Round-5 scope (spec: KNOWLEDGE/2026-09-24/05-grammar-round4-decision.md):
-
-- R4-1: ``CardDrawnEvent.ordinal: int | None = None`` — "whenever you draw
+- ``CardDrawnEvent.ordinal: int | None = None`` — "whenever you draw
   your second card each turn" (Jolrael, Mwonvuli Recluse; Mystic Skyfish);
   ``opt:int`` + omit-if-empty; mirrors ``CastSpellEvent.ordinal``.
-- R4-2: new event ``LoyaltyActivatedEvent(filter, actor)`` — "whenever
-  you activate a loyalty ability of a Chandra planeswalker" (Keral Keep
-  Disciples); added to the ``EventSpec`` union + serialization tag; filter
-  required; convention C5 (the loyalty trigger compiles as the effect of the
-  ActivatedAbility whose cost is the loyalty part). Ontology R5-7 replaced
-  it with ``AbilityActivatedEvent(source, kind, actor)``: the R4-2 node is
-  ``kind=AbilityKind.LOYALTY``, and the pins below follow the new node.
-- R4-3: ``CastSpellEvent.from_zone_not: Zone | None = None`` — "from anywhere
+- ``AbilityActivatedEvent(source, kind, actor)`` with ``kind=LOYALTY`` —
+  "whenever you activate a loyalty ability of a Chandra planeswalker"
+  (Keral Keep Disciples).
+- ``CastSpellEvent.from_zone_not: Zone | None = None`` — "from anywhere
   other than their hand" (Ghostly Pilferer); mutually exclusive with
   ``from_zone``; omit-if-None.
-- R4-4: three new ``FAtomPred``s, each with a closed per-predicate slot set —
+- three ``FAtomPred``s, each with a closed per-predicate slot set —
   ``ENTERED_THIS_TURN_FROM`` {zone}, ``CAST_THIS_TURN_FROM`` {zone, who},
   ``MOVED_TO_ZONE_THIS_TURN`` {from_zone, to_zone, who}.
-- R4-5: object anaphora (one closed vocabulary, ``_QPROP_STR_REFERENTS``) —
-  (a) ``Selector.referent: str | None`` (convention C2: mode CHOOSE +
-  count QConst(1) + the neutral zone + empty zones); (b)
-  ``_ROLE_TYPES["controller"]`` widened to ``(ControllerRef, Selector)``;
-  (c) ``CONTROLLER_IS`` ``who`` widened to accept a referent Selector.
+- object anaphora (one closed vocabulary, ``_QPROP_STR_REFERENTS``) —
+  (a) ``Selector.referent: str | None`` (a referent selector is mode
+  CHOOSE + count QConst(1) + the neutral zone alone); (b)
+  ``_ROLE_TYPES["controller"]`` is ``(ControllerRef, Selector)``;
+  (c) ``CONTROLLER_IS`` ``who`` accepts a referent Selector.
 
 Guards:
-- every pre-round-5 pinned fingerprint (the round-4 pin set) stays
-  byte-identical — all five items are additive optional slots/events/enums;
 - bare constructs (ordinal=None / from_zone_not=None / referent=None / no
-  zone slots) serialize WITHOUT the new keys;
-- round-5 constructs round-trip through ``to_dict``/``from_dict`` with
+  zone slots) serialize WITHOUT the optional keys;
+- the constructs round-trip through ``to_dict``/``from_dict`` with
   pinned fingerprints;
-- rejections at every new or widened validation point (``ValueError``,
-  per the module-wide convention).
+- every validation point rejects bad input with ``ValueError``.
 """
 
 from __future__ import annotations
@@ -42,9 +34,8 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r4 as R4
 
-# ---- builders for the round-5 constructs -----------------------------------
+# ---- builders --------------------------------------------------------------
 
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _GY_YOU = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
@@ -65,22 +56,22 @@ def _chandra_filter() -> at.FAnd:
 
 
 def _cd_bare() -> at.CardDrawnEvent:
-    """Pre-round-5 shape: no ordinal key in the serialization."""
+    """Bare shape: no ordinal key in the serialization."""
     return at.CardDrawnEvent(
         at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
     )
 
 
 def _cd_second() -> at.CardDrawnEvent:
-    """R4-1: 'your second card each turn' (Jolrael, Mystic Skyfish)."""
+    """'Your second card each turn' (Jolrael, Mystic Skyfish)."""
     return at.CardDrawnEvent(
         at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU), ordinal=2
     )
 
 
 def _loyalty() -> at.AbilityActivatedEvent:
-    """R4-2: 'you activate a loyalty ability of a Chandra planeswalker'
-    (R5-7: AbilityActivatedEvent of kind LOYALTY)."""
+    """'You activate a loyalty ability of a Chandra planeswalker':
+    AbilityActivatedEvent of kind LOYALTY."""
     return at.AbilityActivatedEvent(
         _chandra_filter(),
         at.AbilityKind.LOYALTY,
@@ -89,12 +80,12 @@ def _loyalty() -> at.AbilityActivatedEvent:
 
 
 def _cast_bare() -> at.CastSpellEvent:
-    """Pre-round-5 shape: no from_zone_not key in the serialization."""
+    """Bare shape: no from_zone_not key in the serialization."""
     return at.CastSpellEvent(_UNIVERSAL)
 
 
 def _cast_from_hand() -> at.CastSpellEvent:
-    """Pre-round-5 shape: the affirmative from_zone scope."""
+    """The affirmative from_zone scope."""
     return at.CastSpellEvent(
         _UNIVERSAL,
         actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT),
@@ -103,7 +94,7 @@ def _cast_from_hand() -> at.CastSpellEvent:
 
 
 def _cast_not_hand() -> at.CastSpellEvent:
-    """R4-3: 'an opponent casts a spell from anywhere other than their hand'."""
+    """'An opponent casts a spell from anywhere other than their hand'."""
     return at.CastSpellEvent(
         _UNIVERSAL,
         actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.OPPONENT),
@@ -112,19 +103,19 @@ def _cast_not_hand() -> at.CastSpellEvent:
 
 
 def _fatom_entered_gy() -> at.FAtom:
-    """R4-4(1): 'entered from your graveyard' (Archfiend's Vessel)."""
+    """'Entered from your graveyard' (Archfiend's Vessel)."""
     return at.FAtom(at.FAtomPred.ENTERED_THIS_TURN_FROM, zone=_GY_YOU)
 
 
 def _fatom_cast_gy() -> at.FAtom:
-    """R4-4(2): 'you cast it from your graveyard' (Archfiend's Vessel)."""
+    """'You cast it from your graveyard' (Archfiend's Vessel)."""
     return at.FAtom(
         at.FAtomPred.CAST_THIS_TURN_FROM, zone=_GY_YOU, who=at.ControllerRef.YOU
     )
 
 
 def _fatom_moved() -> at.FAtom:
-    """R4-4(3): 'a permanent was put into your hand from the battlefield
+    """'A permanent was put into your hand from the battlefield
     this turn' (Barrin, Tolarian Archmage)."""
     return at.FAtom(
         at.FAtomPred.MOVED_TO_ZONE_THIS_TURN,
@@ -135,7 +126,7 @@ def _fatom_moved() -> at.FAtom:
 
 
 def _sel_event() -> at.Selector:
-    """R4-5(a): the triggering event's subject object (Gloom Sower /
+    """The triggering event's subject object (Gloom Sower /
     Double Vision)."""
     return at.Selector(
         at.QConst(1), at.SelectorMode.CHOOSE, _UNIVERSAL, zones=(_NEUTRAL,), referent="event"
@@ -143,7 +134,7 @@ def _sel_event() -> at.Selector:
 
 
 def _sel_controller() -> at.Selector:
-    """R4-5(c): 'that player controls' (Feline Sovereign) — the who slot
+    """'That player controls' (Feline Sovereign) — the who slot
     of CONTROLLER_IS takes a referent Selector."""
     return at.Selector(
         at.QConst(1),
@@ -155,7 +146,7 @@ def _sel_controller() -> at.Selector:
 
 
 def _gloom_sower() -> at.Atom:
-    """R4-5(b): 'its controller loses N' — the controller role takes the
+    """'Its controller loses N' — the controller role takes the
     referent Selector bound to the triggering event's subject."""
     return at.Atom(
         at.Verb.LOSE_LIFE,
@@ -164,11 +155,11 @@ def _gloom_sower() -> at.Atom:
 
 
 def _feline_controller_is() -> at.FAtom:
-    """R4-5(c): 'that player controls' — CONTROLLER_IS with a referent who."""
+    """'That player controls' — CONTROLLER_IS with a referent who."""
     return at.FAtom(at.FAtomPred.CONTROLLER_IS, who=_sel_controller())
 
 
-# ---- pinned fingerprints (captured after the round-5 edits) ----------------
+# ---- pinned fingerprints ---------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -184,8 +175,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "loyalty",
         _loyalty,
-        # re-pinned 2026-10-30: R5-7 changes the node (AbilityActivatedEvent:
-        # filter -> source, the required kind LOYALTY, the new tag)
         "0f90725db814e6dab9332edea6b56664ed78b26630d0ab826d3524e0fc7a85ad",
     ),
     (
@@ -242,20 +231,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 
 
 # ---- tests ----------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    "name,build,fp", R4._NEW_PINS, ids=[n for n, _, _ in R4._NEW_PINS]
-)
-def test_pinned_pre_r5_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: every pre-round-5 pinned tree (the round-4 pin set)
-    serializes identically — all five round-5 items are additive."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
 
 
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
@@ -339,8 +314,8 @@ def test_r5_enum_and_table_members() -> None:
         frozenset({"from_zone", "to_zone", "who"}),
     )
     assert at._ROLE_TYPES["controller"] == (at.ControllerRef, at.Selector)
-    # "result" appended by grammar round 7, R7-1 (anaphora to the object(s)
-    # the previous sentence acted on); the pre-round-7 four are order-pinned.
+    # "result" is the object(s) the previous sentence acted on; the order is
+    # pinned.
     assert at._QPROP_STR_REFERENTS == (
         "source",
         "controller",
@@ -351,9 +326,9 @@ def test_r5_enum_and_table_members() -> None:
 
 
 def test_loyalty_activated_event_union_membership() -> None:
-    """R4-2 / R5-7: the activation event is registered as a legal event spec
-    and carries its own serialization tag; the old LoyaltyActivatedEvent tag
-    is gone (no silent migration of stale bytes)."""
+    """The activation event is registered as a legal event spec and carries
+    its own serialization tag; there is no LoyaltyActivatedEvent tag, so
+    stale bytes fail loud instead of migrating silently."""
     node = _loyalty()
     assert type(node) in at._DATACLASSES
     assert type(node) in at._EV_CLASSES
@@ -366,8 +341,8 @@ def test_loyalty_activated_event_union_membership() -> None:
 
 
 def test_role_union_controller_selector_roundtrip() -> None:
-    """R4-5(b): the controller role accepts a referent Selector; the
-    pre-round-5 ControllerRef value still round-trips alongside it."""
+    """The controller role accepts a referent Selector; a plain
+    ControllerRef still round-trips alongside it."""
     node = _gloom_sower()
     d = at.to_dict(node)
     back = at.from_dict(d["tag"], d)
@@ -387,7 +362,7 @@ def test_role_union_controller_selector_roundtrip() -> None:
 
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     return [
-        # R4-1: CardDrawnEvent.ordinal validation
+        # CardDrawnEvent.ordinal validation
         (
             "cd_ordinal_zero",
             lambda: at.CardDrawnEvent(
@@ -416,8 +391,8 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 ordinal="2",
             ),  # type: ignore[arg-type]
         ),
-        # R4-2 / R5-7: AbilityActivatedEvent validation (E1: actor slot;
-        # kind required and typed)
+        # AbilityActivatedEvent validation (actor slot; kind required and
+        # typed)
         (
             "loyalty_bad_actor",
             lambda: at.AbilityActivatedEvent(
@@ -440,7 +415,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 _chandra_filter(), "LOYALTY"  # type: ignore[arg-type]
             ),
         ),
-        # R4-3: CastSpellEvent.from_zone_not mutual exclusion
+        # CastSpellEvent.from_zone_not mutual exclusion
         (
             "cast_both_from_zones",
             lambda: at.CastSpellEvent(
@@ -454,7 +429,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 from_zone_not="hand",  # type: ignore[arg-type]
             ),
         ),
-        # R4-4: the three new FAtomPred slot arities
+        # the three zone-history FAtomPred slot arities
         (
             "fatom_entered_missing_zone",
             lambda: at.FAtom(at.FAtomPred.ENTERED_THIS_TURN_FROM),
@@ -512,7 +487,8 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 count=at.QConst(1),
             ),
         ),
-        # R4-5: referent Selector convention C2 + vocabulary
+        # referent Selector shape (CHOOSE, QConst(1), the neutral zone alone)
+        # + vocabulary
         (
             "sel_referent_bad_vocab",
             lambda: at.Selector(
@@ -563,7 +539,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 referent="event",
             ),
         ),
-        # R4-5(c): CONTROLLER_IS must reject a Selector that is NOT a referent
+        # CONTROLLER_IS must reject a Selector that is NOT a referent
         (
             "controller_is_non_referent_selector",
             lambda: at.FAtom(

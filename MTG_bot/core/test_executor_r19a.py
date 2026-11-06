@@ -1,7 +1,6 @@
-"""Round-19a regression tests: the five silent-semantic fixes.
-
-Each test pins the FIXED reading of one r19a root cause and the green
-behaviour it had to leave untouched:
+"""Counters in the P/T fold, IS_PERMANENT, DIED_THIS_TURN, the life-gained
+replacement, SEARCH under a partition and printed loyalty, each pinned with
+the behaviour it must leave untouched:
 
 1. P/T COUNTERS in the effective-P/T fold (Basri's Solidarity; CR 613.3b
    the counter layer folds AFTER the timestamp-ordered change stack).
@@ -9,14 +8,15 @@ behaviour it had to leave untouched:
    (Fungal Rebirth's graveyard gate; Unsubstantiate's spell target).
 3. DIED_THIS_TURN's existential fallback for a judged handle that could
    never have been the dead creature (player / non-creature spell), while
-   creature-typed handles keep the strict per-handle reading (Gadrak).
+   creature-typed handles off the battlefield keep the strict per-handle
+   reading (Gadrak); a dead noncreature never counts.
 4. The LIFE-GAINED replacement lane (Life Goes On): ephemeral Eot-tagged
    registration for a resolving instant, event consumption, the CR
    614.4a loop guard, and the EOT sweep.
 5. SEARCH DESIGNATE-ONLY under a ONE_OF/REST partition (Cultivate): the
    found cards stay in the zone the partition re-searches; a lone SEARCH
-   still delivers (Solemn Simulacrum shape unchanged).
-Plus the printed-loyalty field identity_of stopped dropping (Chandra).
+   still delivers (Solemn Simulacrum shape).
+6. identity_of keeps the compiled record's printed loyalty (Chandra).
 """
 
 import dataclasses
@@ -72,7 +72,7 @@ LAND = FAtom(FAtomPred.TYPE_EQ, string_value="Land")
 
 
 class CounterFoldTest(BindingCase):
-    """Fix 1: effective_pt folds P/T counters after the change stack."""
+    """effective_pt folds P/T counters after the change stack."""
 
     def setUp(self):
         super().setUp()
@@ -82,7 +82,7 @@ class CounterFoldTest(BindingCase):
         self.ident = self.world.cards[self.vanilla].identity
 
     def test_no_counters_argument_is_the_head_fold(self):
-        # byte-exact pre-19a behaviour for every caller that passes no map
+        # a caller that passes no counters map gets the change stack alone
         self.assertEqual(self.ex.ledger.effective_pt(self.ident, self.vanilla), (2, 2))
         self.ex.ledger.record(self.ident, "delta", self.vanilla, 1, 1, tag="Permanent")
         self.assertEqual(self.ex.ledger.effective_pt(self.ident, self.vanilla), (3, 3))
@@ -94,7 +94,7 @@ class CounterFoldTest(BindingCase):
         )
         self.assertEqual(
             got, (5, 5)
-        )  # 2 printed + 1 effect + 2 counters - ... -1? no: 2+1+2=5 minus? check below
+        )  # 2 printed + 1 effect + 2 counters
 
     def test_plus_minus_net_and_order(self):
         # CR 120.10 family: both kinds coexist until the SBA annihilates.
@@ -128,7 +128,7 @@ class CounterFoldTest(BindingCase):
         self.assertEqual(got, (None, 2))  # a counter never materializes '*'
 
     def test_dies_snapshot_folds_counters(self):
-        # events.py: a 2/2 with one +1/+1 counter DIED a 3/3 (C18 row).
+        # events.py: a 2/2 with one +1/+1 counter DIED a 3/3 (the dies row's P/T).
         self.world.cards[self.vanilla].counters["PLUS_1_PLUS_1"] = 1
         self.ex.execute(
             enter(GY_ANY),
@@ -146,7 +146,7 @@ class CounterFoldTest(BindingCase):
 
 
 class IsPermanentTest(BindingCase):
-    """Fix 2: CR 110.1 — permanent means HAS A PERMANENT TYPE, any zone."""
+    """CR 110.1 — permanent means HAS A PERMANENT TYPE, any zone."""
 
     def ctx(self):
         return self.ex._ctx(
@@ -172,7 +172,7 @@ class IsPermanentTest(BindingCase):
 
 
 class DiedThisTurnTest(BindingCase):
-    """Fix 3: existential fallback for non-creature judged handles only."""
+    """DIED_THIS_TURN: existential fallback for non-creature judged handles only."""
 
     def kill_watch(self):
         self.ex.execute(
@@ -201,9 +201,8 @@ class DiedThisTurnTest(BindingCase):
 
     def test_other_creature_still_answers_false(self):
         # Gadrak / Liliana's Standard Bearer census: a creature-typed
-        # handle that did not die is NOT "a creature that died".
-        # AMENDED 2026-10-01 (round 21b): the strict per-handle reading
-        # now ALSO requires the handle to be OFF the battlefield — a
+        # handle that did not die is NOT "a creature that died". The
+        # strict per-handle reading applies only OFF the battlefield — a
         # battlefield creature can never itself be the dead one, so its
         # gate is the existential reading (Caged Zombie's activation
         # source). The graveyard handle keeps the strict False below.
@@ -237,7 +236,7 @@ class DiedThisTurnTest(BindingCase):
         )
 
     def test_noncreature_permanent_death_is_not_a_creature_death(self):
-        # B-56 (2026-10-29, M21 Twinblade Assassins): a sacrificed Treasure
+        # Twinblade Assassins: a sacrificed Treasure
         # is put into a graveyard from the battlefield (it "dies", CR 700.4),
         # and the journal writes its dies row — but "if a creature died
         # this turn" asks for a CREATURE. Neither the existential reading
@@ -270,7 +269,7 @@ class DiedThisTurnTest(BindingCase):
 
 
 class LifeReplacementTest(BindingCase):
-    """Fix 4: the life-gained replacement lane (Life Goes On)."""
+    """The life-gained replacement lane (Life Goes On)."""
 
     def setUp(self):
         super().setUp()
@@ -346,7 +345,7 @@ class LifeReplacementTest(BindingCase):
 
 
 class SearchPartitionTest(unittest.TestCase):
-    """Fix 5: SEARCH designates under a ONE_OF/REST partition sibling."""
+    """SEARCH designates under a ONE_OF/REST partition sibling."""
 
     def setUp(self):
         reset_oracle_ids()
@@ -411,10 +410,9 @@ class SearchPartitionTest(unittest.TestCase):
         self.assertEqual(self.world.zone_of(self.junk).kind, ZONE_LIBRARY)
 
     def test_lone_search_still_delivers(self):
-        # Solemn Simulacrum shape (no partition siblings): unchanged — the
-        # found land lands on the battlefield tapped.
-        # R3 (/141 §6, 2026-10-20): the 1-of-N land search is a decision
-        # now — script the pick the old silent first-n stand-in made.
+        # Solemn Simulacrum shape (no partition siblings): the found land
+        # lands on the battlefield tapped. The 1-of-N land search is a
+        # decision; the script picks the Forest.
         self.ex.decisions.provider = lambda vocab, what: str(self.fo)
         self.ex.apply_effect(
             atom(
@@ -431,7 +429,7 @@ class SearchPartitionTest(unittest.TestCase):
 
 
 class LoyaltyIdentityTest(unittest.TestCase):
-    """Fix 6: identity_of stopped dropping the compiled record's loyalty."""
+    """identity_of carries the compiled record's printed loyalty."""
 
     def test_loyalty_carries_over(self):
         rec = record_of([], name="Chandra")

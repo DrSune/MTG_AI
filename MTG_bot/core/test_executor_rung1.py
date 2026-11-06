@@ -1,8 +1,7 @@
-"""RUNG-1 (response-window arc): the counter window on the cast pipeline.
+"""The counter window on the cast pipeline.
 
-Coverage contract (mission arc, ruling A of 2026-10-05):
-  * the window ASKS each opponent holding a payable counter (C15: a seat
-    with nothing to offer is never asked, and gets no journal row);
+  * the window ASKS each opponent holding a payable counter (a seat with
+    nothing to offer is never asked, and gets no journal row);
   * PASS resolves the spell untouched (WINDOW_PASS audit row); a counter
     answer casts LIFO and INTERRUPTS the resolution (CR 601.4): effect
     never runs, card still goes to its graveyard (CR 400.7), a COUNTER
@@ -14,6 +13,7 @@ Coverage contract (mission arc, ruling A of 2026-10-05):
     the cast's per-op decisions POOL stays reserved for the spell's own
     declaration (contamination pin);
   * a counter can itself be countered (nested windows, LIFO);
+  * a spell the CAST atom casts gets the same window;
   * replay identity holds across the window fold.
 """
 
@@ -148,7 +148,7 @@ class TestResponseWindow(Rung1Case):
         self.assertEqual(self.zone_kind(cancel), ZONE_HAND)
 
     def test_nothing_to_offer_never_asks(self):
-        # C15: an empty choice set is never offered — P1 has no counter,
+        # An empty choice set is never offered — P1 has no counter,
         # so no provider call, no window rows, spell resolves normally.
         shock = self.shock()
         self.mana(self.p0, R=2)
@@ -163,7 +163,7 @@ class TestResponseWindow(Rung1Case):
         self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
 
     def test_unpayable_counter_not_in_vocab(self):
-        # C15 on the vocab side: a counter the seat cannot PAY is not
+        # The vocab side: a counter the seat cannot PAY is not
         # offered (window skips the seat, no ask at all).
         shock = self.shock()
         self.mana(self.p0, R=2)
@@ -178,12 +178,12 @@ class TestResponseWindow(Rung1Case):
         self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
 
     def test_frame_filter_excludes_the_offer(self):
-        # Vocab gate, designability lane (games smoke seed 16): an
-        # instant-only counter (Miscast's FOr(Instant,Sorcery) shape) is
-        # NOT offered against a CREATURE spell frame. spell_castable is
-        # target-blind; the window must consult the frame itself or it
-        # promises an answer the designation planner then rejects
-        # (selection:off_population). The creature resolves into play.
+        # Vocab gate, designability lane: an instant-only counter
+        # (Miscast's FOr(Instant,Sorcery) shape) is NOT offered against a
+        # CREATURE spell frame. spell_castable is target-blind; the window
+        # must consult the frame itself or it promises an answer the
+        # designation planner then rejects (selection:off_population). The
+        # creature resolves into play.
         pup = self.give(
             "Pup",
             SpellKind.CREATURE,
@@ -220,12 +220,12 @@ class TestResponseWindow(Rung1Case):
         self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
 
     def test_unsupported_closure_excludes_the_offer(self):
-        # Vocab gate, verb-closure lane (games smoke seed 96): a card
-        # that counts AND executes COPY (Sublime Epiphany's shape) is
-        # engine-unsupported — the window offers only what the runtime
-        # can execute, so the closure of EVERY atom in the spell node
-        # must lie in HANDLERS. A COPY-bearing counter in a payable
-        # hand against a counterable instant still produces NO ask.
+        # Vocab gate, verb-closure lane: a card that counts AND executes
+        # COPY (Sublime Epiphany's shape) is engine-unsupported — the
+        # window offers only what the runtime can execute, so the closure
+        # of EVERY atom in the spell node must lie in HANDLERS. A
+        # COPY-bearing counter in a payable hand against a counterable
+        # instant still produces NO ask.
         shock = self.shock()
         self.mana(self.p0, R=2)
         self.give(
@@ -273,10 +273,9 @@ class TestResponseWindow(Rung1Case):
 
 
 class TestEffectCastWindow(Rung1Case):
-    """2026-11-06 (CR 601.2i, 117.3c, 608.1): a spell the CAST atom casts (an effect's "you may
-    cast", and the permission rows of Idol of Endurance and Conspicuous Snoop) is on the stack
-    like a spell cast from hand, so the opponents get the same counter window before it
-    resolves. It used to resolve at once and no opponent was ever asked."""
+    """CR 601.2i, 117.3c, 608.1: a spell the CAST atom casts (an effect's "you may cast", and the
+    permission rows of Idol of Endurance and Conspicuous Snoop) is on the stack like a spell cast
+    from hand, so the opponents get the same counter window before it resolves."""
 
     def cast_from_exile(self):
         """Run "you may cast it without paying its mana cost" on an exiled instant that gains
@@ -365,7 +364,7 @@ class TestKickback(Rung1Case):
         self.assertEqual(len(self.journal_rows("COUNTER")), 1)
 
     def test_unpayable_payer_is_never_asked(self):
-        # C15: no plan, no ask — the KICKBACK row carries the honest
+        # No plan, no ask — the KICKBACK row carries the honest
         # "UNPAYABLE" witness instead of a fabricated PASS.
         shock = self.shock()
         miscast = self.counterspell("Miscast", self.p1, unless=3)

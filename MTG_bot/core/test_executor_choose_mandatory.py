@@ -1,5 +1,5 @@
-"""V19 (2026-10-29, B-51): "You choose a noncreature, nonland card from it" is mandatory. The empty
-pick exists only when nothing legal does, and a lone legal card is taken without an ask."""
+"""The pick in "You choose a noncreature, nonland card from it" is mandatory. The empty pick
+exists only when nothing legal does, and a lone legal card is taken without an ask."""
 
 from __future__ import annotations
 

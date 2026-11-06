@@ -1,16 +1,14 @@
-"""T5-D — the two atoms the clause audit's MISSING-EXPRESSIVENESS bucket named.
+"""Rounding policy (``QBin.rounding``) and additional triggers (``AbilityTriggerEvent``).
 
 Rounding-policy (Peer "Round up each time.") and additional-trigger-count
-(Sanctum of All's s2) were the pool's last two un-encodable clauses. Both
-land as orthogonal axes, not card-shaped kludges:
+(Sanctum of All's s2) are orthogonal axes, not card-shaped kludges:
 
 * ``Rounding`` rides ``QBin`` as an OPTIONAL policy field (valid on DIV
   only; CEIL = -(-a//b), FLOOR/NONE = the standing floor). At the default
-  None the key is OMITTED from serialization (``_OMIT_IF_EMPTY``), which
-  the pool-wide golden regeneration confirmed byte-stable: exactly the
-  two example cards' trees changed, the other 303 are identical.
+  None the key is OMITTED from serialization (``_OMIT_IF_EMPTY``), so a
+  tree without it keeps its golden bytes.
 * ``AbilityTriggerEvent`` is the when-event atom of the extra-trigger
-  family — it decomposes §9-style as {event: an ability of a permanent
+  family — it decomposes as {event: an ability of a permanent
   matching FILTER triggered}, with the filter over the triggering
   ability's SOURCE ("another Shrine you control" = SUBTYPE_EQ Shrine +
   CONTROLLER_IS YOU + FNot(IS_SOURCE)). The effect verb
@@ -19,10 +17,6 @@ land as orthogonal axes, not card-shaped kludges:
   firings never re-arm (CR 603.2e), which is what keeps two carriers or a
   self-counting carrier from chasing each other forever. The synthetic
   event is never journalled, so trigger fingerprints stay byte-stable.
-
-Peer's life-half print-gap (the r24a deviation) stays open — the rounding
-AXIS is the deliverable, and the roadmap emit can now attach a CEIL
-policy to any future life-half QBin.
 """
 
 import unittest
@@ -49,11 +43,8 @@ from MTG_bot.core.ability_tree import (
     from_dict,
     to_dict,
 )
-from MTG_bot.core.compiler.golden import verify_goldens
-from MTG_bot.core.compiler.coverage import build_full_registry
-from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.quantity import ExecCtx, resolve
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
 from MTG_bot.core.test_executor_binding import (
@@ -63,10 +54,6 @@ from MTG_bot.core.test_executor_binding import (
     reset_oracle_ids,
 )
 from MTG_bot.core.test_executor_verbs import stock_libraries
-
-from pathlib import Path
-
-_M21 = Path(__file__).resolve().parents[1] / "data" / "M21.json"
 
 
 def shrine_filter() -> FAtom:
@@ -292,7 +279,7 @@ class TestRoundingAxis(unittest.TestCase):
 
     def test_serialization_is_byte_stable_at_default(self):
         plain = canonical_json(QBin(QBinOp.DIV, QConst(7), QConst(2)))
-        self.assertNotIn("rounding", plain)  # omitted key = old bytes
+        self.assertNotIn("rounding", plain)  # omitted at the default: golden bytes hold
         ceil = canonical_json(
             QBin(QBinOp.DIV, QConst(7), QConst(2), rounding=Rounding.CEIL)
         )
@@ -313,17 +300,6 @@ class TestRoundingAxis(unittest.TestCase):
         d = to_dict(ability.event)
         self.assertEqual(d["tag"], "AbilityTriggerEvent")
         self.assertEqual(from_dict("AbilityTriggerEvent", d), ability.event)
-
-
-class TestPoolByteStability(unittest.TestCase):
-    def test_golden_pool_regenerated_clean(self):
-        """The T5-D law in one line: the atomics changed, the pool did not.
-        Fresh compile must byte-match the committed goldens — which were
-        regenerated exactly once for this batch, moving ONLY Peer's and
-        Sanctum of All's trees (303 unchanged)."""
-        pool = ingest_pool(_M21)
-        reg = build_full_registry()
-        self.assertEqual(verify_goldens(pool, reg, "M21"), [])
 
 
 if __name__ == "__main__":

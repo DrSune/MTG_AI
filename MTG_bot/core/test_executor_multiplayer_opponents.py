@@ -1,7 +1,7 @@
-"""V42 (2026-10-30): the opponent refs with three seats. "Each opponent" acts on every opponent,
-"target opponent" may designate any one of them, "an opponent has ..." reads any of them, and a
-verb that acts through one player never silently takes the first of several (B-108). Real M21
-cards; Commander, the priority format, is multiplayer (CR 800.1)."""
+"""The opponent refs with three seats. "Each opponent" acts on every opponent, "target opponent"
+may designate any one of them, "an opponent has ..." reads any of them, and a verb that acts
+through one player never silently takes the first of several. Real M21 cards; Commander, the
+priority format, is multiplayer (CR 800.1)."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
-"""V16 (2026-10-29): a static "doesn't untap during its controller's untap step" (Capture Sphere's
-Aura) keeps its creature tapped (CR 502.3), and stops when the Aura leaves."""
+"""A static "doesn't untap during its controller's untap step" (Capture Sphere's Aura) keeps its
+creature tapped (CR 502.3), and stops when the Aura leaves."""
 
 from __future__ import annotations
 

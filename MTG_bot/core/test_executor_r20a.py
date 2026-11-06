@@ -1,6 +1,4 @@
-"""Round-20a regression tests: the wave-3 keyword/trigger/prevention batch.
-
-Each test pins one r20a root cause and the machinery that fixed it:
+"""Keyword-derived abilities, granted triggers and damage prevention, one class each:
 
 1. LIFELINK (anointed_chorister / Blood Glutton / Indulging Patrician):
    the compiler folds the keyword into CardRecord.keywords with NO
@@ -61,8 +59,6 @@ from MTG_bot.core.test_executor_binding import (
     record_of,
     reset_oracle_ids,
 )
-
-CREATURE_F = None  # filters use UNIV / the binding rig's helpers
 
 
 def atom(verb, **roles) -> Atom:

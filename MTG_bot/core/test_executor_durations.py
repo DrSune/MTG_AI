@@ -1,18 +1,16 @@
-"""Round-12d pins: the full Duration vocabulary on the ledger (plan /06
-§12d). Covers: per-vocabulary expiry (Eot / WhileCondition / UntilNextStep
-owner+active / UntilLeaves / UntilNextTurn / Permanent), WHILE on-off
-cycles driven through journal events, the 12d UNTAP step (untap
-journalling, triggers fired from the tick, the Frost Breath compiled
-full-card freeze surviving exactly ONE untap tick), the Nine-Lives
-compiled replacement chain (prevent + carried action + the HAS_COUNTER-9
-exile trigger + detach), the honest PREVENT exposure surface, and the
-replay fingerprint over it all.
+"""The full Duration vocabulary on the ledger. Covers: per-vocabulary
+expiry (Eot / WhileCondition / UntilNextStep owner+active / UntilLeaves /
+UntilNextTurn / Permanent), WHILE on-off cycles driven through journal
+events, the UNTAP step (untap journalling, triggers fired from the tick,
+the Frost Breath compiled full-card freeze surviving exactly ONE untap
+tick), the Nine-Lives compiled replacement chain (prevent + carried action
++ the HAS_COUNTER-9 exile trigger + detach), the PREVENT exposure surface,
+and the replay fingerprint over it all.
 
 Canonical rows are COMPILED, not hand-tuned: Frost Breath's two sentences
 run through the real b5b/b5c templates, Nine Lives' replacement + exile
 trigger through the real b5b/b2a templates — the same template ids that
-produced the golden pool rows (see the probe record in
-KNOWLEDGE/2026-09-29/09).
+produce the golden pool rows.
 """
 
 from __future__ import annotations
@@ -177,7 +175,7 @@ class TestExpiryVocab(DurationCase):
     def test_until_next_turn_owner_begin_turn_expiry(self):
         # p0 records "until your next turn": it survives p0's end_turn and
         # p1's begin_turn (the RECORDED owner is p0), and dies exactly at
-        # p0's next begin_turn — the precise expiry the 12a ledger deferred.
+        # p0's next begin_turn.
         self.buff(self.beta, DurationUntilNextTurn())
         self.assertEqual(self.pt(self.beta), (3, 2))
         self.ex.end_turn()
@@ -209,9 +207,9 @@ class TestExpiryVocab(DurationCase):
         self.assertIn("expired", self.statuses(self.beta))
 
     def test_until_leaves_is_terminal_across_the_zone_cycle(self):
-        # "until TARGET leaves the battlefield" (the R7-2 GAIN_CONTROL
+        # "until TARGET leaves the battlefield" (the GAIN_CONTROL
         # pairing): the anchor referent is structured — "target" resolves
-        # through the same C12 machinery the QProps use.
+        # through the same referent machinery the QProps use.
         self.buff(self.beta, DurationUntilLeaves(source="target"))
         self.assertEqual(self.pt(self.beta), (3, 2))
         self.world.move_to_zone(self.beta, self.p1, ZONE_EXILE)
@@ -221,7 +219,7 @@ class TestExpiryVocab(DurationCase):
         self.ex.ledger.expire_leaves(self.beta)
         self.assertEqual(self.pt(self.beta), (2, 2))
         self.world.move_to_zone(self.beta, self.p1, ZONE_BATTLEFIELD)
-        # r5 convention: returning does NOT restore a terminal duration.
+        # Returning does NOT restore a terminal duration.
         self.assertEqual(self.pt(self.beta), (2, 2))
         self.assertEqual(self.statuses(self.beta), ["expired"])
 
@@ -311,7 +309,7 @@ class TestUntapStep(DurationCase):
 class TestFrostBreathCompiled(unittest.TestCase):
     """The real M21 row: the b5b tap template + the b5c untap-prevention
     template, folded by the instant assembly into Seq(TAP, PREVENT) — the
-    frozen grammar's canonical UntilNextStep(UNTAP, owner-scoped) carrier.
+    grammar's canonical UntilNextStep(UNTAP, owner-scoped) carrier.
     PREVENT_EFFECT carries NO target role (grammar table): the
     IS_ANY_TARGET anaphora reads the designated set from the bindings the
     TAP atom's designation filled — one shared ctx across the Seq."""
@@ -425,8 +423,8 @@ class TestNineLivesReplacement(unittest.TestCase):
         }
         pc = compile_pool(pool, build_full_registry())
         result = pc.results[_oid(9)]
-        # B-49 (2026-10-29): + the trailing effect-less SpellAbility cast
-        # carrier, so the enchantment is castable; it binds nothing here.
+        # The trailing effect-less SpellAbility is the cast carrier, so the
+        # enchantment is castable; it binds nothing here.
         self.assertEqual(
             [type(ability).__name__ for ability in result.card.abilities],
             ["ReplacementAbility", "TriggeredAbility", "SpellAbility"],
@@ -476,9 +474,8 @@ class TestNineLivesReplacement(unittest.TestCase):
 
         for _ in range(9):
             self.hit(1)
-        # re-pinned 2026-10-29: V31b (CR 122.2) changes the counters an exiled card
-        # keeps: nine incarnation counters were placed (the rows below), then they
-        # ceased to exist when the enchantment moved to exile.
+        # CR 122.2: nine incarnation counters were placed (the rows below), then
+        # they ceased to exist when the enchantment moved to exile.
         placed = [
             e
             for e in self.ex.journal.events
@@ -491,7 +488,7 @@ class TestNineLivesReplacement(unittest.TestCase):
         self.assertEqual(self.life(), 19)  # unprotected now: damage lands
 
     def test_bounded_damage_cap_raises_instead_of_guessing(self):
-        # C-4: only "a source would deal damage" (QUnbounded) is matched;
+        # Only "a source would deal damage" (QUnbounded) is matched;
         # "the next N damage" style bounded replacements are NOT guessed.
         from MTG_bot.core.executor.replacements import ReplacementRecord
 
@@ -509,10 +506,10 @@ class TestNineLivesReplacement(unittest.TestCase):
 
 
 class TestPreventionExposure(DurationCase):
-    def test_combat_prevent_registers_and_exposes_without_consumer(self):
+    def test_combat_prevent_registers_as_a_live_prevention(self):
         # Faith's Fetters / Capture Sphere shape: a universal "can't
-        # attack" veto. Registered, dumped, EXPOSED — no combat phase
-        # consumes it pre-12e, and nothing else is affected.
+        # attack" veto. Registered as a live prevention, dumped, and
+        # nothing else (the untap step) is affected.
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
@@ -522,14 +519,16 @@ class TestPreventionExposure(DurationCase):
             source=self.alpha,
             controller=self.p0,
         )
-        self.assertEqual(len(self.ex.replacements.combat_preventions()), 1)
+        self.assertEqual(
+            [(type(r.event), r.status) for r in self.ex.replacements.preventions],
+            [(DeclareAttackersEvent, "live")],
+        )
         self.assertEqual(len(self.ex.replacements.dump()), 1)
         self.assertFalse(self.ex.replacements.prevents_untap(self.beta))
 
     def test_prevent_without_targets_registers_a_global_family(self):
-        # No designation in context: the veto's affected set is empty —
-        # a step-wide "creatures don't untap" family (Fetters shape) has
-        # no per-card targets; the step/phase consumer is 12e.
+        # No designation in context: a step-wide "creatures don't untap"
+        # family (Fetters shape) has no per-card targets.
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
@@ -543,9 +542,8 @@ class TestPreventionExposure(DurationCase):
         )
         self.world.cards[self.beta].tapped = True
         self.ex.begin_turn(self.p1)
-        # re-pinned 2026-10-29: V16 gives the targetless family its consumer
-        # (CR 502.3): the record's filter is the affected set, so Beta, a
-        # creature, does not untap (it used to: EXPOSED).
+        # CR 502.3: the record's filter is the affected set, so Beta, a
+        # creature, does not untap.
         self.assertTrue(self.world.cards[self.beta].tapped)
         self.assertEqual(len(self.ex.replacements.dump()), 1)
         self.assertEqual(self.ex.replacements.dump()[0][5], "live")
@@ -555,16 +553,16 @@ class TestPreventionExposure(DurationCase):
 
 
 class TestReplayFingerprint(unittest.TestCase):
-    """The 12d machinery — condition cycles, prevents with anaphoric
+    """The duration machinery — condition cycles, prevents with anaphoric
     designation, the untap tick, step/next-turn expiry — replays
-    byte-identical (P12), and a frozen untap differs from a free one."""
+    byte-identical, and a frozen untap differs from a free one."""
 
     def scripted(self, seed, freeze=True):
         world = GameWorld(num_players=2, start_life=20, master_seed=seed)
         p0, p1 = world.player_order[0], world.player_order[1]
         # Explicit oracle ids: the module's id counter is process-global and
         # would make the SECOND scripted run's identities differ from the
-        # first's (the 12a replay helpers reset it per case for the same
+        # first's (other replay cases reset it per case for the same
         # reason — identities are fingerprint state).
         alpha = world.add_card(
             card_id("Alpha", "2", "2", oid=_oid(1)), p0, ZONE_BATTLEFIELD

@@ -1,23 +1,18 @@
-"""125 — the effect-CAST offer gate prices the cast (/114 for the effect lane).
+"""The effect-CAST offer gate (``query.optional_offer``) prices the cast.
 
-Shadow-grid crash (M21 eval, seed 777003, frozen 99c5edc): Conspicuous
-Snoop's "you may cast the top card…" may-offer was ACTIONABLE while the
-designated card ({3}{R}) could not be paid from {R:3}; the model answered
-fire, the deterministic CHOOSE designation named that card, and
-``stack.cast_card`` raised LOUD at its payment invariant (kept loud —
-last-line rule). The offer layer (``query.optional_offer``'s r23a CAST
-gate) read castability STRUCTURE only (does a SpellAbility carrier
-exist), never mana.
-
-Fix law (CR 601.2b-e + option-legality /10): an option is offered only
-when the cast it hands the engine is CURRENTLY PAYABLE, priced by the
-SAME ``build_payment_plan`` the engine folds (one source of truth), the
-atom's own ``cost`` role respected (EMPTY Cost = the corpus cost-waiver
-idiom, CR 498.2 — always payable; a real Cost REPLACES the printed cost,
-which is what cast_card does). A CHOOSE designation is priced through the
-stand-in's OWN slice (sorted candidates[:count]) — query/runtime
-identity, §8.3; a TARGET/ONE_OF menu keeps the any-payable branch (r18a:
-never erase a legal choice the seat could designate and afford).
+Conspicuous Snoop's "you may cast the top card…" may-offer must not be
+ACTIONABLE when the designated card ({3}{R}) cannot be paid from {R:3}: on
+fire the deterministic CHOOSE designation names that card and
+``stack.cast_card`` raises LOUD at its payment invariant (kept loud as the
+last line). So an option is offered only when the cast it hands the engine
+is CURRENTLY PAYABLE (CR 601.2b-e), priced by the SAME
+``build_payment_plan`` the engine folds (one source of truth), the atom's
+own ``cost`` role respected (EMPTY Cost = the corpus cost-waiver idiom,
+CR 498.2 — always payable; a Cost with parts is an additional cost on top
+of the printed one, CR 601.2f). A CHOOSE designation is priced through the
+stand-in's OWN slice (sorted candidates[:count]) — query/runtime identity;
+a TARGET/ONE_OF menu keeps the any-payable branch (never erase a legal
+choice the seat could designate and afford).
 """
 
 import dataclasses
@@ -120,9 +115,9 @@ class CastPayabilityCase(unittest.TestCase):
         may = OptionalEffect(inner=atom(Verb.CAST, **roles))
         return optional_offer(self.ex, may, source=self.src, controller=self.p0)
 
-    # ---------------------------------------------------------- the crash
+    # ------------------------------------------- the unaffordable designee
     def test_unaffordable_designation_is_not_offered(self):
-        # THE seed-777003 repro: {3}{R} spell, {R:3} pool — cost:mana_generic
+        # {3}{R} spell, {R:3} pool — cost:mana_generic
         # 2<3 at stack.cast_card. The offer must narrow to skip (CR 117.3:
         # an impossible action has no branch), never phantom-fire.
         self.spell_in_library("Battle-Rattle Shaman", _cost(3, "R"))
@@ -141,7 +136,7 @@ class CastPayabilityCase(unittest.TestCase):
         # fire branch raises at runtime, so the offer must narrow EVEN
         # THOUGH the other card is payable — the gate prices the
         # stand-in's own slice, not the population (query/runtime
-        # identity, §8.3).
+        # identity).
         costly = self.spell_in_library("Costly", _cost(5))
         cheap = self.spell_in_library("Cheap", _cost(1))
         assert min([costly, cheap]) == costly  # stand-in casts costly
@@ -166,11 +161,10 @@ class CastPayabilityCase(unittest.TestCase):
 
     def test_mixed_matrix_one_of_menu_keeps_the_affordable_branch(self):
         # ONE_OF designates ONE card the seat picks (ask menu): one
-        # payable candidate makes the branch actionable (r18a). B2 (gate
-        # round — /10 menu-visibility): the ASK VOCABULARY is clamped to
-        # exactly the payable carriers — the seat is never presented the
-        # unaffordable card, because choosing it was a raise-trap at
-        # stack.cast_card (the amended-to-trap is still a trap).
+        # payable candidate makes the branch actionable. The ASK
+        # VOCABULARY is clamped to exactly the payable carriers — the seat
+        # is never presented the unaffordable card, because choosing it
+        # would be a raise-trap at stack.cast_card.
         self.spell_in_library("Cheap", _cost(1))
         self.spell_in_library("Costly", _cost(5))
         self.world.players[self.p0].mana_pool = {"C": 1}
@@ -182,15 +176,14 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.offer(mode=SelectorMode.ONE_OF), MAY_VOCAB[1:])
 
     def test_one_of_ask_vocabulary_excludes_the_unpayable_card(self):
-        # B2 clamp asserted at the ASK itself: names chosen so the COSTLY
-        # card sorts FIRST (the pre-clamp vocabulary led with the trap).
-        # decisions = ("fire", "0"): the ONE_OF ask answers index 0 of its
-        # CLAMPED vocabulary — the payable card — and the unpayable card
-        # stays put; before the clamp, index 0 named the unpayable card
-        # and the resolution raised.
+        # The clamp asserted at the ASK itself: names chosen so the COSTLY
+        # card sorts FIRST. decisions = ("fire", "0"): the ONE_OF ask
+        # answers index 0 of its CLAMPED vocabulary — the payable card —
+        # and the unpayable card stays put; unclamped, index 0 would name
+        # the unpayable card and the resolution would raise.
         costly = self.spell_in_library("Arda Feat", _cost(5))
         bolt = self.spell_in_library("Bolt", _cost(1))
-        assert min([costly, bolt]) == costly  # the trap order (pre-clamp)
+        assert min([costly, bolt]) == costly  # the trap sorts first
         self.world.players[self.p0].mana_pool = {"C": 1}
         may = OptionalEffect(
             inner=atom(
@@ -208,10 +201,10 @@ class CastPayabilityCase(unittest.TestCase):
     def test_unbounded_mixed_carrier_hand_casts_the_spell_and_skips_the_land(
         self,
     ):
-        # B1 (gate round, Catalyst shape): CHOOSE-∞ over a population the
-        # compiled filter lets LANDS into. The offered set clamps to spell
-        # carriers (a land is not a spell): the offer is live, the fire
-        # casts the spell, the land stays — never the old whole-set raise.
+        # Catalyst shape: CHOOSE-∞ over a population the compiled filter
+        # lets LANDS into. The offered set clamps to spell carriers (a land
+        # is not a spell): the offer is live, the fire casts the spell, the
+        # land stays — no whole-set raise.
         land = self.world.add_card(
             card_id("Island", type_line="Land"), self.p0, ZONE_LIBRARY
         )
@@ -232,12 +225,11 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.world.zone_of(land).kind, "library")
 
     def test_zero_carrier_filter_registers_the_gap_loudly(self):
-        # B3 (gate round): Radha's shape — the selector's filter admits
-        # ZERO spell designees (PLAY_LAND miscompiled to a CAST filtered
-        # TYPE_EQ Land). The skip is honest (a land is never a castable
-        # designee) but NEVER silent: the mis-shapen atom goes into
-        # executor.unresolved_effects (/112 ledger pattern: deduped,
-        # counted, queryable) as the COMPILER-lane handoff.
+        # Radha's shape — the selector's filter admits ZERO spell designees
+        # (PLAY_LAND miscompiled to a CAST filtered TYPE_EQ Land). The skip
+        # is honest (a land is never a castable designee) but NEVER silent:
+        # the mis-shapen atom goes into executor.unresolved_effects
+        # (deduped, counted, queryable) as the COMPILER-lane handoff.
         self.world.add_card(card_id("Island", type_line="Land"), self.p0, ZONE_LIBRARY)
         self.world.add_card(
             card_id("Mountain", type_line="Land"), self.p0, ZONE_LIBRARY
@@ -260,9 +252,9 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.ex.unresolved_effect_counts[flags[0]], 2)
 
     def test_mixed_population_unbounded_registers_the_filter_omission(self):
-        # B1 handoff #2: Catalyst/HoH filter-omission (FAnd(()) admits
-        # lands into a CAST population). The clamp makes play safe — and
-        # the atom-shape gap lands in the same queryable ledger.
+        # Catalyst/HoH filter-omission (FAnd(()) admits lands into a CAST
+        # population). The clamp makes play safe — and the atom-shape gap
+        # lands in the same queryable ledger.
         self.world.add_card(card_id("Island", type_line="Land"), self.p0, ZONE_LIBRARY)
         self.spell_in_library("Bolt", _cost(1))
         self.world.players[self.p0].mana_pool = {"C": 9}
@@ -272,14 +264,13 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertIn("non-spell designees", flags[0])
 
     def test_face_cast_gap_survives_the_clamp(self):
-        # /115 regression pin (this round's own regression): the
-        # BackFace-only compiled record is NOT a clamp member. Two lanes,
+        # The BackFace-only compiled record is NOT a clamp member. Two lanes,
         # both LOUD: the may-offer for a face-cast-absent-only population
         # is skip-only and REGISTERS the compiler's front-text gap (a
         # fire that could only ever guard-skip is a phantom option); the
         # raw designation lane must preserve the designee so cast_card's
         # TYPED refusal still raises — the guarded live lane skips AND
-        # LEDGERS it (pinned byte-identical in test_executor_dfc_cast.py).
+        # LEDGERS it (pinned in test_executor_dfc_cast.py).
         # Either way the shape is never a silent clamp-drop.
         from MTG_bot.core.ability_tree import BackFace
         from MTG_bot.core.executor.stack import FaceCastAbsentError
@@ -315,7 +306,7 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.world.zone_of(dfc).kind, "library")  # nothing cast
 
     def test_bound_designation_with_non_carrier_narrows_the_offer(self):
-        # 12a SOURCE bindings cast ALL bound cards — an explicit
+        # SOURCE bindings cast ALL bound cards — an explicit
         # designation is never re-picked, so a bound non-carrier makes
         # the fire an impossible offer: skip (the runtime's per-card
         # raise stays the last line if the lane is force-fed).
@@ -352,11 +343,10 @@ class CastPayabilityCase(unittest.TestCase):
         )
 
     def test_target_cast_slot_candidates_are_clamped(self):
-        # B2 TARGET lane (Catalyst GRAVEYARD shape): the designation slot
+        # TARGET lane (Catalyst GRAVEYARD shape): the designation slot
         # a spell/activation announcement must offer ranges over PAYABLE
-        # carriers only — a land or a cost-short card in the menu is the
-        # raise-trap the gate round flagged (CR 601.2b: designations are
-        # legal-at-ask).
+        # carriers only — a land or a cost-short card in the menu would be
+        # a raise-trap (CR 601.2b: designations are legal-at-ask).
         grave = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
         g = self.world.add_card(
             card_id("Bolt", type_line="Instant"), self.p0, ZONE_GRAVEYARD
@@ -390,10 +380,9 @@ class CastPayabilityCase(unittest.TestCase):
 
     # ----------------------------------------------------------- riders
     def test_land_first_choose_one_is_designee_impossible(self):
-        # The /125 amendment direction on the r23a pin: a spell carrier
-        # EXISTS, but the sorted-FIRST designee is a land — the runtime
-        # CHOOSE(1) stand-in names the land and _v_cast raises 'no
-        # SpellAbility' — an impossible fire the offer must never make,
+        # A spell carrier EXISTS, but the sorted-FIRST designee is a land —
+        # the runtime CHOOSE(1) stand-in names the land and _v_cast raises
+        # 'no SpellAbility' — an impossible fire the offer must never make,
         # regardless of mana.
         land = self.world.add_card(
             card_id("Island", type_line="Land"), self.p0, ZONE_LIBRARY
@@ -411,14 +400,12 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.offer(cost=_cost()), MAY_VOCAB)
 
     def test_real_cost_role_replaces_the_printed_cost(self):
-        # re-pinned 2026-10-30: the coordinator's cast-lane item changes what a
-        # CAST cost role WITH parts means: additional costs on top of the printed
-        # cost (CR 601.2f; the documented 13b convention in verbs._v_cast and
-        # DESIGN_ATOM_ONTOLOGY R5-2), never a replacement; only an EMPTY Cost
-        # waives the mana cost. The old pin said "the ROLE as the whole cost".
-        # printed {1} with role {5} owes {6}: NOT payable at {C:1}; printed {5}
-        # with role {1} owes {6}: NOT payable at {C:1} either (it was, when the
-        # role replaced the {5}); printed {5} with role {1} IS payable at {C:6}.
+        # A CAST cost role WITH parts is an additional cost on top of the
+        # printed cost (CR 601.2f; the convention documented in
+        # verbs._v_cast), never a replacement; only an EMPTY Cost waives the
+        # mana cost. Printed {1} with role {5} owes {6}: NOT payable at
+        # {C:1}; printed {5} with role {1} owes {6}: NOT payable at {C:1}
+        # either; printed {5} with role {1} IS payable at {C:6}.
         self.spell_in_library("Cheap Print", _cost(1))
         self.world.players[self.p0].mana_pool = {"C": 1}
         self.assertEqual(self.offer(cost=_cost(5)), MAY_VOCAB[1:])
@@ -456,7 +443,7 @@ class CastPayabilityCase(unittest.TestCase):
 
     def test_referent_source_stays_ungated(self):
         # Produced mid-effect (the result register): nothing enumerable
-        # pre-execution — r18a rule, byte-unchanged by this fix.
+        # pre-execution, so the gate never narrows on it.
         may = OptionalEffect(inner=atom(Verb.CAST, source=referent_sel("result", UNIV)))
         self.assertEqual(
             optional_offer(self.ex, may, source=self.src, controller=self.p0),
@@ -504,12 +491,12 @@ class CastPayabilityCase(unittest.TestCase):
         # unconsumed, the site auto-answers skip, the card stays put.
         self.assertEqual(self.world.zone_of(card).kind, "library")
 
-    # ------------------------------------------------- F2 positional law
-    # (re-gate round 3, /125): the finite-CHOOSE CAST slice designates the
-    # sorted-FIRST candidates of the RAW population (query.py's finite
-    # gate branch, verbs.py's "deterministic first-n stand-in"). The
-    # runtime must REFUSE a failing head — no cast, a ledger row — and
-    # NEVER pay down onto the next payable spell.
+    # ---------------------------------------------------- positional law
+    # The finite-CHOOSE CAST slice designates the sorted-FIRST candidates
+    # of the RAW population (query.py's finite gate branch, verbs.py's
+    # "deterministic first-n stand-in"). The runtime must REFUSE a failing
+    # head — no cast, a ledger row — and NEVER pay down onto the next
+    # payable spell.
     def _mand_cast(self, mode=SelectorMode.CHOOSE, sel=None):
         self.ex.apply_effect(
             atom(
@@ -521,11 +508,10 @@ class CastPayabilityCase(unittest.TestCase):
         )
 
     def test_f2_mandatory_head_unpayable_refuses_never_repicks(self):
-        # The p1_probe scenario as a pin: Colossus ({5}{R}) sorts FIRST,
-        # the pool pays only Bolt. Round 2's population clamp re-picked
-        # and CAST Bolt (positional-law violation); F2 refuses the whole
-        # effect instead — nothing moves, nothing is paid, the ledger
-        # names the refused head.
+        # Colossus ({5}{R}) sorts FIRST, the pool pays only Bolt. Casting
+        # Bolt instead would be a re-pick (a positional-law violation): the
+        # whole effect is refused — nothing moves, nothing is paid, the
+        # ledger names the refused head.
         colossus = self.spell_in_library("Colossus", _cost(5, "R"))
         bolt = self.spell_in_library("Bolt", _cost(1, "R"))
         self.assertEqual(min([colossus, bolt]), colossus)  # the head
@@ -574,7 +560,7 @@ class CastPayabilityCase(unittest.TestCase):
         )
 
     def test_f2_bound_target_clamp_registers_its_drop(self):
-        # F2(4): the TARGET legality clamp stays (CR 603.3-mode) but a
+        # The TARGET legality clamp stays (CR 603.3-mode) but a
         # BOUND designation the CAST clamp removes is an explicit
         # refusal — it must be LEDGERED, not silently dropped (driven on
         # the resolve_selector lane directly: the role_handles bound
@@ -604,10 +590,9 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertIn("Colossus (cannot be paid for right now)", flags[0])
 
     def test_f2_random_cast_draws_the_clamped_pool(self):
-        # F2(3): the RANDOM draw is over the CLAMPED population — an
-        # unpayable card can never be drawn into a cast (the raw draw
-        # only ever reached the raise-trap; the bias is documented on the
-        # branch, this pin freezes the intent).
+        # The RANDOM draw is over the CLAMPED population — an unpayable
+        # card can never be drawn into a cast (a raw draw could only reach
+        # the raise-trap; the bias is documented on the branch).
         from MTG_bot.core.executor.legality import ctx_for
         from MTG_bot.core.executor.query import cast_designee_ok
         from MTG_bot.core.executor.selectors import resolve_selector
