@@ -26,6 +26,14 @@ Pack vocabulary (all keys required as noted):
                                             "colors", "keywords", and
                                             "token": true for a token)}]
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
+  mulligan: [word...]                       optional (2026-11-06, CR 103.5): the pack starts
+                                            like a dealt game, each seat drawing seven from its
+                                            library, and the London mulligan runs before the
+                                            first turn (games.mulligans). The words answer its
+                                            asks in order, exactly one per ask: "keep" or
+                                            "mulligan", or the pack key of the card a mulligan
+                                            puts on the bottom ("first-legal" takes the first
+                                            offered card)
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
@@ -165,7 +173,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
-from MTG_bot.core.executor.games import get_supply, identity_of
+from MTG_bot.core.executor.games import OPENING_HAND, get_supply, identity_of, mulligans
 from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
@@ -315,6 +323,8 @@ class ScenarioRunner:
         for seat, colors in pack.get("mana", {}).items():
             for color, n in colors.items():
                 self.world.players[self.seats[int(seat)]].mana_pool[color] = n
+        if "mulligan" in pack:
+            self._mulligans(list(pack["mulligan"]))
         # 16b: the clock opens for REAL (begin_turn: markers, ledger; turn 1
         # of a two-player game, so seat 0 skips its draw step, CR 103.8a)
         # — a faked turn desynced world.turn and the sickness
@@ -371,6 +381,28 @@ class ScenarioRunner:
                 entries = pl.zone(ZONE_LIBRARY).entries
                 entries.remove(handle)
                 entries.append(handle)
+
+    def _mulligans(self, words: list[str]) -> None:
+        """The pack's ``mulligan`` lane: opening hands, then CR 103.5 answered word for word."""
+        for seat in self.seats:
+            self.world.draw(seat, OPENING_HAND)
+
+        def answer(vocab: tuple[str, ...], what: str) -> str:
+            if not words:
+                raise PackError(f"mulligan: no word left for {what} {tuple(vocab)}")
+            word = words.pop(0)
+            got = vocab[0] if word == FIRST_LEGAL else str(self.handles.get(word, word))
+            if got not in vocab:
+                raise PackError(f"mulligan: {what}: word {word!r} not offered in {tuple(vocab)}")
+            return got
+
+        self.ex.decisions.provider = answer
+        try:
+            mulligans(self.ex, self.seats)
+        finally:
+            self.ex.decisions.provider = None
+        if words:
+            raise PackError(f"mulligan: words no ask took: {words}")
 
     def run_step(self, step: dict) -> None:
         if step.get("decisions") and step["op"] != "combat":

@@ -588,11 +588,14 @@ silently. If `scope_coverage` falls below 0.5 the family is reported as scoped a
 | **INT-5** | `counterspell_discipline` | `counter_hit_MV` distribution; `counters_stranded` at game end; `first_thing_seen_rate` | `E-PRIO`, stack events | T2 / E1 | a strong player's `counter_hit_MV` sits well above the table's mean spell MV | pool composition | N |
 | **INT-6** | `premature_commitment_rate` | for each instant-speed action at priority window w, does a strictly later window w' exist in the same **no-information-gained interval** (no draw, no reveal, no opponent choice between them) at which the identical token sequence was still legal. Rate over instant-speed actions | `E-PRIO`, `E-ACT` typed fields, `E-EVT` for the interval | T1 / E1 | holding instants until the last safe window is one of the most reliable correctness signals in real Magic, and it is learned, never rewarded. **Denominator trap: a policy that never casts instants has an undefined rate and prints `n/a (0 instant-speed actions)`, never a good score** | none once priority exists | N |
 
-### 8.7 Mulligans (E1: zero code exists; specify before the code)
+### 8.7 Mulligans (E1: the decisions exist; the metrics are not computed)
 
-`grep "def mulligan"` across `MTG_bot/` returns nothing, while `MTG_bot/main.py:262` calls
-`engine.mulligan(player_id)`, a method that does not exist.
-`DESIGN_ACTION_SPACE.md` §1.3 specifies `MULLIGAN_TAKE` / `MULLIGAN_KEEP:CARD_TO_BOTTOM`.
+Since 2026-11-06 every dealt game runs the London mulligan before turn 1
+(`MTG_bot/core/executor/games.py` `mulligans`, CR 103.5): each declaration is the decision
+`mulligan:<seat>:<mulligans taken>` (keep or mulligan) and each card a mulligan puts on the bottom is
+`mulligan_bottom:<seat>:<cards still to put there>`, both in the engine's decision stream
+(`executor.decisions.ask_log`). `DESIGN_ACTION_SPACE.md` §1.3 specifies `MULLIGAN_TAKE` /
+`MULLIGAN_KEEP:CARD_TO_BOTTOM`.
 
 | ID | Metric | Definition | Data required | Tier / epoch | How to read | Confounds | Null |
 |---|---|---|---|---|---|---|---|
@@ -798,7 +801,7 @@ expensive or impossible to retrofit. Ordered by how many metrics die without it.
 | **E-SLATE** | per-decision emission of the **pre-curation** menu, per-field masks, support sizes, forced flags, and dependency classes | `DQ-11` denominator, `CLS-5`, `RWD-5`, Rail C's NTD | `train.py:166-198` curates and records only a positional map at `:200-205` |
 | **E-ACT** | structured `ATTACK_SET` naming a defender, and `BLOCK_ASSIGN` as one object rather than N pairwise clicks | `CMB-1`, `CMB-2`, `CMB-6`, `CMD-3`, and `SYS-1`'s comparability | the engine emits one `DeclareBlockerAction` per (blocker, attacker) pair; `DeclareAttackerAction` has `player_id, card_id` only, so there is no "whom do you attack", which in a pod **is** the politics signal |
 | **E-PRIO** | real priority for non-active players, and a stack the model can act on | all of §8.6, `INT-1..6` | the defending player is given a decision only at Declare Blockers; instants are offered only inside the active player's own main-phase branch. The stack lives on `Engine`, not in the graph, so every current snapshot is structurally incomplete |
-| **E-MULL** | `MULLIGAN_TAKE` / `MULLIGAN_KEEP:CARD_TO_BOTTOM` as real decisions | `MUL-1..4` | `grep "def mulligan"` returns nothing while `main.py:262` calls `engine.mulligan(player_id)` |
+| **E-MULL** | `MULLIGAN_TAKE` / `MULLIGAN_KEEP:CARD_TO_BOTTOM` as real decisions | `MUL-1..4` | the decisions exist since 2026-11-06 (`games.mulligans`, asks `mulligan:` and `mulligan_bottom:`); no per-game record of them is written yet |
 | **E-CMD** | commander tax, recast, commander damage, poison, command zone contents in the keyframe | `CMD-1..4` | `grep -i "commander_tax\|commander_damage\|poison"` over `MTG_bot/**.py` returns **zero hits** |
 | **E-SNAP** | self-contained position serialise / restore **including the stack** | `DQ-1`, `DQ-2`, `VAR-5`, `VAR-6`, `PZL-4`, `DQ-6` | the stack is on `Engine`, not the graph |
 | **E-MU** | make / unmake with an undo journal at 10-50 us | `DQ-3..6`, `DQ-8`, `DQ-12`, `CLS-2`, `CMB-7`, `PZL-4`, the whole oracle ladder | the only copy mechanism is `copy.deepcopy(graph)` at 6.0 ms; `DESIGN_TRAINING.md` §5 names make/unmake as the blocker and puts one O2 evaluation at ~20 hours |

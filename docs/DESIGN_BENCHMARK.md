@@ -202,7 +202,9 @@ The repository is **public**. Everything pushed is crawlable, so will be in futu
 - **Duplicate format.** Each deal (both decks and both library orders) is played twice with the
   agents' seats swapped; **the pair is the unit.** That removes deal luck from the comparison.
   Engine randomness during play still diverges once the two games diverge; that is inherent and
-  stated. For pods: a Latin square of seat rotations.
+  stated. The mulligans (CR 103.5) are the first decisions of play: the same mulligan decisions
+  give the same hands, so the two games diverge there only when the agents decide differently.
+  For pods: a Latin square of seat rotations.
 - **Intervals.** Wilson intervals for proportions; a paired bootstrap over deals for pair scores.
   Always printed, and labelled "exploratory" unless a pre-registration file exists for the run.
   There is no hard minimum-n refusal.

@@ -5,6 +5,18 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-06 (the London mulligan, CR 103.5, branch `engine/london-mulligan`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| cost: 100 seeded heuristic games, M21 verified pool | decisions per game **74.0 -> 72.8** (of which the mulligan's: 3.32 declarations and 1.76 bottom picks); games per second **3.49 and 3.65 -> 4.09 and 3.82** (two back-to-back pairs); turns per game **21.6 -> 18.3**; seat 0 wins 44 -> 42; 0 crashes | `tools.selfplay.rig.play_game(seed, [HeuristicAgent(), HeuristicAgent()], deck_mode="coherent" if seed % 3 == 0 else "stress")` for seeds 1-100 after one warm-up game; decisions are asks with more than one option, counted at the agents; games per second is 100 / wall time; on an export of main 634e0c0 and on the branch at 7b0577f | at nice 15 beside the r21 run. Games are shorter: a hand of zero or one land is mulliganed instead of played out |
+| share of those games in which a player mulligans | **63 / 100** (stress decks 55 / 67, coherent 8 / 33); of 200 seats, 112 kept seven, 44 mulliganed once, 44 twice; seats that mulliganed: stress 76 / 134, coherent 12 / 66 | the same games | the heuristic's rule: a hand of six or seven with fewer than two lands or fewer than two other cards is mulliganed; stress decks hold few lands |
+| pre-flight | **pass**: P1 clean at 7b0577f, P8 200 games and 0 engine errors, P9 200 / 200 ended by a loss, P12 replay identical | `.venv/bin/python -m tools.selfplay.preflight <scratch run dir> --games 200` | |
+| soaks, verified pools | M21: **0 crashes, 0 detector hits** in 300 games, 220 cards cast (main 634e0c0: 0, 0, 223); M20: **0 crashes, 0 detector hits** in 300 games, 210 cards cast | `.venv/bin/python tools/cards/soak.py M21 --games 300 --mode verified --workers 2`, the same for M20 | the random policy mulligans half its declarations, so its hands are smaller |
+| gates | pytest MTG_bot **5306 passed** / 39 deselected / 66 subtests (main: 5297); pytest tools **134** (131); packs **734 / 734** (732 / 732) | `.venv/bin/python -m pytest MTG_bot -q`; `.venv/bin/python -m pytest tools -q`; `.venv/bin/python tools/run_scenarios.py` | +9 in MTG_bot: test_executor_mulligan.py 7, two packs; +3 in tools: test_selfplay.py |
+| red first | on main 634e0c0 the 7 tests of test_executor_mulligan.py fail (6 by behaviour, 1 on the import of `games.mulligans`), the 3 new test_selfplay.py tests fail, and the 2 new packs pass **0 / 2**; on the branch all pass | the new tests and packs copied into an export of main | |
+| an old checkpoint loads and plays | runs/selfplay/r20_ppo/v2.pt (26 ask rows, 29 option rows) loads, grown to 28 / 31, and plays 20 greedy games against the heuristic on CPU: 0 crashes, 11 wins; asked 20 mulligan declarations, kept all 20, p(keep) = p(mulligan) exactly | `model.load`, then `actor.NetAgent` over `model.LocalSlot` in `rig.play_game`, seeds 1-10 in both seats | the two new option rows start as "other", so greedy play keeps; under sampling an old network mulligans half its declarations until PPO separates them |
+
 ## 2026-11-06 (cleanup, branch `chore/cleanup-2026-11-06`)
 
 | Number | Value | Command | Notes |

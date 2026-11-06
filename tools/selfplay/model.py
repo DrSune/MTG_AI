@@ -302,10 +302,14 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
     n_cards, n_ir = cfg.pop("n_cards"), cfg.pop("n_ir")
     model = PolicyValueNet(n_cards, n_ir, table.ir_array(), **cfg)
     state = ck["state"]
-    w = state["ask_emb.weight"]
-    # kinds appended since this checkpoint start as the kind they were encoded as before
-    grown = [w[FT.ASK_INDEX[FT.ASK_GROWN_FROM.get(k, "other")]] for k in FT.ASK_KINDS[w.shape[0]:]]
-    if grown:
-        state["ask_emb.weight"] = torch.cat([w, torch.stack(grown)])
+    # ask kinds and option types appended since this checkpoint start as what they were encoded
+    # as before: the ASK_GROWN_FROM kind or "other"
+    for key, names, index, grown_from in (
+            ("ask_emb.weight", FT.ASK_KINDS, FT.ASK_INDEX, FT.ASK_GROWN_FROM),
+            ("opt_type.weight", FT.OPTION_TYPES, FT.OPT_INDEX, {})):
+        w = state[key]
+        grown = [w[index[grown_from.get(k, "other")]] for k in names[w.shape[0]:]]
+        if grown:
+            state[key] = torch.cat([w, torch.stack(grown)])
     model.load_state_dict(state)
     return model.to(device), table, ck.get("extra", {})

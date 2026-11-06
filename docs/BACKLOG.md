@@ -34,6 +34,7 @@ are neutral; each one is teaching the agent something.
 | **Self-play gate: freeze when a gate match vs the newest frozen version scores `--gate-score` with its 95% lower bound above 0.5; the teacher stage ends at `--teacher-gate` or after `--teacher-iters` updates** (2026-11-04) | `tools/selfplay/learner.py` `_eval_tick` (`--gate-score`, `--gate-deals`, `--teacher-gate`, `--teacher-iters`) | Hand-set curriculum schedule. Replace with a league whose opponent sampling follows measured win rates (prioritised fictitious self-play) so no freeze threshold is needed. |
 | **PPO throttle: no new training games while a full next batch (`--steps`) is waiting** (2026-11-04) | `tools/selfplay/learner.py` `next_job` | Flow control so batches stay on-policy when workers outrun the trainer; it idles workers. Remove when the trainer keeps up (faster update) or when idle capacity is given other work (value games, evals). |
 | **Teferi, Master of Time's instant-speed window has no window to use** (registered 2026-10-29, branch `engine/phasing`) | `core/executor/legality.py` `ability_playable` (CR 606.3 loyalty window; the GRANT_ACTIVATION relaxation); `core/executor/games.py` and `MTG_bot/bench/router.py` (one act window per main phase) | The legality oracle honours "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant" (for Teferi itself only, CR 201.5c). The drivers ask for activations only in the active player's main phases (both since 2026-11-06, B-74), so the opponent's-turn half and the own-turn combat half never get a window, and Teferi plays as a sorcery-speed planeswalker: weaker than printed (its [−3] can never remove an attacker or a blocker). Remove with the priority rung: an activation window for the non-active seat and inside each step. |
+| **The heuristic's mulligan rule** (2026-11-06, with the London mulligan) | `tools/selfplay/heuristic.py` `_mulligan`, `_mulligan_bottom` | An authored keep policy, not a rule of the game, in the anchor opponent and the BC teacher: keep a hand of five cards or fewer, or a bigger one with at least two lands and at least two other cards; the card a mulligan puts on the bottom is a land while lands outnumber the rest (a copy of the land held most), else the highest mana value card. The network learns its own mulligan by PPO and imitates this one only in teacher inter-play. Remove it with the heuristic as anchor and teacher: a league of frozen versions as the fixed opponents, and runs that start from a trained network. |
 | **One fixed `TEST_MASTER_SEED` for the test suite** (2026-09-11) | `MTG_bot/conftest.py:24` | It is the right default now, but a conformance suite should eventually run over k seeds and assert the result is seed-independent, which is what P13's seed band is for. Once P13 exists, replace the constant with a parametrised seed sweep. |
 
 ---
@@ -366,10 +367,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Rules not modelled
 
-- **No mulligan** (2026-11-06, the r19 game review): every player keeps the opening seven (CR 103.5,
-  the London mulligan, is not implemented). The network kept a 0-land hand; the heuristic sat on one
-  land for whole games. Real play mulligans those hands, so every such game is decided by the deal.
-  Implement the London mulligan as a decision (keep or mulligan, then which cards go to the bottom).
 - **No copy effects and no layer dependencies** (the 2026-09-10 audit's list for the pre-rebuild
   engine, still true of this one): `Verb.COPY` has no handler in `verbs.HANDLERS`, so no copy
   effect runs (Sublime Epiphany's COPY mode is never offered), and the layer system applies

@@ -19,10 +19,15 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   it survives, else no block.
 * scry/discard/sacrifice/mana/one_of: small land-count and mana-value rules (see the methods).
 * name: the opponent's most expensive card in a public zone (battlefield, graveyard, exile).
+* mulligan (CR 103.5): keep a hand of five cards or fewer, and a bigger one that holds at least
+  two lands and at least two other cards; otherwise mulligan. The card a mulligan puts on the
+  bottom: a land while the hand holds more lands than other cards (a copy of the land it holds
+  most of), otherwise its highest mana value other card.
 """
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
@@ -442,6 +447,24 @@ class HeuristicAgent:
 
     def _pay(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         return tokens.index("PAY") if "PAY" in tokens else None
+
+    def _mulligan(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        hand = self._hand()
+        lands = sum(1 for h in hand if self._is(h, "Land"))
+        keep = len(hand) <= 5 or (lands >= 2 and len(hand) - lands >= 2)
+        return tokens.index("keep" if keep else "mulligan")
+
+    def _mulligan_bottom(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        cards = [(i, _handle(t)) for i, t in enumerate(tokens)]
+        cards = [(i, h) for i, h in cards if h is not None and h in self.world.cards]
+        lands = [(i, h) for i, h in cards if self._is(h, "Land")]
+        others = [(i, h) for i, h in cards if not self._is(h, "Land")]
+        if len(lands) > len(others):
+            copies = Counter(self.world.cards[h].identity.name for _, h in lands)
+            return max(lands, key=lambda x: (copies[self.world.cards[x[1]].identity.name], -x[0]))[0]
+        if not others:
+            return None
+        return max(others, key=lambda x: (float(self.world.cards[x[1]].identity.cmc or 0), -x[0]))[0]
 
     def _name(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         seen: dict[str, float] = {}

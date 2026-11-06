@@ -51,6 +51,9 @@ ASK_KINDS = (
     # the act menu of the second main phase, after combat (CR 505.1; B-74, 2026-11-06): the same
     # menu as the first main phase's, so the observation could not tell the two apart
     "act_second_main",
+    # the London mulligan before the first turn (CR 103.5, 2026-11-06): keep or mulligan, then
+    # which card of the hand goes to the bottom of the library
+    "mulligan", "mulligan_bottom",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
@@ -90,6 +93,8 @@ OPTION_TYPES = (
     "DECLINE", "NONE", "card", "player", "DONE", "fire", "skip", "top", "bottom",
     "W", "U", "B", "R", "G", "C", "number", "cast_at", "PAY", "AS_BLOCKED", "UNBLOCKED",
     "other",
+    # appended like ASK_KINDS (model.load starts each as "other", what it was parsed as before)
+    "keep", "mulligan",
 )
 OPT_INDEX = {k: i for i, k in enumerate(OPTION_TYPES)}
 
@@ -284,7 +289,9 @@ class CardTable:
 @dataclass
 class AskContext:
     """Facts about the current decision that the game rig knows and the engine state does not
-    show yet: the card being scried, attackers declared so far this combat, blocks so far."""
+    show yet: the card being scried, attackers declared so far this combat, blocks so far, and the
+    ask's count (``picked``): the targets picked so far for a target pick, the cards still to put
+    on the bottom (this one included) for a mulligan's bottom ask."""
 
     revealed: Handle | None = None
     declared_attackers: frozenset = frozenset()
@@ -556,7 +563,9 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
 
     # --- players
     players_f = np.zeros((2, PF), dtype=np.float32)
-    active = world.active_player
+    # Before the first turn (the mulligans, CR 103.5) no turn has begun: the starting player is
+    # the one whose turn comes first, which a keep decision needs (on the draw it gets a card).
+    active = world.active_player if world.active_player is not None else order[0]
     for i, ph in enumerate((me_h, opp_h)):
         pl = world.players[ph]
         zones = pl.zones

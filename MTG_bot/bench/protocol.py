@@ -67,17 +67,20 @@ class AskRoutingError(RuntimeError):
 #: legend rule's keep choice, ``legend:<seat>:<digest>`` (CR 704.5j). ``replace`` (B-69,
 #: 2026-11-05): which of several applicable replacement effects applies next,
 #: ``replace:<seat>:<digest>``, asked of the affected player or the controller of the affected
-#: permanent (CR 616.1); the options are the effects' sources.
+#: permanent (CR 616.1); the options are the effects' sources. ``mulligan`` and
+#: ``mulligan_bottom`` (2026-11-06): the London mulligan before the first turn (CR 103.5),
+#: ``mulligan:<seat>:<mulligans taken>`` (keep or mulligan) and
+#: ``mulligan_bottom:<seat>:<cards still to put on the bottom>`` (a card of the hand).
 SEAT_IN_TAG = frozenset(
     {"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "legend", "x",
-     "replace"}
+     "replace", "mulligan", "mulligan_bottom"}
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 OBJECT_IN_TAG = frozenset(
     {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name", "enchant"}
 )
 SITE_KINDS = SEAT_IN_TAG | OBJECT_IN_TAG
-REFUSE_TOKENS = ("PASS", "NONE", "DECLINE", "skip")
+REFUSE_TOKENS = ("PASS", "NONE", "DECLINE", "skip", "keep")
 _WORDS = {
     "ATTACK": "attack",
     "DECLINE": "do not attack",
@@ -90,6 +93,8 @@ _WORDS = {
     "bottom": "put it on the bottom",
     "AS_BLOCKED": "assign damage as though blocked",
     "UNBLOCKED": "assign damage as though unblocked",
+    "keep": "keep this hand",
+    "mulligan": "take a mulligan",
 }
 _COLORS = {"W": "white", "U": "blue", "B": "black", "R": "red", "G": "green", "C": "colorless"}
 
@@ -218,6 +223,12 @@ def engine_ask(
         "trample": f"{about}: choose how much excess damage to assign.",
         "x": f"{about}: announce the value of X for the ability.",
         "policy": f"{about}: choose how to assign its combat damage.",
+        "mulligan": (
+            "Before the first turn: keep this opening hand, or take a mulligan (shuffle your hand "
+            "into your library, draw seven cards, and put one card on the bottom of your library "
+            "for each mulligan taken so far, this one included)?"
+        ),
+        "mulligan_bottom": "Mulligan: choose a card from your hand to put on the bottom of your library.",
     }
     prompt = prompts.get(kind, f"The engine asks ({kind}): choose one.")
     if context:
