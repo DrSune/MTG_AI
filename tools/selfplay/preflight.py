@@ -6,7 +6,7 @@
 - P9 almost every game ends by a loss (life, library, effect), not by the turn cap or a stall;
 - P12 the same seed replays to the same game, journal digest included.
 
-    .venv/bin/python -m tools.selfplay.preflight runs/selfplay/r18_ppo [--games 200]
+    .venv/bin/python -m tools.selfplay.preflight runs/selfplay/NAME [--games 200]
 """
 
 from __future__ import annotations

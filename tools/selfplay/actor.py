@@ -182,7 +182,7 @@ class _Slot(threading.Thread):
                 result = {"gid": job["gid"], "kind": job["kind"], "outcome": "void-worker",
                           "winner": None, "crash": f"{type(error).__name__}: {error}",
                           "trace": traceback.format_exc()[-2000:],
-                          # the deal, so an eval voids the seat-swapped pair (it raised before)
+                          # the deal, so an eval voids the seat-swapped pair
                           "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
                           "seats": job.get("seats"), "a_seat": job.get("a_seat"),
                           "opp": job.get("opp"), "set_code": job.get("set_code")}

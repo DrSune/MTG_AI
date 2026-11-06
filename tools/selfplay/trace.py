@@ -1,6 +1,6 @@
 """Readable game traces: what the network saw, what it considered, what it chose.
 
-    .venv/bin/python -m tools.selfplay.trace --net runs/selfplay/r15_ppo/v6.pt --opp heuristic \
+    .venv/bin/python -m tools.selfplay.trace --net runs/selfplay/NAME/v6.pt --opp heuristic \
         --seed 900007 --deck-mode coherent --out /tmp/trace.txt
 
 Every real decision (more than one option) of a network seat is logged with the engine's own

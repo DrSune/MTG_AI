@@ -5,7 +5,7 @@ Run (full commands in README.md here)::
     .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --init CKPT ...
     .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --init CKPT --eval-only
 
-The curriculum (KNOWLEDGE/2026-11-03/183 §3); the network it starts from is frozen as v0:
+The curriculum; the network it starts from is frozen as v0:
 1. Teacher inter-play, only for a network trained from scratch (--bc-games, no --init):
    heuristic-vs-heuristic games record (features, action) for both seats; the network learns
    the action (cross-entropy) and the outcome (value MSE).
@@ -70,9 +70,8 @@ BC_SEED0 = 5_000_000
 
 def deal_interval(deal_scores: list[float], z: float = 1.96) -> tuple[float, float]:
     """95% interval of the mean score over deals, each deal the mean of its two seat-swapped
-    games. The two games of a deal are anti-correlated (-0.40 to -0.87 against non-random
-    opponents, 2026-11-05 audit), so an interval over games as if independent (Wilson) was about
-    twice as wide and the gates too strict; the deal is the independent unit."""
+    games. The two games of a deal are anti-correlated, so an interval over games as if
+    independent (Wilson) would be about twice as wide; the deal is the independent unit."""
     n = len(deal_scores)
     if n < 2:
         return (0.0, 1.0)
@@ -84,9 +83,8 @@ def deal_interval(deal_scores: list[float], z: float = 1.96) -> tuple[float, flo
 
 def length_buckets(items: list, ratio: float = 1.4, min_n: int = 8) -> list[list]:
     """Split one model's inference requests into length-sorted buckets, so a batch is not padded
-    to its single longest decision (measured: a 128-request batch with one 114-token outlier
-    against a mean of 25 took 78 ms as one batch, 43 ms as 5 buckets; no loss without outliers).
-    ``items`` are (message index, request index, request); the request's features are req[5]."""
+    to its single longest decision. ``items`` are (message index, request index, request); the
+    request's features are req[5]."""
     def length(it: tuple) -> int:
         f = it[2][5]
         return f["cards_i"].shape[0] + f["opts_i"].shape[0]
@@ -293,10 +291,9 @@ class Learner:
         net._wver = getattr(net, "_wver", 0) + 1
 
     def _infer_net(self, key: str) -> torch.nn.Module:
-        """The network answering inference for ``key``: a bf16 copy of models[key] (1.6-1.9x
-        faster than autocast over fp32 weights, which re-casts every weight on every forward;
-        same argmax on a probe, values within 1e-3), rebuilt whenever the source's weights
-        changed (weight-version counter) or the key now names another model."""
+        """The network answering inference for ``key``: a bf16 copy of models[key] (autocast over
+        fp32 weights would re-cast every weight on every forward), rebuilt whenever the source's
+        weights changed (weight-version counter) or the key now names another model."""
         src = self.models[key]
         if not (self.args.infer_bf16 and self.cuda):
             return src
@@ -361,9 +358,9 @@ class Learner:
     # ------------------------------------------------------------------ memory
 
     def check_memory(self) -> None:
-        """Unified memory: host RAM and GPU memory are one pool, and exhausting it froze this
-        machine twice (INCIDENT_REPORT_2026-11-02). Below ``--mem-floor-gib`` the run saves an
-        emergency checkpoint, stops its own workers and exits. A safety rail, not a tuning knob."""
+        """Unified memory: host RAM and GPU memory are one pool, and exhausting it freezes the
+        machine. Below ``--mem-floor-gib`` the run saves an emergency checkpoint, stops its own
+        workers and exits. A safety rail, not a tuning knob."""
         now = time.monotonic()
         if now - self._mem_checked < 1.0:
             return
@@ -892,8 +889,7 @@ class Learner:
     def _ladder_opponents(self, name: str) -> list[str]:
         """A new version's rating games: random, the heuristic and its predecessor, on the
         fixed ladder deals. Gate games never enter the ratings: a freeze is selected on them
-        (the first of many noisy re-tests to clear the bar), so they overstate the step
-        (r15: gates vs v5 averaged 0.516, the freezing one scored 0.545)."""
+        (the first of many noisy re-tests to clear the bar), so they overstate the step."""
         prev = self.versions[self.versions.index(name) - 1] if self.versions.index(name) else None
         return ["random", "heuristic"] + ([prev] if prev else [])
 
@@ -1078,7 +1074,7 @@ class Learner:
     def main(self) -> None:
         a = self.args
         # SIGTERM as an exception, so the finally below stops the trainer and the workers (the
-        # default action killed the learner at once and orphaned its trainer process)
+        # default action kills the learner at once and orphans its trainer process)
         signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
         try:
             if a.eval_only:

@@ -100,7 +100,7 @@ def is_harmful(executor: Any, handle: Handle | None) -> bool:
 def _harms(toks: frozenset) -> bool:
     if toks & HARM_VERBS:
         return True
-    # -N/-N: the compiler writes PtDelta(direction=DECREASE) with a positive magnitude now
+    # -N/-N: a DECREASE PtDelta (the compiler writes a positive magnitude), or a negative number
     return "Verb.MODIFY_PT" in toks and ("num:neg" in toks or "PtDirection.DECREASE" in toks)
 
 

@@ -16,10 +16,9 @@ Honesty (OWNER_PREFERENCES #1): a fork copies the true hidden zones, so before s
 copy's own library is shuffled (its composition is known to its owner, its order is not) and
 every card in the opponent's hand and library is replaced by a card drawn uniformly from the
 dealt pool. The prior is the deal itself (decks are uniform samples of the pool), not anything
-read from the hidden zones. Each world also gets its own engine seed: with the real game's seed a
-simulated coin flip equalled the real one 2,360 times in 2,360, and the search used it with
-Tavern Swindler (2026-11-05 audit). Known approximation: coherent two-colour decks are sampled
-as five-colour piles.
+read from the hidden zones. Each world also gets its own engine seed: with the real game's seed
+every simulated coin flip would equal the real one, and the search would play on that knowledge.
+Known approximation: coherent two-colour decks are sampled as five-colour piles.
 
 Searched decisions are the clean points of this rig, where no engine call is in flight: the
 router's act loop in both main phases, and the pre-combat boundary (the end of the first main
@@ -134,9 +133,9 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
 def mean_scores(raw: dict) -> dict:
     """Each candidate's score over its sampled worlds. A world whose simulation crashed (None)
     scores the mean of every simulation of this search that did not: what the search believes
-    of the position, the same for every candidate. Dropped, it scored a candidate only on the
-    worlds it survived (a move that crashed its bad worlds looked better, 2026-11-05 red-team);
-    scored 0.0, the crashing move won in a bad position. Nothing survived: -1 for all."""
+    of the position, the same for every candidate. Dropping it would score a candidate only on
+    the worlds it survived (a move that crashes its bad worlds would look better); scoring it 0.0
+    would let the crashing move win in a bad position. Nothing survived: -1 for all."""
     ok = [v for vals in raw.values() for v in vals if v is not None]
     neutral = sum(ok) / len(ok) if ok else -1.0
     return {c: sum(neutral if v is None else v for v in vals) / len(vals) for c, vals in raw.items()}

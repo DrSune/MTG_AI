@@ -91,9 +91,8 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
 
 
 def test_heuristic_beats_uniform_random() -> None:
-    """The teacher works. It wins ~0.89 against uniform random (600 games, 2026-11-05): 14 of 20
-    fails a working teacher with p = 0.005 and passes a coin-flip one with p = 0.06; 8 of 10
-    failed a working teacher 9% of the time."""
+    """The teacher works. It wins ~0.89 against uniform random, so 14 of 20 fails a working
+    teacher with p = 0.005 and passes a coin-flip one with p = 0.06."""
     wins = 0
     for seed in range(1, 21):
         seat = seed % 2
@@ -199,7 +198,7 @@ def test_block_search_plans_at_the_pre_blocks_boundary(table) -> None:
 
 def test_pre_blocks_boundary_is_opt_in() -> None:
     """Only a policy with a before_blocks hook sees the pre_blocks boundary; every other
-    caller's stop_after gets exactly the historical three."""
+    caller's stop_after sees turn_top, pre_combat and post_combat, never pre_blocks."""
     from MTG_bot.bench.router import SeatRouter
     from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
     from MTG_bot.core.executor.games import TURN_CAP, _play, _setup_game, deal_decks
@@ -226,9 +225,8 @@ def test_pre_blocks_boundary_is_opt_in() -> None:
 
 
 def test_feature_caches_are_bounded() -> None:
-    """features._static keeps each identity it has seen alive; unbounded it leaked ~31 per game
-    (a 22-hour run hit its memory floor). The cache must stay under its bound however many
-    distinct identity objects pass through."""
+    """features._static keeps each identity it has seen alive, so the cache must stay under its
+    bound however many distinct identity objects pass through."""
     from MTG_bot.core.identity import CardIdentity
 
     FT._STATIC_CACHE.clear()
@@ -243,8 +241,9 @@ def test_feature_caches_are_bounded() -> None:
 def test_scry_context_reveals_only_the_viewed_window() -> None:
     """Every scry ask reveals one of the top n cards of that scry. The engine asks once per card
     under one key per (player, n), and the counter resets only when an act window opens, so a
-    second scry of the same size in one window used to point under the window: a card its owner
-    had not seen. Driven directly, so it does not depend on a deal containing that window."""
+    second scry of the same size in one window must start at the top again, not point under the
+    window at a card its owner has not seen. Driven directly, so it does not depend on a deal
+    containing that window."""
     from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
     from tools.selfplay import rig
     supply = get_supply("castable")
@@ -329,8 +328,8 @@ class _CounterProbe:
 
 
 def test_counters_reach_the_encoding(table) -> None:
-    """The engine keys counters by CounterKind value (PLUS_1_PLUS_1); the encoder read "+1/+1"
-    after the cards/integration merge, so both counter features were always zero."""
+    """The engine keys counters by CounterKind value (PLUS_1_PLUS_1), and the encoder's counter
+    features read them by that key."""
     probe = _CounterProbe(table)
     play_game(7, [probe, HeuristicAgent()], deck_mode="coherent")
     assert probe.cards_f is not None
@@ -340,15 +339,15 @@ def test_counters_reach_the_encoding(table) -> None:
 
 
 def test_every_engine_ask_kind_has_its_own_embedding_row() -> None:
-    """A kind missing from FT.ASK_KINDS is encoded as "other" (legend, enchant and x were)."""
+    """Every engine ask kind has its own row: a kind missing from FT.ASK_KINDS reads as "other"."""
     from MTG_bot.bench.protocol import SITE_KINDS
     assert {k for k in SITE_KINDS if k not in FT.ASK_INDEX} == set()
 
 
 def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
     """A kind appended after a checkpoint starts as the kind it was encoded as before it existed:
-    "other", or "act" for the second main phase's act menu (B-74), so an old network plays that
-    menu as it plays the first main phase's."""
+    "other", or "act" for the second main phase's act menu, so an old network plays that menu as
+    it plays the first main phase's."""
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
     path = tmp_path / "old.pt"
     M.save(str(path), net, table)
@@ -366,8 +365,8 @@ def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
 
 
 def test_the_encoding_tells_the_two_main_phases_apart(table) -> None:
-    """B-74 (2026-11-06): the act menu of the second main phase, after combat (CR 505.1), is its
-    own ask kind. Before it, the same board and menu encoded identically in both main phases."""
+    """The act menu of the second main phase, after combat (CR 505.1), is its own ask kind: the
+    same board and menu encode differently in the two main phases."""
     from MTG_bot.bench.protocol import Ask
 
     game, router, me = _teach(hand0=("Forest",))
@@ -421,7 +420,7 @@ def test_resume_refuses_another_pool(table, tmp_path, monkeypatch) -> None:
 
 
 def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:
-    """A run resumed across the change holds old rows (no set, no pool) and new ones."""
+    """One file can hold rows without set and pool beside rows with them."""
     import json
 
     from tools.selfplay import paired
@@ -449,15 +448,15 @@ def test_gae_bootstraps_a_truncated_game() -> None:
 
 
 def test_learner_refuses_init_flags_without_init() -> None:
-    """--refresh-table, --extend-sets and --mask-names act on the --init checkpoint; without
-    --init they were silently ignored (2026-11-05 cleanup review)."""
+    """--refresh-table, --extend-sets and --mask-names act on the --init checkpoint, so without
+    --init they are an error, never ignored."""
     from tools.selfplay.learner import parse
     with pytest.raises(SystemExit):
         parse(["--run", "/tmp/x", "--refresh-table"])
     assert parse(["--run", "/tmp/x", "--init", "a.pt", "--refresh-table"]).refresh_table
 
 
-# ------------------------------------------- the teacher on the 2026-11-05 menu (no TAP_ALL_MANA)
+# ----------------------------------------------------------------- the teacher on the act menu
 
 
 def _teach(hand0=(), field0=(), field1=(), **kw):
@@ -485,7 +484,7 @@ def test_heuristic_taps_a_mana_creature_only_for_a_spell_it_casts() -> None:
 
 
 def test_heuristic_never_trades_two_mana_for_one() -> None:
-    # Prismite's "{2}: Add one mana of any color" was activated 752 times in 300 games.
+    # Prismite's "{2}: Add one mana of any color" is a mana-cost filter: it never adds mana.
     game, router, me = _teach(hand0=("Pursued Whale",), field0=("Island", "Island", "Prismite"))
     router.take_acts(game, me)
     assert not any(a.card == "Prismite" for a in router.acts)
@@ -515,8 +514,8 @@ def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
 
 
 def test_heuristic_names_the_colour_its_treasure_is_for() -> None:
-    # Review 2026-11-05: the mana ask took the colour from identity.mana_cost, which no dealt card
-    # carries, so a Treasure sacrificed for Walking Corpse ({1}{B}) next to a Plains made {W}.
+    # The colour comes from the spell the mana is for: a Treasure sacrificed for Walking Corpse
+    # ({1}{B}) next to a Plains makes {B}, so the Corpse is cast.
     game, router, me = _teach(hand0=("Walking Corpse",), field0=("Plains",), tokens0=("Treasure",))
     router.take_acts(game, me)
     assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
@@ -530,8 +529,8 @@ def test_heuristic_never_taps_mana_for_a_play_it_will_not_make() -> None:
 
 
 def test_heuristic_aims_minus_n_at_the_opponent() -> None:
-    # "Target creature gets -4/-4" compiles to PtDelta(DECREASE, 4); the harm test read only
-    # negative numbers, so Grasp of Darkness was aimed at the teacher's own creature.
+    # "Target creature gets -4/-4" compiles to PtDelta(DECREASE, 4), which is harmful: Grasp of
+    # Darkness is aimed at the opponent's creature, not the teacher's own.
     game, router, me = _teach(hand0=("Grasp of Darkness",), field0=("Swamp", "Swamp", "Walking Corpse"),
                               field1=("Onakke Ogre",))
     router.take_acts(game, me)
@@ -540,8 +539,7 @@ def test_heuristic_aims_minus_n_at_the_opponent() -> None:
 
 
 def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
-    """The router writes cast:<card>[:k][:x<N>]; the parser read card:12:x3 as no card and X 0, so
-    every X > 0 row reached the network as a cast of nothing (2026-11-05, fix/menu-mana)."""
+    """The router writes cast:<card>[:k][:x<N>]; the parser reads the card and X of every form."""
     from MTG_bot.core.identity import Handle
     c = Handle("card", 12)
     assert FT._parse_option("cast:card:12:x3") == (FT.OPT_INDEX["cast"], c, None, 0, 3.0, 0.0)
@@ -553,9 +551,8 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
 
 
 def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
-    """The engine ends a game with GameOver at the loss check (CR 704.3, 704.5a). A candidate act
-    that won inside the search's own take_acts landed in the crashed-simulation branch, so the
-    search scored an immediate win as no evidence at all (Bad Deal at 2 life, 2026-11-05)."""
+    """The engine ends a game with GameOver at the loss check (CR 704.3, 704.5a): a candidate act
+    that wins inside the search's own take_acts scores as a win, not as a crashed simulation."""
     from MTG_bot.core.executor.games import get_supply
     from tools.selfplay import rig
     from tools.selfplay.search import Searcher
@@ -582,8 +579,8 @@ def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
 
 
 def test_a_determinized_world_cannot_foresee_the_real_games_randomness() -> None:
-    """The engine draws randomness from sha256(master_seed:op_seq:tag); a fork kept the real
-    seed, so the search knew every future coin flip (Tavern Swindler, 2026-11-05 audit)."""
+    """The engine draws randomness from sha256(master_seed:op_seq:tag), so each sampled world gets
+    its own seed: with the real one the search would know every future coin flip."""
     import random as _random
 
     from MTG_bot.core.executor.games import get_supply
@@ -602,9 +599,9 @@ def test_a_determinized_world_cannot_foresee_the_real_games_randomness() -> None
 
 
 def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
-    """A deal's two seat-swapped games are anti-correlated, so the deal is the independent unit
-    (a Wilson interval over games was ~2x too wide); and the teacher gate, like the self-play
-    gate, never decides a freeze on the ladder's fixed deals (2026-11-05 audit)."""
+    """A deal's two seat-swapped games are anti-correlated, so the deal is the independent unit;
+    and the teacher gate, like the self-play gate, never decides a freeze on the ladder's fixed
+    deals."""
     from types import SimpleNamespace
 
     from tools.selfplay import learner as L
@@ -619,7 +616,7 @@ def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
 
 def test_a_crashed_world_is_neutral_between_candidates() -> None:
     """A crashed simulation scores the search's mean belief, the same for every candidate:
-    dropping it let a move be scored only on the worlds it survived (2026-11-05 red-team)."""
+    dropping it would score a move only on the worlds it survived."""
     from tools.selfplay.search import mean_scores
     got = mean_scores({"a": [1.0, None], "b": [0.0, 0.0]})
     assert abs(got["a"] - (1.0 + 1 / 3) / 2) < 1e-9 and got["b"] == 0.0
@@ -644,9 +641,9 @@ def _ppo_case(table):
 
 
 def test_ppo_stops_inside_the_epoch_once_the_update_has_moved(table) -> None:
-    """--target-kl was checked only between epochs, so at --epochs 1 it never acted (2026-11-05
-    red-team). It bounds the update's own movement (KL from the policy at the start of the
-    update): a large first step stops the epoch before the remaining minibatches."""
+    """--target-kl acts within an epoch, so also at --epochs 1. It bounds the update's own
+    movement (KL from the policy at the start of the update): a large first step stops the epoch
+    before the remaining minibatches."""
     from types import SimpleNamespace
 
     from tools.selfplay.ppo import ppo_train
@@ -664,10 +661,10 @@ def test_ppo_stops_inside_the_epoch_once_the_update_has_moved(table) -> None:
 
 
 def test_rows_from_the_previous_weights_do_not_stop_an_update_that_has_not_moved(table) -> None:
-    """Rows played while the previous update ran (~40% of a batch) carry its movement: measured
-    from the behaviour log-probs, r22 (lr 1.5e-4) stopped in 29 of 31 updates and trained on about
-    half of each batch (2026-11-06 audit). Data one r22-sized update away (k3 KL ~0.05) must not
-    stop an update before its first step; the clipped ratio still uses the behaviour log-probs."""
+    """Rows played while the previous update ran (~40% of a batch) carry its movement, so the KL
+    stop is measured from the policy at the start of this update: data one update away (k3 KL
+    ~0.05) must not stop an update before its first step. The clipped ratio still uses the
+    behaviour log-probs."""
     from types import SimpleNamespace
 
     from tools.selfplay.ppo import ppo_train
@@ -686,10 +683,10 @@ def test_rows_from_the_previous_weights_do_not_stop_an_update_that_has_not_moved
 
 
 def test_heuristic_casts_a_raid_creature_after_it_attacks() -> None:
-    """B-74 (2026-11-06): a spell that reads whether its controller attacked this turn (raid) waits
-    for the second main phase while the teacher has a creature that can attack. Goblin Boarders
-    ("enters with a +1/+1 counter on it if you attacked this turn") then enters with the counter;
-    with no attacker it is cast in the first main phase, as before."""
+    """A spell that reads whether its controller attacked this turn (raid) waits for the second
+    main phase while the teacher has a creature that can attack. Goblin Boarders ("enters with a
+    +1/+1 counter on it if you attacked this turn") then enters with the counter; with no attacker
+    it is cast in the first main phase."""
     for field, held in ((("Mountain",) * 3 + ("Bear Cub",), True), (("Mountain",) * 3, False)):
         game, router, me = _teach(hand0=("Goblin Boarders",), field0=field, set_code="FDN")
         boarders = _named(game, "Goblin Boarders")
@@ -712,9 +709,9 @@ class _CombatPlanLog(HeuristicAgent):
 
 
 def test_combat_is_planned_once_per_turn_before_combat() -> None:
-    """The search plans its attack at the pre-combat boundary. With two act windows per turn
-    (B-74) the end of an act window is no longer that boundary: the second main phase's comes
-    after combat, and planning there would search an attack that cannot happen."""
+    """The search plans its attack at the pre-combat boundary, not at the end of an act window:
+    the second main phase's comes after combat, and planning there would search an attack that
+    cannot happen."""
     agent = _CombatPlanLog()
     res = play_game(41, [agent, HeuristicAgent()], deck_mode="coherent")
     assert res["crash"] is None and agent.plans
@@ -724,7 +721,7 @@ def test_combat_is_planned_once_per_turn_before_combat() -> None:
 
 
 
-# ------------------------------------------------------------- the mulligan (CR 103.5, 2026-11-06)
+# ------------------------------------------------------------------- the mulligan (CR 103.5)
 
 
 class _ProbeSlot:
@@ -804,8 +801,8 @@ def test_the_network_and_the_heuristic_both_answer_the_mulligan(table) -> None:
 
 def test_an_old_checkpoint_loads_and_plays_the_mulligan(table, tmp_path) -> None:
     """A checkpoint from before the mulligan has neither its ask kinds nor its option types; they
-    grow from "other", what they were encoded as before. Played greedily it keeps, as every game
-    used to: its keep and mulligan rows start equal, and the tie goes to the first option."""
+    grow from "other", what they were encoded as before. Played greedily it keeps: its keep and
+    mulligan rows start equal, and the tie goes to the first option."""
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
     for p in net.parameters():
         p.data.normal_(0, 0.1)
@@ -859,7 +856,7 @@ def _name_of(game, token: str) -> str:
     return next(c.identity.name for h, c in game.world.cards.items() if str(h) == token)
 
 
-# ------------------------------------- several target slots (CR 601.2c, 2026-11-06)
+# ------------------------------------------------------- several target slots (CR 601.2c)
 
 
 def test_heuristic_judges_each_target_slot_by_its_own_effect() -> None:

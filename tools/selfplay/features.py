@@ -5,15 +5,16 @@ public zone (battlefields, graveyards, exile, command, stack), counts of hidden 
 cards the engine offers to the decider or shows it (a scried card, a searched library). Engine
 handles never reach the network; they are only used to point an option at an entity.
 
-One decision encodes to (shapes; E = card entities, K = options):
+One decision encodes to (shapes; E = card entities, K = options; integers as int16, floats as
+float16):
 
-* ``cards_i``  int16  [E, 5]   card vocab id, zone, controller, owner, attached-to entity
-* ``cards_f``  float32[E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost
-* ``players_f``float32[2, PF]  me then the opponent: life, zone counts, mana pool, board counts
-* ``glob_f``   float32[GF]     turn, whose turn, stack size, ask details (a target ask's slot)
-* ``ask_i``    int32  [1]      ask kind (the act menu's says which main phase)
-* ``opts_i``   int32  [K, 4]   option type, entity ref, second entity ref, ability index
-* ``opts_f``   float32[K, 2]   number value, kicked
+* ``cards_i``   [E, 5]   card vocab id, zone, controller, owner, attached-to entity
+* ``cards_f``   [E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost
+* ``players_f`` [2, PF]  me then the opponent: life, zone counts, mana pool, board counts
+* ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot)
+* ``ask_i``     [1]      ask kind (the act menu's says which main phase)
+* ``opts_i``    [K, 4]   option type, entity ref, second entity ref, ability index
+* ``opts_f``    [K, 2]   number value, kicked
 
 Entity refs index the entity list ``[me, opponent, cards...]`` plus one (0 = no entity).
 """
@@ -48,11 +49,11 @@ ASK_KINDS = (
     # appended, never inserted: a checkpoint's rows keep their meaning, and model.load starts a
     # kind added after the checkpoint as the kind it was encoded as before (ASK_GROWN_FROM)
     "legend", "enchant", "x", "replace",
-    # the act menu of the second main phase, after combat (CR 505.1; B-74, 2026-11-06): the same
-    # menu as the first main phase's, so the observation could not tell the two apart
+    # the act menu of the second main phase, after combat (CR 505.1): the same menu as the
+    # first main phase's, so only its kind tells the two apart
     "act_second_main",
-    # the London mulligan before the first turn (CR 103.5, 2026-11-06): keep or mulligan, then
-    # which card of the hand goes to the bottom of the library
+    # the London mulligan before the first turn (CR 103.5): keep or mulligan, then which card
+    # of the hand goes to the bottom of the library
     "mulligan", "mulligan_bottom",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
@@ -86,9 +87,9 @@ F_POWER, F_TOUGH, F_DAMAGE, F_P1, F_M1, F_LOYALTY, F_COUNTERS, F_CMC, F_DECL_BLO
 )
 # Columns are appended, never inserted: model.load gives a checkpoint the columns added after it
 # with zero weights, so an old network reads them as absent.
-# 2026-11-06 (several target slots, CR 601.2c): the cards (F_TARGETED) and players (P_TARGETED)
-# chosen as targets so far in the declaration being asked, and glob_f[G_SLOT], the target slot
-# a target ask is about (0 = the first or only one).
+# Several target slots (CR 601.2c): the cards (F_TARGETED) and players (P_TARGETED) chosen as
+# targets so far in the declaration being asked, and glob_f[G_SLOT], the target slot a target
+# ask is about (0 = the first or only one).
 F_TARGETED = F_DECL_BLOCKERS + 1
 CF = F_TARGETED + 1
 P_TARGETED = 16
@@ -253,9 +254,8 @@ class CardTable:
         """A copy whose rows are rebuilt from the CURRENT compile of ``records`` (cards absent
         from ``records`` keep their row); components outside the vocabulary are appended to it.
         A saved table describes the trees as compiled when it was built: after a compiler or
-        engine change re-compiles cards (the 2026-11-05 cards/integration merge changed 93 of
-        M21's 305 rows and introduced 11 component types), refresh it, then grow the network
-        with model.extend_cards."""
+        engine change re-compiles cards, refresh it, then grow the network with
+        model.extend_cards."""
         vocab = list(self.ir_vocab)
         vi = {t: i for i, t in enumerate(vocab)}
         ir = [list(x) for x in self.ir]
@@ -313,10 +313,8 @@ class AskContext:
 
 _STATIC_CACHE: dict[int, tuple] = {}
 # The cache holds each identity it has seen (so an id cannot be reused while cached, which keeps
-# the `is` check sound), and the engine makes new identity objects every game: unbounded, it
-# leaked ~31 identities per game, ~60 MB per PPO update across the workers, and a 22-hour run
-# stopped on its memory floor (2026-11-05, KNOWLEDGE/2026-11-03/183 §32). Bounded: when full it
-# is cleared and refilled (a refill costs microseconds per identity).
+# the `is` check sound), and the engine makes new identity objects every game, so it is bounded:
+# when full it is cleared and refilled (a refill costs microseconds per identity).
 _CACHE_MAX = 8192
 
 

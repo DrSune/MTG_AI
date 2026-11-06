@@ -10,10 +10,9 @@ epoch. Non-finite steps are skipped and counted.
 The KL early stop bounds how far THIS update moves: it measures KL from the policy at the start
 of the update (one no-grad pass at collation), not from the behaviour log-probs. Rows played
 while the previous update ran (the overlap, ~40% of a batch) were sampled by the previous
-weights, so measured against them the first minibatch already carried the previous update's
-movement, and r22 stopped in 29 of 31 updates (2026-11-06 audit). The clipped ratio still uses
-the behaviour log-probs (the data's policy); ``kl`` stays the KL from them, ``kl_update`` is the
-stop's measure.
+weights, so measured against them the first minibatch would already carry the previous update's
+movement. The clipped ratio still uses the behaviour log-probs (the data's policy); ``kl`` stays
+the KL from them, ``kl_update`` is the stop's measure.
 """
 
 from __future__ import annotations
@@ -97,16 +96,16 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
             vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
             loss = pg + a.vcoef * vloss - a.ent * ent.mean()
-            # Minibatches are length-sorted and token-capped, so they hold 190-4096 decisions;
-            # a mean loss per minibatch gave a long decision ~15x the weight of a short one.
-            # Scale so every decision weighs the same (2026-11-05 review).
+            # Minibatches are length-sorted and token-capped, so their sizes differ a lot: a mean
+            # loss per minibatch would weigh a long decision far above a short one. Scale so
+            # every decision weighs the same.
             loss = loss * (len(act_t) * len(batches) / max(n, 1))
             with torch.no_grad():
                 kl = ((ratio - 1) - (lp - old_logp)).mean().item()
                 d0 = lp - lp0
                 kl_upd = (torch.exp(d0) - 1 - d0).mean().item()
             # Stop before a step on a minibatch this update has already moved by 1.5x the target
-            # (as SB3 does): checked only between epochs, the target never acted at --epochs 1.
+            # (as SB3 does); a check only between epochs would never act at --epochs 1.
             if a.target_kl > 0 and kl_upd > 1.5 * a.target_kl:
                 stop = True
                 break
