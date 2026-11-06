@@ -171,7 +171,9 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
         fails.append(f"{spells} SpellAbility nodes: a card has one (the compiler may already carry the "
                      "permanent's cast carrier; do not append another)")
     permanent = any(t in card.types for t in ("Creature", "Enchantment", "Artifact", "Planeswalker"))
-    if permanent and "Land" not in card.types and not any(isinstance(a, SpellAbility) for a in card.abilities):
+    # A token is created, never cast (it cannot be in a hand, CR 111.8), so it needs no carrier.
+    if (permanent and "Land" not in card.types and not card.is_token
+            and not any(isinstance(a, SpellAbility) for a in card.abilities)):
         fails.append("a permanent spell with no SpellAbility cannot be cast (add the carrier "
                      "SpellAbility(kind=SpellKind.<TYPE>) last, as the compiler does for creatures)")
     if clauses is not None:

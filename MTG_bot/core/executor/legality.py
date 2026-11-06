@@ -739,7 +739,8 @@ def build_payment_plan(
     # have no total-cost step (CR 112.6b abilities pay their printed
     # cost), so with no spell in play the arithmetic below is byte-
     # identical to the pre-r19b plan. Modifiers are read from the casting
-    # spell's OWN record plus every battlefield permanent's record (both
+    # spell's OWN record (only "this spell costs" for a permanent spell, CR
+    # 113.6; see the loop) plus every battlefield permanent's record (both
     # armies — Watcher of the Spheres discounts through the permanent's
     # controller, not the spell's owner); each modifier's filter, payer
     # scope and condition judge the CASTING SPELL in the MODIFIER CARD's
@@ -807,8 +808,16 @@ def build_payment_plan(
                     decisions=(),
                     x_value=ctx.x_value,
                 )
+            # CR 113.6: a permanent spell's abilities do not function on the stack, so
+            # the permanent being cast reads only its own "this spell costs" modifier
+            # (IS_SOURCE, CR 601.2f): Warden of Evos Isle's "creature spells with
+            # flying you cast cost {1} less" discounted its own cast (M20 verification,
+            # 2026-11-05). An instant's or sorcery's abilities do function there.
+            own_only = activation_lane or (
+                host == judge and not {"Instant", "Sorcery"} & set(rec.types)
+            )
             for mod in mods:
-                if activation_lane and not (
+                if own_only and not (
                     isinstance(mod.filter, FAtom)
                     and mod.filter.pred is FAtomPred.IS_SOURCE
                 ):

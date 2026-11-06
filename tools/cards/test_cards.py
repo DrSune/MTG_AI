@@ -82,3 +82,17 @@ def test_the_probe_plays_a_token_without_putting_it_in_a_hand() -> None:
     rep = probe.Probe(sup, "M21", oid).report()
     assert not rep.errors
     assert "from your hand" not in rep.text()
+
+
+def test_g0_asks_no_cast_carrier_of_a_token() -> None:
+    # 2026-11-05: G0 refused nine M20 tokens that passed blind review (Wolf, Soldier, Treasure, ...)
+    # for lacking the permanent's cast carrier; a token is never cast (CR 111.8).
+    import corpus
+    import gates
+
+    sc = corpus.compile_set("M20")
+    oid = next(o for o, r in sc.results.items() if r.card is not None and r.card.name == "Wolf"
+               and r.card.is_token)
+    card = sc.results[oid].card
+    fails, _ = gates.g0(sc.raw[oid], card, card, clauses=None, known_signatures=None)
+    assert not [f for f in fails if "SpellAbility" in f], fails

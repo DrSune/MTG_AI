@@ -1,0 +1,36 @@
+{
+ "name": "warden_of_evos_isle_pays_full_cost_for_itself",
+ "set": "M20",
+ "notes": "Printed: 'Flying. Creature spells with flying you cast cost {1} less to cast.' ({2}{U}). A permanent's static ability functions only on the battlefield (CR 113.6), so the Warden being cast pays its full cost; one on the battlefield discounts the next. Found by the M20 round-2 verifier (2026-11-05). Two mana is not enough for the Warden in hand.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Warden of Evos Isle",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "w",
+   "real": "Warden of Evos Isle",
+   "expect_raise": "illegal cast"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "w": "hand"
+  }
+ }
+}
