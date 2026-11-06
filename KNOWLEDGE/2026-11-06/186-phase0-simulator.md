@@ -86,3 +86,24 @@ expected tells to be small (185, M7). Falsifier of the hypothesis: R_mid > 0.95.
 **Resources.** Capture about 2.5 h (10 workers, nice 10, beside the E1 agent's run); training about
 1 h per arm; evaluation under 30 min. Memory: the run floor is 15 GB available, the jobs stay under
 15 GB.
+
+## 2. Tuning, recorded before the held-out evaluation (2026-11-06, 19:55)
+
+The pilot (§1's allowance; scratch `pilot.py`): the capture's first four shards, trained on the
+125,112 positions of games with seed % 25 not in {0, 1} and validated on the 5,429 positions of
+games with seed % 25 == 1. The held-out games (seed % 25 == 0) were never loaded. 4 epochs each:
+
+| Config | val hand NLL | mid-game | library NLL |
+|---|---|---|---|
+| lr 3e-4, no window | 12.03 | 14.42 | 67.35 |
+| lr 1e-3, no window | 11.89 | 14.32 | 66.86 |
+| lr 1e-3, window | 11.91 | 14.29 | 67.59 |
+| the yardstick, same positions (orientation only) | 12.51 | 15.06 | 63.72 |
+
+All three were still improving at the last epoch, with no instability. **Decision: lr 1e-3 for both
+arms**; 4 epochs, everything else as §1. Seen in passing: on the pilot the window adds 0.2% in
+mid-game, so the prediction that it will not be kept stands.
+
+The capture ran at 89e00a0 from a pinned worktree: 40,000 games, about 33-35k positions per
+1,000 games (§1 estimated 38.7 from the 40-game pilot), so about 1.37M positions and about 54k
+held-out, above the plan's 50k.
