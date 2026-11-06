@@ -29,7 +29,7 @@ are neutral; each one is teaching the agent something.
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later act window adds the mana at that step, standing in for the lands the player taps there (the act window does not tap for the player). Remove with the act window's explicit taps, when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
 | **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10), 128 IR tokens per card** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`, `CardTable.max_ir`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
-| **Benchmark: multi-slot rows hidden, one act window per main phase, stateless prompts, conservative hidden-card labels** (2026-10-24; `TAP_ALL_MANA` and "X always 0" removed 2026-11-05: payment is the row above, X is one menu row per payable value) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each mirrors an engine limit or is a harness simplification. Remove with the corresponding engine rung (multi-slot designation, priority) and with tool mode (`notes` memory). |
+| **Benchmark: one act window per main phase, stateless prompts, conservative hidden-card labels** (2026-10-24; `TAP_ALL_MANA` and "X always 0" removed 2026-11-05: payment is the row above, X is one menu row per payable value; multi-slot rows hidden until 2026-11-06, now one target question per slot) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each mirrors an engine limit or is a harness simplification. Remove with the corresponding engine rung (priority) and with tool mode (`notes` memory). |
 | **Decision-time search budget: k candidates (3-4), d sampled worlds (2), at most 6 attack or block plans, search skipped where the network's top option >= skip_p, 400 decisions per simulation, leaf = the next own turn's value** (2026-11-03/04) | `tools/selfplay/search.py` (`Searcher`, `plan_attacks`, `plan_blocks`, `MAX_SIM_DECISIONS`) | Compute budgets, not strategy rules, but they decide which moves can ever be found (a move outside the network's top k is never searched). Replace with a budgeted tree search whose breadth follows the visit statistics (PUCT/MCTS) once the engine is fast enough; measure the plan caps by raising them. |
 | **Self-play gate: freeze when a gate match vs the newest frozen version scores `--gate-score` with its 95% lower bound above 0.5; the teacher stage ends at `--teacher-gate` or after `--teacher-iters` updates** (2026-11-04) | `tools/selfplay/learner.py` `_eval_tick` (`--gate-score`, `--gate-deals`, `--teacher-gate`, `--teacher-iters`) | Hand-set curriculum schedule. Replace with a league whose opponent sampling follows measured win rates (prioritised fictitious self-play) so no freeze threshold is needed. |
 | **PPO throttle: no new training games while a full next batch (`--steps`) is waiting** (2026-11-04) | `tools/selfplay/learner.py` `next_job` | Flow control so batches stay on-policy when workers outrun the trainer; it idles workers. Remove when the trainer keeps up (faster update) or when idle capacity is given other work (value games, evals). |
@@ -193,11 +193,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
-- **B-79 residue: two-target spells are never cast.** The games policy (`games.play_cast`) and the
-  bench router, which the self-play router extends, skip every multi-slot cast
-  (`multi_target_skips` counts them), so Primal Might (two targets since its fight partner became
-  a target, 3858ac3), Hunter's Edge and Rabid Bite are dead in games (/184 §16). Policy lane; the
-  benchmark scaffold row covers the router.
+- **Two "target" words with the same text share one target slot** (found 2026-11-06): the slot
+  query keys a slot by its selector (`query.spell_target_slots` dedupes by repr, which is how the
+  compiled anaphora of "target creature ... its power" stays one target), so "Target creature gets
+  +1/+1. Target creature gets -1/-1" would be one slot and could not take two creatures (CR 601.2c,
+  115.3). Latent: no card in the M21, M20 or FDN verified pools has two such words. Needs the
+  compiler to tell a second target word from a reference back (a slot id on the selector).
 - **The folded `activate` takes its targets before it asks X** (2026-10-29, the activation X
   lane), so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No
   carrier has both: Ugin's [−X] has no target.
@@ -765,7 +766,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 - **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
   targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
-  columns, zero-initialised on load like new ask kinds.
+  columns, zero-initialised on load like new ask kinds (`model.load` pads card, player and global
+  columns with zeros since 2026-11-06).
+- **A target ask does not show the X its row announced** (2026-11-06): X comes first, in the act
+  row (`cast:<card>:x<N>`, CR 601.2b), but the target asks that follow show the spell only as the
+  ask's source card, so Volcanic Geyser's and Primal Might's targets are chosen blind to X. Add the
+  declared X to the target ask (a global column).
 - **A phased-out permanent is an ordinary battlefield card in the observation** (B-75;
   `tools/selfplay/features.py` `encode`, AGENTS §10). The menus never offer it; the bench seat view
   marks it. Add a `phased_out` row word (like `tapped`) at the next observation-schema change.

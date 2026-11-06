@@ -1910,23 +1910,23 @@ def activation_target_reason(
     *,
     source: Handle,
     seat: Handle,
-    targets: Sequence[Handle],
+    targets: Sequence[Handle] | Sequence[Sequence[Handle]],
 ) -> str | None:
     """V8 (2026-10-29): why ``targets`` is not a legal designation for the
     ability's target slots (query.activation_target_slots, the slots the
     policies designate from), or None. One slot: the slot's own oracle
     (validate_target_selection, as a single-slot cast), on the sorted
-    designation activate() binds. Several: positional, one target per slot in
-    walk order, each against its own slot, and an "another target" slot must
-    differ from the others (V13), as stack._validate_positional does for a
-    spell. On the synthesized player slot ("target opponent") a card stands
-    for its controller, the runtime's own re-point rule. No targets, or no
-    slot the walker can see, keeps the old lane."""
+    designation activate() binds. Several: per slot, exactly as a spell's
+    (stack.designate_slots: one tuple per slot or one handle per slot, an "up
+    to" slot possibly empty, an "another target" slot sharing no target). On
+    the synthesized player slot ("target opponent") a card stands for its
+    controller, the runtime's own re-point rule. No targets, or no slot the
+    walker can see, keeps the old lane."""
     from MTG_bot.core.executor.query import (
         activation_target_slots,
         validate_target_selection,
     )
-    from MTG_bot.core.executor.stack import another_target_reason
+    from MTG_bot.core.executor.stack import designate_slots
 
     if not targets:
         return None
@@ -1943,13 +1943,11 @@ def activation_target_reason(
         return validate_target_selection(
             slots[0], tuple(sorted(designated(slots[0], h) for h in targets))
         )
-    if len(targets) != len(slots):
-        return f"{len(slots)} target slots need {len(slots)} targets, got {len(targets)}"
-    for slot, one in zip(slots, targets, strict=True):
-        reason = validate_target_selection(slot, (designated(slot, one),))
-        if reason is not None:
-            return reason
-    return another_target_reason(slots, targets)
+    try:
+        designate_slots(slots, targets, stand_in=designated, lane="activate")
+    except ValueError as e:
+        return str(e).removeprefix("executor: activate: ")
+    return None
 
 
 def activate(
@@ -1958,7 +1956,7 @@ def activate(
     ability_idx: int,
     *,
     seat: Handle,
-    targets: Sequence[Handle] = (),
+    targets: Sequence[Handle] | Sequence[Sequence[Handle]] = (),
     decisions: Sequence[str] = (),
     stack_empty: bool = True,
     x: int | None = None,
@@ -1968,7 +1966,9 @@ def activate(
     :func:`ability_playable` against the live world (illegal →
     ``ValueError(reason)``), :func:`pay_costs`, then run the ability's
     effect with ``targets`` designated as the ``target`` bindings the 12a
-    role readers consume. The effect tree's own decisions
+    role readers consume (an ability with several target slots: one tuple
+    per slot, or one handle per slot, as stack.designate_slots reads a
+    spell's). The effect tree's own decisions
     (``OptionalEffect`` fire/skip, any-colour ADD_MANA) come through
     ``decisions`` in tree order (C15). Returns the effect's event tuple.
 
@@ -2059,8 +2059,9 @@ def activate(
         mana=is_mana_ability(ability),
         loyalty=plan.loyalty if loyalty_ability else None,
     )
+    flat = tuple(h for t in targets for h in ((t,) if isinstance(t, Handle) else t))
     bindings: dict[str, Binding] = {}
-    chosen = sorted(targets)
+    chosen = sorted(flat)
     if chosen:
         bindings["target"] = chosen
         # r20b: TARGETING feed. Clock-order caveat of the FOLDED move:
@@ -2072,23 +2073,25 @@ def activate(
     assert effect is not None  # ActivatedAbility.effect is a required field
     # V25 (CR 602.2b, 601.2c): an ability with several targets ("Target creature
     # you control deals damage equal to its power to another target creature",
-    # Garruk, Savage Herald's -2) designates one object per target, in slot order,
-    # exactly as the cast lane threads them (stack._plan_cast_designation); each
-    # TARGET selector then reads its own designation, not the union.
+    # Garruk, Savage Herald's -2) designates per slot, exactly as the cast lane
+    # threads a spell's (stack.designate_slots, validated above); each TARGET
+    # selector then reads its own designation, not the union, and an "up to"
+    # slot left empty acts on nothing.
     slot_designations = None
     if targets:
         from MTG_bot.core.executor.query import activation_target_slots
-        from MTG_bot.core.executor.stack import recheck_targets
+        from MTG_bot.core.executor.stack import recheck_targets, slot_groups
 
         slots = activation_target_slots(executor, effect, source=handle, seat=seat)
-        if len(targets) > 1 and len(slots) == len(targets):
+        if len(slots) > 1:
             slot_designations = {
-                repr(slot.selector): (one,)
-                for slot, one in zip(slots, targets, strict=True)
+                repr(slot.selector): tuple(sorted(group))
+                for slot, group in zip(slots, slot_groups(slots, targets), strict=True)
             }
+    if flat:
         # CR 608.2b: the targets are checked again as the ability resolves, after its
         # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).
-        legal_now, kept = recheck_targets(executor, slots, targets)
+        legal_now, kept = recheck_targets(executor, slots, flat, designations=slot_designations)
         if not legal_now:
             # Every target is illegal: the ability doesn't resolve.
             executor.events.append(
@@ -2097,7 +2100,7 @@ def activate(
             executor._finish_op()
             return ()
         bindings["target"] = sorted(legal_now)
-        if slot_designations is not None and kept is not None:
+        if kept is not None:
             slot_designations = kept
     return executor.apply_effect(
         effect,

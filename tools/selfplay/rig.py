@@ -2,9 +2,11 @@
 
 ``SelfplayRouter`` adds an ``AskContext`` (features.py) to every observation: the card being
 scried (the router already computes it for its prompt), the attackers declared so far in this
-combat, the blocks declared so far, and the count a target pick or a mulligan's bottom ask
-carries in its site. The engine applies a whole declaration only after its
-last ask, so without this an agent would declare each attacker blind to the others.
+combat, the blocks declared so far, the count a target pick or a mulligan's bottom ask carries
+in its site, and a target pick's slot and the targets chosen so far (the router's
+``targets_so_far``). The engine applies a whole declaration only after its last ask, so without
+this an agent would declare each attacker blind to the others, and a second target blind to the
+first.
 """
 
 from __future__ import annotations
@@ -104,15 +106,20 @@ class SelfplayRouter(SeatRouter):
         st[f"ask:{ask.kind}"] += 1
         if ask.leaky:
             st["leaky_asks"] += 1
-        picked = 0
+        picked = slot = 0
         if ask.site.startswith(("pick:", "mulligan_bottom:")):
             tail = ask.site.rsplit(":", 1)[-1]
             picked = int(tail) if tail.isdigit() else 0
+        if ask.site.startswith("pick:"):  # pick:<source>:<slot>:<picks so far> (router._targets)
+            field_ = ask.site.split(":")[-2]
+            slot = int(field_) if field_.isdigit() else 0
         ctx = AskContext(
             revealed=self._revealed if ask.kind == "scry" else None,
             declared_attackers=self._declared_attackers(),
             declared_blocks=dict(self._blocks),
             picked=picked,
+            slot=slot,
+            targeted=frozenset(self.targets_so_far) if ask.kind == "target" else frozenset(),
         )
         obs = SPObservation(self.lenses[ask.seat], self.game.executor, ctx=ctx, game=self.game)
         idx = driver.decide(ask, obs)

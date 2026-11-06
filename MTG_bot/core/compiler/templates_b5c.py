@@ -2361,8 +2361,8 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     (CR 601.2c) and allowed to be empty (CR 115.6). It was a resolution-time
     pick of exactly one (CHOOSE + QConst(1), flipped to ONE_OF), so a
     hexproof creature could be fought and the fight could not be declined.
-    The cast lane designates a trailing up-to-one slot positionally
-    (stack._validate_positional)."""
+    The cast lane designates it per slot, possibly empty
+    (stack.designate_slots)."""
     atom = Atom(
         verb=Verb.FIGHT,
         args=AtomArgs(

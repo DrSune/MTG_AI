@@ -381,3 +381,111 @@ def test_the_second_main_phase_has_its_own_act_window() -> None:
     assert game.world.zone_of(forest).kind == ZONE_BATTLEFIELD
     act = next(ask for ask in picker.asks if ask.kind == "act")
     assert act.prompt.startswith("Your second main phase")
+
+
+# ------------------------------------------- several target slots (CR 601.2c, 2026-11-06)
+
+
+def _two_targets(spell: str, *, watcher: str | None = None):
+    """Seat 0 holds ``spell`` with four Forests, Walking Corpse (2/2) and Staunch Shieldmate (1/3);
+    seat 1 has Onakke Ogre (4/2) and Wishcoin Crab (2/5). ``watcher``: a seat-0 enchantment whose
+    cast trigger destroys the creature of that name before a sorcery resolves (CR 601.2i, 603.3)."""
+    game, supply = _arranged(
+        hand0=(spell,), field0=("Forest",) * 4 + ("Walking Corpse", "Staunch Shieldmate"),
+        field1=("Onakke Ogre", "Wishcoin Crab"),
+    )
+    if watcher is not None:
+        from MTG_bot.core.ability_tree import (
+            CastSpellEvent,
+            ControllerRef,
+            FAtom,
+            FAtomPred,
+            QConst,
+            Selector,
+            SelectorMode,
+            TriggeredAbility,
+            Zone,
+            ZoneKind,
+        )
+        from MTG_bot.core.test_executor_binding import card_id, record_of
+
+        named = Selector(QConst(1), SelectorMode.CHOOSE, FAtom(FAtomPred.NAME_EQ, string_value=watcher),
+                         zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+        trig = TriggeredAbility(
+            event=CastSpellEvent(FAtom(FAtomPred.TYPE_EQ, string_value="Sorcery"),
+                                 actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
+            condition=None, effect=Atom(verb=Verb.DESTROY, args=AtomArgs(pairs=(("target", named),))),
+        )
+        w = game.world.add_card(card_id("Watcher", type_line="Enchantment"), P0, ZONE_BATTLEFIELD)
+        game.executor.attach_card(w, record_of([trig], oid=game.world.cards[w].identity.oracle_id))
+    names = ("Walking Corpse", "Staunch Shieldmate", "Onakke Ogre", "Wishcoin Crab")
+    corpse, shieldmate, ogre, crab = (_handle(game, n, seat=P0 if i < 2 else P1) for i, n in enumerate(names))
+    return game, supply, _handle(game, spell), corpse, shieldmate, ogre, crab
+
+
+def _target_asks(picker) -> list:
+    return [(a.site.split(":", 3)[3], [o.token for o in a.options]) for a in picker.asks if a.kind == "target"]
+
+
+def test_primal_might_is_offered_and_fights_in_a_dealt_game() -> None:
+    # "Target creature you control gets +X/+X until end of turn. Then it fights up to one target
+    # creature you don't control." Until 2026-11-06 the menu hid every spell with two target
+    # slots, so Primal Might, Hunter's Edge and Rabid Bite were never cast in a game. Now X is in
+    # the row (CR 601.2b), then each target is its own question with its own legal set (601.2c).
+    game, supply, pm, corpse, shieldmate, ogre, crab = _two_targets("Primal Might")
+    picker = _Picker(f"cast:{pm}:x3", corpse, ogre)
+    router = _router(game, supply, picker)
+    router.take_acts(game, P0)
+    assert _target_asks(picker) == [
+        ("0:0", sorted([str(corpse), str(shieldmate)])),          # only my creatures, no way out
+        ("1:0", sorted([str(ogre), str(crab)]) + ["DONE"]),       # only theirs, or none ("up to")
+    ]
+    world = game.world
+    assert world.zone_of(ogre).kind == "graveyard"                # 5 damage from the 5/5 Corpse
+    assert game.executor.damage == {corpse: 4}                    # it fought back
+    assert game.executor.ledger.effective_pt(world.cards[corpse].identity, corpse, {})[0] == 5
+    assert [a.detail for a in router.acts if a.kind == "cast"] == ["2t:x3"]
+
+
+def test_primal_might_may_leave_its_fight_partner_unchosen() -> None:
+    game, supply, pm, corpse, _shieldmate, ogre, crab = _two_targets("Primal Might")
+    router = _router(game, supply, _Picker(f"cast:{pm}:x1", corpse, "DONE"))
+    router.take_acts(game, P0)
+    assert game.world.zone_of(pm).kind == "graveyard"
+    assert game.executor.damage == {}                             # nobody fought
+    assert {game.world.zone_of(h).kind for h in (ogre, crab)} == {ZONE_BATTLEFIELD}
+    assert game.executor.ledger.effective_pt(game.world.cards[corpse].identity, corpse, {})[0] == 3
+
+
+def test_a_two_target_spell_never_offers_and_never_takes_an_illegal_pair() -> None:
+    # Hunter's Edge: "Put a +1/+1 counter on target creature you control. Then that creature
+    # deals damage equal to its power to target creature you don't control." Both targets are
+    # required, so neither question offers DONE; an illegal pair passed to the engine is refused.
+    from MTG_bot.core.executor.stack import cast
+
+    game, supply, edge, corpse, shieldmate, ogre, crab = _two_targets("Hunter's Edge")
+    world = game.world
+    world.players[P0].mana_pool["G"] = 4
+    for pair in ((ogre, crab), (corpse, shieldmate), (ogre, corpse)):
+        with pytest.raises(ValueError, match="illegal target selection"):
+            cast(game.executor, P0, edge, targets=pair)
+    world.players[P0].mana_pool.clear()
+    picker = _Picker(f"cast:{edge}", corpse, ogre)
+    router = _router(game, supply, picker)
+    router.take_acts(game, P0)
+    assert _target_asks(picker) == [("0:0", sorted([str(corpse), str(shieldmate)])),
+                                    ("1:0", sorted([str(ogre), str(crab)]))]
+    assert world.cards[corpse].counters == {"PLUS_1_PLUS_1": 1}
+    assert world.zone_of(ogre).kind == "graveyard"                # 3 damage to the 4/2
+
+
+def test_a_fight_partner_made_illegal_before_primal_might_resolves_is_not_fought() -> None:
+    # CR 608.2b: as the spell resolves its targets are checked again; the destroyed Ogre is not
+    # affected, so there is no fight, and the Corpse still gets +X/+X.
+    game, supply, pm, corpse, _shieldmate, ogre, crab = _two_targets("Primal Might", watcher="Onakke Ogre")
+    router = _router(game, supply, _Picker(f"cast:{pm}:x2", corpse, ogre))
+    router.take_acts(game, P0)
+    assert game.world.zone_of(ogre).kind == "graveyard"           # the cast trigger destroyed it
+    assert game.world.zone_of(crab).kind == ZONE_BATTLEFIELD
+    assert game.executor.damage == {}
+    assert game.executor.ledger.effective_pt(game.world.cards[corpse].identity, corpse, {})[0] == 4

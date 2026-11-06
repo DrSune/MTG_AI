@@ -1299,9 +1299,11 @@ def cast_mode_options(
     ``(order index, option indices)`` in :func:`choose_options` order (the
     order index is the runtime Choose's decision token). A set is legal only
     if every target its modes need can be chosen (700.2a: a mode that would
-    be illegal for want of legal targets can't be chosen), each priced by
-    ``pay`` (:func:`spell_target_slots`). Empty for a spell that is not
-    modal."""
+    be illegal for want of legal targets can't be chosen; several slots
+    together, stack.can_designate), each priced by ``pay``
+    (:func:`spell_target_slots`). Empty for a spell that is not modal."""
+    from MTG_bot.core.executor.stack import can_designate
+
     choose = modal_choose(node)
     if choose is None:
         return []
@@ -1311,7 +1313,7 @@ def cast_mode_options(
         slots = spell_target_slots(
             executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs, pay=pay
         )
-        if all(slot.min_count <= len(slot.candidates) for slot in slots):
+        if can_designate(slots):
             legal.append((i, option.option_idxs))
     return legal
 

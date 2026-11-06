@@ -12,7 +12,11 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   this turn (raid) and it has a creature that can attack, it passes instead: that spell and the
   rest of its plays come in the second main phase, after the attack.
 * target: a harmful source (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
-  creature, then the opponent; a helpful one at its own best creature, then itself.
+  creature, then the opponent; a helpful one at its own best creature, then itself. A spell with
+  several targets (CR 601.2c) is judged slot by slot, by what it does to that slot's own target:
+  the target of a harmful verb or a -N/-N is harmed, any other one is helped (Rabid Bite's creature
+  that deals the damage, Primal Might's pumped creature), and each slot then takes the same rule.
+  An "up to" slot is left empty when no candidate scores above zero.
 * attack: attack unless an untapped opposing creature that can block it would kill it and
   survive.
 * block: a free kill, else chump the biggest attacker when the attack is lethal, else a block
@@ -31,6 +35,7 @@ from collections import Counter
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    Atom,
     CostManaColor,
     CostManaGeneric,
     CostManaHybrid,
@@ -55,7 +60,12 @@ from MTG_bot.core.executor.legality import (
     spell_castable,
     spell_record,
 )
-from MTG_bot.core.executor.query import spell_target_slots
+from MTG_bot.core.executor.query import (
+    cast_mode_options,
+    modal_choose,
+    spell_target_slots,
+)
+from MTG_bot.core.executor.stack import can_designate
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
 from tools.selfplay.features import _handle, ir_tokens
@@ -84,11 +94,27 @@ def _record_tokens(executor: Any, oracle_id: str) -> frozenset:
 def is_harmful(executor: Any, handle: Handle | None) -> bool:
     if handle is None or handle not in executor.world.cards:
         return True
-    toks = _record_tokens(executor, executor.world.cards[handle].identity.oracle_id)
+    return _harms(_record_tokens(executor, executor.world.cards[handle].identity.oracle_id))
+
+
+def _harms(toks: frozenset) -> bool:
     if toks & HARM_VERBS:
         return True
     # -N/-N: the compiler writes PtDelta(direction=DECREASE) with a positive magnitude now
     return "Verb.MODIFY_PT" in toks and ("num:neg" in toks or "PtDirection.DECREASE" in toks)
+
+
+def harms_slot(effect: Any, selector: Any) -> bool:
+    """Does ``effect`` harm what the target slot ``selector`` designates: is it the target of an
+    atom that is harmful the way :func:`is_harmful` reads a card? A slot that is only a dealer or
+    the subject of a pump is not harmed ("target creature you control deals damage equal to its
+    power", Rabid Bite; "+X/+X", Primal Might)."""
+    key = repr(selector)
+    return any(
+        isinstance(n, Atom) and repr(n.args.get("target")) == key
+        and _harms(frozenset(ir_tokens(to_dict(n))))
+        for n in walk(effect)
+    )
 
 
 def reads_raid(executor: Any, handle: Handle) -> bool:
@@ -264,8 +290,8 @@ class HeuristicAgent:
     def _enabling_colour(self, source: Handle, idx: int, ability: Any, spell: Handle) -> str | None:
         """The colour of this ability's mana (any colour for a Treasure) with which the menu would
         offer ``spell`` (X at least 1): its total cost payable from the pool and the free sources,
-        a target's cost increase included, one target slot at most with a payable candidate. Asked
-        of the engine's own planner with the mana added on trial and taken back."""
+        a target's cost increase included, and its targets choosable. Asked of the engine's own
+        planner with the mana added on trial and taken back."""
         got = _mana_atom_output(ability.effect, ctx_for(self.ex, source=source, controller=self.me))
         record = spell_record(self.ex, spell)
         node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
@@ -281,11 +307,14 @@ class HeuristicAgent:
                 self.ex, self.me, lambda: spell_castable(self.ex, self.me, spell, x=x, targets=targets)[0]
             ) is not None
 
-        def offered() -> str | None:
+        def offered() -> str | None:  # the router's rule (_cast_rows): its targets can be chosen
             if not pays(()):
                 return "short"
+            if modal_choose(node) is not None:
+                legal = cast_mode_options(self.ex, node, spell_handle=spell, seat=self.me, pay=pays)
+                return None if legal else "no"
             slots = spell_target_slots(self.ex, node, spell_handle=spell, seat=self.me, pay=pays)
-            return None if len(slots) <= 1 and all(s.min_count <= len(s.candidates) for s in slots) else "no"
+            return None if can_designate(slots) else "no"
 
         for c in (color,) if color else "WUBRG":
             if _with_trial_mana(self.ex, self.me, [ManaTap(source, idx, (), (c, n, tags))], offered) is None:
@@ -300,7 +329,7 @@ class HeuristicAgent:
                 if hs[j] == "card" and hs[j + 1].isdigit():
                     src = Handle("card", int(hs[j + 1]))
                     break
-        harmful = is_harmful(self.ex, src)
+        harmful = self._harmful_pick(ask.site, src)
         best, best_score = None, None
         for i, t in enumerate(tokens):
             if t == "DONE":
@@ -314,6 +343,24 @@ class HeuristicAgent:
         if "DONE" in tokens and (best_score is None or best_score < 0):
             return tokens.index("DONE")
         return best
+
+    def _harmful_pick(self, site: str, src: Handle | None) -> bool:
+        """Whether this pick harms its target: the card as a whole, or for a spell in hand with
+        several target slots the asked slot alone (``pick:<source>:<slot>:<picks>``, the router's
+        site; harms_slot). A modal spell keeps the whole-card rule: its slots follow its modes."""
+        parts = site.split(":")
+        hand = self.world.players[self.me].zones.get(ZONE_HAND)
+        if (src is None or len(parts) != 5 or not parts[3].isdigit() or hand is None
+                or src not in hand.entries):
+            return is_harmful(self.ex, src)
+        record = spell_record(self.ex, src)
+        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
+        if node is None or node.effect is None or modal_choose(node) is not None:
+            return is_harmful(self.ex, src)
+        slots = spell_target_slots(self.ex, node, spell_handle=src, seat=self.me)
+        if len(slots) <= 1 or int(parts[3]) >= len(slots):
+            return is_harmful(self.ex, src)
+        return harms_slot(node.effect, slots[int(parts[3])].selector)
 
     def _target_score(self, h: Handle, harmful: bool) -> float:
         if h.namespace == "player":

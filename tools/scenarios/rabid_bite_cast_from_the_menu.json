@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rb", "real": "Rabid Bite", "zone": "hand", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Cub", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Opp Vampire", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "imp", "name": "Opp Imp", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:rb", "wolf", "vamp"]}
+ ],
+ "expect": {
+  "zone": {"rb": "graveyard", "wolf": "battlefield", "cub": "battlefield", "vamp": "graveyard", "imp": "battlefield"},
+  "damage": {}
+ },
+ "notes": "Printed Rabid Bite: 'Target creature you control deals damage equal to its power to target creature you don't control.' Cast from the act menu as a dealt game casts it: one target question per instance of 'target' (CR 601.2c), the first over my Wolf and Cub, the second over the opponent's Vampire and Imp. The 3/3 Wolf deals 3 to the 3/3 Vampire, which dies; the damage is one-sided, so the Wolf is not dealt any. Until 2026-11-06 the menu hid the card, so it was dead in M20 games."
+}

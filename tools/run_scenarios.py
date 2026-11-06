@@ -83,6 +83,22 @@ Pack vocabulary (all keys required as noted):
               "decisions": [str...], "x": int?},      x: the announced X of an
                                             X-cost activation (CR 602.2b);
                                             absent, the X ask takes a word
+             {"op": "act", "seat": 0|1, "words": [word...]}
+                                            2026-11-06: one act window of the
+                                            seat through the bench router, as
+                                            a dealt game opens it (bench/
+                                            router.py). The words answer its
+                                            asks in order, one word per ask:
+                                            the menu row ("cast:<key>[:k]
+                                            [:x<N>]", "act:<key>:<index>",
+                                            "land:<key>"), then the asks it
+                                            opens (the mode, then one target
+                                            ask per pick, slot by slot, CR
+                                            601.2c; "DONE" ends an "up to"
+                                            slot); the window passes when the
+                                            words are used up. A word an ask
+                                            does not offer raises, naming the
+                                            ask and its words,
              {"op": "combat", "seat": 0|1, "attack": {key: bool|pwKey},
                                             (V41: a planeswalker's pack key
                                             attacks that planeswalker)
@@ -236,11 +252,13 @@ def _bf_target():
 #: Any other word must be one the ask offers, or the pack fails (a word the ask does not offer
 #: used to fall back to the first word silently, so a shifted queue still passed).
 FIRST_LEGAL = "first-legal"
+_ORACLES: dict[str, Any] = {}  # the act op's card text, one index per set
 
 
 class ScenarioRunner:
     def __init__(self, pack: dict, supply, setup_provider=None):
         self.pack = pack
+        self.supply = supply
         #: pack-written decision words an ask did not offer; the ask took a default instead,
         #: so the pack did not test what it says (reported as failures by run_pack)
         self.unoffered: list[str] = []
@@ -647,6 +665,8 @@ class ScenarioRunner:
             self.ex.fire_triggers()
         elif op == "combat":
             self._combat(step)
+        elif op == "act":
+            self._act_window(step)
         else:
             raise PackError(f"unknown op {op!r}")
 
@@ -674,6 +694,51 @@ class ScenarioRunner:
             target, x_sep, x = target.partition(":x")  # an X spell's window token
             return f"{self._resolve_word(card)}@{self._resolve_word(target)}{x_sep}{x}"
         return word
+
+    def _act_window(self, step: dict) -> None:
+        """The ``act`` op: one act window of the bench router, its asks answered by the step's
+        words in order (the vocabulary above)."""
+        from MTG_bot.bench.router import SeatRouter
+        from MTG_bot.bench.view import OracleIndex, SeatLens
+        from MTG_bot.core.executor.games import Game
+
+        words = [self._row_word(w) for w in step["words"]]
+
+        class Words:
+            name = "pack"
+
+            def decide(self, ask, obs) -> int:
+                tokens = tuple(o.token for o in ask.options)
+                if not words:
+                    if ask.kind == "act":
+                        return tokens.index("PASS")
+                    raise PackError(f"act: no word left for the {ask.kind} ask {ask.site}; it offers {tokens}")
+                word = words.pop(0)
+                if word not in tokens:
+                    raise PackError(f"act: the {ask.kind} ask {ask.site} does not offer {word!r}; it offers {tokens}")
+                return tokens.index(word)
+
+        set_code = str(self.pack.get("set", "M21"))
+        oracle = _ORACLES.get(set_code) or _ORACLES.setdefault(set_code, OracleIndex.for_sets(set_code))
+        game = Game(executor=self.ex, seed=0, pool_mode="all")
+        router = SeatRouter(game, [Words(), Words()], [SeatLens(0, oracle), SeatLens(1, oracle)],
+                            supply=self.supply)
+        self.ex.decisions.provider = router.answer
+        try:
+            router.take_acts(game, self.seats[int(step.get("seat", 0))])
+        finally:
+            self.ex.decisions.provider = None
+        if words:
+            raise PackError(f"act: words no ask took: {words}")
+
+    def _row_word(self, word: str) -> str:
+        """An ``act`` word: a menu row's pack key resolved to its handle ("cast:pm:x3" ->
+        "cast:card:0:x3"), or any other word as _resolve_word reads it."""
+        head, sep, rest = word.partition(":")
+        if sep and head in ("cast", "act", "land"):
+            key, sep, tail = rest.partition(":")
+            return f"{head}:{self._resolve_word(key)}{sep}{tail}"
+        return self._resolve_word(word)
 
     def _combat(self, step: dict) -> None:
         """Run the whole COMBAT phase answering the engine's asks from the

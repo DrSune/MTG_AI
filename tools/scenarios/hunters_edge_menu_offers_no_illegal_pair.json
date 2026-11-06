@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "he", "real": "Hunter's Edge", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Cub", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "imp", "name": "Opp Imp", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 4}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:he", "ogre"], "expect_raise": "the target ask pick:card:0:0:0 does not offer 'card:3'; it offers ('card:1', 'card:2')"},
+  {"op": "act", "seat": 0, "words": ["cast:he", "bear", "bear"], "expect_raise": "the target ask pick:card:0:1:0 does not offer 'card:1'; it offers ('card:3', 'card:4')"},
+  {"op": "act", "seat": 0, "words": ["cast:he", "bear", "ogre"]}
+ ],
+ "expect": {
+  "zone": {"he": "graveyard", "bear": "battlefield", "ogre": "graveyard", "imp": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
+  "power": {"bear": 3},
+  "damage": {}
+ },
+ "notes": "Printed Hunter's Edge: 'Put a +1/+1 counter on target creature you control. Then that creature deals damage equal to its power to target creature you don't control.' Each instance of 'target' is its own question with its own legal set (CR 601.2c): the first offers only my Bear and Cub (the opponent's Ogre is refused), the second only the opponent's Ogre and Imp (my Bear is refused), and neither offers a way out, since both targets are required. So no illegal pair can be announced. Then Bear gets the counter (3/3) and deals 3 to the 3/3 Ogre, which dies."
+}

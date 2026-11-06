@@ -823,3 +823,144 @@ def test_heuristic_mulligan_rule() -> None:
 
 def _name_of(game, token: str) -> str:
     return next(c.identity.name for h, c in game.world.cards.items() if str(h) == token)
+
+
+# ------------------------------------- several target slots (CR 601.2c, 2026-11-06)
+
+
+def test_heuristic_judges_each_target_slot_by_its_own_effect() -> None:
+    """Rabid Bite ("Target creature you control deals damage equal to its power to target creature
+    you don't control") harms only its second target, so the teacher's best creature deals the
+    damage to the opponent's best; read as a whole harmful card, its own worst creature would
+    deal it. Primal Might pumps the first target and fights the second."""
+    game, router, me = _teach(hand0=("Rabid Bite",), field0=("Forest", "Forest", "Centaur Courser", "Coral Merfolk"),
+                              field1=("Barony Vampire", "Goblin Assailant"), set_code="M20")
+    router.take_acts(game, me)
+    assert [a.detail for a in router.acts if a.card == "Rabid Bite"] == ["2t"]
+    assert game.world.zone_of(_named(game, "Barony Vampire")).kind == "graveyard"  # 3 from the Courser
+    assert game.world.zone_of(_named(game, "Goblin Assailant")).kind == "battlefield"
+    game, router, me = _teach(hand0=("Primal Might",),
+                              field0=("Forest",) * 4 + ("Walking Corpse", "Staunch Shieldmate"),
+                              field1=("Onakke Ogre", "Staunch Shieldmate"))
+    router.take_acts(game, me)
+    corpse = _named(game, "Walking Corpse")
+    assert [a.detail for a in router.acts if a.card == "Primal Might"] == ["2t:x3"]
+    assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
+    assert game.executor.damage == {corpse: 4}
+
+
+class _CastSlot:
+    """The actor's slot over a LocalSlot: answers each act ask with its last cast row (the largest
+    X) and keeps every request's encoding and answer."""
+
+    def __init__(self, net) -> None:
+        self.inner = M.LocalSlot({"net": net.eval()})
+        self.feats: list[dict] = []
+        self.answers: list[int] = []
+
+    def infer(self, req):
+        feats = req[5]
+        casts = np.flatnonzero(feats["opts_i"][:, 0] == FT.OPT_INDEX["cast"])
+        if int(feats["ask_i"][0]) == FT.ASK_INDEX["act"] and len(casts):
+            answer = int(casts[-1])
+        else:
+            answer = self.inner.infer(req)
+        self.feats.append(feats)
+        self.answers.append(answer)
+        return answer
+
+    def targets(self) -> list[tuple[dict, int]]:
+        return [(f, a) for f, a in zip(self.feats, self.answers, strict=True)
+                if int(f["ask_i"][0]) == FT.ASK_INDEX["target"]]
+
+
+def _net_casts_primal_might(net, table):
+    """Seat 0 a network (NetAgent through _CastSlot) with Primal Might, four Forests, Walking Corpse
+    and Staunch Shieldmate; seat 1 Onakke Ogre and Wishcoin Crab. One act window."""
+    from MTG_bot.bench.test_router import P0, _arranged
+    from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+    from tools.selfplay.actor import NetAgent
+    from tools.selfplay.rig import SelfplayRouter
+
+    game, supply = _arranged(hand0=("Primal Might",), field0=("Forest",) * 4 + ("Walking Corpse", "Staunch Shieldmate"),
+                             field1=("Onakke Ogre", "Wishcoin Crab"))
+    slot = _CastSlot(net)
+    job = {"gid": 0, "seats": ["net", "heuristic"], "greedy": [True, True], "record": [False, False]}
+    oracle = OracleIndex.for_sets("M21")
+    router = SelfplayRouter(game, [NetAgent(slot, job, 0, table), HeuristicAgent()],
+                            [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)], supply=supply)
+    game.executor.decisions.provider = router.answer
+    router.take_acts(game, P0)
+    return game, slot
+
+
+def test_the_network_answers_one_target_ask_per_slot_and_sees_which(table) -> None:
+    """The second target ask says it is the second slot (glob_f[G_SLOT]) and marks the creature the
+    first one chose (F_TARGETED), as attacks mark the attackers declared so far."""
+    torch.manual_seed(0)
+    game, slot = _net_casts_primal_might(M.build(table, d=32, layers=1, heads=4, ff=64), table)
+    (first, picked), (second, _) = slot.targets()
+    assert float(first["glob_f"][FT.G_SLOT]) == 0.0 and not first["cards_f"][:, FT.F_TARGETED].any()
+    assert np.isclose(float(second["glob_f"][FT.G_SLOT]), 1 / 3, atol=1e-3)
+    flagged = np.flatnonzero(second["cards_f"][:, FT.F_TARGETED])
+    pointed = int(first["opts_i"][picked, 1]) - 3  # refs: 0 none, 1 me, 2 opponent, 3+ cards
+    assert list(flagged) == [pointed] and int(second["cards_i"][pointed, 2]) == 1  # mine
+    assert set(second["opts_i"][:, 0]) == {FT.OPT_INDEX["card"], FT.OPT_INDEX["DONE"]}  # "up to one"
+    assert game.world.zone_of(_named(game, "Primal Might")).kind == "graveyard"
+
+
+def test_an_old_checkpoint_loads_and_plays_two_target_spells(table, tmp_path) -> None:
+    """A checkpoint from before the slot features has narrower card, player and global inputs. The
+    new columns load with zero weights, so it computes what it computed before, and it plays the
+    second target ask."""
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    for p in net.parameters():
+        p.data.normal_(0, 0.1)
+    path = tmp_path / "old.pt"
+    M.save(str(path), net, table)
+    ck = torch.load(path, weights_only=False)
+    cut = {"card_f.weight": FT.F_TARGETED, "player_f.weight": FT.P_TARGETED, "glob_f.weight": FT.G_SLOT}
+    for key, width in cut.items():
+        ck["state"][key] = ck["state"][key][:, :width].clone()
+    torch.save(ck, path)
+    old, _, _ = M.load(str(path))
+    for key, width in cut.items():
+        w = old.state_dict()[key]
+        assert torch.equal(w[:, :width], net.state_dict()[key][:, :width]) and not w[:, width:].any()
+    game, slot = _net_casts_primal_might(old, table)
+    assert len(slot.targets()) == 2 and game.world.zone_of(_named(game, "Primal Might")).kind == "graveyard"
+    second = slot.targets()[1][0]
+    blank = {k: v.copy() for k, v in second.items()}
+    blank["cards_f"][:, FT.F_TARGETED] = 0
+    blank["players_f"][:, FT.P_TARGETED] = 0
+    blank["glob_f"][FT.G_SLOT] = 0
+    probs = [slot.inner.infer((0, 0, "net", True, False, f, 2))[2] for f in (second, blank)]
+    assert probs[0] == probs[1]
+
+
+def test_the_search_plays_a_two_target_candidate(table, monkeypatch) -> None:
+    """Decision-time search forks the game and plays a two-target cast in the copy: the network
+    answers both target asks there, and the simulation does not crash."""
+    from MTG_bot.bench.test_router import _arranged
+    from tools.selfplay import rig
+    from tools.selfplay.search import Searcher
+
+    game, _supply = _arranged(hand0=("Primal Might",), field0=("Forest",) * 4 + ("Walking Corpse",),
+                              field1=("Onakke Ogre",))
+    pm = _named(game, "Primal Might")
+    played: list[str] = []
+    execute = rig.SelfplayRouter._execute
+
+    def record(self, g, seat, i, option, payload):
+        played.append(option.token)
+        return execute(self, g, seat, i, option, payload)
+
+    monkeypatch.setattr(rig.SelfplayRouter, "_execute", record)
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
+                        set_code="M21", k=2, d=1, seed=0)
+    score = searcher.simulate(game, 0, f"cast:{pm}:x3")
+    assert played[0] == f"cast:{pm}:x3" and searcher.stats["sim_errors"] == 0
+    assert score is not None and -1.0 <= score <= 1.0
+    assert game.world.zone_of(pm).kind == "hand"  # the real game is untouched

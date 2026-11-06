@@ -120,7 +120,7 @@ from MTG_bot.core.executor.query import (
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, cast_modes, play_land
+from MTG_bot.core.executor.stack import another_target_reason, cast, cast_modes, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -580,6 +580,11 @@ class Act:
         return f"{self.kind}:{self.card}" + (f"({self.detail})" if self.detail else "")
 
 
+def _flat_targets(slots: list[TargetSlot], targets: tuple) -> tuple[Handle, ...]:
+    """Every handle of a :meth:`RandomPolicy.select_targets` designation."""
+    return tuple(targets) if len(slots) <= 1 else tuple(h for group in targets for h in group)
+
+
 class RandomPolicy:
     """Uniform-random play over the query surface, one seeded stream.
 
@@ -624,24 +629,30 @@ class RandomPolicy:
         return self.rng.choice(list(vocab))
 
     # -- targets
-    def select_targets(self, slots: list[TargetSlot]) -> tuple[Handle, ...] | None:
+    def select_targets(self, slots: list[TargetSlot]) -> tuple | None:
         """One legal designation for a spell's / ability's TARGET slots: every
         candidate and cardinality from the :class:`TargetSlot` the query
         produced, canonicalised into Handle order and re-validated through the
-        query's own oracle before it is handed over. ``None`` = 'this row is not
-        designable right now' (an infeasible population), which the caller
-        counts and skips."""
-        chosen: list[Handle] = []
+        query's own oracle before it is handed over: one slot's targets, or for
+        several slots one tuple per slot, an "up to" slot possibly empty (CR
+        601.2c, ``stack.designate_slots``). ``None`` = 'this row is not
+        designable right now' (an infeasible population, or a random pick that
+        broke an "another target"), which the caller counts and skips."""
+        groups: list[tuple[Handle, ...]] = []
         for slot in slots:
             if slot.min_count > len(slot.candidates):
                 return None
             want = self.rng.randint(slot.min_count, max(slot.min_count, slot.max_count))
             want = min(want, len(slot.candidates))
-            picked = sorted(self.rng.sample(list(slot.candidates), want))
+            picked = tuple(sorted(self.rng.sample(list(slot.candidates), want)))
             if validate_target_selection(slot, picked) is not None:
                 return None
-            chosen.extend(picked)
-        return tuple(chosen)
+            groups.append(picked)
+        if len(slots) == 1:
+            return groups[0]
+        if another_target_reason(slots, groups) is not None:
+            return None
+        return tuple(groups)
 
     # -- the act surface
     @staticmethod
@@ -708,15 +719,6 @@ class RandomPolicy:
                 return
             _token, modes, _rest = cast_modes(executor, seat, row.handle, node)
         slots = spell_target_slots(executor, node, spell_handle=row.handle, seat=seat, modes=modes)
-        if len(slots) > 1:
-            # v1 has ONE designation tuple per cast, so a multi-slot spell cannot
-            # be designated (``stack._validate_spell_targets`` raises
-            # NotImplementedError on it). Declining it is a legality decision the
-            # policy is entitled to make from the public slot query — and it is
-            # counted, so the ceiling is measured instead of hidden (/03 B-3).
-            game.multi_target_skips += 1
-            game.unsupported_rows.add((row.handle,))
-            return
         targets = self.select_targets(slots)
         if targets is None:
             game.infeasible_skips += 1
@@ -733,13 +735,12 @@ class RandomPolicy:
             row.handle,
             kicked=row.kicked,
             mode_choices=modes or (),
-            targets=tuple(targets),
+            targets=targets,
         )
-        self._log(game, "cast", name, f"{len(targets)}t")
+        flat = _flat_targets(slots, targets)
+        self._log(game, "cast", name, f"{len(flat)}t")
         if game.trace is not None:
-            game.trace.record_action(
-                seat, "cast", name, row.handle, tuple(targets), f"{len(targets)}t"
-            )
+            game.trace.record_action(seat, "cast", name, row.handle, flat, f"{len(flat)}t")
 
     def play_activation(
         self, game: Game, seat: Handle, option: ActivationOption
@@ -758,10 +759,6 @@ class RandomPolicy:
                 seat=seat,
             )
         )
-        if len(slots) > 1:
-            game.multi_target_skips += 1
-            game.unsupported_rows.add((option.source, option.ability_idx))
-            return
         targets = self.select_targets(slots)
         if targets is None:
             game.infeasible_skips += 1
@@ -771,7 +768,7 @@ class RandomPolicy:
             option.source,
             option.ability_idx,
             seat=seat,
-            targets=tuple(targets),
+            targets=targets,
         )
         self._log(game, "act", name, f"#{option.ability_idx}")
         if game.trace is not None:
@@ -780,7 +777,7 @@ class RandomPolicy:
                 "activate",
                 name,
                 option.source,
-                tuple(targets),
+                _flat_targets(slots, targets),
                 f"#{option.ability_idx}",
             )
 
@@ -809,16 +806,8 @@ class RandomPolicy:
                 break  # V37 (CR 724.1): an effect ended the turn; no one acts in it again
             rows = legal_casts(world, executor, seat)
             lands = [row for row in rows if row.land]
-            spells = [
-                row
-                for row in rows
-                if not row.land and (row.handle,) not in game.unsupported_rows
-            ]
-            options = [
-                option
-                for option in legal_activations(world, executor, seat)
-                if (option.source, option.ability_idx) not in game.unsupported_rows
-            ]
+            spells = [row for row in rows if not row.land]
+            options = legal_activations(world, executor, seat)
             if lands:
                 self.play_land(game, seat, self.choose(lands))
                 continue
@@ -1152,13 +1141,8 @@ class Game:
     digest: list[str] = field(default_factory=list)
     acts: int = 0
     turns: int = 0
-    multi_target_skips: int = 0
     infeasible_skips: int = 0
     player_target_designations: int = 0
-    # Rows the v1 designation channel cannot serve (>1 TARGET selector), learned
-    # once and then filtered out of every later query batch. Counted, never
-    # silent: ``multi_target_skips`` is a measured coverage ceiling.
-    unsupported_rows: set[tuple[object, ...]] = field(default_factory=set)
     reason: str = ""
     # 16b: seats whose life crossed 0 DURING a COMBAT phase (combat
     # deaths, reported separately from executor crashes - the meaning of
@@ -1301,7 +1285,6 @@ class GameOutcome:
     survived: bool = False
     reason: str = ""
     acts: int = 0
-    multi_target_skips: int = 0
     infeasible_skips: int = 0
     player_target_designations: int = 0
     combat_losses: int = 0  # 16b: life-crossed-0 during a COMBAT phase
@@ -1405,7 +1388,6 @@ def play_game(
     outcome.digest = list(game.digest)
     outcome.acts = game.acts
     outcome.turns = game.turns
-    outcome.multi_target_skips = game.multi_target_skips
     outcome.infeasible_skips = game.infeasible_skips
     outcome.player_target_designations = game.player_target_designations
     outcome.combat_losses = game.combat_losses
@@ -1815,7 +1797,6 @@ def summarise(
         "mean_turns": round(sum(turns) / max(len(turns), 1), 2),
         "max_turns": max(turns) if turns else 0,
         "total_acts": sum(game.acts for game in outcomes),
-        "multi_target_skips": sum(game.multi_target_skips for game in outcomes),
         "infeasible_skips": sum(game.infeasible_skips for game in outcomes),
         "player_target_designations": sum(
             game.player_target_designations for game in outcomes
@@ -1874,8 +1855,7 @@ def format_table(stats: dict[str, Any]) -> str:
         f"battlefield: {stats['coverage_battlefield']}"
     )
     skips = (
-        f"skips: multi-target={stats['multi_target_skips']}  "
-        f"infeasible-targets={stats['infeasible_skips']}  "
+        f"skips: infeasible-targets={stats['infeasible_skips']}  "
         f"player-targets={stats['player_target_designations']}"
     )
     lines = [
