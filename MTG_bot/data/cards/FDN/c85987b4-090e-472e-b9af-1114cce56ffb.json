@@ -4,9 +4,205 @@
  "oracle_id": "c85987b4-090e-472e-b9af-1114cce56ffb",
  "name": "Stromkirk Bloodthief",
  "text_sha": "d9d8d2b2f13446567a3c7d73aa3f65bc9b46218ca472ee736f1df935d22678e6",
- "needs_atom": {
-  "missing": "At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on target Vampire you control.: the intervening-if 'an opponent lost life this turn' has no predicate. No FAtomPred or ThisTurnKind reads life LOST this turn (only LIFE_GAINED_THIS_TURN_GE, LIFE_LEAD_OVER_START_GE, QThisTurn LIFE_GAINED/CARDS_DRAWN/NONCOMBAT_DAMAGE exist); the journal already has LIFE_LOST and DAMAGE-to-player rows. Needs e.g. FAtomPred.LIFE_LOST_THIS_TURN_GE(who=OPPONENT, count=1) or ThisTurnKind.LIFE_LOST. The rest (TurnPhaseEvent END_TURN actor you; PUT_COUNTER +1/+1 on TARGET Vampire you control) is expressible.",
-  "author": "claude-mapper-B",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "END_TURN"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "EVENT_THIS_TURN"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null,
+     "event": {
+      "tag": "LifeLostEvent",
+      "actor": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "CONTROLLER_IS"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": {
+        "tag": "ControllerRef",
+        "name": "OPPONENT"
+       },
+       "inner_filter": null
+      }
+     }
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Vampire",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06",
+  "draft_py": "# FDN Stromkirk Bloodthief\n# \"At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on\n# target Vampire you control.\"  `parse` gives this exact tree for \"... on target creature you\n# control.\" (frame B13-end-step+if+B5b-put-counter); the tribal noun adds SUBTYPE_EQ 'Vampire'\n# (MAPPER_GUIDE: tribal nouns are SUBTYPE_EQ plus TYPE_EQ 'Creature').\nend_step_counter = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.END_TURN,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.EVENT_THIS_TURN,\n        count=QConst(value=1),\n        event=LifeLostEvent(\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n        ),\n    ),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Vampire'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [end_step_counter, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on target Vampire you control.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "parse gives this exact tree for '... put a +1/+1 counter on target creature you control.' (B13-end-step+if+B5b-put-counter); the tribal noun adds SUBTYPE_EQ Vampire (MAPPER_GUIDE tribal-noun shape). Self-check packs (scratch): counter after an opponent loses life, none without."
+ },
+ "probe": {
+  "sha": "ff8a8b7fc27a9b57d0b1c4b19838b51d20580485d603f64ed50c3740263aea1e"
  }
 }

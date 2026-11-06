@@ -4,9 +4,200 @@
  "oracle_id": "05878e49-93ad-4144-9c50-a0bb86126c2e",
  "name": "Chart a Course",
  "text_sha": "2ee992d77a8ab41d67290ac42016ebf4ef240aa4a751c0a06173ece818703651",
- "needs_atom": {
-  "missing": "Then discard a card unless you attacked this turn.: no predicate reads 'you attacked this turn' (raid). The DECLARE_ATTACKERS journal rows exist, but no FAtomPred / ThisTurnKind answers 'did <who> declare an attacker this turn' (ATTACK_AGAINST_COUNT_GE reads only the triggering DeclareAttackersEvent; IS_ATTACKING + CONTROLLER_COUNT_GE is 'controls an attacking creature now', false after combat when a sorcery resolves). Needs e.g. FAtomPred.ATTACKED_THIS_TURN(who=YOU) for Conditional(pred=FNot(...), then_effect=discard 1). 'Draw two cards.' is compiled correctly.",
-  "author": "claude-mapper-B",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TURN_OF"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "EVENT_THIS_TURN"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null,
+           "event": {
+            "tag": "DeclareAttackersEvent",
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            }
+           }
+          }
+         ]
+        }
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MOVE_ZONE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "HAND"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ],
+          [
+           "from",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06",
+  "draft_py": "# FDN Chart a Course\n# \"Draw two cards.\" is the compiler's (B5a-draw-two). \"Then discard a card unless you attacked this\n# turn.\": the trailing \"unless\" frame, `parse \"Draw a card unless you attacked this turn.\"`\n# (B13-if: Conditional(FNot(<attacked>), ...)), around the discard step of \"Draw three cards, then\n# discard a card.\" (Rain of Revelation, B5a-draw-three-then-discard); \"Then\" is the Seq order.\nspell = SpellAbility(\n    kind=SpellKind.SORCERY,\n    effect=Seq(\n        steps=(\n            A(Verb.DRAW, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n            Conditional(\n                pred=FNot(\n                    inner=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n                            FAtom(\n                                pred=FAtomPred.EVENT_THIS_TURN,\n                                count=QConst(value=1),\n                                event=DeclareAttackersEvent(filter=FAnd(children=())),\n                            ),\n                        ),\n                    ),\n                ),\n                then_effect=A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n                    ),\n                    'controller': ControllerRef.YOU,\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [spell]\n",
+  "clauses": [
+   {
+    "clause": "Draw two cards.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Then discard a card unless you attacked this turn.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Draw two is the compiler's; 'Then discard a card unless you attacked this turn.' is the trailing-unless frame (parse 'Draw a card unless you attacked this turn.': Conditional(FNot(TURN_OF YOU and EVENT_THIS_TURN DeclareAttackersEvent))) around Rain of Revelation's discard step. ENGINE (weaker than printed): a sorcery cannot be cast after combat: legality.spell_window_reason allows sorcery-speed casts only in phase None/FIRST_MAIN (SECOND_MAIN -> window:phase) and games.py has no post-combat act batch, so 'you attacked this turn' is never true when Chart a Course resolves and it always discards. A pack casting it after a combat step raises 'illegal cast: window:phase'."
+ },
+ "probe": {
+  "sha": "4ca2229d07ba0a47558ffcde70194a0e2dcf60dfae2e7483a5d9d20450833e87"
  }
 }

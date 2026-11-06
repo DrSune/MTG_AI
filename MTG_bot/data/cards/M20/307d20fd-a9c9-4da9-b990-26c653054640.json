@@ -4,9 +4,180 @@
  "oracle_id": "307d20fd-a9c9-4da9-b990-26c653054640",
  "name": "Savage Gorger",
  "text_sha": "77a488c4212b8a8441f26c61c33880b7c9e5f49b401f8b116d817d2a0c6d8eba",
- "needs_atom": {
-  "missing": "Turn-scoped life-loss condition: 'if an opponent lost life this turn'. FAtomPred has LIFE_GAINED_THIS_TURN_GE and ThisTurnKind has LIFE_GAINED / CARDS_DRAWN / NONCOMBAT_DAMAGE, but nothing reads life lost this turn by a player (from damage or life loss). Needed: e.g. FAtomPred.LIFE_LOST_THIS_TURN_GE with who=OPPONENT and count 1 (or QThisTurn LIFE_LOST). The end-step trigger (TurnPhaseEvent END_TURN, actor YOU) and the +1/+1 counter on itself are expressible (Sabertooth Mauler shape).",
-  "author": "claude-mapper-m20-4",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "END_TURN"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "EVENT_THIS_TURN"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null,
+     "event": {
+      "tag": "LifeLostEvent",
+      "actor": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "CONTROLLER_IS"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": {
+        "tag": "ControllerRef",
+        "name": "OPPONENT"
+       },
+       "inner_filter": null
+      }
+     }
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Savage Gorger\n# \"At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on\n# this creature.\"  Trigger frame + intervening if: `parse \"At the beginning of your end step, if an\n# opponent lost life this turn, draw a card.\"` (B13-end-step+if); effect: Scion of the Swarm's\n# PUT_COUNTER on the source (B9-gain-life-counter-self).\nend_step_counter = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.END_TURN,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.EVENT_THIS_TURN,\n        count=QConst(value=1),\n        event=LifeLostEvent(\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n        ),\n    ),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [end_step_counter, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "End-step trigger: B13-end-step+if frame with the turn-history condition EVENT_THIS_TURN(LifeLostEvent(actor=OPPONENT)); effect is Scion of the Swarm's PUT_COUNTER on the source. Self-check packs (scratch): counter after an opponent loses life, none without."
+ },
+ "probe": {
+  "sha": "b0f7d70040ead9e3e4fce5afabfaf29d14c7b5adedf18423a8b902978a9b10f2"
  }
 }

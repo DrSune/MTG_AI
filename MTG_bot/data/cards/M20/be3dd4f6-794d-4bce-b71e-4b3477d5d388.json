@@ -5,8 +5,8 @@
  "name": "Vengeful Warchief",
  "text_sha": "f558d56da975f0d3511cd37e00c56a7bce95fe0c364f07f3d62fd1b8a971ec35",
  "needs_atom": {
-  "missing": "'Whenever you lose life for the first time each turn': no life-lost trigger event. EventSpec has LifeGainedEvent but nothing for a life DECREASE (damage to you or LOSE_LIFE / life paid, CR 119.3), although the journal records both (DAMAGE and LIFE_LOST rows, executor/events.py); and the trigger needs a first-time-this-turn ordinal over those losses (CardDrawnEvent's ordinal is the shape precedent).",
-  "author": "claude-mapper-m20-6",
-  "date": "2026-11-05"
+  "missing": "An ordinal on LifeLostEvent: 'Whenever you lose life for the first time each turn' is the first life-loss event of the turn for you (CR 603.2). LifeLostEvent (2026-11-06) has only actor; only CastSpellEvent and CardDrawnEvent carry ordinal ('your second card each turn'). No trigger condition can stand in: EVENT_THIS_TURN counts life rows by their amount, so a first loss of 3 already counts 3 and a later loss cannot be told from the first. The effect maps (Scion of the Swarm's PUT_COUNTER on the source); needed: LifeLostEvent(actor=YOU, ordinal=1), counted per player by the binder like CardDrawnEvent.ordinal.",
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06"
  }
 }

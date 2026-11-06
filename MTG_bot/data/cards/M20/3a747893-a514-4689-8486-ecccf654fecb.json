@@ -4,9 +4,211 @@
  "oracle_id": "3a747893-a514-4689-8486-ecccf654fecb",
  "name": "Fry",
  "text_sha": "8477a8dfe03e93155551d4bba0a883aa727059a6504b168917046c9cd5784dc8",
- "needs_atom": {
-  "missing": "'This spell can't be countered.': no IR node makes a spell uncounterable (no 'is countered' EventSpec for PREVENT_EFFECT or a ReplacementAbility to hook, COUNTER_SPELL has no exemption, no keyword); the engine has no uncounterable flag. The damage sentence alone maps (Scorching Dragonfire's B5b-named-damage selector AND FOr(COLOR_HAS W, COLOR_HAS U)), but dropping the clause would let counterspells answer Fry (weaker than printed) and the guide forbids omitting clauses.",
-  "author": "claude-mapper-m20-8",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "CounteredEvent",
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 5
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "COLOR_HAS"
+              },
+              "string_value": null,
+              "color": "U",
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "COLOR_HAS"
+              },
+              "string_value": null,
+              "color": "W",
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Planeswalker",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Fry\n# \"This spell can't be countered.\" is the compiler's (B14). \"Fry deals 5 damage to target creature\n# or planeswalker that's white or blue.\": `parse \"~ deals 5 damage to target creature or\n# planeswalker.\" --name Fry` (B5b-named-damage), with the colour restriction added to the target\n# filter as an FOr of COLOR_HAS (MAPPER_GUIDE: \"Green or white\" is an FOr of COLOR_HAS; Quirion\n# Dryad's \"a spell that's white, blue, black, or red\").\nspell = SpellAbility(\n    kind=SpellKind.INSTANT,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=5),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FOr(\n                        children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                        ),\n                    ),\n                    FOr(\n                        children=(\n                            FAtom(pred=FAtomPred.COLOR_HAS, color='W'),\n                            FAtom(pred=FAtomPred.COLOR_HAS, color='U'),\n                        ),\n                    ),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [*compiled, spell]\n",
+  "clauses": [
+   {
+    "clause": "This spell can't be countered.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Fry deals 5 damage to target creature or planeswalker that's white or blue.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "'This spell can't be countered.' is the compiler's B14 static. Damage: parse of '~ deals 5 damage to target creature or planeswalker.' (B5b-named-damage) with FOr(COLOR_HAS W, COLOR_HAS U) added to the target filter ('that's white or blue'; FOr of COLOR_HAS per MAPPER_GUIDE, Quirion Dryad). Probe: only the white/blue opposing creatures are offered."
+ },
+ "probe": {
+  "sha": "4c807133ea0fbacfbde8f88d866590269ff29687ee605c4f00b47820390206ad"
  }
 }

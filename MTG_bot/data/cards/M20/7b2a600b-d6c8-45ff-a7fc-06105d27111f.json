@@ -5,8 +5,8 @@
  "name": "Chandra, Awakened Inferno",
  "text_sha": "bec3fb40b4d46ea68e9b4c028a75989f211eb50ef525b82c03aef48db751a74c",
  "needs_atom": {
-  "missing": "s1 'This spell can't be countered.': no node expresses an uncounterable spell (no event for 'is countered' to PREVENT, COUNTER_SPELL has no exemption hook; grep finds no support in MTG_bot/core). Also s2 '[+2]: Each opponent gets an emblem with ...': GET_EMBLEM is role-less and gives the emblem to you only, and emblem cards cannot be probed yet (KeyError 'unknown card').",
-  "author": "claude-mapper-m20-5",
-  "date": "2026-11-05"
+  "missing": "Two pieces. (1) '[+2]: Each opponent gets an emblem with ...': GET_EMBLEM has no roles and gives the emblem to the ability's controller (verbs._v_get_emblem: executor.get_emblem(ctx.controller, ...)); a recipient role (each opponent gets it and is the emblem's 'you', CR 114.2) is missing. (2) '[-X]: ... If a permanent dealt damage this way would die this turn, exile it instead.': the die->exile replacement exists only as a card-level ReplacementAbility that an instant or sorcery registers at resolution with an Eot tag and its targets (stack.py r19a/r19b, Scorching Dragonfire). On a planeswalker that record is Permanent-tagged: live only while Chandra is on the battlefield (gone when -X takes her to 0 loyalty), not limited to this turn, and with no designation snapshot for IS_ANY_TARGET (replacements.replacement_for_death). Missing: a turn-long replacement created by an activated ability's resolution, scoped to the permanent that ability dealt damage to. The rest maps: 'This spell can't be countered.' (compiled B14), -3 (DEAL_DAMAGE 3 to ALL creatures FNot(SUBTYPE_EQ Elemental)), -X (CostLoyalty(QX), DEAL_DAMAGE QX to target creature or planeswalker), and the emblem's own upkeep trigger.",
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06"
  }
 }

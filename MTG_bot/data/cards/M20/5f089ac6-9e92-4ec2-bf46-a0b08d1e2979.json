@@ -4,9 +4,230 @@
  "oracle_id": "5f089ac6-9e92-4ec2-bf46-a0b08d1e2979",
  "name": "Thought Distortion",
  "text_sha": "7a6eb1524058217cd9f4a0d035187f0f7a13ae8a2ba6d8c4b08446a5a52eb737",
- "needs_atom": {
-  "missing": "Clause 'This spell can't be countered.': no node makes a spell uncounterable (SpellAbility has only kind/effect/additional_costs; COUNTER_SPELL accepts any spell; no exemplar parses the clause), the same gap as Shifting Ceratops. Not the blocker: the compiled 'Target opponent reveals their hand.' and 'Exile all noncreature, nonland cards from that player's hand and graveyard.' (a MOVE_ZONE to exile over the target opponent's hand and graveyard zones).",
-  "author": "claude-mapper-m20-0",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "CounteredEvent",
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "REVEAL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "TARGET_OPPONENT"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QUnbounded"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "EXILE"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Land",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            },
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Thought Distortion\n# 1. \"This spell can't be countered.\" is the compiler's (B14), compiled[0].\n# 2. \"Target opponent reveals their hand.\" is the compiler's REVEAL (B5b-reveal-hand), kept.\n# 3. \"Exile all noncreature, nonland cards from that player's hand and graveyard.\": the \"exile all\n#    <cards> from <zone>\" MOVE_ZONE of Tormod's Crypt / Idol of Endurance (role 'target', mode ALL,\n#    Zone(EXILE, OWNER)), over the target player's hand and graveyard; \"that player\" after \"Target\n#    opponent reveals their hand\" reads TARGET_PLAYER (Duress; query.player_target_slot: one\n#    designated player, opponent-only because the tree reads TARGET_OPPONENT). \"noncreature,\n#    nonland card\" is Duress's FAnd of two FNot(TYPE_EQ).\nreveal = compiled[1].effect\nspell = SpellAbility(\n    kind=SpellKind.SORCERY,\n    effect=Seq(\n        steps=(\n            reveal,\n            A(Verb.MOVE_ZONE, {\n                'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')),\n                            FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        ),\n                    ),\n                    zones=(\n                        Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),\n                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),\n                    ),\n                ),\n            }),\n        ),\n    ),\n)\nabilities = [compiled[0], spell]\n",
+  "clauses": [
+   {
+    "clause": "This spell can't be countered.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Target opponent reveals their hand.",
+    "ir": "abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "Exile all noncreature, nonland cards from that player's hand and graveyard.",
+    "ir": "abilities[1].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): selector ALL [GRAVEYARD,HAND]"
+  ],
+  "notes": "Can't-be-countered static and the REVEAL are the compiler's. Exile: Tormod's Crypt / Idol of Endurance 'exile all <cards> from <zone>' MOVE_ZONE (role target, mode ALL, Zone(EXILE, OWNER)) over Zone(HAND|GRAVEYARD, TARGET_PLAYER); 'that player' after 'Target opponent reveals their hand' reads TARGET_PLAYER as in Duress (one designated player, opponent-only, query.player_target_slot); 'noncreature, nonland' is Duress's FAnd of FNot(TYPE_EQ). G0 warns ALL over [GRAVEYARD,HAND] is a new selector shape: the probe exiles opp_trick (hand) and opp_used (graveyard) and leaves the creature cards."
+ },
+ "probe": {
+  "sha": "cb48bd36aeff219301316b676fdfd4338af07e220ef2f89be59342dfa45d01c4"
  }
 }

@@ -4,9 +4,221 @@
  "oracle_id": "7c209753-121b-4859-944b-4e33f885e777",
  "name": "Vilis, Broker of Blood",
  "text_sha": "248eb31461588b28018b4cb7e974a3ff8ab80ca4656cba3ad9b675cf4bf1aa59",
- "needs_atom": {
-  "missing": "'Whenever you lose life, draw that many cards.': no life-loss EventSpec. The IR has LifeGainedEvent only; the journal records LIFE_LOST and player DAMAGE rows (events.py) but no event type matches them, so neither the trigger nor 'that many' (the amount of life lost, incl. damage and life paid as a cost) can be expressed. (The activated sentence maps: {B} + CostLife(2), MODIFY_PT -1/-1 DurationEot on target creature.)",
-  "author": "claude-mapper-m20-8",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostLife",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "DECREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "DECREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "LifeLostEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QProp",
+         "referent": "event",
+         "field": {
+          "tag": "QPropField",
+          "name": "AMOUNT"
+         },
+         "agg": {
+          "tag": "QAgg",
+          "name": "FIRST"
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave3",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Vilis, Broker of Blood\n# 1. \"{B}, Pay 2 life: Target creature gets -1/-1 until end of turn.\"  `parse \"{B}: Target creature\n#    gets -1/-1 until end of turn.\"` (B13-activated+B5b-modpt-minus) plus the life cost part\n#    CostLife (Tavern Swindler's \"{T}, Pay 3 life\").\n# 2. \"Whenever you lose life, draw that many cards.\"  LifeLostEvent (the LifeGainedEvent twin) with\n#    the event's amount, as Light of Promise's \"Whenever you gain life, put that many +1/+1\n#    counters\" reads it: QProp(referent='event', field=AMOUNT).\ndrain = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostManaColor(color='B', amount=QConst(value=1)),\n            CostLife(amount=QConst(value=2)),\n        ),\n    ),\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=1)),\n    }),\n)\ndraw_that_many = TriggeredAbility(\n    event=LifeLostEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),\n    condition=None,\n    effect=A(Verb.DRAW, {\n        'amount': QProp(referent='event', field=QPropField.AMOUNT),\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [drain, draw_that_many, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "{B}, Pay 2 life: Target creature gets -1/-1 until end of turn.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever you lose life, draw that many cards.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): ability TriggeredAbility on LifeLostEvent"
+  ],
+  "notes": "Activated: parse of '{B}: Target creature gets -1/-1 until end of turn.' (B13-activated+B5b-modpt-minus) plus CostLife(2) (Tavern Swindler's life cost). Trigger: LifeLostEvent(actor=YOU) (damage to you and life payments are LIFE_LOST/DAMAGE rows) with DRAW amount QProp(event, AMOUNT) as Light of Promise reads 'that many'. G0 warns the LifeLostEvent trigger is a new shape: the probe shows it firing for the 2-life payment, a 2-life loss and 2 combat damage (2 cards each), and not for the opponent's loss."
+ },
+ "probe": {
+  "sha": "df0652cfa35c3fc640775765496c5b57b718c35024f284396a88f9813da91bea"
  }
 }
