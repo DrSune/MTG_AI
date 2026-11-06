@@ -87,6 +87,30 @@ counter-this-deck engine that can help the Teacher draft, or draft by itself (au
 Open questions: how often to update it (every decision, every turn); how to train it; whether the
 policy reads its output or only the search uses it.
 
+Owner refinements (2026-11-06):
+- **Nothing hardcoded about opponents.** Learn the simulator by standard supervised learning from
+  finished games; it learns land ratios, colours and everything else from the data. No hand-built
+  prior of what an opponent's deck looks like.
+- **Both accuracy and consequence.** 99.9% accuracy on the opponent's cards is very useful, but if
+  the 0.1% is a devastating card that loses the game, that is a very big punishment. The most useful
+  simulation combines what the opponent actually had with what you needed to play around to win.
+- **Several candidates, not one.** Knowing the top 3-5 candidates tells you what to play around.
+  If the counterplay to candidates 2 and 3 is (almost) the same, playing around both (30% + 25% = 55%
+  of the consequence) can beat playing around the single most punishing card (45%). The same holds
+  for combinations of cards.
+- **Start with the foreseeable future:** the opponent's hand plus the next 3-5 cards of their library.
+
+**Note.** These fit together without biasing the probabilities: the simulator predicts honest,
+calibrated probabilities of whole hands (sampled jointly, so combinations are represented), plus
+the remaining library's contents (its top cards are then random draws from them, since nobody
+knows the order). The search makes sure rare devastating cards are seen by sampling futures in
+proportion to likelihood x consequence (importance sampling), then weighting each result by
+likelihood / sampling-probability, so the estimate of the win probability stays exact. That plays
+around a 0.1% disaster exactly as much as it costs, neither ignoring it nor fearing it. The
+consequence of a candidate card can itself be learned from the playouts (how much its presence
+changed the result). Averaging each move over the sampled hands is what finds the 55% play: the
+move that does best across all likely hands wins, not the one that answers the single worst card.
+
 **Note.** It can be trained by supervision: when a game ends, the opponent's hidden cards become the
 labels for every earlier moment, while at play time it reads public information only. That is far
 more signal per game than the win/loss reward. The decision-time search re-samples hidden zones today
