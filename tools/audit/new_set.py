@@ -5,7 +5,7 @@
     .venv/bin/python tools/audit/new_set.py first-touch --set M20 --sealed-read --reason "..."
 
 ``verify`` checks MTG_bot/data/<SET>.json (an MTGJSON v5 set file) against this world's Scryfall,
-the canonical source (KNOWLEDGE/2026-10-18/92): the roster of names, every printing's
+the canonical source: the roster of names, every printing's
 ``identifiers.scryfallId``, and the oracle text of every card, face and token. It writes
 reports/set_source_<SET>.json and names mismatching cards without printing their text. This is the
 second source; the owner's sign-off on a set's source stays the owner's.
@@ -58,10 +58,10 @@ from MTG_bot.core.compiler.ingest import RawCard, ingest_pool
 
 DATA = REPO / "MTG_bot" / "data"
 REPORTS = REPO / "reports"
-#: Sets whose text the compiler was shaped on. ZNR counts: its register was iterated on (REVIEW A-5).
+#: Sets whose text the compiler was shaped on. ZNR counts: its register was iterated on.
 DEVELOPED_ON = ("M21", "ZNR")
-#: Sets that grammar rounds have read since (S-1 and S-2 read their dev registers, and their sealed
-#: test once per round). A later set's first touch must count their text as seen too.
+#: Sets that grammar rounds have read since (their dev registers, and their sealed test once per
+#: round). A later set's first touch must count their text as seen too.
 ROUND_SETS = ("M20", "KHM")
 TEST_SHARE = 0.4
 SCRYFALL = "https://api.scryfall.com"
@@ -246,7 +246,7 @@ def group_numbers(
         in_group = deckable & set(ids)
         numbers[f"dealable_{mode}"] = len(in_group)
         # "Fully compiled" here = no unparsed sentence and no shape gap: what the deal pool
-        # should hold under DESIGN_CARD_POOL's no-silent-degradation rule (REVIEW A-5).
+        # should hold under DESIGN_CARD_POOL's no-silent-degradation rule.
         numbers[f"dealable_{mode}_fully_compiled"] = len(in_group & (zero - gaps))
     return with_rates(numbers)
 
@@ -269,7 +269,7 @@ def combine(*parts: dict[str, Any]) -> dict[str, Any]:
     """The whole set as the sum of its disjoint groups.
 
     Summed rather than re-measured: one pool-level compile step (attaching emblems to their
-    owners) can raise on a whole set while every group measures (KHM, 2026-10-27).
+    owners) can raise on a whole set while every group measures.
     """
     total: dict[str, Any] = {}
     for part in parts:

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""BUGCATCH B2 — oracle-free anomaly detectors D1..D6 over live journals.
+"""Oracle-free anomaly detectors D1..D6 over live journals.
 
-Design: KNOWLEDGE/2026-10-02/12-bugcatch-design.md §D. Two scan modes:
+Two scan modes:
 
 * ``catalog``  — read-only pass over the pinned 10-seed journals in
   ``tools/traces/catalog.json``. The catalog stores per row only
   ``[sha16, "kind|subject|cause|verb"]`` — the ``data`` payload (amounts,
   PT assertions, zone names, counter kinds) is hashed away. Therefore the
   catalog pass is STRUCTURAL ONLY: kind inventories + a loud EXEMPT for
-  every detector that needs the payload (documented coverage gap).
+  every detector that needs the payload.
 * ``replay``   — N in-process games replaying the exact ``--repro`` recipe
   (``deal_decks``/``_setup_game``/``_play`` from ``games.py``), consuming
   the FULL journal rows (``EventJournal.dump()``) plus the lifecycle
@@ -51,7 +51,7 @@ KIND_CREATURE_DIES = "CREATURE_DIES"
 KIND_COUNTER_PLACED = "COUNTER_PLACED"
 KIND_DAMAGE = "DAMAGE"
 KIND_LIFE_GAINED = "LIFE_GAINED"
-# B3a: the engine's life-loss feed (executor.events.KIND_LIFE_LOST). The
+# The engine's life-loss feed (executor.events.KIND_LIFE_LOST). The
 # D1 fold vocabulary must track the journal's: start + ΣLIFE_GAINED
 # − ΣDAMAGE − ΣLIFE_LOST == final life. Losing life is NOT dealt damage
 # (CR 118.5), so it is its own kind and its own fold term.
@@ -542,8 +542,8 @@ def d5_pt_recompute(g: ReplayData) -> Verdict:
 
     for key, deaths_g in sorted(groups.items()):
         # Rule A — counter-invariant assertions: same asserted PT with
-        # different counter deltas means the fold ignored the counters
-        # (the trufflesnout killer). Base-unknown, SET_PT-proof.
+        # different counter deltas means the fold ignored the counters.
+        # Base-unknown, SET_PT-proof.
         by_assert: dict[tuple[int, int], list[_Death]] = {}
         for death in deaths_g:
             by_assert.setdefault(death.was_pt, []).append(death)
@@ -654,13 +654,11 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
         # (iii) replacement fired >1x per event: two replacement records
         # competing for the same event identity (containment case). FP
         # story: legal sequential replacement choice per CR 614.
-        # B3a narrowing: only LIVE records can apply to an event. An
-        # ``expired`` row is a lifecycle audit trail entry — a re-entering
-        # card's previous registration, self-detached by
-        # replacements.attach_source (replacements.py) the instant the new
-        # one registers, so the two NEVER co-exist. CR 614.3 co-registration
-        # requires records applied to the same event simultaneously; a ghost
-        # can't. B2 seed 16/17 Containment Priest double-list: falsified.
+        # Only LIVE records can apply to an event. An ``expired`` row is a
+        # re-entering card's previous registration, self-detached by
+        # replacements.attach_source the instant the new one registers, so
+        # the two never co-exist and cannot apply to one event together
+        # (CR 614.3).
         by_event: dict[str, list[tuple[object, ...]]] = {}
         for row in g.repl_rows:
             if row and row[0] == "repl" and row[5] == "live":
@@ -678,14 +676,13 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
     if g.layers_rows is not None:
         # (iv) dead-handle bound refs in the layer registry: live layers
         # whose source/targets ended off the battlefield.
-        # B3a narrowing (source side only): a duration-tagged ``grant`` /
-        # ``lose`` layer is created at its spell/ability RESOLUTION, and
-        # CR 611.2a — "an effect once created exists independently of its
-        # source" — so an instant that granted an EOT effect correctly
-        # lives in the graveyard while the grant stays live (B2 seed 16:
-        # Crash Through's +3/+3 grant, falsified). Static/continuous
-        # layers DO depend on their source (CR 611.3a: loses the ability
-        # when the source leaves), so a dead source there stays a hit.
+        # Source side: a duration-tagged ``grant`` / ``lose`` layer is
+        # created at its spell/ability RESOLUTION, and CR 611.2a — "an
+        # effect once created exists independently of its source" — so an
+        # instant that granted an EOT effect correctly lives in the
+        # graveyard while the grant stays live. Static/continuous layers DO
+        # depend on their source (CR 611.3a: loses the ability when the
+        # source leaves), so a dead source there stays a hit.
         # The TARGET side is flagged for every kind regardless.
         for row in g.layers_rows:
             seq, kind_, source, _controller, tag, status = row[:6]
@@ -746,7 +743,7 @@ def replay_game(
     crashed = None
     try:
         _play(game, RandomPolicy(seed), game.world.player_order, turn_cap)
-    except BaseException as error:  # noqa: BLE001 - pin as-of-death, catalog precedent
+    except BaseException as error:  # noqa: BLE001 - a crash is recorded; its rows still scan
         crashed = f"{type(error).__name__}: {error}"
     world = game.world
     rows = [

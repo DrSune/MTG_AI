@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""ATOMIC-ONTOLOGY conformance checker — docs/DESIGN_ATOM_ONTOLOGY.md §6.
+"""Atomic-ontology conformance checker (docs/DESIGN_ATOM_ONTOLOGY.md §6).
 
-Read-only pool pass (M21 + ZNR compiled IR). NEVER uses
-``ability_tree.walk()``: ``_walk_value`` (:4704) skips plain lists, so a
+Read-only pool pass (M21 + ZNR compiled IR). Never uses
+``ability_tree.walk()``: ``_walk_value`` skips plain lists, so a
 walk-based audit would silently miss list-valued fields — this module does
 its own recursion over dataclass fields, tuples, lists and frozensets.
 
@@ -11,30 +11,30 @@ Checks (ontology §6):
                      token and no CLASSIFY entry is stale. The CLASSIFY dict
                      is IMPORTED from tools/audit/atom_field_table.py (single
                      source; the same module regenerates the §3 table), so
-                     doc/code duplication is structurally impossible.
+                     doc and code cannot drift apart.
   V2′ PHANTOM         ERROR  Seq[1] / single-child FAnd-FOr /
-                     Choose(count == len(options)). The R1a construction rule
-                     keeps a single-child filter node (a node cannot replace
+                     Choose(count == len(options)). Filter construction keeps
+                     a single-child filter node (a node cannot replace
                      itself in its parent), so this check is what forbids the
                      EMISSION of new phantoms; the unwrap lives at the
-                     compiler filter builders. A measured corpus shape that
-                     the owner has ruled acceptable may be whitelisted by card
-                     name in ``ontology_conformance_whitelist.json`` (the file
-                     ships with this checker; every whitelisted name is
-                     re-printed on every run — a whitelist is never silent).
+                     compiler filter builders. A corpus shape the owner has
+                     ruled acceptable may be whitelisted by card name in
+                     ``ontology_conformance_whitelist.json``; every
+                     whitelisted name is re-printed on every run, so a
+                     whitelist is never silent.
   V3′ SPLIT           WARN   two steps of one Seq carrying BYTE-IDENTICAL
                      fresh (referent-free) TARGET-mode Selectors — the
-                     canonical form re-uses the referent-bound selector (C2
-                     :1180). ALL/ONE_OF/REST/referent modes are excluded
+                     canonical form re-uses the referent-bound selector.
+                     ALL/ONE_OF/REST/referent modes are excluded
                      (legal identical repeats: independent designations,
-                     all-of loops). Corpus has 0 true positives, so the check
-                     ships with SYNTHETIC FIXTURES
-                     (tools/audit/test_ontology_conformance.py, gate A3).
+                     all-of loops). The corpus has no true positives, so the
+                     check is pinned by synthetic fixtures
+                     (tools/audit/test_ontology_conformance.py).
   V4′ EMISSION FREEZE ERROR  no CHOOSE-shape change in the COMPILED
-                     IR (not template source text — compiler.py:1242/1280/1292
-                     generic lanes emit CHOOSE without the token appearing in
-                     a template diff, gate A4). Per-node shape signature
-                     (node tag + field + canonical selector, R3 /141 §6):
+                     IR (not template source text: the compiler's generic
+                     lanes emit CHOOSE without the token appearing in a
+                     template diff). Per-node shape signature
+                     (node tag + field + canonical selector):
                      additions, DELETIONS and tag/filter SWAPS all error,
                      even at constant counts. Baseline
                      ``ontology_conformance_v4_baseline.json``, per card.
@@ -42,11 +42,11 @@ Checks (ontology §6):
                      branching triple) with no §5 map row. Map rows live in
                      reports/ontology_census_2026-10-19.json; this is a
                      report-only delta against that committed baseline
-                     (registration law: a new branching needs a dated,
-                     card-cited map row + NUMBERS count in the same commit).
+                     (a new branching needs a dated, card-cited map row and
+                     a NUMBERS count in the same commit).
 
 Exit 1 iff any ERROR-class violation; WARNs are reported and counted only.
-Gate law: template rounds carry checker Δ0 (V1′/V2′/V4′) + Δreview (V3′/V5′).
+A template change keeps V1′/V2′/V4′ unchanged and has V3′/V5′ reviewed.
 
 Run::
 
@@ -88,11 +88,11 @@ WHITELIST = HERE / "ontology_conformance_whitelist.json"
 V4_BASELINE = HERE / "ontology_conformance_v4_baseline.json"
 CENSUS = REPO / "reports" / "ontology_census_2026-10-19.json"
 
-# R1a wave: uncapped (``--cap 0``) census artefacts compiled from the SAME
-# card pools with the PRE- and POST-R1a compiler code. Their order-canonical
-# diff is the R1a-attributable MAP DELTA, free of the committed census'
-# ``most_common(40)`` row truncation (which inflates the live-vs-committed
-# branching view with ~54 long-tail rows — see V5 note there).
+# Uncapped (``--cap 0``) census artefacts compiled from the SAME card pools
+# with the compiler before and after R1a (single-child filter unwrap, filter
+# children sorted). Their order-canonical diff is the R1a MAP DELTA, free of
+# the committed census' ``most_common(40)`` row truncation, which inflates
+# the live-vs-committed branching view with long-tail rows (see V5).
 CENSUS_R1A_PRE_FULL = REPO / "reports" / "ontology_census_2026-10-19_r1a_pre_full.json"
 CENSUS_R1A_POST_FULL = (
     REPO / "reports" / "ontology_census_2026-10-19_r1a_post_full.json"
@@ -155,7 +155,7 @@ def check_v1():
 # V2′ phantom wrappers
 # ---------------------------------------------------------------------------
 def _choose_is_phantom(node) -> bool:
-    """``Choose(count == len(options))`` — the phantom menu (F8): choosing all
+    """``Choose(count == len(options))`` — the phantom menu: choosing all
     of a fixed menu is not a decision; it must be encoded ALL."""
     return (
         isinstance(node.count, at.QConst)
@@ -229,13 +229,12 @@ def check_v3(cards_by_set):
 # V4′ CHOOSE emission freeze (compiled IR diff)
 # ---------------------------------------------------------------------------
 def _choose_shape(holder_kind: str, field: str, sel, idxpath=()) -> str:
-    """V4′ shape signature (R3 /141 §6): a hash over the node TAG, the
-    holder FIELD (+container index path), and the selector's canonical_json.
-    The count-only census could not see a deleted CHOOSE node or a
-    tag/filter swap as long as the total held; this signature fails on
-    both. The index path keeps two byte-identical selectors in one field
-    (e.g. ``pairs[2][1]`` vs ``pairs[5][1]``) from collapsing into one
-    signature, so deletions at constant distinct-shape count still error."""
+    """V4′ shape signature: a hash over the node TAG, the holder FIELD
+    (+container index path), and the selector's canonical_json, so a deleted
+    CHOOSE node or a tag/filter swap shows even when the counts hold. The
+    index path keeps two byte-identical selectors in one field (e.g.
+    ``pairs[2][1]`` vs ``pairs[5][1]``) from collapsing into one signature,
+    so deletions at constant distinct-shape count still error."""
     payload = json.dumps(
         {
             "node": holder_kind,
@@ -254,8 +253,8 @@ def _container_leaves(v, idxpath=()):
     so a Selector at ``pairs[2][1]`` is found, not just a direct field
     element. Dataclass children are NOT descended: each is visited as
     its own holder, which keeps every CHOOSE selector identified by its
-    NEAREST dataclass holder — the same 193-node population as the
-    committed ledger walk and the pre-upgrade count-only census."""
+    NEAREST dataclass holder (the population tools/audit/r3_lane_ledger.py
+    walks)."""
     if isinstance(v, (tuple, list, frozenset, set)):
         for i, x in enumerate(v):
             yield from _container_leaves(x, idxpath + (i,))
@@ -266,10 +265,9 @@ def _container_leaves(v, idxpath=()):
 def choose_census(cards_by_set):
     """set -> {card name: {"count": n, "shapes": [sig…]}} — the V4′ census.
 
-    Field-scan traversal (the ledger/V4′ identity law: every dataclass
-    field whose value — or recursive container leaf — is a CHOOSE Selector
-    is one node, identified by (holder type, field name + index path,
-    canonical selector))."""
+    Every dataclass field whose value (or recursive container leaf) is a
+    CHOOSE Selector is one node, identified by (holder type, field name +
+    index path, canonical selector)."""
     out = {}
     for s, cards in cards_by_set.items():
         per = {}
@@ -332,11 +330,10 @@ def check_v4(current, baseline, write_baseline: bool, sets=None):
         keep = set(sets)
         base = {s: v for s, v in base.items() if s in keep}
     news = []
-    # R3 diff-gate follow-up (FIX-1 / BREAK-R3-1): iterate base ∪ current.
-    # Current-only iteration let whole-card CHOOSE extinction (card renamed,
-    # dropped, or its last node deleted -> the card leaves the census) pass
-    # silently. The per-name count comparison makes REMOVED count-level, so
-    # a node lost with the shape SET unchanged still errors.
+    # Iterate base ∪ current, so a whole card's CHOOSE extinction (card
+    # renamed, dropped, or its last node deleted -> the card leaves the
+    # census) errors. The per-name count comparison makes REMOVED
+    # count-level, so a node lost with the shape SET unchanged still errors.
     for s in sorted(set(base) | set(current)):
         cper = current.get(s, {})
         bper = base.get(s, {})
@@ -411,8 +408,8 @@ def _canon_struct_sig(sig: str) -> str:
     innermost group first.
 
     Both sides of the V5′ diff go through this function, so a child that only
-    MOVED (the R1a sort) can no longer register as a new shape; a shape that
-    is genuinely new still does."""
+    MOVED cannot register as a new shape; a shape that is genuinely new still
+    does."""
     out: list[str] = []
     i = 0
     while True:
@@ -601,8 +598,8 @@ def check_v5(cards_by_set):
     base_branch = {
         cls: {
             # every element of the triple goes through the SET-R1a order
-            # canonicalizers, so the row-delta measures SHAPE drift, not the
-            # R1a child sort (both sides of the diff, same rule).
+            # canonicalizers, so the row-delta measures SHAPE drift, not
+            # child order (both sides of the diff, same rule).
             (
                 _canon_fshape(row["menu"]),
                 row["count_kind"],
@@ -629,7 +626,7 @@ def check_v5(cards_by_set):
     gone_sigs = sorted(base_sigs - live_sigs)
     # Branching rows embed the census' fshape skeleton; both sides go through
     # _canon_fshape, so a row that only RE-ORDERED SET-R1a children cannot
-    # register as new (registration law applies to a real new branching).
+    # register as new.
     new_branch = {
         cls: sorted(
             f"{menu} / {cnt} / {list(kids)}"

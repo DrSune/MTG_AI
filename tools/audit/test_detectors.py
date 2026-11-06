@@ -1,4 +1,4 @@
-"""BUGCATCH B2 fault-injection validation for tools/audit/detectors.py.
+"""Fault-injection tests for tools/audit/detectors.py.
 
 Every detector must (a) fire on its synthetic fault and (b) stay silent on
 the matching clean fixture — no detector ships unvalidated. All fixtures
@@ -108,8 +108,8 @@ def test_d1_exempt_without_state() -> None:
 
 
 def test_d1_life_lost_rows_fold_clean() -> None:
-    # B3a: a journalled LOSE_LIFE (LIFE_LOST row) is a foldable loss —
-    # the seed-12 "Life Goes On" class must reconstruct, not HIT.
+    # A journalled LOSE_LIFE (LIFE_LOST row) is a foldable loss: it must
+    # reconstruct, not HIT.
     rows = [
         row(0, D.KIND_LIFE_GAINED, P0, (3,)),
         row(1, D.KIND_LIFE_LOST, P0, (3,)),
@@ -120,8 +120,8 @@ def test_d1_life_lost_rows_fold_clean() -> None:
 
 
 def test_d1_still_fires_when_life_lost_undercounts() -> None:
-    # The fold-vocab sync must not WEAKEN the detector: a life loss
-    # without its row still HITS even when other LIFE_LOST rows exist.
+    # A life loss without its row still HITS even when other LIFE_LOST
+    # rows exist.
     rows = [row(0, D.KIND_LIFE_LOST, P0, (1,))]
     g = game(rows, start_life={P0: 20}, final_life={P0: 15})
     v = D.d1_life(g)
@@ -294,7 +294,7 @@ def test_d4_exempt_without_final_state() -> None:
 
 
 # --------------------------------------------------------------------------
-# D5 independent PT recompute (trufflesnout class)
+# D5 independent PT recompute
 
 
 def _dies(handle: str, clock: int, pt: tuple[int, int], i: int) -> D.Row:
@@ -450,8 +450,7 @@ def test_d6_dormant_duplicate_is_silent() -> None:
 
 
 def test_d6_expired_repl_ghosts_are_silent() -> None:
-    # B3a falsification (B2 seed 16/17, Containment Priest): a card that
-    # left the battlefield re-registers on re-entry, and attach_source
+    # A card that left the battlefield re-registers on re-entry, and attach_source
     # self-detaches the old record — the dump keeps BOTH as expired audit
     # rows. They never co-exist with a live record, so they cannot both
     # apply to one event (CR 614.3 requires simultaneous application).
@@ -491,10 +490,9 @@ _GRANT_EOT_LAYER: tuple[object, ...] = (
 
 
 def test_d6_grant_eot_dead_source_is_silent() -> None:
-    # B3a falsification (B2 seed 16): Crash Through resolved to the
-    # graveyard, its duration-tagged EOT +3/+3 grant stays live on the
-    # (alive) creature — CR 611.2a: an effect exists independently of
-    # its source once created.
+    # Crash Through resolved to the graveyard; its duration-tagged EOT
+    # +3/+3 grant stays live on the (alive) creature — CR 611.2a: an effect
+    # exists independently of its source once created.
     g = game(
         [],
         final_zone={"card:72": "graveyard", "card:68": D.BATTLEFIELD},

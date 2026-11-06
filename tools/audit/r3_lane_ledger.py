@@ -1,29 +1,22 @@
 #!/usr/bin/env python3
-"""R3 silent-CHOOSE blindness ledger — COMMITTED lane-split generator (/141 §6).
+"""R3 silent-CHOOSE blindness ledger: the committed lane-split generator.
 
 Regenerates ``reports/r3_blindness.json`` (default out, ``--out`` overrides)
 byte-for-byte from the compiled pools: the rerun must leave the committed
-ledger unmodified (``git diff`` empty). The traversal, classification rules
-and field shapes are the ORIGINAL audit law (the /tmp/opencode/r3_src_saved/
-final.py pass), ported into the repo because a NUMBERS-law evidence row was
-previously produced by an uncommitted scratch script (gate finding, /141 §6:
-"lane-split generator COMMITTED").
+ledger unmodified (``git diff`` empty).
 
 On top of the committed fields this generator derives the LIFT-NOW set from
-the three gate rules (/141 §6 amendment):
-  (i)   count kind is QConst            (QUnbounded DEFERRED: the ONE_OF ask
-        lane hard-raises NotImplementedError on it, selectors.py:681-685 —
-        Chandra x5 nodes, Necromentia, Siege Striker);
+three rules:
+  (i)   count kind is QConst            (QUnbounded is deferred: the ONE_OF
+        ask lane takes QConst/QAtMost only);
   (ii)  menu zone public or controller-owned (no hidden-zone enumeration to
-        a non-owner; NO merged multi-seat zones — HAND:ANY is the Bad Deal /
-        Waker +1 merged-hand ZND-7(a) bug lane);
+        a non-owner; NO merged multi-seat zones such as HAND:ANY);
   (iii) chooser == card controller (TARGET_PLAYER zones / EachPlayer paths /
         the ledger's own "NOT the source controller" label are opponent
-        choosers → ZND-9 seat-in-tag lane; see GROUND_TRUTH below).
+        choosers; see GROUND_TRUTH_CHOOSER below).
 
-The lift table is PRINTED every run (never silent, like the whitelist law);
-``--lift-out PATH`` additionally writes it as JSON. Nothing in this tool
-mutates the IR: compiled bytes are untouched by design (IR Δ0 law).
+The lift table is PRINTED every run; ``--lift-out PATH`` additionally writes
+it as JSON. Nothing in this tool mutates the IR.
 """
 
 from __future__ import annotations
@@ -148,15 +141,14 @@ def classify(n, text):
         return "L-A", "topn", None
     chooser = None
     zones = " ".join(n["zones"])
-    # V21 (2026-10-29): "target opponent" zones carry TARGET_OPPONENT.
+    # "target opponent" zones carry TARGET_OPPONENT.
     if "TARGET_PLAYER" in zones or "TARGET_OPPONENT" in zones or "EachPlayer" in path:
         chooser = "affected/controlled player, NOT the source controller"
     return "L-B", "firstn", chooser
 
 
 # --------------------------------------------------------------------------
-# LIFT-NOW derivation (the three gate rules, /141 §6 — the amendments that
-# OVERRIDE §3's 24-card ask battery).
+# LIFT-NOW derivation (the three rules in the module docstring)
 # --------------------------------------------------------------------------
 
 #: Executor ground truth vs the committed ledger's permissive legal_chooser
@@ -164,11 +156,9 @@ def classify(n, text):
 #: path); a SpellAbility whose English direction is "TARGET OPPONENT sacrifices
 #: a creature OF THEIR CHOICE" makes the opponent the CR chooser even though
 #: the compiled selector sits in a public zone with no EachPlayer/TARGET_PLAYER
-#: trace (the direction is simply NOT encoded — ZND-7 recipient-fidelity defer,
-#: and /141 §2's opponent-chooser subset names Run Afoul explicitly). Lifting
-#: it through the controller seat would ask the CASTER to choose the victim —
-#: a rules change, and unroutable to the true seat (no seat param in the
-#: provider lane until ZND-9). Deferred, not lifted.
+#: trace (the direction is not encoded). Lifting it through the controller seat
+#: would ask the CASTER to choose the victim, a rules change. Deferred, not
+#: lifted.
 GROUND_TRUTH_CHOOSER = {
     ("M21", "Run Afoul"): (
         "defer ZND-9/ZND-7: text 'Target opponent sacrifices a creature of "
@@ -183,14 +173,14 @@ HIDDEN_KINDS = ("HAND", "LIBRARY")
 
 
 def lift_verdict(n):
-    """Return (lifted, reason). Rules are the /141 §6 amendment, in order."""
+    """Return (lifted, reason): the three rules of the module docstring, in order."""
     if n["lane"] != "L-B":
         return False, "not-L-B"
     gt = GROUND_TRUTH_CHOOSER.get((n["set"], n["card"]))
     if gt and n["rule_key"] == "firstn":
         return False, gt
-    # rule (i): the ONE_OF ask channel takes QConst/QAtMost only; every
-    # QUnbounded node here would CRASH it (selectors.py:681-685).
+    # rule (i): the ONE_OF ask channel takes QConst/QAtMost only; a
+    # QUnbounded node here would crash it.
     if "QUnbounded" in n["count"]:
         return False, "defer: QUnbounded (ONE_OF lane raises on it, /141 §6)"
     if "QConst" not in n["count"]:
@@ -296,10 +286,8 @@ def main() -> int:
     base = json.loads((HERE / "ontology_conformance_v4_baseline.json").read_text())
 
     def _bcnt(s: str, name: str) -> int:
-        # R3 V4′ upgrade: baseline entries became {"count", "shapes"} per
-        # card (shape-hash census). Count extraction is format-agnostic so
-        # this ledger reproduces byte-identically across the baseline v2
-        # migration.
+        # Baseline entries are {"count", "shapes"} per card; a card absent
+        # from the baseline counts 0.
         e = base.get(s, {}).get(name, 0)
         return e["count"] if isinstance(e, dict) else e
 

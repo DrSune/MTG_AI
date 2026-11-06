@@ -11,8 +11,8 @@ of truth for what each container field means semantically):
     so ``dataclasses.Field.type`` is already the raw source string; no type
     resolution is needed (and forward references need not be resolvable).
 
-Anything else (e.g. ``Selector.zone: Zone``, a scalar) is not a container and
-is deliberately absent from CLASSIFY — R0 will delete ``Selector.zone``.
+Anything else (a scalar, e.g. a ``Zone``) is not a container and is
+deliberately absent from CLASSIFY.
 
 ``main()`` re-derives the container set from the live module, checks it
 against CLASSIFY both ways (no UNCLASSIFIED runtime field, no stale CLASSIFY
@@ -23,9 +23,6 @@ entry: single-source drift control), and prints:
   (c) counts per token.
 Exit code 1 iff any runtime field is UNCLASSIFIED or any CLASSIFY entry is
 stale (its (class, field) no longer exists as a runtime container field).
-
-Runnable from anywhere as long as the repo root is importable; when copied to
-tools/audit/ it runs as part of the repo with no changes.
 """
 
 from __future__ import annotations
@@ -64,8 +61,8 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("TokenSpec", "types"): "SET-R1a",
     ("TokenSpec", "subtypes"): "SET-R1a",
     ("TokenSpec", "keywords"): "SET-R1a",
-    # R5-11: the token's colour SET, construction-sorted in WUBRG order (CR 105.1)
-    # rather than by canonical_json; replaces the scalar TokenSpec.color.
+    # the token's colour SET, construction-sorted in WUBRG order (CR 105.1)
+    # rather than by canonical_json
     ("TokenSpec", "colors"): "SET-R1a",
     ("FAtom", "colors"): "SET-R1a",
     ("EtBState", "initial_counters"): "SET-R1a",
@@ -75,9 +72,6 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("Selector", "zones"): "SET-R0",
     ("KeywordAbility", "params"): "OPERATOR",
     ("CostModifier", "extra_deltas"): "SET-ENFORCED",
-    # NOTE: ('Selector', 'zone') was the pre-R0 SCALAR Zone field — never a
-    # container, never CLASSIFY-tracked; the R0 zone-fold deleted it, and
-    # ('Selector', 'zones') above is now the sole zone carrier (SET-R0).
 }
 
 

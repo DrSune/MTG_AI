@@ -1,9 +1,8 @@
 """tools/audit/ontology_conformance.py — checker self-tests.
 
-The corpus has ZERO true positives for V3′ (split designation) and, by the
-R1a landing, zero V2′ phantoms — so those checks are pinned with SYNTHETIC
-FIXTURES (ontology §6, gate A3): a checker that cannot fire on a hand-built
-violation is not a checker.
+The corpus has ZERO true positives for V3′ (split designation) and zero V2′
+phantoms, so those checks are pinned with SYNTHETIC FIXTURES (ontology §6): a
+checker that cannot fire on a hand-built violation is not a checker.
 """
 
 from __future__ import annotations
@@ -221,7 +220,6 @@ def test_v3_excludes_referent_and_non_target_modes():
 def test_v1_clean_on_the_live_module():
     out = oc.check_v1()
     assert out["unclassified"] == [] and out["stale"] == []
-    # re-pinned 2026-10-30: R5-11 adds the container field TokenSpec.colors (26)
     assert out["container_fields"] == out["classify_tokens"] == 26
 
 
@@ -272,7 +270,7 @@ def test_canon_struct_sig_sorts_all_set_r1a_groups():
 
 
 # --------------------------------------------------------------------------
-# V4′ FAIL-CLOSED (R1a diff-gate B2): a missing baseline is never a green
+# V4′ FAIL-CLOSED: a missing baseline is never a green
 # --------------------------------------------------------------------------
 def test_v4_missing_baseline_fails_closed(tmp_path):
     v4 = oc.check_v4({"M21": {"Foo": 1}}, tmp_path / "absent.json", False)
@@ -287,8 +285,8 @@ def test_v4_missing_baseline_fails_closed_cli(tmp_path, monkeypatch):
 
 
 # --------------------------------------------------------------------------
-# V4′ SHAPE-HASH PROBES (R3 /141 §6): deletions and tag/filter swaps fail
-# even when the node COUNTS do not move (the count-only blind spot).
+# V4′ SHAPE-HASH PROBES: deletions and tag/filter swaps fail even when the
+# node COUNTS do not move.
 # --------------------------------------------------------------------------
 def _v4_probe_baseline(tmp_path, obj):
     p = tmp_path / "v4_shape_baseline.json"
@@ -310,8 +308,8 @@ def test_v4_shape_probe_deletion_fails(tmp_path):
 
 
 def test_v4_shape_probe_tag_or_filter_swap_fails_at_constant_count(tmp_path):
-    # THE count-only blind spot: identical counts, a node whose tag/filter
-    # was swapped — the old census saw 2 -> 2 and stayed green.
+    # Identical counts, a node whose tag/filter was swapped: a count-only
+    # census would see 2 -> 2 and stay green.
     base = {"M21": {"Foo": {"count": 2, "shapes": ["a1", "b2"]}}}
     cur = {"M21": {"Foo": {"count": 2, "shapes": ["a1", "c3"]}}}
     v4 = oc.check_v4(cur, _v4_probe_baseline(tmp_path, base), False)
@@ -320,10 +318,9 @@ def test_v4_shape_probe_tag_or_filter_swap_fails_at_constant_count(tmp_path):
 
 
 # --------------------------------------------------------------------------
-# V4′ EXTINCTION PROBES (R3 diff-gate follow-up, FIX-1 /144 verdict
-# FIX-THEN-GO): the first check_v4 iterated CURRENT names only, so whole-
-# card CHOOSE extinction (rename, drop, last node deleted -> card leaves
-# the census) passed silently. Union-iteration + count-comparison fix.
+# V4′ EXTINCTION PROBES: a whole card's CHOOSE extinction (rename, drop,
+# last node deleted -> the card leaves the census) errors, through
+# iteration over base ∪ current and the per-name count comparison.
 # --------------------------------------------------------------------------
 @dataclasses.dataclass
 class _XArgs:
@@ -343,7 +340,6 @@ class _XCard:
 
 
 def _x_card(sel, name="Extinction Probe"):
-    # gate pattern borrowed from /tmp/opencode/r3gate/probe_freeze.py:
     # CHOOSE selector nested at args.pairs[0][1] (container-nested leaf).
     return _XCard(name, (_XStep("SEARCH", _XArgs(pairs=(("cards", sel),))),))
 
@@ -387,8 +383,8 @@ def test_v4_count_decrease_at_identical_shapes_fails(tmp_path):
 
 
 def test_v4_ir_card_deleted_fails(tmp_path):
-    # IR-level red-first (borrowed gate pattern): single CHOOSE node at
-    # pairs[0][1]; deleting it makes the card LEAVE the census entirely.
+    # A single CHOOSE node at pairs[0][1]; deleting it makes the card LEAVE
+    # the census entirely.
     cards = {"M21": {"oid1": _x_card(_x_sel())}}
     cen = oc.choose_census(cards)
     assert cen["M21"]["Extinction Probe"]["count"] == 1
@@ -445,7 +441,7 @@ def test_v4_shape_sig_moves_with_tag_field_and_selector():
     assert sig != oc._choose_shape(
         "Atom", "target", dataclasses.replace(sel, count=at.QConst(2))
     )  # count shape
-    # R3: index path keeps two byte-identical selectors in one field
+    # The index path keeps two byte-identical selectors in one field
     # (pairs[2][1] vs pairs[5][1]) from collapsing into one signature.
     assert sig != oc._choose_shape("Atom", "target", sel, (2,))
     assert sig != oc._choose_shape("Atom", "target", sel, (5,))
@@ -478,8 +474,8 @@ def test_v5_r1a_content_delta_is_the_two_unwraps():
 def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
     # Every branching the live-vs-committed view calls NEW exists in the
     # uncapped POST census => it is a top-40 truncation artefact of the
-    # committed baseline, not a checker harvest bug; or a later landing
-    # registered it in a dated uncapped census (below).
+    # committed baseline, not a checker harvest bug; or it is registered in
+    # a dated uncapped census (below).
     v5 = oc.check_v5(compiled)
     delta = v5["r1a_content_delta"]
     if not delta.get("available"):
@@ -487,8 +483,8 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
     post = json.loads((oc.REPO / delta["post"]).read_text())
 
     def fold_menu(menu: str) -> str:
-        # R0 zone-fold re-pin: the frozen R1a-era census rows predate the
-        # zone+zones fold; a single-zone menu relabels 1:1 (zone: -> zones:).
+        # The R1a-era census rows predate the zone+zones fold; a single-zone
+        # menu relabels 1:1 (zone: -> zones:).
         return menu.replace(" zone:", " zones:")
 
     tail = {
@@ -502,11 +498,9 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         }
         for cls, rows in post["C_branching"]["branchings"].items()
     }
-    # Uncapped censuses registered at later landings (V5 registration law: a new
-    # branching needs a dated map row), merged when the artifact is there.
-    # R0 zone-fold: fused multi-zone menus (zones:A+B) exist ONLY in the
-    # post-fold census. M21 fidelity campaign (merged a26578f, registered
-    # 2026-11-05): 13 new branchings, with their cards in KNOWLEDGE/NUMBERS.md.
+    # Uncapped censuses registered later (a new branching needs a dated map
+    # row), merged when the artifact is there: the zone fold's (fused
+    # multi-zone menus, zones:A+B) and the M21 fidelity campaign's.
     for name in (
         "ontology_census_2026-10-19_r0_post_full.json",
         "ontology_census_2026-11-05_m21fid_post_full.json",
@@ -535,7 +529,7 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
 
 
 # --------------------------------------------------------------------------
-# Corpus guard: the R1a exit condition stays true
+# Corpus guard: no phantoms, no new CHOOSE emissions, sorted filters
 # --------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def compiled():
@@ -551,15 +545,15 @@ def test_corpus_has_no_phantoms_and_no_new_choose_emissions(compiled):
     assert v2["choose_count_eq_len_whitelisted"] == []
     v4 = oc.check_v4(
         oc.choose_census(cards), oc.V4_BASELINE, False, sets=("M21",)
-    )  # fixture compiles M21 only (R1a scope); union-strictness is pinned by
-    # the extinction probes above and the full CLI run.
+    )  # the fixture compiles M21 only; union-strictness is pinned by the
+    # extinction probes above and the full CLI run.
     assert v4["baseline_written"] is False
     assert v4["new_emissions"] == [], v4["new_emissions"]
 
 
 def test_corpus_filters_are_construction_sorted(compiled):
     """Every FAnd/FOr in the compiled pools is canonically sorted and has no
-    same-class child — the SET-R1a law, verified on 305 compiled cards."""
+    same-class child (the SET-R1a law)."""
 
     from MTG_bot.core.ability_tree import canonical_json
 
@@ -573,6 +567,5 @@ def test_corpus_filters_are_construction_sorted(compiled):
                     assert kids == sorted(kids, key=canonical_json), card.name
                     assert not any(type(k) is type(node) for k in kids), card.name
                     checked += 1
-    # M21 alone carries 337 FAnd/FOr nodes (measured at the R1a landing): the
-    # guard is that the corpus really exercises the law hundreds of times.
+    # The corpus must really exercise the law hundreds of times.
     assert checked >= 300, f"expected hundreds of filters, got {checked}"
