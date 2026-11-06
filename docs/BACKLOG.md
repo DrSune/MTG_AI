@@ -40,6 +40,13 @@ are neutral; each one is teaching the agent something.
 ---
 
 ## Open engine faults
+- **Compiler faults found by the 2026-11-06 lean pass** (none live in the M21, M20 or FDN verified
+  pools: every verified card that places counters places the printed kind, and the verified
+  "as long as" statics carry their condition as a while-duration):
+  - the b5b put-counter template always places +1/+1 counters, whatever kind the card prints;
+  - the b4 keyword-grant template raises KeyError on a keyword it does not map (loud, refuses the card);
+  - rebuilding a static ability during kicker or continuation merges drops the ability's condition;
+  - search scores a drawn playout as -1.0 regardless of --draw-reward (matches today's default).
 - **The search's determinisation deals the opponent impossible hands** (red team of the learning
   plan, 2026-11-06): `search.py` (~72-79) re-draws the opponent's hidden cards from the whole
   five-colour pool, while training deals two-colour coherent decks. Measured on 12 deals: the
