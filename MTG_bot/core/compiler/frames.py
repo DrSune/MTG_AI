@@ -32,7 +32,15 @@ from collections.abc import Callable
 from dataclasses import replace
 from typing import Any, Final
 
-from MTG_bot.core.ability_tree import Conditional, FAtom, FAtomPred, FNot
+from MTG_bot.core.ability_tree import (
+    Conditional,
+    ControllerRef,
+    DeclareAttackersEvent,
+    FAnd,
+    FAtom,
+    FAtomPred,
+    FNot,
+)
 from MTG_bot.core.compiler import (
     conditions,
     templates_b2a,
@@ -101,6 +109,27 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
     (_frame("B13-attacks", "whenever this creature attacks, <clause>",
             r"Whenever this creature attacks, (?P<clause>.+)"),
      _triggered(templates_b2b._attack_event)),
+    # 2026-11-06: the attack triggers whose clause names the defending player (CR 508.5):
+    # Heart-Piercer Bow's equipped creature, Leeching Sliver's "a Sliver you control" (once per
+    # attacking Sliver by CR 603.2c; the binder fires it once per declaration, B-103).
+    (_frame("B13-equipped-attacks", "whenever equipped creature attacks, <clause>",
+            r"Whenever equipped creature attacks, (?P<clause>.+)"),
+     _triggered(lambda: DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)))),
+    (_frame("B13-subtype-attacks", "whenever a <subtype> you control attacks, <clause>",
+            r"Whenever an? (?P<sub>[A-Z][a-z]+) you control attacks, (?P<clause>.+)"),
+     lambda m, effect, condition: templates_b2a._ability(
+         DeclareAttackersEvent(
+             filter=FAnd(
+                 children=(
+                     FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                     FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=m.group("sub")),
+                     FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                 )
+             )
+         ),
+         effect,
+         condition,
+     )),
     # Ontology R5-6 (2026-10-29): the targeting trigger with its actor (Thorn Lieutenant).
     (_frame("B13-targeted",
             "whenever this creature becomes the target of a spell or ability an opponent controls, "

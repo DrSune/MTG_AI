@@ -126,6 +126,7 @@ class TestRegistry(unittest.TestCase):
                 "B11",
                 "B12",
                 "B14",  # 2026-11-05: can't be countered, turn-history statics
+                "B15",  # 2026-11-06: defending player, blocker limit, created token
             },
         )
 
