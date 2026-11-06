@@ -459,3 +459,16 @@ Predictions:
 - exploitation slope vs the first frozen version: >= +0.05 per 100 updates over the first 60 self-play updates (or a freeze before then); falsified by below +0.02 per 100 updates.
 - stability: KL stop in under 30% of updates, explained variance > 0.6, no non-finite gradients; falsified by KL stop in more than half the updates, or K4.
 - Elo of r22's frozen versions: a version >= v0 + 25 on r22's ladder; falsified by none by self-play update 80.
+- **r22 so far** (2026-11-06): opening identical to r21 (v0 0.688 vs heuristic, 351.6 Elo). Teacher
+  stage to update 10 (gate 0.665); v1 frozen at 11, 333 Elo, 0.49 vs v0. Each update moved ~0.02 KL
+  (r21 ~0.009) and the per-minibatch KL stop fired in every update, trimming only the last minibatch
+  (36 of 37): stability prediction 2 is falsified by its letter. Self-play gates vs v1: 0.515, 0.513,
+  0.499, 0.478 [0.459, 0.498], 0.50, 0.493; training win vs v1 flat (0.496 -> 0.496 over the first 20
+  updates). **Stopped at update 43 by the memory floor** (11.7 GiB available against 12): two agents'
+  jobs (gradient-noise scripts of 9 and 2.5 GB, card soaks) ran beside it. My coordination error; the
+  learner stops on the first trip. A fresh agent is auditing the PPO pipeline end to end (the learner
+  has not exploited a fixed opponent in four runs at two learning rates); r22 resumes or is replaced
+  by its result.
+- Merged meanwhile (not in r22's pinned code): the London mulligan (ad749d4) and spells with several
+  target slots (face6b8: Primal Might, Hunter's Edge, Rabid Bite are now offered). Gates on face6b8:
+  5322 / 138 / 738.
