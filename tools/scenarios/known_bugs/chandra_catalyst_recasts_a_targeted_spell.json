@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "loyalty", "key": "cf", "set": 4, "seat": 0},
+  {"op": "activate", "key": "cf", "idx": 1, "seat": 0, "targets": ["shock"], "decisions": ["fire", "bear"]}
+ ],
+ "expect": {"zone": {"bear": "graveyard"}, "life": {"1": 20}},
+ "notes": "BACKLOG (permission and effect casts, 2026-11-06): the CAST atom has no target channel. Chandra, Flame's Catalyst's -2 ('You may cast target red instant or sorcery card from your graveyard') recasts Shock, whose caster chooses its target as it is cast (CR 601.2c): here the Bear. Today the cast raises 'illegal target selection: selection:count_below_min:0<1' (verbs._v_cast passes stack.cast_card no targets); in a dealt game that voids the game. Shock's own zone is not asserted: B-99 (the exile rider) is a separate bug."
+}

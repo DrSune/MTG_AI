@@ -1704,3 +1704,41 @@ W&B key in history is revoked; a private split exists outside the public repo.
   card. `gates._twin_targets` (gates.py ~348) treats only spells as sharing one target; extend it to
   triggers, and treat a trigger-scope mutant as dead when the condition already fixes the turn. Both
   verdict copies are ready to re-run (scratchpad g3kill_fdn/verdicts).
+## Permission and effect casts (2026-11-06, branch `fix/permission-cast-windows`)
+- **The CAST atom has no target channel.** `verbs._v_cast` (verbs.py:1872) calls `stack.cast_card`
+  without targets, because the CAST role table has only `source` and `cost`. `cast_card` then
+  validates the empty designation (stack.py:1546) and raises `ValueError: executor: cast: illegal
+  target selection: selection:count_below_min:0<1` for any spell with a required target, whose
+  caster should choose it as the spell is cast (CR 601.2c).
+  - Live in the M21 verified pool through Chandra, Flame's Catalyst's -2 ("You may cast target red
+    instant or sorcery card from your graveyard"). Ten verified red spells it can target raise when
+    cast this way: Destructive Tampering, Scorching Dragonfire, Shock, Soul Sear, Sure Strike,
+    Traitorous Greed, Turn to Slag, Unleash Fury, Volcanic Geyser, Volcanic Salvo. The may-offer
+    still offers "fire" (`query.cast_designee_ok`, query.py:844, checks the card and its payment,
+    not its targets), so a game that gets there is voided (`tools/selfplay/rig.py:161`). Conspicuous
+    Snoop (Goblin spells) and the Mystic Forge draft (artifact and colorless spells) reach no
+    targeted spell in the M21 or M20 verified pools; a Goblin kindred instant or a colorless removal
+    spell would raise the same way.
+  - Repro: `tools/scenarios/known_bugs/chandra_catalyst_recasts_a_targeted_spell.json`.
+  - Not small, and owned by the ontology round: it is the "target and X channel on effect casts"
+    that gate round 3 requires of R5-2 (DESIGN_ATOM_ONTOLOGY §9). The fix needs: an ask of the
+    caster for each target as the spell is cast (a `target:` ask like the trigger lane's,
+    `binding._designate`), with several slots threaded as `cast` threads them
+    (`slot_designations`); "fire" and the activation target offered only for a card whose targets
+    can be chosen (`query.cast_designee_ok`); a target's cost increase priced (`cast_card` builds
+    its plan before any target exists, stack.py:1556, where `cast` re-prices, stack.py:1220, V29);
+    and the targets checked again on resolution (CR 608.2b: `cast` does, stack.py:1285;
+    `cast_card` does not, which now matters because a response window comes first). Each changes
+    what the network is asked.
+  - The X half: `_v_cast` passes X = 0 unless the ability announced an X, so Chandra's -2, which
+    pays the spell's mana cost, recasts Volcanic Geyser with X = 0 (the caster chooses X, CR
+    601.2b; 107.3b makes X = 0 only when no mana cost is paid, as for Idol of Endurance).
+- **The pack runner's `cast` op still gives its words to two lanes.** It passes the step's words to
+  the cast as its decision pool (where `stack.cast_modes` takes a mode word) and to the provider.
+  The provider's queue does not drop a word the pool took, so a cast step that names a mode by word
+  and then answers a counter window would hand the window the mode word. No pack does that today.
+  The `activate` op stopped passing a pool on 2026-11-06, for the same fault with a permission
+  row's "fire" (all 729 packs ran identically either way).
+- **needs-atom record this branch answers in part**: M20 Mystic Forge. Its permission cast now gets
+  the counter window (its pack `pack_forge_cast_can_be_countered.json` passes against its draft);
+  the target half is the first entry above. Re-map it.
