@@ -1,6 +1,4 @@
-"""Round-20a regression tests: the wave-3 keyword/trigger/prevention batch.
-
-Each test pins one r20a root cause and the machinery that fixed it:
+"""Keyword-derived abilities, granted triggers and damage prevention, one class each:
 
 1. LIFELINK (anointed_chorister / Blood Glutton / Indulging Patrician):
    the compiler folds the keyword into CardRecord.keywords with NO

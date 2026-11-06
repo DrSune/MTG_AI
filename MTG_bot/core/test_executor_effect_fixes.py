@@ -1,5 +1,4 @@
-"""Second-wave engine fixes, family "effects, objects and conditions" (2026-11-05): one test
-class per finding (KNOWLEDGE/2026-11-05/184, tools/scenarios/known_bugs/2026-11-05).
+"""Effects, objects and conditions: one test class per rule.
 
 CR 400.7  An object that leaves the battlefield is a new object in its new zone: no effect a
           resolved spell or ability applied to the old one applies to it (a pump, a granted
@@ -12,25 +11,25 @@ LKI       What needs the object as it last existed reads one snapshot taken as i
           controlled by the player who controlled it, and a later read of a card in a graveyard
           sees no controller but its owner (CR 108.4a).
 CR 701.21a A player sacrifices a permanent of their own choice as the instruction resolves: the
-          menu never takes the ability's target designation (Sorin, Imperious Bloodlord's +1,
-          known_bugs sacrifice_takes_the_target).
-V11 follow-up  "If it's a Vampire" / "If a Dinosaur is dealt damage this way" / "If that
+          menu never takes the ability's target designation (Sorin, Imperious Bloodlord's +1).
+Conditions "If it's a Vampire" / "If a Dinosaur is dealt damage this way" / "If that
           creature was an Elemental": a characteristics-only condition is judged on the object
           the previous sentence acted on (damage and ability grants name it too), and after a
           sentence that names no object, on the object the trigger's event names, never on
-          the ability's source (known_bugs if_its_reads_the_source, conditional_judged_on_source).
+          the ability's source.
 CR 608.2h "Its controller" after the object left the battlefield is the controller it last had
           there, not its owner (Angelic Ascension, Secure the Scene, Liliana, Death Mage's -3
           on a creature Traitorous Greed took). CR 603.10a: a dies trigger looks back in time,
           so Massacre Wurm's "a creature an opponent controls dies, that player loses 2 life"
           reads the controller at death.
 CR 611.2a An effect a resolved spell or ability created lasts as long as its duration says,
-          whatever happens to its source (B-50: Keen Glidemaster's flying, Pack Leader's damage
-          prevention, Subira's "can't be blocked", Mu Yanling's "loses flying until your next
-          turn" ended when the source left), and a "can't block" with no end or "until your next
-          turn" applies at all (known_bugs cant_block_needs_until_end_of_turn). "Gain control of
-          target creature" with no duration lasts the game, not as long as the permanent whose
-          ability it was (known_bugs cr611_2a_control_ends_with_granter).
+          whatever happens to its source (Keen Glidemaster's flying, Mu Yanling's "loses flying
+          until your next turn"), and a "can't block" with no end or "until your next turn"
+          applies at all. "Gain control of target creature" with no duration lasts the game, not
+          as long as the permanent whose ability it was.
+Also      A damage trigger's "creatures you control get +1/+0" pumps those creatures, not the
+          dealer (Wildfire Elemental), and a static prevents +1/+1 counters being put on an
+          opponent's creatures (Blightbeetle).
 """
 
 from __future__ import annotations
@@ -125,8 +124,7 @@ class TestCR4007NewObject(unittest.TestCase):
 
     def test_granted_type_does_not_follow_the_permanent_back(self):
         # A resolved "it becomes an Elemental creature in addition to its other types" with no
-        # end (the Wakeroot Elemental shape, known_bugs cr400_7): the land that returns is a
-        # plain land.
+        # end (the Wakeroot Elemental shape): the land that returns is a plain land.
         r = runner([{"key": "land", "name": "Forest", "type": "Basic Land — Forest",
                      "zone": "battlefield", "controller": 0}, bear("wakeroot", 0)])
         land = r.handles["land"]
@@ -626,8 +624,8 @@ class TestCR6112aResolvedEffectsOutliveTheirSource(unittest.TestCase):
         self.assertFalse(r.ex.replacements.prevents_block_declaration(obear, gp))
 
     def test_lost_flying_stays_lost_until_the_next_turn_when_the_source_leaves(self):
-        # Mu Yanling, Sky Dancer's +2 (known_bugs b50_grant_ends_with_source): "Until your next
-        # turn, up to one target creature ... loses flying."
+        # Mu Yanling, Sky Dancer's +2: "Until your next turn, up to one target creature ...
+        # loses flying."
         r = runner([bear("mu", 0), {"key": "drake", "name": "Drake", "type": "Creature — Drake",
                                     "power": "3", "toughness": "3", "keywords": ["FLYING"],
                                     "zone": "battlefield", "controller": 1}])
@@ -644,8 +642,7 @@ class TestCR6112aResolvedEffectsOutliveTheirSource(unittest.TestCase):
 
     def test_control_with_no_duration_lasts_after_the_source_leaves(self):
         # Sorin, Vampire Lord's -8 grants Vampires "{T}: Gain control of target creature." The
-        # control has no duration: it lasts the game, not as long as the Vampire (known_bugs
-        # cr611_2a_control_ends_with_granter).
+        # control has no duration: it lasts the game, not as long as the Vampire.
         r = runner([bear("vamp", 0), bear("ogiant", 1)])
         ogiant = r.handles["ogiant"]
         r.ex.execute(Atom(Verb.GAIN_CONTROL, AtomArgs((

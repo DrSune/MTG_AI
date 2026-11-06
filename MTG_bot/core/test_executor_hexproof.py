@@ -1,10 +1,6 @@
-"""T4-P1c pins: CR 702.11 HEXPROOF targeting enforcement (gap L-4).
-
-Pins the enforcement the six goldens (Sporeweb Weaver, Spined Megalodon,
-Ranger's Guile, Garruk's Harbinger, Nine Lives, Heroic Intervention) have
-waited for: a permanent with hexproof CAN'T be the target of spells or
-abilities an OPPONENT controls — and every shape that must NOT be moved
-stays put:
+"""CR 702.11 HEXPROOF targeting: a permanent with hexproof CAN'T be the
+target of spells or abilities an OPPONENT controls (Sporeweb Weaver,
+Spined Megalodon) — and every shape that must NOT be moved stays put:
 
   * the controller's own spells still target their own hexproof creature
     (CR 702.11b's direction clause, read through the engine's opponent
@@ -15,17 +11,16 @@ stays put:
     a LOSE_ABILITY stops the block (the keyword name gate);
   * a hexproof creature's CONTROLLER is still a legal "any target"
     player (702.11 protects the object, not the player);
-  * non-targeting sweepers (ALL-mode DESTROY) still hit — the mode gate
-    means only SelectorMode.TARGET enumeration is filtered;
+  * non-targeting sweepers (ALL-mode DESTROY) still hit — only
+    SelectorMode.TARGET enumeration is filtered;
   * the keyword is zone-limited: a hexproof card in a graveyard is an
     ordinary target;
   * the STACK lane: hexproof is defined on a permanent (CR 702.11b) and a
     permanent card's abilities work only on the battlefield (CR 113.6), so
-    an opponent may target a hexproof creature SPELL (TestHexproofOnStack;
-    until 2026-11-06 the engine vetoed it);
+    an opponent may target a hexproof creature SPELL (TestHexproofOnStack);
   * the cast lane (601.2c) refuses the off-population designation, the
-    trigger ask vocabulary never SHOWS the hexproof creature (menu
-    presents the truth, §10), and a legal target still lands.
+    trigger ask vocabulary never SHOWS the hexproof creature (the menu
+    presents only legal choices), and a legal target still lands.
 """
 
 from __future__ import annotations
@@ -136,14 +131,13 @@ class HexproofCase(LayerCase):
 
     def hexproof_spell(self, name, seat, hexproof_from=None, register=True):
         """A printed-hexproof creature card STANDING on the stack (the
-        fresh-eyes stack rig — the folded ``cast`` helper resolves on the
-        spot, so the standing-spell shape parks the card directly, exactly
-        where CR 601.2h leaves it before any response): the compiled
-        record is filed in the binder's ORACLE registry (what
-        ``attach_pool`` does for hand cards — registered but NOT
-        attached: the battlefield-only lifecycle never fired for this
-        handle, which is precisely the hole the MAJOR was found in) and
-        the printed identity seeds the zone-less HEXPROOF name."""
+        folded ``cast`` helper resolves on the spot, so the standing-spell
+        shape parks the card directly, exactly where CR 601.2h leaves it
+        before any response): the compiled record is filed in the binder's
+        ORACLE registry (what ``attach_pool`` does for hand cards —
+        registered but NOT attached: the battlefield-only lifecycle never
+        fired for this handle) and the printed identity seeds the
+        zone-less HEXPROOF name."""
         params: tuple[FAtom, ...] = ()
         if hexproof_from is not None:
             params = tuple(FAtom(FAtomPred.COLOR_HAS, color=c) for c in hexproof_from)
@@ -299,8 +293,8 @@ class TestHexproofLegality(HexproofCase):
 
 
 class TestHexproofLanes(HexproofCase):
-    """The veto is one oracle consumed by EVERY target surface (T4 §10
-    blindness audit): the cast validator, the trigger ask vocabulary."""
+    """The veto is one oracle consumed by EVERY target surface: the cast
+    validator, the trigger ask vocabulary."""
 
     def target_bolt(self, name="Lightning Bolt", colors=("R",)):
         rec = spell_rec(
@@ -368,7 +362,7 @@ class TestHexproofLanes(HexproofCase):
         self.enter_archer(archer)
         self.assertTrue(asks, "the ETB target ask never happened")
         vocab = asks[0][0]
-        self.assertNotIn(str(weaver), vocab)  # menu presents legality, §10
+        self.assertNotIn(str(weaver), vocab)  # the menu presents only legal choices
         self.assertIn(str(plain), vocab)
         self.assertEqual(self.world.zone_of(plain).kind, ZONE_GRAVEYARD)  # died
 
@@ -393,10 +387,7 @@ class TestHexproofLanes(HexproofCase):
 class TestHexproofOnStack(HexproofCase):
     """CR 702.11b defines hexproof on a permanent, and a permanent card's
     abilities function only on the battlefield (CR 113.6): an opponent may
-    target a hexproof creature SPELL, so a counterspell can counter it.
-    From 2026-10-07 to 2026-11-06 the engine vetoed such targets (M21's
-    Sporeweb Weaver could not be countered by a blue Cancel: stronger than
-    printed), found by an FDN verifier."""
+    target a hexproof creature SPELL, so a counterspell can counter it."""
 
     def test_opponent_may_target_a_bare_hexproof_spell(self):
         spell = self.hexproof_spell("Nine Lives", self.p1)  # bare printed

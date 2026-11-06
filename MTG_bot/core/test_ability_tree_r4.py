@@ -1,31 +1,28 @@
-"""T3 round 4 — six additive grammar items (2026-09-24).
+"""Grammar pins: static and activation conditions, COUNTER_SPELL's
+``unless`` cost, cost-modifier extra deltas, and two predicates.
 
-Round-4 scope (spec: KNOWLEDGE/2026-09-24/02-grammar-round3-decision.md):
-
-- R3-1: ``StaticAbility.condition: Filter | None = None`` — scopes WHEN a
+- ``StaticAbility.condition: Filter | None = None`` — scopes WHEN a
   continuous effect applies ("As long as you've drawn two or more cards
   this turn, ..."); ``opt:filter`` + omit-if-empty.
-- R3-2: ``ActivatedAbility.condition: Filter | None = None`` — gates
+- ``ActivatedAbility.condition: Filter | None = None`` — gates
   activation ("Activate only if a creature died this turn").
-- R3-3: ``COUNTER_SPELL`` gains an optional ``unless`` role (a ``Cost``
+- ``COUNTER_SPELL`` takes an optional ``unless`` role (a ``Cost``
   value — "unless its controller pays {3}"); ``target`` stays required.
-- R3-4: ``FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN`` — required
-  ``who`` slot (precedent: LIFE_GAINED_THIS_TURN_GE).
-- R3-5: ``CostModifier.extra_deltas: tuple[CostDelta, ...] = ()`` —
-  further cost deltas beyond the single ``delta`` slot; ``tup:cost_delta``
-  + omit-if-empty.
-- R3-6: ``FAtomPred.TARGETS_SOURCE`` — "spells your opponents cast that
-  target this creature"; no slots (precedent: IS_SOURCE).
+- ``FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN`` — required ``who`` slot
+  (like LIFE_GAINED_THIS_TURN_GE).
+- ``CostModifier.extra_deltas: tuple[CostDelta, ...] = ()`` — further
+  cost deltas beyond the single ``delta`` slot; ``tup:cost_delta`` +
+  omit-if-empty.
+- ``FAtomPred.TARGETS_SOURCE`` — "spells your opponents cast that target
+  this creature"; no slots (like IS_SOURCE).
 
 Guards:
-- every pre-round-4 pinned fingerprint (the round-3 pin set) stays
-  byte-identical — all six items are additive optional slots/enums/roles;
+- the test_ability_tree_r3 pin set keeps its fingerprints;
 - bare constructs (condition=None / extra_deltas=()) serialize WITHOUT
-  the new keys;
-- round-4 constructs round-trip through ``to_dict``/``from_dict`` with
+  the optional keys;
+- the constructs round-trip through ``to_dict``/``from_dict`` with
   pinned fingerprints;
-- rejections at every new or widened validation point (``ValueError``,
-  per the module-wide convention).
+- every validation point rejects bad input with ``ValueError``.
 """
 
 from __future__ import annotations
@@ -38,7 +35,7 @@ import pytest
 import MTG_bot.core.ability_tree as at
 import MTG_bot.core.test_ability_tree_r3 as R3
 
-# ---- builders for the round-4 constructs -----------------------------------
+# ---- builders --------------------------------------------------------------
 
 _STACK_ANY = at.Zone(at.ZoneKind.STACK, at.ControllerRef.ANY)
 _TARGET_SPELL = at.Selector(
@@ -74,12 +71,12 @@ def _static_condition() -> at.FAtom:
 
 
 def _static_cond() -> at.StaticAbility:
-    """R3-1: static effect scoped by a condition."""
+    """A static effect scoped by a condition."""
     return at.StaticAbility(_draw_one(), condition=_static_condition())
 
 
 def _static_bare() -> at.StaticAbility:
-    """Pre-round-4 shape: no condition key in the serialization."""
+    """Bare shape: no condition key in the serialization."""
     return at.StaticAbility(_draw_one())
 
 
@@ -89,7 +86,7 @@ def _activated_condition() -> at.FAtom:
 
 
 def _activated_cond() -> at.ActivatedAbility:
-    """R3-2: activation gated by a condition."""
+    """An activation gated by a condition."""
     return at.ActivatedAbility(
         at.Cost(parts=()), _sacrifice(), condition=_activated_condition()
     )
@@ -104,7 +101,7 @@ def _cost3() -> at.Cost:
 
 
 def _counter_unless() -> at.Atom:
-    """R3-3: COUNTER_SPELL with the optional ``unless`` cost role."""
+    """COUNTER_SPELL with the optional ``unless`` cost role."""
     return at.Atom(
         at.Verb.COUNTER_SPELL,
         at.AtomArgs(pairs=(("target", _TARGET_SPELL), ("unless", _cost3()))),
@@ -112,19 +109,19 @@ def _counter_unless() -> at.Atom:
 
 
 def _counter_bare() -> at.Atom:
-    """Pre-round-4 shape: COUNTER_SPELL with ``target`` only."""
+    """Bare shape: COUNTER_SPELL with ``target`` only."""
     return at.Atom(
         at.Verb.COUNTER_SPELL, at.AtomArgs(pairs=(("target", _TARGET_SPELL),))
     )
 
 
 def _cm_no_extra() -> at.CostModifier:
-    """Pre-round-4 shape: single delta, no ``extra_deltas`` key."""
+    """Bare shape: single delta, no ``extra_deltas`` key."""
     return at.CostModifier(_CM_FILTER, at.ControllerRef.YOU, _CM_DELTA)
 
 
 def _cm_two() -> at.CostModifier:
-    """R3-5: '{2}{U} less' = generic 2 + 1 blue via ``extra_deltas``."""
+    """'{2}{U} less' = generic 2 + 1 blue via ``extra_deltas``."""
     return at.CostModifier(
         _CM_FILTER,
         at.ControllerRef.YOU,
@@ -137,18 +134,18 @@ def _cm_two() -> at.CostModifier:
 
 
 def _fatom_ios() -> at.FAtom:
-    """R3-4: 'you've cast an instant or sorcery this turn'."""
+    """'You've cast an instant or sorcery this turn'."""
     return at.FAtom(
         at.FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN, who=at.ControllerRef.YOU
     )
 
 
 def _fatom_ts() -> at.FAtom:
-    """R3-6: 'spells your opponents cast that target this creature'."""
+    """'Spells your opponents cast that target this creature'."""
     return at.FAtom(at.FAtomPred.TARGETS_SOURCE)
 
 
-# ---- pinned fingerprints (captured after the round-4 edits) ----------------
+# ---- pinned fingerprints ---------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -211,7 +208,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 def test_pinned_pre_r4_fingerprint(
     name: str, build: Callable[[], object], fp: str
 ) -> None:
-    """Byte stability: every pre-round-4 pinned tree serializes identically."""
+    """Byte stability: the test_ability_tree_r3 pin set keeps its fingerprints."""
     node = build()
     assert at.fingerprint(node) == fp
     d = at.to_dict(node)

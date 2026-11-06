@@ -1,22 +1,20 @@
-"""Round-22a pins: the own-dies trigger binding law + the sacrifice-cost
-vocabulary law (KNOWLEDGE/2026-10-01 /21+/22 wave5a findings, fix A/B).
+"""The own-dies trigger binding and the sacrifice-cost choice.
 
-Scope A (binding.py): the journal records a death as a ZONE_CHANGE row
+Binding (binding.py): the journal records a death as a ZONE_CHANGE row
 immediately followed by the CREATURE_DIES row (events.record_atom). The
-binder used to drop the leaver's bindings on the ZONE_CHANGE row, so the
-DEAD permanent's OWN "when ~ dies" trigger never matched. The fix defers
-the detach across the adjacent pair (lookahead + CREATURE_DIES landing +
-end-of-pass flush) — and the fire-time pre-bind of ``target =
-event.subject`` is now gated: a trigger effect that carries its OWN
-TARGET-mode designation selector must not be narrowed by the pre-bind
+binder defers the leaver's detach across that adjacent pair (lookahead,
+detach at the CREATURE_DIES row, end-of-pass flush), so the DEAD
+permanent's OWN "when ~ dies" trigger still matches. The fire-time pre-bind
+of ``target = event.subject`` is gated: a trigger effect that carries its
+OWN TARGET-mode designation selector is not narrowed by the pre-bind
 (CR 601.2a: the designation is chosen when the ability goes on the
 stack, and it asks).
 
-Scope B (legality.py): who a SACRIFICE cost kills is the controller's
-decision — build_payment_plan records the FULL candidate pool per
-segment (never asks), pay_costs re-opens the choice through the 14b
-vocabulary channel when the segment really offers one, and CR 701.14a
-keeps the opponent's permanents out of the pool entirely.
+Sacrifice costs (legality.py): who a SACRIFICE cost kills is the
+controller's decision. build_payment_plan records the FULL candidate pool
+per segment (never asks), pay_costs asks through the decision channel
+when the segment really offers a choice, and CR 701.14a keeps the
+opponent's permanents out of the pool entirely.
 """
 
 import unittest
@@ -59,7 +57,7 @@ from MTG_bot.core.test_executor_legality import cost
 
 
 class SacrificeVocabulary(unittest.TestCase):
-    """r22a-B: p0 carries Alpha (the activation's source) plus Gamma and
+    """p0 carries Alpha (the activation's source) plus Gamma and
     Delta; p1 carries Beta. 'Sacrifice a creature' can only ever touch
     Gamma/Delta — and WHICH one dies is a decision, not Handle order."""
 
@@ -122,7 +120,7 @@ class SacrificeVocabulary(unittest.TestCase):
         self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_BATTLEFIELD)
 
     def test_forced_segment_stays_silent_and_byte_identical(self):
-        # One candidate (Gamma): len(pool) == need -> §1.4 forced
+        # One candidate (Gamma): len(pool) == need -> forced
         # auto-fill, NO ask, no provider needed at all.
         self.world.move_to_zone(self.delta, self.p0, ZONE_GRAVEYARD)
         plan = self.plan_for(
@@ -154,8 +152,8 @@ class SacrificeVocabulary(unittest.TestCase):
         self.assertNotIn(str(self.beta), asks[0][1])
 
     def test_unanswered_choice_raises_never_a_silent_pick(self):
-        # C15: with no lane able to answer, the ask RAISES — the frozen
-        # lowest-Handle auto-pick is dead.
+        # With no lane able to answer, the ask RAISES: never a silent
+        # lowest-Handle pick.
         plan = self.plan_for(
             Selector(QConst(1), SelectorMode.CHOOSE, ANOTHER_CREATURE, zones=(BF_YOU,))
         )
@@ -164,8 +162,8 @@ class SacrificeVocabulary(unittest.TestCase):
         self.assertIn("sacrifice:", str(cm.exception))
 
     def test_hand_built_plan_pays_the_frozen_path(self):
-        # A pre-r22a plan (default empty options) pays its witness list
-        # exactly as before, with no provider attached.
+        # A hand-built plan (default empty options) pays its witness list
+        # with no provider attached.
         from MTG_bot.core.executor.legality import PaymentPlan
 
         plan = PaymentPlan(sacrifice=(self.gamma,))
@@ -175,7 +173,7 @@ class SacrificeVocabulary(unittest.TestCase):
 
 
 class OwnDiesTrigger(unittest.TestCase):
-    """r22a-A: the leaver's OWN dies trigger must resolve — the binder
+    """The leaver's OWN dies trigger must resolve — the binder
     defers the detach across the adjacent ZONE_CHANGE / CREATURE_DIES
     pair instead of dropping bindings on the leave row."""
 
@@ -236,7 +234,7 @@ class OwnDiesTrigger(unittest.TestCase):
         )
 
     def test_survivor_dies_trigger_still_fires(self):
-        # Regression twin: a SURVIVING carrier's "whenever a creature
+        # Control: a SURVIVING carrier's "whenever a creature
         # dies" binding is untouched by the deferral.
         from MTG_bot.core.ability_tree import TriggeredAbility
 
@@ -262,7 +260,7 @@ class OwnDiesTrigger(unittest.TestCase):
 
 
 class DesignationPrebindGate(unittest.TestCase):
-    """r22a-A2: the fire-time ``target = event.subject`` pre-bind is a
+    """The fire-time ``target = event.subject`` pre-bind is a
     convenience for referent-shaped trigger effects; a trigger carrying
     its OWN TARGET-mode designation (Goblin Arsonist's "any target")
     must still ASK — pre-binding it would silently narrow the choice to
@@ -289,8 +287,8 @@ class DesignationPrebindGate(unittest.TestCase):
         from MTG_bot.core.ability_tree import TriggeredAbility
 
         # TWO survivors on the field after the dies: with a single candi-
-        # date the designation is FORCED (§1.4 auto-fill, no decision to
-        # ask — C15), which would silently skip the very channel this test
+        # date the designation is FORCED (auto-filled, no decision to
+        # ask), which would silently skip the very channel this test
         # pins. A second creature makes the TARGET slot a real choice.
         self.world.add_card(card_id("Stalwart", "2", "2"), self.p0, ZONE_BATTLEFIELD)
         self.ex.attach_card(

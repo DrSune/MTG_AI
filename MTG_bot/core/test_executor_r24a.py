@@ -1,25 +1,9 @@
-"""r24a — the engine quantity lane the C3 roadmap correction named.
+"""The player life-total quantity ``QProp("controller", QPropField.LIFE)``, the amount in Peer
+into the Abyss's "loses half their life. Round up".
 
-Peer into the Abyss ("loses half their life. Round up") STOPPED at C3:
-QCount counts zone OBJECTS and no QPropField read a player's LIFE TOTAL,
-so the clause had no compilable quantity (KNOWLEDGE/2026-10-02/05,
-02-compiler-roadmap line 47: the future emit is
-LOSE_LIFE(amount=QBin((QProp(controller, LIFE) + 1) DIV 2))). The fix is
-split per the roadmap — grammar+engine here, the compiler emit stays with
-the compiler batch (goldens frozen this batch):
-
-* QPropField.LIFE (ability_tree.py) — additive + byte-stable per the R3
-  law: no frozen golden contains the field, so every PC number is
-  unchanged. Validated as a PLAYER property: referent "controller" only,
-  the exact twin convention of CARDS_IN_HAND/LIBRARY/GRAVEYARD above it.
-* quantity._prop_value — the lane: a direct, order-free attribute read
-  (the determinism contract the zone-count twins keep; the promoted
-  ``peer_into_the_abyss`` pack is the harness-side witness of the
-  draw-half twin, with the life-half documented as the print-gap
-  deviation).
-* LOSE_LIFE already reads its ``amount`` through ``resolve``, so once the
-  field exists the atom is live end-to-end — pinned below at 20 -> 10
-  (round-up half), the number the frozen golden's missing atom wanted.
+It is a plain, order-free attribute read of the referent player's current total, scoped by
+``ctx.controller`` like the CARDS_IN_* fields; ``LOSE_LIFE`` reads it through ``resolve`` end to
+end; a non-player referent is rejected at construction.
 """
 
 import unittest
@@ -41,9 +25,7 @@ from MTG_bot.core.test_executor_binding import atom, card_id, reset_oracle_ids
 
 
 def half_life() -> QBin:
-    """The roadmap emit form: (LIFE + 1) // 2. QBinOp.DIV is FLOOR, so
-    round-up-half is expressed in the ADD twin — the grammar's closed
-    operator set, exactly how Peer's draw-half already prints."""
+    """Half the controller's life rounded up, in the (n + 1) // 2 idiom (QBinOp.DIV floors)."""
     return QBin(
         QBinOp.DIV,
         QBin(QBinOp.ADD, QProp("controller", QPropField.LIFE), QConst(1)),
@@ -106,16 +88,14 @@ class TestRoundUpHalfExpression(R24ACase):
         self.assertEqual(resolve(half_life(), self._ctx(self.p0)), 7)
 
     def test_one_rounds_up_to_one_not_zero(self):
-        # The round-up clause's whole point: floor((1+1)//2)=1, and a
-        # life-1 player still loses life (the C17 clamp keeps it >= 0).
+        # Rounding up: (1 + 1) // 2 = 1, so a player at 1 life still loses life.
         self.world.players[self.p0].life = 1
         self.assertEqual(resolve(half_life(), self._ctx(self.p0)), 1)
 
 
 class TestLoseLifeEndToEnd(R24ACase):
     def test_you_lose_half_your_life(self):
-        # The atom the frozen Peer golden lacks: with the lane live the
-        # executor answers it end-to-end (settle/triggers ride along).
+        # End to end through Executor.execute (settle and triggers ride along).
         self.ex.execute(
             atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=half_life()),
             source=self.peer,

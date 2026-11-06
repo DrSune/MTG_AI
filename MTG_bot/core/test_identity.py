@@ -1,6 +1,6 @@
 """Tests for the identity primitives.
 
-Pins down the two fixes from DESIGN_CARD_POOL.md "Fix identity first":
+Pins down the two rules of docs/DESIGN_CARD_POOL.md "Fix identity first":
 keying on the stable scryfall oracle id, and the split handle namespaces
 (a card handle and a zone handle can both be 5 and never collide).
 """
@@ -24,7 +24,7 @@ class TestOracleId(unittest.TestCase):
         self.assertEqual(validate_oracle_id(A_ORACLE), A_ORACLE)
 
     def test_rowid_rejected(self):
-        # A volatile rowid slipping in as the key is exactly the bug we are killing.
+        # A volatile rowid must never pass as the key.
         with self.assertRaises(ValueError):
             validate_oracle_id("269")
 

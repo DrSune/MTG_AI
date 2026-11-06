@@ -1,30 +1,21 @@
-"""R1b cost canonicalization — RED-FIRST battery (BINDING spec
-KNOWLEDGE/2026-10-20/136 §2(2), ontology §3 SET-R1b rows + O3 set law).
+"""Cost canonicalization: the SET-R1b fields of docs/DESIGN_ATOM_ONTOLOGY.md §3.
 
 Cost.parts / SpellAbility.additional_costs / CostManaHybrid.colors /
-CostModifier.extra_deltas become SET-ENFORCED: sorted AT CONSTRUCTION
-(frozen ``__post_init__`` + ``object.__setattr__``, the AtomArgs.pairs
-:2541 precedent). Because ``build_payment_plan`` walks the parts LIST,
-construction-sort makes the plan — the failure string, the trace, and the
-``sacrifice_options`` ask sequence — a function of the parts MULTISET.
+CostModifier.extra_deltas are sorted AT CONSTRUCTION (frozen
+``__post_init__`` + ``object.__setattr__``, like ``AtomArgs.pairs``). Because
+``build_payment_plan`` walks the parts LIST, construction-sort makes the plan —
+the failure string, the trace, and the ``sacrifice_options`` ask sequence — a
+function of the parts MULTISET.
 
-Battery items (spec numbering):
-  (i)  two-failing-part precedence: same multiset, permuted construction
-       ⇒ identical failure string + identical plan (D11: drift accepted,
-       canonical order pinned HERE).
-  (ii) hybrid determinism probe ({W/B}+{W/U}, pool W:1 B:1): pins the
-       DETERMINISTIC post-sort witness outcome. The greedy payer-choice
-       unsoundness is D10 — determinism pinned, semantics deferred to the
-       engine lane; population 0 in both pools.
-  (iii) {U}{X} + CostDeltaReduceMana {U} (Stormwing Entity lane): the
-       per-color Σ-min-clamp is order-invariant — payable + trace
-       invariant under parts permutation (already-green determinism leg).
-  (iv) constructed TWO-sacrifice-part Cost: ask-sequence determinism
-       double-run, replay byte-stability of the ``sacrifice:...:digest``
-       keys (tripwire for the A2 one-asked-kind-per-Cost assumption).
-
-Pre-change items (i), (ii), (iv) and the raw sort/eq pins MUST be RED;
-(iii) is a determinism pin expected GREEN pre-change (reported as such).
+Battery items (the section labels below):
+  (i)  two failing parts: the same multiset in either construction order gives
+       one failure string and one plan (canonical order picks the string);
+  (ii) hybrid {W/B}+{W/U}, pool W:1 B:1: the greedy witness outcome is
+       DETERMINISTIC under the canonical order (not CR-faithful);
+  (iii) {U}{X} + CostDeltaReduceMana {U} (Stormwing Entity): payable and
+       trace invariant under parts permutation;
+  (iv) a constructed TWO-sacrifice-part Cost: the ask sequence and the
+       ``sacrifice:...:digest`` keys replay byte-identically.
 """
 
 from __future__ import annotations
@@ -96,12 +87,12 @@ class R1bCase(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Raw SET-ENFORCED law: construction sort by canonical_json (O3, :2541 style)
+# Raw SET-ENFORCED law: construction sort by canonical_json (the O3 set law)
 # ---------------------------------------------------------------------------
 class TestConstructionSort(R1bCase):
     def test_cost_parts_permuted_construction_is_value_equal(self):
-        """R1b canonicalization: the same parts MULTiset lands on one
-        encoding regardless of construction order (== and hash and bytes)."""
+        """The same parts MULTISET lands on one encoding regardless of
+        construction order (== and hash and bytes)."""
         mana = CostManaColor("W", QConst(1))
         generic = CostManaGeneric(QConst(1))
         a = Cost(parts=(mana, generic))
@@ -147,15 +138,15 @@ class TestConstructionSort(R1bCase):
         h1 = CostManaHybrid(colors=("B", "W"), amount=QConst(1))
         h2 = CostManaHybrid(colors=("W", "B"), amount=QConst(1))
         self.assertEqual(h1.colors, ("B", "W"))
-        self.assertEqual(h1, h2)  # R1b canonicalization
+        self.assertEqual(h1, h2)  # sorted at construction
         self.assertEqual(canonical_json(h1), canonical_json(h2))
-        with self.assertRaises(ValueError):  # validation law untouched
+        with self.assertRaises(ValueError):  # validation still runs
             CostManaHybrid(colors=("W", "W"), amount=QConst(1))
         with self.assertRaises(ValueError):
             CostManaHybrid(colors=("W", "K"), amount=QConst(1))
 
     def test_modifier_extra_deltas_sorted_at_construction(self):
-        # (f) channel: pure += accumulators ⇒ commutative ⇒ SET reclass.
+        # the deltas are pure += accumulators ⇒ commutative ⇒ a SET field.
         d_u = CostDeltaReduceMana("U", QConst(1))
         d_g = CostDeltaReduceMana("G", QConst(2))
         m1 = CostModifier(
@@ -170,7 +161,7 @@ class TestConstructionSort(R1bCase):
             delta=CostDeltaReduceMana("R", QConst(1)),
             extra_deltas=(d_u, d_g),
         )
-        self.assertEqual(canonical_json(m1), canonical_json(m2))  # R1b canonicalization
+        self.assertEqual(canonical_json(m1), canonical_json(m2))  # sorted at construction
         want = tuple(sorted((d_g, d_u), key=canonical_json))
         self.assertEqual(m1.extra_deltas, want)
         with self.assertRaises(ValueError):
@@ -190,7 +181,7 @@ class TestConstructionSort(R1bCase):
         s2 = SpellAbility(
             kind=SpellKind.CREATURE, effect=None, additional_costs=(kicker, tap_cost)
         )
-        self.assertEqual(canonical_json(s1), canonical_json(s2))  # R1b canonicalization
+        self.assertEqual(canonical_json(s1), canonical_json(s2))  # sorted at construction
         want = tuple(sorted((tap_cost, kicker), key=canonical_json))
         self.assertEqual(s1.additional_costs, want)
 
@@ -200,18 +191,15 @@ class TestConstructionSort(R1bCase):
 # ---------------------------------------------------------------------------
 class TestTwoFailingParts(R1bCase):
     def test_permuted_construction_lands_on_one_failure_string(self):
-        """DEVIATION (truth-over-instructions, reported): the task brief's
-        example (CostManaColor + CostManaGeneric) is ORDER-FREE even
-        pre-sort — the generic shortfall is a POST-loop aggregate, so both
-        constructions already fail on the mana string and the battery leg
-        could never be RED. The genuine multi-failing pair is two
-        IN-LOOP failures: CostLife (fails at its branch) + CostManaColor
-        (fails at its branch) — printed order picks the life string,
-        canonical order picks the mana string. Canonical order here:
+        """Two IN-LOOP failures: CostLife (fails at its branch) +
+        CostManaColor (fails at its branch) — printed order would pick the
+        life string, canonical order picks the mana string. (A generic
+        shortfall is a POST-loop aggregate, so CostManaColor +
+        CostManaGeneric is order-free anyway.) Canonical order here:
         canonical_json(CostManaColor(W,1)) starts '"value":1',
         CostLife(25) starts '"value":2 ⇒ mana sorts FIRST ⇒ pinned failure
-        is the mana string. D11: the choice is diagnostic-only; production
-        consumers are ``is None`` tests (spec §1(a)/A4)."""
+        is the mana string. The choice is diagnostic-only: production
+        consumers only test the plan ``is None``."""
         life = CostLife(QConst(25))  # 20 life < 25 — fails in-loop
         mana = CostManaColor("W", QConst(1))  # empty pool — fails in-loop
         printed = Cost(parts=(life, mana))  # printed: life first
@@ -238,26 +226,24 @@ class TestTwoFailingParts(R1bCase):
 
 
 # ---------------------------------------------------------------------------
-# (ii) Hybrid determinism probe — D10 pinned, semantics deferred
+# (ii) Hybrid determinism probe — deterministic, not CR-faithful
 # ---------------------------------------------------------------------------
 class TestHybridDeterminism(R1bCase):
     def test_wb_plus_wu_with_pool_w1_b1_is_deterministic(self):
-        """D10 ({W/B}+{W/U}, pool W:1 B:1): the greedy canonical witness
-        pays IFF the favorable processing order is taken — CR-UNFAITHFUL,
-        population 0, RULED out-of-scope for R1b; a CR-faithful fix is the
-        engine-lane bipartite/matching item. R1b pins only that the
-        OUTCOME IS DETERMINISTIC under the canonical sorted order:
+        """{W/B}+{W/U}, pool W:1 B:1: the greedy canonical witness pays IFF
+        the favorable processing order is taken — CR-UNFAITHFUL (a
+        bipartite matching would always find the payment). Pinned only:
+        the OUTCOME IS DETERMINISTIC under the canonical sorted order:
         colors sort (witness prefers its FIRST slot ⇒ alphabetically-first
         colour), parts sort {W/B} before {W/U} ('B' < 'U'), so the pinned
         witness is {W/B}→B then {W/U}→W — PAYABLE with mana (B:1, W:1),
-        whatever the insertion order. Pre-sort this flips with insertion
-        order (RED leg of this battery)."""
+        whatever the insertion order."""
         wb = CostManaHybrid(colors=("W", "B"), amount=QConst(1))
         wu = CostManaHybrid(colors=("W", "U"), amount=QConst(1))
         self.pool(self.p0, W=1, B=1)
         plan_a, reason_a = self.plan(Cost(parts=(wb, wu)))
         plan_b, reason_b = self.plan(Cost(parts=(wu, wb)))
-        self.assertIsNone(reason_a)  # deterministic post-sort witness outcome
+        self.assertIsNone(reason_a)  # deterministic witness outcome
         self.assertIsNone(reason_b)
         assert plan_a is not None and plan_b is not None
         self.assertEqual(repr(plan_a), repr(plan_b))
@@ -270,8 +256,8 @@ class TestHybridDeterminism(R1bCase):
         self.assertIsNone(plan_c)
         self.assertIsNone(plan_d)
         self.assertEqual(reason_c, reason_d)
-        # R1b canonicalization: the diagnostic embeds the CONSTRUCTION-SORTED
-        # colour tuple — the printed {W/U} reports as ('U', 'W').
+        # the diagnostic embeds the CONSTRUCTION-SORTED colour tuple — the
+        # printed {W/U} reports as ('U', 'W').
         self.assertEqual(reason_c, "cost:mana_hybrid:('U', 'W'):1 unpayable")
 
 
@@ -311,10 +297,10 @@ class TestDiscountTraceInvariance(R1bCase):
         return build_payment_plan(self.world, ctx, cost, activation=self.alpha)
 
     def test_payable_and_trace_invariant_under_parts_permutation(self):
-        """Already-green determinism leg (spec §1(b): the per-colour
-        draw is a Σ-min-clamp — payability ORDER-INVARIANT, only the
-        intermediate trace could drift). {U} demand 1 minus discount 1
-        ⇒ colour leg free; generic {X}=1 draws the single U mana."""
+        """The per-colour draw is a Σ-min-clamp, so payability is
+        ORDER-INVARIANT and only the intermediate trace could drift. {U}
+        demand 1 minus discount 1 ⇒ colour leg free; generic {X}=1 draws
+        the single U mana."""
         printed = Cost(parts=(CostManaColor("U", QConst(1)), CostManaGeneric(QX())))
         permuted = Cost(parts=(CostManaGeneric(QX()), CostManaColor("U", QConst(1))))
         self._attach_discount(printed)
@@ -352,11 +338,10 @@ def _sac(subtype: str) -> CostSacrifice:
 
 
 class TestTwoSacrificeAskSequence(unittest.TestCase):
-    """A2 TRIPWIRE: the standing assumption is at most ONE asked-kind part
-    per Cost post-fold (multi-sac population 0 in the corpus). This
-    CONSTRUCTED two-sac cost is the canary: if the ask sequence ever stops
-    being a pure function of the parts multiset, A2 is live and the kicker
-    fold lanes need a re-audit. Each site really asks (pool 2 > need 1), so
+    """TRIPWIRE: the kicker fold lanes assume at most ONE asked-kind part
+    per Cost. This CONSTRUCTED two-sac cost is the canary: if the ask
+    sequence ever stops being a pure function of the parts multiset, those
+    lanes need a re-audit. Each site really asks (pool 2 > need 1), so
     the sequence order IS observable — the ``sacrifice:<seat>:<source>:
     <digest>`` tags ride ex.decisions.ask_log byte-identically."""
 
@@ -405,7 +390,7 @@ class TestTwoSacrificeAskSequence(unittest.TestCase):
         log_q1, plan_q1, fp_q1 = self._run(permuted)  # permuted construction
         self.assertEqual(log_p1, log_p2)  # replay byte-stability
         self.assertEqual(fp_p1, fp_p2)
-        self.assertEqual(len(log_p1), 2)  # BOTH sites really asked (A2 canary)
+        self.assertEqual(len(log_p1), 2)  # BOTH sites really asked (the canary)
         self.assertTrue(all(what.startswith("sacrifice:") for what, _ in log_p1))
         self.assertEqual(log_p1, log_q1)  # multiset, not insertion order
         self.assertEqual(plan_p1, plan_q1)

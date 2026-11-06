@@ -1,9 +1,9 @@
-"""Ontology R5-6 (2026-10-29): ``TargetingEvent.actor``, a Filter over the controller of the
-targeting spell or ability ("becomes the target of a spell or ability an opponent controls").
+"""``TargetingEvent.actor``, a Filter over the controller of the targeting spell or ability
+("becomes the target of a spell or ability an opponent controls").
 
 Warden of the Woods must not trigger on its controller's own spells; it must on an opponent's. The
-actor is the single direction encoding (E1) CastSpellEvent, CardDrawnEvent, LifeGainedEvent and
-AbilityActivatedEvent (R5-7) use, and a TargetingEvent without it keeps its bytes.
+actor is the single direction encoding CastSpellEvent, CardDrawnEvent, LifeGainedEvent and
+AbilityActivatedEvent use, and a TargetingEvent without it keeps its bytes.
 """
 
 from __future__ import annotations

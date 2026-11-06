@@ -1,6 +1,5 @@
-"""T3 round 2 — additive grammar-extension tests.
-
-Round-2 scope (KNOWLEDGE/2026-09-22/02-t7-semantic-spot-check.md items 1-6):
+"""Grammar pins for six constructs (the item numbers label the sections
+below):
 
 - item 1: turn-scoped FAtomPred members LIFE_GAINED_THIS_TURN_GE /
   CARDS_DRAWN_THIS_TURN_GE. Both require the ``who`` slot; ``count`` is
@@ -12,15 +11,15 @@ Round-2 scope (KNOWLEDGE/2026-09-22/02-t7-semantic-spot-check.md items 1-6):
   ``Cost`` nodes, not bare cost parts).
 - item 4: optional ``tapped_on_enter`` bool role on MOVE_ZONE / SEARCH,
   serialized as a ``"Bool"``-tagged atom value inside the pairs.
-- item 5: "can't phase in" needed NO grammar change; the prevention
-  composition's fingerprint is pinned below (byte-identical pre/post edit).
-- item 6: ``CostLoyalty.delta`` widened to ``int | Quantity`` (Ugin [−X]).
+- item 5: "can't phase in" is a composition of existing nodes; its
+  fingerprint is pinned.
+- item 6: ``CostLoyalty.delta`` is ``int | Quantity`` (Ugin [−X]).
 
 Guards:
-- all nine pre-round-2 fingerprint pins stay byte-identical;
-- no pre-round-2 tree serializes any round-2 key or tag;
-- round-trip equality for every new construct;
-- rejections at every new entry point (bool / zero / type violations).
+- the nine ``_PINNED`` trees, which use none of these constructs, keep
+  their fingerprints and serialize none of their keys or tags;
+- round-trip equality for every construct;
+- rejections at every entry point (bool / zero / type violations).
 """
 
 from __future__ import annotations
@@ -201,8 +200,8 @@ def _ugin_exile_dynamic() -> at.ActivatedAbility:
 
 def _phase_in_prevention() -> at.StaticAbility:
     """ "Can't phase in" (Teferi [−8] family): prevent the opponent's command
-    zone cards entering the battlefield until the next turn. NO new grammar
-    was needed — this is the item-5 composition (T3 round 2, item 5)."""
+    zone cards entering the battlefield until the next turn — a composition
+    of existing nodes (item 5)."""
     return at.StaticAbility(
         effect=at.Atom(
             at.Verb.PREVENT_EFFECT,
@@ -233,7 +232,7 @@ def _phase_in_prevention() -> at.StaticAbility:
     )
 
 
-# ---- pinned pre-round-2 fingerprints (captured before any round-2 edit) ----
+# ---- pinned fingerprints of trees without these constructs ----
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -242,7 +241,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "9bd3f0e185eb0f51ca7a99e64f472a22bab2acd4b8cb24582904cc163ffb6a39",
     ),
     (
-        # R1b canonicalization: multi-part Cost construction-sorted — fp re-pinned.
+        # the multi-part Cost is sorted at construction (canonical, not printed order)
         "tarmogoyf",
         T._tarmogoyf_like,
         "eaae09ba37aca5bf40655293c56598765f010e74ad02a0f39cc0368d97838c5f",
@@ -253,7 +252,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
     ),
     (
-        # R1b canonicalization: treasure-token tap+sacrifice Cost sorted — fp re-pinned.
+        # the treasure token's tap+sacrifice Cost is sorted at construction
         "token_creator",
         T._token_creator,
         "37ae8c521b8b21127109b55db11bc7c5b9e7876baabf4ddce0c601b72bf82b69",
@@ -285,12 +284,12 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     ),
 ]
 
-# Round-2 keys/tags that must be ABSENT from every pre-round-2 tree.
+# The keys/tags of these constructs, which must be ABSENT from every pinned tree.
 _NEW_PRED_NAMES = frozenset({"LIFE_GAINED_THIS_TURN_GE", "CARDS_DRAWN_THIS_TURN_GE"})
 
 
 def _assert_no_t3r2_keys(d: Any, path: str = "root") -> None:
-    """Recursively assert no round-2 key or tag appears in a pre-round-2 tree."""
+    """Recursively assert no key or tag of these constructs appears in a tree."""
     if isinstance(d, dict):
         tag = d.get("tag")
         if tag == "CostModifier":
@@ -326,7 +325,7 @@ def _assert_no_t3r2_keys(d: Any, path: str = "root") -> None:
             _assert_no_t3r2_keys(item, f"{path}[{i}]")
 
 
-# ---- round-trip catalogue for every new construct ----
+# ---- round-trip catalogue for every construct ----
 
 _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
     # item 1: turn-scoped predicates
@@ -394,8 +393,8 @@ def _bool_atom_value_nonbool() -> at.Atom:
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     return [
         ("cost_loyalty_bool", lambda: at.CostLoyalty(True)),
-        # re-pinned 2026-10-30: R5-7 makes CostLoyalty(0) legal (a [0] loyalty
-        # ability); only the QConst(0) twin below stays a rejection.
+        # CostLoyalty(0) is legal (a [0] loyalty ability); its QConst(0)
+        # twin is a rejection.
         ("cost_loyalty_qconst_zero", lambda: at.CostLoyalty(at.QConst(0))),
         ("cost_loyalty_str", lambda: at.CostLoyalty("2")),  # type: ignore[arg-type]
         (
@@ -557,10 +556,10 @@ def test_explicit_empty_omit_fields_decode() -> None:
 
 
 def test_verb_role_table_pins() -> None:
-    # T4 P1a: MOVE_ZONE became the ONE move atom — objects ride one of
-    # cards/target/amount, with from/journal_kind/pop_order slots.
-    # re-pinned 2026-10-29: ontology R5-1 adds the optional "duration" role
-    # (CR 610.3, "exile ... until this creature leaves the battlefield").
+    # MOVE_ZONE is the ONE move atom: objects ride one of
+    # cards/target/amount, with from/journal_kind/pop_order slots and an
+    # optional duration (CR 610.3, "exile ... until this creature leaves the
+    # battlefield").
     assert at._VERB_ROLES[at.Verb.MOVE_ZONE] == {
         "destination": True,
         "cards": False,
@@ -641,8 +640,8 @@ def test_walk_visits_new_fields() -> None:
 
 
 def test_phase_in_prevention_item5() -> None:
-    # Item 5: "can't phase in" needs no grammar change — the composition is
-    # expressible in the pre-round-2 grammar and its fingerprint is pinned.
+    # Item 5: "can't phase in" is a composition of existing nodes; its
+    # fingerprint is pinned.
     node = _phase_in_prevention()
     assert at.fingerprint(node) == (
         "68e1909dc33bb2798b9212c3a6ebd6b2150009579f79bdac1e08586f3142b3a7"
@@ -654,10 +653,9 @@ def test_phase_in_prevention_item5() -> None:
 def test_ugin_dynamic_loyalty_item6() -> None:
     # Item 6: Ugin [−X] builds with a dynamic Quantity loyalty delta.
     node = _ugin_exile_dynamic()
-    # R1a canonicalization re-pin (2026-10-19, docs/DESIGN_ATOM_ONTOLOGY.md
-    # §3 SET-R1a): the ability's FAnd children construction-sort. Audited
-    # permutation-only: pre/post leaf multisets equal (5 leaves), so byte-order
-    # not content (old value f6c6c8ee342cbaccd7e10a7c04e55aa866be7d1e699e8842ed45d0dfbc47dfca).
+    # The ability's FAnd children are sorted at construction
+    # (docs/DESIGN_ATOM_ONTOLOGY.md §3): the bytes follow canonical order,
+    # not printed order.
     assert at.fingerprint(node) == (
         "65b7cd4f308a8a48bab9258ac85cdc219cd7d863d23b88387619dbd55949fb5f"
     )

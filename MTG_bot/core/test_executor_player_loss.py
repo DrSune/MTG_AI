@@ -1,17 +1,12 @@
-"""The player-loss state-based actions and the end of the game (2026-11-05).
+"""The player-loss state-based actions and the end of the game.
 
 CR 704.5a: a player with 0 or less life loses. CR 704.5b: a player who attempted to draw
 from an empty library since the last check loses. CR 704.3: the check happens whenever a
 player would receive priority, and in a two-player game a loss ends the game there (CR
 104.2a; both players at once is a draw, 104.4a). The engine raises :class:`GameOver` at that
 check, so nothing after it happens: no further act, no combat, no regular damage after a
-lethal first strike, no cleanup step after a lethal end step.
-
-Regressions for the 2026-11-05 whole-game audits: a player at -1 life kept acting, attacked,
-lifelinked back above 0 and won (41 of 1,000 games; invariant-hunt seed 478); the harness
-declared a deck-out loss one draw early, right after a player drew their last card (seed 427
-recorded a draw that was a seat-0 win), and a mid-turn draw from an empty library went
-unnoticed until the next draw step.
+lethal first strike, no cleanup step after a lethal end step. Drawing the last card is no
+loss; a later draw from the empty library is, at the check that follows it, mid-turn included.
 """
 
 from __future__ import annotations
@@ -75,7 +70,7 @@ class TestLifeLoss(LossCase):
     def test_lethal_first_strike_ends_the_game_before_regular_damage(self):
         # p1 at 2: the first striker's 2 kills p1 in the first damage step.
         # The regular step never happens, so p1's lifelink blocker cannot
-        # bring p1 back above 0 (it used to: p1 ended at 1 and lived).
+        # bring p1 back above 0.
         fencer = self.synth("Fencer", 2, 2, self.p0)
         grunt = self.synth("Grunt", 1, 3, self.p0)
         leech = self.synth("Leech", 1, 1, self.p1)
@@ -136,8 +131,7 @@ class TestSimultaneousTriggerOrder(LossCase):
     active player's Pitchburn Devils attacks into the other Devils, both die, and each dies
     trigger ("it deals 3 damage to any target") aims at the opponent. The non-active player's
     trigger resolves first, so the active player is at 0 at the check after it and loses
-    (CR 704.5a). The drain used to resolve by seat index, so seat 0 always won the race
-    (2 of 2,000 integration games ended in such a drain, rules red-team 2026-11-05)."""
+    (CR 704.5a), whichever seat is active."""
 
     def _race(self, active: int) -> None:
         ap, nap = self.world.player_order[active], self.world.player_order[1 - active]
@@ -170,10 +164,9 @@ class TestSimultaneousTriggerOrder(LossCase):
 class TestNoCheckInsideAResolution(LossCase):
     """CR 704.3: state-based actions are checked only when a player would receive priority,
     never while a spell or ability resolves, and CR 603.3: a triggered ability waits for
-    that moment too. A cost paid by an effect ("you may pay 2 life. If you do, ...") went
-    through legality.pay_costs, whose steps are public ops that each settled: the
-    player-loss check ran in the middle of the resolution and could end the game there,
-    and the triggers the payment caused resolved before the rest of the effect."""
+    that moment too. A cost paid by an effect ("you may pay 2 life. If you do, ...") goes
+    through legality.pay_costs mid-resolution: it runs no player-loss check there, and the
+    triggers the payment causes wait for the rest of the effect."""
 
     def test_paying_life_to_zero_then_gaining_it_back_is_no_loss(self):
         self.begin()
@@ -284,9 +277,8 @@ class TestTheGameEnds(LossCase):
         return Game(executor=self.ex, seed=0, pool_mode="all")
 
     def test_an_act_that_kills_its_caster_ends_the_game_before_combat(self):
-        # The audit's dead_combat line: at 3 life with a lifelink attacker,
-        # the active player casts Grim Tutor as its last act. It used to
-        # attack anyway, lifelink back to 1 and survive.
+        # At 3 life with a lifelink attacker, the active player casts Grim Tutor as its
+        # last act and loses at the check after it, so it never attacks to lifelink back.
         vessel = self.real("Archfiend's Vessel", self.p0)  # 1/1 lifelink
         tutor = self.real("Grim Tutor", self.p0, ZONE_HAND)
         stock_libraries(self.world, seats=[self.p0])
@@ -314,7 +306,7 @@ class TestTheGameEnds(LossCase):
         _play(game, policy, self.world.player_order, turn_cap=10)
         # p1 drew its last card on turn 2 and played on; it loses on turn 4,
         # at the check after its draw step, before any act of that turn. Each
-        # turn before has two act windows, one per main phase (CR 505.1, B-74).
+        # turn before has two act windows, one per main phase (CR 505.1).
         self.assertEqual(
             policy.windows,
             [(1, self.p0), (1, self.p0), (2, self.p1), (2, self.p1), (3, self.p0), (3, self.p0)],

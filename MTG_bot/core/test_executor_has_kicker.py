@@ -1,23 +1,21 @@
-"""HAS_KICKER on the 12c query surface (ZND-2 T4 first consumer, /98).
+"""HAS_KICKER on the query surface.
 
-The ZNR fuzz ledger (reports/znr_engine_smoke_2026-10-19.md, seed 10) crashed
-``HAS_KICKER not implemented (12c query surface)`` when Murasa Sproutling's
-kicked ETB asked "return card with a kicker ability from your graveyard":
-the TARGET selector's enumerate_candidates judged the filter against EVERY
-graveyard card and the bare raise fired on the first candidate.
+Murasa Sproutling's kicked ETB asks "return card with a kicker ability from
+your graveyard": the TARGET selector's enumerate_candidates judges the filter
+against EVERY graveyard card.
 
-The landing is the PRINTED-property reading: the ground truth is the card's
+The reading is the PRINTED property: the ground truth is the card's
 COMPILED record — a card HAS a kicker iff its FRONT-FACE ability tuple
 carries a KickerAbility node (the same top-level scan legality.kicker_of and
-the cast fold use, §9 one encoding). Records resolve through
-legality.spell_record (handle bridge, else oracle-id registry — the r20c
-hand-window pattern for cards off the battlefield).
+the cast fold use, one encoding). Records resolve through
+legality.spell_record (handle bridge, else oracle-id registry, for cards off
+the battlefield).
 
-Face law (/106): BackFace abilities live in the face's OWN tuple, which the
+Faces: BackFace abilities live in the face's OWN tuple, which the
 scan never descends — a back-face-only kicker does NOT satisfy HAS_KICKER
 for a front-face decision. Tokens: no compiled record (or is_token) ->
-False, never a raise. The honest 12c raise REMAINS for every other unknown
-pred (pinned here by a vocab scan).
+False, never a raise. The generic ``not implemented (12c query surface)``
+raise REMAINS for every other unknown pred (pinned here by a vocab scan).
 """
 
 from __future__ import annotations
@@ -64,7 +62,7 @@ def _kicker_selector() -> Selector:
 
 
 class HasKickerFilterTest(unittest.TestCase):
-    """The filter pred over graveyard candidates — the crash surface."""
+    """The filter pred over graveyard candidates."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -108,8 +106,8 @@ class HasKickerFilterTest(unittest.TestCase):
         )
 
     def test_enumerate_candidates_only_returns_kickers(self) -> None:
-        # The crash lane itself: legality.enumerate_candidates over the real
-        # compiled Murasa filter shape, mixed graveyard.
+        # legality.enumerate_candidates over the real compiled Murasa
+        # filter shape, mixed graveyard.
         kc = self._in_graveyard("Kitesail Cleric")
         crab = self._in_graveyard("Ruin Crab")
         cands = enumerate_candidates(_kicker_selector(), self.ctx())
@@ -117,10 +115,9 @@ class HasKickerFilterTest(unittest.TestCase):
         self.assertNotIn(crab, cands)
 
     def test_back_face_only_kicker_does_not_satisfy(self) -> None:
-        # /106 face law: a KickerAbility INSIDE a BackFace subtree is a face
-        # component — encoded, not playable, and NOT a front-face printed
-        # kicker. Synthesized record (the live ZNR pool has zero back-face
-        # kickers, census-verified this wave: 38 front, 0 back-only).
+        # A KickerAbility INSIDE a BackFace subtree is a face component —
+        # encoded, not playable, and NOT a front-face printed kicker.
+        # Synthesized record.
         rec = record_of(
             [BackFace(face_name="Kick Face", abilities=(KickerAbility(cost=_cost()),))],
             name="Face Kicker Only",
@@ -159,7 +156,7 @@ class HasKickerFilterTest(unittest.TestCase):
 
     def test_bare_ctx_flags_never_guesses(self) -> None:
         # flag-not-degrade: a bare ExecCtx (no executor -> no record
-        # registry) raises naming HAS_KICKER, not the generic 12c raise.
+        # registry) raises naming HAS_KICKER, not the generic raise.
         handle = self._in_graveyard("Ruin Crab")
         bare = ExecCtx(
             world=self.world,
@@ -174,10 +171,9 @@ class HasKickerFilterTest(unittest.TestCase):
         self.assertIn("HAS_KICKER", str(cm.exception))
 
     def test_unknown_pred_still_raises_12c(self) -> None:
-        # The honest raise REMAINS for genuinely unimplementable preds: only
-        # HAS_KICKER landed. Scanning the closed pred vocab (no shadow
-        # list), at least one other member still meets the generic 12c
-        # message.
+        # The generic raise REMAINS for preds the query surface cannot
+        # answer: scanning the closed pred vocab (no shadow list), at least
+        # one other member still meets its message.
         handle = self._in_graveyard("Ruin Crab")
         ctx = self.ctx()
         generic = []
@@ -193,7 +189,7 @@ class HasKickerFilterTest(unittest.TestCase):
             except NotImplementedError as exc:
                 if "not implemented (12c query surface)" in str(exc):
                     generic.append(pred)
-            except Exception:  # noqa: BLE001,S112 - non-12c shapes skipped
+            except Exception:  # noqa: BLE001,S112 - other shapes skipped
                 continue
         self.assertTrue(generic, "the 12c honest raise vanished from the whole vocab")
 

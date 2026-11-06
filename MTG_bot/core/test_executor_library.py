@@ -1,13 +1,13 @@
-"""Tests for the round-13a library/turn executor arc (KNOWLEDGE 11 §13a).
+"""Tests for the library and turn-flow verbs.
 
-Pins the new surface: DRAW (incl. the CR 121.2 empty-library no-op), SEARCH
-(bindings-first designation, deterministic CHOOSE / seeded RANDOM stand-ins,
-the Cultivate e2e), FLIP_COIN determinism + the FLIP_WON conditional across
-separate ability rows (Tavern Swindler), END_TURN / EXTRA_TURN / LOSE_GAME
-on the executor turn ledger, the loyalty ledger (Chandra, Flame's Catalyst:
-seeding, payment, CR 606.3 once-per-turn, the 0-loyalty death, the
-sorcery-phase window gate) and ``legal_search``; replay fingerprints stay
-a function of the sequence alone (P12).
+DRAW (incl. the CR 121.2 empty-library no-op), SEARCH (bindings-first
+designation, deterministic CHOOSE / seeded RANDOM stand-ins, the Cultivate
+e2e), FLIP_COIN determinism + the FLIP_WON conditional (Tavern Swindler),
+END_TURN / EXTRA_TURN / LOSE_GAME on the executor turn ledger, the loyalty
+ledger (Chandra, Flame's Catalyst: seeding, payment, CR 606.3
+once-per-turn, the 0-loyalty death, the sorcery-phase window gate) and
+``legal_search``; replay fingerprints stay a function of the sequence
+alone.
 """
 
 import dataclasses
@@ -102,7 +102,7 @@ def atom(verb, **roles):
 
 
 def golden(name: str) -> dict:
-    """The committed golden IR dict for a card name (PC-4 stable file)."""
+    """The committed golden IR dict for a card name."""
     if not _GOLDENS:
         for path in _GOLDEN_DIR.glob("*.json"):
             d = json.loads(path.read_text(encoding="utf-8"))
@@ -186,8 +186,7 @@ class TestDraw(LibraryCase):
     def test_draw_on_empty_library_moves_nothing_and_loses_at_the_check(self):
         # The DRAW verb itself moves nothing from an empty library; the player
         # who attempted it loses at the state-based-action check after the op
-        # (CR 704.5b), which ends a two-player game (CR 104.2a). Until
-        # 2026-11-05 the loss never came: no state check had the lane.
+        # (CR 704.5b), which ends a two-player game (CR 104.2a).
         with self.assertRaises(GameOver):
             self._do(
                 atom(Verb.DRAW, controller=ControllerRef.OPPONENT, amount=QConst(3)),
@@ -256,8 +255,7 @@ class TestSearchUnit(LibraryCase):
     def test_search_without_designation_or_selector_raises(self):
         with self.assertRaises(ValueError):
             self._do(atom(Verb.SEARCH, destination=BF_YOU))
-        # AMENDED 14c (B-13): ONE_OF SEARCH is no longer an unsupported
-        # mode — it asks the decision channel (Handle-sorted candidate
+        # ONE_OF SEARCH asks the decision channel (Handle-sorted candidate
         # vocabulary); with no lane able to answer the ask exhausts to a
         # loud ValueError, never a guessed pick.
         with self.assertRaises(ValueError):
@@ -313,8 +311,8 @@ class TestBadDeal(unittest.TestCase):
         inner = golden("Bad Deal")["abilities"][0]["effect"]["steps"]
         seq_inner = [from_dict("Atom", s) for s in inner[0]["steps"]]
         lose_life = from_dict("Atom", inner[1])
-        # T4 P1a: the golden's discard row is the merged MOVE_ZONE atom
-        # (destination=GY, from=HAND) — same behavior, merged shape.
+        # The golden's discard row is the merged MOVE_ZONE atom
+        # (destination=GY, from=HAND).
         self.assertEqual([a.verb.name for a in seq_inner], ["DRAW", "MOVE_ZONE"])
         fire = lambda n: self.ex.execute(n, source=self.p0, controller=self.p0)
         fire(seq_inner[0])  # DRAW 2 (YOU = p0)
@@ -394,17 +392,15 @@ class TestFlipCoin(LibraryCase):
             eval_filter(FLIP_WON_YOU, self.p0, bare)  # no executor at all
 
     def test_tavern_swindler_e2e_flip_then_conditional_gain(self):
-        """AMENDED 2026-09-30 (round 14e, B-17): the golden is ONE ability
-        row now — the activation owns the flip AND its winner-gate tail
-        (Seq(FLIP_COIN; IF(FLIP_WON)→GAIN_LIFE)); the 13a two-row split
-        (tail parked on a card-level SpellAbility, raising at cast) was the
-        ruled miscompile. The whole activation runs in ONE apply_effect; the
-        gate is still judged off the executor's flip ledger."""
+        """The golden is ONE ability row: the activation owns the flip AND
+        its winner-gate tail (Seq(FLIP_COIN; IF(FLIP_WON)→GAIN_LIFE)). The
+        whole activation runs in ONE apply_effect; the gate is judged off
+        the executor's flip ledger."""
         rec = golden("Tavern Swindler")["abilities"]
         self.assertEqual(
             [a["tag"] for a in rec], ["ActivatedAbility", "SpellAbility"]
-        )  # the 13a tail row is GONE (capture); the second row is the C4
-        # effect-less SpellAbility(CREATURE) cast carrier, not an effect.
+        )  # the second row is the effect-less SpellAbility(CREATURE) cast
+        # carrier, not an effect.
         self.assertNotIn("effect", rec[1])
         self.assertEqual(rec[1]["kind"]["name"], "CREATURE")
         whole = from_dict("Seq", rec[0]["effect"])
@@ -434,8 +430,8 @@ class TestEndTurn(LibraryCase):
         self._do(atom(Verb.END_TURN))
         self.assertFalse(self.ex.turn_open)
         self.assertEqual(self.ex.phase, "END_TURN")
-        # re-pinned 2026-10-29: V37 changes "end the turn": the game skips the
-        # end step (CR 724.1d-e), so no END_TURN marker is journalled (was 1).
+        # "End the turn" skips the end step (CR 724.1d-e), so no END_TURN
+        # marker is journalled.
         self.assertEqual(self._markers().count("END_TURN"), 0)
         self.assertFalse(self.ex.end_turn_requested)  # consumed at the op edge
 
@@ -444,8 +440,8 @@ class TestEndTurn(LibraryCase):
         self.ex.begin_turn(self.p0)
         self._do(atom(Verb.END_TURN))
         self.ex.advance_turn()
-        # re-pinned 2026-10-29: V37 changes "end the turn": no end step, so no
-        # END_TURN marker at all (was 1), and advance_turn adds none.
+        # "End the turn" has no end step, so no END_TURN marker at all, and
+        # advance_turn adds none.
         self.assertEqual(self._markers().count("END_TURN"), 0)
         self.assertIs(self.world.active_player, self.p1)
         self.assertEqual(self.ex.phase, "FIRST_MAIN")
@@ -454,8 +450,7 @@ class TestEndTurn(LibraryCase):
 class TestFirstTurnDraw(LibraryCase):
     """CR 103.8a: in a two-player game the player who plays first skips the
     draw step of their first turn; 103.8c: in other multiplayer games nobody
-    skips it. Regression (2026-11-05 invariant audit: the starting player drew
-    on turn 1; seat 0 won 59.8% of heuristic mirrors, 55.3% with the skip)."""
+    skips it."""
 
     def drawn(self, player):
         return [e for e in self.journal_rows("CARD_DRAWN") if e.data[0] == player]
@@ -484,11 +479,9 @@ class TestFirstTurnDraw(LibraryCase):
 
 class TestUpkeepBeforeDraw(LibraryCase):
     """CR 503.1a, 504.1: the abilities that trigger at the beginning of the
-    upkeep resolve in the upkeep step, before the draw step's draw.
-    Regression (2026-11-05, Rotting Regisaur's "At the beginning of your
-    upkeep, discard a card."): the draw came first, so the discard could take
-    the card just drawn (stronger than printed), and with an empty hand at
-    upkeep it discarded the draw (weaker)."""
+    upkeep resolve in the upkeep step, before the draw step's draw: Rotting
+    Regisaur's "At the beginning of your upkeep, discard a card." can never
+    take the card the draw step brings."""
 
     def regisaur(self):
         # The M20 mapping draft's IR for the trigger, on a test creature.
@@ -665,7 +658,7 @@ class TestLoyaltyLedger(LibraryCase):
         self.assertEqual([r.data for r in rows], [("LOYALTY", 1)])
 
     def test_minus_two_pays_and_sets_the_clock(self):
-        self.activate_pw(1, decisions=["skip"])  # −2, skip the CAST (13b)
+        self.activate_pw(1, decisions=["skip"])  # −2, skip the CAST
         self.assertEqual(self.loyalty(), 3)
         self.assertEqual(self.loyalty_clock_for_pw(), self.world.turn)
 
@@ -718,18 +711,16 @@ class TestLoyaltyLedger(LibraryCase):
 
         self.ex.attach_card(art, urn_cost(-1))
         self.assertNotIn(CounterKind.LOYALTY.name, self.world.cards[art].counters)
-        # AMENDED (round 13b — the flip this pin invited): 13a's guard only
-        # fired for delta < 0 and it reported a SHORTAGE ("0<1") on a card
-        # with no loyalty identity at all. CR 606.1b gates the SOURCE, not
-        # the amount: an artifact with no printed loyalty and no LOYALTY
-        # counters cannot pay a loyalty cost of EITHER sign, and the reason
-        # names why — not_planeswalker, not a bogus 0<1 shortfall.
+        # CR 606.1b gates the SOURCE, not the amount: an artifact with no
+        # printed loyalty and no LOYALTY counters cannot pay a loyalty cost
+        # of EITHER sign, and the reason names why — not_planeswalker, not a
+        # 0<1 shortfall.
         self.assertEqual(
             ability_playable(self.world, self.ex, art, 0, seat=self.p0),
             "cost:loyalty:not_planeswalker",
         )
-        # The +1 side (13a's KNOWN MISMATCH, payable and landing a LOYALTY
-        # counter on an artifact) is closed by the same symmetric guard.
+        # The +1 side (which would land a LOYALTY counter on an artifact) is
+        # refused by the same symmetric guard.
         self.ex.attach_card(art, urn_cost(+1))
         self.assertEqual(
             ability_playable(self.world, self.ex, art, 0, seat=self.p0),
@@ -810,7 +801,7 @@ class TestLoyaltyXLane(LibraryCase):
     def test_announced_x_is_paid_and_journalled(self):
         activate(self.ex, self.ugin, self.MINUS_X, seat=self.p0, x=2)
         self.assertEqual(self.loyalty(), 5)
-        # re-pinned 2026-10-30: R5-7's ABILITY_ACTIVATED row (idx, mana, delta)
+        # the ABILITY_ACTIVATED row: (idx, mana, delta)
         rows = self.journal_rows("ABILITY_ACTIVATED")
         self.assertEqual([r.data for r in rows], [(self.MINUS_X, False, -2)])
         self.assertEqual([w for w, _ in self.asks if w.startswith("x:")], [])
@@ -834,7 +825,7 @@ class TestLoyaltyXLane(LibraryCase):
             ability_playable(self.world, self.ex, self.ugin, 0, seat=self.p0),
             "window:loyalty:once_per_turn",
         )
-        # re-pinned 2026-10-30: R5-7's ABILITY_ACTIVATED row (idx, mana, delta)
+        # the ABILITY_ACTIVATED row: (idx, mana, delta)
         rows = self.journal_rows("ABILITY_ACTIVATED")
         self.assertEqual([r.data for r in rows], [(self.MINUS_X, False, 0)])
 
@@ -968,7 +959,7 @@ class TestSorceryPhaseGate(LibraryCase):
         for phase in ("UPKEEP", "COMBAT", "END_TURN"):
             self.ex.phase = phase
             self.assertEqual(self.playable(), "window:sorcery:phase")
-        # B-74 (CR 505.1, 602.5d): "activate only as a sorcery" holds in both main phases
+        # CR 505.1, 602.5d: "activate only as a sorcery" holds in both main phases
         for phase in ("FIRST_MAIN", "SECOND_MAIN"):
             self.ex.phase = phase
             self.assertEqual(self.playable(), None)
@@ -1032,24 +1023,7 @@ class TestReplayDeterminism(unittest.TestCase):
 
 class TestCapabilitySurface(unittest.TestCase):
     def test_v2_derives_the_growth_set_v1_stays_frozen(self):
-        # AMENDED (round 13b): the derivation grew five more — the cast-
-        # side flip set (PAY, CAST, CHOOSE, CHOOSE_NAME, MANA_POLICY).
-        # V1 stays the frozen round-12 contract (24); COUNTER_SPELL is
-        # deliberately NOT in the growth: no interaction window in v1.
-        # AMENDED 2026-09-30 (round 13c): four more — the permissions
-        # flip set (GET_EMBLEM, GRANT_TYPE, GRANT_ACTIVATION,
-        # ADD_LAND_PLAY), 35 -> 39. PHASE_OUT (Teferi's co-verb) stays
-        # out: its handler is 13d's, not this round's.
-        # AMENDED 2026-09-30 (round 16a): one more — the damage-exchange
-        # orphan verb FIGHT (CR 701.12), 39 -> 40.  Brash Taunter's
-        # activation and Primal Might's fight row both dispatch through
-        # HANDLERS[Verb.FIGHT] now; nothing else left the frozen V1 set.
-        # AMENDED (round 16b): one more — the attack-mandate rule verb
-        # MANDATE_ATTACK (CR 508.1 "attacks each combat if able"), 40 ->
-        # 41.  The gate picked up EXACTLY its three carriers (probe: gated
-        # compile at 41 vs 40): Furor of the Bitten, Pursued Whale and
-        # the Pirate token; zero losses, deckable set UNCHANGED (none of
-        # the three is SpellAbility-playable, NUMBERS 2026-10-01).
+        # The live set (the dispatch table) beyond the frozen first 24.
         new = {
             Verb.DRAW,
             Verb.SEARCH,
@@ -1068,33 +1042,19 @@ class TestCapabilitySurface(unittest.TestCase):
             Verb.ADD_LAND_PLAY,
             Verb.FIGHT,
             Verb.MANDATE_ATTACK,
-            # 16c: the blocker side of the combat capability — the must-
-            # block mandate, and the Herald's assignment policy verb.
             Verb.MANDATE_BLOCK,
             Verb.DAMAGE_ASSIGN_POLICY,
-            # 16e: the control overlay (Traitorous Greed, Enthralling Hold)
-            # and the equip/aura attachment verb on the attachments table.
             Verb.GAIN_CONTROL,
             Verb.ATTACH,
-            # RUNG-1 (response-window arc): the counter verb joins with
-            # the stack.cast response window (Cancel, Miscast, Rewind,
-            # Lofty Denial leave deferral).
             Verb.COUNTER_SPELL,
-            # T5-D (Sanctum of All family): the extra-trigger verb joins
-            # with the AbilityTriggerEvent fan-out.
             Verb.TRIGGER_ADDITIONAL,
-            # re-pinned 2026-10-29: PHASE_OUT joins with the CR 702.26
-            # phased-out status (both Teferis leave deferral; PHASE_IN has
-            # no carrier and stays out).
             Verb.PHASE_OUT,
         }
         self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
-        self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # the round-12 freeze
+        self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # V1 never widens
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        # T4 P1a: 46 -> 43 — EXILE/DISCARD/MILL moved off the live HANDLERS
-        # set onto the merged MOVE_ZONE dispatch (enum members kept for
-        # legacy decode only).
-        # re-pinned 2026-10-29: 44 -> 45, PHASE_OUT (CR 702.26).
+        # EXILE/DISCARD/MILL are in V1 but have no handler: they run through
+        # the merged MOVE_ZONE dispatch.
         self.assertEqual(len(SUPPORTED_VERBS_V2), 45)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):

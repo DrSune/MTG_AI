@@ -1,18 +1,17 @@
-"""R1a construction-normalization law — docs/DESIGN_ATOM_ONTOLOGY.md §3
-(SET-R1a rows), §3 O3 (sort AT CONSTRUCTION, ``AtomArgs.pairs`` :2541
-precedent), §6 identity law.
+"""Construction normalization of the SET-R1a fields — docs/DESIGN_ATOM_ONTOLOGY.md
+§3 (the field table and the O3 set law) and §6 (identity law).
 
 Every SET-R1a field is sorted at construction (frozen ``__post_init__`` +
-``object.__setattr__``); ``FAnd``/``FOr`` additionally splice same-class
-children. A single-child filter node is KEPT by the node (it cannot replace
-itself in its parent) — the unwrap lives at the compiler emission site and
-checker V2′ forbids new emission, so these tests pin BOTH halves of that
-division of labour.
+``object.__setattr__``, like ``AtomArgs.pairs``); ``FAnd``/``FOr`` additionally
+splice same-class children. A single-child filter node is KEPT by the node (it
+cannot replace itself in its parent) — the unwrap lives at the compiler emission
+site and the checker's V2′ rule (tools/audit/ontology_conformance.py) forbids new
+emission, so these tests pin BOTH halves of that division of labour.
 
-The final section is the R1a diff-gate B3 EXECUTION PIN: the two
-behaviour-changed cards (Negate, Dauntless Survivor) run through the REAL
-executor — compiled from the pool with the CURRENT compiler, cast on the
-real stack, effect outcomes OBSERVED (never shape-only assertions).
+The final section runs the two cards the unwrap reshapes (Negate, Dauntless
+Survivor) through the REAL executor — compiled from the pool with the CURRENT
+compiler, cast on the real stack, effect outcomes OBSERVED (never shape-only
+assertions).
 """
 
 from __future__ import annotations
@@ -114,7 +113,7 @@ def test_same_class_child_is_spliced():
 
 
 def test_cross_class_child_is_NEVER_spliced():
-    """De Morgan shapes are real structure, not a duplicate layer (§3)."""
+    """De Morgan shapes are real structure, not a duplicate layer."""
     a, b = _fa("Cat"), _fa("Bird")
     inner = at.FOr((a, b))
     outer = at.FAnd((inner,))
@@ -125,7 +124,7 @@ def test_cross_class_child_is_NEVER_spliced():
 
 
 def test_single_child_node_is_kept_by_the_node():
-    """A node cannot replace itself in its parent: the KEEP-half of the R1a
+    """A node cannot replace itself in its parent: the KEEP-half of the
     law. Emission-side unwrap is the compiler's job (V2′ polices it)."""
     a = _fa("Cat")
     one = at.FAnd((a,))
@@ -197,7 +196,7 @@ def test_etbstate_initial_counters_sorted_by_canonical_json():
         )
     )
     assert canonical_json(e) == canonical_json(other)
-    with pytest.raises(ValueError):  # the no-op rejection is untouched
+    with pytest.raises(ValueError):  # a no-op EtBState is rejected
         at.EtBState(tapped=False, initial_counters=())
 
 
@@ -214,7 +213,7 @@ def test_cardrecord_keywords_sorted_and_order_free():
 
 
 def test_cardrecord_printed_identity_fields_keep_printed_order():
-    """§3 IDENTITY rows: oracle-printed fidelity is NOT normalized (§11)."""
+    """IDENTITY fields: oracle-printed fidelity is NOT normalized."""
     card = _card(
         types=("Creature", "Legend"),
         subtypes=("Cat", "Tiger"),
@@ -275,7 +274,7 @@ def test_tokenspec_compiler_emitted_containers_are_sorted():
 
 
 # --------------------------------------------------------------------------
-# Fields R1a must NOT touch (TIME / MENU / OPERATOR / SET-R1b)
+# Fields outside SET-R1a (TIME / MENU / OPERATOR / SET-R1b)
 # --------------------------------------------------------------------------
 def test_seq_steps_and_choose_options_keep_their_order():
     a, b = _tap("Cat"), _untap("Bird")
@@ -289,21 +288,21 @@ def test_seq_steps_and_choose_options_keep_their_order():
 
 
 def test_r1b_fields_are_canonicalised_and_operator_fields_untouched():
-    """R1b has SHIPPED: Cost.parts / additional_costs / hybrid colors are now
-    construction-sorted (spec 136). Operator fields (KeywordAbility.params)
-    stay untouched — params order is an operator axis, not a cost axis."""
+    """The SET-R1b fields (Cost.parts / additional_costs / hybrid colors) are
+    construction-sorted too. Operator fields (KeywordAbility.params) are not —
+    params order is an operator axis, not a cost axis."""
     generic = at.CostManaGeneric(amount=at.QConst(2))
     tap = at.CostTap()
-    # R1b canonicalization: construction-sort by canonical tag (mana before tap).
+    # sorted at construction by canonical tag (mana before tap)
     assert at.Cost((tap, generic)).parts == (generic, tap)
     hybrid = at.CostManaHybrid(colors=("U", "R"), amount=at.QConst(1))
-    assert hybrid.colors == ("R", "U")  # R1b canonicalization: colors sorted
+    assert hybrid.colors == ("R", "U")  # colors sorted
     spell = at.SpellAbility(
         kind=at.SpellKind.CREATURE,
         effect=None,
         additional_costs=(at.Cost((tap,)), at.Cost((generic,))),
     )
-    # R1b canonicalization: additional_costs construction-sorted.
+    # additional_costs sorted at construction
     assert spell.additional_costs == (at.Cost((generic,)), at.Cost((tap,)))
     params = at.KeywordAbility(keyword=at.Keyword.SCRY, params=(at.QConst(1),))
     assert params.params == (at.QConst(1),)
@@ -367,7 +366,7 @@ def test_fand_validation_order_of_checks_unchanged():
 
 
 # ===========================================================================
-# B3 EXECUTION PINS (R1a diff gate): the two behaviour-changed cards, REAL
+# EXECUTION PINS: the two cards the single-child unwrap reshapes, REAL
 # compiled records, REAL stack, OBSERVED outcomes. The unwrap (FAnd[FNot] ->
 # FNot, FAnd[FAtom] -> FAtom) must be EXECUTION-IDENTICAL, not shape-only.
 # ===========================================================================
@@ -401,7 +400,7 @@ def _target_selector(rec):
 
 
 class TestUnwrapExecution(Rung1Case):
-    """Gate B3: Negate and Dauntless Survivor run on the real executor."""
+    """Negate and Dauntless Survivor run on the real executor."""
 
     def _give_real(self, rec, seat):
         """World card + the REAL compiled record attached (oracle bridge)."""
@@ -423,9 +422,9 @@ class TestUnwrapExecution(Rung1Case):
 
     # ------------------------------------------------- static halves of the pin
     def test_negate_filter_is_the_bare_unwrapped_fnot(self):
-        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into Negate's
-        # target, so the filter is a 2-child FAnd; the pin's purpose stands:
-        # no 1-child wrapper, and the negation inside is the bare FNot.
+        # Negate's target ANDs STACK_KIND_EQ SPELL with the negation, so the
+        # filter is a 2-child FAnd: no 1-child wrapper, and the negation
+        # inside is the bare FNot.
         sel = _target_selector(_compiled_znr("Negate"))
         self.assertIsInstance(sel.filter, at.FAnd)
         self.assertEqual(len(sel.filter.children), 2)  # NOT FAnd[FNot]

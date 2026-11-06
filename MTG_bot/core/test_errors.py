@@ -3,7 +3,8 @@
 The point of these tests is the contract, not the classes: every engine
 failure is a *typed* exception that is a subclass of EngineError, carries a
 message, and can carry machine-readable context. That is what lets the EC-1
-gate turn "the engine threw" into a diagnosis instead of a swallowed log line.
+gate (docs/METRICS.md) turn "the engine threw" into a diagnosis instead of a
+swallowed log line.
 """
 
 import unittest

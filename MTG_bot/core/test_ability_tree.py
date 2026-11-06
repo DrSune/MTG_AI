@@ -1,7 +1,5 @@
 """Tests for the typed ability-tree grammar (MTG_bot/core/ability_tree.py).
 
-Covers the task's required suite:
-
 - round-trip to_dict / from_dict / canonical_json / fingerprint for every
   node type (parametrized over a full node catalogue);
 - canonical_json determinism across different construction orders;
@@ -9,7 +7,9 @@ Covers the task's required suite:
 - walk() visiting every node exactly once on a nested sample;
 - immutability (FrozenInstanceError);
 - __post_init__ validation failures (negative QConst, empty Seq, bad
-  zone/controller, bad predicate args, bad quantity in arithmetic, ...);
+  zone/controller, bad predicate args, bad quantity in arithmetic, ...)
+  and from_dict strictness;
+- the closed vocabularies (verb count, keyword set, FAtom rule rows);
 - full synthetic CardRecords: a Tarmogoyf-like creature (SET_PT with
   QCount over a Selector across all graveyards, subtype filter), a
   planeswalker with loyalty + emblem, and a token creator (CREATE_TOKEN
@@ -621,9 +621,8 @@ def _all_nodes() -> list[tuple[str, object]]:
             "DeclareBlockersEvent",
             at.DeclareBlockersEvent(at.FAtom(at.FAtomPred.IS_SOURCE)),
         ),
-        # R2 fold (/140): CombatDamageEvent deleted — DamageDealtEvent
-        # (below) is the single damage host; the folded shape is pinned
-        # in the two entries the fold produced.
+        # Combat damage has no event of its own: it is DamageDealtEvent
+        # (below) with combat=True, pinned in the TriggeredAbility entry.
         (
             "CounterPlacedEvent",
             at.CounterPlacedEvent(
@@ -868,7 +867,7 @@ def _all_nodes() -> list[tuple[str, object]]:
         (
             "TriggeredAbility",
             at.TriggeredAbility(
-                # R2 fold (/140): folded combat-damage shape (ex-CDE).
+                # combat damage: DamageDealtEvent with combat=True
                 at.DamageDealtEvent(
                     at.QUnbounded(), at.FAnd(()), at.FAtom(at.FAtomPred.IS_SOURCE), True
                 ),
@@ -1249,8 +1248,8 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
                 ),
             ),
         ),
-        # re-pinned 2026-10-30: R5-7 makes the int 0 legal (a [0] loyalty
-        # ability, CR 606.2/606.4); QConst(0), its twin spelling, stays refused.
+        # The int 0 is legal (a [0] loyalty ability, CR 606.2/606.4);
+        # QConst(0), its twin spelling, is refused.
         ("CostLoyalty QConst zero", lambda: at.CostLoyalty(at.QConst(0))),
         ("CostManaHybrid same colour", lambda: at.CostManaHybrid(("W", "W"), q)),
         ("CostManaHybrid bad colour", lambda: at.CostManaHybrid(("W", "X"), q)),
@@ -1269,7 +1268,7 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
         (
             "TriggeredAbility bad condition",
             lambda: at.TriggeredAbility(
-                # R2 fold (/140): folded combat-damage shape (ex-CDE).
+                # combat damage: DamageDealtEvent with combat=True
                 at.DamageDealtEvent(
                     at.QUnbounded(),
                     at.FAnd(()),
@@ -1580,11 +1579,9 @@ def test_atom_args_roundtrip_wraps_values() -> None:
 
 
 def test_verb_count_in_spec_range() -> None:
-    # DESIGN_CARD_POOL: ~60 verbs planned; the M21-hypothesised subset must
-    # sit in the 30-45 band the rebuild pre-registered. Grammar round 8
-    # (KNOWLEDGE 2026-09-28/08, R8-7/R8-8) added GET_EMBLEM + ADD_LAND_PLAY,
-    # taking the vocabulary to 46 — the ceiling widens to 50 (still below
-    # the ~60 plan) so the guard keeps its teeth.
+    # docs/DESIGN_CARD_POOL.md plans roughly 60 verbs; a ceiling below that
+    # keeps the closed vocabulary from growing unnoticed (raising it is a
+    # deliberate edit).
     assert 30 <= len(at.Verb) <= 50
 
 

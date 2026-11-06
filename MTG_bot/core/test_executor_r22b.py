@@ -1,20 +1,23 @@
-"""r22b: the three damage/draw/counter replacement consumers (wave5a fixes).
-
-Covers the apply-pipeline lanes the suspect cohort needed:
+"""The damage, draw and counter replacement consumers.
 
 * Fiery Emancipation — the DamageDealtEvent MODIFY idiom (the action is a
   DEAL_DAMAGE whose quantity rewrites the event's: 1 -> 3), both the
   player lane and the permanent lane, with the CONTROLLER_IS source
-  filter polarity (an opponent-sourced hit is NOT tripled), the CR 616.1
-  two-records-apply raise, and the player-idiom filter skipping the card
-  lane (Nine Lives' "to you" never vetoes creature damage).
-* The CONSUME doctrine regression (Nine Lives shape): a non-DEAL_DAMAGE
-  action still consumes the event — the damage never applies, the action
-  runs in the executor drain.
+  filter polarity (an opponent-sourced hit is NOT tripled), two such
+  records applying in turn (CR 616.1e-f), and the player-idiom filter
+  skipping the card lane (Nine Lives' "to you" never vetoes creature
+  damage).
+* The CONSUME doctrine (Nine Lives shape): a non-DEAL_DAMAGE action
+  consumes the event — the damage never applies, the action runs in the
+  executor drain.
+* CR 616.1: when the order of several replacements matters, the affected
+  player (or the affected object's controller) chooses it through the
+  decision channel.
 * Teferi's Ageless Insight — the CardDrawnEvent lane: the draw-step
   FIRST draw is never replaced (NOT_FIRST_DRAW_THIS_STEP reads the
-  executor's draw-step register), a main-phase draw IS replaced, and the
-  replaced draw never touches the library.
+  executor's draw-step register), a main-phase draw IS replaced, the
+  replaced draw never touches the library, and two Insights make one draw
+  four cards.
 * Conclave Mentor — the CounterPlacedEvent lane: the queued 4-tuple
   carries the receiving card and the event's count, so the action's
   ``ADD(QProp(event, COUNTER_COUNT), 1)`` lands 2 counters; a different
@@ -230,10 +233,9 @@ class TestFieryDamageModify(R22bCase):
         self.assertEqual(self.world.zone_of(self.brute).kind, ZONE_BATTLEFIELD)
 
     def test_two_records_both_apply_cr_616_1(self):
-        # re-pinned 2026-11-05 (B-69): this asserted the NotImplementedError raise. CR 616.1e-f:
-        # once one replacement applies, the ones still applicable apply in turn, each once (CR
-        # 614.5): 2 -> 6 -> 18. Either order gives 18, so nobody is asked (no provider here: an
-        # ask would raise).
+        # CR 616.1e-f: once one replacement applies, the ones still applicable apply in turn,
+        # each once (CR 614.5): 2 -> 6 -> 18. Either order gives 18, so nobody is asked (no
+        # provider here: an ask would raise).
         self._fiery(self.p0, "Fiery")
         self._fiery(self.p0, "Fiery Two")
         self._damage(self.brute, self.p1, 2, self.p0)
@@ -273,9 +275,9 @@ class TestFieryDamageModify(R22bCase):
 
 class TestConsumeDoctrine(R22bCase):
     def test_non_damage_action_consumes_the_event(self):
-        # The Nine Lives doctrine keeps working after the r22b rewrite: a
-        # record whose action is NOT a DEAL_DAMAGE consumes the damage —
-        # the life total never moves, the action runs in the drain.
+        # The Nine Lives doctrine: a record whose action is NOT a
+        # DEAL_DAMAGE consumes the damage — the life total never moves, the
+        # action runs in the drain.
         handle = self._card("Guardian", None, None, self.p0)
         self._attach(
             handle,
@@ -300,7 +302,7 @@ class TestConsumeDoctrine(R22bCase):
 
 
 class TestCr6161Choice(R22bCase):
-    """B-69 (2026-11-05): CR 616.1. When two or more replacement effects would modify how one
+    """CR 616.1: when two or more replacement effects would modify how one
     damage event affects a player or an object, the affected player, or the controller of the
     affected object, chooses one to apply; then the ones still applicable are checked again
     (616.1e-f). The choice is asked through the decision channel, of that player
@@ -386,7 +388,8 @@ class TestCr6161Choice(R22bCase):
         # Seat 1's Fiery and seat 0's Nine Lives both apply to damage to seat 0. Whatever the
         # order, Nine Lives applies last (616.1f: it still applies after the triple) and its
         # action never reads the amount, so the choice has no consequence and is not asked
-        # (AGENTS §10): Nine Lives consumes the event as dealt.
+        # (AGENTS.md §10: a choice with no consequence is not a decision): Nine Lives consumes
+        # the event as dealt.
         self._fiery(self.p1)
         lives = self._lives(self.p0, "Lives")
         asks = self._answer(lives)
@@ -458,8 +461,7 @@ class TestTeferiDrawLane(R22bCase):
     def test_two_insights_make_one_draw_four(self):
         # CR 121.2, 614.5: each Insight replaces a single card draw once; the first turns the
         # draw into two draws, and the second replaces each of those, so one draw is four
-        # cards (the ruling for Teferi's Ageless Insight; it used to give two: the second
-        # replaced the "draw two" as one event).
+        # cards (the ruling for Teferi's Ageless Insight).
         self._teferi(self.p0)
         self._teferi(self.p0)
         for name in ("Lib-A", "Lib-B", "Lib-C", "Lib-D", "Lib-E", "Lib-F"):

@@ -1,19 +1,18 @@
-"""ZND-4d pins: attached-static registration MUST carry the atom's
-``duration``-role :class:`DurationWhileCondition` into the LayerRecord.
+"""Attached-static registration MUST carry the atom's ``duration``-role
+:class:`DurationWhileCondition` into the LayerRecord.
 
-The b4-era while-templates encode the "as long as" gate INSIDE the atom's
-duration role (b2a precedent reserved ``StaticAbility.condition`` for the
-plain lane). Registration used to carry ONLY ``StaticAbility.condition``,
-so the duration-shape statics were EVER-LIVE (gate-confirmed: 4/4 Predatory
-Wurm reading 6/6 with NO Garruk planeswalker on the battlefield).
+The while-templates encode the "as long as" gate INSIDE the atom's duration
+role. A registration that read only ``StaticAbility.condition`` would make
+those statics EVER-LIVE (a 4/4 Predatory Wurm reading 6/6 with NO Garruk
+planeswalker on the battlefield).
 
-Every census card (compiled-pool census, both eras, 2026-10-19):
-  * Predatory Wurm    — MODIFY_PT while (your Garruk planeswalker) [affected]
-  * Sigiled Contender — GRANT_ABILITY LIFELINK while (+1/+1 counter) [affected]
+The M21 cards pinned here:
+  * Predatory Wurm    — MODIFY_PT while (your Garruk planeswalker)
+  * Sigiled Contender — GRANT_ABILITY LIFELINK while (+1/+1 counter)
   * Drowsing Tyrannodon — LOSE_ABILITY DEFENDER while (creature with power
-    >= 4); mirrors the gate in StaticAbility.condition too — UNAFFECTED,
-    pinned here as the double-gate regression guard.
-ZNR: zero duration-role statics (census-verified, both sets, "all" mode).
+    >= 4); it mirrors the gate in StaticAbility.condition too, so it pins
+    that the two gates agree.
+Plus the registration contract on synthetic statics.
 """
 
 from __future__ import annotations
@@ -92,8 +91,9 @@ IS_SELF = FAtom(FAtomPred.IS_SOURCE)
 
 
 def self_pump(**roles) -> Atom:
-    """A compiled-shape "+1/+1 of self" MODIFY_PT atom (b4 self-target
-    selector), with any extra roles (the duration lane) bolted on."""
+    """A compiled-shape "+1/+1 of self" MODIFY_PT atom (the templates'
+    self-target selector), with any extra roles (the duration lane) bolted
+    on."""
     return atom(
         Verb.MODIFY_PT,
         target=Selector(QConst(1), SelectorMode.CHOOSE, IS_SELF, zones=(BF_ANY,)),
@@ -163,8 +163,8 @@ class TestPredatoryWurmWhileGarruk(DurationRoleCase):
     NAME = "Predatory Wurm"
 
     def test_named_repro_no_garruk_never_buffs(self) -> None:
-        # The gate-confirmed repro (ZND-4d): with the duration role dropped
-        # at registration this reads (6, 6) — EVER-LIVE with no Garruk.
+        # With the duration role dropped at registration this reads (6, 6)
+        # — EVER-LIVE with no Garruk.
         wurm = self.play(self.NAME)
         self.settle()
         self.assertEqual(self.pt(wurm), (4, 4), "no Garruk => no +2/+2")
@@ -183,8 +183,7 @@ class TestPredatoryWurmWhileGarruk(DurationRoleCase):
 
     def test_opponent_garruk_never_gates_on(self) -> None:
         # CONTROLLER_IS YOU is part of the gate: the ENEMY Garruk must not
-        # pump — the direction the predatory_wurm.json gold collapsed into
-        # 6/6-via-opp-Garruk by the ever-live bug.
+        # pump.
         wurm = self.play(self.NAME)
         self.play("Garruk, Unleashed", seat=self.world.player_order[1])
         self.assertEqual(self.pt(wurm), (4, 4), "opponent's Garruk is not yours")
@@ -209,7 +208,7 @@ class TestSigiledContenderWhileCounter(DurationRoleCase):
     NAME = "Sigiled Contender"
 
     def test_named_repro_no_counter_no_lifelink(self) -> None:
-        # Pre-fix this reads True — EVER-LIVE lifelink with no counter.
+        # An ever-live static would grant lifelink with no counter.
         contender = self.play(self.NAME)
         self.settle()
         self.assertFalse(
@@ -241,9 +240,8 @@ class TestSigiledContenderWhileCounter(DurationRoleCase):
 
 
 class TestDrowsingTyrannodonDoubleGate(DurationRoleCase):
-    """UNAFFECTED card (its gate is mirrored in StaticAbility.condition):
-    pinned so the fix cannot break the condition lane, and so the duration
-    lane now double-gates consistently."""
+    """The gate sits in StaticAbility.condition AND the duration role:
+    pinned so the condition lane keeps working and both gates agree."""
 
     NAME = "Drowsing Tyrannodon"
 
@@ -268,8 +266,9 @@ class TestDrowsingTyrannodonDoubleGate(DurationRoleCase):
 class TestDurationRoleRegistrationContract(DurationRoleCase):
     """The registration rule itself: WHILE folds into the record's duration
     lane; PERMANENT is the absence of a window (the Conspicuous Snoop
-    shape); every other Duration node is a LOUD refusal riding the r23a
-    not-layer-parseable sink (flag, never guess)."""
+    shape); every other Duration node is a LOUD refusal riding the
+    not-layer-parseable sink, ``unparseable_statics`` (flag, never
+    guess)."""
 
     def _attach_synth(self, static: StaticAbility, name: str):
         ident = synth_id(name, "2", "2")
@@ -329,8 +328,8 @@ class TestDurationRoleRegistrationContract(DurationRoleCase):
     def test_steps_on_different_populations_flag_not_guess(self) -> None:
         # One layer record carries one selector: a static whose steps target
         # different populations would apply every step to the first one's
-        # (2026-11-06, an FDN verifier on Death Baron, whose two populations
-        # happen to agree). No card in the 19 sets has the shape; refuse it.
+        # (Death Baron's two populations happen to agree), so the shape is
+        # refused.
         other = atom(Verb.MODIFY_PT,
                      target=Selector(QConst(1), SelectorMode.ALL, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
                                      zones=(BF_ANY,)),

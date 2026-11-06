@@ -1,8 +1,11 @@
-"""R3b phantom-fold battery (binding spec /145, KNOWLEDGE/2026-10-20).
+"""R3b phantom-fold battery: pre-registered RED for a change that has not
+landed. Marked ``red_first``: excluded from the default run, so the suite's
+red means a regression; run it with ``pytest -m red_first`` and remove the
+marker at landing.
 
 The fold: an engine-resolved (L-A) CHOOSE Selector whose menu is a forced
 singleton compiles to mode=ALL (no-decision). Classes (all pins below are
-the committed audit reports/r3b_sortdelta.json arithmetic):
+the committed reports/r3b_sortdelta.json arithmetic):
 
     self  107  filter self-referential (IS_SOURCE, conjunctive-positive)
     top     3  single LIBRARY/YOU/TOP zone, universal filter
@@ -10,26 +13,20 @@ the committed audit reports/r3b_sortdelta.json arithmetic):
     total 112 nodes; corpus CHOOSE 193 -> 81 (M21 145->70, ZNR 48->11);
     ALL census M21 93->168, ZNR 49->86.
 
-FIX-2 hazard: a POSITIVE IS_SOURCE leaf in DISJUNCTIVE position (FOr) does
-NOT denote a forced singleton — classify AND the ledger flattener RAISE
-StateCorruptionError (a shape gap, never a silent mis-fold).
 FIX-1: the TARGET+IS_SOURCE quintet (Barrin, Tolarian Archmage / Basri's
 Acolyte / Experimental Overload / Hobblefiend / Niambi, Esteemed Speaker)
 is a DESIGNATION lane and must survive as TARGET.
-FIX (r20c re-key): the executor self-designation lane keys on
-mode in (CHOOSE, ALL) — the folded nodes resolve silently through it.
+FIX-2: a POSITIVE IS_SOURCE leaf in DISJUNCTIVE position (FOr) does NOT
+denote a forced singleton — classify AND the ledger flattener RAISE
+StateCorruptionError (a shape gap, never a silent mis-fold).
+The executor self-designation lane keys on mode in (CHOOSE, ALL), so the
+folded nodes resolve silently through it.
 Warmonger guard: FNot(IS_SOURCE) ("another") is self-NEGATED: never folds,
 stays a CHOOSE multi-candidate ask, and the ledger re-keys it L-C/sacask.
 
-RED-FIRST: the pre-change battery (this file + the two re-pin sites at
-test_ontology_r3.py LedgerGroundTruth and test_pick_ask_promotion.py) is
-recorded at reports/r3b_red_prechange.txt — expect exactly that RED set to
-flip GREEN at landing; anything else is a FINDING. (The original record at
-/tmp/r3b_red_prechange.log was lost to /tmp cleanup; re-recorded 2026-10-24.)
-
-Marked ``red_first`` (2026-10-24): excluded from the default run so the
-suite's red means a regression, runnable with ``pytest -m red_first``.
-Remove the marker at landing.
+The pre-change red set is recorded in reports/r3b_red_prechange.txt: at
+landing those tests (and the ledger pin in test_ontology_r3.py
+LedgerGroundTruth) must flip GREEN; any other change is a FINDING.
 """
 
 from __future__ import annotations
@@ -146,8 +143,8 @@ class TestFoldShape(unittest.TestCase):
         cls.znr = _pool("ZNR")
 
     def test_self_designation_nodes_land_all(self):
-        # CHOOSE+IS_SOURCE was the ask-shape; the fold replaces it with the
-        # no-decision ALL shape (spec §2(1): "take what exists").
+        # The fold replaces the CHOOSE+IS_SOURCE ask shape with the
+        # no-decision ALL shape ("take what exists").
         for name in ("Selfless Savior", "Obsessive Stitcher", "Hobblefiend"):
             card = _record("M21", name)
             self.assertTrue(
@@ -159,7 +156,7 @@ class TestFoldShape(unittest.TestCase):
             )
 
     def test_corpus_census_at_landing(self):
-        # r3b_sortdelta.json: CHOOSE 193 -> 81; ALL +112.
+        # reports/r3b_sortdelta.json: CHOOSE 193 -> 81; ALL +112.
         self.assertEqual(
             has_mode(self.m21, lambda s: s.mode is SelectorMode.CHOOSE), 70
         )
@@ -220,7 +217,7 @@ class TestFoldShape(unittest.TestCase):
 
     def test_every_landed_fold_is_reexplainable(self):
         # Nothing may fold that classify() cannot re-explain with the
-        # SAME predicate (FIX-4: one shared function object).
+        # SAME predicate (one shared function object).
         from MTG_bot.core.compiler.phantom_fold import classify
 
         for pool in (self.m21, self.znr):
@@ -274,7 +271,7 @@ def _atoms(root):
 
 
 class TestFix2Hazard(unittest.TestCase):
-    """FIX-2: a positive IS_SOURCE leaf in disjunctive position is NOT a
+    """A positive IS_SOURCE leaf in disjunctive position is NOT a
     forced singleton — the predicate RAISES, it never mis-folds."""
 
     def disjunctive_sel(self) -> Selector:
@@ -316,10 +313,10 @@ class TestFix2Hazard(unittest.TestCase):
 
 
 class TestLedgerLanding(unittest.TestCase):
-    """FIX-5: the ledger re-pins at landing (fresh build + committed
+    """The ledger re-pins at landing (fresh build + committed
     reports/r3_blindness.json): population 193 -> 81, lanes
     {L-A:48, L-B:27, L-C:6}; Warmonger's sac cost re-keys L-A -> L-C with
-    polarity-aware NOT(IS_SOURCE) emission (the /145 §2(3) mis-lane fix)."""
+    polarity-aware NOT(IS_SOURCE) emission."""
 
     @classmethod
     def setUpClass(cls):
@@ -413,9 +410,9 @@ class TestWarmongerTripwire(SacrificeVocabulary):
 
 
 class TestReKeyRoleLane(LegalityCase):
-    """Executor re-key (spec §2(2)): the self-designation lane keys on
-    {CHOOSE, ALL} — folded ALL nodes resolve to the source, while TARGET
-    stays the designation lane (the FIX-1 quintet)."""
+    """Executor: the self-designation lane keys on {CHOOSE, ALL} — folded
+    ALL nodes resolve to the source, while TARGET stays the designation lane
+    (the FIX-1 quintet)."""
 
     def put_counter_atom(self, sel: Selector) -> Atom:
         return Atom(
@@ -549,9 +546,9 @@ class TestQuintetFix1(unittest.TestCase):
 
 
 class TestEmptyLibrarySemantics(QueryCase):
-    """The chosen empty-menu semantics (spec: ALL = take what exists):
-    the pre-fold CHOOSE node gated the may-offer to skip on an empty
-    library; the folded ALL node offers fire and resolves empty."""
+    """The chosen empty-menu semantics (ALL = take what exists): the
+    CHOOSE shape gates the may-offer to skip on an empty library; the
+    folded ALL shape offers fire and resolves empty."""
 
     def may_top(self, mode: SelectorMode) -> OptionalEffect:
         return OptionalEffect(
@@ -573,7 +570,7 @@ class TestEmptyLibrarySemantics(QueryCase):
         )
 
     def test_empty_library_choose_shape_gated_to_skip(self):
-        # pre-fold shape (documents WHY the fold changes the gate outcome)
+        # the CHOOSE shape (documents WHY the fold changes the gate outcome)
         self.world.move_all_library_to_graveyard if False else None
         self.assertEqual(self.offer(SelectorMode.CHOOSE), MAY_VOCAB[1:])
 

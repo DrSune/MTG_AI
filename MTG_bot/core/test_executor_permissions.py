@@ -1,4 +1,4 @@
-"""Round-13c pins: the four permission verbs (plan /13 arc 2). Covers
+"""The four permission verbs. Covers
 ADD_LAND_PLAY (Azusa: the optional gate, the cumulative repeat-activation
 reading, the controller anchor), GRANT_TYPE (the Dub/Demonic static shape
 over the executor attachment table, the Riddleform runtime sibling with
@@ -207,7 +207,7 @@ class TestLandPlayBonus(PermCase):
 
 
 class TestLandPlayStatic(PermCase):
-    """m21-fidelity (2026-10-29): the compiled Azusa is a STATIC ability (CR 604.1, 305.2),
+    """The compiled Azusa is a STATIC ability (CR 604.1, 305.2),
     StaticAbility(OptionalEffect(ADD_LAND_PLAY count=2)): the allowance is 1 + 2 while she is on
     the battlefield, with no activation, it never grows, and it ends when she leaves."""
 

@@ -1,4 +1,4 @@
-"""Ontology R5-10 (docs/DESIGN_ATOM_ONTOLOGY.md §10, gate round 3 GO):
+"""Stack objects say what they are (docs/DESIGN_ATOM_ONTOLOGY.md §10):
 ``FAtom(STACK_KIND_EQ, string_value ∈ {SPELL, ACTIVATED, TRIGGERED})``, the
 closed per-predicate ``string_value`` vocabulary, "counter target spell" =
 SPELL, and the counter window's visible mode ask for a Choose-based
@@ -192,10 +192,8 @@ class TestModalCounterWindow(ModalWindowCase):
             seen["modes"] = tuple(vocab)
             return self.set_token(chosen)
 
-        # re-pinned 2026-10-30: V21 (merged from engine/verify-fixes-2) makes "target
-        # player" any player, the caster included (CR 115.1), so mode 3's player is
-        # now a real target ask (it was the lone opponent, forced). It names p0, the
-        # pin's drawer.
+        # "target player" is any player, the caster included (CR 115.1), so mode 3's
+        # player is a real target ask. It names p0, the pin's drawer.
         self.script(str(self.epiphany), mode_answer, str(self.giant), str(self.p0))
         book = self.give("Book", SpellKind.SORCERY, zone=ZONE_LIBRARY, seat=self.p0)
         frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
@@ -213,8 +211,7 @@ class TestModalCounterWindow(ModalWindowCase):
         # the bounce ask offered both nonland permanents
         self.assertEqual(self.asks[2][0], tuple(sorted((str(self.bear), str(self.giant)))))
         # resolution: the Shock is countered, the Giant bounced, p0 drew
-        # (designated above; before V21 the engine's "target player" was an
-        # opponent seat only, B-53)
+        # (designated above)
         self.assertTrue(frame.countered)
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.world.zone_of(self.shock_card).kind, ZONE_GRAVEYARD)
@@ -239,7 +236,7 @@ class TestModalCounterWindow(ModalWindowCase):
     def test_a_forced_mode_set_is_journalled_not_asked(self) -> None:
         # Counter / counter-ability / bounce with nothing to bounce: the one
         # legal set {counter} is forced, so it is journalled and never asked
-        # (a one-option ask is a phantom, AGENTS §10).
+        # (a one-option ask is a phantom, AGENTS.md §10).
         three = Choose(count=QAtLeast(1), options=modal_counter_effect().options[:3])
         for h, owner in ((self.bear, self.p0), (self.giant, self.p0), (self.epiphany, self.p1)):
             self.world.move_to_zone(h, owner, ZONE_GRAVEYARD)
@@ -259,8 +256,8 @@ class TestModalCounterWindow(ModalWindowCase):
 
     def test_no_counterable_frame_means_no_offer(self) -> None:
         # A mode set must counter THIS frame: with the counter mode narrowed
-        # to creature spells, a Shock gets no window at all (C15: a seat
-        # with nothing to offer is never asked).
+        # to creature spells, a Shock gets no window at all (a seat with
+        # nothing to offer is never asked).
         creature_only = target_spell(FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))
         effect = modal_counter_effect()
         narrowed = Choose(

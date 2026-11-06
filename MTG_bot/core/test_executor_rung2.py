@@ -1,10 +1,10 @@
-"""RUNG-2 (response-window arc): the combat-instant window in combat_step.
+"""The combat-instant window in combat_step.
 
-Coverage contract (mission arc, ruling of 2026-10-05):
+Coverage contract:
   * after blockers are declared and BEFORE the damage step, each seat that
     holds a payable, designable, combat-relevant instant (DEAL_DAMAGE /
     MODIFY_PT / SET_PT in the tree) is ASKED once, in player order;
-  * a seat with nothing to offer is never asked and gets no row (C15),
+  * a seat with nothing to offer is never asked and gets no row,
     and with no attackers at all the window never opens;
   * the vocab token is the composite ``<card handle>@<target handle>`` —
     the target rides INSIDE the word, and the second seat's vocabulary is
@@ -29,10 +29,10 @@ _BASIC = {"W": "Plains", "U": "Island", "B": "Swamp", "R": "Mountain", "G": "For
 class Rung2Case(BlockerCase):
     """BlockerCase + the cw: ask probes and a mana helper.
 
-    Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase
-    ends (CR 500.5), so mana put in the pool before the turn is gone by the
-    combat window. :meth:`mana` gives the seat untapped basic lands instead,
-    which the window taps while paying (CR 601.2g, 605.3a)."""
+    Mana empties as each step and phase ends (CR 500.5), so mana put in the
+    pool before the turn is gone by the combat window. :meth:`mana` gives the
+    seat untapped basic lands instead, which the window taps while paying
+    (CR 601.2g, 605.3a)."""
 
     def mana(self, seat, **keys):
         for key, amount in keys.items():
@@ -90,7 +90,7 @@ class TestCombatWindow(Rung2Case):
         self.assertEqual(len(self.window_rows("WINDOW_PASS")), 0)
 
     def test_the_window_taps_only_the_lands_the_spell_needs(self):
-        # B-90 (a): the defender taps one of its three Mountains for the
+        # The defender taps one of its three Mountains for the
         # Shock (CR 605.3a), never all of them; the mana is spent, nothing floats.
         brute = self.synth("Brute", 2, 2, self.p0)
         guard = self.synth("Guard", 3, 3, self.p1)
@@ -111,9 +111,9 @@ class TestCombatWindow(Rung2Case):
         self.assertEqual(self.world.players[self.p1].mana_pool, {})
 
     def test_a_taxed_target_is_priced_with_the_lands_the_window_taps(self):
-        # 2026-11-05 (CR 601.2f-h): Pursued Whale makes the defender's spells that target it cost
-        # {3} more. The window priced each target against the pool alone, which is empty in
-        # combat, so with a Whale on the battlefield no combat instant was ever offered.
+        # CR 601.2f-h: Pursued Whale makes the defender's spells that target it cost {3} more.
+        # The window prices each target against the lands it can tap, not the pool alone, which
+        # is empty in combat.
         whale = self.real("Pursued Whale", self.p0)
         shock = self.real("Shock", self.p1, zone=ZONE_HAND)
         self.begin()
@@ -161,7 +161,7 @@ class TestCombatWindow(Rung2Case):
         self.answers[f"block:{beta}"] = str(alpha)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # C15 + no-row law: nothing to offer, nothing asked, nothing journaled.
+        # Nothing to offer, nothing asked, nothing journaled.
         self.assertEqual(self.cw_asks(), [])
         self.assertEqual(self.window_rows("WINDOW_OPEN"), [])
         self.assertEqual(self.window_rows("WINDOW_PASS"), [])
@@ -198,20 +198,18 @@ class TestCombatWindow(Rung2Case):
         self.assertEqual(self.ex.damage.get(guard, 0), 3)
 
     def test_negative_power_dealer_deals_no_damage(self):
-        # games seeds 10/73 crash witness: Carrion Grub's own BLOCKED
-        # trigger records a raw -4/-4 Eot delta, and its low effective
-        # power crosses zero BEFORE the damage step. The damage lane's
-        # zero guard must read the whole non-positive half-line: a
-        # negative-power dealer simply deals nothing (damage is never
-        # negative), the game proceeds without a QConst crash.
+        # Carrion Grub (0/5, +X/+0 over an empty graveyard) blocks with no
+        # positive power. The damage lane's zero guard reads the whole
+        # non-positive half-line: such a dealer deals no combat damage
+        # (CR 510.1a), and damage is never negative.
         attacker = self.synth("Attacker", 2, 2, self.p0)
         grub = self.real("Carrion Grub", self.p1)
         self.begin()
         self.answers[f"block:{grub}"] = str(attacker)
         self.ex.begin_turn(self.p0)
-        self.ex.combat_step(self.p0)  # pre-fix: ValueError QConst(-1)
+        self.ex.combat_step(self.p0)
         dealers = {row.subject for row in self.rows("COMBAT_DAMAGE")}
-        self.assertNotIn(grub, dealers)  # the -1-power dealer stayed silent
+        self.assertNotIn(grub, dealers)  # the powerless dealer stayed silent
         self.assertEqual(self.world.players[self.p0].life, 20)
         self.assertEqual(self.world.zone_of(attacker).kind, ZONE_BATTLEFIELD)
 

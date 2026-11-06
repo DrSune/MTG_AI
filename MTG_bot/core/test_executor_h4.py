@@ -1,8 +1,7 @@
-"""H4 Scope C: partition designation journal pins.
+"""Partition choices in the journal: ONE_OF and REST leave audit TARGETING rows.
 
 ONE_OF and REST choices are not CR target designations, but branch coverage
-still needs observable evidence for their chosen-set cardinality. These tests
-pin the narrow Scope C contract:
+still needs observable evidence for their chosen-set cardinality. Pinned:
 
 1. real partition applications emit audit TARGETING rows with the selector
    mode as the cause verb;

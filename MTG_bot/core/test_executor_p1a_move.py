@@ -1,26 +1,16 @@
-"""T4 P1a LOCK: mill / discard / exile trigger MATCHING.
+"""Mill, discard and exile as one MOVE_ZONE atom: trigger MATCHING.
 
-HONEST PROVENANCE (corrected per owner evidence law after fresh-eyes review):
-these locks are POST-LOCK — they use the new journal_kind/pop_order/from slots,
-which HEAD's AtomArgs cannot construct, so they could NOT have been written
-against the old handlers. Behavioral equivalence was established by
-byte-comparing the merged lanes' code paths against `git show HEAD` handler
-bodies (reviewer-verified), and these tests now lock the merged behavior going
-forward. The merged MOVE_ZONE atom — same zone endpoints, journal kind carried
-as a slot (A2 ii), mill pop-order kept as an explicit slot (A2 iii),
-discard's ``result`` register kept as the moved set (A2 i), exile's
-designation role kept as ``target`` (A2 iv) — reproduces them byte-identically.
+The atom carries the journal kind as a slot (``journal_kind``), mill's pop
+order as an explicit slot (``pop_order``), discard's ``result`` register as
+the moved set, and exile's designation role as ``target``.
 
 Why the journal is the right lock: trigger/replacement matching walks the
 zone-diff ENDPOINTS (binding.py ``_match_zone_change`` / ``_zone_matches``
 vs events.py ``record_atom``), never the verb name.  The only cause_verb
-string consumers are the ``TARGET`` designation feed (binding.py:870) and
-the ``SACRIFICE`` dies-exclusion (binding.py:1010) — neither touches
-MILL/DISCARD/EXILE.  If a merged atom emits the same endpoint rows and the
+strings the matcher reads are ``TARGET`` (the designation feed in
+``_match_node``) and ``SACRIFICE`` (``_match_sacrifice``) — neither touches
+MILL/DISCARD/EXILE.  If the atom emits the same endpoint rows and the
 raw MILL row, no trigger can silently move.
-
-Run names (task mandate): mill_trigger_matching, discard_trigger_matching,
-exile_trigger_matching.
 """
 
 import itertools
@@ -155,7 +145,7 @@ class P1aMatchingCase(unittest.TestCase):
 class TestTriggerMatching(P1aMatchingCase):
     def test_mill_trigger_matching(self):
         # "Whenever you put a card from your library into your graveyard"
-        # — a mill-shaped ZoneChangeEvent must fire on the merged MOVE too.
+        # — a mill-shaped ZoneChangeEvent must fire on the MOVE_ZONE too.
         self.attach_trigger(self.watch, ZoneChangeEvent(LIB_YOU, GY_YOU), gain(1))
         self.ex.execute(
             atom(
@@ -172,7 +162,7 @@ class TestTriggerMatching(P1aMatchingCase):
             source=self.watch,
             controller=self.p0,
         )
-        # A2(iii): the pop order is TOP of library (last entry first).
+        # The pop order is TOP of library (last entry first).
         self.assertEqual(
             self.raw_rows("MILL"),
             [
@@ -198,8 +188,8 @@ class TestTriggerMatching(P1aMatchingCase):
     def test_discard_trigger_matching(self):
         # "Whenever you discard a card" = HAND->GRAVEYARD endpoint match.
         self.attach_trigger(self.watch, ZoneChangeEvent(HAND_YOU, GY_YOU), gain(1))
-        # A2(i): the DISCARDED SET is the result register — observed through
-        # a same-resolution referent="result" consumer (B-9 lane).  The
+        # The DISCARDED SET is the result register — observed through
+        # a same-resolution referent="result" consumer.  The
         # hand holds TWO cards but only H1 is discarded: the register must
         # be exactly [H1], never the candidate pool.
         consumer = atom(

@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-"""T2 k-of-n ONE_OF (doc 30 K-OF-N SPEC, 2026-10-07).
+"""k-of-n ONE_OF: the partition selector picks ``want`` cards, one ask per pick.
 
 The partition selector ASKS ``want`` times over the shrinking menu — the
-same loop shape ``binding.py``'s TARGET designation already runs (QConst
-exact / QAtMost + NONE-stop after the mandatory first pick), the tag
-progress token sits AFTER the frozen kind prefix (``one_of:1of2:…``) so
-a consumer keyed on the kind prefix needs no new vocabulary, and the want==1 lane is
-BYTE-FROZEN (every golden that exists today is QConst(1); the replay pins
-must not move). Pool census (2026-10-07): ZERO pool cards fire want>1
-yet — this atom deliberately enters at volume 0 (doc 30 transfer-test);
-these fixtures are the seed the packs cannot yet provide.
+loop shape of ``binding.py``'s TARGET designation (QConst exact / QAtMost
+with a NONE stop, here after a mandatory first pick), the tag progress
+token sits AFTER the frozen kind prefix (``one_of:1of2:…``) so a consumer
+keyed on the kind prefix needs no new vocabulary, and the want==1 lane is
+BYTE-FROZEN (no progress token: goldens and replay pins must not move).
 """
 
 from __future__ import annotations
@@ -123,11 +120,11 @@ class KOfNCase(unittest.TestCase):
             decisions=(),
         )
         self.assertEqual(self.world.zone_of(self.fo).kind, ZONE_HAND)
-        self.assertEqual(self.ex.decisions.ask_log, [])  # §1.4: nothing to ask
+        self.assertEqual(self.ex.decisions.ask_log, [])  # one legal filler: nothing to ask
 
     def test_want2_over2_asks_once_then_autofills(self):
         # n == want: the menu offers ONE real decision; the last legal
-        # filler is taken without a second ask (binding.py:1392 shape).
+        # filler is taken without a second ask (``TriggerBinder._designate``'s shape).
         self.world.move_card(self.sw, self.world.players[self.p0].zone(ZONE_HAND))
         self.ex.apply_effect(
             self._seq(self._one_of(QConst(2))),
@@ -150,7 +147,7 @@ class KOfNCase(unittest.TestCase):
             decisions=(str(self.pl),),
         )
         ((what, answer),) = self.ex.decisions.ask_log
-        # the EXACT pre-T2 tag: kind : source : digest — no progress token.
+        # the EXACT want==1 tag: kind : source : digest — no progress token.
         self.assertEqual(what, f"one_of:{self.spell}:{site_digest(vocab)}")
         self.assertEqual(answer, str(self.pl))
 
@@ -178,7 +175,7 @@ class KOfNCase(unittest.TestCase):
         self.assertEqual(vocab2[-1], "NONE")  # stoppable lane, not vocab[0]
 
     def test_qatmost_none_at_first_ask_refused(self):
-        # C17: the FIRST pick is mandatory — NONE is not in the first menu,
+        # The FIRST pick is mandatory — NONE is not in the first menu,
         # so a pool word the vocabulary lacks cannot answer it (raises).
         with self.assertRaises(ValueError):
             self.ex.apply_effect(
@@ -247,7 +244,7 @@ class KOfNCase(unittest.TestCase):
 
 
 class TestQueryMirror(KOfNCase):
-    """§8.3: the query slot reports what the runtime loop will actually do."""
+    """The query slot reports what the runtime loop will actually do."""
 
     def _slot(self, count):
         return legal_targets(
@@ -267,7 +264,7 @@ class TestQueryMirror(KOfNCase):
         self.assertEqual((slot.min_count, slot.max_count, slot.forced), (2, 2, False))
 
     def test_const2_single_candidate_infeasible(self):
-        # T3 unification (doc 36): QConst is EXACT, never clamped. Over a
+        # QConst is EXACT, never clamped. Over a
         # population of ONE the slot demands TWO (min=max=2 > n) — the
         # announce-time rejection lane, same answer TARGET already gave.
         # forced=True mirrors the resolve loop's 608.2c mid-loop
@@ -283,7 +280,7 @@ class TestQueryMirror(KOfNCase):
         self.assertEqual((slot.min_count, slot.max_count, slot.forced), (1, 2, False))
 
     def test_empty_population_const_infeasible(self):
-        # T3 unification: the empty QConst(2) slot is NOT quietly resized
+        # The empty QConst(2) slot is NOT quietly resized
         # to zero — min=max=2 over zero candidates is INFEASIBLE (the
         # same shape the want==1 frozen pin reports as min 1 > max 0).
         for h in (self.fo, self.pl, self.sw):
@@ -301,7 +298,7 @@ class TestQueryMirror(KOfNCase):
         slot = self._slot(QConst(2))
         rest = rest_of(slot, (self.fo, self.pl))
         self.assertEqual(rest, (self.sw,))
-        # the legacy single-Handle call keeps working (frozen callers)
+        # a single Handle is accepted too
         self.assertEqual(rest_of(slot, self.sw), tuple(sorted([self.fo, self.pl])))
 
 
@@ -309,7 +306,7 @@ CREATURE = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
 
 
 class TestCountSemanticsMatrix(unittest.TestCase):
-    """T3 (doc 36): the shared helper's full matrix — every tag over
+    """The shared helper's full matrix — every tag over
     n_legal in {0, 1, k-1, k, k+1} (k=2; 1 and k-1 coincide)."""
 
     def test_qconst_exact_never_clamped(self):
@@ -388,8 +385,7 @@ class TestQueryLegalityMatrix(KOfNCase):
             self.assertEqual(slot.forced, n == 2)
 
     def test_target_qatmost_and_qatleast_ranges(self):
-        # re-pinned 2026-10-29: V15 changes the QAtMost minimum from 1 to 0
-        # (CR 601.2c, 115.6: "up to two" may choose none).
+        # The QAtMost minimum is 0 (CR 601.2c, 115.6: "up to two" may choose none).
         for n, am, al in [
             (0, (0, 0), (2, 0)),
             (1, (0, 1), (2, 1)),

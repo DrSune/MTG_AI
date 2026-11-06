@@ -1,35 +1,28 @@
-"""Grammar round 6 — five additive items (2026-09-28).
+"""Grammar pins: the turn-of and zone-count predicates, single-component
+SET_PT, the blocked side of a declare-blockers event, and MANDATE_BLOCK.
 
-Round-6 scope (spec: KNOWLEDGE/2026-09-28/01-grammar-round6-decision.md;
-file-name offset is intentional — round-5 grammar shipped in the r6 file):
-
-- R6-1: ``FAtomPred.TURN_OF`` — required ``who`` — "it is <who>'s turn"
+- ``FAtomPred.TURN_OF`` — required ``who`` — "it is <who>'s turn"
   ("During your turn, …"; Radha, Heart of Keld; Discontinuity — the Phase
   enum carries no turn owner).
-- R6-2: ``FAtomPred.ZONE_COUNT_GE`` — required ``who`` + ``zone`` +
+- ``FAtomPred.ZONE_COUNT_GE`` — required ``who`` + ``zone`` +
   ``inner_filter`` + ``count`` — "<who> has >= count cards in their
   <zone> matching inner_filter" (Thieves' Guild Enforcer: "an opponent
   has 8 or more cards in their graveyard").
-- R6-3: ``_VERB_ROLES[SET_PT]`` — power/toughness each become optional,
-  but the at-least-one-role check (previously MODIFY_PT-only) is
-  extended to SET_PT: a zero-role SET_PT raises. Validation-only —
-  both-role SET_PT (the only pre-r6 shape in the templates) is
-  serialization-untouched.
-- R6-4: ``DeclareBlockersEvent.blocked: Filter | None = None`` — narrows
+- ``_VERB_ROLES[SET_PT]`` — power and toughness are each optional, but
+  at least one is required, as for MODIFY_PT: a zero-role SET_PT raises.
+- ``DeclareBlockersEvent.blocked: Filter | None = None`` — narrows
   the BLOCKED-side creature ("can't be blocked"; Tome Anima, Ghostly
   Pilferer, Subira, Shacklegeist); ``opt:filter`` + omit-if-empty.
-- R6-5: ``Verb.MANDATE_BLOCK`` — "must be blocked if able" (Canopy
+- ``Verb.MANDATE_BLOCK`` — "must be blocked if able" (Canopy
   Stalker); ``_VERB_ROLES`` row mirrors MANDATE_ATTACK exactly.
 
 Guards:
-- every pre-round-6 pinned fingerprint (the round-6 pin set) stays
-  byte-identical — all five items are additive;
+- the test_ability_tree_r6 pin set keeps its fingerprints;
 - bare constructs (DeclareBlockersEvent without blocked) serialize
-  WITHOUT the new key — pinned against explicit expected dicts;
-- round-6 constructs round-trip through ``to_dict``/``from_dict`` with
+  WITHOUT the optional key — pinned against explicit expected dicts;
+- the constructs round-trip through ``to_dict``/``from_dict`` with
   pinned fingerprints;
-- rejections at every new or widened validation point (``ValueError``,
-  per the module-wide convention).
+- every validation point rejects bad input with ``ValueError``.
 """
 
 from __future__ import annotations
@@ -41,7 +34,7 @@ import pytest
 import MTG_bot.core.ability_tree as at
 import MTG_bot.core.test_ability_tree_r6 as R6
 
-# ---- builders for the round-6 constructs -----------------------------------
+# ---- builders --------------------------------------------------------------
 
 _UNIVERSAL = at.FAnd(())
 _NEUTRAL = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
@@ -51,18 +44,18 @@ _IS_SOURCE = at.FAtom(at.FAtomPred.IS_SOURCE)
 
 
 def _src_sel() -> at.Selector:
-    """The classic "this permanent" selector (r6-file idiom)."""
+    """The classic "this permanent" selector."""
     return at.Selector(at.QConst(1), at.SelectorMode.ALL, _IS_SOURCE, zones=(_BF_YOU,))
 
 
 def _fatom_turn_of_you() -> at.FAtom:
-    """R6-1: "it is your turn" — the Radha/Discontinuity condition."""
+    """The "it is your turn" condition (Radha, Discontinuity)."""
     return at.FAtom(at.FAtomPred.TURN_OF, who=at.ControllerRef.YOU)
 
 
 def _fatom_zone_count_ge() -> at.FAtom:
-    """R6-2: "an opponent has 8 or more cards in their graveyard"
-    (Thieves' Guild Enforcer's condition)."""
+    """Thieves' Guild Enforcer's condition: "an opponent has 8 or more
+    cards in their graveyard"."""
     return at.FAtom(
         at.FAtomPred.ZONE_COUNT_GE,
         who=at.ControllerRef.OPPONENT,
@@ -83,8 +76,8 @@ def _target_sel() -> at.Selector:
 
 
 def _set_pt_power_only() -> at.Atom:
-    """R6-3: Kinetic Augur — "power is equal to the number of …": the
-    single-component (power-only) SET_PT that r6 unblocks."""
+    """Kinetic Augur — "power is equal to the number of …": a
+    single-component (power-only) SET_PT."""
     return at.Atom(
         at.Verb.SET_PT,
         at.AtomArgs(pairs=(("target", _target_sel()), ("power", at.QConst(4)))),
@@ -92,7 +85,7 @@ def _set_pt_power_only() -> at.Atom:
 
 
 def _set_pt_toughness_only() -> at.Atom:
-    """R6-3: the mirrored single-component case (toughness-only)."""
+    """The mirrored single-component case (toughness-only)."""
     return at.Atom(
         at.Verb.SET_PT,
         at.AtomArgs(pairs=(("target", _target_sel()), ("toughness", at.QConst(3)))),
@@ -100,8 +93,7 @@ def _set_pt_toughness_only() -> at.Atom:
 
 
 def _set_pt_both() -> at.Atom:
-    """Pre-r6 shape: both roles set — the only SET_PT spelling the
-    pre-batch templates ever built; validation-only change, untouched."""
+    """Both roles set (the common SET_PT spelling)."""
     return at.Atom(
         at.Verb.SET_PT,
         at.AtomArgs(
@@ -115,34 +107,34 @@ def _set_pt_both() -> at.Atom:
 
 
 def _dbe_bare() -> at.DeclareBlockersEvent:
-    """Pre-r3b shape: neither subject nor blocked — no key for either."""
+    """Bare shape: neither subject nor blocked — no key for either."""
     return at.DeclareBlockersEvent(_UNIVERSAL)
 
 
 def _dbe_subject() -> at.DeclareBlockersEvent:
-    """Pre-r6 shape: subject only — the serialization must not gain a
-    'blocked' key (byte-stability guard)."""
+    """Subject only: the serialization must not gain a 'blocked' key
+    (byte-stability guard)."""
     return at.DeclareBlockersEvent(_UNIVERSAL, subject=_IS_SOURCE)
 
 
 def _dbe_blocked() -> at.DeclareBlockersEvent:
-    """R6-4: "can't be blocked" — the prevented declaration where the
+    """The "can't be blocked" shape: the prevented declaration where the
     blocked side is the source (Tome Anima / Ghostly Pilferer idiom)."""
     return at.DeclareBlockersEvent(_UNIVERSAL, blocked=_IS_SOURCE)
 
 
 def _dbe_both() -> at.DeclareBlockersEvent:
-    """R6-4 with subject kept: "can block only creatures with flying"
+    """Subject and blocked: "can block only creatures with flying"
     (Shacklegeist): blocker=source, blocked-side narrowed by the filter."""
     return at.DeclareBlockersEvent(_UNIVERSAL, subject=_IS_SOURCE, blocked=_IS_SOURCE)
 
 
 def _mandate_block() -> at.Atom:
-    """R6-5: "must be blocked if able" (Canopy Stalker)."""
+    """MANDATE_BLOCK: "must be blocked if able" (Canopy Stalker)."""
     return at.Atom(at.Verb.MANDATE_BLOCK, at.AtomArgs(pairs=(("cards", _src_sel()),)))
 
 
-# ---- pinned fingerprints (captured after the round-6 edits) ----------------
+# ---- pinned fingerprints ---------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -202,8 +194,8 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 def test_pinned_pre_r7_r6_fingerprint(
     name: str, build: Callable[[], object], fp: str
 ) -> None:
-    """Byte stability: every pre-round-6 pinned tree (the round-6 pin set)
-    serializes identically — all five round-6 items are additive."""
+    """Byte stability: the test_ability_tree_r6 pin set keeps its
+    fingerprints."""
     node = build()
     assert at.fingerprint(node) == fp
     d = at.to_dict(node)
@@ -222,8 +214,8 @@ def test_r7_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
 
 
 def test_fatom_turn_of_rules() -> None:
-    """R6-1: the predicate takes exactly {who} (CONTROLLER_IS pattern);
-    the who slot accepts a referent Selector (round-4 anaphora)."""
+    """The predicate takes exactly {who} (like CONTROLLER_IS); the who
+    slot accepts a referent Selector."""
     assert at._FATOM_RULES[at.FAtomPred.TURN_OF] == (
         frozenset({"who"}),
         frozenset({"who"}),
@@ -244,7 +236,7 @@ def test_fatom_turn_of_rules() -> None:
 
 
 def test_fatom_zone_count_ge_rules() -> None:
-    """R6-2: required==allowed=={who, zone, inner_filter, count}
+    """required==allowed=={who, zone, inner_filter, count}
     (CONTROLLER_COUNT_GE style plus the required who/zone slots)."""
     assert at._FATOM_RULES[at.FAtomPred.ZONE_COUNT_GE] == (
         frozenset({"who", "zone", "inner_filter", "count"}),
@@ -261,7 +253,7 @@ def test_fatom_zone_count_ge_rules() -> None:
 
 
 def test_set_pt_single_role_builds() -> None:
-    """R6-3: power-only and toughness-only SET_PT atoms build, carry the
+    """Power-only and toughness-only SET_PT atoms build, carry the
     right pair set, and round-trip."""
     for node, role in (
         (_set_pt_power_only(), "power"),
@@ -278,15 +270,14 @@ def test_set_pt_single_role_builds() -> None:
 
 
 def test_set_pt_zero_role_raises_message() -> None:
-    """R6-3: the extended at-least-one check fires on SET_PT with the
-    class-prefixed message style."""
+    """The at-least-one check fires on SET_PT with the class-prefixed
+    message style."""
     with pytest.raises(ValueError, match="SET_PT needs at least one"):
         at.Atom(at.Verb.SET_PT, at.AtomArgs(pairs=(("target", _target_sel()),)))
 
 
 def test_modify_pt_zero_role_unchanged() -> None:
-    """R6-3 regression: the MODIFY_PT at-least-one error message is
-    byte-identical to the pre-r6 wording."""
+    """MODIFY_PT's at-least-one error message keeps its exact wording."""
     with pytest.raises(
         ValueError,
         match="Atom: MODIFY_PT needs at least one of power/toughness",
@@ -295,8 +286,8 @@ def test_modify_pt_zero_role_unchanged() -> None:
 
 
 def test_dbe_omits_blocked_when_none() -> None:
-    """R6-4 byte-stability guard: the pre-r6 constructions serialize to
-    EXACTLY their pre-r6 dicts — no 'blocked' key appears."""
+    """Byte-stability guard: without blocked, the event serializes to
+    EXACTLY these dicts — no 'blocked' key appears."""
     assert at.to_dict(_dbe_bare()) == {
         "tag": "DeclareBlockersEvent",
         "filter": {"tag": "FAnd", "children": []},
@@ -304,11 +295,11 @@ def test_dbe_omits_blocked_when_none() -> None:
     subject_dict = at.to_dict(_dbe_subject())
     assert "blocked" not in subject_dict
     assert set(subject_dict) == {"tag", "filter", "subject"}
-    # pre-r3b / pre-r6 fingerprints pinned above cover the byte level
+    # the fingerprints pinned above cover the byte level
 
 
 def test_dbe_blocked_roundtrip_and_none_default() -> None:
-    """R6-4: blocked=<filter> round-trips; an absent key decodes to None;
+    """blocked=<filter> round-trips; an absent key decodes to None;
     explicit None equals the default spelling."""
     node = _dbe_blocked()
     d = at.to_dict(node)
@@ -325,7 +316,7 @@ def test_dbe_blocked_roundtrip_and_none_default() -> None:
 
 
 def test_mandate_block_roles_mirror_attack() -> None:
-    """R6-5: the MANDATE_BLOCK role row mirrors MANDATE_ATTACK exactly;
+    """The MANDATE_BLOCK role row mirrors MANDATE_ATTACK exactly;
     optional controller/duration build and round-trip."""
     assert (
         at._VERB_ROLES[at.Verb.MANDATE_BLOCK] == at._VERB_ROLES[at.Verb.MANDATE_ATTACK]
@@ -353,7 +344,7 @@ def test_r7_table_members() -> None:
     assert at.FAtomPred.ZONE_COUNT_GE.value == "ZONE_COUNT_GE"
     assert at.Verb.MANDATE_BLOCK.value == "MANDATE_BLOCK"
     assert at._OMIT_IF_EMPTY["DeclareBlockersEvent"] == frozenset(
-        {"subject", "blocked", "count"}  # count: the blocker limit, 2026-11-06
+        {"subject", "blocked", "count"}  # count: the blocker limit
     )
     spec = dict(at._SPECS["DeclareBlockersEvent"])
     assert spec["blocked"] == "opt:filter"
@@ -361,7 +352,7 @@ def test_r7_table_members() -> None:
 
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     return [
-        # R6-1: TURN_OF slot arity
+        # TURN_OF slot arity
         (
             "turn_of_missing_who",
             lambda: at.FAtom(at.FAtomPred.TURN_OF),
@@ -372,7 +363,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.FAtomPred.TURN_OF, who=at.ControllerRef.YOU, count=at.QConst(1)
             ),
         ),
-        # R6-2: ZONE_COUNT_GE slot arity + slot value types
+        # ZONE_COUNT_GE slot arity + slot value types
         (
             "zc_missing_who",
             lambda: at.FAtom(
@@ -431,19 +422,19 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 count=at.QConst(8),
             ),
         ),
-        # R6-3: SET_PT at-least-one-role
+        # SET_PT at-least-one-role
         (
             "set_pt_zero_role",
             lambda: at.Atom(
                 at.Verb.SET_PT, at.AtomArgs(pairs=(("target", _target_sel()),))
             ),
         ),
-        # R6-3: role value types unchanged
+        # role value types still checked
         (
             "set_pt_power_string",
             lambda: at.AtomArgs(pairs=(("power", "four"),)),  # type: ignore[list-item]
         ),
-        # R6-4: DeclareBlockersEvent.blocked validation
+        # DeclareBlockersEvent.blocked validation
         (
             "dbe_blocked_int",
             lambda: at.DeclareBlockersEvent(_UNIVERSAL, blocked=3),  # type: ignore[arg-type]
@@ -452,7 +443,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             "dbe_blocked_str",
             lambda: at.DeclareBlockersEvent(_UNIVERSAL, blocked="flying"),  # type: ignore[arg-type]
         ),
-        # R6-5: MANDATE_BLOCK role arity (cards required, mirror of attack)
+        # MANDATE_BLOCK role arity (cards required, mirror of attack)
         (
             "mandate_block_missing_cards",
             lambda: at.Atom(at.Verb.MANDATE_BLOCK, at.AtomArgs(pairs=())),

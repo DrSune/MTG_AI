@@ -1,51 +1,46 @@
-"""ZNR fuzz wave /111 → /112: the DANGLING-REFERENT cast guard, pinned.
+"""The DANGLING-REFERENT guard on the live-game effect lanes.
 
-Two live-game crashes (reports/znr_engine_smoke_2026-10-19, seeds 5/23/28)
-shared one class: the compiler folded a LATER clause whose anaphora reads a
-register (``result``/``target``) while the ANTECEDENT clause stayed
-unparsed — so the register has no producer and the raw effect lane hits a
-selectors.py referent refusal mid-cast:
+A compiled LATER clause can read a register (``result``/``target``) whose
+ANTECEDENT clause stayed unparsed, so the register has no producer and the
+raw effect lane hits a selectors.py referent refusal mid-cast:
 
-* Acquisitions Expert — s1/s2 unparsed (reveal/party-quantity, "you choose
-  one"), s3 folded as ``B5b-that-player-discards``: MOVE_ZONE cards =
-  referent 'result'. NotImplementedError@selectors (2 fuzz hits).
-* Shell Shield — s2 unparsed ("Target creature … gets +0/+3"), the kicker
-  arm folded STANDALONE (compiler.py kicker fold, saw_unparsed_base law):
-  the arm reads referent 'target' with no designation slot ever offered.
-  ValueError@selectors (1 fuzz hit).
+* Acquisitions Expert — the reveal and "you choose one" clauses unparsed,
+  the "that player discards" clause folded: MOVE_ZONE cards = referent
+  'result' (NotImplementedError in selectors).
+* Shell Shield — "Target creature … gets +0/+3" unparsed, the kicker arm
+  folded STANDALONE: the arm reads referent 'target' with no designation
+  slot ever offered (ValueError in selectors).
 
-Fix law (r23a unparseable-statics pattern): the template fold is the bug
-(root-caused + proposed fix in KNOWLEDGE/2026-10-19/112), NOT the engine —
-so the raw ``_run_effect`` lane KEEPS raising (every unit contract and the
-C15 "unset reads RAISE" law stay byte-identical), while every LIVE-GAME
-effect lane — the four spell resolution lanes (cast/cast_card effect +
-aura-effect) AND the trigger-firing lane (binding._fire, found by the
-60-game rerun) — route through Executor._run_guarded_effect: a
-selectors.referent_absent refusal skips the mis-shaped effect, the spell
-still resolves / the game still plays, and the refusal is recorded LOUD
-and deduped on ``executor.unresolved_effects``. Pinned here:
+The defect is the compiler's fold, not the engine, so the raw
+``_run_effect`` lane KEEPS raising (unset reads RAISE), while every
+LIVE-GAME effect lane — the spell resolution lanes (cast/cast_card effect
+and aura-effect) AND the trigger-firing lane (binding._fire) — routes
+through Executor._run_guarded_effect: a selectors.referent_absent refusal
+skips the mis-shaped effect, the spell still resolves / the game still
+plays, and the refusal is recorded LOUD and deduped on
+``executor.unresolved_effects``. Pinned here:
 
 1. 'result'-dangling creature cast — completes to the battlefield, the
    discard skipped, NO zone move, one loud flag; a second copy dedupes;
 2. 'target'-dangling kicked instant — completes to the graveyard, the
    damage arm skipped, ex.damage stays empty, one loud flag; the SAME card
-   cast UNKICKED never flags (the skip is reached through the guarded
-   branch only — WAS_KICKED really gated it);
+   cast UNKICKED never flags (WAS_KICKED really gates the arm);
 3. producer PRESENT — Seq(TAP→MOVE_ZONE referent 'result') still resolves
    end-to-end through the guarded lane (guard never degrades a resolvable
    anaphora), no flag;
- 4. every OTHER refusal (e.g. a PLAYER-zone MOVE_ZONE destination) stays
-    loud through the guarded lane, sink untouched;
- 5. referent_absent = dedicated ReferentAbsentError TYPE + byte-exact site
-    message (r24a): typed site errors match, message look-alikes and the
-    QProp referent refusal do NOT;
- 6. the gate's E2E: an unrelated refusal whose text merely CONTAINS the
-    marks PROPAGATES through the guarded cast lane, sink untouched;
- 7. quantity's QProp 'target' refusal (mark-#1 look-alike) propagates;
- 8. CR 609.7: a dangling MID-step of a top-level Seq skips only ITSELF
-    (the tail still executes), the nested-Seq whole-step boundary is
-    pinned as documented, and per-key OCCURRENCE counts keep distinct
-    same-message atoms visible.
+4. every OTHER refusal (e.g. a PLAYER-zone MOVE_ZONE destination) stays
+   loud through the guarded lane, sink untouched;
+5. referent_absent = dedicated ReferentAbsentError TYPE + byte-exact site
+   message: typed site errors match, message look-alikes and the QProp
+   referent refusal do NOT;
+6. end to end: an unrelated refusal whose text merely CONTAINS the marks
+   PROPAGATES through the guarded cast lane, sink untouched;
+7. quantity's QProp 'target' refusal (a look-alike of the first mark)
+   propagates;
+8. CR 609.7: a dangling MID-step of a top-level Seq skips only ITSELF
+   (the tail still executes), the nested-Seq whole-step boundary is
+   pinned as documented, and per-key OCCURRENCE counts keep distinct
+   same-message atoms visible.
 """
 
 import unittest
@@ -154,7 +149,7 @@ class ResultDanglingCastTest(StackCase):
         cast(self.ex, self.p0, self.expert(), targets=(self.p1,))
         cast(self.ex, self.p0, self.expert(), targets=(self.p1,))
         self.assertEqual(len(self.ex.unresolved_effects), 1)
-        # r24a MINOR: the deduped key keeps an OCCURRENCES count
+        # the deduped key keeps an OCCURRENCES count
         self.assertEqual(
             self.ex.unresolved_effect_counts[self.ex.unresolved_effects[0]], 2
         )
@@ -211,10 +206,10 @@ class TargetDanglingCastTest(StackCase):
 
 
 class TriggerLaneGuardTest(BindingCase):
-    """The 60-game fuzz follow-up (/111→/112): the SAME Acquisitions-
-    Expert-shaped residue reaches the game through the TRIGGER-firing
-    lane (binding._fire), not cast. Guarded identically: the mis-shaped
-    effect skips loud, the event queue keeps draining."""
+    """The SAME Acquisitions-Expert-shaped residue reaching the game
+    through the TRIGGER-firing lane (binding._fire), not cast. Guarded
+    identically: the mis-shaped effect skips loud, the event queue keeps
+    draining."""
 
     def test_dangling_trigger_effect_skips_loud(self):
         self.attach_trigger(
@@ -272,8 +267,7 @@ class ProducerStillResolvesTest(StackCase):
                 )
             ),
         )
-        # R3 (/141 §6, 2026-10-20): the CHOOSE is a decision now — script
-        # the pick the old 12a stand-in made silently (Handle-first).
+        # the CHOOSE is a decision: script the Handle-first pick.
         self.ex.decisions.provider = lambda vocab, what: str(first)
         cast(self.ex, self.p0, handle)
         # the scripted CHOOSE picked the Handle-first creature, the TAP
@@ -310,10 +304,9 @@ class OtherRefusalsStayLoudTest(StackCase):
 
 
 class ReferentAbsentPredicateTest(unittest.TestCase):
-    """r24a (adversarial gate): the predicate is TYPE + BYTE-EXACT site
-    message — not a substring scan (the mark already co-matched
-    quantity's QProp refusal, and any error whose text merely CONTAINS
-    a mark used to be skippable)."""
+    """The predicate is TYPE + BYTE-EXACT site message — not a substring
+    scan: a mark also appears in quantity's QProp refusal, and an error
+    whose text merely CONTAINS a mark must not be skippable."""
 
     def test_matches_the_typed_site_errors(self):
         self.assertTrue(
@@ -362,13 +355,13 @@ class ReferentAbsentPredicateTest(unittest.TestCase):
         self.assertFalse(referent_absent(KeyError("result")))
 
 
-# --------------------------- 6 embedded-mark look-alike PROPAGATES (gate E2E)
+# ---------------------------------- 6 embedded-mark look-alike PROPAGATES
 
 
 class LookAlikePropagatesTest(StackCase):
     """The gate's executed probe: an UNRELATED refusal whose message
     merely CONTAINS both marks must propagate through the guarded cast
-    lane — the bug is NOT silenced into the ledger (r24a BLOCKER 1)."""
+    lane — the bug is NOT silenced into the ledger."""
 
     MARK_TEXT = (
         "executor: unrelated 12c refusal — a caller that says referent "
@@ -402,7 +395,7 @@ class LookAlikePropagatesTest(StackCase):
         self.assertEqual(self.ex.unresolved_effect_counts, {})
 
 
-# ------------------------------- 7 QProp referent refusal PROPAGATES (gate c)
+# ---------------------------------------- 7 QProp referent refusal PROPAGATES
 
 
 class QPropRefusalStaysLoudTest(StackCase):
@@ -431,14 +424,14 @@ class QPropRefusalStaysLoudTest(StackCase):
         self.assertEqual(self.ex.unresolved_effects, [])
 
 
-# ---------------- 8 CR 609.7: a dangling MID-step loses only ITSELF (gate b)
+# ------------------------- 8 CR 609.7: a dangling MID-step loses only ITSELF
 
 
 class SeqMidStepTest(StackCase):
     def tap_first(self, name):
         """Seq(TAP (CHOOSE stand-in), dangling MOVE_ZONE, DAMAGE 1): the
         mid-step's 'target' designation never existed; the TAIL must
-        still execute (r24a MAJOR 2)."""
+        still execute."""
         return Seq(
             (
                 atom(
@@ -483,8 +476,8 @@ class SeqMidStepTest(StackCase):
     def test_nested_seq_boundary_is_whole_step(self):
         """Documented boundary: granularity is the TOP level only — an
         inner Seq that fails mid-way is skipped whole, its resolvable
-        tail-step goes with it. Moot once the compiler-wave fold gates
-        land; pinned so the boundary is a fact, not a surprise."""
+        tail-step goes with it. Pinned so the boundary is a fact, not a
+        surprise."""
         self.world.add_card(card_id("Victim", "1", "1"), self.p0, ZONE_BATTLEFIELD)
         handle = self.give(
             "NestedClone",
@@ -518,7 +511,7 @@ class SeqMidStepTest(StackCase):
         self.assertEqual(len(self.ex.unresolved_effects), 1)
 
     def test_distinct_same_message_atoms_count_per_key(self):
-        """MINOR: dedupe keys collapse identical messages (two distinct
+        """Dedupe keys collapse identical messages (two distinct
         dangling atoms, one message) — the OCCURRENCES count keeps both
         visible instead of hiding the second."""
         handle = self.give(

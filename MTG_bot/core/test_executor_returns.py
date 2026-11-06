@@ -1,4 +1,4 @@
-"""Ontology R5-1 (2026-10-29): MOVE_ZONE's ``duration`` role and the executor's return registry.
+"""MOVE_ZONE's ``duration`` role and the executor's return registry.
 
 CR 610.3: a one-shot effect that moves an object "until" an event creates a second one-shot effect
 immediately after that event, which returns the object to its previous zone. 610.3a/b: if the event
@@ -240,7 +240,7 @@ class ReturnRegistryTest(unittest.TestCase):
         self.assertEqual(self.world.zone_of(ogre).kind, ZONE_BATTLEFIELD)
 
     def test_a_phased_out_permanent_is_not_a_host_for_an_entering_aura(self) -> None:
-        # CR 702.26b + 303.4f: the V32 host menu leaves out what is treated as nonexistent.
+        # CR 702.26b + 303.4f: the entering-Aura host menu skips what is treated as nonexistent.
         from MTG_bot.core.executor.aura_entry import aura_entry_hosts
 
         aura = self.world.add_card(

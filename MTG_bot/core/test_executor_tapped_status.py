@@ -1,7 +1,8 @@
-"""V43 (2026-10-29): tapped status leaves with the permanent. CR 110.5d: a card that is not on the
-battlefield is neither tapped nor untapped; 110.5b: a permanent enters untapped unless a rule or
-effect says otherwise; 400.7: a card that changes zones is a new object. One CardState spans every
-zone, so a tapped creature that was bounced, killed or exiled came back tapped."""
+"""Tapped status leaves with the permanent. CR 110.5d: a card that is not on the battlefield is
+neither tapped nor untapped; 110.5b: a permanent enters untapped unless a rule or effect says
+otherwise; 400.7: a card that changes zones is a new object. One CardState spans every zone, so the
+zone change must clear the flag, or a creature bounced, killed or exiled while tapped would come
+back tapped."""
 
 from __future__ import annotations
 

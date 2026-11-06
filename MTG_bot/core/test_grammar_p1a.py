@@ -1,4 +1,4 @@
-"""T4 P1a grammar pins (docs/T4_SPEC.md §1/§9, 2026-10-07).
+"""Grammar pins for the verb classes and the merged MOVE atom (docs/T4_SPEC.md §1, §6).
 
 The verb CLASS partition, the merged MOVE atom's slot vocabulary, and the
 closed-vocab raises.  Executor-side behaviour (journal kind, pop order,
@@ -26,9 +26,9 @@ from MTG_bot.core.ability_tree import (
 
 
 def test_verb_class_partitions_the_full_enum_exactly_once() -> None:
-    # 6 OPERATION / 7 POLICY / 36 EFFECT == 49 members, no gaps, no
-    # double-classing (T4 §1: CLASS = payload role, the shared PICK
-    # wrapper holds selection).
+    # 6 OPERATION / 7 POLICY / 37 EFFECT == 50 members, no gaps, no
+    # double-classing (CLASS = payload role, the shared PICK wrapper holds
+    # selection).
     assert set(VERB_CLASS) == set(Verb)
     counts = Counter(VERB_CLASS.values())
     assert counts == {
@@ -36,8 +36,8 @@ def test_verb_class_partitions_the_full_enum_exactly_once() -> None:
         VerbClass.POLICY: 7,
         VerbClass.EFFECT: 37,
     }
-    # Embedded rulings: mandates are legality policies; the legacy
-    # move-shape twins of the merged MOVE stay EFFECTs beside it.
+    # Mandates are legality policies; MOVE_ZONE and its move-shape twins
+    # (MILL, DISCARD, EXILE) are EFFECTs.
     assert VERB_CLASS[Verb.MANDATE_ATTACK] is VerbClass.POLICY
     assert VERB_CLASS[Verb.MANDATE_BLOCK] is VerbClass.POLICY
     for legacy in (Verb.MILL, Verb.DISCARD, Verb.EXILE, Verb.MOVE_ZONE):
@@ -54,7 +54,7 @@ def _move(**roles) -> Atom:
 
 
 def test_mill_shape_is_slots_on_the_one_move_operation() -> None:
-    # {operation × menu × count × journal-kind} stay orthogonal (§9):
+    # {operation × menu × count × journal-kind} stay orthogonal:
     # the mill shape is MOVE{from=LIBRARY/ctrl, to=GRAVEYARD/ctrl,
     # amount, journal_kind=MILL, pop_order=TOP} — the SAME operation
     # pairs with the designation menu and no from (exile shape).
@@ -67,8 +67,8 @@ def test_mill_shape_is_slots_on_the_one_move_operation() -> None:
     assert mill.args.get("from") == LIB_YOU
     assert mill.args.get("journal_kind") == "MILL"
     assert mill.args.get("pop_order") == "TOP"
-    # The designation menu on the same operation (old EXILE, A2(iv):
-    # role key `target` kept): no from, journal defaults to MOVE.
+    # The designation menu on the same operation (the exile shape, role
+    # key `target`): no from, journal defaults to MOVE.
     exile = _move(
         destination=Zone(ZoneKind.EXILE, ControllerRef.ANY),
         target=Selector(
@@ -93,8 +93,8 @@ def test_closed_vocab_and_object_axis_raise() -> None:
 
 
 def test_legacy_move_shapes_still_construct() -> None:
-    # P1a removes EMISSION and DISPATCH, not the enum members: the
-    # legacy atoms stay constructible (legacy decode, CLASS partition).
+    # The move-shape twins have no executor handler (MOVE_ZONE carries
+    # them), but their atoms stay constructible (CLASS partition).
     Atom(
         verb=Verb.DISCARD,
         args=AtomArgs(
@@ -119,7 +119,7 @@ def test_legacy_move_shapes_still_construct() -> None:
 
 
 def test_mill_journal_requires_top_pop():
-    """Fresh-eyes MINOR fix: MILL without TOP must RAISE, not lane-fall-through."""
+    """MILL without pop_order TOP must RAISE, not fall through to another lane."""
     import pytest
     from MTG_bot.core.ability_tree import AtomArgs
 

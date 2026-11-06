@@ -5,11 +5,10 @@ ability doesn't resolve. It's removed from the stack and, if it's a spell, put i
 graveyard. Otherwise, the spell or ability will resolve normally. Illegal targets, if any, won't
 be affected by parts of a resolving spell's effect for which they're illegal."
 
-Regressions for the known_bugs folder cr608_2b_no_target_recheck (2026-11-05): the cast lane
-bound the targets chosen at casting and never looked again, so a spell whose only target had
-left the battlefield still drew its card, and damage was marked on a card in a graveyard
-(Ember Hauler, M20; Heartfire Immolator, M21, sacrificed to its own ability while targeting
-itself: tools/scenarios/heartfire_immolator_self_target_does_not_resolve.json).
+A spell whose only target is gone does not resolve (it draws no card); a spell with one illegal
+and one legal target affects only the legal one. The ability side (Heartfire Immolator sacrificed
+to its own ability while targeting itself) is the scenario
+tools/scenarios/heartfire_immolator_self_target_does_not_resolve.json.
 """
 
 from __future__ import annotations

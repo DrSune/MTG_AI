@@ -1,9 +1,6 @@
-"""r25 — grammar round 11 executor lanes (batch 6, 2026-10-02).
+"""Two executor lanes: the ``OPPONENT_OF`` predicate and CREATE_TOKEN's ``controller`` role.
 
-Two engine faces for the ratified additive members (ruling:
-KNOWLEDGE/2026-10-02/10-grammar-round-ruling.md):
-
-* R11-1 ``FAtomPred.OPPONENT_OF`` (quantity._eval_atom +
+* ``FAtomPred.OPPONENT_OF`` (quantity._eval_atom +
   binding._player_subject_verdict): the DESTINATION predicate for
   "deals noncombat damage to an opponent" (Chandra's Pyreling /
   Chandra's Incinerator). Player-total — a player outside ``who``'s
@@ -11,14 +8,13 @@ KNOWLEDGE/2026-10-02/10-grammar-round-ruling.md):
   passes at all (CR 109.5). CONTROLLER_IS would be the WRONG carrier:
   over a card subject it reads the card's controller, firing Pyreling
   on damage to an opponent's creature — the negative pinned below and
-  in the promoted ``chandras_pyreling_opponent_filter`` pack.
-* R11-2 ``CREATE_TOKEN`` optional ``controller`` role (verbs.
+  in the ``chandras_pyreling_opponent_filter`` pack.
+* ``CREATE_TOKEN``'s optional ``controller`` role (verbs.
   _v_create_token): the anaphoric creator — "ITS CONTROLLER creates
   a … token" (Secure the Scene / Angelic Ascension s2). Resolves
   through the same role_players lane LOSE_LIFE uses for the referent
   reads; a resolution naming zero or several players raises, never
-  guesses. WITHOUT the role the verb mints at ctx.controller — the
-  whole pre-round-11 corpus, pinned as the regression face.
+  guesses. WITHOUT the role the verb mints at ctx.controller.
 """
 
 import unittest
@@ -55,7 +51,7 @@ def opponent_of(who: ControllerRef | Selector = ControllerRef.YOU) -> FAtom:
 
 
 def referent_target_selector() -> Selector:
-    """The compiler's R11-2 emission shape (b5b anaphora template)."""
+    """The compiler's "its controller" emission shape (b5b anaphora template)."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -141,8 +137,7 @@ class TestOpponentOfTrigger(R25Case):
 
     def _damage(self, subject):
         # The target zone follows the subject sort — a PLAYER-zone TARGET
-        # selector refuses a card binding and re-resolves to a player
-        # (that re-resolution, not the engine, was the r25 harness bug).
+        # selector refuses a card binding and re-resolves to a player.
         zone = (
             UNIV_PLAYER
             if subject in (self.p0, self.p1)
@@ -169,10 +164,10 @@ class TestOpponentOfTrigger(R25Case):
         self.assertEqual(self.life(self.p0), 18)
 
     def test_damage_to_opponents_creature_does_not_fire(self):
-        # The promoted-pack signature: p0's watch deals 2 to p1's Thug —
-        # at the pre-R11 vacuous FAnd(()) the trigger fired (+1 life,
-        # life stays 20 here with a dead Thug). The destination
-        # predicate kills it: the damage is never "to an opponent".
+        # The pack's signature: p0's watch deals 2 to p1's Thug. A vacuous
+        # FAnd(()) destination would fire the trigger (+1 life); the
+        # destination predicate keeps it silent, the damage is never "to an
+        # opponent", so life stays 20 with a dead Thug.
         self._damage(self.thug)
         self.assertEqual(self.life(self.p0), 20)
         self.assertEqual(self.world.zone_of(self.thug).kind, ZONE_GRAVEYARD)
@@ -197,8 +192,7 @@ class TestCreateTokenControllerRole(R25Case):
         self.assertEqual(self.tokens_of(self.p0), [])
 
     def test_no_role_still_mints_at_ctx_controller(self):
-        # Regression face of "optional": every pre-round-11 emission
-        # (all 27 CREATE_TOKEN corpus rows) is untouched.
+        # The role is optional: without it the token is ctx.controller's.
         self.ex.execute(
             atom(Verb.CREATE_TOKEN, tokens=SOLDIER, count=QConst(1)),
             source=self.watch,

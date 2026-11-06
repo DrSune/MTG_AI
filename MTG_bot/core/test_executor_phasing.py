@@ -1,4 +1,4 @@
-"""Phasing (CR 702.26) at the executor level, 2026-10-29.
+"""Phasing (CR 702.26) at the executor level.
 
 The scenario packs (tools/scenarios/teferi_*phase*, aven_gagglemaster_*,
 feline_sovereign_*) cover the printed cards end to end. These cases pin what

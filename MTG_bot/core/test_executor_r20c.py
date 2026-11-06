@@ -1,25 +1,20 @@
-"""Round-20c tests: the cast/cost/attach fix batch (wave-3 suspects).
+"""Hand self-discard activations, IS_SOURCE self-designation, detach LKI and the life-lead gate.
 
-Pins the four executor fixes the scenario packs verified end to end:
-
-* Waker of Waves (legality.py): the printed "Discard this card:" hand
-  activation — the window gate opens ONLY for a cost whose HAND-zone
-  selector filter demands IS_SOURCE (cycling CR 702.29a family), the
-  payment plan's r19b self-exclusion carves back exactly for that IR
-  shape (CR 601.2h is a CAST-cost rule), and every other activation from
-  the hand stays the loud ``window:not_on_battlefield`` reason.
-* Hobblefiend (selectors.py): a CHOOSE-mode selector filtered on
-  IS_SOURCE is the effect's OWN self-designation (CR 602.2c) — the
-  cost-side TARGET binding sharing the role name must not hijack it.
-* Malefic Scythe (binding.py + quantity.py): the leave-detach sweep
-  snapshots the departing host's aura set into ``executor.detach_lki``
-  BEFORE pruning, and IS_ATTACHED_TO_SOURCE falls back to that LKI
-  snapshot (CR 400.7) only once the judged host has LEFT the
-  battlefield — on the battlefield the live table is the only word.
-* Speaker of the Heavens (quantity.py + __init__.py):
-  LIFE_LEAD_OVER_START_GE is a ledger read (current life minus the
-  construction-time ``starting_life`` snapshot), not a LIFE_GAINED
-  journal sum — a non-damage life loss leaves no journal row.
+* Waker of Waves (legality.py): the printed "Discard this card:" hand activation. The window
+  opens only for a cost whose HAND-zone selector filter is IS_SOURCE (the cycling family,
+  CR 702.29a); the payment plan, which keeps a cast spell out of its own discard cost
+  (CR 601.2h), lets exactly that shape discard its source; every other activation from the hand
+  is refused with ``window:not_on_battlefield``.
+* Hobblefiend (selectors.py): a CHOOSE-mode selector filtered on IS_SOURCE is the effect's own
+  self-designation (CR 602.2c); the cost-side TARGET binding sharing the role name does not
+  hijack it.
+* Malefic Scythe (binding.py, quantity.py): the leave-detach sweep snapshots the departing
+  host's auras into ``executor.detach_lki`` before pruning, and IS_ATTACHED_TO_SOURCE reads that
+  snapshot (CR 400.7) only once the judged host has left the battlefield; on the battlefield the
+  live table decides.
+* Speaker of the Heavens (quantity.py): LIFE_LEAD_OVER_START_GE reads current life minus the
+  construction-time ``starting_life`` snapshot, not a LIFE_GAINED journal sum: a non-damage life
+  loss leaves no journal row.
 """
 
 import unittest
@@ -74,8 +69,8 @@ def self_discard_cost() -> Cost:
 
 
 class TestHandSelfDiscardWindow(LegalityCase):
-    """Waker fix, gate lane: the window opens for the printed hand
-    activation and for nothing else."""
+    """Waker of Waves, the window: it opens for the printed hand activation and for nothing
+    else."""
 
     def put_in_hand(self, oid: str, abil, name: str) -> Handle:
         handle = self.world.add_card(
@@ -121,8 +116,8 @@ class TestHandSelfDiscardWindow(LegalityCase):
 
 
 class TestDiscardPaymentSelfLane(LegalityCase):
-    """Waker fix, payment lane: build_payment_plan's r19b self-exclusion
-    (CR 601.2h) carves back exactly for the self-referential IR filter."""
+    """Waker of Waves, the payment: build_payment_plan keeps the cast spell out of its own
+    discard cost (CR 601.2h) except for the self-referential IS_SOURCE filter."""
 
     def test_self_referential_discard_pays_its_own_source(self):
         h = self.world.add_card(card_id("Waker"), self.p0, ZONE_HAND)
@@ -140,8 +135,8 @@ class TestDiscardPaymentSelfLane(LegalityCase):
         self.assertEqual((plan.discard, reason), ((h,), None))
 
     def test_generic_discard_still_excludes_the_casting_spell(self):
-        # r19b Thrill lane regression: "discard a card" (UNIV filter) as a
-        # CAST cost may never spend the spell on the stack itself.
+        # Thrill of Possibility: "discard a card" (UNIV filter) as a CAST cost may never
+        # spend the spell on the stack itself.
         spell = self.world.add_card(card_id("Thriller"), self.p0, ZONE_HAND)
         other = self.world.add_card(card_id("Payoff"), self.p0, ZONE_HAND)
         ctx = ctx_for(self.ex, source=spell, controller=self.p0)
@@ -165,8 +160,8 @@ class TestDiscardPaymentSelfLane(LegalityCase):
 
 
 class TestSelfRefSelectorRole(LegalityCase):
-    """Hobblefiend fix: the effect's IS_SOURCE self-designation is not
-    hijacked by the cost TARGET binding sharing the role name."""
+    """Hobblefiend: the effect's IS_SOURCE self-designation is not hijacked by the cost TARGET
+    binding sharing the role name."""
 
     def put_counter_atom(self, sel: Selector) -> Atom:
         return Atom(
@@ -193,12 +188,10 @@ class TestSelfRefSelectorRole(LegalityCase):
         )
 
     def test_plain_choose_selector_stays_binding_first(self):
-        # The 12a designation convention stands for every non-self filter.
-        # re-pinned 2026-10-29: V28 changes the binding a CHOOSE selector accepts:
-        # one it could not select (here the opponent's Beta for a "your
-        # battlefield" CHOOSE) is a foreign designation and no longer hijacks it
-        # (Rewind). The convention is pinned with a binding that fits: Gamma, not
-        # the first-n stand-in Alpha, comes back.
+        # Every non-self filter takes the bound designation first. Only a binding the
+        # selector could select counts (the opponent's Beta for a "your battlefield" CHOOSE
+        # would be a foreign designation and ignored), so the binding here fits: Gamma comes
+        # back, not the first-n stand-in Alpha.
         gamma = self.world.add_card(card_id("Gamma", "3", "3"), self.p0, ZONE_BATTLEFIELD)
         ctx = ctx_for(
             self.ex,
@@ -213,9 +206,8 @@ class TestSelfRefSelectorRole(LegalityCase):
 
 
 class TestLeaveDetachLKI(LegalityCase):
-    """Malefic Scythe fix: the departure snapshot answers IS_ATTACHED_-
-    TO_SOURCE after the live table was pruned — and never while the
-    judged host still stands on the battlefield."""
+    """Malefic Scythe: the departure snapshot answers IS_ATTACHED_TO_SOURCE after the live table
+    was pruned, and never while the judged host is still on the battlefield."""
 
     def setUp(self):
         super().setUp()
@@ -256,8 +248,8 @@ class TestLeaveDetachLKI(LegalityCase):
 
 
 class TestLifeLeadOverStart(LegalityCase):
-    """Speaker fix: the gate reads current-minus-start from the ledger —
-    never a LIFE_GAINED journal sum."""
+    """Speaker of the Heavens: the gate reads current-minus-start from the ledger, never a
+    LIFE_GAINED journal sum."""
 
     LEEAD = FAtom(FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(7))
 

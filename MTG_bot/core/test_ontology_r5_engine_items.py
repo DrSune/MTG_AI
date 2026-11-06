@@ -1,7 +1,7 @@
-"""Ontology R5 engine items on existing components (docs/DESIGN_ATOM_ONTOLOGY.md
-§10, gate round 3 GO): "choose one or more" is ``Choose(count=QAtLeast(1))``,
-and a cast ordinal counts only the casts its trigger describes (Double
-Vision's "your first instant or sorcery spell each turn").
+"""Two engine items on existing components (docs/DESIGN_ATOM_ONTOLOGY.md §10):
+"choose one or more" is ``Choose(count=QAtLeast(1))``, and a cast ordinal
+counts only the casts its trigger describes (Double Vision's "your first
+instant or sorcery spell each turn").
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def test_choose_one_or_more_is_at_least_one() -> None:
 class TestChooseOneOrMoreSets(StackCase):
     def test_the_empty_set_is_not_a_choice(self) -> None:
         # CR 700.2: "choose one or more" names at least one mode, each at most
-        # once (700.2d); QUnbounded also offered the empty set.
+        # once (700.2d); QUnbounded would also offer the empty set.
         two = Choose(count=QAtLeast(1), options=(gain(1), gain(2)))
         sets = [o.option_idxs for o in choose_options(self.ex, two, source=self.p0, controller=self.p0)]
         self.assertEqual(sets, [(0,), (1,), (0, 1)])

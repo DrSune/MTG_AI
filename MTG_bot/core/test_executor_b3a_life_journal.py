@@ -1,10 +1,9 @@
-"""B3a (BUGCATCH D1): the life-loss journal feed (LIFE_LOST).
+"""The life-loss journal feed (LIFE_LOST).
 
-Pins the events.py fix: a non-damage life DECREASE (Verb.LOSE_LIFE —
-"you lose 3 life", the corpus' life-as-cost lane) emits exactly one
-LIFE_LOST row carrying the ACTUAL clamped delta, while damage losses
-keep emitting DAMAGE rows ONLY (CR 118.5: losing life is not dealt
-damage) and gains keep emitting LIFE_GAINED (binding.py dispatches
+A non-damage life DECREASE (Verb.LOSE_LIFE — "you lose 3 life", the
+corpus' life-as-cost lane) emits exactly one LIFE_LOST row carrying the
+ACTUAL delta, while damage losses emit DAMAGE rows ONLY (CR 118.5:
+losing life is not dealt damage) and gains emit LIFE_GAINED (binding.py dispatches
 LifeGainedEvent by kind, so a loss must never borrow either kind).
 The fold invariant the audit detector relies on:
     final_life == start + ΣLIFE_GAINED − ΣDAMAGE − ΣLIFE_LOST
@@ -92,12 +91,10 @@ class TestLifeLostFeed(LifeJournalCase):
         self.assertEqual(self.rows("LIFE_GAINED"), [])
 
     def test_lose_life_clamp_amount_is_the_actual_delta(self):
-        # The journalled amount is the REAL delta, so the fold reconstructs.
-        # re-pinned 2026-10-30: the verb no longer clamps at 0 (CR 119.3: the life
-        # total is adjusted; 119.6: at 0 or less the player loses, as a state-based
-        # action). The old pin cited a "CR 118.5.2a" that says no such thing.
-        # 2026-11-05: that state-based action now exists (CR 704.5a) and ends
-        # the two-player game at the check after the op.
+        # The journalled amount is the REAL delta, so the fold reconstructs. Life is not
+        # clamped at 0 (CR 119.3: the life total is adjusted); at 0 or less the player loses
+        # as a state-based action (CR 119.6, 704.5a), which ends the two-player game at the
+        # check after the op.
         with self.assertRaises(GameOver):
             self.ex.execute(
                 atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),

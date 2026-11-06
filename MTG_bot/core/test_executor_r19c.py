@@ -1,7 +1,4 @@
-"""Round-19c regression tests: the cast-declaration lane (wave 2 fix-b).
-
-Each test pins the FIXED reading of one r19c root cause, and the green
-behaviour the batch had to leave byte-unchanged:
+"""The cast-declaration lane (CR 601.2b-c): modes, then targets, and the decision lanes.
 
 1. MULTI-slot designation (Hunter's Edge / Rookie Mistake): several
    exactly-one TARGET selectors designate POSITIONALLY — the i-th entry
@@ -10,8 +7,8 @@ behaviour the batch had to leave byte-unchanged:
    stays loud with the designation-count shape.
 2. FORCED auto-designation (Duress / Mind Rot / Peer): a spell designated
    nothing whose every slot has exactly one legal filler — the lone
-   opponent TARGET_PLAYER population, or a one-candidate target — takes
-   THE answer (CR 601.2c, the 18b trigger-lane convention mirrored). A
+   opponent TARGET_OPPONENT population, or a one-candidate target — takes
+   THE answer (CR 601.2c, the trigger-lane convention mirrored). A
    slot that leaves a real choice stays loud.
 3. The SELF-CLAUSE lane (Experimental Overload): a TARGET selector whose
    only satisfier is the source spell (IS_SOURCE over a zone the spell is
@@ -21,11 +18,11 @@ behaviour the batch had to leave byte-unchanged:
 4. take_decision lane 1 (Duress / Experimental Overload pools): a pool
    word the demanded site's vocabulary does NOT carry is never consumed —
    the site falls through to the stream/provider lanes, the word stays in
-   the pool for the site it was scripted for, and the original raise
+   the pool for the site it was scripted for, and the usual raise
    shape survives when no lane can answer.
 5. The CHOOSE handle-alias vocabulary (Duress): each singleton candidate
    row's own handle string is a legal token IN ADDITION to the positional
-   index; the digest and the index lane are byte-unchanged.
+   index; the digest and the index lane are unaffected.
 6. Modes BEFORE targets (Return to Nature, CR 601.2b): a multi-slot
    Choose spell declares its mode at cast time (leading decision token or
    mode_choices), the option prunes the slot set, and the runtime Choose
@@ -76,8 +73,8 @@ BF_YOU = Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
 class PositionalMultiSlotTest(StackCase):
     def double_zap(self, name="DoubleZap"):
         """Slot 1: damage 1 to a creature YOU control. Slot 2: damage 2 to
-        any creature. Two different populations — the shared union binding
-        could never serve both (the reason multi-slot stayed loud)."""
+        any creature. Two different populations — one shared union binding
+        could never serve both, so each slot binds its own."""
         return self.give(
             name,
             SpellKind.INSTANT,
@@ -126,9 +123,9 @@ class PositionalMultiSlotTest(StackCase):
 
 class ForcedAutoDesignationTest(StackCase):
     def peer_draw(self, name="PeerDraw"):
-        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT; a
-        # TARGET_PLAYER designation may now name either seat, so it is no longer forced.
-        """Mind Rot / Peer shape: TARGET_PLAYER controller, NO TARGET
+        # "Target opponent" is TARGET_OPPONENT, forced with one opponent; a
+        # TARGET_PLAYER designation may name either seat, so it is not forced.
+        """Mind Rot / Peer shape: TARGET_OPPONENT controller, NO TARGET
         selector — only the synthesized opponent-slot exists."""
         return self.give(
             name,
@@ -237,7 +234,7 @@ class DecisionLaneTest(StackCase):
         ctx.stream = None
         with self.assertRaises(ValueError) as cm:
             ctx.take_decision(("fire", "skip"), "may")
-        # the ORIGINAL raise shape (test_executor_games pins this text)
+        # the usual raise shape: the word is not in the site's vocabulary
         self.assertIn("may decision 'prey' not in", str(cm.exception))
         self.assertEqual(ctx.decision_idx, 0)  # the word was NOT eaten
         # ... and it is still there for the site it was scripted for
@@ -255,8 +252,8 @@ class DecisionLaneTest(StackCase):
         self.assertEqual(ctx.take_decision(("prey", "sheep"), "choose:x"), "prey")
 
     def test_pool_word_flows_to_its_own_site(self):
-        # re-pinned 2026-10-29: V21 encodes "target opponent" as TARGET_OPPONENT; a
-        # TARGET_PLAYER designation may now name either seat, so it is no longer forced.
+        # "Target opponent" is TARGET_OPPONENT, forced with one opponent; a
+        # TARGET_PLAYER designation may name either seat, so it is not forced.
         # Duress interaction end-to-end: a may-offer asked FIRST must not
         # eat the card-name token scripted for the LATER Choose site.
         pool = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(HAND_OPP,))
@@ -294,7 +291,7 @@ class DecisionLaneTest(StackCase):
             ),
         )
         # ONE creature -> the may-slot's one candidate auto-fills alongside
-        # the lone-opponent TARGET_PLAYER slot (both forced, positional);
+        # the lone-opponent TARGET_OPPONENT slot (both forced, positional);
         # the pool carries only the CHOOSE site's handle token.
         scout = self.world.add_card(
             card_id("Scout", "1", "3"), self.p1, ZONE_BATTLEFIELD
@@ -353,8 +350,8 @@ class ChooseAliasTest(StackCase):
         self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
 
     def test_word_not_in_any_lane_stays_loud(self):
-        # re-pinned 2026-10-29: V19 forces a one-candidate pick (no ask, no
-        # empty row), so the hand holds two cards to keep this a real ask.
+        # A one-candidate pick is forced (no ask, no empty row), so the hand
+        # holds two cards to keep this a real ask.
         spell = self.duress("LoudDuress")
         self.world.add_card(card_id("HandOne", "1", "1"), self.p1, ZONE_HAND)
         self.world.add_card(card_id("HandTwo", "1", "1"), self.p1, ZONE_HAND)
@@ -436,9 +433,8 @@ class PrechosenModesTest(StackCase):
         self.assertEqual(self.world.zone_of(orb).kind, ZONE_BATTLEFIELD)
 
     def test_undeclared_mode_stays_loud(self):
-        # re-pinned 2026-10-29: V17 changes an undeclared mode from a cast
-        # refusal into an ask of the caster at cast time (CR 601.2b), over the
-        # legal mode sets; with nobody to answer it the cast still raises,
+        # An undeclared mode is asked of the caster at cast time (CR 601.2b),
+        # over the legal mode sets; with nobody to answer it the cast raises,
         # never a default.
         orb, _ = self._board()
         with self.assertRaises(ValueError) as cm:

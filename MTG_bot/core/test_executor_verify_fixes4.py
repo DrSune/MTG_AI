@@ -1,25 +1,26 @@
-"""Engine fixes from the M21 verification campaign, fixer 4 (2026-10-29).
+"""The cleanup step, "end the turn", color-set spell filters, defender, attacking
+planeswalkers, and what can be dealt damage.
 
-V36  The cleanup step (CR 514). The active player discards down to their maximum
-     hand size, seven (CR 514.1, 402.2), choosing the cards through visible asks
-     (CR 701.9b); then damage and "until end of turn" effects end (514.2); then
-     state-based actions and waiting triggers are handled, and if anything happened
-     another cleanup step follows (514.3a).
-V37  "End the turn" (CR 724.1). Triggers that triggered before the process cease to exist
-     (724.1a); the stack is exiled (724.1b); state-based actions are checked with no trigger
-     put on the stack (724.1c); the end step is skipped, so "at the beginning of the end
-     step" abilities do not trigger (724.1d-e); the turn goes straight to its cleanup step,
-     where the triggers from the process resolve before another cleanup step (724.1f). Nothing
-     acts after the turn has ended: Executor.end_turn and the act windows do nothing.
-V39  Quirion Dryad: a spell "that's white, blue, black, or red" is a spell with at least one of
-     those colors (CR 105.2, 105.2b), so a green-blue spell counts. The compiler wrote a subset
-     test (COLOR_IN); it now writes the canonical FOr of COLOR_HAS.
-V40  Defender only forbids attacking (CR 702.3b): a creature with defender blocks.
-V41  Creatures attack planeswalkers (CR 506.2, 508.1b): the attack ask names what each attacker
-     attacks; combat damage to a planeswalker removes loyalty (CR 120.3c, 510.1b); a creature
-     whose planeswalker left combat attacks nothing and deals no damage (CR 506.4c).
-B-54 Damage can't be dealt to an object that's not a battle, a creature or a planeswalker
-     (CR 120.1a): a land takes no mark and leaves no damage event.
+* The cleanup step (CR 514). The active player discards down to their maximum
+  hand size, seven (CR 514.1, 402.2), choosing the cards through visible asks
+  (CR 701.9b); then damage and "until end of turn" effects end (514.2); then
+  state-based actions and waiting triggers are handled, and if anything happened
+  another cleanup step follows (514.3a).
+* "End the turn" (CR 724.1). Triggers that triggered before the process cease to exist
+  (724.1a); the stack is exiled (724.1b); state-based actions are checked with no trigger
+  put on the stack (724.1c); the end step is skipped, so "at the beginning of the end
+  step" abilities do not trigger (724.1d-e); the turn goes straight to its cleanup step,
+  where the triggers from the process resolve before another cleanup step (724.1f). Nothing
+  acts after the turn has ended: Executor.end_turn and the act windows do nothing.
+* Quirion Dryad: a spell "that's white, blue, black, or red" is a spell with at least one of
+  those colors (CR 105.2, 105.2b), so a green-blue spell counts: the compiled filter is the
+  FOr of COLOR_HAS, not a subset test (COLOR_IN).
+* Defender only forbids attacking (CR 702.3b): a creature with defender blocks.
+* Creatures attack planeswalkers (CR 506.2, 508.1b): the attack ask names what each attacker
+  attacks; combat damage to a planeswalker removes loyalty (CR 120.3c, 510.1b); a creature
+  whose planeswalker left combat attacks nothing and deals no damage (CR 506.4c).
+* Damage can't be dealt to an object that's not a battle, a creature or a planeswalker
+  (CR 120.1a): a land takes no mark and leaves no damage event.
 """
 
 import unittest
@@ -127,7 +128,7 @@ class Case(unittest.TestCase):
 
 
 class CleanupDiscardTest(Case):
-    """V36 (CR 514.1, 402.2, 701.9b)."""
+    """The cleanup step (CR 514.1, 402.2, 701.9b)."""
 
     def test_maximum_hand_size_is_seven(self):
         self.assertEqual(MAX_HAND_SIZE, 7)  # CR 402.2: normally seven
@@ -235,7 +236,7 @@ class CleanupDiscardTest(Case):
 
 
 class EndTheTurnTest(Case):
-    """V37 (CR 724.1, all subrules)."""
+    """End the turn (CR 724.1, all subrules)."""
 
     def setUp(self):
         super().setUp()
@@ -359,7 +360,7 @@ class FirstActAgent:
 
 
 class ActWindowAfterTheTurnEndedTest(unittest.TestCase):
-    """V37: once an effect has ended the turn, no player gets priority in it
+    """Once an effect has ended the turn, no player gets priority in it
     again (CR 724.1f), so the act windows offer nothing."""
 
     def game_with_a_land(self):
@@ -409,7 +410,7 @@ class ActWindowAfterTheTurnEndedTest(unittest.TestCase):
 
 
 class QuirionDryadColorTest(unittest.TestCase):
-    """V39 (CR 105.2, 105.2b)."""
+    """A spell of any of several colors (CR 105.2, 105.2b)."""
 
     def test_the_compiled_trigger_reads_any_of_the_four_colors(self):
         supply = get_supply("all", "M21")
@@ -436,7 +437,7 @@ class QuirionDryadColorTest(unittest.TestCase):
 
 
 class DefenderBlocksTest(unittest.TestCase):
-    """V40 (CR 702.3b)."""
+    """Defender (CR 702.3b)."""
 
     def test_a_wall_blocks_and_does_not_attack(self):
         supply = get_supply("all", "M21")
@@ -456,7 +457,7 @@ class DefenderBlocksTest(unittest.TestCase):
 
 
 class PlaneswalkerAttackTest(unittest.TestCase):
-    """V41 (CR 506.2, 506.4c, 508.1b, 510.1b, 120.3c)."""
+    """Attacking planeswalkers (CR 506.2, 506.4c, 508.1b, 510.1b, 120.3c)."""
 
     def setUp(self):
         supply = get_supply("all", "M21")
@@ -521,7 +522,7 @@ class PlaneswalkerAttackTest(unittest.TestCase):
 
 
 class DamageOnlyToDamageableTest(Case):
-    """B-54 (CR 120.1a)."""
+    """Only battles, creatures and planeswalkers are dealt damage (CR 120.1a)."""
 
     def test_a_land_is_not_dealt_damage(self):
         land = self.world.add_card(

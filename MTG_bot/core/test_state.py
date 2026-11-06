@@ -3,7 +3,8 @@
 These pin down the replay contract: two worlds built the same way with the
 same seed must have identical fingerprints, and trigger ordering must be a
 function of (controller seat, clock) only — never of set iteration order.
-That is the property P12 (byte-identical replay) and loop detection build on.
+That is the property pre-flight P12 (byte-identical replay,
+docs/TRAINING_REVIEW_PROTOCOL.md) and loop detection build on.
 """
 
 import unittest

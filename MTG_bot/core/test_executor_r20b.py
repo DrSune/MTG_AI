@@ -1,7 +1,4 @@
-"""Round-20b regression tests: the wave-3 trigger-feed / replacement / static
-lane batch.
-
-Each test pins one r20b root cause and the machinery that fixed it:
+"""Trigger feeds, zone-change replacement, player-subject verdicts and disclosure statics:
 
 1. WAS_CAST_THIS_TURN (Containment Priest): the zone-agnostic twin of
    CAST_THIS_TURN_FROM — the condition reads the journalled 601.2h CAST
@@ -20,12 +17,13 @@ Each test pins one r20b root cause and the machinery that fixed it:
 4. Player-subject verdicts (Hooded Blightfang): a DAMAGE row with a
    PLAYER subject is judged by _player_subject_verdict — card-shape
    predicates are simply false of a player, CONTROLLER_IS compares
-   seats, and everything outside the shape set still raises 12c.
+   seats, and everything outside the shape set still raises.
 5. Disclosure statics (Conspicuous Snoop "Play with the top card
    revealed."): REVEAL/LOOK_AT payload statics install as lifetime
    "disclosure" layers (the verb lane's recorded no-op doctrine, with
-   source-anchored liveness); the GAIN_LIFE-in-StaticAbility compiler
-   mis-split (Rin and Seri) keeps its loud raise — flag-not-degrade.
+   source-anchored liveness); a GAIN_LIFE-in-StaticAbility compiler
+   mis-split (Rin and Seri) is recorded on executor.unparseable_statics
+   as the permanent enters — flagged, never thrown or silently skipped.
 """
 
 from __future__ import annotations
@@ -92,7 +90,7 @@ def _bf_target() -> Selector:
 
 def _event_exile() -> Atom:
     """The Containment Priest action shape straight from the golden:
-    the merged MOVE_ZONE designation lane (T4 P1a) with the CHOOSE
+    the merged MOVE_ZONE designation lane with the CHOOSE
     selector's ``referent="event"`` anaphora on ``target``."""
     return atom(
         Verb.MOVE_ZONE,
@@ -138,7 +136,7 @@ class R20bCase(unittest.TestCase):
         self.ex = Executor(self.world)
         for color in "WUBRG":
             self.world.players[self.p0].mana_pool[color] = 5
-        self.ex.begin_turn(self.p0)  # the cast window lane (legality.py:1003)
+        self.ex.begin_turn(self.p0)  # opens the cast window: p0's turn, main phase
 
     # ------------------------------------------------------------- helpers
 
@@ -252,7 +250,7 @@ class R20bCase(unittest.TestCase):
 
     def _targeting_rows(self):
         # GameEvents live on the EventJournal, not the executor's raw
-        # verb-row list (binding.match_new scans journal.events @504).
+        # verb-row list (binding.match_new scans journal.events).
         return [
             e for e in self.ex.journal.events if getattr(e, "kind", None) == "TARGETING"
         ]
@@ -312,7 +310,7 @@ class R20bCase(unittest.TestCase):
         self.assertFalse(self.world.cards[warden].tapped)  # never touched
 
     def test_targeting_event_trigger_registers_without_raise(self):
-        # The r20b registration gap: TargetingEvent left _UNSUPPORTED_EVENTS.
+        # TargetingEvent is a supported trigger event (not in _UNSUPPORTED_EVENTS).
         handle = self._card("Register Me")
         self.ex.attach_card(  # must NOT raise NotImplementedError
             handle,
@@ -498,7 +496,7 @@ class R20bCase(unittest.TestCase):
 
     def test_reveal_static_installs_disclosure_layer(self):
         snoop = self._card("Snoop Clone")
-        self.ex.attach_card(  # must NOT raise: the r20b REVEAL-12e gap
+        self.ex.attach_card(  # must NOT raise: a REVEAL payload static
             snoop,
             record_of(
                 [
@@ -525,13 +523,12 @@ class R20bCase(unittest.TestCase):
         )
 
     def test_gain_life_static_is_guarded_and_flagged(self):
-        # AMENDED r23a (2026-10-02): flag-not-degrade stands, but the
-        # raise-at-attach KILLED GAMES (Rin and Seri's cast lane,
-        # reports/games_2026-10-02.json). The refusal stays LOUD — it is
-        # RECORDED, not thrown: the permanent enters, and the
-        # unparseable static (compiler mis-split half — the suspect file
-        # keeps the attribution) lands in executor.unparseable_statics
-        # for coverage to see. No silent skip anywhere.
+        # Flag, not degrade — but a raise at attach would end the game
+        # (Rin and Seri's cast lane). The refusal stays LOUD by being
+        # RECORDED, not thrown: the permanent enters, and the unparseable
+        # static (the compiler's mis-split half) lands in
+        # executor.unparseable_statics for coverage to see. No silent skip
+        # anywhere.
         card = self._card("Mis-Split Legend")
         self.ex.attach_card(
             card,

@@ -1,10 +1,10 @@
-"""Tests for the round-12a state-visible executor (/06 §12a).
+"""Tests for the state-visible executor and its verb handlers.
 
 Pins the executor contract: every supported verb mutates the GameWorld
 exactly as the rules say; every unsupported verb/effect/quantity/pred
 RAISES (flag-don't-degrade); multi-object effects are Handle-sorted;
 decisions are consumed strictly in order; the replay fingerprint is a
-function of the atom sequence alone (P12).
+function of the atom sequence alone.
 """
 
 import itertools
@@ -159,8 +159,8 @@ class TestZoneVerbs(ExecutorCase):
 
     def test_exile(self):
         self.ex.execute(
-            # T4 P1a: the old EXILE shape is the designation lane of the
-            # merged MOVE_ZONE atom (target role kept, A2(iv)).
+            # EXILE is the designation lane of the merged MOVE_ZONE atom
+            # (target role kept).
             atom(
                 Verb.MOVE_ZONE,
                 target=target_sel(),
@@ -213,20 +213,20 @@ class TestLifeAndDamage(ExecutorCase):
             controller=self.p0,
         )
         self.assertEqual(self.world.players[self.p0].life, 23)
-        # 2026-11-05: at -7 the player loses at the check after the op (CR
-        # 704.5a), which ends the two-player game.
+        # At -7 the player loses at the check after the op (CR 704.5a),
+        # which ends the two-player game.
         with self.assertRaises(GameOver):
             self.ex.execute(
                 atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(30)),
                 source=self.alpha,
                 controller=self.p0,
             )
-        # re-pinned 2026-10-30: no clamp at 0 (CR 119.3, 119.6): 23 - 30.
+        # no clamp at 0 (CR 119.3, 119.6): 23 - 30.
         self.assertEqual(self.world.players[self.p0].life, -7)
 
     def test_deal_damage_to_player_clamps(self):
-        # 2026-11-05: at -5 the player loses at the check after the op (CR
-        # 704.5a), which ends the two-player game.
+        # At -5 the player loses at the check after the op (CR 704.5a),
+        # which ends the two-player game.
         with self.assertRaises(GameOver):
             self.ex.execute(
                 atom(
@@ -238,8 +238,7 @@ class TestLifeAndDamage(ExecutorCase):
                 controller=self.p0,
                 bindings={"target": self.p1},
             )
-        # re-pinned 2026-10-30: damage is that much life lost, below 0 too (CR 120.3a,
-        # 119.3); the old clamp at 0 recorded 25 damage as 20.
+        # Damage is that much life lost, below 0 too (CR 120.3a, 119.3).
         self.assertEqual(self.world.players[self.p1].life, -5)
 
     def test_lethal_damage_uses_ledger_pt(self):
@@ -360,7 +359,7 @@ class TestPtLedger(ExecutorCase):
             ),
             (4, 4),
         )
-        self.assertEqual(events[-1][4], 2)  # C18 was_power snapshot
+        self.assertEqual(events[-1][4], 2)  # the was_power snapshot
 
     def test_set_pt_absolute(self):
         self.ex.execute(
@@ -377,21 +376,9 @@ class TestPtLedger(ExecutorCase):
         )
 
     def test_current_pt_timestamp_behavior(self):
-        # CHARACTERIZATION (doc 36 item 5, probe 2026-10-07): the ledger
-        # folds SET_PT and MODIFY_PT deltas in PURE TIMESTAMP order —
-        # later change wins the overwrite, earlier delta is buried under a
-        # later SET. Order A: +1/+1 (from the 2/2 print) then SET_PT 3/3
-        # lands at 3/3 (the delta folded first, then overwritten); Order
-        # B: SET_PT 3/3 then +1/+1 lands at 4/4. Real MTG splits these
-        # into fixed layers (613.3b set BEFORE 613.3c modify), so a CR
-        # oracle says 4/4 for BOTH orders — the engine's answer is
-        # order-DEPENDENT (this test is the pin for whichever way T4's
-        # layer-model work lands, so the move is a loud diff, not a
-        # silent one). Flagged to the T4 ledger note in
-        # KNOWLEDGE/2026-10-07/34.
-        # re-pinned 2026-10-30: V27 (CR 613.4) changes order A from 3/3 to 4/4:
-        # every set (7a/7b) now applies before every delta (7c), so both orders
-        # land at the CR oracle's 4/4 (the loud diff this pin was written for).
+        # CR 613.4: every set (7a/7b) applies before every delta (7c), so
+        # +1/+1 (from the 2/2 print) then SET_PT 3/3, and SET_PT 3/3 then
+        # +1/+1, both land at 4/4 whatever the timestamp order.
         from MTG_bot.core.ability_tree import DurationEot
 
         for expect, ops in (
@@ -555,10 +542,10 @@ class TestTokens(ExecutorCase):
         )
 
     def test_token_colour_reaches_colour_filters_and_protection(self):
-        # m21-fidelity item 3 (2026-10-29): a token is the colour its spec prints (CR 111.4,
-        # 105.2), and every colour consumer reads it from the minted identity: COLOR_HAS,
-        # COLOR_COUNT_GE (Ugin's "one or more colors") and protection, whose attacker cannot
-        # be blocked by a creature of the stated quality (CR 702.16f).
+        # A token is the colour its spec prints (CR 111.4, 105.2), and every colour consumer
+        # reads it from the minted identity: COLOR_HAS, COLOR_COUNT_GE (Ugin's "one or more
+        # colors") and protection, whose attacker cannot be blocked by a creature of the
+        # stated quality (CR 702.16f).
         from MTG_bot.core.ability_tree import DurationEot, Keyword, KeywordAbility
         from MTG_bot.core.executor.legality import block_pair_blocked_reason
         from MTG_bot.core.executor.quantity import eval_filter
@@ -649,10 +636,8 @@ class TestManaScryShuffleLook(ExecutorCase):
             decisions=("bottom", "top"),
         )
         lib = self.world.players[self.p0].zone(ZONE_LIBRARY).entries
-        # AMENDED r18a (CR 701.1): a bottomed card goes UNDER the whole
-        # library — the unviewed remainder keeps its order and the tops
-        # land above it. The old pin froze the window-internal regroup
-        # that made every scry-1 "bottom" an exact no-op (wave-1b B-10).
+        # CR 701.1: a bottomed card goes UNDER the whole library — the
+        # unviewed remainder keeps its order and the tops land above it.
         self.assertEqual(lib, [self.libs[3]] + self.libs[:2] + [self.libs[2]])
 
     def test_scry_clamps_and_requires_decisions(self):
@@ -735,12 +720,9 @@ class TestSelectors(ExecutorCase):
             self.assertEqual(self.world.zone_of(c).kind, ZONE_GRAVEYARD)
 
     def test_choose_mode_c17_clamp(self):
-        # "discard up to two" with one card in hand: the executor clamps the
-        # menu to the 1 handle actually available.
-        # re-pinned 2026-10-29: V10 changes the discard lane: the discarding
-        # player chooses (CR 701.9b) and "up to two" names 0, 1 or 2, so the
-        # one card is a real ask with a NONE stop; the old silent 1..2 clamp
-        # discarded it with no decision.
+        # "discard up to two" with one card in hand: the discarding player
+        # chooses (CR 701.9b) and "up to two" names 0, 1 or 2, so the one
+        # card is a real ask with a NONE stop.
         asks: list[tuple[tuple[str, ...], object]] = []
 
         def provider(vocab: tuple[str, ...], _what: str) -> str:
@@ -773,10 +755,9 @@ class TestSelectors(ExecutorCase):
             )
 
     def test_unsupported_modes_and_referents_raise(self):
-        # AMENDED 14c (B-13): ONE_OF is no longer "unsupported" — it asks
-        # the vocabulary-addressed channel, and an ask NO lane can answer
-        # raises ValueError (never a default). The closed referents
-        # outside a firing stay NotImplementedError.
+        # ONE_OF asks the vocabulary-addressed channel, and an ask NO lane
+        # can answer raises ValueError (never a default). The closed
+        # referents outside a firing raise NotImplementedError.
         one_of = atom(
             Verb.DESTROY,
             target=Selector(QConst(1), SelectorMode.ONE_OF, CREATURE, zones=(BF_ANY,)),
@@ -922,12 +903,9 @@ class TestQuantityAndFilters(ExecutorCase):
         self.assertEqual(self.world.zone_of(self.gamma).kind, ZONE_EXILE)
 
     def test_color_preds_evaluate_now(self):
-        # AMENDED (round 13b): COLOR_HAS/COLOR_IN left the unsupported-pred
-        # list — the cast-trigger feed (Quirion Dryad's compiled "coloured
-        # spell" filter) needs them, and they are plain identity reads.
-        # COLOR_HAS = membership; COLOR_IN = NON-EMPTY SUBSET (grammar
-        # reading). NAME_CHOSEN is also live (executor_stack suite), and
-        # genuinely unsupported preds still raise (test below stays).
+        # COLOR_HAS/COLOR_IN are plain identity reads (the cast-trigger
+        # feed's "coloured spell" filter, Quirion Dryad): COLOR_HAS =
+        # membership; COLOR_IN = NON-EMPTY SUBSET (grammar reading).
         white = self.world.add_card(
             CardIdentity(
                 oracle_id="0f000001-1111-2222-3333-444444444444",
@@ -980,16 +958,11 @@ class TestQuantityAndFilters(ExecutorCase):
         self.assertEqual(self.world.zone_of(red).kind, ZONE_GRAVEYARD)
 
     def test_unsupported_pred_still_raises(self):
-        # the flag side stays: a pred the executor truly cannot read still
-        # raises at dispatch (NAME_CHOSEN without a CHOOSE_NAME record is
-        # the same convention, pinned in test_executor_stack.py).
-        # AMENDED (round 16b): IS_ATTACKING is NO LONGER in this class —
-        # the COMBAT skeleton answers it from the attack record (pinned
-        # below and in test_executor_combat.py).
-        # AMENDED 2026-10-02 (round 16c): IS_BLOCKING LEFT this class too —
-        # the block record is live and the pred answers False outside
-        # combat (the attack sibling's pattern); PT_GE takes the flag
-        # torch as a remaining unreadable pred (arity-legal bare FAtom).
+        # the flag side: a pred the executor cannot read raises at dispatch
+        # (NAME_CHOSEN without a CHOOSE_NAME record is the same convention,
+        # pinned in test_executor_stack.py). IS_ATTACKING and IS_BLOCKING
+        # read the combat record (False outside combat); a bare PT_GE
+        # (arity-legal FAtom, no count) is the unreadable pred.
         answers_attacking = atom(
             Verb.DESTROY,
             target=Selector(
@@ -1030,8 +1003,7 @@ class TestQuantityAndFilters(ExecutorCase):
             self.ex.execute(unreachable, source=self.alpha, controller=self.p0)
 
     def test_qx_raises(self):
-        # T4 P1a: reshaped to the merged MOVE mill lane so the probe
-        # still tests the QX quantity raise, not a retired verb dispatch.
+        # the merged MOVE mill lane with an undeclared QX amount.
         with self.assertRaises(NotImplementedError):
             self.ex.execute(
                 atom(
@@ -1054,41 +1026,12 @@ class TestDispatchRaises(ExecutorCase):
     def test_unsupported_verbs_raise_at_dispatch(self):
         # Atom.__post_init__ validates role presence, so each probe carries
         # its verb's required roles — only then does the dispatcher's
-        # "not implemented" raise become observable.
-        # AMENDED 2026-09-29 (round 12d): GRANT_ABILITY left the raise list
-        # — it (with LOSE_ABILITY/PREVENT_EFFECT) is a live layer verb now
-        # (test_executor_layers.py covers the behaviour).
-        # AMENDED 2026-09-29 (round 13a): DRAW and SEARCH left the raise
-        # list too — they gained real handlers, so probing them for a
-        # dispatch raise is no longer meaningful (their card-level
-        # behaviour is the 13b golden work). SUPPORTED_VERBS_V1 still
-        # pins them OUT: V1 is the frozen round-12 contract, V2 the live
-        # derived set.
-        # AMENDED (round 13b): CAST left the raise list — it is the spell
-        # stack's effect-side handler (_v_cast -> stack.cast_card, covered
-        # in test_executor_stack.py); PAY/CHOOSE/CHOOSE_NAME/MANA_POLICY
-        # joined the same round.
-        # AMENDED 2026-09-30 (round 13c): GET_EMBLEM left the raise list —
-        # it is the emblems round's live handler (executor.get_emblem,
-        # covered in test_executor_permissions.py); GRANT_TYPE,
-        # GRANT_ACTIVATION and ADD_LAND_PLAY join GRANT_ABILITY's 12d
-        # precedent as layer verbs that were never probed here.
-        # AMENDED 2026-09-30 (round 16a): FIGHT left the raise list — it is
-        # the damage-exchange round's live handler (HANDLERS[Verb.FIGHT],
-        # covered by the 16a marked-damage/fight tests).
-        # AMENDED (RUNG-1 response-window arc): COUNTER_SPELL left the
-        # raise list — stack.cast now opens the response window and the
-        # verb has a real handler (kickback ask included); off-stack
-        # counters still raise loudly, pinned by
-        # test_counter_spell_off_stack_raises in test_executor_stack.py.
-        # AMENDED 2026-10-29 (phasing, CR 702.26): PHASE_OUT left the raise
-        # list — it has a real handler (Executor.phase_out, covered in
-        # test_executor_phasing.py and the Teferi packs). PHASE_IN has no
-        # carrier in the pools and no handler, so it is the probe now.
+        # "not implemented" raise become observable. PHASE_IN has no
+        # carrier in the pools and no handler.
         probes = {
             Verb.PHASE_IN: {"cards": target_sel(), "controller": ControllerRef.YOU},
         }
-        for verb, roles in probes.items():  # DRAW deliberately outside v1
+        for verb, roles in probes.items():
             with self.subTest(verb=verb.name):
                 with self.assertRaises(NotImplementedError) as cm:
                     self.ex.execute(
@@ -1097,9 +1040,7 @@ class TestDispatchRaises(ExecutorCase):
                 self.assertIn(verb.name, str(cm.exception))
 
     def test_supported_set_is_exactly_the_table(self):
-        # AMENDED 2026-09-29 (round 12d): 21 -> 24 — GRANT_ABILITY,
-        # LOSE_ABILITY and PREVENT_EFFECT joined the honest capability set
-        # with the continuous-layers round.
+        # the frozen first capability set never widens
         self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
         self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)
 
@@ -1174,13 +1115,10 @@ class TestApplyEffect(ExecutorCase):
         self.assertEqual(self.world.players[self.p0].mana_pool, {"W": 1})
 
     def test_unsupported_effect_nodes_raise(self):
-        # AMENDED 2026-09-30 (round 14f): EachPlayer is WIRED — one
+        # Repeat is unimplemented and loud. EachPlayer runs one
         # sub-execution per denoted player with the CONTROLLER rotated
         # (the templates compile the inner effect YOU-relative, so the
-        # rotation IS the rebinding; the Goremand/Keral/Whale/Thieves'
-        # Guild corpus faces run in Round14fSurfaceTest). Repeat stays
-        # unimplemented and loud. (Earlier amendment, 12d: Choose became
-        # runtime-consumed — pinned separately below.)
+        # rotation IS the rebinding).
         with self.assertRaises(NotImplementedError):
             self.ex.apply_effect(
                 Repeat(QConst(2), self.gain(1)),
@@ -1196,7 +1134,7 @@ class TestApplyEffect(ExecutorCase):
         self.assertEqual(self.world.players[self.p0].life, 20)  # never fired
 
     def test_choose_runtime_consumes_a_decision_12d(self):
-        # 12d pin: Choose(QConst(1), (A, B)) consumes str(index) and runs
+        # Choose(QConst(1), (A, B)) consumes str(index) and runs
         # that option subtree — the query.choose_options ORDER contract
         # (size-ascending, index-lex; the full multi-option enumeration is
         # pinned in test_executor_layers.py).
@@ -1207,7 +1145,7 @@ class TestApplyEffect(ExecutorCase):
             decisions=("1",),
         )
         self.assertEqual(self.world.players[self.p0].life, 22)
-        with self.assertRaises(ValueError):  # missing decision, C15
+        with self.assertRaises(ValueError):  # missing decision
             self.ex.apply_effect(
                 Choose(QConst(1), (self.gain(1), self.gain(2))),
                 source=self.alpha,
@@ -1344,7 +1282,7 @@ class TestReplayDeterminism(unittest.TestCase):
 
 
 class TestConditionalSubject(ExecutorCase):
-    """V11 (2026-10-29): a bare Conditional whose predicate tests only an
+    """A bare Conditional whose predicate tests only an
     object's characteristics ("If it was a creature card", Scavenging Ooze)
     judges the object the previous sentence acted on (the result register,
     CR 608.2h), not the ability's source; no such object means false."""
@@ -1392,17 +1330,17 @@ class TestConditionalSubject(ExecutorCase):
         ctx.result_fresh = True  # the previous atom wrote it
         self.assertEqual(_conditional_subject(FAtom(FAtomPred.DIED_THIS_TURN), ctx), self.alpha)
         self.assertEqual(_conditional_subject(CREATURE, ctx), self.beta)
-        # One sentence wide (the r19b look-window discipline): a register an
-        # earlier sentence wrote is not "it".
+        # One sentence wide (like the look window): a register an earlier
+        # sentence wrote is not "it".
         ctx.result_fresh = False
         self.assertEqual(_conditional_subject(CREATURE, ctx), self.alpha)
 
 
 
 class TestIfYouDo(ExecutorCase):
-    """V12 (2026-10-29): "You may <action>. If you do, <effect>" (MAY_DONE)
-    asks whether the optional action was carried out (CR 118.12: a cost the
-    player could not pay was not paid), not whether "fire" was answered."""
+    """MAY_DONE ("You may <action>. If you do, <effect>") asks whether the
+    optional action was carried out (CR 118.12: a cost the player could not
+    pay was not paid), not whether "fire" was answered."""
 
     def sacrifice_then_gain(self, answer, victims):
         from MTG_bot.core.ability_tree import OptionalEffect
@@ -1446,7 +1384,7 @@ class TestIfYouDo(ExecutorCase):
 
 
 class TestObjectWasCast(ExecutorCase):
-    """V6 (2026-10-29, CR 400.7): "it wasn't cast" (Containment Priest) asks
+    """CR 400.7: "it wasn't cast" (Containment Priest) asks
     about the entering OBJECT; a card put onto the battlefield, or returned
     after it was cast, is a new object that was not cast. (The cast and the
     reanimated branches run end to end in the containment_priest packs.)"""

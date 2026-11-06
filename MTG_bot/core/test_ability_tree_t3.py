@@ -1,10 +1,9 @@
-"""Tests for the T3 round-1 grammar additions (KNOWLEDGE/2026-09-19/02).
-
-Items A..N of the binding decision doc:
+"""Grammar pins for these constructs (the letters label the catalogue
+sections below):
 
   A) FAtomPred.POWER_LE / POWER_GE   (power-only comparisons)
   B) FAtomPred.NAME_CONTAINS         (name substring)
-  C) Selector.zones                  (additive multi-zone)
+  C) Selector.zones                  (multi-zone)
   D) Verb.CAST                       (source zone + optional cost role)
   E) QThisTurn + ThisTurnKind        (turn-scoped quantities)
   F) event scoping + CardDrawn / LifeGained / Sacrifice events
@@ -17,22 +16,17 @@ Items A..N of the binding decision doc:
   M) Verb.PAY                        (pay a cost as an effect)
   N) ControllerRef.OWNER             (owner-scoped zones)
 
-Covers, per the task:
+Covers:
 
-- a PINNED table of pre-T3 tree fingerprints (the byte-stability
-  constraint: every tree constructible before this round must keep a
-  byte-identical canonical JSON — PC-4/PC-9 rail);
+- a pinned table of fingerprints of trees that use none of these
+  constructs; each serializes without the optional keys, and every
+  Selector carries its required ``zones`` set;
 - round-trip (to_dict / from_dict / canonical_json / fingerprint) for
-  every new construct;
-- the omit-if-empty serialization rule for the new optional fields
+  every construct;
+- the omit-if-empty serialization rule for the optional fields
   (None / () serializes by omitting the key; non-empty serializes it);
-- at least two rejection cases per new construct;
-- the verb-role table and FAtom-rule table pins for the new verbs.
-
-PITFALLS observed: assertIs on freshly built frozen dataclasses always
-fails — use assertEqual everywhere except enum singletons; PtDelta uses
-`magnitude`, not `amount`; repeated `atom.args.get(...)` results are not
-pyright-narrowed — bind them to a local first.
+- at least two rejection cases per construct;
+- the verb-role table and FAtom-rule table pins for the verbs.
 """
 
 from __future__ import annotations
@@ -70,7 +64,7 @@ def _atom_mill() -> at.Atom:
     )
 
 
-# ---- pinned pre-T3 fingerprints (captured before any T3 edit) ----
+# ---- pinned fingerprints of trees without these constructs ----
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -79,7 +73,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "9bd3f0e185eb0f51ca7a99e64f472a22bab2acd4b8cb24582904cc163ffb6a39",
     ),
     (
-        # R1b canonicalization: multi-part Cost construction-sorted — fp re-pinned.
+        # the multi-part Cost is sorted at construction (canonical, not printed order)
         "tarmogoyf",
         T._tarmogoyf_like,
         "eaae09ba37aca5bf40655293c56598765f010e74ad02a0f39cc0368d97838c5f",
@@ -90,7 +84,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
     ),
     (
-        # R1b canonicalization: treasure-token tap+sacrifice Cost sorted — fp re-pinned.
+        # the treasure token's tap+sacrifice Cost is sorted at construction
         "token_creator",
         T._token_creator,
         "37ae8c521b8b21127109b55db11bc7c5b9e7876baabf4ddce0c601b72bf82b69",
@@ -148,9 +142,8 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     ),
     (
         "triggered_combat_damage",
-        # R2 fold (/140): former CombatDamageEvent(_SRC) vector, re-pinned
-        # to the folded DDE shape (amount unbounded, empty filter, the
-        # filter moved verbatim to source, combat=True). Hash recomputed.
+        # combat damage: DamageDealtEvent(amount unbounded, empty filter,
+        # source=_SRC, combat=True)
         lambda: at.TriggeredAbility(
             at.DamageDealtEvent(at.QUnbounded(), at.FAnd(()), _SRC, True),
             None,
@@ -175,11 +168,9 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     ),
 ]
 
-# The new optional fields that must be ABSENT from every pre-T3 tree's
-# serialization (the omit-if-empty rule).
-# R0 zone-fold (/129 §1): Selector.zones is NO LONGER omit-if-empty — the
-# zones SET is required and always serializes; the amendment below asserts
-# the NEW law (Selector carries `zones`, never the deleted `zone` key).
+# The optional fields that must be ABSENT from the serialization of every
+# pinned tree above (the omit-if-empty rule). Selector.zones is not one:
+# the zones set is required and always serializes.
 _OMIT_KEYS: dict[str, tuple[str, ...]] = {
     "Zone": ("position",),
     "ZoneChangeEvent": ("subject",),
@@ -189,10 +180,9 @@ _OMIT_KEYS: dict[str, tuple[str, ...]] = {
 
 
 def _assert_no_t3_keys(d: Any, path: str = "root") -> None:
-    """Recursively assert no T3-omittable key appears in a pre-T3 tree.
-
-    R0 zone-fold amendment (/129): every Selector dict carries the ONE
-    required `zones` set key and NEVER the deleted scalar `zone` key."""
+    """Recursively assert no omittable key appears in a pinned tree, and
+    that every Selector dict carries the required `zones` set and no scalar
+    `zone` key."""
     if isinstance(d, dict):
         tag = d.get("tag")
         if tag == "Selector":
@@ -210,7 +200,7 @@ def _assert_no_t3_keys(d: Any, path: str = "root") -> None:
             _assert_no_t3_keys(item, f"{path}[{i}]")
 
 
-# ---- round-trip catalogue for every new construct ----
+# ---- round-trip catalogue for every construct ----
 
 
 def _multi_zone_two() -> at.Selector:
@@ -323,7 +313,7 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
             at.ThisTurnKind.CARDS_DRAWN, at.ControllerRef.ALL_OPPONENTS
         ),
     ),
-    # F) event extensions + new events
+    # F) event scoping + the CardDrawn / LifeGained / Sacrifice events
     (
         "cast_evt_controller",
         lambda: at.CastSpellEvent(
@@ -510,7 +500,7 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
 ]
 
 
-# ---- rejection catalogue (>= 2 per new construct) ----
+# ---- rejection catalogue (>= 2 per construct) ----
 
 
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
@@ -542,7 +532,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.ALL,
                 _PERM,
-                zones=[_BF_YOU],  # type: ignore[arg-type]  # R0: not a tuple
+                zones=[_BF_YOU],  # type: ignore[arg-type]  # not a tuple
             ),
         ),
         (
@@ -551,7 +541,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.QConst(1),
                 at.SelectorMode.ALL,
                 _PERM,
-                zones=(),  # R0 zone-fold: the set is REQUIRED non-empty
+                zones=(),  # the set is REQUIRED non-empty
             ),
         ),
         (
@@ -587,7 +577,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 "you",  # type: ignore[arg-type]
             ),
         ),
-        # F) event extensions + new events
+        # F) event scoping + the CardDrawn / LifeGained / Sacrifice events
         (
             "cast_evt_ordinal_zero",
             lambda: at.CastSpellEvent(_PERM, ordinal=0),
@@ -734,7 +724,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.AtomArgs(pairs=(("cost", at.QConst(2)),)),
             ),
         ),
-        # serialization strictness on the new tags
+        # serialization strictness on the construct tags
         (
             "fromdict_qthisturn_missing",
             lambda: at.from_dict(
@@ -789,10 +779,8 @@ def test_pinned_pre_t3_fingerprint(
     node = build()
     assert at.fingerprint(node) == fp
     if name == "triggered_combat_damage":
-        # R2 fold amendment (/140): this vector was RE-PINNED to the
-        # folded combat-damage shape — DamageDealtEvent.source/combat are
-        # its CONTENT, so the pre-T3 absence assertion does not apply to
-        # it (same pattern as the R0 Selector.zones amendment above).
+        # DamageDealtEvent.source/combat are this tree's content (combat
+        # damage), so the absence assertion does not apply to it.
         return
     _assert_no_t3_keys(at.to_dict(node))
 
@@ -825,8 +813,8 @@ def test_t3_rejections(name: str, fn: Callable[[], object]) -> None:
 
 def test_omit_keys_present_when_set() -> None:
     d = at.to_dict(_multi_zone_two())
-    # R0 zone-fold: PLAYER ∪ BATTLEFIELD is ONE set of two (was primary
-    # + one extra); membership form — canonical order is schema-enforced.
+    # PLAYER ∪ BATTLEFIELD is ONE set of two; membership form — canonical
+    # order is schema-enforced.
     assert "zones" in d and len(d["zones"]) == 2
     by_json = lambda z: json.dumps(z, sort_keys=True)  # noqa: E731
     assert sorted(d["zones"], key=by_json) == sorted(
@@ -838,8 +826,8 @@ def test_omit_keys_present_when_set() -> None:
     )
     assert sorted(at.to_dict(_multi_zone_three())["zones"], key=by_json) == sorted(
         [
-            # NOTE: the fixture's first member is the ANY-kind zone
-            # (_LIB_ANY = Zone(ANY, ANY)), not LIBRARY — assert truth.
+            # the fixture's first member is the ANY-kind zone
+            # (_LIB_ANY = Zone(ANY, ANY)), not LIBRARY
             at.to_dict(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)),
             at.to_dict(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY)),
             at.to_dict(at.Zone(at.ZoneKind.EXILE, at.ControllerRef.ANY)),
@@ -867,8 +855,7 @@ def test_omit_keys_present_when_set() -> None:
 
 def test_omit_keys_absent_by_default() -> None:
     d = at.to_dict(_src_sel())
-    # R0 zone-fold: zones is REQUIRED (always serialized) and the deleted
-    # scalar must stay deleted on every path.
+    # zones is REQUIRED (always serialized); there is no scalar 'zone' key.
     assert "zone" not in d and d["zones"]
     assert "position" not in at.to_dict(_BF_YOU)
     assert "subject" not in at.to_dict(at.ZoneChangeEvent(_LIB_ANY, _BF_YOU))
@@ -881,8 +868,7 @@ def test_omit_keys_absent_by_default() -> None:
 def test_explicit_empty_omit_fields_decode() -> None:
     # A hand-built tagged dict that spells the empty defaults out loud
     # must decode to the same node as the omitted form (value equality).
-    # R0 zone-fold: zones left the omit table — the explicit EMPTY form
-    # now FAILS LOUD (no silent migration of pre-R0 bytes).
+    # zones is not omittable: an explicit EMPTY set fails loud.
     sel = _src_sel()
     d = at.to_dict(sel)
     d["zones"] = []

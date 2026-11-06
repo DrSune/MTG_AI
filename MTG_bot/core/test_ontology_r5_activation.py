@@ -1,6 +1,6 @@
-"""Ontology R5-7 (docs/DESIGN_ATOM_ONTOLOGY.md §10, gate round 3 GO): one CR
-605.1a classifier, ``AbilityActivatedEvent(source, kind, actor)``, the
-activation lock in ``ability_playable`` and one journal row per activation.
+"""Activated abilities (docs/DESIGN_ATOM_ONTOLOGY.md §10): one CR 605.1a
+classifier, ``AbilityActivatedEvent(source, kind, actor)``, the activation
+lock in ``ability_playable`` and one journal row per activation.
 
 CR 605.1a, read from the Comprehensive Rules: "An activated ability is a mana
 ability if it meets all of the following criteria: it doesn't require a target
@@ -101,8 +101,8 @@ class TestManaAbilityClassifier(unittest.TestCase):
         self.assertTrue(is_mana_ability(tap_ability(add_mana())))
 
     def test_mana_ability_that_does_more_is_still_one(self) -> None:
-        # "{T}: Add {B}. You lose 1 life." — 605.1a asks only "could add mana";
-        # the old drivers' "only ADD_MANA/TAP atoms" test said no.
+        # "{T}: Add {B}. You lose 1 life." — 605.1a asks only "could add mana",
+        # not "does nothing but add mana".
         lose = atom(Verb.LOSE_LIFE, controller=ControllerRef.YOU, amount=QConst(1))
         self.assertTrue(is_mana_ability(tap_ability(seq(add_mana("B"), lose))))
 

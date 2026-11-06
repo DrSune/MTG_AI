@@ -1,8 +1,8 @@
-"""Ontology R5-11 (docs/DESIGN_ATOM_ONTOLOGY.md §10, gate round 3 GO):
-``TokenSpec.colors: tuple[str, ...]`` replaces the one-letter ``color``.
-WUBRG letters only, WUBRG order (CR 105.1), omitted when colourless. Fixes
-BACKLOG B-82: Experimental Overload's "blue and red Weird" was colourless, so
-protection from multicolored did not stop it.
+"""Token colours (docs/DESIGN_ATOM_ONTOLOGY.md §10): ``TokenSpec.colors:
+tuple[str, ...]`` holds every colour the token prints. WUBRG letters only,
+WUBRG order (CR 105.1), omitted when colourless. Experimental Overload's
+"blue and red Weird" is multicoloured, so protection from multicolored stops
+it.
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ def test_serialization_omits_the_empty_set_and_is_strict() -> None:
     d = to_dict(weird(("U", "R")))
     assert d["colors"] == ["U", "R"]
     assert from_dict("TokenSpec", d) == weird(("U", "R"))
-    # stale bytes fail loud (the R0 law: no silent migration)
+    # stale bytes (a scalar "color") fail loud: no silent migration
     legacy = dict(d, color="U")
     del legacy["colors"]
     with pytest.raises(ValueError, match=r"unknown fields \['color'\]"):
@@ -119,15 +119,13 @@ class TestMulticolouredToken(ExecutorCase):
         self.assertIsNotNone(block_pair_blocked_reason(self.ex, token, self.alpha))
 
 
-# ----------------------------------------------- FDN records (schema rename)
+# ----------------------------------------------------------- FDN records
 
 
 def test_fdn_supplies_compile_after_the_record_rename() -> None:
-    # R5-11 renamed the key inside three FDN records' mapped trees (coordinator
-    # ruling 2026-10-30, verified blocks untouched): the strict decoder reads
-    # them, so both supplies compile. The two verified ones left the verified
-    # supply with the rename and came back through blind re-verification (FDN
-    # round 1, 2026-11-06), so their stamps match the renamed trees.
+    # Three FDN records' mapped trees carry "colors": the strict decoder reads
+    # them, so both supplies compile, and the two verified ones stay in the
+    # verified supply (their stamps match the trees).
     castable = compile_supply("castable", "FDN")
     verified = compile_supply("verified", "FDN")
     names = {verified.metas[oid].name for oid in verified.deckable}

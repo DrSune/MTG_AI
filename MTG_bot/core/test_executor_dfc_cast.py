@@ -1,16 +1,11 @@
-"""/115 pins (ZNR fuzz seed 1715, ValueError@stack.cast_card): an
-effect-designated MDFC whose compiled record carries ONLY a ``BackFace``
-— no SpellAbility (all 20 ZNR spell-front MDFCs compile this way: the
-front sentence is unparsed at template level) — must meet a LOUD, TYPED
-refusal, never a fabricated face cast (/106 owner-gates face play).
+"""Casting an MDFC whose compiled record carries only a ``BackFace`` (no SpellAbility: the front
+text never compiled) is refused loudly, never faked as a face cast.
 
-The refusal follows the r24a law: a dedicated ``FaceCastAbsentError``
-(ValueError twin, every existing assertRaises lane byte-identical) with
-the byte-exact site message, matched ONLY by ``face_cast_absent``; the
-live-game guard lane skips exactly that pair and registers it on
-``unresolved_effects``. A look-alike ValueError PROPAGATES, and the
-plain land refusal keeps its original byte-identical message and its
-NON-skippable status.
+``cast_card`` raises ``FaceCastAbsentError`` (a ValueError) with a fixed site message, and only
+``face_cast_absent`` recognises that pair. The guarded effect lane (a CAST verb, as in Coveted
+Prize's free cast) skips exactly that refusal and records it on ``unresolved_effects`` once per
+distinct card. A look-alike ValueError is not matched, and the plain land refusal keeps its own
+message and is not skippable.
 """
 
 from __future__ import annotations
@@ -57,7 +52,7 @@ EXILE_YOU = Zone(ZoneKind.EXILE, ControllerRef.YOU)
 
 
 class DFCCastCase(StackCase):
-    """StackCase plus the two DFC record shapes the seed-1715 crash hit."""
+    """StackCase plus the two compiled DFC record shapes."""
 
     def back_face_only(self, name=DFC_NAME, zone=ZONE_HAND):
         """The ZNR shape: a card whose ONLY compiled ability is a BackFace
@@ -80,9 +75,8 @@ class DFCCastCase(StackCase):
         return handle
 
     def compiled_front(self, name="Glasspool Mimic // Glasspool Shore"):
-        """The control: a record carrying BOTH shapes (SpellAbility plus
-        the BackFace behind it) — front casting already works (the real
-        Glasspool Mimic is the compiled witness in the ZNR pool)."""
+        """The control: a record carrying both a SpellAbility and the BackFace behind it
+        (Glasspool Mimic's shape); its front casts normally."""
         return self.give(
             name,
             SpellKind.CREATURE,
@@ -122,7 +116,7 @@ class TestFaceCastRefusal(DFCCastCase):
         with self.assertRaises(FaceCastAbsentError) as caught:
             cast_card(self.ex, self.p0, handle, cost_override=Cost(()))
         exc = caught.exception
-        # the r24a pair: dedicated type AND the byte-exact site message
+        # the dedicated type and the exact site message
         self.assertEqual(str(exc), FACE_MSG)
         self.assertTrue(face_cast_absent(exc))
         # nothing was fabricated: the card never moved, no frame, no event
@@ -131,9 +125,8 @@ class TestFaceCastRefusal(DFCCastCase):
         self.assertEqual(self.ex.unresolved_effects, [])
 
     def test_plain_land_refusal_is_not_the_face_cast(self):
-        # the pre-existing land shape keeps its EXACT original message and
-        # stays NON-face: type and predicate both must say no (r24a law —
-        # the guard skips only the dedicated pair).
+        # the land refusal keeps its own message and is not the face cast: type and
+        # predicate both say no (the guard skips only the dedicated pair).
         from MTG_bot.core.test_executor_binding import card_id
 
         land_id = card_id("Plains")
@@ -159,9 +152,8 @@ class TestFaceCastRefusal(DFCCastCase):
 
 
 class TestGuardedLane(DFCCastCase):
-    """The seed-1715 producer shape: Coveted Prize's full-party free cast
-    designates the uncompiled-front MDFC. The live lane skips the CAST
-    step, ledgers it LOUD once per distinct card, and the game plays on."""
+    """Coveted Prize's full-party free cast designating an uncompiled-front MDFC: the live lane
+    skips the CAST step, records it once per distinct card, and the game plays on."""
 
     def test_guarded_cast_skips_and_ledgers(self):
         dfc = self.back_face_only(zone=ZONE_EXILE)
@@ -177,8 +169,8 @@ class TestGuardedLane(DFCCastCase):
         self.assertIn("no SpellAbility", self.ex.unresolved_effects[0])
 
     def test_second_occurrence_dedupes_the_count(self):
-        # two attempts, ONE distinct flag -> the /111 dedupe + count fold
-        # (the waiver's OWN name is what the ledger keys on).
+        # two attempts, one distinct flag with a count of 2 (the ledger keys on the
+        # waiver's own name).
         for _ in ("A", "B"):
             self.back_face_only(zone=ZONE_EXILE)
             prize = self.give(

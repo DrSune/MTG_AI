@@ -1,21 +1,22 @@
-"""Tests for the round-12c QUERY SURFACE (/06 §12c, executor/query.py).
+"""Tests for the QUERY SURFACE (executor/query.py).
 
-Three handcrafted fixtures are the C15-contract examples (§1.4 Slate,
-C15/C17 enumerations), and the golden-driven class compiles three REAL M21
-cards (Llanowar Visionary {T}, Tormod's Crypt {T}+sac, Bloodfell Caves
-{T} Choose-one) onto a handcrafted world with counts derived by hand:
+Three handcrafted fixtures are the enumeration examples, and the
+golden-driven class compiles three REAL M21 cards (Llanowar Visionary
+{T}, Tormod's Crypt {T}+sac, Bloodfell Caves {T} Choose-one) onto a
+handcrafted world with counts derived by hand:
 
 (a) "up to two target creatures get -1/-1" — TARGET + QAtMost(2): the
-    legal DESIGNATION sizes are {1, 2} — NEVER 0 (C17: still targeted);
+    legal DESIGNATION sizes are 0..2 (CR 601.2c, 115.6: with none chosen
+    the spell is not targeted);
 (b) "You may discard a card: draw a card" — the may-offer is BOTH
     ("fire","skip") with a card in hand, narrowed to ("skip",) with an
     empty hand (CR 117.3: no resources — the offer stays enumerable);
 (c) "Choose one — draw a card; gain 2 life" — exactly TWO options;
     QAtMost(1) on the same Choose admits the EMPTY option-set (sizes
-    0..n) — the resolution-side zero the C17 TARGET pin forbids.
-Every enumeration is Handle-sorted / index-lex (the §5.5 canonical
+    0..n).
+Every enumeration is Handle-sorted / index-lex (the canonical
 bijection), and queries are pure: two runs are equal and the world
-fingerprint never moves under a query (P12).
+fingerprint never moves under a query.
 """
 
 import itertools
@@ -79,7 +80,7 @@ _GOLDENS: dict[str, dict] = {}
 
 
 def golden(name: str) -> dict:
-    """The committed golden IR dict for a card name (PC-4 stable file)."""
+    """The committed golden IR dict for a card name."""
     if not _GOLDENS:
         for path in _GOLDEN_DIR.glob("*.json"):
             d = json.loads(path.read_text(encoding="utf-8"))
@@ -135,7 +136,7 @@ class QueryCase(unittest.TestCase):
 
 class TestUpToTwoTargets(QueryCase):
     """FIXTURE (a): 'up to two target creatures get -1/-1' — TARGET +
-    QAtMost(2) designation legality (C17)."""
+    QAtMost(2) designation legality."""
 
     def setUp(self):
         super().setUp()
@@ -146,11 +147,11 @@ class TestUpToTwoTargets(QueryCase):
 
     def test_candidates_are_all_creatures_in_handle_sort(self):
         # CONTROLLER/zone unrestricted + TYPE filter: D (opponent) counts,
-        # the Urn does not. C15: the candidate list is EXACTLY this.
+        # the Urn does not. The candidate list is EXACTLY this.
         self.assertEqual(
             self.slot.candidates, tuple(sorted([self.a, self.b, self.c, self.d]))
         )
-        # re-pinned 2026-10-29: V15 makes "up to two" 0..2 (CR 601.2c, 115.6).
+        # "up to two" is 0..2 (CR 601.2c, 115.6).
         self.assertEqual((self.slot.min_count, self.slot.max_count), (0, 2))
         self.assertFalse(self.slot.forced)
 
@@ -162,10 +163,10 @@ class TestUpToTwoTargets(QueryCase):
         self.assertEqual(slot.candidates, tuple(sorted([self.a, self.b, self.c])))
 
     def test_legal_selections_are_sizes_one_and_two_never_zero(self):
-        # re-pinned 2026-10-29: V15 changes the C17 pin. At DECLARATION the
-        # range is 0..n (CR 601.2c, 115.6): the EMPTY selection is legal (the
-        # spell is then not targeted), every size-{1,2} subset validates
-        # (C(4,1)+C(4,2) = 10 completions), size 3 is over.
+        # At DECLARATION the range is 0..n (CR 601.2c, 115.6): the EMPTY
+        # selection is legal (the spell is then not targeted), every
+        # size-{1,2} subset validates (C(4,1)+C(4,2) = 10 completions), size
+        # 3 is over.
         legal = self.subsets(self.slot.candidates, (1, 2))
         self.assertEqual(len(legal), 10)
         for chosen in legal:
@@ -181,7 +182,7 @@ class TestUpToTwoTargets(QueryCase):
         self.assertIn("off_population", reason)
         reason = validate_target_selection(self.slot, [self.b, self.a])
         assert reason is not None
-        self.assertIn("not_canonically_sorted", reason)  # §5.5
+        self.assertIn("not_canonically_sorted", reason)
         reason = validate_target_selection(self.slot, [self.a, self.a])
         assert reason is not None
         self.assertIn("duplicate_handles", reason)
@@ -196,8 +197,8 @@ class TestUpToTwoTargets(QueryCase):
         slot = legal_targets(
             self.world, self.ex, self.selector, source=self.a, controller=self.p0
         )
-        # re-pinned 2026-10-29: V15: an empty population is no longer
-        # infeasible for "up to": zero targets is the one legal choice.
+        # An empty population is feasible for "up to": zero targets is the
+        # one legal choice.
         self.assertEqual((slot.min_count, slot.max_count), (0, 0))
         self.assertIsNone(validate_target_selection(slot, []))
 
@@ -229,19 +230,19 @@ class TestMayOffer(QueryCase):
 
     def test_discardable_hand_offers_both_ways(self):
         self.world.add_card(card_id("Fuel"), self.p0, ZONE_HAND)
-        self.assertEqual(self.offer(), MAY_VOCAB)  # ("fire","skip") §1.2
+        self.assertEqual(self.offer(), MAY_VOCAB)  # ("fire","skip")
 
     def test_empty_hand_narrows_the_offer_to_skip(self):
-        # CR 117.3 — can't perform the action: the C15 enumeration stays
+        # CR 117.3 — can't perform the action: the enumeration stays
         # complete by SHRINKING, one legal option, never a fake branch.
         self.assertEqual(self.offer(), ("skip",))
 
     def test_firing_consumes_one_decision_and_runs_the_plan(self):
         fuel = self.world.add_card(card_id("Fuel"), self.p0, ZONE_HAND)
         lib = self.world.add_card(card_id("Top"), self.p0, ZONE_LIBRARY)
-        # NO bindings: the 12a "cards" binding is tree-wide and would
-        # hijack the draw atom too — here the CHOOSE discard designation
-        # rides the deterministic 12a stand-in (the only hand card).
+        # NO bindings: a "cards" binding is tree-wide and would hijack the
+        # draw atom too — here the CHOOSE discard designation rides the
+        # deterministic stand-in (the only hand card).
         events = self.ex.apply_effect(
             self.may,
             source=self.a,
@@ -284,12 +285,12 @@ class TestChooseOptions(QueryCase):
         node = self.choose(QConst(1), (draw_one(), gain_two()))
         opts = self.query(node)
         self.assertEqual([o.option_idxs for o in opts], [(0,), (1,)])
-        # typed refs are the SAME IR objects the executor dispatches (§8.3)
+        # typed refs are the SAME IR objects the executor dispatches
         self.assertIs(opts[1].options[0], node.options[1])
 
     def test_up_to_one_choose_admits_the_empty_set(self):
-        # CONTRAST the fixture-(a) C17 pin: resolution-time CHOOSE-side
-        # up-to includes 0 .. n — the empty option-set IS a legal choice.
+        # Resolution-time CHOOSE-side up-to includes 0 .. n — the empty
+        # option-set IS a legal choice.
         node = self.choose(QAtMost(1), (draw_one(), gain_two()))
         opts = self.query(node)
         self.assertEqual([o.option_idxs for o in opts], [(), (0,), (1,)])
@@ -298,7 +299,7 @@ class TestChooseOptions(QueryCase):
         two = self.choose(QUnbounded(), (draw_one(), gain_two()))
         self.assertEqual(
             [o.option_idxs for o in self.query(two)], [(), (0,), (1,), (0, 1)]
-        )  # sizes ascending then index-lex (§5.5 bijection)
+        )  # sizes ascending then index-lex
         three = self.choose(QConst(2), (draw_one(), gain_two(), draw_one()))
         self.assertEqual(
             [o.option_idxs for o in self.query(three)], [(0, 1), (0, 2), (1, 2)]
@@ -311,7 +312,7 @@ class TestChooseOptions(QueryCase):
 
 
 class TestSplitSelections(QueryCase):
-    """ONE_OF / REST partition enumeration (12a map closed here, /06)."""
+    """ONE_OF / REST partition enumeration."""
 
     def setUp(self):
         super().setUp()
@@ -462,10 +463,10 @@ class TestGoldenSurface(unittest.TestCase):
         from MTG_bot.core.executor.legality import activate
 
         events_before = len(self.ex.events)
-        # re-pinned 2026-10-29: V8 validates an activation's targets against
-        # its slots. "Exile target player's graveyard" targets ONE player, and
-        # on that synthesized player slot a card stands for its controller, so
-        # the two p1 graveyard cards were a duplicate designation; one does.
+        # An activation's targets are validated against its slots. "Exile
+        # target player's graveyard" targets ONE player, and on that
+        # synthesized player slot a card stands for its controller, so one p1
+        # graveyard card designates p1 (both would be a duplicate designation).
         activate(
             self.ex,
             self.crypt,
@@ -478,8 +479,8 @@ class TestGoldenSurface(unittest.TestCase):
             self.assertEqual(zone.kind, ZONE_EXILE)
             self.assertEqual(zone.controller, self.p1)
         self.assertEqual(self.world.zone_of(self.crypt).kind, ZONE_GRAVEYARD)
-        # re-pinned 2026-10-29: V43 changes the flag the graveyard card carries. CR 110.5d: a
-        # card off the battlefield is neither tapped nor untapped; the {T} payment is its row.
+        # CR 110.5d: a card off the battlefield is neither tapped nor untapped; the {T}
+        # payment is its journal row.
         self.assertFalse(self.world.cards[self.crypt].tapped)
         tap_rows = [r for r in self.ex.journal.dump() if r[1] == KIND_TAP_STATE and r[2] == str(self.crypt)]
         self.assertEqual([r[-1] for r in tap_rows], ["(True,)"])
@@ -506,7 +507,7 @@ class TestGoldenSurface(unittest.TestCase):
         fp = self.world.fingerprint()
         first = legal_activations(self.world, self.ex, self.p0)
         second = legal_activations(self.world, self.ex, self.p0)
-        self.assertEqual(first, second)  # replay determinism (P12)
+        self.assertEqual(first, second)  # replay determinism
         slot_a = legal_targets(
             self.world,
             self.ex,

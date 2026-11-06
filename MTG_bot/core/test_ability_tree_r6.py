@@ -1,36 +1,32 @@
-"""Grammar round 5 — four additive items (2026-09-25).
+"""Grammar pins: the was-cast and not-first-draw predicates, counter-placed
+counts, and a Selector as a cost modifier's controller.
 
-Round-5 scope (spec: KNOWLEDGE/2026-09-24/07-round5-replacement-decision.md):
-
-- R5-1: ``FAtomPred.WAS_CAST_THIS_TURN`` — required ``who`` — "[the object]
+- ``FAtomPred.WAS_CAST_THIS_TURN`` — required ``who`` — "[the object]
   was cast this turn (by who)" (Containment Priest; who=ANY = cast by
   anyone; the "and it wasn't cast" condition is
   ``FNot(FAtom(WAS_CAST_THIS_TURN, who=ANY))``). Zone-agnostic — distinct
-  from the zone-slot-bearing ``CAST_THIS_TURN_FROM`` (round 4).
-- R5-2: ``CounterPlacedEvent.count: Quantity | None = None`` — the number
+  from the zone-slot-bearing ``CAST_THIS_TURN_FROM``.
+- ``CounterPlacedEvent.count: Quantity | None = None`` — the number
   placed ("one or more" = ``QAtLeast(1)``); ``opt:quantity`` +
-  omit-if-empty; plus the new ``QPropField.COUNTER_COUNT`` — "that many" =
-  ``QProp("event", COUNTER_COUNT)`` (the event's counter count;
-  event-referent only, like ``AMOUNT``; Conclave Mentor).
-- R5-3: ``CostModifier.controller_ref`` widened to
-  ``ControllerRef | Selector`` — convention C7: a Selector means the
-  controller of the selected object, and the modifier applies to costs
-  that controller pays FOR the filtered object, including ``unless``
-  payments (Lofty Denial); reuses the ``controller_ref_or_selector``
-  dual conv (shared with FAtom.who since round 4).
-- R5-4: ``FAtomPred.NOT_FIRST_DRAW_THIS_STEP`` — required ``who`` — "not
+  omit-if-empty; plus ``QPropField.COUNTER_COUNT`` — "that many" =
+  ``QProp("event", COUNTER_COUNT)`` (the event's counter count; Conclave
+  Mentor).
+- ``CostModifier.controller_ref: ControllerRef | Selector`` — a Selector
+  means the controller of the selected object, and the modifier applies to
+  costs that controller pays FOR the filtered object, including ``unless``
+  payments (Lofty Denial); the same ``controller_ref_or_selector``
+  conversion as FAtom.who.
+- ``FAtomPred.NOT_FIRST_DRAW_THIS_STEP`` — required ``who`` — "not
   the first card who draws in their draw step" (Teferi's Ageless Insight;
   evaluated against the drawn card, the CardDrawnEvent subject).
 
 Guards:
-- every pre-round-5 pinned fingerprint (the round-5 and round-4 pin sets)
-  stays byte-identical — all four items are additive;
+- the test_ability_tree_r4 and r5 pin sets keep their fingerprints;
 - bare constructs (count=None / controller_ref=ControllerRef / no who)
-  serialize WITHOUT the new keys;
-- round-5 constructs round-trip through ``to_dict``/``from_dict`` with
+  serialize WITHOUT the optional keys;
+- the constructs round-trip through ``to_dict``/``from_dict`` with
   pinned fingerprints;
-- rejections at every new or widened validation point (``ValueError``,
-  per the module-wide convention).
+- every validation point rejects bad input with ``ValueError``.
 """
 
 from __future__ import annotations
@@ -43,7 +39,7 @@ import MTG_bot.core.ability_tree as at
 import MTG_bot.core.test_ability_tree_r4 as R4
 import MTG_bot.core.test_ability_tree_r5 as R5
 
-# ---- builders for the round-5 constructs -----------------------------------
+# ---- builders --------------------------------------------------------------
 
 _UNIVERSAL = at.FAnd(())
 _NEUTRAL = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
@@ -51,36 +47,36 @@ _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 
 
 def _fatom_was_cast_any() -> at.FAtom:
-    """R5-1: 'a creature that wasn't cast (by anyone)' — the atom before
+    """'A creature that wasn't cast (by anyone)' — the atom before
     negation (Containment Priest)."""
     return at.FAtom(at.FAtomPred.WAS_CAST_THIS_TURN, who=at.ControllerRef.ANY)
 
 
 def _priest_condition() -> at.FNot:
-    """R5-1: 'it wasn't cast' — the negated form the template uses."""
+    """'It wasn't cast' — the negated form the template uses."""
     return at.FNot(_fatom_was_cast_any())
 
 
 def _fatom_not_first() -> at.FAtom:
-    """R5-4: 'except the first one you draw in each of your draw steps'
+    """'Except the first one you draw in each of your draw steps'
     (Teferi's Ageless Insight)."""
     return at.FAtom(at.FAtomPred.NOT_FIRST_DRAW_THIS_STEP, who=at.ControllerRef.YOU)
 
 
 def _cpe_bare() -> at.CounterPlacedEvent:
-    """Pre-round-5 shape: no count key in the serialization."""
+    """Bare shape: no count key in the serialization."""
     return at.CounterPlacedEvent(at.CounterKind.PLUS_1_PLUS_1, _UNIVERSAL)
 
 
 def _cpe_one_or_more() -> at.CounterPlacedEvent:
-    """R5-2: 'one or more counters' (Conclave Mentor's trigger)."""
+    """'One or more counters' (Conclave Mentor's trigger)."""
     return at.CounterPlacedEvent(
         at.CounterKind.PLUS_1_PLUS_1, _UNIVERSAL, count=at.QAtLeast(1)
     )
 
 
 def _cpe_that_many() -> at.CounterPlacedEvent:
-    """R5-2: 'that many' — the event's counter count."""
+    """'That many' — the event's counter count."""
     return at.CounterPlacedEvent(
         at.CounterKind.PLUS_1_PLUS_1,
         _UNIVERSAL,
@@ -89,7 +85,7 @@ def _cpe_that_many() -> at.CounterPlacedEvent:
 
 
 def _mentor_action_count() -> at.QBin:
-    """R5-2: Conclave Mentor's action count — 'that many plus one'."""
+    """Conclave Mentor's action count — 'that many plus one'."""
     return at.QBin(
         at.QBinOp.ADD,
         at.QProp(referent="event", field=at.QPropField.COUNTER_COUNT),
@@ -98,8 +94,8 @@ def _mentor_action_count() -> at.QBin:
 
 
 def _lofty_selector() -> at.Selector:
-    """R5-3: the targeted spell (Lofty Denial) — referent 'target' under
-    convention C2 (CHOOSE + QConst(1) + neutral zone)."""
+    """The targeted spell (Lofty Denial) — a referent 'target' selector
+    (CHOOSE + QConst(1) + neutral zone)."""
     return at.Selector(
         at.QConst(1),
         at.SelectorMode.CHOOSE,
@@ -121,7 +117,7 @@ def _lofty_condition() -> at.FAnd:
 
 
 def _lofty_cm() -> at.CostModifier:
-    """R5-3: Lofty Denial s2 — the {1} of s1 becomes {4} under the
+    """Lofty Denial s2 — the {1} of s1 becomes {4} under the
     condition: controller of the targeted spell pays +3 generic."""
     return at.CostModifier(
         at.FAtom(at.FAtomPred.IS_ANY_TARGET),
@@ -132,7 +128,7 @@ def _lofty_cm() -> at.CostModifier:
 
 
 def _cm_plain_ref() -> at.CostModifier:
-    """Pre-round-5 shape: controller_ref is a plain ControllerRef."""
+    """Bare shape: controller_ref is a plain ControllerRef."""
     return at.CostModifier(
         at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
         at.ControllerRef.YOU,
@@ -140,7 +136,7 @@ def _cm_plain_ref() -> at.CostModifier:
     )
 
 
-# ---- pinned fingerprints (captured after the round-5 edits) ----------------
+# ---- pinned fingerprints ---------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -186,12 +182,10 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "lofty_cm",
         _lofty_cm,
-        # R1a canonicalization re-pin (2026-10-19, docs/DESIGN_ATOM_ONTOLOGY.md
-        # §3 SET-R1a): the condition's FAnd children are construction-sorted by
-        # canonical_json. Audited permutation-only — pre/post leaf multisets are
-        # equal (8 leaves), so this is byte-order, not content (old value
-        # e791b88db55731cebe3acd11981ef150332fb89aa1b0a59be269facc019914ee).
-        # Reuses this list: test_ability_tree_r7..r11 re-pin with it.
+        # The condition's FAnd children are sorted at construction by
+        # canonical_json (docs/DESIGN_ATOM_ONTOLOGY.md §3), so the bytes follow
+        # canonical order, not printed order. test_ability_tree_r7..r11 re-check
+        # this list.
         "b7639782a262d52df2154dc40c6717214ce724bb912136f4ffdd387c33d872cd",
     ),
     (
@@ -211,8 +205,8 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 def test_pinned_pre_r6_r5_fingerprint(
     name: str, build: Callable[[], object], fp: str
 ) -> None:
-    """Byte stability: every pre-round-5 pinned tree (the round-5 pin set)
-    serializes identically — all four round-5 items are additive."""
+    """Byte stability: the test_ability_tree_r5 pin set keeps its
+    fingerprints."""
     node = build()
     assert at.fingerprint(node) == fp
     d = at.to_dict(node)
@@ -225,9 +219,9 @@ def test_pinned_pre_r6_r5_fingerprint(
 def test_pinned_pre_r6_r4_fingerprint(
     name: str, build: Callable[[], object], fp: str
 ) -> None:
-    """Byte stability: the round-4 pin set (bare CostModifier, the IOS
-    FAtom, the COUNTER_SPELL atoms) stays byte-identical under the R5-3
-    union widening of CostModifier.controller_ref."""
+    """Byte stability: the test_ability_tree_r4 pin set (bare CostModifier,
+    the IOS FAtom, the COUNTER_SPELL atoms) keeps its fingerprints with
+    CostModifier.controller_ref a ControllerRef | Selector union."""
     node = build()
     assert at.fingerprint(node) == fp
     d = at.to_dict(node)
@@ -269,8 +263,8 @@ def test_cpe_explicit_none_equals_default() -> None:
 
 
 def test_qprop_counter_count_event_only() -> None:
-    """R5-2: COUNTER_COUNT, like AMOUNT, only makes sense on the event
-    referent (the event's counter count)."""
+    """COUNTER_COUNT on the event referent: "that many" is the event's
+    counter count (Conclave Mentor)."""
     node = at.QProp(referent="event", field=at.QPropField.COUNTER_COUNT)
     d = at.to_dict(node)
     assert d["field"] == {"tag": "QPropField", "name": "COUNTER_COUNT"}
@@ -282,8 +276,8 @@ def test_qprop_counter_count_event_only() -> None:
 
 
 def test_fatom_was_cast_this_turn_rules() -> None:
-    """R5-1: the predicate takes exactly {who}; who=ANY = cast by anyone;
-    the who slot accepts a referent Selector (round-4 anaphora)."""
+    """The predicate takes exactly {who}; who=ANY = cast by anyone; the
+    who slot accepts a referent Selector."""
     assert at._FATOM_RULES[at.FAtomPred.WAS_CAST_THIS_TURN] == (
         frozenset({"who"}),
         frozenset({"who"}),
@@ -291,8 +285,8 @@ def test_fatom_was_cast_this_turn_rules() -> None:
     node = _fatom_was_cast_any()
     assert node.who is at.ControllerRef.ANY
     d = at.to_dict(node)
-    # zone slots are the only FAtom slots omitted when None; the other
-    # slots (count, ...) still serialize their null defaults (byte-stable)
+    # the zone slots are omitted when None; count still serializes its
+    # null default
     assert d["who"] == {"tag": "ControllerRef", "name": "ANY"}
     assert "zone" not in d and d["count"] is None
     sel = at.Selector(
@@ -312,8 +306,8 @@ def test_fatom_was_cast_this_turn_rules() -> None:
 
 
 def test_fatom_not_first_draw_this_step_rules() -> None:
-    """R5-4: the predicate takes exactly {who}, evaluated against the
-    drawn card (the CardDrawnEvent subject)."""
+    """The predicate takes exactly {who}, evaluated against the drawn card
+    (the CardDrawnEvent subject)."""
     assert at._FATOM_RULES[at.FAtomPred.NOT_FIRST_DRAW_THIS_STEP] == (
         frozenset({"who"}),
         frozenset({"who"}),
@@ -326,8 +320,8 @@ def test_fatom_not_first_draw_this_step_rules() -> None:
 
 
 def test_costmodifier_selector_roundtrip() -> None:
-    """R5-3: a Selector controller_ref (convention C7) round-trips as a
-    Selector, alongside the plain-ControllerRef spelling."""
+    """A Selector controller_ref round-trips as a Selector, alongside the
+    plain-ControllerRef spelling."""
     node = _lofty_cm()
     d = at.to_dict(node)
     assert d["controller_ref"]["tag"] == "Selector"
@@ -351,7 +345,7 @@ def test_r6_table_members() -> None:
 
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     return [
-        # R5-1: WAS_CAST_THIS_TURN slot arity
+        # WAS_CAST_THIS_TURN slot arity
         (
             "was_cast_missing_who",
             lambda: at.FAtom(at.FAtomPred.WAS_CAST_THIS_TURN),
@@ -372,7 +366,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 zone=at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU),
             ),
         ),
-        # R5-4: NOT_FIRST_DRAW_THIS_STEP slot arity
+        # NOT_FIRST_DRAW_THIS_STEP slot arity
         (
             "not_first_missing_who",
             lambda: at.FAtom(at.FAtomPred.NOT_FIRST_DRAW_THIS_STEP),
@@ -385,7 +379,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 count=at.QConst(1),
             ),
         ),
-        # R5-2: CounterPlacedEvent.count validation
+        # CounterPlacedEvent.count validation
         (
             "cpe_count_int",
             lambda: at.CounterPlacedEvent(
@@ -402,11 +396,9 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 count="3",  # type: ignore[arg-type]
             ),
         ),
-        # R5-2: QPropField.COUNTER_COUNT event-referent coupling
-        # ("qprop_cc_source" removed by grammar round 7, R7-9b: the
-        # "source" referent is now LEGAL — Malefic Scythe's "for each soul
-        # counter on this Equipment"; r8 pins the relaxed behaviour. The
-        # non-source rejections below still hold.)
+        # QPropField.COUNTER_COUNT takes the "event", "source" or "target"
+        # referent (test_ability_tree_r8/r9 pin the last two); the controller
+        # and a Selector are rejected.
         (
             "qprop_cc_controller",
             lambda: at.QProp(referent="controller", field=at.QPropField.COUNTER_COUNT),
@@ -424,7 +416,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 field=at.QPropField.COUNTER_COUNT,
             ),
         ),
-        # R5-3: CostModifier.controller_ref union boundary
+        # CostModifier.controller_ref union boundary
         (
             "cm_controllerref_qconst",
             lambda: at.CostModifier(

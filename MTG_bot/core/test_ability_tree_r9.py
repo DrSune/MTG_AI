@@ -1,46 +1,26 @@
-"""Grammar round 8 / phase 8-A — eleven additive items (2026-09-28).
+"""Grammar pins: ``QAtMost``, token colours and entry flags, mana of any
+colour, DEAL_DAMAGE's dealer and recipient roles, IS_EXILED_WITH_SOURCE,
+GET_EMBLEM, ADD_LAND_PLAY, CONTROLLER_COUNT_GT, noncombat damage this
+turn, and COUNTER_COUNT of the target.
 
-Round-8 scope (spec: KNOWLEDGE 2026-09-28/08; file-name offset is
-intentional — round-8 grammar ships in the r9 file, following the
-r6-in-r7 / r7-in-r8 precedent):
+- ``QAtMost(n)`` (n >= 1) with a TARGET-mode Selector is the legal
+  designation of "up to n targets" (1..n chosen, 0..remaining resolved);
+  a resolution-time "up to" stays CHOOSE.
+- ``TokenSpec.colors`` (WUBRG letters), ``enters_tapped`` and
+  ``enters_attacking`` are omitted when unset, registered in both _SPECS
+  and _OMIT_IF_EMPTY: a bare TokenSpec serializes WITHOUT them (pinned
+  against an explicit expected dict); a missing row would change every
+  token golden.
+- AtomArgs ``color`` takes ``"ANY"`` ("mana of any one color"), distinct
+  from colourless ``"C"``.
+- ``Verb.GET_EMBLEM`` is role-less like FLIP_COIN: the emblem payload is
+  the card-level attach, and the quoted text never enters the IR.
+- ``FAtomPred.CONTROLLER_COUNT_GT`` compares ``inner_filter`` with the
+  trailing ``right_inner_filter`` (omitted when None); both are required.
 
-- R8-1: ``QAtMost(n)`` (n >= 1) — convention C17: with a TARGET-mode
-  Selector it is the legal designation of "up to n targets" (1..n
-  chosen, 0..remaining resolved); resolution-time "up to" stays CHOOSE.
-- R8-2/R8-4: ``TokenSpec.color`` / ``enters_tapped`` / ``enters_attacking``
-  trailing optionals (Basri Ket [-2] tokens; ontology R5-11 replaced ``color``
-  with the WUBRG tuple ``colors``, omitted when empty), omit-when-None with the
-  DUAL registration (_SPECS opt-tags + the NEW _OMIT_IF_EMPTY TokenSpec
-  row) — the bare-token byte-shape pin below is the golden-storm guard.
-- R8-3: AtomArgs ``color`` vocabulary += ``"ANY"`` ("mana of any one
-  color"), distinct from colourless ``"C"`` (C-3 collapse repair; the
-  template rows flip in 8-B, not here).
-- R8-5: DEAL_DAMAGE optional ``dealer`` / ``recipient`` roles
-  (ControllerRef | Selector | Filter — "damage to you" restrictions,
-  Nine Lives).
-- R8-6: ``FAtomPred.IS_EXILED_WITH_SOURCE`` (no slots; Horizon Scholar /
-  Idol of Endurance permission scoping).
-- R8-7: ``Verb.GET_EMBLEM`` — role-LESS marker mirroring FLIP_COIN
-  exactly (C19: the emblem payload is the card-level attach; the quoted
-  text never enters the IR).
-- R8-8: ``Verb.ADD_LAND_PLAY`` {count?, duration?} (Azusa, Lost but
-  Seeking; executor deferred per the FIGHT orphan precedent).
-- R8-9: ``FAtomPred.CONTROLLER_COUNT_GT`` — the dual-filter comparison
-  via the new trailing ``FAtom.right_inner_filter`` slot (omit-when-
-  None, byte-stable); both filters REQUIRED.
-- R8-10: ``ThisTurnKind.NONCOMBAT_DAMAGE`` (Chandra's Incinerator {X}).
-- R8-11: ``QProp`` COUNTER_COUNT widened to the "target" referent
-  (Invigorating Surge's "double that many counters").
-
-Guards:
-- every pre-round-8 pinned fingerprint (the r6 + r7 + r8 pin sets)
-  stays byte-identical — all eleven items are additive;
-- the bare TokenSpec serializes WITHOUT the three new keys — pinned
-  against an explicit expected dict (dual-registration PITFALLS
-  2026-09-28: missing the _OMIT_IF_EMPTY row = golden storm);
-- the bare FAtom serializes WITHOUT right_inner_filter;
-- round-8 constructs round-trip through ``to_dict``/``from_dict`` with
-  pinned fingerprints; rejections at every new validation point.
+Also pinned: the test_ability_tree_r6..r8 pin sets keep their
+fingerprints; the constructs round-trip with pinned fingerprints; every
+validation point rejects bad input.
 """
 
 from __future__ import annotations
@@ -54,7 +34,7 @@ import MTG_bot.core.test_ability_tree_r6 as R6
 import MTG_bot.core.test_ability_tree_r7 as R7
 import MTG_bot.core.test_ability_tree_r8 as R8
 
-# ---- builders for the round-8 constructs ------------------------------------
+# ---- builders ---------------------------------------------------------------
 
 _UNIVERSAL = at.FAnd(())
 _NEUTRAL = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
@@ -67,13 +47,14 @@ def _qatmost() -> at.QAtMost:
 
 
 def _sel_target_atmost() -> at.Selector:
-    """R8-1/C17: "up to two target creatures" = TARGET + QAtMost — a
-    legal designation of 1..2, resolved on 0..remaining."""
+    """TARGET + QAtMost: "up to two target creatures", a legal designation
+    of 1..2, resolved on 0..remaining."""
     return at.Selector(at.QAtMost(2), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
 
 
 def _token_bare() -> at.TokenSpec:
-    """A pre-round-8 token: none of the three new fields is stated."""
+    """A bare token: none of colors / enters_tapped / enters_attacking is
+    stated."""
     return at.TokenSpec(
         "Treasure",
         "Artifact — Treasure",
@@ -87,7 +68,7 @@ def _token_bare() -> at.TokenSpec:
 
 
 def _token_full() -> at.TokenSpec:
-    """R8-2/R8-4: a Basri Ket [-2]-style 1/1 white Soldier token."""
+    """A Basri Ket [-2]-style 1/1 white Soldier token."""
     return at.TokenSpec(
         "Soldier",
         "Creature — Soldier Token",
@@ -97,14 +78,14 @@ def _token_full() -> at.TokenSpec:
         at.QConst(1),
         (),
         (),
-        colors=("W",),  # R5-11: the WUBRG tuple replaced the scalar color
+        colors=("W",),
         enters_tapped=True,
         enters_attacking=False,
     )
 
 
 def _mana_any() -> at.Atom:
-    """R8-3: "add one mana of any color" — ANY, not colourless C."""
+    """The "add one mana of any color" shape — ANY, not colourless C."""
     return at.Atom(
         at.Verb.ADD_MANA,
         at.AtomArgs(
@@ -118,7 +99,7 @@ def _mana_any() -> at.Atom:
 
 
 def _deal_roles() -> at.Atom:
-    """R8-5: damage with the optional dealer/recipient roles — the
+    """Damage with the optional dealer/recipient roles — the
     dealer is named by a player-identity FAtom, the recipient is "you"."""
     return at.Atom(
         at.Verb.DEAL_DAMAGE,
@@ -139,17 +120,17 @@ def _deal_roles() -> at.Atom:
 
 
 def _fatom_exiled_with_source() -> at.FAtom:
-    """R8-6: "the card exiled with ~" — no slots (IS_TAPPED precedent)."""
+    """IS_EXILED_WITH_SOURCE: "the card exiled with ~" — no slots (like IS_TAPPED)."""
     return at.FAtom(at.FAtomPred.IS_EXILED_WITH_SOURCE)
 
 
 def _atom_get_emblem() -> at.Atom:
-    """R8-7/C19: role-less marker; the payload is the card-level attach."""
+    """GET_EMBLEM: a role-less marker; the payload is the card-level attach."""
     return at.Atom(at.Verb.GET_EMBLEM, at.AtomArgs(pairs=()))
 
 
 def _atom_add_land_play() -> at.Atom:
-    """R8-8: Azusa — "play two additional lands on each of your turns"."""
+    """Azusa — "play two additional lands on each of your turns"."""
     return at.Atom(
         at.Verb.ADD_LAND_PLAY,
         at.AtomArgs(
@@ -159,7 +140,7 @@ def _atom_add_land_play() -> at.Atom:
 
 
 def _fatom_controller_count_gt() -> at.FAtom:
-    """R8-9: dual-filter comparison — inner_filter vs right_inner_filter
+    """Dual-filter comparison — inner_filter vs right_inner_filter
     (Garruk's "controls more creatures than you" split)."""
     return at.FAtom(
         at.FAtomPred.CONTROLLER_COUNT_GT,
@@ -169,17 +150,17 @@ def _fatom_controller_count_gt() -> at.FAtom:
 
 
 def _qthis_noncombat() -> at.QThisTurn:
-    """R8-10: Chandra's Incinerator — {X}, X = noncombat damage dealt by
+    """Chandra's Incinerator — {X}, X = noncombat damage dealt by
     you this turn."""
     return at.QThisTurn(at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.YOU)
 
 
 def _qprop_cc_target() -> at.QProp:
-    """R8-11: Invigorating Surge — counter count of the TARGET."""
+    """Invigorating Surge — counter count of the TARGET."""
     return at.QProp(referent="target", field=at.QPropField.COUNTER_COUNT)
 
 
-# ---- pinned fingerprints (captured after the round-8 edits) -----------------
+# ---- pinned fingerprints ----------------------------------------------------
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
@@ -200,8 +181,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "token_full",
         _token_full,
-        # re-pinned 2026-10-30: R5-11 changes the bytes ("color": "W" ->
-        # "colors": ["W"]); the r10/r11 pin sets reuse this row.
         "c30cbcae798d8b44a6e54a082513af0b95fab9e849bdaf47c8bb85f831be2c39",
     ),
     (
@@ -247,12 +226,12 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 ]
 
 _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
-    # R8-1: QAtMost n validation mirrors QAtLeast (0/negatives/bools).
+    # QAtMost n validation mirrors QAtLeast (0/negatives/bools).
     ("qatmost_zero", lambda: at.QAtMost(0)),
     ("qatmost_negative", lambda: at.QAtMost(-2)),
     ("qatmost_bool", lambda: at.QAtMost(True)),
     ("qatmost_str", lambda: at.QAtMost("3")),  # type: ignore[arg-type]
-    # R8-2 / R5-11: TokenSpec colors must be distinct WUBRG letters; the
+    # TokenSpec colors must be distinct WUBRG letters; the
     # flags must be bools.
     (
         "token_color_nonstr",
@@ -310,7 +289,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             enters_attacking=1,  # type: ignore[arg-type]
         ),
     ),
-    # R8-3: the color vocabulary stays closed even after "ANY".
+    # The color vocabulary is closed.
     (
         "color_bad_value",
         lambda: at.Atom(
@@ -324,7 +303,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             ),
         ),
     ),
-    # R8-5: dealer/recipient must be ControllerRef/Selector/Filter.
+    # dealer/recipient must be ControllerRef/Selector/Filter.
     (
         "dealer_bad_type",
         lambda: at.Atom(
@@ -343,12 +322,12 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             ),
         ),
     ),
-    # R8-6: IS_EXILED_WITH_SOURCE takes NO slots.
+    # IS_EXILED_WITH_SOURCE takes NO slots.
     (
         "exiled_with_source_slot",
         lambda: at.FAtom(at.FAtomPred.IS_EXILED_WITH_SOURCE, count=at.QConst(1)),
     ),
-    # R8-7: GET_EMBLEM is role-less (C19 — no emblem_ref role exists).
+    # GET_EMBLEM is role-less (no emblem_ref role exists).
     (
         "get_emblem_with_role",
         lambda: at.Atom(
@@ -365,7 +344,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             ),
         ),
     ),
-    # R8-9: CONTROLLER_COUNT_GT requires BOTH filters; the new slot is a
+    # CONTROLLER_COUNT_GT requires BOTH filters; right_inner_filter is a
     # Filter, not a quantity.
     (
         "cc_gt_missing_right",
@@ -386,7 +365,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             right_inner_filter=at.QConst(2),  # type: ignore[arg-type]
         ),
     ),
-    # R8-11: COUNTER_COUNT widened to target — but NOT to "controller".
+    # COUNTER_COUNT takes the target referent, but NOT "controller".
     (
         "cc_controller_referent",
         lambda: at.QProp(referent="controller", field=at.QPropField.COUNTER_COUNT),
@@ -405,9 +384,8 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
 def test_pinned_pre_r9_fingerprint(
     name: str, build: Callable[[], object], fp: str
 ) -> None:
-    """Byte stability: every pre-round-8 pinned tree (the r6 + r7 + r8
-    pin sets) serializes identically — all eleven 8-A items are
-    additive, no template opts in yet."""
+    """Byte stability: the test_ability_tree_r6..r8 pin sets keep their
+    fingerprints."""
     node = build()
     assert at.fingerprint(node) == fp
     d = at.to_dict(node)
@@ -431,17 +409,17 @@ def test_r9_rejections(name: str, fn: Callable[[], object]) -> None:
         fn()
 
 
-# ---- R8-1: QAtMost + the TARGET designation (C17) ----------------------------
+# ---- QAtMost + the TARGET designation ---------------------------------------
 
 
 def test_qatmost_roundtrip_and_selector() -> None:
     assert at.QAtMost(1).n == 1
     sel = _sel_target_atmost()
     assert isinstance(sel.count, at.QAtMost)
-    # QUnbounded is STILL rejected on TARGET-mode selectors (r3b rule).
+    # QUnbounded is rejected on TARGET-mode selectors.
     with pytest.raises(ValueError, match="needs a concrete count"):
         at.Selector(at.QUnbounded(), at.SelectorMode.TARGET, _CREATURE, zones=(_BF_YOU,))
-    # CHOOSE keeps the resolution-time up-to reading unchanged (C17).
+    # CHOOSE keeps the resolution-time up-to reading.
     choose = at.Selector(at.QConst(2), at.SelectorMode.CHOOSE, _CREATURE, zones=(_BF_YOU,))
     assert at.to_dict(choose.count) == {"tag": "QConst", "value": 2}
 
@@ -452,13 +430,13 @@ def test_qatmost_serializes_like_qatleast() -> None:
     assert "QAtMost" in at._QUANTITY_TAGS
 
 
-# ---- R8-2/R8-4: TokenSpec — the golden-storm guard ---------------------------
+# ---- TokenSpec: the omit-when-unset guard -----------------------------------
 
 
 def test_bare_tokenspec_omits_round8_keys_byte_shape() -> None:
-    """CRITICAL pin: a pre-round-8 token serializes WITHOUT the three new
-    keys — the dual-registration rule (PITFALLS 2026-09-28). Without the
-    _OMIT_IF_EMPTY TokenSpec row every token golden byte-diffs."""
+    """CRITICAL pin: a bare token serializes WITHOUT colors /
+    enters_tapped / enters_attacking — the dual-registration rule. Without
+    the _OMIT_IF_EMPTY TokenSpec row every token golden byte-diffs."""
     assert at.to_dict(_token_bare()) == {
         "tag": "TokenSpec",
         "name": "Treasure",
@@ -476,14 +454,14 @@ def test_full_tokenspec_key_shape() -> None:
     """Stated values serialize; an EXPLICIT False is a stated value (not
     the empty default) and serializes as false."""
     d = at.to_dict(_token_full())
-    assert d["colors"] == ["W"]  # re-pinned 2026-10-30: R5-11 colors tuple
+    assert d["colors"] == ["W"]
     assert "color" not in d
     assert d["enters_tapped"] is True
     assert d["enters_attacking"] is False
     assert d["tag"] == "TokenSpec"
 
 
-# ---- R8-5: DEAL_DAMAGE optional roles ------------------------------------------
+# ---- DEAL_DAMAGE optional roles ---------------------------------------------
 
 
 def test_deal_damage_without_roles_still_builds() -> None:
@@ -505,7 +483,7 @@ def test_deal_damage_without_roles_still_builds() -> None:
     assert back == plain
 
 
-# ---- R8-9: bare FAtom byte shape after the new slot --------------------------
+# ---- bare FAtom byte shape: no right_inner_filter ---------------------------
 
 
 def test_bare_fatom_omits_right_inner_filter_byte_shape() -> None:
@@ -527,7 +505,7 @@ def test_bare_fatom_omits_right_inner_filter_byte_shape() -> None:
     ) | {"pred": {"tag": "FAtomPred", "name": "IS_EXILED_WITH_SOURCE"}}
 
 
-# ---- R8-7/R8-8: table-shape pins ------------------------------------------------
+# ---- table-shape pins -------------------------------------------------------
 
 
 def test_verb_role_tables_r8() -> None:
@@ -561,7 +539,7 @@ def test_add_land_play_bare_builds() -> None:
     assert at.from_dict("Atom", at.to_dict(bare)) == bare
 
 
-# ---- R8-11: COUNTER_COUNT referent widening ------------------------------------
+# ---- COUNTER_COUNT referents ------------------------------------------------
 
 
 def test_counter_count_referents() -> None:

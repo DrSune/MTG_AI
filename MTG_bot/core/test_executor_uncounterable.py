@@ -1,4 +1,4 @@
-""""Can't be countered" (2026-11-05): a PREVENT_EFFECT over ``CounteredEvent``.
+""""Can't be countered": a PREVENT_EFFECT over ``CounteredEvent``.
 
 CR 701.6a: to counter a spell is to remove it from the stack without resolving. CR 101.2: when an
 effect says something can't happen, it can't. So a counterspell may still be cast at a spell that
@@ -7,7 +7,7 @@ can't be countered (the target is legal) and it resolves, its other instructions
 
 Three carriers, one consult (``ReplacementRegistry.prevents_countering``):
 * the spell's own static ability, which functions on the stack (CR 113.6g): "This spell can't be
-  countered." (Shifting Ceratops, Thought Distortion, Fry, Chandra, Awakened Inferno);
+  countered." (Shifting Ceratops, Thought Distortion);
 * a resolved effect with a duration: "Spells you control can't be countered this turn." (Veil of
   Summer); it modifies the rules, so it also covers spells cast after it resolved (CR 611.2c);
 * a permanent's static ability: "Creature spells can't be countered." (Gaea's Herald).
