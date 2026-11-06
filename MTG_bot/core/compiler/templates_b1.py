@@ -1,32 +1,14 @@
-"""B1 bucket templates — 15 templates covering 15 of 15 B1 shapes.
+"""B1 bucket templates: keyword lines and Enchant restrictions.
 
-Bucket input: ``/tmp/opencode/phase1_buckets/B1.json`` (15 normalized shape
-keys → ``[card, sentence]`` pairs; sentences carry *concrete* keyword
-strings and enchant targeting conjuncts).  Templates fullmatch the
-**concrete** oracle sentence, never the normalized key.
+Bucket input: ``/tmp/opencode/phase1_buckets/B1.json`` (normalized shape keys → ``[card,
+sentence]`` pairs). Templates fullmatch the concrete oracle sentence, never the normalized key.
 
-Coverage (15 = 12 keyword + 3 enchant):
+A keyword line → ``KeywordOutcome`` (``params=()`` when bare; "Hexproof from black" and
+"Protection from planeswalkers" carry one ``Filter`` param). "Enchant <object>" →
+``MetaOutcome(kind="enchant", filter=...)``.
 
-- **12 keyword shapes** → ``KeywordOutcome``:
-  Deathtouch, Flash, Flying, Haste, Hexproof, Hexproof from black,
-  Indestructible, Lifelink, Protection from planeswalkers, Reach,
-  Trample, Vigilance.
-- **3 enchant shapes** → ``MetaOutcome(kind="enchant", filter=...)``:
-  Enchant creature, Enchant creature you control, Enchant permanent.
-
-Conventions:
-- Bare keyword sentences use ``params=()``.
-- ``Hexproof from black`` → ``HEXPROOF`` with one ``Filter`` param
-  (``FAtom(COLOR_HAS, color="B")``).
-- ``Protection from planeswalkers`` → ``PROTECTION`` with one ``Filter``
-  param (``FAtom(TYPE_EQ, string_value="Planeswalker")``).
-- ``Enchant creature`` → ``MetaOutcome`` with ``FAtom(TYPE_EQ, "Creature")``.
-- ``Enchant creature you control`` → ``MetaOutcome`` with
-  ``FAnd(TYPE_EQ "Creature", CONTROLLER_IS YOU)``.
-- ``Enchant permanent`` → ``MetaOutcome`` with ``FAtom(IS_PERMANENT)``.
-
-PC-3: every B1 concrete sentence fullmatches **at most one** template
-(patterns are pairwise disjoint by construction); verified in tests.
+Every B1 sentence fullmatches at most one template (the patterns are pairwise disjoint); the tests
+check it.
 """
 
 from __future__ import annotations

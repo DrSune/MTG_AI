@@ -1,20 +1,17 @@
-"""B6 bucket templates — the ZNR KICKER family (grammar round 19).
+"""B6 bucket templates: the Kicker family.
 
-Kicker is a {cost-variant} axis (owner decision 2026-10-18, /94): the head
-sentence declares an OPTIONAL extra cast cost (``KickerAbility`` — NOT a
-CostModifier, the printed cost is never raised); every effect the kicker
-gates reuses the SAME components the base spell/etb/trigger already use,
-connected only through the contextual ``FAtomPred.WAS_KICKED`` predicate.
-Cost and effect never fuse into one atom (§9 axis orthogonality).
+Kicker is a cost-variant axis: the head sentence declares an optional extra cast cost
+(``KickerAbility``, not a CostModifier: the printed cost is never raised). Every effect the kicker
+gates reuses the components the base spell, ETB or trigger already use, connected only through the
+contextual ``FAtomPred.WAS_KICKED`` predicate. Cost and effect never fuse into one atom.
 
-Shapes covered (sentences as they appear in the committed 2026-10-18
-work register, ``reports/grammar_ZNR_2026-10-18_census.json``):
+Shapes covered:
 
 - Kicker heads: ``Kicker {2}{U} (You may pay an additional {2}{U} as you
   cast this spell.)``, bare ``Kicker {2}{G}`` / ``Kicker {X}.`` — one
-  family template; the parenthetical must MIRROR the cost via a
-  ``(?P=cost)`` backreference so a non-mirroring paren leaves the
-  sentence unmatched (never mis-parsed): PC-3 pairwise-disjoint law.
+  family template; the parenthetical must repeat the cost (a
+  ``(?P=cost)`` backreference), so a reminder that does not leaves the
+  sentence unmatched, never mis-parsed.
 - Conditional entering states: ``If this creature was kicked, it enters
   with two +1/+1 counters on it.`` → ``EtBState(condition=WAS_KICKED)``.
 - Conditional ETB triggers: ``When this <noun> enters, if it was kicked,
@@ -27,28 +24,22 @@ work register, ``reports/grammar_ZNR_2026-10-18_census.json``):
   base spell effect (additive: Seq-append of the gated arm; replaces:
   the arm wins and the base moves to the Conditional's else_effect).
 
-UNCOVERED on purpose (gap ledger 2026-10-18, honest residue):
-- ``…choose any number instead.`` (Inscription ×3 — replaces the base X
-  chooser, not an effect arm) and ``…two basic land cards instead of
-  one.`` (quantity-only replacement, no M21 idiom).
+Not covered (no encoding in the grammar yet):
+- ``…choose any number instead.`` (replaces the base X chooser, not an
+  effect arm) and ``…two basic land cards instead of one.`` (a
+  quantity-only replacement).
 - ``…each opponent mills half their library, rounded up.`` / ``loses
-  half their life`` — no HALF quantity in the grammar.
-- ``copy that spell twice instead`` (Sea Gate Stormcaller, trigger-
-  internal kick test), Jace copy-exception token, ``has base power and
-  toughness 5/5`` (no BASE_PT atom), ``those creatures get +2/+1``
-  (whole-set anaphor of a static grant — no plural referent),
-  ``…with a kicker ability`` (covered by ZND-2 T4: the Murasa Sproutling
-  tail now compiles via HAS_KICKER), ``all creatures able to
-  block target creature this turn do so.`` (Taunting Arbormage —
-  MANDATE_BLOCK is subject-scoped {cards}+{controller}+{duration} only
-  (R6-5) and the 16c executor enforces CR 509.1h "must be blocked if
-  able", never the inverted CR 509.1b block-the-designated-creature
-  reading: a blocked-side {target} role would be un-executable), Verazol
-  remove-counters + copy ("If you do" chain after a trigger), mana-policy
-  and cost-reduction sentences, ``X can't be 0.``, per-for-each counter
-  counts (no NONBASIC filter / per-each count), ``…with mana value X or
-  less`` tails (no X-binding), copy-of-this-artifact tokens (no TokenSpec
-  copy source).
+  half their life`` — no HALF quantity.
+- ``copy that spell twice instead`` (Sea Gate Stormcaller), Jace's
+  copy-exception token, ``has base power and toughness 5/5`` (no BASE_PT
+  atom), ``those creatures get +2/+1`` (no plural referent for a static
+  grant's set), ``all creatures able to block target creature this turn
+  do so.`` (Taunting Arbormage: MANDATE_BLOCK is subject-scoped and the
+  executor enforces CR 509.1h "must be blocked if able", not the CR
+  509.1b reading), Verazol's remove-counters + copy, mana-policy and
+  cost-reduction sentences, ``X can't be 0.``, per-for-each counter
+  counts, ``…with mana value X or less`` tails (no X binding),
+  copy-of-this-artifact tokens (no TokenSpec copy source).
 """
 
 from __future__ import annotations
@@ -100,7 +91,7 @@ from MTG_bot.core.compiler.templates import (
 )
 
 _BUCKET: Final = "B6"
-_PRIORITY: Final[int] = 110  # above every existing bucket: kicker heads and
+_PRIORITY: Final[int] = 110  # above the base buckets: kicker heads and
 # kicker-gated tails are concrete sentences no other module claims.
 
 
@@ -126,8 +117,7 @@ def _kicked() -> FAtom:
 
 
 def _etb_event() -> ZoneChangeEvent:
-    """``When this <permanent> enters`` — class-A self anchor (b2b R11-B
-    convention: subject is FAtom(IS_SOURCE))."""
+    """``When this <permanent> enters``: the subject is the source, FAtom(IS_SOURCE)."""
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
@@ -145,8 +135,8 @@ def _self_selector() -> Selector:
 
 
 def _referent_target_creature() -> Selector:
-    """``that creature`` / ``enchanted creature`` — R7-1 referent="target"
-    neutral-zone convention (B5c untap-that-creature idiom)."""
+    """``that creature`` / ``enchanted creature``: the spell's target, read through
+    referent="target" over the neutral zone."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -166,10 +156,7 @@ def _up_to_two_target_creatures() -> Selector:
 
 
 def _up_to_one_other_target_creature() -> Selector:
-    """``up to one other target creature`` — "other" excludes the source:
-    FNot(IS_SOURCE), the Barrin/Niambi "other target" shape. m21-fidelity
-    (2026-10-29): it was IS_ANY_TARGET, which is true of every designated
-    target, so Cunning Geysermage could return itself."""
+    """``up to one other target creature``: "other" excludes the source, FNot(IS_SOURCE)."""
     return Selector(
         QAtMost(1),
         SelectorMode.TARGET,
@@ -207,9 +194,8 @@ def _all_creatures() -> Selector:
 
 
 def _any_target() -> Selector:
-    """CR 109.5 ``any target`` — the exact r17-2 three-branch shape
-    (templates_b2a._any_target) so the engine's any-target widening
-    recognizes it."""
+    """CR 109.5 ``any target``: the exact three-branch shape of templates_b2a._any_target,
+    which the engine's any-target widening recognizes."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -225,9 +211,7 @@ def _any_target() -> Selector:
 
 
 def _drake_token() -> Atom:
-    """``create a 2/2 blue Drake creature token with flying.`` — b5c
-    TokenSpec idiom (name/type_line/types/subtypes/power/toughness/
-    keywords/color)."""
+    """``create a 2/2 blue Drake creature token with flying.``"""
     return Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
@@ -253,8 +237,8 @@ def _drake_token() -> Atom:
 
 
 def _draw_then_discard() -> Seq:
-    """``draw a card, then discard a card.`` — DRAW (b5a shape) followed by
-    DISCARD with the canonical b3 hand-chooser ``cards`` role."""
+    """``draw a card, then discard a card.``: DRAW, then DISCARD with a hand-chooser ``cards``
+    role."""
     return Seq(
         steps=(
             Atom(
@@ -315,7 +299,7 @@ def _gain_life(amount: int) -> Atom:
 
 
 def _scry(amount: int) -> Atom:
-    """``scry 2.`` — the b5b SCR atom shape (controller + count)."""
+    """``scry N.``"""
     return Atom(
         verb=Verb.SCRY,
         args=AtomArgs(
@@ -330,11 +314,9 @@ def _scry(amount: int) -> Atom:
 # ---------------------------------------------------------------------------
 # Kicker tail effect table — tail sentence -> Effect builder.
 #
-# Every tail here is an effect sentence whose shape is already proven in an
-# M21 bucket; B6 re-derives the atom from the SAME idioms (shapes copied
-# from templates_b5b/b5c/b4 builders). The tail table + the family patterns
-# below are kept concrete so an unmapped ZNR tail stays UNPARSED (honest
-# gap) instead of being folded from a guessed shape.
+# Each tail reuses the atom shape the other buckets compile for the same
+# sentence. The table and the family patterns below are literal, so an
+# unmapped tail stays unparsed instead of being folded from a guessed shape.
 # ---------------------------------------------------------------------------
 
 _TAIL_DRAKE = "create a 2/2 blue Drake creature token with flying."
@@ -358,8 +340,8 @@ def _tap2() -> Atom:
 
 
 def _reveal_top_six() -> Atom:
-    """b5b reveal idiom: controller + count (top-of-library provenance is
-    the M21 lossy convention for reveal counts)."""
+    """``reveal the top six cards of your library.``: controller + count; REVEAL has no zone
+    role, so "the top of your library" is implicit (lossy)."""
     return Atom(
         verb=Verb.REVEAL,
         args=AtomArgs(
@@ -412,8 +394,7 @@ def _return_instant_or_sorcery_hand() -> Atom:
 
 
 def _return_creature_to_battlefield() -> Atom:
-    """b5b ``return target creature card from your graveyard to the
-    battlefield`` atom (B5b-return-creatures-battlefield shape)."""
+    """``return target creature card from your graveyard to the battlefield.``"""
     return Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -437,8 +418,8 @@ def _return_creature_to_battlefield() -> Atom:
 
 
 def _it_gains_haste_eot() -> Atom:
-    """ETB-trigger ``it`` = the entering permanent = the source (class-A
-    self reference — b5c ``this creature`` convention)."""
+    """``it gains haste until end of turn.``: in an ETB trigger ``it`` is the entering permanent,
+    the source."""
     return Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -483,7 +464,7 @@ def _put_two_counters_each_you_control() -> Atom:
 
 
 def _that_creature_gains_hexproof() -> Atom:
-    """Spell-target anaphor: ``that creature`` = referent="target" (R7-1)."""
+    """``that creature`` is the spell's target (referent="target")."""
     return Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -593,8 +574,8 @@ def _return_two_creature_cards_hand() -> Atom:
 
 
 def _opponent_players() -> Selector:
-    """``each opponent`` as effect targets — the b2a idiom (ALL mode over
-    the opponent player zone), byte-identical shape."""
+    """``each opponent`` as effect targets: ALL over the opponent player zone, the same shape as
+    templates_b2a._opponent_players."""
     return Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -604,8 +585,7 @@ def _opponent_players() -> Selector:
 
 
 def _pt_self_eot(p: int, t: int) -> Atom:
-    """``this creature gets +P/+T until end of turn.`` — MODIFY_PT on the
-    self selector with the EOT duration (b4 grant shape, class-A self)."""
+    """``this creature gets +P/+T until end of turn.``"""
     return Atom(
         verb=Verb.MODIFY_PT,
         args=AtomArgs(
@@ -620,8 +600,8 @@ def _pt_self_eot(p: int, t: int) -> Atom:
 
 
 def _pt_you_control_eot(p: int, t: int) -> Atom:
-    """``creatures you control get +P/+T until end of turn.`` — the exact
-    b4 B4-modify-pt-eot-you tree (same selector, same deltas, EOT)."""
+    """``creatures you control get +P/+T until end of turn.``: the same tree as
+    B4-modify-pt-eot-you."""
     return Atom(
         verb=Verb.MODIFY_PT,
         args=AtomArgs(
@@ -636,8 +616,8 @@ def _pt_you_control_eot(p: int, t: int) -> Atom:
 
 
 def _equipped_creature() -> Selector:
-    """``equipped creature`` — the source's attachment host, the exact
-    b4 ``_enchanted_creature`` shape with the Creature type word."""
+    """``equipped creature``: the source's attachment host, the shape of
+    templates_b4._enchanted_creature."""
     return Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -667,9 +647,8 @@ def _pt_equipped_creature_eot(p: int, t: int) -> Atom:
 
 
 def _dmg1_each_opponent() -> Atom:
-    """``this creature deals 1 damage to each opponent.`` — b2a
-    ``_opponent_players`` DEAL_DAMAGE shape (source is the trigger's
-    source by engine convention, no slot needed)."""
+    """``this creature deals 1 damage to each opponent.``: the damage source is the trigger's
+    source by engine convention, so it needs no slot."""
     return Atom(
         verb=Verb.DEAL_DAMAGE,
         args=AtomArgs(
@@ -682,8 +661,7 @@ def _dmg1_each_opponent() -> Atom:
 
 
 def _it_gains_indestructible_eot() -> Atom:
-    """``this creature gains indestructible until end of turn.`` — the
-    _it_gains_haste_eot idiom with the INDESTRUCTIBLE keyword."""
+    """``this creature gains indestructible until end of turn.``"""
     return Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -697,9 +675,8 @@ def _it_gains_indestructible_eot() -> Atom:
 
 
 def _mill_each_opponent(n: int) -> EachPlayer:
-    """``each opponent mills N cards.`` — b2b #45 rebinding contract:
-    EachPlayer(ALL_OPPONENTS) with the mill rebound to the iterated
-    opponent (YOU-relative slots rotate; PITFALLS 2026-09-22)."""
+    """``each opponent mills N cards.``: EachPlayer(ALL_OPPONENTS) rebinds the YOU-relative slots
+    to each opponent in turn."""
     return EachPlayer(
         ref=ControllerRef.ALL_OPPONENTS,
         effect=Atom(
@@ -719,8 +696,7 @@ def _mill_each_opponent(n: int) -> EachPlayer:
 
 
 def _insect_token() -> Atom:
-    """``create a 1/1 green Insect creature token.`` — the _drake_token
-    TokenSpec idiom."""
+    """``create a 1/1 green Insect creature token.``"""
     return Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
@@ -746,8 +722,7 @@ def _insect_token() -> Atom:
 
 
 def _add_mana_any() -> Atom:
-    """``add one mana of any color.`` — the b3 R8-3 shape (color "ANY",
-    never colorless)."""
+    """``add one mana of any color.``: color "ANY", not colorless."""
     return Atom(
         verb=Verb.ADD_MANA,
         args=AtomArgs(
@@ -761,8 +736,7 @@ def _add_mana_any() -> Atom:
 
 
 def _exile_top_library() -> Atom:
-    """``exile the top card of your library.`` — the b2a furious-rise
-    MOVE_ZONE shape (ZonePosition.TOP chooser, EXILE/OWNER)."""
+    """``exile the top card of your library.``"""
     return Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -783,8 +757,7 @@ def _exile_top_library() -> Atom:
 
 
 def _tap_target_opp_creature() -> Atom:
-    """``tap target creature an opponent controls.`` — TARGET selector
-    (b4 ``creature an opponent controls`` filter idiom)."""
+    """``tap target creature an opponent controls.``"""
     return Atom(
         verb=Verb.TAP,
         args=AtomArgs(
@@ -848,9 +821,8 @@ def _put_counters_target_filtered(n: int, subtype: str) -> Atom:
 
 
 def _return_kicker_card_hand() -> Atom:
-    """``return target card with a kicker ability from your graveyard to
-    your hand.`` — the _return_two_creature_cards_hand MOVE_ZONE shape,
-    count 1, with the HAS_KICKER identity filter (ZND-2 T4)."""
+    """``return target card with a kicker ability from your graveyard to your hand.``: the
+    HAS_KICKER filter."""
     return Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -871,9 +843,8 @@ def _return_kicker_card_hand() -> Atom:
 
 
 _TAIL_BUILDERS: dict[str, Callable[[], Effect]] = {
-    # effect tails shared by the ETB-trigger and cast-trigger families and
-    # by the class-E spell arms — one encoding per tail, every consumer
-    # reuses it (§9 shared-atom law).
+    # One encoding per tail sentence, shared by the ETB-trigger and
+    # cast-trigger families and the spell arms.
     _TAIL_DRAKE: _drake_token,
     _TAIL_TAP2: _tap2,
     _TAIL_REVEAL6: _reveal_top_six,
@@ -901,9 +872,8 @@ _TAIL_BUILDERS: dict[str, Callable[[], Effect]] = {
     "return two target creature cards from your graveyard to your hand.": (
         _return_two_creature_cards_hand
     ),
-    # ZND-2 (2026-10-18): the landfall + kicker-ETB tails. One encoding per
-    # tail sentence, shared with every future consumer (FM6 shared-tail
-    # law — b7 imports this table, it never forks these trees).
+    # The landfall and kicker-ETB tails. templates_b7 builds its tails
+    # through this table (_build_tail) rather than forking these trees.
     "this creature gets +2/+2 until end of turn.": lambda: _pt_self_eot(2, 2),
     "creatures you control get +1/+1 until end of turn.": (
         lambda: _pt_you_control_eot(1, 1)
@@ -1048,9 +1018,7 @@ _ETB_TAILS = [
     _TAIL_RETURN_CREATURE_BF,
     _TAIL_HASTE,
     _TAIL_TAP_ENCHANTED,
-    # ZND-2 T4: the Murasa Sproutling tail (register row is the SELF
-    # anaphor — "When this creature enters, if it was kicked, return
-    # target card with a kicker ability …").
+    # Murasa Sproutling
     "return target card with a kicker ability from your graveyard to your hand.",
 ]
 _CAST_TAILS = [
@@ -1098,18 +1066,10 @@ TEMPLATES: tuple[Template, ...] = (
         r"enters, if it was kicked, (?P<tail>" + _alts(_ETB_TAILS) + r")$",
         _build_etb_kicked_trigger,
     ),
-    # ZND-2 T4 name-referent twin ("When <name> enters, if <name> was kicked,
-    # …") NOT registered — pre-commit adversarial gate FM1 (/101): it matches
-    # 0 of 726 ZNR sentences and was attributed 0 of the 30 rows this round
-    # clears ⇒ §10 PHANTOM. Its only register row ("When Jace enters, if Jace
-    # was kicked, create a token that's a copy of Jace, …") has a copy-exception
-    # tail that is NOT encodable under the frozen grammar (Verb.COPY slots are
-    # {source}-only), so a zero-consumer head would defend a blind spot rather
-    # than close one — the /98 T4-withdrawal precedent, not the HAS_KICKER one
-    # (that was a spec-mandated G2 vocabulary pre-registration with named
-    # ZND-2 consumers). Lands WITH its consumer when the copy-exception tail
-    # lands; use the `backref`-shaped pattern then, so a half-renamed sentence
-    # stays unmatched (PC-3). See the b6 module gap ledger.
+    # No name-referent twin ("When <name> enters, if <name> was kicked, …"):
+    # its only sentence (Jace) has a copy-exception tail the grammar cannot
+    # encode (Verb.COPY takes only {source}). Add it with that tail, with a
+    # backreference so a half-renamed sentence stays unmatched.
     _template(
         "B6-cast-kicked-trigger",
         "Whenever you cast a kicked spell, <effect>",

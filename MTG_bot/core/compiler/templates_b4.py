@@ -1,53 +1,18 @@
-"""B4 bucket templates — 46 templates covering 46 of 47 B4 shapes.
+"""B4 bucket templates: statics, cost modifiers, permissions and one-shot effects.
 
-Bucket input: ``/tmp/opencode/phase1_buckets/B4.json`` (47 normalized shape
-keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
-carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
-sentence, never the normalized key.
-
-Coverage (47 = 46 template + 1 uncovered):
-
-- **46 template-covered shapes**: static P/T grants (self, creatures you
-  control, other creatures, opponents' creatures), static keyword grants
-  (trample, lifelink, protection), PREVENT_EFFECT (can't block),
-  PREVENT_EFFECT blocked-side (can't be blocked as long as drawn —
-  C9 StaticAbility.condition; can block only flying — subject+blocked
-  narrowing), MANDATE_BLOCK (must be blocked if able, R6-5),
-  MANDATE_ATTACK, GAIN_CONTROL, DRAW+DISCARD Seq, GAIN_LIFE (QConst and
-  QCount), LOSE_LIFE, QProp P/T (Carrion Grub), conditional statics
-  (DurationWhileCondition), compound statics (P/T + protection Seq),
-   COST_MODIFIER (Watcher of the Spheres, Volcanic Salvo, Sanguine
-   Indulgence; Stormwing Entity's compound {N}{U} reduction; opponent
-   spell-cost increases — Terror of the Peaks, Pursued Whale),
-   ETB_STATE (tapped creature, tapped land),
-   ETB X +1/+1 counters (Wildwood Scourge: EtBState initial counters
-   (+1/+1, QX), an entering-state replacement, CR 614.1c),
-   ACTIVATED_ABILITY (cast from top of library, graveyard recast with
-   additional cost), TUTOR (name-specific library/graveyard search for
-   Basri / Liliana).
-- **1 uncovered shape**: copy-retarget anaphora ("new targets for the
-  copy").  The round-8-C batch landed the cast-them-this-turn register
-  hop, the Radha two-permission sentence, Furious Rise's play-that-card,
-  Azusa's ADD_LAND_PLAY and the QThisTurn(NONCOMBAT_DAMAGE) cost reducer;
-  the round-9-B batch (doc 2026-09-28/11) landed the Orrery MANA_POLICY
-  flooding permission, Teferi's GRANT_ACTIVATION instant-window permission
-  and the Enthralling targeting-legality PREVENT row (C11-class note).
-  Recorded in UNCOVERED.
+Bucket input: ``/tmp/opencode/phase1_buckets/B4.json`` (normalized shape keys → ``[card,
+sentence]`` pairs; sentences carry concrete numbers, keys carry ``N`` placeholders). Templates
+fullmatch the concrete oracle sentence, never the normalized key.
 
 Conventions:
 - Static abilities on permanents → ``AbilityOutcome(StaticAbility(...))``
 - Spell effects / one-time actions → ``EffectOutcome(...)``
-- ``this creature`` → ``Selector(CHOOSE, QConst(1), FAtom(IS_SOURCE), zone)``
-- ``enchanted creature`` → ``Selector(ALL, QUnbounded,
-  FAnd(TYPE_EQ Creature, IS_ATTACHED_TO_SOURCE), Zone(BATTLEFIELD, ANY))``
-- ``creatures you control`` → ``Selector(ALL, QUnbounded,
-  FAnd(TYPE_EQ Creature, CONTROLLER_IS YOU), Zone(BATTLEFIELD, YOU))``
-- ``+N/+N`` → ``PtDelta(INCREASE, QConst(N))``
-- ``-N/-N`` → ``PtDelta(DECREASE, QConst(N))``
-- ``other <Subtype> you control`` → ``FNot(inner=FAtom(IS_SOURCE))`` in filter
+- Cast-from-zone permissions ("You may cast ... from ...") → an ``ActivatedAbility`` (empty cost
+  unless the card prints one) whose effect is ``OptionalEffect(CAST)``
+- ``other <Subtype> you control`` → ``FNot(inner=FAtom(IS_SOURCE))`` in the filter
 
-PC-3: every B4 concrete sentence fullmatches **at most one** template
-(patterns are pairwise disjoint by construction); verified in tests.
+Every B4 sentence fullmatches at most one template (the patterns are pairwise disjoint); the tests
+check it.
 """
 
 from __future__ import annotations
@@ -338,18 +303,8 @@ def _build_grant_kw_static_you(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_modify_pt_static_opponents(m: re.Match[str]) -> SentenceOutcome:
-    """14f FIDELITY FIX (doc 09-30/09, B-11-family static miscompile):
-    a bare static anthem sentence is an ABILITY, not a card-level
-    EffectOutcome — this row was the one outlier of its family (static-you,
-    grant-kw-static-you, other-cats, other-dogs, other-creatures all wrap
-    ``StaticAbility``), so on a creature card the bare atom folded into
-    the SpellAbility and ran ONCE at cast (Waker of Waves' −1/−0: a
-    one-shot cast-time debuff instead of a continuous effect).  The
-    StaticAbility wrapper is the executor's live-anthem path (layers
-    attach + scope-resolved recompute, 12d); the card then carries no
-    cast effect (creature SpellAbility nodes only fold EffectOutcomes —
-    the card joins the B-1 not-castable set exactly as the 14e capture
-    moved Swindler/Hallowblade, ruled precedent)."""
+    """A static anthem is a StaticAbility, like the rest of its family: on a creature card a bare
+    EffectOutcome would fold into the SpellAbility and run once, at cast."""
     p, t = int(m.group("p")), int(m.group("t"))
     atom = Atom(
         verb=Verb.MODIFY_PT,
@@ -569,14 +524,9 @@ def _build_gain_life_n(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_gain_life_qcount_cats(m: re.Match[str]) -> SentenceOutcome:
-    """``You gain life equal to the number of Cats you control.`` (Rin and
-    Seri, Inseparable s4). m21-fidelity (wave 4, 2026-10-30): the sentence
-    is the second instruction of the {R}{G}{W}, {T} ability above it (CR
-    602.1: "[Cost]: [Effect.]", the effect is everything after the colon,
-    and CR 608.2c follows its instructions in order), so it is an EFFECT
-    the compiler's continuation fold appends to that ability. It was a
-    StaticAbility of its own, which never gains life (the executor skips it
-    as an unparseable static), so the activation only dealt damage."""
+    """``You gain life equal to the number of Cats you control.`` (Rin and Seri, Inseparable): the
+    second instruction of the activated ability before it (CR 602.1, CR 608.2c), so an effect the
+    compiler's continuation fold appends to that ability, not a StaticAbility of its own."""
     atom = Atom(
         verb=Verb.GAIN_LIFE,
         args=AtomArgs(
@@ -662,7 +612,7 @@ def _build_conditional_life_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
 def _build_stormwing_cost(m: re.Match[str]) -> SentenceOutcome:
     """This spell costs {N}{U} less to cast if you've cast an instant or
     sorcery spell this turn.  Compound reduction: generic N plus one blue
-    (CostModifier.extra_deltas, T3 round R3-5)."""
+    (CostModifier.extra_deltas)."""
     n = int(m.group("n"))
     modifier = CostModifier(
         filter=FAtom(pred=FAtomPred.IS_SOURCE),
@@ -679,7 +629,7 @@ def _build_stormwing_cost(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
     """Spells your opponents cast that target this creature cost an
-    additional N life to cast.  R3-6: TARGETS_SOURCE filter selects the
+    additional N life to cast.  The TARGETS_SOURCE filter selects the
     affected spells; controller_ref scopes whose."""
     n = int(m.group("n"))
     modifier = CostModifier(
@@ -692,8 +642,7 @@ def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_opponent_spell_cost_mana(m: re.Match[str]) -> SentenceOutcome:
     """Spells your opponents cast that target this creature cost {N} more
-    to cast.  R3-6: TARGETS_SOURCE filter, opponent-scoped generic
-    increase."""
+    to cast."""
     n = int(m.group("n"))
     modifier = CostModifier(
         filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
@@ -783,12 +732,10 @@ def _build_search_liliana(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_search_named_card(card_name: str) -> SentenceOutcome:
-    """Shared tutor builder: search library and/or graveyard for a named card,
-    reveal it, put it into hand.
+    """Search library and/or graveyard for a named card, reveal it, put it into hand.
 
-    m21-fidelity wave 4 (2026-10-30, B-78): "library and/or graveyard" is the
-    visible zone choice (templates.and_or_zone_search), as in the ETB twin;
-    the shuffle sentence joins only the options that search the library."""
+    "library and/or graveyard" is a visible zone choice (templates.and_or_zone_search), as in
+    the ETB twin; the shuffle sentence joins only the options that search the library."""
 
     def search_in(zones: tuple[Zone, ...]) -> Seq:
         cards = Selector(
@@ -817,40 +764,31 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
         )
         return Seq(steps=(search_atom, reveal_atom))
 
-    # "put it into your hand" is the SEARCH's own destination; the unprinted
-    # MOVE_ZONE(this card from the top of your library) step is gone (G3 finisher,
-    # 2026-10-30), as in the ETB twin.
+    # "put it into your hand" is the SEARCH's own destination, as in the ETB twin.
     seq = and_or_zone_search(
         search_in,
         Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
         Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
     )
-    # The sentence is part of the SORCERY's effect (Basri's Aegis, Liliana's
+    # The sentence is part of the sorcery's effect (Basri's Aegis, Liliana's
     # Scorn): it runs as the spell resolves, after the printed sentence before
     # it (CR 608.2c), and the compiler's search-shuffle tail joins this same
     # OptionalEffect ("If you search your library this way, shuffle", only if
-    # the search ran). Same inner bytes as the ETB twin B2b-named-card-search
-    # (Garruk's Warsteed, Chandra's Firemaw). m21-fidelity (review batches A
-    # and C, 2026-10-29): this was a free ActivatedAbility (cost {}) on the
-    # sorcery, so the spell never searched when it resolved.
+    # the search ran). Same inner tree as the ETB twin B2b-named-card-search
+    # (Garruk's Warsteed, Chandra's Firemaw).
     return EffectOutcome(effect=OptionalEffect(inner=seq))
 
 
 # ---------------------------------------------------------------------------
-# Build functions — round-6 batch (blocked-side restrictions, MANDATE_BLOCK,
-# ETB X-counters)
+# Build functions — blocked-side restrictions, MANDATE_BLOCK, ETB X-counters
 # ---------------------------------------------------------------------------
 
 
 def _build_cant_be_blocked_aslong_drawn(m: re.Match[str]) -> SentenceOutcome:
-    """This creature can't be blocked as long as you've drawn N or more
-    cards this turn.  (Tome Anima; grammar round 6 C9 — the "as long as"
-    condition lives in ``StaticAbility.condition``
-    (CARDS_DRAWN_THIS_TURN_GE, b5a Gnarled Sage precedent), NEVER a
-    duration approximation; C10 — the restriction is a PREVENT_EFFECT over
-    a universal DeclareBlockersEvent whose R6-4 ``blocked`` slot names the
-    source as the blocked-side participant.)  The literal "two" follows the
-    Gnarled Sage pattern idiom (b5a pins ``drawn two or more``)."""
+    """This creature can't be blocked as long as you've drawn two or more cards this turn (Tome
+    Anima). The "as long as" condition is ``StaticAbility.condition`` (CARDS_DRAWN_THIS_TURN_GE),
+    never a duration; the restriction is a PREVENT_EFFECT over a universal DeclareBlockersEvent
+    whose ``blocked`` side is the source. The pattern pins the word "two"."""
     atom = Atom(
         verb=Verb.PREVENT_EFFECT,
         args=AtomArgs(
@@ -879,10 +817,8 @@ def _build_cant_be_blocked_aslong_drawn(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_must_block(m: re.Match[str]) -> SentenceOutcome:
-    """This creature must be blocked if able.  (Canopy Stalker; grammar
-    round 6 R6-5 — MANDATE_BLOCK mirrors MANDATE_ATTACK: subject-scoped
-    ``cards`` role, executor deferred per the PHASE_IN-orphan
-    precedent.)"""
+    """This creature must be blocked if able (Canopy Stalker). MANDATE_BLOCK mirrors
+    MANDATE_ATTACK: a subject-scoped ``cards`` role."""
     atom = Atom(
         verb=Verb.MANDATE_BLOCK,
         args=AtomArgs(pairs=(("cards", _self_selector()),)),
@@ -891,11 +827,9 @@ def _build_must_block(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_block_only_flying(m: re.Match[str]) -> SentenceOutcome:
-    """This creature can block only creatures with flying.  (Shacklegeist;
-    C10 — PREVENT_EFFECT whose blocked-side ``blocked`` slot (R6-4) is
-    FNot(KEYWORD_HAS flying): the prevented declarations are exactly the
-    source-as-blocker declarations (subject=IS_SOURCE, grammar-round-7
-    ``_dbe_both`` idiom) over a non-flying blocked creature.)"""
+    """This creature can block only creatures with flying (Shacklegeist): PREVENT_EFFECT over the
+    declarations where the source blocks (subject=IS_SOURCE) a creature without flying
+    (``blocked``=FNot(KEYWORD_HAS flying))."""
     atom = Atom(
         verb=Verb.PREVENT_EFFECT,
         args=AtomArgs(
@@ -920,34 +854,25 @@ def _build_block_only_flying(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_enters_with_x_counters(m: re.Match[str]) -> SentenceOutcome:
-    """This creature enters with X +1/+1 counters on it.  (Wildwood
-    Scourge, Ivy Elemental and the X hydras; bucket-ownership deviation:
-    the round-6 decision doc guessed b2a, but the JSON partition owns this
-    key in B4.)
-
-    An entering-state replacement (CR 614.1c), not a trigger: the
-    permanent ENTERS with the counters, so it is never an X-less 0/0 and
-    "whenever a creature with power 4 or greater enters" sees it at its
-    full size. EtBState(initial_counters=((+1/+1, X),)), the shape the
-    constant "enters with N counters" cards already use (Malefic Scythe,
-    the kicker Baloths); the executor stamps it with the X the spell was
-    cast with (0 when it entered without being cast, CR 107.3g).
-    m21-fidelity (review batch B, 2026-10-29): this was an ETB trigger
-    putting X counters on the event subject, so the creature entered as a
-    0/0 and Garruk's Uprising never saw an X/X."""
+    """This creature enters with X +1/+1 counters on it (Wildwood Scourge, Ivy Elemental, the X
+    hydras). An entering-state replacement (CR 614.1c), not a trigger: the permanent enters with
+    the counters, so it is never an X-less 0/0 and "whenever a creature with power 4 or greater
+    enters" sees its full size. The shape of the constant "enters with N counters" cards; the
+    executor stamps the X the spell was cast with (0 when it entered without being cast,
+    CR 107.3g)."""
     return AbilityOutcome(
         ability=EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
     )
 
 
 # ---------------------------------------------------------------------------
-# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
+# Build functions — anaphora: chosen cards and names, this-way counts, looked-at cards
 # ---------------------------------------------------------------------------
 
 
 def _you_player() -> Selector:
-    """Selector for the player ``you`` (b2b's player-zone precedent) —
-    the grant target of self-statics like Runed Halo's protection."""
+    """Selector for the player ``you``: the grant target of player statics like Runed Halo's
+    protection."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -957,9 +882,8 @@ def _you_player() -> Selector:
 
 
 def _noncreature_nonland_pool() -> Selector:
-    """Duress / Kitesail Freebooter ``it`` — the whole revealed hand of
-    the target opponent is the CHOOSE pool (ALL + QUnbounded); the pick
-    itself is the verb's ``count`` role (r8 CHOOSE canonical)."""
+    """Duress / Kitesail Freebooter ``it``: the target opponent's revealed hand is the CHOOSE
+    pool (ALL + QUnbounded); the pick size is the verb's ``count`` role."""
     return Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -974,10 +898,9 @@ def _noncreature_nonland_pool() -> Selector:
 
 
 def _build_you_choose_from_it(m: re.Match[str]) -> SentenceOutcome:
-    """``You choose a noncreature, nonland card from it.`` (Duress s2,
-    Kitesail Freebooter s2) — Verb.CHOOSE (R7-1) records the pick as the
-    ability's result register; the pool is the revealed hand ("from it"),
-    the pick size is QConst(1)."""
+    """``You choose a noncreature, nonland card from it.`` (Duress, Kitesail Freebooter):
+    Verb.CHOOSE records the pick as the ability's result register; the pool is the revealed
+    hand ("from it"), the pick size is QConst(1)."""
     atom = Atom(
         verb=Verb.CHOOSE,
         args=AtomArgs(
@@ -991,10 +914,8 @@ def _build_you_choose_from_it(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_you_have_protection_chosen_name(m: re.Match[str]) -> SentenceOutcome:
-    """``You have protection from the chosen card name.`` (Runed Halo s2)
-    — static grant of KeywordAbility(PROTECTION) whose param is the
-    CHOOSE_NAME read-back FAtom(NAME_CHOSEN) (R7-4); the granted object
-    is the player zone for YOU (b2b precedent)."""
+    """``You have protection from the chosen card name.`` (Runed Halo): a static PROTECTION
+    grant to the player you, whose param is the CHOOSE_NAME read-back FAtom(NAME_CHOSEN)."""
     atom = Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -1014,10 +935,9 @@ def _build_you_have_protection_chosen_name(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_modpt_eot_per_tapped_this_way(m: re.Match[str]) -> SentenceOutcome:
-    """``This creature gets +1/+1 until end of turn for each creature
-    tapped this way.`` (Siege Striker s3) — the this-way counter (R7-5
-    THIS_WAY_COUNT) scales the delta via QBin(MUL); the tap-set comes
-    from the preceding optional tap-any-number ability (B2b, covered)."""
+    """``This creature gets +1/+1 until end of turn for each creature tapped this way.`` (Siege
+    Striker): THIS_WAY_COUNT, the number the preceding tap-any-number sentence tapped, scales the
+    delta via QBin(MUL)."""
     p, t = int(m.group("p")), int(m.group("t"))
     scale = QBin(
         op=QBinOp.MUL,
@@ -1049,10 +969,10 @@ def _this_way() -> QProp:
 
 def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
     """``You may reveal a creature card or Garruk planeswalker card from
-    among them and put it into your hand.`` (Garruk's Harbinger s2) —
+    among them and put it into your hand.`` (Garruk's Harbinger) —
     OptionalEffect ("may") over Seq(REVEAL 1, MOVE_ZONE ONE_OF): the
     looked-at cards stay on top of the library, so the pool is the TOP
-    position and the pick is exactly ONE_OF (R7-7).  NAME_CONTAINS
+    position and the pick is exactly ONE_OF.  NAME_CONTAINS
     "Garruk" covers the planeswalker leg."""
     pick_filter: Filter = FOr(
         children=(
@@ -1090,21 +1010,14 @@ def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Template definitions
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# Grammar round-8-C coverage batch builders (doc 2026-09-28/08 §8-C)
+# Build functions — permissions, land plays, mana policy, activation windows
 # ---------------------------------------------------------------------------
 
 
 def _result_register_selector(count: Quantity) -> Selector:
-    """Neutral-zone CHOOSE selector bound to the ability's result register
-    (C2 convention: mode CHOOSE + the neutral Zone(ANY, ANY) + the
-    structured referent string).  ``count`` is QConst(1) for a singular
-    "that card" and QUnbounded() for a plural "them" — the register holds
-    whatever the previous sentence produced, the controller then picks
-    any number of them (HoF's "You may cast them this turn")."""
+    """CHOOSE selector over the ability's result register: the neutral Zone(ANY, ANY) and the
+    referent "result". ``count`` is QConst(1) for a singular "that card", QUnbounded() for a
+    plural "them"."""
     return Selector(
         count,
         SelectorMode.CHOOSE,
@@ -1115,38 +1028,18 @@ def _result_register_selector(count: Quantity) -> Selector:
 
 
 def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
-    """``You may cast them this turn.`` (Chandra, Heart of Fire [−9] s3 —
-    the anaphoric follow-on to "…exile them, then shuffle").
+    """``You may cast them this turn.`` (Chandra, Heart of Fire [−9], after "…exile them, then
+    shuffle"): the permission idiom, an empty-cost ActivatedAbility + OptionalEffect(CAST).
 
-    Permission idiom (B4-cast-goblin-top-library): empty-cost
-    ActivatedAbility + OptionalEffect(CAST).  14f FIDELITY FIX (doc
-    09-30/09): "them" was compiled as the ``referent='result'`` register —
-    anaphora that crosses resolutions (the exile ran in the [−9]'s effect
-    execution; the permission activates later, when the per-resolution
-    register is gone, 14e's residual).  The executor already models the
-    exact printed relation — "cards exiled [by this permanent]" — as
-    ``FAtomPred.IS_EXILED_WITH_SOURCE`` (R8-6; world half: in exile NOW,
-    history half: journalled cause = this ability's source), and Chandra's
-    OWN [+1] play-permission row compiles that filter.  "them" is the
-    plural of the same population: CHOOSE + QUnbounded + Zone(EXILE, YOU),
-    the [+1] row's shape down to the filter (the C2 referent-selector pin
-    is not in play — this is no referent selector).  The cards are cast
-    for their costs: the CAST atom has no ``cost`` role (2026-11-05: it
-    carried the empty Cost, the "without paying its mana cost" waiver of
-    CR 118.9, which the card does not print).
-    Documented fidelity edge (shared with the [+1] row's golden — the
-    pred's frozen reading is SOURCE-scoped, not row-scoped): both of
-    Chandra's exiles carry the same permanent as journalled cause, so the
-    two permissions read the union of her exiled-with population.  The
-    grammar has no per-ability exile group; the union is the pred's
-    established semantics, not an invention of this row.
-    Lossy (C11 class, verbatim): "this turn" — CAST has no duration role
-    (R9 grammar item: CAST duration role).
-    Assembly note: the [−9]'s third sentence; the empty-cost
-    ActivatedAbility assembles as a sibling node (r7-B deviation-2
-    class — the population hop is the executor's journal read).
-    C16: open — whether to cast; WHICH cards is the executor-side
-    CHOOSE-QUnbounded reading (all candidates, the [+1] row's twin)."""
+    "them" is not the ``referent='result'`` register: the permission is used after the [−9]
+    resolved, when that register is gone. It is the cards exiled with this permanent,
+    ``FAtomPred.IS_EXILED_WITH_SOURCE`` over Zone(EXILE, YOU) with QUnbounded, the shape of
+    Chandra's own [+1] permission. The cards are cast for their costs: the CAST has no ``cost``
+    role, since the card prints no "without paying its mana cost" waiver (CR 118.9).
+
+    Known limits: both of Chandra's exile abilities record the same permanent as the cause, so
+    both permissions read the union of her exiled cards (the grammar has no per-ability exile
+    group); and CAST has no duration role, so "this turn" is dropped."""
     atom = Atom(
         verb=Verb.CAST,
         args=AtomArgs(
@@ -1169,23 +1062,14 @@ def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_look_and_play_top_of_library(m: re.Match[str]) -> SentenceOutcome:
-    """``You may look at the top card of your library any time, and you may
-    play lands from the top of your library.`` (Radha, Heart of Keld) —
-    TWO permissions in one sentence (the compiler splits sentences on ". "
-    only, never ", and ", so one template emits both).  The empty-cost
-    ActivatedAbility effect is a Seq of TWO sibling OptionalEffect steps
-    — LOOK_AT and top-land CAST — keeping BOTH may-decisions open (C15:
-    Optional(Seq(a, b)) would fuse them into one decision; Seq of
-    Optionals keeps two independent vertices, the same shape the default
-    continuation merge uses for "do X. You may do Y").
-    LOOK_AT carries no zone role — the B2b precedent (Sasaya) notes
-    "LOOK_AT implicitly looks at the top of the library"; count=1 = "the
-    top card".  "any time" is the static permission reading (the
-    empty-cost ActivatedAbility idiom).
-    Lossy (C11 class, verbatim): lands are PLAYED, not cast — CAST is the
-    only from-zone permission verb (ADD_LAND_PLAY is the additional-drop
-    count, not a from-zone play); same note as the HoF row.
-    C16: open — whether to look, whether to play the top land."""
+    """``You may look at the top card of your library any time, and you may play lands from the
+    top of your library.`` (Radha, Heart of Keld): two permissions in one sentence (the compiler
+    splits sentences on ". " only, so one template emits both). The empty-cost ActivatedAbility's
+    effect is a Seq of two OptionalEffects, LOOK_AT and a top-land CAST, so the two "may"
+    decisions stay independent; Optional(Seq(a, b)) would fuse them into one. LOOK_AT has no zone
+    role: it looks at the top of the library (count 1 = "the top card").
+    Lossy: lands are played, not cast, but CAST is the only from-zone permission verb
+    (ADD_LAND_PLAY counts extra land drops, it is not a from-zone play)."""
     look = OptionalEffect(
         inner=Atom(
             verb=Verb.LOOK_AT,
@@ -1225,19 +1109,12 @@ def _build_look_and_play_top_of_library(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_play_that_card_until(m: re.Match[str]) -> SentenceOutcome:
-    """``You may play that card until you exile another card with this
-    enchantment.`` (Furious Rise s2) — OptionalEffect(CAST) over the
-    result register (QConst(1): "that card" singular — the end-step exile
-    of s1).
-    Lossy (C11 class, verbatim): "until you exile another card with this
-    enchantment" — the Duration vocabulary has no until-the-next-event
-    variant (DurationUntilLeaves is leaves-the-battlefield only,
-    DurationWhileCondition is a state predicate) — the window is dropped
-    (R9 grammar item: until-next-event duration).  CAST-for-play as in
-    the Radha/HoF rows.
-    Assembly note: s2 of the end-step trigger; the empty-cost
-    ActivatedAbility assembles as a sibling node (r7-B deviation-2).
-    C16: open — whether to play the exiled card."""
+    """``You may play that card until you exile another card with this enchantment.`` (Furious
+    Rise): OptionalEffect(CAST) over the result register ("that card": the card the end-step
+    trigger's first sentence exiled). Lossy: no Duration means "until the next such event"
+    (DurationUntilLeaves is leaves-the-battlefield only, DurationWhileCondition is a state
+    predicate), so the window is dropped; and the card is played through CAST, as in the Radha
+    row."""
     atom = Atom(
         verb=Verb.CAST,
         args=AtomArgs(pairs=(("source", _result_register_selector(QConst(1))),)),
@@ -1248,20 +1125,13 @@ def _build_play_that_card_until(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_azusa_extra_land_plays(m: re.Match[str]) -> SentenceOutcome:
-    """``You may play two additional lands on each of your turns.`` (Azusa,
-    Lost but Seeking) — Verb.ADD_LAND_PLAY (R8-8): count = QConst(2) —
-    C14 spelled-number word-pin ("two" is not digit-normalized into the
-    shape; Gnarled-Sage precedent).
+    """``You may play two additional lands on each of your turns.`` (Azusa, Lost but Seeking):
+    ADD_LAND_PLAY with count QConst(2) (the pattern pins the word "two").
 
-    A STATIC ability (CR 604.1; 305.2: continuous effects may raise the
-    land allowance): StaticAbility(OptionalEffect(ADD_LAND_PLAY)), the
-    Teferi, Master of Time permission shape (the "you may" is the use,
-    playing the land; layers._new_static unwraps it). No duration role: the
-    static's own lifetime is the window, as for every other static atom.
-    m21-fidelity (adversarial gate, 2026-10-29): this was a free activated
-    ability (cost {}), so nothing was granted until it was activated and
-    each activation added two more land plays (0 -> 2 -> 4 -> 6).
-    C16: open — whether to use either additional land play."""
+    A static ability (CR 604.1; CR 305.2: continuous effects may raise the land allowance):
+    StaticAbility(OptionalEffect(ADD_LAND_PLAY)), the Teferi, Master of Time permission shape (the
+    "you may" is playing the land; layers._new_static unwraps it). No duration role: the static's
+    own lifetime is the window."""
     atom = Atom(
         verb=Verb.ADD_LAND_PLAY,
         args=AtomArgs(pairs=(("count", QConst(2)),)),
@@ -1270,22 +1140,11 @@ def _build_azusa_extra_land_plays(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_noncombat_damage_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
-    """``This spell costs {X} less to cast, where X is the total amount of
-    noncombat damage dealt to your opponents this turn.`` (Chandra's
-    Incinerator) — CostModifier sibling (b4 _build_total_power_cost_
-    modifier precedent: filter=IS_SOURCE, delta=CostDeltaReduceGeneric
-    with a dynamic amount): amount = QThisTurn(NONCOMBAT_DAMAGE,
-    ALL_OPPONENTS) — R8-10's this-turn kind aggregated across ALL
-    opponents (the single total across the opponent set the printed
-    "total … to your opponents" asks for).
-    Lossy (C11 class, verbatim): QThisTurn's referent is a
-    ControllerRef — the R8-10 grounding note reads it DEALT-BY-the
-    referent while the printed text is dealt-TO-the-opponents; no
-    damage-recipient quantity exists (dealer and recipient sides cannot
-    both be pinned in one node — R9 item: damage-received this-turn
-    referent).  The executor binds the ALL_OPPONENTS reading to the
-    recipient side per this docstring.
-    C16: none — board-dynamic amount, fully forced."""
+    """``This spell costs {X} less to cast, where X is the total amount of noncombat damage dealt to
+    your opponents this turn.`` (Chandra's Incinerator): a CostModifier on the source, like
+    _build_total_power_cost_modifier, whose amount is QThisTurn(NONCOMBAT_DAMAGE, ALL_OPPONENTS),
+    one total across all opponents. The executor reads the referent as the players dealt the
+    damage (executor/quantity.py)."""
     modifier = CostModifier(
         filter=FAtom(pred=FAtomPred.IS_SOURCE),
         controller_ref=ControllerRef.YOU,
@@ -1300,21 +1159,10 @@ def _build_noncombat_damage_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_spend_mana_any_color(m: re.Match[str]) -> SentenceOutcome:
-    """``You may spend mana as though it were mana of any color.``
-    (Chromatic Orrery) — grammar round 9-B row 7: Verb.MANA_POLICY (R9-3,
-    C21) with the closed scope string "ALL_YOURS" (the permanent
-    color-flooding permission, distinct from Vodalian's event-anchored
-    "THIS_MANA").  No filter role value — the permission covers every
-    spend.
-
-    DURATION NOTE (verbatim): MANA_POLICY carries no duration role; the
-    static's own permanence IS the DurationPermanent reading (the same
-    carrier judgement as the round-8-C CAST-waiver rows, which used the
-    OptionalEffect-inside-static shape).  OptionalEffect wrap keeps the
-    "may" decision open at each spend (C15 — the policy permits, the
-    controller decides per spend).  Executor deferred per the
-    ADD_LAND_PLAY orphan precedent (PC-6: verb consumed this round).
-    C16: open — whether/how each mana payment uses the flooding policy."""
+    """``You may spend mana as though it were mana of any color.`` (Chromatic Orrery): MANA_POLICY
+    with the scope "ALL_YOURS", covering every spend (Vodalian's "THIS_MANA" is tied to one mana
+    event). No duration role: the static's own lifetime is the window. The OptionalEffect keeps
+    the "may" open at each spend."""
     atom = Atom(
         verb=Verb.MANA_POLICY,
         args=AtomArgs(pairs=(("scope", "ALL_YOURS"),)),
@@ -1323,25 +1171,11 @@ def _build_spend_mana_any_color(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_tefei_grant_activation(m: re.Match[str]) -> SentenceOutcome:
-    """``You may activate loyalty abilities of Teferi on any player's turn
-    any time you could cast an instant.`` (Teferi, Master of Time) —
-    grammar round 9-B row 8, closing the 8-C withdrawal: Verb.
-    GRANT_ACTIVATION (R9-7) with filter = FAtom(IS_SOURCE) (the ability-
-    holder gate) and window = ActivationWindow.INSTANT — "any time you
-    could cast an instant" names the instant window EXACTLY (R9-1
-    vocabulary; NOT SORCERY — the r10 grammar fixture's SORCERY example is
-    unrelated to this row's text). OptionalEffect wrap per C15 ("you
-    may"); executor deferred per the GRANT_ABILITY-adjacent orphan
-    precedent (PC-6: verb consumed this round).
-
-    2026-10-29: "Teferi" here is the card's shortened name, which means
-    this object only (CR 201.5, 201.5c), so the holder is the self
-    referent IS_SOURCE. The earlier FAnd(TYPE_EQ Planeswalker,
-    NAME_CONTAINS "Teferi") also matched every other Teferi planeswalker
-    on the battlefield (Teferi, Timeless Voyager; an opponent's Teferi),
-    and the layer's instant window is global: stronger than printed.
-
-    C16: open — WHICH loyalty ability and WHEN inside the widened window."""
+    """``You may activate loyalty abilities of Teferi on any player's turn any time you could cast
+    an instant.`` (Teferi, Master of Time): GRANT_ACTIVATION with window ActivationWindow.INSTANT,
+    wrapped in an OptionalEffect ("you may"). "Teferi" is the card's shortened name, which means
+    this object only (CR 201.5, 201.5c), so the holder filter is IS_SOURCE, not every Teferi
+    planeswalker."""
     holder = FAtom(pred=FAtomPred.IS_SOURCE)
     atom = Atom(
         verb=Verb.GRANT_ACTIVATION,
@@ -1351,21 +1185,11 @@ def _build_tefei_grant_activation(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_enthralling_target_choice(m: re.Match[str]) -> SentenceOutcome:
-    """``You can't choose an untapped creature as this spell's target as
-    you cast it.`` (Enthralling Hold) — grammar round 9-B row 9, C11-class
-    encoding: choice-restriction ≈ owner-scoped targeting PREVENTION.
-    PREVENT_EFFECT over TargetingEvent whose filter narrows the would-be
-    target (FAnd(TYPE_EQ Creature, IS_UNTAPPED)); the SPELL SCOPE rides
-    the condition slot as FAtom(IS_ANY_TARGET) — the b3/Subira precedent
-    that a spell-internal restriction binds to the spell's own target
-    set ("as you cast it" = the targeting event IS the spell's choice).
-    FIDELITY NOTE (C11-class): the grammar cannot distinguish choosing at
-    target-declaration from a prevention that fires on targeting itself —
-    on this pool the two coincide (the restriction only ever applies to
-    this spell's own choices); no targeting-legality node exists
-    (round-7 family, doc /11 §DEFER adjacent).
-
-    C16: none — a legality restriction, fully forced."""
+    """``You can't choose an untapped creature as this spell's target as you cast it.``
+    (Enthralling Hold): PREVENT_EFFECT over a TargetingEvent on an untapped creature; the condition
+    FAtom(IS_ANY_TARGET) scopes it to this spell's own targets, as in Subira's restriction. The
+    grammar has no targeting-legality node, so this cannot tell a restriction on the choice from a
+    prevention of the targeting; for this card the two coincide."""
     untapped_creature = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1383,6 +1207,10 @@ def _build_enthralling_target_choice(m: re.Match[str]) -> SentenceOutcome:
     )
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
+
+# ---------------------------------------------------------------------------
+# Template definitions
+# ---------------------------------------------------------------------------
 
 TEMPLATES: tuple[Template, ...] = (
     Template(
@@ -1583,13 +1411,8 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B4-enters-tapped-creature",
-        # ZND-2 T3: widened to the non-land permanent nouns, DISJOINT from
-        # B4-enters-tapped-land below (one noun, one template — identical
-        # overlap on two patterns would be a tolerated-but-ugnoy double
-        # claim; the tree is type-independent: EtBState(tapped=True)).
-        # M21 census 2026-10-18: zero "This artifact/enchantment enters
-        # tapped." sentences (buckets and goldens stay byte-identical);
-        # ZNR gains Spare Supplies.
+        # Disjoint from B4-enters-tapped-land below (one noun, one template); both build
+        # EtBState(tapped=True).
         name="this creature/artifact/enchantment enters tapped",
         bucket=_BUCKET,
         pattern=re.compile(r"^This (?:creature|artifact|enchantment) enters tapped\.$"),
@@ -1714,7 +1537,7 @@ TEMPLATES: tuple[Template, ...] = (
         pattern=re.compile(r"^This creature enters with X \+1/\+1 counters on it\.$"),
         priority=_PRIORITY,
         build=_build_enters_with_x_counters,
-    ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    ),
     Template(
         tid="B4-you-choose-from-it",
         name="you choose a noncreature nonland card from it (CHOOSE)",
@@ -1753,7 +1576,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_reveal_one_from_among,
     ),
-    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
     Template(
         tid="B4-cast-them-this-turn",
         name="you may cast them this turn (result-register CAST + cost waiver)",
@@ -1806,7 +1628,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_noncombat_damage_cost_modifier,
     ),
-    # --- grammar round-9-B coverage batch (doc 2026-09-28/11 §9-B rows 7-9) ---
     Template(
         tid="B4-spend-any-color",
         name="mana policy: spend mana as though any color (MANA_POLICY ALL_YOURS)",

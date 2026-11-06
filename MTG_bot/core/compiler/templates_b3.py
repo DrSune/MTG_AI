@@ -4,10 +4,6 @@ Each B3 sentence has the form "<cost>: <effect>." where the cost is a
 sequence of mana symbols ({T}, {W}, {2}, {2}{U}, etc.) and the effect
 is one of a closed set of actions expressible in the ability_tree
 grammar.
-
-Public API:
-    TEMPLATES: tuple[Template, ...]
-    UNCOVERED: tuple[tuple[str, str], ...]
 """
 
 from __future__ import annotations
@@ -95,9 +91,8 @@ _KW_MAP: dict[str, Keyword] = {
 }
 
 #: The ``kw`` group of the grant templates, built from the map so a pattern can never match a word
-#: its builder cannot look up. Matching ``[a-z]+`` here made "…gains haste…" raise KeyError and take
-#: down whole-set compiles (B-36: M19 Goblin Motivator, KHM Axgard Cavalry); such a sentence is now
-#: honestly unparsed until its keyword joins the map with an executor test.
+#: its builder cannot look up (the KeyError would abort a whole-set compile). A sentence granting
+#: another keyword stays unparsed until that keyword joins the map with an executor test.
 _KW_ALT: str = "|".join(re.escape(k) for k in sorted(_KW_MAP, key=len, reverse=True))
 
 
@@ -122,12 +117,8 @@ def _sel_self() -> Selector:
 
 
 def _sel_target_creature() -> Selector:
-    """Any target creature.
-
-    R11-3: TARGET-mode creature selectors live on the battlefield — a Zone
-    (ANY, ANY) here would illegally let e.g. an instant target a creature
-    card in a graveyard or library.
-    """
+    """Target creature, on the battlefield: Zone(ANY, ANY) would let a spell target a creature
+    card in a graveyard or library."""
     return Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
@@ -137,17 +128,10 @@ def _sel_target_creature() -> Selector:
 
 
 def _sel_any_target() -> Selector:
-    """Any target (creature, planeswalker, or player — CR 109.5).
-
-    r17-2 (geyser-FIX): printed "any target" designates a creature, a
-    planeswalker or a player — NEVER a card hiding in a hand or library.
-    The card side compiles to the battlefield population with the FOr
-    type-idiom filter; the PLAYER side joins through the engine's idiom
-    widening (query._widen_any_target / selectors._is_any_universal
-    recognize this exact shape), so the filter is never evaluated on a
-    player handle. (Pre-fix this emitted Zone(ANY, ANY) + the universal
-    FAnd, which enumerated opponent-hidden zones — the D10/E3 leak.)
-    """
+    """Any target: a creature, planeswalker or player (CR 109.5), never a card in a hand or
+    library. The card side is the battlefield with the FOr type filter; the player side joins
+    through the engine's widening (query._widen_any_target and selectors._is_any_universal
+    recognize this exact shape), so the filter is never evaluated on a player."""
     return Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
@@ -155,12 +139,9 @@ def _sel_any_target() -> Selector:
             (
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                # r17-2 discriminator: the third branch never matches a
-                # card (no card carries "Player" in its types) — it marks
-                # the population as the CR 109.5 "any target" one so the
-                # engine widening can tell it apart from the printed
-                # "target creature or planeswalker" two-branch shape
-                # (which NEVER denotes a player, CR 115.1d).
+                # Never matches a card (no card has the type "Player"): it marks the CR 109.5
+                # "any target" shape, so the widening can tell it from "target creature or
+                # planeswalker", which never denotes a player (CR 115.1d).
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
@@ -205,7 +186,6 @@ def _sel_target_creature_flying() -> Selector:
                 FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
             )
         ),
-        # R11-3: creatures can only be targeted on the battlefield.
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
@@ -276,7 +256,6 @@ def _sel_target_bird_cat_dog_goat_ox_snake() -> Selector:
                 ),
             )
         ),
-        # R11-3: creatures can only be targeted on the battlefield.
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
@@ -294,7 +273,6 @@ def _sel_target_creature_with_plus1() -> Selector:
                 ),
             )
         ),
-        # R11-3: creatures can only be targeted on the battlefield.
         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
     )
 
@@ -662,15 +640,8 @@ def _build_seq_draw_discard(m: re.Match[str]) -> AbilityOutcome:
 
 
 def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
-    """``{5}, {T}: Draw a card for each color among permanents you
-    control.`` (Chromatic Orrery) — grammar round 9-B row 6, QDistinctColorCount
-    (R9-6): the count collapses the SELECTED population to its distinct-color
-    colorimeter; the selector names the population — ALL permanents you
-    control (IS_PERMANENT over Zone(BATTLEFIELD, YOU), the lands-you-control
-    shape; the zone already scopes battlefield, the filter makes "permanent"
-    explicit per the b1 Enchant-permanent precedent).
-
-    C16: the activation itself; no inner choice — the count is board-derived."""
+    """``{5}, {T}: Draw a card for each color among permanents you control.`` (Chromatic
+    Orrery): QDistinctColorCount counts the distinct colors among all permanents you control."""
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.DRAW,
@@ -798,7 +769,7 @@ def _build_add_mana_any(m: re.Match[str]) -> AbilityOutcome:
             pairs=(
                 ("controller", ControllerRef.YOU),
                 ("amount", QConst(1)),
-                ("color", "ANY"),  # R8-3/C-3: "any color" != colorless
+                ("color", "ANY"),  # any color, not colorless "C"
             )
         ),
     )
@@ -834,13 +805,9 @@ def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOut
 
 
 def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
-    """``{cost}: Create a P/T white Angel creature token with flying.``
-    (Speaker of the Heavens). m21-fidelity (wave 4, 2026-10-30): the type
-    line is "Creature — Angel" (CR 205.1: the type line carries the card type
-    and the subtypes; CR 111.3: the creating text defines the token's
-    characteristics). It was "Angel", and the executor mints a token's
-    identity from the type line, so the 4/4 flier was not a creature (it
-    could not attack or block)."""
+    """``{cost}: Create a P/T white Angel creature token with flying.`` (Speaker of the Heavens).
+    The type line is "Creature — Angel" (CR 205.1, CR 111.3): the executor mints a token's identity
+    from its type line, so a bare "Angel" would not be a creature."""
     cost = _parse_cost(m)
     p = int(m.group("p"))
     t = int(m.group("t"))
@@ -853,7 +820,7 @@ def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
         toughness=QConst(t),
         keywords=(Keyword.FLYING,),
         abilities=(),
-        colors=("W",),  # C-2 repair (round 8)
+        colors=("W",),
     )
     effect = Atom(
         verb=Verb.CREATE_TOKEN,
@@ -867,27 +834,10 @@ def _build_create_token(m: re.Match[str]) -> AbilityOutcome:
     return _build_activated(cost, effect)
 
 
-# ---------------------------------------------------------------------------
-# Round-6 batch builder: blocked-side restriction activation (Subira)
-# ---------------------------------------------------------------------------
-
-
 def _build_target_cant_be_blocked(m: re.Match[str]) -> AbilityOutcome:
-    """Another target creature with power N or less can't be blocked this
-    turn.  (Subira, Tulzidi Caravanner {1} ability; grammar round 6 R6-4 —
-    DeclareBlockersEvent.blocked names the BLOCKED-side participant, the
-    standing b3 UNCOVERED diagnosis.  The restricted participant is the
-    ability's target: PREVENT_EFFECT.condition = FAtom(IS_ANY_TARGET)
-    (same shape as the Tome Anima blocked-side idiom, source → target),
-    and the ``blocked`` filter also carries the printed POWER_LE bound —
-    IR-faithful superset of the decision-doc sketch (which omitted the
-    power cap); "another target" is IS_ANY_TARGET per the Selfless Savior
-    precedent.  Duration: this turn = DurationEot.
-
-    R11-4c: "another target creature" EXCLUDES the ability's source — the
-    blocked-side filter carries FNot(IS_SOURCE) so Subira herself can never
-    be the restricted creature (condition stays IS_ANY_TARGET: the prevent
-    still keys on the ability target)."""
+    """Another target creature with power N or less can't be blocked this turn (Subira, Tulzidi
+    Caravanner). PREVENT_EFFECT over a DeclareBlockersEvent whose ``blocked`` side is the
+    ability's target (IS_ANY_TARGET) with power N or less, and not the source ("another")."""
     blocked = FAnd(
         children=(
             FAtom(pred=FAtomPred.IS_ANY_TARGET),
@@ -911,26 +861,10 @@ def _build_target_cant_be_blocked(m: re.Match[str]) -> AbilityOutcome:
     return _build_activated(_parse_cost(m), effect)
 
 
-# ---------------------------------------------------------------------------
-# Template definitions
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# Grammar round-7 batch builder (doc 2026-09-28/03 §3 R7-A)
-# ---------------------------------------------------------------------------
-
-
 def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
-    """``{COST}: This creature fights another target creature.`` (Brash
-    Taunter) — Verb.FIGHT as an effect verb (R7-9a; previously the verb
-    existed only as a Keyword).  FIGHT's single ``target`` role is the
-    *opponent* of the fight: the source creature is the implicit attacker
-    (no role for it). "another" excludes the source: FNot(IS_SOURCE), the
-    "other/another target" shape of Barrin, Niambi and Basri's Acolyte
-    (m21-fidelity, review batch D, 2026-10-29: it was IS_ANY_TARGET, which
-    is true of every designated target, so Brash Taunter could fight
-    itself) — the paired damage rule ("each deals damage equal to its power
-    to the other") is FIGHT's rule reminder, never a sentence."""
+    """``{COST}: This creature fights another target creature.`` (Brash Taunter). FIGHT's one
+    ``target`` role is the other fighter; the source is implicit. "another" excludes the source:
+    FNot(IS_SOURCE). The damage exchange is FIGHT's own rule, never a sentence."""
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.FIGHT,
@@ -957,19 +891,10 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_may_cast_exiled_creature(m: re.Match[str]) -> SentenceOutcome:
-    """``{1}{W}, {T}: Until end of turn, you may cast a creature spell from
-    among cards exiled with this artifact without paying its mana cost.``
-    (Idol of Endurance) — the row this module held in UNCOVERED since r2
-    ("no exiled-with-source grouping predicate" — R8-6 shipped
-    FAtomPred.IS_EXILED_WITH_SOURCE; "empty cost expresses the waiver" —
-    the CAST cost role carries Cost(parts=())).  The exiled cards were
-    taken from YOUR graveyard by the Idol's ETB, so Zone(EXILE, YOU).
-    May-cast → OptionalEffect inside the real (paid) ActivatedAbility.
-    Lossy (C11 class, verbatim): "Until end of turn" — CAST/optional-cast
-    have no duration role (R9 grammar item; the second half of the stale
-    UNCOVERED note, still true).
-    C16: open — the activation (mana+tap cost), whether to cast, which
-    exiled creature card."""
+    """``{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with
+    this artifact without paying its mana cost.`` (Idol of Endurance). The Idol's ETB exiled them
+    from your graveyard, so Zone(EXILE, YOU); the empty CAST ``cost`` is the waiver. Lossy: CAST has
+    no duration role, so "Until end of turn" is dropped."""
     cost = _parse_cost(m)
     effect = OptionalEffect(
         inner=Atom(
@@ -1000,6 +925,10 @@ def _build_may_cast_exiled_creature(m: re.Match[str]) -> SentenceOutcome:
     )
     return AbilityOutcome(ability=ActivatedAbility(cost=cost, effect=effect))
 
+
+# ---------------------------------------------------------------------------
+# Template definitions
+# ---------------------------------------------------------------------------
 
 TEMPLATES: tuple[Template, ...] = (
     Template(
@@ -1275,7 +1204,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_target_cant_be_blocked,
     ),
-    # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
     Template(
         tid="B3-fights-target",
         name="this creature fights another target creature",
@@ -1286,7 +1214,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_fight_another,
     ),
-    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
     Template(
         tid="B3-idol-cast-exiled-creature",
         name="until end of turn, cast creature from cards exiled with this artifact free (IS_EXILED_WITH_SOURCE)",

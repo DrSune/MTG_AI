@@ -1,16 +1,5 @@
-"""Tests for B1 bucket templates (templates_b1.py).
-
-Covers all 15 shapes in ``/tmp/opencode/phase1_buckets/B1.json``
-(49 concrete sentences):
-- 12 keyword shapes -> ``KeywordOutcome`` (10 bare keywords, plus
-  ``Hexproof from black`` and ``Protection from planeswalkers`` which
-  carry a single ``Filter`` param)
-- 3 enchant shapes -> ``MetaOutcome(kind="enchant", filter=...)``
-- ``UNCOVERED = ()`` — every B1 shape is template-covered.
-
-PC-3: every B1 concrete sentence fullmatches at most one template
-(patterns are pairwise disjoint by construction).
-"""
+"""Tests for the B1 bucket templates over ``/tmp/opencode/phase1_buckets/B1.json``: every shape
+is covered, and every sentence fullmatches at most one template."""
 
 from __future__ import annotations
 
@@ -71,13 +60,8 @@ def _single_match(reg: TemplateRegistry, sentence: str) -> Match:
 
 
 def _inner_node(outcome: SentenceOutcome) -> Any:
-    """Extract the serialisable grammar node from a SentenceOutcome.
-
-    canonical_json/fingerprint only work on grammar dataclasses (registered
-    in _TAG), not on the outcome wrappers. B1 outcomes are either
-    KeywordOutcome (mapped to a KeywordAbility) or MetaOutcome (its
-    enchant ``filter`` is the grammar node).
-    """
+    """The grammar node of a B1 outcome: canonical_json and fingerprint take grammar nodes, not
+    outcome wrappers."""
     if isinstance(outcome, KeywordOutcome):
         return KeywordAbility(keyword=outcome.keyword, params=outcome.params)
     if isinstance(outcome, MetaOutcome):
@@ -239,12 +223,12 @@ class TestB1Coverage(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: PC-3 Matching
+# Test: at most one match per sentence
 # ---------------------------------------------------------------------------
 
 
 class TestB1Matching(unittest.TestCase):
-    """PC-3: every B1 concrete sentence fullmatches at most one template."""
+    """Every B1 concrete sentence fullmatches at most one template."""
 
     @classmethod
     def setUpClass(cls) -> None:

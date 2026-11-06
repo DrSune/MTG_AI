@@ -216,7 +216,7 @@ class TestB3CostParsing(unittest.TestCase):
         ability = _ability(
             _single_match(self.reg, "{1}{B}, {T}: Each opponent loses 2 life.")
         )
-        # R1b canonicalization: parts construction-sorted (color, generic, tap).
+        # Cost parts are sorted at construction: color, generic, tap.
         self.assertEqual(
             _cost_parts(ability),
             (
@@ -234,7 +234,7 @@ class TestB3CostParsing(unittest.TestCase):
                 "where X is the number of lands you control.",
             )
         )
-        # R1b canonicalization: colors alphabetically, generic last.
+        # Sorted at construction: colors alphabetically, generic last.
         self.assertEqual(
             _cost_parts(ability),
             (
@@ -370,7 +370,7 @@ class TestB3EffectStructure(unittest.TestCase):
         assert isinstance(first, Atom)
         assert isinstance(second, Atom)
         self.assertIs(first.verb, Verb.DRAW)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # The discard is a MOVE_ZONE from hand to graveyard.
         self.assertIs(second.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             second.args.get("destination"),
@@ -421,10 +421,7 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(second.args.get("color"), "G")
 
     def test_add_mana_any_color_uses_any_marker(self) -> None:
-        """Round 8 / C-3: "any color" is the "ANY" choice marker, not "C".
-
-        Colorless rows (B3-add-mana-colorless, "{C}"+) still pin "C".
-        """
+        """Mana of any color is the "ANY" choice marker, not colorless "C"."""
         ability = _ability(_single_match(self.reg, "{T}: Add one mana of any color."))
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.ADD_MANA)
@@ -444,8 +441,7 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        # R0 zone-fold: player-or-planeswalker is ONE zone set;
-        # canonical order BATTLEFIELD < PLAYER.
+        # player-or-planeswalker is one zone set, in canonical order BATTLEFIELD < PLAYER.
         self.assertEqual(
             target.zones,
             (
@@ -470,8 +466,7 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        # R0 zone-fold: player-or-planeswalker is ONE zone set;
-        # canonical order BATTLEFIELD < PLAYER.
+        # player-or-planeswalker is one zone set, in canonical order BATTLEFIELD < PLAYER.
         self.assertEqual(
             target.zones,
             (
@@ -511,8 +506,7 @@ class TestB3EffectStructure(unittest.TestCase):
         token = atom.args.get("tokens")
         assert isinstance(token, TokenSpec)
         self.assertEqual(token.name, "Angel")
-        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-47), the type line carries the card
-        # type, as every other token carrier writes it; the executor mints from it.
+        # The type line carries the card type; the executor mints the token from it.
         self.assertEqual(token.type_line, "Creature — Angel")
         self.assertEqual(token.types, ("Creature",))
         self.assertEqual(token.subtypes, ("Angel",))
@@ -526,9 +520,8 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "count").value, 1)
 
     def test_fight_another_target_excludes_the_source(self) -> None:
-        """V13 (2026-10-29): Brash Taunter's "This creature fights another
-        target creature" -- "another" is FNot(IS_SOURCE), as in Subira's
-        R11-4c above; IS_ANY_TARGET alone let the Taunter fight itself."""
+        """Brash Taunter: "another target creature" is FNot(IS_SOURCE), so it cannot fight
+        itself."""
         ability = _ability(
             _single_match(self.reg, "{2}{R}, {T}: This creature fights another target creature.")
         )
@@ -542,10 +535,9 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(excl[0].inner.pred, FAtomPred.IS_SOURCE)
 
     def test_target_cant_be_blocked_r6(self) -> None:
-        """Round-6 R6-4: {1} activation → PREVENT_EFFECT with the blocked
-        slot = FAnd(IS_ANY_TARGET, POWER_LE 2, FNot(IS_SOURCE)), condition =
-        IS_ANY_TARGET, universal blocker filter, DurationEot.
-        R11-4c: "another target" excludes the ability's own source."""
+        """Subira's {1} activation: PREVENT_EFFECT with blocked = FAnd(IS_ANY_TARGET, POWER_LE 2,
+        FNot(IS_SOURCE)) ("another" excludes the source), condition IS_ANY_TARGET, a universal
+        blocker filter, DurationEot."""
         ability = _ability(
             _single_match(
                 self.reg,
@@ -572,20 +564,15 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(power_pred.pred, FAtomPred.POWER_LE)
         assert isinstance(power_pred.count, QConst)
         self.assertEqual(power_pred.count.value, 2)
-        assert isinstance(excl, FNot)  # R11-4c: "another" = not the source
+        assert isinstance(excl, FNot)  # "another": not the source
         assert isinstance(excl.inner, FAtom)
         self.assertIs(excl.inner.pred, FAtomPred.IS_SOURCE)
         self.assertIsInstance(atom.args.get("duration"), DurationEot)
 
     def test_target_helper_zones_are_battlefield_r11(self) -> None:
-        """R11-3 sweep: TARGET-mode creature selectors must bind to the
-        battlefield — Zone(ANY, ANY) would let instants legally target
-        creature cards in graveyards/libraries.  AMENDED r17-2
-        (geyser-FIX): _sel_any_target binds to the battlefield too —
-        printed "any target" designates creatures, planeswalkers or
-        players (CR 109.5), never cards in hidden zones; the PLAYER side
-        joins through the engine's idiom widening, not through the zone
-        (the pre-fix (ANY, ANY) shape was the D10/E3 leak)."""
+        """TARGET-mode creature selectors and "any target" (CR 109.5) bind to the battlefield:
+        Zone(ANY, ANY) would let a spell target cards in graveyards, hands or libraries. Players
+        join "any target" through the engine's widening, not through the zone."""
         battlefield_any = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
         for helper in (
             templates_b3._sel_target_creature,
@@ -603,9 +590,7 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIsInstance(any_target.filter, FOr)
 
     def test_draw_per_distinct_color(self) -> None:
-        """9-B row 6 (Chromatic Orrery): DRAW amount = QDistinctColorCount
-        over ALL permanents you control (R9-6; selector names the counted
-        population — IS_PERMANENT filter, BATTLEFIELD/YOU zone)."""
+        """Chromatic Orrery: DRAW amount = QDistinctColorCount over all permanents you control."""
         ability = _ability(
             _single_match(
                 self.reg,

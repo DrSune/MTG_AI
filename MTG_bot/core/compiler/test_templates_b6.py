@@ -1,19 +1,15 @@
-"""Tests for the B6 bucket — the ZNR KICKER family (grammar round 19).
+"""Tests for the B6 bucket (templates_b6.py), the Kicker family:
 
-Covers templates_b6.py:
-- kicker heads: parenthetical (mirroring), bare, and ``{X}`` forms; a
-  non-mirroring parenthetical NEVER matches (PC-3 pairwise-disjoint law);
-- gated entering state (``EtBState(condition=WAS_KICKED)``) + the
-  OMIT-IF-EMPTY row keeping ungated (M21) EtBState bytes unchanged;
+- kicker heads: with the reminder, bare, and ``{X}``; a reminder that does
+  not repeat the cost never matches;
+- the gated entering state (``EtBState(condition=WAS_KICKED)``); an ungated
+  EtBState serializes without a condition key;
 - kicker-gated ETB triggers and cast triggers;
-- the compiler fold of class-E spell arms: additive Seq-append and the
-  "instead" replacement ``Conditional(WAS_KICKED, arm, else=base)``;
-- the three hand-certified ZNR goldens, expected trees derived from the
-  oracle-text clauses (Kitesail Cleric / Roost of Drakes / Bloodchief's
-  Thirst), plus the Thieving Skydiver ``Kicker {X}`` head;
-- KickerAbility serialization round-trip;
-- honest residue: the unmapped Taunting Arbormage block tail never
-  matches.
+- the compiler's fold of spell arms: additive Seq-append and the "instead"
+  replacement ``Conditional(WAS_KICKED, arm, else=base)``;
+- hand-built goldens derived from the oracle text (Kitesail Cleric, Roost of
+  Drakes, Bloodchief's Thirst) and the Thieving Skydiver ``Kicker {X}`` head;
+- unmapped tails (Taunting Arbormage's block tail) never match.
 """
 
 from __future__ import annotations
@@ -91,7 +87,7 @@ def _b6_match(tid: str, sentence: str) -> re.Match[str] | None:
 
 
 def _b6_m(tid: str, sentence: str) -> re.Match[str]:
-    """Match that must succeed (Pyright type guard, mirrors b5a _as_*)."""
+    """Match that must succeed (Pyright type guard)."""
     m = _b6_match(tid, sentence)
     if m is None:
         raise AssertionError(f"{tid} did not match {sentence!r}")
@@ -101,7 +97,7 @@ def _b6_m(tid: str, sentence: str) -> re.Match[str]:
 def _as_ability(outcome: object) -> AbilityOutcome:
     """Narrow to AbilityOutcome (Pyright type guard)."""
     if not isinstance(outcome, AbilityOutcome):
-        raise AssertionError(  # noqa: TRY004 - test guard, see b5a _as_*
+        raise AssertionError(  # noqa: TRY004
             f"expected AbilityOutcome, got {type(outcome)}"
         )
     return outcome
@@ -203,8 +199,8 @@ def _raw(
 
 
 # ---------------------------------------------------------------------------
-# Hand-built atom shapes (the shared builders in templates_b6 mirror these
-# M21-proven idioms; expected trees below are derived from oracle clauses).
+# Hand-built expected trees, derived from the oracle clauses rather than from
+# the builders in templates_b6.
 # ---------------------------------------------------------------------------
 
 _KICKED = FAtom(pred=FAtomPred.WAS_KICKED)
@@ -278,7 +274,7 @@ def _destroy_cw_pw(mv_le: int | None) -> Atom:
     def arm(type_name: str) -> FAnd | FAtom:
         type_atom = FAtom(pred=FAtomPred.TYPE_EQ, string_value=type_name)
         if mv_le is None:
-            return type_atom  # b5a idiom: bare FAtom when no MV bound
+            return type_atom  # a bare FAtom when there is no mana value bound
         return FAnd(
             children=(
                 type_atom,
@@ -341,8 +337,8 @@ class TestKickerHead(unittest.TestCase):
         )
 
     def test_head_nonmirroring_paren_never_matches(self) -> None:
-        """PC-3: a paren that does not mirror the cost leaves the sentence
-        UNMATCHED — it must never mis-parse the head as the printed cost."""
+        """A reminder that does not repeat the cost leaves the sentence unmatched, never
+        mis-parsed."""
         self.assertIsNone(
             _b6_match(
                 "B6-kicker-head",
@@ -400,8 +396,7 @@ class TestKickerEtbCounters(unittest.TestCase):
         )
 
     def test_ungated_etb_bytes_unchanged(self) -> None:
-        """OMIT-IF-EMPTY: an EtBState without a condition (every M21 golden)
-        serializes exactly as before — no 'condition' key."""
+        """An EtBState without a condition serializes with no 'condition' key."""
         d = to_dict(
             EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(1)),))
         )
@@ -484,14 +479,13 @@ class TestTailBuilders(unittest.TestCase):
 
 
 class TestInsteadFoldFailurePaths(unittest.TestCase):
-    """ZND-1 fold law: an 'instead' arm must never be silently dropped
-    and never folded onto a base that does not exist."""
+    """An "instead" arm is never silently dropped and never folded onto a base that does not
+    exist."""
 
     def test_orphan_instead_arm_raises(self) -> None:
-        """Corrupt fold: instead-arm as the card's FIRST effect content —
-        no base clause precedes it (kicker head is not an effect) and no
-        unparsed sentence exists either → StateCorruptionError, not a
-        quiet standalone fold."""
+        """An instead arm that is the card's first effect (the kicker head is not an effect),
+        with no unparsed sentence before it, raises StateCorruptionError instead of folding
+        standalone."""
         raw = _raw(
             "Test Orphan Instead",
             (
@@ -506,13 +500,9 @@ class TestInsteadFoldFailurePaths(unittest.TestCase):
             compile_card(raw, REGISTRY)
 
     def test_instead_arm_with_unparsed_base_stays_residue(self) -> None:
-        """F1 fold law (corrects ZND-1 deviation 3): a replacement arm
-        whose base sentence compiled to residue is NOT folded standalone —
-        the arm stays in the unparsed register too and NO WAS_KICKED
-        Conditional node is built.  A standalone fold would encode
-        "un-kicked → no effect" (rules-wrong: un-kicked Roil Eruption
-        still deals 3 damage) and contradict the register's "base is
-        residue" claim (§11)."""
+        """A replacement arm whose base sentence is unparsed stays unparsed too, and no
+        WAS_KICKED Conditional is built: a standalone fold would mean "un-kicked → no effect"
+        (an un-kicked Roil Eruption still deals 3 damage)."""
         raw = _raw(
             "Test Unparsed Base Instead",
             (
@@ -525,27 +515,24 @@ class TestInsteadFoldFailurePaths(unittest.TestCase):
             ),
         )
         res = compile_card(raw, REGISTRY)
-        # BOTH clauses are honest register residue, in sentence order.
+        # Both clauses are unparsed, in sentence order.
         self.assertEqual(len(res.unparsed), 2, f"register: {res.unparsed}")
         self.assertIn("Fizzle", res.unparsed[0][0])
         self.assertIn("was kicked", res.unparsed[1][0])
-        # No conditional was fabricated: no gated arm, no DESTROY at card
-        # level (the arm exists ONLY in the register now).
+        # No conditional was built: no gated arm and no DESTROY on the card.
         text = repr(res.card)
         self.assertNotIn("WAS_KICKED", text)
         self.assertNotIn("DESTROY", text)
 
     def test_instead_arm_does_not_attach_across_residue(self) -> None:
-        """F2 regression (/tmp/opencode/repro_kicker_fold.py): the
-        backward fold search must STOP at the residue slot — that failed
-        clause IS the base.  The arm may never merge onto an UNRELATED
-        earlier effect ("You gain 3 life." must not become the
-        Conditional's else_effect across the intervening residue)."""
+        """The backward fold search stops at the unparsed slot, which is the arm's base: the arm
+        never merges onto an unrelated earlier effect ("You gain 3 life." must not become the
+        else_effect)."""
         raw = _raw(
             "Test Kicker Misfold Repro",
             (
                 _KICKER_HEAD,
-                "You gain 3 life.",  # compiles: UNRELATED earlier effect
+                "You gain 3 life.",  # compiles: an unrelated earlier effect
                 "Fizzle the fizzwig for each kicker you paid.",  # residue
                 (
                     "If this spell was kicked, instead destroy "
@@ -555,20 +542,18 @@ class TestInsteadFoldFailurePaths(unittest.TestCase):
         )
         res = compile_card(raw, REGISTRY)
         text = repr(res.card)
-        # No fold happened at all ⇒ no WAS_KICKED node exists, hence no
-        # GAIN_LIFE-as-else mis-attach is even representable.
+        # No fold at all: no WAS_KICKED node, so GAIN_LIFE cannot be an else_effect.
         self.assertNotIn("WAS_KICKED", text)
         # The unrelated effect survived on its own (not swallowed).
         self.assertIn("GAIN_LIFE", text)
-        # Both uncovered clauses are honest register residue.
+        # Both uncovered clauses are unparsed.
         self.assertEqual(len(res.unparsed), 2, f"register: {res.unparsed}")
         self.assertIn("Fizzle", res.unparsed[0][0])
         self.assertIn("was kicked", res.unparsed[1][0])
 
     def test_instead_arm_with_compiled_base_still_folds(self) -> None:
-        """Positive control (no over-correction): arm + successfully
-        compiled base still folds to Conditional(then=arm, else=base)
-        exactly as before."""
+        """Positive control: an arm after a compiled base folds to
+        Conditional(then=arm, else=base)."""
         raw = _raw(
             "Test Positive Control Fold",
             (
@@ -602,10 +587,8 @@ _KICKER_HEAD_B = (
 
 class TestKickerFold(unittest.TestCase):
     def test_additive_fold_appends_gated_arm(self) -> None:
-        """Adversarial shape 1: the kicker arm is an ADDITION to the base
-        effect, folded onto the previous effect-bearing slot (here a base
-        ETB trigger — the fold must rebuild the TriggeredAbility carrying
-        the merged Seq, not drop either part)."""
+        """An additive arm folds onto the previous effect-bearing slot: here an ETB trigger,
+        rebuilt with the merged Seq."""
         raw = _raw(
             "Test Additive Kicker",
             (
@@ -662,11 +645,7 @@ class TestKickerFold(unittest.TestCase):
         self.assertEqual(cond.else_effect, _destroy_cw_pw(2))
 
     def test_instead_suffix_fold(self) -> None:
-        """Suffix idiom ('If it was kicked, X instead.') onto a compilable
-        base arm.  (A real ZNR instance with a NAME-subject base —
-        Cinderclasm — stays honest residue for the base idiom; that gap is
-        tested in TestHonestResidue, so here the base is the M21-proven
-        printed-subject destroy idiom.)"""
+        """The suffix idiom ('If it was kicked, X instead.') folds onto a compiled base."""
         raw = _raw(
             "Test Suffix Kicker",
             (
@@ -693,9 +672,8 @@ class TestKickerFold(unittest.TestCase):
         )
 
     def test_instead_arm_without_base_is_honest_residue(self) -> None:
-        """Adversarial shape 2: an 'instead' arm with NO preceding effect to
-        replace (its base arm itself failed to compile) must degrade to
-        HONEST RESIDUE — never silently dropped, never a card-level crash."""
+        """An 'instead' arm whose base failed to compile stays unparsed: never silently
+        dropped, never a crash."""
         raw = _raw(
             "Test Orphan Instead",
             (
@@ -712,10 +690,8 @@ class TestKickerFold(unittest.TestCase):
             mana_value=1,
         )
         res = compile_card(raw, REGISTRY)
-        # Corrected fold law: the arm is never silently dropped either —
-        # with the base in residue a standalone fold would falsely encode
-        # "un-kicked → no effect", so BOTH clauses register as residue and
-        # no WAS_KICKED node is built.
+        # With the base unparsed, a standalone fold would mean "un-kicked → no
+        # effect", so both clauses stay unparsed and no WAS_KICKED node is built.
         self.assertEqual(len(res.unparsed), 2, f"register: {res.unparsed}")
         self.assertIn("kicked", res.unparsed[-1][0])
         self.assertNotIn("WAS_KICKED", repr(res.card))
@@ -782,15 +758,9 @@ class TestHandCertifiedGoldens(unittest.TestCase):
         self.assertEqual(canonical_json(got), canonical_json(expected))
 
     def test_roost_of_drakes(self) -> None:
-        """Head + gated ETB trigger (drake) + cast-trigger (drake).
-
-        ZND-1e: the expected tuple GAINS the effect-less SpellAbility
-        carrier. A kicker-only noncreature head has no effect sentence, so
-        pre-ZND-1e it compiled with no SpellAbility node at all — and was
-        therefore ``cast:not_a_spell``: the kick could never be exercised.
-        The carrier (Goremand precedent, legality.py spell_castable) is
-        what makes the card and its kicker PLAYABLE, so the certified
-        shape now includes it."""
+        """Head + gated ETB trigger (drake) + cast trigger (drake), plus the effect-less
+        SpellAbility carrier: a card with no effect sentence needs it to be castable at all
+        (legality.py spell_castable)."""
         raw = _raw(
             "Roost of Drakes",
             (
@@ -869,7 +839,7 @@ class TestHandCertifiedGoldens(unittest.TestCase):
 
 
 # ===========================================================================
-# 7. Honest residue — the unmapped tail never matches anything
+# 7. Unmapped tails never match
 # ===========================================================================
 
 
@@ -883,10 +853,9 @@ class TestHonestResidue(unittest.TestCase):
         )
 
     def test_skydiver_full_text_unit_level(self) -> None:
-        """'Kicker {X}. X can't be 0. (…)' — the paren form of the X head
-        does NOT exist in the real text (the paren mirrors without the
-        trailing period); the splitter emits 'Kicker {X}.' separately,
-        which the head template claims; 'X can't be 0.' stays residue."""
+        """Thieving Skydiver's 'Kicker {X}. X can't be 0. (…)': the splitter emits
+        'Kicker {X}.' on its own, which the head template claims; 'X can't be 0.' stays
+        unparsed."""
         m = _b6_match("B6-kicker-head", "Kicker {X}.")
         self.assertIsNotNone(m)
         self.assertIsNone(_b6_match("B6-kicker-head", "X can't be 0."))

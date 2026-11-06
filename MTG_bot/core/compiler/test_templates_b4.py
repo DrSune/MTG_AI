@@ -1,13 +1,6 @@
-"""Tests for B4 bucket templates (templates_b4.py).
-
-Covers all 47 shapes in ``/tmp/opencode/phase1_buckets/B4.json``
-(63 concrete sentences):
-- 43 shapes template-covered (59 concrete sentences; ``This land enters
-  tapped.`` carries 15) -> 43 templates
-- 4 shapes UNCOVERED (5 concrete sentences; no grammar construct)
-
-PC-3: every B4 concrete sentence fullmatches at most one template.
-"""
+"""Tests for the B4 bucket templates over ``/tmp/opencode/phase1_buckets/B4.json``: coverage
+against UNCOVERED, the tree each template builds, and every sentence fullmatching at most one
+template."""
 
 from __future__ import annotations
 
@@ -106,11 +99,8 @@ def _single_match(reg: TemplateRegistry, sentence: str) -> Match:
 
 
 def _inner_node(outcome: SentenceOutcome) -> Any:
-    """Extract the serialisable grammar node from a SentenceOutcome.
-
-    canonical_json/fingerprint only work on grammar dataclasses (registered
-    in _TAG), not on the outcome wrappers.
-    """
+    """The grammar node of an outcome: canonical_json and fingerprint take grammar nodes, not
+    outcome wrappers."""
     if isinstance(outcome, AbilityOutcome):
         return outcome.ability
     if isinstance(outcome, EffectOutcome):
@@ -137,8 +127,7 @@ def _as_static(ability: Any) -> StaticAbility:
 
 
 def _effect_of(match: Match) -> Effect:
-    """The top-level Effect of either outcome kind (StaticAbility is
-    static-only in B4)."""
+    """The top-level Effect of an outcome; an AbilityOutcome must hold a StaticAbility."""
     outcome = match.outcome
     if isinstance(outcome, AbilityOutcome):
         return _as_static(outcome.ability).effect
@@ -363,9 +352,7 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
     ),
     "Creatures you control get +1/+1.": ("B4-modify-pt-static-you", "ability"),
     "Creatures you control have trample.": ("B4-grant-kw-static-you", "ability"),
-    # AMENDED 2026-09-30 (round 14f): the static row joins its five sibling
-    # statics as an ABILITY (raw EffectOutcome was the family's outlier;
-    # on a creature it folded into the SpellAbility and ran once at cast).
+    # A static, like its siblings: a bare effect on a creature would run once at cast.
     "Creatures your opponents control get -1/-0.": (
         "B4-modify-pt-static-opponents",
         "ability",
@@ -394,8 +381,7 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
     ),
     "You gain 4 life.": ("B4-gain-life-n", "effect"),
     "You gain 3 life.": ("B4-gain-life-n", "effect"),
-    # re-pinned 2026-10-30: m21-fidelity wave 4, an effect continuation (Rin and Seri's
-    # activated ability's second instruction), not a static.
+    # An effect continuation (the second instruction of Rin and Seri's activated ability).
     "You gain life equal to the number of Cats you control.": (
         "B4-gain-life-qcount-cats",
         "effect",
@@ -422,8 +408,7 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-cast-graveyard-recost",
         "ability",
     ),
-    # re-pinned 2026-10-29: m21-fidelity, the sorcery tutors are part of the spell's effect
-    # (they were free activated rows that never ran on resolution).
+    # The sorcery tutors are part of the spell's effect.
     "You may search your library and/or graveyard for a card named "
     "Basri, Devoted Paladin, reveal it, and put it into your hand.": (
         "B4-tutor-basri",
@@ -554,12 +539,12 @@ class TestB4Coverage(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: PC-3 Matching
+# Test: at most one match per sentence
 # ---------------------------------------------------------------------------
 
 
 class TestB4Matching(unittest.TestCase):
-    """PC-3: every B4 concrete sentence fullmatches at most one template."""
+    """Every B4 concrete sentence fullmatches at most one template."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -705,11 +690,8 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertNotIn("duration", _pairs(atom))
 
     def test_modify_pt_static_opponents(self) -> None:
-        # AMENDED 2026-09-30 (round 14f): this row was the family's lone
-        # outlier emitting a raw EffectOutcome, which the assembly folded
-        # into the CREATURE's SpellAbility to run ONCE at cast (Waker of
-        # Waves, B-11-family static miscompile). The family shape is
-        # StaticAbility (all five sibling rows); the atom is unchanged.
+        # A StaticAbility like its siblings: a bare EffectOutcome on a creature card would
+        # fold into its SpellAbility and run once at cast.
         outcome = _as_ability(
             _single_match(
                 self.reg, "Creatures your opponents control get -1/-0."
@@ -902,8 +884,8 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(first.verb, Verb.DRAW)
         self.assertIs(_pairs(first).get("controller"), ControllerRef.YOU)
         self.assertEqual(_qconst(_pairs(first).get("amount")).value, 2)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom — the
-        # discarding opponent's own hand and graveyard.
+        # The discard is a MOVE_ZONE from the discarding opponent's own hand to their
+        # graveyard.
         self.assertIs(second.verb, Verb.MOVE_ZONE)
         self.assertIs(_pairs(second).get("controller"), ControllerRef.OPPONENT)
         self.assertEqual(
@@ -929,9 +911,8 @@ class TestB4IrStructure(unittest.TestCase):
             self.assertEqual(_qconst(_pairs(atom).get("amount")).value, life, sentence)
 
     def test_gain_life_qcount_cats(self) -> None:
-        # re-pinned 2026-10-30: m21-fidelity wave 4, the sentence is the second instruction of
-        # Rin and Seri's activated ability (CR 602.1), an EffectOutcome the continuation fold
-        # appends, not a StaticAbility of its own (which never gained life).
+        # The second instruction of Rin and Seri's activated ability (CR 602.1): an
+        # EffectOutcome the continuation fold appends, not a StaticAbility of its own.
         outcome = _as_effect(
             _single_match(
                 self.reg, "You gain life equal to the number of Cats you control."
@@ -997,7 +978,6 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertIs(referent.zones[0].controller, ControllerRef.ANY)
         _find_atom(referent.filter, FAtomPred.TYPE_EQ, string_value="Creature")
         _find_atom(referent.filter, FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
-        # filter is IS_SOURCE
         filter_atom = _as_fatom(modifier.filter)
         self.assertIs(filter_atom.pred, FAtomPred.IS_SOURCE)
 
@@ -1174,13 +1154,11 @@ class TestB4IrStructure(unittest.TestCase):
         )
 
     def _assert_tutor_structure(self, sentence: str, card_name: str) -> None:
-        # re-pinned 2026-10-29: m21-fidelity, an EffectOutcome of the sorcery (the optional
-        # search runs as the spell resolves), no longer a free ActivatedAbility(cost={}).
+        # An EffectOutcome of the sorcery: the optional search runs as the spell resolves.
         outcome = _as_effect(_single_match(self.reg, sentence).outcome)
         optional = _as_optional(outcome.effect)
-        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
-        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
-        # unchanged), option 1 the library only, option 2 the graveyard only.
+        # "library and/or graveyard" is a visible Choose over the zone sets: option 0 both
+        # zones (asserted below), option 1 the library only, option 2 the graveyard only.
         choose = optional.inner
         assert isinstance(choose, Choose)
         self.assertEqual(len(choose.options), 3)
@@ -1192,8 +1170,7 @@ class TestB4IrStructure(unittest.TestCase):
                 tuple(z.kind for z in _selector(only_search, "cards").zones), kinds
             )
         seq = _as_seq(choose.options[0])
-        # re-pinned 2026-10-30 (G3 finisher): SEARCH + REVEAL only; the third step, an
-        # unprinted MOVE_ZONE of this card from the top of the library, is gone.
+        # SEARCH + REVEAL only: the SEARCH's destination puts the card into the hand.
         self.assertEqual(len(seq.steps), 2)
         search_atom, reveal_atom = seq.steps
         assert isinstance(search_atom, Atom)
@@ -1206,7 +1183,7 @@ class TestB4IrStructure(unittest.TestCase):
         name_atom = _as_fatom(cards.filter)
         self.assertIs(name_atom.pred, FAtomPred.NAME_EQ)
         self.assertEqual(name_atom.string_value, card_name)
-        # R0 zone-fold: ONE set; canonical order GRAVEYARD < LIBRARY.
+        # One zone set, in canonical order GRAVEYARD < LIBRARY.
         self.assertEqual(
             cards.zones,
             (
@@ -1224,7 +1201,7 @@ class TestB4IrStructure(unittest.TestCase):
         self.assertEqual(_qconst(_pairs(reveal_atom).get("count")).value, 1)
 
     # ------------------------------------------------------------------
-    # Round-6 batch: blocked-side restrictions, MANDATE_BLOCK, ETB X-counters
+    # Blocked-side restrictions, MANDATE_BLOCK, ETB X-counters
     # ------------------------------------------------------------------
 
     def test_cant_be_blocked_aslong_drawn(self) -> None:
@@ -1236,7 +1213,7 @@ class TestB4IrStructure(unittest.TestCase):
             ).outcome
         )
         static = _as_static(outcome.ability)
-        # C9: the turn-scoped condition is StaticAbility.condition.
+        # The turn-scoped condition is StaticAbility.condition.
         drawn = _as_fatom(static.condition)
         self.assertIs(drawn.pred, FAtomPred.CARDS_DRAWN_THIS_TURN_GE)
         self.assertEqual(_qconst(drawn.count).value, 2)
@@ -1298,16 +1275,15 @@ class TestB4IrStructure(unittest.TestCase):
             ).outcome
         )
         ability = outcome.ability
-        # re-pinned 2026-10-29: m21-fidelity (review batch B). "enters with X counters" is an
-        # entering-state replacement (CR 614.1c), EtBState with (+1/+1, X); it was an ETB
-        # trigger putting X counters on the event subject, so the creature entered as a 0/0.
+        # "enters with X counters" is an entering-state replacement (CR 614.1c), not an ETB
+        # trigger: the creature never enters as a 0/0.
         self.assertEqual(
             ability, EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QX()),))
         )
 
 
 class TestB4Round7AnaphoraIr(unittest.TestCase):
-    """Round-7 batch decision-surface assertions (doc 2026-09-28/03 §3)."""
+    """Anaphora: the chosen card and name, this-way counts, the looked-at cards."""
 
     def setUp(self) -> None:
         self.reg = _registry()
@@ -1387,16 +1363,14 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
 
 
 class TestB4Round9B(unittest.TestCase):
-    """Round 9-B (doc 2026-09-28/11 §9-B rows 7-9): MANA_POLICY flooding,
-    GRANT_ACTIVATION Teferi window, Enthralling targeting legality."""
+    """MANA_POLICY, Teferi's GRANT_ACTIVATION window, Enthralling Hold's targeting restriction."""
 
     def setUp(self) -> None:
         self.reg = _registry()
 
     def test_spend_any_color(self) -> None:
-        """MANA_POLICY scope "ALL_YOURS" closed string (C21), under an
-        OptionalEffect (C15 may) inside a StaticAbility (permanent by
-        construction — MANA_POLICY has no duration role)."""
+        """MANA_POLICY scope "ALL_YOURS", under an OptionalEffect inside a StaticAbility (no
+        duration role)."""
         outcome = _single_match(
             self.reg,
             "You may spend mana as though it were mana of any color.",
@@ -1408,14 +1382,9 @@ class TestB4Round9B(unittest.TestCase):
         self.assertEqual(_pairs(atom), {"scope": "ALL_YOURS"})
 
     def test_tefei_grant_activation(self) -> None:
-        """GRANT_ACTIVATION (R9-7): holder gate = the self referent IS_SOURCE;
-        window = INSTANT verbatim from "any time you could cast an instant"
-        (NOT the r10 fixture's SORCERY example).
-
-        re-pinned 2026-10-29: the holder was FAnd(Planeswalker, NAME_CONTAINS
-        "Teferi"), which also matched every other Teferi planeswalker. "Teferi"
-        is the card's shortened name, so it means this object only (CR 201.5,
-        201.5c)."""
+        """GRANT_ACTIVATION: the holder is IS_SOURCE ("Teferi" is the card's shortened name,
+        this object only, CR 201.5, 201.5c); the window is INSTANT ("any time you could cast an
+        instant")."""
         outcome = _single_match(
             self.reg,
             "You may activate loyalty abilities of Teferi on any player's "
@@ -1429,9 +1398,8 @@ class TestB4Round9B(unittest.TestCase):
         self.assertIs(atom.args.get("window"), ActivationWindow.INSTANT)
 
     def test_enthralling_target_choice(self) -> None:
-        """PREVENT_EFFECT (C11-class): condition IS_ANY_TARGET spell-scope
-        (b3/Subira idiom), event TargetingEvent over FAnd(Creature,
-        IS_UNTAPPED)."""
+        """PREVENT_EFFECT: condition IS_ANY_TARGET (this spell's targets), event TargetingEvent
+        over FAnd(Creature, IS_UNTAPPED)."""
         outcome = _single_match(
             self.reg,
             "You can't choose an untapped creature as this spell's target "
@@ -1447,8 +1415,7 @@ class TestB4Round9B(unittest.TestCase):
         assert isinstance(event, TargetingEvent)
         filt = event.filter
         assert isinstance(filt, FAnd)
-        # R1a canonicalization: FAnd children construction-sorted; members by
-        # pred, order by the canonicalization law.
+        # FAnd children are sorted at construction.
         self.assertEqual(list(filt.children), sorted(filt.children, key=canonical_json))
         by_pred = {c.pred: c for c in filt.children}
         self.assertEqual(len(by_pred), 2)
