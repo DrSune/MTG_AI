@@ -60,6 +60,10 @@ def at_most_one_blocker(blocked) -> StaticAbility:
     )
 
 
+#: "This creature must be blocked if able." (Canopy Stalker's tree)
+MUST_BE_BLOCKED = StaticAbility(effect=Atom(Verb.MANDATE_BLOCK, AtomArgs(pairs=(("cards", SELF),))))
+
+
 class LimitCase(BlockerCase):
     def custom(self, name, power, toughness, seat, abilities=(), keywords=(), types=("Creature",)):
         """A battlefield permanent carrying hand-built abilities (its record attached)."""
@@ -137,25 +141,22 @@ class TestOneBlockerAtMost(LimitCase):
         self.assertEqual(self.world.players[self.p1].life, 16)
 
     def test_a_requirement_to_block_it_is_met_by_one_creature(self) -> None:
-        lure = StaticAbility(effect=Atom(Verb.MANDATE_BLOCK, AtomArgs(pairs=(("cards", SELF),))))
-        self.boar = self.custom("Boar", 4, 3, self.p0, (at_most_one_blocker(IS_SOURCE), lure))
+        self.boar = self.custom("Boar", 4, 3, self.p0, (at_most_one_blocker(IS_SOURCE), MUST_BE_BLOCKED))
         self.wall_a = self.synth("Wall A", 0, 5, self.p1)
         self.wall_b = self.synth("Wall B", 0, 5, self.p1)
         self.begin()
-        self.fight()  # nobody chooses to block: the requirement forces the first Wall
-        self.assertEqual(self.forced_block(self.wall_a), str(self.boar))
-        self.assertEqual(self.forced_block(self.wall_b), "NONE")
-        self.assertEqual(self.blocked_map(), {str(self.boar): [str(self.wall_a)]})
+        self.fight()  # nobody chooses to block: Wall B is the last creature that can obey it
+        self.assertEqual(self.vocab_for(self.wall_a), (str(self.boar), "NONE"))
+        self.assertEqual(self.forced_block(self.wall_b), str(self.boar))
+        self.assertEqual(self.blocked_map(), {str(self.boar): [str(self.wall_b)]})
 
 
 class TestRequirementsTheRestrictionsForbid(LimitCase):
     """CR 509.1c: a requirement that can't be obeyed is not, and the rest of the declaration
     stands (the fresh-eyes review's repro; before, no blocker was asked at all)."""
 
-    LURE = StaticAbility(effect=Atom(Verb.MANDATE_BLOCK, AtomArgs(pairs=(("cards", SELF),))))
-
     def test_a_menace_attacker_under_the_limit_leaves_the_other_blocks_open(self) -> None:
-        self.boar = self.custom("Boar", 4, 3, self.p0, (at_most_one_blocker(IS_SOURCE), self.LURE),
+        self.boar = self.custom("Boar", 4, 3, self.p0, (at_most_one_blocker(IS_SOURCE), MUST_BE_BLOCKED),
                                 keywords=(Keyword.MENACE,))
         self.bear = self.synth("Bear", 2, 2, self.p0)
         self.wall_a = self.synth("Wall A", 0, 5, self.p1)
@@ -167,13 +168,81 @@ class TestRequirementsTheRestrictionsForbid(LimitCase):
         self.assertEqual(self.world.players[self.p1].life, 16)  # the Boar is unblocked
 
     def test_a_requirement_nobody_may_obey_leaves_the_other_blocks_open(self) -> None:
-        self.kite = self.custom("Kite", 2, 2, self.p0, (self.LURE,), keywords=(Keyword.FLYING,))
+        self.kite = self.custom("Kite", 2, 2, self.p0, (MUST_BE_BLOCKED,), keywords=(Keyword.FLYING,))
         self.bear = self.synth("Bear", 2, 2, self.p0)
         self.wall_a = self.synth("Wall A", 0, 5, self.p1)  # no reach: it may not block the Kite
         self.begin()
         self.fight(wall_a="bear")
         self.assertEqual(self.blocked_map(), {str(self.bear): [str(self.wall_a)]})
         self.assertEqual(self.world.players[self.p1].life, 18)
+
+
+class TestTheDefenderChoosesWhoObeys(LimitCase):
+    """CR 509.1c: the defending player chooses the blocks. "Must be blocked if able" is one
+    requirement, obeyed by whichever creature blocks the attacker, and the declaration obeys as
+    many requirements as one that violates no restriction can. Until 2026-11-06 the first able
+    creature in handle order was made to block a must-be-blocked attacker, without an ask."""
+
+    def setup_walls(self) -> None:
+        self.wall_a = self.synth("Wall A", 0, 5, self.p1)
+        self.wall_b = self.synth("Wall B", 0, 5, self.p1)
+        self.begin()
+
+    def test_the_first_able_creature_may_leave_it_to_another(self) -> None:
+        self.boar = self.custom("Boar", 4, 3, self.p0, (MUST_BE_BLOCKED,))
+        self.bear = self.synth("Bear", 2, 2, self.p0)
+        self.setup_walls()
+        self.fight(wall_a="bear")
+        self.assertEqual(self.vocab_for(self.wall_a), (str(self.boar), str(self.bear), "NONE"))
+        self.assertEqual(self.forced_block(self.wall_b), str(self.boar))  # the last that can obey
+        self.assertEqual(
+            self.blocked_map(), {str(self.boar): [str(self.wall_b)], str(self.bear): [str(self.wall_a)]}
+        )
+
+    def test_more_than_one_creature_may_block_it(self) -> None:
+        self.boar = self.custom("Boar", 4, 3, self.p0, (MUST_BE_BLOCKED,))
+        self.bear = self.synth("Bear", 2, 2, self.p0)
+        self.setup_walls()
+        self.fight(wall_a="boar", wall_b="boar")
+        self.assertEqual(self.vocab_for(self.wall_b), (str(self.boar), str(self.bear), "NONE"))
+        self.assertEqual(self.blocked_map(), {str(self.boar): [str(self.wall_a), str(self.wall_b)]})
+
+    def test_one_creature_two_requirements_obeys_either(self) -> None:
+        self.boar = self.custom("Boar", 4, 3, self.p0, (MUST_BE_BLOCKED,))
+        self.bear = self.custom("Bear", 2, 2, self.p0, (MUST_BE_BLOCKED,))
+        self.wall_a = self.synth("Wall A", 0, 5, self.p1)
+        self.begin()
+        self.fight(wall_a="bear")
+        self.assertEqual(self.vocab_for(self.wall_a), (str(self.boar), str(self.bear)))
+        self.assertEqual(self.blocked_map(), {str(self.bear): [str(self.wall_a)]})
+
+    def test_the_declaration_obeys_the_most_requirements_it_can(self) -> None:
+        # Three must-be-blocked attackers and two creatures: the Spider (reach) may block any,
+        # the Wall only the Bear. Two is the most, so the Spider may neither take the Bear (the
+        # Wall would obey nothing) nor stay home; the Wall is left only the Bear.
+        self.bear = self.custom("Bear", 2, 2, self.p0, (MUST_BE_BLOCKED,))
+        self.kite_b = self.custom("Kite B", 1, 1, self.p0, (MUST_BE_BLOCKED,), keywords=(Keyword.FLYING,))
+        self.kite_c = self.custom("Kite C", 1, 1, self.p0, (MUST_BE_BLOCKED,), keywords=(Keyword.FLYING,))
+        self.spider = self.custom("Spider", 1, 5, self.p1, keywords=(Keyword.REACH,))
+        self.wall = self.synth("Wall", 0, 5, self.p1)
+        self.begin()
+        self.fight(spider="kite_c")
+        self.assertEqual(self.vocab_for(self.spider), (str(self.kite_b), str(self.kite_c)))
+        self.assertEqual(self.forced_block(self.wall), str(self.bear))
+        self.assertEqual(
+            self.blocked_map(), {str(self.bear): [str(self.wall)], str(self.kite_c): [str(self.spider)]}
+        )
+
+    def test_a_restriction_still_wins_and_the_defender_picks_which_requirement(self) -> None:
+        # A must-be-blocked menace Brute and a must-be-blocked Bear: blocking the Brute takes both
+        # Walls (CR 702.111b), so one requirement is the most, and either may be the one obeyed.
+        self.brute = self.custom("Brute", 4, 5, self.p0, (MUST_BE_BLOCKED,), keywords=(Keyword.MENACE,))
+        self.bear = self.custom("Bear", 2, 2, self.p0, (MUST_BE_BLOCKED,))
+        self.setup_walls()
+        self.fight(wall_a="brute")
+        self.assertEqual(self.vocab_for(self.wall_a), (str(self.brute), str(self.bear), "NONE"))
+        self.assertEqual(self.forced_block(self.wall_b), str(self.brute))  # its second blocker
+        self.assertEqual(self.blocked_map(), {str(self.brute): [str(self.wall_a), str(self.wall_b)]})
 
 
 class TestOverAClass(LimitCase):

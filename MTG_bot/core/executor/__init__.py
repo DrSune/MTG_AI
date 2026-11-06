@@ -90,6 +90,7 @@ from __future__ import annotations
 import hashlib
 import random
 from collections.abc import Sequence
+from itertools import combinations
 
 from MTG_bot.core.ability_tree import (
     Atom,
@@ -2412,18 +2413,17 @@ class Executor:
         blocker, reach/menace/protection and the PREVENT_EFFECT restrictions
         — Tome Anima "can't be blocked", Pirate "can't block", Shacklegeist
         "can block only creatures with flying", Subira's activated target)
-        plus the NONE option. /115 (seed 1269): a word is offered ONLY
-        when committing it keeps the WHOLE assignment completable — a
-        bipartite match exists assigning the not-yet-asked candidates so
-        every menace attacker ends at 0 or 2+ blockers (CR 702.113) and
-        every must-be-blocked attacker ends blocked (CR 509.1h); NONE is
-        offered under exactly the same test. The old gate counted
-        remaining CANDIDATES instead of pair-LEGAL completions and so
-        offered a lone blocker the menace word no later blocker could
-        legally pair behind. A blocker with NO completable word is
-        skipped silently (no ask, no phantom); a must-block attacker it
-        can still legally take is salvaged instead. Never dropped when
-        the answer would merely be inadvisable (C15). Tapped/defender
+        plus the NONE option. A word (NONE too) is offered ONLY when the
+        not-yet-asked candidates can still complete a declaration that
+        violates no restriction (every menace attacker at 0 or 2+ blockers,
+        CR 702.111b; none past its blocker limit, CR 509.1b) and obeys as
+        many requirements as such a declaration can (CR 509.1c: a must-be-
+        blocked attacker is one, obeyed by whichever creature blocks it).
+        /115 (seed 1269): the test is a bipartite match over pair-LEGAL
+        completions; the old gate counted remaining CANDIDATES and offered a
+        lone blocker the menace word no later blocker could legally pair
+        behind. Every candidate keeps a word. Never dropped when the answer
+        would merely be inadvisable (C15). Tapped/defender
         creatures are never asked; a
         creature legal against nothing is never asked. Each committed pair
         emits one DECLARE_BLOCKERS row (subject = the blocker — the
@@ -2476,115 +2476,65 @@ class Executor:
             if attacker in menace and limit < 2:
                 for legal in pair_ok.values():
                     legal.discard(attacker)
-        # CR 509.1c: requirements are obeyed only as far as the restrictions allow. One that no
-        # declaration can obey (no creature may block that attacker, or fewer than the two a
-        # menace attacker needs) is not obeyed, and must not keep the other blocks from being
-        # declared: every completion would fail on it, so no blocker would be asked at all.
-        mandated = {
-            attacker
-            for attacker in mandated
-            if sum(attacker in legal for legal in pair_ok.values()) >= (2 if attacker in menace else 1)
-        }
 
-        def completable(
-            partial: dict[Handle, list[Handle]], tail: list[Handle]
-        ) -> bool:
-            """CR-legal completion exists: can every candidate still
-            uncommitted (this blocker's tail included) still be assigned
-            or held so that each menace attacker ends at 0 or 2+ blockers
-            and every mandated attacker ends blocked? Reduced to bipartite
-            matching (Kuhn): an unassigned mandated non-menace attacker
-            demands ONE slot, a mandated menace at 0 demands TWO, an
-            in-progress menace demands its SECOND; free slots absorb the
-            rest."""
-            need: dict[Handle, int] = {}
-            for attacker in attackers:
-                count = len(partial.get(attacker, ()))
-                if attacker in mandated and count == 0:
-                    need[attacker] = 2 if attacker in menace else 1
-                elif attacker in menace and count == 1:
-                    need[attacker] = 1
-            slots = [attacker for blocker in tail for attacker in pair_ok[blocker]]
-            for attacker, quota in need.items():
-                if slots.count(attacker) < quota:
-                    return False
-            match: dict[Handle, Handle] = {}  # attacker -> matched blocker
-            reach: set[Handle] = set()
+        def most_obeyed(partial: dict[Handle, list[Handle]], tail: list[Handle]) -> int | None:
+            """CR 509.1c: the most requirements obeyed by a declaration that adds blocks by the
+            ``tail`` creatures to ``partial`` and violates no restriction, or None when each such
+            declaration violates one (a menace attacker held at one blocker). A must-be-blocked
+            attacker is one requirement, obeyed by whichever creatures block it. Only two kinds
+            of block matter: the second blocker a held menace attacker must get, and the first
+            blocker of each unblocked must-be-blocked attacker (two with menace). Bipartite
+            matching (Kuhn) over the tail: the sets of attackers one matching can serve form a
+            matroid, so for each choice of the must-be-blocked menace attackers to serve, serving
+            the others one at a time serves the most."""
+            match: dict[Handle, Handle] = {}  # a tail creature -> the attacker it blocks
 
-            def augment(attacker: Handle) -> bool:
+            def augment(attacker: Handle, reach: set[Handle]) -> bool:
                 for blocker in tail:
                     if blocker in reach or attacker not in pair_ok[blocker]:
                         continue
                     reach.add(blocker)
-                    if blocker not in match:
-                        match[blocker] = attacker
-                        return True
-                    if augment(match[blocker]):
+                    if blocker not in match or augment(match[blocker], reach):
                         match[blocker] = attacker
                         return True
                 return False
 
-            for attacker, quota in need.items():
-                for _ in range(quota):
-                    reach.clear()
-                    if not augment(attacker):
-                        return False
-            return True
+            held = [a for a in attackers if a in menace and len(partial.get(a, ())) == 1]
+            unblocked = [a for a in attackers if a in mandated and not partial.get(a)]
+            pairs = [a for a in unblocked if a in menace]
+            best: int | None = None
+            for size in range(len(pairs) + 1):
+                for chosen in combinations(pairs, size):
+                    match.clear()
+                    if all(augment(a, set()) for a in (*held, *chosen, *chosen)):
+                        served = size + sum(augment(a, set()) for a in unblocked if a not in menace)
+                        best = served if best is None else max(best, served)
+            return None if best is None else len(mandated) - len(unblocked) + best
 
-        asked: set[Handle] = set()
-        skipped: set[Handle] = set()
+        # CR 509.1c: the defending player chooses the blocks; the declaration obeys as many
+        # requirements as one that violates no restriction can. A word (NONE too) is offered
+        # only when the creatures not yet asked can still complete such a declaration, so any
+        # creature may be the one that obeys a requirement, and the last that can is left no
+        # other word.
+        most = most_obeyed({}, candidates)
         for position, blocker in enumerate(candidates):
             tail = candidates[position + 1 :]
-            legal = [
-                attacker
+            words = [
+                str(attacker)
                 for attacker in attackers
                 if attacker in pair_ok[blocker]
                 and (attacker not in allowed or len(assigned.get(attacker, ())) < allowed[attacker])
-                and completable(
-                    {**assigned, attacker: [*assigned.get(attacker, []), blocker]},
-                    tail,
-                )
+                and most_obeyed({**assigned, attacker: [*assigned.get(attacker, []), blocker]}, tail)
+                == most
             ]
-            forced = [
-                attacker
-                for attacker in legal
-                if attacker in mandated and not assigned.get(attacker)
-            ]
-            if forced:
-                vocab = tuple(str(a) for a in forced)
-            else:
-                words = [str(a) for a in legal]
-                if completable(assigned, tail):
-                    words.append("NONE")
-                vocab = tuple(words)
-                if not words:
-                    # No word for this blocker: nothing it could do keeps
-                    # the assignment CR-completable. Salvage first — a
-                    # mandated attacker it can legally take, if any.
-                    salvage = [
-                        attacker
-                        for attacker in attackers
-                        if attacker in pair_ok[blocker]
-                        and attacker in mandated
-                        and not assigned.get(attacker)
-                        and attacker not in menace
-                    ]
-                    if salvage:
-                        vocab = tuple(str(a) for a in salvage)
-                    else:
-                        # Silent skip: no ask, no assignment, no journal
-                        # row. The blocker simply has no legal voice in
-                        # this step (seed 1269's lone blocker vs menace).
-                        skipped.add(blocker)
-                        continue
-            asked.add(blocker)
+            if most_obeyed(assigned, tail) == most:
+                words.append("NONE")
             ctx = self._ctx(
                 source=blocker, controller=defender, bindings=None, decisions=()
             )
-            # T5-F1 (§10): the menace/must-block narrowing can leave ONE
-            # legal pair with no NONE word — a forced block is consumed by
-            # the phantom gate, not presented as a decision.
-            answer = offer_or_autopick(ctx, vocab, f"block:{blocker}:{world.turn}")
+            # T5-F1 (§10): a creature left ONE word (the last that can obey a requirement, or
+            # a menace attacker's second blocker) is consumed by the phantom gate, not asked.
+            answer = offer_or_autopick(ctx, tuple(words), f"block:{blocker}:{world.turn}")
             if answer == "NONE":
                 continue
             attacker = by_word[answer]
@@ -2611,26 +2561,11 @@ class Executor:
                     f"executor: {attacker} was blocked by {len(blockers)} creatures, more "
                     "than it may be (CR 509.1b — the ask narrowing should have prevented this)"
                 )
-        for attacker in mandated:
-            if assigned.get(attacker):
-                continue
-            assignable = {
-                card
-                for card in asked
-                if block_pair_blocked_reason(self, card, attacker) is None
-            }
-            free = assignable - {b for bs in assigned.values() for b in bs}
-            # /115 menace-aware: a mandated MENACE attacker is only
-            # "assignable" where TWO free blockers exist — one free
-            # blocker is not a violated mandate, it is CR 702.113 making
-            # the mandate unfulfillable (must-block reads "if able").
-            need = 2 if attacker in menace else 1
-            if len(free) >= need:
-                raise RuntimeError(
-                    f"executor: MANDATE_BLOCK violated - {attacker} had to be "
-                    f"blocked and {len(free)} free legal blocker"
-                    f"s existed (need {need})"
-                )
+        if most_obeyed(assigned, []) != most:
+            raise RuntimeError(
+                f"executor: the blocks obey fewer requirements than the {most} a declaration "
+                "can (CR 509.1c — the ask narrowing should have prevented this)"
+            )
         fired = 0
         for attacker in sorted(assigned):
             for blocker in assigned[attacker]:

@@ -5,7 +5,7 @@
  "name": "Prized Unicorn",
  "text_sha": "2002a9c3075bb559bdf303308d54b351d061c1a7af472f391e6aebc3840eb636",
  "needs_atom": {
-  "missing": "'All creatures able to block this creature do so.' (lure, CR 509.1c): a blocking requirement on EVERY creature able to block the source. MANDATE_BLOCK (roles cards/controller/duration) only says 'must be blocked if able': the executor's check (executor/__init__.py, the MANDATE_BLOCK violated loop) is satisfied by one blocker, so the other able blockers stay free. No role or verb puts the requirement on each potential blocker (same gap as the deferred ZND-4b Taunting Arbormage row, templates_b9.py).",
+  "missing": "'All creatures able to block this creature do so.' (lure, CR 509.1c): a blocking requirement on EVERY creature able to block the source. MANDATE_BLOCK (roles cards/controller/duration) only says 'must be blocked if able': the executor's requirement count (executor/__init__.py, _declare_blockers' most_obeyed) is satisfied by one blocker, so the other able blockers stay free. No role or verb puts the requirement on each potential blocker (same gap as the deferred ZND-4b Taunting Arbormage row, templates_b9.py).",
   "author": "claude-mapper-m20-9",
   "date": "2026-11-05"
  }

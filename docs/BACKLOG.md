@@ -1577,7 +1577,8 @@ W&B key in history is revoked; a private split exists outside the public repo.
   must-be-blocked attackers, one possible blocker) still fail every completion: the declaration
   must obey the most it can (CR 509.1c). And the narrowing forces the first blocker in handle order
   onto an unassigned must-be-blocked attacker, so the defender cannot choose which creature obeys
-  it ("Wall A blocks the Bear, Wall B the Boar" is never offered).
+  it ("Wall A blocks the Bear, Wall B the Boar" is never offered). **[Both FIXED on branch
+  `fix/block-requirements-payment` 2026-11-06: see the round-3 findings below.]**
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
@@ -1747,6 +1748,16 @@ W&B key in history is revoked; a private split exists outside the public repo.
     Joraga Invocation refused for it): `__init__.py` ~2548 makes the first able creature in handle
     order block and drops its "no block", so the defender cannot choose which creature satisfies
     the requirement (CR 509.1c). Narrows the defender's options; see the older entry on requirements.
+    **[FIXED on branch `fix/block-requirements-payment` 2026-11-06]**: `_declare_blockers` counts
+    the requirements a declaration obeys (`most_obeyed`: one per must-be-blocked attacker, by
+    matching over the creatures not yet asked) and offers a word only when the declaration can
+    still obey the most any declaration violating no restriction can; the forced narrowing, the
+    salvage and the silent skip are gone. Joraga Invocation can go back to G2.
+    - Lure is not covered: Prized Unicorn (M20, needs-atom) "All creatures able to block this
+      creature do so" puts a requirement on each creature able to block it, obeyed only by that
+      creature blocking it. A lure atom must also extend the count to those per-creature
+      requirements; the matroid greedy over attackers no longer gives the most then (a
+      maximum-weight matching does, menace aside).
   - **Reflexive triggers have no node** ("when you do", CR 603.12): Sorin, Imperious Bloodlord was
     mapped as "if you do" with the target chosen on activation; the review refused it (the target
     exists even when nothing is sacrificed, and the Vampire about to be sacrificed is offered).

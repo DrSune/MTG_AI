@@ -1,0 +1,29 @@
+{
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {"key": "stalker", "real": "Canopy Stalker", "zone": "battlefield", "controller": 0},
+    {"key": "ogre", "real": "Onakke Ogre", "zone": "battlefield", "controller": 0},
+    {"key": "first", "name": "First Wall", "type": "Creature", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1},
+    {"key": "second", "name": "Second Wall", "type": "Creature", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {
+      "op": "combat",
+      "seat": 0,
+      "attack": {"stalker": true, "ogre": true},
+      "block": {"first": "ogre"}
+    }
+  ],
+  "expect": {
+    "block_asks": {"first": "<stalker>,<ogre>,NONE"},
+    "not_asked_to_block": ["second"],
+    "blocked": {"stalker": ["second"], "ogre": ["first"]},
+    "damage": {"first": 4, "second": 4},
+    "life": {"1": 20},
+    "zone": {"first": "battlefield", "second": "battlefield"}
+  },
+  "notes": "CR 509.1c: the defending player chooses the blocks; 'Canopy Stalker must be blocked if able' is one requirement, and any creature that blocks it obeys it. The first Wall in handle order is free: it is offered the Stalker, the Ogre and NONE, and blocks the Ogre. The second Wall is then the only creature left that can obey the requirement, so its one word is the Stalker (consumed, not asked). Until 2026-11-06 the first able Wall was made to block the Stalker without an ask, and the Ogre walked in."
+}

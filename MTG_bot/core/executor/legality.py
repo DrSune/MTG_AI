@@ -2677,13 +2677,13 @@ def blocker_askable(
 
 
 def mandated_to_be_blocked(executor: Executor) -> frozenset[Handle]:
-    """Attackers that MUST be blocked if able (CR 509.1h — Canopy Stalker),
-    from both carrier shapes like the attack side: the DISPATCHED
-    MANDATE_BLOCK ledger (a timed one is a ``resolved`` layer, B-59) and
-    the LIVE ``"mandate_block"`` layers (selector resolved in the layer
-    anchor's coordinates). The ask loop narrows a blocker's vocabulary onto
-    an unassigned mandated attacker it may legally take; the whole-
-    assignment check re-derives the greedy guarantee (doc 14)."""
+    """Attackers that MUST be blocked if able (Canopy Stalker), from both
+    carrier shapes like the attack side: the DISPATCHED MANDATE_BLOCK ledger
+    (a timed one is a ``resolved`` layer, B-59) and the LIVE
+    ``"mandate_block"`` layers (selector resolved in the layer anchor's
+    coordinates). Each is one blocking requirement (CR 509.1c), obeyed by
+    whichever creature blocks it; the declare-blockers asks keep the
+    declaration obeying as many as it can (``Executor._declare_blockers``)."""
     world = executor.world
     mandated: set[Handle] = set()
     for handle in executor.mandate_block:
