@@ -1,7 +1,8 @@
 # OWNER PREFERENCES (binding, standing — read every session, every subagent prompt inherits these)
 
 Owner-stated preferences, kept short because local models follow few explicit rules better
-than walls of guidance. Newest first. Dated audit trail lives in the numbered day folders.
+than walls of guidance. Numbers never change (other docs cite them). Dated audit trail lives in the
+numbered day folders.
 
 1. **Play must never be built on hidden information.** (owner 2026-10-18, /94) An omniscient
    view is fine as a *labeled mode* (analysis/teacher/audit); the play encoding is perspective-
@@ -26,3 +27,8 @@ than walls of guidance. Newest first. Dated audit trail lives in the numbered da
 5. **Validation is paramount; bugs/loopholes are the main hunt.** (owner 2026-10-04)
    Divergence must be locatable; the model must be rewarded for intelligent task-completion,
    never for engine shortcuts.
+6. **Full credit for every decision: gamma = 1 and lambda = 1.** (owner 2026-11-06) The only reward
+   is the game's result (+1 win, -1 loss), and it reaches every decision of the game undiminished:
+   Magic is too long-horizon and complex for discounted or bootstrapped credit, which waters the
+   signal down. Generalise through card components, never memorise; learn from very many games, with
+   batches large enough that each update carries signal. Why and what follows: docs/OWNER_VISION_LEARNING.md.

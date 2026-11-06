@@ -747,6 +747,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ---
 
 ## Training and measurement
+- **From the owner's learning vision** (docs/OWNER_VISION_LEARNING.md, 2026-11-06):
+  - Knowledge tracking: what each player legally knows about cards in hidden zones (a card an effect
+    put on top or on the bottom, a revealed card returned to hand), erased by a shuffle; give it to
+    the networks (section 4). Decide whether the opponent's per-card hand age is public (section 4).
+  - History or memory input: explicit history features first, then an encoder over the game's events
+    (section 3).
+  - The opponent simulator: beliefs over the opponent's hidden cards, trained by supervision from
+    finished games, used by the search's determinisation and possibly as policy input (section 5).
+  - Matchup blocks: many games on the same decks with fresh shuffles, both seats, as a learning test
+    and a curriculum; measure on unseen matchups against memorisation (section 7).
 - **Teacher that drafts decks and matchups** (owner idea, 2026-11-06; long horizon): a trained teacher
   builds decks and picks matchups (student vs a chosen frozen version) that teach the student what it
   is weak at, balancing niche and meta play and unfair matchups against the two players' strength, so
