@@ -747,6 +747,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ---
 
 ## Training and measurement
+- **Teacher that drafts decks and matchups** (owner idea, 2026-11-06; long horizon): a trained teacher
+  builds decks and picks matchups (student vs a chosen frozen version) that teach the student what it
+  is weak at, balancing niche and meta play and unfair matchups against the two players' strength, so
+  that each game maximises learning; it also learns deck-building. Established form: environment
+  design / automatic curriculum (PAIRED, ACCEL, teacher-student curricula). Needs a student that
+  learns reliably first (/184 §25).
+- **Signal plan** (2026-11-06, after the PPO audit; measuring now): duplicate deals in training (each
+  deal from both seats, the pair's result learned), a privileged value network for training only (sees
+  both hands and libraries; the acting policy never does), lambda toward 1 (the full result reaches
+  every decision), and at least B* decisions per optimizer step (gradient accumulation).
 - **Explore/exploit league** (owner idea, 2026-11-06; after the PPO audit): alternate exploration and
   exploitation to climb in "level ups": exploiter agents trained only against the frozen main policy
   find new strategies; a behavioural-diversity measure (how differently a candidate decides on a fixed
