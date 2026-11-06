@@ -592,5 +592,50 @@
  },
  "probe": {
   "sha": "73bc3b2ff10579291eba8e4c7b536a5241f55a1f6c8daee791149a7cf866d4c5"
+ },
+ "verified": {
+  "tree_sha": "42f41077aa10f358d2fcfbf1c832927978ed945a4649733eb6e8394da3a65461",
+  "probe_sha": "73bc3b2ff10579291eba8e4c7b536a5241f55a1f6c8daee791149a7cf866d4c5",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "When this Equipment enters, create a 1/1 red Elemental creature token, then attach this Equipment to it.",
+    "status": "OK",
+    "evidence": "[cast] and off-turn entry: trigger [0], '+ you:Elemental (battlefield, you, 1/1)'; mana R-1 W-1; tree = compiled template B15-etb-create-attach. The attach is not visible in the trace: pack mask_1 (one 1/1 Elemental); its twin expecting the Mask unattached fails with host card:14, the token.",
+    "issue": ""
+   },
+   {
+    "clause": "Equipped creature has \"Sacrifice this creature: It deals 1 damage to any target.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "No probe variant activates the granted ability (the probe only activates [2]). Tree: GRANT_ABILITY of ActivatedAbility(cost CostSacrifice IS_SOURCE, DEAL_DAMAGE 1 to TARGET creature/planeswalker/player) to IS_ATTACHED_TO_SOURCE creatures. Packs: mask_2 (after Equip moves the Mask from Bear to Bear Two, the Bear's activation is refused 'has no granted ability'; Bear Two sacrifices itself, P1 20 -> 19; Mask stays, unattached), mask_3 (equipped Bear sacrificed, 1 damage on P1's 2/2). Granted abilities are activated with idx -1.",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)",
+    "status": "OK",
+    "evidence": "[activate [2] targets=you_bear/you_giant]: mana W-2; target slot 1..1 of [you_bear, you_giant] (own creatures only). Sorcery timing: pack mask_2 refuses the equip on P1's turn ('window:sorcery:not_own_turn') before paying.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/mask_of_immolation_1.json",
+   "tools/scenarios/cards/M20/mask_of_immolation_2.json",
+   "tools/scenarios/cards/M20/mask_of_immolation_3.json"
+  ],
+  "mutation": {
+   "mutants": 21,
+   "killed": 14,
+   "score": 0.6666666666666666,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "drop cost part 0 (CostSacrifice) at 1/1/effect/args/ability/cost",
+    "amount+1 at 1/1/effect/args/ability/effect/args/amount",
+    "target->all at 1/1/effect/args/ability/effect/args/target",
+    "amount+1 at 1/1/effect/args/ability/effect/args/target/count",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

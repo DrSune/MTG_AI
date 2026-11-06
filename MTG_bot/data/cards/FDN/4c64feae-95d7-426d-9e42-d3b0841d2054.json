@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4c64feae-95d7-426d-9e42-d3b0841d2054",
+ "name": "Goblin Boarders",
+ "text_sha": "0e95eef49a20bd504b13adaeabdfca3bd6318f3564132349f0ea9af23dc3fc8a",
+ "verified": {
+  "tree_sha": "b0a0772385d3477d3303cf3a2952022d37384e583a35a99036725a659c6fcb91",
+  "probe_sha": "427edacc221294b7baa9981e5024daaa9d25c4f65c9f7b9a64cd723d08485f5d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Raid — This creature enters with a +1/+1 counter on it if you attacked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree = the compiler's B14-enters-with-counters-if parse. Trace: [cast] in the first main with no attack and [enters during the opponent's turn] both give a plain 3/2 (the false branch, right); no variant attacks first. Packs (pass): goblin_boarders_raid_after_attack - attack, then cast in the postcombat main: one +1/+1 counter, 4/3; goblin_boarders_no_counter_without_your_attack - no attacker declared, and an entry after the OPPONENT attacked: no counter. The second pack kills a mutant draft without TURN_OF YOU.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/goblin_boarders_1.json",
+   "tools/scenarios/cards/FDN/goblin_boarders_2.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 1,
+   "score": 0.2,
+   "survived": [
+    "amount+1 at 1/0/initial_counters/0/1",
+    "widen filter (drop part 0) at 1/0/condition",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/who",
+    "amount+1 at 1/0/condition/children/1/count"
+   ]
+  }
+ }
+}

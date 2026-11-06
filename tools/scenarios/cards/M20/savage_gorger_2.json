@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "savage_gorger_only_you_lost_life_no_counter",
+ "notes": "Printed: '... if an OPPONENT lost life this turn ...'. P0 Shocks itself (20 -> 18); P1 loses nothing. At P0's end step the Gorger gets no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gorger", "real": "Savage Gorger", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "targets": ["p0"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 18, "1": 20},
+  "counters": {"gorger": {}}
+ }
+}

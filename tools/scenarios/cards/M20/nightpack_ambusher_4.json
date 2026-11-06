@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "nightpack_ambusher_opponents_spell_does_not_count",
+ "notes": "Printed: '... if YOU didn't cast a spell this turn ...'. During P0's turn P1 casts Shock at P0; P0 casts nothing, so at P0's end step the Wolf is still created.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "amb", "real": "Nightpack Ambusher", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "controller": 1, "targets": ["p0"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 18},
+  "tokens": {"Wolf": 1}
+ }
+}

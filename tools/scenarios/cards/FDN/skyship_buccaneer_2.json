@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "skyship_buccaneer_no_draw_without_your_attack",
+ "notes": "Pff857a4224 G4, the negative twin. Printed: 'Raid - When this creature enters, if you attacked this turn, draw a card.' Seat 0 goes to combat and declares no attacker, then casts Skyship Buccaneer in its postcombat main phase: no card is drawn (hand 0). On seat 1's turn, seat 1 attacks seat 0 with a Wolf (seat 0 takes 3), then a second Skyship Buccaneer enters under seat 0's control: the opponent attacked, not you, so seat 0 draws nothing (its library keeps all six cards).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bucc", "real": "Skyship Buccaneer", "zone": "hand", "controller": 0},
+  {"key": "bucc2", "real": "Skyship Buccaneer", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": false}},
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 3}},
+  {"op": "cast", "key": "bucc"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"wolf": true}, "block": {"bear": null, "bucc": null}},
+  {"op": "enter", "key": "bucc2"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "life": {"0": 17, "1": 20},
+  "zone": {"bucc": "battlefield", "bucc2": "battlefield"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

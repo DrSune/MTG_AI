@@ -149,5 +149,38 @@
  },
  "probe": {
   "sha": "49bb0f995cefab2218ac27582eb9b74f3fca939f0255a8ca5e011649e6c21b9f"
+ },
+ "verified": {
+  "tree_sha": "151d9afd8a3afc38aa34bb7b8c722213eca55fd17d6b2a02d61e0113fd6f8bad",
+  "probe_sha": "49bb0f995cefab2218ac27582eb9b74f3fca939f0255a8ca5e011649e6c21b9f",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "{2}{B}{R}: Destroy target creature that was dealt damage this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [0] skipped: a target slot needs 1, the board offers 0'. Tree = compiled frame. Pack ogre_siegebreaker_1: undamaged creature refused (off_population); P1's and P0's damaged creatures each destroyed for exactly {2}{B}{R}.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/ogre_siegebreaker_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 3,
+   "score": 0.25,
+   "survived": [
+    "drop cost part 0 (CostManaColor) at 1/0/cost",
+    "drop cost part 1 (CostManaColor) at 1/0/cost",
+    "drop cost part 2 (CostManaGeneric) at 1/0/cost",
+    "amount+1 at 1/0/cost/parts/0/amount",
+    "amount+1 at 1/0/cost/parts/1/amount",
+    "amount+1 at 1/0/cost/parts/2/amount",
+    "amount-1 at 1/0/cost/parts/2/amount",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/target/filter/children/1/count"
+   ]
+  }
  }
 }

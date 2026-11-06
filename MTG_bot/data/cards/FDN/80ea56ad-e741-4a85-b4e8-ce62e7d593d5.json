@@ -336,5 +336,39 @@
  },
  "probe": {
   "sha": "e63dd7ce8df8e4afd0c42f1ad3c3649242cd623098570dee927eb99efdd6d00d"
+ },
+ "verified": {
+  "tree_sha": "e11b2b562f9fcb048d9d4f012e43df159aa9dc7e916985c26cc93d6f1a1f2223",
+  "probe_sha": "e63dd7ce8df8e4afd0c42f1ad3c3649242cd623098570dee927eb99efdd6d00d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] - creatures only (not you_relic, you_charm or the lands); the opponent's-turn entry asks enchant over the same six.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +1/+1 for each Forest you control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: +1/+1 on every host incl. the opponent's creatures; the probe board gives you one Forest (you_forest) and the opponent two (opp_land, opp_forest), so the count is the Aura controller's - but only N = 1. Packs (pass): blanchwood_armor_counts_your_forests (3 Forests -> +3/+3, a fourth played -> +4/+4; a Plains and the opponent's Forests not counted), blanchwood_armor_on_opponents_creature_counts_your_forests (+2/+2 from your two Forests while the host's controller has three). Mutants (x2, any controller, opponent, all lands) are each killed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/blanchwood_armor_1.json",
+   "tools/scenarios/cards/FDN/blanchwood_armor_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 10,
+   "score": 0.7692307692307693,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/power/magnitude/right/selector/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/toughness/magnitude/right/selector/filter"
+   ]
+  }
  }
 }

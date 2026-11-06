@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "marauding_raptor_creature_spell_costs_1_less",
+ "notes": "Printed: 'Creature spells you cast cost {1} less to cast.' and 'Whenever another creature you control enters, this creature deals 2 damage to it.' With the Raptor out, P0 casts Centaur Courser ({2}{G}) for exactly {1}{G} (pool empty after). The Courser enters and the Raptor deals 2 damage to it (3/3 with 2 damage); the Courser is not a Dinosaur, so the Raptor stays 2/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Marauding Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "courser", "real": "Centaur Courser", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "courser"}
+ ],
+ "expect": {
+  "zone": {"courser": "battlefield"},
+  "damage": {"courser": 2},
+  "power": {"raptor": 2},
+  "toughness": {"raptor": 3},
+  "mana_pool": {"0": {}}
+ }
+}

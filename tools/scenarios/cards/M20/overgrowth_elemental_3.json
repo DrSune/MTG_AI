@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "overgrowth_elemental_opponents_elemental_dies_nothing",
+ "notes": "Printed: 'Whenever another creature YOU CONTROL dies ...'. P1's Elemental dies: P0 gains no life and Overgrowth gets no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "og", "real": "Overgrowth Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "opp_el", "name": "Opp Elemental", "type": "Creature — Elemental", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "hitter", "name": "Hitter", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "hitter", "target": "opp_el", "amount": 5, "controller": 0}
+ ],
+ "expect": {
+  "zone": {"opp_el": "graveyard"},
+  "life": {"0": 20, "1": 20},
+  "counters": {"og": {}}
+ }
+}

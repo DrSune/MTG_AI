@@ -336,5 +336,53 @@
  },
  "probe": {
   "sha": "e5230ed657df3af50042c15f6cc38cf50a0d60b623f25166f95ab0fbe1b8831a"
+ },
+ "verified": {
+  "tree_sha": "d4b0031f10bfbe074c2df3f9effa72389422b0d8fc7372e2712454fe320e3f6a",
+  "probe_sha": "e5230ed657df3af50042c15f6cc38cf50a0d60b623f25166f95ab0fbe1b8831a",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Creature spells you cast cost {1} less to cast.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's creature spell (Yoked Ox, {W}) has no generic to reduce. Tree CostModifier(Creature, YOU, reduce generic 1). Packs: marauding_raptor_1 (Centaur Courser cast for {1}{G}), _2 (Raise the Alarm not reduced: 'cost:mana_generic:0<1'), _3 (P1's Courser not reduced: 'cost:mana_generic:1<2').",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever another creature you control enters, this creature deals 2 damage to it.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control] you_spare dealt 2 (by card); Raise the Alarm's two Soldiers each dealt 2 and die; Yoked Ox dealt 2; no trigger for P1's creature or the Raptor's own entry.",
+    "issue": ""
+   },
+   {
+    "clause": "If a Dinosaur is dealt damage this way, this creature gets +2/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No Dinosaur entered in the probe (non-Dinosaurs leave the Raptor 2/3). Packs: marauding_raptor_4 (Dinosaur enters: 2 damage on it, Raptor 4/3), _5 (2/3 again after the turn ends), _6 (P1's Dinosaur: no damage, no bonus).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/marauding_raptor_1.json",
+   "tools/scenarios/cards/M20/marauding_raptor_2.json",
+   "tools/scenarios/cards/M20/marauding_raptor_3.json",
+   "tools/scenarios/cards/M20/marauding_raptor_4.json",
+   "tools/scenarios/cards/M20/marauding_raptor_5.json",
+   "tools/scenarios/cards/M20/marauding_raptor_6.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 9,
+   "score": 0.5625,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "widen filter (drop part 0) at 1/1/event/subject",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/pred",
+    "until-end-of-turn->permanent at 1/1/effect/steps/1/then_effect/args/duration",
+    "amount+1 at 1/1/effect/steps/1/then_effect/args/power/magnitude",
+    "amount-1 at 1/1/effect/steps/1/then_effect/args/power/magnitude",
+    "amount+1 at 1/1/effect/steps/1/then_effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

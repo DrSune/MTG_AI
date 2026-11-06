@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "name": "ancestral_blade_soldier_wears_it",
+ "notes": "Printed: 'create a 1/1 white Soldier creature token, then attach this Equipment to it' and 'Equipped creature gets +1/+1'. Right after the Blade enters, the one Soldier token is 2/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "blade", "real": "Ancestral Blade", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "blade"}
+ ],
+ "expect": {
+  "tokens": {"Soldier": 1},
+  "battlefield_pt": {"Soldier": [2, 2]}
+ }
+}

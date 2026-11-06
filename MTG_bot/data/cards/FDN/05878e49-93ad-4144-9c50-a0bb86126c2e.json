@@ -199,5 +199,39 @@
  },
  "probe": {
   "sha": "4ca2229d07ba0a47558ffcde70194a0e2dcf60dfae2e7483a5d9d20450833e87"
+ },
+ "verified": {
+  "tree_sha": "1df92775b0ed15553d8f796fd6edced5b9baa628d4fef3f84b5e97f48f1e2deb",
+  "probe_sha": "4ca2229d07ba0a47558ffcde70194a0e2dcf60dfae2e7483a5d9d20450833e87",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "Every [cast] variant: 'you draws you:Library 5#1', 'you draws you:Library 4#1', library 6 -> 4 (B5a-draw-two).",
+    "issue": ""
+   },
+   {
+    "clause": "Then discard a card unless you attacked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace (no attack): after the draws, ask one_of over all seven hand cards incl. the two drawn, no decline word, the pick moves hand -> graveyard: right for the not-attacked branch. The attacked branch is not in the trace. Packs (pass): chart_a_course_no_discard_after_attack (attack, cast in the postcombat main: two drawn, no discard asked) and chart_a_course_discards_without_attack. An always-discard mutant is killed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/chart_a_course_1.json",
+   "tools/scenarios/cards/FDN/chart_a_course_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 10,
+   "score": 0.7692307692307693,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/1/pred/inner",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/pred/inner/children/0/who",
+    "amount+1 at 1/0/effect/steps/1/pred/inner/children/1/count"
+   ]
+  }
  }
 }

@@ -471,5 +471,43 @@
  },
  "probe": {
   "sha": "c5e81aa76d109c547f47b74452541377ac2d962fda5ef4acf097f5a32e257f15"
+ },
+ "verified": {
+  "tree_sha": "6c908494fe83e5840a53e5301997bc07bd77393c0145f65d1abd6cd98314f609",
+  "probe_sha": "c5e81aa76d109c547f47b74452541377ac2d962fda5ef4acf097f5a32e257f15",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "When this Equipment enters, create a 1/1 white Soldier creature token, then attach this Equipment to it.",
+    "status": "OK",
+    "evidence": "[cast] and off-turn entry: trigger [0], '+ you:Soldier (battlefield, you, 2/2)' (1/1 plus the Blade); mana W-2. Tree = compiled template. Pack ancestral_blade_2: one Soldier, 2/2.",
+    "issue": ""
+   },
+   {
+    "clause": "Equipped creature gets +1/+1.",
+    "status": "OK",
+    "evidence": "[activate [2]] you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5; tree = compiled template B5a-equipped-pt.",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)",
+    "status": "OK",
+    "evidence": "[activate [2]] mana W-1, target slot [you_bear, you_giant]. Pack ancestral_blade_1: moving the Blade leaves the Soldier 1/1 and the Bear 3/3; refused on P1's turn before paying.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/ancestral_blade_1.json",
+   "tools/scenarios/cards/M20/ancestral_blade_2.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 15,
+   "score": 0.9375,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

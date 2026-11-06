@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "fathom_fleet_cutthroat_destroys_damaged_opponent_creature",
+ "notes": "Printed: 'When this creature enters, destroy target creature an opponent controls that was dealt damage this turn.' P1's Hurt One and Hurt Two and P0's own Mine Hurt were each dealt 1 damage this turn; P1's Fresh was not. The target ask offers only Hurt One and Hurt Two (the twins naming Fresh or Mine Hurt fail as unoffered); P0 picks Hurt Two, which is destroyed. Everything else stays.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cut", "real": "Fathom Fleet Cutthroat", "zone": "hand", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "hurt1", "name": "Hurt One", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "hurt2", "name": "Hurt Two", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "fresh", "name": "Fresh", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "mine_hurt", "name": "Mine Hurt", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "hurt1", "amount": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "hurt2", "amount": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "mine_hurt", "amount": 1},
+  {"op": "enter", "key": "cut", "decisions": ["hurt2"]}
+ ],
+ "expect": {
+  "zone": {"cut": "battlefield", "hurt1": "battlefield", "hurt2": "graveyard", "fresh": "battlefield", "mine_hurt": "battlefield"},
+  "damage": {"hurt1": 1, "mine_hurt": 1}
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "nightpack_ambusher_wolf_when_no_spell_and_lord_bonus",
+ "notes": "Printed: 'Other Wolves and Werewolves you control get +1/+1.' and the end-step Wolf. P0 casts nothing: at P0's end step one 2/2 Wolf token is created and is 3/3 with the bonus. P0's Werewolf is 3/3, P0's Bear stays 2/2, P1's Wolf stays 2/2, the Ambusher itself stays 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "amb", "real": "Nightpack Ambusher", "zone": "battlefield", "controller": 0},
+  {"key": "werewolf", "name": "My Werewolf", "type": "Creature — Human Werewolf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_wolf", "name": "Opp Wolf", "type": "Creature — Wolf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "tokens": {"Wolf": 1},
+  "battlefield_pt": {"Wolf": [3, 3]},
+  "power": {"amb": 4, "werewolf": 3, "bear": 2, "opp_wolf": 2},
+  "toughness": {"amb": 4, "werewolf": 3, "bear": 2, "opp_wolf": 2}
+ }
+}

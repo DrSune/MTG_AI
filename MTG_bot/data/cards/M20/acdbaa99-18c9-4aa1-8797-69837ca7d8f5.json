@@ -138,5 +138,26 @@
  },
  "probe": {
   "sha": "c06e21bf9e660e954559fa33f659bc868bd5985c92e6459edce429a03d529422"
+ },
+ "verified": {
+  "tree_sha": "2e98ed5154b8011f50312e1c334b67d7a2aa90eea8a0574833256afb0515945d",
+  "probe_sha": "c06e21bf9e660e954559fa33f659bc868bd5985c92e6459edce429a03d529422",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "At the beginning of your upkeep, discard a card.",
+    "status": "OK",
+    "evidence": "[turns pass]: at P0's upkeep 'ask one_of' over P0's whole hand [you_trick, you_land_drop, you_cast_creature, you_cast_spell] -> you_trick hand -> graveyard, before P0's draw; none at P1's upkeep; the opening upkeep discarded you_spare (static diff). MOVE_ZONE hand -> graveyard is the compiler's discard shape (Crypt Lurker).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

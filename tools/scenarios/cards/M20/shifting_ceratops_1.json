@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "shifting_ceratops_convolute_cannot_counter_it",
+ "notes": "Printed: 'This spell can't be countered.' P1 responds with Convolute (counter unless its controller pays {4}); P0 spent all its mana, so the unless-cost is unpayable and never asked. Convolute resolves but the Ceratops is not countered and enters the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ceratops", "real": "Shifting Ceratops", "zone": "hand", "controller": 0},
+  {"key": "convolute", "real": "Convolute", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 4}, "1": {"U": 3}},
+ "steps": [
+  {"op": "cast", "key": "ceratops", "decisions": ["convolute"]}
+ ],
+ "expect": {
+  "zone": {"ceratops": "battlefield", "convolute": "graveyard"},
+  "window_asks": {"1": ["convolute"]},
+  "kickback_asks": {"0": []}
+ }
+}

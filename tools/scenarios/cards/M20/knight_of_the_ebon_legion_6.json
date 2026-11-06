@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "knight_ebon_legion_not_at_the_opponents_end_step",
+ "notes": "Printed: 'At the beginning of YOUR end step ...'. On P1's turn P1 Shocks P0 twice (P0 loses 4); P1's end step passes and P0's Knight gets no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "knight", "real": "Knight of the Ebon Legion", "zone": "battlefield", "controller": 0},
+  {"key": "shock1", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "shock2", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"R": 1}},
+  {"op": "cast", "key": "shock1", "controller": 1, "targets": ["p0"]},
+  {"op": "mana", "seat": 1, "add": {"R": 1}},
+  {"op": "cast", "key": "shock2", "controller": 1, "targets": ["p0"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 16, "1": 20},
+  "counters": {"knight": {}},
+  "turn_seats": [0, 1]
+ }
+}

@@ -179,5 +179,42 @@
  },
  "probe": {
   "sha": "b0f7d70040ead9e3e4fce5afabfaf29d14c7b5adedf18423a8b902978a9b10f2"
+ },
+ "verified": {
+  "tree_sha": "fc4888398fd997b43b93179c8220449141a2167e8ec53bfb588e400a5da50592",
+  "probe_sha": "b0f7d70040ead9e3e4fce5afabfaf29d14c7b5adedf18423a8b902978a9b10f2",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [opp_giant blocks it] no block occurs, P1 dealt 1.",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe never reaches P0's end step after a loss ([turns pass] with no loss: no counter). Packs: savage_gorger_1 (it attacks, P1 loses 1, counter at P0's end step), _2 (only P0 lost life: none), _3 (P1's loss on an earlier turn: none).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/savage_gorger_1.json",
+   "tools/scenarios/cards/M20/savage_gorger_2.json",
+   "tools/scenarios/cards/M20/savage_gorger_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 1,
+   "score": 0.16666666666666666,
+   "survived": [
+    "trigger scope: your turn -> each turn at 1/0/event",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/condition/count",
+    "controller OPPONENT->YOU at 1/0/condition/event/actor/who",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  }
  }
 }

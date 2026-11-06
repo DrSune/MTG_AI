@@ -1,0 +1,27 @@
+{
+ "set": "M20",
+ "name": "ancestral_blade_soldier_then_equip_moves_it_sorcery_speed",
+ "notes": "Printed: 'When this Equipment enters, create a 1/1 white Soldier creature token, then attach this Equipment to it. Equipped creature gets +1/+1. Equip {1}' (only as a sorcery). The Blade enters: one Soldier token (the twin pins it at 2/2 while equipped). Equip {1} on P0's turn moves the Blade to the Bear: Bear 3/3, Soldier 1/1. On P1's turn equipping Bear Two is refused before paying.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "blade", "real": "Ancestral Blade", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Bear Two", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "blade"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "blade", "idx": 2, "seat": 0, "targets": ["bear"]},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "blade", "idx": 2, "seat": 0, "targets": ["bear2"], "expect_raise": "window:sorcery:not_own_turn"}
+ ],
+ "expect": {
+  "attached": {"blade": "bear"},
+  "tokens": {"Soldier": 1},
+  "battlefield_pt": {"Soldier": [1, 1]},
+  "power": {"bear": 3, "bear2": 2},
+  "toughness": {"bear": 3, "bear2": 2},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}

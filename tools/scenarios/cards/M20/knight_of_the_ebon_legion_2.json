@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "knight_ebon_legion_two_players_lost_2_each_no_counter",
+ "notes": "Printed: '... if a player lost 4 or more life this turn ...'. One Shock at each player: four life was lost in total, but no single player lost 4, so the Knight gets no counter at P0's end step.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "knight", "real": "Knight of the Ebon Legion", "zone": "battlefield", "controller": 0},
+  {"key": "shock1", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "shock2", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "shock1", "targets": ["p1"]},
+  {"op": "cast", "key": "shock2", "targets": ["p0"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 18, "1": 18},
+  "counters": {"knight": {}},
+  "power": {"knight": 1},
+  "toughness": {"knight": 2}
+ }
+}

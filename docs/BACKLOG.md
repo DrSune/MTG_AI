@@ -1742,3 +1742,21 @@ W&B key in history is revoked; a private split exists outside the public repo.
 - **needs-atom record this branch answers in part**: M20 Mystic Forge. Its permission cast now gets
   the counter window (its pack `pack_forge_cast_can_be_countered.json` passes against its draft);
   the target half is the first entry above. Re-map it.
+- **Round-3 verification findings** (2026-11-06):
+  - **Must-be-blocked forces the first able blocker** (live: M21 Canopy Stalker is verified; FDN
+    Joraga Invocation refused for it): `__init__.py` ~2548 makes the first able creature in handle
+    order block and drops its "no block", so the defender cannot choose which creature satisfies
+    the requirement (CR 509.1c). Narrows the defender's options; see the older entry on requirements.
+  - **Reflexive triggers have no node** ("when you do", CR 603.12): Sorin, Imperious Bloodlord was
+    mapped as "if you do" with the target chosen on activation; the review refused it (the target
+    exists even when nothing is sacrificed, and the Vampire about to be sacrificed is offered).
+  - **Damage to a permanent that left the battlefield during resolution** is still marked on the
+    card (Sorin's sacrificed Vampire took 3 in the graveyard; CR 608.2b).
+  - **Automatic payment spends floating coloured mana on generic costs before colourless**: with
+    B2 R2 C4 floating, paying {2}{B}{R} left C4, so a following {B} activation failed.
+  - Pack runner: in activate and cast steps decision words reach the engine raw (pack keys are not
+    translated) and a skipped word restarts the queue; the runner's docstring omits lanes it reads
+    (window_asks, kickback_asks, battlefield_pt, battlefield_keywords, combat_window_*).
+  - Probe: an animated land shows only +HASTE (no P/T or type) in G1 (Wakeroot Elemental).
+  - The reveal record of "reveals their hand" lists the library, not the hand (verbs.py ~1485);
+    nothing reads it today.

@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "42081a57-b521-45c2-928d-0a0a4641818d",
+ "name": "Storm Fleet Spy",
+ "text_sha": "c7918e3fa6bab236fb62a16c890db6ae57911a98b1be26f94d689702becf38f1",
+ "verified": {
+  "tree_sha": "c2212f0f23638bf9e27fe3a75eb272d54e25b25ffb20c50f601b8489c710c6d1",
+  "probe_sha": "05202d5f9e295822e74a9031425f8af0e659339b7d84227346b3f0ecaeaee69f",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Raid — When this creature enters, if you attacked this turn, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree = the compiler's B13-etb+if+B5a-draw-one parse. Trace: [cast] without an attack draws nothing (hand 6 -> 5), [enters during the opponent's turn] draws nothing (right); no variant attacks first. Packs (pass): storm_fleet_spy_raid_draws_after_attack - attack, then cast in the postcombat main: exactly one card drawn; storm_fleet_spy_no_draw_without_your_attack - no attacker declared, and an entry after the opponent attacked: no draw. Mutants without TURN_OF YOU or without the condition are killed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/storm_fleet_spy_1.json",
+   "tools/scenarios/cards/FDN/storm_fleet_spy_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 1,
+   "score": 0.14285714285714285,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/condition",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/who",
+    "amount+1 at 1/0/condition/children/1/count",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
+ }
+}

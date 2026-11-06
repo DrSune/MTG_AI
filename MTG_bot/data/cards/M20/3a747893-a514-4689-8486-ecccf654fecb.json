@@ -210,5 +210,38 @@
  },
  "probe": {
   "sha": "4c807133ea0fbacfbde8f88d866590269ff29687ee605c4f00b47820390206ad"
+ },
+ "verified": {
+  "tree_sha": "f1c5245deee285f855ab2e38e9e20be6f588e8951f8fa904cd0ca8436284575d",
+  "probe_sha": "4c807133ea0fbacfbde8f88d866590269ff29687ee605c4f00b47820390206ad",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "This spell can't be countered.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No counterspell in the probe. Compiled template B14. Pack fry_1: P1's Negate resolves, Fry is not countered and kills the blue creature.",
+    "issue": ""
+   },
+   {
+    "clause": "Fry deals 5 damage to target creature or planeswalker that's white or blue.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [opp_flier, opp_giant] only; each dealt 5 and dies; mana R-1 W-1. Packs: fry_2 (white planeswalker loses 5 loyalty and dies), fry_3 (P1's green creature and red planeswalker refused 'illegal target selection'; P0's own blue creature legal and killed).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/fry_1.json",
+   "tools/scenarios/cards/M20/fry_2.json",
+   "tools/scenarios/cards/M20/fry_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

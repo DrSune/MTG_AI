@@ -1,0 +1,34 @@
+{
+ "set": "M20",
+ "name": "thought_distortion_uncounterable_exiles_noncreature_nonland_from_hand_and_graveyard",
+ "notes": "Printed: 'This spell can't be countered. Target opponent reveals their hand. Exile all noncreature, nonland cards from that player's hand and graveyard.' P1 responds with Negate; Negate resolves but Thought Distortion is not countered. From P1's hand the instant is exiled; the land, the creature and the artifact creature stay. From P1's graveyard the sorcery, the enchantment and the resolved Negate are exiled; the land and the creature stay. P0's own hand and graveyard are untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "td", "real": "Thought Distortion", "zone": "hand", "controller": 0},
+  {"key": "negate", "real": "Negate", "zone": "hand", "controller": 1},
+  {"key": "opp_land", "name": "Opp Land", "type": "Land", "zone": "hand", "controller": 1},
+  {"key": "opp_instant", "name": "Opp Instant", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "opp_creature", "name": "Opp Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "opp_golem", "name": "Opp Golem", "type": "Artifact Creature — Golem", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "gy_land", "name": "Gy Land", "type": "Land", "zone": "graveyard", "controller": 1},
+  {"key": "gy_sorcery", "name": "Gy Sorcery", "type": "Sorcery", "zone": "graveyard", "controller": 1},
+  {"key": "gy_creature", "name": "Gy Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1},
+  {"key": "gy_ench", "name": "Gy Enchantment", "type": "Enchantment", "zone": "graveyard", "controller": 1},
+  {"key": "my_instant", "name": "My Instant", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "my_sorcery", "name": "My Sorcery", "type": "Sorcery", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "td", "targets": ["p1"], "decisions": ["negate"]}
+ ],
+ "expect": {
+  "zone": {
+   "td": "graveyard", "negate": "exile",
+   "opp_land": "hand", "opp_instant": "exile", "opp_creature": "hand", "opp_golem": "hand",
+   "gy_land": "graveyard", "gy_sorcery": "exile", "gy_creature": "graveyard", "gy_ench": "exile",
+   "my_instant": "graveyard", "my_sorcery": "hand"
+  },
+  "window_asks": {"1": ["negate"]},
+  "hand": {"0": 1, "1": 3}
+ }
+}

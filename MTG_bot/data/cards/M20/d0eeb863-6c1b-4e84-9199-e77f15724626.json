@@ -575,5 +575,54 @@
  },
  "probe": {
   "sha": "1376dce38600b57a7951969a15e3c47b96cd9adceafed6828a3e2f2d20a2fc3a"
+ },
+ "verified": {
+  "tree_sha": "c0dbeb87b83da74b0fb94ee851bf6bd131c19031e0709be483f13fbcaf0f94da",
+  "probe_sha": "1376dce38600b57a7951969a15e3c47b96cd9adceafed6828a3e2f2d20a2fc3a",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "When this Equipment enters, create a 2/2 green Wolf creature token, then attach this Equipment to it.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0], '+ you:Wolf (battlefield, you, 3/3)' (2/2 plus the Saddle, so attached); same on the off-turn entry stimulus; mana G-1 W-3. Tree = compiled template B15-etb-create-attach. Pack wolfriders_saddle_2: one Wolf token, 3/3.",
+    "issue": ""
+   },
+   {
+    "clause": "Equipped creature gets +1/+1",
+    "status": "OK",
+    "evidence": "[activate [2] targets=you_bear] you_bear 2/2 -> 3/3; [targets=you_giant] 4/4 -> 5/5.",
+    "issue": ""
+   },
+   {
+    "clause": "... and can't be blocked by more than one creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No probe combat with an equipped attacker. Tree: PREVENT_EFFECT DeclareBlockersEvent blocked=equipped, count QAtLeast(2) = compiled template. Pack wolfriders_saddle_1: Wall A blocks the equipped Bear, Wall B is never offered a block; the twin asking both walls to block gets only Wall A.",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {3} ({3}: Attach to target creature you control. Equip only as a sorcery.)",
+    "status": "OK",
+    "evidence": "[activate [2]] mana W-3, target slot 1..1 of [you_bear, you_giant]; timing SORCERY as compiled. Pack wolfriders_saddle_1: equip moves the Saddle off the Wolf (Wolf 2/2, Bear 3/3) and is refused on P1's turn before paying.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/wolfrider's_saddle_1.json",
+   "tools/scenarios/cards/M20/wolfrider's_saddle_2.json"
+  ],
+  "mutation": {
+   "mutants": 27,
+   "killed": 21,
+   "score": 0.7777777777777778,
+   "survived": [
+    "drop step 1 at 1/1/effect",
+    "widen filter (drop part 1) at 1/1/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/args/condition",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/args/condition",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/args/event/blocked",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/args/event/blocked"
+   ]
+  }
  }
 }

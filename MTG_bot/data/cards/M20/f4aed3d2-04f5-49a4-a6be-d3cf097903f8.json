@@ -93,5 +93,28 @@
  },
  "probe": {
   "sha": "911534f49b654a62f36e395ef4bff99f13fe3a65c8dd1939fd3c9ca2000f4fc8"
+ },
+ "verified": {
+  "tree_sha": "e712452d46b40cba57fbff53900f79423c52b58b37be19bc65eb5beacdcda604",
+  "probe_sha": "911534f49b654a62f36e395ef4bff99f13fe3a65c8dd1939fd3c9ca2000f4fc8",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "This creature can't be blocked by more than one creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe only blocks with one creature. Tree = compiled template B15-cant-be-blocked-by-more-than-one. Pack bristling_boar_1: Wall A blocks, Wall B never offered a block; the twin with both walls blocking gets only Wall A.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/bristling_boar_1.json"
+  ],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
  }
 }

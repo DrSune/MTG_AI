@@ -186,5 +186,37 @@
  },
  "probe": {
   "sha": "b1a55243488acff4a26540a6537c45927d5e52c8f9e8ce4246386979ba10a317"
+ },
+ "verified": {
+  "tree_sha": "465c6a3f292bf401671a8b13ef136c833d53aba30e5fe97d118837d21d9c2519",
+  "probe_sha": "b1a55243488acff4a26540a6537c45927d5e52c8f9e8ce4246386979ba10a317",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "Keyword +FLASH; every cast in the trace is in seat 0's main phase (the opponent's-turn variant moves it from hand, no cast). Pack (pass) stasis_snare_flash_on_opponents_turn: cast on seat 1's turn, it enters and exiles the Wolf; a mutant without FLASH is refused 'window:not_your_turn'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree = the compiler's B13-etb+B11-exile-np-until-leaves parse. Trace: ask target [opp_flier, opp_tapped, opp_bear, opp_giant] (only the opponent's creatures), 'X moves battlefield -> exile (by card/MOVE_ZONE)' with '(until card leaves the battlefield, then back to the battlefield)'; the return never happens in the trace. Packs (pass): returns_the_creature_when_it_leaves (Snare destroyed -> Wolf back under seat 1), exiles_until_it_leaves (still exiled two turns later), gone_before_trigger_resolves (CR 610.3c: Snare gone first -> Wolf never exiled). Graveyard, no-duration and EOT mutants are each killed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/stasis_snare_1.json",
+   "tools/scenarios/cards/FDN/stasis_snare_2.json",
+   "tools/scenarios/cards/FDN/stasis_snare_3.json",
+   "tools/scenarios/cards/FDN/stasis_snare_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

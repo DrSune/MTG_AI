@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "stasis_snare_gone_before_trigger_resolves",
+ "notes": "P50a878933a G4. Printed: '... exile target creature an opponent controls until this enchantment leaves the battlefield.' CR 610.3c: if the Snare has already left the battlefield when its enters trigger resolves, the creature is not exiled at all. The Snare enters with its trigger held (targeting seat 1's Wolf); in response another effect destroys the Snare; the trigger then resolves and the Wolf stays on the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snare", "real": "Stasis Snare", "zone": "hand", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "snare", "hold_triggers": true, "decisions": ["wolf"]},
+  {"op": "move", "key": "snare", "to": "graveyard", "decisions": ["wolf"]}
+ ],
+ "expect": {
+  "zone": {"snare": "graveyard", "wolf": "battlefield"},
+  "controller": {"wolf": 1}
+ }
+}

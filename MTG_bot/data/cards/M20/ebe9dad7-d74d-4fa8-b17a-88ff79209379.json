@@ -288,5 +288,41 @@
  },
  "probe": {
   "sha": "13a0e9bbefc33a86d6e069df2c2a8bb980932067a54f2e881c886c7ef017b8fe"
+ },
+ "verified": {
+  "tree_sha": "01f2a05f3b632583880b9b530ae79904de25fcdb5e2b6ee746f99f6d7239c7ba",
+  "probe_sha": "13a0e9bbefc33a86d6e069df2c2a8bb980932067a54f2e881c886c7ef017b8fe",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Whenever equipped creature attacks, this Equipment deals 1 damage to target creature defending player controls.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's attack stimuli never have the Bow attached. Tree = compiled frame B13-equipped-attacks + deal-damage (DEFENDING_PLAYER). Packs: heart_piercer_bow_1 (equipped Bear attacks; the target ask offers only P1's two creatures, P0's Bear Two is unoffered; the chosen one has 1 damage), heart_piercer_bow_2 (an unequipped attacker: no damage).",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)",
+    "status": "OK",
+    "evidence": "[activate [1]] mana W-1, target slot 1..1 of [you_bear, you_giant]; compiled equip template with SORCERY timing. Pack heart_piercer_bow_2 refuses it on P1's turn before paying.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/heart-piercer_bow_1.json",
+   "tools/scenarios/cards/M20/heart-piercer_bow_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 8,
+   "score": 0.6153846153846154,
+   "survived": [
+    "amount+1 at 1/0/effect/args/amount",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

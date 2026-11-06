@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "chart_a_course_no_discard_after_attack",
+ "notes": "Pad508e35a0 G4. Printed: 'Draw two cards. Then discard a card unless you attacked this turn.' Seat 0 attacks with a 2/2 Bear (seat 1 takes 2), then casts Chart a Course ({1}{U}) in its postcombat main phase: it draws two cards and discards nothing (no discard is asked: the step carries no decision), so seat 0 holds the Spare card and the two drawn cards, and only Chart a Course is in its graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "chart", "real": "Chart a Course", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "chart"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"chart": "graveyard", "spare": "hand"},
+  "hand": {"0": 3},
+  "graveyard": {"0": ["Chart a Course"]},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

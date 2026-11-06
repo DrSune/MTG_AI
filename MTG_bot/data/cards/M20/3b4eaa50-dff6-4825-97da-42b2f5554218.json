@@ -385,5 +385,47 @@
  },
  "probe": {
   "sha": "ac6701f491ef849fb0e0fdd7a56320860b712f45082040d379de04398d21f90d"
+ },
+ "verified": {
+  "tree_sha": "a9150b645e8acd072dd4a126155e912339cd04e8e8465c1d9bab3fe85318f594",
+  "probe_sha": "ac6701f491ef849fb0e0fdd7a56320860b712f45082040d379de04398d21f90d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "{2}{B}: This creature gets +3/+3 and gains deathtouch until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0]]: P/T 1/2 -> 4/5, keywords +DEATHTOUCH, mana B-1 W-2; after the turn ends 4/5 -> 1/2, -DEATHTOUCH. Selector shape = compiled B3 self template.",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, if a player lost 4 or more life this turn, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: [turns pass: your end step ...] no life lost -> no counter (only the false case). Tree: END_TURN actor YOU, EVENT_THIS_TURN LifeLostEvent count 4 (the IR's documented 'a player lost 4 or more life' reading: summed within one player). Packs (live tree, all pass, each flipped twin fails): knight_1 Shock P1 twice (2+2) -> counter; knight_2 one Shock at each player -> none; knight_3 4/4 unblocked (4 in one hit) -> counter; knight_4 3 damage -> none; knight_5 P0 Shocks itself twice -> counter; knight_6 P0 loses 4 on P1's turn -> no counter at P1's end step.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/knight_of_the_ebon_legion_1.json",
+   "tools/scenarios/cards/M20/knight_of_the_ebon_legion_2.json",
+   "tools/scenarios/cards/M20/knight_of_the_ebon_legion_3.json",
+   "tools/scenarios/cards/M20/knight_of_the_ebon_legion_4.json",
+   "tools/scenarios/cards/M20/knight_of_the_ebon_legion_5.json",
+   "tools/scenarios/cards/M20/knight_of_the_ebon_legion_6.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 17,
+   "score": 0.7083333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "trigger scope: your turn -> each turn at 1/1/event",
+    "controller YOU->OPPONENT at 1/1/event/actor/who",
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count",
+    "amount+1 at 1/1/effect/args/count"
+   ]
+  }
  }
 }

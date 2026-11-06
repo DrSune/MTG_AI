@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "shifting_ceratops_trample_this_turn",
+ "notes": "Twin of shifting_ceratops_4 before the turn ends: after paying {G} and picking trample, the Ceratops has TRAMPLE (and not reach or haste).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ceratops", "real": "Shifting Ceratops", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "activate", "key": "ceratops", "idx": 1, "seat": 0, "decisions": ["1"]}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Shifting Ceratops": ["TRAMPLE"]},
+  "mana_pool": {"0": {}}
+ }
+}

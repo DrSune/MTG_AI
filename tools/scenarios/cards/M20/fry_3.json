@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "fry_only_white_or_blue_any_controller",
+ "notes": "Printed: '... target creature or planeswalker that's white or blue.' Fry cannot target P1's green creature or P1's red planeswalker (Chandra, Novice Pyromancer): both casts are refused before paying. It can target P0's own blue creature (no controller restriction): that one takes 5 and dies. The red planeswalker keeps its 5 loyalty.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fry", "real": "Fry", "zone": "hand", "controller": 0},
+  {"key": "green_bear", "name": "Green Bear", "type": "Creature", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1},
+  {"key": "chandra", "real": "Chandra, Novice Pyromancer", "zone": "battlefield", "controller": 1, "counters": {"LOYALTY": 5}},
+  {"key": "my_blue", "name": "My Blue", "type": "Creature", "power": "2", "toughness": "2", "colors": ["U"], "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fry", "targets": ["green_bear"], "expect_raise": "illegal target selection"},
+  {"op": "cast", "key": "fry", "targets": ["chandra"], "expect_raise": "illegal target selection"},
+  {"op": "cast", "key": "fry", "targets": ["my_blue"]}
+ ],
+ "expect": {
+  "zone": {"fry": "graveyard", "green_bear": "battlefield", "chandra": "battlefield", "my_blue": "graveyard"},
+  "counters": {"chandra": {"LOYALTY": 5}},
+  "mana_pool": {"0": {}}
+ }
+}

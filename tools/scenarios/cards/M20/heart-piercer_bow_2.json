@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "name": "heart_piercer_bow_unequipped_attacker_no_trigger_and_sorcery_equip",
+ "notes": "Printed: 'Whenever EQUIPPED creature attacks ...' and 'Equip {1}' (only as a sorcery). The Bow is on the Bear, but only Bear Two attacks: no damage to P1's creature, P1 takes 2. On P1's turn equipping Bear Two is refused before paying.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bow", "real": "Heart-Piercer Bow", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Bear Two", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_a", "name": "Opp A", "type": "Creature", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "bow", "host": "bear"},
+  {"op": "combat", "seat": 0, "attack": {"bear": false, "bear2": true}},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "bow", "idx": 1, "seat": 0, "targets": ["bear2"], "expect_raise": "window:sorcery:not_own_turn"}
+ ],
+ "expect": {
+  "attached": {"bow": "bear"},
+  "life": {"0": 20, "1": 18},
+  "damage_received": {"opp_a": 0},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "set": "M20",
+ "name": "wakeroot_elemental_untap_and_animate_lands",
+ "notes": "Printed: '{G}{G}{G}{G}{G}: Untap target land you control. It becomes a 5/5 Elemental creature with haste. It's still a land. (This effect lasts as long as that land remains on the battlefield.)' Land A starts tapped; the ability untaps it and it is 5/5. Land B is played this turn and animated: with haste it attacks at once and P1 takes 5. After the turn ends both are still 5/5.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wake", "real": "Wakeroot Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "land_a", "name": "Land A", "type": "Land", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "land_b", "name": "Land B", "type": "Land", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "land_b"},
+  {"op": "mana", "seat": 0, "add": {"G": 5}},
+  {"op": "activate", "key": "wake", "idx": 0, "seat": 0, "targets": ["land_a"]},
+  {"op": "mana", "seat": 0, "add": {"G": 5}},
+  {"op": "activate", "key": "wake", "idx": 0, "seat": 0, "targets": ["land_b"]},
+  {"op": "combat", "seat": 0, "attack": {"land_b": true, "land_a": false, "wake": false}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "attackers": {"land_b": true},
+  "life": {"1": 15},
+  "tapped": {"land_a": false},
+  "power": {"land_a": 5, "land_b": 5},
+  "toughness": {"land_a": 5, "land_b": 5},
+  "zone": {"land_a": "battlefield", "land_b": "battlefield"}
+ }
+}

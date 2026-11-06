@@ -220,5 +220,38 @@
  },
  "probe": {
   "sha": "df0652cfa35c3fc640775765496c5b57b718c35024f284396a88f9813da91bea"
+ },
+ "verified": {
+  "tree_sha": "8095695474bd1b94027c02afae35e1bf8f3f24dcf96104b22e2a51b3735618dc",
+  "probe_sha": "df0652cfa35c3fc640775765496c5b57b718c35024f284396a88f9813da91bea",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [opp_giant blocks it] no block occurs, P1 dealt 8.",
+    "issue": ""
+   },
+   {
+    "clause": "{B}, Pay 2 life: Target creature gets -1/-1 until end of turn.",
+    "status": "OK",
+    "evidence": "Target slot: every creature incl. itself; 'you loses 2 life' (20 -> 18), mana B-1; P/T -1/-1 and restored after the turn ends; opp_flier 1/1 dies.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you lose life, draw that many cards.",
+    "status": "OK",
+    "evidence": "Life cost 2 -> draws 2 (resolving before the ability); [you lose 2 life] draws 2; [opp_bear attacks you] 2 combat damage, draws 2; P1's losses draw nothing.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

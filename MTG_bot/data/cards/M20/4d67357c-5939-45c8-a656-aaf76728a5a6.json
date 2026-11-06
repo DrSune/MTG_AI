@@ -328,5 +328,51 @@
  },
  "probe": {
   "sha": "bf8b7ae9866d4b3072c3aaaaaaa8657c0a7a7f3cb3850f1632731ac3f58aa6b4"
+ },
+ "verified": {
+  "tree_sha": "8087ab9a7a676ff025ac4d7cfad30cfa6feb00393dcd8d69c6c42e648e474243",
+  "probe_sha": "bf8b7ae9866d4b3072c3aaaaaaa8657c0a7a7f3cb3850f1632731ac3f58aa6b4",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +FLASH; no off-turn cast in the probe. Pack nightpack_ambusher_1: cast during P1's turn and resolves; the same pack with Centaur Courser is refused 'window:not_your_turn'.",
+    "issue": ""
+   },
+   {
+    "clause": "Other Wolves and Werewolves you control get +1/+1.",
+    "status": "OK",
+    "evidence": "Static diff you_werewolf and you_wolf 2/2 -> 3/3, the Ambusher stays 4/4, revert when it dies; the Wolf token is 3/3. Pack nightpack_ambusher_3: P0's Bear and P1's Wolf stay 2/2.",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of your end step, ... create a 2/2 green Wolf creature token.",
+    "status": "OK",
+    "evidence": "[turns pass] trigger [1] at P0's end step only: one Wolf (3/3 with the bonus); none at P1's end step.",
+    "issue": ""
+   },
+   {
+    "clause": "... if you didn't cast a spell this turn ...",
+    "status": "NOT_EXERCISED",
+    "evidence": "Never false in the probe. Tree = compiled frame (FNot EVENT_THIS_TURN CastSpellEvent actor YOU). Packs: nightpack_ambusher_2 (P0 cast Shock: no Wolf), _4 (P1's spell on P0's turn: Wolf still made).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/nightpack_ambusher_1.json",
+   "tools/scenarios/cards/M20/nightpack_ambusher_2.json",
+   "tools/scenarios/cards/M20/nightpack_ambusher_3.json",
+   "tools/scenarios/cards/M20/nightpack_ambusher_4.json"
+  ],
+  "mutation": {
+   "mutants": 17,
+   "killed": 16,
+   "score": 0.9411764705882353,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

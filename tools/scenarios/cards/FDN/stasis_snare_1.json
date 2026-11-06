@@ -1,19 +1,20 @@
 {
  "set": "FDN",
+ "name": "stasis_snare_flash_on_opponents_turn",
+ "notes": "P50a878933a G4. Printed: 'Flash' and 'When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.' On seat 1's turn (turn 2), seat 0 casts Stasis Snare ({1}{W}{W}) at instant speed; it resolves and enters, and its trigger exiles seat 1's Wolf (seat 0's own Bear is not touched).",
  "world": {"life": 20, "seed": 7},
- "notes": "Stasis Snare, printed: 'When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.' Cast for exactly {1}{W}{W}; its trigger exiles the opponent's 3/3. When the Snare is destroyed (moved to its owner's graveyard by another effect), the 3/3 returns to the battlefield under its owner's control (CR 610.3c).",
  "cards": [
   {"key": "snare", "real": "Stasis Snare", "zone": "hand", "controller": 0},
-  {"key": "ogre", "name": "Their Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 1}
  ],
- "mana": {"0": {"W": 3}},
  "steps": [
-  {"op": "cast", "key": "snare", "real": "Stasis Snare", "controller": 0, "decisions": ["ogre"]},
-  {"op": "move", "key": "snare", "to": "graveyard"}
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 1}},
+  {"op": "cast", "key": "snare", "controller": 0, "decisions": ["wolf"]}
  ],
  "expect": {
-  "zone": {"snare": "graveyard", "ogre": "battlefield"},
-  "controller": {"ogre": 1},
-  "mana_pool": {"0": {}}
+  "turn_seats": [0, 1],
+  "zone": {"snare": "battlefield", "wolf": "exile", "bear": "battlefield"}
  }
 }

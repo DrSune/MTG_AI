@@ -1,0 +1,27 @@
+{
+ "set": "M20",
+ "name": "mask_of_immolation_granted_sacrifice_ping_follows_the_mask",
+ "notes": "Printed: 'Equipped creature has \"Sacrifice this creature: It deals 1 damage to any target.\" Equip {2}' (only as a sorcery). The Mask starts on the Bear. Equip {2} on P0's turn moves it to Bear Two; the Bear no longer has the ability (refused). Bear Two sacrifices itself and deals 1 damage to P1 (20 -> 19). The Mask stays on the battlefield, unattached. On P1's turn equipping the Bear is refused before paying.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mask", "real": "Mask of Immolation", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Bear Two", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "mask", "host": "bear"},
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "mask", "idx": 2, "seat": 0, "targets": ["bear2"]},
+  {"op": "activate", "key": "bear", "idx": -1, "seat": 0, "targets": ["p1"], "expect_raise": "has no granted ability"},
+  {"op": "activate", "key": "bear2", "idx": -1, "seat": 0, "targets": ["p1"]},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "mask", "idx": 2, "seat": 0, "targets": ["bear"], "expect_raise": "window:sorcery:not_own_turn"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 19},
+  "zone": {"mask": "battlefield", "bear": "battlefield", "bear2": "graveyard"},
+  "attached": {"mask": null},
+  "mana_pool": {"0": {"C": 2}}
+ }
+}

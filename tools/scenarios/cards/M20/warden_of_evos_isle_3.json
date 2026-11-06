@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "warden_of_evos_isle_opponents_flyer_pays_full",
+ "notes": "Printed: 'Creature spells with flying YOU cast cost {1} less to cast.' On P1's turn P1's Griffin Sentinel ({2}{W}) is not reduced by P0's Warden: with {W} and one colorless the cast is refused.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "warden", "real": "Warden of Evos Isle", "zone": "battlefield", "controller": 0},
+  {"key": "griffin", "real": "Griffin Sentinel", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"W": 1, "C": 1}},
+  {"op": "cast", "key": "griffin", "controller": 1, "expect_raise": "cost:mana_generic:1<2"}
+ ],
+ "expect": {
+  "zone": {"griffin": "hand"},
+  "mana_pool": {"1": {"W": 1, "C": 1}}
+ }
+}

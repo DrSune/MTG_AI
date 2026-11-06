@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "marauding_raptor_opponents_creature_spell_pays_full",
+ "notes": "Printed: 'Creature spells YOU cast cost {1} less to cast.' On P1's turn, P1's Centaur Courser ({2}{G}) is not reduced by P0's Raptor: with {G} and one colorless the cast is refused and the Courser stays in P1's hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Marauding Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "courser", "real": "Centaur Courser", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"G": 1, "C": 1}},
+  {"op": "cast", "key": "courser", "controller": 1, "expect_raise": "cost:mana_generic:1<2"}
+ ],
+ "expect": {
+  "zone": {"courser": "hand"},
+  "mana_pool": {"1": {"G": 1, "C": 1}}
+ }
+}

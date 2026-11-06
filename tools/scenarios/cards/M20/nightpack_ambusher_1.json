@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "nightpack_ambusher_flash_on_opponents_turn",
+ "notes": "Printed: 'Flash'. During P1's turn P0 casts the Ambusher for {2}{G}{G}; it resolves and is on the battlefield (pool empty).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "amb", "real": "Nightpack Ambusher", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"G": 4}},
+  {"op": "cast", "key": "amb", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"amb": "battlefield"},
+  "mana_pool": {"0": {}},
+  "turn_seats": [0, 1]
+ }
+}

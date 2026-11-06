@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "blanchwood_armor_counts_your_forests",
+ "notes": "Pfe860dcb92 G4. Printed: 'Enchanted creature gets +1/+1 for each Forest you control.' Seat 0 controls three Forests and a Plains, seat 1 controls two Forests. Seat 0 casts Blanchwood Armor ({2}{G}) on its 2/2 Bear: the Bear is a 5/5 (+3/+3, seat 0's three Forests; the Plains and seat 1's Forests do not count). Seat 0 then plays a fourth Forest: the bonus follows the count, the Bear is a 6/6.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "armor", "real": "Blanchwood Armor", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "f2", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "f3", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "f4", "real": "Forest", "zone": "hand", "controller": 0},
+  {"key": "of1", "real": "Forest", "zone": "battlefield", "controller": 1},
+  {"key": "of2", "real": "Forest", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "armor", "targets": ["bear"]},
+  {"op": "play", "key": "f4", "seat": 0}
+ ],
+ "expect": {
+  "zone": {"armor": "battlefield", "f4": "battlefield"},
+  "attached": {"armor": "bear"},
+  "power": {"bear": 6},
+  "toughness": {"bear": 6}
+ }
+}

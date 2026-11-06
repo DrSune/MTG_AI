@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "knight_ebon_legion_combat_damage_4_in_one_hit",
+ "notes": "Printed: '... if a player lost 4 or more life this turn ...' (damage causes loss of life). P0's 4/4 attacks unblocked and P1 loses 4 in one event; at P0's end step the Knight gets a +1/+1 counter. Twin: knight_of_the_ebon_legion_4 (a 3/3, 3 life, no counter).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "knight", "real": "Knight of the Ebon Legion", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Brute", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"brute": true, "knight": false}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 16},
+  "counters": {"knight": {"PLUS_1_PLUS_1": 1}}
+ }
+}

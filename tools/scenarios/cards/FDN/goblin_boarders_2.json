@@ -1,0 +1,29 @@
+{
+ "set": "FDN",
+ "name": "goblin_boarders_no_counter_without_your_attack",
+ "notes": "P042d2e7580 G4, the negative twin. Printed: 'Raid - This creature enters with a +1/+1 counter on it if you attacked this turn.' Seat 0 goes to combat but declares no attacker (the Bear stays home), then casts Goblin Boarders in its postcombat main phase: it enters as the printed 3/2 with no counter. Next, on seat 1's turn, seat 1 attacks seat 0 with its Wolf (seat 0 takes 3), and then a second Goblin Boarders enters under seat 0's control: the opponent attacked this turn, not you, so it also has no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boarders", "real": "Goblin Boarders", "zone": "hand", "controller": 0},
+  {"key": "boarders2", "real": "Goblin Boarders", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": false}},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 2}},
+  {"op": "cast", "key": "boarders"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"wolf": true}, "block": {"bear": null, "boarders": null}},
+  {"op": "enter", "key": "boarders2"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "life": {"0": 17, "1": 20},
+  "zone": {"boarders": "battlefield", "boarders2": "battlefield"},
+  "counters": {"boarders": {}, "boarders2": {}},
+  "power": {"boarders": 3, "boarders2": 3},
+  "toughness": {"boarders": 2, "boarders2": 2}
+ }
+}

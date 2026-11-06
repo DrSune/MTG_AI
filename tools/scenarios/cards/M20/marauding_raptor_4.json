@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "marauding_raptor_dinosaur_enters_raptor_gets_plus_2",
+ "notes": "Printed: 'Whenever another creature you control enters, this creature deals 2 damage to it. If a Dinosaur is dealt damage this way, this creature gets +2/+0 until end of turn.' A 3/4 Dinosaur enters under P0: it has 2 damage, and the Raptor is 4/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Marauding Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "dino", "name": "Big Dino", "type": "Creature — Dinosaur", "power": "3", "toughness": "4", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "dino"}
+ ],
+ "expect": {
+  "zone": {"dino": "battlefield"},
+  "damage": {"dino": 2},
+  "power": {"raptor": 4},
+  "toughness": {"raptor": 3}
+ }
+}

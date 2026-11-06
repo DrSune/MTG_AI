@@ -180,5 +180,36 @@
  },
  "probe": {
   "sha": "0786df3da0892909bcb26bd1e0966e837aa864629fbfc792502bf5f754be3b42"
+ },
+ "verified": {
+  "tree_sha": "c87f90ce1c513eeca8039ccc44b3be0d8dfef6c2c5dd077b8f67e504c37895cc",
+  "probe_sha": "0786df3da0892909bcb26bd1e0966e837aa864629fbfc792502bf5f754be3b42",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "When this creature enters, destroy target creature an opponent controls that was dealt damage this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast]: trigger [0] with no legal target, nothing destroyed. Tree = compiled frame B13-etb+B11-destroy. Packs: fathom_fleet_cutthroat_1 (the ask offers only P1's two damaged creatures, not P1's undamaged one or P0's damaged one; the chosen one is destroyed), _2 (damage on an earlier turn: no target).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/fathom_fleet_cutthroat_1.json",
+   "tools/scenarios/cards/M20/fathom_fleet_cutthroat_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 2,
+   "score": 0.25,
+   "survived": [
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "controller OPPONENT->YOU at 1/0/effect/args/target/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/target/filter/children/2/count"
+   ]
+  }
  }
 }

@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "goblin_boarders_raid_after_attack",
+ "notes": "P042d2e7580 G4. Printed: 'Raid - This creature enters with a +1/+1 counter on it if you attacked this turn.' Seat 0 attacks with a 2/2 Bear (seat 1 takes 2), then casts Goblin Boarders ({2}{R}, printed 3/2) in its postcombat main phase: it enters with exactly one +1/+1 counter, a 4/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boarders", "real": "Goblin Boarders", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 2}},
+  {"op": "cast", "key": "boarders"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"boarders": "battlefield"},
+  "counters": {"boarders": {"PLUS_1_PLUS_1": 1}},
+  "power": {"boarders": 4},
+  "toughness": {"boarders": 3}
+ }
+}

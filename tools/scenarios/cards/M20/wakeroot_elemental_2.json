@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "wakeroot_elemental_animated_land_is_still_a_land",
+ "notes": "Printed: 'It's still a land.' After the Wakeroot animates P0's nonbasic Land A, Tectonic Rift ('Destroy target nonbasic land') can still target it and destroys it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wake", "real": "Wakeroot Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "land_a", "name": "Land A", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "rift", "real": "Tectonic Rift", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 5}},
+  {"op": "activate", "key": "wake", "idx": 0, "seat": 0, "targets": ["land_a"]},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 3}},
+  {"op": "cast", "key": "rift", "targets": ["land_a"]}
+ ],
+ "expect": {
+  "zone": {"land_a": "graveyard", "rift": "graveyard", "wake": "battlefield"}
+ }
+}

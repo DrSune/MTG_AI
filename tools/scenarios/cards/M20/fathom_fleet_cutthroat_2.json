@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "fathom_fleet_cutthroat_damage_last_turn_does_not_count",
+ "notes": "Printed: '... that was dealt damage THIS TURN.' P1's creature was dealt 1 damage on turn 1. On P0's turn 3 the Cutthroat enters: no creature was dealt damage this turn, so there is no legal target and nothing is destroyed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cut", "real": "Fathom Fleet Cutthroat", "zone": "hand", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "old_hurt", "name": "Old Hurt", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "old_hurt", "amount": 1},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "enter", "key": "cut"}
+ ],
+ "expect": {
+  "zone": {"cut": "battlefield", "old_hurt": "battlefield"},
+  "turn_seats": [0, 1, 0]
+ }
+}

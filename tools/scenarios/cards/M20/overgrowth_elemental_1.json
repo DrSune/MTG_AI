@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "overgrowth_elemental_etb_counter_on_another_elemental_you_control",
+ "notes": "Printed: 'When this creature enters, put a +1/+1 counter on another target Elemental you control.' Overgrowth enters with P0's two Elementals, P0's Bear and P1's Elemental on the battlefield. The target ask offers only P0's Elementals (the twins naming the Bear or P1's Elemental fail as unoffered); P0 picks Elemental Two, which gets the counter. Nothing else gets one (Overgrowth itself neither).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "og", "real": "Overgrowth Elemental", "zone": "hand", "controller": 0},
+  {"key": "el1", "name": "Elemental One", "type": "Creature — Elemental", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "el2", "name": "Elemental Two", "type": "Creature — Elemental", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_el", "name": "Opp Elemental", "type": "Creature — Elemental", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "og", "decisions": ["el2"]}
+ ],
+ "expect": {
+  "counters": {"el2": {"PLUS_1_PLUS_1": 1}, "el1": {}, "bear": {}, "opp_el": {}, "og": {}},
+  "power": {"el2": 3, "og": 3}
+ }
+}

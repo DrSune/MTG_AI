@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "marauding_raptor_noncreature_spell_pays_full",
+ "notes": "Printed: 'CREATURE spells you cast cost {1} less to cast.' Raise the Alarm ({1}{W}, an instant) is not reduced: with only {W} in the pool the cast is refused and the card stays in hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Marauding Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "alarm", "real": "Raise the Alarm", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "alarm", "expect_raise": "cost:mana_generic:0<1"}
+ ],
+ "expect": {
+  "zone": {"alarm": "hand"},
+  "tokens": {"Soldier": 0},
+  "mana_pool": {"0": {"W": 1}}
+ }
+}

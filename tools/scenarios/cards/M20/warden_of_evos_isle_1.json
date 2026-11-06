@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "warden_of_evos_isle_flying_creature_costs_1_less",
+ "notes": "Printed: 'Creature spells with flying you cast cost {1} less to cast.' With the Warden out, P0 casts Griffin Sentinel ({2}{W}, flying) for exactly {1}{W}: it resolves and the pool is empty.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "warden", "real": "Warden of Evos Isle", "zone": "battlefield", "controller": 0},
+  {"key": "griffin", "real": "Griffin Sentinel", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "griffin"}
+ ],
+ "expect": {
+  "zone": {"griffin": "battlefield"},
+  "mana_pool": {"0": {}}
+ }
+}

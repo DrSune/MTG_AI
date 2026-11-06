@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "mask_of_immolation_etb_one_1_1_elemental",
+ "notes": "Printed: 'When this Equipment enters, create a 1/1 red Elemental creature token, then attach this Equipment to it.' After the Mask enters there is exactly one Elemental token, a 1/1 (the Mask gives no P/T). Its twin (expecting the Mask unattached) fails with the token's handle as the host, so the Mask went onto the token.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mask", "real": "Mask of Immolation", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "mask"}
+ ],
+ "expect": {
+  "tokens": {"Elemental": 1},
+  "battlefield_pt": {"Elemental": [1, 1]},
+  "zone": {"mask": "battlefield"},
+  "power": {"bear": 2}
+ }
+}

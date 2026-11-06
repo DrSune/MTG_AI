@@ -425,5 +425,48 @@
  },
  "probe": {
   "sha": "e7caa17910ca57e81d18854c0978b12cc43d773729d7e617a478e13b00f3f8bd"
+ },
+ "verified": {
+  "tree_sha": "0a72423fc71947583836fdb86d12de2ec92db5672140164576b8aa467613742e",
+  "probe_sha": "e7caa17910ca57e81d18854c0978b12cc43d773729d7e617a478e13b00f3f8bd",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "This spell can't be countered.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No counterspell in the probe. Tree: PREVENT_EFFECT over CounteredEvent(IS_SOURCE) = compiled template B14-this-spell-cant-be-countered. Pack shifting_ceratops_1: P1's Convolute (unpayable) resolves, the Ceratops still enters; twin expecting it countered fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Protection from blue",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe shows keywords +PROTECTION (tree params COLOR_HAS 'U') but no blue object acts on it. Packs: shifting_ceratops_2 (2 damage from a blue source prevented, 1 from a green source marked; P1's blue Unsummon refused 'illegal target selection'), shifting_ceratops_3 (P1's blue wall never offered a block, the green wall is).",
+    "issue": ""
+   },
+   {
+    "clause": "{G}: This creature gains your choice of reach, trample, or haste until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [1]] 'ask choose: [0, 1, 2]' -> +REACH / +TRAMPLE / +HASTE, each removed after the turn ends; mana G-1. Packs shifting_ceratops_5 (trample now) and _4 (none of the three after the turn).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/shifting_ceratops_1.json",
+   "tools/scenarios/cards/M20/shifting_ceratops_2.json",
+   "tools/scenarios/cards/M20/shifting_ceratops_3.json",
+   "tools/scenarios/cards/M20/shifting_ceratops_4.json",
+   "tools/scenarios/cards/M20/shifting_ceratops_5.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 13,
+   "score": 0.8125,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/options/0/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/options/1/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/options/2/args/target/filter"
+   ]
+  }
  }
 }

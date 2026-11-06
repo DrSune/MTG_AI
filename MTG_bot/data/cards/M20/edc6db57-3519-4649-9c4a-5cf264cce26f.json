@@ -342,5 +342,48 @@
  },
  "probe": {
   "sha": "364f65b992d7fdd70ca11a65397263a55012e8da103bd84d54e877b4a89e523e"
+ },
+ "verified": {
+  "tree_sha": "5e67a2d7682982c148b6ea47b81734e69720515104e4b1df1acc9f7c43a6c496",
+  "probe_sha": "364f65b992d7fdd70ca11a65397263a55012e8da103bd84d54e877b4a89e523e",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "{G}{G}{G}{G}{G}: Untap target land you control.",
+    "status": "OK",
+    "evidence": "[activate [0]] mana G-5, target slot 1..1 of [you_land] only. The land was untapped already: pack wakeroot_elemental_1 untaps a tapped land.",
+    "issue": ""
+   },
+   {
+    "clause": "It becomes a 5/5 Elemental creature with haste.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace shows only 'you_land: keywords +HASTE' (kept after the turn ends); the probe snapshot shows no P/T or type for a land. Pack wakeroot_elemental_1: both lands 5/5, the one played this turn attacks at once (P1 20 -> 15), still 5/5 after the turn ends; without the activation it cannot attack.",
+    "issue": ""
+   },
+   {
+    "clause": "It's still a land.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack wakeroot_elemental_2: Tectonic Rift ('Destroy target nonbasic land') targets and destroys the animated land; aimed at the Wakeroot it is refused.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/wakeroot_elemental_1.json",
+   "tools/scenarios/cards/M20/wakeroot_elemental_2.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 9,
+   "score": 0.6,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "drop step 2 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/1/args/power",
+    "amount-1 at 1/0/effect/steps/1/args/power",
+    "amount+1 at 1/0/effect/steps/1/args/toughness",
+    "amount-1 at 1/0/effect/steps/1/args/toughness"
+   ]
+  }
  }
 }

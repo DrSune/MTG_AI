@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "warden_of_evos_isle_nonflyer_pays_full",
+ "notes": "Printed: 'Creature spells WITH FLYING you cast cost {1} less to cast.' Centaur Courser ({2}{G}, no flying) is not reduced: with {G} and one colorless the cast is refused before paying.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "warden", "real": "Warden of Evos Isle", "zone": "battlefield", "controller": 0},
+  {"key": "courser", "real": "Centaur Courser", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "courser", "expect_raise": "cost:mana_generic:1<2"}
+ ],
+ "expect": {
+  "zone": {"courser": "hand"},
+  "mana_pool": {"0": {"G": 1, "C": 1}}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "shifting_ceratops_blue_creature_cannot_block",
+ "notes": "Printed: 'Protection from blue' (can't be blocked by blue creatures). The Ceratops attacks; P1's blue wall is never offered a block of it, P1's green wall is offered and declines, so P1 takes 5.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ceratops", "real": "Shifting Ceratops", "zone": "battlefield", "controller": 0},
+  {"key": "blue_wall", "name": "Blue Wall", "type": "Creature", "power": "0", "toughness": "6", "colors": ["U"], "zone": "battlefield", "controller": 1},
+  {"key": "green_wall", "name": "Green Wall", "type": "Creature", "power": "0", "toughness": "6", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ceratops": true}, "block": {"green_wall": null}}
+ ],
+ "expect": {
+  "life": {"1": 15},
+  "blocked": {"ceratops": []},
+  "block_asks": {"green_wall": "<ceratops>,NONE"},
+  "not_asked_to_block": ["blue_wall"]
+ }
+}

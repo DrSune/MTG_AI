@@ -1,0 +1,26 @@
+{
+ "set": "FDN",
+ "name": "blanchwood_armor_on_opponents_creature_counts_your_forests",
+ "notes": "Pfe860dcb92 G4. Printed: 'Enchant creature / Enchanted creature gets +1/+1 for each Forest you control.' 'You' is the Aura's controller. Seat 0 controls two Forests, seat 1 controls three. Seat 0 casts Blanchwood Armor on seat 1's 3/3 Wolf: the Wolf is a 5/5 (+2/+2 for seat 0's two Forests, not +3/+3 for its own controller's).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "armor", "real": "Blanchwood Armor", "zone": "hand", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 1},
+  {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "f2", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "of1", "real": "Forest", "zone": "battlefield", "controller": 1},
+  {"key": "of2", "real": "Forest", "zone": "battlefield", "controller": 1},
+  {"key": "of3", "real": "Forest", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "armor", "targets": ["wolf"]}
+ ],
+ "expect": {
+  "zone": {"armor": "battlefield"},
+  "attached": {"armor": "wolf"},
+  "controller": {"armor": 0, "wolf": 1},
+  "power": {"wolf": 5},
+  "toughness": {"wolf": 5}
+ }
+}

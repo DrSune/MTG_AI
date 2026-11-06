@@ -1,0 +1,124 @@
+{
+ "set": "M20",
+ "name": "ogre_siegebreaker_destroys_creatures_dealt_damage_this_turn",
+ "notes": "Printed: '{2}{B}{R}: Destroy target creature that was dealt damage this turn.' P1's Opp Hurt and P0's Mine Hurt were dealt 1 damage this turn, P1's Fresh was not. Targeting Fresh is refused before paying; paying {2}{B}{R} destroys Opp Hurt, and paying again destroys P0's own Mine Hurt (no controller restriction). Exactly {2}{B}{R} is added before each paid activation and all of it is spent; the refused activation spends nothing (its mana pays the next one).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Ogre Siegebreaker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pinger",
+   "name": "Pinger",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opp_hurt",
+   "name": "Opp Hurt",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "fresh",
+   "name": "Fresh",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mine_hurt",
+   "name": "Mine Hurt",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "pinger",
+   "target": "opp_hurt",
+   "amount": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "pinger",
+   "target": "mine_hurt",
+   "amount": 1
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 1,
+    "R": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "ogre",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "fresh"
+   ],
+   "expect_raise": "target:selection:off_population"
+  },
+  {
+   "op": "activate",
+   "key": "ogre",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "opp_hurt"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 1,
+    "R": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "ogre",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "mine_hurt"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "opp_hurt": "graveyard",
+   "fresh": "battlefield",
+   "mine_hurt": "graveyard",
+   "ogre": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

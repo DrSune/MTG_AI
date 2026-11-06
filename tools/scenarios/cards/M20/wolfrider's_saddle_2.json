@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "wolfriders_saddle_etb_wolf_wears_it",
+ "notes": "Printed: 'When this Equipment enters, create a 2/2 green Wolf creature token, then attach this Equipment to it.' plus 'Equipped creature gets +1/+1'. After the Saddle enters there is exactly one Wolf token and it is 3/3 (2/2 base plus the Saddle), so the Saddle went onto that token; the Bear is untouched at 2/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "saddle", "real": "Wolfrider's Saddle", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "saddle"}
+ ],
+ "expect": {
+  "tokens": {"Wolf": 1},
+  "battlefield_pt": {"Wolf": [3, 3]},
+  "power": {"bear": 2},
+  "zone": {"saddle": "battlefield"}
+ }
+}

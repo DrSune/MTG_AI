@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "storm_fleet_spy_raid_draws_after_attack",
+ "notes": "P3daf587247 G4. Printed: 'Raid - When this creature enters, if you attacked this turn, draw a card.' Seat 0 attacks with a 2/2 Bear (seat 1 takes 2), then casts Storm Fleet Spy ({2}{U}) in its postcombat main phase: the trigger draws exactly one card (hand 1 -> 0 on the cast -> 1), the top filler card, so the library keeps five.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "spy", "real": "Storm Fleet Spy", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 2}},
+  {"op": "cast", "key": "spy"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"spy": "battlefield"},
+  "hand": {"0": 1, "1": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "set": "M20",
+ "name": "wolfriders_saddle_token_equip_one_blocker_sorcery_speed",
+ "notes": "Printed: 'When this Equipment enters, create a 2/2 green Wolf creature token, then attach this Equipment to it. Equipped creature gets +1/+1 and can't be blocked by more than one creature. Equip {3}' (equip only as a sorcery). Entering makes one Wolf, which wears the Saddle (checked in the twin by its P/T). Equip {3} on P0's turn moves the Saddle to the Bear: the Bear is 3/3 and the Wolf 2/2. The Bear attacks; Wall A blocks it and Wall B is never offered a block (CR 509.1b). On P1's turn the equip is refused before anything is paid (the 3 colorless stay in the pool).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "saddle", "real": "Wolfrider's Saddle", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Bear Two", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall_a", "name": "Wall A", "type": "Creature", "power": "0", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "wall_b", "name": "Wall B", "type": "Creature", "power": "0", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "saddle"},
+  {"op": "mana", "seat": 0, "add": {"C": 3}},
+  {"op": "activate", "key": "saddle", "idx": 2, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "bear2": false}, "block": {"wall_a": "bear"}},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 3}},
+  {"op": "activate", "key": "saddle", "idx": 2, "seat": 0, "targets": ["bear2"], "expect_raise": "window:sorcery:not_own_turn"}
+ ],
+ "expect": {
+  "attached": {"saddle": "bear"},
+  "power": {"bear": 3, "bear2": 2},
+  "toughness": {"bear": 3, "bear2": 2},
+  "tokens": {"Wolf": 1},
+  "battlefield_pt": {"Wolf": [2, 2]},
+  "blocked": {"bear": ["wall_a"]},
+  "block_asks": {"wall_a": "<bear>,NONE"},
+  "not_asked_to_block": ["wall_b"],
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {"C": 3}}
+ }
+}

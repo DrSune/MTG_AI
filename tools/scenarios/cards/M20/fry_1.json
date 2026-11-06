@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "fry_negate_cannot_counter_it",
+ "notes": "Printed: 'This spell can't be countered. Fry deals 5 damage to target creature or planeswalker that's white or blue.' P0 Fries P1's blue 2/2; P1 responds with Negate (counter target noncreature spell). Negate resolves but Fry is not countered: the blue creature takes 5 and dies; both spells end in their owners' graveyards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fry", "real": "Fry", "zone": "hand", "controller": 0},
+  {"key": "negate", "real": "Negate", "zone": "hand", "controller": 1},
+  {"key": "blue_bear", "name": "Blue Bear", "type": "Creature", "power": "2", "toughness": "2", "colors": ["U"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "fry", "targets": ["blue_bear"], "decisions": ["negate"]}
+ ],
+ "expect": {
+  "zone": {"fry": "graveyard", "negate": "graveyard", "blue_bear": "graveyard"},
+  "window_asks": {"1": ["negate"]}
+ }
+}

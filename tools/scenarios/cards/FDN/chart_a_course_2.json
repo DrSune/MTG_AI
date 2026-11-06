@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "chart_a_course_discards_without_attack",
+ "notes": "Pad508e35a0 G4, the twin. Printed: 'Draw two cards. Then discard a card unless you attacked this turn.' Seat 0 goes to combat but declares no attacker, then casts Chart a Course in its postcombat main phase: it draws two cards, then must discard one; it picks the Spare card it already held. Hand 2 -> 1 on the cast -> 3 -> 2; the graveyard holds Chart a Course and Spare.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "chart", "real": "Chart a Course", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": false}},
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "chart", "decisions": ["spare"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"chart": "graveyard", "spare": "graveyard"},
+  "hand": {"0": 2},
+  "graveyard": {"0": ["Chart a Course", "Spare"]},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

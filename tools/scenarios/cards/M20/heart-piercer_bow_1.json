@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "heart_piercer_bow_equipped_attacker_pings_defenders_creature",
+ "notes": "Printed: 'Whenever equipped creature attacks, this Equipment deals 1 damage to target creature defending player controls. Equip {1}'. Equip {1} on P0's turn attaches the Bow to the Bear (the one colorless is spent). The Bear attacks; the trigger's target is P1's Opp B (P1's creatures are the legal targets; P0's Bear Two is not, see the twin): Opp B has 1 damage, Opp A none, and the unblocked Bear deals 2 to P1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bow", "real": "Heart-Piercer Bow", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Bear Two", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_a", "name": "Opp A", "type": "Creature", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "opp_b", "name": "Opp B", "type": "Creature", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "bow", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "bear2": false}, "decisions": ["opp_b"]}
+ ],
+ "expect": {
+  "attached": {"bow": "bear"},
+  "damage": {"opp_b": 1},
+  "life": {"0": 20, "1": 18},
+  "attackers": {"bear": true, "bear2": false}
+ }
+}

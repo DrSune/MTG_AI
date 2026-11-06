@@ -1,19 +1,22 @@
 {
  "set": "FDN",
+ "name": "stasis_snare_exiles_until_it_leaves",
+ "notes": "P50a878933a G4, the twin of stasis_snare_returns_the_creature_when_it_leaves. While the Snare stays on the battlefield the Wolf stays in exile, across turns (it is not a 'this turn' effect): seat 0 exiles seat 1's Wolf, the turn passes to seat 1 and back to seat 0, and the Wolf is still in exile.",
  "world": {"life": 20, "seed": 7},
- "notes": "Stasis Snare has Flash: 'You may cast this spell any time you could cast an instant.' On the opponent's turn you cast it (an enchantment without flash could not be cast then) and its trigger exiles their 3/3 while the Snare stays on the battlefield.",
  "cards": [
   {"key": "snare", "real": "Stasis Snare", "zone": "hand", "controller": 0},
-  {"key": "ogre", "name": "Their Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 1}
  ],
+ "mana": {"0": {"W": 2, "C": 1}},
  "steps": [
+  {"op": "cast", "key": "snare", "decisions": ["wolf"]},
   {"op": "end_turn"},
   {"op": "advance_turn"},
-  {"op": "mana", "seat": 0, "add": {"W": 3}},
-  {"op": "cast", "key": "snare", "real": "Stasis Snare", "controller": 0, "decisions": ["ogre"]}
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
  ],
  "expect": {
-  "zone": {"snare": "battlefield", "ogre": "exile"},
-  "turn_seats": [0, 1]
+  "turn_seats": [0, 1, 0],
+  "zone": {"snare": "battlefield", "wolf": "exile"}
  }
 }

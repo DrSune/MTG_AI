@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "overgrowth_elemental_another_creature_dies_life_and_elemental_counter",
+ "notes": "Printed: 'Whenever another creature you control dies, you gain 1 life. If that creature was an Elemental, put a +1/+1 counter on this creature.' P0's Elemental dies: P0 gains 1 and Overgrowth gets a +1/+1 counter. Then P0's Bear dies: P0 gains 1 more, no second counter. Life 22, Overgrowth 4/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "og", "real": "Overgrowth Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "el1", "name": "Elemental One", "type": "Creature — Elemental", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "hitter", "name": "Hitter", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "hitter", "target": "el1", "amount": 5, "controller": 1},
+  {"op": "deal_damage", "source": "hitter", "target": "bear", "amount": 5, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"el1": "graveyard", "bear": "graveyard", "og": "battlefield"},
+  "life": {"0": 22, "1": 20},
+  "counters": {"og": {"PLUS_1_PLUS_1": 1}},
+  "power": {"og": 4},
+  "toughness": {"og": 3}
+ }
+}

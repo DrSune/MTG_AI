@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "marauding_raptor_opponents_dinosaur_not_hit",
+ "notes": "Printed: 'Whenever another creature YOU CONTROL enters ...'. A Dinosaur entering under P1 is not dealt damage and the Raptor is not pumped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Marauding Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "dino", "name": "Opp Dino", "type": "Creature — Dinosaur", "power": "3", "toughness": "4", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "dino"}
+ ],
+ "expect": {
+  "zone": {"dino": "battlefield"},
+  "power": {"raptor": 2}
+ }
+}

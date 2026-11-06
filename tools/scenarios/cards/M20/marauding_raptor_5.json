@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "marauding_raptor_dinosaur_bonus_ends_at_end_of_turn",
+ "notes": "Printed: '... this creature gets +2/+0 UNTIL END OF TURN.' After the Dinosaur's entry pumps the Raptor, the turn ends: the Raptor is back to 2/3 (and the damage is gone at cleanup).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raptor", "real": "Marauding Raptor", "zone": "battlefield", "controller": 0},
+  {"key": "dino", "name": "Big Dino", "type": "Creature — Dinosaur", "power": "3", "toughness": "4", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "dino"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"dino": "battlefield"},
+  "power": {"raptor": 2},
+  "toughness": {"raptor": 3}
+ }
+}

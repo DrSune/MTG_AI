@@ -229,5 +229,42 @@
  },
  "probe": {
   "sha": "cb48bd36aeff219301316b676fdfd4338af07e220ef2f89be59342dfa45d01c4"
+ },
+ "verified": {
+  "tree_sha": "fd4e2a3af20276bbb9e5ec71888f320f53a583a82c86f35fdb43233fe3544c97",
+  "probe_sha": "cb48bd36aeff219301316b676fdfd4338af07e220ef2f89be59342dfa45d01c4",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "This spell can't be countered.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No counterspell in the probe. Compiled template B14. Pack thought_distortion_1: P1's Negate resolves, the spell still resolves.",
+    "issue": ""
+   },
+   {
+    "clause": "Target opponent reveals their hand.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [opp]; REVEAL (TARGET_OPPONENT, all) as Duress's compiled sentence; reveal is information only.",
+    "issue": ""
+   },
+   {
+    "clause": "Exile all noncreature, nonland cards from that player's hand and graveyard.",
+    "status": "OK",
+    "evidence": "opp_trick hand -> exile, opp_used graveyard -> exile; creatures opp_spare and opp_fallen stay (opp hand 2 -> 1). The probe had no land there: pack thought_distortion_1 (lands and an artifact creature stay; instant, sorcery, enchantment and the resolved Negate exiled; P0's own cards untouched).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/thought_distortion_1.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 4,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 1) at 1/1/effect/steps/1/args/target/filter"
+   ]
+  }
  }
 }

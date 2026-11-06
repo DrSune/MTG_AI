@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "shifting_ceratops_protection_from_blue_damage_and_targeting",
+ "notes": "Printed: 'Protection from blue' (CR 702.16: not dealt damage or targeted by anything blue). 2 damage from a blue source is prevented; 1 damage from a green source is not (the Ceratops has 1 damage). P1's blue Unsummon cannot target it (refused).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ceratops", "real": "Shifting Ceratops", "zone": "battlefield", "controller": 0},
+  {"key": "blue_src", "name": "Blue Source", "type": "Creature", "power": "1", "toughness": "1", "colors": ["U"], "zone": "battlefield", "controller": 1},
+  {"key": "green_src", "name": "Green Source", "type": "Creature", "power": "1", "toughness": "1", "colors": ["G"], "zone": "battlefield", "controller": 1},
+  {"key": "unsummon", "real": "Unsummon", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"U": 1}},
+ "steps": [
+  {"op": "deal_damage", "source": "blue_src", "target": "ceratops", "amount": 2, "controller": 1},
+  {"op": "deal_damage", "source": "green_src", "target": "ceratops", "amount": 1, "controller": 1},
+  {"op": "cast", "key": "unsummon", "controller": 1, "targets": ["ceratops"], "expect_raise": "illegal target selection"}
+ ],
+ "expect": {
+  "damage": {"ceratops": 1},
+  "zone": {"ceratops": "battlefield", "unsummon": "hand"}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "mask_of_immolation_ping_a_creature",
+ "notes": "Printed: 'Sacrifice this creature: It deals 1 damage to any target.' The equipped Bear is sacrificed and deals 1 damage to P1's 2/2: it has 1 damage, P1's life is unchanged.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mask", "real": "Mask of Immolation", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_c", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "mask", "host": "bear"},
+  {"op": "activate", "key": "bear", "idx": -1, "seat": 0, "targets": ["opp_c"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"bear": "graveyard", "opp_c": "battlefield", "mask": "battlefield"},
+  "damage": {"opp_c": 1}
+ }
+}

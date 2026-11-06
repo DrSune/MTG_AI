@@ -161,5 +161,42 @@
  },
  "probe": {
   "sha": "c230796aa300155fe5caeb6848b01b6e166bbe78ada96d60d7b10ccbeb8c6e94"
+ },
+ "verified": {
+  "tree_sha": "50addcf117221a03e290df4f9d2f10b939fac146b4b8afaf3a42ab494219251f",
+  "probe_sha": "c230796aa300155fe5caeb6848b01b6e166bbe78ada96d60d7b10ccbeb8c6e94",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 4; keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "Raid — When this creature enters, if you attacked this turn, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree = the compiler's B13-etb+if+B5a-draw-one parse. Trace: [cast] without an attack and the opponent's-turn entry draw nothing (right); no variant attacks first. Packs (pass): skyship_buccaneer_raid_draws_after_attack (one card drawn after attacking, cast in the postcombat main), skyship_buccaneer_no_draw_without_your_attack (no attacker declared; entry after the opponent attacked).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/skyship_buccaneer_1.json",
+   "tools/scenarios/cards/FDN/skyship_buccaneer_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 2,
+   "score": 0.25,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/condition",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/who",
+    "amount+1 at 1/0/condition/children/1/count",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
  }
 }

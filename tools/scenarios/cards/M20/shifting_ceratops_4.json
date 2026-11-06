@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "shifting_ceratops_trample_until_end_of_turn",
+ "notes": "Printed: '{G}: This creature gains your choice of reach, trample, or haste until end of turn.' P0 pays {G} and picks trample (the second option): the Ceratops has trample, and after the turn ends it has none of the three.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ceratops", "real": "Shifting Ceratops", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "activate", "key": "ceratops", "idx": 1, "seat": 0, "decisions": ["1"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Shifting Ceratops": []},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "pilfer_land_never_offered",
+ "notes": "Pddc71b7357 G4. Printed: 'You choose a nonland card from it.' Seat 1 holds a Forest (card:1), an Elf creature card (card:2) and a Trick instant card (card:3). Seat 0 casts Pilfer at seat 1 with no decision primed: the step stops at the choice, and its offered words are exactly the two nonland cards (positions 0 and 1, aliased by their handles card:2 and card:3); the Forest is never offered.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pilfer", "real": "Pilfer", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "hand", "controller": 1},
+  {"key": "elf", "name": "Elf", "power": "1", "toughness": "1", "type": "Creature — Elf", "zone": "hand", "controller": 1},
+  {"key": "trick", "name": "Trick", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "pilfer", "targets": ["p1"], "expect_raise": "needs a decision from ('0', '1', 'card:2', 'card:3')"}
+ ],
+ "expect": {
+  "zone": {"forest": "hand", "elf": "hand", "trick": "hand"}
+ }
+}

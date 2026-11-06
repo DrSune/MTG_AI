@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "bristling_boar_only_one_blocker",
+ "notes": "Printed: 'This creature can't be blocked by more than one creature.' (CR 509.1b). The Boar attacks; Wall A blocks it and Wall B is never offered a block. The Boar deals its 4 to Wall A; P1 takes nothing. The twin asking both walls to block fails: only Wall A blocks.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boar", "real": "Bristling Boar", "zone": "battlefield", "controller": 0},
+  {"key": "wall_a", "name": "Wall A", "type": "Creature", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "wall_b", "name": "Wall B", "type": "Creature", "power": "0", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"boar": true}, "block": {"wall_a": "boar"}}
+ ],
+ "expect": {
+  "blocked": {"boar": ["wall_a"]},
+  "block_asks": {"wall_a": "<boar>,NONE"},
+  "not_asked_to_block": ["wall_b"],
+  "damage": {"wall_a": 4},
+  "life": {"1": 20}
+ }
+}

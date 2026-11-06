@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "pilfer_nonland_only",
+ "notes": "Pddc71b7357 G4. Printed: 'Target opponent reveals their hand. You choose a nonland card from it. That player discards that card.' Seat 1 holds a Forest, an Elf creature card and a Trick instant card. Seat 0 casts Pilfer ({1}{B}) at seat 1 and chooses the Elf: seat 1 discards exactly the Elf; the Forest and the Trick stay in its hand. Seat 0's own hand is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pilfer", "real": "Pilfer", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "Mine", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "hand", "controller": 1},
+  {"key": "elf", "name": "Elf", "power": "1", "toughness": "1", "type": "Creature — Elf", "zone": "hand", "controller": 1},
+  {"key": "trick", "name": "Trick", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "pilfer", "targets": ["p1"], "decisions": ["elf"]}
+ ],
+ "expect": {
+  "zone": {"pilfer": "graveyard", "elf": "graveyard", "forest": "hand", "trick": "hand", "mine": "hand"},
+  "hand": {"0": 1, "1": 2},
+  "graveyard": {"0": ["Pilfer"], "1": ["Elf"]}
+ }
+}

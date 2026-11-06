@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "savage_gorger_loss_on_an_earlier_turn_does_not_count",
+ "notes": "Printed: 'At the beginning of YOUR end step, if an opponent lost life THIS TURN ...'. On P1's turn P0 Shocks P1 (P1's end step passes: not P0's). On P0's next turn nobody loses life, so at P0's end step the Gorger gets no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gorger", "real": "Savage Gorger", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "cast", "key": "shock", "targets": ["p1"]},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "counters": {"gorger": {}},
+  "turn_seats": [0, 1, 0]
+ }
+}

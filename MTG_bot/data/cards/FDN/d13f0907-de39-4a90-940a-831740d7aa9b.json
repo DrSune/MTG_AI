@@ -211,5 +211,42 @@
  },
  "probe": {
   "sha": "6ef377d113e979c235bc14689b61ef48ebfdc40e12e78ec11cb02209a98086aa"
+ },
+ "verified": {
+  "tree_sha": "dcc2475ddb50daea30c00cabd8e90c89809dff35228f59c32a3ec56826b3ed04",
+  "probe_sha": "6ef377d113e979c235bc14689b61ef48ebfdc40e12e78ec11cb02209a98086aa",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-r3",
+  "clauses": [
+   {
+    "clause": "Target opponent reveals their hand.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [opp], only the opponent (B5b-reveal-hand parse). The reveal itself is information only (a recorded no-op): no state or option changes.",
+    "issue": ""
+   },
+   {
+    "clause": "You choose a nonland card from it.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: ask choose [0, 1, opp_spare, opp_trick] (indices plus handle aliases, verbs.py:1923-1941), but the probe's opponent hand holds no land, so 'nonland' is untested. Packs (pass): pilfer_nonland_only, pilfer_land_never_offered (the ask offers exactly the two nonland cards), pilfer_only_lands_discards_nothing (no ask, nothing discarded). A widened-filter mutant is killed.",
+    "issue": ""
+   },
+   {
+    "clause": "That player discards that card.",
+    "status": "OK",
+    "evidence": "[cast | ask -> opp_spare/0]: 'opp_spare moves hand -> graveyard'; [-> opp_trick/1]: 'opp_trick moves hand -> graveyard'; opp hand 2 -> 1 (B5b-that-player-discards parse).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/pilfer_1.json",
+   "tools/scenarios/cards/FDN/pilfer_2.json",
+   "tools/scenarios/cards/FDN/pilfer_3.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

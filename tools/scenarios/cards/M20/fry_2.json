@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "fry_white_planeswalker",
+ "notes": "Printed: '... target creature or PLANESWALKER that's white or blue.' Fry deals 5 damage to P1's Ajani, Inspiring Leader (white, loyalty 5): it loses 5 loyalty and goes to the graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fry", "real": "Fry", "zone": "hand", "controller": 0},
+  {"key": "ajani", "real": "Ajani, Inspiring Leader", "zone": "battlefield", "controller": 1, "counters": {"LOYALTY": 5}}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fry", "targets": ["ajani"]}
+ ],
+ "expect": {
+  "zone": {"fry": "graveyard", "ajani": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

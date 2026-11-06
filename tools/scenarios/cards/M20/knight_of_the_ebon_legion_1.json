@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "knight_ebon_legion_opponent_lost_4_over_two_shocks",
+ "notes": "Printed: 'At the beginning of your end step, if a player lost 4 or more life this turn, put a +1/+1 counter on this creature.' P0 Shocks P1 twice (2 + 2): one player lost 4 this turn, so at P0's end step the Knight gets one +1/+1 counter (1/2 -> 2/3).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "knight", "real": "Knight of the Ebon Legion", "zone": "battlefield", "controller": 0},
+  {"key": "shock1", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "shock2", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "shock1", "targets": ["p1"]},
+  {"op": "cast", "key": "shock2", "targets": ["p1"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 16},
+  "counters": {"knight": {"PLUS_1_PLUS_1": 1}},
+  "power": {"knight": 2},
+  "toughness": {"knight": 3}
+ }
+}
