@@ -396,3 +396,31 @@ Predictions:
   and raises with the row's ask, option count and whether its logits were NaN or all -inf (36ed712,
   no randomness used). r20 resumed from update 28 at 36ed712 (pre-flight passed; the AdamW moments
   restart on resume).
+
+## 20. r20 result: the corrected game re-baselined; no anchor gain, and no casting after combat (2026-11-06)
+| Version | Frozen at | Gate vs predecessor (deal-level 95%) | Ladder vs heuristic | Elo (random 0) |
+|---|---|---|---|---|
+| v0 | init (r19 v3) | - | 0.665 | 355.8 |
+| v1 | 7 (teacher gate 0.656) | - | 0.663 | 352.3 |
+| v2 | 72 | 0.519 [0.5013, 0.537] vs v1 | 0.688 | 363.9 |
+Heuristic 232.2 on this ladder. Stopped at update 87, the decision point (self-play update 80); no
+voids in ~220,000 training games after the update-28 crash and resume.
+- Prediction 1 (v0 vs heuristic on the new game 0.60-0.68): **hit**, 0.665.
+- Prediction 2 (a version >= v0 + 25 Elo by self-play update 80): **falsified**: v2 +8.1.
+- Prediction 3 (casting after combat in >= 5 of 24 traced games): **falsified**: 0 of 24. The network
+  met 29 real second-main decisions and passed every one; the options left after combat were mostly
+  combat abilities (Selfless Savior, Frilled Sea Serpent's "can't be blocked"), and it still casts
+  everything before combat, as in the game it learned. Against the heuristic, which does not use
+  what it sees, casting after combat gains little, so there is little signal to learn it from.
+Reading: three runs (r18, r19, r20) gain ~10-15 Elo per 80 self-play updates against fixed anchors.
+r21 changes the training deals.
+
+## 21. r21: pre-registration (written before launch, 2026-11-06)
+Change vs r20: one: --coherent-share 1.0 (every training game deals two-colour coherent decks; r20 dealt half five-colour ~13-land stress piles). Gates and ladder unchanged (half stress, half coherent). Engine: main 9a364d0 (r20's game plus the permission-cast response window, defender-chosen blocks for must-be-blocked attackers, colourless-first generic payment; 3 of 100 seeded M21 heuristic games differ from r20's code).
+
+Hypothesis: Mana decides most stress deals (85% split 1-1 between two networks, coherent 65%; /184 §15), so training only on coherent decks gives about twice the skill signal per game and the network gains against fixed anchors faster, at least on coherent deals. Init: runs/selfplay/r20_ppo/v2.pt (r20's last frozen version, 364 Elo on r20's ladder).
+
+Predictions:
+- ladder vs heuristic, coherent deals: a version >= v0 + 0.04 within 60 self-play updates; falsified by no version above v0 + 0.02 by self-play update 80.
+- ladder vs heuristic, stress deals: stays within 0.04 of v0; falsified by two consecutive ladder evals below v0 - 0.05.
+- Elo of r21's frozen versions: a version >= v0 + 25 on r21's ladder; falsified by none by self-play update 80.
