@@ -39,7 +39,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.executor.query import activation_target_slots
-from MTG_bot.core.executor.stack import can_designate, cast, slot_options
+from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD
 from MTG_bot.core.test_executor_binding import card_id, record_of
 from MTG_bot.core.test_executor_stack import StackCase
@@ -211,11 +211,13 @@ class TestDriverOracle(TargetSlotsCase):
     def test_a_candidate_that_leaves_a_later_slot_empty_is_not_offered(self):
         # "Target creature gets +1/+0. Another target creature you control is dealt 1 damage."
         # The second slot can only take Mine, so the first must not.
+        from MTG_bot.core.ability_tree import SpellAbility
+        from MTG_bot.core.executor.query import spell_target_slots
+        from MTG_bot.core.executor.stack import can_designate, slot_options
+
         spell = self.spell(
             "Pair", pump(target(QConst(1)), 1), damage(target(QConst(1), ControllerRef.YOU, ANOTHER), 1)
         )
-        from MTG_bot.core.ability_tree import SpellAbility
-        from MTG_bot.core.executor.query import spell_target_slots
 
         node = next(a for a in self.ex.binder.handle_record[spell].abilities if isinstance(a, SpellAbility))
 
