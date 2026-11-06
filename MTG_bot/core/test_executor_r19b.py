@@ -42,10 +42,8 @@ from MTG_bot.core.ability_tree import (
     CostManaGeneric,
     CostModifier,
     CreatureDiesEvent,
-    FAnd,
     FAtom,
     FAtomPred,
-    FOr,
     QConst,
     ReplacementAbility,
     Seq,
@@ -69,9 +67,7 @@ from MTG_bot.core.state import (
 )
 from MTG_bot.core.test_executor_binding import (
     BF_ANY,
-    BF_YOU,
     HAND_YOU,
-    LIB_YOU,
     UNIV,
     BindingCase,
     atom,

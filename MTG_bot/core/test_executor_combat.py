@@ -116,14 +116,6 @@ class CombatCase(unittest.TestCase):
         # conservative skip, everything else takes the first legal word.
         return "skip" if "skip" in vocab else vocab[0]
 
-    def attack_sites(self):
-        """The handles the engine asked about, in ask order."""
-        return [
-            what.split(":", 2)[1] + ":" + what.split(":", 2)[2].rsplit(":", 1)[0]
-            for _vocab, what in self.seen_asks
-            if what.startswith("attack:")
-        ]
-
     def asks_for(self, handle) -> list[tuple[tuple[str, ...], str]]:
         tag = f"attack:{handle}:"
         return [a for a in self.seen_asks if a[1].startswith(tag)]

@@ -121,27 +121,6 @@ def _record(set_name: str, card_name: str):
     raise KeyError((set_name, card_name))
 
 
-def _one_of_selectors(root) -> list:
-    """Every ONE_OF-mode Selector reachable from ``root`` (dataclass walk)."""
-    out: list = []
-
-    def walk(x):
-        if isinstance(x, (list, tuple)):
-            for y in x:
-                walk(y)
-            return
-        if not (dataclasses.is_dataclass(x) and not isinstance(x, type)):
-            return
-        if isinstance(x, Selector) and x.mode is SelectorMode.ONE_OF:
-            out.append(x)
-            return
-        for f in dataclasses.fields(x):
-            walk(getattr(x, f.name))
-
-    walk(root)
-    return out
-
-
 def _choose_selectors(root):
     """(holder_class_name, verb-name-or-None, zones-spec, count-value) for
     every CHOOSE-mode Selector reachable from ``root``."""

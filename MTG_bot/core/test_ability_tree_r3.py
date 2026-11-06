@@ -69,10 +69,6 @@ def _spell_effectless_bare() -> at.SpellAbility:
     return at.SpellAbility(at.SpellKind.CREATURE, None)
 
 
-def _spell_explicit_none() -> at.SpellAbility:
-    return at.SpellAbility(at.SpellKind.CREATURE, None)
-
-
 # ---- pinned pre-round-3 fingerprints (captured before any round-3 edit) ---
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [

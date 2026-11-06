@@ -255,10 +255,6 @@ def signatures_of(card: Any) -> list[str]:
     return out
 
 
-def compiled_card(sc: SetCompile, oid: str) -> CompileResult | None:
-    return sc.results.get(oid)
-
-
 def printed_only(raw: RawCard) -> CompileResult:
     """The card with its printed facts and no text: the base a mapper builds a refused card on."""
     from dataclasses import replace

@@ -1370,14 +1370,14 @@ class Selector:
 # ---- Filters ----
 
 
-def _set_sorted(items, *, keep_none: bool = False):
+def _set_sorted(items):
     """SET-R1a construction sort (ontology §3 SET-R1a rows, O3 construction
     law; ``AtomArgs.pairs`` :2541 precedent): sort by ``canonical_json`` —
     the ONE total order over heterogeneous IR elements (``Zone``/enum/dataclass
     elements are not natively orderable, so a bare ``sorted()`` TypeErrors).
-    Returns a tuple; ``None`` passes through when ``keep_none``."""
+    Returns a tuple (``()`` for ``None``)."""
     if items is None:
-        return None if keep_none else ()
+        return ()
     items = tuple(items)
     if len(items) < 2:
         return items

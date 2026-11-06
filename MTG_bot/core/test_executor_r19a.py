@@ -23,9 +23,7 @@ import dataclasses
 import unittest
 
 from MTG_bot.core.ability_tree import (
-    CardRecord,
     ControllerRef,
-    FAnd,
     FAtom,
     FAtomPred,
     LifeGainedEvent,
@@ -52,8 +50,6 @@ from MTG_bot.core.state import (
 from MTG_bot.core.test_executor_binding import (
     BF_YOU,
     LIB_YOU,
-    UNIV,
-    BF_ANY,
     GY_ANY,
     BindingCase,
     atom,

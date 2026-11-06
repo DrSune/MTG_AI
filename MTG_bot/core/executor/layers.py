@@ -1292,15 +1292,6 @@ class LayerRegistry:
             for layer in self.records
         )
 
-    def protections_of(self, handle: Handle) -> tuple[Filter, ...]:
-        """16c (CR 702.16c): the live PROTECTION quality filters on
-        ``handle`` — printed KeywordAbility rows and granted rows alike
-        (Baneslayer Angel's "protection from red and from black" compiles
-        as one PROTECTION keyword whose params carry the quality filters).
-        V44: the qualities of :meth:`protection_rows`, without their
-        coordinates; the consumers judge through ``legality.protected_from``."""
-        return tuple(quality for quality, _src, _ctrl in self.protection_rows(handle))
-
     def protection_rows(self, handle: Handle) -> tuple[tuple[Filter, Handle, Handle], ...]:
         """V44 (CR 702.16a): the live protection qualities on a permanent OR A PLAYER,
         each with the coordinates its quality is judged in: (quality filter, the
@@ -1373,12 +1364,12 @@ class LayerRegistry:
         (blocks EVERY opponent-controlled source) and the row's Filter
         for "Hexproof from {quality}" (Spined Megalodon's compiled
         COLOR_HAS-U param; a multi-quality row blocks from any of its
-        qualities, the ``protections_of`` pair-consumer's twin).
+        qualities, the ``protection_rows`` pair-consumer's twin).
 
         The loss-aware gate is ``_keywords`` (the materialized map, not a
         raw record scan): ``_apply_remove`` on a live LOSE_ABILITY strips
         the NAME while the originating layer records stay live, so a
-        record-scan like ``protections_of`` would keep a lost keyword
+        record-scan like ``protection_rows`` would keep a lost keyword
         blocking. Name-without-a-live-params-row: the printed identity
         seeds the NAME zone-lessly, so the nameless read is the bare
         blocking row. Zone relevance is the CONSUMER's guard (legality:

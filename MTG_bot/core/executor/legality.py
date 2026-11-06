@@ -1155,7 +1155,6 @@ def ability_playable(
     *,
     seat: Handle,
     stack_empty: bool = True,
-    condition_ctx_source: Handle | None = None,
 ) -> str | None:
     """Is ``handle``'s ``ability_idx``-th compiled ability activatable by
     ``seat`` right now? ``None`` when legal, else a machine-readable reason
@@ -1310,8 +1309,7 @@ def ability_playable(
     ):
         return "summoning sickness (CR 302.6) without haste"
     if ability.condition is not None:
-        subject = condition_ctx_source if condition_ctx_source is not None else handle
-        if not eval_filter(ability.condition, subject, ctx):
+        if not eval_filter(ability.condition, handle, ctx):
             return "condition:false"
     plan, reason = build_payment_plan(world, ctx, ability.cost, activation=handle)
     if plan is None:

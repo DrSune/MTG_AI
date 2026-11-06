@@ -48,7 +48,6 @@ from MTG_bot.core.ability_tree import (
     CostManaGeneric,
     DurationEot,
     EachPlayer,
-    Effect,
     FAnd,
     FAtom,
     FAtomPred,
@@ -134,13 +133,6 @@ def _target_sel() -> Selector:
         filter=UNIV,
         zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
     )
-
-
-def _spell_effect(record: CardRecord) -> Effect | None:
-    for ability in record.abilities:
-        if isinstance(ability, SpellAbility):
-            return ability.effect
-    raise AssertionError(f"{record.name} has no SpellAbility node")
 
 
 def _record_named(supply: Supply, name: str) -> CardRecord:

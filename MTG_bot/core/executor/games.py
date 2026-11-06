@@ -921,13 +921,11 @@ class TraceRecorder:
         self.libraries: dict[str, list[dict[str, str]]] = {}
         self._pending: list[dict[str, Any]] = []
         self._journal_pos = 0
-        self._ask_pos = 0
 
     # -- installation ----------------------------------------------------
     def attach(self, game: Game) -> None:
         self.game = game
         self._journal_pos = len(game.executor.journal.dump())
-        self._ask_pos = len(game.executor.decisions.ask_log)
 
     def wrap(self, answer: Any) -> Any:
         """Provider-lane recorder: logs (vocab, what, answer) at the ask.
@@ -1029,7 +1027,6 @@ class TraceRecorder:
                 }
             )
         self._journal_pos = len(rows)
-        self._ask_pos = len(game.executor.decisions.ask_log)
 
     def finalise(self, outcome: GameOutcome) -> dict[str, Any]:
         """Flush trailing lanes and assemble the whole game document."""
@@ -1299,7 +1296,6 @@ def play_game(
     deck_pairs_seed: int = 1409,
     turn_cap: int = TURN_CAP,
     supply: Supply | None = None,
-    raise_on_crash: bool = False,
     trace_path: Path | str | None = None,
     deck_mode: str = "stress",
 ) -> GameOutcome:
@@ -1308,8 +1304,7 @@ def play_game(
     A crash is never swallowed: the outcome carries the exception class, the
     raising frame, the turn, the last three acts and the stack contents, and the
     game ends right there — this engine has no rollback, and letting a corrupted
-    position keep playing would invent a result. ``raise_on_crash`` re-raises
-    instead, which is what ``--repro`` and the repro tests use.
+    position keep playing would invent a result.
     """
     supply = supply or get_supply(pool_mode)
     decks = deal_decks(seed, deck_pairs_seed, supply, deck_mode)
@@ -1341,8 +1336,6 @@ def play_game(
         outcome.reason = f"crash:{type(error).__name__}"
         outcome.crash = _describe_crash(game, error, policy, repro)
         _safe_coverage(game, outcome)
-        if raise_on_crash:
-            raise
     else:
         outcome.reason = game.reason
         _safe_coverage(game, outcome)

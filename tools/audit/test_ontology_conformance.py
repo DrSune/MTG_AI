@@ -560,7 +560,6 @@ def test_corpus_has_no_phantoms_and_no_new_choose_emissions(compiled):
 def test_corpus_filters_are_construction_sorted(compiled):
     """Every FAnd/FOr in the compiled pools is canonically sorted and has no
     same-class child — the SET-R1a law, verified on 305 compiled cards."""
-    import dataclasses
 
     from MTG_bot.core.ability_tree import canonical_json
 

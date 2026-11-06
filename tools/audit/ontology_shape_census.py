@@ -149,7 +149,6 @@ BRANCH_CLASSES = {
     "EachPlayer",
     "DelayedTrigger",
 }
-ORDERED_FIELDS = {"steps"}  # truly ordered; FAnd/FOr children tracked too (tagged)
 
 
 def classify_branch(node):

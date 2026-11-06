@@ -4,22 +4,15 @@ from __future__ import annotations
 
 import re
 import unittest
-from typing import Any
 
 from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     ControllerRef,
-    Cost,
-    Filter,
     Keyword,
     QConst,
-    SelectorMode,
-    Zone,
-    ZoneKind,
 )
 from MTG_bot.core.compiler.templates import (
-    AbilityOutcome,
     AmbiguityRecord,
     EffectOutcome,
     KeywordOutcome,
@@ -42,21 +35,6 @@ def _simple_keyword_template(tid: str, priority: int = 1) -> Template:
         build=lambda m: KeywordOutcome(keyword=Keyword.FLYING, params=()),
     )
 
-
-def _simple_effect_template(tid: str, priority: int = 1) -> Template:
-    """A template that matches 'Draw a card.' and returns an EffectOutcome."""
-    atom = Atom(
-        verb=_DRAW_VERB,
-        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
-    )
-    return Template(
-        tid=tid,
-        name="draw-one",
-        bucket="B5",
-        pattern=re.compile(r"^Draw a card\.$"),
-        priority=priority,
-        build=lambda m: EffectOutcome(effect=atom),
-    )
 
 
 # Lazy import to avoid circularity at module level

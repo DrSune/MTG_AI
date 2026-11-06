@@ -47,7 +47,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import CardIdentity
-from MTG_bot.core.compiler.templates import AbilityOutcome, EffectOutcome
+from MTG_bot.core.compiler.templates import AbilityOutcome
 from MTG_bot.core.compiler.templates_b8 import (
     TEMPLATES,
     _full_party,

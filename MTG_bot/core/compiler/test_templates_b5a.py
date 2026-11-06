@@ -23,7 +23,6 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     ActivationWindow,
     Atom,
-    AtomArgs,
     ControllerRef,
     Cost,
     CostDeltaReduceGeneric,
@@ -34,7 +33,6 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
-    CreatureDiesEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
@@ -607,14 +605,6 @@ def _as_atom(eff: Any) -> Atom:
     if not isinstance(eff, Atom):
         raise AssertionError(f"expected Atom, got {type(eff).__name__}")
     return eff
-
-
-def _find_shape(sent: str) -> tuple[str, str, str]:
-    """Find a shape entry by sentence."""
-    for s in SHAPES:
-        if s[0] == sent:
-            return s
-    raise AssertionError(f"sentence not in SHAPES: {sent!r}")
 
 
 # ---------------------------------------------------------------------------

@@ -2,8 +2,8 @@
 
 A provider used to receive only ``(vocab, what)``, which cannot name the decider. EachPlayer re-asks
 the SAME ``may:<source>`` tag once per player (``executor/__init__.py:986-995``), so a per-seat
-router reading tags would hand player 1's choice to player 0, and the eval rig's tag parser falls
-back to the active player when it cannot tell (``tools/eval/gameplay_eval_v2.py:150-157``).
+router reading tags would hand player 1's choice to player 0, and the deleted eval rig's tag
+parser fell back to the active player when it could not tell.
 ``DecisionStream.asking_seat`` carries the seat for the duration of the provider call only. It is
 never logged, so no replay or fingerprint moves.
 """
@@ -166,32 +166,6 @@ class RandomGameRoutingTest(unittest.TestCase):
                     self.assertEqual(game.executor.controller_of(_tag_handle(what)), seat, what)
         self.assertGreater(sum(kinds.values()), 0)
         self.assertIn("attack", kinds)
-
-
-def test_no_engine_call_site_passes_seat_to_take_decision() -> None:
-    # Four tools/training modules replace ExecCtx.take_decision process-wide at import with the
-    # old (self, vocab, what) signature (BACKLOG B-35). A caller passing seat= then raises
-    # TypeError, but only in processes that imported one of them. That is how a scry site
-    # passing seat= went green in `pytest MTG_bot` and red in `pytest tools` (2026-10-24).
-    # Static and import-free on purpose: importing those modules here would patch the engine for
-    # every later test in this run.
-    import ast
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parent
-    offenders = []
-    for path in sorted(root.rglob("*.py")):
-        if path.name.startswith("test_"):
-            continue
-        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-            if (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Attribute)
-                and node.func.attr == "take_decision"
-                and any(k.arg == "seat" for k in node.keywords)
-            ):
-                offenders.append(f"{path.relative_to(root)}:{node.lineno}")
-    assert offenders == [], offenders
 
 
 # --------------------------------------------------------------------------------------------------

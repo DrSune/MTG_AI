@@ -23,7 +23,6 @@ from MTG_bot.core.ability_tree import (
     Atom,
     Choose,
     ControllerRef,
-    Cost,
     CostDeltaIncreaseGeneric,
     CostDeltaIncreaseLife,
     CostDeltaReduceGeneric,
@@ -258,12 +257,6 @@ def _as_activated(value: object) -> ActivatedAbility:
 def _as_optional(value: object) -> OptionalEffect:
     if not isinstance(value, OptionalEffect):
         raise AssertionError(f"expected OptionalEffect, got {type(value).__name__}")
-    return value
-
-
-def _as_cost(value: object) -> Cost:
-    if not isinstance(value, Cost):
-        raise AssertionError(f"expected Cost, got {type(value).__name__}")
     return value
 
 

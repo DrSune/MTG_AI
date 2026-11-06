@@ -251,13 +251,8 @@ class ExecCtx:
 
         ``seat`` names the deciding player when it is not this context's
         controller; the provider sees it as ``DecisionStream.asking_seat``.
-        No call site passes it today: four tools/training modules replace
-        this method process-wide at import with the old ``(self, vocab,
-        what)`` signature (packrec, packrec_v2, dagger_rollout_v3,
-        puzzle_cert; BACKLOG B-35), so a caller passing ``seat=`` would
-        crash whenever one of them is loaded. A site whose decider is not
-        the controller asks through :meth:`take_decision_of` instead (V10,
-        2026-10-29). The scry site relies on its controller being the
+        No call site passes it today: a site whose decider is not the
+        controller asks through :meth:`take_decision_of` (V10, 2026-10-29). The scry site relies on its controller being the
         scrying player, and the bench router's tag check raises loudly if a
         card ever breaks that.
         """
@@ -298,9 +293,7 @@ class ExecCtx:
         cards; CR 701.21a with 101.4: a player sacrifices only what they control, so they pick).
 
         For the length of the ask the context's controller IS that player. ``take_decision`` then
-        names them as the stream's ``asking_seat``, and the tools/training wrappers that replace
-        ``take_decision`` process-wide (BACKLOG B-35; they drop a ``seat=`` keyword, which is why
-        no call site may pass one) read the same field. Nothing else runs while it is swapped."""
+        names them as the stream's ``asking_seat``. Nothing else runs while it is swapped."""
         if player == self.controller:
             return self.take_decision(vocab, what)
         outer = self.controller

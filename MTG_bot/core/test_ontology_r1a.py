@@ -472,7 +472,7 @@ class TestUnwrapExecution(Rung1Case):
         rec_neg = _compiled_znr("Negate")
         rec_ds = _compiled_znr("Dauntless Survivor")
         ds = self._give_real(rec_ds, self.p0)
-        neg = self._give_real(rec_neg, self.p1)
+        self._give_real(rec_neg, self.p1)
         self.mana(self.p0, G=2)
         self.mana(self.p1, U=2)
         self.script()  # zero permitted asks: any ask raises unexpected-ask

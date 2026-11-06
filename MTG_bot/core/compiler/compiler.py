@@ -720,10 +720,6 @@ class PoolCompile:
 # Internal: sentence outcome processing
 # ---------------------------------------------------------------------------
 
-# Sentinel for "no outcome" (unparsed).
-_NO_OUTCOME = "__unparsed__"
-
-
 def _is_rule_reminder(sentence: str, raw: RawCard) -> RuleReminderOutcome | None:
     """Detect rule-reminder sentences before template matching."""
     s = sentence.strip()

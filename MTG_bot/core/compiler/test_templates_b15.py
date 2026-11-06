@@ -40,7 +40,6 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Selector,
     SelectorMode,
-    Seq,
     StaticAbility,
     TriggeredAbility,
     Verb,

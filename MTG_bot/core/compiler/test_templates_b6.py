@@ -367,10 +367,6 @@ class TestKickerHead(unittest.TestCase):
 _X_PART = CostManaGeneric(QX())
 
 
-def _x_cost() -> Cost:
-    return _cost("{X}")
-
-
 # ===========================================================================
 # 2. Gated entering state (conditional EtBState)
 # ===========================================================================

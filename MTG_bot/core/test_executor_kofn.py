@@ -47,7 +47,6 @@ from MTG_bot.core.test_executor_binding import (
     BF_YOU,
     HAND_YOU,
     LIB_YOU,
-    UNIV,
     atom,
     card_id,
     enter,
@@ -410,8 +409,6 @@ class TestBindingDesignationLegality(KOfNCase):
     a QConst designation that cannot complete designates NOTHING —
     resolves doing nothing (603.4 sibling of the zero-candidate lane) —
     instead of asking over fewer or crashing on an exhausted pool."""
-
-    ETB_CARRIER = None
 
     def _carrier_with_targets(self, *dummy_names):
         carrier = self.world.add_card(card_id("Carrier", "2", "2"), self.p0, ZONE_HAND)

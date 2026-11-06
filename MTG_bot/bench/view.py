@@ -183,9 +183,6 @@ class SeatLens:
             self._handles[label] = handle
         return self._ids[handle]
 
-    def handle_of(self, oid: str) -> Handle | None:
-        return self._handles.get(oid)
-
     def name(self, raw_name: str) -> str:
         return self.masker.label(raw_name) if self.masker else raw_name
 

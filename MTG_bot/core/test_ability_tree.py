@@ -957,7 +957,6 @@ def test_canonical_json_is_valid_compact_json() -> None:
 
 def test_canonical_json_construction_order_independent() -> None:
     # AtomArgs roles inserted in different orders -> identical canonical form
-    src = _src_sel()
     q = at.QConst(1)
     a = at.Atom(
         at.Verb.DRAW,

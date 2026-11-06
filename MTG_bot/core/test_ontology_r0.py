@@ -83,7 +83,6 @@ BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
 PL_ANY = Zone(ZoneKind.PLAYER, ControllerRef.ANY)
 ANY_ANY = Zone(ZoneKind.ANY, ControllerRef.ANY)
 HAND_YOU = Zone(ZoneKind.HAND, ControllerRef.YOU)
-GV_YOU_T = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU, ZonePosition.TOP)
 
 # The six L1 battery cards (/129 §4), from the r0_sortdelta twin-lane map.
 L1_CARDS = (

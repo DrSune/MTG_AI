@@ -13,7 +13,6 @@ from MTG_bot.core.state import (
     ZONE_LIBRARY,
     ZONE_HAND,
     ZONE_BATTLEFIELD,
-    ZONE_GRAVEYARD,
 )
 from MTG_bot.core.identity import CardIdentity
 

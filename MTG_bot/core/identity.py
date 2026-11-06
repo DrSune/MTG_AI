@@ -20,7 +20,7 @@ Two problems the legacy system had, and both are identity problems:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import FrozenSet, Optional, Tuple
 
 # Scryfall oracle ids are 36-char UUIDs. We validate shape, not value, so a

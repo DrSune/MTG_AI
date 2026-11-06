@@ -96,13 +96,6 @@ def _handle(value: object) -> str:
     return str(value)
 
 
-def _parse_handle_tag(tag: str) -> Handle | None:
-    ns, _, idx = tag.partition(":")
-    if not idx.isdigit():
-        return None
-    return Handle(ns, int(idx))
-
-
 def _to_int(value: object) -> int:
     return int(str(value))
 

@@ -685,14 +685,6 @@ def _as_static(ab: Any) -> StaticAbility:
     return ab
 
 
-def _find_shape(sent: str) -> tuple[str, str, str]:
-    """Find a shape entry by sentence."""
-    for s in SHAPES:
-        if s[0] == sent:
-            return s
-    raise AssertionError(f"sentence not in SHAPES: {sent!r}")
-
-
 # ---------------------------------------------------------------------------
 # Test: Template Inventory
 # ---------------------------------------------------------------------------
