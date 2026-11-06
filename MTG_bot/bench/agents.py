@@ -6,12 +6,12 @@ An ``Agent`` answers an ``Ask`` with an option index. Two kinds of seat driver p
 - raw engine policies with ``answer(vocab, what)`` and ``take_acts(game, seat)``, such as
   ``RandomPolicy`` or a future adapter around our network. These pass straight through.
 
-The floors (docs/DESIGN_BENCHMARK.md §4, ABC R.13; METRICS §17):
+The floors (docs/DESIGN_BENCHMARK.md §4; METRICS §17):
 - ``PassAgent``, the do-nothing policy: it never casts, never attacks, never blocks, and declines
   every optional effect. Any metric it scores well on must be published paired with one that
   requires acting well.
 - ``UniformRandomAgent``: uniform over the offered options at every ask. Unlike the hand-weighted
-  ``RandomPolicy`` (``games.py:163-166``), it is the honest random-legal baseline.
+  ``RandomPolicy`` (``core/executor/games.py``), it is the honest random-legal baseline.
 """
 
 from __future__ import annotations
@@ -63,8 +63,7 @@ class AgentError(RuntimeError):
 
 class AgentForfeitError(AgentError):
     """An agent exhausted its strikes on an ask that offers no do-nothing option. The game is voided
-    (``void-forfeit``): the bench never plays a default move on the agent's behalf (the option-0
-    fallback used to do exactly that, in silence)."""
+    (``void-forfeit``): the bench never plays a default move on the agent's behalf."""
 
 
 class Agent(Protocol):

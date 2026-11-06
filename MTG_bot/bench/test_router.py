@@ -76,8 +76,8 @@ def test_pass_agent_never_acts() -> None:
 
 
 def test_tap_effects_are_not_mana_abilities() -> None:
-    # Regression (2026-10-24): "Tap target creature" counted as a mana ability, went out as a
-    # mana activation with no target, and crashed the engine. Seed 6 reached that position.
+    # "Tap target creature" is not a mana ability: offered as one, it would go out with no
+    # target and crash the engine. Seed 6 reaches that position.
     rng.seed_all(1, seed_frameworks=False)
     game, supply = _game(6)
     agents = [UniformRandomAgent(rng.substream("bench", 6, 0)), PassAgent()]
@@ -86,7 +86,7 @@ def test_tap_effects_are_not_mana_abilities() -> None:
 
 
 def test_a_replacement_choice_is_routed_to_the_damaged_player() -> None:
-    # B-69 (2026-11-05), CR 616.1: two Nine Lives apply to damage to seat 0, so seat 0 chooses
+    # CR 616.1: two Nine Lives apply to damage to seat 0, so seat 0 chooses
     # which one applies; the ask is the engine's replace:<seat>:<digest> site, routed strictly.
     from MTG_bot.core.ability_tree import (
         Atom,
@@ -139,7 +139,7 @@ def test_a_replacement_choice_is_routed_to_the_damaged_player() -> None:
     assert world.cards[first].counters == {} and world.cards[second].counters == {"INCARNATION": 1}
 
 
-# --------------------------------------------------------------- arranged boards (2026-11-05)
+# --------------------------------------------------------------------------- arranged boards
 
 
 class _Picker:
@@ -212,9 +212,8 @@ def _play_row(router, game, token) -> None:
 
 
 def test_a_cast_taps_only_the_lands_it_needs() -> None:
-    # 2026-11-05: casting paid only from the pool, so the menu offered TAP_ALL_MANA, which tapped
-    # every mana ability, creatures included (they could then not attack or block). Now a cast is
-    # offered when the pool plus untapped free sources pay it, and choosing it taps what it needs.
+    # A cast is offered when the pool plus untapped free sources pay it, and choosing it taps
+    # only what it needs: never a creature's mana ability (it could then not attack or block).
     game, supply = _arranged(
         hand0=("Rousing Read",),
         field0=("Island", "Island", "Island", "Mountain", "Walking Corpse", "Llanowar Visionary"),
@@ -268,7 +267,6 @@ def test_an_ability_never_taps_its_own_source_for_mana() -> None:
 
 
 def test_x_spells_offer_one_row_per_payable_x() -> None:
-    # X was always declared 0: Volcanic Geyser dealt 0, Wildwood Scourge died as a 0/0.
     game, supply = _arranged(
         hand0=("Volcanic Geyser",), field0=("Mountain", "Mountain", "Island", "Island", "Island")
     )
@@ -293,8 +291,8 @@ def test_an_x_creature_enters_with_the_chosen_x() -> None:
 
 
 def test_a_target_whose_cost_increase_is_unpayable_is_never_offered() -> None:
-    # CR 601.2f-h: Pursued Whale makes an opponent's spell that targets it cost {3} more. The menu
-    # offered the target, the cast raised, and the game was voided (deal 900039 voided every eval).
+    # CR 601.2f-h: Pursued Whale makes an opponent's spell that targets it cost {3} more. Offering
+    # the target would make the cast raise and void the game.
     game, supply = _arranged(
         hand0=("Rousing Read",), field0=("Walking Corpse",), field1=("Pursued Whale",), pool0={"U": 3}
     )
@@ -326,8 +324,8 @@ def test_a_spell_whose_only_target_is_unpayable_is_not_offered() -> None:
 
 def test_life_is_paid_only_up_to_the_life_total() -> None:
     # Terror of the Peaks: an opponent's spell that targets it costs an additional 3 life, and a
-    # player can pay life only up to their life total (CR 119.4). An aura's enchant target was
-    # never priced at all (query.spell_target_slots returned the aura slot early).
+    # player can pay life only up to their life total (CR 119.4). An aura's enchant target is
+    # priced too.
     game, supply = _arranged(
         hand0=("Rousing Read",), field0=("Walking Corpse",), field1=("Terror of the Peaks",), life0=2, pool0={"U": 3}
     )
@@ -341,9 +339,9 @@ def test_life_is_paid_only_up_to_the_life_total() -> None:
 
 
 def test_a_modal_spell_keeps_its_targeted_modes_under_a_target_tax() -> None:
-    # Review 2026-11-05: a modal spell's mode sets were priced against the pool alone, which is
-    # empty when the act window opens, so with a Pursued Whale anywhere on the battlefield every
-    # targeted mode was dropped and Return to Nature was not offered at all.
+    # A modal spell's mode sets are priced against the pool plus the free sources, not the pool
+    # alone (empty when the act window opens): with a Pursued Whale on the battlefield, Return to
+    # Nature is still offered.
     game, supply = _arranged(hand0=("Return to Nature",), field0=("Forest",) * 3, field1=("Meteorite", "Pursued Whale"))
     rtn = _handle(game, "Return to Nature")
     router = _router(game, supply)
@@ -353,8 +351,8 @@ def test_a_modal_spell_keeps_its_targeted_modes_under_a_target_tax() -> None:
 
 
 def test_a_dealt_game_names_cards_from_its_pool_so_name_asks_are_not_leaky() -> None:
-    # B-29: the CHOOSE_NAME vocabulary listed the world's cards, hidden zones included, so the
-    # router flagged every name ask leaky. A dealt game now lists the format's card pool.
+    # A dealt game's CHOOSE_NAME vocabulary is the format's card pool, not the world's cards
+    # (hidden zones included), so its name asks are not leaky.
     game, supply = _game(3)
     picker = _Picker()
     router = _router(game, supply, picker)
@@ -367,9 +365,8 @@ def test_a_dealt_game_names_cards_from_its_pool_so_name_asks_are_not_leaky() -> 
 
 
 def test_the_second_main_phase_has_its_own_act_window() -> None:
-    # B-74 (2026-11-06), CR 505.1, 305.2: after combat the active player gets a second act window,
-    # where a land not played before combat can still be played, and the prompt says which main
-    # phase it is. On main d0200d2 nothing was offered after combat.
+    # CR 505.1, 305.2: after combat the active player gets a second act window, where a land not
+    # played before combat can still be played, and the prompt says which main phase it is.
     game, supply = _arranged(hand0=("Forest",), field0=("Walking Corpse",))
     forest = _handle(game, "Forest", zone=ZONE_HAND)
     picker = _Picker("DECLINE", f"land:{forest}")
@@ -383,7 +380,7 @@ def test_the_second_main_phase_has_its_own_act_window() -> None:
     assert act.prompt.startswith("Your second main phase")
 
 
-# ------------------------------------------- several target slots (CR 601.2c, 2026-11-06)
+# ------------------------------------------------------- several target slots (CR 601.2c)
 
 
 def _two_targets(spell: str, *, watcher: str | None = None):
@@ -429,9 +426,8 @@ def _target_asks(picker) -> list:
 
 def test_primal_might_is_offered_and_fights_in_a_dealt_game() -> None:
     # "Target creature you control gets +X/+X until end of turn. Then it fights up to one target
-    # creature you don't control." Until 2026-11-06 the menu hid every spell with two target
-    # slots, so Primal Might, Hunter's Edge and Rabid Bite were never cast in a game. Now X is in
-    # the row (CR 601.2b), then each target is its own question with its own legal set (601.2c).
+    # creature you don't control." X is in the row (CR 601.2b), then each target is its own
+    # question with its own legal set (601.2c).
     game, supply, pm, corpse, shieldmate, ogre, crab = _two_targets("Primal Might")
     picker = _Picker(f"cast:{pm}:x3", corpse, ogre)
     router = _router(game, supply, picker)

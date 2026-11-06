@@ -1,4 +1,4 @@
-"""The engine primer: how the engine reads cards, measured for coverage (owner request 2026-10-24).
+"""The engine primer: how the engine reads cards, measured for coverage.
 
 The owner: models should get "a description of how abilities interact, such that they understand
 at least 99% of scenarios for how an atomic subcomponent would work … as little dubious as
@@ -11,8 +11,8 @@ counted.
 
 **What "exercised" means, and what it does not.** A component is *exercised* when at least one
 scripted scenario pack that the engine passes puts a card containing it into play. That is NOT yet
-proof that the pack's assertions depend on the component. Reporting it as proof would repeat the
-parse-coverage-as-semantics mistake the review flags (REVIEW A-4). *Verified* coverage needs
+proof that the pack's assertions depend on the component; reporting it as proof would mistake
+parse coverage for semantics. *Verified* coverage needs
 mutation testing (perturb the component, require some pack to fail); it is the next step and is
 reported separately once it exists. Packs are the only ground truth here.
 Nothing in the primer is a paraphrase written from memory: each entry is the component's name, how

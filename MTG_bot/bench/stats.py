@@ -1,8 +1,5 @@
 """Statistics for comparing agents (docs/DESIGN_BENCHMARK.md §6).
 
-What the review found missing (docs/REVIEW_2026-10-24.md A-2): best-of-k selection quoted as a
-result, unpaired seeds, draws and crashes dropped from the denominator, no sequential test. Here:
-
 - ``wilson``: interval for a proportion; ``elo_from_score`` maps a score to an Elo difference.
 - ``paired_bootstrap``: CI over **deals**, the unit of a duplicate match. Resampling single
   games would treat the two halves of a pair as independent and understate the interval.

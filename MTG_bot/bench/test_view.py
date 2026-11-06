@@ -3,8 +3,7 @@
 The metamorphic test is the load-bearing one. Take a real mid-game position, render a seat's
 view, then replace every card that seat cannot see (the opponent's hand, both libraries) with
 sentinels and shuffle the libraries. The re-rendered view must be byte-identical and must not
-mention a sentinel. An encoder that passes this cannot be omniscient. The bot's current one
-fails it by construction (docs/REVIEW_2026-10-24.md A-1).
+mention a sentinel. An encoder that passes this cannot be omniscient.
 """
 
 from __future__ import annotations

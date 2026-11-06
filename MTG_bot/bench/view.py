@@ -1,8 +1,8 @@
 """The per-seat view: what one player may legally know (docs/DESIGN_BENCHMARK.md §3).
 
-One projection for every agent, our bot and LLM seats alike. The review found every admitted
-network omniscient (docs/REVIEW_2026-10-24.md A-1), and ``world_snapshot`` is an audit dump
-that reveals hands by design (``core/executor/games.py:811``). This module is the play view.
+One projection for every agent, our bot and LLM seats alike. ``world_snapshot``
+(``core/executor/games.py``) is an audit dump that reveals hands by design; this module is the
+play view.
 
 Visibility, one rule (``_visible``):
 - the viewer's own hand in full;
@@ -15,7 +15,7 @@ would leak library composition. Assigning them lazily from visible objects only 
 makes the view byte-identical when hidden cards change (the metamorphic test in
 ``test_view.py``).
 
-Live games carry no oracle text (``identity_of`` drops it, ``games.py:402``), so the text
+Live games carry no oracle text (``games.identity_of`` drops it), so the text
 comes from the same MTGJSON files the supply compiles (``OracleIndex``).
 
 Known limit: cards a player has legitimately seen in a hidden zone (a revealed hand card, a
@@ -47,8 +47,8 @@ if TYPE_CHECKING:
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 PUBLIC_ZONES = (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_COMMAND)
 
-#: Disclosed with every view: the engine is "batch Magic" (REVIEW A-3), and an agent should be
-#: told the game it is playing.
+#: Disclosed with every view: the engine is "batch Magic", and an agent should be told the game
+#: it is playing.
 ENGINE_NOTES = (
     "Engine notes: no priority passing; one action window in each main phase, before and after "
     "combat; opponents may respond only with counterspells and combat instants; "
@@ -110,10 +110,10 @@ class CardView:
     attached_to: str | None = None
     summoning_sick: bool = False
     printed_pt: str | None = None
-    #: CR 702.26 (2026-10-29): a phased-out permanent is still on the table and public, but it is
+    #: CR 702.26: a phased-out permanent is still on the table and public, but it is
     #: treated as though it does not exist; the engine's menus never offer it.
     phased_out: bool = False
-    #: Ontology R5-1 (CR 610.3): this object was moved "until" an event and goes back when it
+    #: CR 610.3: this object was moved "until" an event and goes back when it
     #: happens: ``returns_to`` is the zone it returns to (its owner's), ``returns_when`` the event
     #: ("o3 leaves the battlefield", "end of turn", "seat 1's next turn"). None when it has no row.
     returns_to: str | None = None
@@ -268,7 +268,7 @@ class SeatLens:
         )
 
     def _returns(self, executor: Executor, handle: Handle) -> tuple[str | None, str | None]:
-        """Ontology R5-1 (CR 610.3): where and when an object moved "until" an event goes back,
+        """CR 610.3: where and when an object moved "until" an event goes back,
         from the executor's return registry; (None, None) when it has no live row."""
         rows = [r for r in executor.returns.rows_for(handle) if executor.returns.still_there(executor, r)]
         if not rows:
@@ -373,7 +373,7 @@ def _card_line(card: CardView) -> str:
     if card.zone == ZONE_BATTLEFIELD and card.controller_seat != card.owner_seat:
         bits.append(f"controlled by seat {card.controller_seat}")
     if card.returns_to is not None:
-        # R5-1 (CR 610.3): an object moved "until" an event, and where it goes back.
+        # CR 610.3: an object moved "until" an event, and where it goes back.
         bits.append(f"returns to its owner's {card.returns_to} when {card.returns_when}")
     return " ".join(bits)
 

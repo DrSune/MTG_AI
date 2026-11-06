@@ -1,4 +1,4 @@
-"""The benchmark core, shared by this project's bot and by LLM seats (added 2026-10-24).
+"""The benchmark core, shared by this project's bot and by LLM seats.
 
 Built instrument-first (docs/DECISIONS.md D19): everything here also measures our own bot.
 

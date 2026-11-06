@@ -31,7 +31,7 @@ def masked():
 def test_every_pack_is_an_item_or_a_named_exclusion(real) -> None:
     _, cov = real
     assert cov.items + sum(cov.excluded.values()) + len(cov.reader_mismatch) == cov.packs
-    assert cov.items >= 300  # 312 on 2026-10-24; a falling count is lost coverage, not noise
+    assert cov.items >= 300  # a falling count is lost coverage, not noise
 
 
 def test_the_state_readers_reproduce_every_gold_value(real) -> None:
@@ -53,8 +53,8 @@ def test_prompts_never_show_pack_notes(real) -> None:
     items, _ = real
     # The probe is the note's first 40-character window that is not verbatim oracle text. An
     # activate step quotes its ability's oracle line on purpose, and a note may open by quoting that
-    # same line (leafkin_avenger, renderable since B-49 taught ability_line to skip the cast
-    # carrier). Such a match is card text, not a leaked note, so the probe moves to the next window.
+    # same line (leafkin_avenger). Such a match is card text, not a leaked note, so the probe moves
+    # to the next window.
     oracle = OracleIndex.for_sets("M21", "ZNR")
     card_text = [oracle.text(oid) for oid in oracle.cards]
     notes = {}

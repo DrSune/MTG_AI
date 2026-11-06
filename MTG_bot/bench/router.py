@@ -31,11 +31,11 @@ BACKLOG:
   ``stack.slot_options`` leaves: none already picked for that slot (CR 115.3) and none that would
   leave a later slot without a legal target, so no illegal pair is ever offered. DONE ends a slot
   once it has its minimum (an "up to" slot may stay empty). A slot with exactly one legal filler
-  is filled without asking, as the engine's own phantom gate does (``offers.py:47-70``). The rig
+  is filled without asking, as the engine's own phantom gate does (``offers.py``). The rig
   reads the targets chosen so far in ``targets_so_far``.
 - **X and modes come first** (CR 601.2b): X is part of the row (``cast:<card>:x<N>``), and a modal
   spell's modes are announced by ``stack.cast_modes`` (the engine's ``choose:`` question over the
-  legal mode sets, V17) before only the chosen modes' targets are asked.
+  legal mode sets) before only the chosen modes' targets are asked.
 - **At most ``MAX_ACTS_PER_STEP`` acts per window**, the engine's own cap: one window per main
   phase, the prompt naming which.
 
@@ -173,9 +173,8 @@ class SeatRouter:
         """Which card from the top the next ask of this scry is about. The engine asks once per
         card, top first, all n asks under one key ``scry:<player>:<n>`` (verbs._v_scry), and the
         counter resets only when an act window opens, so it is taken modulo n: a second scry of
-        the same size in one window starts at the top again. Without the modulo it pointed under
-        the viewed window - the wrong card, and one its owner has not seen (3 of 471 scry asks
-        in 600 heuristic games, 2026-11-05)."""
+        the same size in one window starts at the top again; without it the index would point
+        under the viewed window, at a card its owner has not seen."""
         k = self._scry_index[what]
         tail = what.rsplit(":", 1)[-1]
         return k % int(tail) if tail.isdigit() and int(tail) > 0 else k
@@ -191,7 +190,7 @@ class SeatRouter:
         if kind != "scry":
             return ""
         # The k-th scry ask of one scry is about the k-th card from the top, which the scrying
-        # player is looking at (verbs.py:1437-1441 asks top-first before moving anything).
+        # player is looking at (verbs._v_scry asks top-first before moving anything).
         k = self.scry_position(what)
         self._scry_index[what] += 1
         library = self.game.world.players[seat].zone("library").entries
@@ -276,7 +275,7 @@ class SeatRouter:
                     designable = can_designate(slots)
                     more = " (then choose targets)" if any(not s.forced for s in slots) else ""
                 else:
-                    # V17 (CR 601.2b-c): the modes are announced first (an engine ask, in
+                    # CR 601.2b-c: the modes are announced first (an engine ask, in
                     # _execute), and only the chosen modes' targets exist. Offered when some
                     # mode set is legal, i.e. its targets can be chosen (CR 700.2a).
                     designable = bool(cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay))
@@ -373,7 +372,7 @@ class SeatRouter:
         _, source, node, kicked, x, slots, pay = payload
         modes: tuple[int, ...] = ()
         if slots is None:
-            # V17: a modal spell. The mode ask goes through the engine channel (this
+            # A modal spell. The mode ask goes through the engine channel (this
             # router answers it, routed to this seat), then its own slots are designated.
             _token, modes, _rest = cast_modes(executor, seat, source, node, pay=pay)
             slots = spell_target_slots(executor, node, spell_handle=source, seat=seat, modes=modes, pay=pay)

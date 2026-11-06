@@ -29,7 +29,7 @@ def test_structural_nodes_are_not_components() -> None:
 
 
 def test_exercised_share_meets_the_owner_target(entries) -> None:
-    # Owner, 2026-10-24: models should understand >= 99% of atomic-subcomponent scenarios. This is
+    # The owner's target: models should understand >= 99% of atomic-subcomponent scenarios. It is
     # a stated target for the instrument, not a strategy heuristic. A new card whose components
     # no passing pack exercises lowers the share; when it drops below the target, write the packs
     # coverage()['uncovered'] names.

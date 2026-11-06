@@ -325,9 +325,9 @@ def build_items(
             cov.excluded["no scorable lane"] += 1
             continue
         if "ceased" in gold.get("zone", {}).values():
-            # 2026-10-30 (vfix2's merge of cards/integration): a token that left the battlefield
-            # ceases to exist (CR 704.5d, V35). The zone question offers no answer for that, so
-            # the pack is a named exclusion rather than an unanswerable item.
+            # A token that left the battlefield ceases to exist (CR 704.5d). The zone question
+            # offers no answer for that, so the pack is a named exclusion rather than an
+            # unanswerable item.
             cov.excluded["a token ceases to exist"] += 1
             continue
         try:

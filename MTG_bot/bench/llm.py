@@ -158,9 +158,8 @@ class OpenAICompatClient:
                     payload = json.loads(response.read())
                 break
             except urllib.error.HTTPError as error:
-                # Transient backend 5xx (engine busy / gateway hiccup under
-                # contention): retry with backoff. 4xx and timeouts stay
-                # fail-loud on the first hit (AGENTS 5xx-retry law).
+                # Transient backend 5xx (engine busy, gateway hiccup): retry with
+                # backoff. 4xx and timeouts fail loud on the first hit.
                 if (
                     error.code in (502, 503, 504)
                     and attempt <= self.max_transient_retries

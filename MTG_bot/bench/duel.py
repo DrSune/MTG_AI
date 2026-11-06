@@ -1,8 +1,8 @@
 """Duplicate-format matches (docs/DESIGN_BENCHMARK.md §6).
 
 Each deal fixes both decks and both library orders: decks depend only on
-``(seed, deck_pairs_seed)`` (``games.py:1639`` ``deal_decks``), library order on the engine's seeded
-shuffle (``games.py:485`` ``shuffled_library``), and setup consults no policy (``setup_fp``). The agents' first decisions are
+``(seed, deck_pairs_seed)`` (``games.deal_decks``), library order on the engine's seeded
+shuffle (``games.shuffled_library``), and setup consults no policy (``setup_fp``). The agents' first decisions are
 the mulligans before turn 1 (CR 103.5, ``games.mulligans``). The deal is played twice with the agents' seats
 swapped, and **the pair is the unit**. Deal luck cancels inside a pair. Engine randomness during
 play still diverges once the two games diverge; that is inherent, and stated.
@@ -280,7 +280,7 @@ def run_match(
 def _settle_manifest(
     manifest_row: dict[str, Any], rows: Sequence[dict[str, Any]]
 ) -> None:
-    """Fold each seat's final ``usage_missing`` count into the manifest identity (A3 honesty)."""
+    """Fold each seat's final ``usage_missing`` count into the manifest identity."""
     ids = manifest_row.get("identities") or {}
     for key in ("a", "b"):
         ident = ids.get(key)

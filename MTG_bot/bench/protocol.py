@@ -4,15 +4,15 @@ Every decision any agent makes is an ``Ask``: the main-phase action menu, a targ
 engine ask (the engine's ``(vocab, what)`` demand, ``core/executor/decisions.py``). An agent
 answers with an option index. The engine still validates every resulting action.
 
-**Routing.** The deciding seat comes from the engine (``DecisionStream.asking_seat``, added
-2026-10-24), never from parsing the tag alone: EachPlayer re-asks the SAME tag once per player.
+**Routing.** The deciding seat comes from the engine (``DecisionStream.asking_seat``), never
+from parsing the tag alone: EachPlayer re-asks the SAME tag once per player.
 For tags that also carry a seat, the two must agree, or ``AskRoutingError`` is raised. An ask
 kind not in the registry raises ``UnknownAskSite`` when ``strict``, so a new engine site cannot be
 answered by the wrong player in silence.
 
 **Labels.** A card is named only if the decider may know it: it is in a zone visible to them, or
 the engine offered it to them as a choice (``SeatLens.describe``). A ``name:`` ask lists the
-format's card pool in a dealt game (``executor.name_pool``, B-29 fixed 2026-11-05), public
+format's card pool in a dealt game (``executor.name_pool``), public
 information; it is flagged ``leaky`` only in a rig with no format, where the engine still lists
 the world's cards, hidden zones included (``verbs._v_choose_name``).
 """
@@ -62,13 +62,12 @@ class AskRoutingError(RuntimeError):
 
 
 #: Engine ask kinds whose tag's second field is the deciding player.
-#: ``x`` (2026-10-29): an activation's X announcement, ``x:<seat>:<source>:<digest>``
-#: (CR 602.2b -> 601.2b; the menu is 0..the live bound). ``legend`` (V22, 2026-10-29): the
-#: legend rule's keep choice, ``legend:<seat>:<digest>`` (CR 704.5j). ``replace`` (B-69,
-#: 2026-11-05): which of several applicable replacement effects applies next,
-#: ``replace:<seat>:<digest>``, asked of the affected player or the controller of the affected
-#: permanent (CR 616.1); the options are the effects' sources. ``mulligan`` and
-#: ``mulligan_bottom`` (2026-11-06): the London mulligan before the first turn (CR 103.5),
+#: ``x``: an activation's X announcement, ``x:<seat>:<source>:<digest>`` (CR 602.2b -> 601.2b;
+#: the menu is 0..the live bound). ``legend``: the legend rule's keep choice,
+#: ``legend:<seat>:<digest>`` (CR 704.5j). ``replace``: which of several applicable replacement
+#: effects applies next, ``replace:<seat>:<digest>``, asked of the affected player or the
+#: controller of the affected permanent (CR 616.1); the options are the effects' sources.
+#: ``mulligan`` and ``mulligan_bottom``: the London mulligan before the first turn (CR 103.5),
 #: ``mulligan:<seat>:<mulligans taken>`` (keep or mulligan) and
 #: ``mulligan_bottom:<seat>:<cards still to put on the bottom>`` (a card of the hand).
 SEAT_IN_TAG = frozenset(
@@ -147,7 +146,7 @@ def ability_line(record: CardRecord | None, oracle_text: str, idx: int) -> str |
     if not isinstance(record.abilities[idx], ActivatedAbility):
         return None
     lines = [line.strip() for line in oracle_text.split("\n") if line.strip()]
-    # An effect-less SpellAbility is the synthetic cast carrier of a permanent (B-49): it has no
+    # An effect-less SpellAbility is the synthetic cast carrier of a permanent: it has no
     # oracle line of its own, so it does not count.
     lined = [
         i
@@ -185,7 +184,7 @@ def engine_ask(
                 )
         handle = _handle_token(token)
         if handle is not None:
-            if kind == "attack":  # V41: a planeswalker this creature may attack
+            if kind == "attack":  # a planeswalker this creature may attack
                 return f"attack {lens.describe(executor, handle, offered=True)}"
             return lens.describe(executor, handle, offered=True)
         if kind == "attack" and token == "ATTACK" and any(_handle_token(t) for t in vocab):

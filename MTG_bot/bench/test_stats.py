@@ -21,9 +21,9 @@ def test_wilson_known_values() -> None:
     assert lo == pytest.approx(0.2366, abs=1e-4)
     assert hi == pytest.approx(0.7634, abs=1e-4)
     assert wilson(0, 0) == (0.0, 1.0)
-    # the review's own anchor number: 157 wins in 157+242 decisive games
+    # 157 wins in 157+242 decisive games
     lo, hi = wilson(157, 399)
-    assert (round(lo, 3), round(hi, 3)) == (0.347, 0.442)  # = KNOWLEDGE/NUMBERS.md:3904
+    assert (round(lo, 3), round(hi, 3)) == (0.347, 0.442)
 
 
 def test_elo_score_round_trip() -> None:
