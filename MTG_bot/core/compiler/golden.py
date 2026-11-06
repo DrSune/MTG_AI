@@ -1,4 +1,4 @@
-"""Golden-tree write/verify for PC-4 stability and PC-9 determinism (T5).
+"""Golden-tree write/verify for PC-4 stability and PC-9 determinism.
 
 One golden file per pool entry: ``<golden_dir>/<oracle_id>.json`` whose
 byte content is exactly ``canonical_json(record)`` of the entry's

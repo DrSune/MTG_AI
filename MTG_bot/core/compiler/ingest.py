@@ -1,63 +1,35 @@
 """Structured ingest of MTGJSON v5 pool files (compiler step 1).
 
-The compiler's first job is to turn an MTGJSON v5 dump into structured
-per-card records BEFORE any template matching, so that nothing downstream
-ever reads an English string for meaning (PITFALLS: "English substrings
-cannot be the IR"). This module keeps only what is structured:
+Turns an MTGJSON v5 dump into structured per-card records before any template matching, so
+nothing downstream reads an English string for meaning. It keeps only what is structured:
 
-- ``CardIdentity`` (core/identity.py), keyed on
-  ``identifiers.scryfallOracleId`` — the oracle id is the primary key
-  everywhere; volatile card numbers and per-printing uuids never become
-  keys or fields (PITFALLS: "Re-ingest must not invalidate learned state").
-- Printed characteristics as structured fields: type line / types /
-  subtypes / supertypes, colours, colour identity, the mana cost string,
-  the mana value as an int, P/T and loyalty as the printed strings,
-  keywords.
-- The oracle text split into a deterministic sentence tuple (``sentences``)
-  — that tuple is the template compiler's input. The split is
-  paren-depth-aware: ``[.?!] + whitespace`` splits only at paren depth 0,
-  so a multi-sentence parenthetical reminder ("Opt (Look at the top card of
-  your library. You may put that card on the bottom.)") stays ONE sentence,
-  while single-sentence reminders and line-break ability boxes behave as
-  before (see ``split_sentences`` and the 2026-09-15 re-measured baseline).
+- ``CardIdentity`` (core/identity.py), keyed on ``identifiers.scryfallOracleId``. The oracle id is
+  the primary key everywhere; card numbers and per-printing uuids never become keys or fields.
+- Printed characteristics as structured fields: type line, types, subtypes, supertypes, colours,
+  colour identity, the mana cost string, the mana value as an int, P/T and loyalty as the printed
+  strings, keywords.
+- The oracle text split into a deterministic sentence tuple (``sentences``, see
+  ``split_sentences``): the template compiler's input.
 
 Deliberate non-goals:
 
-- No NLP. ``token_name_refs`` is ``()`` by construction. Token names in
-  this pool are bare subtype words ("Angel", "Knight", "Treasure"), so a
-  bare string occurrence in the text is not a reliable token-creation
-  signal — "is a Knight in addition to its other types" (a subtype grant)
-  is not creating a Knight token. The reliable pattern is the whole
-  "create a 1/1 white Bird creature token" sentence template, and matching
-  that belongs to the template compiler (Phase 1 step 3), not to the
-  structured ingest. The spec's honesty clause applies: detection is fuzzy,
-  so the field is an honest empty tuple.
-- ``UnknownCardError`` is not raised here: ingest stores no cross-card
-  references, so there is no reference to an unknown card to fail on.
-  Malformed data that should be impossible in a clean MTGJSON file is
-  ``StateCorruptionError``.
+- No NLP. ``token_name_refs`` is ``()`` by construction: token names are bare subtype words
+  ("Angel", "Knight"), so a bare occurrence in the text is no token-creation signal ("is a Knight
+  in addition to its other types" creates no token). Matching the whole "create a ... token"
+  sentence belongs to the template compiler.
+- ``UnknownCardError`` is not raised here: ingest stores no cross-card references. Malformed data
+  that a clean MTGJSON file never holds is ``StateCorruptionError``.
 
-Reprint duplicates (documented design decision):
+Reprint duplicates: a pool file can repeat a card, every captured field identical and only raw
+fields the ingest drops (card number, uuid, rarity) differing. The oracle id names the card, not
+the printing, so ``ingest_pool`` keeps the first of identical duplicates ("identical" per
+:func:`_dedup_key`) and raises ``StateCorruptionError`` only when one oracle id maps to two
+different records.
 
-   The M21 pool file is not a clean single-set MTGJSON dump: it appends
-   reprint printings, so the same card — every captured field identical,
-   differing only in raw fields the ingest drops (card number, uuid,
-   rarity, …) — can appear more than once (measured 2026-09-15: 112 of its
-   397 card records repeat an oracle id). The oracle id names the card,
-   not the printing, so ``ingest_pool`` dedupes *identical* duplicates to
-   one entry (first occurrence wins — deterministic, "identical" per
-   :func:`_dedup_key`) instead of failing, and raises
-   ``StateCorruptionError`` only when the same oracle id maps to two
-   DIFFERENT card records, which is genuine corruption.
-
-Modal-DFC face fold (documented design decision, KNOWLEDGE/2026-10-18/92):
-
-   MTGJSON stores each face of a ``modal_dfc`` card as its own record with
-   ``side`` ``"a"`` / ``"b"``, sharing the oracle id. ``ingest_pool`` folds
-   exactly that pattern — one side-``"a"`` record becomes the ``RawCard``,
-   one side-``"b"`` record becomes its structured ``back_face`` (zero-loss,
-   §11) — after the per-side reprint dedup above. Every other
-   duplicate-oracle-id mismatch still raises ``StateCorruptionError``.
+Modal-DFC face fold: MTGJSON stores each face of a ``modal_dfc`` card as its own record with
+``side`` ``"a"`` / ``"b"``, sharing the oracle id. After the per-side reprint dedup, ``ingest_pool``
+folds exactly that pattern: the side-``"a"`` record becomes the ``RawCard`` and the side-``"b"``
+record its structured ``back_face``. Every other duplicate-oracle-id mismatch still raises.
 """
 
 from __future__ import annotations
@@ -70,43 +42,18 @@ from typing import Any
 from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.identity import CardIdentity, validate_oracle_id
 
-# Sentence split: a sentence ends at ``[.?!]`` followed by whitespace (at
-# paren depth 0), or at a line break (always). No NLP — deterministic by
-# construction.
-#
-# The rule is PAREN-DEPTH-AWARE (fix 2026-09-15, adversarial review):
-# ``[.?!] + whitespace`` splits ONLY when the paren depth is zero. A
-# multi-sentence parenthetical reminder like
-#   Opt (Look at the top card of your library. You may put that card on
-#   the bottom.)
-# is ONE sentence: the internal period+space sits at depth 1, so the naive
-# regex ``(?<=[.?!])\s+`` used to break it into two unbalanced chunks
-# ("…library." / "You may put that card on the bottom.)") — 23 of the 397
-# M21 card records affected (measured 2026-09-15): Temple of Epiphany /
-# Malady / Mystery / Silence / Triumph ×2 each, Speaker of the Heavens ×2,
-# Discontinuity ×2, Mazemind Tome ×2, and Opt, Riddleform, Spined
-# Megalodon, Wall of Runes, Alchemist's Gift, Malefic Scythe, Short Sword
-# ×1 each. Tokens: 0 affected.
-#
-# Single-sentence parentheticals ("Flying (Attacking doesn't cause this
-# creature to tap.)") stay one sentence: their only period is inside the
-# parens, so the old behaviour is preserved by the new rule, not by
-# accident. Line breaks still split at any depth (ability boxes).
 _SENTENCE_END_CHARS = frozenset(".?!")
 _WHITESPACE = frozenset(" \t\r\n")
 
 
 def split_sentences(text: str | None) -> tuple[str, ...]:
-    """Split oracle text into a deterministic sentence tuple.
+    """Split oracle text into a deterministic sentence tuple (no NLP).
 
-    Split at line breaks (any paren depth) and at ``[.?!]`` followed by
-    whitespace — but the latter only when the paren depth is zero, so a
-    multi-sentence parenthetical reminder stays one sentence. Chunks are
-    stripped, empties dropped. ``None`` / blank text gives ``()`` — basic
-    lands and the few cards printed without a text box in this dump.
-
-    Paren depth is tracked over the raw text: ``(`` opens, ``)`` closes
-    (never below zero, so a stray ``)`` cannot poison the depth).
+    A sentence ends at a line break (any paren depth) or at ``[.?!]`` followed by whitespace at
+    paren depth 0, so a multi-sentence parenthetical reminder ("Opt (Look at the top card of your
+    library. You may put that card on the bottom.)") stays one sentence. Chunks are stripped and
+    empties dropped; ``None`` or blank text gives ``()``. A stray ``)`` never takes the depth below
+    zero.
     """
     if not text:
         return ()
@@ -125,7 +72,6 @@ def split_sentences(text: str | None) -> tuple[str, ...]:
     while i < length:
         char = text[i]
         if char == "\n":
-            # Line breaks split at any depth.
             flush()
             i += 1
             continue
@@ -140,8 +86,7 @@ def split_sentences(text: str | None) -> tuple[str, ...]:
             i += 1
             continue
         if depth == 0 and char in _SENTENCE_END_CHARS:
-            # Sentence boundary: punctuation followed by at least one
-            # whitespace char at depth 0 (the old ``\s+`` lookahead, exactly).
+            # A boundary needs at least one whitespace char after the punctuation.
             j = i + 1
             while j < length and text[j] in _WHITESPACE:
                 j += 1
@@ -196,9 +141,8 @@ class RawCard:
     itself (name, type line, keyword strings, the sentence tuple), never a
     semantic annotation. ``sentences`` is what the template compiler
     matches against; ``identity.oracle_id`` is what everything else is
-    keyed on. ``back_face`` is ``None`` for every single-faced card (zero
-    behavior change for such cards) and the structured back face for a
-    modal DFC folded by :func:`ingest_pool`.
+    keyed on. ``back_face`` is ``None`` for every single-faced card and the
+    structured back face for a modal DFC folded by :func:`ingest_pool`.
     """
 
     identity: CardIdentity
@@ -257,12 +201,11 @@ def _related_names(raw: dict[str, Any], card: str) -> tuple[str, ...]:
     ``relatedCards`` is an MTGJSON object mapping relationship keys
     (``reverseRelated``, ``tokens``, …) to lists of related-card
     identifiers. The canonical v5 contract says these lists are card
-    *names*; this M21 dump instead fills ``tokens`` with record *uuids*
+    *names*; the M21 dump instead fills ``tokens`` with record *uuids*
     while ``reverseRelated`` carries names. Either way the linkage is
-    structured (no NLP), so :class:`RawCard` keeps the raw union verbatim —
-    for the pool's three emblems that union is exactly their owner names
-    (their only key is ``reverseRelated``), which is what the dropped
-    emblem→owner association needed.
+    structured (no NLP), so :class:`RawCard` keeps the raw union verbatim.
+    An emblem's only key is ``reverseRelated``, so its union is its owner's
+    name: the emblem -> owner association.
     """
     value = raw.get("relatedCards")
     if value is None:
@@ -290,8 +233,8 @@ def _related_names(raw: dict[str, Any], card: str) -> tuple[str, ...]:
 def _mana_value(raw: dict[str, Any], card: str) -> int:
     """The mana value as an int: ``manaValue`` if present, else 0.
 
-    Lands, tokens and other no-cost cards carry no ``manaValue`` — they are
-    0, never ``None`` (the spec's mana_value histogram has a 0 bucket).
+    Lands, tokens and other no-cost cards carry no ``manaValue``: they are
+    0, never ``None``.
     """
     value = raw.get("manaValue")
     if value is None:
@@ -324,17 +267,13 @@ _LEGAL_COLORS = frozenset("WUBRG")
 def ingest_card(raw: dict[str, Any]) -> RawCard:
     """Ingest one MTGJSON v5 card/token dict into a structured :class:`RawCard`.
 
-    Validates the invariants a clean MTGJSON file always holds — a
-    well-formed oracle id (via :func:`validate_oracle_id`), a non-empty
-    name, a present type line, text present-or-empty, colors within the
-    five-colour set, non-negative mana value — and raises
-    ``StateCorruptionError`` on anything else. The returned record is
-    frozen; its identity is keyed on the oracle id.
-
-    Documented defaults (genuinely optional fields only): ``setCode``
-    defaults to ``None`` and ``layout`` defaults to ``"normal"`` when
-    absent. ``name`` and ``type`` are REQUIRED — a record missing either
-    is corruption, not a card to guess at.
+    Validates the invariants a clean MTGJSON file always holds (a
+    well-formed oracle id, a non-empty name, a present type line, text
+    present-or-empty, colors within the five-colour set, a non-negative mana
+    value) and raises ``StateCorruptionError`` on anything else. Only
+    genuinely optional fields default: ``setCode`` to ``None``, ``layout``
+    to ``"normal"``. A record missing ``name`` or ``type`` is corruption,
+    not a card to guess at.
     """
     if not isinstance(raw, dict):
         raise StateCorruptionError(
@@ -403,10 +342,8 @@ def ingest_card(raw: dict[str, Any]) -> RawCard:
     subtypes = _as_str_tuple(raw, "subtypes", name)
     supertypes = _as_str_tuple(raw, "supertypes", name)
     layout = _as_str(raw, "layout", name, default="normal") or "normal"
-    # Emblems are their own layout (three in this pool), NOT tokens: a token
-    # is the token layout or a Token subtype. Measured 2026-09-15: all 17
-    # token-layout records carry "Token" in types, no normal-layout record
-    # does, and no token-layout record is an emblem.
+    # Emblems are their own layout, not tokens: a token is the token layout
+    # or carries the Token type.
     is_emblem = layout == "emblem"
     is_token = layout == "token" or "Token" in types
     related_names = _related_names(raw, name)
@@ -445,13 +382,7 @@ def ingest_card(raw: dict[str, Any]) -> RawCard:
         layout=layout,
         is_token=is_token,
         is_emblem=is_emblem,
-        # () by design — see the module docstring ("Deliberate non-goals"):
-        # exact-occurrence detection of bare-word token names is unreliable,
-        # and token-creation belongs to the template compiler.
-        token_name_refs=(),
-        # Structured linkage verbatim (see _related_names): the only
-        # cross-record association this pool file carries. For the three
-        # emblems it is exactly their owner names.
+        token_name_refs=(),  # by design: see the module docstring
         related_names=related_names,
     )
 
@@ -459,13 +390,12 @@ def ingest_card(raw: dict[str, Any]) -> RawCard:
 def _dedup_key(card: RawCard) -> tuple[Any, ...]:
     """The structured identity a duplicate oracle id must match.
 
-    Explicit and written down in one place (rather than relying on the
-    dataclass's ``!=``): dedup keys on EVERY captured field — the
-    :class:`CardIdentity` sub-fields plus the remaining ``RawCard``
-    fields (including a folded ``back_face``) — and on nothing else. A
-    reprint that differs only in raw fields the ingest deliberately drops
-    (card number, uuid, rarity, purchase URLs, …) is still the same card;
-    a duplicate that differs in any captured field is corruption.
+    Written out rather than relying on the dataclass's ``!=``: every
+    captured field (the :class:`CardIdentity` sub-fields plus the other
+    ``RawCard`` fields, a folded ``back_face`` included) and nothing else. A
+    reprint that differs only in raw fields the ingest drops (card number,
+    uuid, rarity, purchase URLs) is the same card; a duplicate that differs
+    in any captured field is corruption.
     """
     identity = card.identity
     return (
@@ -512,10 +442,9 @@ def _same_card_but_related(a: RawCard, b: RawCard) -> bool:
 def _face_from_record(raw: dict[str, Any], card: RawCard) -> CardFace:
     """Fold an already-ingested face record into structured :class:`CardFace` data.
 
-    Reuses the exact :func:`ingest_card` pipeline (``card`` carries the
-    validated fields and the :func:`split_sentences` output); only the
-    face ``name`` is re-derived: ``faceName`` when present, else the half
-    of the combined ``"A // B"`` name that follows the separator.
+    ``card`` carries the fields :func:`ingest_card` validated; only the face
+    ``name`` is re-derived: ``faceName`` when present, else the half of the
+    combined ``"A // B"`` name that follows the separator.
     """
     name = card.identity.name
     face_name = raw.get("faceName")
@@ -586,30 +515,14 @@ def _corruption(
 def ingest_pool(path: str | Path) -> dict[str, RawCard]:
     """Ingest a whole MTGJSON v5 pool file into an oracle-id-keyed pool.
 
-    Loads ``data.cards`` + ``data.tokens`` from the file and returns
-    ``dict[oracle_id, RawCard]`` in stable deterministic order (sorted by
-    card name, then oracle id).
-
-    Duplicate oracle ids: the M21 pool file appends reprint printings, so
-    the same card (every captured field identical, differing only in raw
-    fields the ingest drops — card number, uuid, rarity, …) can appear
-    more than once. The oracle id names the card, not the printing, so
-    such duplicates dedupe to one entry (first occurrence wins —
-    deterministic); what counts as "the same card" is :func:`_dedup_key`.
-    A duplicate oracle id whose captured records DIFFER is genuine
-    corruption and raises ``StateCorruptionError``.
-
-    The ONE exception is the modal-DFC face pattern (KNOWLEDGE/2026-10-18
-    /92): MTGJSON stores each face of a ``layout == "modal_dfc"`` card as
-    its own record with ``side == "a"`` / ``"b"``, sharing the oracle id
-    and DIFFERING in every captured field. Exactly one side-``"a"`` record
-    (per side after the reprint dedup above) becomes the :class:`RawCard`,
-    and exactly one side-``"b"`` record folds into its ``back_face`` —
-    zero-loss (§11), never dropped. Every other duplicate-oracle-id
-    mismatch keeps raising ``StateCorruptionError``: two differing
-    side-``"a"`` records, two differing side-``"b"`` records, a side-``"b"``
-    with no side-``"a"``, or a face record colliding with a normal
-    (side-less) record of the same oracle id.
+    Loads ``data.cards`` + ``data.tokens`` and returns ``dict[oracle_id,
+    RawCard]`` sorted by card name, then oracle id. Identical reprints
+    dedupe to the first and modal-DFC faces fold, as the module docstring
+    says. Every other duplicate-oracle-id mismatch raises
+    ``StateCorruptionError``: two differing records of one oracle id, two
+    differing side-``"a"`` or side-``"b"`` records, a side-``"b"`` with no
+    side-``"a"``, or a face record colliding with a normal (side-less)
+    record of the same oracle id.
     """
     pool_path = Path(path)
     if not pool_path.is_file():
@@ -645,7 +558,7 @@ def ingest_pool(path: str | Path) -> dict[str, RawCard]:
         side = raw.get("side")
 
         if side is None:
-            # Normal (face-less) record: the pre-ZNR path, byte-for-byte.
+            # Normal (face-less) record.
             if oracle_id in faces:
                 raise _corruption(
                     "duplicate oracle id mixes face records and a normal record",
@@ -657,10 +570,9 @@ def ingest_pool(path: str | Path) -> dict[str, RawCard]:
             if existing is None:
                 pool[oracle_id] = card
             elif _same_card_but_related(existing, card):
-                # B-39: printings of one card that differ only in relatedCards: ELD Food x4 and
-                # IKO Human Soldier (tokens: which OTHER cards create them), WAR Ugin, the
-                # Ineffable (its Japanese alternate-art printing omits the token link). Linkage
-                # metadata, not characteristics, so keep one record with the union.
+                # Printings that differ only in relatedCards (ELD's Food tokens list the cards
+                # that create them; an alternate-art Ugin, the Ineffable omits its token link):
+                # linkage metadata, not characteristics, so keep one record with the union.
                 pool[oracle_id] = replace(
                     existing,
                     related_names=tuple(sorted({*existing.related_names, *card.related_names})),
@@ -725,7 +637,7 @@ def ingest_pool(path: str | Path) -> dict[str, RawCard]:
 
 
 def pool_stats(pool: dict[str, RawCard]) -> dict[str, Any]:
-    """Aggregate stats over a pool — the KNOWLEDGE/NUMBERS.md baseline check.
+    """Aggregate stats over a pool (the coverage denominators come from here).
 
     Returns a dict with:
 
@@ -737,10 +649,7 @@ def pool_stats(pool: dict[str, RawCard]) -> dict[str, Any]:
     - ``layouts``         — layout -> count histogram (sorted)
     - ``mana_value``      — bucket -> count for "0","1","2","3","4","5+"
     - ``emblems``         — number of emblem-layout entries
-    - ``emblem_owners``   — emblem oracle_id -> related names (owner names;
-                            for the pool's three emblems the only
-                            ``relatedCards`` key is ``reverseRelated``, so
-                            this is the emblem -> owner association)
+    - ``emblem_owners``   — emblem oracle_id -> related names (its owner)
     """
     keywords: dict[str, int] = {}
     layouts: dict[str, int] = {}

@@ -1,13 +1,10 @@
-"""Tests for the T5 golden write/verify module (golden.py).
+"""Tests for the golden write/verify module (golden.py).
 
-One shared M21 ingest + one shared registry in ``setUpClass``.  Write runs
-and drift-detection verifies target ``tempfile`` roots so the production
-tree is never *rewritten* by the test suite; the committed-baseline test
-reads the production ``MTG_bot/core/golden`` tree exactly like the
-harness's default verify-only path.  Covers PC-4 (write-then-verify
-stability, single-byte tamper + missing + stale detection, and a stable
-committed baseline) and PC-9 (fingerprint-multiset determinism across
-independent compilations).
+Write runs and drift checks target ``tempfile`` roots, so the suite never
+rewrites the production tree; the committed-baseline test reads the
+production ``MTG_bot/core/golden`` tree read-only. Covers PC-4 (write-then-
+verify stability, tamper, missing and stale detection, a stable committed
+baseline) and PC-9 (fingerprint-multiset determinism).
 """
 
 from __future__ import annotations
@@ -77,9 +74,8 @@ class TestGoldens(unittest.TestCase):
         self.assertIn(f"{_STALE_NAME}: stale", diffs)
 
     def test_verify_detects_single_byte_tamper(self) -> None:
-        """PC-4 instrument null test: flip exactly ONE byte in a written
-        golden; verify_goldens (the harness's actual measurement path) must
-        report at least one diff naming that entry."""
+        """One flipped byte in a written golden is reported as a diff naming
+        that entry."""
         root = self._fresh_root()
         write_goldens(self.pool, self.registry, "M21", root=root)
         path = root / "M21" / f"{self._first_oid()}.json"
@@ -92,11 +88,8 @@ class TestGoldens(unittest.TestCase):
         self.assertIn(f"{self._first_oid()}: content mismatch", diffs)
 
     def test_committed_baseline_verify_zero_diffs(self) -> None:
-        """The harness's actual default path: verify the fresh compile
-        against the COMMITTED goldens under the production GOLDEN_ROOT
-        (no root override, read-only).  A clean tree with an up-to-date
-        baseline must yield exactly 0 diffs — and this test fails on
-        real drift, so the harness PASS is meaningful."""
+        """A fresh compile matches the committed goldens under the production
+        GOLDEN_ROOT exactly (read-only): this fails on real drift."""
         directory = GOLDEN_ROOT / "M21"
         self.assertTrue(directory.is_dir(), "committed golden baseline missing")
         self.assertEqual(

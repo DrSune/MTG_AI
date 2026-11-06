@@ -1,13 +1,13 @@
-"""Turn-history conditions (2026-11-05): the "if <condition>" phrases that read what happened this
-turn, as Filters.
+"""Turn-history conditions: the "if <condition>" phrases that read what happened this turn, as
+Filters.
 
 One grammar for every place a condition is printed: an intervening "if" in a trigger (frames.py,
 CR 603.4), a trailing "if"/"unless" after an effect or a static ability (frames.py, templates_b14),
 and the relative clause of a target noun phrase (templates_b11). ``PATTERN`` is the grammar as a
 regex and ``condition`` builds the Filter of a phrase it matches, from the same table, so a
-template can never match a phrase it cannot encode (the B11 rule).
+template can never match a phrase it cannot encode.
 
-New phrases read the one turn-history atom, ``FAtomPred.EVENT_THIS_TURN`` over an EventSpec:
+Most phrases read the one turn-history atom, ``FAtomPred.EVENT_THIS_TURN`` over an EventSpec:
 - "<you|an opponent|a player> lost [N or more] life this turn" (Savage Gorger, Knight of the Ebon
   Legion): LifeLostEvent, one player's total (CR 120.3a: damage to a player is life lost);
 - "<you|an opponent> [have|has|didn't] cast a [<colour> [or <colour>]|historic] spell this turn"
@@ -15,9 +15,9 @@ New phrases read the one turn-history atom, ``FAtomPred.EVENT_THIS_TURN`` over a
 - "<you|an opponent> attacked this turn" (raid): only the active player attacks (CR 508.1), so it
   is "<their> turn, and attackers were declared this turn";
 - "an opponent was|has been dealt damage this turn" (bloodthirst, CR 702.54a).
-The shapes M21 already compiles keep the atoms their templates use, byte for byte (the frames
-differential checks it): "a creature died this turn" (DIED_THIS_TURN), "you['ve] gained [N or more]
-life this turn" (LIFE_GAINED_THIS_TURN_GE), "you've cast an instant or sorcery spell this turn"
+Three shapes keep the dedicated atoms their M21 templates use (the frames differential checks they
+agree): "a creature died this turn" (DIED_THIS_TURN), "you['ve] gained [N or more] life this turn"
+(LIFE_GAINED_THIS_TURN_GE), "you've cast an instant or sorcery spell this turn"
 (INSTANT_OR_SORCERY_CAST_THIS_TURN).
 """
 

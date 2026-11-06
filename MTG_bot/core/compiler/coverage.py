@@ -1,45 +1,30 @@
-"""Phase-1 grammar coverage measurement (task T5).
+"""Grammar coverage measurement: a read-only layer on top of ``ingest`` + ``compile``.
 
-Read-only measurement layer on top of ``ingest`` + ``compile``:
-
-* ``build_full_registry`` — assembles the full 8-bucket TemplateRegistry.
-* ``measure_pool``        — one per-card ``compile_card`` pass over a whole
-  pool, reduced to the pre-registered Phase-1 numbers PC-1, PC-2, PC-3,
-  PC-6, PC-8 plus the exact unparsed/ambiguity queues (PC-10 harness input).
-  Cards whose printed shape raises ``StateCorruptionError`` are recorded as
-  ``shape_gaps`` ledger rows (§8/§11: a gap is REPORTED, never a crash,
-  never a silent drop) and stay in every PC denominator.
+* ``build_full_registry`` — the TemplateRegistry of every bucket module.
+* ``measure_pool``        — one ``compile_card`` per card of a pool, reduced to
+  the Phase-1 numbers PC-1, PC-2, PC-3, PC-6, PC-8 plus the exact unparsed and
+  ambiguity queues. A card whose printed shape raises ``StateCorruptionError``
+  becomes a ``shape_gaps`` row (reported, never a crash, never a silent drop)
+  and stays in every denominator.
 * ``check_pinned_denominators`` — fails loudly if the M21 ingest no longer
   yields the pinned 305 entries / 639 sentences / 510 unique sentences.
 
-This module never mutates existing modules and never stubs an executor
-(PC-7 stays ``pending_executor`` until T6).
+The numbers:
 
-Measurement semantics (per KNOWLEDGE/2026-09-14/02-phase1-plan.md, with the
-plan's 417/952 planning-time denominators replaced by the pinned real
-M21 ingest denominators 305/639):
-
-* PC-1 card_coverage — pool entries with zero unparsed fragments / total
-  pool entries.  Denominator is the full pool (305, emblems included),
-  matching "total pool" in the plan.
-* PC-2 sentence_coverage — matched oracle sentences / total oracle
-  sentences.  A sentence is *matched* when it is not in the compiler's
-  unparsed queue: rule-reminder and keyword sentences are recognised
-  outcomes and count as matched.  The denominator is FRONT + BACK-FACE
-  sentences (blindspot (a) closure, KNOWLEDGE/2026-10-18/93; ENCODED by
-  ZND-2f /106: the compiler compiles ``back_face`` sentences into a
-  BackFace node).  Unmatched face sentences enter the register tagged
-  ``bucket_hint="BFACE"`` with ``name="<card> [face B]"``.
-* PC-3 ambiguity — entries whose text matched >= 2 distinct template
-  outcomes producing different trees (the compiler's own ambiguity
-  records).
-* PC-6 vocabulary_health — orphan verbs (0 uses across all compiled
-  ``Atom`` nodes of the pool) and the max single-verb share of all Atom
-  nodes.  All pool entries (emblems included) are walked.
-* PC-8 targetable_card_fraction — pool entries with >= 1 TARGET-mode
-  ``Selector`` anywhere in the compiled tree / total pool entries.
-  Selectors only occur in Atom args (Filter = FAnd|FOr|FNot|FAtom), so
-  walking the tree finds every one of them.
+* PC-1 card_coverage — pool entries with zero unparsed fragments / all pool
+  entries (emblems included).
+* PC-2 sentence_coverage — matched oracle sentences / all oracle sentences.
+  A sentence is *matched* when it is not in the compiler's unparsed queue:
+  rule-reminder and keyword sentences count as matched. The denominator is
+  front + back-face sentences; an unmatched face sentence enters the queue
+  as ``bucket_hint="BFACE"`` with ``name="<card> [face B]"``.
+* PC-3 ambiguity — entries whose text matched >= 2 templates producing
+  different trees (the compiler's own ambiguity records).
+* PC-6 vocabulary_health — orphan verbs (no use in any compiled ``Atom`` of
+  the pool) and the largest single-verb share of all Atom nodes.
+* PC-8 targetable_card_fraction — entries with >= 1 TARGET-mode ``Selector``
+  in the compiled tree / all entries. Selectors only occur in Atom args, so
+  walking the tree finds every one.
 """
 
 from __future__ import annotations
@@ -81,18 +66,15 @@ from MTG_bot.core.compiler.templates import TemplateRegistry
 from MTG_bot.core.errors import StateCorruptionError
 
 # ---------------------------------------------------------------------------
-# Pinned denominators (M21) — NUMBERS.md 2026-09-15/02 re-measurement.
-# The phase plan's 417/952 were planning-time estimates; the deduplicated
-# real pool is 305 entries / 639 sentences / 510 unique sentences.
+# Pinned denominators of the deduplicated M21 pool.
 # ---------------------------------------------------------------------------
 
 PINNED_ENTRIES = 305
 PINNED_SENTENCES = 639
 PINNED_SENTENCES_UNIQUE = 510
 
-#: The twelve bucket modules, in registration order.  Explicit by design —
-#: a new bucket module must be added here (and to NUMBERS.md) before its
-#: templates participate in measurement.
+#: The bucket modules, in registration order. Explicit by design: a new
+#: bucket module must be added here before its templates take part.
 _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b1,
     templates_b2a,
@@ -109,8 +91,8 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b10,
     templates_b11,
     templates_b12,
-    templates_b14,  # 2026-11-05: can't be countered, turn-history statics
-    templates_b15,  # 2026-11-06: defending player, blocker limit, created token
+    templates_b14,
+    templates_b15,
 )
 
 
@@ -125,11 +107,8 @@ def build_full_registry() -> TemplateRegistry:
 
 def check_pinned_denominators(pool: dict[str, RawCard]) -> None:
     """Raise ``ValueError`` if the M21 pool no longer yields the pinned
-    denominators (305 entries / 639 sentences / 510 unique).
-
-    A changed denominator is a data-change signal, not a rescaling
-    opportunity: re-measure, record it in KNOWLEDGE/NUMBERS.md, and only
-    then update the pins.
+    denominators. A changed denominator is a data change, not a rescaling
+    opportunity: re-measure before re-pinning.
     """
     stats = pool_stats(pool)
     problems = []
@@ -199,10 +178,9 @@ class AmbiguityEntry:
 class ShapeGap:
     """One pool entry whose printed shape raised ``StateCorruptionError``.
 
-    Per §8/§11 this is a REPORTED ledger row, not a crash and not a silent
-    drop: the card is excluded from compiled-result metrics but stays in
-    every PC denominator, and the error message is recorded verbatim
-    (truncated to 160 chars).
+    A reported row, not a crash and not a silent drop: the card is excluded
+    from compiled-result metrics but stays in every PC denominator, and the
+    error message is recorded verbatim (truncated to 160 chars).
     """
 
     card: str  # oracle_id
@@ -239,9 +217,8 @@ class CoverageReport:
     targetable_entries: int
     unparsed_queue: tuple[UnparsedEntry, ...]
     shape_gaps: tuple[ShapeGap, ...] = ()
-    #: Back-face census summary (blindspot (a), KNOWLEDGE/2026-10-18/93):
-    #: ``None`` for a pool with no modal faces (M21) so ``to_json`` adds no
-    #: "backface" key — OMIT-IF-EMPTY house law, M21 report byte-identical.
+    #: Back-face census summary; ``None`` for a pool with no modal faces, so
+    #: ``to_json`` adds no "backface" key.
     backface_summary: dict[str, Any] | None = None
 
     # -- PC-1 ----------------------------------------------------------------
@@ -315,12 +292,10 @@ class CoverageReport:
             "unparsed_queue": [e.to_json() for e in self.unparsed_queue],
             "unparsed_count": self.unparsed_count,
         }
-        # House OMIT-IF-EMPTY law: zero shape failures adds NO new key, so a
-        # gap-free pool (M21) keeps a byte-identical report.
+        # Keys that would be empty are omitted, so a pool without shape gaps
+        # or modal faces keeps the same report bytes.
         if self.shape_gaps:
             data["shape_gaps"] = [g.to_json() for g in self.shape_gaps]
-        # Same law for the back-face census: no modal faces in the pool
-        # (M21) means no "backface" key at all.
         if self.backface_summary is not None:
             data["backface"] = dict(self.backface_summary)
         return data
@@ -335,16 +310,14 @@ def _compile_pool_tolerant(
     pool: dict[str, RawCard],
     registry: TemplateRegistry,
 ) -> tuple[dict[str, CompileResult], list[ShapeGap]]:
-    """Per-card ``compile_card`` pass mirroring ``compile_pool`` semantics.
+    """``compile_pool`` semantics, except that a card whose printed shape
+    raises ``StateCorruptionError`` becomes a ``ShapeGap`` row (excluded from
+    ``results``) instead of crashing the whole pass.
 
-    Identical to ``compile_pool`` except that a card whose printed shape
-    raises ``StateCorruptionError`` is reported as a ``ShapeGap`` row
-    (excluded from ``results``) instead of crashing the whole pass (§8/§11).
-    Emblem attachment mirrors ``compiler.compile_pool`` exactly (owner
-    lookup by ``related_names``, later same-named entries win) restricted
-    to the successfully compiled subset, so the M21 walk semantics —
-    emblem atoms reachable both via the owner's record and via the emblem's
-    own result entry — are preserved byte-for-byte.
+    Emblem attachment mirrors ``compiler.compile_pool`` exactly (owner lookup
+    by ``related_names``, later same-named entries win) over the compiled
+    subset, so emblem atoms are reachable both through the owner's record
+    and through the emblem's own entry.
     """
     results: dict[str, CompileResult] = {}
     gaps: list[ShapeGap] = []
@@ -364,7 +337,7 @@ def _compile_pool_tolerant(
         owner_oid = next(
             (name_to_oid[n] for n in raw.related_names if n in name_to_oid), None
         )
-        # B-38, mirroring compiler.compile_pool: a back-face planeswalker's emblem stays an orphan.
+        # As in compiler.compile_pool: a back-face planeswalker's emblem stays an orphan.
         if owner_oid is not None and "Planeswalker" in results[owner_oid].card.types:
             owner_result = results[owner_oid]
             results[owner_oid] = replace(
@@ -378,32 +351,22 @@ def measure_pool(
     registry: TemplateRegistry,
     set_name: str = "M21",
 ) -> CoverageReport:
-    """One per-card ``compile_card`` pass over ``pool``, reduced to a
-    CoverageReport.
+    """One ``compile_card`` per card of ``pool``, reduced to a CoverageReport.
 
-    Every pool entry (emblems included) is walked for PC-6 atoms and
-    PC-8 selectors; the unparsed queue is the exact per-entry list of
-    (oracle_id, name, sentence, bucket_hint) — the instrument that PC-10
-    probes in both directions.
-
-    Cards that raise ``StateCorruptionError`` are recorded under
-    ``shape_gaps`` and excluded from compiled-result metrics, but every
-    PC denominator stays the FULL pool (honesty law: a gap card counts
+    Every entry (emblems included) is walked for PC-6 atoms and PC-8
+    selectors; the unparsed queue is the exact per-entry list of
+    (oracle_id, name, sentence, bucket_hint). Cards that raise
+    ``StateCorruptionError`` are ``shape_gaps``: excluded from compiled-result
+    metrics, while every denominator stays the full pool (a gap counts
     against coverage, never shrinks the sample).
 
-    BackFace stats (ZND-2f closure of the /96 blindspot, superseding the
-    /93 measurement-only census): PC-2's denominator is FRONT + BACK-FACE
-    sentences.  The compiler now READS ``RawCard.back_face`` (ZND-2f):
-    face sentences that compile ride in the tree's BackFace node, and the
-    MATCHED ones are covered for real.  Only face sentences the tolerant
-    compile did NOT match (``CompileResult.back_face_unparsed`` — today
-    the 10 pay-3-life sentences of ZND-2f2) enter the register as
-    ``UnparsedEntry`` rows with ``name="<card> [face B]"`` and
-    ``bucket_hint="BFACE"``.  Face-subtree verbs are TAGGED in
-    ``backface_summary["verb_histogram"]`` and NEVER merged into
-    ``verb_counts`` (PC-6/PC-8 stay front-only, /106 amendment 2).
-    PC-1's formula is untouched: it still counts front-face compile
-    results only (/96 law).
+    Back faces: PC-2's denominator is front + back-face sentences. Face
+    sentences that compile ride in the tree's BackFace node and count as
+    matched; the others (``CompileResult.back_face_unparsed``) enter the
+    queue as ``"<card> [face B]"`` rows with ``bucket_hint="BFACE"``.
+    Face-subtree verbs are counted in ``backface_summary["verb_histogram"]``,
+    never in ``verb_counts``, so PC-6 and PC-8 stay front-only; PC-1 counts
+    front-face results only.
     """
     stats = pool_stats(pool)
     results, gaps = _compile_pool_tolerant(pool, registry)
@@ -413,8 +376,7 @@ def measure_pool(
     cards_zero_unparsed = 0
     targetable_entries = 0
     verb_counts: dict[str, int] = {}
-    # ZND-2f tagged face census: face-subtree verbs and residual rows are
-    # kept SEPARATE from the front-face folds below (/106 amendment 2).
+    # Face-subtree verbs and residual rows stay separate from the front counts.
     face_verb_counts: dict[str, int] = {}
     backface_rows: list[UnparsedEntry] = []
     backface_sentences = 0
@@ -426,8 +388,7 @@ def measure_pool(
         result = results[oid]
         name = raw.identity.name
 
-        # PC-1: FRONT-face compile results only (/96 law — face residue
-        # is ledgered in the register below, it does not touch this).
+        # PC-1: front-face results only; face residue goes to the queue below.
         if not result.unparsed:
             cards_zero_unparsed += 1
         for sentence, hint in result.unparsed:
@@ -456,7 +417,7 @@ def measure_pool(
         if has_target_selector:
             targetable_entries += 1
 
-        # -- back face (ZND-2f): tagged census + honest residual register --
+        # -- back face: its own verb census and residual rows --
         face = raw.back_face
         if face is None:
             continue
@@ -465,9 +426,8 @@ def measure_pool(
         if not result.back_face_unparsed:
             cards_face_whole += 1
         for sentence, _hint in result.back_face_unparsed:
-            # Unmatched face sentence: register row, tagged as in the /93
-            # census shape. The compiler's own bucket hint is deliberately
-            # replaced by "BFACE" so the census bucket stays stable.
+            # The compiler's bucket hint is replaced by "BFACE" so the face
+            # bucket stays stable.
             backface_rows.append(
                 UnparsedEntry(oid, f"{name} [face B]", sentence, "BFACE")
             )
@@ -477,11 +437,9 @@ def measure_pool(
                     vname = face_node.verb.name
                     face_verb_counts[vname] = face_verb_counts.get(vname, 0) + 1
 
-    # ZND-2f honesty law (/93 census precedent, /106 amendment 2): a
-    # shape-gap card has NO compile result, so none of its face sentences
-    # can have been matched — every one is residue. It must still count in
-    # the face census, the PC-2 denominator, and the register; a failing
-    # shape never shrinks the sample.
+    # A shape-gap card has no compile result, so every face sentence of it is
+    # residue; it still counts in the face census, the PC-2 denominator and
+    # the queue.
     for gap in gaps:
         gap_raw = pool.get(gap.card)
         if gap_raw is None or gap_raw.back_face is None:
@@ -509,10 +467,7 @@ def measure_pool(
             "cards_with_faces": cards_with_faces,
             "sentence_total": backface_sentences,
             "unparsed_rows": len(backface_rows),
-            # ZND-2f: faces whose every sentence compiled (their BackFace
-            # node is complete) and the TAGGED face-verb census — kept out
-            # of verb_counts so PC-6 max-share and PC-8 never see face
-            # atoms untagged (/106 amendment 2).
+            # faces whose every sentence compiled, and the face-verb census
             "cards_face_whole": cards_face_whole,
             "verb_histogram": dict(sorted(face_verb_counts.items())),
         }

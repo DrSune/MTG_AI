@@ -37,7 +37,6 @@ def _simple_keyword_template(tid: str, priority: int = 1) -> Template:
 
 
 
-# Lazy import to avoid circularity at module level
 from MTG_bot.core.ability_tree import Verb as _VERB  # noqa: E402
 
 _DRAW_VERB = _VERB.DRAW
@@ -93,7 +92,6 @@ class TestTemplateMatch(unittest.TestCase):
     def test_fullmatch_only(self) -> None:
         reg = TemplateRegistry()
         reg.register(_simple_keyword_template("t1"))
-        # Exact match works
         matches = reg.match("Flying")
         self.assertEqual(len(matches), 1)
         # Partial match does NOT work (fullmatch semantics)

@@ -1,8 +1,8 @@
-"""Grammar round S-1 (KNOWLEDGE /159): what first touch on M20 and KHM broke, pinned.
+"""Whole-set robustness: one card's printed shape never takes down a set's compile.
 
-Each crash took down a whole set's compile, not one card: B-36 a template pattern that outran its
-builder, B-37 vehicles, B-38 a back-face planeswalker's emblem, B-39 token printings in ingest.
-The keyword-line fallback (B-41) only moves sentences out of the unparsed register; it never
+Pinned: a template pattern never outruns its builder; a vehicle is an honest refusal; a back-face
+planeswalker's emblem stays an orphan; token printings that differ only in their creators merge
+in ingest. The keyword-line fallback only moves sentences out of the unparsed register; it never
 changes a compiled tree.
 """
 
@@ -33,13 +33,14 @@ def _by_name(set_code: str) -> dict:
 
 
 def test_the_keyword_grant_pattern_cannot_outrun_its_builder(registry) -> None:
-    # B-36: "[a-z]+" matched "haste", which _KW_MAP lacks -> KeyError -> whole-set crash.
+    # The pattern only matches keywords _KW_MAP can build ("haste" is not one), so the builder
+    # never raises KeyError.
     unknown = "{1}{R}, {T}: Target creature gains haste until end of turn."
     assert [m.template.tid for m in registry.match(unknown)
             if m.template.tid.startswith("B3-grant-kw")] == []
     known = "{1}{R}, {T}: Target creature gains flying until end of turn."
     assert any(m.template.tid == "B3-grant-kw-target-creature" for m in registry.match(known))
-    # The card that crashed KHM now compiles, its unmapped grant honestly unparsed.
+    # Axgard Cavalry compiles, its unmapped grant unparsed.
     result = compile_card(_by_name("KHM")["Axgard Cavalry"], registry)
     assert [s for s, _ in result.unparsed] == [
         "{T}: Target creature gains haste until end of turn."
@@ -47,13 +48,13 @@ def test_the_keyword_grant_pattern_cannot_outrun_its_builder(registry) -> None:
 
 
 def test_a_vehicle_is_an_honest_refusal_not_a_value_error(registry) -> None:
-    # B-37: printed P/T on a non-creature artifact; crew is not implemented.
+    # Printed P/T on a non-creature artifact; crew is not implemented.
     with pytest.raises(StateCorruptionError, match="Vehicle"):
         compile_card(_by_name("KHM")["Raiders' Karve"], registry)
 
 
 def test_an_emblem_whose_planeswalker_is_a_back_face_stays_an_orphan(registry) -> None:
-    # B-38: Valki, God of Lies is a creature; Tibalt (the back face) owns the emblem.
+    # Valki, God of Lies is a creature; Tibalt (the back face) owns the emblem.
     pool = ingest_pool(DATA / "KHM.json")
     names = {"Valki, God of Lies // Tibalt, Cosmic Impostor", "Tibalt, Cosmic Impostor Emblem",
              "Tyvar Kell", "Tyvar Kell Emblem"}
@@ -65,11 +66,11 @@ def test_an_emblem_whose_planeswalker_is_a_back_face_stays_an_orphan(registry) -
     assert valki.emblem is None
     tyvar = next(r.card for r in compiled.results.values() if r.card.name == "Tyvar Kell")
     assert tyvar.emblem is not None  # a front-face planeswalker still carries its emblem
-    measure_pool(pool, registry, "KHM")  # and the whole-set measurement no longer raises
+    measure_pool(pool, registry, "KHM")  # and the whole-set measurement does not raise
 
 
 def test_token_printings_that_differ_only_in_their_creators_merge(tmp_path) -> None:
-    # B-39: ELD's four Food printings list different reverseRelated cards.
+    # ELD's four Food printings list different reverseRelated cards.
     token = {"text": "{2}, {T}, Sacrifice this token: You gain 3 life.", "types": ("Artifact",),
              "subtypes": ("Food",), "colors": (), "mana_cost": None, "mana_value": 0.0,
              "power": None, "toughness": None, "layout": "token"}

@@ -1,21 +1,10 @@
-"""C2 compiler campaign batches 0+1 — falsifiability pins (2026-10-02).
+"""Compiler pins: Fabled Passage's tapped search, and existential "if you control" conditions.
 
-Batch 0 (fabled flag): the Fabled Passage SEARCH atom must carry the
-printed "onto the battlefield tapped" as ``tapped_on_enter=True`` (the
-wave-21b suspect: the flag was silently DROPPED while the grammar slot and
-the ``_v_search`` consumer already existed).
-
-Batch 1 (existential census): "if you control a Basri planeswalker" / "if
-you control a creature with power 4 or greater" are EXISTENCE claims over
-the controlled population — CONTROLLER_COUNT_GE count=1 with the per-card
-test INSIDE the inner filter (r18a turret_ogre idiom). The wave-5a suspect
-(Adherent: bare filter judged against the trigger SOURCE only) and the
-wave-3b suspect (Ornery: the printed 4 bound to the COUNT instead of the
-POWER filter) are the miscompiles these pins falsify.
-
-Goldens moved for all three cards under the C1-form set-evidence audit
-(KNOWLEDGE/2026-10-02/04; pre-snapshot /tmp/golden_pre_c2, 302 others
-byte-identical).
+The Fabled Passage SEARCH atom carries the printed "onto the battlefield tapped" as
+``tapped_on_enter=True``. "If you control a Basri planeswalker" and "if you control a creature
+with power 4 or greater" are existence claims over the controlled population: CONTROLLER_COUNT_GE
+count=1 with the per-card test inside the inner filter, never a bare filter judged against the
+trigger source, and the printed 4 bound to the POWER filter, not the count.
 """
 
 from __future__ import annotations
@@ -67,14 +56,11 @@ class TestC2CompilerPins(unittest.TestCase):
         self.assertEqual(res.unparsed, ())
         return res
 
-    # ---- batch 0: fabled_passage SEARCH tapped_on_enter stamp ----
+    # ---- Fabled Passage: SEARCH tapped_on_enter ----
 
     def test_fabled_search_atom_stamps_tapped_on_enter(self) -> None:
-        """The printed "put it onto the battlefield tapped" is EMITTED.
-
-        Falsified if the flag is dropped (wave-21b) or if a blanket
-        executor-side default replaced the emission (the slot must live in
-        the IR, per the suspect's STOP ruling)."""
+        """The printed "put it onto the battlefield tapped" lives in the IR, not
+        in an executor-side default."""
         res = self._compile(_FABLED)
         (ability,) = res.card.abilities
         assert isinstance(ability, ActivatedAbility)
@@ -85,9 +71,8 @@ class TestC2CompilerPins(unittest.TestCase):
         self.assertIs(search.args.get("tapped_on_enter"), True)
 
     def test_fabled_conditional_untap_tail_still_falsifiable(self) -> None:
-        """The >=4-land branch stays a Conditional(CONTROLLER_COUNT_GE
-        Lands>=4, UNTAP) — the green fabled_passage.json pack asserts the
-        untap fires, so the two branches are independently falsifiable."""
+        """The >=4-land branch is a Conditional(CONTROLLER_COUNT_GE Lands>=4,
+        UNTAP); the fabled_passage.json pack asserts the untap fires."""
         res = self._compile(_FABLED)
         (ability,) = res.card.abilities
         assert isinstance(ability, ActivatedAbility)
@@ -98,15 +83,14 @@ class TestC2CompilerPins(unittest.TestCase):
         self.assertIs(tail.pred.pred, FAtomPred.CONTROLLER_COUNT_GE)
         self.assertEqual(tail.pred.count, QConst(4))
 
-    # ---- batch 1: existential census emission ----
+    # ---- existential conditions ----
 
     def test_adherent_condition_is_existential_census(self) -> None:
-        """Adherent of Hope: the condition QUANTIFIES over controlled
-        permanents — COUNT_GE(count=1) + inner NAME_CONTAINS/TYPE_EQ/
-        CONTROLLER_IS — not the old bare filter the gate judged against
-        the trigger source (wave-5a suspect)."""
+        """Adherent of Hope: the condition quantifies over controlled
+        permanents (COUNT_GE count=1 + inner NAME_CONTAINS/TYPE_EQ/
+        CONTROLLER_IS), not a filter judged against the trigger source."""
         res = self._compile(_ADHERENT)
-        ability, _carrier = res.card.abilities  # + C4 effect-less cast carrier
+        ability, _carrier = res.card.abilities  # + the effect-less cast carrier
         assert isinstance(ability, TriggeredAbility)
         cond = ability.condition
         assert isinstance(cond, FAtom)  # NOT FAnd: the quantifier leads
@@ -122,11 +106,10 @@ class TestC2CompilerPins(unittest.TestCase):
         self.assertEqual(name.string_value, "Basri")
 
     def test_ornery_gate_counts_one_creature_not_four(self) -> None:
-        """Ornery Dilophosaur: EXACTLY ONE controlled creature matching
-        the power filter is demanded (count=1); the printed 4 lives only
-        in the POWER_GE filter (wave-3b off-by-one)."""
+        """Ornery Dilophosaur: one controlled creature matching the power
+        filter is demanded (count=1); the printed 4 lives only in POWER_GE."""
         res = self._compile(_ORNERY)
-        ability, _carrier = res.card.abilities  # + C4 effect-less cast carrier
+        ability, _carrier = res.card.abilities  # + the effect-less cast carrier
         assert isinstance(ability, TriggeredAbility)
         cond = ability.condition
         assert isinstance(cond, FAtom)
@@ -139,9 +122,8 @@ class TestC2CompilerPins(unittest.TestCase):
         self.assertEqual(power.count, QConst(4))
 
     def test_ornery_row_decouples_count_from_threshold(self) -> None:
-        """The row reads DIFFERENT numbers correctly: a synthetic "power 6
-        or greater ... +1/+1" sentence must emit count=1 / POWER_GE=6 — a
-        template that rebinds the number to the COUNT fails here."""
+        """A synthetic "power 6 or greater ... +1/+1" sentence emits count=1 /
+        POWER_GE=6: the number never binds to the count."""
         from MTG_bot.core.compiler import templates_b2b
         from MTG_bot.core.compiler.templates import TemplateRegistry
 

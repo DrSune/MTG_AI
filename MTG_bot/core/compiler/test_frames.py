@@ -1,10 +1,11 @@
-"""Frames (sets round S-3b, KNOWLEDGE /168): trigger or cost + an effect clause that parses alone.
+"""Frames: a trigger or cost + an effect clause that parses alone.
 
 Pinned:
-1. identity law, as a differential: over every sentence of M21, ZNR, M20 and KHM that a specific
+1. identity, as a differential: over every sentence of M21, ZNR, M20 and KHM that a specific
    template parses as a triggered or activated ability and that a frame also composes, the two
-   abilities are byte-identical, except for B-47 (one token carrier's type line);
-2. fallback only: a card whose sentences all parsed before is untouched (M21: no card changes);
+   abilities are byte-identical;
+2. fallback only: a card whose sentences all parse without frames is untouched (M21: no card
+   changes);
 3. a clause with a pronoun is refused, because its referent lies outside the clause.
 """
 
@@ -23,11 +24,6 @@ from MTG_bot.core.compiler.templates import AbilityOutcome
 
 DATA = Path(__file__).resolve().parents[2] / "data"
 SETS = ("M21", "ZNR", "M20", "KHM")
-#: B-47 was the one known difference: B3 wrote the Angel token's type line as "Angel" where B11
-#: and every other carrier write "Creature — Angel".
-# re-pinned 2026-10-30: m21-fidelity wave 4 fixes B-47 in B3 (the executor mints a token from its
-# type line, so Speaker of the Heavens' Angel was not a creature); frames and templates now agree
-# on every framed ability, so no difference is allowed.
 B47: set[str] = set()
 
 
@@ -52,7 +48,7 @@ def test_frames_rebuild_every_existing_framed_ability(registry) -> None:
                 else:
                     differ.add(sentence)
     assert differ == B47
-    assert agree >= 70  # 73 when this test was written: the comparison must stay meaningful
+    assert agree >= 70  # the comparison must stay meaningful
 
 
 def test_a_pronoun_keeps_the_sentence_out(registry) -> None:
@@ -92,7 +88,7 @@ def test_cards_that_compiled_before_are_untouched(registry, set_code, monkeypatc
         if repr(after.card) == repr(before.card) and after.unparsed == before.unparsed:
             continue
         changed.append(raw.identity.name)
-        # Step 2d only reads a sentence that nothing parsed before, on either face
+        # Step 2d only reads a sentence that nothing else parsed, on either face
         unparsed = (*before.unparsed, *before.back_face_unparsed)
         assert any(real(s, registry) for s, _ in unparsed), raw.identity.name
     if set_code == "M21":

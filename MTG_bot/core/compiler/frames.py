@@ -1,9 +1,7 @@
-"""Frames (sets round S-3b, KNOWLEDGE /168): a trigger or a cost, composed with an effect clause.
+"""Frames: a trigger or a cost, composed with an effect clause.
 
 The templates parse a framed sentence whole. "When this creature enters, draw a card." is one
-template, and the same trigger with "you gain 2 life." would need another. First touch on 15 sets
-(/167) found 1,252 unparsed dev sentences with a trigger or cost frame; in 217 of them the clause
-after the frame already parses on its own.
+template, and the same trigger with "you gain 2 life." would need another.
 
 ``compile_card`` Step 2d reads such a sentence as frame + clause:
 - the frame's event or cost comes from the existing helpers (B2a, B2b, B3, B5c);
@@ -14,15 +12,14 @@ It is a fallback only: Step 2d runs on a sentence nothing else parsed. The claus
 pure effect (``EffectOutcome``) and must carry no pronoun. Standalone, "it" is an object named
 earlier; inside a trigger it is often the source (Emeria Captain, ZNR), so the meaning would change.
 
-Conditions (2026-11-05, conditions.py): a trigger frame may carry an intervening "if" ("At the
-beginning of your end step, if an opponent lost life this turn, <clause>", CR 603.4: the
-ability's condition), and a sentence may end in one ("Draw a card if an opponent has cast a blue or
-black spell this turn.": the effect happens only if it holds, CR 608.2c). An ability word in front
-("Raid — ") has no rules meaning (CR 207.2c) and is dropped.
+Conditions (conditions.py): a trigger frame may carry an intervening "if" ("At the beginning of
+your end step, if an opponent lost life this turn, <clause>", CR 603.4: the ability's condition),
+and a sentence may end in one ("Draw a card if an opponent has cast a blue or black spell this
+turn.": the effect happens only if it holds, CR 608.2c). An ability word in front ("Raid — ") has
+no rules meaning (CR 207.2c) and is dropped.
 
-``test_frames.py`` holds the differential. Over every sentence of M21, ZNR, M20 and KHM that a
-specific template parses and that a frame also composes, the composed ability is byte-identical,
-except for B-47 (one token carrier's type line).
+``test_frames.py`` holds the differential: over every sentence of M21, ZNR, M20 and KHM that a
+specific template parses and that a frame also composes, the composed ability is byte-identical.
 """
 
 from __future__ import annotations
@@ -109,9 +106,9 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
     (_frame("B13-attacks", "whenever this creature attacks, <clause>",
             r"Whenever this creature attacks, (?P<clause>.+)"),
      _triggered(templates_b2b._attack_event)),
-    # 2026-11-06: the attack triggers whose clause names the defending player (CR 508.5):
-    # Heart-Piercer Bow's equipped creature, Leeching Sliver's "a Sliver you control" (once per
-    # attacking Sliver by CR 603.2c; the binder fires it once per declaration, B-103).
+    # Attack triggers whose clause names the defending player (CR 508.5): Heart-Piercer Bow's
+    # equipped creature, Leeching Sliver's "a Sliver you control" (once per attacking Sliver by
+    # CR 603.2c; the binder still fires it once per declaration, B-103).
     (_frame("B13-equipped-attacks", "whenever equipped creature attacks, <clause>",
             r"Whenever equipped creature attacks, (?P<clause>.+)"),
      _triggered(lambda: DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)))),
@@ -130,7 +127,7 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
          effect,
          condition,
      )),
-    # Ontology R5-6 (2026-10-29): the targeting trigger with its actor (Thorn Lieutenant).
+    # The targeting trigger with its actor (Thorn Lieutenant).
     (_frame("B13-targeted",
             "whenever this creature becomes the target of a spell or ability an opponent controls, "
             "<clause>",

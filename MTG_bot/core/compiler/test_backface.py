@@ -1,17 +1,16 @@
-"""ZND-2f: BackFace encode half (KNOWLEDGE/2026-10-18/106, SPEC-AMENDED).
+"""BackFace: a modal DFC's back face, compiled into its own node.
 
-Covers the four binding claims of the amendment:
-1. Landed: 61 face abilities (25 enters-tapped + 36 add-mana) compile into
-   a ``BackFace`` node appended to the card's abilities; faces compile
-   through the SAME registry via the synthetic single-faced route.
-2. Residual: the 10 pay-3-life sentences land ONLY in
-   ``CompileResult.back_face_unparsed`` — never in the front register,
-   never counted as covered (TRUTH LAW).
-3. Phantom defenses: every ``walk()`` verdict consumer (games.py
-   produces_mana, compiler.py engine_support) excludes the BackFace
-   subtree via ``skip=BackFace``; coverage.py TAGS face verbs separately
-   so a face ADD_MANA never merges into the front verb histogram.
-4. Determinism: node equality and serializer round-trip are stable.
+1. Face abilities (enters-tapped, add-mana) compile into a ``BackFace`` node
+   appended to the card's abilities, through the same registry as a
+   single-faced card.
+2. Face sentences that do not parse (the pay-3-life pair) land only in
+   ``CompileResult.back_face_unparsed``: never in the front register, never
+   counted as covered.
+3. Every ``walk()`` verdict fold (games.py produces_mana, compiler.py
+   engine_support) excludes the BackFace subtree via ``skip=BackFace``;
+   coverage.py counts face verbs separately, so a face ADD_MANA never merges
+   into the front verb histogram.
+4. Node equality and the serializer round-trip are stable.
 """
 
 from __future__ import annotations
@@ -50,7 +49,7 @@ from MTG_bot.core.identity import CardIdentity
 REPO: Final = Path(__file__).resolve().parents[3]
 ZNR_JSON: Final = REPO / "MTG_bot" / "data" / "ZNR.json"
 
-# Verbatim ZNR face text (the exact shapes the amendment census found).
+# Verbatim ZNR face text.
 ENTERS_TAPPED: Final = "This land enters tapped."
 ADD_B: Final = "{T}: Add {B}."
 PAY3_HEAD: Final = "As this land enters, you may pay 3 life."
@@ -155,7 +154,7 @@ def _record(n: int, abilities: tuple[Ability, ...]) -> CardRecord:
 
 
 class TestFaceCompile(unittest.TestCase):
-    """Amendment claim 1+2: what lands in the tree, what stays residual."""
+    """What lands in the tree, what stays residual."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -176,8 +175,8 @@ class TestFaceCompile(unittest.TestCase):
         assert isinstance(activated, ActivatedAbility)
         assert isinstance(activated.effect, Atom)
         self.assertIs(activated.effect.verb, Verb.ADD_MANA)
-        # appended LAST among the card's own components (§11 board law:
-        # the face is the card's own component, ordered after front text)
+        # appended last: the face is the card's own component, ordered after
+        # the front text
         self.assertIs(result.card.abilities[-1], face)
         self.assertEqual(result.back_face_unparsed, ())
 
@@ -192,9 +191,8 @@ class TestFaceCompile(unittest.TestCase):
         self.assertIs(activated.effect.verb, Verb.ADD_MANA)
 
     def test_pay3_pair_lands_in_residual_never_covered(self) -> None:
-        """TRUTH LAW: the pay-3-life pair is ZND-2f2 scope — it must sit
-        in back_face_unparsed ONLY (never the front register, never a
-        compiled ability)."""
+        """The unparsed pay-3-life pair sits in back_face_unparsed only: never
+        in the front register, never a compiled ability."""
         raw = _mdfc(3, face=_face("Residual", (PAY3_HEAD, PAY3_TAIL)))
         result = compile_card(raw, self.registry)
         face = next(a for a in result.card.abilities if isinstance(a, BackFace))
@@ -203,10 +201,9 @@ class TestFaceCompile(unittest.TestCase):
             {s for s, _ in result.back_face_unparsed},
             {PAY3_HEAD, PAY3_TAIL},
         )
-        # Front register stays face-blind. (The synthetic Instant front's
-        # own damage sentence may self-land in the register — that is the
-        # fixture shape, not the claim; the claim is the FACE pair never
-        # crosses into it.)
+        # The front register never holds a face sentence (the Instant
+        # front's own damage sentence may land there: that is the fixture,
+        # not the claim).
         front_sents = {s for s, _ in result.unparsed}
         self.assertNotIn(PAY3_HEAD, front_sents)
         self.assertNotIn(PAY3_TAIL, front_sents)
@@ -275,7 +272,7 @@ class TestWalkSkip(unittest.TestCase):
 
 
 class TestPhantomDefenses(unittest.TestCase):
-    """Amendment claim 3: verdict folds never read the unplayable face."""
+    """Verdict folds never read the unplayable face."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -333,7 +330,7 @@ class TestPhantomDefenses(unittest.TestCase):
 
 
 class TestCoverageTagging(unittest.TestCase):
-    """Amendment claim 3b: face verbs are TAGGED, never merged."""
+    """Face verbs are counted separately, never merged."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -372,8 +369,8 @@ class TestCoverageTagging(unittest.TestCase):
 
 
 class TestZnrCensus(unittest.TestCase):
-    """The amendment's pinned census: 36 faces, 61 covered, 10 residual,
-    31 whole — the uplift is EXACTLY +61, no more (TRUTH LAW)."""
+    """The ZNR face census: 36 faces, 71 sentences (61 compile, 10 stay
+    residual), 31 faces whole."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -392,8 +389,8 @@ class TestZnrCensus(unittest.TestCase):
         self.assertEqual(summary["sentence_total"], 71)
 
     def test_pool_without_skip_would_leak_36_extra_verbs(self) -> None:
-        """Counterfactual: the 36 face ADD_MANA exist in the trees — the
-        tagging (not the encoding) is what keeps PC-6/PC-8 unchanged."""
+        """The 36 face ADD_MANA are in the trees: the separate count, not the
+        encoding, keeps them out of PC-6/PC-8."""
         leaked = 0
         for raw in self.pool.values():
             try:
@@ -415,9 +412,8 @@ if __name__ == "__main__":
 
 
 class FaceCompileFailureDegradesTest(unittest.TestCase):
-    """Gate F1 (/106 review, archetype-4): the face field surface became
-    REACHABLE this wave — a malformed face must degrade to face-unparsed
-    and may NEVER crash the pool pass or lose the playable FRONT card."""
+    """A malformed face degrades to face-unparsed: it never crashes the pool
+    pass or loses the playable front card."""
 
     def test_malformed_face_degrades_front_survives(self) -> None:
         bad = CardFace(
@@ -440,15 +436,15 @@ class FaceCompileFailureDegradesTest(unittest.TestCase):
             _mdfc(901, front=("Deal 2 damage.",), face=bad),
             registry=build_full_registry(),
         )
-        # front survives: no crash, no BackFace node, and the tree equals the
-        # CONTROL (same card with no face) — front verdict untouched:
+        # the front survives: no BackFace node, and the tree equals the same
+        # card without a face
         self.assertFalse(any(isinstance(a, BackFace) for a in result.card.abilities))
         control = compile_card(
             _mdfc(901, front=("Deal 2 damage.",)), registry=build_full_registry()
         )
         self.assertEqual(result.card.abilities, control.card.abilities)
         self.assertEqual(result.unparsed, control.unparsed)
-        # every face sentence degraded into the honest residual channel:
+        # every face sentence degrades into the residual channel
         self.assertEqual(
             [(s, "face-compile-failed") for s in bad.sentences],
             list(result.back_face_unparsed),
@@ -467,5 +463,5 @@ class FaceCompileFailureDegradesTest(unittest.TestCase):
         # the tolerant pass must complete (no exception) and keep both cards
         report = measure_pool(pool, build_full_registry())
         self.assertEqual(report.entry_count, 2)
-        # both cards' FRONTS stay in the compiled pool (no gap-card exile):
+        # both fronts stay in the compiled pool (no shape gap)
         self.assertEqual(len(getattr(report, "shape_gaps", ())), 0)

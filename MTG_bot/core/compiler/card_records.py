@@ -91,7 +91,7 @@ def tree_sha(card: CardRecord) -> str:
 
 
 def load_records(set_code: str, root: Path = RECORDS_DIR) -> dict[str, dict[str, Any]]:
-    """Every record of one set, keyed by oracle id. Absent directory: no records (M21 today)."""
+    """Every record of one set, keyed by oracle id. Absent directory: no records."""
     folder = root / set_code
     out: dict[str, dict[str, Any]] = {}
     if not folder.is_dir():

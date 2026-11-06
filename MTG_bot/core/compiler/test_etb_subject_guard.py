@@ -1,13 +1,10 @@
-"""R11-B corpus guard: no ETB-trigger subject is ever ``None`` (audit 09-29/04 P0-2).
+"""Corpus guard: no ETB-trigger subject is ever ``None``.
 
 A ``ZoneChangeEvent`` whose ``to_zone`` is the battlefield fires on ANY
-object entering when ``subject`` is ``None`` — wrong for every real
-trigger, which is either anchored on its own permanent
-(``FAtom(IS_SOURCE)``, class A) or on a described class
-(``FAnd(TYPE_EQ/CONTROLLER_IS/...)``, class B, Garruk's Uprising idiom).
-Round 11-B fixed the 62 corpus-wide offenders from the legacy r1-r2
-``_etb_event()`` helpers; this test pins the whole compiled M21 pool so
-the bug can never regress.
+object entering when ``subject`` is ``None``, which is wrong for every real
+trigger: it is anchored either on its own permanent (``FAtom(IS_SOURCE)``)
+or on a described class (``FAnd(TYPE_EQ/CONTROLLER_IS/...)``, Garruk's
+Uprising). The test pins the whole compiled M21 pool.
 """
 
 from __future__ import annotations
@@ -23,11 +20,8 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 
 _M21 = Path(__file__).resolve().parents[2] / "data" / "M21.json"
 
-# Documented allow-list: oracle_id -> justification for a legitimately
-# ANY-object ETB trigger ("whenever something enters").  EMPTY by design:
-# every ETB trigger in M21 is class A (own-ETB -> IS_SOURCE) or class B
-# (described class -> explicit filter).  A new entry needs a quoted
-# oracle-text justification reviewed like the PC-3 waivers.
+# oracle_id -> justification for a legitimately any-object ETB trigger
+# ("whenever something enters"); empty: every M21 ETB trigger names its subject.
 _ETB_SUBJECT_NONE_ALLOWLIST: dict[str, str] = {}
 
 
@@ -87,8 +81,7 @@ class TestEtbSubjectGuard(unittest.TestCase):
             self.assertTrue(_iter_etb_violations(self.compiled.results[oid].card))
 
     def test_detector_flags_synthetic_none_subject(self) -> None:
-        # The walker must actually detect the buggy shape (guards the
-        # guard against silent traversal breakage).
+        # The walker detects the bad shape (the guard is not vacuous).
         bad = T.TriggeredAbility(
             event=T.ZoneChangeEvent(
                 from_zone=T.Zone(T.ZoneKind.ANY, T.ControllerRef.ANY),

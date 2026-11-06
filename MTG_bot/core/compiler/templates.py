@@ -1,14 +1,11 @@
 """Template-matching engine for oracle sentences.
 
-The compiler's template layer: a registry of named, prioritised regex
-templates that map a full-matched oracle sentence to a typed
-``SentenceOutcome``.  Later agents add bucket modules (B1–B7) by
-registering templates against this stable API; the compiler
-(:mod:`compiler`) consumes the outcomes to assemble ``CardRecord`` trees.
+A registry of named, prioritised regex templates that map a fully matched
+oracle sentence to a typed ``SentenceOutcome``. The bucket modules
+(``templates_b*``) register templates; the compiler (:mod:`compiler`)
+assembles ``CardRecord`` trees from the outcomes.
 
-Design constraints (KNOWLEDGE/PITFALLS.md, 02-phase1-plan.md):
-- No English substrings as IR — every template maps to a structured
-  outcome (Keyword, Effect, Ability, Meta, or RuleReminder).
+- No English substrings as IR: every template maps to a structured outcome.
 - ``Template.pattern`` is pre-compiled for ``fullmatch``.
 - ``TemplateRegistry.match`` returns ALL matching outcomes in
   priority-desc / tid-asc order; it never raises on multiple matches.
@@ -36,22 +33,20 @@ from MTG_bot.core.ability_tree import (
 )
 
 # ---------------------------------------------------------------------------
-# "Search your library and/or graveyard" — the zone choice (B-78).
+# "Search your library and/or graveyard" — the zone choice.
 # ---------------------------------------------------------------------------
 
 
 def and_or_zone_search(
     search_in: Callable[[tuple[Zone, ...]], Effect], library: Zone, graveyard: Zone
 ) -> Choose:
-    """m21-fidelity wave 4 (2026-10-30, coordinator go on B-78): "search your
-    library and/or graveyard for ..." lets the player search either zone or
-    both (CR 701.23a: a search looks at the zones searched), so it is a
-    visible Choose over the three zone sets, built from existing components.
-    Option 0 searches both zones (the only reading before this change, so a
-    default answer keeps it); option 1 the library only; option 2 the
-    graveyard only. ``search_in`` builds one option's effect for a zone set.
-    The printed "If you search your library this way, shuffle." joins only
-    the options that search a library (compiler._merge_search_shuffle)."""
+    """The zone choice of "search your library and/or graveyard for ...": the
+    player searches either zone or both (CR 701.23a), a visible Choose over
+    the three zone sets. Option 0 searches both zones, option 1 the library
+    only, option 2 the graveyard only. ``search_in``
+    builds one option's effect for a zone set. The printed "If you search
+    your library this way, shuffle." joins only the options that search a
+    library (compiler._merge_search_shuffle)."""
     return Choose(
         count=QConst(1),
         options=(
@@ -138,17 +133,14 @@ class AdditionalCostOutcome:
 @dataclass(frozen=True)
 class ActivationGateOutcome:
     """An activation-gate sentence: "Activate only if <condition>." or
-    "Activate only as a sorcery." (grammar round 10, R10-1).
+    "Activate only as a sorcery."
 
-    The gate carries no ability or effect of its own — the compiler
-    attaches its slots to the nearest preceding ``ActivatedAbility``
-    during assembly, slot-disjointly (convention C25): a ``window``
-    candidate must still have ``timing is None`` (R9-1, C20), a
-    ``condition`` candidate must still have ``condition is None``, and a
-    gate setting BOTH (Speaker's compound "only if … and only as a
-    sorcery") requires both slots free. StateCorruptionError when
-    nothing attachable remains. A both-None gate is a template bug and
-    is rejected here.
+    The gate carries no ability or effect of its own: the compiler attaches
+    its slots to the nearest preceding ``ActivatedAbility`` whose slots are
+    still free (a ``window`` needs ``timing is None``, a ``condition`` needs
+    ``condition is None``, a gate setting both needs both), and raises
+    StateCorruptionError when nothing attachable remains. A both-None gate
+    is a template bug and is rejected here.
     """
 
     window: ActivationWindow | None = None

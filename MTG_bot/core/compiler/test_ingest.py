@@ -1,23 +1,7 @@
-r"""Tests for the structured MTGJSON ingest (compiler step 1).
-
-Pins down the decisions of MTG_bot/core/compiler/ingest.py:
-
-- structured field mapping (oracle id, name, types, colours, mana value,
-  P/T, loyalty, keywords, token/emblem flags, related-card names) with
-  typed StateCorruptionError on malformed records (missing name or type
-  line, colours outside the WUBRG set, negative mana value, wrong
-  relatedCards shape);
-- the deterministic PAREN-DEPTH-AWARE sentence split rule and how it
-  treats parenthetical keyword reminders (single-sentence reminders stay
-  one sentence; multi-sentence parentheticals stay ONE sentence);
-- oracle-id keying over the explicit dedup key: a duplicate whose
-  captured fields differ is corruption, a reprint differing only in
-  non-captured raw fields (number, uuid, rarity, …) dedupes to one entry;
-- the modal-DFC face fold (side a/b records sharing one oracle id fold
-  into ``RawCard.back_face``; every other duplicate mismatch still
-  raises) against synthetic pools and the real ZNR file;
-- pool_stats shape (incl. ``emblems`` / ``emblem_owners``);
-- the smoke test against the real M21 pool file.
+r"""Tests for the structured MTGJSON ingest (ingest.py): the field mapping and its typed
+StateCorruptionError on malformed records, the paren-depth-aware sentence split, oracle-id dedup
+over the explicit dedup key, the modal-DFC face fold, pool_stats, and smoke tests on the real M21
+and ZNR files.
 """
 
 import dataclasses
@@ -45,11 +29,11 @@ ORACLE_C = "00112233-4455-4666-8777-8899aabbccdd"
 ORACLE_D = "abc12345-def6-4a7b-8c9d-0e1f2a3b4c5e"
 ORACLE_E = "fedcba98-7654-4321-abcd-001122334455"
 
-# The real pool file (KNOWLEDGE/NUMBERS.md baseline: 397 cards / 20 tokens).
+# The real M21 pool file: 397 card records + 20 tokens.
 M21_PATH = Path(__file__).resolve().parents[3] / "MTG_bot" / "data" / "M21.json"
 
-# The real ZNR pool file (KNOWLEDGE/2026-10-18/92: 445 card records with
-# 36 modal-DFC cards stored as per-face side a/b entries + 12 tokens).
+# The real ZNR pool file: 445 card records (36 modal DFCs stored as side a/b
+# records) + 12 tokens.
 ZNR_PATH = Path(__file__).resolve().parents[3] / "MTG_bot" / "data" / "ZNR.json"
 
 
@@ -119,7 +103,6 @@ def _card(
 
 class TestSplitSentences(unittest.TestCase):
     def test_two_sentence_text(self):
-        # The spec's canonical case.
         sentences = split_sentences(
             "When ~ enters the battlefield, draw a card. ~ deals 1 damage."
         )
@@ -129,14 +112,14 @@ class TestSplitSentences(unittest.TestCase):
         )
 
     def test_parenthetical_reminder_stays_attached(self):
-        # Decision: keyword-reminder parentheses contain no period+whitespace
-        # boundary, so the reminder stays inside the one sentence chunk.
+        # A keyword reminder has no inner period+whitespace boundary, so it
+        # stays inside its sentence.
         sentence = "Flying (Attacking doesn't cause this creature to tap.)"
         self.assertEqual(split_sentences(sentence), (sentence,))
 
     def test_parenthetical_period_delimited_becomes_own_chunk(self):
-        # Decision: a parenthetical chunk that is period+whitespace-delimited
-        # from its neighbour becomes its own chunk.
+        # A parenthetical chunk that is period+whitespace-delimited from its
+        # neighbour becomes its own chunk.
         text = "When ~ enters the battlefield, draw a card. (This is a reminder.)"
         self.assertEqual(
             split_sentences(text),
@@ -144,10 +127,8 @@ class TestSplitSentences(unittest.TestCase):
         )
 
     def test_multi_sentence_parenthetical_stays_one_sentence(self):
-        # The 2026-09-15 fix: a parenthetical reminder that contains its
-        # own period+whitespace boundaries is ONE sentence — those
-        # boundaries sit at paren depth 1, not 0, so they do not split.
-        # (The old flat regex broke the M21 Opt text into three chunks.)
+        # A parenthetical with its own period+whitespace boundaries is ONE
+        # sentence: they sit at paren depth 1, so they do not split.
         text = (
             "Scry 1. (Look at the top card of your library. "
             "You may put that card on the bottom.)"
@@ -302,10 +283,9 @@ class TestIngestCard(unittest.TestCase):
         self.assertEqual(card.keywords, ("Flying",))
 
     def test_emblem_is_emblem_not_token(self):
-        # The pool's three emblems (CRITICAL-1): layout "emblem", typed
-        # Emblem. An emblem is NOT a token, and its related_names is
-        # exactly its owner names (their only relatedCards key is
-        # reverseRelated — here including the token it creates).
+        # An emblem (layout "emblem", typed Emblem) is not a token; its
+        # related_names is its reverseRelated list (here its owner and the
+        # token it creates).
         raw = _card(
             ORACLE_E,
             "Basri Ket Emblem",
@@ -540,11 +520,10 @@ class TestIngestPool(unittest.TestCase):
         self.assertEqual(pool[ORACLE_A].identity.name, "Alpha Beast")
 
     def test_duplicate_differing_only_in_ignored_raw_fields_dedupes(self):
-        # The dedup key is over the CAPTURED fields (_dedup_key): rarity,
+        # The dedup key is over the captured fields (_dedup_key): rarity,
         # number, uuid and purchaseUrls differ between these printings,
         # but every captured field is identical, so this is the same card
-        # — one entry (this is exactly the 112-reprint situation in the
-        # real M21 file).
+        # and one entry.
         cards = [
             _card(
                 ORACLE_A,
@@ -612,9 +591,8 @@ class TestIngestPool(unittest.TestCase):
 
 
 class TestModalDFCFaceFold(unittest.TestCase):
-    """The ZNR face pattern (KNOWLEDGE/2026-10-18/92): side a/b records
-    sharing one oracle id fold into ``RawCard.back_face``; EVERY other
-    duplicate-oracle-id mismatch still raises StateCorruptionError."""
+    """Side a/b records sharing one oracle id fold into ``RawCard.back_face``;
+    every other duplicate-oracle-id mismatch still raises StateCorruptionError."""
 
     def _pool_path(self, doc: dict[str, Any]) -> Path:
         tmp = tempfile.TemporaryDirectory()
@@ -674,14 +652,13 @@ class TestModalDFCFaceFold(unittest.TestCase):
         pool = self._ingest([self._front(ORACLE_A), self._back(ORACLE_A)])
         self.assertEqual(len(pool), 1)
         card = pool[ORACLE_A]
-        # The front becomes the RawCard as today.
+        # The front becomes the RawCard.
         self.assertEqual(card.identity.name, "Alpha Spell // Alpha Land")
         self.assertEqual(card.layout, "modal_dfc")
         self.assertEqual(card.mana_cost_raw, "{2}{R}")
         self.assertEqual(card.sentences, ("Deal 2 damage.",))
-        # The back folds into structured face data (zero-loss, §11). Use
-        # assertEqual: assertIs on freshly constructed frozen dataclasses
-        # always fails (PITFALLS).
+        # The back folds into structured face data. assertEqual, not
+        # assertIs: the face is a freshly constructed frozen dataclass.
         self.assertEqual(
             card.back_face,
             CardFace(
@@ -730,8 +707,8 @@ class TestModalDFCFaceFold(unittest.TestCase):
         self.assertEqual(pool[ORACLE_A].back_face.name, "Alpha Land")
 
     def test_two_differing_front_faces_raise(self):
-        # The law stays provably intact: two side-a records whose CAPTURED
-        # fields differ are corruption, not a face fold.
+        # Two side-a records whose captured fields differ are corruption,
+        # not a face fold.
         with self.assertRaises(StateCorruptionError) as ctx:
             self._ingest(
                 [
@@ -794,8 +771,8 @@ class TestModalDFCFaceFold(unittest.TestCase):
 
 
 class TestSmokeRealZNRPool(unittest.TestCase):
-    """Smoke test against the real ZNR pool file (KNOWLEDGE/2026-10-18/92):
-    445 card records + 12 tokens, 270 unique card oracle ids (36 modal DFCS
+    """Smoke test against the real ZNR pool file: 445 card records + 12
+    tokens, 270 unique card oracle ids (36 modal DFCS
     stored as per-face side a/b entries across 2 printings, plus frame /
     alt-art variant entries) and 12 token oracle ids disjoint from the
     cards: the oracle-id-keyed pool is 282 entries with 36 back faces."""
@@ -855,8 +832,7 @@ class TestSmokeRealZNRPool(unittest.TestCase):
         self.assertEqual(pool_a, pool_b)
 
     def test_m21_pool_unchanged(self):
-        # No side fields present -> old path byte-for-byte: 285 cards + 20
-        # tokens, zero back faces (the corruption law never saw a face).
+        # M21 has no side fields: 285 cards + 20 tokens, zero back faces.
         if not M21_PATH.is_file():
             self.skipTest(f"real pool file not present: {M21_PATH}")
         pool = ingest_pool(M21_PATH)
@@ -938,9 +914,8 @@ class TestPoolStats(unittest.TestCase):
         self.assertEqual(stats["emblem_owners"], {})
 
     def test_stats_emblem_count_and_owners(self):
-        # The emblem -> owner association the old ingest dropped: the
-        # emblem's related_names (its only relatedCards key is
-        # reverseRelated) is the owner association.
+        # The emblem -> owner association: the emblem's related_names (its
+        # only relatedCards key is reverseRelated).
         card1 = ingest_card(
             _card(
                 ORACLE_A,
@@ -987,22 +962,13 @@ class TestPoolStats(unittest.TestCase):
 
 
 class TestSmokeRealM21Pool(unittest.TestCase):
-    """Smoke test against the real M21 pool file (KNOWLEDGE/NUMBERS.md).
+    """Smoke test against the real M21 pool file.
 
-    File-level baselines (paren-depth-aware split, re-measured 2026-09-15):
-    397 card records + 20 tokens, 391 with text, 927 sentences, 503 unique
-    (cards). Supersedes the 2026-09-14 flat-regex baseline 952/509 — the
-    old rule mis-split 23 records carrying multi-sentence parenthetical
-    reminders (see ``split_sentences``); 25 sentence boundaries inside
-    parens are no longer split (952 - 25 = 927).
-
-    Pool-level reality (measured 2026-09-15): the file appends reprint
-    printings — 112 of the 397 card records repeat an oracle id with every
-    captured field identical (different card number/uuid/rarity). The
-    oracle id names the card, not the printing, so ingest_pool dedupes
-    those to one entry each: the oracle-id-keyed pool is 285 cards + 20
-    tokens = 305 entries (291 with text, 639 sentences, 510 unique across
-    cards+tokens; 3 emblems with their owner names).
+    The file holds 397 card records + 20 tokens (391 cards with text, 927
+    sentences, 503 unique). It appends reprint printings whose captured
+    fields are identical, so the oracle-id-keyed pool is 285 cards + 20
+    tokens = 305 entries (291 with text, 639 sentences, 510 unique; 3
+    emblems with their owner names).
     """
 
     def setUp(self) -> None:
@@ -1018,8 +984,6 @@ class TestSmokeRealM21Pool(unittest.TestCase):
         # Every record carries a well-formed 36-char oracle id.
         for record in [*cards, *tokens]:
             validate_oracle_id(record["identifiers"]["scryfallOracleId"])
-        # Re-measured 2026-09-15 (paren-depth-aware split): 391 cards with
-        # text, 927 sentences, 503 unique (old flat-regex rule: 952/509).
         with_text = [c for c in cards if c.get("text")]
         self.assertEqual(len(with_text), 391)
         file_sentences = [s for c in with_text for s in split_sentences(c["text"])]

@@ -1,24 +1,19 @@
-"""T4 P1b stage 2 census: the STRUCTURAL pick-ask promotion rule.
+"""The structural pick-ask promotion rule, censused over M21.
 
-Pins the whole-M21 contract of ``_is_liftable_pick`` (AGENTS.md §8
-tokenizer re-evaluation evidence, §9 axis orthogonality, §10
-menu-visibility) exactly as enumerated in docs/T4_PICK_ENUMERATION.md:
+Pins the whole-M21 contract of ``_is_liftable_pick``:
 
-* every entity CHOOSE surface of the pool falls in EXACTLY ONE bucket of
-  the predicate's decision order — cost(26) > referent(36) >
-  self-designation(55) > count!=1(15) > LIFTABLE CORE(22); total 154;
-* every core surface that has an answerable lane lands on the asking
-  ONE_OF channel; the 8 gap-blocked surfaces (FORCE_SILENT, ledger
-  L-27..L-29) stay on the silent CHOOSE lane with a register row —
-  never a phantom ask;
-* nothing OUTSIDE the core changes mode (no leakage; the search-pick
-  flip and Cultivate-style pre-existing ONE_OFs are identical in both
-  compilations);
-* every PROMOTED ask's menu is decidable at the controller seat the ask
-  fires at (L-27 tripwire — opponent/bound-player menus may not lift).
+* every entity CHOOSE surface of the pool falls in exactly one bucket of
+  the predicate's decision order: cost > referent > self-designation >
+  count!=1 > liftable core;
+* every core surface with an answerable lane lands on the asking ONE_OF
+  channel; the gap-blocked surfaces (PICK_ASK_FORCE_SILENT, gap ledger
+  L-27..L-29) stay on the silent CHOOSE lane, never a phantom ask;
+* nothing outside the core changes mode (the search-pick flip and
+  Cultivate-style ONE_OFs are identical in both compilations);
+* every promoted ask's menu is decidable at the controller seat the ask
+  fires at (opponent and bound-player menus may not lift).
 
-Numbers are the M21 pool only; each future set integration re-runs this
-census (§8) — the rule, not a registration list, promotes new cards.
+The numbers are M21's; the rule, not a registration list, promotes new cards.
 """
 
 from __future__ import annotations
@@ -42,54 +37,7 @@ from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
 
-# docs/T4_PICK_ENUMERATION.md §1, re-partitioned as a disjoint decision
-# order (the doc's overlapping table decomposes to exactly these).
-# NB: the stage-1 surfaces.json says 155 / referent 37 because it walked
-# the planeswalker record with its EMBEDDED emblem AND the emblem raw
-# standalone — Liliana's emblem CHOOSE(referent='result') was counted
-# twice. The pool's distinct surface multiset is 154.
-# B-49 follow-up #1 (2026-10-29): 156 -> 153 and count!=1 15 -> 12. The three duration-limited
-# cast-permission rows (Chandra, Flame's Catalyst [−8] tail; Chandra, Heart of
-# Fire's [+1] and [−9] tails) are suppressed at assembly, and each carried one
-# CHOOSE(QUnbounded) source. No other surface moved (her two [−9] SEARCH
-# surfaces only re-indexed from ability 3 to 2).
-# re-pinned 2026-10-29 (m21-fidelity): Alpine Houndmaster's up-to-two named
-# search (count 2) became one up-to-one pick per name, which the search-pick
-# pass routes to ONE_OF (asked), so it leaves the census: COUNT_NOT_ONE 12 -> 11,
-# TOTAL 153 -> 152. No other surface moved.
-# re-pinned 2026-10-29 (m21-fidelity): Wildwood Scourge's "enters with X +1/+1
-# counters" is an EtBState now (CR 614.1c), so its ETB trigger's referent='event'
-# CHOOSE (the PUT_COUNTER target) left the census: ANAPHORIC_REFERENT 36 -> 35,
-# TOTAL 152 -> 151. No other surface moved.
-# re-pinned 2026-10-29 (m21-fidelity): Basri Ket's [-2] and Basri, Devoted
-# Paladin's [-1] are DelayedTriggers now (CR 603.7); each GRANT_ABILITY's
-# self-designation CHOOSE (target = this planeswalker) left the census:
-# SELF_DESIGNATION 57 -> 55, TOTAL 151 -> 149. No other surface moved.
-# re-pinned 2026-10-29 (m21-fidelity item 5): Lofty Denial's "{4} instead" is a
-# conditional arm now; the old CostModifier's controller_ref (a referent='target'
-# CHOOSE) left the census: ANAPHORIC_REFERENT 35 -> 34, TOTAL 149 -> 148.
-# re-pinned 2026-10-30 (G3 finisher): the five M21 named tutors (Garruk's
-# Warsteed, Teferi's Wavecaster, Chandra's Firemaw, Basri's Aegis, Liliana's
-# Scorn) lost their unprinted MOVE_ZONE(IS_SOURCE, library top) step, one
-# self-designation CHOOSE each: SELF_DESIGNATION 55 -> 50, TOTAL 148 -> 143.
-# re-pinned 2026-10-29 (vfix V3): Hunter's Edge's "Then that creature deals damage equal to
-# its power" names its creature as the DEAL_DAMAGE dealer, an anaphoric CHOOSE(referent=
-# 'result') selector (no decision: the register names it): ANAPHORIC_REFERENT 34 -> 35,
-# TOTAL 143 -> 144. Nothing else moved.
-# re-pinned 2026-10-30 (m21-fidelity wave 4, Experimental Overload): "Exile ~" is the
-# self-reference CHOOSE (IS_SOURCE on the stack) instead of a TARGET: SELF_DESIGNATION
-# 50 -> 51, TOTAL 144 -> 145. Nothing else moved.
-# re-pinned 2026-10-30 (m21-fidelity wave 4, Alpine Houndmaster): its two named finds are
-# up-to-one CHOOSEs (QAtMost(1), CR 701.23b), which the search-pick pass leaves as CHOOSE:
-# COUNT_NOT_ONE 11 -> 13, TOTAL 145 -> 147. Ugin's [-10] QConst(7) -> QAtMost(7) stays in
-# COUNT_NOT_ONE. Nothing else moved.
-# re-pinned 2026-10-30 (m21-fidelity wave 4, Primal Might): the fight partner is a TARGET
-# (QAtMost(1)), so its CHOOSE leaves the core: CORE_LIFTABLE 22 -> 21 (one promotion fewer),
-# TOTAL 147 -> 146. Nothing else moved.
-# re-pinned 2026-11-05 (B-100, CR 601.3): Demonic Embrace's graveyard-cast permission is
-# refused instead of compiling to an activated row {pay 3 life, discard a card}: cast this
-# card from your graveyard. The row's discard CHOOSE and its CAST self-designation left the
-# census: COST_VICTIM 26 -> 25, SELF_DESIGNATION 51 -> 50, TOTAL 146 -> 144.
+# M21's CHOOSE surfaces per bucket of the predicate's decision order (base tree).
 TOTAL_SURFACES = 144
 CORE_LIFTABLE = 21
 SELF_DESIGNATION = 50
@@ -113,8 +61,8 @@ GAP_BLOCKED_EXPECT = {
 
 def _walk(obj, in_cost: bool, verb: str | None):
     """Yield (nearest_atom_verb, in_cost, Selector) for every Selector in
-    an ability tree, tracking the cost subtree (r22a lane) and the
-    enclosing Atom's verb (the FORCE_* override key)."""
+    an ability tree, tracking the cost subtree and the enclosing Atom's verb
+    (the FORCE_* override key)."""
     if isinstance(obj, Selector):
         yield verb, in_cost, obj
         return
@@ -147,18 +95,14 @@ def _classify(selector: Selector, in_cost: bool) -> str:
     return "core"
 
 
-# --- controller-seat tripwire (review fix 2026-10-07, gap ledger L-27) ---
-# The ONE_OF ask channel answers ONLY at the effect controller's seat, so a
-# PROMOTED selector's MENU must be enumerable/answerable at that seat:
-# ControllerRef.YOU (the controller's own zones) and ControllerRef.ANY
-# (widened, includes the controller — Primal Might's fight menu) pass; a
-# menu pinned to seats the active player does not occupy — OPPONENT,
-# ALL_OPPONENTS, or the bound TARGET_PLAYER — cannot honestly answer a
-# controller-primed ask (L-27 class; cf. Liliana's Steward's TARGET_PLAYER
-# hand). Purely grammatical: the menu sheet is the VISIBLE half of the
-# decider question; decider-invisible L-27 rows whose menu is controller-
-# side (Goremand's YOU battlefield) stay pinned via PICK_ASK_FORCE_SILENT
-# plus the oracle-text audit.
+# --- controller-seat tripwire (gap ledger L-27) ---
+# The ONE_OF ask channel answers only at the effect controller's seat, so a
+# promoted selector's menu must be answerable there: ControllerRef.YOU (the
+# controller's own zones) and ControllerRef.ANY (widened, includes the
+# controller) pass; a menu pinned to OPPONENT, ALL_OPPONENTS or the bound
+# TARGET_PLAYER (Liliana's Steward's hand) cannot. The check is grammatical
+# only: L-27 rows whose menu is on the controller's side but whose decider is
+# not (Goremand's battlefield) stay pinned via PICK_ASK_FORCE_SILENT.
 _MENU_SEATS_AT_ACTIVE = (ControllerRef.YOU, ControllerRef.ANY)
 
 
@@ -175,8 +119,8 @@ class PromotionPredicateCensus(unittest.TestCase):
     def setUpClass(cls) -> None:
         registry = build_full_registry()
         pool = ingest_pool(Path("MTG_bot/data/M21.json"))
-        # Base = predicate declined for every surface (structural rule off;
-        # overrides emptied): the pre-P1b encoding. Live = shipped rule.
+        # Base = the predicate declines every surface and the overrides are
+        # empty, so nothing is promoted. Live = the shipped rule.
         saved = comp._is_liftable_pick
         saved_ask = comp.PICK_ASK_FORCE_ASK
         saved_silent = comp.PICK_ASK_FORCE_SILENT
@@ -286,10 +230,9 @@ class PromotionPredicateCensus(unittest.TestCase):
         self.assertEqual(total_delta, CORE_LIFTABLE - len(GAP_BLOCKED_EXPECT))
 
     def _lifted_ask_selectors(self) -> list[tuple[str, str, Selector]]:
-        """(card, verb, live Selector) for every surface the pass promoted
-        base CHOOSE -> asking ONE_OF — parallel walks over the structurally
-        identical base/live trees (the goldens are regenerated FROM these
-        trees, so this scan is the golden scan, minus JSON parsing)."""
+        """(card, verb, live Selector) for every surface the pass promoted from
+        CHOOSE to the asking ONE_OF: parallel walks over the structurally
+        identical base and live trees."""
         lifted: list[tuple[str, str, Selector]] = []
         for name in self.base:
             for ab_base, ab_live in zip(
@@ -311,11 +254,8 @@ class PromotionPredicateCensus(unittest.TestCase):
         return lifted
 
     def test_promoted_asks_are_decidable_at_the_active_seat(self):
-        """L-27 tripwire (review fix 2026-10-07): every promoted (ask-
-        firing) selector's menu must be answerable at the CURRENT decision
-        seat — the controller seat the ONE_OF channel fires at. A future
-        set's golden whose promoted pick pins its menu to non-active seats
-        fails here the moment its pool is censused."""
+        """L-27 tripwire: every promoted selector's menu is answerable at the
+        controller seat the ONE_OF channel fires at."""
         lifted = self._lifted_ask_selectors()
         self.assertEqual(len(lifted), CORE_LIFTABLE - len(GAP_BLOCKED_EXPECT))
         for name, verb, sel in lifted:
@@ -325,9 +265,8 @@ class PromotionPredicateCensus(unittest.TestCase):
                 f"sits on {sel.zones[0].controller.name} seats — no candidate is "
                 "answerable at the controller seat this ask fires at",
             )
-        # Tripwire self-check 1 — it catches REAL L-27 arrivals: base-tree
-        # surfaces of pinned ledger rows whose menu the scan refuses (had
-        # the predicate promoted them, the loop above would fail).
+        # Self-check: the scan refuses the menu of a real L-27 row (had the
+        # predicate promoted it, the loop above would fail).
         caught = {
             (name, verb)
             for name, verb in GAP_BLOCKED_EXPECT
@@ -338,8 +277,7 @@ class PromotionPredicateCensus(unittest.TestCase):
             and not _menu_decidable_at_active_seat(sel)
         }
         self.assertIn(("Liliana's Steward", "MOVE_ZONE"), caught)
-        # Tripwire self-check 2 — a synthetic post-M21 arrival: an
-        # opponent-battlefield menu must not pass the scan.
+        # Self-check: an opponent-battlefield menu does not pass the scan.
         hostile = Selector(
             count=QConst(1),
             mode=SelectorMode.ONE_OF,

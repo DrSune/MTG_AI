@@ -1,22 +1,20 @@
-"""T4 P1b pins: the pick-ask promotion pass (docs/T4_PICK_ENUMERATION.md).
+"""The pick-ask promotion pass.
 
-Stage 2: promotion is driven by the STRUCTURAL predicate _is_liftable_pick
-(QConst(1), referent-less, non-cost, non-self-referential entity CHOOSE ->
+Promotion is driven by the structural predicate _is_liftable_pick (a
+QConst(1), referent-less, non-cost, non-self-referential entity CHOOSE ->
 the asking ONE_OF channel), not by card registration; the two override
 frozensets are escape hatches only. These tests pin the failure modes:
 
-1. the hand-picked pilot cards compile with the ONE_OF surface present
-   (the predicate reproduces the whole pilot — no card lost);
+1. the pilot cards compile with the ONE_OF surface present;
 2. the near-miss twins (k>1 choose, cost-victim choose, IS_SOURCE self-
-   designation) compile with ZERO new ONE_OF — the lift never spreads
-   across an axis;
+   designation) gain no ONE_OF: the lift never spreads across an axis;
 3. a FORCE_ASK override whose candidate is a cost or self-designation
-   raises StateCorruptionError LOUD (the r20c binding exemption is
-   CHOOSE-mode-gated, so a silent flip there would mis-resolve);
-4. a FORCE_ASK row hitting a predicate-declined NEAR-MISS surface raises
-   NotImplementedError LOUD (review fix): the hatch has no honest lane
-   (C2 forbids referent+ONE_OF; L-27 provider-seat routing absent), so a
-   hit is a bug to fix, never a silent no-op.
+   raises StateCorruptionError (the binding exemption is CHOOSE-mode-gated,
+   so a silent flip there would mis-resolve);
+4. a FORCE_ASK row hitting a predicate-declined near-miss surface raises
+   NotImplementedError: the hatch has no lane for it (a referent-bound
+   selector cannot be ONE_OF; no opponent-seat routing, gap ledger L-27),
+   so a hit is a bug to fix, never a silent no-op.
 """
 
 from __future__ import annotations
@@ -49,10 +47,9 @@ _M21_PATH = Path(__file__).resolve().parents[2] / "data" / "M21.json"
 
 
 def _bump_back_to_selfref_choose(node: object) -> object:
-    """Test fixture: rewrite the promoted ONE_OF selectors of a compiled
-    tree back to the STALE-ALLOWLIST shape — CHOOSE mode, referent-less,
-    IS_SOURCE-filtered self-designation — so the loud guard branch is
-    exercised against a real allowlisted (card, verb)."""
+    """Rewrite the promoted ONE_OF selectors of a compiled tree into a
+    referent-less CHOOSE IS_SOURCE self-designation, so the loud guard runs
+    against a real (card, verb) row."""
     if isinstance(node, list):
         rebuilt = [_bump_back_to_selfref_choose(v) for v in node]
         return rebuilt if any(a is not b for a, b in zip(rebuilt, node)) else node
@@ -95,10 +92,9 @@ class PickAskPromotion(unittest.TestCase):
         return repr(self.compile(name).abilities).count("SelectorMode.CHOOSE")
 
     def compile_base(self, name: str):
-        """Compile with the promotion predicate switched off (structural
-        rule declined for every surface, both override sets emptied): the
-        pre-P1b baseline shape, so CULTIVATE's pre-existing /31 search-lane
-        ONE_OF surface is counted out of the comparison."""
+        """Compile with the promotion off (the predicate declines every
+        surface, both override sets empty), so ONE_OF surfaces of other
+        passes (Cultivate's search pick) count out of the comparison."""
         saved = comp._is_liftable_pick
         saved_ask, saved_silent = (
             comp.PICK_ASK_FORCE_ASK,
@@ -115,12 +111,11 @@ class PickAskPromotion(unittest.TestCase):
             comp.PICK_ASK_FORCE_SILENT = saved_silent
 
     def test_near_miss_twins_are_byte_identical_to_baseline(self):
-        # k>1 choose (Cultivate's "choose two" stays with the /31 search
-        # lane), cost-victim choose (Village Rites' sac victim, Scavenging
-        # Ooze's exile victim — the r22a sacrifice lane already asks),
-        # IS_SOURCE self-designation (Hobblefiend — the r20c exemption is
-        # CHOOSE-mode-gated, flipping it is the wrong answer), and a
-        # non-allowlisted effect choose (Malefic Scythe's equip victim).
+        # k>1 choose (Cultivate's "choose two" stays with the search pick),
+        # cost-victim choose (Village Rites' sacrifice, Scavenging Ooze's
+        # exile: the cost lane already asks), IS_SOURCE self-designation
+        # (Hobblefiend: the binding exemption is CHOOSE-mode-gated), and a
+        # non-promoted effect choose (Malefic Scythe's equip victim).
         for name in (
             "Cultivate",
             "Village Rites",
@@ -135,8 +130,7 @@ class PickAskPromotion(unittest.TestCase):
             )
 
     def test_pilot_cards_gain_exactly_where_baseline_had_none(self):
-        # Stage 2 regression: the structural predicate must reproduce the
-        # whole stage-1 pilot — no pilot card loses its ask.
+        # The structural predicate covers every pilot card: none loses its ask.
         for name in ("Rain of Revelation", "Rousing Read", "Crypt Lurker"):
             self.assertLess(
                 repr(self.compile_base(name).abilities).count("SelectorMode.ONE_OF"),
@@ -145,21 +139,18 @@ class PickAskPromotion(unittest.TestCase):
             )
 
     def test_separation_axes_under_the_predicate(self):
-        # Crypt Lurker: BOTH modal victims (SACRIFICE + MOVE_ZONE discard)
-        # are real QConst(1) entity decisions -> both lift (stage-2 widening
-        # over the pilot's MOVE_ZONE-only row; the census counts both).
+        # Crypt Lurker: both modal victims (SACRIFICE + MOVE_ZONE discard)
+        # are real QConst(1) entity decisions, so both lift.
         self.assertEqual(self.one_of("Crypt Lurker"), 2)
         # Obsessive Stitcher: the effect-side MOVE_ZONE lifts; the
-        # self-sacrifice COST never does (r22a lane + {context} axis).
+        # self-sacrifice cost never does.
         self.assertEqual(self.one_of("Obsessive Stitcher"), 1)
         self.assertGreaterEqual(self.choose("Obsessive Stitcher"), 1)
 
     def test_force_ask_hit_on_a_forbidden_shape_is_loud(self):
-        """Synthesise the stale-override condition: a FORCE_ASK row whose
-        candidate the pass rewrites into an IS_SOURCE self-designation —
-        the guard must RAISE, never silently skip (a stale row is a bug,
-        not a no-op; the r20c binding exemption is CHOOSE-mode-gated, so a
-        silent flip there would mis-resolve the whole effect)."""
+        """A FORCE_ASK row whose candidate is an IS_SOURCE self-designation
+        raises, never silently skips: the binding exemption is
+        CHOOSE-mode-gated, so a flip there would mis-resolve the effect."""
         card = self.compile("Rain of Revelation")
         abilities = copy.deepcopy(list(card.abilities))
         poisoned = [_bump_back_to_selfref_choose(ab) for ab in abilities]
@@ -177,14 +168,9 @@ class PickAskPromotion(unittest.TestCase):
             comp.PICK_ASK_FORCE_ASK = saved
 
     def test_force_ask_hit_on_a_near_miss_is_loud_not_silent(self):
-        """Review fix 2026-10-07: the hatch's DOCUMENTED use case — a
-        FORCE_ASK row for a predicate-declined near-miss surface (here the
-        referent-bound CHOOSE of the comment's example, rewritten into a
-        compiled tree, C2-neutral zone) — must RAISE NotImplementedError,
-        never silently no-op: the ONE_OF channel cannot honestly carry
-        such a surface (C2 forbids referent+ONE_OF; L-27 provider-seat
-        routing absent), so a row hit means someone trusts an unimplemented
-        escape hatch."""
+        """A FORCE_ASK row for a predicate-declined near-miss surface (here a
+        referent-bound CHOOSE) raises NotImplementedError, never a silent
+        no-op: the ONE_OF channel cannot carry such a surface."""
 
         def to_near_miss(node: object) -> object:
             if isinstance(node, list):
@@ -203,7 +189,7 @@ class PickAskPromotion(unittest.TestCase):
                         node,
                         mode=SelectorMode.CHOOSE,
                         referent="result",
-                        # R0 zone-fold: C2 referent shape = ONE neutral zone
+                        # a referent selector has one neutral zone
                         zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                     )
                 updates = {
@@ -233,8 +219,8 @@ class PickAskPromotion(unittest.TestCase):
             comp.PICK_ASK_FORCE_ASK = saved
 
     def test_force_silent_row_pins_the_surface_to_choose(self):
-        """Escape hatch symmetry: registering a promoted surface in
-        FORCE_SILENT keeps the pre-P1b CHOOSE encoding byte-identically."""
+        """A promoted surface registered in FORCE_SILENT keeps the CHOOSE
+        encoding, byte-identical to the base compile."""
         self.assertEqual(self.one_of("Rain of Revelation"), 1)
         saved = comp.PICK_ASK_FORCE_SILENT
         try:

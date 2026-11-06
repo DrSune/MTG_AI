@@ -1,9 +1,7 @@
-"""Tests for the T5 coverage measurement module (coverage.py).
+"""Tests for the coverage measurement module (coverage.py).
 
-Fast by design: one shared M21 ingest + one shared full-pool measurement in
-``setUpClass``.  Denominators are pinned to the real ingest (305 entries /
-639 sentences / 510 unique) and the PC-10 null test runs in both directions
-on in-memory synthetic cards only.
+One shared M21 ingest and full-pool measurement in ``setUpClass``; the
+instrument null test runs in both directions on in-memory synthetic cards.
 """
 
 from __future__ import annotations
@@ -125,8 +123,8 @@ class TestRegistry(unittest.TestCase):
                 "B10",
                 "B11",
                 "B12",
-                "B14",  # 2026-11-05: can't be countered, turn-history statics
-                "B15",  # 2026-11-06: defending player, blocker limit, created token
+                "B14",
+                "B15",
             },
         )
 
@@ -207,11 +205,9 @@ class TestMeasurePool(unittest.TestCase):
         ):
             self.assertIn(key, data)
         self.assertEqual(len(data["unparsed_queue"]), self.report.unparsed_count)
-        # OMIT-IF-EMPTY law: a zero-gap pool gains no "shape_gaps" key.
+        # Empty keys are omitted: M21 has no shape gaps and no modal faces, so
+        # no "shape_gaps" or "backface" key and no "BFACE" rows.
         self.assertNotIn("shape_gaps", data)
-        # Same law for the back-face census: M21 has no modal faces, so the
-        # real-JSON report gains NO "backface" key and the queue has no
-        # "BFACE" rows.
         self.assertNotIn("backface", data)
         self.assertIsNone(self.report.backface_summary)
         self.assertEqual(
@@ -253,8 +249,8 @@ class TestPC10NullTest(unittest.TestCase):
 
 
 class TestShapeGaps(unittest.TestCase):
-    """§8/§11 gap-ledger law: unparsable printed shapes are REPORTED rows,
-    never a crash, never a silent drop; denominators stay the full pool."""
+    """Unparsable printed shapes are reported rows, never a crash or a silent
+    drop; denominators stay the full pool."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -312,12 +308,9 @@ class TestShapeGaps(unittest.TestCase):
 
 
 class TestBackFaceCensus(unittest.TestCase):
-    """Back-face census under ZND-2f (supersedes the /93 measurement-only
-    census, KNOWLEDGE/2026-10-18/106 amendment 2): the compiler now READS
-    ``RawCard.back_face`` — matched face sentences are covered for real and
-    ride in the tree's BackFace node; ONLY unmatched face sentences enter
-    the PC-2 denominator's register as "[face B]"/"BFACE" rows. Face verbs
-    are TAGGED separately and never merge into the front histogram."""
+    """Matched face sentences ride in the tree's BackFace node and count as
+    covered; only unmatched ones enter the queue as "[face B]"/"BFACE" rows.
+    Face verbs are counted separately, never in the front histogram."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -331,14 +324,13 @@ class TestBackFaceCensus(unittest.TestCase):
         )
         card = dataclasses.replace(
             card,
-            # "Draw two cards." MATCHES a front template — ZND-2f means the
-            # face compile covers it, so it is NO LONGER a forced row.
-            # "Flip a coin." stays unmatched residue.
+            # "Draw two cards." matches a template, so the face compile
+            # covers it; "Flip a coin." stays unmatched residue.
             back_face=_synthetic_face(("Draw two cards.", "Flip a coin.")),
         )
         report = measure_pool({card.identity.oracle_id: card}, self.registry)
-        # Denominator = front (1) + back (2); only the UNMATCHED face
-        # sentence is a register row (TRUTH LAW in both directions).
+        # Denominator = front (1) + back (2); only the unmatched face
+        # sentence is a queue row.
         self.assertEqual(report.sentence_total, 3)
         self.assertEqual(report.unparsed_count, 1)
         self.assertEqual(report.sentences_matched, 2)
@@ -348,8 +340,8 @@ class TestBackFaceCensus(unittest.TestCase):
         self.assertEqual(rows[0].oracle_id, card.identity.oracle_id)
         self.assertEqual(rows[0].name, "Modal Mite [face B]")
         self.assertEqual(rows[0].sentence, "Flip a coin.")
-        # PC-1 formula untouched (/96 law): a clean FRONT still counts as
-        # compiled even with face residue in the register.
+        # PC-1 reads the front only: a clean front counts as compiled even
+        # with face residue in the queue.
         self.assertEqual(report.cards_zero_unparsed, 1)
         self.assertEqual(report.pc1_card_coverage, 1.0)
         summary = report.backface_summary
@@ -401,9 +393,9 @@ class TestBackFaceCensus(unittest.TestCase):
             {
                 "cards_with_faces": 2,
                 "sentence_total": 3,
-                # ZND-2f: both Spirit sentences are unmatched residue; the
-                # Scry face compiles whole (cards_face_whole) and its verb
-                # is TAGGED in the face histogram, not the front one.
+                # Both Spirit sentences are unmatched residue; the Scry face
+                # compiles whole (cards_face_whole) and its verb counts in the
+                # face histogram, not the front one.
                 "unparsed_rows": 2,
                 "cards_face_whole": 1,
                 "verb_histogram": {"SCRY": 1},
@@ -422,9 +414,8 @@ class TestBackFaceCensus(unittest.TestCase):
         self.assertEqual(keys, sorted(keys))
 
     def test_gap_card_backface_still_counted(self) -> None:
-        # A card whose FRONT shape fails to compile still contributes its
-        # back-face sentences to the denominator and the register (honesty
-        # law: a gap counts against coverage, never shrinks the sample).
+        # A card whose front shape fails to compile still contributes its
+        # back-face sentences to the denominator and the queue.
         gap = dataclasses.replace(
             _synthetic_raw(
                 "00000000-0000-0000-0000-000000000014",

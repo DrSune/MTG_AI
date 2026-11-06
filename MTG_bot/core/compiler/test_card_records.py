@@ -48,8 +48,7 @@ def _record(raw, card, *, verified: bool) -> dict:
 
 
 def test_m21_records_are_stamps_and_compile_byte_identically() -> None:
-    # re-pinned 2026-10-29: the M21 verification campaign stamped compiled cards as verified.
-    # Their records carry no mapped tree ("ir"), only the verification of the compiler's own
+    # M21 records carry no mapped tree ("ir"), only the verification of the compiler's own
     # tree, so applying them must leave every M21 tree byte-identical.
     records = card_records.load_records("M21")
     assert records and all("ir" not in rec and "verified" in rec for rec in records.values())

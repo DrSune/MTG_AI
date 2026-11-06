@@ -1,27 +1,15 @@
-"""C3 compiler campaign — dropped-clause restoration pins (2026-10-02).
+"""Compiler pins: Liliana, Waker of the Dead's +1, Transmogrify, Peer into the Abyss.
 
-Batch C3 restores three clause emissions that the goldens never carried:
-
-1. Liliana Waker +1 tail — "Each opponent who can't loses 3 life." is a
-   mandatory EachPlayer(ALL_OPPONENTS, Conditional(FNot(hand ZONE_COUNT_GE
-   1), LOSE_LIFE 3)) appended to the loyalty-+1 ActivatedAbility through
-   the R11-1 loyalty-trailing path (post-discard hand-count reading, the
-   roadmap-sanctioned r21b deviation).
-2. Transmogrify s2/s3 — the reveal-until pair emits a top-of-library
-   creature SEARCH (ZonePosition.TOP, TARGET_PLAYER — CHOOSE can never
-   reach past the library top) whose destination carries the "puts that
-   card onto the battlefield" half, followed by the remainder SHUFFLE;
-   the instant's three plain effects fold into one Seq at card assembly.
-3. Peer into the Abyss — STOP verdict: the missing half-life clause has
-   no quantity lane (no LIFE-total quantity field; R9 grammar roadmap), so
-   the golden stays byte-identical and the pin below only falsifies that
-   no half-LOSE_LIFE approximation was smuggled in. (Superseded
-   2026-10-29, m21-fidelity item 2: r24a added QPropField.LIFE, the exact
-   clause is emitted, and the pin now checks it is exact.)
-
-Goldens moved for the two promoted cards under the C1-form set-evidence
-audit (pre-snapshot /tmp/golden_pre_c3, 303 others byte-identical; moved
-keys subset-of {abilities}).
+1. Liliana's +1 "Each opponent who can't loses 3 life." is a mandatory
+   EachPlayer(ALL_OPPONENTS, Conditional(FNot(hand ZONE_COUNT_GE 1), LOSE_LIFE 3))
+   inside the loyalty-+1 ActivatedAbility, placed before the discard it reads
+   (docs/ATOM_DIVERGENCES.md D17).
+2. Transmogrify's reveal-until pair is a top-of-library creature SEARCH
+   (ZonePosition.TOP, TARGET_PLAYER) whose destination carries "puts that card
+   onto the battlefield", then the SHUFFLE; the instant's three plain effects
+   fold into one Seq.
+3. Peer into the Abyss: the target player loses exactly half their life,
+   rounded up, after the draw.
 """
 
 from __future__ import annotations
@@ -80,11 +68,9 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- waker: loyalty-+1 tail "Each opponent who can't loses 3 life." ----
 
     def test_waker_tail_merges_into_plus_one_ability(self) -> None:
-        """The can't-clause merges into the +1 ability (R11-1 loyalty-trailing
-        path), not dropped and not a standalone sentence-outcome.
-        re-pinned 2026-10-29: V10 changes its place: the gate is the FIRST
-        step, before the discard it is about (docs/ATOM_DIVERGENCES.md D17),
-        so an opponent who discards their last card does not lose life."""
+        """The can't-clause merges into the +1 ability as its first step,
+        before the discard it is about (docs/ATOM_DIVERGENCES.md D17), so an
+        opponent who discards their last card does not lose life."""
         res = self._compile(_WAKER)
         gated = [
             ab
@@ -101,8 +87,8 @@ class TestC3CompilerPins(unittest.TestCase):
     def test_waker_each_player_gate_shape(self) -> None:
         """EachPlayer(ALL_OPPONENTS, Conditional(pred=FNot(
         ZONE_COUNT_GE(HAND, YOU, 1)), then=LOSE_LIFE(controller=YOU,
-        amount=QConst(3)))) — YOU-relative both sides; EachPlayer rotation
-        rebinds per opponent (b2a/b2b convention)."""
+        amount=QConst(3)))): YOU-relative both sides, and the EachPlayer
+        rotation rebinds YOU per opponent."""
         res = self._compile(_WAKER)
         gate = next(
             step
@@ -133,10 +119,8 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertEqual(lose.args.get("amount"), QConst(3))
 
     def test_waker_discard_head_preserved(self) -> None:
-        """The pre-existing "discard a card" step of the +1 ability is
-        untouched — the tail is inserted, the discard is not rewritten.
-        re-pinned 2026-10-29: V10 moves the who-can't gate before the discard
-        (D17), so the discard is now the LAST step."""
+        """The "discard a card" step of the +1 ability is kept, as the last
+        step (the who-can't gate precedes it, D17)."""
         res = self._compile(_WAKER)
         ability = next(
             ab
@@ -147,7 +131,7 @@ class TestC3CompilerPins(unittest.TestCase):
         assert isinstance(ability.effect, Seq)
         head = ability.effect.steps[-1]
         assert isinstance(head, Atom)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # A discard is a MOVE_ZONE to the graveyard.
         self.assertIs(head.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             head.args.get("destination"),
@@ -157,20 +141,16 @@ class TestC3CompilerPins(unittest.TestCase):
     # ---- transmogrify: top-of-library SEARCH + TARGET_PLAYER SHUFFLE ----
 
     def test_transmog_spell_folds_to_three_step_seq(self) -> None:
-        """MOVE_ZONE (exile shape), Seq(SEARCH, REVEAL), SHUFFLE — the
-        three plain sentence effects fold into the SpellAbility's single
-        Seq at card assembly (no continuation prefixes involved).
-        T5-E: s2 contributes the nested Seq — the dig plus the traceable
-        disclosure REVEAL (the sibling one-sentence-Seq precedent, e.g.
-        the Cultivate-family builder); the executor walks nested Seqs
-        and the transmogrify scenario pack is byte-green."""
+        """MOVE_ZONE (exile), Seq(SEARCH, REVEAL), SHUFFLE: the three plain
+        sentence effects fold into the SpellAbility's single Seq; the second
+        sentence contributes the nested dig plus its disclosure REVEAL."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
         assert isinstance(spell.effect, Seq)
         steps = spell.effect.steps
         self.assertEqual(len(steps), 3)
-        # T4 P1a: the old EXILE row is the merged MOVE_ZONE atom.
+        # Exile is a MOVE_ZONE.
         head, mid, tail = steps
         assert isinstance(head, Atom) and isinstance(tail, Atom)
         self.assertIs(head.verb, Verb.MOVE_ZONE)
@@ -182,17 +162,16 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertIs(tail.verb, Verb.SHUFFLE)
 
     def test_transmog_search_is_top_scoped_target_player(self) -> None:
-        """SEARCH cards = Selector(QConst(1), CHOOSE, TYPE_EQ Creature,
-        Zone(LIBRARY, TARGET_PLAYER, TOP)) — TOP means CHOOSE can only
-        ever take the library top (never a bottom-of-library draw); the
-        destination Zone(BATTLEFIELD, TARGET_PLAYER) carries s3's
-        "puts that card onto the battlefield" half."""
+        """SEARCH cards = Selector(QConst(1), TYPE_EQ Creature, Zone(LIBRARY,
+        TARGET_PLAYER, TOP)): TOP means the pick only ever takes the library
+        top; the destination Zone(BATTLEFIELD, TARGET_PLAYER) carries "puts
+        that card onto the battlefield"."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility) and isinstance(spell.effect, Seq)
         mid = spell.effect.steps[1]
-        # T5-E: s2 is the Seq(SEARCH, REVEAL) — the dig leads so its
-        # ONE_OF menu never sees the disclosure's look window.
+        # The dig leads the Seq, so its ONE_OF menu never sees the
+        # disclosure's look window.
         assert isinstance(mid, Seq)
         search, disclosure = mid.steps
         assert isinstance(search, Atom) and isinstance(disclosure, Atom)
@@ -202,7 +181,7 @@ class TestC3CompilerPins(unittest.TestCase):
         cards = search.args.get("cards")
         assert isinstance(cards, Selector)
         self.assertEqual(cards.count, QConst(1))
-        # Doc 29 ②: the up-to-one search pick asks the ONE_OF channel.
+        # The search pick is asked on the ONE_OF channel.
         self.assertIs(cards.mode, SelectorMode.ONE_OF)
         flt = cards.filter
         assert isinstance(flt, FAtom)
@@ -223,8 +202,8 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertIs(search.args.get("controller"), ControllerRef.TARGET_PLAYER)
 
     def test_transmog_shuffle_rest_is_target_player_owned(self) -> None:
-        """SHUFFLE zone = Zone(LIBRARY, TARGET_PLAYER) with NO position —
-        the anaphoric "their library" rides the s1-exile target binding."""
+        """SHUFFLE zone = Zone(LIBRARY, TARGET_PLAYER) with no position: the
+        anaphoric "their library" rides the exile's target binding."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility) and isinstance(spell.effect, Seq)
@@ -238,17 +217,12 @@ class TestC3CompilerPins(unittest.TestCase):
         )
         self.assertIsNone(zone.position)
 
-    # ---- peer: STOP verdict falsification ----
+    # ---- Peer into the Abyss: half the target player's life ----
 
     def test_peer_golden_unchanged_no_half_life_approximation(self) -> None:
-        """Peer's DRAW half-library clause keeps its QCount shape, and no
-        approximation of "loses half their life" is emitted.
-
-        # re-pinned 2026-10-29: m21-fidelity item 2 emits the exact life
-        # half now that QPropField.LIFE exists (r24a), so the pin moves from
-        # "no LOSE_LIFE at all" to "the LOSE_LIFE is exact": the target
-        # player's own life (EachPlayer rotation, never the caster's),
-        # halved and rounded up (CR 107.1a), after the draw (printed order)."""
+        """The LOSE_LIFE is exact: the target player's own life (EachPlayer
+        rotation, never the caster's), halved and rounded up (CR 107.1a),
+        after the draw (printed order)."""
         res = self._compile(_PEER)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
