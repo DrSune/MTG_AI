@@ -1,0 +1,32 @@
+{
+ "name": "defending_player_leeching_sliver",
+ "set": "M15",
+ "note": "Leeching Sliver: 'Whenever a Sliver you control attacks, defending player loses 1 life.' One Sliver attacks unblocked: P1 loses 1 life to the trigger and 1 to combat damage; P0 loses none. (With two Slivers attacking the engine fires each trigger once per declaration, B-103.) Red on main b02d7fc: the trigger did not parse, so P1 ended at 19.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sliver",
+   "real": "Leeching Sliver",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sliver": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

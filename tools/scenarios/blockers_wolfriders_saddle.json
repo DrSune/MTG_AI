@@ -1,0 +1,77 @@
+{
+ "name": "blockers_wolfriders_saddle",
+ "set": "M20",
+ "note": "Wolfrider's Saddle: 'Equipped creature gets +1/+1 and can't be blocked by more than one creature.' The equipped Bear is 3/3 and, once Wall A blocks it, Wall B is never offered the block. Red on main b02d7fc: the static did not parse (Bear 2/2, Wall B asked).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "saddle",
+   "real": "Wolfrider's Saddle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall_a",
+   "name": "Wall A",
+   "power": "0",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_b",
+   "name": "Wall B",
+   "power": "0",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "saddle",
+   "host": "bear"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   },
+   "block": {
+    "wall_a": "bear"
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "bear": 3
+  },
+  "blocked": {
+   "bear": [
+    "wall_a"
+   ]
+  },
+  "not_asked_to_block": [
+   "wall_b"
+  ],
+  "damage": {
+   "wall_a": 3
+  }
+ }
+}

@@ -1,0 +1,66 @@
+{
+ "name": "blockers_bristling_boar",
+ "set": "M20",
+ "note": "Bristling Boar: 'This creature can't be blocked by more than one creature.' (CR 509.1b). The first Wall blocks it; the second is then never offered a block (its only legal word would be NONE). Falsified by blockers_bristling_boar_twin, where an ordinary 4/3 is blocked by both. Red on main b02d7fc: the sentence did not parse, so the second Wall was asked and could block too.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "boar",
+   "real": "Bristling Boar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall_a",
+   "name": "Wall A",
+   "power": "0",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_b",
+   "name": "Wall B",
+   "power": "0",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "boar": true
+   },
+   "block": {
+    "wall_a": "boar"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "boar": [
+    "wall_a"
+   ]
+  },
+  "block_asks": {
+   "wall_a": "<boar>,NONE"
+  },
+  "not_asked_to_block": [
+   "wall_b"
+  ],
+  "damage": {
+   "wall_a": 4
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

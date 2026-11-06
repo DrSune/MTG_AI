@@ -1,0 +1,41 @@
+{
+ "name": "token_referent_elven_bow_declined",
+ "set": "KHM",
+ "note": "Twin of token_referent_elven_bow: P0 declines to pay, so no token is made (CR 118.12, 'If you do') and the {2} stays in the pool.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bow",
+   "real": "Elven Bow",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "bow",
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Elf Warrior": 0
+  },
+  "mana_pool": {
+   "0": {
+    "G": 2
+   }
+  }
+ }
+}

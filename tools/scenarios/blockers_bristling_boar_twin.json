@@ -1,0 +1,70 @@
+{
+ "name": "blockers_bristling_boar_twin",
+ "set": "M20",
+ "note": "Twin of blockers_bristling_boar: an ordinary 4/3 (no restriction) is blocked by both Walls, and the second Wall is offered the block.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "boar",
+   "name": "Plain Boar",
+   "power": "4",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall_a",
+   "name": "Wall A",
+   "power": "0",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_b",
+   "name": "Wall B",
+   "power": "0",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "boar": true
+   },
+   "block": {
+    "wall_a": "boar",
+    "wall_b": "boar"
+   },
+   "order": {
+    "boar": [
+     "0"
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "boar": [
+    "wall_a",
+    "wall_b"
+   ]
+  },
+  "block_asks": {
+   "wall_b": "<boar>,NONE"
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

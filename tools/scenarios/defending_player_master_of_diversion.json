@@ -1,0 +1,59 @@
+{
+ "name": "defending_player_master_of_diversion",
+ "set": "M14",
+ "note": "Master of Diversion: 'Whenever this creature attacks, tap target creature defending player controls.' (CR 508.5). The only legal target is the defending player's Bear, so the trigger takes it without an ask: P0's own Goat is not a legal target. The tapped Bear cannot block, so the Master's 2 damage reaches P1. Red on main b02d7fc: the sentence did not parse, so nothing was tapped.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "master",
+   "real": "Master of Diversion",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "goat",
+   "name": "Goat",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "master": true,
+    "goat": false
+   }
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "bear": true,
+   "goat": false
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "attackers": {
+   "master": true,
+   "goat": false
+  }
+ }
+}
