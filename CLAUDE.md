@@ -6,6 +6,9 @@ Read **[`NORTH_STAR.md`](NORTH_STAR.md)** in full. It is the project charter and
 file, every doc under `docs/`, and any idea raised mid-session. The summary below is a reminder, not
 a replacement — read the real thing.
 
+**Continuing the work? Read the current handoff first:** `KNOWLEDGE/2026-11-06/187-handoff.md`
+(Phase 0 of `docs/PLAN_LEARNING.md`: scoring the running experiments, mechanical tasks only).
+
 ## The King Goal, in one line
 
 > Build a genuinely strong Magic: The Gathering bot for the sets it has been trained on.
