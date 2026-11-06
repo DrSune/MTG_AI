@@ -145,3 +145,50 @@ stops at 70/30. For greedy deployment the argmax is right in all of these (R2 ha
 target); the stochastic policy is not. The regression test pins the linear regime (eta = 0.05);
 the step itself is a registered scaffold (BACKLOG) and a Phase 1 question: anneal it, or bound it
 by the advantage it must resolve.
+
+## 4. State at hand-over (2026-11-06 ~21:30, stopped on the owner's instruction)
+
+**Built and tested** (branch `phase0/labels`; gates on ff3632e: pytest MTG_bot 5091 / 39 deselected
+/ 71 subtests, pytest tools 144, packs 738/738): `search.Labeller` (reservoir of unsure act
+decisions, Gumbel-top-k alternatives, d true futures, `reshuffle_unknown` keeping known library
+positions, shared engine seeds and sampled-play draws), `mmd_target`, `placebo`, CRN-safe
+`mean_scores` and the `draw_worlds` seam; the actor's `label` job; `tools/selfplay/test_labels.py`
+(leak tests, labelling leaves the game alone, second future, crashes, both §1.4 regression tests).
+
+**Generator.** `runs/selfplay/r23_mulligan/gen.pt` (sha256 3dddae50..., pinned): r20 v2 plus 31
+PPO updates against the heuristic (§1); greedy 0.0475 weaker than r20 v2 against the heuristic.
+
+**Running** (left on; they produce data): E1 configuration A, launched from the run worktree
+`../MTG_AI-labels-run` at 1da8c8e with the scratch copies of the scripts now in
+`tools/selfplay/experiments/`: label job pid 1954453 (`runs/labels/e1_A/`: labels.pkl, games.jsonl,
+summary.json; log `runs/labels/e1_A.out`), look watcher pid 1974332 (`runs/labels/e1_A.looks`,
+`runs/labels/e1_A/look<n>.json`). Look 1 (2.67M FP, 8,731 labels): B*_FP 1.52M, bounds
+[0.72M, inf), signal z 1.81, placebo z -0.73, data 1.75 B*: continue. Per future: corr 0.905,
+Var(z_a - z_b) 0.189, 95% ties; playouts 62 FP each, about 300 FP per label; 0.35% on the rail, 0
+crashes. Look 2 (5.3M) was computing at hand-over; looks 3 and 4 at about 22:15 and 23:00 (about
+1,000 FP/s, CPU-bound); the watcher ends the job on a pass or fail stop, else at 10.6M FP.
+B and C are not started.
+
+**Commands** (from a checkout of the branch; `PY=/home/sune/Desktop/MTG_AI/.venv/bin/python`,
+`X=tools/selfplay/experiments`, `export PYTHONPATH=$PWD`):
+- progress: `cat runs/labels/e1_A.looks; cat runs/labels/e1_A/summary.json` (under the main checkout).
+- score a look by hand (§2's rule is `decide` in `$X/e1_looks.py`): `$PY $X/e1_instrument.py
+  runs/selfplay/r23_mulligan/gen.pt runs/labels/e1_A --K 16 --out look.json`.
+- B and C (with their watchers): `$X/launch.sh e1_B 2 2 0 31000000 10600000 10 4`, then
+  `$X/launch.sh e1_C 4 2 1 32000000 10600000 10 4` (one at a time: 10 workers is the cap).
+  E1 passes when any configuration passes; extension only for a gray result after look 4.
+- E3 if E1 passes: commit `$X/e3_prereg_draft.md` as §5 of this note first (fill V from the
+  passing look's `per_future.var_diff`, eta = 0.5 / sqrt(V / 2), and the predictions); then
+  `launch.sh e3_A 2 2 1 33000000 <FP for 100k labels in total> 10` (no watcher), `launch.sh
+  e3_regret 8 4 1 34000000 <FP for 2,000 labels> 10`; `$PY $X/e3_distill.py GEN runs/labels/e3_app
+  10000,30000,100000 V runs/labels/e1_A runs/labels/e3_A`; `$PY $X/e3_regret.py
+  runs/labels/e3_regret GEN runs/labels/e3_app/app_10000.pt ... app_100000.pt --out regret.json`;
+  `$PY -m tools.selfplay.learner --run runs/selfplay/e3_gain --init runs/labels/e3_app/app_100000.pt
+  --opp-ckpt GEN --eval-only --eval-opponents snap:opp --eval-deals 450 --pool verified --infer-bf16`.
+
+**Known problems.** (1) A label costs about 300 forward passes (whole-game playouts from early
+turns average 62, not 47): E3's 100k labels are about 30M FP, some 8 hours at today's rate.
+(2) Per-future noise is above the plan's greedy range (0.189 against 0.03-0.08). (3) The plan's
+eta rule is too large for linear distillation in the owner's example (§3). (4) The generator is
+weaker than r20 v2 in greedy play (§1). (5) NUMBERS.md is not written yet: the numbers are in
+§1-§4 and in the run directories; the scripts above are to be deleted once the gates are scored.
