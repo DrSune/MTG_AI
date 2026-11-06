@@ -303,8 +303,9 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
     model = PolicyValueNet(n_cards, n_ir, table.ir_array(), **cfg)
     state = ck["state"]
     w = state["ask_emb.weight"]
-    if w.shape[0] < len(FT.ASK_KINDS):  # kinds appended since this checkpoint start as "other"
-        new = w[FT.ASK_INDEX["other"]].expand(len(FT.ASK_KINDS) - w.shape[0], -1)
-        state["ask_emb.weight"] = torch.cat([w, new])
+    # kinds appended since this checkpoint start as the kind they were encoded as before
+    grown = [w[FT.ASK_INDEX[FT.ASK_GROWN_FROM.get(k, "other")]] for k in FT.ASK_KINDS[w.shape[0]:]]
+    if grown:
+        state["ask_emb.weight"] = torch.cat([w, torch.stack(grown)])
     model.load_state_dict(state)
     return model.to(device), table, ck.get("extra", {})

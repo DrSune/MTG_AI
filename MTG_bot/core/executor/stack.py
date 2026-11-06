@@ -74,6 +74,7 @@ from MTG_bot.core.executor.events import (
     parse_handle_tag,
 )
 from MTG_bot.core.executor.legality import (
+    MAIN_PHASES,
     PaymentPlan,
     _cost_has_x,
     build_payment_plan,
@@ -253,11 +254,13 @@ def is_land_card(world: GameWorld, handle: Handle) -> bool:
 def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | None:
     """Why this land cannot be played by ``seat`` right now (``None`` =
     legal). Gates: the card is a land in the seat's hand, the seat's turn
-    is open, the phase is the seat's first main (or not yet stamped — the
-    test-skeleton convention from 13a), the stack is empty (v1 proxy:
+    is open, the phase is one of the seat's main phases (CR 305.1, 505.6b:
+    :data:`legality.MAIN_PHASES`, which reads a not-yet-stamped clock as
+    inside, the 13a test-skeleton convention), the stack is empty (v1 proxy:
     nothing can actually be on it mid-op, but the parked-frame API keeps
-    the gate honest), and the once-per-turn allowance (CR 305.1 widened by
-    ``executor.extra_land_plays`` + the live ADD_LAND_PLAY layer sum, 13c)."""
+    the gate honest), and the allowance, one land per turn in total across
+    both main phases (CR 305.2, 505.6b) widened by ``executor.extra_land_plays`` +
+    the live ADD_LAND_PLAY layer sum (13c)."""
     world = executor.world
     if not is_land_card(world, handle):
         return "land:not_a_land"
@@ -265,7 +268,7 @@ def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | Non
         return f"land:not_in_hand:{handle}"
     if world.active_player != seat or not executor.turn_open:
         return "land:not_own_turn"
-    if executor.phase not in (None, "FIRST_MAIN"):
+    if executor.phase not in MAIN_PHASES:
         return "land:phase"
     if executor.stack.frames:
         return "land:stack_nonempty"

@@ -54,7 +54,7 @@ STRUCTURAL = frozenset(
     {"AtomArgs", "CardRecord", "Zone", "QConst", "Cost", "SpellAbility", "FAnd", "FOr", "FNot", "BackFace"}
 )
 ENGINE_SIMPLIFICATIONS = (
-    "No priority passing: the active player gets one action window per turn, in the first main phase, then combat.",
+    "No priority passing: the active player gets one action window in each main phase, before and after combat.",
     "Opponents can respond to a spell only with a counterspell, and in combat only with combat instants.",
     "Mana pools empty at the end of every step and phase (CR 500.5). A cast taps the lands and mana rocks it needs; other mana abilities are actions of their own.",
     "Drawing from an empty library loses the game at the draw (CR 121.3); two simultaneous losers draw.",

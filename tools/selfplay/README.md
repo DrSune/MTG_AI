@@ -22,11 +22,11 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 
 | File | What |
 |---|---|
-| `features.py` | One decision -> arrays: card entities (vocab id, zone, controller, owner, flags, types, colours, keywords, live P/T, damage, counters), two player rows, global row, the ask kind, one row per option (type + the entities it points at). Only what the seat may know: own hand, public zones, counts, cards offered or revealed to it. |
+| `features.py` | One decision -> arrays: card entities (vocab id, zone, controller, owner, flags, types, colours, keywords, live P/T, damage, counters), two player rows, global row, the ask kind (the second main phase's act menu is its own kind, `act_second_main`), one row per option (type + the entities it points at). Only what the seat may know: own hand, public zones, counts, cards offered or revealed to it. |
 | `heuristic.py` | Rule-based player for the bench protocol: the anchor opponent and the BC teacher (rules in its docstring). Beats uniform random ~96%. |
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
 | `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. |
-| `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. |
+| `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask embedding: an appended kind starts as the kind it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`, the rest from `other`). |
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
@@ -69,7 +69,7 @@ heuristic and its predecessor on the fixed ladder deals; gate games never enter 
 freeze is selected on them). Read gaps between neighbours on the ladder as the precise part.
 
 **Decision-time search (`eval+search`; `search.py`).** The deployed model (/183 §25). At
-main-phase asks, at the pre-combat boundary (whole attack plans) and, with `--search-blocks`, at
+main-phase asks (both main phases), at the pre-combat boundary (whole attack plans) and, with `--search-blocks`, at
 the engine's opt-in pre-blocks boundary (whole block assignments), the top candidates are
 played forward in copies of the game whose hidden zones were re-sampled from public
 information, through the opponent's next turn, and scored by the outcome or the network's own
@@ -136,10 +136,12 @@ while the vLLM engine is resident (AGENTS.md §1).
 
 ## Tests
 
-`.venv/bin/python -m pytest tools/selfplay -q` (16 tests, about 11 s): hidden-information
+`.venv/bin/python -m pytest tools/selfplay -q` (36 tests, about 32 s under the r19 training load on 2026-11-06): hidden-information
 metamorphic test (rewriting the opponent's hand and both libraries leaves the encoding
 byte-identical), encoding consistency over whole games, heuristic vs uniform random,
 option-permutation equivariance, batch-padding invariance and save/load round-trip, packed
 collation, block plans made and answered at the pre-blocks boundary, that boundary being
 opt-in, bounded feature caches, scry context, card-table extension and refresh, counters and
-ask kinds reaching the encoding, GAE bootstrap of a cut-off game, the run manifest.
+ask kinds reaching the encoding, the two main phases' act menus encoding apart, combat planned
+once per turn before combat, GAE bootstrap of a cut-off game, the run manifest, and the
+heuristic's rules on arranged boards (a raid creature cast after its attack among them).

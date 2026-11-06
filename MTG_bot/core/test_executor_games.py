@@ -2531,10 +2531,15 @@ class StallRuleTest(unittest.TestCase):
         # the seeded trajectory. Decisive again: player 1 loses on turn 37,
         # 65 acts, the stall rule does not fire (double-run replay verified:
         # same fingerprint, turns and reason).
+        # re-pinned 2026-11-06 (B-74): the random policy also acts in the
+        # second main phase (CR 505.1), so the trajectory shifts. Still
+        # decisive, now player 0 loses on turn 54, 161 acts, the stall rule
+        # does not fire (double-run replay verified: same fingerprint and
+        # digest).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 37)
-        self.assertEqual(game.reason, "game over: player:1(life<=0)")
+        self.assertEqual(game.turns, 54)
+        self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()
@@ -2593,8 +2598,72 @@ class ChooseNamePoolTest(unittest.TestCase):
         self.assertIn("Shock", vocab)
 
 
+class _WindowLog:
+    """A ``_play`` policy that never acts and logs each act window as (turn, seat, phase). An ask
+    takes DECLINE when offered (nobody attacks), else its first word."""
+
+    def __init__(self) -> None:
+        self.windows: list[tuple[int, Handle, str | None]] = []
+
+    def answer(self, vocab: tuple[str, ...], what: str) -> str:
+        return "DECLINE" if "DECLINE" in vocab else vocab[0]
+
+    def take_acts(self, game: Game, seat: Handle) -> None:
+        self.windows.append((game.world.turn, seat, game.executor.phase))
+
+
+class BothMainPhasesDriverTest(unittest.TestCase):
+    """B-74 (2026-11-06), CR 505.1: the turn loop gives the active player an act window in each
+    main phase, the second one after combat, and a game resumed inside a turn never replays that
+    turn's combat (the search resumes forks inside both act windows)."""
+
+    @staticmethod
+    def _game() -> Game:
+        supply = get_supply("castable")
+        return _setup_game(5, supply, deal_decks(5, SMOKE_DECK_PAIRS, supply))
+
+    @staticmethod
+    def _combats(game: Game) -> int:
+        return sum(
+            1 for e in game.executor.journal.events
+            if e.kind == "TURN_PHASE" and e.phase[0] == "COMBAT"
+        )
+
+    def test_each_turn_has_an_act_window_in_both_main_phases(self) -> None:
+        game = self._game()
+        log = _WindowLog()
+        _play(game, log, game.world.player_order, turn_cap=4)
+        p0, p1 = game.world.player_order
+        self.assertEqual(
+            log.windows,
+            [
+                (turn, seat, phase)
+                for turn, seat in ((1, p0), (2, p1), (3, p0), (4, p1))
+                for phase in ("FIRST_MAIN", "SECOND_MAIN")
+            ],
+        )
+
+    def test_a_resume_in_the_second_main_phase_never_replays_combat(self) -> None:
+        # A game stopped at the post_combat boundary resumes INTO its second main phase's act
+        # window; one whose caller already played that window (skip_next_acts, as the search
+        # does after its candidate's window) resumes at the end of the turn.
+        for skip, first in ((False, (2, "SECOND_MAIN")), (True, (3, "FIRST_MAIN"))):
+            game = self._game()
+            _play(game, _WindowLog(), game.world.player_order, turn_cap=10,
+                  stop_after=lambda g, b: b == "post_combat" and g.world.turn == 2)
+            self.assertEqual((game.world.turn, game.executor.phase), (2, "SECOND_MAIN"))
+            self.assertEqual(self._combats(game), 2)
+            game.skip_next_acts = skip
+            log = _WindowLog()
+            _play(game, log, game.world.player_order, turn_cap=3, resumed=True)
+            self.assertEqual(log.windows[0][::2], first)
+            self.assertEqual(self._combats(game), 3)  # turn 3's combat only
+            self.assertEqual(game.turns, 3)
+
+
 class _LoopDeckPolicy(RandomPolicy):
-    """Deterministic policy: each turn, cast exactly one legal spell.
+    """Deterministic policy: each turn, cast exactly one legal spell, in the
+    first main phase (the second main phase's window passes).
 
     RandomPolicy's dice would take an expected ~250 turns per candidate
     cast window here, making the stall statistically unreachable inside the
@@ -2602,6 +2671,8 @@ class _LoopDeckPolicy(RandomPolicy):
     """
 
     def take_acts(self, game: Game, seat: Handle) -> None:
+        if game.executor.phase != "FIRST_MAIN":
+            return
         self.turn = game.world.turn
         self.seat_index = game.world.player_order.index(seat)
         rows = [r for r in legal_casts(game.world, game.executor, seat) if not r.land]

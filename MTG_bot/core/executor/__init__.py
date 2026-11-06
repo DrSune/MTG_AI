@@ -136,6 +136,7 @@ from MTG_bot.core.executor.events import (
 )
 from MTG_bot.core.executor.layers import GrantedAbility, LayerRecord, LayerRegistry
 from MTG_bot.core.executor.legality import (
+    SECOND_MAIN,
     ManaLedger,
     PaymentPlan,
     ability_playable,
@@ -2319,10 +2320,11 @@ class Executor:
         # the settle above, while the attack record still stood.
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
-        # The frozen grammar's Phase vocab has no SECOND_MAIN member, so
-        # the marker is executor-clock-only: the legality gates read the
-        # phase string and correctly stop offering FIRST_MAIN activations.
-        self.phase = "SECOND_MAIN"
+        # CR 505.1: the second main phase. The frozen grammar's Phase vocab
+        # has no SECOND_MAIN member (no trigger reads it), so the marker is
+        # executor-clock-only and nothing is journalled; the sorcery-speed
+        # gates read it as a main phase (legality.MAIN_PHASES).
+        self.phase = SECOND_MAIN
         return fired
 
     def _declare_attackers(self, seat: Handle) -> None:

@@ -1,9 +1,9 @@
 """``SeatRouter``: per-seat agents inside the engine's own game loop.
 
-``_play`` (``core/executor/games.py:1415``) takes one policy object: it registers
-``policy.answer`` as the decision provider for every seat (``:1454``) and calls
-``policy.take_acts(game, seat)`` once per turn (``:1485``). The router satisfies that contract and
-dispatches each call to the right seat's driver:
+``_play`` (``core/executor/games.py`` ``_play_turns``) takes one policy object: it registers
+``policy.answer`` as the decision provider for every seat and calls ``policy.take_acts(game,
+seat)`` once in each main phase, before and after combat (CR 505.1). The router satisfies that
+contract and dispatches each call to the right seat's driver:
 - engine asks go to the seat the engine names (``protocol.resolve_ask_seat``);
 - the act window goes to the active seat.
 
@@ -22,8 +22,8 @@ BACKLOG:
   rule that keeps the most mana options open, and the engine then pays. Every other mana ability
   is its own row that adds to the pool: a creature's (tapped, it cannot attack or block), a
   sacrifice (Treasure), a mana-cost filter (Prismite's {2}). Pool mana lasts until this main
-  phase ends (CR 500.5), the only act window of the turn. The engine's response windows pay the
-  same way. Which free sources pay is a scaffold (BACKLOG): a learned payment choice removes it.
+  phase ends (CR 500.5). The engine's response windows pay the same way. Which free sources pay
+  is a scaffold (BACKLOG): a learned payment choice removes it.
 - **Rows the engine cannot designate are hidden and counted:** more than one target slot, or a
   slot with too few candidates (``games.py:562-573``).
 - **Targets are asked one at a time** from the slot's candidates, then validated by the engine's
@@ -32,7 +32,8 @@ BACKLOG:
 - **A modal spell announces its modes first** (CR 601.2b, V17): ``stack.cast_modes`` asks the
   engine's ``choose:`` question over the legal mode sets, then only the chosen modes' targets are
   asked.
-- **At most ``MAX_ACTS_PER_STEP`` acts per window**, the engine's own cap.
+- **At most ``MAX_ACTS_PER_STEP`` acts per window**, the engine's own cap: one window per main
+  phase, the prompt naming which.
 
 The router consumes no randomness, so a raw ``RandomPolicy`` behind it reproduces
 ``play_game`` exactly (``test_router.py``).
@@ -63,6 +64,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP, Act
 from MTG_bot.core.executor.legality import (
+    SECOND_MAIN,
     _cost_has_x,
     _mana_tap_options,
     ability_playable,
@@ -188,6 +190,8 @@ class SeatRouter:
         if is_raw(driver):
             driver.take_acts(game, seat)
             return
+        main = "second main phase (after combat)" if game.executor.phase == SECOND_MAIN else "first main phase"
+        prompt = f"Your {main}: choose an action. PASS ends this main phase."
         for _ in range(MAX_ACTS_PER_STEP):
             if game.over_reason() is not None:
                 return
@@ -200,7 +204,7 @@ class SeatRouter:
                 seat=i,
                 kind="act",
                 site=f"act:{seat}:{game.world.turn}",
-                prompt="Your main phase: choose an action. PASS ends your actions for this turn.",
+                prompt=prompt,
                 options=tuple(option for option, _ in menu),
                 refuse=0,
             )
@@ -214,7 +218,7 @@ class SeatRouter:
         executor = game.executor
         world = executor.world
         lens = self.lenses[i]
-        menu: list[tuple[Option, Any]] = [(Option("PASS", "PASS: end your actions this turn"), None)]
+        menu: list[tuple[Option, Any]] = [(Option("PASS", "PASS: end this main phase"), None)]
         for handle in sorted(world.players[seat].zone("hand").entries):
             if land_playable(executor, seat, handle) is None:
                 menu.append((Option(f"land:{handle}", f"play land {lens.describe(executor, handle)}"), ("land", handle)))

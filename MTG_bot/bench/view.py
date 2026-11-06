@@ -50,8 +50,8 @@ PUBLIC_ZONES = (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_COMMAND)
 #: Disclosed with every view: the engine is "batch Magic" (REVIEW A-3), and an agent should be
 #: told the game it is playing.
 ENGINE_NOTES = (
-    "Engine notes: no priority passing; one action window per turn in the first main phase, "
-    "then combat; opponents may respond only with counterspells and combat instants; "
+    "Engine notes: no priority passing; one action window in each main phase, before and after "
+    "combat; opponents may respond only with counterspells and combat instants; "
     "mana pools empty at the end of every step and phase (CR 500.5); a cast taps the lands and "
     "mana rocks it needs, and other mana abilities are actions of their own."
 )

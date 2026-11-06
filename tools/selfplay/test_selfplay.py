@@ -346,6 +346,9 @@ def test_every_engine_ask_kind_has_its_own_embedding_row() -> None:
 
 
 def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
+    """A kind appended after a checkpoint starts as the kind it was encoded as before it existed:
+    "other", or "act" for the second main phase's act menu (B-74), so an old network plays that
+    menu as it plays the first main phase's."""
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
     path = tmp_path / "old.pt"
     M.save(str(path), net, table)
@@ -358,7 +361,26 @@ def test_load_grows_ask_kinds_added_after_a_checkpoint(table, tmp_path) -> None:
     assert w.shape[0] == len(FT.ASK_KINDS)
     assert torch.equal(w[:n_old], net.ask_emb.weight.data[:n_old])
     for k in FT.ASK_KINDS[n_old:]:
-        assert torch.equal(w[FT.ASK_INDEX[k]], w[FT.ASK_INDEX["other"]])
+        assert torch.equal(w[FT.ASK_INDEX[k]], w[FT.ASK_INDEX[FT.ASK_GROWN_FROM.get(k, "other")]])
+    assert torch.equal(w[FT.ASK_INDEX["act_second_main"]], w[FT.ASK_INDEX["act"]])
+
+
+def test_the_encoding_tells_the_two_main_phases_apart(table) -> None:
+    """B-74 (2026-11-06): the act menu of the second main phase, after combat (CR 505.1), is its
+    own ask kind. Before it, the same board and menu encoded identically in both main phases."""
+    from MTG_bot.bench.protocol import Ask
+
+    game, router, me = _teach(hand0=("Forest",))
+
+    def act_kind() -> int:
+        options = tuple(option for option, _ in router._act_menu(game, me, 0))
+        ask = Ask(seat=0, kind="act", site=f"act:{me}:{game.world.turn}", prompt="", options=options,
+                  refuse=0)
+        return int(FT.encode(game.executor, 0, ask, table)["ask_i"][0])
+
+    assert act_kind() == FT.ASK_INDEX["act"]
+    game.executor.combat_step(me)
+    assert act_kind() == FT.ASK_INDEX["act_second_main"]
 
 
 def test_manifest_appends_one_entry_per_start(tmp_path) -> None:
@@ -627,3 +649,42 @@ def test_ppo_stops_inside_the_epoch_when_the_policy_has_left_the_data(table) -> 
     out = ppo_train(net, opt, packed, acts, far, zeros, zeros + 1, zeros + 1, a, torch.device("cpu"))
     assert out["kl_stop"]
     assert all(torch.equal(b, p) for b, p in zip(before, net.parameters(), strict=True))
+
+
+def test_heuristic_casts_a_raid_creature_after_it_attacks() -> None:
+    """B-74 (2026-11-06): a spell that reads whether its controller attacked this turn (raid) waits
+    for the second main phase while the teacher has a creature that can attack. Goblin Boarders
+    ("enters with a +1/+1 counter on it if you attacked this turn") then enters with the counter;
+    with no attacker it is cast in the first main phase, as before."""
+    for field, held in ((("Mountain",) * 3 + ("Bear Cub",), True), (("Mountain",) * 3, False)):
+        game, router, me = _teach(hand0=("Goblin Boarders",), field0=field, set_code="FDN")
+        boarders = _named(game, "Goblin Boarders")
+        router.take_acts(game, me)
+        assert game.world.zone_of(boarders).kind == ("hand" if held else "battlefield")
+        game.executor.combat_step(me)
+        router.take_acts(game, me)
+        assert game.world.zone_of(boarders).kind == "battlefield"
+        assert game.world.cards[boarders].counters.get("PLUS_1_PLUS_1", 0) == int(held)
+
+
+class _CombatPlanLog(HeuristicAgent):
+    """The heuristic, logging where the rig asks it to plan combat (search.py's hook)."""
+
+    def __init__(self) -> None:
+        self.plans: list[tuple[int, str | None]] = []
+
+    def plan_combat(self, game, seat: int) -> None:
+        self.plans.append((game.world.turn, game.executor.phase))
+
+
+def test_combat_is_planned_once_per_turn_before_combat() -> None:
+    """The search plans its attack at the pre-combat boundary. With two act windows per turn
+    (B-74) the end of an act window is no longer that boundary: the second main phase's comes
+    after combat, and planning there would search an attack that cannot happen."""
+    agent = _CombatPlanLog()
+    res = play_game(41, [agent, HeuristicAgent()], deck_mode="coherent")
+    assert res["crash"] is None and agent.plans
+    assert {phase for _, phase in agent.plans} == {"FIRST_MAIN"}
+    turns = [turn for turn, _ in agent.plans]
+    assert len(turns) == len(set(turns))
+

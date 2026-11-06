@@ -1,0 +1,21 @@
+{
+ "name": "postcombat_main_raid_creature_cast_without_attacking",
+ "set": "FDN",
+ "note": "Twin of postcombat_main_raid_creature_cast_after_attacking: P0 does not attack, then casts Goblin Boarders in the second main phase (CR 505.1). It enters without the counter, its printed 3/2: the counter comes from the attack, not from casting after combat. Red on main d0200d2: the cast raised 'illegal cast: window:phase' (B-74).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boarders", "real": "Goblin Boarders", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": false}},
+  {"op": "mana", "seat": 0, "add": {"R": 3}},
+  {"op": "cast", "key": "boarders"}
+ ],
+ "expect": {
+  "life": {"1": 20},
+  "zone": {"boarders": "battlefield"},
+  "counters": {"boarders": {}},
+  "power": {"boarders": 3}
+ }
+}

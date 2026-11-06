@@ -40,10 +40,9 @@ already narrowed by the query oracle (CR 117.3), and a demand with no
 answer still raises — which is the finding.
 
 Batch style, no priority simulation: ``begin_turn`` (which now draws, CR 504.5-c
-— this harness found that missing) then up to :data:`MAX_ACTS_PER_STEP` acts in
-one FIRST_MAIN batch, then ``end_turn``. v1 has no combat, so FIRST_MAIN stands
-in for both mains, and a game with no attackers is a legal Magic game (nobody is
-obliged to attack), which is why survival is measurable before arc 3 lands.
+— this harness found that missing), then up to :data:`MAX_ACTS_PER_STEP` acts in
+the first main phase's batch, the combat phase, up to as many again in the second
+main phase's batch (CR 505.1), then ``end_turn``.
 
 **Stats + crash ledger** (:func:`run_games`). Per seed: turns survived, whether
 the full cap was reached, how the game ended, the act digest, and on a crash the
@@ -54,7 +53,7 @@ the traceback printed.
 
 Known ceilings the harness deliberately does NOT hide (all in
 ``KNOWLEDGE/2026-09-30/03``): since V2 (2026-10-29) the pool empties as each step
-and phase ends (CR 500.5); the FIRST_MAIN batch pays from what the policy tapped,
+and phase ends (CR 500.5); a main phase's batch pays from what the policy tapped,
 and a payment outside it (a response window, "you may pay", "unless ... pays") taps
 a minimal set of the payer's {T}-only mana abilities, chosen by the engine (B-90
 (a), a scaffold: CR 605.3a lets the player choose), the CR 121.3
@@ -107,6 +106,7 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, GameOver, activate
 from MTG_bot.core.executor.events import KIND_GAME_LOST, KIND_STALL_BREAK
+from MTG_bot.core.executor.legality import SECOND_MAIN
 from MTG_bot.core.executor.query import (
     ActivationOption,
     CastOption,
@@ -138,6 +138,8 @@ OPENING_HAND = 7
 TURN_CAP = 60
 MAX_COPIES = 4
 MIN_MANA_SOURCES = 10
+#: At most this many acts in each main phase's act window: a rail, not a rule (CR 505 sets no
+#: limit), registered in docs/BACKLOG.md "Scaffolds to remove".
 MAX_ACTS_PER_STEP = 10
 
 # Stall rule (KNOWLEDGE/2026-10-05/11, anchor CR 104.4b): a game whose
@@ -726,10 +728,11 @@ class RandomPolicy:
 
     # -- the turn
     def take_acts(self, game: Game, seat: Handle) -> None:
-        """One FIRST_MAIN batch: at most :data:`MAX_ACTS_PER_STEP` acts, then
-        stop. Land drop first (CR 305.1 allows exactly one, and
-        :func:`legal_casts` stops offering it after that), then a weighted roll
-        between tapping mana, casting, activating, and walking away.
+        """One main phase's batch: at most :data:`MAX_ACTS_PER_STEP` acts, then
+        stop. Land drop first (CR 305.2, 505.6b: one per turn, in either main
+        phase, and :func:`legal_casts` stops offering it after that), then a
+        weighted roll between tapping mana, casting, activating, and walking
+        away.
 
         The pass is not decoration: a policy that always acts can deadlock on a
         sacrifice-into-a-dies-trigger loop, and MTG's answer is 'you may do
@@ -1118,13 +1121,13 @@ class Game:
     # with ANY net change anywhere resets the streak to 1.
     stall_seen: dict[Handle, tuple[tuple, int]] = field(default_factory=dict)
     # Search substrate (KNOWLEDGE/2026-10-10/67): a fork resumed with
-    # ``_play(..., resumed=True)`` at a boundary INSIDE an open turn sets one
-    # of these so the loop re-enters at exactly the stop point — PRE_COMBAT
-    # (acts played) skips one take_acts call, POST_COMBAT (combat done) skips
-    # one combat_step call. Defaults False keep every historical game
-    # byte-identical.
+    # ``_play(..., resumed=True)`` right after an act window its caller
+    # played itself sets this, so the loop re-enters after that window
+    # instead of replaying it. The executor's phase clock says which main
+    # phase it was (combat is over once it reads SECOND_MAIN), so a resume
+    # never replays a combat either. Default False: a fork at a turn top or
+    # at the post_combat boundary resumes with its next act window.
     skip_next_acts: bool = False
-    skip_next_combat: bool = False
     # PRE_BLOCKS (attackers declared, no block asked yet): the resumed loop
     # skips the declare-attackers half of combat. Only a policy with a
     # ``before_blocks`` hook has this boundary (see _play).
@@ -1443,20 +1446,26 @@ def _play_turns(
 ) -> None:
     """The turn loop. Turn 1 opens with ``begin_turn``; every later turn goes
     through ``advance_turn`` so the CR 500.7 extra-turn queue is popped (and the
-    seat is the ENGINE's choice, read back off ``active_player``, not ours).
+    seat is the ENGINE's choice, read back off ``active_player``, not ours). A
+    turn's work is the first main phase's act window, the combat phase and the
+    second main phase's act window (CR 500.1, 505.1): ``policy.take_acts`` runs
+    once per main phase, and the executor's phase clock says which one it is.
 
-    Search substrate (KNOWLEDGE/2026-10-10/67, purely additive: every default
-    keeps historical games byte-identical): ``resumed=True`` starts the loop on
-    an ALREADY-OPEN turn (a fork taken at a turn-top boundary, i.e. after the
-    acting seat's ``begin_turn``/draw step, before its acts);
-    ``stop_after(game, boundary)`` is consulted at the CLEAN boundaries — the
-    three points where no executor call is in flight: ``"turn_top"`` (a seat's
-    turn has just opened, pre-stall-check, pre-acts), ``"pre_combat"`` (that
-    seat's acts are done, its combat has not started) and ``"post_combat"``
-    (its combat ended, still its turn). Returning True returns from the loop
-    right there with the position consistent. A policy with a
-    ``before_blocks(game, seat)`` hook adds a fourth, ``"pre_blocks"`` (the
-    attackers are declared, no block asked): the hook runs there and a fork
+    Search substrate (KNOWLEDGE/2026-10-10/67): ``resumed=True`` starts the loop
+    on an ALREADY-OPEN turn, a fork of a game stopped at a boundary.
+    ``stop_after(game, boundary)`` is consulted at the CLEAN boundaries, the
+    points where no executor call is in flight: ``"turn_top"`` (a seat's turn
+    has just opened, pre-stall-check, pre-acts), ``"pre_combat"`` (its first
+    main phase's acts are done, its combat has not started) and
+    ``"post_combat"`` (its combat ended, its second main phase not yet played).
+    Returning True returns from the loop right there with the position
+    consistent, and a fork taken there resumes as is. A fork whose caller plays
+    an act window itself (the search's candidate move) resumes with
+    ``skip_next_acts`` set, after that window, in whichever main phase it was. A
+    policy with a ``before_attacks(game, seat)`` hook runs it at the pre-combat
+    boundary (the search plans its attack there). A policy with a
+    ``before_blocks(game, seat)`` hook adds a fourth boundary, ``"pre_blocks"``
+    (the attackers are declared, no block asked): the hook runs there and a fork
     taken there resumes with ``skip_next_acts`` and ``skip_to_blocks`` set.
 
     The stall rule (KNOWLEDGE/2026-10-05/11) rides at the top of every turn:
@@ -1478,15 +1487,15 @@ def _play_turns(
     while True:
         seat = world.active_player
         assert seat is not None  # begin_turn/advance_turn always set it
-        # The synthetic first iteration of an IN-TURN resume (skip flags set)
-        # is the re-entered boundary itself, never a fresh turn top: neither
-        # the turn_top stop nor the stall bookkeeping double-fires there.
-        resuming = game.skip_next_acts or game.skip_next_combat
-        if not resuming and stop_after is not None and stop_after(game, "turn_top"):
-            return
-        if game.skip_next_acts:
-            game.skip_next_acts = False  # a PRE_COMBAT resume skips one act pass
-        else:
+        # The first iteration of a resume with skip_next_acts set re-enters
+        # right after an act window, never at a fresh turn top: neither the
+        # turn_top stop nor the stall bookkeeping fires there. Combat is over
+        # once the phase clock reads SECOND_MAIN, so no resume replays it.
+        resuming, game.skip_next_acts = game.skip_next_acts, False
+        before_combat = executor.phase != SECOND_MAIN
+        if before_combat and not resuming:
+            if stop_after is not None and stop_after(game, "turn_top"):
+                return
             # --- stall rule: per-seat round fingerprint streak (CR 104.4b) ---
             fingerprint = _stall_fingerprint(executor)
             previous, streak = game.stall_seen.get(seat, (None, 0))
@@ -1502,19 +1511,21 @@ def _play_turns(
                     f"unchanged for {REPEAT_ROUNDS} consecutive rounds)"
                 )
                 return
-            policy.take_acts(game, seat)
-        if game.skip_next_combat:
-            game.skip_next_combat = False  # a POST_COMBAT resume skips one phase
-        elif executor.turn_open:
+            policy.take_acts(game, seat)  # the first main phase
+        if before_combat and executor.turn_open:
             resume_blocks, game.skip_to_blocks = game.skip_to_blocks, False
-            if not resume_blocks and stop_after is not None and stop_after(game, "pre_combat"):
-                return
-            # 16b: the COMBAT phase rides between the main phase and the
-            # end step - guarded on turn_open because an END_TURN atom
-            # played during take_acts already closed the turn (no combat
-            # after the end of the turn, CR). The life deltas across the
-            # phase are counted separately (combat deaths vs crashes is
-            # the semantic shift the engine numbers report).
+            if not resume_blocks:
+                if stop_after is not None and stop_after(game, "pre_combat"):
+                    return
+                before_attacks = getattr(policy, "before_attacks", None)
+                if before_attacks is not None:
+                    before_attacks(game, seat)
+            # 16b: the COMBAT phase rides between the two main phases -
+            # guarded on turn_open because an END_TURN atom played during
+            # take_acts already closed the turn (no combat after the end of
+            # the turn, CR 724.1). The life deltas across the phase are
+            # counted separately (combat deaths vs crashes is the semantic
+            # shift the engine numbers report).
             before = {s: world.players[s].life for s in world.player_order}
             try:
                 if not resume_blocks:
@@ -1534,7 +1545,10 @@ def _play_turns(
                         game.combat_losses += 1
             if stop_after is not None and stop_after(game, "post_combat"):
                 return
-        game.skip_next_combat = False  # turn was closed before any combat skip
+        # The second main phase (CR 505.1), unless an effect ended the turn
+        # (CR 724.1) or the resume came right after its act window.
+        if executor.turn_open and (before_combat or not resuming):
+            policy.take_acts(game, seat)
         game.turns = world.turn
         if game.turns >= turn_cap:
             game.reason = f"turn cap {turn_cap} reached (no loser)"

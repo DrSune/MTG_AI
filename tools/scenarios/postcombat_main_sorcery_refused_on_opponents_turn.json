@@ -1,0 +1,20 @@
+{
+ "name": "postcombat_main_sorcery_refused_on_opponents_turn",
+ "note": "CR 307.1: a sorcery is cast during a main phase of its controller's OWN turn. On P1's turn, after P1's combat (P1's second main phase, CR 505.1), P0's Basri's Solidarity is refused ('window:not_your_turn'). A guard, green on main d0200d2 too: it pins that opening the second main phase did not open it to the non-active player.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "solidarity", "real": "Basri's Solidarity", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1},
+  {"op": "mana", "seat": 0, "add": {"W": 2}},
+  {"op": "cast", "key": "solidarity", "expect_raise": "window:not_your_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"solidarity": "hand"},
+  "counters": {"bear": {}}
+ }
+}

@@ -637,6 +637,70 @@ class TestLandDrop(StackCase):
         self.assertEqual(spell_row.payment.mana, (("R", 1),))
 
 
+class TestBothMainPhases(StackCase):
+    """B-74 (2026-11-06), CR 505.1: a turn has two main phases with combat between them. Sorcery
+    speed (CR 117.1a, 505.6a, 302.1, 307.1) and the land play (CR 305.1, 505.6b) hold in both,
+    the land play once per turn in total (CR 305.2); nothing sorcery-speed holds during combat
+    or on another player's turn. The phase clock is the real turn's: ``combat_attacks`` opens combat,
+    ``combat_blocks`` ends it in the second main phase."""
+
+    def setUp(self):
+        super().setUp()
+        self.bear = self.give(
+            "Bear", SpellKind.CREATURE, type_line="Creature", types=("Creature",),
+            power="2", toughness="2",
+        )
+        self.sorcery = self.give("Ponder", SpellKind.SORCERY, type_line="Sorcery", types=("Sorcery",))
+        self.plains = self.world.add_card(card_id("Plains", type_line="Land"), self.p0, ZONE_HAND)
+        self.forest = self.world.add_card(card_id("Forest", type_line="Land"), self.p0, ZONE_HAND)
+
+    def windows(self):
+        return (
+            spell_castable(self.ex, self.p0, self.bear)[0],
+            spell_castable(self.ex, self.p0, self.sorcery)[0],
+            land_playable(self.ex, self.p0, self.plains),
+        )
+
+    def test_sorcery_speed_holds_in_both_main_phases_and_never_in_combat(self):
+        self.assertEqual(self.ex.phase, "FIRST_MAIN")
+        self.assertEqual(self.windows(), (None, None, None))
+        self.ex.combat_attacks(self.p0)
+        self.assertEqual(self.ex.phase, "COMBAT")
+        self.assertEqual(self.windows(), ("window:phase", "window:phase", "land:phase"))
+        self.ex.combat_blocks(self.p0)
+        self.assertEqual(self.ex.phase, "SECOND_MAIN")
+        self.assertEqual(self.windows(), (None, None, None))
+        # the opponent's turn, in both of its main phases: never p0's window
+        self.ex.end_turn()
+        self.ex.begin_turn(self.p1)
+        not_mine = ("window:not_your_turn", "window:not_your_turn", "land:not_own_turn")
+        self.assertEqual(self.windows(), not_mine)
+        self.ex.combat_step(self.p1)
+        self.assertEqual(self.ex.phase, "SECOND_MAIN")
+        self.assertEqual(self.windows(), not_mine)
+
+    def test_a_sorcery_and_a_creature_resolve_in_the_second_main_phase(self):
+        self.ex.combat_step(self.p0)
+        cast(self.ex, self.p0, self.bear)
+        cast(self.ex, self.p0, self.sorcery)
+        self.assertEqual(self.world.zone_of(self.bear).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(self.sorcery).kind, ZONE_GRAVEYARD)
+
+    def test_one_land_per_turn_in_total_across_both_main_phases(self):
+        play_land(self.ex, self.p0, self.plains)  # the first main phase
+        self.ex.combat_step(self.p0)
+        reason = land_playable(self.ex, self.p0, self.forest)
+        assert reason is not None
+        self.assertIn("land:used_this_turn", reason)
+        # the next turn plays none before combat, so the second main phase still may
+        self.ex.end_turn()
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        play_land(self.ex, self.p0, self.forest)
+        self.assertEqual(self.world.zone_of(self.forest).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.ex.land_ledger[self.p0], (self.world.turn, 1))
+
+
 class TestCastTriggerFeed(StackCase):
     """The CastSpellEvent binder half: seven corpus cards' compile idiom."""
 
