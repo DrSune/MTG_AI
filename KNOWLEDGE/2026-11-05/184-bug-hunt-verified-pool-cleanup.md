@@ -332,3 +332,21 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
     is mostly read from the card's NAME, not its components: a generalisation gap for the King
     goal's second tier. Training masks names only 10% of the time (`name_dropout` 0.1).
   - The heuristic anchor misdirects too (Pacifism on its own creature, buffs on the network's).
+
+## 17. The next game: postcombat main phase, own-cost discounts, damage batching (2026-11-06)
+Merged for r20's epoch (r19 still runs on 449bd0f):
+- **"This spell costs less" never applied in real games** (de9fbd6): the cost fold read a card's
+  record through its handle, and a dealt card in hand has none, so Volcanic Salvo, Chandra's
+  Incinerator, Discontinuity, Sanguine Indulgence, Stormwing Entity, Winged Words and Ghalta paid
+  full price (11 of 100 seeded M21 heuristic games change). The same root as the dead fetched lands
+  (§16): packs bind every placed card, games do not, so packs could not see either.
+- **"Is dealt damage" triggered once per source** (34f7250): now once per combat damage step, with
+  the step's total (Sporeweb Weaver, Brash Taunter; 2 of 100 M21 games change).
+- **Postcombat main phase** (merge 46c7288, B-74 fixed): sorcery-speed casting, land plays (one per
+  turn in total), sorcery-speed and loyalty activations in both main phases; the drivers open an act
+  window in each; the network sees the second main as its own ask kind (`act_second_main`, its
+  embedding starts as a copy of `act`, so old checkpoints play it as the first); the heuristic casts
+  a Raid spell after attacking and everything else before combat. Cost: 61.9 -> 67.6 decisions per
+  game, games per second -14%. Preflight 200 games and M21/M20 soaks: 0 engine errors.
+- Gates on 46c7288: pytest MTG_bot 5150; pytest tools 131; packs 718/718. A red team is reviewing
+  every fix since 449bd0f before r20.
