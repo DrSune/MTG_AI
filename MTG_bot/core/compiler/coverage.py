@@ -441,10 +441,9 @@ def measure_pool(
     # residue; it still counts in the face census, the PC-2 denominator and
     # the queue.
     for gap in gaps:
-        gap_raw = pool.get(gap.card)
-        if gap_raw is None or gap_raw.back_face is None:
+        face = pool[gap.card].back_face
+        if face is None:
             continue
-        face = gap_raw.back_face
         cards_with_faces += 1
         backface_sentences += len(face.sentences)
         for sentence in face.sentences:

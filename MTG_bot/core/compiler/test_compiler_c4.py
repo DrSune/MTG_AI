@@ -27,7 +27,6 @@ _CORPSE = "fea95888-e16a-4209-9cd4-623f7f4d2f67"  # vanilla
 _HOUNDMASTER = "88939cb3-5f61-4857-95cb-9446c6c1f1aa"  # ETB trigger
 _GOREMAND = "0f80f061-6304-4c7b-ab53-f406385e39df"  # additional-cost carrier
 _SPARKHUNTER = "1306c72f-fc6b-470b-a95e-0364e0e30ac7"  # additional-cost carrier
-_BLACKGUARD = "8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339"  # FLASH + activated
 _ANGEL = "40c64f08-ab2f-4933-8e0e-d1a1c729008f"  # token creature
 
 

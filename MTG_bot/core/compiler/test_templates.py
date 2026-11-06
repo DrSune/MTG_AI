@@ -11,6 +11,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Keyword,
     QConst,
+    Verb,
 )
 from MTG_bot.core.compiler.templates import (
     AmbiguityRecord,
@@ -34,12 +35,6 @@ def _simple_keyword_template(tid: str, priority: int = 1) -> Template:
         priority=priority,
         build=lambda m: KeywordOutcome(keyword=Keyword.FLYING, params=()),
     )
-
-
-
-from MTG_bot.core.ability_tree import Verb as _VERB  # noqa: E402
-
-_DRAW_VERB = _VERB.DRAW
 
 
 class TestTemplateRegistryRegistration(unittest.TestCase):
@@ -168,7 +163,7 @@ class TestSentenceOutcomes(unittest.TestCase):
 
     def test_effect_outcome(self) -> None:
         atom = Atom(
-            verb=_DRAW_VERB,
+            verb=Verb.DRAW,
             args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
         )
         eo = EffectOutcome(effect=atom)

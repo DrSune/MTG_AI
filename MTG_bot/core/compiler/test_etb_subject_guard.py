@@ -20,10 +20,6 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 
 _M21 = Path(__file__).resolve().parents[2] / "data" / "M21.json"
 
-# oracle_id -> justification for a legitimately any-object ETB trigger
-# ("whenever something enters"); empty: every M21 ETB trigger names its subject.
-_ETB_SUBJECT_NONE_ALLOWLIST: dict[str, str] = {}
-
 
 def _iter_etb_violations(obj: object) -> list[T.ZoneChangeEvent]:
     """Return every TriggeredAbility ETB ZoneChangeEvent with subject None."""
@@ -63,7 +59,7 @@ class TestEtbSubjectGuard(unittest.TestCase):
         offenders: list[str] = []
         for oid, result in self.compiled.results.items():
             found = _iter_etb_violations(result.card)
-            if found and oid not in _ETB_SUBJECT_NONE_ALLOWLIST:
+            if found:
                 offenders.append(
                     f"{self.pool[oid].identity.name} ({oid}): "
                     f"{len(found)} ETB trigger(s) with subject=None"
@@ -73,12 +69,6 @@ class TestEtbSubjectGuard(unittest.TestCase):
             [],
             f"ETB-trigger subject=None regression (audit 09-29/04 P0-2): {offenders}",
         )
-
-    def test_allowlist_is_empty_and_entries_are_used(self) -> None:
-        # Guard self-check: an allow-list entry whose card has no
-        # violation is dead weight and must fail.
-        for oid in _ETB_SUBJECT_NONE_ALLOWLIST:
-            self.assertTrue(_iter_etb_violations(self.compiled.results[oid].card))
 
     def test_detector_flags_synthetic_none_subject(self) -> None:
         # The walker detects the bad shape (the guard is not vacuous).

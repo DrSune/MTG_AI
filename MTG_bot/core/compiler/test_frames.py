@@ -24,7 +24,6 @@ from MTG_bot.core.compiler.templates import AbilityOutcome
 
 DATA = Path(__file__).resolve().parents[2] / "data"
 SETS = ("M21", "ZNR", "M20", "KHM")
-B47: set[str] = set()
 
 
 @pytest.fixture(scope="module")
@@ -47,7 +46,7 @@ def test_frames_rebuild_every_existing_framed_ability(registry) -> None:
                     agree += 1
                 else:
                     differ.add(sentence)
-    assert differ == B47
+    assert differ == set()
     assert agree >= 70  # the comparison must stay meaningful
 
 

@@ -167,13 +167,11 @@ class RawCard:
     back_face: CardFace | None = None
 
 
-def _as_str(
-    raw: dict[str, Any], key: str, card: str, *, default: str | None = None
-) -> str | None:
-    """Read an optional string field, raising on wrong type or missing required."""
+def _as_str(raw: dict[str, Any], key: str, card: str) -> str | None:
+    """Read an optional string field (None when absent or null); raise on a wrong type."""
     value = raw.get(key)
     if value is None:
-        return default
+        return None
     if not isinstance(value, str):
         raise StateCorruptionError(
             f"card {card!r}: field {key!r} is not a string",
@@ -341,7 +339,7 @@ def ingest_card(raw: dict[str, Any]) -> RawCard:
     types = _as_str_tuple(raw, "types", name)
     subtypes = _as_str_tuple(raw, "subtypes", name)
     supertypes = _as_str_tuple(raw, "supertypes", name)
-    layout = _as_str(raw, "layout", name, default="normal") or "normal"
+    layout = _as_str(raw, "layout", name) or "normal"
     # Emblems are their own layout, not tokens: a token is the token layout
     # or carries the Token type.
     is_emblem = layout == "emblem"

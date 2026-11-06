@@ -464,4 +464,4 @@ class FaceCompileFailureDegradesTest(unittest.TestCase):
         report = measure_pool(pool, build_full_registry())
         self.assertEqual(report.entry_count, 2)
         # both fronts stay in the compiled pool (no shape gap)
-        self.assertEqual(len(getattr(report, "shape_gaps", ())), 0)
+        self.assertEqual(len(report.shape_gaps), 0)
