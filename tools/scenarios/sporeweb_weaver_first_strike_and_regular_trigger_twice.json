@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 510.4, 603.2c: the Weaver attacks and is blocked by a 1/1 first striker and a 2/2. The first-strike combat damage step and the regular one are two damage events, so 'whenever this creature is dealt damage' triggers twice: two Saprolings and 2 life. The once-per-event twin is sporeweb_weaver_double_blocked_triggers_once.json.",
+ "cards": [
+  {"key": "w", "real": "Sporeweb Weaver", "zone": "battlefield", "controller": 0},
+  {"key": "fs", "name": "Opp Duelist", "type": "Creature — Human", "power": "1", "toughness": "1", "keywords": ["FIRST_STRIKE"], "zone": "battlefield", "controller": 1},
+  {"key": "b2", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"w": true}, "block": {"fs": "w", "b2": "w"}}
+ ],
+ "expect": {
+  "blocked": {"w": ["fs", "b2"]},
+  "damage": {"w": 3},
+  "life": {"0": 22, "1": 20},
+  "tokens": {"Saproling": 2},
+  "zone": {"w": "battlefield"}
+ }
+}

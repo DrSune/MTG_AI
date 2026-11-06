@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 510.2, 603.2c: Brash Taunter attacks and is blocked by a 2/2 and a 3/3. It is dealt 5 combat damage in one event, so 'whenever this creature is dealt damage, it deals that much damage to target opponent' triggers ONCE and deals 5 (seat 1: 20 -> 15). Chandra's Pyreling sees that one noncombat damage event ('whenever a source you control deals noncombat damage to an opponent', per source): +1/+0 once, power 2. Before the fix the Taunter triggered once per blocker (2, then 3: the same 15 life, but two damage events, so the Pyreling reached power 3).",
+ "cards": [
+  {"key": "bt", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+  {"key": "py", "real": "Chandra's Pyreling", "zone": "battlefield", "controller": 0},
+  {"key": "b2", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "b3", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bt": true, "py": false}, "block": {"b2": "bt", "b3": "bt"}}
+ ],
+ "expect": {
+  "blocked": {"bt": ["b2", "b3"]},
+  "damage": {"bt": 5, "b2": 1},
+  "life": {"0": 20, "1": 15},
+  "power": {"py": 2},
+  "zone": {"bt": "battlefield"}
+ }
+}

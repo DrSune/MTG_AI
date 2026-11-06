@@ -170,9 +170,11 @@ class GameEvent:
       * COUNTER_PLACED— ``(counter_kind_name, n)``
       * TAP_STATE     — ``(tapped_bool,)``
       * CARD_DRAWN    — ``(drawer, ordinal_this_turn)``
-      * DAMAGE        — ``(amount,)`` or ``(amount, True)`` when the damage
-        is COMBAT damage (16c, the DamageDealtEvent ``combat`` scope);
-        subject may be a player handle.
+      * DAMAGE        — ``(amount,)``, or ``(amount, step)`` when the damage
+        is COMBAT damage (16c, the DamageDealtEvent ``combat`` scope): ``step``
+        names the combat damage step that dealt it, so the rows sharing it are
+        one simultaneous damage event (CR 510.2); subject may be a player
+        handle, cause is the dealer.
       * LIFE_GAINED   — ``(amount,)``
       * LIFE_LOST     — ``(amount,)``, subject the player; a non-damage
         life DECREASE (B3a, the LOSE_LIFE feed; the amount is the actual
@@ -262,7 +264,14 @@ class GameEvent:
         COMBAT damage (CR 609.2 — the DamageDealtEvent ``combat`` scope);
         pre-16c rows and plain DEAL_DAMAGE rows stay a 1-tuple and read
         False."""
-        return len(self.data) > 1 and bool(self.data[1])
+        return bool(self.combat_step)
+
+    @property
+    def combat_step(self) -> int:
+        """DAMAGE rows only: the combat damage step that dealt this damage, 0 for
+        noncombat damage. CR 510.2: all of a step's combat damage is dealt at once,
+        so its rows are one damage event, one row per dealer and recipient."""
+        return cast(int, self.data[1]) if len(self.data) > 1 else 0
 
     @property
     def phase(self) -> tuple[str, Handle]:
@@ -541,10 +550,12 @@ class EventJournal:
         cause: Handle | None,
         cause_verb: str,
         new_12a_tuples: list[tuple[object, ...]],
-        combat: bool = False,
+        combat: int = 0,
     ) -> list[GameEvent]:
         """Diff the world against ``before`` and emit every triggered-rule
-        event the atom caused. Returns the newly appended events."""
+        event the atom caused. Returns the newly appended events. ``combat``
+        names the combat damage step the atom deals damage in (0: none); its
+        DAMAGE rows carry it (``GameEvent.combat_step``)."""
         start = len(self.events)
         world = self.world
         after = self._capture()
@@ -653,7 +664,7 @@ class EventJournal:
                     player,
                     cause,
                     cause_verb,
-                    (was_life - now_life, True) if combat else (was_life - now_life,),
+                    (was_life - now_life, combat) if combat else (was_life - now_life,),
                 )
             else:
                 # B3a: the amount is the ACTUAL state delta (the verb's
@@ -684,7 +695,7 @@ class EventJournal:
                         subject,
                         cause,
                         cause_verb,
-                        (entry[3], True) if combat else (entry[3],),
+                        (entry[3], combat) if combat else (entry[3],),
                     )
 
         self._close(before, after, consumed | before.consumed_raw)

@@ -47,7 +47,7 @@ answerable — pinned deterministic by the replay test.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
@@ -858,6 +858,25 @@ class TriggerBinder:
             if key in self._declare_queued:
                 return
             self._declare_queued.add(key)
+        if (
+            not additional
+            and event.kind == KIND_DAMAGE
+            and event.is_combat
+            and isinstance(node.event, DamageDealtEvent)
+            and node.event.source is None
+        ):
+            # CR 510.2, 603.2c: a combat damage step deals all its damage at once, as
+            # one event, so "whenever this creature is dealt damage" triggers once
+            # however many creatures dealt it damage (Sporeweb Weaver's ruling,
+            # 2020-06-23), and "that much damage" is all of it (Brash Taunter). A
+            # trigger that names the dealer ("a source you control deals", "this
+            # creature deals combat damage to a player") triggers per source, row by
+            # row. Any other DAMAGE row is a whole event already: one DEAL_DAMAGE
+            # atom, one dealer.
+            whole = self._combat_damage_event(event)
+            if whole is None:
+                return
+            event = whole
         if not additional and node.condition is not None:
             # CR 603.4: an intervening "if" is checked when the trigger event
             # occurs, and the ability triggers only if it is true. The matcher
@@ -895,6 +914,23 @@ class TriggerBinder:
             # triggering event) never feed it again, which is what keeps
             # two extra-trigger carriers from chasing each other.
             self._fan_ability_triggers(payload)
+
+    def _combat_damage_event(self, event: GameEvent) -> GameEvent | None:
+        """The combat damage the step of ``event`` (a combat DAMAGE row) dealt to its
+        recipient, as the one event it is (CR 510.2): ``event`` with the step's total
+        amount when it is the step's first row to that recipient, else None (the
+        event was already matched on that row). The journal has one row per dealer;
+        the whole step is journalled before any of it is matched."""
+        rows = [
+            e
+            for e in self.executor.journal.turn_window()
+            if e.kind == KIND_DAMAGE
+            and e.subject == event.subject
+            and e.combat_step == event.combat_step
+        ]
+        if rows[0].clock != event.clock:
+            return None
+        return replace(event, data=(sum(e.amount for e in rows), *event.data[1:]))
 
     def _fan_ability_triggers(self, payload: _Firing) -> None:
         """T5-D: queue one firing per AbilityTriggerEvent subscriber whose

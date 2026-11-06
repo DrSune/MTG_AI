@@ -727,11 +727,12 @@ class Executor:
         # statics read through layers.policy_as_unblocked; the dispatch
         # shape records the scope word here keyed by its source).
         self.damage_policies: dict[Handle, str] = {}
-        # The combat-damage wave flag: set for the atom boundaries inside
-        # one combat-damage substep so record_atom marks the DAMAGE rows
-        # (amount, True) — the DamageDealtEvent ``combat`` scope (16c,
-        # Garruk's Harbinger / Subira's delayed trigger).
-        self._combat_wave_open = False
+        # The combat-damage wave flag: the op number of the combat damage
+        # step being dealt (0 outside one), set for the atom boundaries inside
+        # it so record_atom marks the DAMAGE rows (amount, step) — the
+        # DamageDealtEvent ``combat`` scope (16c, Garruk's Harbinger / Subira's
+        # delayed trigger), and the one damage event the step is (CR 510.2).
+        self._combat_wave_open = 0
         # r22b (Teferi's Ageless Insight): the CR 504.5 draw-step register.
         # _draw_step_open is True ONLY while :meth:`_turn_draw` runs; the
         # ordinal map counts the draws that happened inside that window per
@@ -2936,7 +2937,9 @@ class Executor:
         nothing a later dealer's ask could read has mutated yet), then the
         atoms run inside ONE op boundary (simultaneous, CR 506/510 — no
         trigger can intervene between two attackers), each dealer's atoms
-        journalled under ITS OWN cause (16a attribution fix), each damage-
+        journalled under ITS OWN cause (16a attribution fix) and with the
+        step's op number (CR 510.2: one damage event, which an "is dealt
+        damage" trigger counts once per recipient), each damage-
         bearing dealer emits ONE COMBAT_DAMAGE row carrying the whole as-
         signment (CR 603.2: one "deals combat damage" event per dealer,
         however it splits), and the settle after the wave is the step's SBA
@@ -2966,7 +2969,7 @@ class Executor:
         if not strikes:
             return 0
         self._op_seq += 1
-        self._combat_wave_open = True
+        self._combat_wave_open = self._op_seq
         try:
             for dealer, plan in strikes:
                 for amount, recipient in plan:
@@ -2978,7 +2981,7 @@ class Executor:
                     )
                     self._run_effect(_combat_damage_atom(amount, recipient), ctx)
         finally:
-            self._combat_wave_open = False
+            self._combat_wave_open = 0
         for dealer, plan in strikes:
             self.journal.emit(
                 KIND_COMBAT_DAMAGE,

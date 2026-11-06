@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 510.2, 603.2c, Sporeweb Weaver ruling 2020-06-23: the Weaver attacks and is blocked by a 2/2 and a 1/1. All combat damage of the step (the blockers' 2 and 1 to the Weaver, the Weaver's 1 to the Bear) is dealt simultaneously as one event, so 'whenever this creature is dealt damage' triggers ONCE: one Saproling and 1 life. Before the fix it triggered once per blocker (2 Saprolings, 22 life). The first-strike twin is sporeweb_weaver_first_strike_and_regular_trigger_twice.json.",
+ "cards": [
+  {"key": "w", "real": "Sporeweb Weaver", "zone": "battlefield", "controller": 0},
+  {"key": "b2", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "b1", "name": "Opp Squirrel", "type": "Creature — Squirrel", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"w": true}, "block": {"b2": "w", "b1": "w"}}
+ ],
+ "expect": {
+  "blocked": {"w": ["b2", "b1"]},
+  "damage": {"w": 3, "b2": 1},
+  "life": {"0": 21, "1": 20},
+  "tokens": {"Saproling": 1},
+  "zone": {"w": "battlefield"}
+ }
+}
