@@ -112,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--deck-mode", default="coherent")
     ap.add_argument("--pool", default="verified", choices=("verified", "compiled", "castable"),
                     help="the cards the decks are dealt from (the learner's --pool)")
+    ap.add_argument("--set", default="M21", help="the set the decks are dealt from")
     ap.add_argument("--net-seat", type=int, default=0)
     ap.add_argument("--mask-names", action="store_true")
     ap.add_argument("--out", default="-")
@@ -128,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
     agents[a.net_seat] = TracedNet(slot, table, tracer, "net", a.mask_names)
     agents[1 - a.net_seat] = (TracedHeuristic(tracer) if a.opp == "heuristic"
                               else TracedNet(slot, table, tracer, "opp"))
-    res = play_game(a.seed, agents, deck_mode=a.deck_mode, pool_mode=a.pool)
+    res = play_game(a.seed, agents, deck_mode=a.deck_mode, pool_mode=a.pool, set_code=a.set)
     out.write(f"\nRESULT: {res['outcome']} winner seat {res['winner']} after {res['turns']} turns "
               f"({res['reason']}); lives {res['lives']}; crash {res['crash']}\n")
     if out is not sys.stdout:
