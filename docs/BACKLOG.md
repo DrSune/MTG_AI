@@ -1514,6 +1514,51 @@ W&B key in history is revoked; a private split exists outside the public repo.
   a Choose) and Blightbeetle (a static prevention never reads its atom's own `condition`). Add an
   equivalent-mutant rule (a dead-role check) to `gates.mutants`. Separately, `cardtool.py mutate
   --out` writes nothing (`cmd_mutate` never reads `args.out`).
+## Defending player, blocker limit, created token follow-ups (2026-11-06, branch `engine/atoms-wave2`)
+- **Landwalk is a keyword the census shows next to these** (CR 702.14c: "can't be blocked as long as
+  the defending player controls" a land of the type). About 20 cards in 10E and M10-M15 print or
+  grant it (Bog Wraith, Plague Beetle, Rock Badger, Rootwater Commando, Rushwood Dryad, Emerald
+  Oryx, Bog Raiders, Lurking Crocodile, Harbor Serpent, Merfolk Spy, Stormtide Leviathan, Colossal
+  Whale, Mirri; Elvish Champion, Goblin King, Dryad's Favor, Volcanic Strength, Master of the Pearl
+  Trident; the Coral Barrier and Chasm Skulker tokens), about 10 of them fully compiled by it alone.
+  Others read it as a keyword ("Creatures without flying or islandwalk can't attack"), so it must be
+  `Keyword` with a land-type parameter, read by the block legality through DEFENDING_PLAYER, never
+  a static compiled from its reminder text.
+- **Multiplayer combat**: `selectors.defending_players` reads the engine's one defending player.
+  With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
+  `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
+  `_remove_from_combat` drops the entry).
+- **"The player or planeswalker it's attacking"** (Scorch Spitter) is the attacked object, not the
+  defending player: it needs a referent over `Executor.attacked` that survives removal from combat.
+- **"Defending player controls an Island / no Walls"** (Sea Monster, Serpent of the Endless Sea,
+  Siege Dragon): CONTROLLER_COUNT_GE counts only "you"; it needs a `who` slot. The search plans
+  attacks before combat opens (`search.plan_attacks` at `pre_combat`), when there is no defending
+  player yet, so a "can't attack unless defending player ..." restriction would drop out of its
+  plans; decide it at the declaration.
+- **"Whenever equipped creature becomes blocked"** (Tormentor's Helm) has no event: it triggers once
+  per combat however many creatures block (CR 509.3c), BecomesBlockedEvent is anchored to the
+  source, and DeclareBlockersEvent(blocked=...) fires once per blocker.
+- **Leeching Sliver plays weaker than printed until B-103** ("whenever a Sliver you control attacks"
+  fires once per declaration, not once per attacking Sliver, CR 603.2c). Its tree is right.
+- **Ancient Hellkite** now compiles "{R}: This creature deals 1 damage to target creature defending
+  player controls." but not "Activate only if this creature is attacking."; and the combat window
+  offers instants only (`stack.open_combat_window`), so no ability can be activated while attacking.
+- **"You may pay <mana>." composes with any trigger frame**, so the payment half of a pair whose
+  second half has no template now parses on partly compiled cards (Llanowar Sentinel, Tenacious
+  Dead, Frenzied Goblin in M15 and FDN, Skyrider Patrol, Sparktongue Dragon, Eternal Taskmaster,
+  Embereth Skyblazer): their "When you do" / "If you do" halves need templates.
+- **needs-atom records this work answers**: M20 Ancestral Blade, Bristling Boar, Heart-Piercer Bow,
+  Wolfrider's Saddle and Mask of Immolation (its granted sacrifice ability still unparsed) keep
+  their notes; the next mapping round should map and verify them on the compiled trees.
+- **Measured and not built this wave** (cards each would fully compile; NUMBERS.md 2026-11-06):
+  a delayed trigger that remembers the objects it is about (CR 603.7b/c: one-shot, "at the
+  beginning of the next end step" or "at end of combat", does nothing to an object that changed
+  zones), 4 (Fog Elemental, Crumbling Colossus, Phytotitan, Tiana), the largest engine change, and
+  it reads the created-token `result` this wave added; the cost parts "Remove N <kind> counters
+  from this <permanent>" and "Exile this <permanent>", 4 (Hanged Executioner, Brittle Effigy,
+  Inquisitive Puppet, Steelbane Hydra; 2 more, Soul of Zendikar and Soul of Ravnica, also need
+  activation from a graveyard, CR 113.6m); a discard trigger event, 3 (Megrim in 10E and M10,
+  Liliana's Caress); a life-total threshold, 3 (Twinblade Paladin in M20 and FDN, Serra Ascendant).
 ## Turn history and "can't be countered" follow-ups (2026-11-06, branch `engine/turn-history-uncounterable`)
 - **Collapse the legacy turn-history atoms onto `EVENT_THIS_TURN`** (AGENTS §9: one meaning, one
   encoding). DIED_THIS_TURN, LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
@@ -1571,49 +1616,3 @@ W&B key in history is revoked; a private split exists outside the public repo.
   one's triggered/static abilities. Not live: in the M21 and M20 verified pools only Pirate, Treasure
   and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
   hash the spec's abilities into the id.
-
-## Defending player, blocker limit, created token follow-ups (2026-11-06, branch `engine/atoms-wave2`)
-- **Landwalk is a keyword the census shows next to these** (CR 702.14c: "can't be blocked as long as
-  the defending player controls" a land of the type). About 20 cards in 10E and M10-M15 print or
-  grant it (Bog Wraith, Plague Beetle, Rock Badger, Rootwater Commando, Rushwood Dryad, Emerald
-  Oryx, Bog Raiders, Lurking Crocodile, Harbor Serpent, Merfolk Spy, Stormtide Leviathan, Colossal
-  Whale, Mirri; Elvish Champion, Goblin King, Dryad's Favor, Volcanic Strength, Master of the Pearl
-  Trident; the Coral Barrier and Chasm Skulker tokens), about 10 of them fully compiled by it alone.
-  Others read it as a keyword ("Creatures without flying or islandwalk can't attack"), so it must be
-  `Keyword` with a land-type parameter, read by the block legality through DEFENDING_PLAYER, never
-  a static compiled from its reminder text.
-- **Multiplayer combat**: `selectors.defending_players` reads the engine's one defending player.
-  With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
-  `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
-  `_remove_from_combat` drops the entry).
-- **"The player or planeswalker it's attacking"** (Scorch Spitter) is the attacked object, not the
-  defending player: it needs a referent over `Executor.attacked` that survives removal from combat.
-- **"Defending player controls an Island / no Walls"** (Sea Monster, Serpent of the Endless Sea,
-  Siege Dragon): CONTROLLER_COUNT_GE counts only "you"; it needs a `who` slot. The search plans
-  attacks before combat opens (`search.plan_attacks` at `pre_combat`), when there is no defending
-  player yet, so a "can't attack unless defending player ..." restriction would drop out of its
-  plans; decide it at the declaration.
-- **"Whenever equipped creature becomes blocked"** (Tormentor's Helm) has no event: it triggers once
-  per combat however many creatures block (CR 509.3c), BecomesBlockedEvent is anchored to the
-  source, and DeclareBlockersEvent(blocked=...) fires once per blocker.
-- **Leeching Sliver plays weaker than printed until B-103** ("whenever a Sliver you control attacks"
-  fires once per declaration, not once per attacking Sliver, CR 603.2c). Its tree is right.
-- **Ancient Hellkite** now compiles "{R}: This creature deals 1 damage to target creature defending
-  player controls." but not "Activate only if this creature is attacking."; and the combat window
-  offers instants only (`stack.open_combat_window`), so no ability can be activated while attacking.
-- **"You may pay <mana>." composes with any trigger frame**, so the payment half of a pair whose
-  second half has no template now parses on partly compiled cards (Llanowar Sentinel, Tenacious
-  Dead, Frenzied Goblin in M15 and FDN, Skyrider Patrol, Sparktongue Dragon, Eternal Taskmaster,
-  Embereth Skyblazer): their "When you do" / "If you do" halves need templates.
-- **needs-atom records this work answers**: M20 Ancestral Blade, Bristling Boar, Heart-Piercer Bow,
-  Wolfrider's Saddle and Mask of Immolation (its granted sacrifice ability still unparsed) keep
-  their notes; the next mapping round should map and verify them on the compiled trees.
-- **Measured and not built this wave** (cards each would fully compile; NUMBERS.md 2026-11-06):
-  a delayed trigger that remembers the objects it is about (CR 603.7b/c: one-shot, "at the
-  beginning of the next end step" or "at end of combat", does nothing to an object that changed
-  zones), 4 (Fog Elemental, Crumbling Colossus, Phytotitan, Tiana), the largest engine change, and
-  it reads the created-token `result` this wave added; the cost parts "Remove N <kind> counters
-  from this <permanent>" and "Exile this <permanent>", 4 (Hanged Executioner, Brittle Effigy,
-  Inquisitive Puppet, Steelbane Hydra; 2 more, Soul of Zendikar and Soul of Ravnica, also need
-  activation from a graveyard, CR 113.6m); a discard trigger event, 3 (Megrim in 10E and M10,
-  Liliana's Caress); a life-total threshold, 3 (Twinblade Paladin in M20 and FDN, Serra Ascendant).
