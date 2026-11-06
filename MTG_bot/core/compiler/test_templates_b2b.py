@@ -1,22 +1,13 @@
 """Tests for the B2b triggered-ability template bucket.
 
-B2b is the second "triggered ability" bucket: every template compiles a
-sentence of the form "When X <trigger>, <effect>." or "Whenever X <trigger>,
-<effect>." into a ``TriggeredAbility(event, condition, effect)``.
+Every B2b template compiles a sentence of the form "When X <trigger>, <effect>."
+or "Whenever X <trigger>, <effect>." into a
+``TriggeredAbility(event, condition, effect)``.
 
-Layout mirrors ``test_templates_b2a.py``: a coverage class (bucket shape/
-occurrence counts, the public API, the pinned EXPECTED table, PC-3 ambiguity
-and fingerprint stability) plus an events class and an effect-structure class
-that drive the registry end-to-end with concrete oracle sentences and assert
-the exact IR each template produces.
-
-Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2b.json):
-62 shapes, 76 occurrences, 61 covered shapes, 75 matched occurrences, and the
-60 templates in ``templates_b2b.TEMPLATES`` (with 1 declared UNCOVERED
-shape).  The 9-B batch added ``B2b-do-tap-or-untap`` (Tolarian Kraken s2,
-R9-9/C24 do-continuation merge).  The round-10 batch added
-``B2b-attackers-against-me-draw`` (Mangara, the Diplomat, R10-3).
-The bucket priority is 50 (NOT the 100 used by B1/B3/B4).
+A coverage class pins the bucket counts, the public API, the EXPECTED table, at
+most one match per sentence and fingerprint stability; the events and
+effect-structure classes drive the registry end to end with concrete oracle
+sentences and assert the exact IR each template produces.
 """
 
 from __future__ import annotations
@@ -268,7 +259,6 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2b-gain-life-target-opponent",
         "Gain Life Target Opponent",
     ),
-    # --- Round 5 (grammar round 4/5 shapes) ---
     "Whenever this creature becomes the target of a spell or ability an opponent controls, you may draw two cards.": (
         "B2b-warden-of-the-woods",
         "Warden of the Woods",
@@ -370,9 +360,8 @@ def _single_match(reg: TemplateRegistry, sentence: str) -> Match:
 
 
 def _match_value(match: Match) -> object:
-    """The IR value of a match for hash/canonical tests — the ability for
-    AbilityOutcome templates (the B2b norm), the bare effect for
-    EffectOutcome continuations (the 9-B do-continuation row)."""
+    """The IR value of a match for hash/canonical tests: the ability of an
+    AbilityOutcome, the bare effect of an EffectOutcome continuation."""
     outcome = match.outcome
     if isinstance(outcome, AbilityOutcome):
         return outcome.ability
@@ -785,7 +774,6 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event.filter, FAnd)
         self._assert_has_type_eq_creature(event.filter)
         self._assert_has_controller_you(event.filter)
-        # Condition should be HAS_COUNTER
         cond = ability.condition
         self.assertIsNotNone(cond)
         assert isinstance(cond, FAtom)
@@ -979,10 +967,9 @@ class TestB2bTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, CastSpellEvent)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        # re-pinned 2026-10-29: V39 changes the filter from COLOR_IN (a subset
-        # test: a green-blue spell failed it) to "has any of the four colors",
-        # the FOr of COLOR_HAS (CR 105.2). FOr children are construction-
-        # sorted (ontology §3 SET-R1a); the SET of colors is the pinned fact.
+        # "has any of the four colors" is the FOr of COLOR_HAS (CR 105.2), not
+        # the subset test COLOR_IN. FOr children are sorted at construction, so
+        # the set of colors is the pinned fact.
         assert isinstance(event.filter, FOr)
         self.assertTrue(all(c.pred is FAtomPred.COLOR_HAS for c in event.filter.children))
         self.assertEqual(
@@ -1047,11 +1034,8 @@ class TestB2bTriggerEvents(unittest.TestCase):
         cond = ability.condition
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        # AMENDED r18a (B-8): printed "a creature with power 4 or greater"
-        # means ONE or more — the old pin froze the power THRESHOLD in the
-        # count slot too, so the gate demanded four 4-power creatures and
-        # silently false-fired with a single 4/4 (Historian Teferi's
-        # count=1 precedent is the same shape now).
+        # "a creature with power 4 or greater" means one or more: count 1, with
+        # the threshold only in the POWER_GE filter.
         self.assertEqual(cond.count, QConst(1))
         assert isinstance(cond.inner_filter, FAnd)
         self._assert_has_type_eq_creature(cond.inner_filter)
@@ -1096,10 +1080,8 @@ class TestB2bTriggerEvents(unittest.TestCase):
         cond = ability.condition
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        # C2 (batch 1, 2026-10-02) AMENDED: printed "A CREATURE with power
-        # 4 or greater" is an existence claim — ONE such creature (the
-        # threshold lives only in the POWER_GE filter). The old pin
-        # witnessed the count=4 off-by-one (wave-3b suspect).
+        # "a creature with power 4 or greater" is an existence claim: one such
+        # creature (the threshold lives only in the POWER_GE filter).
         self.assertEqual(cond.count, QConst(1))
         assert isinstance(cond.inner_filter, FAnd)
         self._assert_has_type_eq_creature(cond.inner_filter)
@@ -1143,8 +1125,6 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertIs(event.actor.who, ControllerRef.YOU)
         self.assertIsNone(ability.condition)
 
-    # --- Round 5 (grammar round 4/5 shapes) ---
-
     def test_warden_of_the_woods_is_targeting_event(self) -> None:
         ability = _ability(
             _single_match(
@@ -1168,15 +1148,12 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        # R2 fold (/140): CombatDamageEvent folded into DamageDealtEvent —
-        # amount unbounded, the old filter moved verbatim to source,
-        # combat=True (the COMBAT_DAMAGE feed is now the is_combat=True
-        # DAMAGE journal rows).
+        # Combat damage is a DamageDealtEvent: amount unbounded, the dealer in
+        # source, combat=True.
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
-        # universal FAnd(()) to "a player" (not a permanent, CR 120.1).
+        # The recipient is "a player": not a permanent (CR 120.1).
         self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.IS_SOURCE)
@@ -1198,10 +1175,8 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(event.source.who, ControllerRef.YOU)
-        # R11-1 destination predicate: "to an opponent" is the DamageDealt
-        # FILTER over the damage subject — FAtom(OPPONENT_OF, who=YOU),
-        # player-total (a card subject never passes). Replaces the vacuous
-        # FAnd(()) that let the trigger fire on damage to anything.
+        # "to an opponent" is the DamageDealt filter over the damaged subject,
+        # FAtom(OPPONENT_OF, who=YOU); a card subject never passes.
         assert isinstance(event.filter, FAtom)
         self.assertIs(event.filter.pred, FAtomPred.OPPONENT_OF)
         self.assertIs(event.filter.who, ControllerRef.YOU)
@@ -1221,8 +1196,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertIs(event.combat, False)
         assert isinstance(event.source, FAtom)
         self.assertIs(event.source.who, ControllerRef.YOU)
-        # R11-1 destination predicate, pinned in both template shapes
-        # (the +1/+0 and the burn-to-target emissions share it).
+        # The same "to an opponent" filter as the Incinerator shape.
         assert isinstance(event.filter, FAtom)
         self.assertIs(event.filter.pred, FAtomPred.OPPONENT_OF)
         self.assertIs(event.filter.who, ControllerRef.YOU)
@@ -1285,14 +1259,12 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        # R2 fold (/140): the cats filter moved VERBATIM from the old
-        # CombatDamageEvent filter slot to DamageDealtEvent.source; amount
-        # unbounded, combat=True.
+        # The Cats filter is the DamageDealtEvent source; amount unbounded,
+        # combat=True.
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        # re-pinned 2026-10-29: B-57 fix changes the recipient from the
-        # universal FAnd(()) to "a player" (not a permanent, CR 120.1).
+        # The recipient is "a player": not a permanent (CR 120.1).
         self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         assert isinstance(event.source, FAnd)
         self._assert_has_type_eq_creature(event.source)
@@ -1343,8 +1315,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event, DamageDealtEvent)
         self.assertEqual(event.amount, QUnbounded())
         self.assertIs(event.combat, True)
-        # B-57: "to a player or planeswalker" is the recipient (it was the
-        # universal FAnd(()), which fired on damage to a blocker).
+        # "to a player or planeswalker" is the recipient.
         self.assertEqual(
             event.filter,
             FOr(
@@ -1393,7 +1364,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
             )
         )
         event = ability.event
-        # R5-7: the activation event of kind LOYALTY (CR 606.2)
+        # The activation event of kind LOYALTY (CR 606.2).
         assert isinstance(event, AbilityActivatedEvent)
         self.assertIs(event.kind, AbilityKind.LOYALTY)
         self.assertIs(event.actor.who, ControllerRef.YOU)
@@ -1458,28 +1429,25 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         option = _optional(ability)
         seq = _seq_inner(option)
-        # re-pinned 2026-10-29: m21-fidelity, "a card named A and/or a card named B" is at most
-        # one card of EACH name: one up-to-one pick per name (it was one up-to-two pick over
-        # FOr(A, B), which could fetch two Alpine Watchdogs).
+        # "a card named A and/or a card named B" is at most one card of each name: one
+        # up-to-one pick per name.
         self.assertEqual(len(seq.steps), 4)
         # SEARCH x2, in printed order
         for idx, name in ((0, "Alpine Watchdog"), (1, "Igneous Cur")):
             search = _atom_step(seq, idx)
             self.assertIs(search.verb, Verb.SEARCH)
             sel = _selector(search, "cards")
-            # re-pinned 2026-10-30: m21-fidelity wave 4, each named find is up to one
-            # (QAtMost(1)): CR 701.23b lets a hidden-zone search fail to find.
+            # Each named find is up to one (QAtMost(1)): a hidden-zone search may fail
+            # to find (CR 701.23b).
             assert isinstance(sel.count, QAtMost)
             self.assertEqual(sel.count.n, 1)
             self.assertIs(sel.mode, SelectorMode.CHOOSE)
             assert isinstance(sel.filter, FAtom)
             self.assertEqual(sel.filter.string_value, name)
-        # REVEAL
         reveal = _atom_step(seq, 2)
         self.assertIs(reveal.verb, Verb.REVEAL)
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
         assert isinstance(reveal.args.get("count"), QUnbounded)
-        # SHUFFLE
         shuffle = _atom_step(seq, 3)
         self.assertIs(shuffle.verb, Verb.SHUFFLE)
         zone = shuffle.args.get("zone")
@@ -1520,7 +1488,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         amount = _qconst(draw, "amount")
         self.assertEqual(amount.value, 1)
         discard = _atom_step(seq, 1)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # Discard is a MOVE_ZONE atom.
         self.assertIs(discard.verb, Verb.MOVE_ZONE)
         self.assertIs(discard.args.get("controller"), ControllerRef.YOU)
         self.assertEqual(
@@ -1667,7 +1635,6 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(power.direction, PtDirection.INCREASE)
         power_magnitude = power.magnitude
         assert isinstance(power_magnitude, QCount)
-        # QCount selector should have IS_ATTACKING and FNot(IS_SOURCE)
         qc_sel = power_magnitude.selector
         assert isinstance(qc_sel.filter, FAnd)
         self._assert_has_type_eq_creature(qc_sel.filter)
@@ -1801,8 +1768,6 @@ class TestB2bEffectStructure(unittest.TestCase):
         count = _qconst(atom, "count")
         self.assertEqual(count.value, 1)
 
-    # --- round-2 template effects ---
-
     def test_named_card_search_optional_search_reveal_move(self) -> None:
         ability = _ability(
             _single_match(
@@ -1813,9 +1778,9 @@ class TestB2bEffectStructure(unittest.TestCase):
             )
         )
         option = _optional(ability)
-        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
-        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
-        # unchanged), option 1 the library only, option 2 the graveyard only.
+        # "library and/or graveyard" is a visible Choose over the zone sets: option 0 both
+        # zones (the shape asserted below), option 1 the library only, option 2 the
+        # graveyard only.
         choose = option.inner
         assert isinstance(choose, Choose)
         self.assertEqual(choose.count, QConst(1))
@@ -1828,11 +1793,8 @@ class TestB2bEffectStructure(unittest.TestCase):
             )
         seq = choose.options[0]
         assert isinstance(seq, Seq)
-        # re-pinned 2026-10-30 (G3 finisher): two steps. The third, MOVE_ZONE(this creature
-        # from the top of your library to your hand), was unprinted ("put it into your hand"
-        # is the SEARCH's destination) and moved the creature itself when it was on top.
+        # Two steps: "put it into your hand" is the SEARCH's destination, not a separate move.
         self.assertEqual(len(seq.steps), 2)
-        # SEARCH
         search = _atom_step(seq, 0)
         self.assertIs(search.verb, Verb.SEARCH)
         sel = _selector(search, "cards")
@@ -1842,7 +1804,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         assert isinstance(sel.filter, FAtom)
         self.assertIs(sel.filter.pred, FAtomPred.NAME_EQ)
         self.assertEqual(sel.filter.string_value, "Chandra, Flame's Catalyst")
-        # R0 zone-fold: ONE set; canonical order GRAVEYARD < LIBRARY.
+        # One zone set, in canonical order GRAVEYARD < LIBRARY.
         self.assertEqual(
             sel.zones,
             (
@@ -1854,7 +1816,6 @@ class TestB2bEffectStructure(unittest.TestCase):
             search.args.get("destination"),
             Zone(ZoneKind.HAND, ControllerRef.YOU),
         )
-        # REVEAL
         reveal = _atom_step(seq, 1)
         self.assertIs(reveal.verb, Verb.REVEAL)
         self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
@@ -1910,11 +1871,8 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        # AMENDED r17-2 (geyser-FIX): printed "any target" is the
-        # battlefield FOr(Creature, Planeswalker) idiom, not the empty
-        # FAnd over Zone(ANY, ANY) — the old shape enumerated opponent-
-        # hidden zones (D10/E3 leak). Player side joins via the engine's
-        # idiom widening (CR 109.5).
+        # "any target" is the battlefield FOr type filter, never a hidden zone;
+        # the player side joins via the engine's widening (CR 109.5).
         idiom = target.filter
         assert isinstance(idiom, FOr)
         self.assertEqual(len(idiom.children), 3)
@@ -1977,7 +1935,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(each.ref, ControllerRef.ALL_OPPONENTS)
         effect = each.effect
         assert isinstance(effect, Atom)
-        # T4 P1a: the mill shape is the merged MOVE_ZONE atom.
+        # Mill is a MOVE_ZONE atom.
         self.assertIs(effect.verb, Verb.MOVE_ZONE)
         self.assertIs(effect.args.get("controller"), ControllerRef.YOU)
         self.assertEqual(
@@ -2065,8 +2023,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIsInstance(set_pt.args.get("duration"), DurationEot)
         grant_type = _atom_step(seq, 1)
         self.assertIs(grant_type.verb, Verb.GRANT_TYPE)
-        # re-pinned 2026-10-29: m21-fidelity (review batch C) grants the card type Creature too
-        # ("a 3/3 Sphinx creature"); ("Sphinx",) alone left it unable to attack or block.
+        # "a 3/3 Sphinx creature" grants the card type Creature as well as the subtype.
         self.assertEqual(grant_type.args.get("types"), ("Creature", "Sphinx"))
         self.assertIsInstance(grant_type.args.get("duration"), DurationEot)
         grant_ability = _atom_step(seq, 2)
@@ -2111,9 +2068,8 @@ class TestB2bEffectStructure(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        # T4 P1a: the mill shape is the merged MOVE_ZONE atom — the milled
-        # player's own library and graveyard carry the designated player.
-        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
+        # Mill is a MOVE_ZONE atom; the milled player's own library and
+        # graveyard carry the designated player.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertEqual(
@@ -2281,14 +2237,11 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.LOSE_LIFE)
-        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
         self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         amount = _qprop(atom, "amount")
         self.assertEqual(amount.referent, "event")
         self.assertIs(amount.field, QPropField.AMOUNT)
         self.assertIs(amount.agg, QAgg.FIRST)
-
-    # --- Round 5 (grammar round 4/5 shapes) ---
 
     def _referent_selector(self, atom: Atom, role: str) -> Selector:
         selector = _selector(atom, role)
@@ -2584,8 +2537,7 @@ class TestB2bEffectStructure(unittest.TestCase):
 
 
 class TestB2bRound7BTopUp(unittest.TestCase):
-    """R7-B: Snarespinner — first production TRIGGER use of the R6-4
-    DeclareBlockersEvent.blocked slot (doc 2026-09-28/03 §3 B-table row 7)."""
+    """Snarespinner: a trigger on the DeclareBlockersEvent.blocked slot."""
 
     def test_blocks_flying_pump_structure(self) -> None:
         reg = _registry()
@@ -2597,13 +2549,12 @@ class TestB2bRound7BTopUp(unittest.TestCase):
         ability = _ability(m)
         event = ability.event
         assert isinstance(event, DeclareBlockersEvent)
-        # blocker side: IS_SOURCE rides the primary filter (b4 cant-block shape)
+        # blocker side: IS_SOURCE is the primary filter
         blocker_filter = event.filter
         assert isinstance(blocker_filter, FAtom)
         self.assertIs(blocker_filter.pred, FAtomPred.IS_SOURCE)
         self.assertIsNone(event.subject)
-        # blocked side (R6-4 slot): KEYWORD_HAS flying — Shacklegeist idiom,
-        # now on the trigger (validation is type-only, __post_init__ permits it)
+        # blocked side: KEYWORD_HAS flying
         blocked = event.blocked
         assert isinstance(blocked, FAtom)
         self.assertIs(blocked.pred, FAtomPred.KEYWORD_HAS)
@@ -2625,14 +2576,13 @@ class TestB2bRound7BTopUp(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Round 9-B — Tolarian Kraken "When you do" do-continuation (R9-9, C24)
+# Tolarian Kraken "When you do" do-continuation
 # ---------------------------------------------------------------------------
 
 
 class TestB2bRound9BDoContinuation(unittest.TestCase):
-    """R9-B: Tolarian Kraken s2 — the standalone continuation outcome is
-    EXACTLY what the compiler's R9-9 do-merge injects inside the s1
-    cost-paying OptionalEffect (doc 2026-09-28/11 §R9-9/§9-B row 5)."""
+    """Tolarian Kraken: the standalone continuation outcome is exactly what
+    the compiler's do-merge puts inside the cost-paying OptionalEffect."""
 
     S1 = "Whenever you draw a card, you may pay {1}."
     S2 = "When you do, you may tap or untap target creature."
@@ -2652,8 +2602,8 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
         outcome = m.outcome
         assert isinstance(outcome, EffectOutcome)
         outer = outcome.effect
-        # "you may" — the s2 Optional is its OWN layer (the merge adds none;
-        # the r9-A double-wrap pin test_ability_tree_r10 forbids a second)
+        # "you may": the continuation's Optional is its own layer (the merge
+        # adds none)
         assert isinstance(outer, OptionalEffect)
         choice = outer.inner
         assert isinstance(choice, Choose)
@@ -2668,9 +2618,9 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
         self.assertEqual(dict(untap.args.pairs), {"target": target})
 
     def test_pair_merge_final_tree(self) -> None:
-        """s1 OptionalEffect(PAY) + s2 continuation → INNER injection:
-        OptionalEffect(Seq(PAY, OptionalEffect(Choose(...)))) — never a
-        sibling optional (C24)."""
+        """OptionalEffect(PAY) + the continuation → injected inside:
+        OptionalEffect(Seq(PAY, OptionalEffect(Choose(...)))), never a sibling
+        optional."""
         reg = _registry()
         s1 = _single_match(reg, self.S1)
         s2 = _single_match(reg, self.S2)
@@ -2690,15 +2640,13 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Round 10 — Mangara, the Diplomat attackers-against-me draw (R10-3)
+# Mangara, the Diplomat attackers-against-me draw
 # ---------------------------------------------------------------------------
 
 
 class TestB2bRound10Mangara(unittest.TestCase):
-    """R10: Mangara s1 — first production use of the R10-3
-    DeclareAttackersEvent.attacked slot (twin of R6-4 blocked) plus the
-    ATTACK_AGAINST_COUNT_GE condition predicate (doc 2026-09-29/02
-    §phase-10-B row 3)."""
+    """Mangara: the DeclareAttackersEvent.attacked slot plus the
+    ATTACK_AGAINST_COUNT_GE condition."""
 
     S1 = (
         "Whenever an opponent attacks with creatures, if two or more of "
@@ -2718,8 +2666,8 @@ class TestB2bRound10Mangara(unittest.TestCase):
         event_filter = event.filter
         assert isinstance(event_filter, FAnd)
         self.assertEqual(len(event_filter.children), 2)
-        # R1a canonicalization: FAnd children construction-sorted; members by
-        # pred, order by the canonicalization law.
+        # FAnd children are sorted at construction: members by pred, order by
+        # that rule.
         self.assertEqual(
             list(event_filter.children),
             sorted(event_filter.children, key=canonical_json),
@@ -2732,15 +2680,15 @@ class TestB2bRound10Mangara(unittest.TestCase):
         self.assertEqual(kind.string_value, "Creature")
         self.assertIs(controller.pred, FAtomPred.CONTROLLER_IS)
         self.assertIs(controller.who, ControllerRef.OPPONENT)
-        # attacked side (R10-3 slot): "you and/or planeswalkers you control"
+        # attacked side: "you and/or planeswalkers you control"
         expected_attacked = templates_b2b._you_or_your_planeswalkers()
         attacked = event.attacked
         assert isinstance(attacked, FOr)
         self.assertEqual(attacked, expected_attacked)
         self.assertEqual(len(attacked.children), 2)
-        # R1a canonicalization: FOr/FAnd children construction-sorted, so the
-        # two sides and the conjuncts inside the planeswalker branch are
-        # pinned by IDENTITY/pred, and each order by the canonicalization law.
+        # FOr/FAnd children are sorted at construction, so the two sides and
+        # the conjuncts inside the planeswalker branch are pinned by identity
+        # and pred, and each order by that rule.
         self.assertEqual(
             list(attacked.children), sorted(attacked.children, key=canonical_json)
         )

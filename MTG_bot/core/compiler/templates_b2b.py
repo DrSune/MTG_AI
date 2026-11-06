@@ -1,103 +1,63 @@
-"""B2b bucket templates — 57 templates covering 58 of 62 B2b normalized shape keys.
+"""B2b bucket templates: trigger-shaped sentences, the B2 keys not in B2a.
 
-Bucket input: ``/tmp/opencode/phase1_buckets/B2b.json`` (62 normalized shape
-keys → ``[card, sentence]`` pairs; 76 card/sentence entries).  Templates
-fullmatch the **concrete** oracle sentence, never the normalized key.
+Bucket input: ``/tmp/opencode/phase1_buckets/B2b.json`` (normalized shape
+keys → ``[card, sentence]`` pairs). Templates fullmatch the **concrete**
+oracle sentence, never the normalized key. Keys no template covers are listed
+in ``UNCOVERED``.
 
-Coverage (62 shapes = 58 template-covered + 4 uncovered):
+Conventions:
 
-- **57 templates** cover 58 normalized keys and 72 concrete rows.
-  - *Round 1* (18 templates): 18 shapes and 32 concrete rows.  Shape ``#10``
-    has 5 concrete rows and ``#11`` has 11; all other covered shapes have 1
-    each.
-  - *Round 2* (18 templates → 20 shapes): 20 shapes and 20 concrete rows.  The
-    three named-card-search shapes (``#1``/``#2``/``#3``) share one parameterized
-    template, so 18 templates cover 20 shapes.
-  - *Round 4* (6 templates): 6 shapes and 6 concrete rows, each a single-card
-    shape (Solemn Simulacrum, Garruk's Uprising, Historian of Zhalfir,
-    Ornery Dilophosaur, Tide Skimmer, Vito).
-  - *Round 5* (15 templates, 2026-09-25): 14 new shapes and 14 concrete rows
-    — Warden of the Woods (TargetingEvent + OptionalEffect DRAW; "an
-    opponent controls" is the event's actor since R5-6), Jeskai Elder (DamageDealtEvent combat=True +
-    OptionalEffect
-    DRAW; lossy: "to a player"), Chandra's Incinerator / Pyreling
-    (DamageDealtEvent ``combat=False`` + source filter; the Incinerator deals
-    ``QProp("event", AMOUNT)`` to a target "that player controls" via
-    ``CONTROLLER_IS`` with a referent ``Selector``), Pack Leader
-    (PREVENT_EFFECT with condition/event over the protected Dogs +
-    DurationEot), Gloom Sower (BecomesBlockedEvent + LOSE_LIFE via the event
-    referent + GAIN_LIFE), Hooded Blightfang (planeswalker-damage variant;
-    DamageDealtEvent + SUPERTYPE_EQ Planeswalker recipient + DESTROY via the
-    event referent — disjoint from the existing attacks sentence), Feline
-    Sovereign (R2-folded DamageDealtEvent combat=True, cats filter in the
-    source slot, + DESTROY "that player controls" via the
-    event referent), Ghostly Pilferer s2 (CastSpellEvent.from_zone_not
-    Zone(HAND, OPPONENT)), Double Vision s1 (CastSpellEvent ordinal=1 over
-    instant/sorcery + COPY via the event referent), Double Vision s2
-    (RuleReminderOutcome — its concrete row "You may choose new targets for
-    the copy." lives in the B4 bucket), Garruk's Harbinger (DamageDealtEvent
-    ``combat=True`` + source IS_SOURCE + LOOK_AT ``QProp("event", AMOUNT)``;
-    lossy: "a player or planeswalker" recipient), Jolrael (CardDrawnEvent
-    ordinal=2 + Cat token; lossy: token color), Mystic Skyfish (CardDrawnEvent
-    ordinal=2 + GRANT_ABILITY FLYING DurationEot), and Keral Keep Disciples
-    (AbilityActivatedEvent kind LOYALTY + EachPlayer ALL_OPPONENTS DEAL_DAMAGE
-    rebound to the iterated opponent).
-- **4 uncovered normalized keys** have no grammar construct and are recorded
-  in ``UNCOVERED``.
-
-Conventions (documented build decisions):
-
-- ``When this ... enters`` uses ``ZoneChangeEvent(ANY → BATTLEFIELD YOU)``.
-  Round 2 additionally sets the event ``subject`` filter to restrict the
-  entering permanent (e.g. a creature you control with a given power or
-  keyword); the grammar cannot otherwise restrict the ETB subject.
+- ``When this ... enters`` uses ``ZoneChangeEvent(ANY → BATTLEFIELD YOU)``
+  with subject ``IS_SOURCE``; ``Whenever a <class> enters`` sets the event
+  ``subject`` to the class filter (e.g. a creature you control with a given
+  power or keyword).
 - ``you may`` drives ``OptionalEffect``.
 - ``target`` drives ``SelectorMode.TARGET``.
 - ``another`` / ``other`` adds ``FNot(inner=FAtom(IS_SOURCE))``.
-- ``any target`` is ``Selector(QConst(1), TARGET, universal filter, ANY zone)``.
+- ``any target`` is ``_any_target()``: a creature, planeswalker or player
+  (CR 109.5).
 - ``X is the number of other attacking creatures`` is a ``QCount`` over a
   selector for other attacking creatures on the battlefield.
-- Token color words populate ``TokenSpec.colors`` (grammar round 8 / C-2).
-- ``REVEAL`` after ``SEARCH`` cannot reference the searched cards; it reveals
-  an unbounded count of cards from the controller's perspective.
+- Token color words populate ``TokenSpec.colors``.
+- ``REVEAL`` after ``SEARCH`` cannot reference the searched cards; it carries
+  only the revealing player and a count.
 - ``+N/+N`` on a token and counter can differ (e.g. +1/+1 counter, 2/2 token);
   each is captured by its own regex group.
 - A captured ``+N/+N`` counter on a source is validated by ``_plus1_counter``
-  to be exactly ``+1/+1`` (keys #51/#55); an exact ``+1/+1`` sentence uses
-  ``QConst(1)`` directly (key #53).
+  to be exactly ``+1/+1``; an exact ``+1/+1`` sentence uses ``QConst(1)``
+  directly.
 - ``you may pay {N}`` is ``Verb.PAY`` with ``Cost(parts=(CostManaGeneric(N),))``.
 - ``each opponent`` for life gain/loss uses ``ControllerRef.ALL_OPPONENTS``; an
   ``EachPlayer`` effect runs relative to the iterated (opponent) player.
-- ``CastSpellEvent.from_zone_not`` (grammar round 4) carries the single
-  ``Zone`` exclusion: "anywhere other than their hand" →
-  ``Zone(HAND, OPPONENT)`` ("their" relative to the iterated opponent,
-  matching ``controller=ControllerRef.OPPONENT``); mutually exclusive with
+- ``CastSpellEvent.from_zone_not`` carries the single ``Zone`` exclusion:
+  "anywhere other than their hand" → ``Zone(HAND, OPPONENT)`` ("their"
+  relative to the iterated opponent, matching
+  ``controller=ControllerRef.OPPONENT``); mutually exclusive with
   ``from_zone``.
-- ``CastSpellEvent.ordinal`` (grammar round 4) counts the Nth cast by that
-  controller this turn among the event's filter: ``ordinal=1`` over an
-  instant/sorcery filter = "your first instant or sorcery spell each turn".
-- ``CardDrawnEvent.ordinal`` (grammar round 4) carries "your second card each
-  turn" the same way.
-- Object anaphora (grammar round 4, convention C2): a referent ``Selector``
-  binds to an in-scope object — here always ``referent="event"`` (the
-  triggering event's subject: cast → the cast spell; damage_dealt → the
-  damaged recipient; becomes_blocked → the blocker; declare_attackers → the
-  attacker) and is written ``Selector(QConst(1), CHOOSE, universal filter,
-  Zone(ANY, ANY), referent="event")`` by ``_event_reference()``.  It serves
-  as a role value (``LOSE_LIFE.controller``, ``DEAL_DAMAGE``/``DESTROY``
-  ``target``, ``COPY.source``) and as the ``who`` of ``CONTROLLER_IS``
-  ("that player controls").
-- Quantity anaphora (convention C4): "that much" / "that many" ride the
-  triggering event and read ``QProp(referent="event", field=AMOUNT)``; the
-  event itself carries ``amount=QUnbounded()`` (any amount).
-- ``AbilityActivatedEvent`` with ``kind=LOYALTY`` (grammar round 4,
-  convention C5; ontology R5-7 replaced ``LoyaltyActivatedEvent``) carries
-  "whenever you activate a loyalty ability of a Chandra planeswalker"; its
-  ``source`` filter is required (subtype Chandra + type Planeswalker).
+- ``CastSpellEvent.ordinal`` counts the Nth cast by that controller this turn
+  among the event's filter: ``ordinal=1`` over an instant/sorcery filter =
+  "your first instant or sorcery spell each turn".
+- ``CardDrawnEvent.ordinal`` carries "your second card each turn" the same
+  way.
+- Object anaphora: a referent ``Selector`` binds to an in-scope object — here
+  always ``referent="event"`` (the triggering event's subject: cast → the
+  cast spell; damage_dealt → the damaged recipient; becomes_blocked → the
+  blocker; declare_attackers → the attacker) and is written
+  ``Selector(QConst(1), CHOOSE, universal filter, Zone(ANY, ANY),
+  referent="event")`` by ``_event_reference()``.  It serves as a role value
+  (``LOSE_LIFE.controller``, ``DEAL_DAMAGE``/``DESTROY`` ``target``,
+  ``COPY.source``) and as the ``who`` of ``CONTROLLER_IS`` ("that player
+  controls").
+- Quantity anaphora: "that much" / "that many" ride the triggering event and
+  read ``QProp(referent="event", field=AMOUNT)``; the event itself carries
+  ``amount=QUnbounded()`` (any amount).
+- ``AbilityActivatedEvent`` with ``kind=LOYALTY`` carries "whenever you
+  activate a loyalty ability of a Chandra planeswalker"; its ``source``
+  filter is required (subtype Chandra + type Planeswalker).
 
-PC-3: every B2b concrete sentence fullmatches **at most one** template
-(patterns are pairwise disjoint by construction; the three named-card-search
-sentences share one template and match only it); verified in tests.
+Every B2b concrete sentence fullmatches **at most one** template (the
+patterns are pairwise disjoint; the three named-card-search sentences share
+one template and match only it); the tests check it.
 """
 
 from __future__ import annotations
@@ -195,21 +155,19 @@ def _plus1_counter(m: re.Match[str]) -> int:
 
 
 def _to_a_player() -> Filter:
-    """The damaged-recipient filter of "deals [combat] damage to a player"
-    (B-57). Only players, creatures, planeswalkers and battles can be dealt
-    damage (CR 120.1), and all of them but a player are permanents, so "not
-    a permanent" is exactly "a player". IS_PERMANENT is the CR 110.1
-    type-line test: a creature the damage killed still answers it, and the
-    binder judges it FALSE for a player subject, so the FNot is TRUE there.
-    The mapped card records write the same encoding (FDN Goldvein Pick).
-    Before B-57 these builders wrote the universal FAnd(()) here, so the
-    trigger also fired on combat damage to a blocking creature."""
+    """The damaged-recipient filter of "deals [combat] damage to a player".
+    Only players, creatures, planeswalkers and battles can be dealt damage
+    (CR 120.1), and all of them but a player are permanents, so "not a
+    permanent" is exactly "a player". IS_PERMANENT is the CR 110.1 type-line
+    test: a creature the damage killed still answers it, and the binder
+    judges it FALSE for a player subject, so the FNot is TRUE there. The
+    mapped card records write the same encoding (FDN Goldvein Pick)."""
     return FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT))
 
 
 def _to_a_player_or_planeswalker() -> Filter:
     """ "... damage to a player or planeswalker" (Garruk's Harbinger): the
-    :func:`_to_a_player` test, or a planeswalker (B-57)."""
+    :func:`_to_a_player` test, or a planeswalker."""
     return FOr(
         children=(
             _to_a_player(),
@@ -323,10 +281,9 @@ def _any_card_in_your_hand() -> Selector:
 def _target_opponent() -> Selector:
     """Selector for ``target opponent``: a TARGET over the opponents' seats,
     Zone(PLAYER, OPPONENT) (CR 115.1, 102.2: a target opponent is an opponent
-    of the ability's controller). m21-fidelity (review batch D, 2026-10-29):
-    it was Zone(PLAYER, TARGET_PLAYER), which inside a damage firing reads the
-    binder's dealer anaphora, so Brash Taunter's echo hit the controller of the
-    damage's source (its own controller after its own fight)."""
+    of the ability's controller). Not Zone(PLAYER, TARGET_PLAYER): inside a
+    damage firing that reads the dealer anaphora, the controller of the
+    damage's source."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -336,17 +293,12 @@ def _target_opponent() -> Selector:
 
 
 def _any_target() -> Selector:
-    """Selector for ``any target`` (the r17-2 idiom).
-
-    r17-2 (geyser-FIX): printed "any target" designates a creature, a
-    planeswalker or a player (CR 109.5) — NEVER a card hiding in a hand or
-    library. The card side compiles to the battlefield population with the
-    FOr type-idiom filter; the PLAYER side joins through the engine's
-    idiom widening (query._widen_any_target / selectors._is_any_universal
-    recognize this exact shape), so the filter is never evaluated on a
-    player handle. (Pre-fix this emitted Zone(ANY, ANY) + the universal
-    FAnd, which enumerated opponent-hidden zones — the D10/E3 leak.)
-    """
+    """Selector for ``any target``: a creature, planeswalker or player
+    (CR 109.5), never a card in a hand or library. The card side is the
+    battlefield with the FOr type filter; the player side joins through the
+    engine's widening (query._widen_any_target and
+    selectors._is_any_universal recognize this exact shape), so the filter
+    is never evaluated on a player."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -354,12 +306,10 @@ def _any_target() -> Selector:
             (
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                # r17-2 discriminator: the third branch never matches a
-                # card (no card carries "Player" in its types) — it marks
-                # the population as the CR 109.5 "any target" one so the
-                # engine widening can tell it apart from the printed
-                # "target creature or planeswalker" two-branch shape
-                # (which NEVER denotes a player, CR 115.1d).
+                # Never matches a card (no card has the type "Player"): it
+                # marks the population as the CR 109.5 "any target" one, so
+                # the engine widening can tell it from the printed "target
+                # creature or planeswalker" shape (never a player, CR 115.1d).
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
@@ -370,13 +320,11 @@ def _any_target() -> Selector:
 def _etb_event(subject: Filter) -> ZoneChangeEvent:
     """Zone-change event for ``When this ... enters``.
 
-    R11-B (audit 09-29/04 P0-2): ``subject`` is the event's anchor object.
-    Every b2b pattern calling this reads ``When <this permanent> enters``
-    (class A), so call sites pass ``FAtom(pred=FAtomPred.IS_SOURCE)`` —
-    the trigger fires exactly when THIS permanent enters.  Generic
-    ``Whenever a creature ... enters`` builders in this module (e.g.
-    ``_build_garruks_uprising_power_enter``) build their own event with
-    the described-class filter; subject is never ``None``.
+    ``subject`` is the object whose entering fires the trigger. Every b2b
+    caller reads ``When <this permanent> enters`` and passes
+    ``FAtom(pred=FAtomPred.IS_SOURCE)``. The ``Whenever a creature ...
+    enters`` builders (e.g. ``_build_garruks_uprising_power_enter``) build
+    their own event with the class filter; subject is never ``None``.
     """
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
@@ -410,12 +358,9 @@ def _you_control_at_least(inner_filter: Filter, count: int) -> FAtom:
 
 
 def _event_reference() -> Selector:
-    """Selector bound to the triggering event's subject (grammar round 4,
-    object anaphora, convention C2: mode CHOOSE + count QConst(1) + the
-    neutral zone + empty zones; the universal filter carries no type check).
-    Per-event subject: cast → the cast spell; damage_dealt → the damaged
-    recipient; becomes_blocked → the blocker; declare_attackers → the
-    attacker (Selector docstring)."""
+    """Selector bound to the triggering event's subject (object anaphora,
+    module docstring): CHOOSE, QConst(1), the neutral zone, and a universal
+    filter with no type check."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -426,7 +371,6 @@ def _event_reference() -> Selector:
 
 
 def _bird_token(power: int, toughness: int) -> TokenSpec:
-    # color="W" from the printed sentence (round 8 / C-2 repair).
     return TokenSpec(
         name="Bird",
         type_line="Creature — Bird",
@@ -441,7 +385,6 @@ def _bird_token(power: int, toughness: int) -> TokenSpec:
 
 
 def _knight_token(power: int, toughness: int) -> TokenSpec:
-    # color="W" (round 8 / C-2 repair).
     return TokenSpec(
         name="Knight",
         type_line="Creature — Knight",
@@ -456,7 +399,6 @@ def _knight_token(power: int, toughness: int) -> TokenSpec:
 
 
 def _saproling_token(power: int, toughness: int) -> TokenSpec:
-    # color="G" (round 8 / C-2 repair).
     return TokenSpec(
         name="Saproling",
         type_line="Creature — Saproling",
@@ -471,7 +413,6 @@ def _saproling_token(power: int, toughness: int) -> TokenSpec:
 
 
 def _cat_token(power: int, toughness: int) -> TokenSpec:
-    # color="G" (round 8 / C-2 repair — "green Cat").
     return TokenSpec(
         name="Cat",
         type_line="Creature — Cat",
@@ -491,14 +432,10 @@ def _cat_token(power: int, toughness: int) -> TokenSpec:
 
 
 def _named_search_one(name: str) -> Atom:
-    """One "a card named <name>" pick from your library into your hand.
-
-    m21-fidelity (wave 4, 2026-10-30): an up-to-one CHOOSE (QAtMost(1)).
-    CR 701.23b: a player searching a hidden zone for a card with a stated
-    quality need not find it, so each named find may come up empty (the
-    resolve-time QAtMost lane offers NONE). It was QConst(1), which the
-    search-pick pass turns into the exactly-one ONE_OF ask: a mandatory
-    find whenever the card was there."""
+    """One "a card named <name>" pick from your library into your hand: an
+    up-to-one CHOOSE (QAtMost(1)). A player searching a hidden zone for a card
+    with a stated quality need not find it (CR 701.23b), so each named find
+    may come up empty; QConst(1) would make it a mandatory find."""
     return Atom(
         verb=Verb.SEARCH,
         args=AtomArgs(
@@ -519,12 +456,11 @@ def _named_search_one(name: str) -> Atom:
 
 
 def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#5: search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle.
+    """Search for named Alpine Watchdog and/or Igneous Cur, reveal, hand, shuffle.
 
-    "a card named A and/or a card named B" is at most ONE card of each name
-    (m21-fidelity, review batch A, 2026-10-29): one pick per name, in printed
-    order. It was one up-to-two pick over FOr(NAME A, NAME B), which could
-    fetch two Alpine Watchdogs (stronger than printed). No IR node says
+    "a card named A and/or a card named B" is at most one card of each name:
+    one pick per name, in printed order. One up-to-two pick over
+    FOr(NAME A, NAME B) could fetch two Alpine Watchdogs. No IR node says
     "distinct names", so the one search is written as two picks; nothing
     observes the difference (no card in the pool triggers on searching).
     """
@@ -562,7 +498,7 @@ def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#6: search for creature with mana value N+, reveal, hand, shuffle."""
+    """Search for a creature with mana value N or greater, reveal, hand, shuffle."""
     n = _n(m, 1)
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -629,7 +565,7 @@ def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_teferis_tutelage_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#7: draw a card, then discard a card."""
+    """Draw a card, then discard a card."""
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         Seq(
@@ -663,7 +599,7 @@ def _build_teferis_tutelage_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_temple_etb_scry(m: re.Match[str]) -> SentenceOutcome:
-    """#10: scry N when this land enters."""
+    """Scry N when this land enters."""
     n = _n(m, 1)
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -680,7 +616,7 @@ def _build_temple_etb_scry(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_temple_etb_gain_life(m: re.Match[str]) -> SentenceOutcome:
-    """#11: gain N life when this land enters."""
+    """Gain N life when this land enters."""
     n = _n(m, 1)
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -702,7 +638,7 @@ def _build_temple_etb_gain_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_massacre_wurm(m: re.Match[str]) -> SentenceOutcome:
-    """#13: opponent creature dies, that player loses N life."""
+    """A creature an opponent controls dies: that player loses N life."""
     n = _n(m, 1)
     return _ability(
         CreatureDiesEvent(
@@ -726,7 +662,8 @@ def _build_massacre_wurm(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_hooded_blightfang(m: re.Match[str]) -> SentenceOutcome:
-    """#14: creature with deathtouch attacks, each opponent loses N, you gain N."""
+    """A creature you control with deathtouch attacks: each opponent loses N
+    life and you gain N life."""
     n = _n(m, 1)
     return _ability(
         DeclareAttackersEvent(
@@ -764,7 +701,7 @@ def _build_hooded_blightfang(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_malefic_scythe(m: re.Match[str]) -> SentenceOutcome:
-    """#24: equipped creature dies, put soul counter on this Equipment."""
+    """Equipped creature dies: put a soul counter on this Equipment."""
     return _ability(
         CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)),
         Atom(
@@ -781,7 +718,7 @@ def _build_malefic_scythe(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_wildwood_scorge(m: re.Match[str]) -> SentenceOutcome:
-    """#25: +1/+1 counters on another non-Hydra creature you control, put +1/+1 on this."""
+    """+1/+1 counters go on another non-Hydra creature you control: put one on this."""
     return _ability(
         CounterPlacedEvent(
             counter_kind=CounterKind.PLUS_1_PLUS_1,
@@ -813,13 +750,10 @@ def _build_wildwood_scorge(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_falconer_adept(m: re.Match[str]) -> SentenceOutcome:
-    """#28: create 1/1 white Bird with flying, tapped and attacking.
+    """Create a 1/1 white Bird with flying that's tapped and attacking.
 
     "that's tapped and attacking" is TokenSpec.enters_tapped/enters_attacking
-    (R8-4, the Basri Ket [-2] Soldier shape; CR 508.4: put onto the battlefield
-    attacking, never declared). m21-fidelity (fixer 4, 2026-10-30): both flags
-    were left unset (an 8-B gap note), so the Bird entered untapped and out of
-    combat: no attack row, no damage (weaker than printed)."""
+    (CR 508.4: put onto the battlefield attacking, never declared)."""
     bird = replace(_bird_token(1, 1), enters_tapped=True, enters_attacking=True)
     return _ability(
         _attack_event(),
@@ -836,7 +770,7 @@ def _build_falconer_adept(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_library_larcenist(m: re.Match[str]) -> SentenceOutcome:
-    """#29: draw a card when this creature attacks."""
+    """Draw a card when this creature attacks."""
     return _ability(
         _attack_event(),
         Atom(
@@ -852,7 +786,7 @@ def _build_library_larcenist(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_alpine_houndmaster_attack(m: re.Match[str]) -> SentenceOutcome:
-    """#32: gets +X/+N until eot, X = number of other attacking creatures."""
+    """Gets +X/+N until end of turn, X = the number of other attacking creatures."""
     n = _n(m, 1)
     return _ability(
         _attack_event(),
@@ -880,7 +814,7 @@ def _build_alpine_houndmaster_attack(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bolt_hound(m: re.Match[str]) -> SentenceOutcome:
-    """#33: other creatures you control get +N/+N until eot."""
+    """Other creatures you control get +N/+N until end of turn."""
     n_p = _n(m, 1)
     n_t = _n(m, 2)
     return _ability(
@@ -906,7 +840,7 @@ def _build_bolt_hound(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_spined_megalodon(m: re.Match[str]) -> SentenceOutcome:
-    """#35: scry N when this creature attacks."""
+    """Scry N when this creature attacks."""
     n = _n(m, 1)
     return _ability(
         _attack_event(),
@@ -923,7 +857,7 @@ def _build_spined_megalodon(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_siege_striker(m: re.Match[str]) -> SentenceOutcome:
-    """#36: you may tap any number of untapped creatures you control."""
+    """You may tap any number of untapped creatures you control."""
     return _ability(
         _attack_event(),
         OptionalEffect(
@@ -941,7 +875,7 @@ def _build_siege_striker(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_brash_taunter(m: re.Match[str]) -> SentenceOutcome:
-    """#43: dealt damage, deals that much damage to target opponent."""
+    """Dealt damage: deals that much damage to target opponent."""
     amount = QProp(referent="event", field=QPropField.AMOUNT, agg=QAgg.FIRST)
     return _ability(
         DamageDealtEvent(
@@ -966,7 +900,7 @@ def _build_brash_taunter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_sporeweb_weaver(m: re.Match[str]) -> SentenceOutcome:
-    """#44: dealt damage, gain N life and create N/N green Saproling token."""
+    """Dealt damage: gain N life and create an N/N green Saproling token."""
     n_life = _n(m, 1)
     n_power = _n(m, 2)
     n_tough = _n(m, 3)
@@ -1001,7 +935,8 @@ def _build_sporeweb_weaver(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
-    """#46: creature you control dies, if +N/+N counter, create N/N white Knight with vigilance."""
+    """A creature you control dies with a +N/+N counter on it: create an N/N
+    white Knight with vigilance."""
     counter_n = int(m.group("cn"))
     token_p = int(m.group("tp"))
     token_t = int(m.group("tt"))
@@ -1032,16 +967,16 @@ def _build_basris_lieutenant(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Builders — Round 2 shapes
+# Builders — enters, leaves, cast, draw, untap and sacrifice triggers
 # ---------------------------------------------------------------------------
 
 
 def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#1/#2/#3: search library and/or graveyard for a named card, reveal, hand.
+    """Search library and/or graveyard for a named card, reveal, hand.
 
-    m21-fidelity wave 4 (2026-10-30, B-78): "library and/or graveyard" is the
-    visible zone choice (templates.and_or_zone_search); the shuffle sentence
-    then joins only the options that search the library."""
+    "library and/or graveyard" is the visible zone choice
+    (templates.and_or_zone_search); the shuffle sentence then joins only the
+    options that search the library."""
     name = m.group("name")
 
     def search_in(zones: tuple[Zone, ...]) -> Seq:
@@ -1068,10 +1003,8 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
         )
         return Seq(steps=(search, reveal))
 
-    # "put it into your hand" is the SEARCH's own destination. m21-fidelity
-    # (G3 finisher, 2026-10-30): a third step, MOVE_ZONE(this creature from the
-    # top of your library to your hand), was unprinted; it moved the creature
-    # itself when it was on top of the library as the trigger resolved.
+    # "put it into your hand" is the SEARCH's own destination, not a separate
+    # move.
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
@@ -1085,12 +1018,10 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_nine_lives_leave(m: re.Match[str]) -> SentenceOutcome:
-    """#9: this enchantment leaves the battlefield, you lose the game.
+    """This enchantment leaves the battlefield: you lose the game.
 
-    The mover is THIS enchantment (CR 603.6c leaves-the-battlefield
-    trigger): subject IS_SOURCE, the self-ETB shape. m21-fidelity (review
-    batch C, 2026-10-29): the subject was missing, so any permanent you
-    controlled leaving the battlefield made you lose the game.
+    The mover is this enchantment (CR 603.6c leaves-the-battlefield
+    trigger): subject IS_SOURCE, as in the self-ETB shape.
     """
     return _ability(
         ZoneChangeEvent(
@@ -1103,7 +1034,7 @@ def _build_nine_lives_leave(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_garruks_uprising_power_enter(m: re.Match[str]) -> SentenceOutcome:
-    """#16: a creature you control with power N+ enters, draw a card."""
+    """A creature you control with power N or greater enters: draw a card."""
     n = _n(m, 1)
     subject = FAnd(
         children=(
@@ -1128,7 +1059,7 @@ def _build_garruks_uprising_power_enter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_mangara_second_spell(m: re.Match[str]) -> SentenceOutcome:
-    """#21: an opponent casts their second spell each turn, draw a card."""
+    """An opponent casts their second spell each turn: draw a card."""
     return _ability(
         CastSpellEvent(
             filter=FAnd(children=()),
@@ -1145,7 +1076,8 @@ def _build_mangara_second_spell(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_terror_of_peaks_other_enter(m: re.Match[str]) -> SentenceOutcome:
-    """#22: another creature you control enters, deals its power to any target."""
+    """Another creature you control enters: it deals damage equal to its power
+    to any target."""
     subject = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1175,7 +1107,8 @@ def _build_terror_of_peaks_other_enter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_watcher_spheres_flying_enter(m: re.Match[str]) -> SentenceOutcome:
-    """#23: another creature you control with flying enters, gets +N/+N until eot."""
+    """Another creature you control with flying enters: this gets +N/+N until
+    end of turn."""
     p = _n(m, 1)
     t = _n(m, 2)
     subject = FAnd(
@@ -1207,7 +1140,7 @@ def _build_watcher_spheres_flying_enter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_ghostly_pilferer_untapped(m: re.Match[str]) -> SentenceOutcome:
-    """#39: this creature becomes untapped, you may pay {N}."""
+    """This creature becomes untapped: you may pay {N}."""
     n = _n(m, 1)
     return _ability(
         TapStateEvent(tapped=False, filter=FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -1228,7 +1161,8 @@ def _build_ghostly_pilferer_untapped(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_thieves_guild_enforcer(m: re.Match[str]) -> SentenceOutcome:
-    """#45: this creature or another Rogue you control enters, each opponent mills two."""
+    """This creature or another Rogue you control enters: each opponent mills
+    two cards."""
     subject = FOr(
         children=(
             FAtom(pred=FAtomPred.IS_SOURCE),
@@ -1274,8 +1208,8 @@ def _cast_subtype_token_builder(trigger_subtype: str):
         p = int(m.group("p"))
         t = int(m.group("t"))
         tok = m.group("tok")
-        # printed color word = un-named capture group 3 (white|green) of both
-        # registrations — C-2 repair: populate TokenSpec.colors (round 8).
+        # The printed color word is unnamed capture group 3 (white|green) of
+        # both registrations.
         col = "W" if m.group(3) == "white" else "G"
         return _ability(
             CastSpellEvent(
@@ -1315,7 +1249,7 @@ def _cast_subtype_token_builder(trigger_subtype: str):
 
 
 def _build_spellgorger_weird_counter(m: re.Match[str]) -> SentenceOutcome:
-    """#51: cast a noncreature spell, put a +1/+1 counter on this creature."""
+    """You cast a noncreature spell: put a +1/+1 counter on this creature."""
     count = _plus1_counter(m)
     return _ability(
         CastSpellEvent(
@@ -1336,7 +1270,8 @@ def _build_spellgorger_weird_counter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
-    """#52: cast a noncreature spell, this enchantment becomes an N/N Sphinx with flying."""
+    """You cast a noncreature spell: this enchantment may become an N/N Sphinx
+    creature with flying until end of turn."""
     p = _n(m, 1)
     t = _n(m, 2)
     seq = Seq(
@@ -1353,10 +1288,8 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
                 ),
             ),
             # "a 3/3 Sphinx creature ... in addition to its other types": the
-            # card type Creature AND the subtype Sphinx (CR 205.1b; the type
-            # overlay is the single TYPE_EQ/SUBTYPE_EQ oracle). m21-fidelity
-            # (review batch C, 2026-10-29): only "Sphinx" was granted, so the
-            # 3/3 flier was never a creature and could not attack or block.
+            # card type Creature and the subtype Sphinx (CR 205.1b; the type
+            # overlay is the single TYPE_EQ/SUBTYPE_EQ oracle).
             Atom(
                 verb=Verb.GRANT_TYPE,
                 args=AtomArgs(
@@ -1392,13 +1325,13 @@ def _build_riddleform(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_quirion_dryad_colored(m: re.Match[str]) -> SentenceOutcome:
-    """#53: cast a W/U/B/R spell, put a +1/+1 counter on this creature.
+    """You cast a white, blue, black or red spell: put a +1/+1 counter on
+    this creature.
 
-    V39 (CR 105.2, 105.2b): a spell "that's white, blue, black, or red" is
-    one with at least one of those colors, a green-blue spell included, so
-    the filter is the FOr of COLOR_HAS (MAPPER_GUIDE "Colours"). COLOR_IN,
-    written here before, is a subset test that a gold spell with green
-    failed."""
+    A spell "that's white, blue, black, or red" is one with at least one of
+    those colors, a green-blue spell included (CR 105.2, 105.2b), so the
+    filter is the FOr of COLOR_HAS (MAPPER_GUIDE "Colours"). COLOR_IN is a
+    subset test, which a gold spell with green would fail."""
     return _ability(
         CastSpellEvent(
             filter=FOr(
@@ -1423,7 +1356,7 @@ def _build_quirion_dryad_colored(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_lorescale_coatl_draw_counter(m: re.Match[str]) -> SentenceOutcome:
-    """#55: draw a card, put a +1/+1 counter on this creature."""
+    """You draw a card: put a +1/+1 counter on this creature."""
     count = _plus1_counter(m)
     return _ability(
         CardDrawnEvent(
@@ -1443,7 +1376,7 @@ def _build_lorescale_coatl_draw_counter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_teferis_tutelage_draw_mill(m: re.Match[str]) -> SentenceOutcome:
-    """#56: draw a card, target opponent mills two cards."""
+    """You draw a card: target opponent mills two cards."""
     return _ability(
         CardDrawnEvent(
             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
@@ -1468,7 +1401,7 @@ def _build_teferis_tutelage_draw_mill(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_burlfist_oak_draw_boost(m: re.Match[str]) -> SentenceOutcome:
-    """#57: draw a card, this creature gets +N/+N until eot."""
+    """You draw a card: this creature gets +N/+N until end of turn."""
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(
@@ -1490,7 +1423,7 @@ def _build_burlfist_oak_draw_boost(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_tolarian_kraken_draw_pay(m: re.Match[str]) -> SentenceOutcome:
-    """#58: draw a card, you may pay {N}."""
+    """You draw a card: you may pay {N}."""
     n = _n(m, 1)
     return _ability(
         CardDrawnEvent(
@@ -1513,7 +1446,7 @@ def _build_tolarian_kraken_draw_pay(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_havoc_jester_sacrifice(m: re.Match[str]) -> SentenceOutcome:
-    """#62: sacrifice a permanent, this creature deals N damage to any target."""
+    """You sacrifice a permanent: this creature deals N damage to any target."""
     n = _n(m, 1)
     return _ability(
         SacrificeEvent(
@@ -1527,12 +1460,12 @@ def _build_havoc_jester_sacrifice(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Builders — Round 4 shapes
+# Builders — single-card trigger shapes
 # ---------------------------------------------------------------------------
 
 
 def _build_solemn_simulacrum_etb(m: re.Match[str]) -> SentenceOutcome:
-    """#4: search for a basic land, put it onto the battlefield tapped, shuffle."""
+    """Search for a basic land, put it onto the battlefield tapped, shuffle."""
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
@@ -1590,15 +1523,10 @@ def _build_solemn_simulacrum_etb(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_garruks_uprising_etb_condition(m: re.Match[str]) -> SentenceOutcome:
-    """#8: ETB, if you control a creature with power N or greater, draw a card.
+    """ETB, if you control a creature with power N or greater, draw a card.
 
-    r18a (B-8, wave-1b): the printed indefinite article "a creature" means
-    ONE or more (Historian Teferi's "a Teferi planeswalker" precedent below
-    — the same count=1 shape). The old call passed the power THRESHOLD as
-    the required COUNT — ``CONTROLLER_COUNT_GE`` then demanded N matching
-    creatures, so the sibling-drawing gate silently evaluated FALSE with a
-    single 4/4 on the battlefield (printed promise erased, no ask, no
-    error). The power threshold lives ONLY in the inner POWER_GE filter.
+    "a creature" means one or more: count=1, and the power threshold lives
+    only in the inner POWER_GE filter (as for Historian Teferi below).
     """
     n = _n(m, 1)
     return _ability(
@@ -1617,7 +1545,7 @@ def _build_garruks_uprising_etb_condition(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_historian_teferi_condition(m: re.Match[str]) -> SentenceOutcome:
-    """#30: attacks, if you control a Teferi planeswalker, draw a card."""
+    """Attacks, if you control a Teferi planeswalker: draw a card."""
     return _ability(
         _attack_event(),
         Atom(
@@ -1642,18 +1570,11 @@ def _build_historian_teferi_condition(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_ornery_power_condition_self_boost(m: re.Match[str]) -> SentenceOutcome:
-    """#31: attacks, if you control a creature with power N or greater,
-    this creature gets +P/+T until end of turn.
+    """Attacks, if you control a creature with power N or greater: this
+    creature gets +P/+T until end of turn.
 
-    C2 (batch 1, 2026-10-02): the printed clause is an EXISTENCE claim —
-    "A CREATURE with power 4 or greater" quantifies over the controlled
-    population with the threshold inside the POWER_GE filter; the gate
-    demands ONE such creature. The old compile bound the sentence's single
-    number to BOTH slots (count=QConst(4) AND the power filter), demanding
-    FOUR creatures — the wave-3b suspect off-by-one. The N now lives ONLY
-    in the inner filter, count=QConst(1), exactly as the already-correct
-    ETB sibling #8 (Garruk's Uprising) and the r18a turret_ogre idiom
-    read it."""
+    The clause is an existence claim: count=1, with the threshold N only in
+    the inner POWER_GE filter (as for Garruk's Uprising's ETB above)."""
     n = _n(m, 1)
     power = _n(m, 2)
     toughness = _n(m, 3)
@@ -1681,10 +1602,10 @@ def _build_ornery_power_condition_self_boost(m: re.Match[str]) -> SentenceOutcom
 
 
 def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
-    """#48: you attack with two or more flying creatures, draw a card.
+    """You attack with two or more creatures with flying: draw a card.
 
-    Convention: DeclareAttackersEvent is per-creature; the set-level
-    "two or more" requirement is carried by the trigger condition.
+    DeclareAttackersEvent is per-creature; the set-level "two or more" is the
+    trigger condition.
     """
     flying_attackers = FAnd(
         children=(
@@ -1719,7 +1640,7 @@ def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
-    """#61: whenever you gain life, target opponent loses that much life."""
+    """Whenever you gain life, target opponent loses that much life."""
     return _ability(
         LifeGainedEvent(
             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
@@ -1740,18 +1661,16 @@ def _build_vito_gain_life_lose_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Builders — Round 5 (grammar round 4/5 shapes: object anaphora, ordinals,
-# from_zone_not, this-turn FAtoms, loyalty activation)
+# Builders — object anaphora, ordinals, from_zone_not and loyalty activation
 # ---------------------------------------------------------------------------
 
 
 def _targeted_by_an_opponent(subject: Filter) -> TargetingEvent:
     """"Whenever <subject> becomes the target of a spell or ability an opponent
-    controls" (ontology R5-6, 2026-10-29): ``filter`` reads the targeted
-    object, ``actor`` the controller of the targeting spell or ability — the
-    single direction encoding (E1) CastSpellEvent's actor uses. Shared by the
-    Warden template and the targeted frame (frames.py), so both build the same
-    bytes."""
+    controls": ``filter`` reads the targeted object, ``actor`` the controller
+    of the targeting spell or ability (the direction encoding CastSpellEvent's
+    actor uses). Shared by the Warden template and the targeted frame
+    (frames.py), so both build the same bytes."""
     return TargetingEvent(
         filter=subject,
         actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
@@ -1759,12 +1678,8 @@ def _targeted_by_an_opponent(subject: Filter) -> TargetingEvent:
 
 
 def _build_warden_of_the_woods(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #1: becomes the target of an opponent's spell/ability,
-    you may draw two cards.
-
-    R5-6 closes the old loss: "an opponent controls" is the event's
-    ``actor`` (the targeting spell's controller), so the Warden's own
-    spells no longer draw (doc-05 row #1)."""
+    """Becomes the target of a spell or ability an opponent controls: you may
+    draw two cards. "an opponent controls" is the event's ``actor``."""
     return _ability(
         _targeted_by_an_opponent(FAtom(pred=FAtomPred.IS_SOURCE)),
         OptionalEffect(
@@ -1782,13 +1697,11 @@ def _build_warden_of_the_woods(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_jeskai_elder(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #2: deals combat damage to a player, you may draw a card.
+    """Deals combat damage to a player: you may draw a card.
 
-    R2 fold (F4, /140): CDE -> DamageDealtEvent{amount:QUnbounded,
-    source:IS_SOURCE, combat:True}, the same shell as Garruk's Harbinger's
-    node (the §9 merge proof). B-57 (ZND-7(b)): the recipient is no longer
-    dropped. It was the universal FAnd(()), which made a blocked Elder loot
-    off the blocker; it is now :func:`_to_a_player`."""
+    DamageDealtEvent{amount: QUnbounded, source: IS_SOURCE, combat: True},
+    the same shell as Garruk's Harbinger's, with the recipient
+    :func:`_to_a_player`."""
     return _ability(
         DamageDealtEvent(
             amount=QUnbounded(),
@@ -1812,16 +1725,11 @@ def _build_jeskai_elder(m: re.Match[str]) -> SentenceOutcome:
 
 def _noncombat_source_event() -> DamageDealtEvent:
     """DamageDealtEvent for "a source you control deals noncombat damage to
-    an opponent" (Incinerator / Pyreling).  The dealer side is faithful via
-    the event ``source`` filter (CONTROLLER_IS YOU — the 8-A dealer/recipient
-    ATOM roles were re-checked in round 8-B: both rows' effect atoms act on
-    their own source, so no dealer/recipient role applies there; flipping
-    them would be cosmetic).  FAITHFUL since grammar round 11 (R11-1, batch
-    6 ruling /10): the DESTINATION predicate ``OPPONENT_OF`` (who=YOU) lands
-    in the damaged-recipient event filter — the DamageDealtEvent ``filter``
-    IS the destination lane, so damage to an opponent's PERMANENT or to
-    YOURSELF no longer fires the trigger (the pyreling suspect's negative).
-    ``combat=False`` pins noncombat damage."""
+    an opponent" (Incinerator / Pyreling). The dealer is the event ``source``
+    filter (CONTROLLER_IS YOU). The recipient is the event ``filter``,
+    ``OPPONENT_OF`` (who=YOU), so damage to an opponent's permanent or to
+    yourself does not fire the trigger. ``combat=False`` pins noncombat
+    damage."""
     return DamageDealtEvent(
         amount=QUnbounded(),
         filter=FAtom(pred=FAtomPred.OPPONENT_OF, who=ControllerRef.YOU),
@@ -1831,12 +1739,11 @@ def _noncombat_source_event() -> DamageDealtEvent:
 
 
 def _build_chandras_incinerator(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #4: this creature deals that much damage to target
-    creature or planeswalker that player controls.
+    """This creature deals that much damage to target creature or
+    planeswalker that player controls.
 
-    "That much" = QProp("event", AMOUNT) (convention C4); "that player" =
-    the damaged recipient via the event referent in the CONTROLLER_IS who
-    slot (convention C1 + C2)."""
+    "That much" = QProp("event", AMOUNT); "that player" = the damaged
+    recipient, the event referent in the CONTROLLER_IS who slot."""
     target = Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -1871,9 +1778,8 @@ def _build_chandras_incinerator(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_chandras_pyreling(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #5: this creature gets +N/+N and gains double strike
-    until end of turn (both effects DurationEot-scoped, mirroring the B5c
-    creatures-pt-flying shape)."""
+    """This creature gets +N/+N and gains double strike until end of turn
+    (both effects DurationEot-scoped)."""
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(
@@ -1907,13 +1813,12 @@ def _build_chandras_pyreling(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_pack_leader(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #6: prevent all combat damage that would be dealt this
-    turn to Dogs you control.
+    """Prevent all combat damage that would be dealt this turn to Dogs you
+    control.
 
-    PREVENT_EFFECT convention (B4 precedent: condition and event pin the
-    same protected subject): condition = the Dogs filter, event = the
-    damage event over the same subject with ``combat=True``, duration =
-    DurationEot for "this turn"."""
+    PREVENT_EFFECT with condition and event over the same protected subject:
+    condition = the Dogs filter, event = the damage event over the same
+    subject with ``combat=True``, duration = DurationEot for "this turn"."""
     dogs = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1940,12 +1845,11 @@ def _build_pack_leader(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_gloom_sower(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #7: becomes blocked by a creature, that creature's
-    controller loses N life and you gain N life.
+    """Becomes blocked by a creature: that creature's controller loses N
+    life and you gain N life.
 
     "That creature" = the blocker, the BecomesBlockedEvent subject, bound
-    via the event referent in the LOSE_LIFE controller role (convention
-    C1: becomes_blocked → the blocker; C2)."""
+    via the event referent in the LOSE_LIFE controller role."""
     # The pattern's \1 backreference guarantees the two life values are
     # equal, so a single capture group carries both.
     n = _n(m, 1)
@@ -1979,14 +1883,12 @@ def _build_gloom_sower(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_hooded_blightfang_planeswalker(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #8: a creature you control with deathtouch deals damage
-    to a planeswalker, destroy that planeswalker.
+    """A creature you control with deathtouch deals damage to a
+    planeswalker: destroy that planeswalker.
 
-    The damaged recipient carries the Planeswalker supertype filter;
-    "that planeswalker" binds via the event referent (convention C1:
-    damage_dealt → the damaged recipient).  Disjoint from the existing
-    B2b-hooded-blightfang attacks sentence — no PC-3 collision.  Lossy:
-    none."""
+    The damaged recipient carries the Planeswalker supertype filter; "that
+    planeswalker" binds via the event referent (damage_dealt → the damaged
+    recipient)."""
     source = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -2008,20 +1910,13 @@ def _build_hooded_blightfang_planeswalker(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #9: one or more Cats you control deal combat damage to a
-    player, destroy up to one target artifact or enchantment that player
-    controls.
+    """One or more Cats you control deal combat damage to a player: destroy
+    up to one target artifact or enchantment that player controls.
 
-    "That player" = the damaged recipient, the event referent in the
-    CONTROLLER_IS who slot (round 4, object anaphora). R2 fold (F4, /140):
-    CDE -> DamageDealtEvent{amount:QUnbounded, source:the cats FAnd
-    VERBATIM, combat:True} — the dealer-side filter rides the source slot
-    in the Subira host shape; the folded lane's event subject is the
-    damaged recipient, which finally binds "that player" rules-faithful
-    (test_ontology_r2 E2E leg). B-57: the recipient is
-    :func:`_to_a_player`, no longer the universal FAnd(()) under which a
-    blocked Cat fired too and "that player" became the blocker's
-    controller."""
+    DamageDealtEvent{amount: QUnbounded, source: the Cats filter, combat:
+    True}, recipient :func:`_to_a_player`. The event subject is the damaged
+    player, so "that player" is the event referent in the CONTROLLER_IS who
+    slot."""
     cats = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -2030,7 +1925,7 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
         )
     )
     # "destroy up to one target artifact or enchantment" — TARGET +
-    # QAtMost(1) (grammar round 8, C17 targeted up-to).
+    # QAtMost(1) (targeted "up to N").
     target = Selector(
         QAtMost(1),
         SelectorMode.TARGET,
@@ -2062,12 +1957,11 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_ghostly_pilferer_cast(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #10: an opponent casts a spell from anywhere other than
-    their hand, draw a card.
+    """An opponent casts a spell from anywhere other than their hand: draw a
+    card.
 
-    CastSpellEvent.from_zone_not (grammar round 4) carries the exclusion;
-    "their hand" is relative to the iterated opponent → Zone(HAND,
-    OPPONENT)."""
+    CastSpellEvent.from_zone_not carries the exclusion; "their hand" is
+    relative to the iterated opponent → Zone(HAND, OPPONENT)."""
     return _ability(
         CastSpellEvent(
             filter=FAnd(children=()),
@@ -2087,12 +1981,12 @@ def _build_ghostly_pilferer_cast(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_double_vision_copy(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #11: you cast your first instant or sorcery spell each
-    turn, copy that spell.
+    """You cast your first instant or sorcery spell each turn: copy that
+    spell.
 
     CastSpellEvent.ordinal=1 counts the first cast matching the event's
     instant/sorcery filter this turn; "that spell" binds via the event
-    referent on COPY.source (convention C1: cast → the cast spell)."""
+    referent on COPY.source (cast → the cast spell)."""
     return _ability(
         CastSpellEvent(
             filter=FOr(
@@ -2112,24 +2006,19 @@ def _build_double_vision_copy(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_double_vision_new_targets(m: re.Match[str]) -> RuleReminderOutcome:
-    """Round 4 row #12: "You may choose new targets for the copy." — the
-    Double Vision s1 copy rule's continuation; the anaphoric "the copy"
-    cannot be resolved standalone (owner ruling, doc-05 row #12).  The
-    concrete row lives in the B4 bucket; this template is assigned to B2b
-    by the phase-1 row allocation."""
+    """"You may choose new targets for the copy." — the continuation of
+    Double Vision's copy sentence; the anaphoric "the copy" cannot be
+    resolved standalone. The concrete row lives in the B4 bucket, but the
+    template is registered here."""
     return RuleReminderOutcome(reason="anaphoric_continuation")
 
 
 def _build_garruks_harbinger(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #13: this creature deals combat damage to a player or
-    planeswalker, look at that many cards from the top of your library.
+    """This creature deals combat damage to a player or planeswalker: look
+    at that many cards from the top of your library.
 
-    DamageDealtEvent carries ``amount`` (the R2 fold retired the
-    amount-less CDE wording-variant) and ``combat=True``; "that many" = QProp("event", AMOUNT) (convention C4:
-    LOOK_AT implicitly looks at the top of the library).  B-57: the "a
-    player or planeswalker" recipient is :func:`_to_a_player_or_planeswalker`
-    (it was the universal FAnd(()), so a blocked Harbinger looked off the
-    blocker)."""
+    "That many" = QProp("event", AMOUNT); LOOK_AT looks at the top of the
+    library. The recipient is :func:`_to_a_player_or_planeswalker`."""
     return _ability(
         DamageDealtEvent(
             amount=QUnbounded(),
@@ -2153,12 +2042,8 @@ def _build_garruks_harbinger(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #14: you draw your second card each turn, create a Cat
-    token.
-
-    CardDrawnEvent.ordinal=2 (grammar round 4).  The token is green:
-    TokenSpec.colorss=("G",) (round 8, C-2 repair; the old note that the color
-    was omitted is stale, m21-fidelity item 3 census 2026-10-29)."""
+    """You draw your second card each turn: create an N/N green Cat token
+    (CardDrawnEvent.ordinal=2)."""
     p = _n(m, 1)
     t = _n(m, 2)
     return _ability(
@@ -2173,8 +2058,8 @@ def _build_jolrael_cat_token(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_mystic_skyfish(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #15: you draw your second card each turn, this creature
-    gains flying until end of turn."""
+    """You draw your second card each turn: this creature gains flying until
+    end of turn."""
     return _ability(
         CardDrawnEvent(
             actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), ordinal=2
@@ -2193,15 +2078,13 @@ def _build_mystic_skyfish(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #16: you activate a loyalty ability of a Chandra
-    planeswalker, this creature deals 1 damage to each opponent.
+    """You activate a loyalty ability of a Chandra planeswalker: this
+    creature deals 1 damage to each opponent.
 
-    AbilityActivatedEvent with kind LOYALTY (grammar round 4, convention C5:
-    the trigger tags the loyalty activation, CR 606.2; source = subtype
-    Chandra + type Planeswalker; ontology R5-7 replaced LoyaltyActivatedEvent).
-    "Each opponent" follows the b2b precedent: EachPlayer(ref=ALL_OPPONENTS)
-    with the inner DEAL_DAMAGE rebound to the iterated opponent
-    (Zone(PLAYER, YOU); PITFALLS 2026-09-22 binding rebinding contract)."""
+    AbilityActivatedEvent with kind LOYALTY (CR 606.2; source = subtype
+    Chandra + type Planeswalker). "Each opponent" is
+    EachPlayer(ref=ALL_OPPONENTS) with the inner DEAL_DAMAGE rebound to the
+    iterated opponent (Zone(PLAYER, YOU))."""
     chandra = FAnd(
         children=(
             FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Chandra"),
@@ -2238,20 +2121,12 @@ def _build_keral_keep_disciples(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_blocks_flying_pump(m: re.Match[str]) -> SentenceOutcome:
-    """Grammar round-7-B row (Snarespinner): this creature blocks a creature
-    with flying, this creature gets +2/+0 until end of turn.
+    """This creature blocks a creature with flying: it gets +N/+0 until end
+    of turn (Snarespinner).
 
-    First production TRIGGER use of the R6-4 ``blocked`` slot — previously
-    only the b3/b4/b5a/b5b PREVENT_EFFECT restriction rows consumed it.
-    ``__post_init__`` constrains ``blocked`` only to be a Filter (no
-    prevention-only validation exists), so the KEYWORD_HAS filter rides the
-    trigger the same way Shacklegeist's prevention does.  The blocker
-    ("this creature") is the primary event filter = IS_SOURCE, the b4
-    cant-block shape.  ``+2/+0``: the zero toughness delta is omitted
-    (MODIFY_PT requires only one of power/toughness).  This prunes the
-    stale b2b UNCOVERED entry, whose "filter/subject are both over the
-    blocker" diagnosis predates grammar round 6.  C16: none — fully
-    forced."""
+    The blocker is the event filter (IS_SOURCE) and the blocked creature the
+    ``blocked`` slot (KEYWORD_HAS flying). The zero toughness delta is
+    omitted (MODIFY_PT needs only one of power/toughness)."""
     return _ability(
         DeclareBlockersEvent(
             FAtom(pred=FAtomPred.IS_SOURCE),
@@ -2271,21 +2146,18 @@ def _build_blocks_flying_pump(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_kraken_do_tap_or_untap(m: re.Match[str]) -> SentenceOutcome:
-    """Round 9-B (R9-9, C24): Tolarian Kraken s2 "When you do, you may tap
-    or untap target creature." — the continuation parses as a standalone
-    EffectOutcome and the compiler's do-merge (:func:`_merge_do_continuation`,
-    compiler.py ~761) INJECTS it inside the antecedent ``OptionalEffect``
-    that pays {1} (s1, ``B2b-draw-pay``).  The final tree is
+    """Tolarian Kraken: "When you do, you may tap or untap target creature."
+    The continuation parses as a standalone EffectOutcome, and the
+    compiler's do-merge (compiler._merge_do_continuation) puts it inside the
+    antecedent ``OptionalEffect`` that pays {1} (``B2b-draw-pay``). The
+    final tree is
     ``OptionalEffect(Seq(PAY {1}, OptionalEffect(Choose(1, tap|untap))))``.
 
-    C15 decision surface: BOTH decisions stay open — the s2 "you may" keeps
-    its OWN OptionalEffect layer nested under the payment decision (the
-    r9-A merge fixture pins exactly this shape; the merge adds no wrapper),
-    and "tap or untap" is the Choose one-of-two mode the Choose docstring
-    cites verbatim.  One TARGET creature selector is shared across both
-    options: the target is declared once, before the mode decision, so the
-    two atoms denote the same object (TARGET + QConst(1) — C17 exact-count
-    "target creature", not "up to")."""
+    Both decisions stay open: this "you may" keeps its own OptionalEffect
+    under the payment decision, and "tap or untap" is a one-of-two Choose.
+    One TARGET creature selector is shared by both options: the target is
+    declared once, before the mode decision, so both atoms denote the same
+    object."""
     target = Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,
@@ -2305,22 +2177,13 @@ def _build_kraken_do_tap_or_untap(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-# ---------------------------------------------------------------------------
-# Templates
-# ---------------------------------------------------------------------------
-
-
 def _you_or_your_planeswalkers() -> FOr:
-    """Filter matching the attacked-side object "you and/or planeswalkers
-    you control" (grammar round 10, R10-3, Mangara).  Limb 1 is the
-    defending player "you": CONTROLLER_IS who=YOU reads player-self
-    (the executor evaluates an object's controller against ``who``; a
-    player matches themself — the same self-controller reading the
-    DRAW/EXILE controller roles use).  Limb 2 is the explicit
-    planeswalker-you-control conjunct from the surface text; it is a
-    subset of limb 1 by that reading but kept as its own FOr branch so
-    the two surface limbs stay distinct in the tree (a future executor
-    may distinguish player-attacks from planeswalker-attacks)."""
+    """Filter for the attacked object in "you and/or planeswalkers you
+    control" (Mangara). Limb 1 is the defending player: CONTROLLER_IS
+    who=YOU matches a player who is you (a player is their own controller,
+    as the DRAW/EXILE controller roles read it). Limb 2, the planeswalkers
+    you control, is a subset of limb 1 by that reading but stays its own
+    branch so the two printed limbs remain distinct in the tree."""
     return FOr(
         children=(
             FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
@@ -2337,23 +2200,13 @@ def _you_or_your_planeswalkers() -> FOr:
 def _build_mangara_attackers_draw(m: re.Match[str]) -> SentenceOutcome:
     """``Whenever an opponent attacks with creatures, if two or more of
     those creatures are attacking you and/or planeswalkers you control,
-    draw a card.`` (Mangara, the Diplomat — grammar round 10 b2b row,
-    R10-3).
+    draw a card.`` (Mangara, the Diplomat)
 
-    Trigger anchor: DeclareAttackersEvent (b2b's own set-level anchor,
-    the "attacks with creatures" reading) with filter = opponent's
-    creatures (TYPE_EQ Creature + CONTROLLER_IS OPPONENT — per-opponent
-    declaration events) and the R10-3 ``attacked`` slot carrying
-    :func:`_you_or_your_planeswalkers` — the slot narrows the ATTACKED
-    object per attacker (twin of R6-4 blocked).  The "if" rides the
-    TriggeredAbility.condition slot with
-    ``ATTACK_AGAINST_COUNT_GE`` (inner_filter = the same attacked-side
-    composition, count=2): it counts the EVENT's declared attackers
-    whose attacked object passes the filter — set-level, reads the
-    declared-attackers record (LIFE_LEAD vocabulary-first precedent).
-
-    C16: none — fully forced (no may, no choice, no targets; the second
-    spell trigger of the card is a separate already-covered row)."""
+    DeclareAttackersEvent over the opponent's creatures, with the
+    ``attacked`` slot carrying :func:`_you_or_your_planeswalkers` (it narrows
+    the attacked object per attacker). The "if" is the condition
+    ``ATTACK_AGAINST_COUNT_GE`` (same filter, count=2): it counts the
+    event's declared attackers whose attacked object passes the filter."""
     return _ability(
         DeclareAttackersEvent(
             filter=FAnd(
@@ -2379,6 +2232,11 @@ def _build_mangara_attackers_draw(m: re.Match[str]) -> SentenceOutcome:
             count=QConst(2),
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# Templates
+# ---------------------------------------------------------------------------
 
 
 TEMPLATES: Final[tuple[Template, ...]] = (
@@ -2727,7 +2585,6 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         _exact("Whenever you gain life, target opponent loses that much life."),
         _build_vito_gain_life_lose_life,
     ),
-    # --- Round 5 (grammar round 4/5 shapes) ---
     _template(
         "B2b-warden-of-the-woods",
         "Warden of the Woods",

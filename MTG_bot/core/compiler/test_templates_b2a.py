@@ -1,22 +1,14 @@
 """Tests for the B2a triggered-ability template bucket.
 
-B2a is the "triggered ability" bucket: every template compiles a sentence of the
-form "When X <trigger>, <effect>." (or "At the beginning of <phase> on your
-turn, <effect>." / "When there are N <counter> counters on this ..., <effect>.")
-into a ``TriggeredAbility(event, condition, effect)``.
+Every B2a template compiles a sentence of the form "When X <trigger>, <effect>."
+(or "At the beginning of <phase> on your turn, <effect>." / "When there are N
+<counter> counters on this ..., <effect>.") into a
+``TriggeredAbility(event, condition, effect)``.
 
-Layout mirrors ``test_templates_b3.py``: a coverage class (bucket shape/occurrence
-counts, the public API, the pinned EXPECTED table, PC-3 ambiguity and fingerprint
-stability) plus an events class and an effect-structure class that drive the
-registry end-to-end with concrete oracle sentences and assert the exact IR each
-template produces.
-
-Pinned bucket facts (measured against /tmp/opencode/phase1_buckets/B2a.json):
-62 shapes, 66 occurrences, 61 covered shapes, 65 matched occurrences, and the
-61 templates in ``templates_b2a.TEMPLATES`` (with 1 declared UNCOVERED shape;
-grammar round 10 landed the Chrome Replicator name-partition ETB row).
-The bucket priority is 50 (NOT the 100 used by B1/B3/B4): this is documented in
-``templates_b2a`` and pinned here.
+A coverage class pins the bucket counts, the public API, the EXPECTED table, at most
+one match per sentence and fingerprint stability; the events and effect-structure
+classes drive the registry end to end with concrete oracle sentences and assert the
+exact IR each template produces.
 """
 
 from __future__ import annotations
@@ -285,8 +277,6 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2a-crypt-lurker",
         "Crypt Lurker",
     ),
-    # --- round 2 (T3 constructs: POWER_GE, NAME_CONTAINS, Selector.zones,
-    #     EachPlayer, ZonePosition, PAY) ---
     "At the beginning of combat on your turn, if you control a Basri planeswalker, put a +N/+N counter on this creature.": (
         "B2a-adherent-of-hope",
         "Adherent of Hope",
@@ -323,7 +313,6 @@ EXPECTED: dict[str, tuple[str, str]] = {
         "B2a-silversmote-ghoul",
         "Silversmote Ghoul",
     ),
-    # --- Round 5 (grammar round 4 shapes) ---
     "When this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it.": (
         "B2a-archfiends-vessel",
         "Archfiend's Vessel",
@@ -568,7 +557,7 @@ class TestB2aCoverage(unittest.TestCase):
             self.assertEqual(template.bucket, "B2a", template.tid)
 
     def test_priority_is_50_not_100(self) -> None:
-        # B2a (with B5a) uses priority 50; B1/B3/B4 use 100. Pin the measured value.
+        # B2a (with B5a) uses priority 50; B1/B3/B4 use 100.
         self.assertEqual(templates_b2a._PRIORITY, 50)
         for template in templates_b2a.TEMPLATES:
             self.assertEqual(template.priority, 50, template.tid)
@@ -756,8 +745,6 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.DIED_THIS_TURN)
 
-    # --- round 2 (T3 constructs) ---
-
     def test_adherent_of_hope_is_combat_turn_phase(self) -> None:
         ability = _ability(
             _single_match(
@@ -770,11 +757,9 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.COMBAT)
         self.assertIs(event.actor.who, ControllerRef.YOU)
-        # C2 (batch 1, 2026-10-02) AMENDED: the "if you control a Basri
-        # planeswalker" existence claim is a CONTROLLER_COUNT_GE(count=1)
-        # census whose inner filter carries the per-card test (r18a
-        # turret_ogre idiom; wave-5a suspect). The old pin witnessed the
-        # dropped-quantifier miscompile.
+        # "if you control a Basri planeswalker" is an existence claim
+        # (CR 603.4): CONTROLLER_COUNT_GE(count=1) whose inner filter carries
+        # the per-card test.
         condition = ability.condition
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
@@ -815,10 +800,8 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
-        # re-pinned 2026-10-29: V11 makes "if you control a creature with power
-        # 4 or greater" an existence test (CONTROLLER_COUNT_GE >= 1 over
-        # Creature AND POWER_GE 4), the Ornery Dilophosaur encoding; as a bare
-        # filter it was judged on the enchantment and never held.
+        # "if you control a creature with power 4 or greater" is an existence
+        # test (CR 603.4): CONTROLLER_COUNT_GE >= 1 over Creature AND POWER_GE 4.
         condition = ability.condition
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
@@ -865,12 +848,9 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, ZoneChangeEvent)
         self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         condition = ability.condition
-        # AMENDED r18a (B-3, CR 603.4): the "if" clause is an EXISTENCE count
-        # over the battlefield — CONTROLLER_COUNT_GE count 1 with the power
-        # filter and FNot(IS_SOURCE) INSIDE (per-candidate). The old bare-FAnd
-        # shape was judged against ctx.source (the trigger's own permanent),
-        # where FNot(IS_SOURCE) is self-contradictory — the printed branch
-        # could never fire (wave-1b silent-false B-3).
+        # The "if" clause is an existence count (CR 603.4): CONTROLLER_COUNT_GE
+        # count 1 with the power filter and FNot(IS_SOURCE) inside, judged per
+        # candidate.
         assert isinstance(condition, FAtom)
         self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
         self.assertEqual(condition.count, QConst(1))
@@ -933,8 +913,6 @@ class TestB2aTriggerEvents(unittest.TestCase):
         self.assertEqual(condition.count, QConst(3))
         self.assertIs(condition.who, ControllerRef.YOU)
 
-    # --- Round 5 (grammar round 4 shapes) ---
-
     def test_archfiends_vessel_is_etb_with_this_turn_condition(self) -> None:
         ability = _ability(
             _single_match(
@@ -949,9 +927,8 @@ class TestB2aTriggerEvents(unittest.TestCase):
         condition = ability.condition
         assert isinstance(condition, FOr)
         self.assertEqual(len(condition.children), 2)
-        # R1a canonicalization (ontology §3 SET-R1a): FOr children are
-        # construction-sorted by canonical_json, not printed wording order —
-        # the members are pinned by pred, the ORDER by the law itself.
+        # FOr children are sorted by canonical_json at construction, not in
+        # printed order: the members are pinned by pred, the order by that rule.
         self.assertEqual(
             list(condition.children), sorted(condition.children, key=canonical_json)
         )
@@ -1137,9 +1114,8 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIsNone(token.toughness)
         self.assertEqual(token.keywords, (Keyword.TREASURE,))
         self.assertEqual(token.type_line, "Artifact")
-        # R11-4b (C23 literal encode): the printed parenthetical
-        # "(Tap it, sacrifice it: Add one mana of any color.)" is rules text
-        # — it must ride in TokenSpec.abilities, not be dropped as reminder.
+        # The printed parenthetical "(Tap it, sacrifice it: Add one mana of
+        # any color.)" is rules text: it rides in TokenSpec.abilities.
         self.assertEqual(len(token.abilities), 1)
         sac = token.abilities[0]
         assert isinstance(sac, ActivatedAbility)
@@ -1162,7 +1138,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         assert isinstance(sac.effect, Atom)
         self.assertIs(sac.effect.verb, Verb.ADD_MANA)
         self.assertEqual(sac.effect.args.get("amount"), QConst(1))
-        self.assertEqual(sac.effect.args.get("color"), "ANY")  # R8-3/C-3
+        self.assertEqual(sac.effect.args.get("color"), "ANY")
 
     def test_sabertooth_put_counter_and_untap_seq(self) -> None:
         ability = _ability(
@@ -1233,8 +1209,8 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(
             _find_atom(selector.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
-        # "any one color" = color-choice marker "ANY" (round 8 / C-3;
-        # plain str, not an enum).
+        # "any one color" = the color-choice marker "ANY" (a plain str, not an
+        # enum).
         self.assertEqual(atom.args.get("color"), "ANY")
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
 
@@ -1268,7 +1244,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(condition.counter_kind, CounterKind.PAGE)
         self.assertEqual(condition.count, QConst(4))
         atom = _atom(ability)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        # Exile is a MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -1448,7 +1424,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Creature"
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.SUBTYPE_EQ))
-        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
+        # "its owner's hand" is Zone(HAND, OWNER) (CR 400.3).
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
@@ -1503,8 +1479,8 @@ class TestB2aEffectStructure(unittest.TestCase):
             _single_match(self.reg, "When this creature enters, mill four cards.")
         )
         atom = _atom(ability)
-        # T4 P1a: the mill shape is the merged MOVE_ZONE atom with the
-        # library-pop slots pinned (journal_kind keeps the raw MILL row).
+        # Mill is a MOVE_ZONE atom with the library-pop slots (journal_kind
+        # keeps the raw MILL row).
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(_qconst(atom, "amount"), QConst(4))
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
@@ -1529,7 +1505,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.args.get("counter_kind"), CounterKind.PLUS_1_PLUS_1)
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.count, QAtMost(2))  # C17 (round 8)
+        self.assertEqual(target.count, QAtMost(2))
         self.assertTrue(_contains_not(target.filter, FAtomPred.IS_SOURCE))
         self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
 
@@ -1567,7 +1543,6 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.REVEAL)
-        # re-pinned 2026-10-29: V21 compiles "target opponent" to TARGET_OPPONENT.
         self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
         self.assertIsInstance(atom.args.get("count"), QUnbounded)
 
@@ -1610,7 +1585,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         discard = choose.options[1]
         assert isinstance(discard, Atom)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # Discard is a MOVE_ZONE atom.
         self.assertIs(discard.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             discard.args.get("destination"),
@@ -1647,7 +1622,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(draw.verb, Verb.DRAW)
         self.assertEqual(_qconst(draw, "amount"), QConst(2))
         discard = _atom_step(seq, 1)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # Discard is a MOVE_ZONE atom.
         self.assertIs(discard.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             discard.args.get("destination"),
@@ -1677,11 +1652,9 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "amount"), QConst(1))
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        # AMENDED r17-2 (geyser-FIX): printed "any target" designates a
-        # creature, a planeswalker or a player (CR 109.5) — never a card
-        # hiding in a hidden zone. The card side is the battlefield
-        # population with the FOr type idiom; the player side joins via
-        # the engine's idiom widening (query._widen_any_target).
+        # "any target" is a creature, planeswalker or player (CR 109.5), never
+        # a card in a hidden zone: the card side is the battlefield with the
+        # FOr type filter; the player side joins via query._widen_any_target.
         self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(target.filter, FOr)
 
@@ -1736,7 +1709,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         self.assertTrue(_contains_not(cards.filter, FAtomPred.IS_SOURCE))
         self.assertEqual(cards.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
-        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
+        # "its owner's hand" is Zone(HAND, OWNER) (CR 400.3).
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
@@ -1761,7 +1734,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             },
             {"Creature", "Planeswalker"},
         )
-        # re-pinned 2026-10-29: m21-fidelity, "its owner's hand" is Zone(HAND, OWNER) (CR 400.3)
+        # "its owner's hand" is Zone(HAND, OWNER) (CR 400.3).
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.HAND, ControllerRef.OWNER)
         )
@@ -1777,8 +1750,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "amount"), QConst(2))
         target = _selector(atom, "target")
         self.assertIs(target.mode, SelectorMode.TARGET)
-        # AMENDED r17-2 (geyser-FIX): battlefield idiom shape (see the
-        # Goblin Arsonist pin) — "any target" never reaches hidden zones.
+        # "any target": the battlefield shape (see the Goblin Arsonist test).
         self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(target.filter, FOr)
 
@@ -1791,8 +1763,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         self.assertEqual(_qconst(atom, "amount"), QConst(1))
-        # AMENDED r17-2 (geyser-FIX): battlefield idiom shape (see the
-        # Goblin Arsonist pin) — "any target" never reaches hidden zones.
+        # "any target": the battlefield shape (see the Goblin Arsonist test).
         target = _selector(atom, "target")
         self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         self.assertIsInstance(target.filter, FOr)
@@ -1814,8 +1785,6 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DRAW)
         self.assertEqual(_qconst(atom, "amount"), QConst(1))
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
-
-    # --- round 2 (T3 constructs) ---
 
     def test_adherent_of_hope_puts_plus_one_on_source(self) -> None:
         ability = _ability(
@@ -1864,7 +1833,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        # Exile is a MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -1886,9 +1855,9 @@ class TestB2aEffectStructure(unittest.TestCase):
                 "battlefield.",
             )
         )
-        # re-pinned 2026-10-30: m21-fidelity wave 4 (B-78): "library and/or graveyard" is a
-        # visible Choose over the zone sets: option 0 both zones (the shape asserted below,
-        # unchanged), option 1 the library only, option 2 the graveyard only.
+        # "library and/or graveyard" is a visible Choose over the zone sets: option 0 both
+        # zones (the shape asserted below), option 1 the library only, option 2 the
+        # graveyard only.
         choose = _optional(ability).inner
         assert isinstance(choose, Choose)
         self.assertEqual(len(choose.options), 3)
@@ -1903,7 +1872,7 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(
             _find_atom(cards.filter, FAtomPred.TYPE_EQ).string_value, "Shrine"
         )
-        # R0 zone-fold: ONE set; canonical order GRAVEYARD < LIBRARY.
+        # One zone set, in canonical order GRAVEYARD < LIBRARY.
         self.assertEqual(
             cards.zones,
             (
@@ -2015,8 +1984,6 @@ class TestB2aEffectStructure(unittest.TestCase):
         )
         self.assertIs(atom.args.get("tapped_on_enter"), True)
 
-    # --- Round 5 (grammar round 4 shapes) ---
-
     def test_archfiends_vessel_exiles_self(self) -> None:
         ability = _ability(
             _single_match(
@@ -2026,7 +1993,7 @@ class TestB2aEffectStructure(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        # Exile is a MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -2074,7 +2041,7 @@ class TestB2aEffectStructure(unittest.TestCase):
 
 
 class TestB2aRound7Batch(unittest.TestCase):
-    """Grammar round-7 R7-A rows landing in B2a (doc 2026-09-28/03 §3)."""
+    """Kinetic Augur's "that many" and Idol of Endurance's exile until it leaves."""
 
     def setUp(self) -> None:
         self.reg = _registry()
@@ -2089,15 +2056,14 @@ class TestB2aRound7Batch(unittest.TestCase):
         )
         seq = _seq(ability)
         discard = _atom_step(seq, 0)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # Discard is a MOVE_ZONE atom.
         self.assertIs(discard.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             discard.args.get("destination"),
             Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
         )
         cards = _selector(discard, "cards")
-        # re-pinned 2026-10-29: V15 changes "up to two" to CHOOSE + QAtMost(2),
-        # the player's 0..2 (QConst(2) discarded exactly two); never TARGET.
+        # "up to two" is CHOOSE + QAtMost(2), the player's 0..2; never TARGET.
         self.assertIs(cards.mode, SelectorMode.CHOOSE)
         self.assertEqual(cards.count, QAtMost(2))
         draw = _atom_step(seq, 1)
@@ -2117,7 +2083,7 @@ class TestB2aRound7Batch(unittest.TestCase):
             )
         )
         atom = _atom(ability)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
+        # Exile is a MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             atom.args.get("destination"), Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -2127,19 +2093,18 @@ class TestB2aRound7Batch(unittest.TestCase):
         self.assertIsInstance(target.count, QUnbounded)
         self.assertIs(target.zones[0].kind, ZoneKind.GRAVEYARD)
         self.assertIs(target.zones[0].controller, ControllerRef.YOU)
-        # R5-1 (CR 610.3): "until this artifact leaves the battlefield".
+        # CR 610.3: "until this artifact leaves the battlefield".
         self.assertEqual(atom.args.get("duration"), DurationUntilLeaves())
 
 
 # ---------------------------------------------------------------------------
-# Round 9-B — Pursued Whale per-opponent token with embedded abilities (C23)
+# Pursued Whale per-opponent token with embedded abilities
 # ---------------------------------------------------------------------------
 
 
 class TestB2aRound9BWhaleToken(unittest.TestCase):
-    """9-B row 4: the quoted token text is hand-built STRUCTURED IR inside
-    TokenSpec.abilities — the quoted strings never ride as payload (C23),
-    and both quoted clauses mirror existing production shapes verbatim."""
+    """The quoted token text is hand-built IR inside TokenSpec.abilities,
+    never strings, and both quoted clauses mirror existing production shapes."""
 
     SENTENCE = (
         "When this creature enters, each opponent creates a 1/1 red Pirate "
@@ -2167,9 +2132,9 @@ class TestB2aRound9BWhaleToken(unittest.TestCase):
         self.assertEqual(token.name, "Pirate")
         self.assertEqual(token.power, QConst(1))
         self.assertEqual(token.toughness, QConst(1))
-        self.assertEqual(token.colors, ("R",))  # re-pinned 2026-10-30: R5-11 colors tuple
+        self.assertEqual(token.colors, ("R",))
         self.assertEqual(token.subtypes, ("Pirate",))
-        # C23: structured nodes, not strings — two embedded statics
+        # Structured nodes, not strings: two embedded statics.
         self.assertEqual(len(token.abilities), 2)
         cant_block, mandate = token.abilities
         assert isinstance(cant_block, StaticAbility) and isinstance(
@@ -2194,9 +2159,8 @@ class TestB2aRound9BWhaleToken(unittest.TestCase):
 
 
 class TestB2aRound10Chrome(unittest.TestCase):
-    """Round 10 row 2 (R10-2, C26): Chrome Replicator — the name-partition
-    count predicate replaces the retired "no pairwise name-equality
-    predicate" diagnosis; the executor groups by EXACT name."""
+    """Chrome Replicator: the name-partition count condition (the executor
+    groups by exact name)."""
 
     SENTENCE = (
         "When this creature enters, if you control two or more nonland, "
@@ -2211,7 +2175,7 @@ class TestB2aRound10Chrome(unittest.TestCase):
         m = _single_match(self.reg, self.SENTENCE)
         self.assertEqual(m.template.tid, "B2a-etb-same-name-token")
         ability = _ability(m)
-        # ETB event, house shape
+        # ETB event
         event = ability.event
         assert isinstance(event, ZoneChangeEvent)
         self.assertEqual(event.to_zone.kind, ZoneKind.BATTLEFIELD)
@@ -2222,8 +2186,8 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(cond.count, QConst(2))
         inner = cond.inner_filter
         assert isinstance(inner, FAnd)
-        # R1a canonicalization: FAnd children construction-sort; both
-        # negations are pinned by their inner pred, the order by the law.
+        # FAnd children are sorted at construction: both negations are pinned
+        # by their inner pred, the order by that rule.
         self.assertEqual(
             list(inner.children), sorted(inner.children, key=canonical_json)
         )
@@ -2248,23 +2212,21 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(token.subtypes, ("Construct",))
         self.assertEqual(token.power, QConst(4))
         self.assertEqual(token.toughness, QConst(4))
-        # re-pinned 2026-10-30: R5-11 — colourless is the empty colors tuple
+        # Colorless is the empty colors tuple.
         self.assertEqual(token.colors, ())
 
 
 class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
-    """C5 (2026-10-02): the anaphoric "you may play that card" phantom
-    ActivatedAbility is suppressed at assembly with a KNOWN-GAP note.
+    """Furious Rise's "you may play that card" phantom ActivatedAbility is
+    suppressed at assembly with a known-gap note.
 
-    ``_is_result_anaphoric_cast_permission`` (compiler.py, just above
-    ``compile_card``) drops the empty-cost OptionalEffect(CAST
-    referent='result') node that ``_build_play_that_card_until`` used to
-    emit for Furious Rise's s2 tail. The card prints NO activated ability;
-    the play window is a permission created by the end-step trigger's
-    exile, and the engine has no play-permission lane (the node crashed the
-    executor on the register-less selector — wave-4a suspect). The B2a
-    trigger sentence stays MATCHED (PC-1/PC-2 honesty); only the B4 phantom
-    NODE is dropped, announced exactly once in ``known_gaps``."""
+    ``compiler._is_result_anaphoric_cast_permission`` drops the empty-cost
+    OptionalEffect(CAST referent='result') node that b4's
+    ``_build_play_that_card_until`` emits for the card's second sentence. The
+    card prints no activated ability: the play window is a permission created
+    by the end-step trigger's exile, and the engine has no play-permission
+    lane. The sentence stays matched; only the node is dropped, announced
+    once in ``known_gaps``."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -2272,11 +2234,9 @@ class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
         cls.registry = build_full_registry()
 
     def test_furious_rise_compiles_to_one_trigger_no_activation(self) -> None:
-        """Exactly one printed ability, a TriggeredAbility; NO ActivatedAbility
-        anywhere on the card (the pre-C5 phantom activation is gone).
-
-        B-49 (2026-10-29): the enchantment also trails its effect-less cast
-        carrier, so it is castable; the carrier is not a printed ability."""
+        """One printed ability, a TriggeredAbility, and no ActivatedAbility.
+        The enchantment also trails its effect-less cast carrier, so it is
+        castable; the carrier is not a printed ability."""
         res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
         self.assertEqual(res.unparsed, ())
         (ability, carrier) = res.card.abilities
@@ -2287,8 +2247,8 @@ class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
         )
 
     def test_furious_rise_play_permission_known_gap_announced_once(self) -> None:
-        """known_gaps carries EXACTLY one note and its text mentions the
-        missing 'play permission' lane (the assembly-drop announcement)."""
+        """known_gaps carries exactly one note, naming the missing 'play
+        permission' lane."""
         res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
         self.assertEqual(len(res.known_gaps), 1)
         self.assertIn("play permission", res.known_gaps[0])
