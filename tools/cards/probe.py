@@ -286,11 +286,11 @@ class Probe:
                         pt = tuple(ex.ledger.effective_pt(c.identity, h, c.counters))
                     except Exception:  # noqa: BLE001 — a non-creature permanent
                         pt = None
-            # CR 702.26 (2026-10-29): phasing is a status, not a zone change, so the zone label
+            # CR 702.26: phasing is a status, not a zone change, so the zone label
             # carries it; a card that never phases keeps its trace bytes.
             if h in getattr(ex, "phased_out", ()):
                 zone = "battlefield (phased out)"
-            # Ontology R5-1 (CR 610.3): an object moved "until" an event carries its return row
+            # CR 610.3: an object moved "until" an event carries its return row
             # (what ends it, and the zone it goes back to); objects without one keep their bytes.
             rows = [r for r in ex.returns.rows_for(h) if ex.returns.still_there(ex, r)]
             if rows:
@@ -515,7 +515,7 @@ class Probe:
 
     @staticmethod
     def _mode_node(node: SpellAbility, modes: tuple[int, ...]) -> SpellAbility:
-        """The spell narrowed to the chosen modes (V9): its target slots are then the chosen
+        """The spell narrowed to the chosen modes: its target slots are then the chosen
         modes' only. No modes: the spell itself."""
         eff = node.effect
         if not modes or not isinstance(eff, Choose):
@@ -545,7 +545,7 @@ class Probe:
                                          lambda rr: play_land(rr.ex, rr.p0, rr.handles["card"]))
                 continue
             xs = [0, 1, 3] if self._has_x() else [None]
-            # V9 (2026-10-29): a modal spell is probed one mode set at a time, with only the chosen
+            # A modal spell is probed one mode set at a time, with only the chosen
             # modes' target slots (CR 601.2b chooses the modes, then 601.2c only their targets); the
             # union of every mode's targets is not a designation the engine accepts.
             for modes in self._modes(row.node):

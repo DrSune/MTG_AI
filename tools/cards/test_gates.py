@@ -1,5 +1,5 @@
 """Gates G0 and G3: the keyword-action and ability-word reading of G0, and the equivalent-mutant
-rules of G3. Each G3 rule is proven twice: ``gates.mutants`` no longer offers the mutant (while
+rules of G3. Each G3 rule is proven twice: ``gates.mutants`` does not offer the mutant (while
 its observable neighbours stay), and the engine plays the real tree and the would-be mutant to
 the same game on a board built to expose the field if anything read it."""
 
@@ -352,7 +352,7 @@ def test_target_to_all_on_a_twin_designation_is_dead() -> None:
     # no twin, no rule: a lone TARGET selector still gets the mutant
     assert ("target->all", "1/1/effect/args/target") in _where(_card("Shacklegeist"))
     # spells only: the same twin designation on an activated ability is left to the probe and the
-    # packs, because activate() validates no targets (V8) and an ALL selector without a binding
+    # packs, because activate() validates no targets and an ALL selector without a binding
     # acts on its whole population
     ability = ActivatedAbility(cost=Cost(parts=()), effect=strike.abilities[0].effect)
     assert gates._twin_targets(ability, (1, 0)) == set()
@@ -360,7 +360,7 @@ def test_target_to_all_on_a_twin_designation_is_dead() -> None:
                                                                 for i in (0, 1)}
 
 
-# ------------------------------------------------- second pass (wave 4, the merged engine)
+# ------------------------------------------- owner zones, discards, statics, replacements
 def test_owner_zone_destination_controller_is_dead() -> None:
     """A card moved to a hand, library, graveyard or exile goes to its OWNER's zone (CR 400.3,
     selectors.move_destination): a SEARCH to hand, a targeted return to hand, and a ONE_OF/REST
@@ -545,12 +545,12 @@ def test_reveal_from_a_look_window_is_dead() -> None:
         assert _game(pack, mutant, setup=empty_library) == real_empty
 
 
-# ------------------------------------------------- third pass (wave 5, the B-78 zone choice)
+# ---------------------------------------------- the "library and/or graveyard" zone choice
 WARSTEED_OPTION = "1/0/effect/inner/options/{}/steps/{}/args"
 
 
 def test_reveal_per_option_of_a_zone_choice_is_dead() -> None:
-    """"Search your library and/or graveyard" is a choose-one of three searches (B-78), each with
+    """"Search your library and/or graveyard" is a choose-one of three searches, each with
     its own REVEAL. Exactly one option runs, so at most one REVEAL does, and nothing reads it:
     every option plays the same game with its REVEAL naming the opponent or revealing two."""
     ws = _card("Garruk's Warsteed")

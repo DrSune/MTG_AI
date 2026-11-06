@@ -48,9 +48,9 @@ def test_the_probe_offers_only_legal_targets_and_shows_the_damage() -> None:
 
 
 def test_the_probe_plays_a_modal_spell_one_mode_at_a_time() -> None:
-    # V9 (2026-10-29): Return to Nature's three modes each get their own target slot and their
-    # own variants (CR 601.2b: modes first, then only those modes' targets); the probe used to
-    # pass every mode's target at once, which the engine refuses (36 errors, nothing exercised).
+    # Return to Nature's three modes each get their own target slot and their own variants
+    # (CR 601.2b: modes first, then only those modes' targets); the engine refuses every mode's
+    # targets at once.
     sup = compile_supply("all", "M21", require_verified=False)
     oid = next(o for o, m in sup.metas.items() if m.name == "Return to Nature")
     rep = probe.Probe(sup, "M21", oid).report()
@@ -63,9 +63,8 @@ def test_the_probe_plays_a_modal_spell_one_mode_at_a_time() -> None:
 
 
 def test_the_probe_plays_an_emblem_without_putting_it_in_a_hand() -> None:
-    # 2026-11-05: the "from your hand, the card enters" stimulus raised KeyError 'unknown card'
-    # for every emblem (an emblem is never a card in a hand, CR 114.1), so `cardtool write`
-    # refused every emblem record. Basri Ket's emblem compiles in M21.
+    # An emblem is never a card in a hand (CR 114.1), so it gets no "from your hand, the card
+    # enters" stimulus. Basri Ket's emblem compiles in M21.
     sup = compile_supply("all", "M21", require_verified=False)
     oid = next(o for o, r in sup.pool.results.items() if r.card.name == "Basri Ket Emblem")
     rep = probe.Probe(sup, "M21", oid).report()
@@ -74,9 +73,7 @@ def test_the_probe_plays_an_emblem_without_putting_it_in_a_hand() -> None:
 
 
 def test_the_probe_plays_a_token_without_putting_it_in_a_hand() -> None:
-    # 2026-11-05: a token put into a hand ceases to exist (CR 111.8), so the from-hand stimulus
-    # raised KeyError 'unknown card' and G1 refused every token record (M20 round 2: Treasure,
-    # Spirit, Wolf, Soldier, the Elementals).
+    # A token put into a hand ceases to exist (CR 111.8), so it gets no from-hand stimulus.
     sup = compile_supply("all", "M21", require_verified=False)
     oid = next(o for o, r in sup.pool.results.items() if r.card.name == "Cat" and r.card.is_token)
     rep = probe.Probe(sup, "M21", oid).report()
@@ -85,8 +82,7 @@ def test_the_probe_plays_a_token_without_putting_it_in_a_hand() -> None:
 
 
 def test_g0_asks_no_cast_carrier_of_a_token() -> None:
-    # 2026-11-05: G0 refused nine M20 tokens that passed blind review (Wolf, Soldier, Treasure, ...)
-    # for lacking the permanent's cast carrier; a token is never cast (CR 111.8).
+    # A token is never cast (CR 111.8), so G0 asks no permanent's cast carrier of it.
     import corpus
     import gates
 

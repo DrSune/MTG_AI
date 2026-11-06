@@ -151,9 +151,9 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     tree_kw = {k.keyword.name for k in card.keywords} | {
         n.keyword.name for n in walk(card) if isinstance(n, KeywordAbility)}
     # Keyword actions the compiler writes as their verb (scry, mill, fight exist as both a Verb and
-    # a Keyword, T4 ledger L-20): the verb in the tree satisfies the printed keyword.
+    # a Keyword): the verb in the tree satisfies the printed keyword.
     tree_kw |= {n.verb.name for n in walk(card) if isinstance(n, Atom)}
-    # ... or as the merged MOVE atom (T4 P1a), whose journal_kind slot names the keyword action it
+    # ... or as the merged MOVE atom, whose journal_kind slot names the keyword action it
     # performs: the mill shape writes "MILL" (verbs.py _v_move_zone), so it satisfies "Mill".
     tree_kw |= {str(n.args.get("journal_kind")) for n in walk(card)
                 if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & set(Keyword.__members__)
@@ -258,7 +258,7 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
     judges the window's first card, the top card for any count >= 1, so it leaves count dead.
     Several REVEALs qualify when each sits in its own option of one "choose one" (a count-1
     Choose: the executor runs exactly one option, so at most one REVEAL runs; query.choose_options
-    reads no option's contents), the "search your library and/or graveyard" zone choice (B-78)."""
+    reads no option's contents), the "search your library and/or graveyard" zone choice."""
     if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
         return set()
     nodes = list(walk(ability))
@@ -339,7 +339,7 @@ def _one_per_option(ability: Any, atoms: list[Atom]) -> bool:
 def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     """Paths of the TARGET selectors in ``ability`` that "target->all" cannot change (see
     ``mutants``): a spell (the cast lane refuses a cast whose slot is not designated, so the
-    designation always binds; ``activate`` validates no targets, V8, so activations stay out)
+    designation always binds; ``activate`` validates no targets, so activations stay out)
     where two or more atoms carry the same TARGET selector in their ``target`` role and nothing
     else is a TARGET selector or a mode, so there is one designation slot; an exact count >= 1,
     battlefield or stack zones (a counterspell's COUNTER_SPELL reads its target through
@@ -358,7 +358,7 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     return {p for p, _ in sels}
 
 
-# Zones a moving card always enters as its OWNER's (CR 400.3; selectors.move_destination, V24).
+# Zones a moving card always enters as its OWNER's (CR 400.3; selectors.move_destination).
 _OWNER_ZONES = (ZoneKind.HAND, ZoneKind.LIBRARY, ZoneKind.GRAVEYARD, ZoneKind.EXILE)
 # Static permissions whose "you may" is the use, not a layer gate: layers._new_static strips the
 # OptionalEffect before it parses the payload (the MAY belongs to the USE side).
@@ -426,7 +426,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         if type(node).__name__ == "CostDeltaReduceGeneric" and isinstance(getattr(node, "amount", None), QConst) \
                 and node.amount.value >= generic:
             dead.add((*path, "amount"))
-        # G3 finisher (2026-10-29), each rule proven in test_gates.py:
+        # Each rule below is proven in test_gates.py:
         # - the merged MOVE atom's mill shape (pop_order TOP) and discard shape (from HAND) move the
         #   cards of the `controller` role's player: `from` and `destination` are read for their
         #   kind only (verbs.py _v_move_zone), so their controller fields are dead;
@@ -449,9 +449,9 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
                 and not any(path[: len(c)] == c for c in in_cost)):
             dead.add((*path, "count"))
-        # G3 finisher, second pass (wave 4, 2026-10-30), proven in test_gates.py like the above:
+        # Proven in test_gates.py like the above:
         # - SEARCH and MOVE_ZONE put a card into its OWNER's hand, library, graveyard or exile,
-        #   whatever player the destination names (CR 400.3; selectors.move_destination, V24):
+        #   whatever player the destination names (CR 400.3; selectors.move_destination):
         #   only a battlefield destination names a player. MOVE_ZONE's top-n draw idiom reads it
         #   (zone_owner picks whose library is drawn) and is left out;
         # - a discard takes its CHOOSE/RANDOM/ALL picks from the discarding players' own hands,
@@ -473,7 +473,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         if isinstance(node, ReplacementAbility) and isinstance(node.event, DamageDealtEvent) \
                 and isinstance(node.action, Atom) and node.action.verb is Verb.DEAL_DAMAGE:
             dead.add((*path, "action", "args", "dealer"))
-        # G3 finisher, third pass (wave 5): a Seq with a ONE_OF/REST partition MOVE_ZONE among its
+        # A Seq with a ONE_OF/REST partition MOVE_ZONE among its
         # direct steps runs its SEARCH steps designate-only (ctx.search_partition, set by the same
         # shallow scan in Executor._run_effect and the guarded lane; verbs._v_search returns before
         # moving anything): such a SEARCH's destination is a compile-time placeholder, never used.
@@ -482,7 +482,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                      if isinstance(step, Atom) and step.verb is Verb.SEARCH}
     # Two ability-level rules (their docstrings carry the argument): a REVEAL nothing reads, and a
     # TARGET selector whose twin keeps the one designation slot (role_handles gives a referent-free
-    # ALL selector in the bound role the designation itself, the documented 12a convention).
+    # ALL selector in the bound role the designation itself).
     twins: set[tuple] = set()
     # A static permission's "you may" is stripped before its payload is parsed (layers._new_static),
     # and nothing else reads a static's top-level OptionalEffect: optional->mandatory is dead there.
