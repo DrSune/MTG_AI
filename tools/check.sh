@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The local pre-push gate (added 2026-10-24). There is no CI, so this is the check.
+# The local pre-push gate. There is no CI, so this is the check.
 #
 #   tools/check.sh           # everything
 #   tools/check.sh --quick   # skip `pytest tools` (the torch-heavy half)
@@ -8,7 +8,7 @@
 # on MTG_bot/bench.
 set -uo pipefail
 cd "$(dirname "$0")/.."
-export TORCH_DISABLE_NATIVE_JIT=1   # until python3.12-dev is installed (CLAUDE.md)
+export TORCH_DISABLE_NATIVE_JIT=1   # needed only on a box without python3.12-dev (CLAUDE.md)
 PY=.venv/bin/python
 status=0
 

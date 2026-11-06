@@ -4,7 +4,7 @@
 #
 #   tools/save.sh "what changed"
 #
-# Two guards, both added 2026-10-24 after main went five weeks unpushed (KNOWLEDGE/PITFALLS.md):
+# Two guards:
 #   - refuse to commit a file over 95 MB (GitHub rejects 100 MB, and one such blob makes main
 #     unpushable until history is rewritten);
 #   - after pushing, verify the remote really holds HEAD, and fail loudly if it does not.

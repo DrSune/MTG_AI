@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Refuse a commit that stages a file over 95 MB. GitHub rejects files over 100 MB, and one such
-# blob makes main unpushable for every session sharing this repo: a 134 MB checkpoint did it on
-# 2026-10-06 (found 2026-10-24) and a 393 MB episodes JSONL on 2026-10-27. tools/save.sh has the
-# same check, but agents commit without it; a hook runs for everyone.
+# blob makes main unpushable for every session sharing this repo. tools/save.sh has the same
+# check, but agents commit without it; a hook runs for everyone.
 #
 # Install (once per clone): ln -sf ../../tools/hooks/pre-commit .git/hooks/pre-commit
 # Large evidence stays on disk, pinned by sha256 in reports/LARGE_FILES.sha256.
