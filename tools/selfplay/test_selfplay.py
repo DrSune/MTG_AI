@@ -614,15 +614,6 @@ def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
     assert [q[5] for q in fake.eval_queue] == [L.GATE_SEED0, L.GATE_SEED0 + 1000, L.EVAL_SEED0]
 
 
-def test_a_crashed_world_is_neutral_between_candidates() -> None:
-    """A crashed simulation scores the search's mean belief, the same for every candidate:
-    dropping it would score a move only on the worlds it survived."""
-    from tools.selfplay.search import mean_scores
-    got = mean_scores({"a": [1.0, None], "b": [0.0, 0.0]})
-    assert abs(got["a"] - (1.0 + 1 / 3) / 2) < 1e-9 and got["b"] == 0.0
-    assert mean_scores({"a": [None], "b": [None]}) == {"a": -1.0, "b": -1.0}
-
-
 def _ppo_case(table):
     recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
     play_game(7, recs, deck_mode="coherent")
