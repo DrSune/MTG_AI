@@ -436,3 +436,26 @@ A fixed opponent is the easiest target self-play has, and 100 updates are ~150,0
 plateau is not only measurement: learning itself is slow. Each update moves the policy ~0.009 KL
 (lr 5e-5, one epoch, 37 minibatches). Next single change after r21: the learning rate, with this
 exploitation slope as the primary metric (it is far more sensitive than the gates).
+
+## 23. r21 result: coherent-only training changed nothing; the learner did not exploit a fixed opponent at all
+Stopped at update 87 (the decision point). One version only: v1 (frozen at 6, teacher gate), 357 Elo
+vs v0 351.6; ladder vs heuristic 0.68 (coherent 0.767, stress 0.593). 16 gates in a row vs v1 at
+0.48-0.51. Same 300 deals vs the heuristic, eval-only: v0 (r20 v2) 0.691 (coherent 0.763, stress
+0.618); r21 last 0.686 (coherent 0.750, stress 0.622).
+- Prediction 1 (a version >= v0 + 0.04 on coherent deals): **falsified** (no gain).
+- Prediction 2 (stress within 0.04 of v0): **held** (0.593 at v1; last 0.622).
+- Prediction 3 (a version >= v0 + 25 Elo): **falsified** (+5.4).
+- Exploitation slope vs v1 over 81 updates: **-0.001 per 100 updates** (0.521 -> 0.513).
+Reading: the deal mix was not the bottleneck; learning is. r22 changes the step size.
+
+## 24. r22: pre-registration (written before launch, 2026-11-06)
+Change vs r21: one: --lr 1.5e-4 (r21: 5e-5). Same code (8f1ced4, pinned; the London mulligan merged later is not in it), same init (r20 v2), every other argument as r21 (coherent decks only).
+
+Hypothesis: The learner barely exploits even a fixed opponent (win-rate slope vs the frozen version: r19 +0.015, r20 +0.013, r21 -0.001 per 100 updates; /184 §22-23), and each update moves the policy only ~0.009 KL. Tripling the step size lets the same signal move the policy three times as far per update, so it exploits the frozen version and improves against fixed anchors measurably faster, with the per-minibatch KL stop as the guard.
+
+Primary metric: exploitation slope: the training win rate vs the first frozen version, regressed on update number, over the stretch that version stays frozen (iteration rows), compared with r21's -0.001 per 100 updates over the same span.
+
+Predictions:
+- exploitation slope vs the first frozen version: >= +0.05 per 100 updates over the first 60 self-play updates (or a freeze before then); falsified by below +0.02 per 100 updates.
+- stability: KL stop in under 30% of updates, explained variance > 0.6, no non-finite gradients; falsified by KL stop in more than half the updates, or K4.
+- Elo of r22's frozen versions: a version >= v0 + 25 on r22's ladder; falsified by none by self-play update 80.
