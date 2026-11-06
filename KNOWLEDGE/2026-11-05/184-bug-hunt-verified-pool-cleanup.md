@@ -356,3 +356,21 @@ Merged for r20's epoch (r19 still runs on 449bd0f):
   from seven candidates; 35 sentences newly parse, fully compiled cards across the 19 sets 1,674 ->
   1,690 (M20 +4: Ancestral Blade, Bristling Boar, Heart-Piercer Bow, Wolfrider's Saddle); no
   compiled tree changed; replay digests identical. Gates on 7a598df: 5202 / 131 / 729.
+
+## 18. r19 result: the anchors did not move; mixing in M20 did not dilute M21 (2026-11-06)
+| Version | Frozen at | Gate vs predecessor (deal-level 95%) | Ladder vs heuristic | Elo (random 0) |
+|---|---|---|---|---|
+| v0 | init (r18 last.pt) | - | 0.648 | 424.5 |
+| v1 | 12 (teacher gate) | - | 0.643 | 421.7 |
+| v2 | 26 | 0.518 [0.5015, 0.535] | 0.660 | 426.3 |
+| v3 | 92 | 0.521 [0.5007, 0.541] | 0.665 | 438.3 |
+Heuristic 319.1 on this ladder. Stopped at update 93, the pre-registered decision point (self-play
+update 80); 13 gates in a row near 0.50 between v2 and v3.
+- Prediction 1 (r18 last on M20 vs heuristic 0.55-0.65): **hit**, 0.603.
+- Prediction 2 (a version >= 441 Elo by self-play update 80): **falsified**, narrowly: v3 438.3,
+  +13.8 over v0, inside one ladder standard error.
+- Prediction 3 (M21 vs heuristic stays >= 0.62): **held**, 0.643-0.665 throughout.
+- M20 vs heuristic, paired on prediction 1's deals: v2 +0.020 [-0.013, +0.053], not significant.
+Reading: 25% M20 games neither helped nor hurt M21 play within 80 self-play updates. The run
+played the old game (no postcombat main, dead fetched lands, no "this spell costs" discounts,
+hexproof on the stack), so r20 re-baselines on the corrected one.
