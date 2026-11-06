@@ -1,0 +1,153 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "a1",
+   "name": "A One",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a2",
+   "name": "A Two",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a3",
+   "name": "A Three",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a4",
+   "name": "A Four",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a5",
+   "name": "A Five",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a6",
+   "name": "A Six",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a7",
+   "name": "A Seven",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "b1",
+   "name": "B One",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "b2",
+   "name": "B Two",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "b3",
+   "name": "B Three",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "b4",
+   "name": "B Four",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "b5",
+   "name": "B Five",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "b6",
+   "name": "B Six",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "b7",
+   "name": "B Seven",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "mulligan": [
+  "mulligan",
+  "keep",
+  "a1",
+  "mulligan",
+  "a2",
+  "a3",
+  "keep"
+ ],
+ "steps": [],
+ "expect": {
+  "hand": {
+   "0": 5,
+   "1": 7
+  },
+  "zone": {
+   "a1": "hand",
+   "a2": "library",
+   "a3": "library",
+   "a4": "hand",
+   "a5": "hand",
+   "a6": "hand",
+   "a7": "hand",
+   "b1": "hand"
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "A Two",
+    "A Three"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ },
+ "notes": "CR 103.5, the London mulligan. Each library holds exactly seven cards, so every draw of seven takes all of them whatever the shuffle. Seat 0 (the starting player) declares a mulligan, then seat 1 keeps. Seat 0's mulligan shuffles its hand into its library, draws seven again and puts one card on the bottom (A One). Seat 0 mulligans again: A One comes back with the redrawn seven, and two cards go to the bottom, each under the last (A Two, then A Three beneath it). Seat 0 keeps five; seat 1 kept its seven. The six Library cards are the runner's filler, added on top after the first turn begins."
+}

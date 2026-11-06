@@ -2528,10 +2528,16 @@ class StallRuleTest(unittest.TestCase):
         # decisive, now player 0 loses on turn 54, 161 acts, the stall rule
         # does not fire (double-run replay verified: same fingerprint and
         # digest).
+        # re-pinned 2026-11-06 (engine/london-mulligan): every dealt game now
+        # runs the London mulligan before turn 1 (CR 103.5), the random policy
+        # answering. Here player 0 mulligans six times and keeps one card, so
+        # the trajectory shifts. Still decisive: player 1 loses on turn 51,
+        # 119 acts, the stall rule does not fire (double-run replay verified:
+        # same fingerprint and digest).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 54)
-        self.assertEqual(game.reason, "game over: player:0(life<=0)")
+        self.assertEqual(game.turns, 51)
+        self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

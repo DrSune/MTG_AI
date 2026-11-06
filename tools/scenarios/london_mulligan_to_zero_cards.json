@@ -1,0 +1,179 @@
+{
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "c1",
+   "name": "C One",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "C Two",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c3",
+   "name": "C Three",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c4",
+   "name": "C Four",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c5",
+   "name": "C Five",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c6",
+   "name": "C Six",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c7",
+   "name": "C Seven",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d1",
+   "name": "D One",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "d2",
+   "name": "D Two",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "d3",
+   "name": "D Three",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "d4",
+   "name": "D Four",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "d5",
+   "name": "D Five",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "d6",
+   "name": "D Six",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "d7",
+   "name": "D Seven",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "mulligan": [
+  "mulligan",
+  "mulligan",
+  "first-legal",
+  "first-legal",
+  "mulligan",
+  "keep",
+  "first-legal",
+  "first-legal",
+  "mulligan",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "mulligan",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "mulligan",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "mulligan",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "mulligan",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal",
+  "first-legal"
+ ],
+ "steps": [],
+ "expect": {
+  "hand": {
+   "0": 0,
+   "1": 6
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "C One",
+    "C Two",
+    "C Three",
+    "C Four",
+    "C Five",
+    "C Six",
+    "C Seven"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "D One"
+   ]
+  }
+ },
+ "notes": "CR 103.5: a player can take mulligans until their opening hand would be zero cards, after which they may not take further mulligans. Both players declare a mulligan in the first round, the starting player first, and both take it: one card each goes to the bottom (the first offered, C One and D One). In the second round seat 0 declares a mulligan before seat 1 keeps six. Seat 0 goes on to its seventh mulligan: seven cards drawn, seven put on the bottom, the first offered each time and the last with no choice left, so C One ends nearest the top. Its hand is empty and no eighth declaration is asked: the runner fails a pack whose words and asks do not match one for one."
+}

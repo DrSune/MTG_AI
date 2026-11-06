@@ -316,6 +316,9 @@ def build_items(
         if run_pack(path, supply):
             cov.excluded["engine disagrees with the pack"] += 1
             continue
+        if "mulligan" in pack:
+            cov.excluded["the mulligans run in setup, before the initial state"] += 1
+            continue
         labels = {c["key"]: f"obj{i + 1}" for i, c in enumerate(pack["cards"])}
         gold = _gold(pack, labels)
         if not gold:

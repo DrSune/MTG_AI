@@ -29,16 +29,19 @@ from tools.selfplay.rig import play_game
 class Tracer:
     def __init__(self, out: Any) -> None:
         self.out = out
-        self.turn_seen = -1
+        self.turn_seen: tuple | None = None  # (turn, active player) of the last board
 
     def board(self, obs: Any) -> None:
         ex = obs.executor
         world = ex.world
-        if world.turn == self.turn_seen:
+        if (world.turn, world.active_player) == self.turn_seen:
             return
-        self.turn_seen = world.turn
-        active = world.players[world.active_player].seat if world.active_player else "?"
-        self.out.write(f"\n=== turn {world.turn} (seat {active} active) ===\n")
+        self.turn_seen = (world.turn, world.active_player)
+        if world.active_player is None:  # the mulligans, before the first turn (CR 103.5)
+            self.out.write("\n=== opening hands ===\n")
+        else:
+            active = world.players[world.active_player].seat
+            self.out.write(f"\n=== turn {world.turn} (seat {active} active) ===\n")
         for p in world.player_order:
             pl = world.players[p]
             bf = []

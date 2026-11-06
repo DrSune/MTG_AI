@@ -688,3 +688,138 @@ def test_combat_is_planned_once_per_turn_before_combat() -> None:
     turns = [turn for turn, _ in agent.plans]
     assert len(turns) == len(set(turns))
 
+
+
+# ------------------------------------------------------------- the mulligan (CR 103.5, 2026-11-06)
+
+
+class _ProbeSlot:
+    """The actor's slot over a LocalSlot: keeps every request's encoding, and answers the first
+    mulligan declaration with "mulligan" when ``force`` (so a bottom ask follows)."""
+
+    def __init__(self, net, force: bool = True) -> None:
+        self.inner = M.LocalSlot({"net": net.eval()})
+        self.feats: list[dict] = []
+        self.force = force
+
+    def infer(self, req):
+        feats = req[5]
+        self.feats.append(feats)
+        answer = self.inner.infer(req)
+        if self.force and int(feats["ask_i"][0]) == FT.ASK_INDEX["mulligan"]:
+            self.force = False
+            return int(np.flatnonzero(feats["opts_i"][:, 0] == FT.OPT_INDEX["mulligan"])[0])
+        return answer
+
+    def of(self, kind: str) -> list[dict]:
+        return [f for f in self.feats if int(f["ask_i"][0]) == FT.ASK_INDEX[kind]]
+
+
+class _HeuristicLog(HeuristicAgent):
+    def __init__(self, table) -> None:
+        self.table = table
+        self.kinds: list[str] = []
+        self.plays_first: list[float] = []
+
+    def decide(self, ask, obs) -> int:
+        self.kinds.append(ask.kind)
+        if ask.kind == "mulligan":
+            feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
+            self.plays_first.append(float(feats["glob_f"][1]))
+        return super().decide(ask, obs)
+
+
+def _net_vs_heuristic(net, table, slot_force: bool = True):
+    """Seat 0 a network (NetAgent through a probe slot), seat 1 the heuristic with a deck of no
+    lands, one turn: the heuristic mulligans its seven and its six and keeps five."""
+    from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+    from MTG_bot.core.executor.games import _play, _setup_game, deal_decks
+    from tools.selfplay.actor import NetAgent
+    from tools.selfplay.rig import SelfplayRouter
+
+    supply = get_supply("castable")
+    corpse = next(o for o, m in supply.metas.items() if m.name == "Walking Corpse")
+    game = _setup_game(9, supply, (deal_decks(9, 1409, supply)[0], (corpse,) * 60))
+    slot = _ProbeSlot(net, slot_force)
+    job = {"gid": 0, "seats": ["net", "heuristic"], "greedy": [True, True], "record": [False, False]}
+    heuristic = _HeuristicLog(table)
+    oracle = OracleIndex.for_sets("M21")
+    router = SelfplayRouter(game, [NetAgent(slot, job, 0, table), heuristic],
+                            [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)], supply=supply)
+    _play(game, router, game.world.player_order, turn_cap=1)
+    return game, slot, heuristic
+
+
+def test_the_network_and_the_heuristic_both_answer_the_mulligan(table) -> None:
+    torch.manual_seed(0)
+    game, slot, heuristic = _net_vs_heuristic(M.build(table, d=32, layers=1, heads=4, ff=64), table)
+    declaration = slot.of("mulligan")[0]
+    assert list(declaration["opts_i"][:, 0]) == [FT.OPT_INDEX["keep"], FT.OPT_INDEX["mulligan"]]
+    assert float(declaration["glob_f"][1]) == 1.0  # it plays first: no turn has begun yet
+    bottom = slot.of("mulligan_bottom")[0]
+    assert len(bottom["opts_i"]) == 7 and set(bottom["opts_i"][:, 0]) == {FT.OPT_INDEX["card"]}
+    pointed = bottom["opts_i"][:, 1].astype(int) - 3  # refs: 0 none, 1 me, 2 opponent, 3+ cards
+    assert set(bottom["cards_i"][pointed, 1]) == {FT.ZONE_INDEX[ZONE_HAND]}
+    assert np.isclose(float(bottom["glob_f"][4]), 1 / 3, atol=1e-3)  # one card to put there
+    assert [k for k in heuristic.kinds if k.startswith("mulligan")] == [
+        "mulligan", "mulligan_bottom", "mulligan", "mulligan_bottom", "mulligan_bottom", "mulligan"]
+    assert heuristic.plays_first == [0.0, 0.0, 0.0]
+    hands = [len(game.world.players[p].zone(ZONE_HAND).entries) for p in game.world.player_order]
+    assert hands[1] == 5
+
+
+def test_an_old_checkpoint_loads_and_plays_the_mulligan(table, tmp_path) -> None:
+    """A checkpoint from before the mulligan has neither its ask kinds nor its option types; they
+    grow from "other", what they were encoded as before. Played greedily it keeps, as every game
+    used to: its keep and mulligan rows start equal, and the tie goes to the first option."""
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    for p in net.parameters():
+        p.data.normal_(0, 0.1)
+    path = tmp_path / "old.pt"
+    M.save(str(path), net, table)
+    ck = torch.load(path, weights_only=False)
+    cut = {"ask_emb.weight": FT.ASK_INDEX["mulligan"], "opt_type.weight": FT.OPT_INDEX["keep"]}
+    for key, n_old in cut.items():
+        ck["state"][key] = ck["state"][key][:n_old].clone()
+    torch.save(ck, path)
+    old, _, _ = M.load(str(path))
+    for key, names, index in (("ask_emb.weight", FT.ASK_KINDS, FT.ASK_INDEX),
+                              ("opt_type.weight", FT.OPTION_TYPES, FT.OPT_INDEX)):
+        w, n_old = old.state_dict()[key], cut[key]
+        assert w.shape[0] == len(names) and torch.equal(w[:n_old], net.state_dict()[key][:n_old])
+        assert all(torch.equal(w[index[k]], w[index["other"]]) for k in names[n_old:])
+    game, slot, _ = _net_vs_heuristic(old, table, slot_force=False)
+    assert game.world.turn == 1 and game.turns == 1
+    declarations = slot.of("mulligan")
+    assert len(declarations) == 1  # kept its seven
+    _, _, probs = slot.inner.infer((0, 0, "net", True, False, declarations[0], 2))
+    assert abs(probs[0] - probs[1]) < 1e-5
+
+
+def test_heuristic_mulligan_rule() -> None:
+    """Keep five cards or fewer, or a bigger hand with two lands and two other cards; bottom a land
+    while lands outnumber the rest (a copy of the land it holds most of), else the priciest card."""
+    from MTG_bot.bench.agents import Observation
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.bench.test_router import P0, _arranged, _lenses
+
+    def decide(hand: tuple[str, ...], kind: str) -> str:
+        game, _ = _arranged(hand0=hand)
+        cards = sorted(game.world.players[P0].zone(ZONE_HAND).entries)
+        words = ("keep", "mulligan") if kind == "mulligan" else tuple(str(c) for c in cards)
+        ask = Ask(seat=0, kind=kind, site=f"{kind}:{P0}:1", prompt="",
+                  options=tuple(Option(w, w) for w in words), refuse=0 if kind == "mulligan" else None)
+        token = words[HeuristicAgent().decide(ask, Observation(_lenses()[0], game.executor))]
+        return token if kind == "mulligan" else _name_of(game, token)
+
+    others = ("Walking Corpse", "Pursued Whale", "Fierce Empath", "Onakke Ogre", "Grasp of Darkness")
+    assert decide(("Swamp", "Island", *others), "mulligan") == "keep"
+    assert decide(("Swamp", "Walking Corpse", *others), "mulligan") == "mulligan"  # one land
+    assert decide(("Swamp",) * 5 + ("Island", "Walking Corpse"), "mulligan") == "mulligan"  # one spell
+    assert decide(("Swamp", *others[:4]), "mulligan") == "keep"  # five cards
+    assert decide(("Swamp", "Swamp", "Swamp", "Island", "Island", *others[:2]), "mulligan_bottom") == "Swamp"
+    assert decide(("Swamp", "Island", *others), "mulligan_bottom") == "Pursued Whale"
+
+
+def _name_of(game, token: str) -> str:
+    return next(c.identity.name for h, c in game.world.cards.items() if str(h) == token)

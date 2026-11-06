@@ -169,7 +169,13 @@ class SeatRouter:
 
     def _context(self, what: str, seat: Handle, i: int) -> str:
         """Extra facts the decider legitimately has for this ask."""
-        if ask_kind(what) != "scry":
+        kind, count = ask_kind(what), what.rsplit(":", 1)[-1]
+        if kind == "mulligan":  # mulligan:<seat>:<mulligans taken> (games.mulligans)
+            order = "first" if self.game.world.player_order[0] == seat else "second"
+            return f"You play {order}. Mulligans taken so far: {count}."
+        if kind == "mulligan_bottom":  # mulligan_bottom:<seat>:<cards still to put there>
+            return f"Cards still to put on the bottom, this one included: {count}."
+        if kind != "scry":
             return ""
         # The k-th scry ask of one scry is about the k-th card from the top, which the scrying
         # player is looking at (verbs.py:1437-1441 asks top-first before moving anything).

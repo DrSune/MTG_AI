@@ -2,7 +2,8 @@
 
 ``SelfplayRouter`` adds an ``AskContext`` (features.py) to every observation: the card being
 scried (the router already computes it for its prompt), the attackers declared so far in this
-combat and the blocks declared so far. The engine applies a whole declaration only after its
+combat, the blocks declared so far, and the count a target pick or a mulligan's bottom ask
+carries in its site. The engine applies a whole declaration only after its
 last ask, so without this an agent would declare each attacker blind to the others.
 """
 
@@ -104,7 +105,7 @@ class SelfplayRouter(SeatRouter):
         if ask.leaky:
             st["leaky_asks"] += 1
         picked = 0
-        if ask.site.startswith("pick:"):
+        if ask.site.startswith(("pick:", "mulligan_bottom:")):
             tail = ask.site.rsplit(":", 1)[-1]
             picked = int(tail) if tail.isdigit() else 0
         ctx = AskContext(

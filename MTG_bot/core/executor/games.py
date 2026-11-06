@@ -39,7 +39,8 @@ vocabulary is the engine's own at the ask site, a may-offer arrives
 already narrowed by the query oracle (CR 117.3), and a demand with no
 answer still raises — which is the finding.
 
-Batch style, no priority simulation: ``begin_turn`` (which now draws, CR 504.5-c
+Batch style, no priority simulation: a dealt game's mulligans (CR 103.5, the
+policy deciding), then each turn ``begin_turn`` (which now draws, CR 504.5-c
 — this harness found that missing), then up to :data:`MAX_ACTS_PER_STEP` acts in
 the first main phase's batch, the combat phase, up to as many again in the second
 main phase's batch (CR 505.1), then ``end_turn``.
@@ -496,6 +497,11 @@ def shuffled_library(
         world.add_card(
             identity_of(executor.binder.records[oid]), seat, zone=ZONE_LIBRARY
         )
+    _shuffle_library(executor, seat)
+    return tuple(world.players[seat].zone(ZONE_LIBRARY).entries)
+
+
+def _shuffle_library(executor: Executor, seat: Handle) -> None:
     executor.execute(
         Atom(
             verb=Verb.SHUFFLE,
@@ -504,7 +510,59 @@ def shuffled_library(
         source=seat,
         controller=seat,
     )
-    return tuple(world.players[seat].zone(ZONE_LIBRARY).entries)
+
+
+#: A mulligan declaration's words (CR 103.5). "keep" is the do-nothing answer.
+MULLIGAN_WORDS = ("keep", "mulligan")
+
+
+def mulligans(
+    executor: Executor, order: list[Handle], hand_size: int = OPENING_HAND
+) -> dict[Handle, int]:
+    """The London mulligan (CR 103.5), once every player has drawn ``hand_size`` cards: how many
+    mulligans each player took.
+
+    Each round, every player who has not kept declares, in turn order (``order``, the starting
+    player first), through the decision stream: ``mulligan:<player>:<mulligans taken>`` offers
+    :data:`MULLIGAN_WORDS`. Then each player who declared a mulligan takes it, in turn order (the
+    rule takes them at the same time): the hand is shuffled into the library by the engine's
+    seeded SHUFFLE, ``hand_size`` cards are drawn, and as many of them as that player's mulligans
+    so far go to the bottom of the library one at a time, each under the last, so the player
+    also chooses their order (``mulligan_bottom:<player>:<cards still to put there>`` offers the
+    hand). A kept hand is the opening hand. A player whose hand is empty takes no more mulligans,
+    so no hand is kept below zero cards. CR 103.5c's free mulligan applies only when more than two
+    players start the game (a multiplayer game, CR 100.1b; the engine has no Brawl)."""
+    world = executor.world
+    uncounted = 1 if len(order) > 2 else 0
+    taken = dict.fromkeys(order, 0)
+    deciding = [seat for seat in order if world.players[seat].zone(ZONE_HAND).entries]
+    while deciding:
+        declared = []
+        for seat in deciding:
+            what = f"mulligan:{seat}:{taken[seat]}"
+            if executor.decisions.take(MULLIGAN_WORDS, what, seat=seat) == "mulligan":
+                declared.append(seat)
+        for seat in declared:
+            taken[seat] += 1
+            hand = world.players[seat].zone(ZONE_HAND)
+            library = world.players[seat].zone(ZONE_LIBRARY)
+            library.entries.extend(hand.entries)
+            hand.entries.clear()
+            _shuffle_library(executor, seat)
+            world.draw(seat, hand_size)
+            # Only a library smaller than the hand size can leave fewer cards than are owed.
+            owed = min(taken[seat] - uncounted, len(hand.entries))
+            for left in range(owed, 0, -1):
+                cards = sorted(hand.entries)
+                card = cards[0]  # the last card in hand goes without a choice
+                if len(cards) > 1:
+                    vocab = tuple(str(c) for c in cards)
+                    answer = executor.decisions.take(vocab, f"mulligan_bottom:{seat}:{left}", seat=seat)
+                    card = next(c for c in cards if str(c) == answer)
+                hand.entries.remove(card)
+                library.entries.insert(0, card)
+        deciding = [seat for seat in declared if world.players[seat].zone(ZONE_HAND).entries]
+    return taken
 
 
 # --------------------------------------------------------------- policy side
@@ -1129,6 +1187,10 @@ class Game:
     # skips the declare-attackers half of combat. Only a policy with a
     # ``before_blocks`` hook has this boundary (see _play).
     skip_to_blocks: bool = False
+    # A dealt game (_setup_game) has drawn its opening hands and not yet run
+    # the mulligans (CR 103.5): _play runs them before the first turn. A
+    # position built by hand keeps the hands it was given.
+    mulligans_pending: bool = False
 
     @property
     def world(self) -> GameWorld:
@@ -1182,11 +1244,12 @@ def _setup_game(
         shuffled_library(executor, seat, deck)
         if trace is not None:
             trace.note_library(world, seat)  # pre-draw order, engine shuffle
-        # Pre-game setup (CR 103.4) goes straight through GameWorld.draw: no
+        # The opening hand (CR 103.5) goes straight through GameWorld.draw: no
         # permanent is on the battlefield to miss a CARD_DRAWN event, and the
-        # DRAW verb is a game action the skeleton now owns.
+        # DRAW verb is a game action the skeleton now owns. The mulligans
+        # that follow are decisions, so _play runs them, with the policy.
         world.draw(seat, OPENING_HAND)
-    return Game(executor=executor, seed=seed, pool_mode=supply.mode)
+    return Game(executor=executor, seed=seed, pool_mode=supply.mode, mulligans_pending=True)
 
 
 def coverage_of(game: Game) -> tuple[set[str], set[str]]:
@@ -1437,7 +1500,8 @@ def _play_turns(
     resumed: bool = False,
     stop_after: Any = None,
 ) -> None:
-    """The turn loop. Turn 1 opens with ``begin_turn``; every later turn goes
+    """The turn loop. A dealt game first runs the mulligans (:func:`mulligans`,
+    CR 103.5) with the policy answering. Turn 1 opens with ``begin_turn``; every later turn goes
     through ``advance_turn`` so the CR 500.7 extra-turn queue is popped (and the
     seat is the ENGINE's choice, read back off ``active_player``, not ours). A
     turn's work is the first main phase's act window, the combat phase and the
@@ -1476,6 +1540,9 @@ def _play_turns(
     # gets it.
     executor.decisions.provider = policy.answer
     if not resumed:
+        if game.mulligans_pending:
+            mulligans(executor, order)
+            game.mulligans_pending = False
         executor.begin_turn(order[0])
     while True:
         seat = world.active_player
