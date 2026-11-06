@@ -523,3 +523,14 @@ Reading: outcome-only credit is too noisy for this machine's throughput; the can
 per-decision targets from search (alternatives compared on the same deal, so its luck cancels).
 This bears on OWNER_PREFERENCES #6 (lambda = 1): raised with the owner, not decided here.
 Scripts and results: scratchpad ppo_audit/ (dup_snr.py, dup_eval.py, privileged_estimate.py).
+
+## 27. r22 closed; outcome PPO is set aside for the playout-label plan (2026-11-06)
+r22 (lr 1.5e-4, the only change vs r21) stopped at update 43 (self-play update 32 of its 60-update
+window) on the memory floor and is not resumed: the audit (§25-26) explains its result. Its
+predictions as far as it ran: (1) exploitation slope >= +0.05 per 100 updates: **falsified** (-0.022
+over 20 updates, gates vs v1 0.478-0.515); (2) stability (KL stop in < 30% of updates): **falsified by
+its letter** (the stop fired every update, now known to be the KL-from-behaviour bug fixed in b03c3ac);
+(3) Elo: not reached. Tripling the step size moved the policy ~2x further per update (KL ~0.02) with
+no gain, as expected when the gradient is mostly noise (B* ~2.2M decisions per useful step).
+Next: the owner-approved learning plan (docs/PLAN_LEARNING.md, DECISIONS D20): per-decision playout
+labels on the true future, the opponent simulator, distillation; Phase 0 = E1, E0, E3.
