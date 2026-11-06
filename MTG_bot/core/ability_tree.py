@@ -114,13 +114,11 @@ _STACK_KINDS = ("ACTIVATED", "SPELL", "TRIGGERED")
 
 class Verb(Enum):
     """The closed verb vocabulary; each member's comment cites a card that
-    needs it. Every member carries an instance CLASS in ``VERB_CLASS``
-    (below).
+    needs it.
 
     The MILL/DISCARD/EXILE shapes compile to the one MOVE_ZONE atom
     (destination + optional from/journal_kind/pop_order slots); the three
-    members stay in the enum and its CLASS partition, but the executor has
-    no handler for them.
+    members stay in the enum, but the executor has no handler for them.
     """
 
     DEAL_DAMAGE = "DEAL_DAMAGE"  # Brash Taunter (deals that much damage to target player or creature)
@@ -225,82 +223,6 @@ class Verb(Enum):
     # encoding for the whole pool family (Panharmonicon, a derived
     # self-count carrier): one verb, reusable count Quantity.
     TRIGGER_ADDITIONAL = "TRIGGER_ADDITIONAL"
-
-
-class VerbClass(Enum):
-    """The instance CLASS of a Verb — its payload ROLE, not where a
-    decision happens (the {menu}/{count} axes are the shared PICK
-    wrapper, so selection never belongs to the verb itself;
-    docs/T4_SPEC.md §1)."""
-
-    OPERATION = "OPERATION"  # the atom IS a decision/observation operation
-    POLICY = "POLICY"  # standing legality/timing/replacement constraint
-    EFFECT = "EFFECT"  # an immediate state delta
-
-
-# The CLASS partition of the FULL Verb enum (test_grammar_p1a asserts it
-# covers every member exactly once). MANDATE_ATTACK/BLOCK are POLICY
-# (combat-declaration legality, owned by the restricting card);
-# CAST/FLIP_COIN/FIGHT/TAP/UNTAP/SACRIFICE/DISCARD are EFFECTs whose menus
-# live in the shared PICK/designate wrapper; DISCARD/MILL/EXILE keep the
-# EFFECT class of the MOVE_ZONE atom they compile to.
-VERB_CLASS: dict[Verb, VerbClass] = {
-    # OPERATION verbs (6)
-    Verb.CHOOSE: VerbClass.OPERATION,
-    Verb.CHOOSE_NAME: VerbClass.OPERATION,
-    Verb.SCRY: VerbClass.OPERATION,
-    Verb.SEARCH: VerbClass.OPERATION,
-    Verb.LOOK_AT: VerbClass.OPERATION,
-    Verb.PAY: VerbClass.OPERATION,
-    # POLICY verbs (7)
-    Verb.MANA_POLICY: VerbClass.POLICY,
-    Verb.DAMAGE_ASSIGN_POLICY: VerbClass.POLICY,
-    Verb.GRANT_ACTIVATION: VerbClass.POLICY,
-    Verb.PREVENT_EFFECT: VerbClass.POLICY,
-    Verb.ADD_LAND_PLAY: VerbClass.POLICY,
-    Verb.MANDATE_ATTACK: VerbClass.POLICY,
-    Verb.MANDATE_BLOCK: VerbClass.POLICY,
-    # EFFECT verbs (37)
-    Verb.DEAL_DAMAGE: VerbClass.EFFECT,
-    Verb.DESTROY: VerbClass.EFFECT,
-    Verb.EXILE: VerbClass.EFFECT,
-    Verb.DRAW: VerbClass.EFFECT,
-    Verb.MILL: VerbClass.EFFECT,
-    Verb.GAIN_LIFE: VerbClass.EFFECT,
-    Verb.LOSE_LIFE: VerbClass.EFFECT,
-    Verb.ADD_MANA: VerbClass.EFFECT,
-    Verb.CREATE_TOKEN: VerbClass.EFFECT,
-    Verb.PUT_COUNTER: VerbClass.EFFECT,
-    Verb.REMOVE_COUNTER: VerbClass.EFFECT,
-    Verb.MODIFY_PT: VerbClass.EFFECT,
-    Verb.SET_PT: VerbClass.EFFECT,
-    Verb.GRANT_ABILITY: VerbClass.EFFECT,
-    Verb.GRANT_TYPE: VerbClass.EFFECT,
-    Verb.TAP: VerbClass.EFFECT,
-    Verb.UNTAP: VerbClass.EFFECT,
-    Verb.MOVE_ZONE: VerbClass.EFFECT,
-    Verb.SHUFFLE: VerbClass.EFFECT,
-    Verb.COUNTER_SPELL: VerbClass.EFFECT,
-    Verb.COPY: VerbClass.EFFECT,
-    Verb.SACRIFICE: VerbClass.EFFECT,
-    Verb.DISCARD: VerbClass.EFFECT,
-    Verb.REVEAL: VerbClass.EFFECT,
-    Verb.ATTACH: VerbClass.EFFECT,
-    Verb.GAIN_CONTROL: VerbClass.EFFECT,
-    Verb.PHASE_IN: VerbClass.EFFECT,
-    Verb.PHASE_OUT: VerbClass.EFFECT,
-    Verb.EXTRA_TURN: VerbClass.EFFECT,
-    Verb.END_TURN: VerbClass.EFFECT,
-    Verb.LOSE_GAME: VerbClass.EFFECT,
-    Verb.FLIP_COIN: VerbClass.EFFECT,
-    Verb.CAST: VerbClass.EFFECT,
-    Verb.FIGHT: VerbClass.EFFECT,
-    Verb.LOSE_ABILITY: VerbClass.EFFECT,
-    Verb.GET_EMBLEM: VerbClass.EFFECT,
-    # Extra-trigger creation is an EFFECT — it puts new trigger
-    # instances on the stack (CR 603.2e), not a standing policy.
-    Verb.TRIGGER_ADDITIONAL: VerbClass.EFFECT,
-}
 
 
 class SelectorMode(Enum):
@@ -1937,7 +1859,7 @@ class StepEvent:
         if not isinstance(self.step, Step):
             raise ValueError(f"StepEvent: step must be a Step, got {self.step!r}")
         if not isinstance(self.controller, ControllerRef):
-            raise ValueError(f"StepEvent: controller must be a ControllerRef")
+            raise ValueError("StepEvent: controller must be a ControllerRef")
 
 
 @dataclass(frozen=True)

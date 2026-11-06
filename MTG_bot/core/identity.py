@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import FrozenSet, Optional, Tuple
+from typing import Optional, Tuple
 
 # Scryfall oracle ids are 36-char UUIDs. We validate shape, not value, so a
 # malformed ingest (empty string, a rowid slipped in) is caught here rather
@@ -64,10 +64,6 @@ class HandleSpace:
         handle = Handle(self.name, self._next)
         self._next += 1
         return handle
-
-    @property
-    def count(self) -> int:
-        return self._next
 
 
 @dataclass(frozen=True)
@@ -121,17 +117,3 @@ class CardIdentity:
 
     def __post_init__(self) -> None:
         validate_oracle_id(self.oracle_id)
-
-    @property
-    def primary_key(self) -> str:
-        """The stable key everything else is keyed on: the oracle id."""
-        return self.oracle_id
-
-    def color_identity(self) -> FrozenSet[str]:
-        """Set of colours in the card's mana cost and/or colour indicator."""
-        cols = set(self.colors)
-        if self.mana_cost:
-            for c in "WUBRG":
-                if c in self.mana_cost:
-                    cols.add(c)
-        return frozenset(cols)

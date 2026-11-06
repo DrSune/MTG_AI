@@ -28,10 +28,6 @@ ZONE_EXILE = "exile"
 ZONE_COMMAND = "command"
 ZONE_STACK = "stack"
 
-ZONE_KINDS = frozenset(
-    [ZONE_LIBRARY, ZONE_HAND, ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_COMMAND, ZONE_STACK]
-)
-
 # Per-player zones. The stack is shared, so it is not in this list.
 PLAYER_ZONES = (ZONE_LIBRARY, ZONE_HAND, ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_COMMAND)
 
@@ -45,10 +41,6 @@ class ZoneState:
     kind: str
     controller: Handle  # the owning player's handle
     entries: List[Handle] = field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        if self.kind not in ZONE_KINDS:
-            raise ValueError(f"unknown zone kind: {self.kind!r}")
 
     def contains(self, card: Handle) -> bool:
         return card in self.entries
@@ -92,8 +84,7 @@ class PlayerState:
 class TriggerInstance:
     """A triggered ability waiting to resolve.
 
-    ``order_key`` is (controller seat, clock), the order ``pending_triggers``
-    lists them in. It is not the order they resolve in: the executor's drain
+    ``world.triggers`` holds them in queue order. The executor's drain
     (``TriggerBinder._pop_next``) resolves them as the stack would, the
     non-active player's simultaneous triggers first (CR 603.3b: the active
     player puts theirs on the stack first, and the stack resolves from the
@@ -105,10 +96,6 @@ class TriggerInstance:
     controller_seat: int
     event: str
     clock: int
-
-    @property
-    def order_key(self) -> tuple:
-        return (self.controller_seat, self.clock)
 
 
 class GameWorld:
@@ -140,7 +127,6 @@ class GameWorld:
         self.player_order: List[Handle] = []
         self.active_player: Optional[Handle] = None
         self.turn: int = 1
-        self.format: str = "standard"
 
         # single event clock, for trigger ordering only
         self._clock: int = 0
@@ -160,9 +146,6 @@ class GameWorld:
         self.players[handle] = player
         self.player_order.append(handle)
         return handle
-
-    def add_player(self, name: str, life: int = 20) -> Handle:
-        return self._add_player(len(self.player_order), name, life)
 
     # ------------------------------------------------------------------- adds
 
@@ -240,7 +223,7 @@ class GameWorld:
         return self._clock
 
     def queue_trigger(self, source: Handle, controller: Handle, event: str) -> TriggerInstance:
-        """Record a triggered ability. Ordered by (controller seat, clock)."""
+        """Record a triggered ability, stamped with the next event clock."""
         trig = TriggerInstance(
             source=source,
             controller=controller,
@@ -250,10 +233,6 @@ class GameWorld:
         )
         self.triggers.append(trig)
         return trig
-
-    def pending_triggers(self) -> List[TriggerInstance]:
-        """Triggers in deterministic order (seat, then clock); not their resolution order."""
-        return sorted(self.triggers, key=lambda t: t.order_key)
 
     # --------------------------------------------------------------- canonical
 
@@ -289,6 +268,3 @@ class GameWorld:
         for card in sorted(self.cards, key=lambda c: c.index):
             h.update(self._stable_str(card).encode())
         return h.hexdigest()
-
-    def __len__(self) -> int:
-        return len(self.cards)
