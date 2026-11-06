@@ -446,14 +446,6 @@ def _qconst(atom: Atom, role: str) -> QConst:
     return value
 
 
-def _qcount(atom: Atom, role: str) -> QCount:
-    value = atom.args.get(role)
-    assert isinstance(value, QCount), (
-        f"role {role!r} expected QCount, got {type(value).__name__}"
-    )
-    return value
-
-
 def _qprop(atom: Atom, role: str) -> QProp:
     value = atom.args.get(role)
     assert isinstance(value, QProp), (
@@ -775,7 +767,6 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self._assert_has_type_eq_creature(event.filter)
         self._assert_has_controller_you(event.filter)
         cond = ability.condition
-        self.assertIsNotNone(cond)
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.HAS_COUNTER)
         self.assertIs(cond.counter_kind, CounterKind.PLUS_1_PLUS_1)
@@ -1110,8 +1101,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self._assert_has_type_eq_creature(cond.inner_filter)
         self._assert_has_controller_you(cond.inner_filter)
         self._assert_has_keyword_flying(cond.inner_filter)
-        attacking = _find_atom(cond.inner_filter, FAtomPred.IS_ATTACKING)
-        del attacking  # just checking presence
+        _find_atom(cond.inner_filter, FAtomPred.IS_ATTACKING)
 
     def test_vito_gain_life_event(self) -> None:
         ability = _ability(
@@ -2528,12 +2518,10 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(atom.who, ControllerRef.YOU)
 
     def _assert_has_is_attacking(self, a_filter: Filter) -> None:
-        atom = _find_atom(a_filter, FAtomPred.IS_ATTACKING)
-        del atom  # just checking presence
+        _find_atom(a_filter, FAtomPred.IS_ATTACKING)
 
     def _assert_has_is_untapped(self, a_filter: Filter) -> None:
-        atom = _find_atom(a_filter, FAtomPred.IS_UNTAPPED)
-        del atom
+        _find_atom(a_filter, FAtomPred.IS_UNTAPPED)
 
 
 class TestB2bRound7BTopUp(unittest.TestCase):
@@ -2624,7 +2612,6 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
         reg = _registry()
         s1 = _single_match(reg, self.S1)
         s2 = _single_match(reg, self.S2)
-        assert isinstance(s1.outcome, AbilityOutcome)
         prior = _ability(s1).effect
         assert isinstance(s2.outcome, EffectOutcome)
         cont = s2.outcome.effect  # the raw standalone EffectOutcome payload
@@ -2633,10 +2620,6 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
         pay = prior.inner  # Atom(PAY, Cost({1}))
         expected = OptionalEffect(inner=Seq(steps=(pay, cont)))
         self.assertEqual(merged, expected)
-        # the injection is INSIDE the payment optional, not beside it
-        self.assertIsInstance(merged, OptionalEffect)
-        assert isinstance(merged, OptionalEffect)
-        self.assertIsInstance(merged.inner, Seq)
 
 
 # ---------------------------------------------------------------------------

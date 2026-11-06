@@ -205,21 +205,6 @@ def _self_selector() -> Selector:
     )
 
 
-def _creatures_you_control() -> Selector:
-    """Selector for ``creatures you control``."""
-    return Selector(
-        QUnbounded(),
-        SelectorMode.ALL,
-        FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            )
-        ),
-        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
-    )
-
-
 def _other_creatures_you_control() -> Selector:
     """Selector for ``other creatures you control``."""
     return Selector(
