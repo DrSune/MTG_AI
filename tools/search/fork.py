@@ -22,15 +22,9 @@ After the copy, three references must not survive into the clone:
 from __future__ import annotations
 
 import copy
-import sys
 import types
 from collections import ChainMap, deque
-from pathlib import Path
 from typing import Any
-
-REPO = Path(__file__).resolve().parents[2]
-if str(REPO) not in sys.path:
-    sys.path.insert(0, str(REPO))
 
 # Types ``copy.deepcopy`` treats as atomic (returned as-is): interning them
 # would bloat the memo for zero benefit, and the walker must not chase the
