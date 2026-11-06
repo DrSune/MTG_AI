@@ -1571,3 +1571,10 @@ W&B key in history is revoked; a private split exists outside the public repo.
   one's triggered/static abilities. Not live: in the M21 and M20 verified pools only Pirate, Treasure
   and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
   hash the spec's abilities into the id.
+- **Packs bind every placed card's record; games bind none until a card is cast, played or
+  enters** (2026-11-06): the pack runner calls `attach_pool` after placing the cards, which binds
+  `handle_record` for every zone, while `_setup_game` attaches the pool before the decks are dealt.
+  So no pack could see the fetched-land bug fixed with this entry (a pack fetching a land passed on
+  the broken engine; only a test through `_setup_game` was red). Make the runner bind like a game
+  (battlefield, stack and graveyard at setup; hand and library unbound), then audit the
+  `handle_record.get(...)` readers for cards in hand or library.

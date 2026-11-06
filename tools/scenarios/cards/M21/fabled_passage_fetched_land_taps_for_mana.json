@@ -1,0 +1,69 @@
+{
+ "set": "M21",
+ "name": "fabled_passage_fetched_land_taps_for_mana",
+ "notes": "Printed: '{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land.' The fetched Forest is a land with its own mana ability (CR 305.6, 113.6): with four lands it untaps and taps for {G}. Until 2026-11-06 a card put onto the battlefield from the library got no abilities (binding.py registered only cards that already had a record), so fetched and ramped lands made no mana; found reviewing r19's games.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fp",
+   "real": "Fabled Passage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "fp",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "forest"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "forest",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fp": "graveyard",
+   "forest": "battlefield"
+  },
+  "mana_pool": {
+   "0": {
+    "G": 1
+   }
+  }
+ }
+}

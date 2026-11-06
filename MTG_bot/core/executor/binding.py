@@ -790,6 +790,14 @@ class TriggerBinder:
         if attach:
             if to_state == ZONE_BATTLEFIELD:
                 record = self.handle_record.get(handle)
+                if record is None and handle in self.world.cards:
+                    # A dealt card an effect moves here (a fetched or ramped land) was never
+                    # cast or played, so nothing bound its record (attach_pool runs before
+                    # the decks are dealt): bind it by oracle id, as graveyard entry does.
+                    # Until 2026-11-06 such a permanent had no abilities (CR 113.6).
+                    record = self.records.get(self.world.cards[handle].identity.oracle_id)
+                    if record is not None:
+                        self.handle_record[handle] = record
                 if record is not None and not any(
                     key[0] == handle for key in self.attached
                 ):

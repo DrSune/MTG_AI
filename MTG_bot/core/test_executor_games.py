@@ -2616,3 +2616,35 @@ def _oid(n: int) -> str:
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class EffectEnteredPermanentTest(unittest.TestCase):
+    """2026-11-06 (reviewing r19's games): a dealt card that an effect puts onto the battlefield
+    (a fetched or ramped land, Risen Reef's land, a reanimated card never on the battlefield) had no
+    abilities: ``_setup_game`` attaches the pool before the decks are dealt, so no library card has
+    a bound record, and battlefield entry registered only cards that already had one. Fetched lands
+    made no mana. It now binds by oracle id, as graveyard entry already did."""
+
+    def test_a_land_put_onto_the_battlefield_from_the_library_taps_for_mana(self) -> None:
+        from MTG_bot.core.executor.legality import _mana_tap_options
+
+        supply = get_supply("verified", "M21")
+        oid = {m.name: o for o, m in supply.metas.items()}
+        game = _setup_game(7, supply, ((oid["Forest"],) * DECK_SIZE, (oid["Plains"],) * DECK_SIZE))
+        world, executor = game.world, game.executor
+        p0 = world.player_order[0]
+        forest = next(h for h in sorted(world.cards, key=lambda h: h.index)
+                      if world.zone_of(h).kind == ZONE_LIBRARY and world.controller_of(h) == p0)
+        executor.apply_effect(
+            _atom(
+                Verb.MOVE_ZONE,
+                target=Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result"),
+                destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            ),
+            source=p0, controller=p0, bindings={"result": [forest]},
+        )
+        self.assertEqual(world.zone_of(forest).kind, ZONE_BATTLEFIELD)
+        self.assertIn(forest, executor.binder.handle_record)
+        sources = {tap.source for options in _mana_tap_options(executor, p0) for tap in options}
+        self.assertIn(forest, sources)
