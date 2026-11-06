@@ -764,9 +764,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   design / automatic curriculum (PAIRED, ACCEL, teacher-student curricula). Needs a student that
   learns reliably first (/184 §25).
 - **Signal plan** (2026-11-06, after the PPO audit; measuring now): duplicate deals in training (each
-  deal from both seats, the pair's result learned), a privileged value network for training only (sees
-  both hands and libraries; the acting policy never does), lambda toward 1 (the full result reaches
-  every decision), and at least B* decisions per optimizer step (gradient accumulation).
+  deal from both seats, the pair's result learned), lambda toward 1 (the full result reaches every
+  decision), and at least B* decisions per optimizer step (gradient accumulation). Measured (/184 §26):
+  B* ~2.2M decisions; pairing and lambda = 1 do not lower it. The privileged critic (training-only
+  value network seeing hidden cards) is dropped (owner 2026-11-06; estimated gain only 1.3-1.8x).
+  Candidate core instead: per-decision targets from playouts that compare alternatives on the same
+  sampled futures (luck cancels), sampled from the player's beliefs, never the true hidden state.
 - **Explore/exploit league** (owner idea, 2026-11-06; after the PPO audit): alternate exploration and
   exploitation to climb in "level ups": exploiter agents trained only against the frozen main policy
   find new strategies; a behavioural-diversity measure (how differently a candidate decides on a fixed
