@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "73c423b7-cab8-4e69-8070-9edbf96a6c2c",
+ "name": "Boros Guildgate",
+ "text_sha": "ff32fea4b0510d7392ca799f0349de6a7fb5ede64cfb4c5e0394a9aa11802c05",
+ "verified": {
+  "tree_sha": "a4969f609272c3702e508896898c0045a5f29dc308dcdfec6c6faa6459c4ba40",
+  "probe_sha": "ca49390b0d6402ac081031ceb5a9b14b99db0756d1a38d6ea8d80ce641a3b8b8",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield, tapped False -> True; entering on the opponent's turn (not a land play) also tapped.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [1]]: ask choose [0, 1] -> 0: card becomes tapped (by card/TAP), mana R+1; -> 1: card becomes tapped, mana W+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

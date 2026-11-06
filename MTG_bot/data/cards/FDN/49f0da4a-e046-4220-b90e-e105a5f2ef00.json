@@ -231,5 +231,40 @@
  },
  "probe": {
   "sha": "4949c1838096240f1f9109116f2df23de990d3d854bd18a3973b57662f72ac2c"
+ },
+ "verified": {
+  "tree_sha": "a607835d6b503b43f316cfc9a0c06cb9e0f3349e2544d22aee31a6b05e5d9a3f",
+  "probe_sha": "e09ca66ca8b969c1ba17e6bbd30edb000f1082d5a249291ca1864d519a1b27af",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Incinerating Blast deals 6 damage to target creature.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (creatures only, no players); every variant '<target> is dealt 6 damage (by card/DEAL_DAMAGE)' and it dies. Cast {4}{R}: R-1 W-4.",
+    "issue": ""
+   },
+   {
+    "clause": "You may discard a card.",
+    "status": "OK",
+    "evidence": "'ask may: [fire, skip]'; fire -> 'ask one_of' over your own hand (you_spare, you_trick, you_land_drop, ...), the pick moves hand -> graveyard; skip -> nothing.",
+    "issue": "Note: the mapped discard uses a ONE_OF selector (a partition pick, journalled as a TARGETING row 'you_spare is targeted (by card/ONE_OF)') where the compiler's discard shape is CHOOSE over HAND YOU (Jeskai Elder, Obsessive Stitcher); same outcome here since the caster is the discarder."
+   },
+   {
+    "clause": "If you do, draw a card.",
+    "status": "OK",
+    "evidence": "fire variants: one DRAW, 'you: hand 6 -> 5; library 6 -> 5' (Blast and the discard leave, one card drawn); skip variants: no draw, library unchanged. Pack incinerating_blast_empty_hand_no_draw.json PASSES: cast as the last card, nothing can be discarded and nothing is drawn; wrong twin fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/incinerating_blast_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 14,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

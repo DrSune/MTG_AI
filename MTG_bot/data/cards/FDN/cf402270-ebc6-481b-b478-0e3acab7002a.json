@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "cf402270-ebc6-481b-b478-0e3acab7002a",
+ "name": "Elementalist Adept",
+ "text_sha": "8e13dff86a15bf0d761400e5b8840be684bee3463c5315a10b40c2ab402a0ce5",
+ "verified": {
+  "tree_sha": "1df97a3316af202b4dd1d8d47d74a5b00fcafb839ea0eeeffc0c462f5752282b",
+  "probe_sha": "0826ba4cb87ee54cbdb9a5d0444dc304509d37e2e20bb8d33db11f2f03db0930",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace casts it only in your own main phase (keywords +FLASH shown). Pack elementalist_adept_flash_opponents_turn.json PASS: cast by seat 0 during seat 1's turn (turn_seats [0, 1]) it resolves as a 2/1. Control /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_fdn_verify1/work_v3/control_creature_without_flash_refused_on_opponents_turn.json PASS: Diregraf Ghoul cast at the same moment is refused 'window:not_your_turn'. Wrong twin (expects the refusal) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Crash Through)]: the keyword trigger fires, card 2/1 -> 3/2; [you cast a creature (Aegis Turtle)]: none. The duration is not in a stimulus trace: pack elementalist_adept_prowess_noncreature_only.json PASS (Quick Study then Diregraf Ghoul: 3/2, one trigger only) and elementalist_adept_prowess_ends_at_end_of_turn.json PASS (2/1 again after the turn); wrong twins (4/3; 3/2 after the turn) fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/elementalist_adept_1.json",
+   "tools/scenarios/cards/FDN/elementalist_adept_2.json",
+   "tools/scenarios/cards/FDN/elementalist_adept_3.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

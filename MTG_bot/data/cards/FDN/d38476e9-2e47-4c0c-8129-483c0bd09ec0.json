@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d38476e9-2e47-4c0c-8129-483c0bd09ec0",
+ "name": "Gruul Guildgate",
+ "text_sha": "734407c3f99a00c199cdb0addf638c6f058424366146066523e5df1fd2dd6ad6",
+ "verified": {
+  "tree_sha": "11d66ab9ad07288b1568fbd95e2d808a524acd3045128c0f1e24ea613ce12b4b",
+  "probe_sha": "31f78a65be94aecc4ee656f1d3ebc8c12cd0e220e537715035f49d65d77a1ea1",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana R+1; [| ask 1 -> 1]: card becomes tapped, mana G+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

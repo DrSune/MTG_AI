@@ -1,0 +1,70 @@
+{
+ "set": "FDN",
+ "name": "wildwood_scourge_counts_the_elf_but_not_the_other_hydra",
+ "notes": "Printed: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.' Your Scourge has two counters. Felidar Savior enters ('put a +1/+1 counter on each of up to two other target creatures you control') targeting your 1/1 Hydra and your 1/1 Elf: both get a counter, but only the Elf is a non-Hydra, so the Scourge gets exactly one more (3), not two.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  {
+   "key": "savior",
+   "real": "Felidar Savior",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hydra",
+   "name": "Small Hydra",
+   "type": "Creature \u2014 Hydra",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf",
+   "name": "Small Elf",
+   "type": "Creature \u2014 Elf",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "savior",
+   "decisions": [
+    "hydra",
+    "elf"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "savior": "battlefield"
+  },
+  "counters": {
+   "hydra": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "elf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scourge": {
+    "PLUS_1_PLUS_1": 3
+   }
+  }
+ }
+}

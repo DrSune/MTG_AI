@@ -1,0 +1,71 @@
+{
+ "set": "FDN",
+ "name": "cathar_commando_sacrifice_destroys_artifact",
+ "notes": "Padf7879007 G4. Printed: '{1}, Sacrifice this creature: Destroy target artifact or enchantment.' Seat 1's creature is not a legal target (the activation is refused, nothing is paid). Seat 0 then pays {1} and sacrifices the Commando: seat 1's artifact is destroyed, the creature stays.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cc",
+   "real": "Cathar Commando",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "orelic",
+   "name": "Opp Relic",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "cc",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "obear"
+   ],
+   "expect_raise": "illegal"
+  },
+  {
+   "op": "activate",
+   "key": "cc",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "orelic"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cc": "graveyard",
+   "orelic": "graveyard",
+   "obear": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

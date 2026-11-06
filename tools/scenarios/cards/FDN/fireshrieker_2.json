@@ -1,0 +1,19 @@
+{"set": "FDN", "name": "fireshrieker_equip_refused_on_the_opponents_turn",
+ "notes": "P99c262467d G4. Printed: 'Equip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)' On seat 1's turn seat 0 has {2} but the equip activation is refused (sorcery timing); nothing is attached and the pool is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fs", "real": "Fireshrieker", "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "fs", "idx": 1, "seat": 0, "targets": ["mybear"], "expect_raise": "window:sorcery"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "attached": {"fs": null},
+  "mana_pool": {"0": {"C": 2}}
+ }
+}

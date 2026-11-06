@@ -8,5 +8,42 @@
   "missing": "When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.: MOVE_ZONE (and EXILE) take no duration role, so the 'until this enchantment leaves the battlefield' window cannot carry DurationUntilLeaves (which exists, wired only to GAIN_CONTROL / grants). Mapping the exile without it makes the exile permanent (stronger than printed); a separate leaves-the-battlefield return trigger is the old two-ability O-Ring wording and differs in timing edge cases. Needs MOVE_ZONE += duration (DurationUntilLeaves) with the executor returning the card to the battlefield under its owner's control. Flash keyword is compiled correctly; carrier SpellAbility(ENCHANTMENT) would also be needed.",
   "author": "claude-mapper-B",
   "date": "2026-10-29"
+ },
+ "verified": {
+  "tree_sha": "465c6a3f292bf401671a8b13ef136c833d53aba30e5fe97d118837d21d9c2519",
+  "probe_sha": "b1a55243488acff4a26540a6537c45927d5e52c8f9e8ce4246386979ba10a317",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "tree keywords FLASH, [cast] keywords +FLASH; no variant casts it outside the sorcery window. Pack stasis_snare_2: cast on the opponent's turn, its trigger exiles their creature. Control (not listed): Healer's Hawk cast on the opponent's turn is refused (window:not_your_turn).",
+    "issue": ""
+   },
+   {
+    "clause": "When this enchantment enters, exile target creature an opponent controls",
+    "status": "OK",
+    "evidence": "[cast] variants: ask target: [opp_flier, opp_tapped, opp_bear, opp_giant] (no creature of yours); e.g. opp_flier is targeted, moves battlefield -> exile; you: mana W-3. Pack stasis_snare_3 pins the ask's words (only the opponent's creatures).",
+    "issue": ""
+   },
+   {
+    "clause": "... until this enchantment leaves the battlefield.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace annotates 'until card leaves the battlefield, then back to the battlefield' but no variant removes the Snare. Pack stasis_snare_1: the Snare is destroyed and the exiled creature returns to the battlefield under its owner's control.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/stasis_snare_1.json",
+   "tools/scenarios/cards/FDN/stasis_snare_2.json",
+   "tools/scenarios/cards/FDN/stasis_snare_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

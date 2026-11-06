@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "dda4b515-49c0-43fe-9f6a-36defa326bb1",
+ "name": "Maalfeld Twins",
+ "text_sha": "fe83bdb366249581a056a2ed95216f7ca2e17fd19731eba92c824019545baf26",
+ "verified": {
+  "tree_sha": "4359466ee72d00cff682074de1600a65f0ccd9261b65de56ab773ea0fc4dcf30",
+  "probe_sha": "fe795c7f165ff2c7572feab4be3fbd295f9cb9ce239081ec983aa237a625cff5",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "When this creature dies, create two 2/2 black Zombie creature tokens.",
+    "status": "OK",
+    "evidence": "[stimulus: this card is dealt lethal damage] and [... opp_giant blocks it]: 'card dies', then '+ you:Zombie#1 (battlefield, you, 2/2)' and '+ you:Zombie#2 (battlefield, you, 2/2)'. Tree TokenSpec: Zombie, Creature — Zombie, 2/2, colors ('B',), matching the compiler's frame. Other creatures dying (you_bear, opp_bear) do not trigger it.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

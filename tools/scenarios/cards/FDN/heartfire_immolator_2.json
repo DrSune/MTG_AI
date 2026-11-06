@@ -1,0 +1,77 @@
+{
+ "set": "FDN",
+ "name": "heartfire_immolator_2",
+ "notes": "P49d853b00e G4 (verifier v1). Printed: '{R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker.' Equipped with Pirate's Cutlass (+2/+1) the Immolator is 4/3; sacrificed as the cost, it deals damage equal to its power as it last existed on the battlefield (CR 608.2h): 4 to the opponent's 6/6, which survives with 4 damage (not 3 = toughness, not 2 = printed power).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "imm",
+   "real": "Heartfire Immolator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cutlass",
+   "real": "Pirate's Cutlass",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Wurm",
+   "type": "Creature — Wurm",
+   "power": "6",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "cutlass",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "imm"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "imm",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "imm": "graveyard",
+   "ogre": "battlefield",
+   "cutlass": "battlefield"
+  },
+  "damage": {
+   "ogre": 4
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

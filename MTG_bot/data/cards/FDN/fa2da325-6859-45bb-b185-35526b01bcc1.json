@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "fa2da325-6859-45bb-b185-35526b01bcc1",
+ "name": "Golgari Guildgate",
+ "text_sha": "1bfcc151df8f84c7350e23cdee73242c42dbd8957eaf10c585cf0740dcf6db00",
+ "verified": {
+  "tree_sha": "ba11c270aa627c304a5cd3d3cf23cbcbba739c13f4b75f0b5a19fcc7118d8828",
+  "probe_sha": "d867b05e110559af256db81d6ed53b718e55873b587cb39f81030aee161cb3a2",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana B+1; [| ask 1 -> 1]: card becomes tapped, mana G+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

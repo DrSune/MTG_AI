@@ -1,0 +1,87 @@
+{
+ "set": "FDN",
+ "name": "pirates_cutlass_3",
+ "notes": "P3446e4f9ca G4 (verifier v1). Printed: 'Equip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)' On its own turn seat 0 pays {2} and equips the Bear (4/3). On the opponent's turn the same activation onto a second Bear is refused (CR 702.6a: sorcery timing); the Cutlass stays on the first Bear.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cutlass",
+   "real": "Pirate's Cutlass",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear2",
+   "name": "My Other Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "cutlass",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "cutlass",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "bear2"
+   ],
+   "expect_raise": "window:sorcery:not_own_turn"
+  }
+ ],
+ "expect": {
+  "attached": {
+   "cutlass": "bear"
+  },
+  "power": {
+   "bear": 4,
+   "bear2": 2
+  },
+  "toughness": {
+   "bear": 3,
+   "bear2": 2
+  }
+ }
+}

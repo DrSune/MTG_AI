@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Time Stop is an instant: on the OPPONENT's turn you cast it and their turn ends (CR 724.1): Time Stop goes to exile, the opponent's pump (their Kindled Fury on their 2/2) ends, and their combat can no longer happen ('no turn is open'), so your life stays 20.",
+ "cards": [
+  {"key": "ts", "real": "Time Stop", "zone": "hand", "controller": 0},
+  {"key": "okf", "real": "Kindled Fury", "zone": "hand", "controller": 1},
+  {"key": "obear", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"R": 1}},
+  {"op": "cast", "key": "okf", "real": "Kindled Fury", "controller": 1, "targets": ["obear"]},
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 4}},
+  {"op": "cast", "key": "ts", "real": "Time Stop", "controller": 0},
+  {"op": "combat", "seat": 1, "attack": {"obear": true}, "expect_raise": "no turn is open"}
+ ],
+ "expect": {
+  "zone": {"ts": "exile", "okf": "graveyard", "obear": "battlefield"},
+  "power": {"obear": 2},
+  "life": {"0": 20, "1": 20},
+  "turn_seats": [0, 1]
+ }
+}

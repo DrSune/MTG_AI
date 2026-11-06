@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "64e29bfc-9313-4e8c-808c-bc27f6b018a6",
+ "name": "Bloodfell Caves",
+ "text_sha": "4adb6831ffcce581b0240704d9a821666b005feb20ab9df8b7096e28c7ba5dc6",
+ "verified": {
+  "tree_sha": "a5686cfc3826b4632474c6cbf1a51a31765c0f27c8b12f3228cc9285aa903ba0",
+  "probe_sha": "9881b86043423ccce6059647aaa2623b46c20577df12a4afd6b5619be7344904",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: triggered ability [1] triggers, 'you gains 1 life', life 20 -> 21; fires again on [from your hand, the card enters during the opponent's turn] (life 20 -> 21); no other stimulus fires it.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana B+1; [| ask 1 -> 1]: card becomes tapped, mana R+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

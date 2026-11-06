@@ -1,0 +1,58 @@
+{
+ "set": "FDN",
+ "name": "battle_rattle_shaman_2",
+ "notes": "P3f31c27df7 G4 (verifier v1). Printed: 'At the beginning of combat on your turn, you may have target creature get +2/+0 until end of turn.' Any creature is a legal target: seat 0 takes the may and targets the opponent's 3/3 Ogre; no one attacks. During the turn the Ogre is 5/3 (+2/+0: toughness unchanged); the Shaman's own 2/2 Bear is unchanged.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "shaman",
+   "real": "Battle-Rattle Shaman",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {},
+   "may": {
+    "shaman": true
+   },
+   "decisions": [
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "ogre": 5,
+   "bear": 2
+  },
+  "toughness": {
+   "ogre": 3,
+   "bear": 2
+  }
+ }
+}

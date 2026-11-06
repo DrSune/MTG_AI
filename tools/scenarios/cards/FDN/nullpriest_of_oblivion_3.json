@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Nullpriest of Oblivion's kicked trigger targets 'target creature card from YOUR graveyard'. With two creature cards in your graveyard (card:1, card:2), a noncreature card there (card:3) and a creature card in the opponent's graveyard (card:4), the target ask offers exactly your two creature cards: the step stops at that ask (no decisions) and its message names every offered word.",
+ "cards": [
+  {"key": "np", "real": "Nullpriest of Oblivion", "zone": "hand", "controller": 0},
+  {"key": "dead", "name": "My Dead Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0},
+  {"key": "dead2", "name": "My Dead Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "relic", "name": "My Dead Relic", "type": "Artifact", "zone": "graveyard", "controller": 0},
+  {"key": "odead", "name": "Their Dead Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "np", "real": "Nullpriest of Oblivion", "controller": 0, "kicked": true, "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+ ],
+ "expect": {
+  "zone": {"odead": "graveyard", "relic": "graveyard"}
+ }
+}

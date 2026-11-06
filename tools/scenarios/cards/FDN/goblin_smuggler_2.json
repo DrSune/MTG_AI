@@ -1,0 +1,23 @@
+{"set": "FDN", "name": "goblin_smuggler_haste_taps_the_turn_it_is_cast",
+ "notes": "P8d05e3123b G4. Printed: Haste lets the Smuggler {T} as soon as it comes under your control. Cast this turn, its '{T}: Another target creature with power 2 or less can't be blocked this turn' is activated at once on your 2/2; then the 2/2 attacks and seat 1's untapped 4/4 is never offered a block, so the 2/2 deals 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "hand", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "smug"},
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["mybear"]},
+  {"op": "combat", "seat": 0, "attack": {"mybear": true}, "block": {"ogiant": "mybear"}}
+ ],
+ "expect": {
+  "tapped": {"smug": true, "mybear": true, "ogiant": false},
+  "attackers": {"mybear": true},
+  "blocked": {"mybear": []},
+  "not_asked_to_block": ["ogiant"],
+  "zone": {"mybear": "battlefield", "ogiant": "battlefield"},
+  "life": {"0": 20, "1": 18}
+ }
+}

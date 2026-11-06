@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "dive_down_plus_zero_plus_three_saves_from_damage",
+ "notes": "P97ff120a42 G4. Printed: '... gets +0/+3 ... until end of turn.' Seat 0's 2/2 under Dive Down is a 2/5; dealt 4 damage it survives this turn (marked 4); seat 1's own 2/2 is untouched by the bonus.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dd", "real": "Dive Down", "zone": "hand", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "dd", "controller": 0, "targets": ["mybear"]},
+  {"op": "deal_damage", "source": "obear", "target": "mybear", "amount": 4}
+ ],
+ "expect": {
+  "zone": {"mybear": "battlefield"},
+  "power": {"mybear": 2, "obear": 2},
+  "toughness": {"mybear": 5, "obear": 2},
+  "damage": {"mybear": 4}
+ }
+}

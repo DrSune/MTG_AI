@@ -1,0 +1,69 @@
+{
+ "set": "FDN",
+ "name": "obliterating_bolt_2",
+ "notes": "P56cb5991ec G4 (verifier v1). Printed: '... If that creature or planeswalker would die this turn, exile it instead.' The 6/6 target survives the 4 damage; the turn ends (its damage wears off); on the next turn 6 damage kill it and, the turn having passed, it goes to its owner's graveyard.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bolt",
+   "real": "Obliterating Bolt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "big",
+   "name": "Opp Wurm",
+   "type": "Creature — Wurm",
+   "power": "6",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "src",
+   "name": "My Pinger",
+   "type": "Creature — Human",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "bolt",
+   "targets": [
+    "big"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "big",
+   "amount": 6,
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bolt": "graveyard",
+   "big": "graveyard"
+  }
+ }
+}

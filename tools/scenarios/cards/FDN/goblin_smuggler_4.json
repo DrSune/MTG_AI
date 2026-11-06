@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "goblin_smuggler_target_pumped_after_resolution_stays_unblockable",
+ "notes": "P8d05e3123b G4. Printed: '{T}: Another target creature with power 2 or less can't be blocked this turn.' 'With power 2 or less' is a targeting requirement, checked when the ability is activated and as it resolves (CR 601.2c, 608.2b); once it has resolved, the target can't be blocked this turn whatever its power becomes (CR 611.2c; Goblin Tunneler / Goblin Smuggler rulings). Seat 0 controls Goblin Oriflamme ('Attacking creatures you control get +1/+0'). The Smuggler targets your 2/2 (legal: power 2), which then attacks as a 3/2: seat 1's untapped 4/4 is never offered a block and the 3/2 deals 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "battlefield", "controller": 0},
+  {"key": "ori", "real": "Goblin Oriflamme", "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["mybear"]},
+  {"op": "combat", "seat": 0, "attack": {"mybear": true}, "block": {"ogiant": "mybear"}}
+ ],
+ "expect": {
+  "attackers": {"mybear": true},
+  "blocked": {"mybear": []},
+  "not_asked_to_block": ["ogiant"],
+  "zone": {"mybear": "battlefield", "ogiant": "battlefield"},
+  "life": {"0": 20, "1": 17}
+ }
+}

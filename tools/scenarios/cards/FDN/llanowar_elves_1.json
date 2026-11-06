@@ -1,0 +1,23 @@
+{"set": "FDN", "name": "llanowar_elves_summoning_sick_then_taps_for_one_green",
+ "notes": "P7a0e742a3d G4. Printed: '{T}: Add {G}.' A creature's {T} ability needs it under its controller's control since the start of their most recent turn (CR 302.6): cast this turn, Llanowar Elves cannot tap (refused, nothing added). On seat 0's next turn it taps for exactly one {G}.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elves", "real": "Llanowar Elves", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "key": "elves"},
+  {"op": "activate", "key": "elves", "idx": 0, "seat": 0, "expect_raise": "summoning sickness"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "elves", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "zone": {"elves": "battlefield"},
+  "tapped": {"elves": true},
+  "mana_pool": {"0": {"G": 1}, "1": {}}
+ }
+}

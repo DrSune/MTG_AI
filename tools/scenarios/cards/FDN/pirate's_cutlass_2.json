@@ -1,0 +1,90 @@
+{
+ "set": "FDN",
+ "name": "pirates_cutlass_2",
+ "notes": "P3446e4f9ca G4 (verifier v1). Printed: 'When this Equipment enters, attach it to target Pirate you control. / Equipped creature gets +2/+1.' Seat 0 casts the Cutlass ({3}) and picks Pirate B: the Cutlass is attached to Pirate B, which is 4/3; the other Pirates and the Bear are unchanged.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cutlass",
+   "real": "Pirate's Cutlass",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pirate_a",
+   "name": "Pirate A",
+   "type": "Creature — Human Pirate",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pirate_b",
+   "name": "Pirate B",
+   "type": "Creature — Human Pirate",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opp_pirate",
+   "name": "Opp Pirate",
+   "type": "Creature — Human Pirate",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "cutlass",
+   "decisions": [
+    "pirate_b"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cutlass": "battlefield"
+  },
+  "attached": {
+   "cutlass": "pirate_b"
+  },
+  "power": {
+   "pirate_b": 4,
+   "pirate_a": 2,
+   "opp_pirate": 2,
+   "bear": 2
+  },
+  "toughness": {
+   "pirate_b": 3,
+   "pirate_a": 2,
+   "opp_pirate": 2,
+   "bear": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

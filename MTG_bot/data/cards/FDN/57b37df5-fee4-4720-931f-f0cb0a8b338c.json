@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "57b37df5-fee4-4720-931f-f0cb0a8b338c",
+ "name": "Orzhov Guildgate",
+ "text_sha": "3049c4adf44a17d68f7ad22f82bae844e7c1804705365173e4a734b563942893",
+ "verified": {
+  "tree_sha": "da6cff798fa9396f5c09cdc6aed97d109806e280f19b3a50f654aa09a5f69497",
+  "probe_sha": "ce00fff8869fba2d2644ff50593d1449b0ced8620f6d432a80e2389c513df5b4",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on the entry during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: ask choose [0, 1] -> 0: tapped, you: mana W+1; [... | ask 1 -> 1]: tapped, you: mana B+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

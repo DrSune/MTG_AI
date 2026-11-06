@@ -1,0 +1,19 @@
+{"set": "FDN", "name": "incinerating_blast_nothing_to_discard_draws_nothing",
+ "notes": "Paf195f16fe G4. Printed: 'Incinerating Blast deals 6 damage to target creature. You may discard a card. If you do, draw a card.' Seat 0 casts Incinerating Blast as its last card at seat 1's 4/4 (dealt 6, dies). Seat 0's hand is empty, so no card can be discarded and 'If you do' is false (CR 608.2c): nothing is drawn, seat 0's hand stays at 0 and its library is untouched. The step offers the 'you may' its first legal word (whatever the engine offers), so the pack holds whether or not the engine offers the may.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ib", "real": "Incinerating Blast", "zone": "hand", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "ib", "targets": ["ogiant"], "decisions": ["first-legal", "first-legal"]}
+ ],
+ "expect": {
+  "zone": {"ib": "graveyard", "ogiant": "graveyard"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "graveyard": {"0": ["Incinerating Blast"], "1": ["Opp Giant"]},
+  "mana_pool": {"0": {}}
+ }
+}

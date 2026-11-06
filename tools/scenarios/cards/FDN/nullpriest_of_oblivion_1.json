@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Nullpriest of Oblivion, printed: 'Kicker {3}{B}. When this creature enters, if it was kicked, return target creature card from your graveyard to the battlefield.' Cast kicked for exactly {1}{B}+{3}{B}: your 3/3 creature card returns from YOUR graveyard to the battlefield under your control; the opponent's creature card stays in their graveyard.",
+ "cards": [
+  {"key": "np", "real": "Nullpriest of Oblivion", "zone": "hand", "controller": 0},
+  {"key": "dead", "name": "My Dead Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0},
+  {"key": "odead", "name": "Their Dead Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "np", "real": "Nullpriest of Oblivion", "controller": 0, "kicked": true, "decisions": ["dead"]}
+ ],
+ "expect": {
+  "kick_rows": {"np": {"kicked": true}},
+  "zone": {"np": "battlefield", "dead": "battlefield", "odead": "graveyard"},
+  "controller": {"dead": 0},
+  "mana_pool": {"0": {}}
+ }
+}

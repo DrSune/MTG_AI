@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "84487586-4f71-457a-b983-4f1f7a71deef",
+ "name": "Bishop's Soldier",
+ "text_sha": "f32d9199acb1aa990ef7869cd8e1e3bb777be62525f52f2e2b14bdc5d58925dc",
+ "verified": {
+  "tree_sha": "f71aafec85afa9dc55ec43e0157e0cc2d4d7964e6cb4898e1fbf2851b78ccaed",
+  "probe_sha": "102f70299b655ee124f315c4bf9be5f5e3e0e389481cc9ed38ab330a1dc3ff6e",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: 'you gains 2 life (by card/DEAL_DAMAGE)', opp 20 -> 18, you 20 -> 22; blocked by opp_giant: you gain 2 for the 2 it deals. Cast {1}{W}: W-2, a 2/2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

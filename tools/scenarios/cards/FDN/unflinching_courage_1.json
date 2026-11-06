@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Unflinching Courage, printed: 'Enchant creature. Enchanted creature gets +2/+2 and has trample and lifelink.' Cast for exactly {1}{G}{W} on your 2/2 Bear (now 4/4, the Aura attached to it). The Bear attacks; the opponent's 2/2 blocks: 2 lethal to the blocker, 2 tramples over (answer [0]): opponent 20 -> 18; lifelink: you gain all 4 damage the Bear dealt (20 -> 24). The blocker dies; the Bear has 2 damage marked.",
+ "cards": [
+  {"key": "uc", "real": "Unflinching Courage", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "uc", "real": "Unflinching Courage", "controller": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"blk": "bear"}, "trample": {"bear": [0]}}
+ ],
+ "expect": {
+  "attached": {"uc": "bear"},
+  "power": {"bear": 4},
+  "toughness": {"bear": 4},
+  "blocked": {"bear": ["blk"]},
+  "zone": {"blk": "graveyard", "bear": "battlefield"},
+  "life": {"0": 24, "1": 18},
+  "damage": {"bear": 2}
+ }
+}

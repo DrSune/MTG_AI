@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Gnarlback Rhino: an Aura spell targets the creature it will enchant (CR 303.4a), so casting Unflinching Courage on the Rhino is 'a spell that targets this creature': you draw one card (hand 1 -> 0 -> 1); the Rhino becomes 6/6.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "uc", "real": "Unflinching Courage", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "uc", "real": "Unflinching Courage", "controller": 0, "targets": ["rhino"]}
+ ],
+ "expect": {
+  "hand": {"0": 1},
+  "attached": {"uc": "rhino"},
+  "power": {"rhino": 6},
+  "toughness": {"rhino": 6}
+ }
+}

@@ -165,5 +165,32 @@
  },
  "probe": {
   "sha": "8e4ede70c7a0ecb422cea6ec760ec761730c6b4cd66199d1a812272357c448d5"
+ },
+ "verified": {
+  "tree_sha": "ad879cb79df19afbf5229de3f113715abbf41a5a1988c130873767b9b6a13de9",
+  "probe_sha": "a8aba8b3b59b6164586acbb09b41efcb720958e0019b9b17c6148f3cb61e4522",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no block is declared (the Giant cannot block a flier), opp is dealt 1.",
+    "issue": ""
+   },
+   {
+    "clause": "Enigma Drake's power is equal to the number of instant and sorcery cards in your graveyard.",
+    "status": "OK",
+    "evidence": "[cast]: P/T 1/4 with you_used (a sorcery) in seat 0's graveyard; you_fallen (a creature card) and opp_used (seat 1's sorcery) not counted. [you cast an instant or sorcery (Crash Through)]: 1/4 -> 2/4 once it is in the graveyard. Toughness stays 4.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

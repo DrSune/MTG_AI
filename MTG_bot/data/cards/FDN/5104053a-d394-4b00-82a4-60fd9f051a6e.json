@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5104053a-d394-4b00-82a4-60fd9f051a6e",
+ "name": "Fierce Empath",
+ "text_sha": "1f61f120c4fc809f684c2f1831e70f683b51c1931d64cd42456275bdce7de9f7",
+ "verified": {
+  "tree_sha": "f3126232d4f60b6461110758210bada0e5659f3a7dc09266d172fd0e8d5130e7",
+  "probe_sha": "b6e772e50686952492eb74a987b38e26f520e03d5bf58ce640402acf1a5072f6",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast]: ask may [fire, skip] (skip variant shown), trigger [0] fires, but the probe library has no such card. Pack fierce_empath_1: with mana value 6 and 7 creatures, a mana value 5 creature and a mana value 6 sorcery in the library, the chosen mana value 6 creature alone goes to hand; seat 1's library is untouched. fierce_empath_2: only the mana value 5 creature and the sorcery, nothing moves.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/fierce_empath_1.json",
+   "tools/scenarios/cards/FDN/fierce_empath_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 4,
+   "score": 0.3076923076923077,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "drop step 2 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/inner/steps/0/args/cards/filter",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/filter/children/1/count",
+    "amount-1 at 1/0/effect/inner/steps/0/args/cards/filter/children/1/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination"
+   ]
+  }
+ }
+}

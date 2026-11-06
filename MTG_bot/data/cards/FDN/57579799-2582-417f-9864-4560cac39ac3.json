@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "57579799-2582-417f-9864-4560cac39ac3",
+ "name": "Moment of Triumph",
+ "text_sha": "86e595688786710fb2735937adf07c480a25ea28ce2083c50ccac5eb5a2cc0ca",
+ "verified": {
+  "tree_sha": "d72e9dccc2a4f590c4c8a7e8fd14549e68de3e8ae7a50c689d0d470e24bcdfee",
+  "probe_sha": "4ddabe8ab4e97aa01f22b04e756eab804e687640aea39afa317281cc806e7016",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Target creature gets +2/+2 until end of turn.",
+    "status": "OK",
+    "evidence": "Target slot: the six creatures; e.g. you_bear 2/2 -> 4/4, opp_tapped 3/3 -> 5/5; every one reverts after the turn ends.",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 2 life.",
+    "status": "OK",
+    "evidence": "Every variant: you gains 2 life (20 -> 22); mana W-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 12,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

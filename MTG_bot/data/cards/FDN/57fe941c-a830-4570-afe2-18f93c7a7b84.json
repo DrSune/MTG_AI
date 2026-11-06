@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "57fe941c-a830-4570-afe2-18f93c7a7b84",
+ "name": "Obliterating Bolt",
+ "text_sha": "eceb3d8a70e125cd8f3e7c6567861ecfdcbd8b45f11d544f814bc714a14f9de6",
+ "verified": {
+  "tree_sha": "aaaab307495df9c91ac9d92ba756edb03c62f6b0b6498f75de60757df283aaf8",
+  "probe_sha": "59a446932cd01e04463e23e06c7aa1c5b1ebb156ed69da00e698e5b8b44e1fb6",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Obliterating Bolt deals 4 damage to target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "Target slot: the six creatures (no players, no other permanents; no planeswalker on the probe board); each target is dealt 4 damage. Pack obliterating_bolt_3: a planeswalker (Liliana, Dreadhorde General) is a legal target.",
+    "issue": ""
+   },
+   {
+    "clause": "If that creature or planeswalker would die this turn, exile it instead.",
+    "status": "OK",
+    "evidence": "Every target (1/1 to 4/4) moves battlefield -> exile, never to a graveyard. Pack obliterating_bolt_1: a 6/6 target survives the 4 and dies later that turn: exiled; another creature dying that turn goes to the graveyard. obliterating_bolt_2: the 6/6 dies the next turn: graveyard. obliterating_bolt_3: a planeswalker at 3 loyalty is exiled.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/obliterating_bolt_1.json",
+   "tools/scenarios/cards/FDN/obliterating_bolt_2.json",
+   "tools/scenarios/cards/FDN/obliterating_bolt_3.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

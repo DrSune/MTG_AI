@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "solemn_simulacrum_2",
+ "notes": "P4fcc00bad4 G4 (verifier v1). Printed: '... search your library for a basic land card ...' The library holds only a nonbasic land (a Desert) and a creature: seat 0 takes the may, nothing qualifies, nothing leaves the library.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "solemn",
+   "real": "Solemn Simulacrum",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "desert",
+   "name": "Odd Desert",
+   "type": "Land — Desert",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 0
+  },
+  {
+   "key": "lib_beast",
+   "name": "Library Beast",
+   "type": "Creature — Beast",
+   "power": "3",
+   "toughness": "3",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "solemn",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "solemn": "battlefield",
+   "desert": "library",
+   "lib_beast": "library"
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

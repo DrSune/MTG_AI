@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Scorching Dragonfire, printed: 'deals 3 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead.' The 4/4 target survives the 3 damage; later the same turn another source deals it 1 more and it would die: it is exiled instead, never in its owner's graveyard. The spell itself goes to its owner's graveyard. No damage stays marked on the exiled card.",
+ "cards": [
+  {"key": "df", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Target Ogre", "type": "Creature — Ogre", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "df", "real": "Scorching Dragonfire", "controller": 0, "targets": ["ogre"]},
+  {"op": "deal_damage", "source": "pinger", "target": "ogre", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"ogre": "exile", "df": "graveyard", "pinger": "battlefield"},
+  "graveyard": {"0": ["Scorching Dragonfire"], "1": []},
+  "mana_pool": {"0": {}}
+ }
+}

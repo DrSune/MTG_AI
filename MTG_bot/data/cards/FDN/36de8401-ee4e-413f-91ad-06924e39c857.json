@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "36de8401-ee4e-413f-91ad-06924e39c857",
+ "name": "Angelic Edict",
+ "text_sha": "0018afb8089a5f350eb73ce4408249ab355df51ca99b32dfee77d01524c7ad6f",
+ "verified": {
+  "tree_sha": "27c14c3aa9aed243d83faaaf17a5e81734b07af9ea70a559ee7762ebd37a8f4a",
+  "probe_sha": "684036a74ee9fceb70f17b57d8fadef18424f25b33559deb731ceb26e8c1e5c0",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Exile target creature or enchantment.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, you_charm, opp_bear, opp_giant, opp_charm]: creatures and enchantments of both sides, no relics, no players. Each variant: target moves battlefield -> exile (by card/MOVE_ZONE); card to graveyard; cost W-5.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

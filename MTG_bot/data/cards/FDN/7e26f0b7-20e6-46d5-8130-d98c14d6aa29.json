@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7e26f0b7-20e6-46d5-8130-d98c14d6aa29",
+ "name": "Temple of Mystery",
+ "text_sha": "8b1db14050ffb0833dfdca7414aba847154faf9da4b7b5420f091690a3c37555",
+ "verified": {
+  "tree_sha": "bf7b87aa282f892b4128d8bc252a293bf343f9d816db7d58b65d48d64e0a45c0",
+  "probe_sha": "db45d0fc6dffaa14be26d203f307585fa4ee7306a22d6ebc9a64da8be22caaed",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] and [play land | ask 1 -> bottom]: tapped False -> True; also on the entry during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[play land]: card's triggered ability [1] triggers, ask scry: [top, bottom] (one card); the bottom move is not visible in a trace. Pack temple_of_mystery_1: answering 'bottom' moves exactly Library 5 to the bottom of YOUR library; the land is tapped.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: tapped, you: mana G+1; [... | ask 1 -> 1]: tapped, you: mana U+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_mystery_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

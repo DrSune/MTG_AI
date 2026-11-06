@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "cathar_commando_flash_cast_on_the_opponents_turn",
+ "notes": "Padf7879007 G4. Printed: 'Flash' (cast it any time you could cast an instant). On seat 1's turn, seat 0 casts Cathar Commando ({1}{W}): it resolves onto seat 0's battlefield, a 3/1, and the pool is spent.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cc", "real": "Cathar Commando", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
+  {"op": "cast", "key": "cc", "controller": 0}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"cc": "battlefield"},
+  "controller": {"cc": 0},
+  "power": {"cc": 3},
+  "toughness": {"cc": 1},
+  "mana_pool": {"0": {}}
+ }
+}

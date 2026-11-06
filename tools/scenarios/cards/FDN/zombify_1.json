@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Zombify, printed: 'Return target creature card from your graveyard to the battlefield.' Cast for exactly {3}{B}: your creature card returns to the battlefield under your control; Zombify goes to your graveyard.",
+ "cards": [
+  {"key": "z", "real": "Zombify", "zone": "hand", "controller": 0},
+  {"key": "dead", "name": "My Dead Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "z", "real": "Zombify", "controller": 0, "targets": ["dead"]}
+ ],
+ "expect": {
+  "zone": {"dead": "battlefield", "z": "graveyard"},
+  "controller": {"dead": 0},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7bff8d4a-1c7d-48b8-b3e3-737dd6f01823",
+ "name": "Quick Study",
+ "text_sha": "8d85650974a0d8eb75e5cff2c0f936b4995d77a968c6f510f7665b3b2aa9dba0",
+ "verified": {
+  "tree_sha": "6beda54a49bf3ac6b47cc5f651b334f6933888407b9e861b6de3adeffcdba39a",
+  "probe_sha": "7eb87bee0a5829ae4eb33d67bfc452d993fcd7a3b6a89fd3628b593f190f69b9",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "[cast]: you draws you:Library 5#1 and you:Library 4#1; library 6 -> 4, hand 6 -> 7; card to graveyard; cost U-1 W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

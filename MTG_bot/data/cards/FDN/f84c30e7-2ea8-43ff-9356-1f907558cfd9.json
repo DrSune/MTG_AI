@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f84c30e7-2ea8-43ff-9356-1f907558cfd9",
+ "name": "Aegis Turtle",
+ "text_sha": "e5544fdcadbad40a929e8cce47aadc9d9aecbabdb8e8943882c690edbd60540c",
+ "verified": {
+  "tree_sha": "ad06b2e6d6ce189cbbd71c99e0c1e3cd60db9fc39047a83b2fd0c90a7c1a9942",
+  "probe_sha": "922e57299579d97cebbe1f29afcdfda1cd906c2250322da8615291278f738b8d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Turtle 0/5 for {U})",
+    "status": "OK",
+    "evidence": "tree: only SpellAbility(CREATURE). [cast]: P/T 0/5, you: mana U-1. [stimulus: attacks alone, unblocked]: no damage (power 0).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

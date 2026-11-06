@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1ff25f67-36a7-4cfa-a2b1-2135b5b6fb67",
+ "name": "Scavenging Ooze",
+ "text_sha": "b508255feb7bc72f96db24657653644dcc9e7c34e28a4c4754938cfd5687d5c7",
+ "verified": {
+  "tree_sha": "e8ee5ec7c888b6e6aa53eca8d8c54a21e7ede8a2005ca193f10c41b694f0c649",
+  "probe_sha": "0bf28823550a249c0ec2add43c534207a0bae8be8881c1d10252aa051ba9e8a7",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "{G}: Exile target card from a graveyard.",
+    "status": "OK",
+    "evidence": "ability [0] target slot 1..1 of [you_fallen, you_used, opp_fallen, opp_used] (both graveyards); each variant moves graveyard -> exile; cost G-1, no tap.",
+    "issue": ""
+   },
+   {
+    "clause": "If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.",
+    "status": "OK",
+    "evidence": "you_fallen and opp_fallen (creature cards): card gets 1 PLUS_1_PLUS_1 counter (2/2 -> 3/3) and you gain 1 (20 -> 21); you_used and opp_used (not creatures): exile only.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 12,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

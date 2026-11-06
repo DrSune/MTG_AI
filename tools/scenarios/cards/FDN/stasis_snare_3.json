@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Stasis Snare's target is 'target creature an opponent controls': your own creature is not offered. A decision naming your own creature is a word the target ask does not offer, so the pack-runner reports it; this pack instead pins the ask's vocabulary through expect_raise on a cast with no decisions (the step stops at the target ask and names every word it offers: card:2 and card:3, the two opposing Ogres; card:1, your Bear, is absent).",
+ "cards": [
+  {"key": "snare", "real": "Stasis Snare", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Their Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "ogre2", "name": "Their Second Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 3}},
+ "steps": [
+  {"op": "cast", "key": "snare", "real": "Stasis Snare", "controller": 0, "expect_raise": "needs a decision from ('card:2', 'card:3')"}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield"}
+ }
+}

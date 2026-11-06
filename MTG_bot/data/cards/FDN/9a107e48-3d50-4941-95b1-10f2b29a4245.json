@@ -190,21 +190,21 @@
   "sha": "0703c24ff494fe07ed5c3bd079c050cd9f87dfae9fcb082d0533eed14edcc66a"
  },
  "verified": {
-  "tree_sha": "d61b5f145a64f004fabaaa10f69d29af32dec5b7ce4581c91422f9d7f530afed",
-  "probe_sha": "eb0940960307577307e4e4ff4368488927a2ecaa4d6f67a82e61e46cbf402c9b",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m1",
+  "tree_sha": "3c2ac22233e4b3efec758bc79854ee2fc4548af9560127c2365eda47fb7adffd",
+  "probe_sha": "5cb48b9869568ec8e69e84d43b7417b4d51a91c725fdd89447fd9ff2a4f64812",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
   "clauses": [
    {
     "clause": "Destroy target nonland permanent.",
     "status": "OK",
-    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, you_relic, you_charm, opp_bear, opp_giant, opp_relic, opp_charm] - every nonland permanent of both sides, no land (you_land/opp_land absent); each variant moves the target battlefield -> graveyard (by card/DESTROY).",
+    "evidence": "Target slot: creatures, artifacts and enchantments of both seats, no lands; each target moves battlefield -> graveyard (by card/DESTROY).",
     "issue": ""
    },
    {
     "clause": "Its controller creates a 1/1 white Human creature token.",
     "status": "OK",
-    "evidence": "Your targets (you_bear, you_giant, you_relic, you_charm) -> + you:Human (battlefield, you, 1/1); the opponent's targets -> + opp:Human (battlefield, opp, 1/1); exactly one token each; the instant then goes to the graveyard.",
+    "evidence": "A destroyed seat-0 permanent gives you:Human (battlefield, you, 1/1); a seat-1 permanent gives opp:Human (battlefield, opp, 1/1); one token each time; TokenSpec colors ('W',).",
     "issue": ""
    }
   ],

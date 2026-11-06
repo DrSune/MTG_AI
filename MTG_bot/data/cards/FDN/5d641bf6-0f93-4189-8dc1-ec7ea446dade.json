@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5d641bf6-0f93-4189-8dc1-ec7ea446dade",
+ "name": "Tranquil Cove",
+ "text_sha": "8d5a89d65e7553da540ada75f8e7a152d02995b7f1e03bfc44dc081e17c430ee",
+ "verified": {
+  "tree_sha": "bc65fc72096e8e5c3a361a90844b3a404d2688fbcaee157b320d127c95c22d6e",
+  "probe_sha": "41eaa151339b8cd83488b7f5fd74a08fe3344454d2d1c85b12625bbcef95a826",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also when it enters on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: trigger [1], you gains 1 life (20 -> 21); same on the opponent's-turn entry.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: choose 0 -> card becomes tapped, W+1; choose 1 -> tapped, U+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

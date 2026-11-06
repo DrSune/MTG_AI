@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Adventuring Gear's landfall boost lasts until end of turn: after the Forest pumps the equipped Bear to 4/4, the turn ends and the Bear is 2/2 again, still equipped.",
+ "cards": [
+  {"key": "gear", "real": "Adventuring Gear", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "gear", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "play", "key": "land", "seat": 0},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "attached": {"gear": "bear"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }
+}

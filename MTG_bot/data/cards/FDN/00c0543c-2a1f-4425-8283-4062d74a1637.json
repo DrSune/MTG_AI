@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "00c0543c-2a1f-4425-8283-4062d74a1637",
+ "name": "Solemn Simulacrum",
+ "text_sha": "9b910a1a303fd59d4346f98c0902cb0c7dc1a68167ade1aa9be58193b34c5b40",
+ "verified": {
+  "tree_sha": "0425d8b2e045837f96429b356172ce37a082521cc8d653586b745a3c7ca27b09",
+  "probe_sha": "7800dd0d8503d9c049f9d99d1a1d7f3c5400653905b874105adbf14654eacd09",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast]: ask may [fire, skip] (skip variant shown), trigger [0] fires, but the probe library has no basic land, so nothing is found. Pack solemn_simulacrum_1: with a Forest and a Plains in the library, the chosen Forest alone enters tapped under seat 0's control; the Plains, a nonbasic Desert and a creature stay; seat 1's library is untouched. solemn_simulacrum_2: only a nonbasic land and a creature, nothing moves.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, you may draw a card.",
+    "status": "OK",
+    "evidence": "[this card is dealt lethal damage]: ask may [fire, skip] -> fire, trigger [1], you draws you:Library 5#1 (hand 5 -> 6). In [... opp_giant blocks it] the trigger fires and the combat answerer declines the may (a probe artifact, see Battle-Rattle Shaman).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/solemn_simulacrum_1.json",
+   "tools/scenarios/cards/FDN/solemn_simulacrum_2.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 6,
+   "score": 0.42857142857142855,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/0/effect/inner/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/inner/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/destination/controller"
+   ]
+  }
+ }
+}

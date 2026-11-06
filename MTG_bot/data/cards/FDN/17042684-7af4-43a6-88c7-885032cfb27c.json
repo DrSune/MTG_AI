@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "17042684-7af4-43a6-88c7-885032cfb27c",
+ "name": "Adventuring Gear",
+ "text_sha": "3f85067a7ae9596c17498523ee41c9dca64efefb662019cdb2f1d13cdc76ca3a",
+ "verified": {
+  "tree_sha": "f01e417598c9919c848f8728d8c0a2ded616b8344f6e14677901eb52705e0863",
+  "probe_sha": "344e73adca4632802a267f533cf642ce27554c76477fd0eafd256c3f8e78cbb3",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Landfall - Whenever a land you control enters, equipped creature gets +2/+2 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[stimulus: you play a land]: card's triggered ability [0] triggers, but the Gear is attached to nothing, so no creature changes. Packs: adventuring_gear_1 (equipped Bear 4/4 after your land drop, your other creature unchanged), _2 (back to 2/2 after the turn ends), _3 (the opponent's land drop: no boost).",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {1}",
+    "status": "OK",
+    "evidence": "ability [1] target slot: 1..1 of [you_bear, you_giant] (your creatures only); [activate [1] targets=['you_bear']]: you_bear is targeted, you: mana W-1; tree timing=ActivationWindow.SORCERY. The attachment itself is not visible in the trace (no static); pack adventuring_gear_1 shows the Gear attached to the Bear.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/adventuring_gear_1.json",
+   "tools/scenarios/cards/FDN/adventuring_gear_2.json",
+   "tools/scenarios/cards/FDN/adventuring_gear_3.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 12,
+   "score": 0.631578947368421,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/toughness/magnitude",
+    "amount-1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d0d2c45b-b6e3-4999-bdab-976e8f0d6617",
+ "name": "Dragon Fodder",
+ "text_sha": "79ce4670d237654a74ddc95eb21abc001f0b6a1383d750acea410908364bb03c",
+ "verified": {
+  "tree_sha": "2bebcba411cf6e035965f89c742c3f2ced196b3887bf3bd987d28cf0cf9649fb",
+  "probe_sha": "d948f5253795c850d4d8eb7260a74ca2d716a7ef27a18348756291db05f12e12",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Create two 1/1 red Goblin creature tokens.",
+    "status": "OK",
+    "evidence": "[cast]: '+ you:Goblin#1 (battlefield, you, 1/1)' and '+ you:Goblin#2 (battlefield, you, 1/1)'; card to graveyard; cost R-1 W-1. Colour is not a trace lane; TokenSpec colors ('R',) as the compiler's parse.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

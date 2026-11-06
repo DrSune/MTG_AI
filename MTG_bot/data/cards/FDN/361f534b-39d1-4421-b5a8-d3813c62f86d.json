@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "361f534b-39d1-4421-b5a8-d3813c62f86d",
+ "name": "Rakdos Guildgate",
+ "text_sha": "98d8d8c9b6fd0160033700dd6fec5576295fa999a7103eda7b29e8d34de981b2",
+ "verified": {
+  "tree_sha": "941010671c17fa6f297ad3a4887ae46c9a2b94286c07293a7e8c9e7d46b43226",
+  "probe_sha": "602ee8a5a1f2e1e4bccb521ba2e2f1546b12fe73120bd387d25cc083e7e98b95",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card hand -> battlefield, tapped False -> True; also tapped when it enters during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {R}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, you: mana B+1; [... | ask 1 -> 1]: tapped, you: mana R+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

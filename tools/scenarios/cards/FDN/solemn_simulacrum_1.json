@@ -1,0 +1,98 @@
+{
+ "set": "FDN",
+ "name": "solemn_simulacrum_1",
+ "notes": "P4fcc00bad4 G4 (verifier v1). Printed: 'When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.' Seat 0's library holds a Forest and a Plains (basic), a nonbasic Desert and a creature. Seat 0 takes the may and picks the Forest: one card only, it enters tapped under seat 0's control; the Plains, the Desert and the creature stay; seat 0's library (9 cards) is shuffled, the opponent's library is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "solemn",
+   "real": "Solemn Simulacrum",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "plains",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "desert",
+   "name": "Odd Desert",
+   "type": "Land — Desert",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 0
+  },
+  {
+   "key": "lib_beast",
+   "name": "Library Beast",
+   "type": "Creature — Beast",
+   "power": "3",
+   "toughness": "3",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "solemn",
+   "decisions": [
+    "fire",
+    "forest"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "solemn": "battlefield",
+   "forest": "battlefield",
+   "plains": "library",
+   "desert": "library",
+   "lib_beast": "library"
+  },
+  "tapped": {
+   "forest": true
+  },
+  "controller": {
+   "forest": 0
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

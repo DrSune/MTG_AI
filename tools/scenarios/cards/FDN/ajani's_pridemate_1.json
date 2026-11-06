@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani's Pridemate, printed: 'Whenever you gain life, put a +1/+1 counter on this creature.' First the OPPONENT gains 1 life (their lifelink 1/1 deals 1 damage): no counter. Then YOU gain 1 life (your lifelink 1/1 deals 1 damage): exactly one +1/+1 counter, the Pridemate is 3/3.",
+ "cards": [
+  {"key": "pm", "real": "Ajani's Pridemate", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Lifelinker", "type": "Creature — Cleric", "power": "1", "toughness": "1", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Their Lifelinker", "type": "Creature — Cleric", "power": "1", "toughness": "1", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 1},
+  {"key": "wall0", "name": "My Wall", "type": "Creature — Wall", "power": "0", "toughness": "8", "zone": "battlefield", "controller": 0},
+  {"key": "wall1", "name": "Their Wall", "type": "Creature — Wall", "power": "0", "toughness": "8", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "theirs", "target": "wall0", "amount": 1, "controller": 1},
+  {"op": "deal_damage", "source": "mine", "target": "wall1", "amount": 1, "controller": 0}
+ ],
+ "expect": {
+  "life": {"0": 21, "1": 21},
+  "counters": {"pm": {"PLUS_1_PLUS_1": 1}},
+  "power": {"pm": 3},
+  "toughness": {"pm": 3},
+  "damage": {"wall0": 1, "wall1": 1}
+ }
+}

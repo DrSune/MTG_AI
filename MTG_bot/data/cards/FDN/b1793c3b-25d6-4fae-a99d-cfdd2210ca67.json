@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b1793c3b-25d6-4fae-a99d-cfdd2210ca67",
+ "name": "Druid of the Cowl",
+ "text_sha": "6a9851ce583cb7384471a970d532db52b62c2f2a02ca8eff7ce2390b7a6dc19b",
+ "verified": {
+  "tree_sha": "f6ad5b4b2ca9d54b891f8f8e3e9f10bac70b1145903a8ad31d5dd69ee617dbd8",
+  "probe_sha": "784be33498f655100503d82e1107c7e69ef9768dcd0503e647ce97756fa6132b",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(creature 1/3 for {1}{G})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 1/3, you: mana G-1 W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped (by card/TAP); you: mana G+1 (exactly one green, to you).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

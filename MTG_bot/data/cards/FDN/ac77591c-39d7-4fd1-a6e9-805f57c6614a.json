@@ -468,5 +468,45 @@
  },
  "probe": {
   "sha": "5b7b8b90ff73e7d65a434ec673c2837594136770aaca9398bb3957118d01e7d0"
+ },
+ "verified": {
+  "tree_sha": "bc612344d05248587d22ae005053890013afa06f1d8c75eda7aa67f78bf5befb",
+  "probe_sha": "b3d994a29373d31909e4fb0e86d408631662efc1e5ab102572351b2fe1ac0840",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "When this Equipment enters, attach it to target Pirate you control.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [0] triggers; you_pirate is targeted; you_pirate P/T 2/2 -> 4/3. No target ask was made although the board holds opp_pirate, you_bear and you_giant, so you_pirate was the only candidate. Same attach when it enters on the opponent's turn. Pack pirates_cutlass_1: the trigger's target ask offers exactly the two Pirates seat 0 controls (not the opponent's Pirate, not a Bear); pirates_cutlass_2: the chosen Pirate gets it (attached, 4/3).",
+    "issue": ""
+   },
+   {
+    "clause": "Equipped creature gets +2/+1.",
+    "status": "OK",
+    "evidence": "[activate [2] targets=['you_bear']]: you_bear 2/2 -> 4/3; ['you_giant']: 4/4 -> 6/5; ['you_pirate']: 2/2 -> 4/3; nothing reverts after the turn ends.",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant, you_pirate] (seat 0's creatures only); each activation pays W-2 and attaches; keyword EQUIP. Sorcery timing by pack pirates_cutlass_3: works on its own turn, refused on the opponent's turn (window:sorcery:not_own_turn).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/pirate's_cutlass_1.json",
+   "tools/scenarios/cards/FDN/pirate's_cutlass_2.json",
+   "tools/scenarios/cards/FDN/pirate's_cutlass_3.json"
+  ],
+  "mutation": {
+   "mutants": 21,
+   "killed": 19,
+   "score": 0.9047619047619048,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

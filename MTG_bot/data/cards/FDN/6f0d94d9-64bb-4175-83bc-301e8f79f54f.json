@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6f0d94d9-64bb-4175-83bc-301e8f79f54f",
+ "name": "Temple of Triumph",
+ "text_sha": "e3a329eecae11ea9952ea54542eed34daf194280bc30fdcd703f3d1591094b5e",
+ "verified": {
+  "tree_sha": "aad160374ab01f1f4d1a908c0f1e40d94ccd9ef0367f551fc8b15aa5936c4778",
+  "probe_sha": "2c374a683af7467353e6b37f6bebf757c30d75f8283bcfa867f189135fbacb51",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [play land] shows the trigger and one 'ask scry: [top, bottom]' (both answers), but a G1 trace never shows library order (known tool limit). Pack temple_of_triumph_scry_bottom.json PASS: Lib High (top) goes under the whole library, Lib Low is the new top, the opponent's library is untouched, the land is tapped; its wrong twin (expects the unchanged order) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana R+1; [| ask 1 -> 1]: card becomes tapped, mana W+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_triumph_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

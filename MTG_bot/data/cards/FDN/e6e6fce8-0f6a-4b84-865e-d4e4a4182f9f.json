@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e6e6fce8-0f6a-4b84-865e-d4e4a4182f9f",
+ "name": "Temple of Silence",
+ "text_sha": "d3eea09e6b195589a8ccabea616d9f3293af5f807c05591a4a517a5107d1562c",
+ "verified": {
+  "tree_sha": "2962dea1e54726771fca7b497c0d65216f15bed644a4fe2e0cfdb308af405b05",
+  "probe_sha": "92bfd94e825ea65b1c5fa7420b7435f896ef59c44c48cd2b47531b422173e4eb",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [play land] shows the trigger and one 'ask scry: [top, bottom]' (both answers), but a G1 trace never shows library order (known tool limit). Pack temple_of_silence_scry_bottom.json PASS: Lib High (top) goes under the whole library, Lib Low is the new top, the opponent's library is untouched, the land is tapped; its wrong twin (expects the unchanged order) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {W} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana W+1; [| ask 1 -> 1]: card becomes tapped, mana B+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_silence_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

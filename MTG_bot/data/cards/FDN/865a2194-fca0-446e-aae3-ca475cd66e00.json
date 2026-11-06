@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "865a2194-fca0-446e-aae3-ca475cd66e00",
+ "name": "Dismal Backwater",
+ "text_sha": "e2f632869385364279c868c379cc0b8d5e0df19324e408c07678407ce8f47cf6",
+ "verified": {
+  "tree_sha": "c8787305b3e886a34a7b22ebe013fab05e9269711aeecfd81f213dbf8dd34b4a",
+  "probe_sha": "96f50e33e6b64b1651cc5a3c3f5c91fa88b25e2779b96cb20a3864a5d4ef17ea",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: 'card: zone hand -> battlefield; tapped False -> True'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'you gains 1 life (by card/GAIN_LIFE)', 'you: life 20 -> 21'; also on the opponent's-turn entry.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: 'ask choose: [0, 1]', -> 0: tapped, 'mana U+1'; -> 1: tapped, 'mana B+1'.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

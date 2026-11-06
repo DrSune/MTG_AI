@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "fireshrieker_equipped_creature_deals_double_strike_damage",
+ "notes": "P99c262467d G4. Printed: 'Equipped creature has double strike. Equip {2}'. Seat 0 pays {2} to attach Fireshrieker to its 2/2 (main phase, own turn), then attacks with it unblocked: first-strike and regular damage, 2 + 2, seat 1 at 16.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fs", "real": "Fireshrieker", "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "fs", "idx": 1, "seat": 0, "targets": ["mybear"]},
+  {"op": "combat", "seat": 0, "attack": {"mybear": true}}
+ ],
+ "expect": {
+  "attached": {"fs": "mybear"},
+  "battlefield_keywords": {"My Bear": ["DOUBLE_STRIKE"]},
+  "attackers": {"mybear": true},
+  "life": {"0": 20, "1": 16},
+  "mana_pool": {"0": {}}
+ }
+}

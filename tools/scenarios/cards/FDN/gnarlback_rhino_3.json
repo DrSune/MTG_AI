@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Gnarlback Rhino draws only when YOU cast the spell: the opponent casts Kindled Fury targeting your Rhino: neither player draws (your hand stays 0, theirs goes 1 -> 0), the Rhino gets +1/+0.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "kf", "real": "Kindled Fury", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "kf", "real": "Kindled Fury", "controller": 1, "targets": ["rhino"]}
+ ],
+ "expect": {
+  "hand": {"0": 0, "1": 0},
+  "power": {"rhino": 5},
+  "zone": {"kf": "graveyard"}
+ }
+}

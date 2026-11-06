@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b9dec104-c636-4770-a7fc-7a3331face15",
+ "name": "Wildwood Scourge",
+ "text_sha": "fda2e6f871d68a00e26db1b5dd82cd237e456edcb442dfd64368d958ac8f08d0",
+ "verified": {
+  "tree_sha": "b9651e3aeaaf8264e01b61fd8aabb7dda1fa440264c9210e4630369ff38768b4",
+  "probe_sha": "fa3497f6d2a209d21803e0d60b6d077083205a514447e135e95bc2dbac788ce0",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This creature enters with X +1/+1 counters on it.",
+    "status": "OK",
+    "evidence": "[cast X=0]: enters and dies as a 0/0; [cast X=1]: counters {} -> {'PLUS_1_PLUS_1': 1}, P/T 1/1; [cast X=3]: 3 counters, 3/3. Cost G-1 plus X generic.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus puts counters, and the probe's battlefield copy died at setup as a 0/0 ('Static: not a creature'; damage marked on it in the graveyard), so no stimulus could reach the trigger. Packs: wildwood_scourge_counter_on_other_non_hydra.json PASS (Ajani's Pridemate gets a counter from Thornwood Falls' life gain: Scourge 2 -> 3 counters, 3/3); wildwood_scourge_elf_counts_hydra_does_not.json PASS (Felidar Savior puts counters on your Hydra and your Elf: Scourge 2 -> 3, not 4); wildwood_scourge_opponents_creature_ignored.json PASS (the opponent's Pridemate gets a counter: Scourge stays 2). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/wildwood_scourge_1.json",
+   "tools/scenarios/cards/FDN/wildwood_scourge_2.json",
+   "tools/scenarios/cards/FDN/wildwood_scourge_3.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/event/filter",
+    "widen filter (drop part 1) at 1/1/event/filter",
+    "widen filter (drop part 2) at 1/1/event/filter",
+    "widen filter (drop part 3) at 1/1/event/filter",
+    "controller YOU->OPPONENT at 1/1/event/filter/children/0/who",
+    "amount+1 at 1/1/effect/args/count"
+   ]
+  }
+ }
+}

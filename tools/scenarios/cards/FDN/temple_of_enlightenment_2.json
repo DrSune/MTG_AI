@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "temple_of_enlightenment_scry_top_keeps_order_then_taps_for_u",
+ "notes": "Pa628282112 G4. Printed: 'When this land enters, scry 1.' and '{T}: Add {W} or {U}.' Answering 'top' leaves seat 0's library order as it was. On seat 0's next turn the Temple has untapped; tapping it for its second option adds exactly {U}.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "temple", "real": "Temple of Enlightenment", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["top"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "activate", "key": "temple", "idx": 2, "seat": 0, "decisions": ["1"]}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "tapped": {"temple": true},
+  "mana_pool": {"0": {"U": 1}, "1": {}},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

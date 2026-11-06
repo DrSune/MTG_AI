@@ -125,14 +125,15 @@ class TestMulticolouredToken(ExecutorCase):
 def test_fdn_supplies_compile_after_the_record_rename() -> None:
     # R5-11 renamed the key inside three FDN records' mapped trees (coordinator
     # ruling 2026-10-30, verified blocks untouched): the strict decoder reads
-    # them, so both supplies compile, and the two verified ones are honestly
-    # out of the verified supply until they are re-verified.
+    # them, so both supplies compile. The two verified ones left the verified
+    # supply with the rename and came back through blind re-verification (FDN
+    # round 1, 2026-11-06), so their stamps match the renamed trees.
     castable = compile_supply("castable", "FDN")
     verified = compile_supply("verified", "FDN")
     names = {verified.metas[oid].name for oid in verified.deckable}
     for card in ("Imperious Perfect", "Stroke of Midnight"):
-        assert card not in names
+        assert card in names
         oid = next(o for o, m in castable.metas.items() if m.name == card)
-        assert oid not in verified.verified_ids
+        assert oid in verified.verified_ids
     caracal = next(o for o, m in castable.metas.items() if m.name == "Regal Caracal")
     assert caracal in castable.metas

@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "starlight_snare_enchanted_creature_does_not_untap",
+ "notes": "P83c04d814c G4. Printed: 'Enchant creature. When this Aura enters, tap enchanted creature. Enchanted creature doesn't untap during its controller's untap step.' Seat 0 casts Starlight Snare on seat 1's untapped 2/2: it is attached and the 2/2 is tapped. Seat 1's next untap step (advance_turn) untaps seat 1's other tapped creature but not the enchanted one.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snare", "real": "Starlight Snare", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "oape", "name": "Opp Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "snare", "targets": ["obear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"snare": "battlefield", "obear": "battlefield", "oape": "battlefield"},
+  "attached": {"snare": "obear"},
+  "tapped": {"obear": true, "oape": false},
+  "turn_seats": [0, 1]
+ }
+}

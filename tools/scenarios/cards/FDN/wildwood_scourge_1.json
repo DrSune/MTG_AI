@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "wildwood_scourge_grows_when_another_non_hydra_creature_you_control_gets_a_counter",
+ "notes": "Printed: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.' Your Scourge has two +1/+1 counters; you control Ajani's Pridemate ('Whenever you gain life, put a +1/+1 counter on this creature'). You play Thornwood Falls and gain 1 life: the Pridemate (a Cat Soldier) gets a counter, so the Scourge gets one more (3).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  {
+   "key": "pridemate",
+   "real": "Ajani's Pridemate",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "falls",
+   "real": "Thornwood Falls",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "falls",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 20
+  },
+  "counters": {
+   "pridemate": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scourge": {
+    "PLUS_1_PLUS_1": 3
+   }
+  },
+  "power": {
+   "scourge": 3
+  },
+  "toughness": {
+   "scourge": 3
+  }
+ }
+}

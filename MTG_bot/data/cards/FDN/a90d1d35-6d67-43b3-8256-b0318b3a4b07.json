@@ -5,27 +5,21 @@
  "name": "Prideful Parent",
  "text_sha": "da02504302ba37f9c7ab541943946c2618d531c47d18977ddbc50a32decb7386",
  "verified": {
-  "tree_sha": "79748c7d892bd1bea60b69cead0d8d69d00d468c182ea00d48196f6068c4dd12",
-  "probe_sha": "d9936e28b9871a884bf0582e3d31f2833263c500063db7fdf3cde7bb8a536344",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-c1",
+  "tree_sha": "6b34c2df5e7d198becd1a5d42591c459a37bbd1380979c63fe86d309b5d72d83",
+  "probe_sha": "8bc56b11fb1a07445f5f07a8fc1b3fe2386639c360cd51bf77c9d5257503ad42",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
   "clauses": [
    {
-    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "clause": "Vigilance",
     "status": "OK",
-    "evidence": "keywords [VIGILANCE]; [stimulus: this creature attacks alone, unblocked] and the blocked variant: DECLARE_ATTACKERS with no 'card becomes tapped' event",
+    "evidence": "[stimulus: this creature attacks alone, unblocked] and [... opp_giant blocks it]: DECLARE_ATTACKERS with no 'card becomes tapped' event and no tapped change (contrast every other creature's attack in this round).",
     "issue": ""
    },
    {
     "clause": "When this creature enters, create a 1/1 white Cat creature token.",
     "status": "OK",
-    "evidence": "[cast]: ability [0] triggers, 'you:Cat moves new -> battlefield (by card/CREATE_TOKEN)', '+ you:Cat (battlefield, you, 1/1)', exactly one token; same on the opponent's-turn entry; tree TokenSpec Cat, 'Creature — Cat', 1/1, color 'W'",
-    "issue": ""
-   },
-   {
-    "clause": "(2/2 Cat creature, {2}{W})",
-    "status": "OK",
-    "evidence": "[cast]: enters 2/2 +VIGILANCE for W-3",
+    "evidence": "[cast]: trigger fires, '+ you:Cat (battlefield, you, 1/1)' (one token); also on the opponent's-turn entry. Tree TokenSpec Cat, Creature — Cat, 1/1, colors ('W',), matching the compiler's frame.",
     "issue": ""
    }
   ],

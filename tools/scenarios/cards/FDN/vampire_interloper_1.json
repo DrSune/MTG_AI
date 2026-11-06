@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Vampire Interloper, printed: 'This creature can't block.' On the opponent's turn their 2/2 attacks you. Your other untapped creature (a 2/2 Bear) gets a block ask offering the attacker or NONE; the Interloper is never offered a block ask. Unblocked, the attacker deals 2 (life 20 -> 18).",
+ "cards": [
+  {"key": "vi", "real": "Vampire Interloper", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "atk", "name": "Their Attacker", "type": "Creature — Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"atk": true}, "block": {"bear": null}}
+ ],
+ "expect": {
+  "attackers": {"atk": true},
+  "not_asked_to_block": ["vi"],
+  "block_asks": {"bear": "<atk>,NONE"},
+  "life": {"0": 18, "1": 20}
+ }
+}

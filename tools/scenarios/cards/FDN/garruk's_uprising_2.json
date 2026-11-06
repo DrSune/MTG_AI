@@ -1,0 +1,78 @@
+{
+ "set": "FDN",
+ "name": "garruks_uprising_2",
+ "notes": "P70782e389a G4 (verifier v1). Printed: 'Creatures you control have trample. / Whenever a creature you control with power 4 or greater enters, draw a card.' With the Uprising out, seat 0's 4/4 enters (draw), seat 0's 3/3 enters (no draw), the opponent's 5/5 enters (no draw for anyone): seat 0's hand 2 -> 0 -> 1. Seat 0's Giant has trample, the opponent's Wurm does not.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gu",
+   "real": "Garruk's Uprising",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "My Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ape",
+   "name": "My Ape",
+   "type": "Creature — Ape",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wurm",
+   "name": "Opp Wurm",
+   "type": "Creature — Wurm",
+   "power": "5",
+   "toughness": "5",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "giant"
+  },
+  {
+   "op": "enter",
+   "key": "ape"
+  },
+  {
+   "op": "enter",
+   "key": "wurm"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "giant": "battlefield",
+   "ape": "battlefield",
+   "wurm": "battlefield"
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
+  },
+  "battlefield_keywords": {
+   "My Giant": [
+    "TRAMPLE"
+   ],
+   "My Ape": [
+    "TRAMPLE"
+   ],
+   "Opp Wurm": []
+  }
+ }
+}

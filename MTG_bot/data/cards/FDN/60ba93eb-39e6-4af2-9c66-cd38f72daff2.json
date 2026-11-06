@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "60ba93eb-39e6-4af2-9c66-cd38f72daff2",
+ "name": "Savannah Lions",
+ "text_sha": "313fab3264d5e82198c1f606c2ffa40f8c4e7fefd04d4f6649258518f0a45883",
+ "verified": {
+  "tree_sha": "5f0bf165d768e0bdf85fcd1e679e0c6b96f1774df0dc11ef918c54cd3ad1f922",
+  "probe_sha": "c943a55e73e032c77df92323795371da496932567c63d69b9d90ef004abea75d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(no rules text: a vanilla 2/1 Cat for {W})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/1, mana W-1; tree holds only the creature carrier; no trigger or static difference in any stimulus.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

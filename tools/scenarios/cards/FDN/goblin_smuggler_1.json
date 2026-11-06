@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "goblin_smuggler_haste_attacks_the_turn_it_is_cast",
+ "notes": "P8d05e3123b G4. Printed: 'Haste (This creature can attack and {T} as soon as it comes under your control.)' Seat 0 casts Goblin Smuggler ({2}{R}) and a vanilla 2/2 enters the same turn; in combat only the Smuggler can attack (the 2/2 is summoning sick and is never asked). The Smuggler's 2 damage lands: seat 1 at 18.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "hand", "controller": 0},
+  {"key": "fresh", "name": "Fresh Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "smug"},
+  {"op": "enter", "key": "fresh"},
+  {"op": "combat", "seat": 0, "attack": {"smug": true, "fresh": true}}
+ ],
+ "expect": {
+  "zone": {"smug": "battlefield", "fresh": "battlefield"},
+  "attackers": {"smug": true, "fresh": false},
+  "not_asked": ["fresh"],
+  "tapped": {"smug": true},
+  "life": {"0": 20, "1": 18},
+  "mana_pool": {"0": {}}
+ }
+}

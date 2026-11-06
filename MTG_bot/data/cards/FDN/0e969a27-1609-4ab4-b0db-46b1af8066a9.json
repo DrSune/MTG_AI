@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "0e969a27-1609-4ab4-b0db-46b1af8066a9",
+ "name": "Unflinching Courage",
+ "text_sha": "f05d9f454ac37c0544e89313861dc9a12b3d7cfc228234efbadaed109791499a",
+ "verified": {
+  "tree_sha": "b57ce8be388386f8ee2815d14a5289da5c6efe897477e0d9a109a2e65ae4ebb5",
+  "probe_sha": "756b7868169136c7ba4a81c959837048ac55e2ea427ff5b5490710bfd424016e",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "tree ENCHANT keyword with TYPE_EQ 'Creature'; target slot (cast): 1..1 of the six creatures only (no relic/charm/land); ask enchant on the non-cast entry offers the same six creatures; mana G-1 W-2.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +2/+2 and has trample and lifelink.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']]: you_bear 2/2 -> 4/4, keywords +LIFELINK +TRAMPLE; each other target likewise (+2/+2, both keywords). Pack unflinching_courage_1: the enchanted Bear tramples 2 over a 2/2 blocker and its controller gains all 4 damage.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/unflinching_courage_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 9,
+   "score": 0.6428571428571429,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/2/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/2/args/target/filter"
+   ]
+  }
+ }
+}

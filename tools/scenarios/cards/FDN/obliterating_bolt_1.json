@@ -1,0 +1,81 @@
+{
+ "set": "FDN",
+ "name": "obliterating_bolt_1",
+ "notes": "P56cb5991ec G4 (verifier v1). Printed: 'Obliterating Bolt deals 4 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead.' The 6/6 target survives the 4 damage; later this turn 2 more damage kill it and it is exiled instead. A different creature that dies this turn goes to the graveyard.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bolt",
+   "real": "Obliterating Bolt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "big",
+   "name": "Opp Wurm",
+   "type": "Creature — Wurm",
+   "power": "6",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "other",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "src",
+   "name": "My Pinger",
+   "type": "Creature — Human",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "bolt",
+   "targets": [
+    "big"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "big",
+   "amount": 2,
+   "controller": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "other",
+   "amount": 2,
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bolt": "graveyard",
+   "big": "exile",
+   "other": "graveyard",
+   "src": "battlefield"
+  }
+ }
+}

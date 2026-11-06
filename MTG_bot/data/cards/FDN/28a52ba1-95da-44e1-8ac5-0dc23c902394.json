@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "28a52ba1-95da-44e1-8ac5-0dc23c902394",
+ "name": "Healer's Hawk",
+ "text_sha": "a105f7cc27c54180a3c545ff11887db200d4866e0558f056d2351bc0a2be9a72",
+ "verified": {
+  "tree_sha": "64845d238dbf1f2bdf3519a8fb3e432049d55b3aea0769ff41c1e7eb728e7a1d",
+  "probe_sha": "4d3e6bfb328ad921bff934194d04e1217b8bc49e6566ee75c969244a29e519fd",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(creature 1/1 for {W})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 1/1, you: mana W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block, opp is dealt 1.",
+    "issue": ""
+   },
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: you gains 1 life (by card/DEAL_DAMAGE), you 20 -> 21, opp 20 -> 19.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

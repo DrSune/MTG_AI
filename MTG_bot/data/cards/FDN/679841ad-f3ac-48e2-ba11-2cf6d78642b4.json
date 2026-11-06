@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "679841ad-f3ac-48e2-ba11-2cf6d78642b4",
+ "name": "Raging Redcap",
+ "text_sha": "3972df363ada9fd5f1b2942cc5d0cd03598bc2a67765cb58200267cc3f886757",
+ "verified": {
+  "tree_sha": "9100a36327a20985aa06915afe4c7ef6c837c2ce70988f7acfaf0d26dd63b18c",
+  "probe_sha": "4628d3551b32cafdfef2f9d8515554f2e02cba7d6b2efe083ac90283fd53a4ef",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Double strike",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: two combat damage events of 1 each, opp 20 -> 18. [... opp_giant blocks it]: first-strike 1 to opp_giant, then the giant's 4 and the second 1 (giant marked 2). Cast {2}{R}: R-1 W-2, a 1/2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

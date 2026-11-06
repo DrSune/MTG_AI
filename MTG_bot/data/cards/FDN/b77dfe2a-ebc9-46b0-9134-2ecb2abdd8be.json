@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b77dfe2a-ebc9-46b0-9134-2ecb2abdd8be",
+ "name": "Mystic Archaeologist",
+ "text_sha": "72a4ce50bc6118552a9bea2ca30b3fac78c56c33eb448d9f52e255f736b1951c",
+ "verified": {
+  "tree_sha": "bd3594fcb663ac2e4d38057385747f0dcaf8b2f9d8b24dc6225cf7bfd8db8b2c",
+  "probe_sha": "0e8f1210837d77a232d980441cac187cd079b5e67ea6411fc2f6309f97241282",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "{3}{U}{U}: Draw two cards.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: two DRAW events (Library 5#1, 4#1), 'you: hand 5 -> 7; library 6 -> 4; mana U-2 W-3' (five mana, two blue). Tree matches the compiler's B13-activated+B5a-draw-two.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

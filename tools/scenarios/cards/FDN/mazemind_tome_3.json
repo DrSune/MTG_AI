@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Mazemind Tome, printed: '{2}, {T}, Put a page counter on this artifact: Draw a card.' and 'When there are four or more page counters ... exile it.' The Tome starts with two page counters; the draw ability costs exactly {2} (C:2 pays, the pool is empty after), draws one card (hand 0 -> 1) and puts the third counter: three is not four or more, so the Tome stays on the battlefield and no life is gained.",
+ "cards": [
+  {"key": "tome", "real": "Mazemind Tome", "zone": "battlefield", "controller": 0, "counters": {"PAGE": 2}}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "tome", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"tome": "battlefield"},
+  "tapped": {"tome": true},
+  "counters": {"tome": {"PAGE": 3}},
+  "hand": {"0": 1},
+  "life": {"0": 20},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "temple_of_enlightenment_scry_1_to_the_bottom",
+ "notes": "Pa628282112 G4. Printed: 'This land enters tapped. When this land enters, scry 1.' Seat 0 plays the Temple as its land drop and answers 'bottom' to the scry: exactly its own top card (Library 5) moves to the bottom of its own library; seat 1's library is untouched; the Temple is tapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "temple", "real": "Temple of Enlightenment", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"temple": "battlefield"},
+  "tapped": {"temple": true},
+  "library": {
+   "0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}

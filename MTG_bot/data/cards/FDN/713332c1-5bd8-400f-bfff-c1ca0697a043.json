@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "713332c1-5bd8-400f-bfff-c1ca0697a043",
+ "name": "Opt",
+ "text_sha": "455a1fd401e876ba6333ef83c01ff6cfcd0ac2aaf792255b49647578c6896c1e",
+ "verified": {
+  "tree_sha": "a079fdddb19c2d7926b55124ea8962fe90667f590c4b2a0d319a386e49709496",
+  "probe_sha": "e0f869f6fe13020bc02e18f280812d6a56d2cf396c92ddac3e1479d815f67e87",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Scry 1.",
+    "status": "OK",
+    "evidence": "[cast]: one scry ask [top, bottom]; -> top: draws you:Library 5#1 (the top card); [cast | ask 1 -> bottom]: draws you:Library 4#1 (the next card) and the scried card stays in the library (library 6 -> 5). Pack opt_1 pins the order: the top card goes to the very bottom.",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "[cast], both variants: you draws one card (library 6 -> 5); mana U-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/opt_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

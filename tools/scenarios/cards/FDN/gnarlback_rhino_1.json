@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Gnarlback Rhino, printed: 'Whenever you cast a spell that targets this creature, draw a card.' You cast Kindled Fury targeting the Rhino: you draw exactly one card (hand 1 -> 0 after the cast, then 1; the top filler Library 5 is drawn) and the Rhino gets +1/+0.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "kf", "real": "Kindled Fury", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "kf", "real": "Kindled Fury", "controller": 0, "targets": ["rhino"]}
+ ],
+ "expect": {
+  "hand": {"0": 1, "1": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "power": {"rhino": 5},
+  "zone": {"kf": "graveyard"}
+ }
+}

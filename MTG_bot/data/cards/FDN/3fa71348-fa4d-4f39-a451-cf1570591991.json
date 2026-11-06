@@ -244,25 +244,27 @@
   "sha": "7182a6c6f40f6e8eaf4bc45c7a60c4c6fac375caea3bc5096e0fb8f297206243"
  },
  "verified": {
-  "tree_sha": "646bf3a172cecfeb5b29ad9d4320203a49c8d9d74b23c4c47f8a9d3b91cb1ef7",
-  "probe_sha": "7005f9db89e41de4fde9733ce5bc5225f159df907e6182592527ab8b61934e88",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m1",
+  "tree_sha": "d5be796e8ca64b773c1982d1b5ddb55b3a8bef508ad8b2f2f2f341f8b0b8bcc5",
+  "probe_sha": "7e092564efd27350ab7e6d13649bcfa759dec6614e32c6df74f181d8b7c164be",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
   "clauses": [
    {
     "clause": "Other Elves you control get +1/+1.",
     "status": "OK",
-    "evidence": "[stimulus: a creature enters under your control] you_spare (Elf) 3/3 -> 4/4; the Perfect itself 2/2; the token 1/1 shows 2/2; the opponent's Elf entering is 'same as without the card'.",
+    "evidence": "Trace: the Elf Warrior token from [activate [1]] arrives as 2/2 (1/1 + 1); the Perfect itself stays 2/2 (static section); you_bear/you_giant (not Elves) unchanged. The 'you control' part has no Elf on the opponent's side in the probe: pack imperious_perfect_lord_other_elves_you_control.json PASS: your Elf 1/1 -> 2/2, the opponent's Elf stays 1/1, your Human 2/2, the Perfect 2/2; wrong twin (opponent's Elf 2/2) fails.",
     "issue": ""
    },
    {
     "clause": "{G}, {T}: Create a 1/1 green Elf Warrior creature token.",
     "status": "OK",
-    "evidence": "[activate [1] from battlefield]: card becomes tapped, you: mana G-1, + you:Elf Warrior (battlefield, you, 2/2 = 1/1 + the lord); token spec green Creature - Elf Warrior 1/1; nothing changes after the turn ends.",
+    "evidence": "[activate [1] from battlefield]: card becomes tapped, mana G-1, '+ you:Elf Warrior (battlefield, you, 2/2)' (the printed 1/1 plus the lord). TokenSpec Elf Warrior, colors ('G',), as the compiler's parse.",
     "issue": ""
    }
   ],
-  "packs": [],
+  "packs": [
+   "tools/scenarios/cards/FDN/imperious_perfect_1.json"
+  ],
   "mutation": {
    "mutants": 13,
    "killed": 12,

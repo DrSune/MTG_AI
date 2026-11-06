@@ -1,0 +1,65 @@
+{
+ "set": "FDN",
+ "name": "treetop_snarespinner_1",
+ "notes": "P62fe6e1c63 G4 (verifier v1). Printed: 'Reach / Deathtouch'. On the opponent's turn their 3/3 flier attacks; the Snarespinner (reach) blocks it, deals 1 deathtouch damage and the flier dies; the 1/4 survives 3 damage. Seat 0 takes no damage.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "spinner",
+   "real": "Treetop Snarespinner",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "flier",
+   "name": "Opp Drake",
+   "type": "Creature — Drake",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1,
+   "keywords": [
+    "FLYING"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "flier": true
+   },
+   "block": {
+    "spinner": "flier"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "flier": [
+    "spinner"
+   ]
+  },
+  "zone": {
+   "flier": "graveyard",
+   "spinner": "battlefield"
+  },
+  "damage": {
+   "spinner": 3
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Nullpriest of Oblivion cast WITHOUT kicker for exactly {1}{B} (B:2 pays it, the pool is empty after): 'if it was kicked' is false, nothing returns (your creature card stays in your graveyard).",
+ "cards": [
+  {
+   "key": "np",
+   "real": "Nullpriest of Oblivion",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "dead",
+   "name": "My Dead Ogre",
+   "type": "Creature \u2014 Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "np",
+   "real": "Nullpriest of Oblivion",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "kick_rows": {
+   "np": {
+    "kicked": false
+   }
+  },
+  "zone": {
+   "np": "battlefield",
+   "dead": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "faa01ed1-ccfa-4e58-951f-cd81f9068027",
+ "name": "Mortify",
+ "text_sha": "1115c0da52318ffddbffdaad8109a085fcfc9d089ec3eb45f7805834ffd14f26",
+ "verified": {
+  "tree_sha": "daac1408708a4c903c046674db8399619a57889e228eaf078efd40db49de799f",
+  "probe_sha": "c9a750a7c2d9f72c0eff38ccce99ab01c223aff856675188f3cd2a2d924c8bb4",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Destroy target creature or enchantment.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, you_charm, opp_bear, opp_giant, opp_charm] (no artifacts, no lands, no players); each variant: '<target> moves battlefield -> graveyard (by card/DESTROY)', one target only. Cast {1}{W}{B}: B-1 W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

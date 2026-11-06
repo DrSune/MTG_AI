@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "550abd9b-9aae-4812-9bc0-7f131d6dcde8",
+ "name": "Untamed Hunger",
+ "text_sha": "3193f838ae7af5df79593a563115403e02232e36dc53d9dc6673259552867e6c",
+ "verified": {
+  "tree_sha": "d91b6c26729e8b4a9abcb332eebc8cd7c16e9ed821922dd45cb6bad5dadb8637",
+  "probe_sha": "d3ec15806e6f7b0b9d41bcb18891cfed0a5930a822ef6e742120fa477e0d2274",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "Cast target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (creatures only; no relic, charm or player); the enter-on-the-opponent's-turn variant asks 'enchant' over the same six. ENCHANT keyword carries the Creature filter.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +2/+1 and has menace. (It can't be blocked except by two or more creatures.)",
+    "status": "OK",
+    "evidence": "Every cast variant: only the host changes, P/T +2/+1 (you_bear 2/2 -> 4/3, you_giant 4/4 -> 6/5, opp_flier 1/1 -> 3/2, opp_giant 4/4 -> 6/5) and keywords +MENACE; no end-of-turn reversal (static). Cost B-1 W-2. (Battlefield stimuli say nothing about an Aura: known tool limit.)",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 10,
+   "killed": 7,
+   "score": 0.7,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
+ }
+}

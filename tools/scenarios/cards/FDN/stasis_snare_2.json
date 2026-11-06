@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Stasis Snare has Flash: 'You may cast this spell any time you could cast an instant.' On the opponent's turn you cast it (an enchantment without flash could not be cast then) and its trigger exiles their 3/3 while the Snare stays on the battlefield.",
+ "cards": [
+  {"key": "snare", "real": "Stasis Snare", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Their Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 3}},
+  {"op": "cast", "key": "snare", "real": "Stasis Snare", "controller": 0, "decisions": ["ogre"]}
+ ],
+ "expect": {
+  "zone": {"snare": "battlefield", "ogre": "exile"},
+  "turn_seats": [0, 1]
+ }
+}

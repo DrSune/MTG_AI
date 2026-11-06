@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "name": "heartfire_immolator_3",
+ "notes": "P49d853b00e G4 (verifier v1). Printed: '... It deals damage equal to its power to target creature or planeswalker.' Targeting the opponent's planeswalker Liliana, Dreadhorde General (printed loyalty 6): 2 damage removes 2 loyalty (CR 120.3c), she stays on the battlefield at 4.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "imm",
+   "real": "Heartfire Immolator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "real": "Liliana, Dreadhorde General",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "imm",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "imm": "graveyard",
+   "pw": "battlefield"
+  },
+  "counters": {
+   "pw": {
+    "LOYALTY": 4
+   }
+  }
+ }
+}

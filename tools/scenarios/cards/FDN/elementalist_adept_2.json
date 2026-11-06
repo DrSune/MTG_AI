@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "elementalist_adept_prowess_triggers_on_a_noncreature_spell_only",
+ "notes": "Printed: 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' The Adept (2/1) is on your battlefield. You cast Quick Study (an instant): it becomes 3/2. You then cast Diregraf Ghoul (a creature spell): no trigger, it stays 3/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adept", "real": "Elementalist Adept", "zone": "battlefield", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "hand", "controller": 0},
+  {"key": "ghoul", "real": "Diregraf Ghoul", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 3, "B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Quick Study", "key": "study", "controller": 0},
+  {"op": "cast", "real": "Diregraf Ghoul", "key": "ghoul", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"adept": "battlefield", "study": "graveyard", "ghoul": "battlefield"},
+  "power": {"adept": 3},
+  "toughness": {"adept": 2},
+  "hand": {"0": 2}
+ }
+}

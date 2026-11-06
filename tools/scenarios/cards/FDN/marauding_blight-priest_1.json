@@ -1,0 +1,60 @@
+{
+ "set": "FDN",
+ "name": "marauding_blight_priest_1",
+ "notes": "P70ef72b612 G4 (verifier v1). Printed: 'Whenever you gain life, each opponent loses 1 life.' Two of the opponent's Pelakka Wurms enter (the opponent gains 7 twice: no trigger), then seat 0's Pelakka Wurm enters (seat 0 gains 7 once: the opponent loses 1). Life: seat 0 20 + 7 = 27, seat 1 20 + 14 - 1 = 33. A trigger on the opponent's gains would cost seat 1 two more (31 or 32).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "priest",
+   "real": "Marauding Blight-Priest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wurm_opp1",
+   "real": "Pelakka Wurm",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "wurm_opp2",
+   "real": "Pelakka Wurm",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "wurm_me",
+   "real": "Pelakka Wurm",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "wurm_opp1"
+  },
+  {
+   "op": "enter",
+   "key": "wurm_opp2"
+  },
+  {
+   "op": "enter",
+   "key": "wurm_me"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 27,
+   "1": 33
+  },
+  "zone": {
+   "wurm_opp1": "battlefield",
+   "wurm_opp2": "battlefield",
+   "wurm_me": "battlefield"
+  }
+ }
+}

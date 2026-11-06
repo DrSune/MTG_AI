@@ -1,0 +1,49 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2f57a220-9f64-4143-979a-d6aaf63d49b2",
+ "name": "Treetop Snarespinner",
+ "text_sha": "b86981e620c3e66d831f803a31f9257ed96951d7918a112715b772c47494dc6a",
+ "verified": {
+  "tree_sha": "f3d432b5c0652af09436dfcd5110b25c5be7070a94c63b5f5256ac227f738859",
+  "probe_sha": "2d67ae935df0b5166393556ee065be1dcf04eb367c7062df8dc292c2024464ba",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +REACH; no flier attacks into it in the probe. Pack treetop_snarespinner_1: it blocks the opponent's attacking 3/3 flier (and kills it: deathtouch).",
+    "issue": ""
+   },
+   {
+    "clause": "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: opp_giant (4/4) is dealt 1 damage and dies.",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{G}: Put a +1/+1 counter on target creature you control.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant, card] (seat 0's creatures only); mana G-1 W-2; one PLUS_1_PLUS_1 counter each (you_bear 2/2 -> 3/3, card 1/4 -> 2/5), nothing reverts.",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only as a sorcery.",
+    "status": "NOT_EXERCISED",
+    "evidence": "timing=SORCERY in the tree; the probe activates only in seat 0's main phase. Pack treetop_snarespinner_2: works on its own turn, refused on the opponent's turn (window:sorcery:not_own_turn).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/treetop_snarespinner_1.json",
+   "tools/scenarios/cards/FDN/treetop_snarespinner_2.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

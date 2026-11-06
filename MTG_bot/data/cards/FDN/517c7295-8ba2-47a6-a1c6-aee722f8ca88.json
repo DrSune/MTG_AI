@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "517c7295-8ba2-47a6-a1c6-aee722f8ca88",
+ "name": "Leonin Skyhunter",
+ "text_sha": "17cc9c4b342ac5a05c13caa313f31fc1882ea715fcafe894782167a52dd45c3b",
+ "verified": {
+  "tree_sha": "03b7114c17c84173f1f7434be02779ed317ab43851e7e125331b75ef45a232f8",
+  "probe_sha": "a3a26e6bdba29928f575b723132ab9e7c015bd83537e4d5c7920717f06e42c0c",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, 'opp is dealt 2 damage' (the non-flying, non-reach giant cannot block); static 'card keywords: FLYING'. Cast {W}{W}: W-2, a 2/2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

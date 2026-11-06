@@ -1,0 +1,16 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Temple of Mystery, printed: 'This land enters tapped. When this land enters, scry 1.' Played as the land drop with the answer 'bottom': exactly the top card (Library 5) moves to the bottom, and the land is tapped.",
+ "cards": [
+  {"key": "temple", "real": "Temple of Mystery", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"temple": "battlefield"},
+  "tapped": {"temple": true},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}
+ }
+}

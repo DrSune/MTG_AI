@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "spectral_sailor_flash_cast_during_the_opponents_turn",
+ "notes": "Printed: 'Flash (You may cast this spell any time you could cast an instant.)' After advance_turn it is seat 1's turn; seat 0 casts the Sailor for {U} and it resolves onto the battlefield as a 1/1. Twin control: control_creature_without_flash_refused_on_opponents_turn.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sailor", "real": "Spectral Sailor", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 1}},
+  {"op": "cast", "real": "Spectral Sailor", "key": "sailor", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"sailor": "battlefield"},
+  "power": {"sailor": 1},
+  "toughness": {"sailor": 1},
+  "turn_seats": [0, 1],
+  "mana_pool": {"0": {}}
+ }
+}

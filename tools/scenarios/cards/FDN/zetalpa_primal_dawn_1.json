@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Zetalpa, Primal Dawn, printed: 'Flying, double strike, vigilance, trample, indestructible'. The 4/8 attacks (vigilance: it stays untapped) and the opponent's 1/1 flier blocks. First-strike damage: 1 lethal to the blocker, 3 trample over (answer [0]). The blocker dies; in the regular damage step Zetalpa, still blocked but with no blocker left, assigns all 4 to the player (trample, CR 702.19e): opponent 20 -> 13.",
+ "cards": [
+  {"key": "z", "real": "Zetalpa, Primal Dawn", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Their Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"z": true}, "block": {"blk": "z"}, "trample": {"z": [0, 0]}}
+ ],
+ "expect": {
+  "attackers": {"z": true},
+  "blocked": {"z": ["blk"]},
+  "zone": {"blk": "graveyard", "z": "battlefield"},
+  "tapped": {"z": false},
+  "life": {"0": 20, "1": 13}
+ }
+}

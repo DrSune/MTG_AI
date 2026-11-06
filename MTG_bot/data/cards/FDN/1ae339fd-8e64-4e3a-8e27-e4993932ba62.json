@@ -110,5 +110,48 @@
  },
  "probe": {
   "sha": "467ddcd9233f1e0bd5bf9f1a5de8795e58357dc49e81977b7b3b6464f922fdee"
+ },
+ "verified": {
+  "tree_sha": "e05a0bebf1eb365514880b19ec0e241802f95304a78ea014a393177c20b1eda3",
+  "probe_sha": "0f0e2ffafbabdfdeb992159434e288d7376bda5bfe74806adff6d10ef1231570",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(creature 4/4 for {2}{G}{G})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 4/4, you: mana G-2 W-2.",
+    "issue": ""
+   },
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "tree keywords TRAMPLE; [cast] keywords +TRAMPLE; static diff 'card keywords: TRAMPLE' (the probe's block, 4/4 vs 4/4, has no excess). Pack gnarlback_rhino_5: blocked by a 2/2, 2 lethal to the blocker and 2 trample over (20 -> 18).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell that targets this creature, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus casts a spell that targets the card (Crash Through targets nothing; no trigger fires). Packs: gnarlback_rhino_1 (your Kindled Fury on it: exactly one card drawn), _2 (your spell on another creature: no draw), _3 (the opponent's spell on it: no draw), _4 (your Aura spell on it: one card drawn).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/gnarlback_rhino_1.json",
+   "tools/scenarios/cards/FDN/gnarlback_rhino_2.json",
+   "tools/scenarios/cards/FDN/gnarlback_rhino_3.json",
+   "tools/scenarios/cards/FDN/gnarlback_rhino_4.json",
+   "tools/scenarios/cards/FDN/gnarlback_rhino_5.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
  }
 }

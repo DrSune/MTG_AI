@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f0691d46-5bf4-4617-8a0a-19d17afb7219",
+ "name": "Starlight Snare",
+ "text_sha": "687137e670bcd1a78645597f72da758925307c396c3ded56ddeb3796171b9b51",
+ "verified": {
+  "tree_sha": "84f3fdef94ce9350e7355e3c97f55e47fdc800bd6ff4251ad4e5d065db10c33a",
+  "probe_sha": "51cce98e4295f346d6be1d750b43c2f8c58cb88fe7333fde3883dd33b3c53c7e",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "Cast target slot: 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant] (no artifact, enchantment or land); 'ask enchant' on the opponent's-turn entry offers creatures only.",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, tap enchanted creature.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_bear']]: trigger fires, 'opp_bear becomes tapped (by card/TAP)'; same for every creature target (opp_tapped already tapped: no event).",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature doesn't untap during its controller's untap step.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No untap step after the Aura is attached in the trace. Pack starlight_snare_no_untap.json PASSES: on seat 1's next untap step the enchanted 2/2 stays tapped while seat 1's other tapped creature untaps; wrong twin (host untapped) fails.",
+    "issue": "Note (not a verdict): the static is the compiler's B5a-enchant-no-untap, a PREVENT_EFFECT over every untap event of the host rather than only its controller's untap step (the same tree as M21's verified Capture Sphere). Not tested against an 'untap target creature' effect, which the tree would also seem to stop."
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/starlight_snare_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/event/filter"
+   ]
+  }
+ }
+}

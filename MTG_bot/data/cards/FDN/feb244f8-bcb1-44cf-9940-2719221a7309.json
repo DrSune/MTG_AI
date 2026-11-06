@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "feb244f8-bcb1-44cf-9940-2719221a7309",
+ "name": "Vampire Nighthawk",
+ "text_sha": "8c113ede6b50afaec809f21926189e9d49daf42a62320ffb5cc3b98eafbd8260",
+ "verified": {
+  "tree_sha": "eddd831e08c302b2d6565bd2c31e519199585a19bb7851b195fc951bec836563",
+  "probe_sha": "52663b4517a09a44738eefa8701ac1c0386d8bf0044fea84a2e208971e59be9d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block is declared (the Giant cannot block a flier), opp dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +DEATHTOUCH; it never damages a creature in the probe. Pack vampire_nighthawk_1: blocking the opponent's 5/5, its 2 damage destroy it.",
+    "issue": ""
+   },
+   {
+    "clause": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [... opp_giant blocks it]: opp dealt 2, you gains 2 (20 -> 22). Pack vampire_nighthawk_1: blocking also gains 2.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/vampire_nighthawk_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

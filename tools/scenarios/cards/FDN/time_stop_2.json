@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Time Stop: 'The player whose turn it is discards down to their maximum hand size' (CR 724.1, the cleanup step, CR 514.1). Your hand is Time Stop plus eight cards; after casting it you hold eight and discard exactly one, ending with seven; one card is in your graveyard and Time Stop is in exile.",
+ "cards": [
+  {"key": "ts", "real": "Time Stop", "zone": "hand", "controller": 0},
+  {"key": "h1", "name": "Hand One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h2", "name": "Hand Two", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h3", "name": "Hand Three", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h4", "name": "Hand Four", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h5", "name": "Hand Five", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h6", "name": "Hand Six", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h7", "name": "Hand Seven", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "h8", "name": "Hand Eight", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "ts", "real": "Time Stop", "controller": 0, "decisions": ["h8"]}
+ ],
+ "expect": {
+  "zone": {"ts": "exile", "h8": "graveyard", "h1": "hand"},
+  "hand": {"0": 7},
+  "graveyard": {"0": ["Hand Eight"]}
+ }
+}

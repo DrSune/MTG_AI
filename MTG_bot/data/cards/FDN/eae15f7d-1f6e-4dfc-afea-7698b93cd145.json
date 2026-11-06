@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "eae15f7d-1f6e-4dfc-afea-7698b93cd145",
+ "name": "Goblin Smuggler",
+ "text_sha": "0a63c50b9625782caec3b8f7f998b7fc5b675bea924023bf6a258a469aa319c1",
+ "verified": {
+  "tree_sha": "214b2da08c502636a93fb661d1a20a889410fa926d79ce3af2adc22b9fe1d615",
+  "probe_sha": "bde1a8d3b768ee2b819fa6e53da43515f3de070cbb91ea0a5bd942b4af996dec",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows 'keywords +HASTE' only (probe cards start untouched by summoning sickness). Packs PASS: goblin_smuggler_haste_attack.json (cast this turn, it attacks and deals 2; a vanilla 2/2 that entered the same turn is never asked to attack) and goblin_smuggler_haste_taps.json (cast this turn, its {T} ability is activated at once). Wrong twin with Goblin Boarders (no haste) in its place fails.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Another target creature with power 2 or less can't be blocked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: target slot 1..1 of [you_bear, opp_flier, opp_bear] (power <= 2, never the Smuggler, never the 3/3 or 4/4s), the Smuggler taps; the unblockability itself is never exercised. Packs PASS: goblin_smuggler_haste_taps.json (the target attacks, the untapped 4/4 is never offered a block, 2 damage), goblin_smuggler_unblockable_ends_with_turn.json (on seat 0's next turn the 4/4 may block it), goblin_smuggler_oriflamme_pump_stays_unblockable.json (pumped to 3 power by Goblin Oriflamme after resolution it still can't be blocked, CR 611.2c). Wrong twins (no activation; same-turn block) fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/goblin_smuggler_1.json",
+   "tools/scenarios/cards/FDN/goblin_smuggler_2.json",
+   "tools/scenarios/cards/FDN/goblin_smuggler_3.json",
+   "tools/scenarios/cards/FDN/goblin_smuggler_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
+ }
+}

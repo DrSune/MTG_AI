@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "banishing_light_exiled_permanent_returns_when_it_leaves",
+ "notes": "P951d09dde7 G4. Printed: 'When this enchantment enters, exile target nonland permanent an opponent controls until this enchantment leaves the battlefield.' Seat 0 casts Banishing Light ({2}{W}); its trigger targets seat 1's 2/2, which is exiled. Then Banishing Light is destroyed (moved to its owner's graveyard): the 2/2 returns to the battlefield under its owner's (seat 1's) control (CR 610.3). Seat 1's other permanent is never touched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bl", "real": "Banishing Light", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "bl", "decisions": ["obear"]},
+  {"op": "move", "key": "bl", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"bl": "graveyard", "obear": "battlefield", "orelic": "battlefield"},
+  "controller": {"obear": 1},
+  "graveyard": {"0": ["Banishing Light"], "1": []},
+  "mana_pool": {"0": {}}
+ }
+}

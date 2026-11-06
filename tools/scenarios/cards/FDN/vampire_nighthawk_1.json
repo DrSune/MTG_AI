@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "vampire_nighthawk_1",
+ "notes": "P716ccca37d G4 (verifier v1). Printed: 'Flying / Deathtouch / Lifelink'. On the opponent's turn their 5/5 attacks and the Nighthawk blocks: its 2 damage destroy the 5/5 (deathtouch) and seat 0 gains 2 (lifelink, 20 -> 22); the 2/3 Nighthawk dies to 5 damage.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hawk",
+   "real": "Vampire Nighthawk",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "ogre": true
+   },
+   "block": {
+    "hawk": "ogre"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "ogre": [
+    "hawk"
+   ]
+  },
+  "zone": {
+   "ogre": "graveyard",
+   "hawk": "graveyard"
+  },
+  "life": {
+   "0": 22,
+   "1": 20
+  }
+ }
+}

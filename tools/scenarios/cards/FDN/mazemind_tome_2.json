@@ -1,0 +1,16 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Mazemind Tome, printed: 'When there are four or more page counters on this artifact, exile it. If you do, you gain 4 life.' The Tome starts with three page counters; the scry ability's cost puts the fourth: the Tome is exiled and you gain exactly 4 life (20 -> 24). The scry answer 'top' leaves the library order unchanged.",
+ "cards": [
+  {"key": "tome", "real": "Mazemind Tome", "zone": "battlefield", "controller": 0, "counters": {"PAGE": 3}}
+ ],
+ "steps": [
+  {"op": "activate", "key": "tome", "idx": 0, "seat": 0, "decisions": ["top"]}
+ ],
+ "expect": {
+  "zone": {"tome": "exile"},
+  "life": {"0": 24, "1": 20},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

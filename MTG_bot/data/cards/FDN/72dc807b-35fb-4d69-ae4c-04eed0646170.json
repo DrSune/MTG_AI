@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "72dc807b-35fb-4d69-ae4c-04eed0646170",
+ "name": "Battle-Rattle Shaman",
+ "text_sha": "63d07a1f2e08eaafdc0498fd5c56860fee500d0a9f7975fed46e4cbb0a04a738",
+ "verified": {
+  "tree_sha": "3389efea270d6f2a3760111a21d9384cf10a30b0d745f36647cc8eb8d82c9c48",
+  "probe_sha": "8b8db9232c29ebb4d954f03ab32965341dd46c87f6b508e60964e5ba7e5cc50f",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "At the beginning of combat on your turn, you may have target creature get +2/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trigger [0] fires at seat 0's beginning of combat ([this creature attacks alone, unblocked], [... opp_giant blocks it], [another creature you control (you_bear) attacks]: you_bear is targeted) and not on the opponent's turn ([on the opponent's turn, opp_bear attacks you] -> none). The +2/+0 itself never shows: combat stimuli run under the runner's combat answerer, which declines an unprimed may (run_scenarios.py _combat: may -> skip), so you_bear deals 2. Pack battle_rattle_shaman_1: may taken on seat 0's 2/2, it attacks for 4 (20 -> 16) and is 2/2 after the turn ends; battle_rattle_shaman_2: any creature, the opponent's 3/3 becomes 5/3 (toughness unchanged).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/battle-rattle_shaman_1.json",
+   "tools/scenarios/cards/FDN/battle-rattle_shaman_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 5,
+   "score": 0.5555555555555556,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/inner/args/duration",
+    "amount+1 at 1/0/effect/inner/args/power/magnitude",
+    "amount-1 at 1/0/effect/inner/args/power/magnitude",
+    "amount+1 at 1/0/effect/inner/args/toughness/magnitude"
+   ]
+  }
+ }
+}

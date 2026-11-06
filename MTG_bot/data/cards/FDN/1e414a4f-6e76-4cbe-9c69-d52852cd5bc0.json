@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1e414a4f-6e76-4cbe-9c69-d52852cd5bc0",
+ "name": "Heartfire Immolator",
+ "text_sha": "751d6c7a935fd95a9ee08f8468b1e5fbda3eb2e810b0cba483836d1b964eee6f",
+ "verified": {
+  "tree_sha": "92d6af51ccf43b53f267e7e4a9c7dd3abb280c5a50aec81a41e81c66c2128f97",
+  "probe_sha": "5daab2748d760bb4f9e36c0ad28665443107a55b577b3bc3cea4194bc9bea1cb",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Crash Through)]: a trigger of the card fires, card 2/2 -> 3/3; [you cast a creature (Aegis Turtle)] -> none; keyword PROWESS. Pack heartfire_immolator_1: an artifact spell (Pirate's Cutlass) triggers it too (two spells: 4/4, attacks for 4) and it is 2/2 after the turn ends.",
+    "issue": ""
+   },
+   {
+    "clause": "{R}, Sacrifice this creature: It deals damage equal to its power to target creature or planeswalker.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card] (no players). Each activation: mana R-1, card moves battlefield -> graveyard (SACRIFICE), the target is dealt 2 (its power); targeting itself: sacrificed, no damage (target gone). Pack heartfire_immolator_2: equipped to 4/3 it deals 4 (power as it last existed, not toughness 3, not printed 2); heartfire_immolator_3: a planeswalker (Liliana, Dreadhorde General) loses 2 loyalty.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/heartfire_immolator_1.json",
+   "tools/scenarios/cards/FDN/heartfire_immolator_2.json",
+   "tools/scenarios/cards/FDN/heartfire_immolator_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

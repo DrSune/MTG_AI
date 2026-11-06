@@ -1,0 +1,49 @@
+{
+ "set": "FDN",
+ "name": "obliterating_bolt_3",
+ "notes": "P56cb5991ec G4 (verifier v1). Printed: 'Obliterating Bolt deals 4 damage to target creature or planeswalker. If that creature or planeswalker would die this turn, exile it instead.' The opponent's Liliana, Dreadhorde General at 3 loyalty takes 4 damage, reaches 0 loyalty and would die (CR 704.5i): it is exiled instead.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bolt",
+   "real": "Obliterating Bolt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "real": "Liliana, Dreadhorde General",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "pw",
+   "set": 3
+  },
+  {
+   "op": "cast",
+   "key": "bolt",
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bolt": "graveyard",
+   "pw": "exile"
+  }
+ }
+}

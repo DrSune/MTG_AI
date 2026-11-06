@@ -1,0 +1,52 @@
+{
+ "set": "FDN",
+ "name": "wildwood_scourge_ignores_a_counter_on_an_opponents_creature",
+ "notes": "Printed: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on this creature.' Your Scourge has two counters. The opponent controls Ajani's Pridemate; Thornwood Falls enters under the opponent's control and the opponent gains 1 life: their Pridemate gets a counter. Not a creature you control, so your Scourge stays at two.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  {
+   "key": "pridemate",
+   "real": "Ajani's Pridemate",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "falls",
+   "real": "Thornwood Falls",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "falls"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 21
+  },
+  "counters": {
+   "pridemate": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scourge": {
+    "PLUS_1_PLUS_1": 2
+   }
+  }
+ }
+}

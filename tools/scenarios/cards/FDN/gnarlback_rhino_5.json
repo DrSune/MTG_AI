@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Gnarlback Rhino, printed: 'Trample'. The 4/4 Rhino attacks and the opponent's 2/2 blocks: 2 (lethal) is assigned to the blocker and the excess 2 tramples over to the player (trample answer [0]: no excess pinned to the blocker): opponent 20 -> 18, the blocker dies, the Rhino has 2 damage marked.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"rhino": true}, "block": {"blk": "rhino"}, "trample": {"rhino": [0]}}
+ ],
+ "expect": {
+  "attackers": {"rhino": true},
+  "blocked": {"rhino": ["blk"]},
+  "zone": {"blk": "graveyard", "rhino": "battlefield"},
+  "life": {"0": 20, "1": 18},
+  "damage": {"rhino": 2}
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1adcf587-9035-4299-a2bd-62f805fdd897",
+ "name": "Highborn Vampire",
+ "text_sha": "60921013ed8b5abe6b8f28626ff71765883372dd6c80ab484f68b4926e36493a",
+ "verified": {
+  "tree_sha": "ff790f42ca49179d152425c2661a15353eb9a6e7db7bd7fd6e51117ddf0a6311",
+  "probe_sha": "a985857f010e8de4ce8abfbf1e3b8af6cbb6afb592c349dde6bbf83a877119c1",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(no rules text: a 4/3 Vampire Warrior creature for {3}{B})",
+    "status": "OK",
+    "evidence": "[cast]: 'card: zone hand -> battlefield; P/T - -> 4/3'; 'mana B-1 W-3' (four mana, one black). Static: 4/3, no keywords; every stimulus is the plain body (attack deals 4; trades with opp_giant).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

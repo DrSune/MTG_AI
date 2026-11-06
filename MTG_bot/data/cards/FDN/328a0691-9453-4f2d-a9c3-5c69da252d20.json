@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "328a0691-9453-4f2d-a9c3-5c69da252d20",
+ "name": "Dragon Trainer",
+ "text_sha": "ffaedd69641ec551a852d77baa69d71c2b553cd03c9ef9841d9b5d5edd31d6d9",
+ "verified": {
+  "tree_sha": "b548f171b9fa2a396ca61808d1e4f378f5b96a12fd9483af8895131cc0588136",
+  "probe_sha": "ce4399a8ec0d5b6b8de98d9de6cdf522033fcb4778260ec6d1e19a87df2aa04f",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 4/4 red Dragon creature token with flying.",
+    "status": "OK",
+    "evidence": "[cast]: triggered ability [0] triggers; '+ you:Dragon (battlefield, you, 4/4, FLYING)'; fires again on the enter-during-opponent's-turn stimulus; no other stimulus fires it. Colour is not a trace lane; the tree's TokenSpec has colors ('R',), same as the compiler's parse of the sentence. Body 1/1, cost R-2 W-3.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

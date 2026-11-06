@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "eaaed253-9b11-47e2-8624-0340ab2207f6",
+ "name": "Resolute Reinforcements",
+ "text_sha": "c0c19cc842eacfec7e700d06ac4d1d5b432a6e4fd389736955d066378c09d6ca",
+ "verified": {
+  "tree_sha": "648a62d7f308117c591dad0df6d7e533f5793e5743f00b9b33ae4f14c3dcac98",
+  "probe_sha": "a322dbf46b8bde4f25bd00fa3203e07bacb7fc81bd7f60805108d7a7b226d8c1",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +FLASH, but the probe casts it only in seat 0's main phase (the opponent's-turn stimulus moves it, it does not cast it). Pack resolute_reinforcements_1: cast on the opponent's turn it resolves and makes its Soldier; Savannah Lions (no flash) is refused there (window:not_your_turn). Note: self-play gives a seat no cast window on the opponent's turn (one act window per turn; the combat window offers targeted instants only), so Flash is never used in training games.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create a 1/1 white Soldier creature token.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0], you:Soldier (battlefield, you, 1/1); same when it enters on the opponent's turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/resolute_reinforcements_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

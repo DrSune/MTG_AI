@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Brazen Scourge, printed: 'Haste'. Cast this turn for exactly {1}{R}{R}, it attacks the same turn and deals 3 (the opponent 20 -> 17).",
+ "cards": [
+  {"key": "bs", "real": "Brazen Scourge", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "bs", "real": "Brazen Scourge", "controller": 0},
+  {"op": "combat", "seat": 0, "attack": {"bs": true}}
+ ],
+ "expect": {
+  "attackers": {"bs": true},
+  "zone": {"bs": "battlefield"},
+  "life": {"0": 20, "1": 17}
+ }
+}

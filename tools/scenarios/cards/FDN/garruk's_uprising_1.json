@@ -1,0 +1,55 @@
+{
+ "set": "FDN",
+ "name": "garruks_uprising_1",
+ "notes": "P70782e389a G4 (verifier v1). Printed: 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card.' Seat 0 controls only a 3/3; the opponent's 5/5 does not count ('you control'). It enters, seat 0 draws nothing.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "gu",
+   "real": "Garruk's Uprising",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ape",
+   "name": "My Ape",
+   "type": "Creature — Ape",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wurm",
+   "name": "Opp Wurm",
+   "type": "Creature — Wurm",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "gu"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gu": "battlefield"
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

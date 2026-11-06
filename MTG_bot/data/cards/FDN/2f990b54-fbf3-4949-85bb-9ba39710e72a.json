@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2f990b54-fbf3-4949-85bb-9ba39710e72a",
+ "name": "Dive Down",
+ "text_sha": "dd45d0f77df6b502ce782a3d0284603d6d65c65361ec74d34f1d95b04117ea6d",
+ "verified": {
+  "tree_sha": "1f4bc0993910b69f5d16cd06929f3494525b29819495ccb63db14a7de34e7a60",
+  "probe_sha": "39533f93dc36890249424218ee4eace7e9c811ad4d16edcbb6c18f18ac47bf8b",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Target creature you control gets +0/+3 and gains hexproof until end of turn.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_bear, you_giant] (yours only). [cast targets=['you_bear']]: 'P/T 2/2 -> 2/5; keywords +HEXPROOF', after the turn ends '2/5 -> 2/2; keywords -HEXPROOF'; same on you_giant. Packs PASS: dive_down_hexproof_until_end_of_turn.json (seat 1's Mortify cannot target it this turn, can on seat 1's turn) and dive_down_plus_three_toughness.json (survives 4 damage). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/dive_down_1.json",
+   "tools/scenarios/cards/FDN/dive_down_2.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 15,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

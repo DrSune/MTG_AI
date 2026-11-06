@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "ed206651-3d9b-4546-8d45-0682817192fd",
+ "name": "Bear Cub",
+ "text_sha": "22d1210ba6b895b4904101c14b65d8ffc0c071c81ce7d73568236991d10b3e2f",
+ "verified": {
+  "tree_sha": "beb3563d8653ddafc080291c5f4c417e1e4879b2c58c8d12dccfc7a66178d71d",
+  "probe_sha": "4209704fa7d62f49e7c169998320817ce2c411bd7e4cf0a42d2c65acf03fa92a",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(no rules text: a vanilla 2/2 Bear for {1}{G})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/2, mana G-1 W-1; tree holds only the creature carrier; no trigger or static difference in any stimulus.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

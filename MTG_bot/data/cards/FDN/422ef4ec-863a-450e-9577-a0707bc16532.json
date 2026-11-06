@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "422ef4ec-863a-450e-9577-a0707bc16532",
+ "name": "Brazen Scourge",
+ "text_sha": "aa3ab0ca7c1218dc4ee0c7a81eb4b54884a313bb207886aa1ff21a57373f6b96",
+ "verified": {
+  "tree_sha": "283fb1c61b962584e9cf61164ffc6042a42b5227f905e113f4ee3c4fc57b6715",
+  "probe_sha": "ca67d3d4e0d7b843af0653a552f8f5f8a6547d642f482155e0d29f46afd87d30",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(creature 3/3 for {1}{R}{R})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 3/3, you: mana R-2 W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "tree keywords HASTE; [cast] keywords +HASTE; but the probe's attack stimuli use a card already on the battlefield. Pack brazen_scourge_1: cast this turn, it attacks and deals 3 (20 -> 17). Control (not listed): a Fire Elemental cast the same turn is never asked to attack.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/brazen_scourge_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

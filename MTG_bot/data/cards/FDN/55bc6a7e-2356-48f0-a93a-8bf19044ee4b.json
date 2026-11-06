@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "55bc6a7e-2356-48f0-a93a-8bf19044ee4b",
+ "name": "Time Stop",
+ "text_sha": "775ef624de6b639256673018f7f26faf07ceb7c54421bd75e23123d31d06cecd",
+ "verified": {
+  "tree_sha": "41eeca1696a8931def79f79798a23ba305995bea85690cb917ac55aad0f9963a",
+  "probe_sha": "6d9645e2b2c9a9a3171af040e71b22d27f7117950522354802fef8e2a8bc2eb2",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "End the turn.",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> exile (the spell exiles itself, CR 724.1b); both players' mana pools empty (the step ends); 'after the turn ends: (nothing changes)'.",
+    "issue": ""
+   },
+   {
+    "clause": "(reminder: damage heals, 'until end of turn' effects end, the active player discards to hand size, the rest of the turn is skipped; castable as an instant on the opponent's turn)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Nothing on the probe board carries damage, a pump or an oversized hand, and the probe casts it only on your own turn. Packs: time_stop_1 (a Kindled Fury pump ends, a 1-damage mark is removed, Time Stop is in exile, your combat can no longer happen: 'no turn is open'), time_stop_2 (8 cards in hand after casting: exactly one discarded, 7 left), time_stop_3 (cast on the opponent's turn: their pump ends and their combat cannot happen).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/time_stop_1.json",
+   "tools/scenarios/cards/FDN/time_stop_2.json",
+   "tools/scenarios/cards/FDN/time_stop_3.json"
+  ],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

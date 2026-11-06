@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "skyraker_giant_reach_blocks_a_flier",
+ "notes": "P88b9fc16fe G4. Printed: 'Reach (This creature can block creatures with flying.)' Seat 0 attacks with a 2/2 flier; seat 1's Skyraker Giant (4/3) blocks it. The block stands, the Giant's 4 damage kills the flier, the Giant is marked with 2, and no player loses life.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "flier", "name": "Your Flier", "type": "Creature — Bird", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "giant", "real": "Skyraker Giant", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"flier": true}, "block": {"giant": "flier"}}
+ ],
+ "expect": {
+  "attackers": {"flier": true},
+  "blocked": {"flier": ["giant"]},
+  "zone": {"flier": "graveyard", "giant": "battlefield"},
+  "damage": {"giant": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

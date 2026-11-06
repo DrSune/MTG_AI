@@ -5,22 +5,22 @@
  "name": "Release the Dogs",
  "text_sha": "e77b84021bae279a7cc6d72904f6ec0bc3e6dcb96a1bdffe459dbe33a6eb892c",
  "verified": {
-  "tree_sha": "34d6c40515be4354afa8afe1efc1fc799758369a4325f1477141f01586a9cf2f",
-  "probe_sha": "45a9cd5729c6898196a5268512dec3466a5571226f6b74fc518d00e4d4b0a0aa",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-c1",
+  "tree_sha": "817cec5448d7ac4c038669fd657424b88b7471888f388ef1fa5dcea495c26a62",
+  "probe_sha": "d7be77502509808ff6dc8ce366a056230f9b0095dd720fc9630ed36b08536ea5",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
   "clauses": [
    {
     "clause": "Create four 1/1 white Dog creature tokens.",
     "status": "OK",
-    "evidence": "[cast]: 'you:Dog#1..#4 moves new -> battlefield (by card/CREATE_TOKEN)', '+ you:Dog#N (battlefield, you, 1/1)' x4, cost W-4; tree TokenSpec Dog, 'Creature — Dog', 1/1, color 'W', no keywords/abilities; equals the compiler's B11-create-tokens parse",
+    "evidence": "[cast]: you:Dog#1..#4 created (battlefield, you, 1/1); mana W-4 ({3}{W}); TokenSpec colors ('W',).",
     "issue": ""
    }
   ],
   "packs": [],
   "mutation": {
-   "mutants": 4,
-   "killed": 4,
+   "mutants": 2,
+   "killed": 2,
    "score": 1.0,
    "survived": []
   }

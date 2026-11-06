@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "temple_of_malice_enters_tapped_scry_1_bottom_moves_only_your_top_card",
+ "notes": "Printed: 'This land enters tapped. / When this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)' Your library is Lib High (top), Lib Low, then six filler cards. Played and scried to the bottom: the land is tapped, Lib Low is now on top and Lib High is under the whole library. Exactly one scry ask (a second word would be unconsumed; scry 2 would ask again). The opponent's library is untouched.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "temple", "real": "Temple of Malice", "zone": "hand", "controller": 0},
+  {"key": "low", "name": "Lib Low", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "high", "name": "Lib High", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"temple": "battlefield", "low": "library", "high": "library"},
+  "tapped": {"temple": true},
+  "library": {
+   "0": ["Lib Low", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Lib High"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  },
+  "hand": {"0": 0},
+  "life": {"0": 20, "1": 20}
+ }
+}

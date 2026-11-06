@@ -1,0 +1,74 @@
+{
+ "set": "FDN",
+ "name": "heartfire_immolator_1",
+ "notes": "P49d853b00e G4 (verifier v1). Printed: 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' Seat 0 casts Crash Through (a sorcery) and Pirate's Cutlass (an artifact: also a noncreature spell; no Pirate, so its own trigger does nothing): two prowess triggers make the 2/2 a 4/4, which attacks unblocked for 4 (20 -> 16). After the turn ends it is 2/2 again.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "imm",
+   "real": "Heartfire Immolator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "crash",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cutlass",
+   "real": "Pirate's Cutlass",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "crash"
+  },
+  {
+   "op": "cast",
+   "key": "cutlass"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "imm": true
+   }
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "crash": "graveyard",
+   "cutlass": "battlefield"
+  },
+  "attackers": {
+   "imm": true
+  },
+  "life": {
+   "0": 20,
+   "1": 16
+  },
+  "power": {
+   "imm": 2
+  },
+  "toughness": {
+   "imm": 2
+  }
+ }
+}

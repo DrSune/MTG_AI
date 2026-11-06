@@ -1,0 +1,39 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "774dce79-67e0-4820-8013-c7a7347993ce",
+ "name": "Cathar Commando",
+ "text_sha": "c4c46da7b625e286a0e73cda6feb3e324fc47956e869f73896f138b11774842e",
+ "verified": {
+  "tree_sha": "5707bce48e22ab376c1b0be879ae63eeac1088d4ad35124888ef8fb7f82a486f",
+  "probe_sha": "6116184d4b7ce4d2ec88479c706d94c2a42c435e7d728f43761a68df2db204d1",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows 'keywords +FLASH' only. Pack cathar_commando_flash_opponents_turn.json PASSES: cast on seat 1's turn, it resolves as seat 0's 3/1. Wrong twin with Bishop's Soldier (no flash) raises 'illegal cast: window:not_your_turn'.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}, Sacrifice this creature: Destroy target artifact or enchantment.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_relic, you_charm, opp_relic, opp_charm] (artifacts and enchantments only); each variant: 'card moves battlefield -> graveyard (by card/SACRIFICE)', the target destroyed, 'mana W-1'. Pack cathar_commando_sacrifice_destroys.json PASSES (a creature target is refused; the artifact is destroyed).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/cathar_commando_1.json",
+   "tools/scenarios/cards/FDN/cathar_commando_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/1/target/filter"
+   ]
+  }
+ }
+}

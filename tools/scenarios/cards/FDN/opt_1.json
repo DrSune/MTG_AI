@@ -1,0 +1,82 @@
+{
+ "set": "FDN",
+ "name": "opt_1",
+ "notes": "P4d6d5ddda4 G4 (verifier v1). Printed: 'Scry 1. Draw a card.' Library top-first: Card C, Card B, Card A, then six filler cards (library_top). Scry 1 looks at Card C and puts it on the bottom; the draw takes Card B. Library after: Card A, the filler, Card C at the bottom.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lib_a",
+   "name": "Card A",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib_b",
+   "name": "Card B",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib_c",
+   "name": "Card C",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "opt",
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "opt": "graveyard",
+   "lib_b": "hand",
+   "lib_c": "library",
+   "lib_a": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Card A",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Card C"
+   ]
+  }
+ }
+}

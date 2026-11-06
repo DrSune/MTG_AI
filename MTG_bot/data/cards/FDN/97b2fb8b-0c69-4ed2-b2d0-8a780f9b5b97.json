@@ -1,0 +1,33 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "97b2fb8b-0c69-4ed2-b2d0-8a780f9b5b97",
+ "name": "Dauntless Veteran",
+ "text_sha": "8b4072f63fc8a6b969044f943824b5ce1de286f5b57bbf5dd1ab07d232ce525e",
+ "verified": {
+  "tree_sha": "9f0df410ac95decba099bfae71c0faa65b588a241797fb5139b269d73c79e042",
+  "probe_sha": "31bb44f3344576656d1d462ad32ac02932bb9fd34825e346df8a2217c3bb5d3d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, creatures you control get +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: triggered ability [0] triggers; card 2/2 -> 3/3, you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, opponent creatures unchanged; opp dealt 3. [another creature you control (you_bear) attacks]: none. The duration is not in a stimulus trace: pack dauntless_veteran_pump_until_end_of_turn.json PASS (Veteran deals 3, then after the turn the Veteran and your Bear are 2/2, the opponent's Bear never pumped); wrong twin (3/3 after the turn) fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/dauntless_veteran_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 4,
+   "score": 0.6666666666666666,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Mazemind Tome, printed: '{T}, Put a page counter on this artifact: Scry 1.' Answering 'bottom' moves exactly the top card (Library 5) to the bottom; the Tome is tapped and has one page counter; with one counter it stays on the battlefield and no life is gained.",
+ "cards": [
+  {"key": "tome", "real": "Mazemind Tome", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "tome", "idx": 0, "seat": 0, "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"tome": "battlefield"},
+  "tapped": {"tome": true},
+  "counters": {"tome": {"PAGE": 1}},
+  "life": {"0": 20},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}
+ }
+}

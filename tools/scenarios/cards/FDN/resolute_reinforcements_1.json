@@ -1,0 +1,65 @@
+{
+ "set": "FDN",
+ "name": "resolute_reinforcements_1",
+ "notes": "P5cb2a805c6 G4 (verifier v1). Printed: 'Flash / When this creature enters, create a 1/1 white Soldier creature token.' On the opponent's turn seat 0 casts it (flash, CR 702.8a): it resolves and makes one Soldier. The control: Savannah Lions (no flash) is refused at the same moment.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rr",
+   "real": "Resolute Reinforcements",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lions",
+   "real": "Savannah Lions",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "rr",
+   "controller": 0
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "lions",
+   "controller": 0,
+   "expect_raise": "window:not_your_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rr": "battlefield",
+   "lions": "hand"
+  },
+  "tokens": {
+   "Soldier": 1
+  }
+ }
+}

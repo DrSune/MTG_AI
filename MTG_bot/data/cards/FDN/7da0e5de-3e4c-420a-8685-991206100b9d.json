@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7da0e5de-3e4c-420a-8685-991206100b9d",
+ "name": "Zetalpa, Primal Dawn",
+ "text_sha": "cd83c93ae199e5e348edf29eaf3f009bb5c749b5ce1ea0f4b9a6c695d8857b79",
+ "verified": {
+  "tree_sha": "8d10e003942cb6e37fcad63aad3c840b3c54b1dee809fbb83bbdbcd80f33feb1",
+  "probe_sha": "99c988f0ae08fea20baeff7294d55377e0c5be4c49970efd1ba5489d516e7c02",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(legendary creature 4/8 for {6}{W}{W})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 4/8, you: mana W-8.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying, double strike, vigilance, trample, indestructible",
+    "status": "OK",
+    "evidence": "[cast]: keywords +DOUBLE_STRIKE +FLYING +INDESTRUCTIBLE +TRAMPLE +VIGILANCE. [stimulus: attacks alone, unblocked]: two COMBAT_DAMAGE events of 4 (double strike, 20 -> 12) and no 'becomes tapped' (vigilance); [stimulus: opp_giant blocks it]: no block (flying); [stimulus: lethal damage]: damage 0 -> 99, no death (indestructible). Trample shown as a keyword; pack zetalpa_primal_dawn_1: blocked by a 1/1 flier, 3 tramples over in the first-strike step and 4 in the regular step (20 -> 13), still untapped.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/zetalpa_primal_dawn_1.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

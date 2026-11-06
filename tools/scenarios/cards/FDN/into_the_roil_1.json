@@ -1,0 +1,60 @@
+{
+ "set": "FDN",
+ "name": "into_the_roil_1",
+ "notes": "P4f31ff3383 G4 (verifier v1). Printed: 'Kicker {1}{U} / Return target nonland permanent to its owner's hand. / If this spell was kicked, draw a card.' Seat 0 has exactly {U}{U} and two generic mana, the cost {1}{U} plus the kicker {1}{U}: the kicked cast is payable, returns the opponent's Ogre to its owner's hand and draws a card (seat 0 hand 1 -> 0 -> 1); the pool is empty after. A {1}{U}{U} kicker (packet P4f31ff3383) is not payable from this pool, so that tree fails the pack as a draft.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "roil",
+   "real": "Into the Roil",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "roil",
+   "kicked": true,
+   "targets": [
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "roil": "graveyard",
+   "ogre": "hand"
+  },
+  "hand": {
+   "0": 1,
+   "1": 1
+  },
+  "kick_rows": {
+   "roil": {
+    "kicked": true
+   }
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

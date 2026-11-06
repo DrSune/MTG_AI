@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b753d7dd-4c6b-4472-a009-671572f927eb",
+ "name": "Vampire Interloper",
+ "text_sha": "4234c2433fc0c8a90b598312250e30bbf2a8912459544f83e3eefe6b83093c00",
+ "verified": {
+  "tree_sha": "d2ebf688ee93a282350d90fe8185b48a2354abc7cc0abfb84527d65172b0c242",
+  "probe_sha": "437393240224992fde77630217f5377cd19e9c3dab4ae9123a1fe1f926eb469b",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "(creature 2/1 for {1}{B})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 2/1, you: mana B-1 W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block, opp is dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "This creature can't block.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's opponent attack is '(no block)', so no block ask is shown. Pack vampire_interloper_1: on the opponent's turn their 2/2 attacks; your other 2/2 gets the block ask (attacker, NONE), the Interloper is never asked to block.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/vampire_interloper_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

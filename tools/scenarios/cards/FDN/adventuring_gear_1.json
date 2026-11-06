@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Adventuring Gear, printed: 'Landfall - Whenever a land you control enters, equipped creature gets +2/+2 until end of turn. Equip {1}.' Equip for exactly {1} onto your 2/2 Bear (the Gear is attached to it), then play a Forest: the Bear is 4/4. Your other creature is untouched.",
+ "cards": [
+  {"key": "gear", "real": "Adventuring Gear", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "other", "name": "My Other Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "gear", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "play", "key": "land", "seat": 0}
+ ],
+ "expect": {
+  "attached": {"gear": "bear"},
+  "zone": {"land": "battlefield"},
+  "power": {"bear": 4, "other": 2},
+  "toughness": {"bear": 4, "other": 2},
+  "mana_pool": {"0": {}}
+ }
+}

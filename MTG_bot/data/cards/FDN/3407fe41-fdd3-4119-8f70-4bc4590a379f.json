@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3407fe41-fdd3-4119-8f70-4bc4590a379f",
+ "name": "Negate",
+ "text_sha": "1f09cc01098b0d5626f976859f78f5fed03980d49222c5b0a76305f76436ab27",
+ "verified": {
+  "tree_sha": "9803d28c036dd9abab992e6b0eb9853b6072258db06c67213fff4fe274686dc9",
+  "probe_sha": "2bfca95964a03c6b1103a557a0f949d57d5d2e904b1ca2ade7b6d33226783c07",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Counter target noncreature spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "'cast skipped: a target slot needs 1, the board offers 0' (nothing on the stack). Pack negate_1: seat 0 casts Crash Through, seat 1 is offered Negate in the response window and casts it: Crash Through is countered (no card drawn), both end in graveyards. negate_2: against a creature spell (Bear Cub) seat 1 is never offered Negate and the Cub resolves.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/negate_1.json",
+   "tools/scenarios/cards/FDN/negate_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

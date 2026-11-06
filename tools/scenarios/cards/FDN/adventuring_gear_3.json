@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Adventuring Gear: 'a land YOU control'. Your Bear is equipped; on the opponent's turn the opponent plays a Forest: no landfall for you, the Bear stays 2/2.",
+ "cards": [
+  {"key": "gear", "real": "Adventuring Gear", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oland", "real": "Forest", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "gear", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "oland", "seat": 1}
+ ],
+ "expect": {
+  "attached": {"gear": "bear"},
+  "zone": {"oland": "battlefield"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }
+}

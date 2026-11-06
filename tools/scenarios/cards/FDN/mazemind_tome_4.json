@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Mazemind Tome: the draw ability's page counter is the fourth (the Tome starts with three): you still draw the card (hand 0 -> 1), the Tome is exiled and you gain 4 life (20 -> 24).",
+ "cards": [
+  {"key": "tome", "real": "Mazemind Tome", "zone": "battlefield", "controller": 0, "counters": {"PAGE": 3}}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "tome", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"tome": "exile"},
+  "hand": {"0": 1},
+  "life": {"0": 24, "1": 20}
+ }
+}

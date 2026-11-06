@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "bb95db4d-5017-4121-bf79-d68476602d8c",
+ "name": "Zombify",
+ "text_sha": "a8c2ba274dcdfc785800ce7ac6f615610a0b7348b648ce22a54f52fdf9e6c790",
+ "verified": {
+  "tree_sha": "b6ef46db22aab2d1cfc2278890ef12cf19af2e33f01799847c0e2ca75cac9533",
+  "probe_sha": "c0812711f7fb7bf9216e8cade01d25f837915930a5fbd07a8a0e087599dd831f",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Return target creature card from your graveyard to the battlefield.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_fallen] (not you_used, not opp_fallen); [cast targets=['you_fallen']]: you_fallen moves graveyard -> battlefield (2/2), card moves stack -> graveyard, you: mana B-1 W-3. Pack zombify_1: the returned card is under your control.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/zombify_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

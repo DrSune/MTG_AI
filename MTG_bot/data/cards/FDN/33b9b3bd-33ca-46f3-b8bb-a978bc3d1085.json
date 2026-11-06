@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "33b9b3bd-33ca-46f3-b8bb-a978bc3d1085",
+ "name": "Temple of Deceit",
+ "text_sha": "560627bdf18c5c2833b757e0662406fb881b09ec95e5f3b6e3354170f68e92f3",
+ "verified": {
+  "tree_sha": "bf38c3ca332c7809eb5fb218ed58e859f985cc697ae7c61e891a6d808ce07736",
+  "probe_sha": "a2d4e5eba5a4dc5dfd720f60952043e60bbb0f25004b23e3e3989632695dfdc3",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also when it enters on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "OK",
+    "evidence": "[play land]: trigger [1], one scry ask [top, bottom] (both answers run); library order is not in a trace: pack temple_of_deceit_1 shows bottom puts the top card at the very bottom.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {U} or {B}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: choose 0 -> card becomes tapped (by card/TAP), mana U+1; choose 1 -> tapped, mana B+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_deceit_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

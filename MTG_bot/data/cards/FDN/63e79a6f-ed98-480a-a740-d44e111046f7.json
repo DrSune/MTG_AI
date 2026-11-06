@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "63e79a6f-ed98-480a-a740-d44e111046f7",
+ "name": "Guarded Heir",
+ "text_sha": "a2b5e861e4ceed5d986abf04fc7b5c52eb2ecad48416a5bb78f137d441e3637f",
+ "verified": {
+  "tree_sha": "b088e5fc8ae65bda9b4b04828944eb767c7df1938c93b0e4888eaf321dfbb64c",
+  "probe_sha": "413647dce3047a51246b0fcbe8eb3e69bf4512139dfe7380442f11d3359d4262",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Lifelink (Damage dealt by this creature also causes you to gain that much life.)",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: opp dealt 1, you gains 1 (20 -> 21); [... opp_giant blocks it]: 1 damage to the Giant, you gains 1.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create two 3/3 white Knight creature tokens.",
+    "status": "OK",
+    "evidence": "[cast]: you:Knight#1 and #2 (battlefield, you, 3/3); same when it enters on the opponent's turn; TokenSpec colors ('W',); mana W-6.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

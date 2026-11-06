@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "elementalist_adept_prowess_bonus_ends_with_the_turn",
+ "notes": "Printed: 'Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)' You cast Quick Study with the Adept on the battlefield, then the turn ends and the opponent's turn begins: the Adept is a 2/1 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adept", "real": "Elementalist Adept", "zone": "battlefield", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 3}},
+ "steps": [
+  {"op": "cast", "real": "Quick Study", "key": "study", "controller": 0},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"adept": "battlefield", "study": "graveyard"},
+  "power": {"adept": 2},
+  "toughness": {"adept": 1},
+  "turn_seats": [0, 1]
+ }
+}

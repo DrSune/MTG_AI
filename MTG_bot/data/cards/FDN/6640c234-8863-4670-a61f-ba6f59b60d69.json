@@ -1,0 +1,36 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6640c234-8863-4670-a61f-ba6f59b60d69",
+ "name": "Dawnwing Marshal",
+ "text_sha": "1ac91d67cc552630d278e7dea9b548c42b8c8bd80264586b0e0dbde9a78e768a",
+ "verified": {
+  "tree_sha": "7cc923e76f7cc3d4141ffcee3ace59dd8c282b7fb4a7a147cc052ad7f83be782",
+  "probe_sha": "497d39d3f04ea9397a8176831901a3a77554d14dd27ca3c475bb0ef7c4cf6912",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no block, opp dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "{4}{W}: Creatures you control get +1/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: mana W-5, no tap; card 2/2 -> 3/3, you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, no opponent creature changes; after the turn ends all three return to 2/2, 2/2, 4/4.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

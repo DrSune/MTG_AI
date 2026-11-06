@@ -1,0 +1,72 @@
+{
+ "set": "FDN",
+ "name": "dauntless_veteran_attack_pump_ends_with_the_turn",
+ "notes": "Printed: 'Whenever this creature attacks, creatures you control get +1/+1 until end of turn.' The Veteran (2/2) attacks alone, unblocked, beside your Bear (2/2) that stays home: the Veteran deals 3 (20 -> 17). The opponent's Bear (2/2) is not pumped. After the turn ends, the Veteran and your Bear are 2/2 again.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "veteran",
+   "real": "Dauntless Veteran",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "my_bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opp_bear",
+   "name": "Their Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "veteran": true,
+    "my_bear": false
+   }
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "veteran": true,
+   "my_bear": false
+  },
+  "life": {
+   "0": 20,
+   "1": 17
+  },
+  "power": {
+   "veteran": 2,
+   "my_bear": 2,
+   "opp_bear": 2
+  },
+  "toughness": {
+   "veteran": 2,
+   "my_bear": 2,
+   "opp_bear": 2
+  },
+  "turn_seats": [
+   0,
+   1
+  ]
+ }
+}

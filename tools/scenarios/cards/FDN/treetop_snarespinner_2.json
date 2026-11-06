@@ -1,0 +1,71 @@
+{
+ "set": "FDN",
+ "name": "treetop_snarespinner_2",
+ "notes": "P62fe6e1c63 G4 (verifier v1). Printed: '{2}{G}: Put a +1/+1 counter on target creature you control. Activate only as a sorcery.' On its own turn seat 0 pays {2}{G}: one +1/+1 counter on the Snarespinner (2/5). On the opponent's turn the activation is refused.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "spinner",
+   "real": "Treetop Snarespinner",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "spinner",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "spinner"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "spinner",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "spinner"
+   ],
+   "expect_raise": "window:sorcery:not_own_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "spinner": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "spinner": 2
+  },
+  "toughness": {
+   "spinner": 5
+  }
+ }
+}

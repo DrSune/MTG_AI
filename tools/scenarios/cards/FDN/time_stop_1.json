@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Time Stop, printed: 'End the turn.' (CR 724.1: exile the spell itself, skip to cleanup: damage wears off and 'until end of turn' effects end). In your main phase Kindled Fury makes your Bear 3/2 until end of turn and a 1/1 deals 1 damage to the opponent's 4/4. Then Time Stop (exactly {4}{U}{U}) resolves: it is in exile (not the graveyard), the Bear is 2/2 again, no damage stays marked, and the turn is over: your combat can no longer happen.",
+ "cards": [
+  {"key": "ts", "real": "Time Stop", "zone": "hand", "controller": 0},
+  {"key": "kf", "real": "Kindled Fury", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Their Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "U": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "kf", "real": "Kindled Fury", "controller": 0, "targets": ["bear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "giant", "amount": 1},
+  {"op": "cast", "key": "ts", "real": "Time Stop", "controller": 0},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "expect_raise": "no turn is open"}
+ ],
+ "expect": {
+  "zone": {"ts": "exile", "kf": "graveyard", "giant": "battlefield"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

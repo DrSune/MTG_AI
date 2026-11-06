@@ -269,5 +269,37 @@
  },
  "probe": {
   "sha": "6298fcab17ded7c6f91c176ce9fd5fdb610cda2b6392732fbd9e85e263a7516d"
+ },
+ "verified": {
+  "tree_sha": "34d54252906f5afaec43b6145433ce88c81a0e74416ed2cc0fc6d3c29e58d751",
+  "probe_sha": "a6ef1186ecaa0688b53916db00d05cfe221c04fd39c7564179830121d0f85d3e",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Equipped creature has double strike.",
+    "status": "OK",
+    "evidence": "[activate [1] targets=['you_bear']]: 'you_bear: keywords +DOUBLE_STRIKE' (same on you_giant). Pack fireshrieker_equip_double_strike.json PASSES: equipped 2/2 attacks unblocked for 2 + 2 (seat 1 at 16), attached lane = the bear; wrong twin (not equipped) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Equip {2}",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: ability [1] target slot 1..1 of [you_bear, you_giant] (your creatures only), paid 'mana W-2'; the tree has timing=ActivationWindow.SORCERY but the trace only activates in your main phase. Pack fireshrieker_equip_only_as_a_sorcery.json PASSES: on seat 1's turn the equip is refused ('window:sorcery'), nothing attached, pool kept; wrong twin (own turn) fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/fireshrieker_1.json",
+   "tools/scenarios/cards/FDN/fireshrieker_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

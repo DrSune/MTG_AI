@@ -1,0 +1,66 @@
+{
+ "set": "FDN",
+ "name": "pirates_cutlass_1",
+ "notes": "P3446e4f9ca G4 (verifier v1). Printed: 'When this Equipment enters, attach it to target Pirate you control.' Cast with two Pirates of seat 0, a Pirate of seat 1 and a non-Pirate creature of seat 0: the trigger's target ask offers exactly the two Pirates seat 0 controls (handles card:1, card:2 in pack order); the opponent's Pirate (card:3) and the Bear (card:4) are not legal targets.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cutlass",
+   "real": "Pirate's Cutlass",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pirate_a",
+   "name": "Pirate A",
+   "type": "Creature — Human Pirate",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pirate_b",
+   "name": "Pirate B",
+   "type": "Creature — Human Pirate",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opp_pirate",
+   "name": "Opp Pirate",
+   "type": "Creature — Human Pirate",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "cutlass",
+   "expect_raise": "needs a decision from ('card:1', 'card:2'),"
+  }
+ ],
+ "expect": {}
+}

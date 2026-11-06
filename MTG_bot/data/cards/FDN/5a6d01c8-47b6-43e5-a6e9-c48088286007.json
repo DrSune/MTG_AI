@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5a6d01c8-47b6-43e5-a6e9-c48088286007",
+ "name": "Strix Lookout",
+ "text_sha": "58e1e26393aa225bc54dfbd73636f2811e0a76eb5a8df1ed34f95d7dc2938570",
+ "verified": {
+  "tree_sha": "0a00a1d74e377dfe428b2132a9b9d695e94cd25768f09e693abaf71232e8bc64",
+  "probe_sha": "638ea0f3b1375b7bfccb3c19f0a107e040297e19b93f55db35f78ababf2e836b",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp dealt 1 (the ground 4/4 could not block it).",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] and [... opp_giant blocks it]: DECLARE_ATTACKERS with no 'card becomes tapped' event.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{U}, {T}: Draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped, mana U-1 W-1, you draws you:Library 5#1, then 'ask one_of' over the whole hand INCLUDING the drawn card; the pick moves hand -> graveyard (all six picks shown, the drawn card too). One draw, one discard.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 15,
+   "killed": 15,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

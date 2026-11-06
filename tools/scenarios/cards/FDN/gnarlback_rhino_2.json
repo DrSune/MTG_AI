@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Gnarlback Rhino draws only for a spell that targets THIS creature: you cast Kindled Fury on another creature you control: no card is drawn (hand 1 -> 0) and the Rhino stays 4/4.",
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "kf", "real": "Kindled Fury", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "kf", "real": "Kindled Fury", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "hand": {"0": 0, "1": 0},
+  "power": {"rhino": 4, "bear": 3},
+  "zone": {"kf": "graveyard"}
+ }
+}

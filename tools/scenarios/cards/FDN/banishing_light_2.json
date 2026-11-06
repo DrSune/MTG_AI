@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "banishing_light_exile_lasts_while_it_stays",
+ "notes": "P951d09dde7 G4. Printed: '... exile target nonland permanent an opponent controls until this enchantment leaves the battlefield.' Banishing Light's trigger exiles seat 1's artifact (a nonland permanent). The exile does not end with the turn: after seat 1's whole turn passes, the artifact is still in exile while Banishing Light stays on the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bl", "real": "Banishing Light", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "bl", "decisions": ["orelic"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"bl": "battlefield", "orelic": "exile", "obear": "battlefield"},
+  "turn_seats": [0, 1, 0]
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f1d8e9a6-1903-4be5-8609-1009a463f393",
+ "name": "Anthem of Champions",
+ "text_sha": "b3461beeb509b850ba561790dbc145fa4429ff57035ba646afbe9155c13ef285",
+ "verified": {
+  "tree_sha": "a437fba70bc6b5a8df06c7f182a292fd582ccb82130c4cfe0d8ca8e1b928fe5c",
+  "probe_sha": "496332b42bf90b1d13ba70d203397a4080f1962c0d10705b108997be8fb2e965",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +1/+1.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, opponent creatures unchanged, no end-of-turn reversal; [a creature enters under your control]: you_spare enters 4/4 (3/3 + 1); [you cast a creature (Aegis Turtle)]: enters 1/6 (0/5 + 1); [a creature enters under the opponent's control]: same as without the card; [your creature dies]: you_bear leaves as 3/3. Cost G-1 W-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 4,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
+ }
+}

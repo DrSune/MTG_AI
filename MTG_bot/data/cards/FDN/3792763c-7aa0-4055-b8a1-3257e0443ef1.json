@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3792763c-7aa0-4055-b8a1-3257e0443ef1",
+ "name": "Skeleton Archer",
+ "text_sha": "95aae24b96d59c2719b6fc4fa4cb4a881ce909f0644a08efe6e00e31ca8376c0",
+ "verified": {
+  "tree_sha": "cef4ade10e909572dcd15b9b63dffd7dbb17e6646fc623f9412ca7df74c8c9a3",
+  "probe_sha": "e29b943427c1115100565135041ec4fd5efeeb533b0033daf89b1718a2509f90",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "When this creature enters, it deals 1 damage to any target.",
+    "status": "OK",
+    "evidence": "[cast]: ask target over [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card, you, opp] (every creature, itself, both players); each pick is dealt 1 by card/DEAL_DAMAGE (opp_flier dies, 'card' damage 0 -> 1, you: life 20 -> 19). Fires again on MOVE_ZONE entry during the opponent's turn. Cost B-1 W-3, body 3/3.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

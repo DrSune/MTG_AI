@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d36075c2-de66-4202-9217-b1102a2bc14b",
+ "name": "Pelakka Wurm",
+ "text_sha": "f5c5bd68b65bb37e591183b57e04f52f57ee24a20f9f22afcfa15134875c0bf0",
+ "verified": {
+  "tree_sha": "f2c7c356232a2a28f4c2c7fedb9868059a882f144829863938739fbf6d324ea4",
+  "probe_sha": "442b7ccf5bfce612bb8bbc16b37f7b8a6313b434ec2737e24532ef13211ad400",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: COMBAT_DAMAGE ((4, opp_giant), (3, opp)): 4 to the blocker, 3 trample to opp (20 -> 17).",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you gain 7 life.",
+    "status": "OK",
+    "evidence": "[cast]: trigger [0], you gains 7 life (20 -> 27); same when it enters on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, draw a card.",
+    "status": "OK",
+    "evidence": "[this card is dealt lethal damage]: trigger [1], you draws you:Library 5#1 (hand 5 -> 6).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

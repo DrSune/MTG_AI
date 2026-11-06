@@ -1,0 +1,42 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "a8fdbcdf-479d-4582-9ad5-9fbd4c740c29",
+ "name": "Spectral Sailor",
+ "text_sha": "eba81de3475af4f2379d99629fc890788f40cb4a18ddfd60c557d55c4d6a80fc",
+ "verified": {
+  "tree_sha": "f8b918ddfbc107cbdc30c010ab425c749277d43e514c61f7b99ad3acfce62dc1",
+  "probe_sha": "ca4a951661507b9ceffac59a790dffabb776202027029da43402e247387fbb7f",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace casts it only in your own main phase (keywords +FLASH shown). Pack spectral_sailor_flash_opponents_turn.json PASS: cast by seat 0 during seat 1's turn it resolves as a 1/1 for {U}. Control /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_fdn_verify1/work_v3/control_creature_without_flash_refused_on_opponents_turn.json PASS (a creature without flash is refused there). Wrong twin (expects it still in hand) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [this creature attacks and opp_giant blocks it]: no block, opp dealt 1.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}{U}: Draw a card.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: mana U-1 W-3, no tap; you draws you:Library 5#1, hand 5 -> 6, library 6 -> 5.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/spectral_sailor_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

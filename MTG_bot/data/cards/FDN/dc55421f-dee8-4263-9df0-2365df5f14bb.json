@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "dc55421f-dee8-4263-9df0-2365df5f14bb",
+ "name": "Temple of Malady",
+ "text_sha": "dad95ecd35186fd659f1f64e73d575e24de51e8769e0667ef5659948ff63cc9c",
+ "verified": {
+  "tree_sha": "01089cfe44b531fb1bfc4dade1bf96b54f859b622a24a02d2c2ea8c6f296f1b2",
+  "probe_sha": "2eebf963e63875d906de2a96b855d046cf165f962aece74a0300e5b3e598b5be",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land] and [play land | ask 1 -> bottom]: tapped False -> True; also on the entry during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[play land]: card's triggered ability [1] triggers, ask scry: [top, bottom] (one card); the bottom move is not visible in a trace. Pack temple_of_malady_1: answering 'bottom' moves exactly Library 5 to the bottom of YOUR library; the land is tapped.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {B} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: tapped, you: mana B+1; [... | ask 1 -> 1]: tapped, you: mana G+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_malady_1.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

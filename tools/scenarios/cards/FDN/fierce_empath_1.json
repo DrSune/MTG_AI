@@ -1,0 +1,105 @@
+{
+ "set": "FDN",
+ "name": "fierce_empath_1",
+ "notes": "P709ca574d4 G4 (verifier v1). Printed: 'When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.' Library: creatures of mana value 6 and 7, a mana value 5 creature, a mana value 6 sorcery. Seat 0 takes the may and picks the mana value 6 creature (6 counts: 'or greater'): one card only goes to hand, the other three stay; the opponent's library is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "empath",
+   "real": "Fierce Empath",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "six",
+   "name": "Big Beast",
+   "type": "Creature — Beast",
+   "power": "6",
+   "toughness": "6",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 6
+  },
+  {
+   "key": "seven",
+   "name": "Huge Beast",
+   "type": "Creature — Beast",
+   "power": "7",
+   "toughness": "7",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 7
+  },
+  {
+   "key": "five",
+   "name": "Mid Beast",
+   "type": "Creature — Beast",
+   "power": "5",
+   "toughness": "5",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 5
+  },
+  {
+   "key": "sorc",
+   "name": "Big Spell",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 6
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "empath",
+   "decisions": [
+    "fire",
+    "six"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "empath": "battlefield",
+   "six": "hand",
+   "seven": "library",
+   "five": "library",
+   "sorc": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

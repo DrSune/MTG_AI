@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6048fc70-0dcc-4b54-977d-16e240225f82",
+ "name": "Diregraf Ghoul",
+ "text_sha": "d16121afa8eebdc000ff50aa8da39de712f7b6bcc997c9463515fb1021d8220e",
+ "verified": {
+  "tree_sha": "1791c3b9d672eba87f53a2190d89c0852074c61d5e52456e7119205271a12611",
+  "probe_sha": "e6fe50d342cdcd1fb15345bd70089c1c3cc186097ce953ebafcc0953aa05317b",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "This creature enters tapped.",
+    "status": "OK",
+    "evidence": "[cast]: card hand -> battlefield; tapped False -> True; P/T 2/2; cost B-1. Also tapped when it enters by MOVE_ZONE on the opponent's turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
+ }
+}

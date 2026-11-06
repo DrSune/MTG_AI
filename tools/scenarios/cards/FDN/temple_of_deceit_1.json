@@ -1,0 +1,66 @@
+{
+ "set": "FDN",
+ "name": "temple_of_deceit_1",
+ "notes": "P5bf0e3e257 G4 (verifier v1). Printed: 'This land enters tapped. / When this land enters, scry 1.' Library top-first: Card B, Card A, filler (library_top). Seat 0 plays Temple of Deceit; it enters tapped, scry 1 looks at Card B and puts it on the bottom. Library after: Card A, the filler, Card B at the bottom.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "temple",
+   "real": "Temple of Deceit",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lib_a",
+   "name": "Card A",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib_b",
+   "name": "Card B",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "temple",
+   "seat": 0,
+   "decisions": [
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "temple": "battlefield"
+  },
+  "tapped": {
+   "temple": true
+  },
+  "library": {
+   "0": [
+    "Card A",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Card B"
+   ]
+  }
+ }
+}

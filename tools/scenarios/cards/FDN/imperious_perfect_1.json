@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "imperious_perfect_buffs_only_other_elves_you_control",
+ "notes": "Printed: 'Other Elves you control get +1/+1.' The Perfect (2/2 Elf Warrior) enters under your control. Your Elf (1/1) becomes 2/2; the opponent's Elf (1/1) stays 1/1; your Human (2/2) stays 2/2; the Perfect itself stays 2/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "perfect", "real": "Imperious Perfect", "zone": "hand", "controller": 0},
+  {"key": "my_elf", "name": "My Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "my_human", "name": "My Human", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp_elf", "name": "Their Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "perfect"}
+ ],
+ "expect": {
+  "zone": {"perfect": "battlefield"},
+  "power": {"perfect": 2, "my_elf": 2, "my_human": 2, "opp_elf": 1},
+  "toughness": {"perfect": 2, "my_elf": 2, "my_human": 2, "opp_elf": 1}
+ }
+}
