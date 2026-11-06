@@ -40,6 +40,13 @@ are neutral; each one is teaching the agent something.
 ---
 
 ## Open engine faults
+- **Possible rules faults found by the 2026-11-06 engine lean pass** (not changed; none known to be
+  live in two-player verified play):
+  - a target-player slot with no legal player still resolves instead of the ability being removed
+    (CR 603.3d);
+  - `CONTROLLER_COUNT_GT` sums all opponents at three or more seats;
+  - party size can count one multi-class creature several times;
+  - `templates_b6` emits `Verb.DISCARD`, which has no handler.
 - **Compiler faults found by the 2026-11-06 lean pass** (none live in the M21, M20 or FDN verified
   pools: every verified card that places counters places the printed kind, and the verified
   "as long as" statics carry their condition as a while-duration):

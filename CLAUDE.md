@@ -140,9 +140,10 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B3** (2026-11-06, the cleanup f332d17 on main 8f1ced4; KNOWLEDGE/NUMBERS.md):
-  **5297 passed / 39 deselected / 66 subtests passed, nothing failed or xfailed**, 57 s at nice 15
-  beside a training run. B2 (2026-11-05, f908287) was 4686. Other docs point here. It is
+  **Baseline B4** (2026-11-06, after the two lean passes, main 6003dd4; KNOWLEDGE/NUMBERS.md):
+  **5091 passed / 39 deselected / 71 subtests passed, nothing failed or xfailed**, about 45 s.
+  B3 (2026-11-06, f332d17) was 5297: the lean passes removed 231 duplicate, can't-fail or dead-code
+  tests and added mulligan and multi-slot tests. B2 (2026-11-05) was 4686. Other docs point here. It is
   reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
   - **No expected failures: any failure is a regression.** B0 (2026-10-24) carried 2 by-design
     failures and 23 xfails; all were legacy tests, deleted with `rule_engine/` and `strategic_brain/`.
@@ -153,7 +154,7 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 131 passed, 37 s beside a training run (the ontology
+  - Companion numbers: `pytest tools -q` = 139 passed, 37 s beside a training run (the ontology
     baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
-    `tools/run_scenarios.py` = 732/732.
+    `tools/run_scenarios.py` = 738/738.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.
