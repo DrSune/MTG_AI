@@ -204,8 +204,7 @@ def _search_atom() -> Atom:
             pairs=(
                 (
                     "cards",
-                    # Doc 29 ②: up-to-one SEARCH picks compile to the ONE_OF
-                    # asking channel (was the silent CHOOSE stand-in).
+                    # up-to-one SEARCH picks compile to the ONE_OF asking channel
                     Selector(
                         QConst(1),
                         SelectorMode.ONE_OF,
@@ -355,8 +354,8 @@ class TestParseManaCost(unittest.TestCase):
 
     def test_multi_token_order(self) -> None:
         cost = _cost(parse_mana_cost("{2}{W}{U}{G}"))
-        # R1b canonicalization: Cost.parts construction-sorted by canonical
-        # tag (colors alphabetically, then generic) — source order is not kept.
+        # Cost.parts are sorted at construction by canonical tag (colors
+        # alphabetically, then generic) — source order is not kept.
         self.assertEqual(
             cost.parts,
             (
@@ -569,8 +568,8 @@ class TestKeywordDedup(unittest.TestCase):
         self.assertEqual(res.card.keywords, (KeywordAbility(Keyword.FLYING, ()),))
 
     def test_parametrized_distinct_from_bare(self) -> None:
-        # re-pinned 2026-10-29: m21-fidelity item 1 builds a bare keyword only if the face
-        # prints it, so the card now prints both abilities; the dedup still keeps them apart.
+        # A bare keyword is built only if the face prints it, so the card prints both
+        # abilities; the dedup keeps them apart.
         filt = FAtom(pred=FAtomPred.COLOR_HAS, color="B")
         raw = _raw_card(
             "C",
@@ -597,7 +596,7 @@ class TestKeywordDedup(unittest.TestCase):
         )
 
     def test_bare_keyword_needs_the_face_to_print_it(self) -> None:
-        # m21-fidelity item 1 (2026-10-29). MTGJSON lists "Hexproof" next to "Hexproof from"
+        # MTGJSON lists "Hexproof" next to "Hexproof from"
         # for "Hexproof from black" (Garruk's Harbinger): only the variant is printed, so no
         # bare HEXPROOF, which would be full hexproof (CR 702.11b, 702.11d). Likewise a
         # keyword listed for the other face of a modal DFC (CR 712.8f).
@@ -700,10 +699,8 @@ class TestContinuation(unittest.TestCase):
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
-        # R11-1: "If you do, …" without "may" merges MANDATORILY.
-        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
-        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
-        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        # "If you do" after a mandatory antecedent is gated like the "may" form,
+        # Conditional(MAY_DONE, tail) (CR 118.12), with no OptionalEffect wrap.
         self.assertEqual(steps.steps[1], Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2)))
 
     def test_continuation_without_previous_effect(self) -> None:
@@ -712,8 +709,8 @@ class TestContinuation(unittest.TestCase):
         _draw_templates(reg)
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
-        # R11-1: orphaned may-free continuation is appended bare (mandatory),
-        # not phantom-wrapped in OptionalEffect.
+        # An orphaned may-free continuation is appended bare (mandatory),
+        # not wrapped in OptionalEffect.
         self.assertEqual(ab.effect, _draw_atom(2))
 
     def test_continuation_skips_reminder_and_merges(self) -> None:
@@ -730,10 +727,8 @@ class TestContinuation(unittest.TestCase):
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _draw_atom(1))
-        # R11-1: "If you do, …" without "may" merges MANDATORILY.
-        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
-        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
-        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        # "If you do" after a mandatory antecedent is gated like the "may" form,
+        # Conditional(MAY_DONE, tail) (CR 118.12), with no OptionalEffect wrap.
         self.assertEqual(steps.steps[1], Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=_draw_atom(2)))
 
     def test_merges_into_previous_ability(self) -> None:
@@ -759,12 +754,9 @@ class TestContinuation(unittest.TestCase):
             )
         )
         res = compile_card(raw, reg)
-        # The continuation was consumed into the static ability; no spell
-        # effect is left to fold (C4: the creature still carries its
-        # effect-less cast-lane carrier).
-        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
-        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
-        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        # The continuation was consumed into the static ability, gated on
+        # MAY_DONE (CR 118.12); no spell effect is left to fold (the creature
+        # still carries its effect-less cast-lane carrier).
         self.assertEqual(
             res.card.abilities,
             (
@@ -774,7 +766,7 @@ class TestContinuation(unittest.TestCase):
         )
 
     def test_may_continuation_stays_optional(self) -> None:
-        """R11-1: a continuation carrying "may" KEEPS the OptionalEffect wrap."""
+        """A continuation carrying "may" KEEPS the OptionalEffect wrap."""
         raw = _raw_card(
             "I",
             1,
@@ -792,9 +784,7 @@ class TestContinuation(unittest.TestCase):
         res = compile_card(raw, reg)
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
-        # re-pinned 2026-10-30: m21-fidelity wave 4, coordinator ruling (a): "If you do" after a
-        # mandatory antecedent is gated like the "may" form, Conditional(MAY_DONE, tail)
-        # (CR 118.12). R11-1's point stands: no phantom OptionalEffect wrap.
+        # The tail keeps its own optional inside the MAY_DONE gate (CR 118.12).
         self.assertEqual(
             steps.steps[1],
             Conditional(
@@ -803,9 +793,9 @@ class TestContinuation(unittest.TestCase):
         )
 
     def test_loyalty_trailing_text_merges_mandatory(self) -> None:
-        """R11-1 (Basri Ket): plain text after a loyalty bullet is that
-        ability's trailing rules text — merged into its effect, NOT orphaned
-        as a card-level SpellAbility."""
+        """Plain text after a loyalty bullet (Basri Ket) is that ability's
+        trailing rules text — merged into its effect, NOT a card-level
+        SpellAbility."""
         raw = _raw_card(
             "P",
             1,
@@ -835,8 +825,8 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        # B-49: the planeswalker also trails its effect-less cast carrier. The
-        # trailing text did not orphan into it: the carrier has no effect.
+        # The planeswalker also trails its effect-less cast carrier. The
+        # trailing text did not land in it: the carrier has no effect.
         self.assertEqual(len(res.card.abilities), 2)
         self.assertEqual(res.card.abilities[1], SpellAbility(kind=SpellKind.PLANESWALKER))
         ab = res.card.abilities[0]
@@ -846,7 +836,7 @@ class TestContinuation(unittest.TestCase):
         self.assertEqual(ab.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
 
     def test_loyalty_trailing_may_stays_optional(self) -> None:
-        """R11-1: a "may" trailing sentence keeps its optional wrap."""
+        """A "may" trailing sentence keeps its optional wrap."""
         raw = _raw_card(
             "P",
             1,
@@ -943,10 +933,7 @@ class TestContinuation(unittest.TestCase):
         )
 
     def test_search_shuffle_merges_into_activated_ability(self) -> None:
-        """B4 tutor shape: shuffle lands inside the ActivatedAbility's OptionalEffect.
-
-        C4: the creature fixture now also trails the effect-less
-        SpellAbility(CREATURE) cast carrier."""
+        """B4 tutor shape: shuffle lands inside the ActivatedAbility's OptionalEffect."""
         raw = _raw_card(
             "C",
             1,
@@ -976,7 +963,7 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        self.assertEqual(len(res.card.abilities), 2)  # + C4 cast carrier
+        self.assertEqual(len(res.card.abilities), 2)  # + the cast carrier
         ab = res.card.abilities[0]
         if not isinstance(ab, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab).__name__}")
@@ -1036,8 +1023,8 @@ class TestContinuation(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        # B-49: + the planeswalker's effect-less cast carrier (no effect, so
-        # the phase-in sentence did not land in it).
+        # + the planeswalker's effect-less cast carrier (no effect, so the
+        # phase-in sentence did not land in it).
         self.assertEqual(len(res.card.abilities), 2)
         self.assertEqual(res.card.abilities[1], SpellAbility(kind=SpellKind.PLANESWALKER))
         ab = res.card.abilities[0]
@@ -1121,12 +1108,12 @@ class TestContinuation(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Trigger-tailing (grammar round 14b, B-11)
+# Trigger-tailing
 # ---------------------------------------------------------------------------
 
 
 def _etb_event() -> ZoneChangeEvent:
-    """Synthetic "When this creature enters" event (R11-B subject anchor)."""
+    """Synthetic "When this creature enters" event (subject: the card itself)."""
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
@@ -1135,13 +1122,12 @@ def _etb_event() -> ZoneChangeEvent:
 
 
 class TestTriggerTrailing(unittest.TestCase):
-    """Round 14b (B-11, Kitesail Freebooter / Garruk's Harbinger / Siege
-    Striker): plain sentences printed under a triggered ability continue
-    THAT ability's effect — they used to be orphaned onto the card-level
-    SpellAbility and ran at CAST time. Boundary discipline mirrors the
-    R11-1 loyalty tail (:func:`compiler._loyalty_trailing_idx`): only
-    unparsed slots and rule reminders are skipped; an independently-matched
-    sentence (any other outcome) is a group boundary."""
+    """Plain sentences printed under a triggered ability continue THAT
+    ability's effect (Kitesail Freebooter, Garruk's Harbinger, Siege
+    Striker), not the card-level SpellAbility. As in the loyalty tail
+    (:func:`compiler._loyalty_trailing_idx`), only unparsed slots and rule
+    reminders are skipped; an independently-matched sentence (any other
+    outcome) is a group boundary."""
 
     @staticmethod
     def _etb_trigger_reg(
@@ -1207,7 +1193,7 @@ class TestTriggerTrailing(unittest.TestCase):
                     condition=None,
                     effect=Seq(steps=(_draw_atom(1), _draw_atom(2), _draw_atom(3))),
                 ),
-                # C4: plain creatures carry the effect-less cast lane.
+                # Plain creatures carry the effect-less cast carrier.
                 SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
@@ -1233,8 +1219,8 @@ class TestTriggerTrailing(unittest.TestCase):
         self.assertFalse(any(isinstance(a, SpellAbility) for a in res.card.abilities))
 
     def test_may_tail_wraps_optional_once(self) -> None:
-        """R11-1 may-rule: a "may" tail sentence earns an OptionalEffect
-        wrap; a bare tail stays mandatory (Garruk's Harbinger shape)."""
+        """A "may" tail sentence earns an OptionalEffect wrap; a bare tail
+        stays mandatory (Garruk's Harbinger shape)."""
         raw = _raw_card(
             "C",
             1,
@@ -1320,7 +1306,7 @@ class TestTriggerTrailing(unittest.TestCase):
                         else_effect=_draw_atom(2),
                     ),
                 ),
-                # C4: plain creatures carry the effect-less cast lane.
+                # Plain creatures carry the effect-less cast carrier.
                 SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
@@ -1328,14 +1314,8 @@ class TestTriggerTrailing(unittest.TestCase):
     def test_independently_matched_sentence_breaks_the_chain(self) -> None:
         """Negative: an activated-ability sentence after the trigger is its
         own ability (never captured by the TRIGGER), and it is a GROUP
-        BOUNDARY — the bare tail is NOT pulled back into the trigger
-        (mirror of _loyalty_trailing_idx discipline).
-
-        AMENDED 14e (B-17): the tail's NEW owner is the activation itself
-        (activation-tailing capture); the pre-14e reading parked it
-        card-level on the SpellAbility (Swindler/Waker/Hallowblade — the
-        ruled miscompile). Boundary half unchanged: the trigger still owns
-        ONLY its own sentence."""
+        BOUNDARY — the bare tail is NOT pulled back into the trigger; its
+        owner is the activation (activation-tail capture)."""
         raw = _raw_card(
             "C",
             1,
@@ -1363,14 +1343,14 @@ class TestTriggerTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        trigger, activated, carrier = res.card.abilities  # + C4 cast carrier
+        trigger, activated, carrier = res.card.abilities  # + the cast carrier
         assert isinstance(trigger, TriggeredAbility)
         assert isinstance(activated, ActivatedAbility)
         assert isinstance(carrier, SpellAbility)
         self.assertIsNone(carrier.effect)  # effect-less CREATURE carrier
-        # The trigger owns ONLY its own sentence (boundary half, intact).
+        # The trigger owns ONLY its own sentence.
         self.assertEqual(trigger.effect, _draw_atom(1))
-        # 14e (B-17): the post-activated bare tail is the ACTIVATION's tail.
+        # The post-activated bare tail is the ACTIVATION's tail.
         self.assertEqual(activated.effect, Seq(steps=(_draw_atom(2), _draw_atom(3))))
 
     def test_bullet_sentence_never_captured(self) -> None:
@@ -1397,7 +1377,7 @@ class TestTriggerTrailing(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Round 14e (B-17): activation-tail capture, OPT(CAST)-permission exemption
+# Activation-tail capture, OPT(CAST)-permission exemption
 # ---------------------------------------------------------------------------
 
 
@@ -1432,14 +1412,11 @@ def _cast_permission_effect() -> Effect:
 
 
 class TestActivationTrailing(unittest.TestCase):
-    """Round 14e (B-17, Tavern Swindler / Waker of Waves / Seasoned
-    Hallowblade): plain sentences printed under a PLAIN activated ability
-    are that ability's ACTIVATION tail — they used to be orphaned onto the
-    card-level SpellAbility and ran at CAST time (Swindler's flip gate
-    raised FLIP_WON there, Hallowblade's GRANT raised the B-9 ``result``
-    referent). Boundary discipline mirrors the trigger/loyalty tail; the
-    empty-cost OPT(CAST) permission row is an EXEMPT (transparent) boundary
-    and loyalty-costed abilities stay owned by the R11-1 loyalty chain."""
+    """Plain sentences printed under a PLAIN activated ability are that
+    ability's ACTIVATION tail (Tavern Swindler, Seasoned Hallowblade), not
+    the card-level SpellAbility. Boundaries as in the trigger/loyalty tail;
+    the empty-cost OPT(CAST) permission row is transparent and
+    loyalty-costed abilities stay owned by the loyalty chain."""
 
     @staticmethod
     def _reg(
@@ -1480,7 +1457,7 @@ class TestActivationTrailing(unittest.TestCase):
     def test_plain_activation_owns_its_tail(self) -> None:
         """Swindler shape: {T}: Draw a card. / You draw another card. ->
         ONE ActivatedAbility Seq, no SpellAbility tail effect (the trailing
-        C4 node is the effect-less cast carrier, not an effect owner)."""
+        node is the effect-less cast carrier, not an effect owner)."""
         raw = _raw_card(
             "S",
             71,
@@ -1495,7 +1472,7 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        activated, carrier = res.card.abilities  # + C4 cast carrier
+        activated, carrier = res.card.abilities  # + the cast carrier
         assert isinstance(activated, ActivatedAbility)
         self.assertEqual(activated.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
         assert isinstance(carrier, SpellAbility)
@@ -1527,10 +1504,10 @@ class TestActivationTrailing(unittest.TestCase):
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        # B-49 follow-up #1: "this turn" makes the row a permission created by the
+        # "this turn" makes the row a permission created by the
         # activation's resolution (CR 611.2a), so it is suppressed at assembly
         # instead of standing as a free ability. The tail still skipped it.
-        activation, carrier = res.card.abilities  # + C4 carrier
+        activation, carrier = res.card.abilities  # + the cast carrier
         assert isinstance(activation, ActivatedAbility)
         assert isinstance(carrier, SpellAbility)
         self.assertIsNone(carrier.effect)
@@ -1545,12 +1522,9 @@ class TestActivationTrailing(unittest.TestCase):
     def test_loyalty_tail_never_routes_through_this_mechanism(self) -> None:
         """Chandra boundary, synthetic: loyalty bullet / permission row /
         bare tail. The loyalty EXCLUSION keeps this mechanism out, and the
-        tail never joins the permission row.
-
-        B-49 follow-up #1 (2026-10-29): the R11-1 loyalty chain now sees through the
-        permission row (the r14e intent), so the bullet owns its tail. Before,
-        the tail landed card-level: Chandra, Heart of Fire's "Add six {R}." ran
-        when she was cast. The row itself states a duration and is suppressed."""
+        tail never joins the permission row: the loyalty chain sees through
+        the row, so the bullet owns its tail (Chandra, Heart of Fire's "Add
+        six {R}."). The row itself states a duration and is suppressed."""
         raw = _raw_card(
             "C",
             73,
@@ -1581,13 +1555,12 @@ class TestActivationTrailing(unittest.TestCase):
 
 
 class TestDurationPermissionRows(unittest.TestCase):
-    """B-49 follow-up #1 (2026-10-29): a cast permission that lasts "until end of turn" or
-    "this turn" is part of the ability whose resolution creates it (CR
-    611.2a). It compiled as a free empty-cost activation of its own, which
-    the controller could repeat any turn: Chandra, Flame's Catalyst cast any
-    spell from her hand for nothing. CAST has no duration role yet, so the
-    row is suppressed (the C5 mechanism) and the card is engine-unsupported.
-    A static permission (Conspicuous Snoop) states no duration and stays."""
+    """A cast permission that lasts "until end of turn" or "this turn" is part
+    of the ability whose resolution creates it (CR 611.2a), never a free,
+    repeatable activation of its own (Chandra, Flame's Catalyst). CAST has
+    no duration role yet, so the row is suppressed and the card is
+    engine-unsupported. A static permission (Conspicuous Snoop) states no
+    duration and stays."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1646,14 +1619,12 @@ class TestDurationPermissionRows(unittest.TestCase):
 
 
 class TestSelfCastPermissionRows(unittest.TestCase):
-    """2026-11-05 (BACKLOG B-100): "You may cast this card from your graveyard by paying 3
-    life and discarding a card in addition to paying its other costs." (Demonic Embrace) is
-    a permission to cast the card from its graveyard (CR 601.3). It compiled as an
-    activated ability {pay 3 life, discard a card}: "cast this card from your graveyard".
-    An activated ability is activated while the card is on the battlefield, so the cast
-    never happened and the row was a discard outlet the card does not have. The IR has no
-    permission lane (DESIGN_ATOM_ONTOLOGY R5-2), so the row is refused and the card is
-    engine-unsupported: it leaves the castable pool."""
+    """"You may cast this card from your graveyard by paying 3 life and discarding a card
+    in addition to paying its other costs." (Demonic Embrace) is a permission to cast the
+    card from its graveyard (CR 601.3), not an activated ability: that is activated while
+    the card is on the battlefield, so it could never cast it. The IR has no permission
+    lane yet (BACKLOG B-100), so the row is refused and the card is engine-unsupported:
+    it leaves the castable pool."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1686,18 +1657,11 @@ class TestSelfCastPermissionRows(unittest.TestCase):
 
 
 class TestDynamicLoyaltyCostGate(unittest.TestCase):
-    """B-49 follow-up #4 (2026-10-29): Ugin, the Spirit Dragon's [−X]. X is
-    announced as the ability is activated (CR 601.2b via 602.2b). The
-    activation lane had no X declaration, so once the B-49 carrier made Ugin
-    castable, legal_activations raised NotImplementedError ("QX has no declared
-    X") on its controller's next scan. That was 58 of the 153 crashes in the
-    800-game castable sweep, and the shape gate marked a Quantity loyalty
-    delta engine-unsupported.
-
-    Re-pinned 2026-10-29: the activation X lane (legality.activation_x_max /
-    ask_activation_x, CR 606.6 caps X at the loyalty counters) supports a
-    bare X, so Ugin is engine-supported. Any other Quantity delta has no
-    announcement lane and stays gated."""
+    """Ugin, the Spirit Dragon's [−X]: X is announced as the ability is
+    activated (CR 601.2b via 602.2b). The activation X lane
+    (legality.activation_x_max / ask_activation_x, CR 606.6 caps X at the
+    loyalty counters) supports a bare X, so Ugin is engine-supported. Any
+    other Quantity delta has no announcement lane and stays gated."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1712,8 +1676,6 @@ class TestDynamicLoyaltyCostGate(unittest.TestCase):
         return compile_card(self.raw[name], self.reg, supported_verbs=self.verbs)
 
     def test_ugin_minus_x_is_supported_by_the_x_lane(self) -> None:
-        # re-pinned 2026-10-29: the activation X lane changes Ugin from
-        # gated to supported (it asserted assertFalse before the lane).
         res = self._gated("Ugin, the Spirit Dragon")
         deltas = [
             part.delta
@@ -1750,25 +1712,16 @@ class TestDynamicLoyaltyCostGate(unittest.TestCase):
             self.assertTrue(self._gated(name).legality.engine_supported, name)
 
 
-# ---------------------------------------------------------------------------
-# Meta-filter conjunction (Enchant X)
-# ---------------------------------------------------------------------------
-
-
 class TestRound14fFidelity(unittest.TestCase):
-    """Round 14f: the two audited compiler fidelities. (1) The
-    B4-cast-them-this-turn permission row's anaphor CROSSes resolutions
-    (the [−9]'s exile ran in its own execution; the permission activates
-    later), so it compiles the executor's exiled-with POPULATION — the
-    14d ``IS_EXILED_WITH_SOURCE`` pred, Chandra's own [+1] row's shape —
-    never the per-resolution ``result`` register 14e closed (the residual
-    it named). (2) A bare static anthem sentence is an ABILITY: the
-    opponents-debuff row was the lone outlier emitting a raw
-    EffectOutcome, which folded into the creature's SpellAbility and ran
-    ONCE at cast (Waker of Waves). The StaticAbility wrapper is the
-    family's established shape (the five sibling rows) and the card then
-    carries no SpellAbility — the same B-1 move the 14e capture ruled for
-    Swindler/Hallowblade."""
+    """Two compiler fidelities. (1) The B4 "cast them this turn" permission
+    row's anaphor CROSSES resolutions (the [−9]'s exile ran in its own
+    execution; the permission activates later), so it compiles the
+    executor's exiled-with POPULATION (``IS_EXILED_WITH_SOURCE``, the shape
+    of Chandra's own [+1] row), never the per-resolution ``result``
+    register. (2) A bare static anthem sentence is an ABILITY: Waker of
+    Waves' opponents-debuff row is a StaticAbility like its sibling rows,
+    so it never folds into the creature's SpellAbility to run once at
+    cast."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1784,7 +1737,7 @@ class TestRound14fFidelity(unittest.TestCase):
         )
         res = compile_card(raw, self.reg)
         self.assertEqual(res.unparsed, ())
-        # B-49 follow-up #1: the row states a duration, so compile_card suppresses it (a
+        # The row states a duration, so compile_card suppresses it (a
         # permission created by a resolving ability, CR 611.2a). The fidelity
         # this test pins is the template's own row, read from the registry.
         self.assertEqual(res.card.abilities, ())
@@ -1800,7 +1753,7 @@ class TestRound14fFidelity(unittest.TestCase):
         self.assertIs(cast_atom.verb, Verb.CAST)
         selector = cast_atom.args.get("source")
         assert isinstance(selector, Selector)
-        self.assertIsNone(selector.referent)  # NO register hop anymore
+        self.assertIsNone(selector.referent)  # no register hop
         self.assertIsInstance(selector.count, QUnbounded)  # plural "them"
         self.assertIs(selector.mode, SelectorMode.CHOOSE)
         self.assertEqual(selector.zones[0].kind, ZoneKind.EXILE)
@@ -1808,8 +1761,7 @@ class TestRound14fFidelity(unittest.TestCase):
         self.assertEqual(selector.filter, FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE))
 
     def test_corpus_scope_of_the_two_rows(self) -> None:
-        # The audit's set-equality premise: each fidelity touches EXACTLY
-        # the named card in the 305.
+        # Each fidelity touches EXACTLY the named card in the M21 pool.
         cast_them = {
             self.pool[oid].identity.name
             for oid in self.pool
@@ -1841,16 +1793,21 @@ class TestRound14fFidelity(unittest.TestCase):
         assert isinstance(atom, Atom)
         self.assertIs(atom.verb, Verb.MODIFY_PT)
         self.assertIsNone(atom.args.get("duration"))  # continuous, not timed
-        # C4: the miscompile stays GONE — the trailing SpellAbility is the
-        # effect-less CREATURE cast carrier, NOT the old tail-effect node.
+        # The trailing SpellAbility is the effect-less CREATURE cast
+        # carrier, NOT a tail-effect node.
         carrier = waker.abilities[2]
         assert isinstance(carrier, SpellAbility)
         self.assertIsNone(carrier.effect)
         self.assertIs(carrier.kind, SpellKind.CREATURE)
-        # the 14e activation capture is untouched by the re-wrap
+        # the activation keeps its captured tail
         activation = waker.abilities[1]
         assert isinstance(activation, ActivatedAbility)
         self.assertIsInstance(activation.effect, Seq)
+
+
+# ---------------------------------------------------------------------------
+# Meta-filter conjunction (Enchant X)
+# ---------------------------------------------------------------------------
 
 
 class TestMetaFilter(unittest.TestCase):
@@ -2246,7 +2203,7 @@ class TestAdditionalCost(unittest.TestCase):
         ab = _spell(res.card.abilities[0])
         steps = _seq(ab.effect)
         self.assertEqual(steps.steps[0], _destroy_atom())
-        # R11-1: "If you do, …" without "may" merges MANDATORILY.
+        # A continuation without "may" merges MANDATORILY.
         self.assertEqual(steps.steps[1], _draw_atom(2))
         self.assertEqual(ab.additional_costs, (_additional_cost_sacrifice(),))
 
@@ -2631,10 +2588,6 @@ class TestCompilePoolSynthetic(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Real M21.json smoke test
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
 # Choose-opener built-in ("Choose one —" folding)
 # ---------------------------------------------------------------------------
 
@@ -2741,8 +2694,7 @@ class TestChooseOpener(unittest.TestCase):
         self.assertEqual(res.unparsed, ())
         ab = _spell(res.card.abilities[0])
         choose = _choose(ab.effect)
-        # re-pinned 2026-10-30: R5 engine item — "one or more" is at least one
-        # mode (it was QUnbounded, which also allowed none)
+        # "one or more" is at least one mode (CR 700.2d)
         self.assertEqual(choose.count, QAtLeast(1))
         self.assertEqual(
             choose.options, (_draw_atom(1), _destroy_atom(), _draw_atom(1))
@@ -2770,8 +2722,7 @@ class TestChooseOpener(unittest.TestCase):
                     event=ZoneChangeEvent(
                         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
                         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-                        # R11-B: "When THIS creature enters" anchors on the
-                        # card itself (audit 09-29/04 P0-2).
+                        # "When THIS creature enters" anchors on the card itself.
                         subject=FAtom(pred=FAtomPred.IS_SOURCE),
                     ),
                     condition=None,
@@ -2780,7 +2731,7 @@ class TestChooseOpener(unittest.TestCase):
                         options=(_draw_atom(1), _destroy_atom()),
                     ),
                 ),
-                # C4: plain creatures carry the effect-less cast lane.
+                # Plain creatures carry the effect-less cast carrier.
                 SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
@@ -2814,7 +2765,7 @@ class TestChooseOpener(unittest.TestCase):
                     condition=None,
                     effect=choose,
                 ),
-                # C4: plain creatures carry the effect-less cast lane.
+                # Plain creatures carry the effect-less cast carrier.
                 SpellAbility(kind=SpellKind.CREATURE),
             ),
         )
@@ -2845,8 +2796,8 @@ class TestChooseOpener(unittest.TestCase):
 
     def test_continuation_after_options_not_folded_into_choose(self) -> None:
         """A continuation after the option bullets must not merge into the
-        Choose; with no other merge target it becomes its own optional
-        step beside the Choose in the spell effect Seq."""
+        Choose; with no other merge target it becomes its own step beside
+        the Choose in the spell effect Seq."""
         raw = _raw_card(
             "I",
             1,
@@ -2874,11 +2825,15 @@ class TestChooseOpener(unittest.TestCase):
             steps.steps[0],
             Choose(count=QConst(1), options=(_draw_atom(1), _destroy_atom())),
         )
-        # R11-1: "If you do, …" without "may" merges MANDATORILY.
+        # No "may": the step is mandatory.
         self.assertEqual(steps.steps[1], _draw_atom(2))
 
 
 _M21_PATH = Path(__file__).resolve().parents[2] / "data" / "M21.json"
+
+# ---------------------------------------------------------------------------
+# Real M21.json smoke tests
+# ---------------------------------------------------------------------------
 
 
 class TestM21Smoke(unittest.TestCase):
@@ -2965,12 +2920,12 @@ class TestChooseOpenerM21(unittest.TestCase):
         self.assertEqual(len(res.card.abilities), 1)
         ab = _spell(res.card.abilities[0])
         choose = _choose(ab.effect)
-        self.assertEqual(choose.count, QAtLeast(1))  # re-pinned 2026-10-30: R5 engine item
+        self.assertEqual(choose.count, QAtLeast(1))  # "one or more": at least one mode
         self.assertEqual(len(choose.options), 5)
 
     def test_etb_shape(self) -> None:
         res = self._compile("Trufflesnout")
-        self.assertEqual(len(res.card.abilities), 2)  # trigger + C4 cast carrier
+        self.assertEqual(len(res.card.abilities), 2)  # trigger + cast carrier
         ab = _triggered(res.card.abilities[0])
         event = ab.event
         assert isinstance(event, ZoneChangeEvent)
@@ -2995,7 +2950,7 @@ class TestChooseOpenerM21(unittest.TestCase):
 
 class TestAdditionalCostM21(unittest.TestCase):
     """The four M21 additional-cost cards must compile cleanly (full
-    registry, round-3 behavior): instants keep their effect and gain the
+    registry): instants keep their effect and gain the
     additional cost; effect-less creatures get an effect-less SpellAbility
     carrying the additional cost. No card raises StateCorruptionError."""
 
@@ -3052,11 +3007,10 @@ class TestAdditionalCostM21(unittest.TestCase):
 
 
 class TestDanglingContinuation(unittest.TestCase):
-    """m21-fidelity wave 4 (2026-10-30): a sentence that acts on what the sentence before it
-    produced (a REST complement, the ``result`` register) is unparsed when that sentence did not
-    parse. FDN Squad Rallier and Vivien Reid compiled their lone "Put the rest on the bottom of
-    your library in a random order." as the whole spell effect, so casting them moved the top
-    card of the library to the bottom (CR 608.2c: "the rest" has no antecedent)."""
+    """A sentence that acts on what the sentence before it produced (a REST complement, the
+    ``result`` register) is unparsed when that sentence did not parse (CR 608.2c: "the rest" has
+    no antecedent). Compiled alone, FDN Squad Rallier's and Vivien Reid's "Put the rest on the
+    bottom of your library in a random order." would be the whole spell effect."""
 
     REST = "Put the rest on the bottom of your library in a random order."
 
@@ -3114,10 +3068,9 @@ class TestDanglingContinuation(unittest.TestCase):
         self.assertEqual(len(self._rest_selectors(res.card)), 1)
 
     def test_if_you_do_after_an_unparsed_sentence_is_unparsed(self) -> None:
-        # 2026-11-05 (known_bugs compiler_orphaned_if_you_do, M20 Keldon Raider): "If you do"
-        # reads whether the previous instruction was done (CR 118.12). With that sentence
-        # unparsed it has no antecedent; compiled alone it became the creature spell's own
-        # effect, so casting the creature drew a card.
+        # M20 Keldon Raider: "If you do" reads whether the previous instruction was done
+        # (CR 118.12). With that sentence unparsed it has no antecedent; compiled alone it
+        # would be the creature spell's own effect, so casting the creature would draw a card.
         tail = "If you do, draw a card."
         raw = _raw_card(
             "Raider Probe",
@@ -3137,7 +3090,7 @@ class TestDanglingContinuation(unittest.TestCase):
         self.assertIsNone(spells[0].effect)
 
     def test_if_you_do_after_a_parsed_sentence_is_gated(self) -> None:
-        # Control: a parsed antecedent keeps the r18a gate (CR 118.12).
+        # Control: a parsed antecedent keeps the MAY_DONE gate (CR 118.12).
         raw = _raw_card(
             "Ooze Control",
             9104,
@@ -3159,12 +3112,10 @@ class TestDanglingContinuation(unittest.TestCase):
 
 
 class TestCastCostWaiver(unittest.TestCase):
-    """2026-11-05: CAST's ``cost`` role set to the empty Cost means "without paying its mana cost"
-    (verbs._v_cast -> stack.cast_card, CR 118.9). Two templates wrote it for permissions that are
-    not free in print (Chandra, Heart of Fire's "You may cast them this turn." and "Until end of
-    turn, you may play cards exiled this way."), a shape a mapper copies through ``similar``.
-    Every template sentence of the corpus that compiles a CAST is listed here (all sets, scanned
-    2026-11-05): the waiver compiles exactly when the sentence prints one."""
+    """CAST's ``cost`` role set to the empty Cost means "without paying its mana cost"
+    (verbs._v_cast -> stack.cast_card, CR 118.9), and a mapper copies template shapes through
+    ``similar``. Every template sentence of the corpus that compiles a CAST is listed here: the
+    waiver compiles exactly when the sentence prints one."""
 
     SENTENCES = (
         "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled "

@@ -6,11 +6,8 @@ boundary between English oracle sentences and the closed IR grammar:
 every sentence is either matched by a template (→ structured outcome),
 detected as a rule reminder, or routed to the explicit unparsed queue.
 
-Public API:
-    parse_mana_cost(raw) -> Cost | None
-    parse_pt(raw) -> Quantity | None
-    compile_card(raw, registry, supported_verbs=None) -> CompileResult
-    compile_pool(pool, registry, supported_verbs=None) -> PoolCompile
+Entry points: ``compile_card`` (one card) and ``compile_pool`` (a pool);
+``parse_mana_cost`` and ``parse_pt`` parse the printed scalars.
 """
 
 from __future__ import annotations
@@ -88,7 +85,7 @@ from MTG_bot.core.errors import StateCorruptionError
 from MTG_bot.core.identity import LegalityFlags
 
 # ---------------------------------------------------------------------------
-# Keyword string → Keyword enum mapping (M21 pool-verified).
+# Keyword string → Keyword enum mapping.
 # "Hexproof from" is HEXPROOF + a Filter param, not a separate keyword.
 # ---------------------------------------------------------------------------
 
@@ -121,22 +118,19 @@ _KEYWORD_STRING_TO_ENUM: dict[str, Keyword] = {
 
 # Keywords whose _KEYWORD_PARAMS signatures all require ≥1 param —
 # cannot be built from a bare identity string alone.
-# KNOWN-GAP (restated 2026-10-07, doc 36): the GRAMMAR models all four
-#   shapes fine — Verb.SCRY/MILL/BATTALION carry a Quantity and
-#   Keyword.PROTECTION a Filter, and the Quantity/Filter grammar itself
-#   is rich (10 Quantity forms, full FAnd/FOr/FNot). The real gap is
-#   UPSTREAM of the grammar: the identity keyword pipeline delivers bare
-#   strings ("Scry", "Mill") with no number/filter attached, and no
-#   oracle-text extraction feeds _KEYWORD_PARAMS for them, so the
-#   compiler skips them (reported via CompileResult.known_gaps) unless a
-#   template supplies the params. Wiring identity → params is the fix;
-#   extending the atomics is not.
+# KNOWN-GAP: the grammar models all four (Verb.SCRY/MILL/BATTALION carry a
+#   Quantity, Keyword.PROTECTION a Filter); the gap is upstream of it. The
+#   identity keyword pipeline delivers bare strings ("Scry", "Mill") and no
+#   oracle-text extraction feeds _KEYWORD_PARAMS for them, so the compiler
+#   skips them (reported via CompileResult.known_gaps) unless a template
+#   supplies the params. Wiring identity → params is the fix, not new atoms.
 _KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset(
     {Keyword.SCRY, Keyword.MILL, Keyword.BATTALION, Keyword.PROTECTION}
 )
 
 # ---------------------------------------------------------------------------
-# Continuation prefixes (02-phase1-plan.md).
+# Continuation prefixes: a sentence starting with one continues the previous
+# sentence's effect.
 # ---------------------------------------------------------------------------
 
 _CONTINUATION_PREFIXES: tuple[str, ...] = (
@@ -147,12 +141,10 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "If that",
     "If you search your library this way",
     "Then ",
-    # Grammar round 7, R7-3: "Otherwise" attaches as the else_effect of
-    # the previous Conditional (_merge_otherwise, C13 fallback); "When
-    # you do" (grammar round 9, R9-9) attaches INSIDE the previous
-    # OptionalEffect whose inner pays a cost (Tolarian Kraken: antecedent
-    # "you may pay {1}" — _merge_do_continuation, C24; the s2 template
-    # ships with the 9-B batch).
+    # "Otherwise" attaches as the else_effect of the previous Conditional
+    # (_merge_otherwise); "When you do" attaches inside the previous
+    # OptionalEffect whose inner pays a cost (Tolarian Kraken's "you may
+    # pay {1}", _merge_do_continuation).
     "Otherwise",
     "When you do",
 )
@@ -160,7 +152,7 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 # Search-shuffle boilerplate (compiler built-in, no template).
 #
-# "If you search your library this way, shuffle." (6x in M21) mandates the
+# "If you search your library this way, shuffle." mandates the
 # shuffle ONLY IF the preceding optional search was performed.  No template
 # matches the sentence, so the compiler synthesizes a SHUFFLE EffectOutcome
 # and the continuation pass injects it INSIDE the previous OptionalEffect's
@@ -187,7 +179,7 @@ def _search_shuffle_effect() -> Atom:
 # Phase-in prevention (compiler built-in, no template).
 #
 # "Until the end of your next turn, they can't phase in." (Teferi, Timeless
-# Voyager [−8]; 1x in M21) is the mandatory second sentence of a loyalty
+# Voyager [−8]) is the mandatory second sentence of a loyalty
 # ability whose first sentence phases out the same creatures.  No template
 # matches the bare sentence, so the compiler synthesizes a PREVENT_EFFECT
 # EffectOutcome and the continuation pass appends it MANDATORILY (no
@@ -203,7 +195,7 @@ _PHASE_IN_PREVENT_RE = re.compile(
 
 
 def _phase_in_prevention_effect() -> Atom:
-    """Canonical phase-in prevention atom (T3 round 2, item 5 composition).
+    """Canonical phase-in prevention atom.
 
     Prevents the opponent's command-zone permanents entering the battlefield
     until the controller's next turn.  ``DurationUntilNextTurn`` carries the
@@ -237,29 +229,22 @@ def _phase_in_prevention_effect() -> Atom:
 # ---------------------------------------------------------------------------
 # Choose-opener boilerplate (compiler built-in, no template).
 #
-# "Choose one —" (7 cards in M21) is an opener sentence: the option bullets
-# that follow are already parsed as sibling EffectOutcomes by the option
-# templates, so only the opener itself fails template matching.  This pass
-# folds the opener + its option bullets into one Choose node (or a triggered
-# ability carrying one) so the card no longer reports an unparsed sentence.
+# "Choose one —" is an opener sentence: the option bullets that follow are
+# already parsed as sibling EffectOutcomes by the option templates, so only
+# the opener itself fails template matching.  This pass folds the opener +
+# its option bullets into one Choose node (or a triggered ability carrying
+# one).
 #
 # "Choose one or more —" (Sublime Epiphany, Casualties of War) is
-#   Choose(count=QAtLeast(1)) since ontology R5-10/11's engine item
-#   (2026-10-30): at least one mode, at most every mode once (CR 700.2d).
-#   It was QUnbounded(), which also admitted choosing no mode at all.
+#   Choose(count=QAtLeast(1)): at least one mode, at most every mode once
+#   (CR 700.2d).
 # KNOWN-GAP: "attacks or blocks" (Elder Gargaroth) is decomposed into two
 #   TriggeredAbility nodes (DeclareAttackersEvent + DeclareBlockersEvent)
 #   sharing the same Choose effect — the grammar has no composite
 #   "attacks or blocks" EventSpec.  A creature cannot attack and block in
 #   the same turn, so the decomposition is behaviourally equivalent.
-#
-# Modal "Choose two/three —" openers (tokenizer refinement 2026-10-07, doc
-# 29): the same fold, with the Choose combinator's EXISTING ``count`` slot
-# carrying the modal cardinality (no grammar extension — the count axis is
-# already orthogonal to the operation).  The current M21 pool contains no
-# such card (measured: grep of cards.text over the 397-card corpus finds
-# only "Choose one"/"Choose one or more"); this is tokenizer readiness for
-# the next sets, per the AGENTS.md §8 tokenizer law.
+# "Choose two/three —": the same fold, with the Choose ``count`` carrying
+#   the modal cardinality.
 # ---------------------------------------------------------------------------
 
 _CHOOSE_ONE_RE = re.compile(r"^Choose one —$")
@@ -271,7 +256,7 @@ _CHOOSE_ATTACK_BLOCK_RE = re.compile(
     r"^Whenever this creature attacks or blocks, choose one —$"
 )
 
-# Option bullets are printed as "• <effect>" (M21 oracle-text convention).
+# Option bullets are printed as "• <effect>" (oracle-text convention).
 _OPTION_BULLET_PREFIX = "• "
 
 # Opener kinds.
@@ -315,8 +300,7 @@ _OPTION_CONSUMED = _OptionConsumed()
 _OutcomeSlot = SentenceOutcome | _ChooseOpenerOutcome | _OptionConsumed | None
 
 
-# Modal spell openers and their Choose counts (doc 29 refinement ①:
-# same fold as "Choose one —", count axis carried by the existing slot).
+# Modal spell openers and their Choose counts.
 _CHOOSE_SPELL_COUNTS: dict[str, Quantity] = {
     _CHOOSE_SPELL_ONE: QConst(1),
     _CHOOSE_SPELL_TWO: QConst(2),
@@ -381,11 +365,8 @@ def _wrap_choose_openers(
 
 
 def _choose_etb_event() -> ZoneChangeEvent:
-    """Zone-change event for the "When this creature enters" opener.
-
-    R11-B (audit 09-29/04 P0-2): the ``_CHOOSE_ETB_RE`` opener is
-    literally ``When this creature enters`` — the entering object is the
-    card itself, so the event subject anchors on IS_SOURCE."""
+    """Zone-change event for the "When this creature enters" opener: the
+    entering object is the card itself, so the subject is IS_SOURCE."""
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
@@ -457,10 +438,9 @@ def parse_mana_cost(raw: str | None) -> Cost | None:
     other characters.  Unknown token contents raise
     ``StateCorruptionError``.
 
-    # KNOWN-GAP: number-prefixed split hybrids (``{3/W}``) are not
-       representable in the Cost grammar (which models two-colour
-       hybrids only).  They raise ``StateCorruptionError`` with a
-       distinct split-hybrid message.  M21 contains none.
+    KNOWN-GAP: number-prefixed split hybrids (``{3/W}``) are not
+    representable in the Cost grammar (which models two-colour hybrids
+    only); they raise with their own message.
     """
     if raw is None:
         return None
@@ -492,8 +472,6 @@ def parse_mana_cost(raw: str | None) -> Cost | None:
                 )
             parts.append(CostManaHybrid((c1, c2), QConst(1)))
         elif re.fullmatch(r"\d+/[WUBRG]", tok):
-            # # KNOWN-GAP: split-cost hybrid ({3/W}) — the Cost grammar
-            # models two-colour hybrids only; no M21 card uses this form.
             raise StateCorruptionError(
                 f"parse_mana_cost: split-cost hybrid {tok!r} is a "
                 f"KNOWN-GAP (Cost grammar models two-colour hybrids only)",
@@ -534,7 +512,7 @@ def parse_pt(raw: str | None) -> QConst | QX | None:
 
 
 # ---------------------------------------------------------------------------
-# Local bucket classifier for unparsed sentences (no /tmp import).
+# Local bucket classifier for unparsed sentences.
 # ---------------------------------------------------------------------------
 
 _KEYWORD_WORDS: frozenset[str] = frozenset(kw for kw in _KEYWORD_STRING_TO_ENUM)
@@ -574,15 +552,12 @@ def _bucket_hint(sentence: str) -> str:
         if _ACTIVATED_COST_RE.match(inner):
             return "activated"
         return "rule-reminder"
-    # Activated: starts with a cost token
     for prefix in _ACTIVATED_PREFIXES:
         if s.startswith(prefix):
             return "activated"
-    # Triggered: starts with a trigger word
     for prefix in _TRIGGER_PREFIXES:
         if s.startswith(prefix):
             return "triggered"
-    # Static: "has", "gives", "is a", "creatures you control"
     lowered = s.lower()
     if any(
         lowered.startswith(p)
@@ -598,7 +573,6 @@ def _bucket_hint(sentence: str) -> str:
         )
     ):
         return "static"
-    # Keyword word
     first_word = s.split(" ", 1)[0].rstrip(".")
     if first_word in _KEYWORD_WORDS:
         return "keyword"
@@ -613,9 +587,9 @@ def _bucket_hint(sentence: str) -> str:
 def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
     """Build KeywordAbility candidates from raw.keywords where possible.
 
-    # KNOWN-GAP: keywords in _KEYWORDS_BARE_UNBUILDABLE cannot be
+    KNOWN-GAP: keywords in _KEYWORDS_BARE_UNBUILDABLE cannot be
     constructed without params; "Hexproof from" needs a Filter.
-    These are silently omitted (reported via CompileResult.known_gaps).
+    These are omitted (reported via CompileResult.known_gaps).
 
     A whole-ability keyword (``_LINE_KEYWORDS``) is built only if the face prints it
     (``_face_prints_keyword``): MTGJSON's list is not the face's own keyword list.
@@ -625,10 +599,8 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
         kw_enum = _KEYWORD_STRING_TO_ENUM.get(kw_str)
         if kw_enum is None:
             continue
-        # "Hexproof from" needs a Filter param — can't build bare.
         if kw_str == "Hexproof from":
             continue
-        # Keywords that require params in ALL their signatures.
         if kw_enum in _KEYWORDS_BARE_UNBUILDABLE:
             continue
         if kw_str in _LINE_KEYWORDS and not _face_prints_keyword(raw, kw_str):
@@ -640,22 +612,20 @@ def _build_bare_keywords(raw: RawCard) -> tuple[KeywordAbility, ...]:
 def _face_prints_keyword(raw: RawCard, kw_str: str) -> bool:
     """Does this face print the whole-ability keyword ``kw_str`` as its own?
 
-    MTGJSON's ``keywords`` field is not the face's keyword list, in two ways
-    (m21-fidelity item 1, 2026-10-29; 19-set census: 9 cards):
+    MTGJSON's ``keywords`` field is not the face's keyword list, in two ways:
 
     - It lists the bare keyword beside a parameterized variant of it: "Hexproof" next to
-      "Hexproof from" for "Hexproof from black" (Garruk's Harbinger, Sporeweb Weaver, Knight of
-      Grace, Knight of Malice, Elenda, Eradicator Valkyrie). "Hexproof from [quality]" is a
-      variant of hexproof that stops only [quality] spells and abilities (CR 702.11d), so a bare
-      HEXPROOF beside it was full hexproof (CR 702.11b): stronger than printed.
+      "Hexproof from" for "Hexproof from black" (Garruk's Harbinger). "Hexproof from [quality]"
+      is a variant of hexproof that stops only [quality] spells and abilities (CR 702.11d), so a
+      bare HEXPROOF beside it would be full hexproof (CR 702.11b): stronger than printed.
     - A modal double-faced card lists both faces' keywords on each face, and a face has only
-      its own characteristics (CR 712.8a, 712.8f): Alrund, God of the Cosmos got the Flying of
+      its own characteristics (CR 712.8a, 712.8f): Alrund, God of the Cosmos lists the Flying of
       its back face, Hakka.
 
     A whole-ability keyword is printed as one comma-separated part of a line, trailing reminder
     text dropped (CR 207.2): "Flying", "Reach, hexproof from blue" (Reach only), "First strike
     (This creature deals combat damage first.)". Keywords that only other objects get ("creatures
-    you control have flying") are not in MTGJSON's list at all (measured on the 19 sets).
+    you control have flying") are not in MTGJSON's list at all.
     """
     want = kw_str.lower()
     for sentence in raw.sentences:
@@ -681,9 +651,8 @@ class CompileResult:
     ``ambiguities``   — AmbiguityRecords for multi-match sentences.
     ``rule_reminders``— RuleReminderOutcome instances detected.
     ``known_gaps``    — human-readable KNOWN-GAP notes.
-    ``back_face_unparsed`` — ZND-2f (/106): (sentence, hint) pairs for
-    UNMATCHED back-face sentences only; ``unparsed`` stays the front-face
-    register (PC-1's formula stays front-face compile results, /96 law).
+    ``back_face_unparsed`` — (sentence, hint) pairs for unmatched back-face
+    sentences; ``unparsed`` holds the front face only.
     ``record``        — the tree sha of an applied card record (card_records.py;
     docs/PLAN_CARD_ONBOARDING.md), None when the tree is the compiler's own.
     """
@@ -731,7 +700,6 @@ def _is_rule_reminder(sentence: str, raw: RawCard) -> RuleReminderOutcome | None
         if _ACTIVATED_COST_RE.match(inner):
             return None
         return RuleReminderOutcome(reason="full_paren")
-    # Bare keyword: stripped sentence exactly matches a raw keyword string
     bare = s.rstrip(".")
     for kw_str in raw.keywords:
         if bare == kw_str:
@@ -774,8 +742,7 @@ def _is_keyword_line(sentence: str, raw: RawCard) -> bool:
     (CR 207.2). Every listed keyword must be one the card's identity carries and
     ``_build_bare_keywords`` builds, so the abilities are already in the tree and
     nothing is dropped silently; an unbuildable or absent keyword keeps the line
-    unparsed. B-41 grammar round S-1 (KNOWLEDGE /159): the cheapest general gap at
-    first touch on M20 and KHM.
+    unparsed.
     """
     match = _TRAILING_REMINDER_RE.match(sentence.strip())
     head = (match.group("head") if match else sentence.strip()).rstrip(".")
@@ -788,9 +755,9 @@ def _self_named_sentence(sentence: str, raw: RawCard) -> str | None:
     """``sentence`` with the card's own name written "~", or None if it does not name the card.
 
     Oracle text names an instant or sorcery by its own name ("Lava Axe deals 5 damage to target
-    player or planeswalker."), and a legendary card also by the part before its comma. Templates
-    were written one card at a time, so only B12 reads the "~" form (Step 2c). The name must stand
-    alone: "Shockwave" does not name a card called "Shock".
+    player or planeswalker."), and a legendary card also by the part before its comma. Only the
+    B12 templates read the "~" form (compile_card's Step 2c). The name must stand alone:
+    "Shockwave" does not name a card called "Shock".
     """
     name = raw.identity.name.split(" // ")[0]
     out = sentence
@@ -802,7 +769,7 @@ def _self_named_sentence(sentence: str, raw: RawCard) -> str | None:
 def _leans_on_previous_sentence(node: object) -> bool:
     """Does an effect act on objects the previous sentence produced: the
     REST complement of a pick, or the ``result`` register (the objects the
-    previous sentence acted on, C12)?"""
+    previous sentence acted on)?"""
     if isinstance(node, Selector) and (
         node.mode is SelectorMode.REST or node.referent == "result"
     ):
@@ -815,19 +782,17 @@ def _leans_on_previous_sentence(node: object) -> bool:
 
 
 def _dangles_after_unparsed(outcomes: list, outcome: object, sentence: str) -> bool:
-    """m21-fidelity wave 4: is ``outcome`` a sentence that leans on the one
-    before it (:func:`_leans_on_previous_sentence`) while that sentence is
-    unparsed (a None slot; reminder text in between is skipped)? Such a
-    sentence has no antecedent (CR 608.2c reads the instructions in order,
-    and "the rest" / "it" name the previous instruction's objects).
+    """Is ``outcome`` a sentence that leans on the one before it
+    (:func:`_leans_on_previous_sentence`) while that sentence is unparsed (a
+    None slot; reminder text in between is skipped)? Such a sentence has no
+    antecedent (CR 608.2c reads the instructions in order, and "the rest" /
+    "it" name the previous instruction's objects).
 
-    2026-11-05: a continuation sentence (:func:`_is_continuation`: "If you do,
-    ...", "Then ...", "Otherwise ...") leans on the previous sentence by its
-    wording. With that sentence unparsed, the continuation pass skipped over
-    it and the continuation became an effect of its own: Keldon Raider's "If
-    you do, draw a card." was the creature spell's effect, so casting it drew
-    a card (CR 118.12: "if you do" asks whether the previous instruction was
-    done)."""
+    A continuation sentence (:func:`_is_continuation`: "If you do, ...",
+    "Then ...", "Otherwise ...") leans on the previous sentence by its
+    wording. Compiled on its own it would be an effect of its own: Keldon
+    Raider's "If you do, draw a card." would draw a card on cast (CR 118.12:
+    "if you do" asks whether the previous instruction was done)."""
     if not isinstance(outcome, EffectOutcome) or not (
         _leans_on_previous_sentence(outcome.effect) or _is_continuation(sentence)
     ):
@@ -845,10 +810,10 @@ def _is_continuation(sentence: str) -> bool:
     return any(s.startswith(p) for p in _CONTINUATION_PREFIXES)
 
 
-# Grammar round 11 (R11-1): optionality of a continuation / trailing rules
-# sentence is decided by the presence of the word "may" in the sentence
-# itself.  "If you do, <do X>" is MANDATORY (the condition already gates it);
-# only "you may …" sentences earn an OptionalEffect wrap.
+# The optionality of a continuation / trailing rules sentence is decided by
+# the presence of the word "may" in the sentence itself.  "If you do, <do X>"
+# is MANDATORY (the condition already gates it); only "you may …" sentences
+# earn an OptionalEffect wrap.
 _MAY_RE = re.compile(r"\bmay\b")
 
 
@@ -856,18 +821,16 @@ def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     """Index of the tail-most loyalty ability if it is the LAST meaningful
     processed entry, else None.
 
-    Grammar round 11 (R11-1, Basri Ket / Garruk, Savage Herald): planeswalker
-    trailing rules text (CR 113.6a — text printed under a loyalty bullet
-    belongs to that ability) arrives as a plain, non-continuation sentence
-    and was previously orphaned as a card-level SpellAbility.  If the nearest
-    meaningful processed entry is an ActivatedAbility whose cost carries a
-    CostLoyalty part, that ability is the sentence's true owner.
+    Planeswalker trailing rules text (CR 113.6a — text printed under a
+    loyalty bullet belongs to that ability; Basri Ket, Garruk, Savage Herald)
+    arrives as a plain, non-continuation sentence.  If the nearest meaningful
+    processed entry is an ActivatedAbility whose cost carries a CostLoyalty
+    part, that ability is the sentence's owner.
 
-    B-49 follow-up #1 (2026-10-29): the empty-cost OPT(CAST) permission row is transparent
-    here too, as the r14e adjudication intended (:func:`_is_cast_permission_row`).
-    Chandra, Heart of Fire's "Add six {R}." is printed under the [−9] bullet,
-    after "You may cast them this turn."; the scan stopped at that row, so the
-    mana landed on the card-level SpellAbility and casting her added six {R}.
+    The empty-cost OPT(CAST) permission row is transparent
+    (:func:`_is_cast_permission_row`): Chandra, Heart of Fire's "Add six
+    {R}." is printed under the [−9] bullet, after "You may cast them this
+    turn.".
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
@@ -890,18 +853,14 @@ def _trigger_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     """Index of the tail-most TriggeredAbility if it is the LAST meaningful
     processed entry, else None.
 
-    Round 14b (B-11, Kitesail Freebooter / Garruk's Harbinger / Siege
-    Striker): a triggered ability's text continues across sentence
-    boundaries — plain sentences printed under a trigger run when the
-    trigger resolves, not when the card is cast, but they arrived as bare
-    EffectOutcomes and were previously orphaned onto the card-level
-    SpellAbility (cast time).  If the nearest meaningful processed entry is
-    a TriggeredAbility, that ability is the sentence's true owner.  Mirrors
-    the boundary discipline of :func:`_loyalty_trailing_idx` (R11-1): only
-    unparsed slots and rule reminders are skipped — any other outcome
-    (another ability, a keyword, a gate, a meta outcome) is a group
-    boundary and breaks the chain.  A sentence starting with "[" is another
-    ability bullet — never a trailing sentence.
+    A triggered ability's text continues across sentence boundaries: plain
+    sentences printed under a trigger run when the trigger resolves, not
+    when the card is cast (Kitesail Freebooter, Garruk's Harbinger, Siege
+    Striker).  If the nearest meaningful processed entry is a
+    TriggeredAbility, that ability is the sentence's owner.  As in
+    :func:`_loyalty_trailing_idx`, only unparsed slots and rule reminders
+    are skipped — any other outcome (another ability, a keyword, a gate, a
+    meta outcome) is a group boundary and breaks the chain.
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
@@ -916,22 +875,18 @@ def _trigger_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
 
 
 def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
-    """The documented empty-cost OPT(CAST) PERMISSION idiom (template B4
-    "cast/play them this turn"; Chandra, Heart of Fire's "You may cast them
-    this turn.", grammar round 8-C / round 14 history).
+    """The empty-cost OPT(CAST) PERMISSION idiom (template B4 "cast/play
+    them this turn"; Chandra, Heart of Fire's "You may cast them this turn.").
 
     The template compiles such a sentence into a free-cost ActivatedAbility
     whose whole effect is ``OptionalEffect(Atom(CAST))`` — the permission
-    itself, not an action with consequences. It is EXEMPT from
-    activation-tail ownership (r14e adjudication): a rules sentence printed
-    under the loyalty bullet it follows stays owned by that bullet, so the
-    tail matcher must see through the permission row instead of mis-capturing
-    the loyalty tail ("Add six {R}.") as the permission's own.
+    itself, not an action with consequences. It never owns a tail: a rules
+    sentence printed under the loyalty bullet it follows stays owned by that
+    bullet, so the tail matchers see through the permission row instead of
+    capturing the loyalty tail ("Add six {R}.") as the permission's own.
 
-    2026-11-05: the CAST pays the card's costs (no ``cost`` role) or waives
-    them (the empty Cost, "without paying its mana cost"); either is the same
-    row. Chandra, Heart of Fire's two permissions used to carry a waiver the
-    card does not print, and this predicate read only that form.
+    The CAST pays the card's costs (no ``cost`` role) or waives them (the
+    empty Cost, "without paying its mana cost"); either is the same row.
     """
     if not isinstance(slot, AbilityOutcome) or not isinstance(
         slot.ability, ActivatedAbility
@@ -948,25 +903,23 @@ def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
     )
 
 
-# B-49 follow-up #1 (2026-10-29): a permission that lasts "until end of turn" or "this turn" is
-# the continuous effect of the ability whose resolution creates it (CR 611.2a). A
-# static ability states no duration (CR 113.3d, 611.3a), so such a sentence is
-# never an ability of its own.
+# A permission that lasts "until end of turn" or "this turn" is the continuous
+# effect of the ability whose resolution creates it (CR 611.2a). A static
+# ability states no duration (CR 113.3d, 611.3a), so such a sentence is never
+# an ability of its own.
 _DURATION_PERMISSION_RE = re.compile(r"\b(?:until end of turn|this turn)\b", re.IGNORECASE)
 
 
 def _is_duration_cast_permission(slot: _OutcomeSlot, sentence: str) -> bool:
-    """B-49 follow-up #1: a permission row (:func:`_is_cast_permission_row`) whose sentence
-    states a duration. It belongs to the ability printed above it, but CAST has
-    no duration role and the executor no permission lane, so it cannot be
-    expressed there yet. As a sibling node it was a free cast the controller
-    could repeat whenever the permanent was on the battlefield: Chandra, Flame's
-    Catalyst's [−8] "Until end of turn, you may cast spells from your hand
-    without paying their mana costs.", and Chandra, Heart of Fire's "Until end of
-    turn, you may play cards exiled this way." and "You may cast them this
-    turn." A static permission (Conspicuous Snoop's "You may cast Goblin spells
-    from the top of your library.") states no duration and waives no cost, so it
-    stays an ability."""
+    """A permission row (:func:`_is_cast_permission_row`) whose sentence states a
+    duration. It belongs to the ability printed above it, but CAST has no
+    duration role and the executor no permission lane, so it cannot be
+    expressed there yet; as a sibling node it would be a free cast the
+    controller could repeat whenever the permanent is on the battlefield
+    (Chandra, Flame's Catalyst's [−8] "Until end of turn, you may cast spells
+    from your hand without paying their mana costs."). A static permission
+    (Conspicuous Snoop's "You may cast Goblin spells from the top of your
+    library.") states no duration and waives no cost, so it stays an ability."""
     return _is_cast_permission_row(slot) and bool(_DURATION_PERMISSION_RE.search(sentence))
 
 
@@ -977,9 +930,8 @@ def casts_itself_from_another_zone(effect: object) -> bool:
     activated ability's effect it can never happen: the ability is activated while the
     card is on the battlefield, so the card is never in that zone. The printed sentence
     is a permission that works from that zone (CR 601.3: a card is cast only where a
-    rule or effect allows it), and the IR has no permission lane yet
-    (DESIGN_ATOM_ONTOLOGY R5-2, PERMIT_CAST). ``compile_card`` refuses such a row and
-    ``query.inert_row`` never offers one."""
+    rule or effect allows it), and the IR has no permission lane yet (BACKLOG B-100).
+    ``compile_card`` refuses such a row and ``query.inert_row`` never offers one."""
     inner = effect.inner if isinstance(effect, OptionalEffect) else effect
     if not isinstance(inner, Atom) or inner.verb is not Verb.CAST:
         return False
@@ -996,34 +948,26 @@ def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     """Index of the tail-most plain activated ability if it is the LAST
     meaningful processed entry, else None.
 
-    Round 14e (B-17, Tavern Swindler / Waker of Waves / Seasoned
-    Hallowblade): sentences printed under an ACTIVATED ability run when
-    that ability resolves, not when the card is cast — but they arrived as
-    bare EffectOutcomes and were orphaned onto the card-level SpellAbility
-    (the B-11 tail split one mechanism deeper; Swindler's
-    "If you win the flip, you gain 6 life." raised FLIP_WON at cast,
-    Hallowblade's "It gains indestructible until end of turn." raised the
-    ``result`` referent, B-9).  Boundary discipline mirrors
-    :func:`_loyalty_trailing_idx` / :func:`_trigger_trailing_idx`: only
-    unparsed slots and rule reminders are skipped — any other outcome is a
-    group boundary and breaks the chain.  Loyalty-costed abilities return
-    None (their tails belong to the R11-1 loyalty chain, never this
-    mechanism); the empty-cost OPT(CAST) permission row is EXEMPT — the
-    scan sees through it (r14e adjudication, see
-    :func:`_is_cast_permission_row`).
+    Sentences printed under an ACTIVATED ability run when that ability
+    resolves, not when the card is cast (Tavern Swindler's "If you win the
+    flip, you gain 6 life.", Seasoned Hallowblade's "It gains indestructible
+    until end of turn.").  Boundaries as in :func:`_trigger_trailing_idx`.
+    Loyalty-costed abilities return None (their tails belong to
+    :func:`_loyalty_trailing_idx`); the empty-cost OPT(CAST) permission row
+    is transparent (:func:`_is_cast_permission_row`).
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
         if prev is None or isinstance(prev, RuleReminderOutcome):
             continue
         if _is_cast_permission_row(prev):
-            continue  # documented permission row: transparent boundary
+            continue  # permission row: transparent boundary
         if isinstance(prev, AbilityOutcome) and isinstance(
             prev.ability, ActivatedAbility
         ):
             cost = prev.ability.cost
             if cost is not None and any(isinstance(p, CostLoyalty) for p in cost.parts):
-                return None  # loyalty chain owns its own tails (R11-1)
+                return None  # the loyalty chain owns its own tails
             if prev.ability.effect is None:
                 return None  # pure cost carrier: nothing to append to
             return j
@@ -1047,10 +991,8 @@ def _append_mandatory_to_seq(effect: Effect, inner: Effect) -> Effect:
     """Append ``inner`` MANDATORILY to ``effect``'s step sequence.
 
     Unlike :func:`_append_optional_to_seq`, no ``OptionalEffect`` wrap is
-    applied: the inner effect always fires.  Used by the phase-in prevention
-    boilerplate, which is the guaranteed second half of a loyalty activation.
-    If ``effect`` is not already a ``Seq``, it is wrapped into a two-step
-    ``Seq``.
+    applied: the inner effect always fires.  If ``effect`` is not already a
+    ``Seq``, it is wrapped into a two-step ``Seq``.
     """
     if isinstance(effect, Seq):
         return Seq(steps=effect.steps + (inner,))
@@ -1063,15 +1005,14 @@ _WHO_CANT_TAIL_RE = re.compile(r"^Each (?:opponent|player) who can't\b")
 
 
 def _insert_before_last_step(effect: Effect, inner: Effect) -> Effect:
-    """Put a "who can't" check right before the instruction it is about (V10, 2026-10-29).
+    """Put a "who can't" check right before the instruction it is about.
 
     "Each player discards a card. Each opponent who can't loses 3 life.": the opponents who
     can't are those with no card to discard, so the check reads the hands BEFORE the discard.
-    Appended after it (the old order), it also hit an opponent who discarded their last card,
-    stronger than printed once every player really discards. Within one resolution nothing
-    observable happens between the check and the instruction (no choice, no priority; triggers
-    wait), so this order is the printed meaning. It departs from printed sentence order:
-    docs/ATOM_DIVERGENCES.md D17.
+    Appended after it, it would also hit an opponent who discarded their last card. Within one
+    resolution nothing observable happens between the check and the instruction (no choice, no
+    priority; triggers wait), so this order is the printed meaning. It departs from printed
+    sentence order: docs/ATOM_DIVERGENCES.md D17.
     """
     if isinstance(effect, Seq):
         return Seq(steps=effect.steps[:-1] + (inner, effect.steps[-1]))
@@ -1090,11 +1031,11 @@ def _merge_search_shuffle(prev_effect: Effect, shuffle: Effect) -> Effect:
     if isinstance(prev_effect, OptionalEffect):
         inner = prev_effect.inner
         if isinstance(inner, Choose):
-            # m21-fidelity wave 4 (2026-10-30, B-78): "search your library
-            # and/or graveyard" is a Choose over the zone sets
-            # (templates.and_or_zone_search). "If you search your library
-            # this way, shuffle" joins exactly the options that search a
-            # library; the graveyard-only option keeps the library's order.
+            # "search your library and/or graveyard" is a Choose over the
+            # zone sets (templates.and_or_zone_search). "If you search your
+            # library this way, shuffle" joins exactly the options that
+            # search a library; the graveyard-only option keeps the
+            # library's order.
             return OptionalEffect(
                 inner=Choose(
                     count=inner.count,
@@ -1125,18 +1066,16 @@ def _searches_a_library(effect: object) -> bool:
 
 
 def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:
-    """Grammar round 7 (R7-3): "Otherwise, …" becomes the ``else_effect``
-    of the previous sentence's ``Conditional`` (Garruk, Savage Herald:
-    "If it's a creature card, put it into your hand. Otherwise, put it on
-    the bottom of your library.").
+    """"Otherwise, …" becomes the ``else_effect`` of the previous sentence's
+    ``Conditional`` (Garruk, Savage Herald: "If it's a creature card, put it
+    into your hand. Otherwise, put it on the bottom of your library.").
 
     The Conditional is searched at the top level and as the LAST step of a
     Seq (the "do X. If it's Y, do Z." single-sentence idiom). A
     Conditional that already carries an else_effect is not overwritten.
-    C13 (mandate): when no attachable Conditional is found, fall back to
-    the EXISTING default continuation merge (sibling optional step) —
-    "Otherwise" without a preceding Conditional must never be a parse
-    failure.
+    When no attachable Conditional is found, fall back to the default
+    continuation merge (sibling optional step): "Otherwise" without a
+    preceding Conditional must never be a parse failure.
     """
 
     def _attach(effect: Effect) -> Effect | None:
@@ -1159,10 +1098,9 @@ def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:
 def _contains_pay_atom(effect: Effect) -> bool:
     """True if any Atom with ``Verb.PAY`` appears anywhere inside ``effect``.
 
-    Structural test for the "When you do" antecedent (grammar round 9,
-    R9-9): the continuation's "do" refers to paying the cost, so the prior
-    effect must actually contain the PAY atom — mirrors the exhaustive
-    Effect-union traversal of :func:`_fold_meta_filter`'s transform.
+    Structural test for the "When you do" antecedent: the continuation's
+    "do" refers to paying the cost, so the prior effect must actually
+    contain the PAY atom.
     """
     if isinstance(effect, Atom):
         return effect.verb is Verb.PAY
@@ -1186,18 +1124,17 @@ def _contains_pay_atom(effect: Effect) -> bool:
 
 
 def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
-    """Grammar round 9 (R9-9, C24): "When you do, …" joins the INSIDE of
-    the prior ``OptionalEffect`` that pays a cost.
+    """"When you do, …" joins the INSIDE of the prior ``OptionalEffect``
+    that pays a cost.
 
     Tolarian Kraken: "When you draw a card, you may pay {1}. When you do,
     …" — the second optional only EXISTS if the payment was made, so the
     parsed continuation (already optional if the text says "you may") is
-    injected into the prior OptionalEffect's inner sequence, the
-    search-shuffle twin (:func:`_merge_search_shuffle`) shape.  C24
-    (mandate): a sibling append here would fabricate an independent
-    optional the text never grants.  Any other prior falls back to the
-    EXISTING default continuation merge (sibling optional step), the same
-    C13 discipline as :func:`_merge_otherwise`.
+    injected into the prior OptionalEffect's inner sequence, the shape of
+    :func:`_merge_search_shuffle`.  A sibling append here would fabricate
+    an independent optional the text never grants.  Any other prior falls
+    back to the default continuation merge (sibling optional step), as in
+    :func:`_merge_otherwise`.
     """
     if isinstance(prev_effect, OptionalEffect) and _contains_pay_atom(
         prev_effect.inner
@@ -1212,26 +1149,19 @@ def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
 def _merge_if_do_continuation(
     prev_effect: Effect, continuation: Effect, sentence: str
 ) -> Effect:
-    """r18a (CR 611.1): "you may X. If you do, Y" — Y runs ONLY when the
-    optional X actually executed.
+    """CR 611.1: "you may X. If you do, Y" — Y runs ONLY when the optional X
+    actually executed (skip Crypt Lurker's sacrifice and there is no draw).
 
-    Round-11 (R11-1) made may-free continuations MANDATORY appends — right
-    against the phantom second ask, but it left "If you do" tails running
-    as free riders when the player answered ``skip`` (the wave-1b ledger's
-    crypt_lurker_skip class: skip Crypt Lurker's sacrifice and the draw
-    still landed). The correct gate is the antecedent's OUTCOME, so the
-    tail joins the sequence as ``Conditional(MAY_DONE, Y)``. A "may"-bearing
-    tail ("If you do, you may Z") keeps its own inner optional INSIDE the
-    gate.
+    The tail joins the sequence as ``Conditional(MAY_DONE, Y)``. A
+    "may"-bearing tail ("If you do, you may Z") keeps its own inner optional
+    INSIDE the gate.
 
-    m21-fidelity wave 4 (2026-10-30, coordinator ruling (a)): a MANDATORY
-    antecedent is gated the same way. CR 118.12 reads "[Do something]. If
-    you do, [effect]" exactly as it reads "You may [do something]. If you
-    do": did the player do it. So it is one meaning with one encoding, and
-    the executor records whether the step before the gate actually happened
-    (Archfiend's Vessel's "exile it. If you do, create a Demon" makes no
-    Demon when the Vessel left the battlefield first; Mazemind Tome and
-    Fire Prophecy likewise). Before, the mandatory seam was a plain append.
+    A MANDATORY antecedent is gated the same way. CR 118.12 reads "[Do
+    something]. If you do, [effect]" exactly as it reads "You may [do
+    something]. If you do": did the player do it. So it is one meaning with
+    one encoding, and the executor records whether the step before the gate
+    actually happened (Archfiend's Vessel's "exile it. If you do, create a
+    Demon" makes no Demon when the Vessel left the battlefield first).
     """
     inner = continuation
     if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
@@ -1270,12 +1200,8 @@ def _fold_meta_filter(effect: Effect, meta_filter: Filter) -> Effect:
                 if isinstance(value, Selector) and value.mode is SelectorMode.TARGET:
                     new_filter = FAnd(children=(value.filter, meta_filter))
                     modified = True
-                    # R0 zone-fold KEYED-LOSS fix (/129 §2, gate F6): the
-                    # rebuild carries the FULL zone set AND the referent —
-                    # the pre-fold positional rebuild silently dropped
-                    # zones (twin-loss vector; fold_meta_filter reaches 1
-                    # template with 0 live rebuilds across 586 cards, so
-                    # this is future-proofing pinned by test_ontology_r0).
+                    # The rebuild keeps the full zone set and the referent
+                    # (pinned by test_ontology_r0).
                     new_pairs.append(
                         (
                             role,
@@ -1308,7 +1234,7 @@ def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKi
 
     Mirrors the assembly branches in compile_card: the creature and
     planeswalker branches win first, then the else-branch ordering
-    (Instant, Sorcery, Enchantment, fallback Sorcery)."""
+    (Instant, Sorcery, Enchantment, Artifact, fallback Sorcery)."""
     if is_creature:
         return SpellKind.CREATURE
     if "Planeswalker" in types:
@@ -1320,24 +1246,23 @@ def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKi
     if "Enchantment" in types:
         return SpellKind.ENCHANTMENT
     if "Artifact" in types:
-        return SpellKind.ARTIFACT  # B-49: it fell back to SORCERY and resolved to the graveyard
+        return SpellKind.ARTIFACT
     return SpellKind.SORCERY
 
 
 def _is_result_anaphoric_cast_permission(ability: Ability) -> bool:
-    """C5 (Furious Rise): an EMPTY-cost ActivatedAbility whose effect is an
+    """Furious Rise: an EMPTY-cost ActivatedAbility whose effect is an
     OptionalEffect-wrapped CAST over a ``referent="result"`` selector —
     ``_build_play_that_card_until``'s shape for "You may play that card
     until you exile another card with this enchantment."  The printed card
     carries NO activated ability: the play window is a permission created
     by the end-step trigger's exile, and the engine has no play-permission
-    lane (the node was a phantom whose activation crashed the executor on
-    the register-less selector).  The template stays MATCHED (PC-1/PC-2
-    honesty: the sentence is parsed and reported); the NODE is suppressed
-    at assembly with a KNOWN-GAP note.  The shape is narrow by design:
-    Azusa-style empty-cost activations carry other verbs, and every other
-    corpus may-cast permission names its cost or its object (no result
-    referent) — a corpus scan found exactly one carrier."""
+    lane (the node would be a phantom whose activation finds no register).
+    The template stays MATCHED (the sentence is parsed and reported); the
+    NODE is suppressed at assembly with a KNOWN-GAP note.  The shape is
+    narrow by design: other empty-cost activations carry other verbs, and
+    every other may-cast permission names its cost or its object (no
+    result referent)."""
     if not isinstance(ability, ActivatedAbility) or ability.cost.parts:
         return False
     inner = ability.effect.inner if isinstance(ability.effect, OptionalEffect) else None
@@ -1348,19 +1273,16 @@ def _is_result_anaphoric_cast_permission(ability: Ability) -> bool:
 
 
 def _one_of_search_picks(node: object) -> object:
-    """Doc 29 refinement ②: recompile the search-pick CHOOSE selector to
-    the EXISTING 14c ONE_OF asking channel.
+    """Recompile the search-pick CHOOSE selector to the ONE_OF asking channel.
 
     A SEARCH atom whose ``cards`` role is the up-to-one pick
-    (``Selector(QConst(1), CHOOSE, …)``) silently resolved the *which card
-    did you find* decision through the deterministic 12a first-of-sort
-    stand-in (selectors.py) — the measured silent-choice fail-core. ONE_OF
-    asks the vocabulary-addressed channel with the Handle-sorted candidate
-    list; single-candidate populations auto-fill (§1.4) exactly as the old
-    stand-in did, and exhaustion stays loud (C15). QConst(2) picks
-    (Cultivate/Alpine Houndmaster) and QUnbounded whole-zone finds are
-    NOT rewritten: ONE_OF is exactly-one, so a multi-pick ask is a
-    REGISTERED GRAMMAR GAP (doc 29), not something this pass extends.
+    (``Selector(QConst(1), CHOOSE, …)``) would resolve the *which card did
+    you find* decision silently, through the deterministic first-of-sort
+    stand-in (selectors.py). ONE_OF asks with the Handle-sorted candidate
+    list; a single candidate auto-fills, and exhaustion stays loud.
+    QConst(2) picks (Cultivate, Alpine Houndmaster) and QUnbounded
+    whole-zone finds are NOT rewritten: ONE_OF is exactly-one, so a
+    multi-pick ask is a known grammar gap, not something this pass extends.
     """
     if type(node) is tuple:
         rebuilt = tuple(_one_of_search_picks(v) for v in node)
@@ -1405,24 +1327,22 @@ def _flip_search_picks_in(ability: Ability) -> Ability:
     return cast(Ability, flipped)
 
 
-# T4 P1b stage 2 — the STRUCTURAL PROMOTION RULE (docs/T4_PICK_ENUMERATION.md
-# §2'): a QConst(1), referent-less entity CHOOSE selector that sits outside a
-# cost and is not an IS_SOURCE self-designation IS a real controller decision
-# and is promoted AUTOMATICALLY onto the asking ONE_OF channel (doc-29 lane).
-# Future sets need no registration; test_promotion_predicate.py pins the
-# per-class census of the rule as the §9/§10 contract. The two frozensets
-# below are the only registrations left — documented override escape hatches.
+# The STRUCTURAL PROMOTION RULE (docs/T4_PICK_ENUMERATION.md §2'): a
+# QConst(1), referent-less entity CHOOSE selector that sits outside a cost
+# and is not an IS_SOURCE self-designation IS a real controller decision and
+# is promoted AUTOMATICALLY onto the asking ONE_OF channel. New sets need no
+# registration; test_promotion_predicate.py pins the per-class census of the
+# rule. The two frozensets below are the only overrides.
 PICK_ASK_FORCE_ASK: frozenset[tuple[str, str]] = frozenset()
 #   (card name, effect verb) TRIPWIRE rows — the hatch has no promotion
-#   lane and every hit is LOUD by design (review fix 2026-10-07): a hit on
-#   a COST or IS_SOURCE self-designation is a stale override and raises
-#   StateCorruptionError (r20c mode-gate, enumeration doc §4); a hit on any
-#   other predicate-declined near-miss raises NotImplementedError — a
-#   referent-bound surface CANNOT ride ONE_OF at all (Selector convention
-#   C2), and surfaces whose rules-decider is not the effect controller are
-#   gap-ledger L-27 (the ask channel is controller-seat only; provider-seat
-#   routing not implemented). Rows on surfaces the structural predicate
-#   already lifts are redundant no-ops (the structural branch fires first).
+#   lane and every hit is LOUD by design: a hit on a COST or IS_SOURCE
+#   self-designation is a stale override and raises StateCorruptionError; a
+#   hit on any other predicate-declined near-miss raises
+#   NotImplementedError — a referent-bound surface CANNOT ride ONE_OF at
+#   all, and surfaces whose rules-decider is not the effect controller are
+#   gap-ledger L-27 (the ask channel is controller-seat only). Rows on
+#   surfaces the structural predicate already lifts are no-ops (the
+#   structural branch fires first).
 PICK_ASK_FORCE_SILENT: frozenset[tuple[str, str]] = frozenset(
     {
         # L-27 — no opponent/player-seat decision channel: the decider is
@@ -1435,8 +1355,8 @@ PICK_ASK_FORCE_SILENT: frozenset[tuple[str, str]] = frozenset(
         ("Liliana, Waker of the Dead", "MOVE_ZONE"),  # "+1 each player discards"
         ("Keral Keep Disciples", "DEAL_DAMAGE"),
         # ^ forced-direction node: "1 damage to each opponent" is NO
-        # decision at all — the singleton PLAYER pick auto-fills (§1.4), so
-        # the encoded ask is pure phantom (§10).
+        # decision at all — the singleton PLAYER pick auto-fills, so an
+        # ask would be a phantom.
         # L-28 — card-NAME value menu absent (protection never reads the
         # selector; _v_grant resolves ability/duration roles only).
         ("Runed Halo", "GRANT_ABILITY"),
@@ -1455,7 +1375,7 @@ def _filter_carries_is_source(filter_: Filter | None) -> bool:
     the compiler layer must not import the executor). An IS_SOURCE atom
     anywhere in the tree means the selector denotes the ability's OWN
     source (CR 602.2c self-designation) — never a player decision, and the
-    binding.py exemption for it is CHOOSE-mode-gated (r20c), so lifting one
+    binding.py exemption for it is CHOOSE-mode-gated, so lifting one
     silently mis-resolves. Loud raise guards the allowlist instead."""
     if isinstance(filter_, FAtom):
         return filter_.pred is FAtomPred.IS_SOURCE
@@ -1467,17 +1387,13 @@ def _filter_carries_is_source(filter_: Filter | None) -> bool:
 
 
 def _is_liftable_pick(node: Selector, in_cost: bool) -> bool:
-    """THE structural promotion predicate (T4 P1b stage 2 — the tokenizer
-    requirement, AGENTS.md §8-§10; census + per-class contract:
-    test_promotion_predicate.py). Every axis here is orthogonal (§9):
-    {shape} QConst(1) entity CHOOSE with no anaphoric referent (a
-    referent-bound pick already follows a binding the 12a lane serves —
-    enumeration doc §1: 37 anaphoric surfaces stay), {context} not a cost
-    victim (r22a's sacrifice lane already asks; 26 cost surfaces stay),
-    {denotation} not an IS_SOURCE self-designation (CR 602.2c — 55
-    surfaces, 44% of the census, are NOT decisions, and the r20c binding
-    exemption is CHOOSE-mode-gated so flipping one silently mis-resolves,
-    enumeration doc §4)."""
+    """THE structural promotion predicate (census and per-class contract:
+    test_promotion_predicate.py). Three orthogonal axes: {shape} a
+    QConst(1) entity CHOOSE with no anaphoric referent (a referent-bound
+    pick already follows a binding); {context} not a cost victim (the
+    sacrifice lane already asks); {denotation} not an IS_SOURCE
+    self-designation (CR 602.2c — not a decision, and the binding
+    exemption is CHOOSE-mode-gated, so flipping one silently mis-resolves)."""
     return (
         node.mode is SelectorMode.CHOOSE
         and node.count == QConst(1)
@@ -1490,13 +1406,12 @@ def _is_liftable_pick(node: Selector, in_cost: bool) -> bool:
 def _pick_ask_promotions(
     node: object, name: str, in_cost: bool, verb: str | None
 ) -> object:
-    """T4 P1b: entity-shape twin of _one_of_search_picks, now driven by the
-    STRUCTURAL predicate _is_liftable_pick instead of a card registration
-    (stage-2). A matching surface gets the EXISTING 14c ONE_OF asking
-    channel: Handle-sorted population, singleton auto-fill (§1.4),
-    exhaustion loud (C15). PICK_ASK_FORCE_SILENT exempts surfaces whose ask
-    has no answerable lane (gap ledger L-27..L-29); PICK_ASK_FORCE_ASK is a
-    loud tripwire only — a hit on the cost/self-designation line raises
+    """Entity-shape twin of _one_of_search_picks, driven by the structural
+    predicate _is_liftable_pick. A matching surface gets the ONE_OF asking
+    channel: Handle-sorted population, singleton auto-fill, exhaustion
+    loud. PICK_ASK_FORCE_SILENT exempts surfaces whose ask has no
+    answerable lane (gap ledger L-27..L-29); PICK_ASK_FORCE_ASK is a loud
+    tripwire only — a hit on the cost/self-designation line raises
     StateCorruptionError, a hit on any other predicate-declined shape
     raises NotImplementedError (L-27 provider-seat routing absent)."""
     if type(node) is tuple:
@@ -1523,12 +1438,8 @@ def _pick_ask_promotions(
         )
         if shape and _is_liftable_pick(node, in_cost):
             return replace(node, mode=SelectorMode.ONE_OF)
-        # FORCE_ASK tripwire: gated on CHOOSE (not on the predicate's own
-        # shape), so a row for the near-miss surface it documents can no
-        # longer pass UNSEEN under the shape gate — the old branch only
-        # ever reached its guard (shape-complete + declined ⇒ always
-        # cost/self-ref), its "promotion" line was unreachable, and the
-        # documented referent/count near-miss rows silently no-opped.
+        # FORCE_ASK tripwire: gated on CHOOSE, not on the predicate's own
+        # shape, so a row for a referent or count near-miss is seen too.
         if node.mode is SelectorMode.CHOOSE and key in PICK_ASK_FORCE_ASK:
             if in_cost or _filter_carries_is_source(node.filter):
                 raise StateCorruptionError(
@@ -1555,9 +1466,8 @@ def _pick_ask_promotions(
 
 
 def _promote_liftable_picks(abilities: list[Ability], name: str) -> list[Ability]:
-    """Card-level wrapper for the structural promotion pass (the pass runs
-    per-ability; the rule is shape-driven so nothing is counted across
-    abilities); type-pinned like _flip_search_picks_in."""
+    """Run the structural promotion pass over each ability; type-pinned like
+    _flip_search_picks_in."""
     out: list[Ability] = []
     for ab in abilities:
         promoted = _pick_ask_promotions(ab, name, False, None)
@@ -1621,10 +1531,10 @@ def _kicker_slot_with_effect(slot: _OutcomeSlot, new_effect: Effect) -> _Outcome
 
 
 def _cost_has_x_quantity(cost: Cost) -> bool:
-    """ZND-1e engine-gate helper: does this Cost price anything with X
-    (a QX amount, or a QBin tree carrying one)? Mirrors the executor's
-    legality._cost_has_x — duplicated, not imported, because the compiler
-    must not depend on the executor package."""
+    """Does this Cost price anything with X (a QX amount, or a QBin tree
+    carrying one)? Mirrors the executor's legality._cost_has_x — duplicated,
+    not imported, because the compiler must not depend on the executor
+    package."""
 
     def has_x(q: object) -> bool:
         if isinstance(q, QX):
@@ -1642,11 +1552,10 @@ def _cost_has_x_quantity(cost: Cost) -> bool:
 
 def _as_single_faced(raw: RawCard) -> RawCard:
     """Synthetic single-faced RawCard carrying ONLY the folded back face's
-    printed data (ZND-2f, /106). Same oracle id (the face IS this card's
-    second face), the face's own name, and ``back_face=None`` so the
-    recursive compile_card pass terminates immediately. Pool-level flags
-    are cleared: a face is never a token/emblem in its own right (the
-    ingest CardFace docstring states the same law)."""
+    printed data. Same oracle id (the face IS this card's second face), the
+    face's own name, and ``back_face=None`` so the recursive compile_card
+    pass terminates immediately. Pool-level flags are cleared: a face is
+    never a token/emblem in its own right."""
     face = raw.back_face
     assert face is not None  # caller's guard; keeps the return typed
     return replace(
@@ -1682,11 +1591,10 @@ def _star_pt_gaps(raw: RawCard, card: CardRecord) -> list[str]:
     gaps: list[str] = []
     # If power or toughness was '*' (→ None from parse_pt), check that a
     # SET_PT or MODIFY_PT verb exists somewhere in the compiled tree.
-    # # KNOWN-GAP: when no template produced such an atom the card's P/T is
+    # KNOWN-GAP: when no template produced such an atom the card's P/T is
     #   dynamic but uncovered — a template-coverage gap, not data corruption
     #   (the data itself is sound). Report it; power/toughness stay None
-    #   (= "resolve at runtime"). M21 has exactly two such cards: Weird and
-    #   Kinetic Augur.
+    #   (= "resolve at runtime").
     needs_set_pt = (raw.power_raw is not None and raw.power_raw.strip() == "*") or (
         raw.toughness_raw is not None and raw.toughness_raw.strip() == "*"
     )
@@ -1719,38 +1627,26 @@ def _engine_supported(card: CardRecord, supported_verbs: set[Verb] | None) -> bo
         engine_supported = True
     else:
         engine_supported = True
-        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
-        # subtree is EXCLUDED — the engine never plays a face (owner-gated,
-        # spec §6), so a face-only verb must never flip a front-face-
-        # supported card's verdict (and a face-unsupported verb must never
-        # silently drop a front-face-supported card from engine supply).
+        # The BackFace subtree is EXCLUDED: the engine never plays a face,
+        # so a face-only verb must never flip a front-face-supported card's
+        # verdict (nor drop it from engine supply).
         for node in walk(card, skip=BackFace):
             if isinstance(node, Atom) and node.verb not in supported_verbs:
                 engine_supported = False
                 break
-        # ZND-1e SHAPE gates (the verb-only fold was dishonest for the
-        # kicker family: it marked 41 of ZNR's 42 kicker cards supported
-        # while the executor raised on every gated lane). The delivered
-        # lanes — KickerAbility priced into the cast, WAS_KICKED read
-        # from the CAST journal row, gated EtBState with constant
-        # counters — stay SUPPORTED; what remains unplayable is marked
-        # unsupported here, honestly:
-        #   * an X-kicker ({X} in the optional cost): no producer wires
-        #     the kick choice to an X declaration (deferred, /95).
-        # (m21-fidelity, 2026-10-29: the gate on a gated EtBState with
-        # non-constant counters is gone. The entering-state stamp now
-        # resolves any counter Quantity with the cast X (executor
-        # _apply_etb_state), the lane "enters with X +1/+1 counters" uses.)
+        # SHAPE gates, for what the verb check cannot see: an X-kicker ({X}
+        # in the optional cost) is unsupported, since no producer wires the
+        # kick choice to an X declaration.
         if engine_supported:
             for node in walk(card, skip=BackFace):
                 if isinstance(node, KickerAbility) and _cost_has_x_quantity(node.cost):
                     engine_supported = False
                     break
-                # B-49 follow-up #4 (2026-10-29): a loyalty [−X] (Ugin) is
-                # supported: legality.activate announces X before paying
-                # (CR 602.2b -> 601.2b, 107.3a), capped by the loyalty
-                # counters (CR 606.6). The lane handles a bare X only, so
-                # any other Quantity delta stays honestly unsupported.
+                # A loyalty [−X] (Ugin) is supported: legality.activate
+                # announces X before paying (CR 602.2b -> 601.2b, 107.3a),
+                # capped by the loyalty counters (CR 606.6). The lane
+                # handles a bare X only, so any other Quantity delta stays
+                # unsupported.
                 if (
                     isinstance(node, CostLoyalty)
                     and not isinstance(node.delta, int)
@@ -1820,7 +1716,7 @@ def compile_card(
         matches = registry.match(sentence)
         best_match = matches[0] if matches else None
         # Step 2a: a keyword line no template matched (fallback only, so a
-        # sentence that compiles today is never re-read here).
+        # sentence a template matches is never re-read here).
         if best_match is None and _is_keyword_line(sentence, raw):
             rr = RuleReminderOutcome(reason="keyword_line")
             rule_reminders.append(rr)
@@ -1851,7 +1747,6 @@ def compile_card(
         # Ambiguity detection
         if len(matches) > 1:
             tids = tuple(m.template.tid for m in matches)
-            # Check if outcomes are truly distinct (different type or value)
             distinct = (
                 len({type(m.outcome).__name__ for m in matches}) > 1
                 or len({repr(m.outcome) for m in matches}) > 1
@@ -1865,14 +1760,11 @@ def compile_card(
                     )
                 )
 
-        # m21-fidelity wave 4 (2026-10-30): a sentence that acts on what the
-        # sentence before it produced ("Put the rest on the bottom of your
-        # library", "That player discards that card", "It gains
-        # indestructible") has no antecedent when that sentence did not
-        # parse. Compiled alone it became an unprinted effect of its own
-        # (FDN Squad Rallier and Vivien Reid: the rest-to-bottom ran as the
-        # whole spell effect, moving the top card of the library), so it is
-        # unparsed too (flag, don't degrade).
+        # A sentence that acts on what the sentence before it produced ("Put
+        # the rest on the bottom of your library", "That player discards
+        # that card", "It gains indestructible") has no antecedent when that
+        # sentence did not parse. Compiled alone it would be an unprinted
+        # effect of its own, so it is unparsed too (flag, don't degrade).
         if _dangles_after_unparsed(outcomes, best_match.outcome, sentence):
             outcomes.append(None)
             continue
@@ -1895,8 +1787,8 @@ def compile_card(
     ]
 
     # -- Handle continuation prefixes ---------------------------------------
-    # A continuation sentence's effect is wrapped in OptionalEffect and
-    # appended to the previous sentence's effect Seq.  We search backwards
+    # A continuation sentence's effect is merged into the previous
+    # sentence's effect (the merge choice is below).  We search backwards
     # in the *processed* list (not the raw outcomes list) so indices stay
     # stable even when earlier continuations consumed entries.
     processed: list[_OutcomeSlot] = []
@@ -1909,10 +1801,10 @@ def compile_card(
         # fold the WAS_KICKED-gated arm onto the previous effect-bearing
         # slot — additive append, or "instead" replacement (the arm wins,
         # the base moves to the Conditional's else_effect). The same fold
-        # takes any other printed condition (outcome.pred, m21-fidelity
-        # item 4): "You gain 4 life. If a creature died this turn, you gain
-        # 8 life instead." is Conditional(DIED_THIS_TURN, 8, else=4)
-        # (CR 608.2c), not a turn-long replacement.
+        # takes any other printed condition (outcome.pred): "You gain 4
+        # life. If a creature died this turn, you gain 8 life instead." is
+        # Conditional(DIED_THIS_TURN, 8, else=4) (CR 608.2c), not a
+        # turn-long replacement.
         if isinstance(outcome, KickerEffectOutcome):
             arm_pred = (
                 outcome.pred
@@ -1928,8 +1820,7 @@ def compile_card(
                     # An unmatched sentence: the base clause IS there in
                     # the text, it just compiled to residue.  That failed
                     # clause IS the base — searching past it would attach
-                    # the arm to an UNRELATED earlier effect (F2 fix:
-                    # the ZND-1 fold law stopped here).
+                    # the arm to an UNRELATED earlier effect.
                     saw_unparsed_base = True
                     break
                 if isinstance(prev, RuleReminderOutcome):
@@ -1950,14 +1841,12 @@ def compile_card(
                         context={"sentence": raw.sentences[i]},
                     )
                 if outcome.replaces:
-                    # F1 fix (supersedes ZND-1 fold law): a REPLACEMENT
-                    # arm whose base compiled to residue must NOT fold
-                    # standalone — Conditional(WAS_KICKED, then=arm) with
-                    # no else encodes "un-kicked → no effect", which is
-                    # rules-wrong (un-kicked Roil Eruption still deals 3
-                    # damage) and contradicts the register's "base is
-                    # residue" (§11).  Leave the arm in the register as
-                    # honest residue too: both clauses are uncovered.
+                    # A REPLACEMENT arm whose base compiled to residue must
+                    # NOT fold standalone — Conditional(WAS_KICKED,
+                    # then=arm) with no else encodes "un-kicked → no
+                    # effect", which is rules-wrong (un-kicked Roil Eruption
+                    # still deals 3 damage).  Leave the arm in the register
+                    # as residue too: both clauses are uncovered.
                     unparsed.append((raw.sentences[i], _bucket_hint(raw.sentences[i])))
                     continue
                 # No mergeable slot. Additive arms fold standalone (the
@@ -1998,10 +1887,10 @@ def compile_card(
 
         sentence = raw.sentences[i]
         if not _is_continuation(sentence) and not _PHASE_IN_PREVENT_RE.match(sentence):
-            # Grammar round 11 (R11-1): plain text right after a loyalty
-            # bullet is that ability's trailing rules text, not a new card-
-            # level spell ability.  Merge it into the loyalty ability's
-            # effect (mandatory unless the sentence itself says "may").
+            # Plain text right after a loyalty bullet is that ability's
+            # trailing rules text, not a new card-level spell ability.  Merge
+            # it into the loyalty ability's effect (mandatory unless the
+            # sentence itself says "may").
             # A sentence starting with "[" is another ability bullet —
             # never a trailing sentence, even if it parsed to an effect.
             loy_idx = (
@@ -2030,10 +1919,10 @@ def compile_card(
                     )
                     # The trailing sentence is consumed — not appended.
                     continue
-            # Grammar round 14b (B-11): plain text right after a triggered
-            # ability is that ability's effect continuing, not a card-level
-            # spell ability — append it to the trigger's effect (mandatory
-            # unless the sentence itself says "may", R11-1 may-rule).
+            # Plain text right after a triggered ability is that ability's
+            # effect continuing, not a card-level spell ability — append it
+            # to the trigger's effect (mandatory unless the sentence itself
+            # says "may").
             trig_idx = (
                 None
                 if sentence.lstrip().startswith("[")
@@ -2043,7 +1932,7 @@ def compile_card(
                 slot = processed[trig_idx]
                 tab = slot.ability if isinstance(slot, AbilityOutcome) else None
                 if isinstance(tab, TriggeredAbility):
-                    # R11-1 may-rule, de-duplicated: a "may" sentence whose
+                    # The may-rule, de-duplicated: a "may" sentence whose
                     # template ALREADY produced an OptionalEffect (Garruk's
                     # Harbinger "You may reveal … and put it into your hand")
                     # must not gain a phantom second wrap — the step is
@@ -2065,13 +1954,10 @@ def compile_card(
                     )
                     # The trailing sentence is consumed — not appended.
                     continue
-            # Round 14e (B-17, Tavern Swindler / Waker of Waves / Seasoned
-            # Hallowblade): plain text right after a plain activated ability
-            # is that ability's activation tail — it runs when the ability
-            # resolves, not when the card is cast.  Same may-rule and the
-            # same de-dup guard as the trigger tail above; the empty-cost
-            # OPT(CAST) permission row is transparent to the ownership scan
-            # and loyalty abilities stay R11-1-owned (see
+            # Plain text right after a plain activated ability is that
+            # ability's activation tail — it runs when the ability resolves,
+            # not when the card is cast.  Same may-rule and the same de-dup
+            # guard as the trigger tail above (see
             # :func:`_activation_trailing_idx`).
             act_idx = (
                 None
@@ -2109,14 +1995,14 @@ def compile_card(
         #     OptionalEffect (mandatory only if the optional search ran).
         #   - phase-in prevention: a MANDATORY append to the previous effect
         #     (no OptionalEffect wrap — the effect always fires).
-        #   - "Otherwise" (grammar round 7, R7-3): else_effect of the last
-        #     Conditional, C13 fallback to the default merge.
-        #   - "When you do" (grammar round 9, R9-9, C24): inside the prior
-        #     cost-paying OptionalEffect, C13 fallback to the default merge.
-        #   - "If you do" (r18a, CR 611.1): gated on the may-offer's OUTCOME
-        #     (Conditional(MAY_DONE, tail)) when the seam ends in an
-        #     OptionalEffect; else the default merge.
-        #   - default continuation: a sibling optional step.
+        #   - "Otherwise": else_effect of the last Conditional, falling back
+        #     to the default merge.
+        #   - "When you do": inside the prior cost-paying OptionalEffect,
+        #     falling back to the default merge.
+        #   - "If you do" (CR 118.12): gated on whether the previous step
+        #     happened, Conditional(MAY_DONE, tail).
+        #   - default continuation: a step of its own, optional only when
+        #     the sentence says "may".
         if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
             merge = _merge_search_shuffle
         elif _PHASE_IN_PREVENT_RE.match(sentence):
@@ -2134,10 +2020,8 @@ def compile_card(
 
             merge = _if_do_merge
         else:
-            # Grammar round 11 (R11-1): a "may"-free continuation ("If you
-            # do, do X" / "Then do X") is MANDATORY given its antecedent —
-            # the phantom OptionalEffect wrap was a semantics bug (Scavenging
-            # Ooze, Fabled Passage).  Only "you may …" sentences stay optional.
+            # A "may"-free continuation ("Then do X") is MANDATORY given its
+            # antecedent.  Only "you may …" sentences are optional.
             merge = (
                 _append_optional_to_seq
                 if _MAY_RE.search(sentence)
@@ -2189,8 +2073,7 @@ def compile_card(
                             cost=ab.cost,
                             effect=merged_eff,
                             condition=ab.condition,
-                            # timing (grammar round 9, R9-1): a continuation
-                            # merge must not silently drop the timing window.
+                            # a continuation merge keeps the timing window
                             timing=ab.timing,
                         )
                     )
@@ -2229,10 +2112,9 @@ def compile_card(
             processed_sentence_idx.append(i)
             continue
         # A generic continuation becomes its own step — optional when the
-        # sentence carries "may" (R11-1) or when it is an orphaned
-        # search-shuffle (anaphoric condition can never hold — the
-        # never-fires wrap is the safe encoding, prior-round decision),
-        # else appended bare/mandatory.
+        # sentence carries "may" or when it is an orphaned search-shuffle
+        # (its anaphoric condition can never hold, so the never-fires wrap
+        # is the safe encoding), else appended bare/mandatory.
         effect = outcome.effect
         if _MAY_RE.search(sentence) or _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
             effect = OptionalEffect(effect)
@@ -2276,11 +2158,10 @@ def compile_card(
         if isinstance(outcome, MetaOutcome) and outcome.filter is not None:
             meta_filters.append(outcome.filter)
 
-    # B-49 follow-up #2 (2026-10-29): the Enchant restriction rides on the ENCHANT keyword,
-    # "Enchant [object or player]" (CR 702.5a), which limits what the Aura spell
-    # may target (CR 303.4a) and what the Aura may enchant. It used to reach the
-    # tree only by folding into the spell's own effect, so an Aura cast through
-    # the effect-less carrier lost it and could enchant any permanent.
+    # The Enchant restriction rides on the ENCHANT keyword, "Enchant [object or player]"
+    # (CR 702.5a), which limits what the Aura spell may target (CR 303.4a) and what the Aura
+    # may enchant. On the keyword, not the spell's effect, so an Aura cast through the
+    # effect-less carrier keeps it.
     if meta_filters:
         enchant = meta_filters[0] if len(meta_filters) == 1 else FAnd(tuple(meta_filters))
         keywords = tuple(
@@ -2318,13 +2199,13 @@ def compile_card(
     ability_src: list[int] = []
     effect_outcomes: list[Effect] = []
     effect_src: list[int] = []
-    # B-49 follow-up #1: set when a printed permission had to be suppressed; the card then
+    # Set when a printed permission had to be suppressed; the card then
     # cannot be played as printed, so the gated pass marks it unsupported.
     permission_unsupported = False
     for src, outcome in zip(processed_sentence_idx, processed):
         if isinstance(outcome, AbilityOutcome):
             if _is_result_anaphoric_cast_permission(outcome.ability):
-                # C5: the phantom "you may play that card" permission —
+                # The phantom "you may play that card" permission —
                 # never printed as an activated ability, unresolvable by
                 # the executor (no play-permission lane, register-less
                 # selector). Suppressed HERE, at emission into the card
@@ -2337,7 +2218,7 @@ def compile_card(
                 )
                 continue
             if _is_duration_cast_permission(outcome, raw.sentences[src]):
-                # B-49 follow-up #1: the same suppression for a duration-limited permission. It
+                # The same suppression for a duration-limited permission. It
                 # is part of the ability printed above it (CR 611.2a) and must
                 # never be a free, repeatable ability of its own; that ability
                 # cannot be played as printed, so the card is engine-unsupported.
@@ -2352,10 +2233,10 @@ def compile_card(
             if isinstance(outcome.ability, ActivatedAbility) and casts_itself_from_another_zone(
                 outcome.ability.effect
             ):
-                # 2026-11-05 (B-100): a card's permission to cast itself from another zone
-                # compiled as an activated ability of the permanent, which can never cast
-                # it and was a free discard outlet (Demonic Embrace). The IR has no
-                # permission lane, so the row is refused and the card is engine-unsupported.
+                # A card's permission to cast itself from another zone (Demonic Embrace)
+                # would be an activated ability of the permanent, which can never cast it.
+                # The IR has no permission lane yet (BACKLOG B-100), so the row is refused
+                # and the card is engine-unsupported.
                 known_gaps.append(
                     "KNOWN-GAP (cast permission): "
                     f"{raw.sentences[src]!r} refused (a permission to cast the card from "
@@ -2405,9 +2286,8 @@ def compile_card(
         # Tokens/emblems: effects become standalone abilities
         # (no SpellAbility for tokens — they're not cast).
         for eff, src in zip(effect_outcomes, effect_src):
-            # Wrap in a StaticAbility if no better category is apparent.
-            # # KNOWN-GAP: token effect categorization is bucket-specific;
-            #   for now, StaticAbility is the closest honest wrapper.
+            # KNOWN-GAP: token effect categorization is bucket-specific;
+            # StaticAbility is the closest honest wrapper.
             abilities.append(StaticAbility(effect=eff))
             ability_srcs.append(src)
     elif is_planeswalker:
@@ -2422,17 +2302,16 @@ def compile_card(
             ability_srcs.append(max(effect_src))
     elif is_land:
         # Land: effects become ActivatedAbility (free cost if no cost given).
-        # # KNOWN-GAP: land cost extraction is bucket-specific.
+        # KNOWN-GAP: land cost extraction is bucket-specific.
         for eff, src in zip(effect_outcomes, effect_src):
             abilities.append(ActivatedAbility(cost=Cost(parts=()), effect=eff))
             ability_srcs.append(src)
     elif is_creature:
         # Creature: always a SpellAbility(CREATURE) — the cast lane.
         # EffectOutcome folds into it when present; a plain creature with
-        # no effect sentence still gets an effect-less carrier (effect=None
-        # precedent: additional-costs cards, and grammar requires *some*
-        # SpellAbility for legality.cast — creatures cast through the SAME
-        # lane as instants; C4 roadmap batch 4).
+        # no effect sentence still gets an effect-less carrier, because
+        # legality.cast needs a SpellAbility (creatures cast through the
+        # same lane as instants).
         if effect_outcomes:
             combined = (
                 effect_outcomes[0]
@@ -2459,7 +2338,7 @@ def compile_card(
             elif "Enchantment" in types:
                 kind = SpellKind.ENCHANTMENT
             elif "Artifact" in types:
-                kind = SpellKind.ARTIFACT  # B-49: not the SORCERY fallback (it resolved to the graveyard)
+                kind = SpellKind.ARTIFACT
             else:
                 kind = SpellKind.SORCERY  # fallback
             combined = (
@@ -2470,14 +2349,13 @@ def compile_card(
             abilities.append(SpellAbility(kind=kind, effect=combined))
             ability_srcs.append(max(effect_src))
 
-    # -- Permanent-spell carrier (B-49, 2026-10-29) ---------------------------
+    # -- Permanent-spell carrier ----------------------------------------------
     # A noncreature permanent whose text is all static, triggered or activated
-    # abilities (an anthem, an equipment, a planeswalker) assembled NO
-    # SpellAbility, so spell_castable answered cast:not_a_spell and the card was
-    # uncastable by construction: 44 of M21's cards, 63 of FDN's. It is plainly a
-    # permanent spell (CR 301.1, 303.1, 306.1), so it gets the effect-less
-    # carrier creatures got in C4 batch 4 and kicker heads in ZND-1e. Lands are
-    # played, not cast; tokens and emblems are never cast.
+    # abilities (an anthem, an equipment, a planeswalker) assembles NO
+    # SpellAbility, so spell_castable would answer cast:not_a_spell. It is
+    # plainly a permanent spell (CR 301.1, 303.1, 306.1), so it gets the
+    # effect-less carrier creatures and kicker heads get. Lands are played,
+    # not cast; tokens and emblems are never cast.
     if (
         not is_land
         and not is_token
@@ -2493,7 +2371,7 @@ def compile_card(
 
     # -- Attach additional costs to the spell --------------------------------
     # Additional-cost sentences ride on a SpellAbility. A card that matched
-    # one but compiled without one falls into two cases (T3 round 3):
+    # one but compiled without one falls into two cases:
     #   - land / token / emblem: the card is never cast, so there is no
     #     spell to attach the cost to — state corruption, not a gap;
     #   - any other castable spell with no effect sentence (e.g. Goremand,
@@ -2531,17 +2409,15 @@ def compile_card(
             ]
 
     # -- Kicker head carrier -------------------------------------------------
-    # ZND-1e (Roost of Drakes): a noncreature spell whose every loaded
-    # sentence compiled to a NON-effect ability (bare "Kicker {2}{U}." head
-    # + triggered abilities, no effect sentence) assembled no SpellAbility
-    # at all — and the cast lane's spell_castable answers
-    # ``cast:not_a_spell``, making the card uncastable BY CONSTRUCTION.
-    # The kicker head is a cast-time declaration (CR 702.27a: "this spell"
-    # may be kicked — it is plainly a spell), so it earns the effect-less
-    # carrier exactly as the additional-cost path above (Goremand) and the
-    # creature branch do. The fold never fires for cards that already carry
-    # a SpellAbility, and M21 has zero KickerAbility nodes — the M21
-    # compiled output is byte-unchanged by construction.
+    # A noncreature spell whose every sentence compiled to a NON-effect
+    # ability (Roost of Drakes: a bare "Kicker {2}{U}." head + triggered
+    # abilities, no effect sentence) assembles no SpellAbility, and the cast
+    # lane's spell_castable would answer ``cast:not_a_spell``. The kicker
+    # head is a cast-time declaration (CR 702.27a: "this spell" may be
+    # kicked — it is plainly a spell), so it earns the effect-less carrier
+    # exactly as the additional-cost path above (Goremand) and the creature
+    # branch do. The fold never fires for cards that already carry a
+    # SpellAbility.
     if (
         not is_land
         and not is_token
@@ -2555,13 +2431,12 @@ def compile_card(
 
     # -- Attach activation gates ---------------------------------------------
     # Each gate binds its slots (window and/or condition) slot-disjointly
-    # (R10-1, C25) to the nearest preceding ActivatedAbility (source
-    # sentence index) whose targeted slot(s) are still free: a window slot
-    # requires ``timing is None`` (R9-1, C20), a condition slot requires
-    # ``condition is None``; a gate carrying BOTH (Speaker's compound)
-    # attaches both. Gates are processed in sentence order; once an
-    # ability's needed slot is filled it no longer qualifies for a later
-    # gate wanting that slot.
+    # to the nearest preceding ActivatedAbility (source sentence index)
+    # whose targeted slot(s) are still free: a window slot requires
+    # ``timing is None``, a condition slot requires ``condition is None``; a
+    # gate carrying BOTH (Speaker's compound) attaches both. Gates are
+    # processed in sentence order; once an ability's needed slot is filled it
+    # no longer qualifies for a later gate wanting that slot.
     for gate_src, gate in activation_gates:
         candidates = [
             (src, j)
@@ -2589,36 +2464,31 @@ def compile_card(
             updates["condition"] = gate.condition
         abilities[target] = replace(abilities[target], **updates)
 
-    # -- Search-pick observability rewrite (doc 29 refinement ②) -----------
+    # -- Search-pick observability rewrite ---------------------------------
     # Up-to-one SEARCH picks ask the ONE_OF channel instead of resolving
-    # silently through the 12a stand-in; see _one_of_search_picks.
+    # silently; see _one_of_search_picks.
     abilities = [_flip_search_picks_in(ab) for ab in abilities]
 
-    # -- PICK-ask promotion (T4 P1b stage 2, structural rule) -----------------
+    # -- PICK-ask promotion (structural rule) --------------------------------
     # Every QConst(1) referent-less non-cost non-self-ref entity CHOOSE
     # asks the ONE_OF channel automatically; see _is_liftable_pick /
     # docs/T4_PICK_ENUMERATION.md.
     abilities = _promote_liftable_picks(abilities, raw.identity.name)
 
-    # -- Back-face fold (ZND-2f, KNOWLEDGE/2026-10-18/106) --------------------
-    # A modal double-faced card's back face is the CARD'S OWN second face
-    # (§11 zero-loss): its sentences are compiled through the SAME tolerant
-    # machinery (a synthetic single-faced RawCard carrying the face's
-    # printed data — same split, same templates, same unparsed queue) and
-    # the results fold into one BackFace ability node. Unmatched face
-    # sentences enter CompileResult.back_face_unparsed — the honest
-    # residual register (coverage.py rows them "[face B]"), NEVER counted
-    # as covered (the pay-3-life pair is ZND-2f2 residue, /106 amendment 1).
-    # The node is ENCODED ONLY: every walk()-consumer verdict gate below
-    # skips the BackFace subtree (§10 phantom defense, /106 amendment 3).
-    # None for every single-faced card: zero behavior change, M21 bytes
-    # untouched.
+    # -- Back-face fold -------------------------------------------------------
+    # A modal double-faced card's back face is the CARD'S OWN second face:
+    # its sentences are compiled through the SAME tolerant machinery (a
+    # synthetic single-faced RawCard carrying the face's printed data — same
+    # split, same templates, same unparsed queue) and the results fold into
+    # one BackFace ability node. Unmatched face sentences enter
+    # CompileResult.back_face_unparsed (coverage.py rows them "[face B]"),
+    # NEVER counted as covered. The node is ENCODED ONLY: every
+    # walk()-consumer verdict gate below skips the BackFace subtree.
     back_face_unparsed: tuple[tuple[str, str], ...] = ()
     if raw.back_face is not None:
-        # Gate F1 (/106 review): the face field surface was UNREACHABLE code
-        # until this wave; a malformed face (bad type_line/loyalty) must
-        # degrade to face-unparsed — it may NEVER crash the pool pass or
-        # sacrifice the playable FRONT card.
+        # A malformed face (bad type_line/loyalty) degrades to face-unparsed:
+        # it must NEVER crash the pool pass or sacrifice the playable FRONT
+        # card.
         try:
             face_result = compile_card(_as_single_faced(raw), registry)
         except (ValueError, StateCorruptionError):
@@ -2635,10 +2505,10 @@ def compile_card(
             back_face_unparsed = face_result.unparsed
 
     # -- Build CardRecord ----------------------------------------------------
-    # B-37: a Vehicle prints P/T on a non-creature artifact; it is a creature only while crewed
+    # A Vehicle prints P/T on a non-creature artifact; it is a creature only while crewed
     # (CR 301.7), and crew is not implemented. CardRecord rejects P/T on a non-creature with a
-    # ValueError that is not an honest refusal and took down whole-set compiles (KHM, THB), so
-    # refuse the shape here: the card becomes a shape gap, counted against coverage.
+    # ValueError that would abort a whole-set compile, so refuse the shape here: the card
+    # becomes a shape gap, counted against coverage.
     if "Creature" not in raw.types and (power is not None or toughness is not None):
         raise StateCorruptionError(
             "compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented)",
@@ -2670,7 +2540,7 @@ def compile_card(
     known_gaps.extend(_star_pt_gaps(raw, card))
     engine_supported = _engine_supported(card, supported_verbs)
     if permission_unsupported and supported_verbs is not None:
-        engine_supported = False  # a suppressed permission (B-49 follow-up #1, B-100)
+        engine_supported = False  # a suppressed or refused permission
 
     legality = LegalityFlags(
         format_legal=True,
@@ -2728,7 +2598,7 @@ def compile_pool(
         except StateCorruptionError:
             # A card whose text the compiler refuses can still be rescued by its card record:
             # the printed facts compile alone, the record supplies every ability. If the record
-            # does not apply (absent, stale, unverified), the refusal stands, loud as before.
+            # does not apply (absent, stale, unverified), the refusal stands.
             if not (records and "ir" in records.get(oid, {})):
                 raise
             from MTG_bot.core.compiler.card_records import apply_record
@@ -2742,7 +2612,7 @@ def compile_pool(
             results[oid] = rescued
     if records:
         # Card records (docs/PLAN_CARD_ONBOARDING.md): a mapped tree replaces the compiler's
-        # for its card; by default only a verified one. No records (M21): this loop is skipped.
+        # for its card; by default only a verified one.
         from MTG_bot.core.compiler.card_records import apply_record
 
         for oid, raw in pool.items():
@@ -2782,7 +2652,7 @@ def compile_pool(
                 if owner_name in name_to_oid:
                     owner_oid = name_to_oid[owner_name]
                     break
-            # B-38: an owner whose planeswalker is its BACK face (KHM Valki, God of Lies //
+            # An owner whose planeswalker is its BACK face (KHM Valki, God of Lies //
             # Tibalt, Cosmic Impostor) cannot carry the emblem on its creature front
             # (CardRecord: "only a Planeswalker may carry an emblem"), and faces are not
             # castable yet, so the emblem is unreachable in play: keep it an orphan.
@@ -2813,8 +2683,8 @@ def compile_pool(
     for oid, result in results.items():
         if oid in emblem_oids:
             continue  # emblems excluded from card-level stats
-        # ZND-2f: back-face residue is honest residue — a card whose only
-        # unparsed text is its face is NOT fully compiled.
+        # Back-face residue counts: a card whose only unparsed text is its
+        # face is NOT fully compiled.
         if not (result.unparsed or result.ambiguities or result.back_face_unparsed):
             fully_compiled += 1
         else:
@@ -2823,9 +2693,9 @@ def compile_pool(
         unparsed_count += len(result.unparsed) + len(result.back_face_unparsed)
         known_gap_count += len(result.known_gaps)
 
-        # ZND-2f §3: the pool verb histogram stays FRONT-ONLY (face verbs
-        # are census-tagged in coverage.py's backface summary, never
-        # merged untagged here).
+        # The pool verb histogram stays FRONT-ONLY (face verbs are
+        # census-tagged in coverage.py's backface summary, never merged
+        # untagged here).
         for node in walk(result.card, skip=BackFace):
             if isinstance(node, Atom):
                 vname = node.verb.name
