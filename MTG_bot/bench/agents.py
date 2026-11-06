@@ -1,8 +1,8 @@
 """The agent protocol, and the floors every result table must carry.
 
-An ``Agent`` answers an ``Ask`` with an option index. Two kinds of seat driver plug into
-``SeatRouter``:
-- ``Agent`` objects (decide per Ask; what LLM seats and the floors are);
+An agent has a ``name`` and answers an ``Ask`` with an option index, ``decide(ask, obs) -> int``.
+Two kinds of seat driver plug into ``SeatRouter``:
+- agents (decide per Ask; what LLM seats and the floors are);
 - raw engine policies with ``answer(vocab, what)`` and ``take_acts(game, seat)``, such as
   ``RandomPolicy`` or a future adapter around our network. These pass straight through.
 
@@ -64,12 +64,6 @@ class AgentError(RuntimeError):
 class AgentForfeitError(AgentError):
     """An agent exhausted its strikes on an ask that offers no do-nothing option. The game is voided
     (``void-forfeit``): the bench never plays a default move on the agent's behalf."""
-
-
-class Agent(Protocol):
-    name: str
-
-    def decide(self, ask: Ask, obs: Observation) -> int: ...
 
 
 @runtime_checkable

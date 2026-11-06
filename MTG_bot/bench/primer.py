@@ -69,7 +69,7 @@ def component_of(node: Any) -> str | None:
     if isinstance(node, Selector):
         return f"selector:{node.mode.name}"
     if isinstance(node, KeywordAbility):
-        return f"keyword:{getattr(node.keyword, 'name', node.keyword)}"
+        return f"keyword:{node.keyword.name}"
     if isinstance(node, FAtom):
         return f"filter:{node.pred.name}"
     name = type(node).__name__

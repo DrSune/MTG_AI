@@ -117,7 +117,7 @@ def read_state(runner: Any, labels: dict[str, str], gold_shape: dict[str, dict[s
                 got[k] = sum(
                     1 for h, c in world.cards.items()
                     if c.identity.name == k and world.zone_of(h).kind == ZONE_BATTLEFIELD
-                    and (getattr(c.identity, "is_token", False) or getattr(ex.binder.handle_record.get(h), "is_token", False))
+                    and (c.identity.is_token or getattr(ex.binder.handle_record.get(h), "is_token", False))
                 )
             elif lane == "battlefield_pt":
                 found = [h for h, c in world.cards.items() if c.identity.name == k and world.zone_of(h).kind == ZONE_BATTLEFIELD]
