@@ -1,29 +1,22 @@
-"""Sound, fast fork of a live MTG engine state (KNOWLEDGE/2026-10-10/67).
+"""Sound, fast fork of a live engine state.
 
-``fork(state)`` returns an INDEPENDENT deep copy of a ``Game`` (or a bare
-``Executor``): mutating the clone can never move the parent's
-``Executor.state_fingerprint()`` bytes (the isolation test proves it).
+``fork(state)`` returns an independent deep copy of a ``Game`` (or a bare ``Executor``):
+mutating the clone never moves the parent's ``Executor.state_fingerprint()`` bytes (the
+isolation test proves it).
 
-Mechanism: ``copy.deepcopy`` with the memo PRE-SEEDED to intern the shared
-immutable compiled IR. The card rule objects (``CardRecord`` ability trees and
-their atom graphs, reachable from ``binder.records`` and from ``Supply.pool``)
-are compile-time constants: a repo-wide grep of the executor package found
-ZERO runtime mutations of pool IR, so cloning them per fork would only pay
-for bytes that must stay byte-identical anyway. Everything genuinely
-per-game — world zones, journal, ledger, binder runtime tables, layers — is
-deep-copied for real.
+Mechanism: ``copy.deepcopy`` with the memo pre-seeded to intern the shared, immutable compiled
+IR. The card rule objects (``CardRecord`` ability trees and their atom graphs, reachable from
+``binder.records`` and from ``Supply.pool``) are compile-time constants that the executor never
+mutates, so cloning them per fork would only copy bytes that must stay identical. Everything
+per-game (world zones, journal, ledger, binder runtime tables, layers) is deep-copied.
 
-Post-clone hygiene (the three references that must NOT survive into a clone):
-* ``executor.rng`` is a bound method of the parent; deepcopy's method
-  reduction happens to rebind it to the clone, but we rebind explicitly
-  because it is the engine's randomness anchor (``_rng`` is a pure
-  sha256(master_seed, _op_seq, tag) factory — the clone inherits the exact
-  stream position through the copied ``_op_seq``; there is no hidden RNG
-  state to fork).
-* ``executor.decisions.provider`` may be a closure capturing the PARENT game;
-  it is detached (``None``) — the rollout layer re-wires its own.
-* ``Game.trace`` (the ``TraceRecorder``) is export-only bookkeeping, not
-  search state; the clone carries none.
+After the copy, three references must not survive into the clone:
+* ``executor.rng`` is a bound method of the parent; it is rebound explicitly, because it is the
+  engine's randomness anchor (``_rng`` is a pure sha256(master_seed, _op_seq, tag) factory, so
+  the clone inherits the exact stream position through the copied ``_op_seq``).
+* ``executor.decisions.provider`` may be a closure over the parent game; it is detached
+  (``None``), and the rollout layer wires its own.
+* ``Game.trace`` (the ``TraceRecorder``) is export-only bookkeeping; the clone carries none.
 """
 
 from __future__ import annotations
