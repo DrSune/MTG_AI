@@ -769,6 +769,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ---
 
 ## Training and measurement
+- **How far to take the opponent simulator** (owner, 2026-11-06; after E0 and Phase 2's play-time
+  search): test how much each extension helps against what it costs in compute time.
+  - How many cards to predict: hand only; hand plus the next 3-5 library cards; the whole remaining
+    library. Measure belief quality (NLL, calibration), the error of playout labels on belief futures
+    against true-card futures, and play strength with search (paired, unseen deals), against the
+    training and inference time per decision.
+  - The consequence part (the owner wants likelihood AND consequence): a head, trained on the
+    playouts of play-time search, that predicts how much a candidate hidden card changes each move's
+    result; it drives the importance-sampling proposal (likelihood x consequence). Measure the gain
+    in search strength per added millisecond.
+  - How many candidates per decision (d sampled hands) and per slot before the gain flattens.
 - **From the owner's learning vision** (docs/OWNER_VISION_LEARNING.md, 2026-11-06):
   - Knowledge tracking: what each player legally knows about cards in hidden zones (a card an effect
     put on top or on the bottom, a revealed card returned to hand), erased by a shuffle; give it to
