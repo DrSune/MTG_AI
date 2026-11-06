@@ -1,7 +1,7 @@
-"""Bucket B12 and Step 2c (sets round S-3a, KNOWLEDGE /167): a spell's own name as the subject.
+"""Bucket B12 and compile_card's Step 2c: a spell's own name as the subject.
 
 Three properties are pinned:
-1. identity law: each B12 builder makes exactly the IR of the card that already carries the meaning;
+1. each B12 builder makes exactly the IR of the card that already carries the meaning;
 2. the fallback reaches cards that matched nothing (Lava Axe, Incinerate's first sentence) and only
    with the card's own name standing alone;
 3. a card whose sentences all compiled before is untouched, over every card of M21, ZNR, M20, KHM.

@@ -1,38 +1,32 @@
-"""Bucket B11 — general clauses (sets round S-2, KNOWLEDGE /162; B-41).
+"""B11 bucket: general clauses.
 
-The buckets before this one are mostly a library of sentence shapes, one template per wording that
-M21 or ZNR happened to print. "Enchanted creature gets +N/+N and has flying." and "...and has
-trample." are two templates, and a plain "Enchanted creature gets +2/+2." is none; "Destroy target
-creature." parses and "Destroy target artifact." does not. First touch on two sets the compiler
-had never seen (M20, KHM; /159) parsed 8-11% of unseen sentence shapes.
-
-This bucket parses a clause FAMILY once, from shared parts, and builds exactly the IR the specific
-templates build for the same meaning (identity law, DESIGN_ATOM_ONTOLOGY §6):
+The other buckets are mostly a library of sentence shapes, one template per printed wording:
+"Enchanted creature gets +N/+N and has flying." and "...and has trample." are two templates, and
+"Destroy target creature." would parse while "Destroy target artifact." would not. This bucket
+parses a clause family once, from shared parts, and builds exactly the IR the specific templates
+build for the same meaning:
 
 * a target noun phrase: one card type or two joined by "or", or "nonland permanent"; optional
   "you control" / "an opponent controls" / "you don't control" / "defending player controls"
-  (2026-11-06, ``ControllerRef.DEFENDING_PLAYER``, CR 506.2, 508.5); optional "with <keyword>" or
-  "with power N or less|greater"; optional "that was dealt damage this turn" (2026-11-05, the
-  turn-history atom of conditions.py: Ogre Siegebreaker, Fathom Fleet Cutthroat). The pattern IS
-  the grammar (built from the same tables the builder reads), so a pattern can never match a
-  phrase its builder cannot encode (B-36).
+  (``ControllerRef.DEFENDING_PLAYER``, CR 506.2, 508.5); optional "with <keyword>" or "with
+  power N or less|greater"; optional "that was dealt damage this turn" (the turn-history atom of
+  conditions.py). The pattern is the grammar (built from the same tables the builder reads), so a
+  pattern never matches a phrase its builder cannot encode.
 * the verbs over it: destroy, exile, return to its owner's hand, tap, untap, and "this
-  <permanent> deals N damage to" it (2026-11-06; the source deals it, as the B3 carriers encode).
-* exile it "until this <permanent> leaves the battlefield" (ontology R5-1, CR 610.3).
+  <permanent> deals N damage to" it (the source deals it, as the B3 carriers encode).
+* exile it "until this <permanent> leaves the battlefield" (CR 610.3).
 * "Enchanted|Equipped creature gets +P/+T [and has <keywords>]." statics.
 * a bare "Equip {cost}" line (the specific template needs the reminder text, which rares omit).
 * "Enchant <type phrase>".
 * "Create <number word> P/T <color|colorless> <Subtypes> [artifact] creature token(s)
   [with <keywords>]." (named by its subtypes, CR 111.4, as the existing token carriers are).
 
-Priority 10, below every other bucket: a sentence a specific template matches is decided as
-before, and where both match the compiler's ambiguity check would record any difference. The
-differential test (test_templates_b11.py) requires there be none over every sentence of M21, ZNR,
-M20 and KHM. Encodings follow the existing carriers, including one divergence they already carry
-and this bucket does not settle (B-42): MOVE_ZONE names the moved object ``target`` for exile but
-``cards`` for return-to-hand. "Its owner's hand" is ``Zone(HAND, OWNER)``, as Unsubstantiate and
-Read the Tides encode it; three M21 carriers use ``Zone(HAND, ANY)``, which the executor resolves
-to seat 0's hand whoever owns the card (B-43, KNOWLEDGE /162).
+Priority 10, below the specific buckets, so a specific template wins where both match; the
+compiler's ambiguity check records any difference, and the differential test
+(test_templates_b11.py) requires none over every sentence of M21, ZNR, M20 and KHM. Encodings
+follow the existing carriers, including a divergence this bucket does not settle
+(docs/BACKLOG.md B-42): MOVE_ZONE names the moved object ``target`` for exile but ``cards`` for
+return to hand. "Its owner's hand" is ``Zone(HAND, OWNER)``.
 """
 
 from __future__ import annotations
@@ -78,7 +72,7 @@ from MTG_bot.core.compiler.templates_b5a import (
 )
 
 _BUCKET: Final[str] = "B11"
-_PRIORITY: Final[int] = 10  # below every bucket (lowest today is 50): general = fallback only
+_PRIORITY: Final[int] = 10  # below the specific buckets: a general clause is the fallback
 
 # --------------------------------------------------------------------------- grammar tables
 
@@ -144,7 +138,7 @@ def _type_filter(name: str) -> Filter:
 
 
 def _np_filter(m: re.Match[str]) -> Filter:
-    """The filter of a matched target noun phrase, conjuncts sorted by construction (R1a)."""
+    """The filter of a matched target noun phrase, conjuncts sorted by construction."""
     if m.group("nonland"):
         base: Filter = FAnd(
             children=(
@@ -210,11 +204,10 @@ def _build_exile_np(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_exile_np_until_leaves(m: re.Match[str]) -> SentenceOutcome:
-    """Ontology R5-1 (2026-10-29, CR 610.3): "Exile target <noun phrase> until this <permanent>
-    leaves the battlefield." The exile of :func:`_build_exile_np` with
-    ``duration=DurationUntilLeaves()``; "this <permanent>" is the ability's source, the referent
-    "source". Composed with an enters frame (frames.py) this is Hieromancer's Cage, Banishing Light,
-    Journey to Oblivion, Banisher Priest, Stasis Snare and Prison Realm."""
+    """``Exile target <noun phrase> until this <permanent> leaves the battlefield.`` (CR 610.3):
+    the exile of :func:`_build_exile_np` with ``duration=DurationUntilLeaves()``; "this
+    <permanent>" is the ability's source. Under an enters frame (frames.py) this is Banishing
+    Light and its kin."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -229,8 +222,8 @@ def _build_exile_np_until_leaves(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bounce_np(m: re.Match[str]) -> SentenceOutcome:
-    # Moved object under ``cards`` (the return-to-hand carriers); destination the OWNER's hand
-    # (Unsubstantiate, Read the Tides), never Zone(HAND, ANY), which resolves to seat 0 (B-43).
+    # Moved object under ``cards``, as the return-to-hand carriers; the destination is the
+    # owner's hand.
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(

@@ -1,4 +1,4 @@
-"""Bucket B15 — the defending player, the blocker limit and the created token (2026-11-06).
+"""B15 bucket: the defending player, the blocker limit and the created token.
 
 Three rules components, each one mechanism the templates below put in the existing carriers:
 
@@ -18,8 +18,7 @@ Three rules components, each one mechanism the templates below put in the existi
   pay <cost>." (OptionalEffect(PAY), as Ghostly Pilferer's), and "If you do, create ..., then
   attach this Equipment to it." follows it as an "If you do" (CR 118.12).
 
-Priority 10 as B11 and B14: every sentence here was unparsed before, so no other template
-competes.
+Priority 10, as B11 and B14: no other template matches these sentences.
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""The printed wordings of turn history and "can't be countered" (2026-11-05).
+"""The printed wordings of turn history and "can't be countered".
 
 Pinned:
 1. conditions.py: every phrase of the grammar builds its Filter, and the shapes M21 already

@@ -47,7 +47,7 @@ def sentences():
 
 
 def test_where_a_specific_template_also_matches_the_ir_is_identical(registry, sentences):
-    # The identity law (DESIGN_ATOM_ONTOLOGY §6): one meaning, one IR. 52 overlaps on 2026-10-27.
+    # One meaning, one IR. The overlap floor keeps the check from passing vacuously.
     overlaps, differ = 0, []
     for code, sentence in sentences:
         matches = registry.match(sentence)
@@ -67,13 +67,13 @@ def test_the_general_clauses_add_coverage_on_every_set(registry, sentences):
         matches = registry.match(sentence)
         if matches and all(m.template.bucket == "B11" for m in matches):
             only[code] += 1
-    # 2026-10-27: KHM 26, M20 11, ZNR 14, M21 0 (M21 was already fully compiled).
+    # M21 is not checked: it was already fully compiled.
     assert only["KHM"] >= 20 and only["M20"] >= 10 and only["ZNR"] >= 10
 
 
 def test_no_set_crashes_the_compiler(registry) -> None:
     # Only the honest refusal (a shape gap) may stop a card; anything else is a template bug that
-    # takes a whole set down (B-36..B-38).
+    # takes a whole set down.
     for code in SETS:
         for raw in ingest_pool(DATA / f"{code}.json").values():
             try:
@@ -124,7 +124,6 @@ def test_tokens_are_named_by_their_subtypes(registry) -> None:
     pairs = dict(effect.args.pairs)
     assert effect.verb is Verb.CREATE_TOKEN and pairs["count"] == QConst(2)
     spec = pairs["tokens"]
-    # re-pinned 2026-10-30: R5-11 colors tuple (was the scalar color "W")
     assert (spec.name, spec.type_line, spec.colors) == (
         "Angel Warrior", "Creature — Angel Warrior", ("W",))
     assert spec.keywords == (Keyword.FLYING,)
@@ -137,8 +136,8 @@ def test_attached_statics_grant_keywords_in_printed_order(registry) -> None:
 
 
 def test_bare_equip_is_sorcery_speed(registry) -> None:
-    # B-60 (2026-10-29): CR 702.6a, equip is activated only as a sorcery
-    # even when the card omits the reminder text that spells it out.
+    # CR 702.6a: equip is activated only as a sorcery, even when the card omits the reminder
+    # text that says so.
     ability = _one(registry, "Equip {2}").ability
     assert isinstance(ability, ActivatedAbility)
     assert ability.timing is ActivationWindow.SORCERY

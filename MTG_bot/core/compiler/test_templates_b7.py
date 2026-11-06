@@ -1,33 +1,6 @@
-"""Tests for the B7 bucket — the ZND-2 LANDFALL + Equipment-ETB family
-(spec KNOWLEDGE/2026-10-18/101, grammar round 20).
-
-Covers templates_b7.py plus the ZND-2 extensions to templates_b6.py:
-- all 20 templateable landfall register rows single-match
-  ``B7-landfall-trigger``, all 8 Equipment-ETB rows single-match
-  ``B7-equip-etb``, and the six honest residue rows match NOTHING (gap
-  ledger in the templates_b7 docstring);
-- FM2 falsifier: the landfall subject filter is ``TYPE_EQ "Land"`` — an
-  object whose type line lacks "Land" never fires (executor-level lock).
-  NOTE (binding spec G-FM2): these locks prove the CORPUS-appropriate
-  CR 603.8b reading for this register — land-not-nonland, own-not-
-  opponent, enters-not-buries. The full rule's control-change corner
-  cases (a land you control entering under an opponent's control, etc.)
-  are NOT claimed; they stay gap-ledger residue;
-- FM6 shared-tail law: every landfall tail tree is BYTE-IDENTICAL to the
-  ``templates_b6._TAIL_BUILDERS`` tree for the same sentence — one
-  encoding per tail, b7 never forks;
-- FM8 lifecycle: a hand→graveyard land move does not fire landfall;
-- the B4 T3 widening: creature/artifact/enchantment share one disjoint
-  pattern, land stays separate; M21 census pin — the two new sentences
-  occur ZERO times in M21, so goldens and buckets stay byte-identical;
-- B6 T4: the Murasa Sproutling tail (HAS_KICKER move); honest census
-  per pre-commit gate FM1: the ONE name-referent register row (Jace copy-
-  exception tail) is not encodable under the frozen grammar, so NO named
-  head is registered (zero consumers = §10 phantom; /98 T4 precedent) —
-  the row stays honest register residue;
-- full IR-tree equality for the representative tails, the Nissa loyalty
-  self-name anaphor and the Equipment-ETB attach;
-- M21 zero-match for every B7 pattern (and the extended B6 tables).
+"""Tests for templates_b7 (Landfall triggers, the Equipment ETB attach) and the B4/B6 heads next
+to them: single-match patterns, residue rows that match nothing, one shared tree per effect tail,
+full trees, and the landfall subject, direction and origin run through the executor.
 """
 
 from __future__ import annotations
@@ -87,8 +60,7 @@ from MTG_bot.core.state import (
 REGISTRY = build_full_registry()
 
 # ---------------------------------------------------------------------------
-# The committed 2026-10-18 ZNR register sentences (dumped programmatically
-# from the evidence extract — never hand-typed).
+# ZNR sentences (dumped from the card data, not hand-typed)
 # ---------------------------------------------------------------------------
 
 _LANDED_LANDFALL_SENTENCES: Final[tuple[str, ...]] = (
@@ -187,7 +159,7 @@ def _raw(
     toughness_raw: str | None = None,
     keywords: tuple[str, ...] = (),
 ) -> RawCard:
-    """Minimal RawCard stub for end-to-end compile_card tests (b6 law)."""
+    """Minimal RawCard stub for end-to-end compile_card tests."""
     identity = CardIdentity(
         oracle_id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"mtg://{name}")),
         name=name,
@@ -234,8 +206,7 @@ def _m21_sentences() -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Hand-built expected trees (derived from oracle clauses, not from the
-# builders — the equality tests below are the lock).
+# Hand-built expected trees (from the oracle text, not from the builders)
 # ---------------------------------------------------------------------------
 
 _LANDFALL_EVENT: Final = ZoneChangeEvent(
@@ -292,8 +263,8 @@ class TestB7Patterns(unittest.TestCase):
             self.assertEqual(_reg_tids(s), ["B7-landfall-trigger"], s)
 
     def test_landed_census_is_twenty_rows(self) -> None:
-        # 20 of the 26 evidence landfall rows template; the 5 "Landfall —"
-        # stragglers + the non-Landfall Conundrum row are the ledger.
+        # 20 of the 26 landfall rows compile; the 5 other "Landfall —" rows and the
+        # non-Landfall Conundrum row are residue.
         self.assertEqual(len(_LANDED_LANDFALL_SENTENCES), 20)
         self.assertEqual(len(_RESIDUE_LANDFALL_SENTENCES), 6)
 
@@ -302,15 +273,14 @@ class TestB7Patterns(unittest.TestCase):
             self.assertEqual(_reg_tids(s), [], s)
 
     def test_equip_etb_row_single_match(self) -> None:
-        # Census: 8 register rows share this ONE sentence (all 8 ZNR
-        # equipment with a plain enters-and-attach ETB).
+        # Every ZNR Equipment with a plain enters-and-attach ETB prints this sentence.
         self.assertEqual(_b7_tids(_EQUIP_ETB_SENTENCE), ["B7-equip-etb"])
         self.assertEqual(_reg_tids(_EQUIP_ETB_SENTENCE), ["B7-equip-etb"])
 
     def test_landfall_head_is_syntactic_keyword_only(self) -> None:
         ability = _build_landfall(_LANDED_LANDFALL_SENTENCES[0])
-        # No KeywordAbility atom, no condition: "Landfall —" is pure head
-        # syntax wrapping a plain enters trigger (CR 603.8b shape).
+        # "Landfall —" is head syntax only: a plain enters trigger (CR 603.8b), no
+        # KeywordAbility atom, no condition.
         self.assertIsNone(ability.condition)
         self.assertIsInstance(ability.event, ZoneChangeEvent)
         self.assertNotIn("KeywordAbility", canonical_json(ability))
@@ -329,7 +299,7 @@ class TestB7Patterns(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 2. IR-tree equality (FM6 shared-tail law included)
+# 2. IR-tree equality
 # ---------------------------------------------------------------------------
 
 
@@ -420,11 +390,9 @@ class TestB7Trees(unittest.TestCase):
         self.assertEqual(canonical_json(got), canonical_json(expected))
 
     def test_fm6_every_tail_reuses_the_shared_builder(self) -> None:
-        # Census: 20 register rows carry 14 distinct sentences; 13 are
-        # table tails + the loyalty self-name arm. One encoding per tail
-        # sentence: the b7 landfall effect tree is BYTE-IDENTICAL to
-        # templates_b6's shared-table tree. b7 imports the table — it
-        # never forks an encoding.
+        # One encoding per tail: each landfall effect tree equals templates_b6's
+        # shared-table tree. The 14 distinct sentences are the 13 table tails plus
+        # the loyalty self-name arm.
         self.assertEqual(len(set(_LANDED_LANDFALL_SENTENCES)), 14)
         self.assertEqual(len(_LANDFALL_TAILS), 13)
         for tail in _LANDFALL_TAILS:
@@ -443,7 +411,7 @@ class TestB7Trees(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 3. B4 T3 widening (disjoint split, M21 census pin)
+# 3. B4 enters-tapped heads (creature/artifact/enchantment vs land)
 # ---------------------------------------------------------------------------
 
 
@@ -458,9 +426,8 @@ class TestB4EntersTappedWidening(unittest.TestCase):
         self.assertEqual(_reg_tids(_ENTERS_TAPPED["land"]), ["B4-enters-tapped-land"])
 
     def test_m21_census_new_sentences_absent(self) -> None:
-        # The byte-identity premise for gate 3: M21 contains ZERO
-        # "This artifact/enchantment enters tapped." sentences, so the
-        # widening cannot move a golden, a bucket or a PC-4 fingerprint.
+        # M21 prints no "This artifact/enchantment enters tapped." sentence, so these
+        # arms cannot move an M21 golden or bucket.
         sentences = _m21_sentences()
         if not sentences:
             self.skipTest("M21.json not present")
@@ -469,8 +436,7 @@ class TestB4EntersTappedWidening(unittest.TestCase):
             self.assertEqual(sentences.count(s), 0, noun)
 
     def test_b4_land_arm_still_exact(self) -> None:
-        # The disjointness pin: widening the non-land arm must NOT make
-        # the land sentence claimable by the creature-arm template.
+        # The creature arm must not claim the land sentence.
         from MTG_bot.core.compiler import templates_b4
 
         creature_arm = next(
@@ -484,7 +450,7 @@ class TestB4EntersTappedWidening(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 4. B6 ZND-2 extensions (T4)
+# 4. B6 kicked-ETB heads
 # ---------------------------------------------------------------------------
 
 
@@ -527,26 +493,20 @@ class TestB6Znd2Extensions(unittest.TestCase):
         self.assertEqual(canonical_json(got), canonical_json(expected))
 
     def test_named_head_NOT_registered_is_honest_not_phantom(self) -> None:
-        # PRE-COMMIT GATE FM1 (/101): spec /101 T4 claimed 4 name-referent rows
-        # (Jace/Chandra/Nissa); the committed register carries exactly ONE and
-        # its copy-exception tail is NOT encodable under the frozen grammar
-        # (Verb.COPY slots are {source}-only). A head matching ZERO register
-        # rows is a §10 PHANTOM, not a pre-registered idiom: HAS_KICKER (ZND-1)
-        # had named ZND-2 consumers, this has none. Withdrawn per the /98 T4
-        # precedent — it lands together with its consumer instead.
+        # No named kicked-ETB head: its only row (Jace's copy-exception tail) cannot
+        # be encoded (Verb.COPY has only a source slot), and a head without a
+        # consumer is not registered.
         self.assertNotIn("B6-etb-kicked-trigger-named", {t.tid for t in B6_TEMPLATES})
-        # The register's one name-referent row stays UNPARSED (honest residue).
+        # The name-referent row stays unparsed.
         self.assertEqual(_reg_tids(_JACE_ROW), [])
-        # And the self-anaphor must NOT steal it: "if it was kicked" is a
-        # different anaphor, so the name-referent head cannot borrow it.
+        # The self-anaphor head ("if it was kicked") must not claim it either.
         self.assertEqual(
             [t.tid for t in B6_TEMPLATES if t.pattern.fullmatch(_JACE_ROW)], []
         )
 
     def test_self_anaphor_still_rejects_a_renamed_head(self) -> None:
-        # The mirror law the withdrawn twin owned: the landed self-anaphor head
-        # matches "this <type> enters, if IT was kicked" only — a named head
-        # stays unmatched rather than silently binding the wrong referent (PC-3).
+        # The self-anaphor head matches "this <type> enters, if it was kicked" only;
+        # a named head stays unmatched rather than binding the wrong referent.
         named = (
             "When Jace, Mirror Mage enters, if Jace, Mirror Mage was "
             "kicked, " + _TAIL_DRAKE
@@ -616,9 +576,7 @@ class TestCompileCardEndToEnd(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 6. Executor falsifiers (FM2 / FM8 / direction / one-fire / attach)
-#    Harness per test_executor_p1a_move.py: GameWorld + Executor +
-#    attach_card, drives the COMPILED trees.
+# 6. Executor checks on the compiled trees (GameWorld + Executor + attach_card)
 # ---------------------------------------------------------------------------
 
 _ORACLE_SEQ = itertools.count(1_900)
@@ -681,9 +639,8 @@ def _enter_atom() -> Atom:
 
 
 class LandfallExecutorCase(unittest.TestCase):
-    """The compiled Nissa-tail trigger (gain-1-life is the cleanest fire
-    counter) sits on a watcher creature; the falsifying zone moves are run
-    through the executor so the JOURNALS, not the pattern, are judged."""
+    """A compiled "you gain 1 life" landfall trigger (life counts the fires) on a watcher
+    creature; zone moves run through the executor, so play is judged, not the pattern."""
 
     def setUp(self) -> None:
         self.world = GameWorld(num_players=2, start_life=20, master_seed=13)
@@ -764,7 +721,7 @@ class TestLandfallExecutor(LandfallExecutorCase):
     def test_non_land_enter_never_fires_FM2(self) -> None:
         before = self.life(self.p0)
         self.enter(self.creature, self.p0)
-        # The move REALLY happened (non-vacuous falsifier):
+        # The move happened, so the check is not vacuous:
         self.assertEqual(self.world.zone_of(self.creature).kind, ZONE_BATTLEFIELD)
         self.assertEqual(self.life(self.p0), before)
 
@@ -776,42 +733,36 @@ class TestLandfallExecutor(LandfallExecutorCase):
         self.assertEqual(self.life(self.p1), before1)
 
     def test_hand_to_graveyard_never_fires_FM8(self) -> None:
-        # FM8 lifecycle: a land card leaving the hand for the graveyard is
-        # a hand→graveyard zone move, NOT an enters event — landfall must
-        # stay silent even though the subject card IS a land.
+        # A land going from hand to graveyard is not an enters event.
         before = self.life(self.p0)
         self.move_to(self.land_p0, self.p0, Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
         self.assertEqual(self.world.zone_of(self.land_p0).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.life(self.p0), before)
 
     def test_from_any_origin_fires_the_other_landfall_legs_FM5(self) -> None:
-        # FM5 (the commit-gate's probe folded into the suite): the head is "a
-        # land you control enters" — ORIGIN-INDEPENDENT. Graveyard→battlefield
-        # (recursion) and exile→battlefield (re-animation) are ENTERS and must
-        # fire; a pure EXIT out of the battlefield must not.
+        # "A land you control enters" is origin-independent: graveyard→battlefield
+        # and exile→battlefield fire; leaving the battlefield does not.
         graveyard = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
         exile = Zone(ZoneKind.EXILE, ControllerRef.YOU)
         battlefield = Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
-        # Route the land out to the graveyard first (silent, per FM8 above).
+        # Move the land to the graveyard first (silent).
         self.move_to(self.land_p0, self.p0, graveyard)
         before = self.life(self.p0)
         self._move(self.land_p0, self.p0, graveyard, battlefield)
         self.assertEqual(self.life(self.p0), before + 1, "GY→battlefield is an enters")
-        # Out to exile and back: fires again — each enters is its own event
-        # (the head has no once-per-turn bound).
+        # Out to exile and back fires again: each enters is its own event.
         self._move(self.land_p0, self.p0, battlefield, exile)
         mid = self.life(self.p0)
         self._move(self.land_p0, self.p0, exile, battlefield)
         self.assertEqual(self.life(self.p0), mid + 1, "exile→battlefield is an enters")
-        # Pure EXIT: battlefield→graveyard, silent.
+        # Leaving the battlefield: silent.
         after = self.life(self.p0)
         self._move(self.land_p0, self.p0, battlefield, graveyard)
         self.assertEqual(self.world.zone_of(self.land_p0).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.life(self.p0), after, "an exit is not an enters")
 
     def test_untap_phase_moves_are_not_enters(self) -> None:
-        # Second FM8 leg: the land is already on the battlefield; a turn
-        # boundary must not re-fire the trigger.
+        # A turn boundary does not re-fire the trigger for a land already in play.
         self.enter(self.land_p0, self.p0)
         after_first = self.life(self.p0)
         self.ex.end_turn()
@@ -821,8 +772,8 @@ class TestLandfallExecutor(LandfallExecutorCase):
 
 class TestEquipEtbExecutor(unittest.TestCase):
     def test_compiled_attach_atom_executes(self) -> None:
-        # The B7 tree is not just IR decoration: the ATTACH slots drive the
-        # executor's attachment table exactly like the b5a Equip atom.
+        # The compiled ATTACH slots drive the executor's attachment table, as the
+        # b5a Equip atom does.
         world = GameWorld(num_players=2, start_life=20, master_seed=17)
         p0 = world.player_order[0]
         equip = world.add_card(

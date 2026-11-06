@@ -1,5 +1,4 @@
-"""The printed wordings of the defending player, the blocker limit and the created token
-(2026-11-06).
+"""The printed wordings of the defending player, the blocker limit and the created token.
 
 Pinned:
 1. B15 and B11: "can't be blocked by more than one creature" in its three carriers (CR 509.1b);
@@ -10,10 +9,9 @@ Pinned:
 3. frames: the two attack frames, and a pronoun after them still refused;
 4. whole cards: the Kaldheim Equipment's "If you do" is gated on the payment (CR 118.12);
 5. fallback only: on M21, ZNR, M20 and KHM, a card whose sentences all parsed before keeps its
-   tree, and M21 changes nowhere. "Before" is the compiler as main had it: without B15 and the new
-   B11 clause, without the two attack frames, and without any reading of the widened noun phrase
-   (no outcome naming the defending player). The compile census over all 19 sets checked the same
-   against main itself (NUMBERS.md 2026-11-06).
+   tree, and M21 changes nowhere. "Before" is the compiler without B15 and the B11 clause, without
+   the two attack frames, and without any reading of the widened noun phrase (no outcome naming
+   the defending player).
 """
 
 from __future__ import annotations
@@ -217,8 +215,8 @@ def test_the_kaldheim_equipment_create_only_if_paid() -> None:
 
 
 class _AsOnMain(TemplateRegistry):
-    """The templates main had, and no outcome that names the defending player (the only new
-    reading the widened B11 noun phrase gives)."""
+    """The registry without the new templates, and no outcome that names the defending player
+    (the only new reading the widened B11 noun phrase gives)."""
 
     def match(self, sentence: str):
         return tuple(m for m in super().match(sentence) if "DEFENDING_PLAYER" not in repr(m.outcome))
@@ -250,7 +248,7 @@ def test_cards_that_compiled_before_are_untouched(registry, set_code, monkeypatc
         assert before.unparsed or before.back_face_unparsed, raw.identity.name
     if set_code == "M21":
         assert changed == []
-    if set_code == "M20":  # the census's M20 changes, the newly parsed sentences' cards
+    if set_code == "M20":  # the cards of M20's newly parsed sentences
         assert sorted(changed) == [
             "Ancestral Blade", "Bristling Boar", "Heart-Piercer Bow", "Mask of Immolation",
             "Wolfrider's Saddle",

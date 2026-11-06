@@ -1,20 +1,7 @@
-"""Bucket B8 (party family) — ZND-3 verification (spec /107 gates).
-
-Sections:
-
-1. Registry shape: 23 templates, unique tids, bucket "B8".
-2. VERBATIM law: every one of the 35 clearing rows fullmatches EXACTLY
-   ONE b8 template and builds; the three named-defer rows match NOTHING
-   in b8 and NOTHING in the full registry (the register stays honest).
-3. Evaluator pins (spec /107 gates): two-Clerics-one-Wizard = 2 (the
-   at-most-one-each law); classless creatures = 0; opponent creatures
-   never count (direction); the GRANT_TYPE overlay MOVES the census
-   (§11 golden); the full-party FAnd is false at 3 classes / true at 4.
-4. The discount PRICE is visible on legal_casts (§10 menu-visibility):
-   {4}{B} with party 2 prices at 2G+1B; the boundary falsifies both the
-   always-full-price and the always-discounted encodings.
-5. The QPartyCount node's grammar registration (union + tags + specs).
-"""
+"""Tests for templates_b8 (the party family): every printed row matches exactly one template
+and the deferred rows match nothing; the party census on live boards (distinct classes, your
+creatures only, the class grant through the layers overlay, full party); the discount price on
+legal_casts; the QPartyCount node."""
 
 from __future__ import annotations
 
@@ -64,8 +51,7 @@ _ORACLE_SEQ = itertools.count(2_500)
 
 
 def _build(text: str):
-    """Fullmatch ``text`` against the b8 templates (asserting exactly one
-    hit) and run the builder."""
+    """Fullmatch ``text`` against exactly one b8 template and run its builder."""
     hits = [t for t in TEMPLATES if t.pattern.fullmatch(text)]
     assert len(hits) == 1, f"{len(hits)} b8 matches for {text[:70]!r}"
     match = hits[0].pattern.fullmatch(text)
@@ -74,18 +60,17 @@ def _build(text: str):
 
 
 # ---------------------------------------------------------------------------
-# The 35 clearing rows (verbatim from reports/grammar_2026-10-19_ZNR.json,
-# attribution /tmp/opencode/znd3_attribution.json) + the 3 named defers.
+# The printed ZNR party rows, and the rows left unparsed on purpose
 # ---------------------------------------------------------------------------
 
 _CLEAR_ROWS: tuple[str, ...] = (
-    # T1 (11 rows; 10 identical spell rows + 1 ability row)
+    # the {1} discount
     *(
         "This spell costs {1} less to cast for each creature in your party."
         for _ in range(10)
     ),
     "This ability costs {1} less to activate for each creature in your party.",
-    # T2 (8)
+    # for-each scaled effects
     "When this creature enters, create a 1/1 white Kor Warrior creature token for each creature in your party.",
     "When this creature enters, put a +1/+1 counter on it for each creature in your party.",
     "Whenever this creature attacks, it gets +1/+0 until end of turn for each creature in your party.",
@@ -94,36 +79,31 @@ _CLEAR_ROWS: tuple[str, ...] = (
     "When this creature enters, target creature gets +1/+1 until end of turn for each creature in your party.",
     "When this creature enters, you gain 2 life for each creature in your party.",
     "Put a +1/+1 counter on it for each creature in your party.",
-    # T3 (5)
+    # full-party heads
     "At the beginning of combat on your turn, if you have a full party, creatures you control get +1/+0 and gain indestructible until end of turn.",
     "If you have a full party, you may cast a spell with mana value 4 or less from your hand without paying its mana cost.",
     "At the beginning of combat on your turn, if you have a full party, target creature gets +1/+1 and gains flying until end of turn.",
     "At the beginning of combat on your turn, if you have a full party, choose target nonland permanent an opponent controls.",
     'At the beginning of combat on your turn, if you have a full party, creatures you control gain "Whenever this creature deals combat damage to a player, draw a card" until end of turn.',
-    # T4 (7)
+    # X := the party count
     "When this creature enters, scry X, where X is the number of creatures in your party.",
     "Up to two target creatures each get +X/+X until end of turn, where X is the number of creatures in your party.",
     "When this creature enters, each opponent loses X life and you gain X life, where X is the number of creatures in your party.",
     "When this creature enters, target creature an opponent controls gets -X/-X until end of turn, where X is the number of creatures in your party.",
     "When this creature enters, it deals X damage to target creature or planeswalker, where X is the number of creatures in your party.",
     "Look at the top X cards of your library, where X is three plus the number of creatures in your party.",
-    # T5 (3)
+    # class signature
     "Stonework Packbeast is also a Cleric, Rogue, Warrior, and Wizard.",
     "Tajuru Paragon is also a Cleric, Rogue, Warrior, and Wizard.",
     "Veteran Adventurer is also a Cleric, Rogue, Warrior, and Wizard.",
 )
 
 _DEFER_ROWS = (
-    # 2026-11-05 (known_bugs compiler_controller_becomes_a_free_player_target): withdrawn. The
-    # IR has no "that creature's controller" for a damage recipient; the template wrote it as a
-    # second TARGET selector over the PLAYER zone, which the cast lane designates on its own
-    # (V25), so the caster chose who took the X damage.
+    # Why each of these stays unparsed: the templates_b8 docstring.
     "Synchronized Spellcraft deals 4 damage to target creature and X damage to that creature's controller, where X is the number of creatures in your party.",
     "Counter target noncreature spell unless its controller pays {1} plus an additional {1} for each creature in your party.",
     "Archpriest of Iona's power is equal to the number of creatures in your party.",
     "Equipped creature gets +1/+0 for each creature in your party and has menace.",
-    # T6 WITHDRAWN (gate FM2 / ZND-3f): compiles but executes as a library
-    # look — Verb.REVEAL falls into _look (verbs.py:1102-1114, ZONE_LIBRARY).
     "When this creature enters, target opponent reveals a number of cards from their hand equal to the number of creatures in your party.",
 )
 
@@ -162,9 +142,8 @@ class TestB8VerbatimRows(unittest.TestCase):
             )
 
     def test_spellcraft_opens_no_free_player_target(self) -> None:
-        # 2026-11-05: compiled from its printed text, Synchronized Spellcraft must not offer
-        # the caster a player slot for "that creature's controller" (CR 115.1: that player is
-        # not a target, and the controller of the targeted creature is not the caster's pick).
+        # Synchronized Spellcraft must not offer the caster a player slot for "that creature's
+        # controller" (CR 115.1: that player is not a target).
         from pathlib import Path
 
         from MTG_bot.core.ability_tree import Selector, walk
@@ -184,15 +163,14 @@ class TestB8VerbatimRows(unittest.TestCase):
         self.assertEqual(player_targets, [])
 
     def test_templates_are_pairwise_disjoint(self) -> None:
-        # PC-3 convention on the b8 clearing set: no row matches two.
+        # No row matches two templates.
         for text in set(_CLEAR_ROWS):
             hits = [t.tid for t in TEMPLATES if t.pattern.fullmatch(text)]
             self.assertEqual(len(hits), 1, (text[:60], hits))
 
 
 # ---------------------------------------------------------------------------
-# Evaluator harness (b7 section-6 convention: GameWorld + Executor +
-# attach_card, judging the LIVE census, not the pattern).
+# Evaluator harness (GameWorld + Executor + attach_card: the live census)
 # ---------------------------------------------------------------------------
 
 
@@ -262,8 +240,7 @@ class PartyCase(unittest.TestCase):
 
 class TestPartyCensus(PartyCase):
     def test_two_clerics_one_wizard_is_two(self) -> None:
-        """The at-most-one-each law (ZNR reminder text): distinct classes,
-        never a creature count."""
+        """At most one of each class: the party counts distinct classes, not creatures."""
         self.place("Cleric A", self.p0, "Creature — Human Cleric")
         self.place("Cleric B", self.p0, "Creature — Cleric")
         self.place("Wizard", self.p0, "Creature — Human Wizard")
@@ -277,26 +254,24 @@ class TestPartyCensus(PartyCase):
         self.assertEqual(self.party(self.p0), 0)
 
     def test_opponent_creatures_never_count(self) -> None:
-        """Direction (E1 single encoding): the population selector pins
-        CONTROLLER_IS YOU; the opponent's full party is not my party."""
+        """Only creatures you control count."""
         self.place("Foe Cleric", self.p1, "Creature — Cleric")
         self.place("Foe Rogue", self.p1, "Creature — Rogue")
         self.settle()
         self.assertEqual(self.party(self.p0), 0)
-        # ... and YOU only get what YOU have:
+        # ... and you get what you have:
         self.place("My Wizard", self.p0, "Creature — Wizard")
         self.settle()
         self.assertEqual(self.party(self.p0), 1)
 
     def test_class_grant_moves_the_census(self) -> None:
-        """§11 golden (spec /107 T5): the compiled class signature MOVES
-        the census for every consumer through the layers overlay — the
-        granted card's identity type line is NEVER rewritten."""
+        """The compiled class signature changes the census through the layers overlay; the
+        card's identity type line is not rewritten."""
         # Board: one Cleric => party 1.
         cleric = self.place("Cleric", self.p0, "Creature — Human Cleric")
         self.settle()
         self.assertEqual(self.party(self.p0, source=cleric), 1)
-        # Tajuru Paragon enters with the COMPILED T5 static.
+        # Tajuru Paragon enters with the compiled class-signature static.
         _, outcome = _build(
             "Tajuru Paragon is also a Cleric, Rogue, Warrior, and Wizard."
         )
@@ -310,11 +285,11 @@ class TestPartyCensus(PartyCase):
         self.settle()
         # Overlay: Paragon now carries all four classes => party 4.
         self.assertEqual(self.party(self.p0, source=paragon), 4)
-        # The identity type line is untouched (board-separation law).
+        # The identity type line is untouched.
         self.assertEqual(
             self.world.cards[paragon].identity.type_line, "Creature — Elf Warrior"
         )
-        # Full-party now TRUE at four classes (spec gate, same board):
+        # Full party at four classes:
         self.assertTrue(self.full_party(paragon))
 
     def test_full_party_false_at_three_true_at_four(self) -> None:
@@ -328,9 +303,8 @@ class TestPartyCensus(PartyCase):
         self.assertTrue(self.full_party(d))
 
     def test_census_is_board_live(self) -> None:
-        """The quantity resolves at every read — no frozen bake (the r22c
-        shrine-count lesson): dropping a class from the board lowers the
-        party between two resolves."""
+        """The quantity resolves at every read: losing a class lowers the party between two
+        resolves."""
         cleric = self.place("Cleric", self.p0, "Creature — Cleric")
         wizard = self.place("Wizard", self.p0, "Creature — Wizard")
         self.settle()
@@ -340,7 +314,7 @@ class TestPartyCensus(PartyCase):
 
 
 # ---------------------------------------------------------------------------
-# Discount price visible on legal_casts (spec /107 §10 gate)
+# Discount price visible on legal_casts
 # ---------------------------------------------------------------------------
 
 
@@ -400,9 +374,8 @@ class TestDiscountPrice(unittest.TestCase):
         )
 
     def test_price_folds_the_party_census(self) -> None:
-        """Party of two: {4}{B} PRICES as 2 generic + 1 black on the
-        legal_casts surface (menu-visibility law: the ask shows the real
-        total, 601.2f)."""
+        """Party of two: {4}{B} is priced as 2 generic + 1 black on legal_casts (the ask shows
+        the real total, CR 601.2f)."""
         self.place_party_members()
         self.mana(G=2, B=1)
         row = self._row()
@@ -411,9 +384,7 @@ class TestDiscountPrice(unittest.TestCase):
         self.assertEqual(dict(row.payment.mana), {"G": 2, "B": 1})
 
     def test_boundary_falsifies_both_wrong_encodings(self) -> None:
-        """Without the party the row needs FULL price: the identical
-        2G+1B pool disappears the row (always-discounted encoding would
-        still enumerate; always-full-price would fail BOTH legs)."""
+        """Without a party the row needs the full price: 2G+1B does not list it, 4G+1B does."""
         self.mana(G=2, B=1)
         self.assertIsNone(self._row())
         self.mana(G=2)  # now the full 4G+1B is available
@@ -423,9 +394,7 @@ class TestDiscountPrice(unittest.TestCase):
         self.assertEqual(dict(row.payment.mana), {"G": 4, "B": 1})
 
     def place_party_members(self) -> None:
-        """A Cleric and a Wizard: the census is a DISTINCT-CLASS union, so
-        two creatures of different classes make party 2 (two Clerics would
-        be party 1)."""
+        """A Cleric and a Wizard: party 2."""
         for i, cls in enumerate(("Cleric", "Wizard")):
             cid = _card_id(f"{cls} {i}", f"Creature — {cls}")
             h = self.world.add_card(cid, self.p0, ZONE_BATTLEFIELD)
@@ -436,7 +405,7 @@ class TestDiscountPrice(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# G1: the QPartyCount node's grammar registration
+# The QPartyCount node
 # ---------------------------------------------------------------------------
 
 
@@ -449,22 +418,18 @@ class TestQPartyCountNode(unittest.TestCase):
         self.assertEqual(q.selector.zones[0].kind, ZoneKind.BATTLEFIELD)
 
     def test_selector_axis_is_the_pinned_population(self) -> None:
-        """Spec /107 §3.1: TYPE_EQ Creature ∧ CONTROLLER_IS YOU ∧
-        battlefield — the population axis ONLY (the census is the
-        evaluator's)."""
+        """The selector is only the population, creatures you control on the battlefield; the
+        census is the evaluator's."""
         filt = _party_count().selector.filter
         assert isinstance(filt, FAnd)
         preds = [c.pred for c in filt.children if isinstance(c, FAtom)]
 
-        # R1a canonicalization (ontology §3 SET-R1a): children construction-
-        # sorted by canonical_json — the predicate SET is the pinned fact, the
-        # order is pinned by the law itself.
+        # FAnd children are sorted by canonical_json at construction.
         self.assertEqual(
             list(filt.children), sorted(filt.children, key=canonical_json)
         )
         self.assertEqual(preds, [FAtomPred.CONTROLLER_IS, FAtomPred.TYPE_EQ])
-        # Values, not just types (gate FM4): a swapped string_value or who
-        # would rebuild the same predicate SHAPE while counting a
+        # Values, not just predicates: a swapped string_value or who would count a
         # different population.
         atoms = {c.pred: c for c in filt.children if isinstance(c, FAtom)}
         self.assertEqual(len(atoms), 2)
@@ -474,13 +439,11 @@ class TestQPartyCountNode(unittest.TestCase):
 
 
 class TestPartyCensusEdgeLaws(PartyCase):
-    """Gate FM3/FM5: the census laws at the vocabulary edge, pinned on
-    boards — not just shapes."""
+    """Census edge cases on live boards."""
 
     def test_multiclass_creature_contributes_every_class_it_bears(self) -> None:
-        """At-most-one-EACH (world-canonical reminder): a
-        "Cleric Wizard" bifclass creature occupies BOTH slots — party 2
-        from one body; a second Cleric adds nothing."""
+        """A "Cleric Wizard" fills both slots (party 2 from one creature); a second Cleric
+        adds nothing."""
         self.place("Dual Adept", self.p0, "Creature — Cleric Wizard")
         self.settle()
         self.assertEqual(self.party(self.p0), 2)
@@ -489,8 +452,7 @@ class TestPartyCensusEdgeLaws(PartyCase):
         self.assertEqual(self.party(self.p0), 2)  # one slot per class
 
     def test_x_arithmetic_resolves_over_the_live_census(self) -> None:
-        """T4's point is arithmetic over a MUTABLE census (gate FM5):
-        resolve at evaluation time, not compile time."""
+        """X arithmetic resolves over the census at evaluation time, not compile time."""
         self.place("Board Cleric", self.p0, "Creature — Human Cleric")
         self.place("Board Wizard", self.p0, "Creature — Wizard")
         self.settle()

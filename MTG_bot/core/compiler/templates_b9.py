@@ -1,36 +1,13 @@
-"""Bucket B9 — the ZND-4 flip-sweep (spec KNOWLEDGE/2026-10-19/115).
+"""B9 bucket: single ZNR rows that no earlier template claims.
 
-Fifteen templates clear 17 register rows: the Batch A carriers that could
-not be widened in place (the widen would compile a DIFFERENT ability —
-G-FM2's Sneaking Guide diagnosis generalized) plus the Batch B named-shape
-tail. Every build is locally composed from the shared b6 anchors (FM6
-shared-tail law: none of these effects is a ``_TAIL_BUILDERS`` key) and
-mirrors a CARRIER THAT IS ALREADY EXECUTED elsewhere — each docstring
-names the carrier whose executor falsifier covers the encoding shape
-(spec /115 "WORLD-CANONICAL" rule).
+Each build reuses an encoding an earlier template already executes, from the shared b6 anchors;
+none of these effects is a ``templates_b6._TAIL_BUILDERS`` key. A nearby earlier template is not
+widened instead when the widening would compile a different ability (see
+``_build_cant_be_blocked_self_ok``).
 
-Priority is PINNED 116 (G-FM3): the ladder is 100/110/112/114; a tie at
-the b1 default would let the tid-asc tiebreak silently starve b9 rows.
-
-Gap ledger (ZND-4 named defers — these rows stay UNPARSED, no silent
-partials, no forced lanes):
-
-* **ZND-4a** keyword-list continuations ("Flying, vigilance" / "Defender,
-  reach" / "Flying, lifelink") — ``KeywordOutcome`` carries ONE enum and
-  the compiler never merges outcomes (G-FM1); multi-keyword is a schema
-  MECHANISM decision (Type-1), a named future round.
-* **ZND-4b** "When this creature enters, if it was kicked, all creatures
-  able to block target creature this turn do so." (Taunting Arbormage) —
-  MANDATE_BLOCK is NOT a dispatched ``run_atom`` verb
-  (executor/__init__.py:235; the ledger rides layers' static-ability
-  records only, layers.py:390–453). A trigger-fired temporary mandate
-  needs the engine lane; forcing it would mint a trigger that raises at
-  resolve. G-FM4's conditional: the lane does NOT accept the effect —
-  honest defer (engine files are OFF-LIMITS this wave).
-* **ZND-4c** "Destroy all nonland permanents." (Ondu Inversion) — the
-  named carrier b5a:2175 is EQUIPMENT-SCOPED (G-FM5); the all-permanent
-  scope is a different selector family with no executed carrier. Pre-
-  declared named defer (audit risk-1: do not force).
+These rows match no template (test_templates_b9 pins them): keyword lists such as "Flying,
+vigilance." (a ``KeywordOutcome`` carries one keyword), Taunting Arbormage's kicked "all
+creatures able to block target creature this turn do so", and "Destroy all nonland permanents."
 """
 
 from __future__ import annotations
@@ -88,10 +65,10 @@ from MTG_bot.core.compiler.templates_b6 import (
 )
 
 _BUCKET: Final[str] = "B9"
-_PRIORITY: Final[int] = 116  # G-FM3: ladder 100/110/112/114, b9 sits above all
+_PRIORITY: Final[int] = 116  # above B8 (114)
 
-# Keyword words the keyword-grant templates accept — the closed map of the
-# b3 precedent (templates_b3._KW_MAP); an unmapped word never compiles.
+# The keywords the keyword-grant templates accept (as templates_b3._KW_MAP); an unmapped word
+# never compiles.
 _KW_MAP: dict[str, Keyword] = {
     "deathtouch": Keyword.DEATHTOUCH,
     "indestructible": Keyword.INDESTRUCTIBLE,
@@ -112,17 +89,13 @@ def _template(tid: str, name: str, pattern: str, build) -> Template:
 
 
 # ---------------------------------------------------------------------------
-# Selector helpers (mirror the named carriers' shapes exactly)
+# Selector helpers
 # ---------------------------------------------------------------------------
 
 
 def _target_creature() -> Selector:
-    """``target creature`` — the b5b-sacr-grant TARGET shape without the
-    controller conjunct (Dauntless Survivor sees EVERY creature).
-
-    R1a (ontology §6 V2′): the lone conjunct is emitted BARE — a one-child
-    ``FAnd`` is a phantom wrapper, so the unwrap happens here at the
-    emission site, not in the frozen node."""
+    """``target creature``: any creature. The lone filter is emitted bare, never wrapped in a
+    one-child ``FAnd``."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -132,8 +105,8 @@ def _target_creature() -> Selector:
 
 
 def _target_creature_you_control() -> Selector:
-    """``target creature you control`` — the executed B5b-sacr-grant selector
-    without its "Another" clause (carrier: templates_b5b._build_sacr_grant)."""
+    """``target creature you control`` (templates_b5b._build_sacr_grant's selector without
+    "another")."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -148,9 +121,7 @@ def _target_creature_you_control() -> Selector:
 
 
 def _target_creature_or_planeswalker() -> Selector:
-    """``target creature or planeswalker`` — the executed two-branch
-    ``_destroy_cw_pw`` target narrowed to the permanent kinds
-    (carrier: templates_b6._destroy_cw_pw)."""
+    """``target creature or planeswalker``."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -165,25 +136,11 @@ def _target_creature_or_planeswalker() -> Selector:
 
 
 def _you_control_a_class(cls: str, *, exclude_self: bool) -> Filter:
-    """``you control (another) <Class>`` as a WORLD-COUNT condition —
-    the executed Basri ``CONTROLLER_COUNT_GE`` shape (carrier:
-    templates_b2a._build_basri_condition, b2a:1688), with the
-    ``FNot(IS_SOURCE)`` "another" primitive (templates_b2a:591) inside
-    the per-candidate inner filter.
-
-    FINDING (2026-10-19, ZND-4 executor falsifier): the per-card
-    conjunct filter (TYPE/SUBTYPE/CONTROLLER_IS/FNot-IS_SOURCE) is NOT
-    a valid static gate. The attached-static registration path
-    (layers.py ~514) carries ONLY ``StaticAbility.condition`` into the
-    LayerRecord and silently drops the atom's ``duration`` role, so a
-    DurationWhileCondition placed there leaves the layer EVER-LIVE
-    (B4-modify-pt-while-garruk / B4-grant-lifelink-while-counter are
-    affected — pre-existing engine gap, executor lane, NOT editable
-    here). The condition must be handle-free and world-evaluable:
-    CONTROLLER_COUNT_GE counts the battlefield population under
-    ctx.controller and evaluates ``inner_filter`` per candidate with
-    ctx.source = the layer anchor, so the "another" exclusion is exact
-    (G-FM2: the carrier never opens its own gate)."""
+    """``you control (another) <Class>``: CONTROLLER_COUNT_GE 1 over creatures of that class you
+    control (as templates_b2a._build_adherent_of_hope). A world count, judged without a subject:
+    it walks the battlefield under ctx.controller and judges ``inner_filter`` per candidate with
+    ctx.source = the static's source, so ``FNot(IS_SOURCE)`` ("another") excludes the card
+    itself."""
     children: list[Filter] = [
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=cls),
@@ -199,8 +156,8 @@ def _you_control_a_class(cls: str, *, exclude_self: bool) -> Filter:
 
 
 def _creatures_you_control_all() -> Selector:
-    """POPULATION census axis for QCount — the executed ``_shrine_count``
-    idiom (QUnbounded × ALL, carrier: templates_b2a._shrine_count)."""
+    """Creatures you control, ALL mode: the population a QCount counts (as
+    templates_b2a._shrine_count)."""
     return Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -215,8 +172,7 @@ def _creatures_you_control_all() -> Selector:
 
 
 def _creatures_opponents_control() -> Selector:
-    """``creatures your opponents control`` — verbatim the executed b4
-    anthem-scope selector (carrier: templates_b4._creatures_opponents_control)."""
+    """``creatures your opponents control`` (as templates_b4._creatures_opponents_control)."""
     return Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -231,8 +187,7 @@ def _creatures_opponents_control() -> Selector:
 
 
 def _equipped_creature() -> Selector:
-    """``Equipped creature`` = the attachment target — the executed
-    IS_ATTACHED_TO_SOURCE shape (carrier: templates_b5a._enchanted_creature)."""
+    """``Equipped creature``: the creature this source is attached to."""
     return Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -261,10 +216,8 @@ def _keyword_atom(verb: Verb, kw: Keyword, target: Selector, **extra: object) ->
 
 
 def _build_etb_gain_life(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B2a-faiths-fetters (executor-executed; templates_b2a:2426)
-    # and its land twin B2b-temple-etb-gain-life (templates_b2b:2313).
-    # The carrier regex only reads "Aura"/"land"; "creature" is the SAME
-    # class-A self anchor (IS_SOURCE) + GAIN_LIFE atom.
+    # The tree of B2a-faiths-fetters and B2b-temple-etb-gain-life, whose patterns read only
+    # "Aura" and "land".
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -283,10 +236,7 @@ def _build_etb_gain_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_pt_while_another_class(m: re.Match[str]) -> SentenceOutcome:
-    # G-FM1 Batch-A T4. Static gate on ``StaticAbility.condition`` — the
-    # ONLY filter the attached-static registration path reads (see
-    # _you_control_a_class's FINDING: the atom duration-role while is
-    # silently dropped by the engine, ever-live).
+    # The "as long as" gate is the StaticAbility condition, not an atom duration role.
     atom = Atom(
         verb=Verb.MODIFY_PT,
         args=AtomArgs(
@@ -306,9 +256,7 @@ def _build_pt_while_another_class(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_kw_while_another_class(m: re.Match[str]) -> SentenceOutcome:
-    # Same static lane as _build_pt_while_another_class (StaticAbility
-    # GRANT payload, condition-gated); the payload verb is GRANT_ABILITY
-    # exactly like the executor-executed B4-grant-kw-static-you carrier.
+    # As _build_pt_while_another_class, with a GRANT_ABILITY payload.
     atom = _keyword_atom(
         Verb.GRANT_ABILITY,
         _KW_MAP[m.group("kw")],
@@ -323,9 +271,7 @@ def _build_kw_while_another_class(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_destroy_artifact_enchantment_flying(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B5c-cost-sacrifice-destroy's DESTROY selector (executor-
-    # executed, templates_b5c:1407) widened with the third FOr branch
-    # creature-with-flying (KEYWORD_HAS, executed b2a:1557 conjunct).
+    # B5c-cost-sacrifice-destroy's DESTROY selector plus a creature-with-flying branch.
     atom = Atom(
         verb=Verb.DESTROY,
         args=AtomArgs(
@@ -366,10 +312,6 @@ def _build_destroy_artifact_enchantment_flying(m: re.Match[str]) -> SentenceOutc
 
 
 def _build_etb_put_counter_target(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: PUT_COUNTER executed on a NON-self selector by
-    # B8's _put_two_counters_each_you_control (templates_b6:470) and on a
-    # TARGET selector by the executor's Dryad shape (binding.py:750);
-    # ETB trigger = the class-A self anchor.
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -389,9 +331,7 @@ def _build_etb_put_counter_target(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_etb_target_gains_indestructible(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B5b-sacr-grant (executor-executed TARGET-mode GRANT
-    # INDESTRUCTIBLE UET, templates_b5b._build_sacr_grant); only the head
-    # differs (sacrifice cost -> this creature's ETB).
+    # B5b-sacr-grant's effect under an ETB head instead of the sacrifice cost.
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -407,9 +347,6 @@ def _build_etb_target_gains_indestructible(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_equipped_keyword(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: the static GRANT lane B4-grant-kw-static-you (executor-
-    # executed) over the executed B5a-equipped-pt attachment selector
-    # (templates_b5a:1299 _equipped_creature).
     atom = _keyword_atom(
         Verb.GRANT_ABILITY, _KW_MAP[m.group("kw")], _equipped_creature()
     )
@@ -417,9 +354,6 @@ def _build_equipped_keyword(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_gain_life_each_opponent_loses(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B2b-gain-life-target-opponent (executor-executed
-    # LifeGainedEvent head, templates_b2b:2624). "each opponent" is the
-    # ALL_OPPONENTS life-reference idiom (templates_b2b module law, line 67).
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=LifeGainedEvent(
@@ -440,9 +374,6 @@ def _build_gain_life_each_opponent_loses(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_gain_life_counter_self(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: same LifeGainedEvent head (B2b-gain-life-target-opponent);
-    # the self-counter tail is the executed b6 anchor _put_counter_self
-    # recomposed here (FM6: not a _TAIL_BUILDERS key).
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=LifeGainedEvent(
@@ -464,9 +395,6 @@ def _build_gain_life_counter_self(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_census_damage(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: the QCount census is the executed _shrine_count idiom
-    # (templates_b2a:199, resolve-pin like b8's X arithmetic); the
-    # cw/pw TARGET is the executed _destroy_cw_pw branch pair.
     atom = Atom(
         verb=Verb.DEAL_DAMAGE,
         args=AtomArgs(
@@ -480,18 +408,10 @@ def _build_census_damage(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_scry_then_draw(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIERS: both tails are executed b6 anchors (_scry = the b5b SCR
-    # shape, _draw_a_card); Seq sequencing is the executed b5a
-    # gnarled-sage cast-effect Seq idiom.
     return EffectOutcome(effect=Seq(steps=(_scry(int(m.group("n"))), _draw_a_card())))
 
 
 def _build_opponents_get_pm_eot(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIERS: the opponents-scope anthem selector
-    # (B4-modify-pt-static-opponents, executor-executed layers anthem) +
-    # the DurationEot payload shape of B4-modify-pt-eot-you (executor-
-    # executed cast anthem). G-FM5: Beyeen Veil rides the REAL anthem
-    # lane (the compiled "get ±P/±T UET" tids), not b3:1047.
     p, t = int(m.group("p")), int(m.group("t"))
     atom = Atom(
         verb=Verb.MODIFY_PT,
@@ -508,9 +428,6 @@ def _build_opponents_get_pm_eot(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_if_wizard_draw(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: the spell-level Conditional is executor-executed (Coveted
-    # Prize, templates_b8); the count condition is the executed Basri
-    # CONTROLLER_COUNT_GE shape (templates_b2a:1688).
     return EffectOutcome(
         effect=Conditional(
             pred=_you_control_a_class("Wizard", exclude_self=False),
@@ -520,16 +437,13 @@ def _build_if_wizard_draw(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_counter_noncreature(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B5a-counter-spell (executor-executed, templates_b5a:276 —
-    # the STACK-zone TARGET selector); "noncreature" adds the executed
-    # FNot(TYPE_EQ) negation primitive (FNot class, ability_tree:1302).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(
             pairs=(
                 (
                     "target",
-                    # R5-10: STACK_KIND_EQ SPELL ANDed with the negation.
+                    # target_spell ANDs STACK_KIND_EQ SPELL with the negation.
                     target_spell(
                         FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"))
                     ),
@@ -541,13 +455,9 @@ def _build_counter_noncreature(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_cant_be_blocked_self_ok(m: re.Match[str]) -> SentenceOutcome:
-    # CARRIER: B3-target-cant-be-blocked (executor-executed PREVENT of the
-    # DeclareBlockers event, templates_b3._build_target_cant_be_blocked).
-    # G-FM2 (Sneaking Guide): the carrier BAKES FNot(IS_SOURCE) ("another")
-    # — a regex-only widen would compile a DIFFERENT ability. This row
-    # prints "Target creature…" with no "another": the self may be its own
-    # target, so the blocked-side filter drops the IS_SOURCE negation and
-    # keeps the printed POWER_LE bound.
+    # B3-target-cant-be-blocked's PREVENT of the DeclareBlockers event, which builds in
+    # FNot(IS_SOURCE) for "another". This row prints "Target creature…": the source may be
+    # its own target, so the blocked side keeps only the printed POWER_LE bound.
     blocked = FAnd(
         children=(
             FAtom(pred=FAtomPred.IS_ANY_TARGET),

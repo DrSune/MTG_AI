@@ -1,4 +1,4 @@
-"""Bucket B14 — "can't be countered" and the statics that read the turn's history (2026-11-05).
+"""B14 bucket: "can't be countered" and the statics that read the turn's history.
 
 "Can't be countered" (CR 701.6a, 101.2) is a PREVENT_EFFECT over ``CounteredEvent``, the shape
 every other "can't" in the IR has ("This creature can't block.": condition and event filter name
@@ -6,7 +6,7 @@ the same object). The engine consults it when a counterspell resolves; the count
 target the spell. Three carriers:
 
 * "This spell can't be countered." — the spell's own static ability; it functions on the stack
-  (CR 113.6g). 21 sentences in the 19 sets.
+  (CR 113.6g).
 * "<Type> [and <type>] spells [you control] can't be countered." — a permanent's static (Gaea's
   Herald, Destiny Spinner, Sphinx of the Final Word).
 * "Spells you control can't be countered this turn." — a one-shot effect lasting the turn (Veil of
@@ -18,7 +18,7 @@ reminder text is the ability), "can't attack unless", "can't be blocked if" and 
 slot: Gadrak's "can't attack unless" (StaticAbility.condition = FNot of the condition), Tome
 Anima's "can't be blocked as long as", the kicker Baloth's gated EtBState.
 
-Priority 10 as B11: every sentence here was unparsed before, so no other template competes.
+Priority 10, as B11: no other template matches these sentences.
 """
 
 from __future__ import annotations

@@ -1,16 +1,14 @@
-"""Bucket B12 — self-named clauses (sets round S-3a, KNOWLEDGE /167; B-46).
+"""B12 bucket: clauses whose subject is the card's own name.
 
 Oracle text names an instant or sorcery by its own name ("Lava Axe deals 5 damage to target player
-or planeswalker."), while the templates were written one card at a time: M21's burn template is
-literally ``^Shock deals (\\d+) damage to any target\\.$``, so every other burn spell matched
-nothing. First touch on 15 more sets found 254 unparsed dev sentences that name their own card, 53
-of them a plain "<name> deals N damage to <target>."
+or planeswalker."), while the specific templates name one card: B5b's burn template is
+``^Shock deals (\\d+) damage to any target\\.$``, so another burn spell would match nothing.
 
 ``compile_card`` retries an unparsed sentence once with the card's own name written "~" (Step 2c)
-and accepts only matches from this bucket. A sentence that compiles today is never re-read, so no
-existing tree can change. Each builder is the existing carrier's builder, or the same atom over the
-same selector helper, so the IR is byte-identical to the card that already carries the meaning
-(identity law, DESIGN_ATOM_ONTOLOGY §6; ``test_templates_b12.py``):
+and accepts only matches from this bucket, so a sentence that already compiles is never re-read.
+Each builder is the existing carrier's builder, or the same atom over the same selector helper,
+so the IR is byte-identical to the card that already carries the meaning
+(``test_templates_b12.py``):
 
 * "any target": N as Shock (B5b), X as Volcanic Geyser (B5c);
 * "target creature": N as Turn to Slag (B5c), X as the same atom with ``QX``;

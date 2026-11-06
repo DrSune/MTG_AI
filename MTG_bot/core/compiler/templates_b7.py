@@ -1,45 +1,22 @@
-"""B7 bucket — the ZND-2 LANDFALL + Equipment-ETB family (grammar round 20,
-spec KNOWLEDGE/2026-10-18/101).
+"""B7 bucket: Landfall triggers and the Equipment ETB attach.
 
-Two ZNR shape families whose heads the earlier buckets never claimed:
+- ``Landfall — Whenever a land you control enters, <effect>.`` The ability word is head syntax
+  only: no ``KeywordAbility`` atom, a plain ``Whenever`` trigger (CR 603.8b). The event is a land
+  entering under your control: ``to_zone`` controller YOU plus the subject filter
+  ``FAnd(TYPE_EQ "Land", CONTROLLER_IS YOU)``, so a nonland object or a land entering under an
+  opponent does not trigger it. The rule's control-change corner cases are not modelled.
+- ``When this Equipment enters, attach it to target creature you control.`` The b5a
+  ``_build_equip`` ATTACH atom, wrapped in a TriggeredAbility.
 
-- ``Landfall — Whenever a land you control enters, <effect>.`` — the
-  keyword word is PURE HEAD SYNTAX (no ``KeywordAbility`` atom: Landfall
-  creates no static, CR 603.8b wraps a plain ``Whenever`` trigger). The
-  event is the Garruk's-Uprising subject idiom: a land YOU control enters
-  under YOUR control — ``to_zone`` controller YOU plus a subject filter
-  ``FAnd(TYPE_EQ "Land", CONTROLLER_IS YOU)``. FM2 falsifier (spec /101
-  G-FM2): an object whose type line lacks "Land" is not a subject, and a
-  land entering under an opponent fails the ``to_zone`` controller —
-  direction rejected twice. (This is the corpus-appropriate CR 603.8b
-  reading; the full rule's control-change corner cases stay in the gap
-  ledger.)
-- ``When this Equipment enters, attach it to target creature you
-  control.`` — the class-A self anchor plus the b5a ``_build_equip``
-  ATTACH atom, byte-identical shape, wrapped in a TriggeredAbility.
+Every effect tail is built by ``templates_b6._build_tail`` from its shared ``_TAIL_BUILDERS``
+table, so a tail sentence compiles to the same tree under any head; this module never forks a
+tail encoding.
 
-FM6 SHARED-TAIL LAW: every effect tail is built by ``templates_b6``'s
-single shared ``_TAIL_BUILDERS`` table via ``_build_tail`` — the same
-tail sentence compiles to the same effect tree no matter which head
-carries it, and this module NEVER forks a tail encoding.
-
-UNCOVERED on purpose (gap ledger 2026-10-18, honest residue — five
-register rows whose landfall tail needs grammar the freeze forbids):
-- ``…choose one —`` (Felidar Retreat: modal chooser head, no M21 idiom);
-- ``…if this card is in your graveyard and it's your turn, you may cast
-  it from your graveyard this turn.`` (Skyclave Shade: self-zone-condition
-  cast-from-graveyard);
-- ``…this creature can attack this turn as though it didn't have
-  defender.`` (Skyclave Squid: no AS_THOUGH attack modifier);
-- ``…if it's your main phase, there's an additional combat phase after
-  this phase.`` (Moraug: no ADDITIONAL_PHASE atom);
-- ``…you gain 4 life if this is the first time this ability has resolved
-  this turn.`` (Omnath: no RESOLUTION_COUNT history pred).
-Also outside the template by design: the Confounding Conundrum row
-("Whenever a land an opponent controls enters, …") is NOT a ``Landfall —``
-head (opponent-direction event, trigger-internal anaphor) and stays
-residue; and "This land enters tapped." MLD face-B rows already belong to
-B4-enters-tapped-land.
+Not covered (no grammar yet): landfall tails "choose one —" (Felidar Retreat), cast this card
+from your graveyard (Skyclave Shade), "as though it didn't have defender" (Skyclave Squid), an
+additional combat phase (Moraug), "if this is the first time this ability has resolved this turn"
+(Omnath); and "Whenever a land an opponent controls enters" (Confounding Conundrum), which is
+not a ``Landfall —`` head.
 """
 
 from __future__ import annotations
@@ -77,9 +54,7 @@ from MTG_bot.core.compiler.templates_b6 import (
 )
 
 _BUCKET: Final = "B7"
-_PRIORITY: Final[int] = 112  # above B6 (110): the concrete "Landfall — "
-# prefix and the "When this Equipment enters" head are claimed by no other
-# module, so the order never binds — it only pins the family on top.
+_PRIORITY: Final[int] = 112  # above B6 (110); no other module claims these heads
 
 
 def _template(tid: str, name: str, pattern: str, build) -> Template:
@@ -97,9 +72,8 @@ def _template(tid: str, name: str, pattern: str, build) -> Template:
 # Landfall
 # ---------------------------------------------------------------------------
 
-#: The landfall effect tails in the committed 2026-10-18 ZNR work
-#: register — every sentence is a key of ``templates_b6._TAIL_BUILDERS``
-#: (locked by test_templates_b7), so the trees are shared, never forked.
+#: The landfall effect tails. Each is a key of ``templates_b6._TAIL_BUILDERS``
+#: (test_templates_b7 checks it), so the trees are shared.
 _LANDFALL_TAILS: Final[tuple[str, ...]] = (
     "this creature gets +2/+2 until end of turn.",
     "put a +1/+1 counter on this creature.",
@@ -118,11 +92,9 @@ _LANDFALL_TAILS: Final[tuple[str, ...]] = (
 
 
 def _landfall_event() -> ZoneChangeEvent:
-    """``Whenever a land you control enters`` — subject is the described
-    filter (b2a ``_etb_event`` law: a generic ``a <class>`` event passes
-    the described filter, never None), and the direction is part of the
-    event: to_zone controller YOU (CR 603.8b "…enters the battlefield
-    under your control")."""
+    """``Whenever a land you control enters``: the subject is the described filter (never None, as
+    in b2a ``_etb_event``), and the direction is part of the event, to_zone controller YOU
+    (CR 603.8b "…enters the battlefield under your control")."""
     return ZoneChangeEvent(
         from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
         to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
@@ -136,13 +108,10 @@ def _landfall_event() -> ZoneChangeEvent:
 
 
 def _loyalty_self_selector(name: str) -> Selector:
-    """``put a loyalty counter on <Name>.`` — the self-name anaphor.
-    Same semantic encoding as b5a ``_build_exile_self`` (CR 201.4: an
-    intrinsic ability naming its own object means THAT object → the
-    anchor is IS_SOURCE, no hardcoded name), plus the printed gate word
-    as a NAME_CONTAINS twin (executor 13c Teferi idiom: proper-noun
-    substring of the printed name), so a head whose name does not carry
-    the printed word never self-fires."""
+    """``put a loyalty counter on <Name>.``: the self-name anaphor. An ability naming its own
+    object means that object (CR 201.4), so the anchor is IS_SOURCE, as in b5a
+    ``_build_exile_self``; the printed name rides along as NAME_CONTAINS, so a source whose name
+    lacks the printed word never matches."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -186,9 +155,8 @@ def _build_landfall_trigger(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_equip_etb(m: re.Match[str]) -> SentenceOutcome:
-    # The ATTACH atom is the b5a _build_equip Equip-cost atom with the
-    # Cost swapped for the ETB trigger wrapper — same slots, same
-    # selectors (FM6: one encoding per shape).
+    # The b5a _build_equip ATTACH atom (same slots, same selectors) under an ETB trigger
+    # instead of the Equip cost.
     attach = Atom(
         verb=Verb.ATTACH,
         args=AtomArgs(

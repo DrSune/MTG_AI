@@ -1,26 +1,9 @@
-"""ZND-4 tests: the b9 flip-sweep bucket (spec KNOWLEDGE/2026-10-19/115).
-
-Laws under test:
-
-1. ONE-ROW-ONE-OUTCOME: every live ZNR row a b9 template claims is
-   claimed by exactly that template (single fullmatch, no co-claim); the
-   deferred/one-away probes match NOTHING anywhere in the registry (no
-   silent partials, no forced lanes — ZND-4a/b/c gap ledger).
-2. VERBATIM: each pattern is pinned to the exact corpus sentence it owns.
-3. Batch-A carrier widens are ADDITIVE: the coloured Equip backref and
-   the "target card" return branch only ADD to the old language; the
-   bare-symbol "Equip {B}." (would miscompile the colour) still misses.
-4. G-FM2 self-as-legal-target: the cant-be-blocked encoding carries NO
-   ``FNot(IS_SOURCE)`` in its blocked-side filter, while the
-   while-condition shapes keep theirs.
-5. Bucket "B9", priority PINNED 116 (G-FM3).
-6. EXECUTOR-OBSERVED falsifiers for every new shape: ETB firing and
-   silence, +1/+1 counters through TARGET designation, EOT keyword
-   expiry, the life-trigger feed, static while-gates that lose AND
-   re-acquire their subject, the attachment-gated keyword grant, the
-   QCount census, the scry-then-draw reorder, the filter menus
-   (or-flying, noncreature-on-stack), the anthem direction, and the
-   runtime blocker-veto whose protection covers the record's OWN source.
+"""Tests for templates_b9: each ZNR row is claimed by exactly its template and the deferred rows
+match nothing; the B5a equip and B5b return patterns accept the new rows and keep the old ones;
+per-template trees; and each shape run through the executor (ETB firing, counters on a
+designated target, keyword expiry, the life-gain feed, while-gates that lose and regain their
+subject, the attached keyword grant, the QCount census, scry then draw, the filter menus, the
+anthem direction, and a can't-be-blocked protection that covers its own source).
 """
 
 from __future__ import annotations
@@ -109,12 +92,12 @@ def _pairs(atom: Any) -> dict:
 
 
 def _atom(effect: Any) -> Any:
-    """Narrow an effect to Atom for BOTH runtime and the checker."""
+    """Narrow an effect to Atom (for the type checker too)."""
     assert isinstance(effect, Atom), type(effect).__name__
     return effect
 
 
-# The fifteen VERBATIM register sentences this bucket owns.
+# The printed sentences this bucket owns.
 S_ETB_GAIN = "When this creature enters, you gain 3 life."
 S_PT_WHILE = "This creature gets +2/+0 as long as you control another Warrior."
 S_KW_WHILE = "This creature has deathtouch as long as you control another Cleric."
@@ -167,7 +150,7 @@ _EQUIP_NEW = (
 
 
 # ---------------------------------------------------------------------------
-# section 1 — registry shape, VERBATIM law, one-row-one-outcome, defers
+# section 1 — registry shape, one template per row, deferred rows
 # ---------------------------------------------------------------------------
 
 
@@ -179,7 +162,7 @@ class TestRegistryShape(unittest.TestCase):
             self.assertIn(t.tid, REG)
             [m] = REG.match(_VERBATIM[t.tid])
             self.assertEqual(m.template.bucket, "B9", t.tid)
-            self.assertEqual(m.template.priority, 116, t.tid)  # G-FM3
+            self.assertEqual(m.template.priority, 116, t.tid)
 
     def test_verbatim_patterns(self):
         for t in TEMPLATES_B9:
@@ -211,7 +194,7 @@ class TestRegistryShape(unittest.TestCase):
             b9 = [tid for tid in tids if tid.startswith("B9-")]
             if not b9:
                 continue
-            self.assertEqual(len(tids), 1, (s, tids))  # one row, one outcome
+            self.assertEqual(len(tids), 1, (s, tids))
             seen[b9[0]] += 1
         self.assertEqual([tid for tid, n in seen.items() if n == 0], [])
 
@@ -229,28 +212,19 @@ class TestRegistryShape(unittest.TestCase):
                     self.assertIsNone(t.pattern.fullmatch(s), (card, s))
 
     def test_deferred_and_one_away_rows_match_nothing(self):
-        # ZND-4a (multi-keyword merge = Type-1 schema decision), ZND-4b
-        # (MANDATE_BLOCK has no dispatched run_atom verb — a triggered
-        # mandate would raise at resolve), ZND-4c (the all-permanent
-        # destroy scope has no executed selector family), plus every
-        # one-away probe: NO silent partial anywhere in the registry.
+        # The deferred rows and their near variants: no template claims them.
         probes = [
-            "Flying, vigilance.",  # ZND-4a
-            "Defender, reach.",  # ZND-4a
-            "Flying, lifelink.",  # ZND-4a
+            "Flying, vigilance.",
+            "Defender, reach.",
+            "Flying, lifelink.",
             (
-                "When this creature enters, if it was kicked, all "  # ZND-4b
+                "When this creature enters, if it was kicked, all "
                 "creatures able to block target creature this turn do so."
             ),
-            "Destroy all nonland permanents.",  # ZND-4c
+            "Destroy all nonland permanents.",
             "As long as this creature is on the battlefield, it has +1/+1.",
             "As long as you control a Warrior, this creature gets +2/+2.",
-            # FINDING (register, not a regression): Blood Beckoning's
-            # singular "Return target creature card from your graveyard to
-            # your hand." is one alternation away from the widened B5b
-            # carrier and was NEVER covered pre-ZND-4 (old shape =
-            # "target permanent card" | "up to two target creature cards").
-            # Out of the named union => stays unparsed, no silent partial.
+            # Blood Beckoning's singular "target creature card" is not in B5b's alternation.
             "Return target creature card from your graveyard to your hand.",
             (
                 "Whenever this creature deals combat damage to a player, you "
@@ -258,7 +232,7 @@ class TestRegistryShape(unittest.TestCase):
             ),
             "Equipped creature has first strike.",
             "Return target permanent card from your graveyard to the battlefield.",
-            "Whenever you gain life, target opponent loses 1 life.",  # anaphora
+            "Whenever you gain life, target opponent loses 1 life.",
             "Equip {B}.",
             "Equip {2}{W}{W} (Attach to target creature you control.)",
         ]
@@ -266,13 +240,12 @@ class TestRegistryShape(unittest.TestCase):
             self.assertEqual(_tids(s), [], s)
 
     def test_counter_spell_stays_b5as_lane(self):
-        # The counter LANE belongs to the prior bucket; b9's delta is only
-        # the noncreature STACK filter. One row, one outcome.
+        # Plain "Counter target spell." stays B5a's.
         self.assertEqual(_tids("Counter target spell."), ["B5a-counter-spell"])
 
 
 # ---------------------------------------------------------------------------
-# section 2 — Batch-A carrier widens are additive
+# section 2 — the B5a equip and B5b return patterns: new rows in, old rows unchanged
 # ---------------------------------------------------------------------------
 
 
@@ -284,22 +257,18 @@ class TestCarrierWidens(unittest.TestCase):
         self.assertEqual(_tids(_EQUIP_NEW), ["B5a-equip"])
         ab = _ability(_EQUIP_NEW)
         assert isinstance(ab, ActivatedAbility)
-        # R1b canonicalization: Cost.parts construction-sorted (color first,
-        # generic after).
+        # Cost.parts are sorted at construction (color first, generic after).
         self.assertEqual(
             ab.cost.parts,
             (CostManaColor("G", QConst(1)), CostManaGeneric(QConst(2))),
         )
 
     def test_equip_bare_colour_still_misses(self):
-        # no parenthetical backref: the row stays unparsed, never miscompiled
+        # no parenthetical reminder: the row stays unparsed, never miscompiled
         self.assertEqual(_tids("Equip {B}."), [])
 
     def test_return_old_shape_same_tid(self):
-        # The pre-ZND-4 shapes must keep landing on the same tid — the
-        # widen is additive, not a rewrite. (The singular "target creature
-        # card" row was never in this carrier; see the FINDING probe in
-        # TestRegistryShape.)
+        # The older shapes still land on the same template.
         self.assertEqual(
             _tids("Return target permanent card from your graveyard to your hand."),
             ["B5b-return-cards-hand"],
@@ -339,10 +308,7 @@ class TestB9Trees(unittest.TestCase):
         ab = _ability(sentence)
         assert isinstance(ab, StaticAbility)
         pairs = _pairs(ab.effect)
-        # The gate lives on StaticAbility.condition: the ONLY filter the
-        # attached-static registration path reads (the atom duration-role
-        # while is silently dropped by the engine — ever-live — FINDING
-        # in templates_b9._you_control_a_class).
+        # The gate lives on StaticAbility.condition, not in an atom duration role.
         self.assertNotIn("duration", pairs)
         cond = ab.condition
         assert isinstance(cond, FAtom)
@@ -350,8 +316,7 @@ class TestB9Trees(unittest.TestCase):
         self.assertEqual(cond.count, QConst(1))
         inner = cond.inner_filter
         assert isinstance(inner, FAnd)
-        # G-FM2 law: the "another" class-gate KEEPS its self-exclusion,
-        # INSIDE the per-candidate inner filter (ctx.source = the anchor).
+        # "Another" keeps its self-exclusion, inside the per-candidate inner filter.
         self.assertIsInstance(inner.children[-1], FNot)
         last: Any = inner.children[-1]
         self.assertIs(last.inner.pred, FAtomPred.IS_SOURCE)
@@ -382,8 +347,7 @@ class TestB9Trees(unittest.TestCase):
         assert isinstance(menu, FOr)
         types = [n.string_value for n in menu.children if isinstance(n, FAtom)]
         self.assertEqual(types, ["Artifact", "Enchantment"])
-        # R1a canonicalization: the disjunction's children construction-sort,
-        # so the flying-branch is found by kind, and order is pinned by law.
+        # FOr children are sorted at construction, so the flying branch is found by kind.
         self.assertEqual(list(menu.children), sorted(menu.children, key=canonical_json))
         flyer = next(c for c in menu.children if isinstance(c, FAnd))
         self.assertEqual(len(menu.children), 3)
@@ -399,14 +363,12 @@ class TestB9Trees(unittest.TestCase):
         self.assertIs(pairs["counter_kind"], CounterKind.PLUS_1_PLUS_1)
         self.assertEqual(pairs["count"], QConst(1))
         selector = pairs["target"]
-        self.assertIs(selector.mode, SelectorMode.TARGET)  # DESIGNATED
-        # R1a canonicalization (emission-side unwrap, ontology §6 V2′): the
-        # lone conjunct is emitted BARE, so "target creature" IS the FAtom —
-        # a stronger pin than the old 1-child wrapper's len() == 1.
+        self.assertIs(selector.mode, SelectorMode.TARGET)
+        # The lone conjunct is emitted bare: "target creature" is the FAtom itself.
         flt = selector.filter
         assert isinstance(flt, FAtom)
         self.assertIs(flt.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(flt.string_value, "Creature")  # EVERY creature
+        self.assertEqual(flt.string_value, "Creature")
 
     def test_etb_grant_indestructible_eot(self):
         ab = _ability(S_ETB_GRANT)
@@ -451,7 +413,7 @@ class TestB9Trees(unittest.TestCase):
         census = pairs["amount"].selector
         self.assertIs(census.mode, SelectorMode.ALL)
         self.assertIsInstance(census.count, QUnbounded)
-        self.assertIsInstance(pairs["target"].filter, FOr)  # creature OR pw
+        self.assertIsInstance(pairs["target"].filter, FOr)
 
     def test_scry_then_draw_seq(self):
         seq = _effect(S_SCRY)
@@ -468,7 +430,7 @@ class TestB9Trees(unittest.TestCase):
         self.assertEqual(pairs["power"], PtDelta(PtDirection.DECREASE, QConst(2)))
         self.assertEqual(pairs["toughness"], PtDelta(PtDirection.DECREASE, QConst(0)))
         self.assertIsInstance(pairs["duration"], DurationEot)
-        # the DIRECTION lane: opponent-owned population, never you
+        # direction: the opponents' creatures, never yours
         who = next(
             n
             for n in pairs["target"].filter.children
@@ -493,10 +455,8 @@ class TestB9Trees(unittest.TestCase):
         self.assertIs(atom_.verb, Verb.COUNTER_SPELL)
         selector = _pairs(atom_)["target"]
         self.assertIs(selector.zones[0].kind, ZoneKind.STACK)
-        # R1a canonicalization (emission-side unwrap, ontology §6 V2′): no
-        # 1-child FAnd wrapper. re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ
-        # SPELL with the negation, so the filter is a real 2-child FAnd and
-        # the negation inside it is bare.
+        # target_spell ANDs STACK_KIND_EQ SPELL with the negation: a 2-child FAnd with the
+        # negation bare inside it.
         self.assertIsInstance(selector.filter, FAnd)
         self.assertEqual(len(selector.filter.children), 2)
         kind, neg = sorted(selector.filter.children, key=lambda c: isinstance(c, FNot))
@@ -506,9 +466,8 @@ class TestB9Trees(unittest.TestCase):
         self.assertEqual(neg.inner.string_value, "Creature")
 
     def test_cant_blocked_self_ok_has_no_self_exclusion(self):
-        # G-FM2: this is NOT the b3 carrier's ability — "Target creature"
-        # with no "another": the blocked-side filter keeps the printed
-        # POWER_LE bound but DROPS the IS_SOURCE negation.
+        # "Target creature" with no "another": the blocked side keeps the printed POWER_LE
+        # bound and has no IS_SOURCE negation.
         ab = _ability(S_CANT_BLOCK)
         assert isinstance(ab, ActivatedAbility)
         self.assertEqual(ab.cost.parts, (CostManaGeneric(QConst(2)), CostTap()))
@@ -519,7 +478,7 @@ class TestB9Trees(unittest.TestCase):
         blocked: Any = event.blocked
         preds = [n.pred for n in blocked.children if isinstance(n, FAtom)]
         self.assertIn(FAtomPred.IS_ANY_TARGET, preds)
-        self.assertNotIn(FAtomPred.IS_SOURCE, preds)  # SELF-OK (G-FM2)
+        self.assertNotIn(FAtomPred.IS_SOURCE, preds)  # the source may target itself
         power = next(
             n
             for n in blocked.children
@@ -574,13 +533,13 @@ class TestCompileEndToEnd(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# section 5 — executor-observed falsifiers
+# section 5 — executor checks
 # ---------------------------------------------------------------------------
 
 
 def _enter_atom() -> Atom:
-    """A hand→battlefield MOVE_ZONE op (the proven landfall-enter idiom):
-    the trigger is fired by the ENGINE's zone journal, not a fixture."""
+    """A hand→battlefield MOVE_ZONE: the engine's zone journal fires the trigger, not a
+    fixture."""
     return Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -601,9 +560,8 @@ def _enter_atom() -> Atom:
 
 
 class EtbCase(BindingCase):
-    """BindingCase + the self-enters harness: attach the compiled trigger
-    to a card IN HAND, then walk it onto the battlefield through the
-    executor; TARGET designation answers come from a provider."""
+    """Attach the compiled trigger to a card in hand, then walk it onto the battlefield through
+    the executor; a provider answers TARGET designations."""
 
     def sage(self, sentence: str, target_answer=None):
         ability = _ability(sentence)
@@ -666,8 +624,8 @@ class TestExecutorEtbTargetDesignation(EtbCase):
         self.walk_in(sage)
         state = self.world.cards[mate]
         self.assertEqual(state.counters.get(CounterKind.PLUS_1_PLUS_1.name), 1)
-        # r19a: the counter layer folds only when the live counter map is
-        # passed (CR 613.3b — counters sit above the timestamp layer).
+        # The counter layer folds only when the live counter map is passed
+        # (CR 613.3b: counters sit above the timestamp layer).
         self.assertEqual(
             self.ex.ledger.effective_pt(
                 state.identity, mate, self.world.cards[mate].counters
@@ -729,7 +687,7 @@ class TestExecutorStaticWhileGates(LayerCase):
         )
         self.world.move_to_zone(carrier, self.p0, "battlefield")
         self.attach(carrier, [_ability(S_PT_WHILE)])
-        # alone, the carrier is NOT "another Warrior" for itself (G-FM2)
+        # alone, the carrier is not "another Warrior" for itself
         self.assertEqual(self.pt(carrier), (2, 2))
         warrior = self.world.add_card(
             card_id("Rouseabout", "1", "1", type_line="Creature — Warrior"),
@@ -788,7 +746,7 @@ class TestExecutorAttachmentGate(LayerCase):
         host = self.world.add_card(card_id("Host", "2", "2"), self.p0, "battlefield")
         self.attach(gear, [_ability(S_EQUIPPED)])
         self.assertFalse(self.ex.layers.keyword_of(host, Keyword.INDESTRUCTIBLE))
-        # attach through the EXECUTED b7-equip-etb ATTACH atom (carrier)
+        # attach through the compiled B7-equip-etb ATTACH atom
         attach_atom = _ability(_EQUIP_ETB_SENTENCE).effect
         self.ex.execute(
             attach_atom,
@@ -799,9 +757,8 @@ class TestExecutorAttachmentGate(LayerCase):
         self.assertEqual(self.ex.attachments.get(gear), host)
         self.settle()
         self.assertTrue(self.ex.layers.keyword_of(host, Keyword.INDESTRUCTIBLE))
-        # unattached again: gear leaves the battlefield THROUGH THE EXECUTOR
-        # (the journal lane pops the attachment edge; a raw world.move
-        # bypasses it — that is NOT the engine lane and must not be used).
+        # Unattach: the gear leaves the battlefield through the executor, whose journal drops
+        # the attachment (a raw world move would bypass it).
         self.ex.execute(
             Atom(
                 verb=Verb.MOVE_ZONE,
@@ -917,10 +874,9 @@ class TestExecutorEffectShapes(BindingCase):
                 keywords=(KeywordAbility(keyword=Keyword.FLYING),),
             ),
         )
-        # the live-keyword oracle (KEYWORD_HAS, 14f) answers from the
-        # layer registry's derived maps: attach_card alone does not
-        # refresh them — one recompute pass is needed (every public
-        # executor op ends with one; this query-only test has no op).
+        # KEYWORD_HAS answers from the layer registry's derived maps, which attach_card alone
+        # does not refresh: recompute once (every public executor op ends with one; this
+        # query-only test runs none).
         self.ex.layers.recompute()
         ground = self.world.add_card(
             card_id("Groundling", "1", "1"), self.p1, "battlefield"
@@ -941,9 +897,8 @@ class TestExecutorEffectShapes(BindingCase):
 
     def test_counter_noncreature_menu_on_the_stack(self):
         selector = _pairs(_effect(S_COUNTER))["target"]
-        # The stack is not a player zone: spells get there through the
-        # ENGINE's own park lane (the CR 601.2h hand->stack move that the
-        # real cast fold uses), never through add_card.
+        # Spells reach the stack through the engine's park (the CR 601.2h hand->stack move
+        # the real cast uses), never through add_card.
         inst = self.world.add_card(
             card_id("Zap", cmc=1, type_line="Instant"), self.p1, "hand"
         )
@@ -962,7 +917,7 @@ class TestExecutorEffectShapes(BindingCase):
             self.world, self.ex, selector, source=self.watch, controller=self.p0
         )
         self.assertEqual(sorted(slot.candidates), sorted([inst, sorc]))
-        self.assertNotIn(cre, slot.candidates)  # the FNot(TYPE_EQ) lane is live
+        self.assertNotIn(cre, slot.candidates)  # the noncreature filter applies
 
     def test_scry_then_draw_reorders_then_draws(self):
         # "Scry N, then draw a card." compiles to a Seq tree — the
@@ -974,9 +929,8 @@ class TestExecutorEffectShapes(BindingCase):
             controller=self.p0,
             decisions=("bottom",),
         )
-        # Observed lane (CR 701.1, entries top-LAST): the viewed top card
-        # sinks under the whole library; the DRAW then takes the NEW top —
-        # the OLD second card. The scry changed WHAT was drawn.
+        # Library lists are top-last (CR 701.1): the scried top card goes to the bottom and
+        # the draw takes the old second card, so the scry changed what was drawn.
         self.assertEqual(self.zone(self.p0, "hand"), [lib_before[-2]])
         self.assertEqual(
             self.zone(self.p0, "library"),
@@ -996,12 +950,11 @@ class TestExecutorEffectShapes(BindingCase):
 
 
 class TestExecutorBlockerVetoSelfOk(BlockerCase):
-    """The G-FM2 scenario, observed at DECLARE_BLOCKERS: the protection's
-    designated target MAY BE the record's own source (no IS_SOURCE veto),
-    and only power-2-or-less attackers are inside the printed bound."""
+    """At declare blockers: the protection's target may be the ability's own source, and only
+    attackers with power 2 or less are covered."""
 
     def test_protection_covers_the_source_and_excludes_its_attacker(self):
-        guide = self.synth("Guide", 2, 2, self.p0)  # attacker AND own target
+        guide = self.synth("Guide", 2, 2, self.p0)  # attacker and its own target
         buddy = self.synth("Buddy", 2, 2, self.p0)
         blocky = self.synth("Blocky", 2, 2, self.p1)
         self.begin()
@@ -1014,8 +967,7 @@ class TestExecutorBlockerVetoSelfOk(BlockerCase):
         self.answers[f"block:{blocky}"] = str(buddy)
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
-        # the protected 2/2 is OFF the blocker's menu even though it is the
-        # record's own source (Sneaking-Guide diagnosis, pinned):
+        # the protected 2/2 is off the blocker's menu although it is the ability's own source:
         vocab = self.vocab_for(blocky)
         self.assertNotIn(str(guide), vocab)
         self.assertIn(str(buddy), vocab)

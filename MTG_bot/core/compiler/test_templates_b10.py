@@ -1,31 +1,7 @@
-"""ZND-5 tests: the b10 spell-kind bucket (spec KNOWLEDGE/2026-10-19/121).
-
-Laws under test:
-
-1. ONE-ROW-ONE-OUTCOME: each of the six live ZNR rows b10 claims is
-   claimed by exactly one template; every named-defer row (ZND-5a..f,
-   the Relic Amulet removal activation) matches NOTHING anywhere in the
-   registry — no silent partials, no forced lanes.
-2. VERBATIM + STRUCTURE: patterns own the exact corpus sentences; the
-   conjunctive head is FOr(TYPE_EQ Instant, TYPE_EQ Sorcery,
-   SUBTYPE_EQ Wizard) with actor CONTROLLER_IS YOU. ATOM-KIND is a
-   STRUCTURAL pin (engine word-tests all three type predicates
-   identically, quantity.py:726 — behaviorally neutral today; SUBTYPE_EQ
-   is CR-correct IR per gate [G-A1] correction). THE P0 EXECUTOR AXIS:
-   never-fire / always-fire — matching-kind positive AND non-matching
-   negative per trigger board.
-3. REGISTRY LAWS: bucket "B10", priority PINNED 118 (G-A7: strictly
-   above b9=116 and every other bucket); regex-disjointness probe — the
-   conjunctive head never co-claims b2b's Cat/Dog/noncreature/colored
-   cast heads, and b5a/b9's counter lanes keep their sentences.
-4. EXECUTOR-OBSERVED falsifiers (P0 for this round): every cast-trigger
-   ships a MATCHING-kind positive (instant cast fires; Wizard creature
-   cast fires — the SUBTYPE_EQ axis; sorcery cast fires) AND a
-   NON-MATCHING negative (non-Wizard creature cast stays silent — an
-   always-firing cast-trigger is the T6 class). Anticognition s1: the
-   FOr menu covers creature AND planeswalker AND excludes an instant;
-   the counter fires on PASS (zone + event) and the FLAT unless cost
-   pays through the payer-seat kickback lane (verbs.py:1926).
+"""Tests for templates_b10: each owned row single-claims its template and the deferred rows
+match nothing; the cast head's structure (SUBTYPE_EQ for Wizard); the priority and the
+neighbouring heads it must not claim; and, through the executor, every cast trigger fires on a
+matching cast and stays silent on a non-matching one, and the counterspell's menu, PASS and PAY.
 """
 
 from __future__ import annotations
@@ -118,7 +94,7 @@ def _prov_vocab(want: str):
     return prov
 
 
-# The six VERBATIM register sentences this bucket owns (spec /121).
+# The printed sentences this bucket owns.
 S_FLYING = (
     "Whenever you cast an instant, sorcery, or Wizard spell, this "
     "creature gains flying until end of turn."
@@ -151,12 +127,9 @@ OWNED: dict[str, str] = {
     "B10-counter-unless-cw-pw": S_COUNTER,
 }
 
-# Named-defer rows (spec /121 SPEC-GATE REVISIONS) — must match NOTHING.
+# Rows left unparsed on purpose (the templates_b10 docstring says why): they match nothing.
 DEFER_ROWS: dict[str, str] = {
-    # ZND-5a: COPY has NO executor dispatch; never template a copy that
-    # cannot copy (FM2 law).
     "ZND-5a lithoform": "{3}, {T}: Copy target instant or sorcery spell you control.",
-    # ZND-5b: next-spell replacement windows (+ anaphora twin).
     "ZND-5b stormcaller": "When this creature enters, copy the next "
     "instant or sorcery spell with mana value 2 or less you cast this "
     "turn when you cast it.",
@@ -165,29 +138,22 @@ DEFER_ROWS: dict[str, str] = {
     "ZND-5b kaza": "{T}: The next instant or sorcery spell you cast this "
     "turn costs {X} less to cast, where X is the number of Wizards you "
     "control as this ability resolves.",
-    # ZND-5c: mana-restriction lane absent.
     "ZND-5c base-camp": "Spend this mana only to cast a Cleric, Rogue, "
     "Warrior, or Wizard spell or to activate an ability of a Cleric, "
     "Rogue, Warrior, or Wizard.",
-    # ZND-5d: targeted-BY event absent.
     "ZND-5d myriad": "When this creature becomes the target of a spell, "
     "sacrifice it and create a number of 1/1 colorless Construct "
     "artifact creature tokens equal to its power.",
-    # ZND-5e: Anticognition s2 threshold/instead replacement window.
     "ZND-5e anticognition-s2": "If an opponent has eight or more cards "
     "in their graveyard, instead counter that spell, then scry 2.",
-    # ZND-5f: Master of Winds PT-pair choice fork.
     "ZND-5f master-of-winds": "Whenever you cast an instant, sorcery, or "
     "Wizard spell, you may have this creature's base power and toughness "
     "become 4/1 or 1/4 until end of turn.",
-    # Carried (ZND-3d family): Relic Amulet's removal activation —
-    # quantity-of-removed-counters damage has no lane; the card stays a
-    # 2-row residue feeding PC-2.
     "relic-removal": "{2}, {T}, Remove all charge counters from this "
     "artifact: It deals that much damage to target creature.",
 }
 
-# The neighbour heads b10 must stay regex-disjoint from (G-A7 probe).
+# Neighbouring heads that b10 must not claim.
 NEIGHBOUR_HEADS: dict[str, str] = {
     "B2b-cast-cat-create-dog": "Whenever you cast a Cat spell, create a "
     "1/1 white Cat creature token.",
@@ -209,9 +175,6 @@ class TestRegistryLaws(unittest.TestCase):
         self.assertTrue(TEMPLATES_B10)
         for t in TEMPLATES_B10:
             self.assertEqual(t.bucket, "B10")
-            # G-A7: 118 strictly above the whole ladder (b9=116 tops the
-            # 100/110/112/114 ladder). A tie would let the tid-asc
-            # tiebreak starve b10 rows.
             self.assertEqual(t.priority, 118)
         others = [t.priority for t in REG.all() if t.bucket != "B10"]
         self.assertGreater(118, max(others))
@@ -225,18 +188,14 @@ class TestRegistryLaws(unittest.TestCase):
             self.assertEqual(_tids(row), [], label)
 
     def test_regex_disjointness_from_neighbour_heads(self) -> None:
-        # G-A7 probe: the conjunctive head must not steal b2b's Cat/Dog/
-        # noncreature/colored cast heads, nor b5a/b9's counter lanes;
-        # each neighbour sentence keeps EXACTLY its historical owner.
+        # The cast head must not claim b2b's Cat/Dog/noncreature/colored cast heads, nor the
+        # b5a/b9 counterspells: each neighbour keeps its own template.
         for tid, sentence in NEIGHBOUR_HEADS.items():
             self.assertEqual(_tids(sentence), [tid], sentence)
 
     def test_head_is_type_instant_type_sorcery_subtype_wizard(self) -> None:
-        # [G-A1] STRUCTURAL pin (atom-kind is behaviorally neutral today —
-        # the engine word-tests all three type predicates identically,
-        # quantity.py:726): "Wizard" MUST be SUBTYPE_EQ because that is
-        # the CR-correct IR; a TYPE_EQ encoding would work today and
-        # break the day the predicates split.
+        # "Wizard" is SUBTYPE_EQ: TYPE_EQ would work today (the engine tests the three type
+        # predicates alike) and break the day the predicates split.
         for sentence in (S_FLYING, S_MAY_DRAW, S_CHARGE, S_DAMAGE, S_PT):
             ev = _ability(sentence).event
             assert isinstance(ev, CastSpellEvent)
@@ -265,9 +224,7 @@ class TestRegistryLaws(unittest.TestCase):
             self.assertIs(ev.actor.who, ControllerRef.YOU)
 
     def test_no_subtype_word_as_type_eq_anywhere(self) -> None:
-        # Registry-wide guard for the B10 heads: no cast-filter may
-        # encode a creature SUBTYPE as TYPE_EQ (the general never-fire
-        # shape — Wizard/Cat/Dog).
+        # No B10 cast filter encodes a creature subtype (Wizard, Cat, Dog) as TYPE_EQ.
         def walk(f: Any):
             yield f
             if isinstance(f, (FAnd, FOr)):
@@ -304,8 +261,7 @@ class TestRegistryLaws(unittest.TestCase):
         ab = _ability(S_MAY_DRAW)
         self.assertIsInstance(ab.effect, OptionalEffect)
         self.assertIs(ab.effect.inner.verb, Verb.DRAW)
-        # charge counter on the self artifact — CHARGE kind, executor
-        # lane is kind-agnostic (verbs._v_put_counter)
+        # charge counter on the self artifact
         ab = _ability(S_CHARGE)
         p = _pairs(ab.effect)
         self.assertIs(ab.effect.verb, Verb.PUT_COUNTER)
@@ -329,7 +285,7 @@ class TestRegistryLaws(unittest.TestCase):
         p = _pairs(atom)
         sel = p["target"]
         self.assertIs(sel.zones[0].kind, ZoneKind.STACK)
-        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into the filter
+        # target_spell ANDs STACK_KIND_EQ SPELL into the filter
         self.assertIsInstance(sel.filter, FAnd)
         kind, types = sorted(sel.filter.children, key=lambda c: isinstance(c, FOr))
         self.assertEqual(kind, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"))
@@ -340,18 +296,18 @@ class TestRegistryLaws(unittest.TestCase):
         )
         unless = p["unless"]
         self.assertIsInstance(unless, Cost)
-        self.assertEqual(len(unless.parts), 1)  # FLAT {2}: payer-seat safe
+        self.assertEqual(len(unless.parts), 1)  # a flat {2}
         self.assertEqual(unless.parts[0].amount.value, 2)
 
 
 # ---------------------------------------------------------------------------
-# Executor-observed falsifiers (the P0 shape of this round)
+# Through the executor
 # ---------------------------------------------------------------------------
 
 
 class CastKindCase(StackCase):
-    """Watcher creature carrying a COMPILED b10 trigger; the real stack
-    cast feed (executor.stack.cast) drives every assertion."""
+    """A watcher creature carrying a compiled b10 trigger; the real stack cast
+    (executor.stack.cast) drives every assertion."""
 
     def watcher(self, sentence: str, name: str = "Watcher"):
         ability = _ability(sentence)
@@ -405,8 +361,7 @@ class CastKindCase(StackCase):
             power="2" if creature else None,
             toughness="2" if creature else None,
         )
-        # spell_rec pins subtypes=(); the Wizard axis must be REAL card
-        # data for _match_cast's SUBTYPE_EQ read.
+        # spell_rec sets subtypes=(); _match_cast's SUBTYPE_EQ reads the real card data.
         rec = replace(base, subtypes=subtypes)
         handle = self.world.add_card(
             CardIdentity(
@@ -444,17 +399,12 @@ class CastKindCase(StackCase):
 
 
 class TestCastKindFalsifiers(CastKindCase):
-    """Matching-kind positives AND the non-matching negative per tail —
-    the always-firing/never-firing falsifier (T6-class guard)."""
+    """Each tail fires on a matching cast and stays silent on a non-matching one."""
 
     def test_type_predicates_share_one_word_test_branch(self) -> None:
-        """PIN of TODAY's engine semantics (diff gate, 2026-10-19):
-        TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ evaluate as ONE type-line
-        word-test (quantity.py:726) — a TYPE_EQ("Wizard") head FIRES on
-        a Wizard-creature cast exactly like SUBTYPE_EQ does. The
-        structural test pins the b10 encoding; this test pins the
-        behavior so a future strict-predicate split (engine-lane,
-        Type-1) MUST update it consciously instead of silently."""
+        """Today TYPE_EQ, SUBTYPE_EQ and SUPERTYPE_EQ are one type-line word test: a
+        TYPE_EQ("Wizard") head fires on a Wizard creature cast like SUBTYPE_EQ does. A split of
+        the predicates must update this test."""
         base = _ability(S_FLYING)
         assert isinstance(base.event, CastSpellEvent)
         w_type = self.watcher_ir(
@@ -493,16 +443,13 @@ class TestCastKindFalsifiers(CastKindCase):
         self.assertFalse(self.ex.layers.keyword_of(w, Keyword.FLYING))  # EOT
 
     def test_flying_silent_on_nonwizard_creature_cast(self):
-        # THE NEGATIVE (P0): a creature spell that is neither instant,
-        # sorcery, nor Wizard must NOT grant — always-fire falsified.
+        # A creature spell that is not an instant, sorcery or Wizard does not grant.
         w = self.watcher(S_FLYING)
         self.cast_free(self.free_spell("Goblin", kind=SpellKind.CREATURE))
         self.assertFalse(self.ex.layers.keyword_of(w, Keyword.FLYING))
 
     def test_flying_fires_on_wizard_subtypes_eq_axis(self):
-        # SUBTYPE_EQ positive (branch reachability through the EXECUTOR);
-        # the structural test owns the atom-kind pin — here we only pin
-        # that a Wizard-creature cast FIRES the trigger.
+        # A Wizard creature cast fires the trigger.
         w = self.watcher(S_FLYING)
         self.cast_free(
             self.free_spell(
@@ -598,7 +545,7 @@ class TestCastKindFalsifiers(CastKindCase):
         self.cast_free(self.free_spell("Stomp", kind=SpellKind.SORCERY))
         self.assertEqual(self.pt(w), (6, 2))  # sorcery fires
         self.cast_free(self.free_spell("Goblin", kind=SpellKind.CREATURE))
-        self.assertEqual(self.pt(w), (6, 2))  # THE NEGATIVE: silent
+        self.assertEqual(self.pt(w), (6, 2))  # non-Wizard creature: silent
         self.cast_free(
             self.free_spell(
                 "Hedge Wizard", kind=SpellKind.CREATURE, subtypes=("Wizard",)
@@ -608,8 +555,7 @@ class TestCastKindFalsifiers(CastKindCase):
 
 
 class TestAnticognitionCounter(StackCase):
-    """B10-counter-unless-cw-pw: the FOr menu, the counter lane and the
-    FLAT payer-seat kickback (verbs.py:1926) — executor-observed."""
+    """B10-counter-unless-cw-pw through the executor: the target menu and the counter."""
 
     def _spell(self, name, type_line, seat=None):
         seat = seat if seat is not None else self.p1
@@ -647,9 +593,8 @@ class TestAnticognitionCounter(StackCase):
         )  # both OR branches live, the instant excluded
 
     def test_counter_lane_needs_a_frame(self):
-        # FALSIFIER for the lane itself: COUNTER_SPELL refuses a parked,
-        # UNFRAMED card (verbs.py) — a real counter must run through the
-        # response window, not a direct-execute shortcut.
+        # COUNTER_SPELL refuses a parked card without a stack frame: a real counter runs
+        # through the response window.
         cre = self._spell("Hound", "Creature — Hound")
         park(self.ex, self.p1, cre)
         bind: dict[str, Any] = {"target": (cre,)}
@@ -663,10 +608,9 @@ class TestAnticognitionCounter(StackCase):
 
 
 class TestAnticognitionResponseWindow(Rung1Case):
-    """The counter + FLAT {2} kickback through the REAL RUNG-1 window:
-    PASS counters (COUNTER row, card to graveyard), PAY runs the plan
-    through the PAYER seat's pool (verbs.py kickback lane) and the
-    spell lives — the compiled b10 node drives both."""
+    """The compiled counter and its flat {2} unless cost in the real response window: PASS
+    counters the spell (COUNTER row, card to graveyard); PAY pays from the spell controller's
+    pool and the spell lives."""
 
     def _pup(self):
         pup = self.give(
@@ -729,7 +673,7 @@ class TestAnticognitionResponseWindow(Rung1Case):
         self.assertEqual(self.zone_kind(pup), ZONE_BATTLEFIELD)  # lived
         rows = self.journal_rows("KICKBACK")
         self.assertEqual(len(rows), 1)
-        self.assertIn("PAY", repr(rows[0]))  # flat {2} paid via payer seat
+        self.assertIn("PAY", repr(rows[0]))  # the controller paid the {2}
         self.assertEqual(len(self.journal_rows("COUNTER")), 0)
 
 

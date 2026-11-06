@@ -1,83 +1,30 @@
-"""Bucket B8 — the ZND-3 party family (spec KNOWLEDGE/2026-10-18/107 §3).
+"""B8 bucket: the party family (ZNR).
 
-ONE new grammar node does all the quantity work: ``QPartyCount`` (spec
-/107 §3.1) — "the number of creatures in your party", i.e. the number of
-creatures you control whose type line contributes a DISTINCT party class
-(Cleric / Rogue / Warrior / Wizard, up to one each — CR 702.158 "party
-ability"). The census (distinct-class, overlay-aware) lives in the
-evaluator (executor/quantity.py) exactly like the sanctum's distinct-
-color census; the Selector pinned here is the pure POPULATION axis:
-TYPE_EQ Creature ∧ CONTROLLER_IS YOU ∧ battlefield (the audited
-``_shrine_count`` idiom, spec /107 §3.1).
+"The number of creatures in your party" is one node, ``QPartyCount``: the creatures you control
+that cover distinct party classes (Cleric, Rogue, Warrior, Wizard, at most one each;
+CR 702.158). The evaluator (executor/quantity.py) does the census; the Selector here is only
+the population, creatures you control on the battlefield. For-each amounts are
+``QBin(MUL, unit, QPartyCount)``, "where X is the number of creatures in your party" binds X to
+it, and "if you have a full party" is the AND of four per-class CONTROLLER_COUNT_GE tests.
 
-Twenty-three templates carry the 35 register rows:
+No tail here is a ``templates_b6._TAIL_BUILDERS`` key (each carries a quantity), so the effects
+are built from the shared b6 anchors.
 
-* **T1 (11 rows)** — the {1} discount. Costs are cards' static
-  properties, so the encoding is the B5c-sanctum ``CostModifier`` sibling
-  node (b5c:2569 mirror), never an ability-internal cost patch.
-* **T2 (8 rows)** — for-each scaled effects: token / counter / PT /
-  mana / life / damage quantities = ``QBin(MUL, unit, QPartyCount)``.
-  Practiced Tactics' "twice the number" is the QBin INSIDE the
-  DEAL_DAMAGE amount (spec /107 T2: not a damage-multiplier lane).
-* **T3 (5 rows)** — full-party heads: four combat-start triggers whose
-  intervening "if" is ``FAnd`` of four CONTROLLER_COUNT_GE × SUBTYPE_EQ
-  tests (adherent_of_hope's condition shape, b2a:1654; zero new
-  predicates) plus Coveted Prize's spell-level ``Conditional`` free cast
-  (empty-cost CAST waiver, b5c:2496 idiom).
-* **T4 (7 rows)** — X-announcement substitutions: ", where X is the
-  number of creatures in your party" binds X := QPartyCount (the
-  ``_shrine_count`` substitution idiom, b2a:199).
-* **T5 (3 rows)** — "<Name> is also a Cleric, Rogue, Warrior, and
-  Wizard.": static ``GRANT_TYPE`` on the self anchor (IS_SOURCE +
-  NAME_CONTAINS twin, the b7 self-name anaphor law: the semantic anchor
-  is IS_SOURCE, the printed name is only the gate twin). §11 golden: a
-  granted class MOVES other cards' party counts — the restricted card's
-  encoding stays untouched (board-separation law).
-* **T6 (0 rows)** — WITHDRAWN post-gate (see ZND-3f): the reveal-count
-  template compiled but executes as a library look (FM2) — a build-only
-  test hid it; the row stays UNPARSED until the REVEAL zone-role lane
-  lands. Compilation is not representation (Gate law).
+Left unparsed on purpose, rather than encoded wrong:
 
-FM6 SHARED-TAIL LAW: none of these tails is a ``templates_b6._TAIL_
-BUILDERS`` key (every one is quantity-bearing), so each effect is built
-locally from the shared b6 anchors (``_etb_event``, ``_self_selector``,
-``_referent_target_creature``) — the shared keys are never forked.
+* Concerted Defense, "unless its controller pays {1} plus an additional {1} for each creature
+  in your party": unless-costs resolve in the payer's seat, so the party would count the
+  wrong board.
+* Archpriest of Iona's power, Ravager's Mace's "+1/+0 for each creature in your party": a
+  static value over a changing census needs layer re-resolution.
+* Acquisitions Expert, "target opponent reveals a number of cards from their hand":
+  ``Verb.REVEAL`` runs ``_look``, which reads the library.
+* Synchronized Spellcraft, "X damage to that creature's controller": the IR has no "that
+  creature's controller" recipient, and a second TARGET over the PLAYER zone would let the
+  caster pick the player (CR 115.1).
 
-Gap ledger (ZND-3 law: these stay UNPARSED, no silent partials):
-
-* **ZND-3d** "Counter target noncreature spell unless its controller
-  pays {1} plus an additional {1} for each creature in your party."
-  (Concerted Defense) — unless-pay amounts resolve in the PAYER's seat
-  (verbs.py:1926–1928); the party would count the victim's board. Needs
-  a controller-frozen amount lane — engine item, deferred.
-* **ZND-3e** "Archpriest of Iona's power is equal to the number of
-  creatures in your party." + "Equipped creature gets +1/+0 for each
-  creature in your party and has menace." (Ravager's Mace) — static-layer
-  values over a mutable census need the layer re-resolution lane
-  (layers.py:740–741); encoding early would mint live wrong-power boards.
-* **ZND-3f** "When this creature enters, target opponent reveals a number
-  of cards from their hand equal to the number of creatures in your
-  party." (Acquisitions Expert) — the REVEAL executor has NO zone role:
-  ``Verb.REVEAL`` falls into ``_look`` (verbs.py:1102–1114) reading
-  ZONE_LIBRARY, so a from-hand reveal EXECUTES as a library peek — a
-  materially different game effect. The count lane works (generic
-  ``amount()``); the missing piece is a HAND-zone role on REVEAL
-  (engine lane). T6's template was WITHDRAWN (gate FM2): compiled-but-
-  misexecuting rows do not count.
-* **ZND-3g** "spell with mana value 4 or less" free-cast (Coveted Prize,
-  T3): the CHOOSE-from-hand ask gates CMC_LE≤4 over HAND — lands sit in
-  hand at CMC 0 and ride the candidate menu (gate FM6). No SPELL-kind
-  FAtomPred exists at all: a §8/§10 tokenizer gap (phantom candidates),
-  NOT a one-line filter — new predicate before the next set round.
-
-Lossy notes (C11 class, verbatim per house convention):
-
-* Nimble Trapfinder "to a player" — no longer lossy (B-57): the granted
-  combat-damage trigger's recipient is b2b's ``_to_a_player``, the Jeskai
-  Elder lane's fix. It was the universal FAnd(()) marker.
-* Coveted Prize: "a spell with mana value 4 or less" is encoded
-  CMC_LE≤4 on the CHOOSE-from-hand selector; whether the CAST resolves
-  stays the open OptionalEffect decision (C16).
+Known loss: Coveted Prize's "a spell with mana value 4 or less" is CMC_LE 4 on the
+CHOOSE-from-hand selector; no predicate says "spell", so lands in hand are on the menu.
 """
 
 from __future__ import annotations
@@ -140,22 +87,17 @@ from MTG_bot.core.compiler.templates_b6 import (
 )
 
 _BUCKET: Final = "B8"
-_PRIORITY: Final[int] = 114  # above B7 (112): the party family is claimed by
-# no other module; the order only pins it (B7 convention).
-
-#: The four party classes (CR 702.158). Duplicated from the evaluator's
-#: PARTY_CLASSES only in PROSE — templates never re-derive the census.
+_PRIORITY: Final[int] = 114  # above B7 (112); no other module claims these heads
 
 
 # ---------------------------------------------------------------------------
-# Shared party structure (spec /107 §3.1: ONE node reused by every template)
+# Shared party structure
 # ---------------------------------------------------------------------------
 
 
 def _party_count() -> QPartyCount:
-    """``the number of creatures in your party`` → QPartyCount over the
-    population axis the spec pins: TYPE_EQ Creature ∧ CONTROLLER_IS YOU ∧
-    battlefield (audited ``_shrine_count`` population idiom)."""
+    """``the number of creatures in your party``: QPartyCount over the creatures you control on
+    the battlefield."""
     return QPartyCount(
         selector=Selector(
             QUnbounded(),
@@ -172,10 +114,8 @@ def _party_count() -> QPartyCount:
 
 
 def _full_party() -> Filter:
-    """``you have a full party`` — the AND of four per-class existence
-    claims (spec /107 §3.1, zero new predicates): CONTROLLER_COUNT_GE
-    count=1 over SUBTYPE_EQ each class, the adherent_of_hope condition
-    shape (b2a:1654). True iff the census hits all four classes."""
+    """``you have a full party``: CONTROLLER_COUNT_GE 1 over SUBTYPE_EQ for each of the four
+    classes, ANDed."""
     return FAnd(
         children=tuple(
             FAtom(
@@ -215,9 +155,7 @@ def _creatures_you_control() -> Selector:
 
 
 def _target_creature_on_battlefield() -> Selector:
-    """Plain "target creature" — controller ANY is CR-correct (a party
-    spell may target any creature on the battlefield); named for what it
-    pins, not for the chooser (gate FM7 rename)."""
+    """Plain ``target creature``: any creature on the battlefield."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -241,7 +179,7 @@ def _target_creature_an_opponent_controls() -> Selector:
 
 
 def _combat_event() -> TurnPhaseEvent:
-    """``At the beginning of combat on your turn`` (b2a:295 idiom)."""
+    """``At the beginning of combat on your turn``."""
     return TurnPhaseEvent(
         phase=Phase.COMBAT,
         actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
@@ -254,16 +192,14 @@ def _scaled(unit: int) -> QBin:
 
 
 # ---------------------------------------------------------------------------
-# T1 — the {1} discount (11 rows: Spellbinder's-Spell shape, shrine lane)
+# The {1} discount
 # ---------------------------------------------------------------------------
 
 
 def _build_discount(m: re.Match[str]) -> SentenceOutcome:
-    """``This spell costs {1} less to cast for each creature in your
-    party.`` + the ability/activate variant — CostModifier sibling node,
-    filter=IS_SOURCE (the printed "This spell"/"This ability" anchor,
-    b5c:2569 sanctum mirror; the discount rides the CARD, so the
-    legality lane prices it for free)."""
+    """``This spell costs {1} less to cast for each creature in your party.`` and the ability
+    variant: a CostModifier on the card, filter IS_SOURCE, so the legality lane prices the
+    discount."""
     return AbilityOutcome(
         ability=CostModifier(
             filter=FAtom(pred=FAtomPred.IS_SOURCE),
@@ -274,14 +210,13 @@ def _build_discount(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# T2 — for-each scaled effects (8 rows)
+# For-each scaled effects
 # ---------------------------------------------------------------------------
 
 
 def _build_token_per_party(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, create a 1/1 white Kor Warrior creature
-    token for each creature in your party.`` — the b6 TokenSpec idiom with
-    the count role scaled by the census."""
+    token for each creature in your party.``"""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -314,7 +249,7 @@ def _build_token_per_party(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_counter_self_per_party(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, put a +1/+1 counter on it for each
-    creature in your party.`` — self anchor, count = census."""
+    creature in your party.``"""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -335,9 +270,8 @@ def _build_counter_self_per_party(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_attack_pt_per_party(m: re.Match[str]) -> SentenceOutcome:
     """``Whenever this creature attacks, it gets +1/+0 until end of turn
-    for each creature in your party.`` — the alpine-houndmaster attack
-    shape (b2b:808): power magnitude = 1 × census, toughness explicit
-    zero delta (the b5a QConst(0) losslessness rule)."""
+    for each creature in your party.`` Toughness is an explicit +0, so the printed "+1/+0"
+    is kept whole."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -359,8 +293,7 @@ def _build_attack_pt_per_party(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_add_red_per_party(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, add {R} for each creature in your
-    party.`` — ADD_MANA amount = census (sanctum fruitful-harvest shape,
-    b2a:713)."""
+    party.``"""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -381,9 +314,7 @@ def _build_add_red_per_party(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_pt_target_per_party(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, target creature gets +1/+1 until end of
-    turn for each creature in your party.`` — per-target scaling: every
-    target receives unit × census (the census is ability-scoped, not
-    per-target)."""
+    turn for each creature in your party.``"""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -424,11 +355,9 @@ def _build_gain_life_per_party(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_counter_referent_per_party(m: re.Match[str]) -> SentenceOutcome:
-    """``Put a +1/+1 counter on it for each creature in your party.``
-    (Strength of Solidarity s2) — "it" is the first sentence's designated
-    creature: the R7-1 referent="target" neutral-zone convention
-    (b6 _referent_target_creature, Gloom-Sower sibling). Assembly note:
-    non-continuation second sentence lands card-level (b5c convention)."""
+    """``Put a +1/+1 counter on it for each creature in your party.`` "It" is the creature the
+    previous sentence targeted (b6 ``_referent_target_creature``); the sentence is not a
+    continuation, so it lands card-level."""
     return EffectOutcome(
         effect=Atom(
             verb=Verb.PUT_COUNTER,
@@ -445,12 +374,9 @@ def _build_counter_referent_per_party(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_name_damage_twice(m: re.Match[str]) -> SentenceOutcome:
     """``Practiced Tactics deals damage to that creature equal to twice
-    the number of creatures in your party.`` — DEAL_DAMAGE whose AMOUNT is
-    QBin(MUL, 2, party) (spec /107 T2: inside the amount, NOT a damage
-    multiplier). Dealer omitted = the b6 source-default convention; the
-    printed self-name is pure English anaphor for the resolving spell.
-    "that creature" rides the referent="target" lane (s1 designated the
-    attacker/blocker; assembly note as above)."""
+    the number of creatures in your party.`` The amount is QBin(MUL, 2, party), not a damage
+    multiplier. No dealer role: the source deals it (b6 convention). "That creature" is the
+    previous sentence's target."""
     return EffectOutcome(
         effect=Atom(
             verb=Verb.DEAL_DAMAGE,
@@ -465,15 +391,14 @@ def _build_name_damage_twice(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# T3 — full-party heads (5 rows)
+# Full-party heads
 # ---------------------------------------------------------------------------
 
 
 def _build_full_pt_indestructible(m: re.Match[str]) -> SentenceOutcome:
     """``At the beginning of combat on your turn, if you have a full
     party, creatures you control get +1/+0 and gain indestructible until
-    end of turn.`` — combat trigger + FAnd-of-4 condition (adherent
-    shape); effect Seq of the PT pump and the keyword grant."""
+    end of turn.``"""
     targets = _creatures_you_control()
     return AbilityOutcome(
         ability=TriggeredAbility(
@@ -518,8 +443,7 @@ def _build_full_pt_indestructible(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_full_pt_flying(m: re.Match[str]) -> SentenceOutcome:
     """``...if you have a full party, target creature gets +1/+1 and gains
-    flying until end of turn.`` — same combat+condition head; effect Seq
-    reuses the ONE target selector across both steps (b5b:960 shape)."""
+    flying until end of turn.`` Both steps share the one target selector."""
     target = _target_creature_on_battlefield()
     return AbilityOutcome(
         ability=TriggeredAbility(
@@ -559,10 +483,8 @@ def _build_full_pt_flying(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_full_choose_nonland(m: re.Match[str]) -> SentenceOutcome:
     """``...if you have a full party, choose target nonland permanent an
-    opponent controls.`` — Verb.CHOOSE records the pick (R7-1); the pool
-    is battlefield permanents an opponent controls (FNot TYPE_EQ Land).
-    The follow-up legality sentence is a SEPARATE register row (not this
-    tranche — its lane never landed; the choice itself is the decision)."""
+    opponent controls.`` Verb.CHOOSE records the pick; the card's next sentence is a
+    separate row."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_combat_event(),
@@ -609,11 +531,9 @@ def _build_full_choose_nonland(m: re.Match[str]) -> SentenceOutcome:
 def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
     """``...if you have a full party, creatures you control gain "Whenever
     this creature deals combat damage to a player, draw a card" until end
-    of turn.`` — GRANT_ABILITY of a TriggeredAbility (b5c:683 precedent);
-    the quoted trigger is the Jeskai-Elder event shape, and "to a player"
-    is that lane's recipient, b2b's ``_to_a_player`` (B-57; it was the
-    universal FAnd(()) marker, so a blocked creature drew off its
-    blocker). Inside the quotes there is no "may": the draw is forced."""
+    of turn.`` GRANT_ABILITY of a TriggeredAbility. "To a player" is b2b's ``_to_a_player``,
+    so combat damage to a blocker draws nothing. There is no "may" inside the quotes: the
+    draw is forced."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_combat_event(),
@@ -628,7 +548,7 @@ def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
                             TriggeredAbility(
                                 event=DamageDealtEvent(
                                     amount=QUnbounded(),
-                                    filter=_to_a_player(),  # B-57
+                                    filter=_to_a_player(),
                                     source=FAtom(pred=FAtomPred.IS_SOURCE),
                                     combat=True,
                                 ),
@@ -654,11 +574,9 @@ def _build_full_grant_draw(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
     """``If you have a full party, you may cast a spell with mana value 4
-    or less from your hand without paying its mana cost.`` (Coveted Prize
-    s2) — spell-level Conditional over the empty-cost CAST-waiver idiom
-    (b5c:2496): OptionalEffect keeps "may" the open decision, the CHOOSE
-    selector over your hand with the CMC_LE≤4 gate keeps "which spell"
-    open, and the waiver is Cost(parts=())."""
+    or less from your hand without paying its mana cost.`` A Conditional over an optional
+    CAST of a chosen hand card with mana value 4 or less; the waived cost is
+    Cost(parts=())."""
     return EffectOutcome(
         effect=Conditional(
             pred=_full_party(),
@@ -691,7 +609,7 @@ def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# T4 — X-announcement substitutions (7 rows; X := QPartyCount)
+# "where X is the number of creatures in your party" (X := QPartyCount)
 # ---------------------------------------------------------------------------
 
 
@@ -717,8 +635,7 @@ def _build_scry_x_party(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_up_to_two_x(m: re.Match[str]) -> SentenceOutcome:
     """``Up to two target creatures each get +X/+X until end of turn, where
-    X is the number of creatures in your party.`` — "up to two" is the
-    C17 QAtMost(2) TARGET designation; +X/+X binds X to the census."""
+    X is the number of creatures in your party.`` "Up to two" is TARGET + QAtMost(2)."""
     return EffectOutcome(
         effect=Atom(
             verb=Verb.MODIFY_PT,
@@ -749,8 +666,7 @@ def _build_up_to_two_x(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_lose_gain_x(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, each opponent loses X life and you
-    gain X life, where X is the number of creatures in your party.`` —
-    the sanctum-stone-fangs Seq shape with the census as amount."""
+    gain X life, where X is the number of creatures in your party.``"""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -806,8 +722,7 @@ def _build_minus_x_opponent(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_x_to_creature_or_pw(m: re.Match[str]) -> SentenceOutcome:
     """``When this creature enters, it deals X damage to target creature
-    or planeswalker, where X is the number of creatures in your party.`` —
-    dealer omitted (source default), FOr type menu on the target."""
+    or planeswalker, where X is the number of creatures in your party.``"""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=_etb_event(),
@@ -851,8 +766,7 @@ def _build_x_to_creature_or_pw(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_look_top_x_plus_three(m: re.Match[str]) -> SentenceOutcome:
     """``Look at the top X cards of your library, where X is three plus
-    the number of creatures in your party.`` — the b5b look-at-top lane
-    with the additive census amount."""
+    the number of creatures in your party.``"""
     return EffectOutcome(
         effect=Atom(
             verb=Verb.LOOK_AT,
@@ -870,17 +784,14 @@ def _build_look_top_x_plus_three(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# T5 — class signature (3 rows)
+# Class signature
 # ---------------------------------------------------------------------------
 
 
 def _build_class_signature(m: re.Match[str]) -> SentenceOutcome:
-    """``<Name> is also a Cleric, Rogue, Warrior, and Wizard.`` — static
-    GRANT_TYPE on the self anchor (b7 self-name law: IS_SOURCE is the
-    semantic anchor, the printed name the NAME_CONTAINS gate twin).
-    §11 golden: this grant MOVES other cards' party census through the
-    layers overlay; the granted card's own encoding stays untouched
-    (board-separation law)."""
+    """``<Name> is also a Cleric, Rogue, Warrior, and Wizard.``: a static GRANT_TYPE on the self
+    anchor (IS_SOURCE plus the printed name as NAME_CONTAINS, as in b7). The grant reaches
+    party counts through the layers overlay; the card's own type line is untouched."""
     return AbilityOutcome(
         ability=StaticAbility(
             effect=Atom(
@@ -1060,11 +971,6 @@ TEMPLATES: Final[tuple[Template, ...]] = (
         r"party\.$",
         _build_x_to_creature_or_pw,
     ),
-    # B8-party-four-and-x-controller (Synchronized Spellcraft) was withdrawn on 2026-11-05: the
-    # IR has no "that creature's controller" for a damage recipient. Written as a second TARGET
-    # selector over the PLAYER zone, it became a target slot of its own (V25 per-slot
-    # designation), so the caster chose who took the X damage (CR 115.1: that player is not a
-    # target). The sentence stays unparsed until such a recipient exists.
     _template(
         "B8-party-look-top-x",
         "look at top X = 3 + party",
