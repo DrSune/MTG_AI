@@ -374,3 +374,15 @@ update 80); 13 gates in a row near 0.50 between v2 and v3.
 Reading: 25% M20 games neither helped nor hurt M21 play within 80 self-play updates. The run
 played the old game (no postcombat main, dead fetched lands, no "this spell costs" discounts,
 hexproof on the stack), so r20 re-baselines on the corrected one.
+
+## 19. r20: pre-registration (written before launch, 2026-11-06)
+Epoch: 2026-11-06 integration (fa7b743): the postcombat main phase (CR 505.1); 'this spell costs' discounts apply in real games; cards an effect puts onto the battlefield keep their abilities (fetched and ramped lands make mana); hexproof only on the battlefield; 'is dealt damage' once per combat damage step; component wave 2 (no verified card changes); M20 verified pool 235 (was 232). Earlier runs played a different game: no number before this epoch is comparable.
+
+Change vs r19: the game only (the epoch above); every argument as r19. Init: runs/selfplay/r19_ppo/v3.pt (438 Elo on r19's ladder), --refresh-table --extend-sets M20; the second main's ask embedding starts as a copy of the first's (model.load).
+
+Hypothesis: r19's network plays the corrected game about as well as the old one against the heuristic, and has new skill to learn there (casting after combat, fetched lands, discounts), so self-play gains against fixed anchors return before the plateau seen in r18 and r19.
+
+Predictions:
+- v0 vs heuristic, opening ladder on the new game: 0.60-0.68; falsified by below 0.58 (the rule changes or the new ask broke the network) or above 0.72.
+- Elo of r20's frozen versions: one version >= v0 + 25 on r20's own ladder within 60 self-play updates; falsified by none by self-play update 80.
+- casting after combat, 24 traced games vs heuristic at the decision point (M21 and M20): the network casts a sorcery-speed spell in a second main in at least 5 games; falsified by fewer than 2.
