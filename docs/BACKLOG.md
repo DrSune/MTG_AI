@@ -1687,3 +1687,12 @@ W&B key in history is revoked; a private split exists outside the public repo.
   - Incinerating Blast's mapped discard is ONE_OF where the compiler writes CHOOSE; the pick is
     journalled as a targeting event on the discarded card.
   - Good-Fortune Unicorn's trigger placed no counter in a verifier's pack (not investigated).
+- **IS_SOURCE means both "this spell costs" and "this ability costs"** (red team, 2026-11-06): since
+  de9fbd6 the cost fold reads a dealt spell's own modifiers, so Sanctum of Tranquil Light's
+  activation discount ("{1} less for each Shrine") also folds into its own cast from hand. Harmless
+  today (it costs {W}, nothing generic to cut) and no other card is affected; give the activation
+  discount its own predicate before a card with a generic cast cost has one.
+- **The soak's repeated-activation screen counts per turn** (2026-11-06): its "6 or more in a turn"
+  threshold was set for one 10-act window per turn; with the postcombat main there are two, so a
+  legal 7 activations now flags (Seasoned Hallowblade, discarding a real card each time). Count per
+  main phase.
