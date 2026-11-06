@@ -288,7 +288,7 @@ class Probe:
                         pt = None
             # CR 702.26: phasing is a status, not a zone change, so the zone label
             # carries it; a card that never phases keeps its trace bytes.
-            if h in getattr(ex, "phased_out", ()):
+            if h in ex.phased_out:
                 zone = "battlefield (phased out)"
             # CR 610.3: an object moved "until" an event carries its return row
             # (what ends it, and the zone it goes back to); objects without one keep their bytes.

@@ -74,7 +74,7 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
         _play(game, RandomPolicy(seed), game.world.player_order, TURN_CAP)
     except BaseException as error:  # noqa: BLE001 — a crash is the finding
         crash = {"error": f"{type(error).__name__}: {error}"[:200],
-                 "attempted": getattr(game, "attempted", "")}
+                 "attempted": game.attempted}
     world, ex = game.world, game.executor
     loser = None
     m = re.search(r"(player:\d+)\(", game.reason or "")
@@ -85,7 +85,7 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
         if e.kind == "CAST" and e.subject in world.cards:
             casts[world.cards[e.subject].identity.oracle_id].append(str(e.data[0]))
     per_turn = Counter(d.split(".", 1)[0] + "|" + d.split(":", 1)[1] for d in game.digest if ".act:" in d)
-    loops = sorted(str(x) for x in getattr(ex, "trigger_loops", []) or [])
+    loops = sorted(str(x) for x in ex.trigger_loops)
     rows = [det.Row(i, int(str(r[0])), str(r[1]), str(r[2]), str(r[3]), str(r[4]), det._parse_data(r[5]))
             for i, r in enumerate(ex.journal.dump())]
     final_zone, names = {}, {}
@@ -112,8 +112,8 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
         except Exception as exc:  # noqa: BLE001 — a detector that cannot read the game is reported
             hits.append({"detector": fn.__name__, "detail": f"detector error {type(exc).__name__}: {exc}"[:160]})
             continue
-        for hit in getattr(verdict, "hits", []) or []:
-            hits.append({"detector": fn.__name__, "detail": str(getattr(hit, "detail", hit))[:160]})
+        for hit in verdict.hits:
+            hits.append({"detector": fn.__name__, "detail": str(hit.detail)[:160]})
     return {"seed": seed, "turns": game.turns, "reason": game.reason, "loser": loser, "crash": crash,
             "casts": casts, "max_acts_per_turn": per_turn.most_common(3), "loops": loops, "hits": hits}
 
