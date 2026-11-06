@@ -274,3 +274,14 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
   same commit and arguments as pre-registered; its manifest records git_commit 449bd0f. Rule added
   to TRAINING_REVIEW_PROTOCOL §1. The aborted start's opening ladder: v0 (r18 last.pt) 428 Elo,
   heuristic 326, random 0; v0 vs heuristic 0.648 (300 games).
+
+## 14. Own-cast cost modifiers; tokens and the verified pool (2026-11-06)
+- Fixed (e17ae22): a permanent spell read all its own CostModifiers while being cast; a permanent's
+  static functions only on the battlefield (CR 113.6), so now only "this spell costs" (IS_SOURCE)
+  applies. Warden of Evos Isle was cast for {1}{U} instead of {2}{U}. Not live in training: 100
+  seeded heuristic games each on the M21 and M20 verified pools digest identically before and after.
+- Token records are never verified (0 of 20 in M21, 0 of 12 in M20) and need not be: games build a
+  token from the TokenSpec in the creating card's tree (verbs.py `_v_create_token`), verified with
+  that card, under a synthetic id; the records serve only the scenario runner's by-name lane. The
+  nine M20 tokens G0 had refused now fail G1 instead (their reviewers read the pre-fix probe trace,
+  which still had the KeyError stimulus): correct, and left for a later round.

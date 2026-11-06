@@ -1565,3 +1565,9 @@ W&B key in history is revoked; a private split exists outside the public repo.
   template; "Each opponent who cast a spell this turn" (Angelic Arbiter) needs a per-player judged
   history; Vengeful Warchief and Vilis can now use LifeLostEvent as a trigger.
 
+- **A created token's ability record is keyed by its name alone** (2026-11-06): `_v_create_token`
+  (verbs.py ~1340) registers the binder record under `token_oracle_id(spec.name)` once per game, so
+  two different token specs sharing a name (two different "Spirit" tokens) would both get the first
+  one's triggered/static abilities. Not live: in the M21 and M20 verified pools only Pirate, Treasure
+  and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
+  hash the spec's abilities into the id.
