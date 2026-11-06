@@ -1,64 +1,34 @@
-"""B5a bucket templates — 60 templates covering 64 of 90 B5a shapes.
+"""B5a bucket templates.
 
-Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (90 normalized shape
+Bucket input: ``/tmp/opencode/phase1_buckets/B5a.json`` (normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
-sentence, never the normalized key.
+sentence, never the normalized key. Fully parenthesised rule-reminder
+sentences are consumed by the compiler's ``_is_rule_reminder`` before
+template matching; the shapes no template covers are in ``UNCOVERED``.
 
-Coverage (90 = 64 template + 23 rule-reminder + 3 uncovered):
-
-- **64 template-covered shapes** (60 templates; the basic-land
-  ``({T}: Add {C}.)`` family is one template for five shapes):
-  basic-land tap abilities, ADD_MANA, static P/T grants, counter-spell,
-  token creation, keyword rule-reminder sentences (Deathtouch/Defender/
-  Double strike), DESTROY (incl. POWER_GE, T3 round A), EXILE, activated
-  discard-tap, DRAW (+QCount), DISCARD, LOSE_LIFE,
-  GRANT_ABILITY/GRANT_TYPE compound statics (incl. gain-life counter
-  trigger, T3 round F), SET_PT with QBin MUL ("double the power"),
-  Battalion keyword outcome (T3: params supplied by the template),
-  END_TURN, Equip, equipped-P/T, additional-cost (discard/sacrifice),
-  conditional static (Gnarled Sage), activation gate
-  (Caged Zombie, Celestial Enforcer), counter-unless-pays
-  (Miscast, Lofty Denial), round-6 batch: ZONE_COUNT_GE conditional static
-  (Thieves' Guild Enforcer), TURN_OF static grant (Radha) and TURN_OF
-  CostModifier (Discontinuity), blocked-side PREVENT_EFFECT
-  (Ghostly Pilferer discard, Faith's Fetters attack+block+activation-lock
-  Seq — C11, the lock since R5-7), untap-prevention on enchanted creature (Capture Sphere, lossy),
-  and grammar round 11 C3: the each-opponent "who can't" life-loss gate
-  (Waker +1 tail — Conditional + EachPlayer over a post-discard hand
-  count, payment-failure row retired).
-- **23 rule-reminder shapes** — fully parenthesised sentences consumed by
-  the compiler's ``_is_rule_reminder`` before template matching (no
-  template needed; verified in tests).
-- **3 uncovered shapes** — the library-top all-abilities grant
-  (ability-introspection, R10) plus the two choose-opener modal headers
-  (compiler built-in, not templates). Round 11 C3 retired the
-  payment-failure row ("who can't") as a Conditional + EachPlayer gate.
-  Recorded in ``UNCOVERED`` below and pinned by tests.
-
-Conventions (documented build decisions):
+Conventions:
 
 - ``this creature`` / ``this Equipment`` / self-referent targets are
   encoded as ``Selector(CHOOSE, QConst(1), FAtom(IS_SOURCE), zone)`` — a
-  semantic self-reference, never a hardcoded card name (shape #86).
+  semantic self-reference, never a hardcoded card name.
 - ``enchanted creature`` is
   ``Selector(ALL, QUnbounded, FAnd(TYPE_EQ Creature, IS_ATTACHED_TO_SOURCE),
   Zone(BATTLEFIELD, ANY))``.
 - ``+N/+N`` prints as ``PtDelta(INCREASE, QConst(N))`` — a printed ``+0``
-  stays ``QConst(0)`` (lossless w.r.t. oracle text, shape #42).
-- ``Add two mana of any one color`` → ``ADD_MANA(color="ANY")`` (round 8 /
-  C-3 repair; colorless "{C}" rows keep ``"C"`` — shape #34).
-- Token colors (round 8 / C-2; R5-11 made the field the WUBRG tuple
-  ``TokenSpec.colors``): the red Goblin Wizard is ``colors=("R",)``, the
-  blue-and-red Weird ``colors=("U", "R")``.
-- ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)`` (shape #72).
+  stays ``QConst(0)`` (lossless w.r.t. oracle text).
+- ``Add two mana of any one color`` → ``ADD_MANA(color="ANY")``; colorless
+  "{C}" rows keep ``"C"``.
+- Token colors are the WUBRG tuple ``TokenSpec.colors``: the red Goblin
+  Wizard is ``colors=("R",)``, the blue-and-red Weird ``colors=("U", "R")``.
+- ``Each player loses N life`` → ``LOSE_LIFE(controller=ANY)``.
 - ``Counter target spell`` → ``COUNTER_SPELL`` with ``Zone(STACK, ANY)`` and
-  ``STACK_KIND_EQ SPELL`` (shape #49; the kind atom since ontology R5-10).
-- The Equip sentence (#83) is an ``ActivatedAbility`` with
-  ``timing=ActivationWindow.SORCERY`` ("Equip only as a sorcery", B-60).
+  ``STACK_KIND_EQ SPELL``.
+- The Equip sentence is an ``ActivatedAbility`` with
+  ``timing=ActivationWindow.SORCERY`` ("Equip only as a sorcery").
 
-PC-3: every B5a concrete sentence fullmatches **at most one** template
-(patterns are pairwise disjoint by construction); verified in tests.
+Every B5a concrete sentence fullmatches **at most one** template (the
+patterns are pairwise disjoint); verified in tests.
 """
 
 from __future__ import annotations
@@ -145,9 +115,9 @@ _PRIORITY = 50
 def _self_selector(zone: Zone) -> Selector:
     """Selector for ``this <permanent>`` — the source of the ability.
 
-    E1 FOLD-B (/65): a BATTLEFIELD seat passed here folds onto the shared
-    CONTROLLER_IS axis exactly like an inline Selector zone — BF-ANY plus
-    the seat atom, so the idiom keeps one encoding shape."""
+    A BATTLEFIELD zone with a specific controller folds onto the
+    CONTROLLER_IS atom like an inline Selector zone (BATTLEFIELD-ANY plus the
+    seat atom), so the idiom keeps one encoding shape."""
     filt = FAtom(pred=FAtomPred.IS_SOURCE)
     if zone.kind is ZoneKind.BATTLEFIELD and zone.controller is not ControllerRef.ANY:
         filt = FAnd(
@@ -226,8 +196,8 @@ def _build_add_six(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_add_any_color(m: re.Match[str]) -> SentenceOutcome:
-    # "any one color" = color="ANY" (grammar round 8, R8-3 / C-3 repair):
-    # the player picks a color at resolution; "C" stays colorless-only.
+    # "any one color" = color="ANY": the player picks a color at resolution;
+    # "C" stays colorless-only.
     atom = Atom(
         verb=Verb.ADD_MANA,
         args=AtomArgs(
@@ -275,16 +245,16 @@ def _build_attacking_pt(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
 
-#: Ontology R5-10: "spell" names a stack object's kind (CR 405.1, 111.1/112.1).
+#: "spell" names a stack object's kind (CR 405.1, 111.1/112.1).
 SPELL_ON_STACK: Final = FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
 
 
 def target_spell(filter_: Filter | None = None) -> Selector:
     """"target [filter] spell": the one STACK-zone TARGET selector every
-    counterspell template builds (ontology R5-10). The spell kind is an
-    explicit STACK_KIND_EQ SPELL atom, ANDed with the printed restriction
+    counterspell template builds. The spell kind is an explicit
+    STACK_KIND_EQ SPELL atom, ANDed with the printed restriction
     ("noncreature", "instant or sorcery"); a bare "target spell" is the lone
-    atom (a one-child FAnd is a phantom wrapper, ontology §6 V2′)."""
+    atom (a one-child FAnd would be a phantom wrapper)."""
     if filter_ is None or filter_ == FAnd(children=()):
         kind: Filter = SPELL_ON_STACK
     else:
@@ -298,10 +268,10 @@ def target_spell(filter_: Filter | None = None) -> Selector:
 
 
 def target_stack_ability(*kinds: str) -> Selector:
-    """"target activated or triggered ability" (ontology R5-10): a STACK-zone
-    TARGET selector whose object is an ability of one of ``kinds``
-    ("ACTIVATED", "TRIGGERED"). This engine never puts an ability on the
-    stack, so the selector has no legal candidate today (BACKLOG B-110)."""
+    """"target activated or triggered ability": a STACK-zone TARGET selector
+    whose object is an ability of one of ``kinds`` ("ACTIVATED",
+    "TRIGGERED"). This engine never puts an ability on the stack, so the
+    selector has no legal candidate yet (BACKLOG B-110)."""
     atoms = tuple(FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value=k) for k in kinds)
     kind: Filter = atoms[0] if len(atoms) == 1 else FOr(children=atoms)
     return Selector(
@@ -397,18 +367,13 @@ def _counter_unless_atom(m: re.Match[str], target_filter: Filter) -> Atom:
 
 
 def _build_activate_only_sorcery(m: re.Match[str]) -> SentenceOutcome:
-    """``Activate only as a sorcery.`` (Liliana's Steward s2 tail — grammar
-    round 10 b5a row, R10-1): the BARE activation-timing gate. The outcome
-    carries ONLY the R9-1 ``window`` slot; the compiler's slot-disjoint
-    attach (C25) rewrites ``timing`` on the nearest preceding
-    ActivatedAbility whose timing is still free — Steward's s1
-    ``{T}, Sacrifice this creature:`` ability built by
-    B5c-cost-sacrifice-discard, across the sentence boundary. PC-3: the
-    anchor is disjoint from the Speaker compound-gate row (that pattern
-    requires its "if you have at least N life" clause).
-
-    C16: none — the gate is a legality restriction, fully forced; the
-    activation PAY decision lives in the attached s1 ability."""
+    """``Activate only as a sorcery.``: the bare activation-timing gate. The
+    outcome carries only the ``window`` slot; the compiler writes it as
+    ``timing`` on the nearest preceding ActivatedAbility whose timing is
+    still free (Liliana's Steward: the ``{T}, Sacrifice this creature:``
+    ability of the previous sentence). The pattern is disjoint from the
+    Speaker compound gate, which requires its "if you have at least N life"
+    clause."""
     return ActivationGateOutcome(window=ActivationWindow.SORCERY)
 
 
@@ -463,10 +428,7 @@ def _build_weird_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=x,
                         keywords=(),
                         abilities=(),
-                        # R5-11 (B-82 fixed): "blue and red" — both colours,
-                        # WUBRG order. It was colourless while TokenSpec held
-                        # one colour letter.
-                        colors=("U", "R"),
+                        colors=("U", "R"),  # "blue and red", WUBRG order
                     ),
                 ),
                 ("count", QConst(1)),
@@ -492,7 +454,7 @@ def _build_goblin_wizard_tokens(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.PROWESS,),
                         abilities=(),
-                        colors=("R",),  # C-2 repair (round 8): printed "red"
+                        colors=("R",),
                     ),
                 ),
                 ("count", QConst(2)),
@@ -512,19 +474,12 @@ def _build_keyword_reminder(
 
 
 def _build_battalion(m: re.Match[str]) -> SentenceOutcome:
-    # T5-E (2026-10-10, clause-audit residual closure): the printed
-    # trigger leg COMPILES. This sentence used to emit only a
-    # KeywordOutcome token whose trigger the r20a binder synthesised
-    # behind the encoding (a §10 phantom: token visible, semantics
-    # hidden in executor code). The leg mirrors
-    # ``binding._keyword_node("BATTALION")`` — DeclareAttackersEvent
-    # (IS_SOURCE) -> PUT_COUNTER +1/+1 on self — and carries the
-    # CR 508.2 group-of-three as the trigger CONDITION
-    # (CONTROLLER_COUNT_GE over attacking creatures; the binder gated
-    # the same declaration population at queue time by journal read).
-    # No keyword token is emitted, so the record's keywords stay free
-    # of BATTALION and the binder's synthetic keyword lane stays inert
-    # for this card (no double-fire).
+    # The printed trigger compiles: DeclareAttackersEvent (IS_SOURCE) ->
+    # PUT_COUNTER +1/+1 on self, with CR 508.2's group of three as the
+    # trigger condition (CONTROLLER_COUNT_GE over attacking creatures). No
+    # BATTALION keyword is emitted, so the binder's synthetic keyword
+    # trigger (binding._keyword_node) stays inert for this card and the
+    # trigger cannot fire twice.
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -579,13 +534,8 @@ def _build_destroy(m: re.Match[str], f: Filter, zone: Zone) -> SentenceOutcome:
 
 
 def _destroy_target_filter(m: re.Match[str], extra: tuple[Filter, ...]) -> Filter:
-    """``target creature [with extra conjuncts]`` — the AND-builder for the
-    destroy lanes.
-
-    R1a (ontology §6 V2′): a one-child ``FAnd`` is a phantom wrapper, so the
-    builder returns the LONE CONJUNCT bare. Today's only caller always adds
-    a ``POWER_GE`` conjunct, so the corpus bytes are unchanged; this is the
-    emission-site guard V2′ relies on for future callers."""
+    """``target creature [with extra conjuncts]``; a lone conjunct comes back
+    bare (a one-child ``FAnd`` would be a phantom wrapper)."""
     base: list[Filter] = [
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
     ]
@@ -608,12 +558,9 @@ def _build_destroy_power_ge(m: re.Match[str]) -> SentenceOutcome:
 def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
     """``Double the power of target creature until end of turn.`` (Unleash Fury).
 
-    CR 701.10a/b: doubling MODIFIES, it never sets: the creature gets +X/+0
+    Doubling modifies, it never sets (CR 701.10a/b): the creature gets +X/+0
     until end of turn, X = its power as the spell resolves. So MODIFY_PT with
-    power PtDelta(INCREASE, QProp(target, POWER)) and the printed-+0 toughness
-    convention (shape #42). m21-fidelity (review batch I, 2026-10-29): this was
-    SET_PT(2 * power, toughness), a set effect that later layers stack on, so a
-    2/2 with a +1/+1 counter became 7/4 instead of 6/3 (stronger than printed).
+    power PtDelta(INCREASE, QProp(target, POWER)) and a +0 toughness delta.
     """
     atom = Atom(
         verb=Verb.MODIFY_PT,
@@ -803,17 +750,14 @@ def _build_lose_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_each_opp_cant_lose_life(m: re.Match[str]) -> SentenceOutcome:
-    """``Each opponent who can't loses 3 life.`` (Liliana Waker +1 tail;
-    grammar round 11 C3 — the round-9 "payment-failure condition" UNCOVERED
-    row retired: "who can't [discard a card]" is a hand-count gate: an
-    opponent with no card in hand cannot discard).
-    EachPlayer(ref=ALL_OPPONENTS) rotates the CONTROLLER role (b2a/b2b
-    precedent), so the YOU-relative predicate AND the YOU-relative
-    LOSE_LIFE both rebind per opponent.  The sentence carries no ``may``
-    and no continuation prefix: the R11-1 loyalty-trailing path puts it
-    BEFORE the discard it is about (``compiler._insert_before_last_step``,
-    V10 2026-10-29; docs/ATOM_DIVERGENCES.md D17). The old post-discard
-    reading also made an opponent who discarded their last card lose 3."""
+    """``Each opponent who can't loses 3 life.`` (Liliana, Waker of the Dead
+    +1 tail). "Who can't [discard a card]" is a hand-count gate: an opponent
+    with no card in hand cannot discard. EachPlayer(ref=ALL_OPPONENTS)
+    rotates the CONTROLLER role, so the YOU-relative predicate and the
+    YOU-relative LOSE_LIFE both rebind per opponent. The compiler places
+    this sentence BEFORE the discard it is about
+    (``compiler._insert_before_last_step``; docs/ATOM_DIVERGENCES.md D17), so
+    an opponent who discards their last card does not lose life."""
     cant_discard = FNot(
         inner=FAtom(
             pred=FAtomPred.ZONE_COUNT_GE,
@@ -871,7 +815,7 @@ def _build_enchant_pt_death_draw(m: re.Match[str]) -> SentenceOutcome:
     pt = _enchant_pt(m, (1, 2))
     # LOSSY: "this creature" in the granted trigger is the enchanted
     # creature; the grammar has no SOURCE controller referent, so the
-    # draw is attributed to YOU (documented).
+    # draw is attributed to YOU.
     trigger = TriggeredAbility(
         event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
         condition=None,
@@ -990,10 +934,9 @@ def _build_end_turn(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_equip(m: re.Match[str]) -> SentenceOutcome:
-    # B-60 (2026-10-29): "Equip only as a sorcery" (CR 702.6a, which holds
-    # even where the reminder text is omitted: B11-equip-bare builds here
-    # too) rides the R9-1 timing slot. The old GAP note predated that slot;
-    # without it every Equipment moved at instant speed and mid-combat.
+    # "Equip only as a sorcery" (CR 702.6a, which holds even where the
+    # reminder text is omitted: B11-equip-bare builds here too) is the
+    # ability's timing.
     attach = Atom(
         verb=Verb.ATTACH,
         args=AtomArgs(
@@ -1037,11 +980,8 @@ def _build_equip(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _parse_equip_cost(raw: str) -> Cost:
-    """ZND-4 T1: parse the Equip activation mana ({1}, {2}{R}, {2}{G}, …)
-    with the compiler's shared mana parser. Lazy import for the same
-    reason as templates_b6._parse_kicker_cost (build() runs at compile
-    time only); the returned node for "{1}" is byte-identical to the old
-    hand-built CostManaGeneric(QConst(1)) — M21 tree diff 0."""
+    """Parse the Equip activation mana ({1}, {2}{R}, …) with the compiler's
+    shared mana parser. Lazy import, as in templates_b6._parse_kicker_cost."""
     from MTG_bot.core.compiler.compiler import parse_mana_cost
 
     cost = parse_mana_cost(raw)
@@ -1056,16 +996,11 @@ def _build_equipped_pt(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_exile_self(m: re.Match[str]) -> SentenceOutcome:
-    """"Exile Experimental Overload" — self-reference by name, encoded
-    semantically as IS_SOURCE (no hardcoded name).
-
-    m21-fidelity (wave 4, 2026-10-30): the spell exiles ITSELF as its last
-    instruction, which takes no target (CR 115.1a: only "target" makes a
-    target; CR 608.2n: the resolving spell is on the stack until its last
-    step). It was a TARGET selector over the battlefield, so the cast query
-    demanded a target nothing could fill and games never cast the card. Now
-    the self-reference convention ("~" = CHOOSE IS_SOURCE, as Archfiend's
-    Vessel's "exile it") over the STACK zone the spell resolves from."""
+    """"Exile Experimental Overload": the spell exiles itself as its last
+    instruction. That takes no target (CR 115.1a: only "target" makes a
+    target), so it is the self-reference CHOOSE IS_SOURCE (no hardcoded
+    name) over the STACK zone the spell resolves from (CR 608.2n: the
+    resolving spell is on the stack until its last step)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1086,13 +1021,7 @@ def _build_exile_self(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-# +1/+1 counter kind alias
 _PLUS_1_PLUS_1 = CounterKind.PLUS_1_PLUS_1
-
-
-# ---------------------------------------------------------------------------
-# Round-6 batch builders (conditional statics + restriction semantics)
-# ---------------------------------------------------------------------------
 
 
 def _bf_any() -> Zone:
@@ -1101,32 +1030,22 @@ def _bf_any() -> Zone:
 
 def _build_snoop_top_goblin_abilities(m: re.Match[str]) -> SentenceOutcome:
     """As long as the top card of your library is a Goblin card, this
-    creature has all activated abilities of that card.  (Conspicuous
-    Snoop s3; T5-E closure of the R10 ability-introspection DEFER.)
+    creature has all activated abilities of that card.  (Conspicuous Snoop.)
 
-    The gate is the R6-2 ZONE_COUNT_GE predicate bounded to the library's
-    TOP entry (T5-E gave the evaluator its OPTIONAL ``Zone.position``
-    window, mirroring the selector idiom) with ``count=1`` — "the top
-    card is a Goblin card".  The conditional-static half is the T3
-    round-4 ``StaticAbility.condition`` lane (C9: the "as long as"
-    predicate lives in the condition, never a duration approximation)
-    exactly as the R10 note anticipated; only the GRANT_ABILITY payload
-    had no vocabulary then.
+    The gate is ZONE_COUNT_GE over the library's TOP position with
+    ``count=1``, in ``StaticAbility.condition`` ("as long as" is a
+    condition, never a duration).
 
-    Payload materialization (gap ledger, doc /11 §DEFER stays open): the
-    true reading grants the ABILITY SET of a dynamically-referenced card,
-    which the closed IR cannot enumerate (no card→ability introspection
-    atom; a live ActivatedAbility payload is also ruled out on runtime
-    grounds — ``query.legal_activations`` surfaces granted rows in the
-    ACTIVATE menu, which would re-pin the scenario/eval packs against an
-    ability the top card may not even have).  The payload is therefore a
-    registered-INERT static mirror of the card's own top-reveal static
-    (s1, templates_b5b): a valid ``ability``-slot node (§8.3), invisible
-    to ``granted_activated`` (filters to ActivatedAbility) and to the
-    binder's granted-trigger drain (TriggeredAbility only).  The clause's
-    observable content — the engine's free top-Goblin cast — stays owned
-    by the s2 lane; the grant keeps the STATIC↔DYNAMIC trace (§10): the
-    static encoding exists wherever the ask presents the top-Goblin cast."""
+    Known gap: the true reading grants the ability set of a dynamically
+    referenced card, which the IR cannot enumerate (no card→ability
+    introspection atom), and a live ActivatedAbility payload would put an
+    ability the top card may not have into ``query.legal_activations``.
+    So the payload is an inert mirror of the card's own top-reveal static
+    (templates_b5b): a valid ``ability``-slot node that ``granted_activated``
+    (ActivatedAbility only) and the binder's granted-trigger drain
+    (TriggeredAbility only) both ignore. The engine's free top-Goblin cast
+    belongs to the card's other sentence; this grant keeps its static trace,
+    so the static encoding exists wherever the ask offers that cast."""
     top_goblin = FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goblin")
     reveal_static = StaticAbility(
         effect=Atom(
@@ -1169,12 +1088,10 @@ def _build_snoop_top_goblin_abilities(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_aslong_opp_gy_count(m: re.Match[str]) -> SentenceOutcome:
     """As long as an opponent has eight or more cards in their graveyard,
-    this creature gets +2/+1 and has deathtouch.  (Thieves' Guild Enforcer;
-    grammar round 6 R6-2 — ZONE_COUNT_GE carries who + zone + inner_filter
-    + count; C9 — the "as long as" predicate lives in
-    ``StaticAbility.condition``, never a duration approximation.  The
-    literal "eight" follows the Gnarled Sage pattern idiom; the +N/+N
-    digits are captured.)"""
+    this creature gets +2/+1 and has deathtouch.  (Thieves' Guild Enforcer:
+    ZONE_COUNT_GE carries who + zone + inner_filter + count, in
+    ``StaticAbility.condition``; "as long as" is a condition, never a
+    duration.)"""
     p, t = int(m.group("p")), int(m.group("t"))
     self_sel = _self_selector(_bf_any())
     pt = Atom(
@@ -1211,10 +1128,9 @@ def _build_aslong_opp_gy_count(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_radha_first_strike(m: re.Match[str]) -> SentenceOutcome:
-    """During your turn, Radha has first strike.  (Radha, Heart of Keld;
-    grammar round 6 R6-1 — TURN_OF carries the turn owner, the Phase enum
-    has none; "Radha" is the card self-referent, encoded as the house
-    IS_SOURCE selector, never a hardcoded name (convention, shape #86).)"""
+    """During your turn, Radha has first strike.  (Radha, Heart of Keld:
+    TURN_OF carries the turn owner, the Phase enum has none; "Radha" is the
+    card self-referent, the IS_SOURCE selector, never a hardcoded name.)"""
     atom = Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -1234,11 +1150,8 @@ def _build_radha_first_strike(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_during_turn_cost_reduce(m: re.Match[str]) -> SentenceOutcome:
     """During your turn, this spell costs {2}{U}{U} less to cast.
-    (Discontinuity; grammar round 6 R6-1 TURN_OF in
-    ``CostModifier.condition`` (T3 round-2 slot), Stormwing's delta +
-    extra_deltas compound split (generic + colored) — the old UNCOVERED
-    reason's "single CostDelta" claim was already fixed by T3 round 4's
-    extra_deltas.)"""
+    (Discontinuity: TURN_OF in ``CostModifier.condition``; the generic and
+    coloured reductions split into ``delta`` + ``extra_deltas``.)"""
     generic = int(m.group("generic"))
     modifier = CostModifier(
         filter=FAtom(pred=FAtomPred.IS_SOURCE),
@@ -1252,12 +1165,10 @@ def _build_during_turn_cost_reduce(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_enchant_no_untap(m: re.Match[str]) -> SentenceOutcome:
     """Enchanted creature doesn't untap during its controller's untap step.
-    (Capture Sphere; C10 — PREVENT_EFFECT over the untap transition
+    (Capture Sphere: PREVENT_EFFECT over the untap transition
     (TapStateEvent tapped=False) restricted to the enchanted permanent.)
 
-    LOSSY (verbatim): "during its controller's untap step" — the untap-step
-    scope is dropped (Step enum has no UNTAP member; step-scope slot
-    registered for round 7, 2026-09-28 decision doc deferred family 3).
+    LOSSY: the "during its controller's untap step" scope is dropped.
     """
     enchanted = FAnd(
         children=(
@@ -1280,18 +1191,13 @@ def _build_enchant_no_untap(m: re.Match[str]) -> SentenceOutcome:
 def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
     """Enchanted permanent can't attack or block, and its activated
     abilities can't be activated unless they're mana abilities.
-    (Faith's Fetters; decision C11 — Seq of PREVENT_EFFECT atoms on
-    the enchanted permanent (IS_ATTACHED_TO_SOURCE), the attack atom over
-    DeclareAttackersEvent, the block atom over DeclareBlockersEvent
-    following the B4 cant-block idiom (filter selects the restricted
-    participant).)
-
-    Ontology R5-7 (2026-10-30): the third clause, "its activated abilities
-    can't be activated unless they're mana abilities" (CR 602.5), is the
-    activation lock PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted,
-    kind=NON_MANA)). Loyalty abilities are never mana abilities (CR
-    605.1a), so the lock covers them too. It was dropped (lossy C11) until
-    the event existed.
+    (Faith's Fetters: a Seq of PREVENT_EFFECT atoms on the enchanted
+    permanent (IS_ATTACHED_TO_SOURCE): the attack atom over
+    DeclareAttackersEvent, the block atom over DeclareBlockersEvent (the
+    filter selects the restricted participant), and the activation lock
+    (CR 602.5) over AbilityActivatedEvent(source=enchanted, kind=NON_MANA).
+    Loyalty abilities are never mana abilities (CR 605.1a), so the lock
+    covers them too.)
     """
     enchanted = FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
     attack = Atom(
@@ -1329,10 +1235,9 @@ def _build_enchant_cant_attack_block(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
     """Discard a card: This creature can't be blocked this turn.
-    (Ghostly Pilferer; C10 + R6-4 — costed activation whose PREVENT_EFFECT
-    narrows the blocked side to the source via the ``blocked`` slot over a
-    universal blocker filter (grammar-round-7 ``_dbe_blocked`` idiom),
-    duration until end of turn.)"""
+    (Ghostly Pilferer: a costed activation whose PREVENT_EFFECT narrows the
+    blocked side to the source via the ``blocked`` slot over a universal
+    blocker filter, until end of turn.)"""
     cost = Cost(
         parts=(
             CostDiscard(
@@ -1364,15 +1269,10 @@ def _build_discard_cant_be_blocked(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=ActivatedAbility(cost=cost, effect=atom))
 
 
-# ---------------------------------------------------------------------------
-# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
-# ---------------------------------------------------------------------------
-
-
 def _result_selector() -> Selector:
-    """C2 canonical result-referent selector (grammar round 7, R7-1):
-    the object the previous sentence acted on — here the card Kitesail
-    Freebooter's ``You choose … from it`` sentence picked."""
+    """The result-referent selector: the object the previous sentence acted
+    on — here the card Kitesail Freebooter's ``You choose … from it``
+    sentence picked."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -1383,22 +1283,18 @@ def _result_selector() -> Selector:
 
 
 def _equipped_creature() -> Selector:
-    """``Equipped creature`` = the permanent attached to the source —
-    same structured attachment predicate as ``enchanted creature``
-    (IS_ATTACHED_TO_SOURCE is attachment-generic; the aura name is
-    historical)."""
+    """``Equipped creature`` = the permanent attached to the source, the same
+    selector as ``enchanted creature`` (IS_ATTACHED_TO_SOURCE covers any
+    attachment)."""
     return _enchanted_creature()
 
 
 def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
     """``Exile that card until this creature leaves the battlefield.``
-    (Kitesail Freebooter s3) — MOVE_ZONE to exile of the result-referent
-    card (the card the previous sentence chose), with
-    ``duration=DurationUntilLeaves()`` (ontology R5-1, 2026-10-29, CR
-    610.3): when Freebooter leaves the battlefield the card returns to its
-    previous zone, its owner's hand. The C11 loss this template used to
-    carry (no duration role on the move, so the exile was permanent) is
-    closed."""
+    (Kitesail Freebooter) — MOVE_ZONE to exile of the result-referent card
+    (the card the previous sentence chose), with
+    ``duration=DurationUntilLeaves()`` (CR 610.3): when Freebooter leaves the
+    battlefield the card returns to its previous zone, its owner's hand."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1413,17 +1309,16 @@ def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_etb_choose_name(m: re.Match[str]) -> SentenceOutcome:
-    """``As this enchantment enters, choose a card name.`` (Runed Halo s1)
-    — Verb.CHOOSE_NAME (R7-4) on an enters trigger; the pick is read back
-    by ``FAtomPred.NAME_CHOSEN`` in the protection static (B4).  C16: the
-    choice itself is the open decision (any card name)."""
+    """``As this enchantment enters, choose a card name.`` (Runed Halo)
+    — Verb.CHOOSE_NAME on an enters trigger; ``FAtomPred.NAME_CHOSEN``
+    reads the pick back in the protection static (a B4 template)."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=ZoneChangeEvent(
                 from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
                 to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-                # R11-B (audit 09-29/04 P0-2): "As THIS enchantment enters"
-                # — the entering object is the card itself (class A).
+                # "As THIS enchantment enters": the entering object is the
+                # card itself.
                 subject=FAtom(pred=FAtomPred.IS_SOURCE),
             ),
             condition=None,
@@ -1434,11 +1329,9 @@ def _build_etb_choose_name(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_choose_name_not_basic(m: re.Match[str]) -> SentenceOutcome:
     """``Choose a card name other than a basic land card name.``
-    (Necromentia s1) — CHOOSE_NAME with the exclusion as a name_filter
-    (R7-4 role): a name is illegal exactly when it is a BASIC LAND
-    card's name (SUPERTYPE Basic AND TYPE Land — closer to the printed
-    exclusion than the r8 round-trip canonical's bare-SUPERTYPE form).
-    C16: the name choice stays open (all non-basic-land names)."""
+    (Necromentia) — CHOOSE_NAME with the exclusion as a ``name_filter``: a
+    name is illegal exactly when it is a basic land card's name (SUPERTYPE
+    Basic AND TYPE Land)."""
     name_filter = FNot(
         inner=FAnd(
             children=(
@@ -1456,12 +1349,11 @@ def _build_choose_name_not_basic(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_equipped_pt_per_soul_counter(m: re.Match[str]) -> SentenceOutcome:
     """``Equipped creature gets +P/+T for each soul counter on this
-    Equipment.`` (Malefic Scythe s2) — static MODIFY_PT whose delta
-    scales with ``QProp(COUNTER_COUNT, referent="source")`` (R7-9b
-    validation relaxation).
-    LOSSY (C11 verbatim): ``QProp`` has no counter-kind slot, so the
-    "soul" kind is dropped — faithful in context because Malefic Scythe
-    only ever carries soul counters."""
+    Equipment.`` (Malefic Scythe) — static MODIFY_PT whose delta scales
+    with ``QProp(COUNTER_COUNT, referent="source")``.
+    LOSSY: ``QProp`` has no counter-kind slot, so the "soul" kind is
+    dropped — faithful in context because Malefic Scythe only ever carries
+    soul counters."""
     p, t = int(m.group("p")), int(m.group("t"))
     count = QProp(referent="source", field=QPropField.COUNTER_COUNT)
     atom = Atom(
@@ -1484,11 +1376,10 @@ def _build_equipped_pt_per_soul_counter(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_destroy_attached_equipment(m: re.Match[str]) -> SentenceOutcome:
-    """``Destroy all Equipment attached to that creature.`` (Turn to Slag
-    s2) — FAtomPred.IS_ATTACHED_TO (R7-1) with the R4 target referent:
-    "that creature" is the spell's damaged target, so the filter binds
-    the s0 TARGET selector today (deviation from the spec sketch,
-    deliberate like B5b-loses-kw-eot)."""
+    """``Destroy all Equipment attached to that creature.`` (Turn to Slag)
+    — FAtomPred.IS_ATTACHED_TO with the ``target`` referent: "that
+    creature" is the spell's damaged target, so the filter binds the first
+    sentence's TARGET selector."""
     atom = Atom(
         verb=Verb.DESTROY,
         args=AtomArgs(
@@ -1521,20 +1412,12 @@ def _build_destroy_attached_equipment(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_speaker_activation_gate(m: re.Match[str]) -> SentenceOutcome:
     """``Activate only if you have at least N life more than your starting
-    life total and only as a sorcery.`` (Speaker of the Heavens) — grammar
-    round 9-B row 2: LIFE_LEAD_OVER_START_GE (R9-2, bare-count rule row —
-    the count slot carries QConst(N), no who/inner_filter) delivered as an
-    ActivationGateOutcome, the Caged Zombie plumbing: the compiler attaches
-    the condition to the nearest preceding unconditional ActivatedAbility
-    (the B3 ``{T}: Create a 4/4 white Angel token`` row).
-
-    C16: none — the gate is a legality condition, fully forced.
-
-    "and only as a sorcery" is the gate's ``window`` slot (B-60,
-    2026-10-29). It was dropped while ActivationGateOutcome carried a
-    condition only; R10-1 gave the outcome both slots and the compiler's
-    gate-attach writes both (C25), so the clause no longer needs to be
-    LOSSY: without it the Angel could be made at instant speed.
+    life total and only as a sorcery.`` (Speaker of the Heavens) —
+    LIFE_LEAD_OVER_START_GE (the count slot carries QConst(N), no
+    who/inner_filter) plus the sorcery ``window``, delivered as an
+    ActivationGateOutcome: the compiler attaches both to the nearest
+    preceding unconditional ActivatedAbility (the ``{T}: Create a 4/4 white
+    Angel token`` sentence).
     """
     return ActivationGateOutcome(
         window=ActivationWindow.SORCERY,
@@ -1548,21 +1431,16 @@ def _build_speaker_activation_gate(m: re.Match[str]) -> SentenceOutcome:
 def _build_aslong_attack_despite_defender(m: re.Match[str]) -> SentenceOutcome:
     """``As long as you control a creature with power N or greater, this
     creature can attack as though it didn't have defender.`` (Drowsing
-    Tyrannodon) — grammar round 9-B row 3, doc 2026-09-28/11 fidelity note:
-    StaticAbility carrying the as-long-as gate in ``condition`` (convention
-    C9 — never a duration approximation) over a LOSE_ABILITY atom that
-    strips Keyword.DEFENDER from self (``ability`` rides a KeywordAbility,
-    the Soul Sear precedent), scoped by DurationWhileCondition inside the
+    Tyrannodon) — StaticAbility carrying the as-long-as gate in
+    ``condition`` (never a duration) over a LOSE_ABILITY atom that strips
+    Keyword.DEFENDER from self, scoped by DurationWhileCondition inside the
     atom.
 
-    FIDELITY ARGUMENT (C11-class, doc /11): "can attack as though it didn't
-    have defender" is encoded as actually LOSING defender — the only
-    M21-relevant rules text of Defender is "This creature can't attack", so
-    the two effects coincide on this pool; no as-though layer machinery
-    exists (deferred family), and losing the keyword is the closest honest
+    "Can attack as though it didn't have defender" is encoded as actually
+    losing defender: Defender's only rules text on this pool is "This
+    creature can't attack", so the two effects coincide; there is no
+    as-though machinery, and losing the keyword is the closest honest
     encoding.
-
-    C16: none — fully forced (state gate + self-targeted keyword loss).
     """
     p = int(m.group("p"))
     cond = FAtom(
@@ -1942,11 +1820,8 @@ TEMPLATES: tuple[Template, ...] = (
         tid="B5a-equip",
         name="equip <mana> activated ability",
         bucket=_BUCKET,
-        # ZND-4 T1 (spec /115): single-colorless backref widened to a mana-
-        # symbol sequence ("Equip {2}{R} ({2}{R}: …)"). M21's bare
-        # "Equip {1} ({1}: …)" still matches with an identical Cost tree
-        # (parse_mana_cost("{1}") == the old hand-built generic node) —
-        # PC-4 must stay 0-diff (audit-named carrier widen).
+        # The cost is a mana-symbol sequence ("Equip {2}{R} ({2}{R}: …)")
+        # that the reminder text repeats (the backref).
         pattern=re.compile(
             r"^Equip (?P<cost>(?:\{[0-9WUBRGT]+\})+) "
             r"\((?P=cost): Attach to target creature you "
@@ -2221,7 +2096,7 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_discard_cant_be_blocked,
-    ),  # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    ),
     Template(
         tid="B5a-exile-that-until-leaves",
         name="exile that card until this creature leaves the battlefield (result referent)",
@@ -2309,7 +2184,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_activate_only_sorcery,
     ),
-    # --- grammar round-11 C3 coverage batch (payment-failure gate) ---
     Template(
         tid="B5a-each-opp-cant-lose-life",
         name="each opponent who-can't life-loss tail (Conditional+EachPlayer, C3)",
@@ -2320,11 +2194,9 @@ TEMPLATES: tuple[Template, ...] = (
     ),
 )
 
-# UNCOVERED — 2 normalized-key rows
-#
-# Each row is (shape_key, reason).  shape_key is the B5a.json normalized
-# key (digits → "N").  Sorted alphabetically by shape_key.  The T4 test
-# pins this set against the SHAPES table.
+# UNCOVERED: the shapes no template covers, as (shape_key, reason) rows.
+# shape_key is the B5a.json normalized key (digits → "N"), sorted
+# alphabetically. A test pins this set against the SHAPES table.
 UNCOVERED: Final[tuple[tuple[str, str], ...]] = (
     (
         "Choose one or more —",

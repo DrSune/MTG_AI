@@ -1,42 +1,15 @@
-"""B5c bucket templates — 86 templates covering 88 of 90 B5c shapes.
+"""B5c bucket templates.
 
-Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (90 normalized shape
+Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
-sentence, never the normalized key.
+sentence, never the normalized key. One template may cover several
+concrete variants: ``• You gain N life.``, and the emblem marker covers
+every ``[−N]: You get an emblem with "…"`` shape (the quoted text stays out
+of the IR; the card-level emblem attach is the payload). The shapes no
+template covers are in ``UNCOVERED``.
 
-Coverage (90 normalized keys = 88 covered + 2 uncovered; 91 concrete
-sentences = 89 covered + 2 uncovered; ``• You gain N life.`` has two
-concrete variants both covered by one template; the round-8-C emblem
-marker template covers three ``[−N]: You get an emblem with "…"``
-shapes — C19 keeps the quoted text out of the IR, the card-level
-emblem attach is the payload):
-
-- **88 covered shapes** (86 unique tids; the gain-life template covers two
-  concrete variants, the emblem marker covers three):
-  keyword reminders (Trample, Vigilance, Vigilance+lifelink,
-  Vigilance+protection, Vigilance+reach+trample), then-continuation
-  effects, static P/T grants, activated cost/loyalty abilities,
-  bullet (spell) effects, X-quantities, QProp/QBin amount expressions,
-  token creation, token copy, phase out, counter spells, extra turns,
-  scry/reveal/look-at, per-creature life loss, ETB counter placement,
-  loyalty discard-hand/exile-top-library, loyalty move-to-top-of-library,
-  loyalty may-cast-from-graveyard, bullet return-to-owner-hand,
-  loyalty turn-scoped trigger (Basri [−1], Basri Ket [−2] — a
-  DelayedTrigger with DurationEot, CR 603.7, since m21-fidelity 2026-10-29;
-  it was the round-4 C3 GRANT_ABILITY to the planeswalker, which died with
-  it; "it" = the attacker via the event referent).
-- **2 uncovered shapes** — embedded replacement text, plus the phase-in
-  built-in note.  Round 9-B landed Frost Breath's untap-step prevention
-  (R9-4 step+DurationUntilNextStep) and Subira's delayed combat-damage
-  draw trigger (R9-5/C22 DelayedTrigger).  Recorded in UNCOVERED.
-  Round-8-C landed
-  the emblem markers, Basri's attack-token grant, the Catalyst/HoF
-  cast-play permissions (CAST cost-waiver idiom) and the Sanctum
-  activation-cost reducer; the r7-B no-grammar top-ups (flip-cost,
-  then-if-lands, damage-equal-power) are counted here too.
-
-Conventions (documented build decisions):
+Conventions:
 
 - ``this creature`` / ``this artifact`` / ``this land`` / ``this token`` /
   ``this card`` self-referent targets are encoded as
@@ -47,22 +20,18 @@ Conventions (documented build decisions):
   to source).
 - Keyword-reminder sentences are encoded via ``KeywordOutcome``; when
   multiple keywords are present the primary one is kept and the rest are
-  dropped (documented lossy).
+  dropped (lossy).
 - ``Vigilance, protection from multicolored`` → ``Keyword.PROTECTION``
   with filter ``FAtom(COLOR_COUNT_GE, count=QConst(2))``.
-- ``Creatures without flying can't block this turn`` is a one-shot spell
-  effect; encoded lossy as ``MODIFY_PT`` zero-delta placeholder (no
-  PREVENT_BLOCK grammar construct).
 - Loyalty prefix parsed via ``_loyalty_delta(m, 1)``; the U+2212 minus
   sign in loyalty prefixes is distinguished from ASCII hyphen in P/T.
 - ``X`` in effects is ``QX()``; ``X`` in cost-less contexts is not
   captured.
 - ``permanent cards`` filter is ``_PERMANENT_CARD_FILTER`` — an ``FOr``
-  over the five ``TYPE_EQ`` permanent types (the grammar has no
-  PERMANENT predicate).
+  over the five ``TYPE_EQ`` permanent types.
 
-PC-3: every B5c concrete sentence fullmatches **at most one** template
-(patterns are pairwise disjoint by construction); verified in tests.
+Every B5c concrete sentence fullmatches **at most one** template (the
+patterns are pairwise disjoint); verified in tests.
 """
 
 from __future__ import annotations
@@ -148,9 +117,9 @@ _PRIORITY = 100
 def _self_selector(zone: Zone) -> Selector:
     """Selector for ``this <permanent>`` — the source of the ability.
 
-    E1 FOLD-B (/65): a BATTLEFIELD seat passed here folds onto the shared
-    CONTROLLER_IS axis exactly like an inline Selector zone — BF-ANY plus
-    the seat atom, so the idiom keeps one encoding shape."""
+    A BATTLEFIELD zone with a specific controller folds onto the
+    CONTROLLER_IS atom like an inline Selector zone (BATTLEFIELD-ANY plus the
+    seat atom), so the idiom keeps one encoding shape."""
     filt = FAtom(pred=FAtomPred.IS_SOURCE)
     if zone.kind is ZoneKind.BATTLEFIELD and zone.controller is not ControllerRef.ANY:
         filt = FAnd(
@@ -189,8 +158,8 @@ def _pt_decrease(m: re.Match[str], group: int) -> PtDelta:
 # Shared selector factories
 # ---------------------------------------------------------------------------
 
-#: "permanent card" = any of the five permanent types (the grammar has no
-#: PERMANENT predicate, so the disjunction of TYPE_EQ atoms is used).
+#: "permanent card" = any of the five permanent types, as a disjunction of
+#: TYPE_EQ atoms.
 _PERMANENT_CARD_FILTER = FOr(
     (
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -203,17 +172,10 @@ _PERMANENT_CARD_FILTER = FOr(
 
 
 def _any_target() -> Selector:
-    """Selector for ``any target`` (Shock-style; see the r17-2 note).
-
-    r17-2 (geyser-FIX): printed "any target" designates a creature, a
-    planeswalker or a player (CR 109.5) — NEVER a card hiding in a hand or
-    library. The card side compiles to the battlefield population with the
-    FOr type-idiom filter; the PLAYER side joins through the engine's
-    idiom widening (query._widen_any_target / selectors._is_any_universal
-    recognize this exact shape), so the filter is never evaluated on a
-    player handle. (Pre-fix this emitted Zone(ANY, ANY) + the universal
-    FAnd, which enumerated opponent-hidden zones — the D10/E3 leak.)
-    """
+    """Selector for ``any target``: a creature, planeswalker or player (CR 109.5), never a card in
+    a hand or library. The card side is the battlefield with the FOr type filter; the player side
+    joins through the engine's widening (query._widen_any_target and selectors._is_any_universal
+    recognize this exact shape), so the filter is never evaluated on a player."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -221,12 +183,10 @@ def _any_target() -> Selector:
             (
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                # r17-2 discriminator: the third branch never matches a
-                # card (no card carries "Player" in its types) — it marks
-                # the population as the CR 109.5 "any target" one so the
-                # engine widening can tell it apart from the printed
-                # "target creature or planeswalker" two-branch shape
-                # (which NEVER denotes a player, CR 115.1d).
+                # Never matches a card (no card has the type "Player"): it
+                # marks the population as CR 109.5's "any target", so the
+                # engine's widening can tell it from the printed "target
+                # creature or planeswalker" (never a player, CR 115.1d).
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
@@ -258,11 +218,8 @@ def _target_creature_or_planeswalker() -> Selector:
 
 
 def _up_to_one_target_creature() -> Selector:
-    """TARGET + QAtMost(1) — grammar round 8 / C17: "up to one target
-    creature" (loyalty counter / +A/+B-trample rows) keeps target mode
-    with a 1..N designation range; the interim CHOOSE encoding from the
-    R7 batches erased the legal-target decision (C15).
-    """
+    """``up to one target creature``: TARGET + QAtMost(1). CHOOSE would
+    erase which targets are legal."""
     return Selector(
         QAtMost(1),
         SelectorMode.TARGET,
@@ -395,9 +352,8 @@ def _hand_you_selector(count_qty) -> Selector:
 
 
 def _up_to_two_target_creatures() -> Selector:
-    """TARGET + QAtMost(2) — C17 (round 8): Volcanic Salvo's "each of up
-    to two target creatures and/or planeswalkers" designates 1..2 targets.
-    """
+    """TARGET + QAtMost(2): Volcanic Salvo's "each of up to two target
+    creatures and/or planeswalkers" designates 1..2 targets."""
     return Selector(
         QAtMost(2),
         SelectorMode.TARGET,
@@ -605,11 +561,9 @@ def _loyalty_wrapper(effect: Atom | Seq | DelayedTrigger, m: re.Match[str]) -> S
 
 
 def _event_reference() -> Selector:
-    """Selector bound to the triggering event's subject (grammar round 4,
-    object anaphora, convention C2: mode CHOOSE + count QConst(1) + the
-    neutral zone + empty zones; the universal filter carries no type
-    check).  Per-event subject: declare_attackers → the attacker
-    (Selector docstring)."""
+    """Selector bound to the triggering event's subject: mode CHOOSE +
+    count QConst(1) + the neutral zone; the universal filter carries no
+    type check. For declare_attackers the subject is the attacker."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -646,18 +600,15 @@ def _build_loyalty_chandra_dmg_opps(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_basri_attack_counter(m: re.Match[str]) -> SentenceOutcome:
-    """Round 4 row #17: [−1] grant a turn-scoped triggered ability —
-    whenever a creature attacks this turn, put a +N/+N counter on it.
+    """[−1]: "Whenever a creature attacks this turn, put a +N/+N counter on
+    it."
 
-    A DELAYED triggered ability (CR 603.7): DelayedTrigger(DurationEot,
-    DeclareAttackersEvent(Creature), PUT_COUNTER) — Subira's "this turn,
+    A delayed triggered ability (CR 603.7): DelayedTrigger(DurationEot,
+    DeclareAttackersEvent(Creature), PUT_COUNTER), Subira's "this turn,
     whenever" shape; it lives for the turn on its own, so it keeps working
     if the planeswalker is gone (CR 603.7c). "it" = the attacker, the
     declare_attackers event subject, bound via the event referent in the
-    PUT_COUNTER target role (convention C1: declare_attackers → the
-    attacker; C2). m21-fidelity (2026-10-29): it was GRANT_ABILITY(target=
-    this planeswalker, the trigger, DurationEot), which died with the
-    walker (a -1 at 1 loyalty did nothing). Lossy: none."""
+    PUT_COUNTER target role."""
     p = int(m.group("p"))
     t = int(m.group("t"))
     if p != t:
@@ -764,8 +715,7 @@ def _build_loyalty_put_counter(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_loyalty_return_creature(m: re.Match[str]) -> SentenceOutcome:
     """[+N]: "Return up to one target creature card from your graveyard
-    to your hand" — TARGET + QAtMost(1) per C17 (round 8; the interim
-    CHOOSE shape is replaced)."""
+    to your hand" — TARGET + QAtMost(1)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -848,8 +798,7 @@ def _build_loyalty_pt_trample(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
-    """Loyalty: "Create a P/T green Beast creature token" — color="G"
-    populated (round 8 / C-2 repair)."""
+    """Loyalty: "Create a P/T green Beast creature token"."""
     atom = Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
@@ -865,7 +814,7 @@ def _build_loyalty_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(3))),
                         keywords=(),
                         abilities=(),
-                        colors=("G",),  # C-2 repair (round 8)
+                        colors=("G",),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1155,9 +1104,9 @@ def _build_loyalty_pt_qprop(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_loyalty_dmg_power(m: re.Match[str]) -> SentenceOutcome:
     """Garruk, Savage Herald's -2: "Target creature you control deals damage
-    equal to its power to another target creature." V3 (2026-10-29): the
-    creature is the damage's ``dealer`` (CR 120.2b), so its deathtouch and
-    lifelink apply; the amount reads the same designation."""
+    equal to its power to another target creature." The creature is the
+    damage's ``dealer`` (CR 120.2b), so its deathtouch and lifelink apply;
+    the amount reads the same designation."""
     creature_you_control = Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -1225,10 +1174,8 @@ def _build_loyalty_gain_draw_put(m: re.Match[str]) -> SentenceOutcome:
     """Ugin, the Spirit Dragon [-10]: "You gain 7 life, draw seven cards, then
     put up to seven permanent cards from your hand onto the battlefield."
 
-    m21-fidelity (wave 4, 2026-10-30): "up to seven" is QAtMost(7), any
-    number from zero to seven (the resolve-time CHOOSE lane asks each pick
-    with a NONE stop). It was QConst(7), so every permanent card in hand,
-    up to seven, had to go onto the battlefield."""
+    "Up to seven" is QAtMost(7), any number from zero to seven (the
+    resolve-time CHOOSE lane asks each pick with a NONE stop)."""
     seq = Seq(
         steps=(
             Atom(
@@ -1784,15 +1731,9 @@ def _build_cost_sacrifice_discard(m: re.Match[str]) -> SentenceOutcome:
 def _build_cost_sacrifice_search(m: re.Match[str]) -> SentenceOutcome:
     """``{T}, Sacrifice this land: Search your library for a basic land
     card, put it onto the battlefield tapped, then shuffle.`` (Fabled
-    Passage s1; the s2 conditional-untap tail is the B5c-then-if-lands
-    row.)
-
-    C2 (batch 0, 2026-10-02): the printed clause says "onto the battlefield
-    TAPPED" and the grammar carries the slot (SEARCH ``tapped_on_enter``
-    opt:bool, ``_v_search`` honors it, MOVE_ZONE precedent b2b:1453) — the
-    old compile silently DROPPED it, so the <4-land branch entered untapped
-    (wave-21b suspect). The flag is stamped here now; the >=4-land falsifier
-    is the tail row's Conditional(CONTROLLER_COUNT_GE Lands>=4, UNTAP)."""
+    Passage; its conditional-untap tail is the B5c-then-if-lands-untap
+    row.) "Tapped" is SEARCH's ``tapped_on_enter`` slot; the tail row
+    untaps the land with four or more lands."""
     cost = Cost(
         parts=(
             CostTap(),
@@ -1859,7 +1800,7 @@ def _build_cost_sacrifice_search(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_cost_sacrifice_mana(m: re.Match[str]) -> SentenceOutcome:
     """{T}, Sacrifice this token: "Add one mana of any color" —
-    color="ANY" (round 8 / R8-3 / C-3 repair)."""
+    color="ANY"."""
     cost = Cost(
         parts=(
             CostTap(),
@@ -1902,7 +1843,7 @@ def _build_bullet_all_pt(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_counter_ability(m: re.Match[str]) -> SentenceOutcome:
-    # R5-10: an ability, not a spell (STACK_KIND_EQ ACTIVATED or TRIGGERED).
+    # An ability, not a spell (STACK_KIND_EQ ACTIVATED or TRIGGERED).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(pairs=(("target", target_stack_ability("ACTIVATED", "TRIGGERED")),)),
@@ -1911,7 +1852,6 @@ def _build_bullet_counter_ability(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_counter_spell(m: re.Match[str]) -> SentenceOutcome:
-    # R5-10: "target spell" (STACK_KIND_EQ SPELL).
     atom = Atom(
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(pairs=(("target", target_spell()),)),
@@ -1920,8 +1860,7 @@ def _build_bullet_counter_spell(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
-    """• "Create a P/T green Beast creature token" — color="G"
-    (round 8 / C-2 repair)."""
+    """• "Create a P/T green Beast creature token"."""
     atom = Atom(
         verb=Verb.CREATE_TOKEN,
         args=AtomArgs(
@@ -1937,7 +1876,7 @@ def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
-                        colors=("G",),  # C-2 repair (round 8)
+                        colors=("G",),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -1976,13 +1915,11 @@ def _build_bullet_copy_token(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_bullet_cant_block(m: re.Match[str]) -> SentenceOutcome:
     """``• Creatures without flying can't block this turn.`` (Destructive
-    Tampering; C5 — the lossy MODIFY_PT zero-delta placeholder is replaced
-    by the real PREVENT_EFFECT shape: a universal condition (the clause
+    Tampering) — PREVENT_EFFECT with a universal condition (the clause
     names no object), a DeclareBlockersEvent whose blocker-side ``filter``
-    is FAnd(TYPE_EQ Creature, FNot(KEYWORD_HAS FLYING)) — the Shacklegeist
-    blocked-slot idiom turned onto the blocker side — and the printed
-    "this turn" as DurationEot. PREVENT_EFFECT carries no ``target`` role
-    (PITFALLS: atoms with a target= under _VERB_ROLES fail validation)."""
+    is FAnd(TYPE_EQ Creature, FNot(KEYWORD_HAS FLYING)), and the printed
+    "this turn" as DurationEot. PREVENT_EFFECT has no ``target`` role
+    (validation rejects one)."""
     atom = Atom(
         verb=Verb.PREVENT_EFFECT,
         args=AtomArgs(
@@ -2191,7 +2128,7 @@ def _build_bullet_return_nonland_hand(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome:
     """• "Return up to two target creatures to their owners' hands" —
-    TARGET + QAtMost(2) per C17 (round 8)."""
+    TARGET + QAtMost(2)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -2215,21 +2152,14 @@ def _build_bullet_return_two_creatures_hand(m: re.Match[str]) -> SentenceOutcome
     return EffectOutcome(effect=atom)
 
 
-# ---------------------------------------------------------------------------
-# Grammar round-7-B batch builders (doc 2026-09-28/03 §3, R7-B top-ups)
-# ---------------------------------------------------------------------------
+# --- Other build functions ---
 
 
 def _build_flip_coin_pay_life(m: re.Match[str]) -> SentenceOutcome:
-    """``{T}, Pay 3 life: Flip a coin.`` (Tavern Swindler s1) —
-    ActivatedAbility whose cost is CostTap + CostLife (the standing cost
-    parts list; ``CostLife`` already exists in the grammar) and whose
-    effect is the role-less Verb.FLIP_COIN atom (r3b: "the coin is
-    flipped; the outcome is read by FAtomPred.FLIP_WON, never by an arg").
-    Together with the B5b-flip-won row this consumes the FLIP_COIN orphan
-    (PC-6 must drop to the standing 1 = PHASE_IN).
-    C16: the coin flip is the stochastic decision vertex; the activation
-    itself is fully forced."""
+    """``{T}, Pay 3 life: Flip a coin.`` (Tavern Swindler) —
+    ActivatedAbility whose cost is CostTap + CostLife and whose effect is
+    the role-less Verb.FLIP_COIN atom: the coin is flipped, and
+    FAtomPred.FLIP_WON reads the outcome, never an argument."""
     return AbilityOutcome(
         ability=ActivatedAbility(
             cost=Cost(parts=(CostTap(), CostLife(amount=QConst(int(m.group(1)))))),
@@ -2240,17 +2170,13 @@ def _build_flip_coin_pay_life(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
     """``Then if you control four or more lands, untap that land.`` (Fabled
-    Passage s2) — "Then " continuation merged after the search+shuffle
+    Passage) — "Then " continuation merged after the search+shuffle
     effect; Conditional(CONTROLLER_COUNT_GE(Land, QConst(4)), UNTAP).
-    The referent is bound ``referent="result"`` (R7-1 result register),
-    NOT the doc sketch's ``referent="target"``: checked against the landed
-    Fabled Passage golden, s1 is a SEARCH (no TARGET selector exists), so
-    "that land" names the card the previous sentence searched-and-moved =
-    the result register — the only antecedent that exists today (C12).
-    "four or more lands" is a CONTROLLER_COUNT_GE over lands with the
-    you-scoped board reading (no ``who`` role on that predicate).
-    C16: the four-lands gate is a board condition, the untap target is the
-    register — nothing controller-chosen is defaulted."""
+    "That land" is ``referent="result"``, not ``"target"``: the previous
+    sentence is a SEARCH (no TARGET selector exists), so the only
+    antecedent is the card it searched and moved. "four or more lands" is
+    a CONTROLLER_COUNT_GE over lands with the you-scoped board reading (no
+    ``who`` role on that predicate)."""
     untap = Atom(
         verb=Verb.UNTAP,
         args=AtomArgs(
@@ -2282,16 +2208,13 @@ def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
     """``Then that creature deals damage equal to its power to target
-    creature you don't control.`` (Hunter's Edge s2) — "Then "
+    creature you don't control.`` (Hunter's Edge) — "Then "
     continuation; DEAL_DAMAGE with target = the new TARGET creature.
     "That creature" is the previous sentence's countered creature: the
-    ``result`` register PUT_COUNTER writes (R7-1). V3 (2026-10-29): it is
-    both the ``dealer`` (CR 120.2b: the creature deals the damage, so its
-    deathtouch and lifelink apply) and the power read. Before, the amount
-    was ``QProp("target")``, which on this two-target spell reads the
-    damage step's own target (the opposing creature).
-    C16: the damage target is an open controller choice; the amount is
-    board-dynamic, not a choice."""
+    ``result`` register PUT_COUNTER writes. It is both the ``dealer`` (CR
+    120.2b: the creature deals the damage, so its deathtouch and lifelink
+    apply) and the power read; ``QProp("target")`` would read this
+    two-target spell's damage target (the opposing creature)."""
     that_creature = Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -2316,17 +2239,11 @@ def _build_then_that_creature_damage_power(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-# ---------------------------------------------------------------------------
-# Grammar round-7 batch builders (doc 2026-09-28/03 §3 R7-A)
-# ---------------------------------------------------------------------------
-
-
 def _build_untap_that_creature(m: re.Match[str]) -> SentenceOutcome:
-    """``Untap that creature.`` (Traitorous Greed s2) — UNTAP whose
-    target is the spell's previously-targeted creature (R7-1): R4
-    ``referent="target"`` (the neutral-zone CHOOSE/QConst(1) convention
-    the B5b counter-unless-pays row established), so the anaphor binds
-    the s1 GAIN_CONTROL target today.  C16: no choice — forced."""
+    """``Untap that creature.`` (Traitorous Greed) — UNTAP whose target is
+    the spell's previously targeted creature: ``referent="target"`` with the
+    neutral-zone CHOOSE/QConst(1) convention, so the anaphor binds the
+    previous sentence's GAIN_CONTROL target."""
     atom = Atom(
         verb=Verb.UNTAP,
         args=AtomArgs(
@@ -2349,20 +2266,15 @@ def _build_untap_that_creature(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     """``Then it fights up to one target creature you don't control.``
-    (Primal Might s2) — Verb.FIGHT (R7-8/R7-9a; the "Then " prefix makes
-    this a continuation, merged after the +X/+X step).
+    (Primal Might) — Verb.FIGHT; the "Then " prefix makes this a
+    continuation, merged after the +X/+X step.
     The attacker ("it") is the prior sentence's +X/+X object: FIGHT has
-    no attacker role (the r8 canonical documents the attacker as the
-    source object), so the anaphoric attacker binds the result register
-    executor-side; documented.
+    no attacker role, so the executor binds the attacker to the result
+    register.
 
-    m21-fidelity (wave 4, 2026-10-30; was B-79): the foe is a TARGET with
-    QAtMost(1), the spell's second target slot, designated as it is cast
-    (CR 601.2c) and allowed to be empty (CR 115.6). It was a resolution-time
-    pick of exactly one (CHOOSE + QConst(1), flipped to ONE_OF), so a
-    hexproof creature could be fought and the fight could not be declined.
-    The cast lane designates it per slot, possibly empty
-    (stack.designate_slots)."""
+    The foe is a TARGET with QAtMost(1), the spell's second target slot,
+    designated as it is cast (CR 601.2c) and allowed to be empty (CR
+    115.6); the cast lane designates it per slot (stack.designate_slots)."""
     atom = Atom(
         verb=Verb.FIGHT,
         args=AtomArgs(
@@ -2392,53 +2304,30 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-# ---------------------------------------------------------------------------
-# Grammar round-8-C coverage batch builders (doc 2026-09-28/08 §8-C)
-# ---------------------------------------------------------------------------
-
-
 def _build_get_emblem(m: re.Match[str]) -> SentenceOutcome:
     """``[−N]: You get an emblem with "…".`` (Basri Ket / Liliana, Waker of
-    the Dead / Garruk, Unleashed — ONE template for all three, C19).
+    the Dead / Garruk, Unleashed — one template for all three).
 
-    Verb.GET_EMBLEM (R8-7) is a ROLE-LESS MARKER: the quoted inner text
-    NEVER enters the ability IR — the emblem's own abilities are the
-    payload via the card-level emblem attach (compile_pool two-pass,
-    compiler.py L1374+; all three emblems already attach today — the
-    [−N] rows were the last missing piece).  Mirrors the FLIP_COIN
-    role-less row exactly.  Executor deferred per the MANDATE_ATTACK /
-    FIGHT orphan precedent (PC-6 unaffected: the verb is consumed, the
-    attach is compile-pool state).
-
-    C16: none — fully forced (the emblem is granted; its inner decisions
-    live in the attached emblem's own compiled tree)."""
+    Verb.GET_EMBLEM is a role-less marker: the quoted inner text never
+    enters the ability IR. The emblem's own abilities are the payload, the
+    emblem record compile_pool links to the card."""
     return _loyalty_wrapper(Atom(verb=Verb.GET_EMBLEM, args=AtomArgs(pairs=())), m)
 
 
 def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     """``[−2]: Whenever one or more nontoken creatures attack this turn,
     create that many 1/1 white Soldier creature tokens that are tapped and
-    attacking.`` (Basri Ket) — a DELAYED triggered ability (CR 603.7):
+    attacking.`` (Basri Ket) — a delayed triggered ability (CR 603.7):
     DelayedTrigger(DurationEot, DeclareAttackersEvent(nontoken creature),
     CREATE_TOKEN), the Subira "this turn, whenever" shape. It lives for the
-    turn on its own (CR 603.7c), so the loyalty PAY decision stays the
-    single activation vertex, the trigger fires once per attack
-    declaration, and it still works after Basri Ket is gone (a -2 at 2
-    loyalty kills him, CR 704.5i). m21-fidelity (2026-10-29): it was
-    GRANT_ABILITY(target=Basri, the trigger, DurationEot), which made no
-    Soldiers once Basri had died.
+    turn on its own (CR 603.7c), so it fires once per attack declaration
+    and still works after Basri Ket is gone (a -2 at 2 loyalty kills him,
+    CR 704.5i).
 
-    Filter: FAnd(Creature, FNot(IS_TOKEN)) — "nontoken" via the Gadrak
-    FAtomPred.IS_TOKEN (FNot precedent: b2b 'another' →
-    FNot(IS_SOURCE)); the nontoken condition also blocks the self-feed
-    the created tokens would otherwise cause.  "one or more" is intrinsic
-    to a filtered event firing (every qualifying declaration event
-    satisfies ≥1) — no quantity collapse; the token count stays OPEN via
-    QProp(event, THAT_MANY_COUNT) (R7-5).
-    TokenSpec carries color="W" (R8-2) + enters_tapped/enters_attacking
-    True (R8-4, the C-2 repair this row was the pool case for).
-    C16: open — the [−2] loyalty activation, and each attack event's
-    attacker set (board-dynamic "that many")."""
+    "Nontoken" is FNot(IS_TOKEN), which also keeps the created tokens from
+    feeding the trigger. "One or more" is intrinsic to a filtered event
+    firing; the token count is QProp(event, THAT_MANY_COUNT). The TokenSpec
+    is white and enters tapped and attacking."""
     p = int(m.group("p"))
     t = int(m.group("t"))
     delayed = DelayedTrigger(
@@ -2485,21 +2374,16 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_waive_cast_from_hand(m: re.Match[str]) -> SentenceOutcome:
     """``Until end of turn, you may cast spells from your hand without
-    paying their mana costs.`` (Chandra, Flame's Catalyst [−8] s2).
+    paying their mana costs.`` (Chandra, Flame's Catalyst [−8], second
+    sentence).
 
-    House permission idiom (B4-cast-goblin-top-library): empty-cost
-    ActivatedAbility carrying OptionalEffect(CAST) — "may" stays the
-    open decision (C15), "which card" stays open via the CHOOSE selector
-    over your hand (QUnbounded — any number).  The mana waiver is the
-    CAST atom's ``cost`` role = Cost(parts=()) — the established empty-
-    cost waiver reading (B5c-loyalty-may-cast-graveyard precedent; the
-    b3 UNCOVERED note calls it out explicitly).
-    Lossy (C11 class, verbatim): "Until end of turn" — CAST/optional-cast
-    have no duration role (R9 grammar item: CAST duration role).
-    Assembly note: non-continuation second sentence of the [−8]
-    activation; the empty-cost ActivatedAbility assembles as a sibling
-    node (r7-B deviation-2 class, executor association note).
-    C16: open — whether to cast, which cards, how many."""
+    The permission idiom (as B4-cast-goblin-top-library): an empty-cost
+    ActivatedAbility carrying OptionalEffect(CAST) — "may" stays the open
+    decision, and "which card" stays open via the CHOOSE selector over your
+    hand (QUnbounded — any number). The mana waiver is the CAST atom's
+    ``cost`` role = Cost(parts=()). Not a continuation, so the
+    ActivatedAbility assembles as a sibling node of the [−8] activation.
+    Lossy: "Until end of turn" — CAST has no duration role."""
     atom = Atom(
         verb=Verb.CAST,
         args=AtomArgs(
@@ -2524,19 +2408,15 @@ def _build_waive_cast_from_hand(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_play_cards_exiled_this_way(m: re.Match[str]) -> SentenceOutcome:
     """``Until end of turn, you may play cards exiled this way.`` (Chandra,
-    Heart of Fire [+1] s2) — same empty-cost ActivatedAbility +
-    OptionalEffect(CAST) permission idiom, source scoped by
-    FAtomPred.IS_EXILED_WITH_SOURCE (R8-6: "exiled by this ability's
-    source" — HoF's own top-three exile; HoF exiles from HER library,
-    so Zone(EXILE, YOU) is the printed zone).
+    Heart of Fire [+1], second sentence) — the same empty-cost
+    ActivatedAbility + OptionalEffect(CAST) permission idiom, the source
+    scoped by FAtomPred.IS_EXILED_WITH_SOURCE (the cards this source
+    exiled from your library, so Zone(EXILE, YOU)). The cards are played
+    for their costs: no ``cost`` role (an empty Cost would be a "without
+    paying its mana cost" waiver, CR 118.9, that the card does not print).
 
-    Lossy (C11 class, verbatim): "play" covers lands too, CAST is the
-    only from-zone permission verb (R9 item: PLAY-from-zone, or a land
-    role on CAST); "Until end of turn" — no CAST duration role. The cards
-    are played for their costs: no ``cost`` role (2026-11-05: it carried
-    the empty Cost, a "without paying its mana cost" waiver, CR 118.9, that
-    the card does not print).
-    C16: open — whether to play, which exiled cards, how many."""
+    Lossy: "play" covers lands too, but CAST is the only from-zone
+    permission verb; "Until end of turn" — CAST has no duration role."""
     atom = Atom(
         verb=Verb.CAST,
         args=AtomArgs(
@@ -2560,23 +2440,16 @@ def _build_play_cards_exiled_this_way(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome:
     """``This ability costs {1} less to activate for each Shrine you
-    control.`` (Sanctum of Tranquil Light) — CostModifier sibling node
-    (T3 round K, b4 precedent _build_total_power_cost_modifier):
+    control.`` (Sanctum of Tranquil Light) — a CostModifier sibling node:
     filter=IS_SOURCE (the printed "This ability" anchor object — the
-    source card),     delta=CostDeltaReduceGeneric(QBin(MUL, {N},
-    QCount(Shrine-you-control))) — the "for each X" multiplication,
-    Shrine count via the b2a ``TYPE_EQ "Shrine"`` census (C1 batch,
-    2026-10-02: the tribe noun is a type-line word — "Legendary
-    Enchantment — Shrine" — read by the executor's TYPE/SUBTYPE/SUPERTYPE
-    word test; the superseded "supertype name in NAME_EQ position"
-    rationale was wrong: NAME_EQ is the closed-card-name pred and the
-    old bake counted 0 on every board, killing the discount).
+    source card), delta=CostDeltaReduceGeneric(QBin(MUL, {N},
+    QCount(Shrines you control))) — the "for each X" multiplication. The
+    Shrine count uses ``TYPE_EQ "Shrine"``: the executor's type test reads
+    every type-line word ("Legendary Enchantment — Shrine").
 
-    Lossy (verbatim): "to activate" — CostModifier's filter vocabulary
-    is spell/permanent-scoped, the sibling node's adjacency to the {5}{W}
-    activation is the binding signal for the executor (R9 item: ability-
-    scope filter for CostModifier).
-    C16: none — board-conditioned amount, fully forced."""
+    Lossy: "to activate" — CostModifier's filter vocabulary is
+    spell/permanent-scoped; the sibling node's adjacency to the {5}{W}
+    activation is the binding signal for the executor."""
     n = int(m.group("n"))
     modifier = CostModifier(
         filter=FAtom(pred=FAtomPred.IS_SOURCE),
@@ -2608,23 +2481,17 @@ def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome
 
 def _build_those_no_untap_next(m: re.Match[str]) -> SentenceOutcome:
     """``Those creatures don't untap during their controller's next untap
-    step.`` (Frost Breath s2) — grammar round 9-B row 12, closing the
-    Capture-Sphere "step scope dropped" lossy family with the R9-4 slots:
-    PREVENT_EFFECT over TapStateEvent(tapped=False — the untap attempt is
-    the NEW state being prevented; Capture Sphere mirror), anaphoric
-    "Those creatures" = s1's TARGET set via FAtom(IS_ANY_TARGET) on both
-    the condition and the event filter (Selfless Savior / Subira-s1
-    target-set convention; s1 is ``B5c-tap-up-to-two``'s TARGET QAtMost(2)
-    selector), step=Step.UNTAP (R9-4 role) and the NEXT-step lifetime via
-    DurationUntilNextStep(UNTAP, owner_scoped=True) — "THEIR controller's"
-    binds the step to each affected creature's controller, not the active
-    turn.
+    step.`` (Frost Breath) — PREVENT_EFFECT over TapStateEvent(tapped=False:
+    the untap is the new state being prevented), with "Those creatures" =
+    the previous sentence's TARGET set via FAtom(IS_ANY_TARGET) on both the
+    condition and the event filter, step=Step.UNTAP, and the next-step
+    lifetime DurationUntilNextStep(UNTAP, owner_scoped=True): "THEIR
+    controller's" binds the step to each affected creature's controller,
+    not the active player.
 
-    The row lands as an EffectOutcome: Frost is an instant, so the
-    compiler folds it into the SpellAbility(INSTANT) Seq beside the s1
-    tap atom — the prevention is a spell-resolved continuous effect (the
-    duration node carries it past resolution), never a stray StaticAbility.
-    C16: none — fully forced."""
+    An EffectOutcome: Frost Breath is an instant, so the compiler folds it
+    into the SpellAbility(INSTANT) Seq beside the tap atom; the duration
+    node carries the prevention past resolution."""
     targeted = FAtom(pred=FAtomPred.IS_ANY_TARGET)
     atom = Atom(
         verb=Verb.PREVENT_EFFECT,
@@ -2643,23 +2510,13 @@ def _build_those_no_untap_next(m: re.Match[str]) -> SentenceOutcome:
 def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
     """``{1}{R}, {T}, Discard your hand: Until end of turn, whenever a
     creature you control with power 2 or less deals combat damage to a
-    player, draw a card.`` (Subira s2) — grammar round 9-B row 13,
-    DelayedTrigger (R9-5, C22): the activation's effect IS the delayed
-    trigger registration — live DurationEot ("Until end of turn" REQUIRED
-    duration — a trigger without a lifetime window would just be a static
-    TriggeredAbility), event = DamageDealtEvent(amount=QUnbounded() — any
-    amount, the b2b convention), combat=True, source = FAnd(TYPE_EQ
-    Creature, CONTROLLER_IS YOU, POWER_LE N) (the dealer side rides the
-    R9-4-era ``source`` slot, b2b _noncombat_source_event idiom); the
-    trigger's effect is the DRAW atom.  "Discard your hand" cost:
-    CostDiscard over ALL cards in your hand (universal filter, the
-    b4 _all-cards shape).
-
-    B-57: "to a player" is the damaged-recipient filter b2b's
-    ``_to_a_player`` (not a permanent, CR 120.1). It used to be dropped
-    (the universal FAnd(())), so a blocked creature drew off its blocker.
-    C16: open — which qualifying creature to attack with; draw is forced
-    once the event fires."""
+    player, draw a card.`` (Subira) — the activation's effect is a
+    DelayedTrigger with DurationEot (without a lifetime it would just be a
+    static TriggeredAbility): event = DamageDealtEvent(amount=QUnbounded(),
+    any amount; combat=True; source = FAnd(TYPE_EQ Creature, CONTROLLER_IS
+    YOU, POWER_LE N); filter = templates_b2b's ``_to_a_player``, a player,
+    not a permanent, CR 120.1), effect = the DRAW atom. "Discard your
+    hand" is CostDiscard over all cards in your hand."""
     dealer = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -2693,7 +2550,7 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
                 duration=DurationEot(),
                 event=DamageDealtEvent(
                     amount=QUnbounded(),
-                    filter=_to_a_player(),  # B-57
+                    filter=_to_a_player(),
                     source=dealer,
                     combat=True,
                 ),
@@ -2707,21 +2564,14 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
 def _build_herald_assign_as_unblocked(m: re.Match[str]) -> SentenceOutcome:
     """``[−7]: Until end of turn, creatures you control gain "You may have
     this creature assign its combat damage as though it weren't blocked."``
-    (Garruk, Savage Herald — grammar round 10 b5c row, R10-4/C28).
+    (Garruk, Savage Herald).
 
     The quoted embedded ability text is a continuous static:
     ``GRANT_ABILITY(target=creatures you control, ability=StaticAbility(
     OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, scope=AS_UNBLOCKED))),
-    duration=DurationEot)`` — the C28 reading keeps the surface "You may"
-    OUTSIDE the atom (OptionalEffect layer, mirror of the MANA_POLICY
-    "may spend" reading) while ``DurationEot`` rides the GRANT itself
-    (Basri precedent: duration on the grant atom, not the granted
-    ability).  The policy verb's executor is deferred per the
-    MANA_POLICY / ADD_LAND_PLAY orphan precedent; the grammar side is
-    complete.
-
-    C16: open — the [−N] loyalty activation is the single decision
-    vertex (no inner may/target beyond the granted optional policy)."""
+    duration=DurationEot)`` — "You may" stays OUTSIDE the atom (the
+    OptionalEffect layer, as MANA_POLICY's "may spend") while
+    ``DurationEot`` rides the grant, not the granted ability."""
     granted = StaticAbility(
         effect=OptionalEffect(
             inner=Atom(
@@ -2746,7 +2596,7 @@ def _build_herald_assign_as_unblocked(m: re.Match[str]) -> SentenceOutcome:
 
 
 TEMPLATES: tuple[Template, ...] = (
-    # --- MISC (13) ---
+    # --- MISC ---
     Template(
         tid="B5c-then-return-is",
         name="then you may return instant/sorcery from graveyard to hand",
@@ -2867,7 +2717,7 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_etb_soul_counter,
     ),
-    # --- LOYALTY (26) ---
+    # --- LOYALTY ---
     Template(
         tid="B5c-loyalty-chandra-dmg-any",
         name="loyalty: chandra deals N damage to any target",
@@ -3149,7 +2999,7 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_loyalty_basri_attack_counter,
     ),
-    # --- COST (17) ---
+    # --- COST ---
     Template(
         tid="B5c-cost-shrine-dmg",
         name="{N}, discard land/Shrine: shrine damage",
@@ -3330,7 +3180,7 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_cost_sacrifice_mana,
     ),
-    # --- BULLET (17) ---
+    # --- BULLET ---
     Template(
         tid="B5c-bullet-all-pt",
         name="all creatures get -A/-B until end of turn",
@@ -3481,7 +3331,7 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_bullet_return_two_creatures_hand,
     ),
-    # --- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---
+    # --- OTHER ---
     Template(
         tid="B5c-untap-that-creature",
         name="untap that creature (target-referent untap)",
@@ -3500,7 +3350,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=100,
         build=_build_then_it_fights_up_to_one,
     ),
-    # --- grammar round-7-B batch (no-grammar top-ups; doc 2026-09-28/03 §3) ---
     Template(
         tid="B5c-flip-cost",
         name="tap, pay N life: flip a coin (Tavern Swindler)",
@@ -3530,7 +3379,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_then_that_creature_damage_power,
     ),
-    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
     Template(
         tid="B5c-get-emblem",
         name="loyalty: you get an emblem with (marker, C19)",
@@ -3586,7 +3434,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_shrine_activation_cost_reduction,
     ),
-    # --- grammar round-9-B coverage batch (doc 2026-09-28/11 §9-B rows 12-13) ---
     Template(
         tid="B5c-those-no-untap-next",
         name="targeted creatures skip their controller's next untap step (R9-4 step+duration)",
@@ -3610,7 +3457,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_subira_delayed_draw,
     ),
-    # --- grammar round-10 coverage batch (doc 2026-09-29/02 §phase-10-B row 4) ---
     Template(
         tid="B5c-loyalty-assign-as-unblocked",
         name="creatures you control may assign damage as though unblocked (R10-4/C28)",
@@ -3627,7 +3473,7 @@ TEMPLATES: tuple[Template, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# UNCOVERED — 1 normalized-key row
+# UNCOVERED: the shapes no template covers, as (shape_key, reason) rows
 # ---------------------------------------------------------------------------
 
 UNCOVERED: tuple[tuple[str, str], ...] = (

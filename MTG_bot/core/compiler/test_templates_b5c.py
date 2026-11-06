@@ -1,16 +1,15 @@
 """Tests for B5c bucket templates (templates_b5c.py).
 
 Covers all 91 distinct concrete sentences in
-``/tmp/opencode/phase1_buckets/B5c.json`` (90 normalized keys, 100
-occurrences):
+``/tmp/opencode/phase1_buckets/B5c.json``:
 
-- 74 sentences template-covered by 73 templates
+- 90 sentences template-covered by 87 templates
   (``B5c-bullet-gain-life`` matches both "You gain 3 life." and
-  "You gain 4 life.")
-- 17 sentences UNCOVERED (no grammar construct; recorded for gap tracking)
+  "You gain 4 life."; ``B5c-get-emblem`` matches three emblem rows)
+- 1 sentence UNCOVERED (recorded in UNCOVERED)
 - 0 rule-reminder shapes (B5c has no RR category)
 
-PC-3: every concrete sentence fullmatches at most one template.
+Every concrete sentence fullmatches at most one template.
 
 The embedded :data:`SHAPES` table is the single source of truth for the
 core matching/structural/canonical tests, so they run without the JSON.
@@ -502,7 +501,7 @@ _EXPECTED_STATIC = ("B5c-zombies-pt",)
 _EXPECTED_ETB = ("B5c-etb-soul-counter",)
 
 _EXPECTED_ACTIVATED = (
-    # 27 loyalty
+    # loyalty
     "B5c-loyalty-chandra-dmg-any",
     "B5c-loyalty-chandra-dmg-opps",
     "B5c-loyalty-draw-discard",
@@ -530,7 +529,7 @@ _EXPECTED_ACTIVATED = (
     "B5c-loyalty-top-owner-library",
     "B5c-loyalty-may-cast-graveyard",
     "B5c-loyalty-basri-attack-counter",
-    # 17 cost
+    # cost
     "B5c-cost-shrine-dmg",
     "B5c-cost-sacrifice-counter",
     "B5c-cost-sacrifice-destroy",
@@ -562,8 +561,7 @@ for _t in _EXPECTED_ETB:
     EXPECTED_KIND_BY_TID[_t] = "ability:EtBState"
 for _t in _EXPECTED_ACTIVATED:
     EXPECTED_KIND_BY_TID[_t] = "activated"
-# grammar round 8-C (doc 2026-09-28/08): four new ActivatedAbility rows +
-# the Sanctum CostModifier sibling (a new outcome kind for this module).
+# Four more ActivatedAbility rows + the Sanctum CostModifier sibling.
 for _t in (
     "B5c-get-emblem",
     "B5c-loyalty-soldier-attack-tokens",
@@ -572,11 +570,11 @@ for _t in (
 ):
     EXPECTED_KIND_BY_TID[_t] = "activated"
 EXPECTED_KIND_BY_TID["B5c-shrine-activation-cost"] = "ability:CostModifier"
-# grammar round 9-B: Frost s2 instant-folded PREVENT (effect) + Subira s2
-# delayed-draw activation (activated).
+# Frost Breath's instant-folded PREVENT (effect) + Subira's delayed-draw
+# activation (activated).
 EXPECTED_KIND_BY_TID["B5c-those-no-untap-next"] = "effect"
 EXPECTED_KIND_BY_TID["B5c-cost-discard-hand-delayed-draw"] = "activated"
-# grammar round 10: Garruk, Savage Herald [−N] assign-as-unblocked grant.
+# Garruk, Savage Herald [−N] assign-as-unblocked grant.
 EXPECTED_KIND_BY_TID["B5c-loyalty-assign-as-unblocked"] = "activated"
 
 
@@ -611,10 +609,10 @@ EXPECTED_LOYALTY_DELTA: dict[str, int] = {
     "B5c-loyalty-assign-as-unblocked": -7,
 }
 
-# Expected ordered cost-part types per cost template.
-# R1b canonicalization: Cost.parts is construction-sorted by canonical tag
-# (mana colors alphabetically, then generic, then non-mana parts), so several
-# expected tuples below no longer mirror the source-symbol order.
+# Expected ordered cost-part types per cost template. Cost.parts is sorted
+# by canonical tag at construction (mana colors alphabetically, then
+# generic, then non-mana parts), so several tuples below do not mirror the
+# printed symbol order.
 EXPECTED_COST_PARTS: dict[str, tuple[type, ...]] = {
     "B5c-flip-cost": (CostLife, CostTap),
     "B5c-cost-shrine-dmg": (CostManaGeneric, CostDiscard),
@@ -654,7 +652,7 @@ EXPECTED_COST_PARTS: dict[str, tuple[type, ...]] = {
 }
 
 # The single "primary" keyword each rule-reminder template encodes. Several
-# are documented lossy (secondary keywords dropped; see templates_b5c.py).
+# are lossy (secondary keywords dropped; see templates_b5c.py).
 EXPECTED_REMIND_KEYWORD: dict[str, Keyword] = {
     "B5c-remind-trample": Keyword.TRAMPLE,
     "B5c-remind-vigilance": Keyword.VIGILANCE,
@@ -931,12 +929,12 @@ class TestB5cShapeTable(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: PC-3 Matching
+# Test: Matching
 # ---------------------------------------------------------------------------
 
 
 class TestB5cMatching(unittest.TestCase):
-    """PC-3: every B5c sentence fullmatches at most one template."""
+    """Every B5c sentence fullmatches at most one template."""
 
     def test_pc3_at_most_one_match(self) -> None:
         for sent, _cat, _ in SHAPES:
@@ -1034,7 +1032,7 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(amount.value, 6)
         target = _pairs(atom)["target"]
         self.assertIsInstance(target, Selector)
-        self.assertIs(target.mode, SelectorMode.TARGET)  # C17 (round 8)
+        self.assertIs(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.count, QAtMost(2))
         self.assertIsInstance(target.filter, FOr)
         names = {c.string_value for c in target.filter.children if isinstance(c, FAtom)}
@@ -1152,7 +1150,6 @@ class TestB5cIrStructure(unittest.TestCase):
         cost = _as_cost_loyalty(ability.cost.parts[0])
         self.assertIsInstance(cost.delta, QX, "dynamic delta must be QX")
         atom = _as_atom(ability.effect)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             _pairs(atom)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -1163,8 +1160,7 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIsInstance(sel.filter, FAnd)
         children = sel.filter.children
         self.assertEqual(len(children), 2)
-        # R1a canonicalization (ontology §3 SET-R1a): children construction-
-        # sorted by canonical_json; both bounds pinned by pred, order by law.
+        # FAnd children are sorted by canonical_json at construction.
         self.assertEqual(list(children), sorted(children, key=canonical_json))
         by_pred = {c.pred: c for c in children}
         self.assertEqual(len(by_pred), 2)
@@ -1196,7 +1192,7 @@ class TestB5cIrStructure(unittest.TestCase):
     def test_loyalty_draw_discard_seq(self) -> None:
         seq = _as_seq(_activated_effect("B5c-loyalty-draw-discard"))
         self.assertEqual(
-            # T4 P1a: the discard step is the merged MOVE_ZONE atom.
+            # The discard step is a MOVE_ZONE atom.
             [s.verb for s in _seq_steps_as_atoms(seq)],
             [Verb.DRAW, Verb.MOVE_ZONE],
         )
@@ -1254,8 +1250,8 @@ class TestB5cIrStructure(unittest.TestCase):
         amount = _pairs(atom)["amount"]
         self.assertIsInstance(amount, QProp)
         self.assertIs(amount.field, QPropField.POWER)
-        # V3 (2026-10-29): the target creature you control deals the damage
-        # (CR 120.2b); the dealer is the designation the power is read from.
+        # The target creature you control deals the damage (CR 120.2b); the
+        # dealer is the designation the power is read from.
         self.assertEqual(_pairs(atom)["dealer"], amount.referent)
 
     def test_loyalty_lose_per_creature(self) -> None:
@@ -1281,7 +1277,6 @@ class TestB5cIrStructure(unittest.TestCase):
     def test_loyalty_discard_exile_top_seq(self) -> None:
         seq = _as_seq(_activated_effect("B5c-loyalty-discard-exile-top"))
         discard, exile = _seq_steps_as_atoms(seq)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
         self.assertIs(discard.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             _pairs(discard)["destination"],
@@ -1295,7 +1290,6 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(cards.mode, SelectorMode.ALL)
         self.assertIs(cards.zones[0].kind, ZoneKind.HAND)
         self.assertIs(cards.zones[0].controller, ControllerRef.YOU)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
         self.assertIs(exile.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             _pairs(exile)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -1346,15 +1340,9 @@ class TestB5cIrStructure(unittest.TestCase):
         }
         self.assertEqual(names, {"Instant", "Sorcery"})
 
-    # -- Round 5 (grammar round 4 shapes) ------------------------------
-
     def test_loyalty_basri_attack_counter(self) -> None:
-        """Basri [−1]: a DelayedTrigger(DurationEot) — CR 603.7.
-
-        # re-pinned 2026-10-29: m21-fidelity. It was GRANT_ABILITY(target=this planeswalker,
-        # TriggeredAbility, DurationEot), which died with the planeswalker (a -1 at 1 loyalty
-        # did nothing). A delayed trigger lives for the turn on its own (CR 603.7c).
-        """
+        """Basri [−1]: a DelayedTrigger(DurationEot) (CR 603.7), which lives
+        for the turn on its own (CR 603.7c)."""
         ability = _activated_ability(_match_outcome("B5c-loyalty-basri-attack-counter"))
         delta = _as_cost_loyalty(ability.cost.parts[0]).delta
         self.assertEqual(delta, -1)
@@ -1405,11 +1393,9 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIsNotNone(_find_atom(put.target.filter, FAtomPred.IS_SOURCE))
 
     def test_shrine_cost_reduction_census_is_type_eq_not_name_eq(self) -> None:
-        # C1 batch (2026-10-02): the "for each Shrine you control" census
-        # must be the type-line word pred (TYPE_EQ "Shrine", the audited
-        # sanctum_of_all_search_fire idiom). NAME_EQ is the closed-card-
-        # name pred and counted 0 on every board, silently zeroing the
-        # discount (the sanctum_tranquil_light STOP, 22c).
+        # The "for each Shrine you control" census is the type-line word pred
+        # (TYPE_EQ "Shrine"); NAME_EQ is the card-name pred and would count 0
+        # on every board.
         outcome: Any = _match_outcome("B5c-shrine-activation-cost")
         modifier: Any = outcome.ability
         self.assertIsInstance(modifier, CostModifier)
@@ -1464,11 +1450,10 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(spec.toughness, QConst(3))
 
     def test_bullet_cant_block_is_prevent_effect(self) -> None:
-        """C5: 'Creatures without flying can't block this turn' is a real
+        """'Creatures without flying can't block this turn' is a
         PREVENT_EFFECT — universal condition, DeclareBlockersEvent whose
-        blocker-side filter names the creature-without-flying set (the
-        Shacklegeist FNot(FLYING) idiom on the blocker side), DurationEot,
-        and NO target role (PREVENT_EFFECT carries none)."""
+        blocker-side filter names the creature-without-flying set,
+        DurationEot, and NO target role (PREVENT_EFFECT carries none)."""
         atom = _as_atom(_as_effect(_match_outcome("B5c-bullet-cant-block")).effect)
         self.assertIs(atom.verb, Verb.PREVENT_EFFECT)
         pairs = _pairs(atom)
@@ -1501,7 +1486,6 @@ class TestB5cIrStructure(unittest.TestCase):
 
     def test_bullet_exile_graveyard(self) -> None:
         atom = _as_atom(_as_effect(_match_outcome("B5c-bullet-exile-graveyard")).effect)
-        # T4 P1a: the exile shape is the merged MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             _pairs(atom)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
@@ -1534,7 +1518,7 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.MOVE_ZONE)
         d = _pairs(atom)
         cards = d["cards"]
-        self.assertIs(cards.mode, SelectorMode.TARGET)  # C17 (round 8)
+        self.assertIs(cards.mode, SelectorMode.TARGET)
         self.assertEqual(cards.count, QAtMost(2))
         self.assertIsInstance(cards.filter, FAtom)
         self.assertEqual(_as_fatom(cards.filter).string_value, "Creature")
@@ -1544,14 +1528,14 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(dest.kind, ZoneKind.HAND)
         self.assertIs(dest.controller, ControllerRef.OWNER)
 
-    # -- grammar round-7 batch (doc 2026-09-28/03 §3 R7-A) ---------------
+    # -- anaphora --------------------------------------------------------
 
     def test_untap_that_creature(self) -> None:
         atom = _as_atom(_as_effect(_match_outcome("B5c-untap-that-creature")).effect)
         self.assertIs(atom.verb, Verb.UNTAP)
         target = _pairs(atom)["target"]
         self.assertIsInstance(target, Selector)
-        # C2 convention: referent selectors pin CHOOSE + QConst(1) + neutral zone
+        # Referent selectors pin CHOOSE + QConst(1) + neutral zone.
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.count, QConst(1))
         self.assertEqual(target.referent, "target")
@@ -1565,10 +1549,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.FIGHT)
         target = _pairs(atom)["target"]
         self.assertIsInstance(target, Selector)
-        # re-pinned 2026-10-30: m21-fidelity wave 4 (was B-79), the printed "up to one
-        # target creature" is a TARGET designated as the spell is cast (CR 601.2c) that may
-        # be left empty (CR 115.6). The resolution-time CHOOSE + QConst(1) fought hexproof
-        # creatures and could not be declined.
+        # "up to one target creature" is a TARGET designated as the spell is
+        # cast (CR 601.2c) that may be left empty (CR 115.6).
         self.assertIs(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.count, QAtMost(1))
         self.assertIs(target.zones[0].kind, ZoneKind.BATTLEFIELD)
@@ -1664,14 +1646,14 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
 
 
 class TestB5cRound7BTopUps(unittest.TestCase):
-    """Structural assertions for the R7-B top-up rows (doc 2026-09-28/03 §3
-    B-table); uses the module's SHAPES-driven _match_outcome helper."""
+    """Structural assertions for the flip-coin, then-if-lands and
+    damage-equal-power rows."""
 
     def test_flip_cost_activation(self) -> None:
         """B5c-flip-cost: ActivatedAbility Cost(Tap+Life 3) + role-less
-        Verb.FLIP_COIN atom (r3b vocabulary)."""
+        Verb.FLIP_COIN atom."""
         ability = _activated_ability(_match_outcome("B5c-flip-cost"))
-        # R1b canonicalization: parts construction-sorted (life tag < tap tag).
+        # Cost parts are sorted at construction (life tag < tap tag).
         life, tap = ability.cost.parts
         assert isinstance(tap, CostTap)
         assert isinstance(life, CostLife)
@@ -1681,10 +1663,9 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertEqual(len(atom.args.pairs), 0)
 
     def test_then_if_lands_untap(self) -> None:
-        """Fabled Passage s2: Conditional(CONTROLLER_COUNT_GE(Land,4)) ->
-        UNTAP(referent='result' — verified against the landed Fabled Passage
-        golden: s1 is a SEARCH with no TARGET selector, so 'that land'
-        binds the R7-1 result register, NOT the doc sketch's 'target')."""
+        """Fabled Passage: Conditional(CONTROLLER_COUNT_GE(Land,4)) ->
+        UNTAP(referent='result': the previous sentence is a SEARCH with no
+        TARGET selector, so 'that land' binds the result register)."""
         cond = _as_effect(_match_outcome("B5c-then-if-lands-untap")).effect
         assert isinstance(cond, Conditional)
         pred = cond.pred
@@ -1700,18 +1681,16 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertIs(atom.verb, Verb.UNTAP)
         target = _pairs(atom)["target"]
         assert isinstance(target, Selector)
-        # C2 referent-selector pin: CHOOSE + QConst(1) + neutral zone
+        # Referent selectors pin CHOOSE + QConst(1) + neutral zone.
         self.assertIs(target.mode, SelectorMode.CHOOSE)
         self.assertEqual(target.count, QConst(1))
         self.assertEqual(target.referent, "result")
         self.assertIs(target.zones[0].kind, ZoneKind.ANY)
 
     def test_damage_equal_power(self) -> None:
-        """Hunter's Edge s2: DEAL_DAMAGE target = new TARGET creature-you-
-        dont-control. V3 (2026-10-29): "that creature" is the countered
-        creature, the ``result`` register: it is the dealer (CR 120.2b) and
-        the power read. ``QProp("target")`` read the damage step's own
-        target on this two-target spell."""
+        """Hunter's Edge: DEAL_DAMAGE target = new TARGET creature-you-
+        dont-control. "That creature" is the countered creature, the
+        ``result`` register: it is the dealer (CR 120.2b) and the power read."""
         atom = _as_atom(_as_effect(_match_outcome("B5c-damage-equal-power")).effect)
         self.assertIs(atom.verb, Verb.DEAL_DAMAGE)
         d = _pairs(atom)
@@ -1725,7 +1704,7 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertIs(amount.field, QPropField.POWER)
         dealer = d["dealer"]
         assert isinstance(dealer, Selector)
-        # C2 referent-selector shape: CHOOSE + QConst(1) + neutral zone
+        # Referent selector shape: CHOOSE + QConst(1) + neutral zone.
         self.assertIs(dealer.mode, SelectorMode.CHOOSE)
         self.assertEqual(dealer.count, QConst(1))
         self.assertEqual(dealer.referent, "result")
@@ -1737,13 +1716,13 @@ if __name__ == "__main__":
 
 
 # ---------------------------------------------------------------------------
-# Round 9-B structural pins (doc 2026-09-28/11 §9-B rows 12-13)
+# Untap-step prevention and delayed triggers
 # ---------------------------------------------------------------------------
 
 
 class TestB5cRound9B(unittest.TestCase):
-    """9-B: Frost Breath s2 (R9-4 untap-step prevention, IS_ANY_TARGET
-    anaphora) and Subira s2 (R9-5/C22 DelayedTrigger)."""
+    """Frost Breath (untap-step prevention, IS_ANY_TARGET anaphora) and
+    Subira (DelayedTrigger)."""
 
     def test_frost_s2_untap_prevention(self) -> None:
         outcome = _match_outcome("B5c-those-no-untap-next")
@@ -1764,20 +1743,18 @@ class TestB5cRound9B(unittest.TestCase):
         self.assertTrue(dur.owner_scoped)  # "THEIR controller's" next untap
 
     def test_frost_pair_are_bare_effects_for_the_instant_fold(self) -> None:
-        """s1 and s2 are BOTH plain EffectOutcomes, so the compiler's
-        instant assembly folds Seq(TAP, PREVENT) into the SpellAbility —
-        s2 must NOT ship as an AbilityOutcome(StaticAbility) (that would
-        bolt a stray static onto a one-shot instant)."""
-        # (s1 "Tap up to two target creatures." lives in another bucket's
-        # registry; the pair-level fold is verified by the pool PC-1 audit.)
+        """Both sentences are plain EffectOutcomes, so the compiler's
+        instant assembly folds Seq(TAP, PREVENT) into the SpellAbility; the
+        prevention must NOT ship as an AbilityOutcome(StaticAbility) (a stray
+        static on a one-shot instant)."""
+        # "Tap up to two target creatures." lives in another bucket's registry.
         outcome = _match_outcome("B5c-those-no-untap-next")
         self.assertIsInstance(outcome, EffectOutcome)
 
     def test_subira_s2_delayed_trigger(self) -> None:
         outcome = _match_outcome("B5c-cost-discard-hand-delayed-draw")
         ability = _activated_ability(outcome)
-        # R1b canonicalization: parts construction-sorted (color, generic,
-        # discard, tap).
+        # Cost parts are sorted at construction (color, generic, discard, tap).
         r, n, discard, tap = ability.cost.parts
         assert isinstance(n, CostManaGeneric)
         self.assertEqual(n.amount, QConst(1))
@@ -1798,14 +1775,12 @@ class TestB5cRound9B(unittest.TestCase):
         assert isinstance(event, DamageDealtEvent)
         self.assertIsInstance(event.amount, QUnbounded)
         self.assertIs(event.combat, True)
-        # re-pinned 2026-10-29: B-57 fix changes the damaged-recipient filter
-        # from the universal FAnd(()) ("to a player" dropped) to "a player"
-        # (not a permanent, CR 120.1).
+        # "to a player": the damaged recipient is a player, not a permanent
+        # (CR 120.1).
         self.assertEqual(event.filter, FNot(FAtom(pred=FAtomPred.IS_PERMANENT)))
         dealer = event.source
         assert isinstance(dealer, FAnd)
-        # R1a canonicalization: FAnd children construction-sorted; the three
-        # conjuncts pinned by pred, order by the canonicalization law.
+        # FAnd children are sorted by canonical_json at construction.
         self.assertEqual(
             list(dealer.children), sorted(dealer.children, key=canonical_json)
         )
@@ -1828,16 +1803,16 @@ class TestB5cRound9B(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Round 10 structural pins (doc 2026-09-29/02 §phase-10-B row 4)
+# Garruk, Savage Herald's assign-as-unblocked grant
 # ---------------------------------------------------------------------------
 
 
 class TestB5cRound10Herald(unittest.TestCase):
-    """R10: Garruk, Savage Herald [−N] — the embedded quoted ability text
+    """Garruk, Savage Herald [−N] — the embedded quoted ability text
     "You may have this creature assign its combat damage as though it
     weren't blocked." lands as GRANT_ABILITY over creatures you control
     of StaticAbility(OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY,
-    scope=AS_UNBLOCKED))), DurationEot riding the GRANT (R10-4/C28)."""
+    scope=AS_UNBLOCKED))), DurationEot riding the GRANT."""
 
     def test_grant_structure(self) -> None:
         outcome = _match_outcome("B5c-loyalty-assign-as-unblocked")
@@ -1855,8 +1830,7 @@ class TestB5cRound10Herald(unittest.TestCase):
         self.assertIsInstance(target.count, QUnbounded)
         self.assertEqual(target.zones[0], Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY))
         assert isinstance(target.filter, FAnd)
-        # R1a canonicalization: FAnd children construction-sorted; members by
-        # pred, order by the canonicalization law.
+        # FAnd children are sorted by canonical_json at construction.
         self.assertEqual(
             list(target.filter.children),
             sorted(target.filter.children, key=canonical_json),
@@ -1869,7 +1843,7 @@ class TestB5cRound10Herald(unittest.TestCase):
         self.assertEqual(kind_a.string_value, "Creature")
         self.assertIs(controller_a.who, ControllerRef.YOU)
         # granted ability: continuous static, "You may" as its OWN
-        # OptionalEffect layer outside the policy atom (C28)
+        # OptionalEffect layer outside the policy atom
         granted = pairs["ability"]
         assert isinstance(granted, StaticAbility)
         self.assertIsNone(granted.condition)
@@ -1878,5 +1852,5 @@ class TestB5cRound10Herald(unittest.TestCase):
         policy = _as_atom(optional.inner)
         self.assertIs(policy.verb, Verb.DAMAGE_ASSIGN_POLICY)
         self.assertEqual(dict(policy.args.pairs), {"scope": "AS_UNBLOCKED"})
-        # duration rides the GRANT atom, not the granted static (Basri)
+        # duration rides the GRANT atom, not the granted static
         self.assertEqual(pairs["duration"], DurationEot())

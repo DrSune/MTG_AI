@@ -5,7 +5,7 @@ Covers all 90 shapes in ``/tmp/opencode/phase1_buckets/B5a.json``:
 - 23 rule-reminder pre-consumed by the compiler
 - 2 UNCOVERED (no expressible/attachable construct; recorded in UNCOVERED and pinned)
 
-PC-3: every concrete sentence fullmatches at most one template.
+Every concrete sentence fullmatches at most one template.
 """
 
 from __future__ import annotations
@@ -94,401 +94,311 @@ from MTG_bot.core.identity import CardIdentity
 # ---------------------------------------------------------------------------
 
 SHAPES: tuple[tuple[str, str, str], ...] = (
-    # shape 1
     (
         "(Any amount of damage a creature with deathtouch deals to a creature is enough to destroy it. Damage dealt by a creature with lifelink also causes its controller to gain that much life.)",
         "RR",
         "",
     ),
-    # shape 2
     (
         "(Any amount of damage it deals to a creature is enough to destroy it.)",
         "RR",
         "",
     ),
-    # shape 3
     ("(Attacking doesn't cause it to tap.)", "RR", ""),
-    # shape 4
     ('(Damage and effects that say "destroy" don\'t destroy it.)', "RR", ""),
-    # shape 5
     (
         "(Damage dealt by this creature also causes you to gain that much life.)",
         "RR",
         "",
     ),
-    # shape 6
     ("(Each deals damage equal to its power to the other.)", "RR", ""),
-    # shape 7
     (
         "(Each of those creatures can deal excess combat damage to the player or planeswalker it's attacking.)",
         "RR",
         "",
     ),
-    # shape 8
     (
         '(Exile all spells and abilities from the stack, including this card. The player whose turn it is discards down to their maximum hand size. Damage wears off, and "this turn" and "until end of turn" effects end.)',
         "RR",
         "",
     ),
-    # shape 9
     (
         "(It can deal excess combat damage to the player or planeswalker it's attacking.)",
         "RR",
         "",
     ),
-    # shape 10
     (
         "(It can't be blocked, targeted, dealt damage, enchanted, or equipped by anything of that color.)",
         "RR",
         "",
     ),
-    # shape 11
     (
         "(It can't be the target of spells or abilities your opponents control.)",
         "RR",
         "",
     ),
-    # shape 12
     ("(It deals both first-strike and regular combat damage.)", "RR", ""),
-    # shape 13
     ("(It deals combat damage before creatures without first strike.)", "RR", ""),
-    # shape 14
     (
         '(It\'s an artifact with "{T}, Sacrifice this token: Add one mana of any color.")',
         "RR",
         "",
     ),
-    # shape 15
     (
         "(Look at the top card of your library. You may put that card on the bottom.)",
         "RR",
         "",
     ),
-    # shape 16
     ("(Put the top four cards of your library into your graveyard.)", "RR", ""),
-    # shape 17
     ("(The creature can attack and {T} this turn.)", "RR", ""),
-    # shape 18
     ("(They put the top two cards of their library into their graveyard.)", "RR", ""),
-    # shape 19
     (
         "(To scry 3, look at the top three cards of your library, then put any number of them on the bottom and the rest on top in any order.)",
         "RR",
         "",
     ),
-    # shape 20
     (
         "(Treat it and anything attached to it as though they don't exist until its controller's next turn.)",
         "RR",
         "",
     ),
-    # shape 21
     (
         "(Treat them and anything attached to them as though they don't exist.)",
         "RR",
         "",
     ),
-    # shape 22
     (
         "(Whenever you cast a noncreature spell, they get +1/+1 until end of turn.)",
         "RR",
         "",
     ),
-    # shape 23
     (
         "(You can't be targeted, dealt damage, or enchanted by anything with that name.)",
         "RR",
         "",
     ),
-    # shape 24
     ("({T}: Add {B}.)", "COVERED", "B5a-land-add"),
-    # shape 25
     ("({T}: Add {G}.)", "COVERED", "B5a-land-add"),
-    # shape 26
     ("({T}: Add {R}.)", "COVERED", "B5a-land-add"),
-    # shape 27
     ("({T}: Add {U}.)", "COVERED", "B5a-land-add"),
-    # shape 28
     ("({T}: Add {W}.)", "COVERED", "B5a-land-add"),
-    # shape 29
     ("Activate only as a sorcery.", "COVERED", "B5a-activate-sorcery-gate"),
-    # shape 30
     (
         "Activate only if a creature died this turn.",
         "COVERED",
         "B5a-activate-only-death",
     ),
-    # shape 31
     (
         "Activate only if you control a creature with flying.",
         "COVERED",
         "B5a-activate-only-flying",
     ),
-    # shape 32
     (
         "Activate only if you have at least 7 life more than your starting life total and only as a sorcery.",
         "COVERED",
         "B5a-speaker-gate",
     ),
-    # shape 33
     ("Add six {R}.", "COVERED", "B5a-add-six-r"),
-    # shape 34
     ("Add two mana of any one color.", "COVERED", "B5a-add-any-color"),
-    # shape 35
     (
         "As an additional cost to cast this spell, discard a card.",
         "COVERED",
         "B5a-addl-cost-discard",
     ),
-    # shape 36
     (
         "As an additional cost to cast this spell, sacrifice a creature.",
         "COVERED",
         "B5a-addl-cost-sacrifice",
     ),
-    # shape 37
     (
         "As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
         "COVERED",
         "B5a-aslong-opp-gy-count",
     ),
-    # shape 38
     (
         "As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.",
         "COVERED",
         "B5a-snoop-top-goblin-abilities",
     ),
-    # shape 39
     (
         "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.",
         "COVERED",
         "B5a-aslong-attack-despite-defender",
     ),
-    # shape 40
     (
         "As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance.",
         "COVERED",
         "B5a-gnarled-sage",
     ),
-    # shape 41
     (
         "As this enchantment enters, choose a card name.",
         "COVERED",
         "B5a-etb-choose-name",
     ),
-    # shape 42
     ("Attacking creatures you control get +1/+0.", "COVERED", "B5a-attacking-pt"),
-    # shape 43
     (
         "Battalion — Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.",
         "COVERED",
         "B5a-battalion",
     ),
-    # shape 44
     (
         "Choose a card name other than a basic land card name.",
         "COVERED",
         "B5a-choose-name-not-basic",
     ),
-    # shape 45
     ("Choose one or more —", "UNCOV", ""),
-    # shape 46
     ("Choose one —", "UNCOV", ""),
-    # shape 47
     (
         "Counter target instant or sorcery spell unless its controller pays {3}.",
         "COVERED",
         "B5a-counter-unless-sps",
     ),
-    # shape 48
     (
         "Counter target spell unless its controller pays {1}.",
         "COVERED",
         "B5a-counter-unless-spell",
     ),
-    # shape 49
     ("Counter target spell.", "COVERED", "B5a-counter-spell"),
-    # shape 50
     (
         "Create an X/X blue and red Weird creature token, where X is the number of instant and sorcery cards in your graveyard.",
         "COVERED",
         "B5a-weird-token",
     ),
-    # shape 51
     (
         "Create two 1/1 red Goblin Wizard creature tokens with prowess.",
         "COVERED",
         "B5a-goblin-wizard-tokens",
     ),
-    # shape 52
     (
         "Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
         "COVERED",
         "B5a-remind-deathtouch",
     ),
-    # shape 53
     ("Defender (This creature can't attack.)", "COVERED", "B5a-remind-defender"),
-    # shape 54
     (
         "Destroy all Equipment attached to that creature.",
         "COVERED",
         "B5a-destroy-equipped",
     ),
-    # shape 55
     (
         "Destroy target creature or planeswalker with mana value 3 or less.",
         "COVERED",
         "B5a-destroy-cw-pw-mv-le",
     ),
-    # shape 56
     ("Destroy target creature or planeswalker.", "COVERED", "B5a-destroy-cw-pw"),
-    # shape 57
     (
         "Destroy target creature with power 4 or greater.",
         "COVERED",
         "B5a-destroy-power-ge",
     ),
-    # shape 58
     ("Destroy target creature.", "COVERED", "B5a-destroy-creature"),
-    # shape 59
     ("Destroy target tapped creature.", "COVERED", "B5a-destroy-tapped-creature"),
-    # shape 60
     ("Discard a card: Tap this creature.", "COVERED", "B5a-discard-tap-self"),
-    # shape 61
     (
         "Discard a card: This creature can't be blocked this turn.",
         "COVERED",
         "B5a-discard-cant-be-blocked",
     ),
-    # shape 62
     (
         "Double strike (This creature deals both first-strike and regular combat damage.)",
         "COVERED",
         "B5a-remind-double-strike",
     ),
-    # shape 63
     (
         "Double the power of target creature until end of turn.",
         "COVERED",
         "B5a-double-power",
     ),
-    # shape 64
     (
         "Draw a card, then draw cards equal to the number of cards named Frantic Inventory in your graveyard.",
         "COVERED",
         "B5a-draw-frantic-inventory",
     ),
-    # shape 65
     ("Draw a card.", "COVERED", "B5a-draw-one"),
-    # shape 66
     (
         "Draw three cards, then discard a card.",
         "COVERED",
         "B5a-draw-three-then-discard",
     ),
-    # shape 67
     ("Draw two cards.", "COVERED", "B5a-draw-two"),
-    # shape 68
     ("During your turn, Radha has first strike.", "COVERED", "B5a-radha-first-strike"),
-    # shape 69
     (
         "During your turn, this spell costs {2}{U}{U} less to cast.",
         "COVERED",
         "B5a-during-turn-cost-reduce",
     ),
-    # shape 70
     (
         "Each creature you control with a +1/+1 counter on it has trample.",
         "COVERED",
         "B5a-trample-counter",
     ),
-    # shape 71
     (
         "Each opponent who can't loses 3 life.",
         "COVERED",
         "B5a-each-opp-cant-lose-life",
     ),
-    # shape 72
     ("Each player loses 2 life.", "COVERED", "B5a-lose-life-each-player"),
-    # shape 73
     (
         "Enchanted creature doesn't untap during its controller's untap step.",
         "COVERED",
         "B5a-enchant-no-untap",
     ),
-    # shape 74
     (
         "Enchanted creature gets +2/+2 and attacks each combat if able.",
         "COVERED",
         "B5a-enchant-pt-attacks",
     ),
-    # shape 75
     (
         'Enchanted creature gets +2/+0 and has "When this creature dies, draw a card."',
         "COVERED",
         "B5a-enchant-pt-death-draw",
     ),
-    # shape 76
     (
         "Enchanted creature gets +1/+1 and has flying.",
         "COVERED",
         "B5a-enchant-pt-flying",
     ),
-    # shape 77
     (
         "Enchanted creature gets +1/+0 and has trample.",
         "COVERED",
         "B5a-enchant-pt-trample",
     ),
-    # shape 78
     (
         "Enchanted creature gets +2/+2, has first strike, and is a Knight in addition to its other types.",
         "COVERED",
         "B5a-enchant-pt-firststrike-knight",
     ),
-    # shape 79
     (
         "Enchanted creature gets +3/+1, has flying, and is a Demon in addition to its other types.",
         "COVERED",
         "B5a-enchant-pt-flying-demon",
     ),
-    # shape 80
     (
         'Enchanted creature has "Whenever you gain life, put that many +1/+1 counters on this creature."',
         "COVERED",
         "B5a-enchant-gain-life",
     ),
-    # shape 81
     (
         "Enchanted permanent can't attack or block, and its activated abilities can't be activated unless they're mana abilities.",
         "COVERED",
         "B5a-enchant-cant-attack-block",
     ),
-    # shape 82
     ("End the turn.", "COVERED", "B5a-end-turn"),
-    # shape 83
     (
         "Equip {1} ({1}: Attach to target creature you control. Equip only as a sorcery.)",
         "COVERED",
         "B5a-equip",
     ),
-    # shape 84
     (
         "Equipped creature gets +1/+1 for each soul counter on this Equipment.",
         "COVERED",
         "B5a-equipped-per-soul-counter",
     ),
-    # shape 85
     ("Equipped creature gets +1/+1.", "COVERED", "B5a-equipped-pt"),
-    # shape 86
     ("Exile Experimental Overload.", "COVERED", "B5a-exile-self"),
-    # shape 87
     ("Exile target creature or planeswalker.", "COVERED", "B5a-exile-cw-pw"),
-    # shape 88
     ("Exile target creature.", "COVERED", "B5a-exile-creature"),
-    # shape 89
     ("Exile target nonland permanent.", "COVERED", "B5a-exile-nonland"),
-    # shape 90
     (
         "Exile that card until this creature leaves the battlefield.",
         "COVERED",
@@ -664,7 +574,6 @@ class TestShapeTable(unittest.TestCase):
         self.assertEqual(
             len(unique_tids), 61, f"expected 61 unique tids, got {len(unique_tids)}"
         )
-        # All tids start with B5a-
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5a-"), f"bad tid: {tid}")
 
@@ -704,7 +613,7 @@ class TestUncovered(unittest.TestCase):
             self.assertTrue(reason, f"empty reason for {key!r}")
 
     def test_shapes_pin(self) -> None:
-        """T4 pin: SHAPES UNCOV keys == UNCOVERED keys."""
+        """SHAPES UNCOV keys == UNCOVERED keys."""
         shapes_keys = {
             re.sub(r"\d+", "N", sent) for sent, cat, _ in SHAPES if cat == "UNCOV"
         }
@@ -739,12 +648,12 @@ class TestUncovered(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: PC-3 Matching
+# Test: Matching
 # ---------------------------------------------------------------------------
 
 
 class TestMatching(unittest.TestCase):
-    """PC-3: every B5a sentence fullmatches at most one template."""
+    """Every B5a sentence fullmatches at most one template."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -866,17 +775,14 @@ class TestStructuralAssertions(unittest.TestCase):
             ab = outcome.ability
             if not isinstance(ab, ActivatedAbility):
                 self.fail(f"expected ActivatedAbility, got {type(ab)}")
-            # Cost should be CostTap
             self.assertEqual(len(ab.cost.parts), 1)
             self.assertIsInstance(ab.cost.parts[0], CostTap)
-            # Effect should be ADD_MANA
             if not isinstance(ab.effect, Atom):
                 self.fail(f"expected Atom, got {type(ab.effect)}")
             self.assertEqual(ab.effect.verb, Verb.ADD_MANA)
             p = _pairs_dict(ab.effect)
             self.assertEqual(p["controller"], ControllerRef.YOU)
             self.assertEqual(p["amount"], QConst(1))
-            # Color matches the sentence (extract the color inside "Add {X}")
             m_color = re.search(r"Add \{([WUBRC])\}", sent)
             if m_color is None:
                 self.fail(f"could not extract color from {sent}")
@@ -917,8 +823,8 @@ class TestStructuralAssertions(unittest.TestCase):
         sel = cs.target
         self.assertEqual(sel.count, QConst(1))
         self.assertEqual(sel.mode, SelectorMode.CHOOSE)
-        # E1 fold: BF seat moved out of the zone onto the filter as a
-        # CONTROLLER_IS atom, so the filter is an FAnd bundle.
+        # The battlefield seat sits on the filter as a CONTROLLER_IS atom,
+        # not on the zone, so the filter is an FAnd bundle.
         flt = sel.filter
         if not isinstance(flt, FAnd):
             self.fail(f"expected FAnd filter, got {type(flt)}")
@@ -952,7 +858,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(p["color"], "R")
 
     def test_add_any_color(self) -> None:
-        """B5a-add-any-color: ADD_MANA amount=2 color="ANY" (C-3 repair)."""
+        """B5a-add-any-color: ADD_MANA amount=2 color="ANY"."""
         outcome = self._match_outcome("B5a-add-any-color")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
@@ -970,13 +876,11 @@ class TestStructuralAssertions(unittest.TestCase):
         atom = _as_atom(ab_out.ability.effect)
         self.assertEqual(atom.verb, Verb.MODIFY_PT)
         p = _pairs_dict(atom)
-        # Power +1, Toughness +0
         self.assertIsInstance(p["power"], PtDelta)
         self.assertEqual(p["power"].direction, PtDirection.INCREASE)
         self.assertEqual(p["power"].magnitude, QConst(1))
         self.assertIsInstance(p["toughness"], PtDelta)
         self.assertEqual(p["toughness"].magnitude, QConst(0))
-        # Target should contain IS_ATTACKING in canonical form
         target = p["target"]
         self.assertIsInstance(target, Selector)
         canon = canonical_json(target)
@@ -1006,7 +910,6 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(spec.name, "Weird")
         self.assertEqual(spec.subtypes, ("Weird",))
         self.assertEqual(p["count"], QConst(1))
-        # P/T should be QCount (dynamic)
         self.assertIsInstance(spec.power, QCount)
         self.assertIsInstance(spec.toughness, QCount)
 
@@ -1059,7 +962,7 @@ class TestStructuralAssertions(unittest.TestCase):
             self.assertEqual(target.zones[0].kind, ZoneKind.BATTLEFIELD, f"{tid}")
 
     def test_exile_family(self) -> None:
-        """B5a-exile-*: merged MOVE_ZONE verb (T4 P1a), TARGET selector."""
+        """B5a-exile-*: MOVE_ZONE to exile, TARGET selector (self-exile: CHOOSE)."""
         exile_tids = [
             "B5a-exile-creature",
             "B5a-exile-cw-pw",
@@ -1080,9 +983,8 @@ class TestStructuralAssertions(unittest.TestCase):
             target = p["target"]
             self.assertIsInstance(target, Selector, f"{tid}")
             if tid == "B5a-exile-self":
-                # re-pinned 2026-10-30: m21-fidelity wave 4, a spell exiling itself takes no
-                # target (CR 115.1a): the self-reference CHOOSE over the stack it resolves
-                # from. The TARGET over the battlefield made the card uncastable in games.
+                # A spell exiling itself takes no target (CR 115.1a): the
+                # self-reference CHOOSE over the stack it resolves from.
                 self.assertEqual(target.mode, SelectorMode.CHOOSE, f"{tid}")
                 self.assertEqual(target.zones, (Zone(ZoneKind.STACK, ControllerRef.ANY),))
                 self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
@@ -1096,10 +998,8 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(ab_out.ability, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab_out.ability)}")
         ab = ab_out.ability
-        # Cost should be CostDiscard
         self.assertEqual(len(ab.cost.parts), 1)
         self.assertIsInstance(ab.cost.parts[0], CostDiscard)
-        # Effect should be TAP
         atom = _as_atom(ab.effect)
         self.assertEqual(atom.verb, Verb.TAP)
         p = _pairs_dict(atom)
@@ -1138,7 +1038,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(draw_atom.verb, Verb.DRAW)
         self.assertEqual(_pairs_dict(draw_atom)["amount"], QConst(3))
         discard_atom = _as_atom(discard)
-        # T4 P1a: the discard shape is the merged MOVE_ZONE atom.
+        # A discard is a MOVE_ZONE atom from hand to graveyard.
         self.assertEqual(discard_atom.verb, Verb.MOVE_ZONE)
         self.assertEqual(
             _pairs_dict(discard_atom)["destination"],
@@ -1176,7 +1076,6 @@ class TestStructuralAssertions(unittest.TestCase):
         ability = p["ability"]
         self.assertIsInstance(ability, KeywordAbility)
         self.assertEqual(ability.keyword, Keyword.TRAMPLE)
-        # Target filter should contain PLUS_1_PLUS_1 counter
         target = p["target"]
         canon = canonical_json(target)
         self.assertIn("PLUS_1_PLUS_1", canon)
@@ -1210,7 +1109,6 @@ class TestStructuralAssertions(unittest.TestCase):
                 self.fail(f"{tid}: expected Seq, got {type(ab_out.ability.effect)}")
             steps = ab_out.ability.effect.steps
             self.assertGreaterEqual(len(steps), 2, f"{tid}: expected >=2 steps")
-            # Step 0 is MODIFY_PT
             step0 = _as_atom(steps[0])
             self.assertEqual(step0.verb, Verb.MODIFY_PT, f"{tid}")
             p = _pairs_dict(step0)
@@ -1286,18 +1184,14 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(ab_out.ability, ActivatedAbility):
             self.fail(f"expected ActivatedAbility, got {type(ab_out.ability)}")
         ab = ab_out.ability
-        # Cost: one CostManaGeneric with amount=1
         self.assertEqual(len(ab.cost.parts), 1)
         cpart = ab.cost.parts[0]
         if not isinstance(cpart, CostManaGeneric):
             self.fail(f"expected CostManaGeneric, got {type(cpart)}")
         self.assertEqual(cpart.amount, QConst(1))
-        # Effect: ATTACH
         atom = _as_atom(ab.effect)
         self.assertEqual(atom.verb, Verb.ATTACH)
-        # B-60 (2026-10-29): "Equip only as a sorcery" (CR 702.6a) rides
-        # the R9-1 timing slot; it was dropped, so equipment moved at
-        # instant speed.
+        # "Equip only as a sorcery" (CR 702.6a).
         self.assertIs(ab.timing, ActivationWindow.SORCERY)
 
     def test_equipped_pt(self) -> None:
@@ -1313,9 +1207,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(p["toughness"], PtDelta)
 
     def test_battalion(self) -> None:
-        """B5a-battalion (T5-E): full TriggeredAbility leg — attack event,
-        CR 508.2 group-of-three CONDITION, PUT_COUNTER +1/+1 on self.
-        Superseded the old KeywordOutcome pin (phantom keyword, §10)."""
+        """B5a-battalion: a TriggeredAbility — attack event, CR 508.2
+        group-of-three condition, PUT_COUNTER +1/+1 on self."""
         outcome = self._match_outcome("B5a-battalion")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome).__name__}")
@@ -1337,13 +1230,10 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(p["counter_kind"], CounterKind.PLUS_1_PLUS_1)
 
     def test_snoop_top_goblin_grant(self) -> None:
-        """B5a-snoop-top-goblin-abilities (T5-E, R10 DEFER lifted):
-        StaticAbility whose condition is the ZONE_COUNT_GE predicate
-        bounded to the library TOP (count=1, inner_filter Goblin-subtype)
-        and whose effect is a GRANT_ABILITY on self. The payload is a
-        registered-inert StaticAbility mirror (gap-ledger materialization
-        — a live ActivatedAbility payload would add phantom ACTIVATE rows
-        to every top-Goblin state; see builder docstring)."""
+        """B5a-snoop-top-goblin-abilities: StaticAbility whose condition is
+        ZONE_COUNT_GE over the library TOP (count=1, inner_filter
+        Goblin-subtype) and whose effect is a GRANT_ABILITY on self with an
+        inert StaticAbility payload (see the builder docstring)."""
         outcome = self._match_outcome("B5a-snoop-top-goblin-abilities")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome).__name__}")
@@ -1382,7 +1272,6 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(target, Selector):
             self.fail(f"expected Selector, got {type(target)}")
         self.assertEqual(target.mode, SelectorMode.TARGET)
-        # Filter should be FAnd with TYPE_EQ Creature + POWER_GE
         if not isinstance(target.filter, FAnd):
             self.fail(f"expected FAnd filter, got {type(target.filter)}")
         preds = [
@@ -1397,12 +1286,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(preds[0].count.value, 4)
 
     def test_double_power(self) -> None:
-        """B5a-double-power: EffectOutcome, MODIFY_PT +X/+0, X = the target's power.
-
-        # re-pinned 2026-10-29: m21-fidelity (review batch I). CR 701.10a/b: doubling gives
-        # +X/+0, it never sets P/T. It was SET_PT(QBin(MUL, 2, power), toughness), which made a
-        # 2/2 with a +1/+1 counter 7/4 instead of 6/3 (pack unleash_fury_counter).
-        """
+        """B5a-double-power: MODIFY_PT +X/+0, X = the target's power; doubling
+        never sets P/T (CR 701.10a/b)."""
         outcome = self._match_outcome("B5a-double-power")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
@@ -1417,7 +1302,6 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(power.magnitude.referent, "target")
         self.assertEqual(power.magnitude.field, QPropField.POWER)
         self.assertEqual(p["toughness"], PtDelta(PtDirection.INCREASE, QConst(0)))
-        # Duration should be DurationEot
         self.assertIsInstance(p["duration"], DurationEot)
 
     def test_enchant_gain_life(self) -> None:
@@ -1436,7 +1320,6 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(ability.event, LifeGainedEvent):
             self.fail(f"expected LifeGainedEvent, got {type(ability.event)}")
         self.assertIs(ability.event.actor.who, ControllerRef.YOU)
-        # Effect should be PUT_COUNTER with QProp(event, AMOUNT)
         eff_atom = _as_atom(ability.effect)
         self.assertEqual(eff_atom.verb, Verb.PUT_COUNTER)
         ep = _pairs_dict(eff_atom)
@@ -1528,7 +1411,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
         self.assertEqual(target.zones[0].controller, ControllerRef.ANY)
-        # re-pinned 2026-10-30: R5-10 ANDs STACK_KIND_EQ SPELL into the filter
+        # STACK_KIND_EQ SPELL is ANDed with the printed restriction.
         self.assertIsInstance(target.filter, FAnd)
         kind, filt = sorted(target.filter.children, key=lambda c: isinstance(c, FOr))
         self.assertEqual(kind, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"))
@@ -1559,8 +1442,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(target, Selector)
         self.assertEqual(target.mode, SelectorMode.TARGET)
         self.assertEqual(target.zones[0].kind, ZoneKind.STACK)
-        # re-pinned 2026-10-30: R5-10 — "target spell" is the bare
-        # STACK_KIND_EQ SPELL atom (it was the universal FAnd(())).
+        # "target spell" is the bare STACK_KIND_EQ SPELL atom.
         self.assertEqual(
             target.filter, FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL")
         )
@@ -1571,13 +1453,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(cmg, CostManaGeneric)
         self.assertEqual(cmg.amount, QConst(1))
 
-    # ------------------------------------------------------------------
-    # Round-6 batch (Thieves' Guild / Radha / Discontinuity / Capture
-    # Sphere / Faith's Fetters / Ghostly Pilferer)
-    # ------------------------------------------------------------------
-
     def test_aslong_opp_gy_count_structure(self) -> None:
-        """R6-2 + C9: ZONE_COUNT_GE in StaticAbility.condition, effect =
+        """ZONE_COUNT_GE in StaticAbility.condition, effect =
         Seq(MODIFY_PT, GRANT deathtouch) on the self selector."""
         outcome = self._match_outcome("B5a-aslong-opp-gy-count")
         if not isinstance(outcome, AbilityOutcome):
@@ -1618,7 +1495,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(ka.params, ())
 
     def test_radha_first_strike_structure(self) -> None:
-        """R6-1: TURN_OF(YOU) condition over a static GRANT first strike."""
+        """TURN_OF(YOU) condition over a static GRANT first strike."""
         outcome = self._match_outcome("B5a-radha-first-strike")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1639,8 +1516,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(ka.keyword, Keyword.FIRST_STRIKE)
 
     def test_during_turn_cost_reduce_structure(self) -> None:
-        """R6-1 + T3 extra_deltas: {N}{U}{U} = generic delta + one blue
-        delta of 2, TURN_OF condition, AbilityOutcome delivery."""
+        """{N}{U}{U} = generic delta + one blue delta of 2 (extra_deltas),
+        TURN_OF condition, AbilityOutcome delivery."""
         outcome = self._match_outcome("B5a-during-turn-cost-reduce")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1664,8 +1541,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(cond.who, ControllerRef.YOU)
 
     def test_enchant_no_untap_structure(self) -> None:
-        """C10: PREVENT(TapStateEvent tapped=False) on the enchanted
-        creature; untap-step scope dropped (lossy, documented)."""
+        """PREVENT(TapStateEvent tapped=False) on the enchanted creature;
+        the untap-step scope is dropped (lossy)."""
         outcome = self._match_outcome("B5a-enchant-no-untap")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1688,9 +1565,7 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(filt, FAnd):
             self.fail(f"expected FAnd filter, got {type(filt)}")
         preds = [c.pred for c in filt.children if isinstance(c, FAtom)]
-        # R1a canonicalization (ontology §3 SET-R1a): children construction-
-        # sorted by canonical_json; the predicate SET stays the pinned fact and
-        # the order is pinned by the law itself.
+        # FAnd children are sorted by canonical_json at construction.
         self.assertEqual(
             list(filt.children), sorted(filt.children, key=canonical_json)
         )
@@ -1698,9 +1573,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertNotIn("duration", p)
 
     def test_enchant_cant_attack_block_structure(self) -> None:
-        """C11: Seq of PREVENT atoms (attack + block + the activation lock)
-        on IS_ATTACHED_TO_SOURCE. re-pinned 2026-10-30: R5-7 encodes the
-        mana-abilities clause (it was dropped, lossy) as the third atom,
+        """Seq of PREVENT atoms on IS_ATTACHED_TO_SOURCE: attack, block, and
+        the mana-abilities clause as the activation lock
         PREVENT_EFFECT(AbilityActivatedEvent(source=enchanted, NON_MANA))."""
         outcome = self._match_outcome("B5a-enchant-cant-attack-block")
         if not isinstance(outcome, AbilityOutcome):
@@ -1739,8 +1613,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsNone(bev.blocked)
 
     def test_discard_cant_be_blocked_structure(self) -> None:
-        """R6-4: activated (discard) → PREVENT with blocked=IS_SOURCE over
-        the universal blocker filter, DurationEot."""
+        """Activated (discard) → PREVENT with blocked=IS_SOURCE over the
+        universal blocker filter, DurationEot."""
         outcome = self._match_outcome("B5a-discard-cant-be-blocked")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome)}")
@@ -1773,13 +1647,8 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(p["duration"], DurationEot)
 
 
-# ---------------------------------------------------------------------------
-# Test: Canonical Stability (PC-4)
-# ---------------------------------------------------------------------------
-
-
 class TestRound7Structures(unittest.TestCase):
-    """Round-7 batch (R7-A) structural assertions; C15/C16 decision pins."""
+    """Structural assertions: result referent, name choice, attachment."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1791,8 +1660,8 @@ class TestRound7Structures(unittest.TestCase):
         return matches[0].outcome
 
     def test_exile_that_until_leaves(self) -> None:
-        """Merged MOVE_ZONE (exile shape) on the result referent, with the
-        until-leaves window as its duration (ontology R5-1, CR 610.3)."""
+        """MOVE_ZONE to exile on the result referent, with the
+        until-leaves window as its duration (CR 610.3)."""
         outcome = self._match_one(
             "Exile that card until this creature leaves the battlefield."
         )
@@ -1805,8 +1674,6 @@ class TestRound7Structures(unittest.TestCase):
         target = _pairs_dict(atom)["target"]
         self.assertEqual(target.referent, "result")
         self.assertIs(target.mode, SelectorMode.CHOOSE)
-        # re-pinned 2026-10-29: R5-1 changes the missing duration (the old
-        # assertNotIn encoded the C11 gap) into DurationUntilLeaves().
         self.assertEqual(_pairs_dict(atom)["duration"], DurationUntilLeaves())
 
     def test_etb_choose_name(self) -> None:
@@ -1871,6 +1738,11 @@ class TestRound7Structures(unittest.TestCase):
         self.assertEqual(attacher[0].referent, "target")
 
 
+# ---------------------------------------------------------------------------
+# Test: Canonical Stability
+# ---------------------------------------------------------------------------
+
+
 class TestCanonicalStability(unittest.TestCase):
     """Building each covered outcome twice yields identical canonical_json."""
 
@@ -1888,7 +1760,6 @@ class TestCanonicalStability(unittest.TestCase):
             outcome = matches[0].outcome
             inner = _inner_node(outcome)
             canon1 = canonical_json(inner)
-            # Rebuild
             matches2 = self.reg.match(sent)
             outcome2 = matches2[0].outcome
             inner2 = _inner_node(outcome2)
@@ -1925,7 +1796,6 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=0,
         )
         result = compile_card(raw, self.reg)
-        # The land-add template produces an AbilityOutcome (ActivatedAbility)
         self.assertEqual(len(result.card.abilities), 1)
         self.assertIsInstance(result.card.abilities[0], ActivatedAbility)
         self.assertEqual(len(result.unparsed), 0)
@@ -1933,9 +1803,8 @@ class TestEndToEndCompile(unittest.TestCase):
         self.assertEqual(len(result.ambiguities), 0)
 
     def test_finishing_blow_instant(self) -> None:
-        """Finishing Blow: both sentences covered since the round-7 batch
-        (B5a-destroy-equipped landed) → Seq(destroy, destroy-attached-
-        equipment) SpellAbility(INSTANT), nothing unparsed."""
+        """Finishing Blow → Seq(destroy, destroy-attached-equipment)
+        SpellAbility(INSTANT), nothing unparsed."""
         raw = _raw(
             "Finishing Blow",
             (
@@ -2004,7 +1873,6 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=2,
         )
         result = compile_card(raw, self.reg)
-        # One rule reminder detected
         self.assertEqual(len(result.rule_reminders), 1)
         self.assertEqual(result.rule_reminders[0].reason, "full_paren")
         # No abilities (the sentence was consumed as a reminder)
@@ -2012,13 +1880,9 @@ class TestEndToEndCompile(unittest.TestCase):
         self.assertEqual(len(result.unparsed), 0)
 
     def test_sorcery_gate_attach_probe(self) -> None:
-        """Synthetic cross-bucket attach probe (round 10): a b5a discard
-        activation (B5a-discard-tap) + the B5a gate row tail attaches
-        timing=SORCERY to the s1 ActivatedAbility via the R10-1 C25 slot-
-        disjoint attach.  Purely synthetic sentences — the real M21 Seasoned
-        Hallowblade has no activation-window tail (earlier round-10 note
-        wrongly attributed one to it; the real pool instance of this shape
-        is Liliana's Steward, pinned by test_steward_e2e_cross_bucket_attach)."""
+        """Synthetic attach probe: a discard activation followed by the bare
+        sorcery gate gets timing=SORCERY. The real pool instance is Liliana's
+        Steward, pinned by test_steward_e2e_cross_bucket_attach."""
         raw = _raw(
             "Sorcery-Gate Attach Probe",
             (
@@ -2034,8 +1898,8 @@ class TestEndToEndCompile(unittest.TestCase):
             toughness_raw="2",
         )
         result = compile_card(raw, self.reg)
-        # One activated ability, gate-attached, nothing unparsed
-        # (plus the C4 effect-less SpellAbility(CREATURE) cast carrier).
+        # One gate-attached activated ability plus the effect-less
+        # SpellAbility(CREATURE) cast carrier.
         self.assertEqual(len(result.card.abilities), 2)
         ab = result.card.abilities[0]
         assert isinstance(ab, ActivatedAbility)
@@ -2063,7 +1927,7 @@ class TestEndToEndCompile(unittest.TestCase):
 
     def test_short_sword_equip(self) -> None:
         """Short Sword: Equip {1} + Equipped creature gets +1/+1.
-        → ActivatedAbility + StaticAbility (+ the B-49 cast carrier)."""
+        → ActivatedAbility + StaticAbility (+ the cast carrier)."""
         raw = _raw(
             "Short Sword",
             (
@@ -2077,7 +1941,7 @@ class TestEndToEndCompile(unittest.TestCase):
         )
         result = compile_card(raw, self.reg)
         # Two printed abilities: ActivatedAbility (equip) + StaticAbility (PT),
-        # then the B-49 effect-less SpellAbility(ARTIFACT) cast carrier.
+        # then the effect-less SpellAbility(ARTIFACT) cast carrier.
         self.assertEqual(len(result.card.abilities), 3)
         self.assertIsInstance(result.card.abilities[0], ActivatedAbility)
         self.assertIsInstance(result.card.abilities[1], StaticAbility)
@@ -2086,7 +1950,7 @@ class TestEndToEndCompile(unittest.TestCase):
 
     def test_furor_enchant(self) -> None:
         """Furor of the Bitten: Enchanted creature gets +2/+2 and attacks.
-        → StaticAbility with Seq (+ the B-49 cast carrier)."""
+        → StaticAbility with Seq (+ the cast carrier)."""
         raw = _raw(
             "Furor of the Bitten",
             ("Enchanted creature gets +2/+2 and attacks each combat if able.",),
@@ -2097,7 +1961,7 @@ class TestEndToEndCompile(unittest.TestCase):
             mana_value=1,
         )
         result = compile_card(raw, self.reg)
-        # B-49: the Aura trails its effect-less SpellAbility(ENCHANTMENT) carrier.
+        # The Aura trails its effect-less SpellAbility(ENCHANTMENT) carrier.
         self.assertEqual(len(result.card.abilities), 2)
         self.assertIsInstance(result.card.abilities[0], StaticAbility)
         self.assertEqual(result.card.abilities[1], SpellAbility(kind=SpellKind.ENCHANTMENT))
@@ -2184,13 +2048,13 @@ class TestB5aJsonCrossCheck(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Round 9-B structural pins (doc 2026-09-28/11 §9-B rows 1-3)
+# Activation gates and the defender strip
 # ---------------------------------------------------------------------------
 
 
 class TestB5aRound9BStructures(unittest.TestCase):
-    """9-B: Speaker gate (LIFE_LEAD_OVER_START_GE, R9-2) and Drowsing
-    defender-strip (LOSE_ABILITY + C9 condition, DurationWhileCondition)."""
+    """Speaker gate (LIFE_LEAD_OVER_START_GE) and Drowsing defender-strip
+    (LOSE_ABILITY under the as-long-as condition, DurationWhileCondition)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -2210,18 +2074,16 @@ class TestB5aRound9BStructures(unittest.TestCase):
         cond = outcome.condition
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
-        # bare-count rule row (R9-2): the threshold rides `count` verbatim
+        # The threshold rides `count` verbatim.
         self.assertEqual(cond.count, QConst(7))
         self.assertIsNone(cond.who)
         self.assertIsNone(cond.inner_filter)
-        # B-60 (2026-10-29): "... and only as a sorcery" is the gate's
-        # window slot (R10-1 compound gate); it used to be dropped.
+        # "... and only as a sorcery" is the gate's window slot.
         self.assertIs(outcome.window, ActivationWindow.SORCERY)
 
     def test_speaker_gate_attaches_through_compile(self) -> None:
         """E2E: the gate lands on the preceding {T}-Angel-token activation
-        (existing r3 attach plumbing), BOTH slots: the life-lead condition
-        and, since B-60 (2026-10-29), the sorcery timing."""
+        with BOTH slots: the life-lead condition and the sorcery timing."""
         raw = _raw(
             "Speaker of the Heavens",
             (
@@ -2255,9 +2117,8 @@ class TestB5aRound9BStructures(unittest.TestCase):
         ab_out = _as_ability(outcome)
         ab = ab_out.ability
         assert isinstance(ab, StaticAbility)
-        # C9: the as-long-as lives on the StaticAbility condition —
-        # CONTROLLER_COUNT_GE(1, Creature & POWER_GE 4), the Flying Gates
-        # idiom (count=1 = "a creature")
+        # The as-long-as lives on the StaticAbility condition —
+        # CONTROLLER_COUNT_GE(1, Creature & POWER_GE 4) (count=1 = "a creature")
         cond = ab.condition
         assert isinstance(cond, FAtom)
         self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
@@ -2284,9 +2145,8 @@ class TestB5aRound9BStructures(unittest.TestCase):
         self.assertEqual(pairs["duration"], DurationWhileCondition(filter=cond))
 
     def test_pc3_steward_tail_disjoint_from_speaker(self) -> None:
-        """Round 10 (R10-1): the bare "Activate only as a sorcery." tail
-        landed as B5a-activate-sorcery-gate and the Speaker compound gate
-        keeps its own anchor — each sentence matches EXACTLY one row."""
+        """The bare "Activate only as a sorcery." tail and the Speaker
+        compound gate each match EXACTLY one row."""
         matches = self.reg.match("Activate only as a sorcery.")
         self.assertEqual(len(matches), 1)
         self.assertEqual(matches[0].template.tid, "B5a-activate-sorcery-gate")
@@ -2299,12 +2159,12 @@ class TestB5aRound9BStructures(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Round-10 batch row (R10-1): bare activation-timing gate (Steward)
+# Bare activation-timing gate (Steward)
 # ---------------------------------------------------------------------------
 
 
 class TestB5aRound10Structures(unittest.TestCase):
-    """Round 10: B5a-activate-sorcery-gate — window-only gate outcome."""
+    """B5a-activate-sorcery-gate — window-only gate outcome."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -2317,17 +2177,17 @@ class TestB5aRound10Structures(unittest.TestCase):
 
     def test_sorcery_gate_shape(self) -> None:
         """B5a-activate-sorcery-gate: ActivationGateOutcome(window=SORCERY),
-        condition None — the compiler's C25 attach fills ``timing`` only
-        (C20), leaving the s1 condition slot untouched."""
+        condition None — the compiler's attach fills ``timing`` only, leaving
+        the ability's condition slot untouched."""
         outcome = self._match_one("Activate only as a sorcery.")
         assert isinstance(outcome, ActivationGateOutcome)
         self.assertIs(outcome.window, ActivationWindow.SORCERY)
         self.assertIsNone(outcome.condition)
 
     def test_steward_e2e_cross_bucket_attach(self) -> None:
-        """End-to-end Steward merge: s1 lands via the B5c sacrifice row,
-        the s2 gate tail via this bucket's row, and compile_card attaches
-        ``timing=SORCERY`` across the sentence AND bucket boundary."""
+        """End-to-end Steward merge: the activation comes from the B5c
+        sacrifice row, the gate tail from this bucket's row, and compile_card
+        attaches ``timing=SORCERY`` across the sentence AND bucket boundary."""
         reg = _make_registry()
         for t in B5C_TEMPLATES:
             reg.register(t)
@@ -2346,7 +2206,7 @@ class TestB5aRound10Structures(unittest.TestCase):
         result = compile_card(raw, reg)
         self.assertEqual(len(result.unparsed), 0)
         self.assertEqual(len(result.ambiguities), 0)
-        # gate-attached activation + the C4 effect-less cast carrier.
+        # gate-attached activation + the effect-less cast carrier.
         self.assertEqual(len(result.card.abilities), 2)
         ab = result.card.abilities[0]
         assert isinstance(ab, ActivatedAbility)
