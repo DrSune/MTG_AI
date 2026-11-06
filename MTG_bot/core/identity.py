@@ -1,20 +1,11 @@
 """Identity primitives: what uniquely names a thing.
 
-Two problems the legacy system had, and both are identity problems:
+A card is keyed on its ``scryfallOracleId`` (docs/DESIGN_CARD_POOL.md): stable
+across re-ingests, unlike a database rowid, so a learned embedding row never
+silently changes card. ``CardIdentity`` is frozen and keyed on that id.
 
-1. **The key was volatile.** Everything was keyed on ``cards.card_id``, an
-   autoincrement rowid. The ingest drops and recreates the table, so a
-   re-ingest renumbers every card and silently invalidates every learned
-   embedding row. The fix (DESIGN_CARD_POOL.md, "Fix identity first"): key on
-   ``scryfallOracleId`` — stable across re-ingests, semantic, the same id
-   Scryfall uses. ``CardIdentity`` is frozen and keyed on that id.
-
-2. **One integer axis for everything.** ``card_id`` and
-   ``game_vocabulary.id`` shared one integer space and already collided. The
-   fix: separate namespaces. A ``Handle`` carries its own ``namespace`` string,
-   so a card's handle 5 and a zone's handle 5 are different values by
-   construction. They cannot alias because the namespace is part of the
-   identity, not an assumption.
+Live entities get a ``Handle`` that carries its own ``namespace``, so a card's
+handle 5 and a zone's handle 5 are different values by construction.
 """
 
 from __future__ import annotations
@@ -110,8 +101,7 @@ class CardIdentity:
     printed characteristics. It is frozen and hashable so it can key the
     registry and the embedding tables. Volatile rowids never appear here.
 
-    The fields are exactly the structured ingest that DESIGN_CARD_POOL.md
-    step 1 calls for — the things the legacy ingest discarded: types,
+    The fields are the structured ingest of docs/DESIGN_CARD_POOL.md: types,
     subtypes, colours, mana value, keywords, oracle id, and token-ness.
     """
 

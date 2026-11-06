@@ -1,20 +1,8 @@
-"""Typed failure for the rebuilt engine.
+"""Typed engine failures.
 
-The legacy engine swallowed its own errors (``engine.py`` caught every
-exception, logged it, and returned), so the protocol's engine-correctness
-gate EC-1 (``error_rate == 0``) was uncomputable: a broken game looked
-identical to a drawn one. That is the defect this module exists to kill.
-
-A move that is not legal is not a crash — it is ``IllegalMoveError``, and the
-engine raises it instead of pretending the move happened. A card that cannot
-be executed because a primitive is missing is ``UnsupportedAbilityError``
-(the ``engine_supported`` flag made load-bearing). An internal invariant that
-breaks is ``StateCorruptionError`` and must never be caught silently, because
-it is an engine bug, not a game event.
-
-Every error carries a ``context`` dict so a failure is reportable with the
-state and the offending move attached, which is what the EC-1 and P8 gates
-need to turn a red run into a diagnosis rather than a shrug.
+The engine never swallows its own errors: a broken game must not look like a
+drawn one. Every error carries a ``context`` dict so a failure is reportable
+with the state and the offending move attached.
 """
 
 from __future__ import annotations
@@ -25,11 +13,9 @@ from typing import Any, Dict, Optional
 class EngineError(Exception):
     """Base class for every failure the engine can report.
 
-    ``message`` is human-readable. ``context`` is a machine-readable dict that
-    callers (the test harness, the EC gate, the training loop) can inspect to
-    find out exactly what state and what move produced the failure. Keeping
-    the two separate means a log line stays readable while a gate gets
-    structure.
+    ``message`` is human-readable; ``context`` is a machine-readable dict of
+    the state and move that produced the failure, so a log line stays
+    readable while a gate gets structure.
     """
 
     def __init__(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
@@ -106,11 +92,9 @@ class InfiniteLoopError(EngineError):
 
 
 class StateCorruptionError(EngineError):
-    """An internal invariant of the state model was violated.
+    """An internal invariant was violated.
 
     This is an engine bug, not a game event, and it must never be caught
-    silently. The legacy engine's blanket ``except Exception`` is exactly what
-    let corruption propagate invisibly into the training corpus. Anything that
-    reaches this error means the world object is no longer trustworthy and the
-    surrounding game must be discarded and the bug fixed.
+    silently: the world object is no longer trustworthy and the surrounding
+    game must be discarded.
     """

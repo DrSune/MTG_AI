@@ -1,24 +1,14 @@
 """The deterministic canonical state model.
 
-This is the state foundation for the D1 engine rebuild, and it exists to kill
-the two defects that make the legacy state unmeasurable:
+Every entity is named by an integer :class:`~MTG_bot.core.identity.Handle`
+(stable, comparable, cheap) and every collection is *ordered*, so nothing here
+iterates a set and nothing varies run to run under a fixed seed.
+:meth:`GameWorld.fingerprint` is the canonical form: one deterministic hash of
+the whole world, the question "is this the same position?" that loop detection
+(docs/DESIGN_INFINITIES.md) and replay both ask.
 
-1. **Identity was uuid4.** ``game_graph.py`` minted a fresh UUID for every
-   entity, and zone-change triggers were computed by iterating the *set
-   difference* of those UUIDs. A set has no order, so under a fixed seed the
-   trigger order still varied run to run. Integer handles (one
-   :class:`~MTG_bot.core.identity.Handle` per namespace) are stable,
-   comparable, and cheap, and every collection here is *ordered*, so there is
-   no set difference anywhere to be nondeterministic.
-
-2. **No canonical form.** Without a canonical serialisation you cannot ask
-   "is this the same position as before?", which is the question loop
-   detection (DESIGN_INFINITIES.md) and replay both need. :meth:`GameWorld.
-   fingerprint` gives one deterministic hash of the whole world.
-
-Replay contract: build two worlds with the same seed and the same sequence of
-moves; their fingerprints must match at every step. That is the property the
-tests pin down, and it is what P12 (byte-identical replay) will run on.
+Replay contract: two worlds built with the same seed and the same sequence of
+moves have equal fingerprints at every step.
 """
 
 from __future__ import annotations
@@ -29,9 +19,7 @@ from typing import Dict, List, Optional
 
 from MTG_bot.core.identity import CardIdentity, Handle, HandleSpace
 
-# The zones a card can occupy. The stack is listed for completeness; its full
-# APNAP/LIFO semantics are a Phase-2 concern. Phase 0 treats it as an ordered
-# zone like the others so the state model is already total.
+# The zones a card can occupy. The stack is an ordered zone like the others.
 ZONE_LIBRARY = "library"
 ZONE_HAND = "hand"
 ZONE_BATTLEFIELD = "battlefield"
@@ -194,13 +182,13 @@ class GameWorld:
     def zone_of(self, card: Handle) -> ZoneState:
         """The zone currently holding ``card``. Raises if the card is absent.
 
-        Hot path: the full scan (every zone of every seat, libraries first) was two thirds of
-        a self-play game's CPU (2026-11-04 profile, KNOWLEDGE/2026-11-03/183 §21). The zone
-        last found for each card is remembered and RE-VALIDATED by membership before it is
-        returned, so a move made by any code path (``move_card`` or a direct ``entries``
-        edit) can never make it answer wrong: a stale entry just falls through to the scan,
-        which keeps its historical order. Not part of the state: ``fingerprint`` does not
-        read it and a deep copy carries it to the copied zones."""
+        Hot path: the full scan (every zone of every seat) dominated a self-play
+        game's CPU. The zone last found for each card is remembered and
+        RE-VALIDATED by membership before it is returned, so a move made by any
+        code path (``move_card`` or a direct ``entries`` edit) can never make it
+        answer wrong: a stale entry just falls through to the scan. Not part of
+        the state: ``fingerprint`` does not read it and a deep copy carries it to
+        the copied zones."""
         if card not in self.cards:
             raise KeyError(f"unknown card {card}")
         cache = self.__dict__.setdefault("_zone_cache", {})
@@ -284,7 +272,7 @@ class GameWorld:
         This is the canonical-form primitive: two worlds in the same position
         produce the same string. It is ordered by seat, then by zone order,
         then by zone-entry order, so it is a function only of the state — the
-        basis for replay (P12) and loop detection (DESIGN_INFINITIES.md).
+        basis for replay and loop detection (docs/DESIGN_INFINITIES.md).
         """
         h = hashlib.sha256()
         h.update(f"seed={self.master_seed}\n".encode())

@@ -1,26 +1,28 @@
 """The typed ability-tree grammar: the ONE representation, TWO consumers.
 
-NORTH_STAR / DESIGN_CARD_POOL.md step 1: the executor walks this tree and the
-encoder reads the same tree. No second shape, no English anywhere (PITFALLS:
-"English substrings cannot be the IR" — the ETB-substring bug killed forty
-triggers for months). Every node is a frozen dataclass, every validation
-fails loudly in ``__post_init__``, every node serializes to a tagged dict
-with a stable string tag, so ``fingerprint`` is the golden-file key
-(PC-4/PC-9) and ``walk`` is what the executor and the EC-2 unhandled-node
-rate (METRICS.md §3) walk the tree with.
+docs/DESIGN_CARD_POOL.md step 1: the executor walks this tree and the
+encoder reads the same tree. No second shape, no English anywhere: an
+English substring is not structure, and a substring match fails silently.
+Every node is a frozen dataclass, every validation fails loudly in
+``__post_init__``, every node serializes to a tagged dict with a stable
+string tag, so ``fingerprint`` is the golden-file key and ``walk`` is what
+the executor and the EC-2 unhandled-node rate (docs/METRICS.md §3) walk
+the tree with.
 
-Design decisions (each pinned by tests in test_ability_tree.py):
+Design decisions (each pinned by tests in test_ability_tree*.py):
 
 - **Quantity on every numeric field, without exception**: ``QConst`` (>= 0),
   ``QX``, ``QUnbounded`` ("any number" — Siege Striker, Necromentia),
-  ``QCount(selector)``, ``QProp(referent, field, agg)``, ``QBin``. QProp's
-  referent is ``Selector | "source" | "controller" | "target" | "event"`` —
-  the design lists three referents; "event" is the documented fourth because
-  Brash Taunter ("deals that much damage") and Garruk's Harbinger ("look at
-  that many cards") reference the triggering event's damage amount.
-  ``QBinOp.DIV`` is floor division ("round up half" = ``(n+1)//2``, Peer
-  into the Abyss). Negative quantities are rejected at construction: signed
-  P/T adjustments go through :class:`PtDelta`; the single documented
+  ``QAtLeast(n)`` / ``QAtMost(n)`` ("n or more" / "up to n"),
+  ``QCount(selector)``, ``QProp(referent, field, agg)``, ``QBin``,
+  ``QThisTurn`` and the distinct-count quantities. QProp's referent is
+  ``Selector | "source" | "controller" | "target" | "event" | "result"``;
+  "event" exists because Brash Taunter ("deals that much damage") and
+  Garruk's Harbinger ("look at that many cards") reference the triggering
+  event's amount. ``QBinOp.DIV`` is floor division unless the node carries
+  a ``Rounding`` policy (Peer into the Abyss: "Round up each time").
+  Negative quantities are rejected at construction: signed P/T
+  adjustments go through :class:`PtDelta`; the single documented
   exception is ``CostLoyalty.delta`` (a -7 loyalty cost is negative by
   definition).
 - **Filter = ``FAtom(pred, typed slots)``**: one atom class with a closed
@@ -31,118 +33,30 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   sorted by role in ``__post_init__`` (stdlib has no hashable frozen dict;
   sorted pairs give value equality, hashability, and
   construction-order-independent canonical form).
-- **Duration** = a union of four frozen dataclasses, not an enum: an enum
-  cannot carry the ``Filter`` that ``WHILE_CONDITION`` needs.
+- **Duration** = a union of frozen dataclasses, not an enum: an enum
+  cannot carry the ``Filter`` that ``DurationWhileCondition`` needs.
 - **Cost parts**: tap (``CostTap(target=None)`` = "tap the source" — every
   ``{T}:`` in the pool), generic/coloured/hybrid mana, life, sacrifice,
   discard, put-counter (Mazemind Tome's page-counter cost), loyalty (the
   only signed cost). Empty ``Cost()`` is a free activation.
 - **Emblem**: ``CardRecord.emblem: Optional[CardRecord]`` — embedded in its
-  planeswalker's record (the pool's 3 emblem-layout records are Basri Ket,
-  Garruk Unleashed, Liliana's emblems). One-directional and validated: only
-  a Planeswalker may carry an emblem; the emblem is an Emblem-typed token
-  record that itself carries no emblem.
+  planeswalker's record (Basri Ket's emblem). One-directional and
+  validated: only a Planeswalker may carry an emblem; the emblem is an
+  Emblem-typed token record that itself carries no emblem.
 - **Selector.count by mode**: TARGET exact, CHOOSE up-to (``QUnbounded`` =
   any number), ALL ignores count (the compiler writes ``QConst(1)``),
   RANDOM exact; TARGET/RANDOM with ``QUnbounded`` are rejected.
-- **Keyword enum**: 23 members — the pool's 24 MTGJSON keyword strings with
-  "Hexproof from" folded into HEXPROOF (the "from X" is a Filter param, see
-  ``_KEYWORD_PARAMS``).
-- **Events**: 16 structured EventSpecs; ETB is a ZoneChange from anywhere to
-  the battlefield, never a substring. declare_blockers / becomes_blocked /
-  tap_state / targeting exist because pool cards need them (Pirate token
-  "can't block", Gloom Sower, Ghostly Pilferer, Warden of the Woods,
-  hexproof/protection statics). The T3 round (KNOWLEDGE 2026-09-19/02)
-  added additive optional scoping to ZoneChangeEvent / CastSpellEvent /
-  DamageDealtEvent (subject / controller+from_zone+ordinal / source+combat)
-  and the new CardDrawn / LifeGained / Sacrifice events (controller
-  referent); every such field defaults to None and serializes by
-  OMITTING the key, so all pre-T3 trees keep byte-identical canonical
-   JSON (pinned by test_ability_tree_t3.py).
-- **r3b round (coin-flip, minimum-quantity, blocker subject)**: three
-  additive, byte-stable vocabulary additions pinned by
-  test_ability_tree_r3b.py — ``Verb.FLIP_COIN`` (no roles; "flip a coin",
-  Tavern Swindler), ``FAtomPred.FLIP_WON`` (required ``who``; "you win the
-  flip", so "you lose it" is ``FNot(FAtom(FLIP_WON, who=YOU))``),
-  ``QAtLeast(n)`` (a quantity meaning "at least n", n >= 1 — the minimum
-  the compiler previously had to lose to ``QUnbounded``), and
-  ``DeclareBlockersEvent.subject`` (a ``Filter | None`` over the blocking
-  creature, mirroring ``ZoneChangeEvent.subject``; omitted when None).
-- **grammar round 4 (conditional & filtered triggers + object anaphora,
-  KNOWLEDGE 2026-09-24/05)**: five additive, byte-stable items pinned by
-  test_ability_tree_r5.py — ``CardDrawnEvent.ordinal`` (the Nth card drawn
-  by the controller this turn; mirrors CastSpellEvent.ordinal — Jolrael,
-  Mystic Skyfish), the new ``LoyaltyActivatedEvent(controller, filter)``
-  ("Whenever you activate a loyalty ability of a Chandra planeswalker, ..."
-  — Keral Keep Disciples; ontology R5-7 replaced it with
-  ``AbilityActivatedEvent(source, kind, actor)``, kind LOYALTY),
-  ``CastSpellEvent.from_zone_not`` ("from anywhere
-  other than their hand" — Ghostly Pilferer; mutually exclusive with
-  ``from_zone``), three ``FAtom`` zone slots (``zone`` / ``from_zone`` /
-  ``to_zone``) with the condition predicates
-  ``ENTERED_THIS_TURN_FROM`` / ``CAST_THIS_TURN_FROM`` /
-  ``MOVED_TO_ZONE_THIS_TURN`` (Archfiend's Vessel, Barrin), and object
-   anaphora: ``Selector.referent`` (the ``_QPROP_STR_REFERENTS`` vocabulary
-   shared with QProp — "source" / "controller" / "target" / "event", where
-   "event" is the triggering event's subject object; convention C2:
-   CHOOSE + QConst(1) + neutral zone), plus the ``controller`` atom role
-   and the ``CONTROLLER_IS`` ``who`` slot widened to ``ControllerRef |
-   Selector`` (Gloom Sower, Feline Sovereign). Every new field defaults to
-   None and serializes by OMITTING the key, so all pre-round-4 trees keep
-   byte-identical canonical JSON.
- - **grammar round 5 (replacement/"instead" effects, KNOWLEDGE
-   2026-09-24/07)**: four additive, byte-stable items pinned by
-   test_ability_tree_r6.py — ``FAtomPred.WAS_CAST_THIS_TURN`` (required
-   ``who``; "[the object] was cast this turn (by who)", Containment
-   Priest; zone-agnostic, unlike ``CAST_THIS_TURN_FROM``),
-   ``FAtomPred.NOT_FIRST_DRAW_THIS_STEP`` (required ``who``; "not the
-   first card who draws in their draw step", Teferi's Ageless Insight —
-   evaluated against the CardDrawnEvent subject),
-   ``CounterPlacedEvent.count: Quantity | None`` (the number placed;
-   "one or more" = ``QAtLeast(1)``) with the new
-   ``QPropField.COUNTER_COUNT`` ("that many" =
-   ``QProp("event", COUNTER_COUNT)`` — Conclave Mentor; event-referent
-   only, like ``AMOUNT``), and ``CostModifier.controller_ref`` widened to
-   ``ControllerRef | Selector`` (convention C7: a Selector means the
-   controller of the selected object, and the modifier applies to costs
-   that controller pays FOR the filtered object, including ``unless``
-   payments — Lofty Denial; reuses the ``controller_ref_or_selector``
-   dual conv). Every new field defaults to None and serializes by
-   OMITTING the key, so all pre-round-5 trees keep byte-identical
-   canonical JSON.
-- **grammar round 8 / phase 8-A (decision-surface vocabulary, KNOWLEDGE
-  2026-09-28/08)**, pinned by test_ability_tree_r9.py: ``QAtMost(n)``
-  (convention C17 — TARGET-mode "up to n" designation), ``TokenSpec``
-  trailing ``color`` / ``enters_tapped`` / ``enters_attacking`` optionals
-  (ontology R5-11 replaced ``color`` with the WUBRG tuple ``colors``),
-  the AtomArgs ``color`` vocabulary widened with ``"ANY"`` ("mana of any
-  one color" — distinct from colourless ``"C"``), optional ``dealer`` /
-  ``recipient`` roles on DEAL_DAMAGE, ``FAtomPred.
-  IS_EXILED_WITH_SOURCE`` (no slots) and ``CONTROLLER_COUNT_GT`` (dual
-  ``inner_filter`` / ``right_inner_filter`` comparison; the new FAtom
-  filter slot is omit-when-None, byte-stable), ``Verb.GET_EMBLEM`` (no
-  roles; C19 — the emblem payload is the card-level attach, quoted text
-  never enters the IR) and ``Verb.ADD_LAND_PLAY`` (Azusa),
-  ``ThisTurnKind.NONCOMBAT_DAMAGE``, and ``QProp`` COUNTER_COUNT widened
-  to the "target" referent (Invigorating Surge). All items are additive;
-  no template opts in yet (phase 8-B flips), so all 305 goldens stay
-  byte-identical through 8-A.
-- **turn history and "can't be countered" (2026-11-05)**, pinned by
-  test_turn_history.py: ``FAtomPred.EVENT_THIS_TURN`` ("an event the
-  ``event`` slot describes happened this turn, ``count`` or more") and
-  ``FAtomPred.SUBJECT_OF_EVENT_THIS_TURN`` (the judged object was that
-  event's subject), the FAtom ``event`` slot (an EventSpec, omit-when-None),
-  and two events: ``LifeLostEvent`` (actor) and ``CounteredEvent`` (filter;
-  "can't be countered" is a PREVENT_EFFECT over it). Additive: every earlier
-  tree keeps its bytes.
-- **defending player, blocker count (2026-11-06)**:
-  ``ControllerRef.DEFENDING_PLAYER`` (CR 506.2, 508.5) and
-  ``DeclareBlockersEvent.count`` ("can't be blocked by more than one
-  creature" is a PREVENT_EFFECT over ``count=QAtLeast(2)``, CR 509.1b;
-  omit-when-None). Additive: every earlier tree keeps its bytes.
-- **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
-  orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
-  Phase-1 hypothesis, not the post-hoc truth.
+- **Keyword enum**: "Hexproof from X" is HEXPROOF plus a Filter param
+  (``_KEYWORD_PARAMS``), not a separate keyword.
+- **Events**: structured EventSpecs; ETB is a ZoneChange from anywhere to
+  the battlefield, never a substring.
+- **Additive fields**: an optional field added to an existing node
+  defaults to None (or ``()``) and serializes by OMITTING the key
+  (``_OMIT_IF_EMPTY``), so every tree that does not use it keeps
+  byte-identical canonical JSON.
+- **No orphan guarantee**: a member may have no compiled card yet
+  (``Verb.PHASE_IN``); the vocabulary is a hypothesis about the card pool,
+  not a census of it.
 """
 
 from __future__ import annotations
@@ -161,13 +75,11 @@ from MTG_bot.core.identity import validate_oracle_id
 # ADD_MANA "color" atom role; ColorSets are always drawn from WUBRG.
 _COLORS = ("W", "U", "B", "R", "G")
 _COLORLESS = "C"
-# _ANY_COLOR (grammar round 8, R8-3): "mana of any one color" — the ADDER
-# picks one colour at resolution (Jeskai Ascendancy-style triggers, the
-# C-3 collapse repair). DISTINCT from _COLORLESS: "C" means colourless
-# mana, "ANY" means a choice among WUBRG. Existing templates keep "C"
-# until the 8-B fidelity flip.
+# _ANY_COLOR: "mana of any one color" — the player adding it picks one
+# colour at resolution. DISTINCT from _COLORLESS: "C" means colourless
+# mana, "ANY" means a choice among WUBRG.
 _ANY_COLOR = "ANY"
-# _MANA_POLICY_SCOPES (grammar round 9, R9-3, C21): the MANA_POLICY
+# _MANA_POLICY_SCOPES: the MANA_POLICY
 # "scope" role vocabulary — THIS_MANA anchors the policy to the mana the
 # ability itself added (Vodalian Arcanist's "Spend this mana only to
 # cast instant or sorcery spells"), ALL_YOURS is a DurationPermanent
@@ -175,25 +87,23 @@ _ANY_COLOR = "ANY"
 # mana as though it were mana of any color"). Validated in
 # AtomArgs.__post_init__ like the "color" role.
 _MANA_POLICY_SCOPES = ("THIS_MANA", "ALL_YOURS")
-# _DAMAGE_ASSIGN_SCOPES (grammar round 10, R10-4, C28): the
-# DAMAGE_ASSIGN_POLICY "scope" role vocabulary — AS_UNBLOCKED is the
-# "assign its combat damage as though it weren't blocked" policy (Garruk,
-# Savage Herald's [−7]). MANA_POLICY twin: an AtomArgs-carried closed
-# vocabulary, NO _SPECS field. AtomArgs validates against the union of
-# all scope vocabularies; the per-verb vocabulary is enforced on the
-# enclosing Atom (_SCOPE_VOCAB_BY_VERB).
+# _DAMAGE_ASSIGN_SCOPES: the DAMAGE_ASSIGN_POLICY "scope" role vocabulary —
+# AS_UNBLOCKED is the "assign its combat damage as though it weren't blocked"
+# policy (Garruk, Savage Herald's [−7]). Like MANA_POLICY's, a closed
+# vocabulary carried in AtomArgs, with no _SPECS field. AtomArgs validates
+# against the union of all scope vocabularies; the per-verb vocabulary is
+# enforced on the enclosing Atom (_SCOPE_VOCAB_BY_VERB).
 _DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
-# _MOVE_JOURNAL_KINDS / _MOVE_POP_ORDERS (T4 P1a, 2026-10-07): the closed
-# string vocabularies of the merged MOVE atom's two new string slots —
-# journal_kind (A2 ii: the literal journalled event kind, "MILL" for the
-# milled shape, "MOVE" default for every other) and pop_order (A2 iii:
-# mill's TOP-of-library pop, pinned EXPLICITLY so the merged atom never
-# falls onto a selector-order resolution). AtomArgs vocab-checks both,
-# same precedent as "color"/"scope"; no cross-verb ambiguity, so the
-# union check is complete at AtomArgs level.
+# _MOVE_JOURNAL_KINDS / _MOVE_POP_ORDERS: the closed vocabularies of the
+# MOVE_ZONE atom's two string slots — journal_kind (the event kind the move
+# is journalled as: "MILL" for a mill, "MOVE" for every other move) and
+# pop_order (a mill takes from the TOP of the library, pinned explicitly so
+# it never falls back to a selector-order resolution). AtomArgs vocab-checks
+# both, like "color"/"scope"; no other verb uses these slots, so the
+# AtomArgs-level check is complete.
 _MOVE_JOURNAL_KINDS = ("MOVE", "MILL")
 _MOVE_POP_ORDERS = ("TOP",)
-# _STACK_KINDS (ontology R5-10): the closed string vocabulary of
+# _STACK_KINDS: the closed string vocabulary of
 # FAtomPred.STACK_KIND_EQ — the three kinds of stack object (CR 405.1: spells,
 # activated abilities, triggered abilities).
 _STACK_KINDS = ("ACTIVATED", "SPELL", "TRIGGERED")
@@ -203,32 +113,28 @@ _STACK_KINDS = ("ACTIVATED", "SPELL", "TRIGGERED")
 
 
 class Verb(Enum):
-    """The closed verb vocabulary (DESIGN_CARD_POOL step 1: ~60 verbs).
+    """The closed verb vocabulary; each member's comment cites a card that
+    needs it. Every member carries an instance CLASS in ``VERB_CLASS``
+    (below).
 
-    49 members covering the M21 pool; orphans are measured (PC-6) and pruned
-    later. Each docstring cites the pool card(s) that need it. Every member
-    carries an instance CLASS in ``VERB_CLASS`` (T4 §1 partition, below).
-
-    T4 P1a (2026-10-07): the MILL/DISCARD/EXILE shapes COMPILE to the one
-    merged MOVE_ZONE atom (docs/T4_SPEC.md §9 — destination + optional
-    from/journal_kind/pop_order slots); their members stay in the enum for
-    legacy decode of pre-merge serialisations and the CLASS partition of
-    all 49, but the compiler and the executor table no longer emit or
-    dispatch them.
+    The MILL/DISCARD/EXILE shapes compile to the one MOVE_ZONE atom
+    (destination + optional from/journal_kind/pop_order slots); the three
+    members stay in the enum and its CLASS partition, but the executor has
+    no handler for them.
     """
 
     DEAL_DAMAGE = "DEAL_DAMAGE"  # Brash Taunter (deals that much damage to target player or creature)
-    DESTROY = "DESTROY"  # Legion's Judgment, Eliminate, Swift Response
-    EXILE = "EXILE"  # Angelic Ascension, Transmogrify, Chandra [-9]
-    DRAW = "DRAW"  # Opt, Frantic Inventory, Jeskai Elder
+    DESTROY = "DESTROY"  # Legion's Judgment, Eliminate
+    EXILE = "EXILE"  # Angelic Ascension
+    DRAW = "DRAW"  # Opt, Frantic Inventory
     MILL = "MILL"  # Carrion Grub ("mill four cards")
-    GAIN_LIFE = "GAIN_LIFE"  # Faith's Fetters, Aven Gagglemaster, Witch's Cauldron
+    GAIN_LIFE = "GAIN_LIFE"  # Faith's Fetters
     LOSE_LIFE = "LOSE_LIFE"  # Grim Tutor
-    ADD_MANA = "ADD_MANA"  # Vodalian Arcanist, Llanowar Visionary, Treasure token
-    CREATE_TOKEN = "CREATE_TOKEN"  # Basri Ket, Falconer Adept, Gadrak (Treasure tokens)
-    PUT_COUNTER = "PUT_COUNTER"  # Basri's Lieutenant (+1/+1), Malefic Scythe (soul), Basri Ket Emblem
+    ADD_MANA = "ADD_MANA"  # Llanowar Visionary, Treasure token
+    CREATE_TOKEN = "CREATE_TOKEN"  # Falconer Adept, Gadrak (Treasure tokens)
+    PUT_COUNTER = "PUT_COUNTER"  # Basri's Lieutenant (+1/+1), Malefic Scythe (soul)
     REMOVE_COUNTER = "REMOVE_COUNTER"  # Pestilent Haze ("remove two loyalty counters")
-    MODIFY_PT = "MODIFY_PT"  # Defiant Strike, Jeskai Elder (prowess), Pestilent Haze (all creatures -2/-2)
+    MODIFY_PT = "MODIFY_PT"  # Defiant Strike, Pestilent Haze (all creatures -2/-2)
     SET_PT = "SET_PT"  # Experimental Overload (Weird tokens' P/T), Tarmogoyf-class dynamic P/T
     GRANT_ABILITY = "GRANT_ABILITY"  # Riddleform (a 3/3 Sphinx creature with flying), Dub (first strike)
     GRANT_TYPE = (
@@ -237,19 +143,19 @@ class Verb(Enum):
     TAP = "TAP"  # Celestial Enforcer ("tap target creature")
     UNTAP = "UNTAP"  # Traitorous Greed ("untap that creature")
     MOVE_ZONE = "MOVE_ZONE"  # Sublime Epiphany (return to hand), Rise Again
-    SEARCH = "SEARCH"  # Grim Tutor, Cultivate, Fierce Empath, Garruk's Unleashed emblem
+    SEARCH = "SEARCH"  # Grim Tutor, Cultivate
     SHUFFLE = "SHUFFLE"  # Grim Tutor ("then shuffle"), Necromentia
-    COUNTER_SPELL = "COUNTER_SPELL"  # Cancel, Lofty Denial, Miscast, Rewind
-    COPY = "COPY"  # design list; no M21 card — orphan to be measured by PC-6
-    SACRIFICE = "SACRIFICE"  # Goremand ("each opponent sacrifices a creature"); cost side: Village Rites, Witch's Cauldron
-    DISCARD = "DISCARD"  # Teferi, Master of Time [+1] ("draw a card, then discard a card"), Jeskai Elder
+    COUNTER_SPELL = "COUNTER_SPELL"  # Cancel, Lofty Denial
+    COPY = "COPY"  # Double Vision ("copy that spell"); the executor has no handler for it
+    SACRIFICE = "SACRIFICE"  # Goremand ("each opponent sacrifices a creature")
+    DISCARD = "DISCARD"  # Teferi, Master of Time [+1] ("draw a card, then discard a card")
     SCRY = "SCRY"  # Opt ("scry 1"), Riddleform
     REVEAL = "REVEAL"  # Track Down, Garruk's Harbinger
-    LOOK_AT = "LOOK_AT"  # Opt, See the Truth, Garruk's Harbinger
+    LOOK_AT = "LOOK_AT"  # See the Truth, Garruk's Harbinger
     ATTACH = "ATTACH"  # Short Sword / Malefic Scythe (Equip)
     GAIN_CONTROL = "GAIN_CONTROL"  # Traitorous Greed
     PREVENT_EFFECT = "PREVENT_EFFECT"  # Faith's Fetters ("can't attack or block"), hexproof/protection statics
-    PHASE_IN = "PHASE_IN"  # no M21 card — commander's general; kept pool-agnostic, PC-6 will say
+    PHASE_IN = "PHASE_IN"  # no card in the pool uses it (PHASE_OUT's counterpart)
     PHASE_OUT = "PHASE_OUT"  # Teferi, Master of Time [-3]
     EXTRA_TURN = "EXTRA_TURN"  # Teferi, Master of Time [-10] ("take two extra turns")
     END_TURN = "END_TURN"  # Discontinuity ("end the turn")
@@ -263,64 +169,54 @@ class Verb(Enum):
     FLIP_COIN = (
         "FLIP_COIN"  # "flip a coin" (no roles; outcome gated by FAtomPred.FLIP_WON)
     )
-    # CHOOSE (grammar round 7): "You choose a noncreature, nonland card
-    # from it" (Duress, Kitesail) — the controller picks a set FROM the
-    # `target` selector's pool (the anaphoric "it" of the preceding
-    # sentence, bound via referent="result"); the choice is recorded as
-    # the ability's result for later anaphora (C12).
+    # CHOOSE: "You choose a noncreature, nonland card from it" (Duress) —
+    # the controller picks a set FROM the `target` selector's pool (the
+    # anaphoric "it" of the preceding sentence, bound via
+    # referent="result"); the choice is recorded as the ability's result
+    # for later anaphora.
     CHOOSE = "CHOOSE"
     CHOOSE_NAME = "CHOOSE_NAME"  # "choose a name" (Runed Halo, Necromentia); read back by FAtomPred.NAME_CHOSEN
     FIGHT = (
         "FIGHT"  # "this creature fights another target creature" (Brash
         # Taunter), "it fights up to one target creature you don't control"
         # (Primal Might). Attacker = the source/IT referent, `target` = the
-        # fighter. Executor deferred per the MANDATE_BLOCK-orphan precedent.
+        # fighter.
     )
     LOSE_ABILITY = (
         "LOSE_ABILITY"  # "that permanent loses indestructible" (Soul
         # Sear) — mirrors GRANT_ABILITY's roles.
     )
-    # GET_EMBLEM (grammar round 8, R8-7): "you get an emblem with
-    # '…'" (Teferi, Master of Time [-X]; C19). A MARKER verb with NO
-    # roles: the emblem payload is the card-level emblem attach
-    # (compiler two-pass, compiler.py:1115) — the quoted emblem text
-    # NEVER enters the ability IR. Executor deferred per the MANDATE_
-    # ATTACK / FIGHT orphan precedent (PC-6 unaffected).
+    # GET_EMBLEM: "you get an emblem with '…'" (Teferi, Master of Time
+    # [-X]). A MARKER verb with NO roles: the emblem payload is the
+    # card-level emblem record that ``compile_pool`` attaches to its
+    # planeswalker, so the quoted emblem text NEVER enters the ability IR.
     GET_EMBLEM = "GET_EMBLEM"
-    # ADD_LAND_PLAY (grammar round 8, R8-8): "You may play two additional
-    # lands on each of your turns" (Azusa, Lost but Seeking); "you may
-    # play one additional land each turn" (Uktabi Efreet). `count` = the
-    # additional plays, `duration` scopes the grant. Executor deferred
-    # per the FIGHT orphan precedent.
+    # ADD_LAND_PLAY: "You may play two additional lands on each of your
+    # turns" (Azusa, Lost but Seeking). `count` = the additional plays,
+    # `duration` scopes the grant.
     ADD_LAND_PLAY = "ADD_LAND_PLAY"
-    # MANA_POLICY (grammar round 9, R9-3, C21): spend-restriction verbs —
-    # "Spend this mana only to cast instant or sorcery spells" (Vodalian
-    # Arcanist; scope=THIS_MANA, event-anchored to the ability's own
-    # ADD_MANA) and "you may spend mana as though it were mana of any
-    # color" (Orrery; scope=ALL_YOURS, a DurationPermanent permission).
-    # `scope` is the closed _MANA_POLICY_SCOPES string pair; `filter`
-    # over narrows the allowed spend (a CastSpellEvent-shape Filter like
-    # IS_INSTANT readings). Executor deferred per the ADD_LAND_PLAY
-    # orphan precedent.
+    # MANA_POLICY: spend-restriction verbs — "Spend this mana only to cast
+    # instant or sorcery spells" (Vodalian Arcanist; scope=THIS_MANA,
+    # anchored to the ability's own ADD_MANA) and "you may spend mana as
+    # though it were mana of any color" (Chromatic Orrery; scope=ALL_YOURS,
+    # a DurationPermanent permission). `scope` is the closed
+    # _MANA_POLICY_SCOPES pair; `filter` narrows the allowed spend (a
+    # CastSpellEvent-shape Filter).
     MANA_POLICY = "MANA_POLICY"
-    # GRANT_ACTIVATION (grammar round 9, R9-7): "You may activate
-    # loyalty abilities of [targets] whenever you wish" (Teferi, Master
-    # of Time — the NAME_CONTAINS("Teferi") gate closes the 8-C
-    # withdrawal). `filter` selects the ability-holders, `window` is the
-    # optional ActivationWindow the extra activation joins. Executor
-    # deferred per the GRANT_ABILITY-adjacent orphan precedent.
+    # GRANT_ACTIVATION: "You may activate loyalty abilities of [targets]
+    # whenever you wish" (Teferi, Master of Time, gated by
+    # NAME_CONTAINS("Teferi")). `filter` selects the ability-holders,
+    # `window` is the optional ActivationWindow the extra activation joins.
     GRANT_ACTIVATION = "GRANT_ACTIVATION"
-    # DAMAGE_ASSIGN_POLICY (grammar round 10, R10-4, C28): combat-damage
-    # assignment-policy verbs — "You may have this creature assign its
-    # combat damage as though it weren't blocked." (Garruk, Savage Herald
-    # [−7], granted via GRANT_ABILITY over creatures you control).
-    # `scope` is the closed _DAMAGE_ASSIGN_SCOPES vocabulary; `filter`
-    # over narrows the affected damage dealers. The "You may" wording is
-    # preserved OUTSIDE the atom (C15/C28: the granted StaticAbility
-    # holds OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, ...))). Executor
-    # deferred per the MANA_POLICY / ADD_LAND_PLAY orphan precedent.
+    # DAMAGE_ASSIGN_POLICY: combat-damage assignment policy — "You may have
+    # this creature assign its combat damage as though it weren't
+    # blocked." (Garruk, Savage Herald [−7], granted via GRANT_ABILITY over
+    # creatures you control). `scope` is the closed _DAMAGE_ASSIGN_SCOPES
+    # vocabulary; `filter` narrows the affected damage dealers. The "You
+    # may" stays OUTSIDE the atom: the granted StaticAbility holds
+    # OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, ...)).
     DAMAGE_ASSIGN_POLICY = "DAMAGE_ASSIGN_POLICY"
-    # TRIGGER_ADDITIONAL (T5-D, Sanctum of All "that ability triggers an
+    # TRIGGER_ADDITIONAL (Sanctum of All "that ability triggers an
     # additional time"): the {count} axis of the extra-trigger family — the
     # AbilityTriggerEvent firing re-triggers the ability it matched
     # `count` more times. CR 603.2e: those extra triggers are created
@@ -332,31 +228,31 @@ class Verb(Enum):
 
 
 class VerbClass(Enum):
-    """T4 §1: the instance CLASS of a Verb — its payload ROLE, not where a
-    decision happens (§9: the {menu}/{count} axes are the shared PICK
-    wrapper, so selection never belongs to the verb itself)."""
+    """The instance CLASS of a Verb — its payload ROLE, not where a
+    decision happens (the {menu}/{count} axes are the shared PICK
+    wrapper, so selection never belongs to the verb itself;
+    docs/T4_SPEC.md §1)."""
 
     OPERATION = "OPERATION"  # the atom IS a decision/observation operation
     POLICY = "POLICY"  # standing legality/timing/replacement constraint
     EFFECT = "EFFECT"  # an immediate state delta
 
 
-# The CLASS partition of the FULL Verb enum (test_ability_tree asserts it
-# covers every member exactly once). Rulings are the spec's, 2026-10-07:
-# MANDATE_ATTACK/BLOCK are POLICY (combat-declaration legality — §11: the
-# restricting card's own component); CAST/FLIP_COIN/FIGHT/TAP/UNTAP/
-# SACRIFICE/DISCARD are EFFECTs whose menus live in the shared PICK/
-# designate wrapper; DISCARD/MILL/EXILE keep their EFFECT class as the
-# merged MOVE's legacy twins (P1a: unemitted members, same class).
+# The CLASS partition of the FULL Verb enum (test_grammar_p1a asserts it
+# covers every member exactly once). MANDATE_ATTACK/BLOCK are POLICY
+# (combat-declaration legality, owned by the restricting card);
+# CAST/FLIP_COIN/FIGHT/TAP/UNTAP/SACRIFICE/DISCARD are EFFECTs whose menus
+# live in the shared PICK/designate wrapper; DISCARD/MILL/EXILE keep the
+# EFFECT class of the MOVE_ZONE atom they compile to.
 VERB_CLASS: dict[Verb, VerbClass] = {
-    # OPERATION (6)
+    # OPERATION verbs (6)
     Verb.CHOOSE: VerbClass.OPERATION,
     Verb.CHOOSE_NAME: VerbClass.OPERATION,
     Verb.SCRY: VerbClass.OPERATION,
     Verb.SEARCH: VerbClass.OPERATION,
     Verb.LOOK_AT: VerbClass.OPERATION,
     Verb.PAY: VerbClass.OPERATION,
-    # POLICY (7)
+    # POLICY verbs (7)
     Verb.MANA_POLICY: VerbClass.POLICY,
     Verb.DAMAGE_ASSIGN_POLICY: VerbClass.POLICY,
     Verb.GRANT_ACTIVATION: VerbClass.POLICY,
@@ -364,7 +260,7 @@ VERB_CLASS: dict[Verb, VerbClass] = {
     Verb.ADD_LAND_PLAY: VerbClass.POLICY,
     Verb.MANDATE_ATTACK: VerbClass.POLICY,
     Verb.MANDATE_BLOCK: VerbClass.POLICY,
-    # EFFECT (37)
+    # EFFECT verbs (37)
     Verb.DEAL_DAMAGE: VerbClass.EFFECT,
     Verb.DESTROY: VerbClass.EFFECT,
     Verb.EXILE: VerbClass.EFFECT,
@@ -401,7 +297,7 @@ VERB_CLASS: dict[Verb, VerbClass] = {
     Verb.FIGHT: VerbClass.EFFECT,
     Verb.LOSE_ABILITY: VerbClass.EFFECT,
     Verb.GET_EMBLEM: VerbClass.EFFECT,
-    # T5-D: extra-trigger creation is an EFFECT — it puts new trigger
+    # Extra-trigger creation is an EFFECT — it puts new trigger
     # instances on the stack (CR 603.2e), not a standing policy.
     Verb.TRIGGER_ADDITIONAL: VerbClass.EFFECT,
 }
@@ -412,19 +308,17 @@ class SelectorMode(Enum):
     used by targets, statics, counts, triggers, and search)."""
 
     # TARGET = exactly `count` objects for a concrete count; with a
-    # QAtMost(n) count (grammar round 8, C17) it is the legal designation
-    # of "up to n targets": the player chooses 1..n, the effect resolves
-    # on 0..remaining (executor clamp).
+    # QAtMost(n) count it is the legal designation of "up to n targets":
+    # the player chooses 1..n, the effect resolves on 0..remaining
+    # (executor clamp).
     TARGET = "TARGET"  # exactly `count` objects, chosen by the effect
     CHOOSE = "CHOOSE"  # up to `count` objects, chosen by a controller
     ALL = "ALL"  # every object in the zone matching the filter (count ignored)
     RANDOM = "RANDOM"  # exactly `count` objects, chosen at random
-    # ONE_OF / REST (grammar round 7, the split-selection pair): ONE_OF
-    # takes exactly one object out of the selected set (Waker of Waves'
-    # "put one of them in your hand", Cultivate's "put it onto the
-    # battlefield"); REST is everything left after the ONE_OF pick
-    # ("the rest into your graveyard/hand", See the Truth, Garruk's
-    # Harbinger, Cultivate) — count is ignored, mirroring ALL.
+    # ONE_OF / REST split one selection: ONE_OF takes exactly one object
+    # out of the selected set (Waker of Waves' "put one of them in your
+    # hand"); REST is everything left after the ONE_OF pick ("the rest into
+    # your graveyard", See the Truth) — count is ignored, mirroring ALL.
     ONE_OF = (
         "ONE_OF"  # exactly one of the selected set (needs a concrete count like TARGET)
     )
@@ -452,8 +346,8 @@ class ZonePosition(Enum):
     """A position within a zone — the top or bottom of an ordered pile
     (library, graveyard, exile). ``Zone.position`` carries it: "the top
     card of your library", "put on top of its owner's library". None (the
-    default) means the zone as a whole; None serializes by omitting the
-    key (T3 round, byte-stable for pre-T3 trees)."""
+    default) means the zone as a whole and serializes by omitting the
+    key."""
 
     TOP = "TOP"
     BOTTOM = "BOTTOM"
@@ -472,18 +366,17 @@ class ControllerRef(Enum):
     ANY = "ANY"
     ALL_OPPONENTS = "ALL_OPPONENTS"
     OWNER = "OWNER"  # "its owner" — owner-scoped zones ("return to its owner's hand")
-    # V21 (2026-10-29): "target opponent" — the same designated player, restricted to an
-    # opponent of the controller (CR 102.2, 102.3). It shared TARGET_PLAYER's bytes before,
-    # so "target player" could never designate you.
+    # "target opponent" — the same designated player as TARGET_PLAYER, restricted to an
+    # opponent of the controller (CR 102.2, 102.3); "target player" may designate you.
     TARGET_OPPONENT = "TARGET_OPPONENT"
-    # 2026-11-06: "defending player" — the player being attacked in the current combat
+    # "defending player" — the player being attacked in the current combat
     # (CR 506.2). For an attacking creature's ability, or an ability that names an attacking
     # creature, it is the player that creature attacks or the controller of the planeswalker
     # it attacks (CR 508.5). Outside combat there is none, so the ref names no player.
     DEFENDING_PLAYER = "DEFENDING_PLAYER"
 
 
-#: The refs naming the player a spell or ability designated (V21): "target player" and
+#: The refs naming the player a spell or ability designated: "target player" and
 #: "target opponent" read the same binding and differ only in who may be designated.
 DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
 
@@ -492,10 +385,9 @@ class QPropField(Enum):
     """Which property QProp reads from its referent. The player-count fields
     only make sense with the "controller" referent; AMOUNT, THIS_WAY_COUNT
     and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with "event",
-    "source" (grammar round 7: SOUL counters on the source Equipment,
-    Malefic Scythe) or "target" (grammar round 8, R8-11: counters on the
-    chosen target, Invigorating Surge) — all validated in
-    QProp.__post_init__."""
+    "source" (SOUL counters on the source Equipment, Malefic Scythe) or
+    "target" (counters on the chosen target, Invigorating Surge) — all
+    validated in QProp.__post_init__."""
 
     POWER = "POWER"
     TOUGHNESS = "TOUGHNESS"
@@ -504,19 +396,13 @@ class QPropField(Enum):
     CARDS_IN_HAND = "CARDS_IN_HAND"  # "the number of cards in your hand"
     CARDS_IN_LIBRARY = "CARDS_IN_LIBRARY"  # Peer into the Abyss
     CARDS_IN_GRAVEYARD = "CARDS_IN_GRAVEYARD"  # Liliana, Waker of the Dead [-3]
-    # r24a (2026-10-02, engine batch 24a; the C3 roadmap correction's engine
-    # half): the life-TOTAL operand — "loses half their life. Round up" (Peer
-    # into the Abyss). QCount counts zone OBJECTS and no field read a player's
-    # life, so that clause had no compilable quantity (C3 STOP verdict). The
-    # lane is additive+byte-stable per the R3 law: the frozen compiler emits
-    # no LOSE_LIFE(QProp LIFE) tree yet — the emit lands with the compiler
-    # batch; the executor already answers it (quantity._prop_value, pinned in
-    # test_executor_r24a).
     LIFE = "LIFE"  # "half your life total" (Peer into the Abyss)
     AMOUNT = "AMOUNT"  # the triggering event's damage amount (Brash Taunter)
-    COUNTER_COUNT = "COUNTER_COUNT"  # the counter count of the event or the source (Conclave Mentor; grammar round 7: Malefic Scythe's SOUL counters on this Equipment)
-    THIS_WAY_COUNT = "THIS_WAY_COUNT"  # "for each creature tapped this way" (Siege Striker) / "for each card exiled this way" (Necromentia s3) — grammar round 7, referent "event"
-    THAT_MANY_COUNT = "THAT_MANY_COUNT"  # "discard up to two … draw that many" (Kinetic Augur) — the count chosen by the preceding up-to-X choice; grammar round 7, referent "event"
+    COUNTER_COUNT = "COUNTER_COUNT"  # counters on the event, source or target (Conclave Mentor)
+    THIS_WAY_COUNT = "THIS_WAY_COUNT"  # "for each creature tapped this way" (Siege Striker)
+    # THAT_MANY_COUNT: the count chosen by the preceding up-to-X choice ("discard
+    # up to two … draw that many", Kinetic Augur).
+    THAT_MANY_COUNT = "THAT_MANY_COUNT"
 
 
 class QAgg(Enum):
@@ -532,10 +418,9 @@ class QAgg(Enum):
 
 class QBinOp(Enum):
     """Quantity arithmetic. DIV is floor division (//) unless the node
-    carries a ``rounding`` policy (T5-D, see Rounding); the historical
-    (n + 1) // 2 round-up-half idiom stays valid, but new encodings state
-    the policy explicitly (Peer into the Abyss), keeping the operator set
-    closed."""
+    carries a ``rounding`` policy (see Rounding); rounding is a field, not
+    another operator, so the operator set stays closed. The
+    (n + 1) // 2 round-up-half idiom stays valid."""
 
     ADD = "ADD"
     SUB = "SUB"
@@ -546,13 +431,12 @@ class QBinOp(Enum):
 
 
 class Rounding(Enum):
-    """T5-D (Peer into the Abyss "Round up each time."): the explicit
-    rounding POLICY of a QBin DIV — the axis the (n + 1) // 2 idiom had to
-    smuggle through arithmetic before. NONE is "the text states no
-    rounding" (behaves as FLOOR, the operator's standing default); CEIL is
-    the MTG rule rounding (CR 107.1a, always round up); FLOOR is an
-    explicit "rounded down" text. The field rides QBin's DIV only —
-    attaching it to any other op raises."""
+    """The explicit rounding POLICY of a QBin DIV (Peer into the Abyss
+    "Round up each time."). NONE is "the text states no rounding" (behaves
+    as FLOOR, the operator's standing default); CEIL is the MTG rule
+    rounding (CR 107.1a, always round up); FLOOR is an explicit "rounded
+    down" text. The field rides QBin's DIV only — attaching it to any
+    other op raises."""
 
     NONE = "NONE"
     CEIL = "CEIL"
@@ -562,12 +446,11 @@ class Rounding(Enum):
 class ThisTurnKind(Enum):
     """What QThisTurn counts within the current turn — turn-scoped
     quantities ("the life you've gained this turn", "the cards an
-    opponent has drawn this turn"); the family named in the T3 grammar
-    decision (B2a #12/#14/#16, B4 #147/#163)."""
+    opponent has drawn this turn")."""
 
     LIFE_GAINED = "LIFE_GAINED"
     CARDS_DRAWN = "CARDS_DRAWN"
-    # NONCOMBAT_DAMAGE (grammar round 8, R8-10): total noncombat damage
+    # NONCOMBAT_DAMAGE: total noncombat damage
     # dealt by the referent this turn — Chandra's Incinerator "{X}, where
     # X is the total amount of noncombat damage dealt to your opponents
     # this turn."
@@ -628,10 +511,10 @@ class FAtomPred(Enum):
     )
     FLIP_WON = "FLIP_WON"  # "if you win the flip" (required who; Tavern Swindler)
     MAY_DONE = (
-        "MAY_DONE"  # r18a CR 611.1: the "If you do, X" tail — X executes only
+        "MAY_DONE"  # CR 611.1: the "If you do, X" tail — X executes only
         # when the action before it was done (CR 118.12): a "may" action the
-        # player chose and carried out, or (m21-fidelity wave 4, 2026-10-30) a
-        # mandatory one that actually happened ("Exile it. If you do, ...").
+        # player chose and carried out, or a mandatory one that actually
+        # happened ("Exile it. If you do, ...").
         # One meaning, one encoding. Handle-free like FLIP_WON; answered from
         # the executor's per-resolution record (the may-offer outcome, or the
         # mandatory step's). No slots (precedent: TARGETS_SOURCE); never
@@ -648,64 +531,61 @@ class FAtomPred(Enum):
     )
     ENTERED_THIS_TURN_FROM = (
         "ENTERED_THIS_TURN_FROM"  # "if it entered from your graveyard"
-        # (Archfiend's Vessel; grammar round 4 — required zone slot)
+        # (Archfiend's Vessel; required zone slot)
     )
     CAST_THIS_TURN_FROM = (
         "CAST_THIS_TURN_FROM"  # "or you cast it from your graveyard"
-        # (Archfiend's Vessel; grammar round 4 — required zone + who)
+        # (Archfiend's Vessel; required zone + who)
     )
     MOVED_TO_ZONE_THIS_TURN = (
         "MOVED_TO_ZONE_THIS_TURN"  # "a permanent was put into your hand
         # from the battlefield this turn" (Barrin, Tolarian Archmage;
-        # grammar round 4 — required from_zone + to_zone + who)
+        # required from_zone + to_zone + who)
     )
     WAS_CAST_THIS_TURN = (
         "WAS_CAST_THIS_TURN"  # "it was cast this turn (by who)" (Containment
-        # Priest; grammar round 5 — required who; turn-scoped cast tracking
-        # without a zone constraint, unlike CAST_THIS_TURN_FROM)
+        # Priest; required who; turn-scoped cast tracking without a zone
+        # constraint, unlike CAST_THIS_TURN_FROM)
     )
     NOT_FIRST_DRAW_THIS_STEP = (
         "NOT_FIRST_DRAW_THIS_STEP"  # "not the first card who draws in their
-        # draw step" (Teferi's Ageless Insight; grammar round 5 — required who;
-        # evaluated against the drawn card, CardDrawnEvent subject)
+        # draw step" (Teferi's Ageless Insight; required who; evaluated
+        # against the drawn card, CardDrawnEvent subject)
     )
     TURN_OF = (
         "TURN_OF"  # "it is <who>'s turn" — "During your turn, …" (Radha,
-        # Heart of Keld; Discontinuity; grammar round 6 — required who; the
-        # Phase enum carries no turn owner)
+        # Heart of Keld; required who; the Phase enum carries no turn owner)
     )
     ZONE_COUNT_GE = (
         "ZONE_COUNT_GE"  # "<who> has >= count cards in their <zone>
-        # matching inner_filter" (Thieves' Guild Enforcer; grammar round 6
-        # — required who + zone + inner_filter + count)
+        # matching inner_filter" (Thieves' Guild Enforcer; required who +
+        # zone + inner_filter + count)
     )
     IS_ATTACHED_TO = (
-        "IS_ATTACHED_TO"  # grammar round 7: the object is attached to the
-        # referent object ("Destroy target Equipment attached to that" —
-        # Turn to Slag; required referent slot from
-        # _QPROP_STR_REFERENTS, e.g. "source")
+        "IS_ATTACHED_TO"  # the object is attached to the referent object
+        # ("Destroy target Equipment attached to that" — Turn to Slag;
+        # required referent slot from _QPROP_STR_REFERENTS, e.g. "source")
     )
     NAME_CHOSEN = (
-        "NAME_CHOSEN"  # grammar round 7: the object's name is the one
-        # picked by Verb.CHOOSE_NAME ("cards with that name" — Runed Halo
-        # s2, Necromentia s2). No slots (precedent: IS_TAPPED).
+        "NAME_CHOSEN"  # the object's name is the one picked by
+        # Verb.CHOOSE_NAME ("cards with that name" — Runed Halo). No slots
+        # (precedent: IS_TAPPED).
     )
     IS_EXILED_WITH_SOURCE = (
-        "IS_EXILED_WITH_SOURCE"  # grammar round 8, R8-6: the card is in
-        # exile AND was exiled by the source object — "the exiled card"
-        # permission scoping (Horizon Scholar's "card exiled with ~",
-        # Idol of Endurance). No slots (precedent: IS_TAPPED); evaluated
-        # against the ability's source.
+        "IS_EXILED_WITH_SOURCE"  # the card is in exile AND was exiled by
+        # the source object — "the exiled card" permission scoping (Horizon
+        # Scholar's "card exiled with ~"). No slots (precedent: IS_TAPPED);
+        # evaluated against the ability's source.
     )
     CONTROLLER_COUNT_GT = (
-        "CONTROLLER_COUNT_GT"  # grammar round 8, R8-9: the referent
-        # controller controls MORE objects matching inner_filter than
-        # matching right_inner_filter — Garruk's "you control more
-        # creatures than any opponent" split; dual-filter comparison,
-        # the second filter lives in the new right_inner_filter slot.
+        "CONTROLLER_COUNT_GT"  # the referent controller controls MORE
+        # objects matching inner_filter than matching right_inner_filter —
+        # Garruk's "you control more creatures than any opponent";
+        # dual-filter comparison, the second filter lives in the
+        # right_inner_filter slot.
     )
     LIFE_LEAD_OVER_START_GE = (
-        "LIFE_LEAD_OVER_START_GE"  # grammar round 9, R9-2: the referent
+        "LIFE_LEAD_OVER_START_GE"  # the referent
         # (a player) has gained a net life lead of at least `count` over
         # their starting life total — "if you gained at least 7 life more
         # than your starting life total this game" (Speaker of the Heavens
@@ -714,7 +594,7 @@ class FAtomPred(Enum):
         # (the PRED carries slots only — the number is template-side).
     )
     NAME_PARTITION_COUNT_GE = (
-        "NAME_PARTITION_COUNT_GE"  # grammar round 10, R10-2, C26: the
+        "NAME_PARTITION_COUNT_GE"  # the
         # maximum size of an EXACT-name group over the inner_filter-
         # matched objects the referent controls is >= `count` — "if you
         # control two or more nonland, nontoken permanents with the same
@@ -724,45 +604,38 @@ class FAtomPred(Enum):
         # count) — the threshold number is template-side.
     )
     ATTACK_AGAINST_COUNT_GE = (
-        "ATTACK_AGAINST_COUNT_GE"  # grammar round 10, R10-3: count the
+        "ATTACK_AGAINST_COUNT_GE"  # count the
         # triggering event's subject attackers whose ATTACKED object
         # passes inner_filter >= `count` — "if two or more of those
         # creatures are attacking you and/or planeswalkers you control"
-        # (Mangara, the Diplomat). Reads the declared-attackers list off
-        # the DeclareAttackersEvent (LIFE_LEAD vocabulary-first
-        # precedent: the executor reads the game record).
+        # (Mangara, the Diplomat). The executor reads the
+        # declared-attackers list off the DeclareAttackersEvent.
     )
     OPPONENT_OF = (
-        "OPPONENT_OF"  # grammar round 11, R11-1 (batch 6 destination
-        # ruling /10): the subject IS a PLAYER who is an opponent of
+        "OPPONENT_OF"  # the subject IS a PLAYER who is an opponent of
         # ``who`` — the damage-DESTINATION test "…deals damage TO AN
-        # OPPONENT" (Chandra's Pyreling / Incinerator). A destination
-        # PREDICATE in the existing event-filter idiom: the
-        # DamageDealtEvent ``filter`` is already the lane over the
-        # damaged object, so no new event field is needed. A card/
-        # permanent subject is honestly FALSE (a permanent is not a
-        # player, CR 109.5) — the pyreling suspect's negative: damage
-        # to an opponent's CREATURE must not satisfy "to an opponent".
-        # ``who`` is a ControllerRef or referent Selector (CONTROLLER_IS
-        # precedent); the two-player harness answers "the seats that are
-        # not who's side are its opponents" (controller_matches mirror).
+        # OPPONENT" (Chandra's Pyreling). It rides the DamageDealtEvent
+        # ``filter`` over the damaged object, so no event field is needed.
+        # A card/permanent subject is FALSE (a permanent is not a player,
+        # CR 109.5): damage to an opponent's CREATURE must not satisfy "to
+        # an opponent". ``who`` is a ControllerRef or referent Selector
+        # (CONTROLLER_IS precedent).
     )
     HAS_KICKER = (
         "HAS_KICKER"  # ZNR kicker: the card HAS a kicker cost (printed,
         # paid or not) — "a card with a kicker ability" menus (Coralhelm
-        # Chronicler, /95 G2). No slots (precedent: WAS_KICKED). Registered
-        # this round; its template consumers arrive with the reveal-menu
-        # shapes (gap ledger). CR 608.2f: distinct from WAS_KICKED.
+        # Chronicler). No slots (precedent: WAS_KICKED). CR 608.2f:
+        # distinct from WAS_KICKED.
     )
     STACK_KIND_EQ = (
-        "STACK_KIND_EQ"  # ontology R5-10: what a stack object is — "counter
+        "STACK_KIND_EQ"  # what a stack object is — "counter
         # target SPELL" vs "counter target ACTIVATED or TRIGGERED ability"
         # (CR 405.1, 113.7a: abilities on the stack are not spells). The
         # required string_value is the closed vocabulary _STACK_KINDS
         # (SPELL / ACTIVATED / TRIGGERED); validated per predicate
         # (_FATOM_STRING_VOCAB).
     )
-    # Turn history (2026-11-05): ONE reading of "what happened this turn" for
+    # Turn history: ONE reading of "what happened this turn" for
     # every event the trigger vocabulary can describe. ``event`` is an
     # EventSpec, matched against the turn's journal rows exactly as a trigger
     # would match it; ``count`` is how much of it must have happened (rows, or
@@ -806,22 +679,15 @@ class SpellKind(Enum):
     ENCHANTMENT = "ENCHANTMENT"
     PLANESWALKER = "PLANESWALKER"
     LAND = "LAND"
-    # B-49 (2026-10-29): a noncreature artifact is a permanent spell too (CR 301.1). Without a
-    # kind of its own it fell back to SORCERY, and a SORCERY resolves to the graveyard.
+    # A noncreature artifact is a permanent spell too (CR 301.1): it resolves onto the
+    # battlefield, where a SORCERY would resolve to the graveyard.
     ARTIFACT = "ARTIFACT"
 
 
 class Keyword(Enum):
-    """The pool's keyword abilities — 23 distinct keywords.
-
-    The M21 file carries 24 distinct keyword *strings*; "Hexproof from" is
-    HEXPROOF plus a Filter param on the KeywordAbility (Spine
-    Megalodon/Sporeweb Weaver), not a separate keyword. File-level counts
-    (NUMBERS.md): Flying 28, Scry 19, Vigilance 12, Lifelink 12, Flash 11,
-    Enchant 11, Trample 9, Prowess 8, Reach 8, Hexproof 7 (+4 from),
-    Protection 6, Mill 5, Defender 4, Haste 4, Fight 4, Deathtouch 3,
-    First strike 2, Equip 2, Indestructible 2, Treasure 2, Battalion 1,
-    Double strike 1, Menace 1.
+    """The pool's keyword abilities. "Hexproof from" is HEXPROOF plus a
+    Filter param on the KeywordAbility (Spine Megalodon), not a separate
+    keyword.
     """
 
     FLYING = "FLYING"
@@ -861,9 +727,8 @@ class Phase(Enum):
 
     UPKEEP: "at the beginning of your upkeep" (Sanctum of All). FIRST_MAIN:
     "at the beginning of your first main phase" (Sanctum of Calm Waters).
-    END_TURN: "at the beginning of your end step" (Gadrak, Griffin Aerie,
-    Garruk's Unleashed emblem). COMBAT: "at the beginning of combat on your
-    turn" (the three emblems).
+    END_TURN: "at the beginning of your end step" (Gadrak). COMBAT: "at the
+    beginning of combat on your turn" (the three emblems).
     """
 
     UPKEEP = "UPKEEP"
@@ -873,33 +738,31 @@ class Phase(Enum):
 
 
 class Step(Enum):
-    """StepEvent sub-steps (finer than Phase). The pool has no step-level
-    triggers today; the members are the standard combat steps the executor
-    will eventually emit. UNTAP (grammar round 9, R9-4) is not a trigger
+    """StepEvent sub-steps (finer than Phase). No trigger listens to a step:
+    the executor's trigger binder rejects StepEvent. UNTAP is not a trigger
     step but a DURATION scope: Frost Breath's "can't untap during their
     controller's next untap step" (see DurationUntilNextStep)."""
 
     DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
     DEALS_COMBAT_DAMAGE = "DEALS_COMBAT_DAMAGE"
     END_OF_COMBAT = "END_OF_COMBAT"
-    UNTAP = "UNTAP"  # the untap step (grammar round 9, R9-4, Frost Breath)
+    UNTAP = "UNTAP"  # the untap step (Frost Breath)
 
 
 class ActivationWindow(Enum):
-    """When an activated ability may be activated (grammar round 9, R9-1,
-    convention C20). None on ActivatedAbility = the default window (play
-    the activation any time you could cast an instant); SORCERY = only
-    during the controller's own main phase with the stack empty
-    ("Activate only as a sorcery" — Steward class). The timing slot lives
-    ONLY on ActivatedAbility (C20)."""
+    """When an activated ability may be activated. None on ActivatedAbility
+    = the default window (play the activation any time you could cast an
+    instant); SORCERY = only during the controller's own main phase with
+    the stack empty ("Activate only as a sorcery"). The timing slot lives
+    ONLY on ActivatedAbility."""
 
     SORCERY = "SORCERY"
     INSTANT = "INSTANT"
 
 
 class AbilityKind(Enum):
-    """Which activations an :class:`AbilityActivatedEvent` covers (ontology
-    R5-7). Required on the event, never defaulted: "activated abilities
+    """Which activations an :class:`AbilityActivatedEvent` covers.
+    Required on the event, never defaulted: "activated abilities
     can't be activated" (Arachnus Web) and "... unless they're mana
     abilities" (Faith's Fetters) are different locks, so an absent kind
     would be a silent pick of one of them.
@@ -964,16 +827,13 @@ class QCount:
 class QPartyCount:
     """The number of creatures in YOUR party — the number of DISTINCT
     party classes (Cleric/Rogue/Warrior/Wizard) present among the objects
-    a selector matches, 0..4 (ZND-3, spec KNOWLEDGE/2026-10-18/107 G1;
-    world-canonical semantics: ZNR.json reminder text "Your party
-    consists of up to one each of Cleric, Rogue, Warrior, and Wizard").
-    QDistinctColorCount's registration-shaped sibling, but the evaluator
-    reads the LIVE type oracle (printed type line ∪ GRANT_TYPE overlay —
-    class grants move the census, §11 board interaction is engine-side),
-    not frozen identity colors; the two primitives have different data
-    sources and stay separate (§9 honest siblings). Templates pin the
-    population axis via the selector (creature-you-control battlefield
-    census idiom)."""
+    a selector matches, 0..4 ("Your party consists of up to one each of
+    Cleric, Rogue, Warrior, and Wizard"). Shaped like QDistinctColorCount,
+    but the evaluator reads the LIVE type line (printed types plus
+    GRANT_TYPE overlays, so class grants change the count), not frozen
+    identity colors; different data sources, so the two stay separate.
+    Templates pin the population (creatures you control) via the
+    selector."""
 
     selector: Selector
 
@@ -986,13 +846,11 @@ class QPartyCount:
 
 @dataclass(frozen=True)
 class QDistinctColorCount:
-    """The number of DISTINCT colors among the objects a selector matches
-    (grammar round 9, R9-6) — Orrery's "{5},{T}: Draw a card for each
-    color among permanents you control" (selector = ALL permanents, the
-    count collapses the set to its color-colorimeter). QAgg has no
-    distinct-count aggregation (verified round 9), so this is its own
-    Quantity node; it is the count, the selector names the population it
-    is counted over (QCount's registration shape mirrored exactly)."""
+    """The number of DISTINCT colors among the objects a selector matches —
+    Chromatic Orrery's "{5},{T}: Draw a card for each color among
+    permanents you control" (selector = ALL permanents). QAgg has no
+    distinct-count aggregation, so this is its own Quantity node; the
+    selector names the population it is counted over (QCount's shape)."""
 
     selector: Selector
 
@@ -1003,11 +861,11 @@ class QDistinctColorCount:
             )
 
 
-# The closed anaphora referent vocabulary (C12: structured strings, never
-# English substrings). "result" (grammar round 7, R7-1): the object(s) the
-# previous sentence acted on — revealed / chosen / exiled / moved; the
-# anaphoric "it / them / that card" binding resolved by the compiler's
-# per-ability result register (C12: register is compiler state, not tree).
+# The closed anaphora referent vocabulary (structured strings, never
+# English substrings). "result": the object(s) the previous sentence acted
+# on — revealed / chosen / exiled / moved; the anaphoric "it / them / that
+# card" binding resolved by the compiler's per-ability result register
+# (compiler state, not part of the tree).
 _QPROP_STR_REFERENTS = ("source", "controller", "target", "event", "result")
 
 
@@ -1016,8 +874,7 @@ class QProp:
     """A property of a referent.
 
     referent = Selector | "source" | "controller" | "target" | "event"
-    | "result" (the design's three referents plus the documented "event"
-    and the round-7 "result"). field is
+    | "result". field is
     validated against the referent: player-count fields need "controller",
     AMOUNT needs "event". With a Selector referent, `agg` collapses the
     (possibly many) selected objects; a string referent is singular, so agg
@@ -1048,8 +905,6 @@ class QProp:
             QPropField.CARDS_IN_HAND,
             QPropField.CARDS_IN_LIBRARY,
             QPropField.CARDS_IN_GRAVEYARD,
-            # r24a: the life total is the same PLAYER property (same twin
-            # convention, same controller-only referent rule).
             QPropField.LIFE,
         )
         if self.field in player_fields and self.referent != "controller":
@@ -1063,11 +918,10 @@ class QProp:
         )
         if self.field in event_fields and self.referent != "event":
             raise ValueError(f"QProp: {self.field.name} requires the 'event' referent")
-        # COUNTER_COUNT (grammar round 7, R9b): the event's counter count
-        # (Conclave Mentor) OR the source permanent's counter count
-        # (Malefic Scythe's "for each soul counter on this Equipment");
-        # widened to "target" in grammar round 8 (R8-11): "double that
-        # many counters" on a chosen counter-holder (Invigorating Surge).
+        # COUNTER_COUNT: the event's counter count (Conclave Mentor), the
+        # source permanent's (Malefic Scythe's "for each soul counter on
+        # this Equipment") or a chosen target's ("double that many
+        # counters", Invigorating Surge).
         if self.field is QPropField.COUNTER_COUNT and self.referent not in (
             "event",
             "source",
@@ -1087,9 +941,9 @@ class QProp:
 class QBin:
     """Quantity arithmetic: ADD / SUB / MUL / DIV (floor) / MAX / MIN.
 
-    T5-D: DIV carries an optional ``rounding`` policy (see Rounding); the
-    field is empty-default and omitted from the serialization, so every
-    pre-T5-D QBin keeps its exact golden bytes."""
+    DIV carries an optional ``rounding`` policy (see Rounding); None is
+    omitted from the serialization, so a QBin without one keeps its golden
+    bytes."""
 
     op: QBinOp
     left: Quantity
@@ -1120,7 +974,7 @@ class QThisTurn:
     """A quantity scoped to the current turn: how much `kind` `referent`
     has accumulated this turn — QThisTurn(LIFE_GAINED, YOU) = "the life
     you've gained this turn", QThisTurn(CARDS_DRAWN, OPPONENT) = "the
-    cards an opponent has drawn this turn" (T3 round E)."""
+    cards an opponent has drawn this turn"."""
 
     kind: ThisTurnKind
     referent: ControllerRef
@@ -1140,10 +994,9 @@ class QThisTurn:
 @dataclass(frozen=True)
 class QAtLeast:
     """A quantity meaning "at least n" (n >= 1): the minimum a variable
-    amount must reach ("choose one or more", Sublime Epiphany). The
-    compiler previously had to write ``QUnbounded()`` for these, losing the
-    minimum-1 constraint; QAtLeast(1) restores it. n = 0 is redundant with
-    the unbounded reading, so 0 and negatives are rejected."""
+    amount must reach ("choose one or more", Sublime Epiphany), which
+    ``QUnbounded()`` cannot express. n = 0 is redundant with the unbounded
+    reading, so 0 and negatives are rejected."""
 
     n: int
 
@@ -1156,16 +1009,13 @@ class QAtLeast:
 
 @dataclass(frozen=True)
 class QAtMost:
-    """A quantity meaning "up to n" (n >= 1) — grammar round 8, R8-1,
-    convention C17 (KNOWLEDGE 2026-09-28/08). With a TARGET-mode Selector
+    """A quantity meaning "up to n" (n >= 1). With a TARGET-mode Selector
     this is the legal designation of "up to n targets": the player may
-    choose 1..n legal targets (it is still targeted — the legal-target
-    distribution C15 protects is preserved), and the effect resolves on
-    0..n of them (the executor clamps when targets leave). A resolution-
-    time "up to N" that is NOT targeted ("fights up to one target…",
-    "exile up to two cards this way") STAYS CHOOSE + QConst(N) per C17 —
-    QAtMost is only for the targeted designation. n = 0 is a no-op, so 0
-    and negatives are rejected (QAtLeast's validation style)."""
+    choose 1..n legal targets (they are still targeted), and the effect
+    resolves on 0..n of them (the executor clamps when targets leave). A
+    resolution-time "up to N" that is NOT targeted ("exile up to two cards
+    this way") STAYS CHOOSE + QConst(N) — QAtMost is only for the targeted
+    designation. n = 0 is a no-op, so 0 and negatives are rejected."""
 
     n: int
 
@@ -1192,26 +1042,23 @@ Quantity = (
 
 
 def count_semantics(count: Quantity, n_legal: int) -> tuple[bool, int]:
-    """THE legality/count answer for one Quantity over a live population
-    (T3 unification, doc 36; owner §9: the {menu} axis gets ONE answer).
+    """THE legality/count answer for one Quantity over a live population.
 
     Returns ``(announceable, effective_k)`` where ANNOUNCEABILITY is the
     full-size law of CR 601.2c — "the number of targets must be exactly
     the number stated" — and ``effective_k`` is the ask/designate ceiling
-    the executor loop runs against. The three former sites (binding.py
-    TARGET, selectors.py ONE_OF, query.py feasibility) all call THIS; a
-    site may layer its documented resolve-time lane on top (mid-loop
-    depletion resolves as much as possible, 608.2c) but may not re-decide
-    the announce-time answer:
+    the executor loop runs against. binding.py (TARGET), selectors.py
+    (ONE_OF) and query.py (feasibility) all call THIS; a site may layer its
+    resolve-time handling on top (mid-loop depletion resolves as much as
+    possible, CR 608.2c) but may not re-decide the announce-time answer:
 
     * QConst(N)   — "N targets" EXACT: unannounceable with fewer than N
       legal objects. Clamping (asking over fewer) is WRONG here. k = N,
       never clamped.
-    * QAtMost(N)  — "up to N": clamps against the population with the
-      NONE stoppable lane; announceable iff at least one legal object
-      exists (C17 designation law: a nonempty TARGET slot must designate
-      >= 1; an empty population designates nothing and resolves doing
-      nothing, 603.4). k = min(N, n_legal).
+    * QAtMost(N)  — "up to N": announceable iff at least one legal object
+      exists (a nonempty TARGET slot must designate >= 1; an empty
+      population designates nothing and resolves doing nothing, CR
+      603.4). k = min(N, n_legal).
     * QAtLeast(N) — "N or more": announceable iff n_legal >= N; the loop
       takes the ceiling. k = n_legal.
     * QUnbounded  — "any number": always announceable (the EMPTY set is a
@@ -1241,8 +1088,7 @@ class Zone:
     """A (kind, controller) zone. ``position`` pins a slot inside an
     ordered pile (TOP/BOTTOM of a library/graveyard/exile — "the top
     card of your library", "put on top of its owner's library"); None is
-    the zone as a whole and serializes by omitting the key (T3 round H,
-    byte-stable for pre-T3 trees)."""
+    the zone as a whole and serializes by omitting the key."""
 
     kind: ZoneKind
     controller: ControllerRef
@@ -1264,38 +1110,33 @@ class Zone:
 @dataclass(frozen=True)
 class Selector:
     """The one selector type used by targets, statics, counts, triggers,
-    and search (DESIGN_CARD_POOL). count semantics by mode: TARGET exact
-    (or 1..n designation / 0..remaining resolution with QAtMost, C17),
+    and search (docs/DESIGN_CARD_POOL.md). count semantics by mode: TARGET
+    exact (or 1..n designation / 0..remaining resolution with QAtMost),
     CHOOSE up-to (QUnbounded = any), ALL ignores count, RANDOM exact.
-    ``zones`` IS the legal-zone SET (R0 zone-fold, DESIGN_ATOM_ONTOLOGY
-    §3 SET-R0): the two pre-fold fields ``zone`` + ``zones`` (whose
-    effective set was the additive union {zone} ∪ zones, T3 round C)
-    collapse into ONE set field — "target player or planeswalker" =
+    ``zones`` IS the legal-zone SET — "target player or planeswalker" =
     PLAYER ∪ BATTLEFIELD, "library and graveyard" search = LIBRARY ∪
     GRAVEYARD, "target spell or creature" = STACK ∪ BATTLEFIELD, all
     spelled as zone SPECS kept WHOLE (kind + controller + position all
-    carry meaning) in one tuple. The set is normalized AT CONSTRUCTION
-    (O3 law, SET-R1a precedent): non-empty, deduped and sorted by
-    ``canonical_json`` (Zone is not orderable — a bare ``sorted()``
-    TypeErrors), so construction wording order is never observable and
-    worded-order twins share one encoding. The field has no empty
-    default: it always serializes.
+    carry meaning) in one tuple. The set is normalized AT CONSTRUCTION:
+    non-empty, deduped and sorted by ``canonical_json`` (Zone is not
+    orderable — a bare ``sorted()`` TypeErrors), so construction wording
+    order is never observable and worded-order twins share one encoding.
+    The field has no empty default: it always serializes.
 
-    ``referent`` (grammar round 4, object anaphora) binds the selector to
-    an object already in scope instead of searching: one of
-    ``_QPROP_STR_REFERENTS`` — "source", "controller", "target", "event",
-    "result" (grammar round 7: the object(s) the previous sentence acted
-    on) — the closed vocabulary shared with ``QProp``; "event" = the triggering
-    event's subject object (cast → the cast spell; damage_dealt → the
-    damaged recipient; becomes_blocked → the blocker; declare_attackers
-    → the attacker; targeting → the new target). When set, the selector
-    denotes the bound object and ``filter`` (if non-universal) acts as a
-    type-check on it, not a fresh search. Convention C2: a referent
-    selector must be ``mode=CHOOSE`` + ``count=QConst(1)`` +
-    ``zones == (Zone(ANY, ANY),)`` exactly (a bound object is not chosen,
-    and its zone is unknown at compile time); violations raise in
-    ``__post_init__``. None (the default) serializes by omitting the key
-    — byte-stable for every pre-round-4 tree."""
+    ``referent`` binds the selector to an object already in scope instead
+    of searching: one of ``_QPROP_STR_REFERENTS`` — "source",
+    "controller", "target", "event", "result" (the object(s) the previous
+    sentence acted on) — the closed vocabulary shared with ``QProp``;
+    "event" = the triggering event's subject object (cast → the cast
+    spell; damage_dealt → the damaged recipient; becomes_blocked → the
+    blocker; declare_attackers → the attacker; targeting → the new
+    target). When set, the selector denotes the bound object and
+    ``filter`` (if non-universal) acts as a type-check on it, not a fresh
+    search. A referent selector must be ``mode=CHOOSE`` +
+    ``count=QConst(1)`` + ``zones == (Zone(ANY, ANY),)`` exactly (a bound
+    object is not chosen, and its zone is unknown at compile time);
+    violations raise in ``__post_init__``. None (the default) serializes
+    by omitting the key."""
 
     count: Quantity
     mode: SelectorMode
@@ -1326,11 +1167,9 @@ class Selector:
                 "the old zone+zones fields with the single zones SET field"
             )
         if len(self.zones) > 1:
-            # SET-R0 construction normalization (O3 law, _set_sorted :1280 /
-            # AtomArgs.pairs :2541 precedent): dedup by canonical_json, then
-            # sort by it — Zone is not natively orderable, canonical_json is
-            # the ONE total order. Construction/wording order is never
-            # observable; worded-order twins share one encoding.
+            # Construction normalization (as in _set_sorted): dedup by
+            # canonical_json, then sort by it — Zone is not natively
+            # orderable, canonical_json is the ONE total order.
             unique: dict[str, Zone] = {}
             for z in self.zones:
                 unique.setdefault(canonical_json(z), z)
@@ -1371,8 +1210,7 @@ class Selector:
 
 
 def _set_sorted(items):
-    """SET-R1a construction sort (ontology §3 SET-R1a rows, O3 construction
-    law; ``AtomArgs.pairs`` :2541 precedent): sort by ``canonical_json`` —
+    """Construction sort for set-valued fields: sort by ``canonical_json`` —
     the ONE total order over heterogeneous IR elements (``Zone``/enum/dataclass
     elements are not natively orderable, so a bare ``sorted()`` TypeErrors).
     Returns a tuple (``()`` for ``None``)."""
@@ -1385,13 +1223,14 @@ def _set_sorted(items):
 
 
 def _normalize_filter_children(cls, children):
-    """SET-R1a normalization of an ``FAnd``/``FOr`` child list: splice any
+    """Normalization of an ``FAnd``/``FOr`` child list: splice any
     same-class child (flatten), then sort by ``canonical_json``.
 
     A single-child node is KEPT: a node cannot replace itself inside its
     parent, so the unwrap lives at the COMPILER EMISSION site (the filter
-    builders return the lone child) and checker V2′ (ontology §6) rejects
-    any new single-child emission. Empty children stay empty — ``FAnd(())``
+    builders return the lone child) and the V2′ check of
+    tools/audit/ontology_conformance.py rejects any new single-child
+    emission. Empty children stay empty — ``FAnd(())``
     is the universal filter, ``FOr(())`` matches nothing (both meaningful).
     Splicing needs ``type(k) is cls`` (exact class, not ``isinstance``): a
     ``FAnd`` inside a ``FOr`` is a De Morgan shape, not a duplicate layer.
@@ -1406,7 +1245,7 @@ def _normalize_filter_children(cls, children):
 class FAnd:
     """Conjunction. ``FAnd(())`` is the universal filter ("any card").
 
-    SET-R1a (ontology §3/§6): children are construction-normalized —
+    Children are construction-normalized —
     same-class children spliced, then sorted by ``canonical_json`` — so the
     conjunction is order-free in its bytes (children are a SET; the filter
     evaluates as one AND)."""
@@ -1428,7 +1267,7 @@ class FAnd:
 class FOr:
     """Disjunction. ``FOr(())`` is the empty filter (matches nothing).
 
-    SET-R1a: construction-normalized children like ``FAnd`` (ontology §3)."""
+    Children are construction-normalized like ``FAnd``'s."""
 
     children: tuple[Filter, ...]
 
@@ -1471,42 +1310,37 @@ class FAtom:
       color        — a single WUBRG colour (COLOR_HAS)
       colors       — a WUBRG set (COLOR_IN)
       count        — Quantity threshold (CMC_LE/GE, PT_LE/GE, COLOR_COUNT_GE,
-                      HAS_COUNTER, CONTROLLER_COUNT_GE/LE,
-                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                      NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE
-                      — grammar round 10);
-                      a dynamic threshold (QProp/QBin/QCount) is as legal
-                      as a literal
+                     HAS_COUNTER, CONTROLLER_COUNT_GE/LE,
+                     LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+                     NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE);
+                     a dynamic threshold (QProp/QBin/QCount) is as legal
+                     as a literal
       counter_kind — CounterKind (HAS_COUNTER)
       keyword      — Keyword (KEYWORD_HAS)
-       who          — ControllerRef | Selector (CONTROLLER_IS;
-                        LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                        INSTANT_OR_SORCERY_CAST_THIS_TURN,
-                        CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN,
-                        WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP —
-                        grammar round 5;
-                        you|opponent|target-player, or a referent Selector —
-                        grammar round 4, object anaphora)
-       inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE,
-                      NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE —
-                      grammar round 10)
-       zone         — Zone (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM —
-                       "entered from / cast from this zone this turn")
-       from_zone,   — Zones (MOVED_TO_ZONE_THIS_TURN — "a permanent was
-       to_zone        put into your hand from the battlefield this turn")
-       referent     — a referent string from _QPROP_STR_REFERENTS
-                      (IS_ATTACHED_TO — grammar round 7: "attached to
-                      that/source"; same vocabulary as Selector.referent;
-                      omitted when None — byte-stable for pre-round-7
-                      trees, per the R4-4 zone-slot precedent)
-       right_inner_filter — a SECOND nested Filter (CONTROLLER_COUNT_GT —
-                      grammar round 8, R8-9: dual-filter comparison
-                      "controls more X than Y"); omitted when None —
-                      byte-stable for pre-round-8 trees
-       event        — an EventSpec (EVENT_THIS_TURN /
-                      SUBJECT_OF_EVENT_THIS_TURN, 2026-11-05: the event
-                      the turn's history is searched for); omitted when
-                      None — byte-stable for every earlier tree
+      who          — ControllerRef | Selector (CONTROLLER_IS,
+                     LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+                     INSTANT_OR_SORCERY_CAST_THIS_TURN,
+                     CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN,
+                     WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP):
+                     you|opponent|target-player, or a referent Selector
+      inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE,
+                     NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE)
+      zone         — Zone (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM —
+                     "entered from / cast from this zone this turn")
+      from_zone,   — Zones (MOVED_TO_ZONE_THIS_TURN — "a permanent was
+      to_zone        put into your hand from the battlefield this turn")
+      referent     — a referent string from _QPROP_STR_REFERENTS
+                     (IS_ATTACHED_TO: "attached to that/source"; same
+                     vocabulary as Selector.referent)
+      right_inner_filter — a SECOND nested Filter (CONTROLLER_COUNT_GT:
+                     "controls more X than Y" — inner_filter counts one
+                     side, right_inner_filter the other)
+      event        — an EventSpec (EVENT_THIS_TURN /
+                     SUBJECT_OF_EVENT_THIS_TURN: the event the turn's
+                     journal is searched for)
+
+    The last six slots are omitted from the serialization when None
+    (``_OMIT_IF_EMPTY``); the others serialize their null / [] defaults.
     """
 
     pred: FAtomPred
@@ -1522,15 +1356,7 @@ class FAtom:
     from_zone: Zone | None = None
     to_zone: Zone | None = None
     referent: str | None = None
-    # right_inner_filter (grammar round 8, R8-9): the SECOND filter of a
-    # dual-filter comparison (CONTROLLER_COUNT_GT — "controls more
-    # creatures than you": inner_filter counts one side,
-    # right_inner_filter the other). Omit-when-None, byte-stable for
-    # pre-round-8 trees (the R4-4/R7-1 slot precedent).
     right_inner_filter: Filter | None = None
-    # event (2026-11-05, turn history): the EventSpec EVENT_THIS_TURN and
-    # SUBJECT_OF_EVENT_THIS_TURN search the turn's journal for. Omit-when-
-    # None, so every earlier FAtom keeps its exact bytes.
     event: EventSpec | None = None
 
     def __post_init__(self) -> None:
@@ -1602,7 +1428,7 @@ class FAtom:
 
         vocab = _FATOM_STRING_VOCAB.get(self.pred)
         if vocab is not None and self.string_value is not None and self.string_value not in vocab:
-            # R5-10: a closed-vocabulary predicate's string_value is a token of
+            # A closed-vocabulary predicate's string_value is a token of
             # its vocabulary, never free text (TYPE_EQ/NAME_EQ stay open data).
             raise ValueError(
                 f"FAtom: {self.pred.name} string_value must be one of {vocab}, "
@@ -1726,8 +1552,8 @@ class FAtom:
                 "FAtom: OPPONENT_OF who must be a ControllerRef or a referent "
                 "Selector (grammar round 11, CONTROLLER_IS precedent)"
             )
-        # SET-R1a (ontology §3): COLOR_IN's colors are a membership SET — the
-        # wording order of "green or white" must not reach the bytes.
+        # COLOR_IN's colors are a membership SET — the wording order of
+        # "green or white" must not reach the bytes.
         colors = _set_sorted(self.colors)
         if colors != self.colors:
             object.__setattr__(self, "colors", colors)
@@ -1775,8 +1601,7 @@ class DurationWhileCondition:
 @dataclass(frozen=True)
 class DurationUntilNextStep:
     """Until the next occurrence of a named Step, optionally relative to
-    an owner (grammar round 9, R9-4, closing the round-6 item-3 note).
-    Frost Breath's "Those creatures can't untap during their controller's
+    an owner. Frost Breath's "Those creatures can't untap during their controller's
     next untap step" = PREVENT_EFFECT(TapStateEvent UNTAP,
     step=Step.UNTAP) under this duration; ``owner_scoped`` True binds the
     step to the affected object's controller ("THEIR controller's next
@@ -1802,11 +1627,11 @@ class DurationUntilLeaves:
     Freebooter's "until this creature leaves the battlefield", Idol of
     Endurance's exile window). ``source`` names the anchored object as a
     referent string from ``_QPROP_STR_REFERENTS`` — default "source" =
-    the object that owns the ability (C12: structured referent, never an
+    the object that owns the ability (a structured referent, never an
     English substring like "this creature").
 
-    Ontology R5-1 (2026-10-29) fixes the meaning: exactly "until the
-    anchor leaves the battlefield". It ends when that object (the same
+    The meaning is exactly "until the anchor leaves the battlefield". It
+    ends when that object (the same
     object, CR 400.7) leaves the battlefield. Phasing out does NOT end it:
     phasing is a status, not a zone change (CR 702.26d). A future "for as
     long as ~ remains on the battlefield" duration (CR 611.2b) does end when
@@ -1831,7 +1656,7 @@ Duration = (
     | DurationUntilLeaves
 )
 
-#: Ontology R5-1 (CR 610.3): the durations a MOVE_ZONE "until …" may carry —
+#: CR 610.3: the durations a MOVE_ZONE "until …" may carry —
 #: each ends on an event, after which the object returns to its previous zone.
 _MOVE_ZONE_DURATIONS: tuple[type, ...] = (
     DurationUntilLeaves,
@@ -1841,8 +1666,8 @@ _MOVE_ZONE_DURATIONS: tuple[type, ...] = (
 
 
 # ---------------------------------------------------------------------------
-# EventSpec — structured, NEVER a substring (PITFALLS: the ETB-substring bug
-# killed forty triggers). Each event's filter selects the event's SUBJECT —
+# EventSpec — structured, NEVER a substring (a substring match fails
+# silently). Each event's filter selects the event's SUBJECT —
 # the object the event is about: the spell cast, the creature that dealt
 # damage / died / became blocked, the entering permanent, the damaged
 # object, the targeted object.
@@ -1852,7 +1677,7 @@ _MOVE_ZONE_DURATIONS: tuple[type, ...] = (
 @dataclass(frozen=True)
 class ZoneChangeEvent:
     """A permanent changed zones. ETB = from anywhere to the battlefield —
-    a ZoneChange, never a substring. ``subject`` (T3 round F) narrows
+    a ZoneChange, never a substring. ``subject`` narrows
     WHICH zone change fires: None = any permanent, or a Filter over the
     changing permanent ("another creature you control enters")."""
 
@@ -1875,15 +1700,13 @@ class ZoneChangeEvent:
 @dataclass(frozen=True)
 class CastSpellEvent:
     """A spell was cast (filter over the spell: type/subtype/name).
-    E1 (2026-10-10, /65) merged the direction axis: ``actor`` = a Filter over
-    the CASTING player (None = any — "an opponent casts" compiles as
-    ``actor=FAtom(CONTROLLER_IS, OPPONENT)``; the old ``controller``
-    ControllerRef field is gone), ``from_zone`` = the source zone (None =
-    any), ``ordinal`` = the Nth cast by that caster this turn (None = every
-    cast; 2 = "your second spell each turn"). Grammar round 4 adds
-    ``from_zone_not`` = exclusion: the cast came from anywhere OTHER than
-    this zone ("from anywhere other than their hand" — Ghostly Pilferer;
-    mutually exclusive with ``from_zone``)."""
+    ``actor`` = a Filter over the CASTING player (None = any — "an opponent
+    casts" compiles as ``actor=FAtom(CONTROLLER_IS, OPPONENT)``),
+    ``from_zone`` = the source zone (None = any), ``ordinal`` = the Nth
+    cast by that caster this turn (None = every cast; 2 = "your second
+    spell each turn"), ``from_zone_not`` = exclusion: the cast came from
+    anywhere OTHER than this zone ("from anywhere other than their hand" —
+    Ghostly Pilferer; mutually exclusive with ``from_zone``)."""
 
     filter: Filter
     actor: Filter | None = None
@@ -1926,11 +1749,9 @@ class CastSpellEvent:
 @dataclass(frozen=True)
 class DeclareAttackersEvent:
     """Attackers were declared (filter over the declared creature).
-    ``attacked`` (grammar round 10, R10-3) narrows the ATTACKED-side
-    object per attacker — Mangara's "two or more of those creatures are
-    attacking you and/or planeswalkers you control"; omitted from the
-    tagged dict when None, so pre-round-10 trees keep byte-identical
-    canonical JSON."""
+    ``attacked`` narrows the ATTACKED-side object per attacker — Mangara's
+    "two or more of those creatures are attacking you and/or planeswalkers
+    you control"; omitted from the tagged dict when None."""
 
     filter: Filter
     attacked: Filter | None = None
@@ -1950,21 +1771,18 @@ class DeclareAttackersEvent:
 class DeclareBlockersEvent:
     """Blockers were declared (filter over the blocking creature) — the
     event "can't block" preventions attach to (the Pirate token).
-    ``subject`` (r3b) narrows WHICH declaration fires: None = any blocker,
-    or a Filter over the blocking creature — mirroring
-    ``ZoneChangeEvent.subject``; omitted from the tagged dict when None,
-    so pre-r3b trees keep byte-identical canonical JSON.
-    ``blocked`` (grammar round 6, R6-4) narrows the BLOCKED-side creature
-    — "can't be blocked" / "can block only creatures with flying"
-    restrict the blocked participant (Tome Anima, Ghostly Pilferer,
-    Subira, Shacklegeist); omitted from the tagged dict when None, so
-    pre-round-6 trees keep byte-identical canonical JSON.
-    ``count`` (2026-11-06) is how many creatures block the ``blocked``
+    ``subject`` narrows WHICH declaration fires: None = any blocker, or a
+    Filter over the blocking creature — mirroring ``ZoneChangeEvent.subject``.
+    ``blocked`` narrows the BLOCKED-side creature — "can't be blocked" /
+    "can block only creatures with flying" restrict the blocked participant
+    (Tome Anima, Ghostly Pilferer).
+    ``count`` is how many creatures block the ``blocked``
     creature: the event is that creature becoming blocked by ``count``
     creatures. "Can't be blocked by more than one creature" is a
     PREVENT_EFFECT over it with ``QAtLeast(2)``, a restriction on the
     number of blockers (CR 509.1b), not on any one blocker. Only that
-    prevention reads it (no trigger does); omitted when None."""
+    prevention reads it (no trigger does). All three are omitted from the
+    tagged dict when None."""
 
     filter: Filter
     subject: Filter | None = None
@@ -1995,9 +1813,8 @@ class DeclareBlockersEvent:
 class CounterPlacedEvent:
     """Counters of a kind were placed on the subject.
 
-    `count` (grammar round 5, R5-2) names the number placed ("one or more"
-    = QAtLeast(1); "that many" = QProp("event", COUNTER_COUNT)); omitted
-    when None (byte-stable)."""
+    `count` names the number placed ("one or more" = QAtLeast(1); "that
+    many" = QProp("event", COUNTER_COUNT)); omitted when None."""
 
     counter_kind: CounterKind
     filter: Filter
@@ -2067,10 +1884,9 @@ class TapStateEvent:
 
 @dataclass(frozen=True)
 class AbilityTriggerEvent:
-    """T5-D (Sanctum of All "whenever another Shrine you control's
-    ability triggers"): an ability TRIGGERED — the {when-event} atom of
-    the §9 decomposition, with the same {subject filter} axis as every
-    other event class, evaluated over the TRIGGERING ability's source
+    """An ability TRIGGERED (Sanctum of All "whenever another Shrine you
+    control's ability triggers"). Like every event class it has a subject
+    filter, here evaluated over the TRIGGERING ability's source
     permanent ("another Shrine you control" = SUBTYPE_EQ + CONTROLLER_IS
     + FNot(IS_SOURCE)). The quantity axis rides the effect: the
     TRIGGER_ADDITIONAL verb's `count` (an "additional time" is +1, a
@@ -2088,11 +1904,10 @@ class AbilityTriggerEvent:
 
 @dataclass(frozen=True)
 class TurnPhaseEvent:
-    """A turn phase began (see Phase for pool citations). E1 (/65): the
-    direction axis is the ``actor`` Filter, evaluated over the ACTIVE
-    PLAYER of the journalled phase (None = any player's phase; "at the
-    beginning of your end step" = ``actor=FAtom(CONTROLLER_IS, YOU)``).
-    The old ``controller`` ControllerRef field is gone."""
+    """A turn phase began (see Phase for pool citations). The direction
+    axis is the ``actor`` Filter, evaluated over the ACTIVE PLAYER of the
+    journalled phase (None = any player's phase; "at the beginning of your
+    end step" = ``actor=FAtom(CONTROLLER_IS, YOU)``)."""
 
     phase: Phase
     actor: Filter | None = None
@@ -2129,7 +1944,7 @@ class StepEvent:
 class DamageDealtEvent:
     """Damage was dealt to the subject (filter over the damaged object —
     Brash Taunter's "whenever this creature is dealt damage"). `amount`
-    rides the event for QProp("event", AMOUNT). T3 round F optional
+    rides the event for QProp("event", AMOUNT). Optional
     scoping: ``source`` = a Filter over the damage SOURCE (None = any —
     "whenever this creature is dealt damage by a source you control"),
     ``combat`` = True/False to require combat / non-combat damage,
@@ -2165,11 +1980,11 @@ class TargetingEvent:
     targeted object — Warden of the Woods; the event hexproof/protection
     preventions attach to).
 
-    ``actor`` (ontology R5-6, 2026-10-29): a Filter over the CONTROLLER of
+    ``actor``: a Filter over the CONTROLLER of
     the targeting spell or ability, the player journalled on the TARGETING
     row (None = any). "Becomes the target of a spell or ability an opponent
-    controls" is ``actor=FAtom(CONTROLLER_IS, OPPONENT)``: the single
-    direction encoding (E1, /65) of CastSpellEvent, CardDrawnEvent,
+    controls" is ``actor=FAtom(CONTROLLER_IS, OPPONENT)``: the same
+    direction encoding as CastSpellEvent, CardDrawnEvent,
     LifeGainedEvent and AbilityActivatedEvent. "Can't be the target of
     spells or abilities your opponents control" is HEXPROOF (CR 702.11),
     never a PREVENT_EFFECT over this event."""
@@ -2190,16 +2005,15 @@ class TargetingEvent:
 
 @dataclass(frozen=True)
 class CardDrawnEvent:
-    """A card was drawn (T3 round F: "whenever you draw a
-    card", "whenever an opponent draws a card"). The drawn card is the
-    event subject — a TriggeredAbility `condition` Filter narrows it.
-    ``ordinal`` (grammar round 4) = the Nth card drawn by that controller
-    this turn (None = every draw) — "whenever you draw your second card
-    each turn" (Jolrael, Mwonvuli Recluse; Mystic Skyfish). Mirrors
-    CastSpellEvent.ordinal. E1 (/65): direction is the ``actor`` Filter,
+    """A card was drawn ("whenever you draw a card", "whenever an opponent
+    draws a card"). The drawn card is the event subject — a
+    TriggeredAbility `condition` Filter narrows it. ``ordinal`` = the Nth
+    card drawn by that player this turn (None = every draw) — "whenever
+    you draw your second card each turn" (Jolrael, Mwonvuli Recluse);
+    mirrors CastSpellEvent.ordinal. Direction is the ``actor`` Filter,
     evaluated over the DRAWER journalled on the event row (None = any
     player's draw; "whenever you draw" = ``actor=FAtom(CONTROLLER_IS,
-    YOU)``). The old ``controller`` ControllerRef field is gone."""
+    YOU)``)."""
 
     actor: Filter | None = None
     ordinal: int | None = None
@@ -2221,12 +2035,10 @@ class CardDrawnEvent:
 
 @dataclass(frozen=True)
 class LifeGainedEvent:
-    """Life was gained (T3 round F: "whenever you gain life,
-    target opponent loses that much life"). E1 (/65): the ``actor`` Filter
-    is evaluated over the GAINING PLAYER journalled as the event subject
-    (None = any player; "whenever you gain life" =
-    ``actor=FAtom(CONTROLLER_IS, YOU)``). The old ``controller`` field is
-    gone."""
+    """Life was gained ("whenever you gain life, target opponent loses that
+    much life"). The ``actor`` Filter is evaluated over the GAINING PLAYER
+    journalled as the event subject (None = any player; "whenever you gain
+    life" = ``actor=FAtom(CONTROLLER_IS, YOU)``)."""
 
     actor: Filter | None = None
 
@@ -2239,7 +2051,7 @@ class LifeGainedEvent:
 
 @dataclass(frozen=True)
 class LifeLostEvent:
-    """A player lost life (2026-11-05): "if an opponent lost life this turn"
+    """A player lost life: "if an opponent lost life this turn"
     (Savage Gorger), "if a player lost 4 or more life this turn" (Knight of
     the Ebon Legion). The twin of :class:`LifeGainedEvent`: ``actor`` is
     evaluated over the LOSING player (None = any player). Damage dealt to a
@@ -2258,14 +2070,14 @@ class LifeLostEvent:
 
 @dataclass(frozen=True)
 class CounteredEvent:
-    """A spell or ability was countered (CR 701.6a) — 2026-11-05. ``filter``
+    """A spell or ability was countered (CR 701.6a). ``filter``
     selects the countered object, the event's subject. Its consumer is
     PREVENT_EFFECT, "can't be countered", judged while the spell is still on
     the stack: "This spell can't be countered." (Shifting Ceratops; CR 113.6g,
     it functions on the stack), "Spells you control can't be countered this
     turn." (Veil of Summer). Such a spell may still be targeted by a
     counterspell; it is just not countered (CR 101.2). No trigger or history
-    reads it yet (binding._UNSUPPORTED_EVENTS)."""
+    reads it (binding._UNSUPPORTED_EVENTS)."""
 
     filter: Filter
 
@@ -2278,13 +2090,12 @@ class CounteredEvent:
 
 @dataclass(frozen=True)
 class SacrificeEvent:
-    """A permanent was sacrificed (T3 round F: "whenever you
-    sacrifice a permanent"). The sacrificed permanent is the event
-    subject — a TriggeredAbility `condition` Filter narrows it (e.g. a
-    creature filter). E1 (/65): the ``actor`` Filter is evaluated over the
-    SACRIFICER = the journalled ``owner_before`` of the sacrifice move —
-    whose sacrifice it is even under a control effect. The old
-    ``controller`` field is gone."""
+    """A permanent was sacrificed ("whenever you sacrifice a permanent").
+    The sacrificed permanent is the event subject — a TriggeredAbility
+    `condition` Filter narrows it (e.g. a creature filter). The ``actor``
+    Filter is evaluated over the SACRIFICER = the journalled
+    ``owner_before`` of the sacrifice move — whose sacrifice it is even
+    under a control effect."""
 
     actor: Filter | None = None
 
@@ -2297,9 +2108,7 @@ class SacrificeEvent:
 
 @dataclass(frozen=True)
 class AbilityActivatedEvent:
-    """An activated ability was activated (ontology R5-7; it replaces the
-    grammar-round-4 ``LoyaltyActivatedEvent``, which was this event with
-    ``kind=LOYALTY`` built in).
+    """An activated ability was activated.
 
     - ``source`` (required) selects the object whose ability was activated:
       Keral Keep Disciples' "a Chandra planeswalker" (subtype Chandra + type
@@ -2307,7 +2116,7 @@ class AbilityActivatedEvent:
       (IS_ATTACHED_TO_SOURCE).
     - ``kind`` (required, no default) says which activations count:
       :class:`AbilityKind` ANY / NON_MANA (CR 605.1a) / LOYALTY (CR 606.2).
-    - ``actor`` (E1, /65) is evaluated over the ACTIVATOR, journalled as the
+    - ``actor`` is evaluated over the ACTIVATOR, journalled as the
       event's cause (CR 602.2: the activating player controls the ability).
 
     Two consumers read it: a TriggeredAbility ("whenever you activate a
@@ -2409,15 +2218,13 @@ class TokenSpec:
     toughness: Quantity | None
     keywords: tuple[Keyword, ...]
     abilities: tuple[Ability, ...]
-    # colors (ontology R5-11, replacing grammar round 8's one-letter
-    # ``color``): the token's printed colour words, each a WUBRG letter, in
+    # colors: the token's printed colour words, each a WUBRG letter, in
     # WUBRG order (CR 105.1) — "a 1/1 white Soldier" is ("W",), Experimental
     # Overload's "blue and red Weird" ("U", "R"), a colourless Treasure ().
-    # enters_tapped / enters_attacking (R8-4): "put those tokens onto the
+    # enters_tapped / enters_attacking: "put those tokens onto the
     # battlefield tapped" and "…that's attacking" (Basri Ket [-2]). All three
-    # serialize by OMITTING the key at their empty default (dual
-    # registration: _SPECS + _OMIT_IF_EMPTY row), so a colourless token's
-    # bytes are unchanged.
+    # serialize by OMITTING the key at their empty default (registered in
+    # both _SPECS and _OMIT_IF_EMPTY).
     colors: tuple[str, ...] = ()
     enters_tapped: bool | None = None
     enters_attacking: bool | None = None
@@ -2460,8 +2267,7 @@ class TokenSpec:
             value = getattr(self, flag)
             if value is not None and not isinstance(value, bool):
                 raise ValueError(f"TokenSpec: {flag} must be a bool, got {value!r}")
-        # SET-R1a (ontology §3, v4 gate A4): these three containers are
-        # COMPILER-EMITTED data, not oracle-printed card text (unlike
+        # These three containers are COMPILER-EMITTED data, not oracle-printed card text (unlike
         # CardRecord.types/subtypes, which keep printed fidelity), so their
         # wording order is normalized at construction. `abilities` stays
         # IDENTITY (printed order).
@@ -2469,7 +2275,7 @@ class TokenSpec:
             value = _set_sorted(getattr(self, fld))
             if value != getattr(self, fld):
                 object.__setattr__(self, fld, value)
-        # R5-11: the colour set is canonical in WUBRG order (CR 105.1), the
+        # The colour set is canonical in WUBRG order (CR 105.1), the
         # order mana costs and colour identities print in, so "blue and red"
         # and "red and blue" are the same bytes.
         colors = tuple(sorted(self.colors, key=_COLORS.index))
@@ -2528,7 +2334,7 @@ class CostManaGeneric:
 @dataclass(frozen=True)
 class CostManaHybrid:
     """Hybrid mana symbols ({W/U}); `amount` symbols, each payable with
-    either colour. Kept pool-agnostic: M21 has none, later sets do."""
+    either colour."""
 
     colors: tuple[str, str]
     amount: Quantity
@@ -2546,11 +2352,10 @@ class CostManaHybrid:
             raise ValueError(
                 f"CostManaHybrid: amount must be a Quantity, got {type(self.amount).__name__}"
             )
-        # SET-R1b (ontology §3, spec /136): the colour pair is membership
-        # — sorted at construction so {W/B} == {B/W} in the bytes. The
-        # hybrid_demands witness (legality) prefers the FIRST tuple slot;
-        # the sort pins that preference alphabetically (dormant vocabulary:
-        # 0 hybrids in both pools today — battery pin only).
+        # The colour pair is membership — sorted at construction so
+        # {W/B} == {B/W} in the bytes. The hybrid_demands witness
+        # (legality) prefers the FIRST tuple slot, so the sort makes that
+        # preference alphabetical.
         ordered = _set_sorted(self.colors)
         if ordered != self.colors:
             object.__setattr__(self, "colors", ordered)
@@ -2626,11 +2431,11 @@ class CostLoyalty:
     """A loyalty change as a cost — the ONLY signed value in the grammar,
     because planeswalker costs (-2, -7) are negative by definition.
 
-    ``delta`` is a literal int or a Quantity (T3 round 2, item 6: Ugin's
-    "[−X]" — a DYNAMIC loyalty cost); a dynamic delta is still always a
-    reduction (loyalty is never gained as a cost).
+    ``delta`` is a literal int or a Quantity (Ugin's "[−X]" — a DYNAMIC
+    loyalty cost); a dynamic delta is still always a reduction (loyalty is
+    never gained as a cost).
 
-    R5-7: ``delta=0`` is legal. A [0] ability is a loyalty ability (CR
+    ``delta=0`` is legal. A [0] ability is a loyalty ability (CR
     606.2: the symbol is in its cost) that adds and removes no counter
     (CR 606.4), so the once-per-turn clock and the main-phase window still
     apply. The int 0 is its only spelling: ``QConst(0)`` would mean "remove
@@ -2644,7 +2449,7 @@ class CostLoyalty:
                 f"CostLoyalty: delta must be an int or Quantity, got {self.delta!r}"
             )
         if isinstance(self.delta, int):
-            pass  # any signed literal, [0] included (R5-7, CR 606.2/606.4)
+            pass  # any signed literal, [0] included (CR 606.2/606.4)
         elif _is_quantity(self.delta):
             if isinstance(self.delta, QConst) and self.delta.value == 0:
                 raise ValueError(
@@ -2675,19 +2480,16 @@ CostPart = (
 class Cost:
     """An ability's cost. Empty parts = a free activation (legal MTG).
 
-    SET-R1b (ontology §3, spec KNOWLEDGE/2026-10-20/136): parts are
-    canonically sorted AT CONSTRUCTION by ``canonical_json`` (the O3 set
-    law, ``AtomArgs.pairs`` :2541 precedent via :func:`_set_sorted`).
-    Payment is order-free in the rules, but the plan fold walks the parts
-    LIST (failure-string precedence, the per-colour min-clamp trace,
-    ``sacrifice_options`` order ⇒ the sacrifice ask sequence), so the
-    construction-sort makes the canonical ``PaymentPlan`` a function of
-    the parts MULTISET. Idempotent: the sort key depends on the part
-    content only, never on position, so re-sorting an already-sorted tuple
-    never re-fires; folded costs (``spell_cost``: printed ++ additional)
-    pass through THIS constructor, so the kicker fold inherits the law.
-    Duplicate parts ({W}{W}) are legal and the stable sort keeps them
-    adjacent — Cost is a list-law SET (sort), not a dedup fold."""
+    Parts are canonically sorted AT CONSTRUCTION by ``canonical_json``
+    (:func:`_set_sorted`). Payment is order-free in the rules, but the plan
+    fold walks the parts LIST (failure-string precedence, the per-colour
+    min-clamp trace, ``sacrifice_options`` order ⇒ the sacrifice ask
+    sequence), so the construction-sort makes the canonical
+    ``PaymentPlan`` a function of the parts MULTISET. Folded costs
+    (``spell_cost``: printed ++ additional) pass through THIS constructor,
+    so the kicker fold is sorted too. Duplicate parts ({W}{W}) are legal
+    and the stable sort keeps them adjacent — Cost sorts, it never
+    dedups."""
 
     parts: tuple[CostPart, ...] = ()
 
@@ -2702,9 +2504,9 @@ class Cost:
             object.__setattr__(self, "parts", ordered)
 
 
-# Cost deltas — the signed cost changes a CostModifier applies (T3 round
-# K: "cost {2} less to cast", "cost an additional 2 life to cast", "cost
-# {2}{U} less", "cast without paying its mana cost"). `amount` is a
+# Cost deltas — the signed cost changes a CostModifier applies ("cost {2}
+# less to cast", "cost an additional 2 life to cast", "cost {2}{U} less",
+# "cast without paying its mana cost"). `amount` is a
 # Quantity, so X- and dynamic-amount deltas ("where X is the total power
 # of creatures you control") are legal.
 
@@ -2791,7 +2593,7 @@ CostDelta = (
 
 # ---- Atom args and the Atom ----
 
-# _SCOPE_VOCAB_BY_VERB (grammar round 10, R10-4): the per-verb "scope"
+# _SCOPE_VOCAB_BY_VERB: the per-verb "scope"
 # role vocabulary. AtomArgs can only validate the union of all vocabu-
 # laries (it carries no verb); the enclosing Atom rejects a scope value
 # that belongs to a DIFFERENT verb's vocabulary here — e.g. a
@@ -2834,20 +2636,13 @@ class AtomArgs:
                 raise ValueError(
                     "AtomArgs: role 'types' must be a tuple of card-type strings"
                 )
-            # "ANY" (grammar round 8, R8-3): "mana of any one color" — a
-            # choice among WUBRG at resolution; distinct from "C"
-            # (colourless). The C-3 collapse repair; templates flip in 8-B.
             if role == "color" and value not in (*_COLORS, _COLORLESS, _ANY_COLOR):
                 raise ValueError(
                     f"AtomArgs: role 'color' must be one of WUBRG/C/ANY, got {value!r}"
                 )
-            # scope (grammar round 9, R9-3, C21; widened round 10, R10-4):
-            # the closed per-verb scope vocabularies (MANA_POLICY's
-            # spend-restriction pair, DAMAGE_ASSIGN_POLICY's damage-
-            # assignment pair); same vocab-check precedent as the "color"
-            # role above. AtomArgs is verb-blind, so it validates against
-            # the UNION here; the enclosing Atom enforces the verb's own
-            # vocabulary (_SCOPE_VOCAB_BY_VERB).
+            # scope: AtomArgs is verb-blind, so it validates against the
+            # UNION of the per-verb scope vocabularies here; the enclosing
+            # Atom enforces the verb's own vocabulary (_SCOPE_VOCAB_BY_VERB).
             if role == "scope" and value not in (
                 *_MANA_POLICY_SCOPES,
                 *_DAMAGE_ASSIGN_SCOPES,
@@ -2857,9 +2652,9 @@ class AtomArgs:
                     f"{(*_MANA_POLICY_SCOPES, *_DAMAGE_ASSIGN_SCOPES)}, "
                     f"got {value!r}"
                 )
-            # T4 P1a: the merged MOVE's closed string slots — single-verb
-            # vocabularies, so the AtomArgs-level union check is already
-            # exact (no _SCOPE_VOCAB_BY_VERB twin needed).
+            # MOVE_ZONE's closed string slots — single-verb vocabularies,
+            # so the AtomArgs-level check is already exact (no
+            # _SCOPE_VOCAB_BY_VERB twin needed).
             if role == "journal_kind" and value not in _MOVE_JOURNAL_KINDS:
                 raise ValueError(
                     f"AtomArgs: role 'journal_kind' must be one of "
@@ -2870,9 +2665,9 @@ class AtomArgs:
                     f"AtomArgs: role 'pop_order' must be one of "
                     f"{_MOVE_POP_ORDERS}, got {value!r}"
                 )
-        # P1a review follow-up (fresh-eyes MINOR): the mill lane is defined by
-        # TOP-pop; a journal_kind="MILL" site that forgets pop_order would
-        # silently fall through to the generic MOVE lane (wrong bookkeeping).
+        # The mill lane is defined by TOP-pop; a journal_kind="MILL" site
+        # that forgets pop_order would silently fall through to the generic
+        # MOVE lane (wrong bookkeeping).
         _jk = next((v for r, v in self.pairs if r == "journal_kind"), None)
         if _jk == "MILL":
             _po = next((v for r, v in self.pairs if r == "pop_order"), None)
@@ -2923,9 +2718,8 @@ class Atom:
             raise ValueError(
                 f"Atom: {self.verb.name} needs at least one of power/toughness"
             )
-        # T4 P1a: the merged MOVE carries its objects on exactly one of
-        # the three predecessor axes — an atom with none would be a
-        # move of nothing (grammar round 6's at-least-one precedent).
+        # MOVE_ZONE carries its objects on the cards, target or amount
+        # axis — an atom with none would be a move of nothing.
         if self.verb is Verb.MOVE_ZONE and not roles.keys() & {
             "cards",
             "target",
@@ -2935,10 +2729,10 @@ class Atom:
                 f"Atom: {self.verb.name} needs one of the cards/target/"
                 "amount object axes"
             )
-        # Ontology R5-1 (CR 610.3): a zone move "until" something returns the
+        # CR 610.3: a zone move "until" something returns the
         # object when that event happens, so only durations that END ON AN
         # EVENT are accepted. DurationPermanent would be a twin of leaving the
-        # role out (same meaning, different bytes: divergence class D12), and
+        # role out (same meaning, different bytes), and
         # DurationWhileCondition can become true again, which would move the
         # object a second time.
         if self.verb is Verb.MOVE_ZONE and "duration" in roles:
@@ -2952,7 +2746,7 @@ class Atom:
                     "leaving the role out, and DurationWhileCondition could start "
                     "again and move the object a second time"
                 )
-        # R10-4: per-verb scope vocabulary (AtomArgs validates the union
+        # Per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
         vocab = _SCOPE_VOCAB_BY_VERB.get(self.verb)
@@ -3061,9 +2855,8 @@ class Repeat:
 
 @dataclass(frozen=True)
 class EachPlayer:
-    """Apply `effect` once per player denoted by `ref` (T3 round I:
-    "each opponent creates a token / sacrifices a creature" — per-opponent
-    effects are a named cross-set mechanic). `ref` = the player set:
+    """Apply `effect` once per player denoted by `ref` ("each opponent
+    creates a token / sacrifices a creature"). `ref` = the player set:
     ALL_OPPONENTS for "each opponent", OPPONENT/YOU for the singular
     per-player reading."""
 
@@ -3083,8 +2876,8 @@ class EachPlayer:
 
 @dataclass(frozen=True)
 class DelayedTrigger:
-    """A trigger created *inside* another effect, live only for `duration`
-    (grammar round 9, R9-5, C22). Subira Toralf's "When a creature you
+    """A trigger created *inside* another effect, live only for `duration`.
+    Subira Toralf's "When a creature you
     control enters this turn, ..." is an Atom effect that registers this
     node; the node itself is never a standalone Ability — the duration is
     REQUIRED because a delayed trigger without a lifetime window is just a
@@ -3133,8 +2926,8 @@ Effect = (
 @dataclass(frozen=True)
 class StaticAbility:
     """A continuous effect (anthems, "can't attack" preventions, equipped
-    creature gets +1/+1 for each soul counter). `condition` (T3 round 4,
-    2026-09-24) optionally scopes WHEN the continuous effect applies ("As
+    creature gets +1/+1 for each soul counter). `condition` optionally
+    scopes WHEN the continuous effect applies ("As
     long as you've drawn two or more cards this turn, this creature gets
     +0/+2"); None = unconditional — same convention as
     TriggeredAbility.condition / CostModifier.condition (state predicate,
@@ -3182,13 +2975,12 @@ class TriggeredAbility:
 class ActivatedAbility:
     """Cost: Effect — mana abilities, loyalty abilities, and Mazemind
     Tome's "{T}, put a page counter on this artifact: Scry 1". `condition`
-    (T3 round 4, 2026-09-24) optionally gates activation ("Activate only
-    if a creature died this turn"); None = unconditional — same convention
-    as StaticAbility.condition (state predicate, no event subject).
-    `timing` (grammar round 9, R9-1, C20) optionally pins WHEN the ability
-    may be activated (ActivationWindow.SORCERY for "Activate only as a
-    sorcery"); None = default instant speed — the existing default, so no
-    pre-round-9 tree needs the key."""
+    optionally gates activation ("Activate only if a creature died this
+    turn"); None = unconditional — same convention as
+    StaticAbility.condition (state predicate, no event subject). `timing`
+    optionally pins WHEN the ability may be activated
+    (ActivationWindow.SORCERY for "Activate only as a sorcery"); None =
+    the default instant speed, and the key is omitted."""
 
     cost: Cost
     effect: Effect
@@ -3219,17 +3011,16 @@ class SpellAbility:
     """The card's own spell effect, keyed by card class. The printed mana
     cost stays on CardRecord; this is what casting the card does.
 
-    ``additional_costs`` (T3 round 2, item 3) carries the "As an additional
-    cost to cast this spell, ..." costs ON TOP of the printed cost (sacrifice
-    a creature, discard a card, ...) — the printed cost itself still lives on
+    ``additional_costs`` carries the "As an additional cost to cast this
+    spell, ..." costs ON TOP of the printed cost (sacrifice a creature,
+    discard a card, ...) — the printed cost itself still lives on
     CardRecord.
 
-    ``effect`` (T3 round 3) is optional: a creature can be castable with
-    additional costs and no resolvable effect sentence of its own (Goremand,
+    ``effect`` is optional: a creature can be castable with additional
+    costs and no resolvable effect sentence of its own (Goremand,
     Sparkhunter Masticore). The compiler then builds an effect-less
     SpellAbility (``effect=None``) purely to carry the additional costs.
-    ``None`` serializes by omitting the ``"effect"`` key, so every
-    pre-round-3 tree (all of which carry an effect) stays byte-identical."""
+    ``None`` serializes by omitting the ``"effect"`` key."""
 
     kind: SpellKind
     effect: Effect | None = None
@@ -3255,13 +3046,11 @@ class SpellAbility:
                     "SpellAbility: additional_costs must hold Cost nodes, got "
                     f"{type(cost).__name__}"
                 )
-        # SET-R1b (ontology §3, gate A3; spec /136 §2(1)): the entries fold
-        # into the SAME order-keyed planner (spell_cost printed++additional
-        # -> build_payment_plan), so they are a SET — sorted at
-        # construction. Corpus Δ0 today (0 multi-entry cases; the sort is
-        # the landmine-proofing the R1a gate deferred here), and the
-        # runtime fold re-enters Cost.__post_init__, so the total plan is
-        # order-free from both ends.
+        # The entries fold into the SAME order-keyed planner (spell_cost
+        # printed++additional -> build_payment_plan), so they are a SET —
+        # sorted at construction; the runtime fold re-enters
+        # Cost.__post_init__, so the total plan is order-free from both
+        # ends.
         ordered = _set_sorted(self.additional_costs)
         if ordered != self.additional_costs:
             object.__setattr__(self, "additional_costs", ordered)
@@ -3330,27 +3119,23 @@ class ReplacementAbility:
 
 @dataclass(frozen=True)
 class CostModifier:
-    """A continuous cost-altering effect (T3 round K: "creature spells
-    with flying you cast cost {2} less to cast", "cost an additional 2
-    life to cast", "cost {2}{U} less", "without paying its mana cost").
+    """A continuous cost-altering effect ("creature spells with flying you
+    cast cost {2} less to cast", "cost an additional 2 life to cast", "cost
+    {2}{U} less", "without paying its mana cost").
 
-    Structural choice (per the T3 decision doc's option 2): a SIBLING
-    Ability node, not a StaticAbility payload — a cost modifier is not an
-    executable Effect step (StaticAbility wraps an Effect: things that
-    HAPPEN), it declares its own payload exactly like StaticAbility
+    A SIBLING Ability node, not a StaticAbility payload — a cost modifier
+    is not an executable Effect step (StaticAbility wraps an Effect: things
+    that HAPPEN), it declares its own payload exactly like StaticAbility
     declares `effect`. `filter` selects the affected spells/permanents,
     `controller_ref` scopes whose, `delta` is the signed cost change.
-    `condition` (T3 round 2, item 2) optionally narrows WHEN the modifier
-    applies ("This spell costs {2} less to cast if you've gained 2 or more
-    life this turn"); None = unconditional. `extra_deltas` (T3 round 4,
-    2026-09-24) carries further cost deltas beyond the single `delta` slot
-    (Stormwing Entity's {2}{U} = generic 2 + 1 blue); empty = single delta
-    only — the additive-slot pattern of Selector.zone/Selector.zones.
-    `controller_ref` widened (grammar round 5, R5-3) to
-    ``ControllerRef | Selector``: convention C7 — a Selector means the
+    `condition` optionally narrows WHEN the modifier applies ("This spell
+    costs {2} less to cast if you've gained 2 or more life this turn");
+    None = unconditional. `extra_deltas` carries further cost deltas beyond
+    the single `delta` slot (Stormwing Entity's {2}{U} = generic 2 + 1
+    blue); empty = single delta only. A Selector `controller_ref` means the
     controller of the selected object, and the modifier applies to costs
-    that controller pays FOR the filtered object (Lofty Denial: the {1} of
-    s1 becomes {4} under the condition, including `unless` payments)."""
+    that controller pays FOR the filtered object (Lofty Denial: the {1}
+    becomes {4} under the condition, including `unless` payments)."""
 
     filter: Filter
     controller_ref: ControllerRef | Selector
@@ -3382,9 +3167,8 @@ class CostModifier:
                 raise ValueError(
                     f"CostModifier: extra_deltas must be CostDelta, got {type(extra).__name__}"
                 )
-        # SET-R1b (spec /136 §1(f)): the planner folds deltas into pure
-        # += accumulators (commutative), so the OPERATOR-AUDIT reclassed
-        # to SET — sorted at construction like the SET law requires.
+        # The planner folds deltas into pure += accumulators (commutative),
+        # so extra_deltas is a SET — sorted at construction.
         ordered = _set_sorted(self.extra_deltas)
         if ordered != self.extra_deltas:
             object.__setattr__(self, "extra_deltas", ordered)
@@ -3394,18 +3178,17 @@ class CostModifier:
 class EtBState:
     """The entered state of a permanent: `tapped` ("this creature enters
     tapped") and/or `initial_counters` ("enters with 3 +1/+1 counters",
-    "this Equipment enters with a soul counter") — T3 round J, among the
-    most common ETB states. An Ability node on the card record. Each
-    counter entry is a (CounterKind, Quantity) pair; `initial_counters`
-    is a SET-R1a container — sorted by CounterKind at construction (the
-    kind keys the counter map, so wording order carries no semantics). A
+    "this Equipment enters with a soul counter"). An Ability node on the
+    card record. Each counter entry is a (CounterKind, Quantity) pair;
+    `initial_counters` is a set — sorted at construction (the kind keys
+    the counter map, so wording order carries no semantics). A
     no-op state (untapped, no counters) is rejected — a no-op is not a
     node in the tree (Seq's rule)."""
 
     tapped: bool = False
     initial_counters: tuple[tuple[CounterKind, Quantity], ...] = ()
     # ZNR kicker: "if it was kicked, it enters with a +1/+1 counter" — an
-    # optional gate on the entering state (omit-if-EMPTY: M21 bytes stable).
+    # optional gate on the entering state (omitted from the bytes when None).
     condition: Filter | None = None
 
     def __post_init__(self) -> None:
@@ -3438,8 +3221,8 @@ class EtBState:
             raise ValueError(
                 "EtBState: a no-op state is not a node (tapped or counters required)"
             )
-        # SET-R1a (ontology §3): the counters are a dict keyed by kind, so the
-        # (kind, quantity) entries are a SET — sort at construction.
+        # The counters are a dict keyed by kind, so the (kind, quantity)
+        # entries are a SET — sort at construction.
         counters = _set_sorted(self.initial_counters)
         if counters != self.initial_counters:
             object.__setattr__(self, "initial_counters", counters)
@@ -3448,8 +3231,7 @@ class EtBState:
 @dataclass(frozen=True)
 class EmblemAbility:
     """An emblem's embedded ability — emblems carry triggered/static
-    abilities of their own (T3 round L: Basri Ket / Garruk / Liliana
-    emblems; "the emblem's -1: each opponent creates a token")."""
+    abilities of their own (the Basri Ket / Garruk / Liliana emblems)."""
 
     embedded: Ability
 
@@ -3462,21 +3244,21 @@ class EmblemAbility:
 
 @dataclass(frozen=True)
 class KickerAbility:
-    """A kicker head sentence (ZNR, ~57 spells): the optional extra cost a
+    """A kicker head sentence (ZNR): the optional extra cost a
     spell may be cast for. NOT a CostModifier — the printed cost is never
     raised; the extra cost is an optional alternative paid at cast time,
     whose payment is observed by the card's other components via
     ``FAtomPred.WAS_KICKED``. The kicker's effect arm is encoded as the
     spell's own conditional effect (compiler fold), never fused into this
-    node: {cost-variant} and {effect} stay orthogonal axes (§9)."""
+    node: {cost-variant} and {effect} stay orthogonal axes."""
 
     cost: Cost
 
     def __post_init__(self) -> None:
         if not isinstance(self.cost, Cost):
             # ValueError, not TypeError: from_dict across this whole module
-            # contracts on ValueError for malformed payloads (49 sibling
-            # sites); TRY004 would break that caller-facing contract.
+            # contracts on ValueError for malformed payloads; TRY004 would
+            # break that caller-facing contract.
             raise ValueError(  # noqa: TRY004
                 f"KickerAbility: cost must be a Cost, got {type(self.cost).__name__}"
             )
@@ -3484,18 +3266,16 @@ class KickerAbility:
 
 @dataclass(frozen=True)
 class BackFace:
-    """ZND-2f (KNOWLEDGE/2026-10-18/106): a card's own back face as an
-    encoded ability-tree member.
+    """A card's own back face as an encoded ability-tree member.
 
-    The face is part of the card's OWN component set (§11 zero-loss): its
-    sentences alter outcomes if the face ever enters, so they are encoded
-    here rather than dropped. ``abilities`` is the same tolerant compile
-    of the face's sentences through the same vocabulary — no new atoms.
-    The ENGINE never reads this subtree: every ``walk()`` consumer gate
-    (executor produces_mana, compiler engine_support, coverage verb
-    histograms) skips it explicitly — a face ability is not a playable
-    engine capability until the owner-gated face-playability wave lands
-    (spec §6). The nested abilities are validated as Ability members; the
+    The face is part of the card's OWN component set: its sentences alter
+    outcomes if the face ever enters, so they are encoded here rather than
+    dropped. ``abilities`` is the same tolerant compile of the face's
+    sentences through the same vocabulary — no new atoms. The ENGINE never
+    runs this subtree: every ``walk()`` consumer gate (executor
+    produces_mana, compiler engine_support, coverage verb histograms)
+    skips it explicitly — a face ability is not a playable engine
+    capability. The nested abilities are validated as Ability members; the
     face's own name is the printed face name, never the combined
     ``"A // B"`` name.
     """
@@ -3540,7 +3320,7 @@ class CardRecord:
     compiled abilities. P/T are Optional[Quantity]: a creature with
     dynamic P/T (Tarmogoyf-class, the Weird token) carries None plus a
     SET_PT ability; a non-creature can never carry P/T. `loyalty` is the
-    starting loyalty (an ability, not P/T — NUMBERS.md). `emblem` embeds
+    starting loyalty (an ability, not P/T). `emblem` embeds
     the card's emblem as a nested CardRecord; the link is one-directional
     (the emblem does not point back) and validated in __post_init__.
     """
@@ -3642,11 +3422,11 @@ class CardRecord:
                 )
             if self.emblem.emblem is not None:
                 raise ValueError("CardRecord: an emblem cannot carry an emblem")
-        # SET-R1a (ontology §3, v3→v4 gate A2): granted keywords are a
-        # membership SET — ``keyword_of`` scans and same-timestamp layers
-        # re-order by layer rules (layers.py:974 ``sorted(set(names))``), so
-        # the wording order of "vigilance, trample" must not reach the bytes.
-        # ``abilities`` stays IDENTITY (printed order, §3 O2/identity row).
+        # Granted keywords are a membership SET — ``keyword_of`` scans and
+        # same-timestamp layers re-order by layer rules (layers'
+        # ``_rebuild_maps`` sorts them), so the wording order of "vigilance,
+        # trample" must not reach the bytes. ``abilities`` keeps printed
+        # order.
         keywords = _set_sorted(self.keywords)
         if keywords != self.keywords:
             object.__setattr__(self, "keywords", keywords)
@@ -3658,8 +3438,6 @@ class CardRecord:
 # they live after the classes they validate.
 # ---------------------------------------------------------------------------
 
-# QAtMost (grammar round 8, R8-1) joins the Quantity guards so Selector
-# .count and Quantity-valued slots/roles accept it via _is_quantity.
 _Q_CLASSES = (
     QConst,
     QX,
@@ -3766,7 +3544,7 @@ def _is_event(value: object) -> bool:
     return isinstance(value, _EV_CLASSES)
 
 
-def _is_duration(value: object) -> bool:  # noqa: F841 — part of the closed guard set
+def _is_duration(value: object) -> bool:
     return isinstance(value, _D_CLASSES)
 
 
@@ -3814,12 +3592,9 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.IS_PERMANENT: (frozenset(), frozenset()),
     FAtomPred.IS_TOKEN: (frozenset(), frozenset()),
     FAtomPred.DIED_THIS_TURN: (frozenset(), frozenset()),
-    # WAS_KICKED (ZNR kicker): contextual against the judged spell handle;
-    # no slots (precedent: DIED_THIS_TURN).
     FAtomPred.WAS_KICKED: (frozenset(), frozenset()),
-    # HAS_KICKER (ZND-1 G2, /95): the card HAS a kicker cost. No slots.
     FAtomPred.HAS_KICKER: (frozenset(), frozenset()),
-    # STACK_KIND_EQ (ontology R5-10): string_value from _STACK_KINDS only.
+    # STACK_KIND_EQ: string_value from _STACK_KINDS only (_FATOM_STRING_VOCAB).
     FAtomPred.STACK_KIND_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
     FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
     FAtomPred.POWER_LE: (frozenset({"count"}), frozenset({"count"})),
@@ -3833,110 +3608,69 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"count", "who"}),
         frozenset({"count", "who"}),
     ),
-    # FLIP_WON: the flippers side — "if you win the flip" (required who).
-    # "If you LOSE the flip" is FNot(FAtom(FLIP_WON, who=YOU)), never a
-    # separate predicate (PITFALLS: no duplicate predicates).
+    # FLIP_WON: "if you win the flip" (required who). "If you LOSE the
+    # flip" is FNot(FAtom(FLIP_WON, who=YOU)), never a separate predicate.
     FAtomPred.FLIP_WON: (frozenset({"who"}), frozenset({"who"})),
-    # INSTANT_OR_SORCERY_CAST_THIS_TURN: turn-scoped cast tracking — "if
-    # you've cast an instant or sorcery spell this turn" (required who;
-    # Stormwing Entity). Precedent: LIFE_GAINED_THIS_TURN_GE.
     FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN: (
         frozenset({"who"}),
         frozenset({"who"}),
     ),
-    # TARGETS_SOURCE: "spells your opponents cast that target this creature"
-    # — the spell targets the source object. No slots (precedent: IS_SOURCE).
     FAtomPred.TARGETS_SOURCE: (frozenset(), frozenset()),
-    # MAY_DONE (r18a, CR 611.1): the "If you do, X" tail, after a "may"
-    # action or a mandatory one (CR 118.12, m21-fidelity wave 4). Handle-free
-    # like FLIP_WON; the executor answers it from its per-resolution record of
-    # the step before the gate. No slots.
     FAtomPred.MAY_DONE: (frozenset(), frozenset()),
-    # ENTERED_THIS_TURN_FROM: "if it entered from your graveyard this turn"
-    # (Archfiend's Vessel). The zone slot names the source zone of the
-    # entry. Precedent: the zone slots on CastSpellEvent.from_zone.
+    # ENTERED_THIS_TURN_FROM: zone = the zone the object entered from.
     FAtomPred.ENTERED_THIS_TURN_FROM: (
         frozenset({"zone"}),
         frozenset({"zone"}),
     ),
-    # CAST_THIS_TURN_FROM: "or you cast it from your graveyard this turn"
-    # (Archfiend's Vessel). zone = the cast's source zone; who = the
-    # controller who cast it (a referent Selector is legal — round 4).
+    # CAST_THIS_TURN_FROM: zone = the cast's source zone; who = the
+    # player who cast it (a referent Selector is legal).
     FAtomPred.CAST_THIS_TURN_FROM: (
         frozenset({"zone", "who"}),
         frozenset({"zone", "who"}),
     ),
-    # MOVED_TO_ZONE_THIS_TURN: "if a permanent was put into your hand from
-    # the battlefield this turn" (Barrin, Tolarian Archmage). from_zone /
-    # to_zone name the two zones; who = the controller the move was
-    # relative to (a referent Selector is legal — round 4).
+    # MOVED_TO_ZONE_THIS_TURN: from_zone / to_zone name the two zones;
+    # who = the controller the move was relative to (a referent Selector
+    # is legal).
     FAtomPred.MOVED_TO_ZONE_THIS_TURN: (
         frozenset({"from_zone", "to_zone", "who"}),
         frozenset({"from_zone", "to_zone", "who"}),
     ),
-    # WAS_CAST_THIS_TURN (grammar round 5, R5-1): "[the object] was cast this
-    # turn (by who)" — Containment Priest. who = the controller who cast it
-    # (a referent Selector is legal — round 4); no zone slot (the predicate is
-    # zone-agnostic, unlike CAST_THIS_TURN_FROM).
+    # WAS_CAST_THIS_TURN: who = the player who cast it (a referent
+    # Selector is legal); no zone slot.
     FAtomPred.WAS_CAST_THIS_TURN: (
         frozenset({"who"}),
         frozenset({"who"}),
     ),
-    # NOT_FIRST_DRAW_THIS_STEP (grammar round 5, R5-4): "not the first card
-    # who draws in their draw step" — Teferi's Ageless Insight. who = the
-    # player drawing (a referent Selector is legal — round 4); evaluated
-    # against the drawn card (the CardDrawnEvent subject).
+    # NOT_FIRST_DRAW_THIS_STEP: who = the player drawing (a referent
+    # Selector is legal).
     FAtomPred.NOT_FIRST_DRAW_THIS_STEP: (
         frozenset({"who"}),
         frozenset({"who"}),
     ),
-    # TURN_OF (grammar round 6, R6-1): "it is <who>'s turn" — "During your
-    # turn, …" (Radha, Heart of Keld; Discontinuity). who = the turn owner
-    # (ControllerRef or referent Selector — precedent CONTROLLER_IS).
+    # TURN_OF: who = the turn owner (ControllerRef or referent Selector).
     FAtomPred.TURN_OF: (frozenset({"who"}), frozenset({"who"})),
-    # ZONE_COUNT_GE (grammar round 6, R6-2): "an opponent has 8 or more
-    # cards in their graveyard" (Thieves' Guild Enforcer). who = the player
-    # whose zone is counted; zone = the zone counted (same Zone class and
-    # required-zone-slot precedent as CAST_THIS_TURN_FROM); inner_filter =
-    # the cards counted; count = the threshold Quantity (precedent
-    # CONTROLLER_COUNT_GE — count unsetness is not enforced there either).
+    # ZONE_COUNT_GE: who = the player whose zone is counted; zone = the
+    # zone counted; inner_filter = the cards counted; count = the
+    # threshold Quantity.
     FAtomPred.ZONE_COUNT_GE: (
         frozenset({"who", "zone", "inner_filter", "count"}),
         frozenset({"who", "zone", "inner_filter", "count"}),
     ),
-    # IS_ATTACHED_TO (grammar round 7, R7-1): attached to the referent
-    # object — required referent slot ("Destroy target Equipment attached
-    # to that", Turn to Slag). Vocabulary: _QPROP_STR_REFERENTS (C12).
     FAtomPred.IS_ATTACHED_TO: (
         frozenset({"referent"}),
         frozenset({"referent"}),
     ),
-    # NAME_CHOSEN (grammar round 7, R7-4): name equals the CHOOSE_NAME
-    # pick ("cards with that name", Runed Halo s2 / Necromentia s2). No
-    # slots (precedent: IS_TAPPED).
     FAtomPred.NAME_CHOSEN: (frozenset(), frozenset()),
-    # IS_EXILED_WITH_SOURCE (grammar round 8, R8-6): "the card exiled
-    # with ~" (Horizon Scholar, Idol of Endurance) — the card is in exile
-    # AND the ability's source exiled it. No slots (precedent: IS_TAPPED);
-    # evaluated against the source object.
     FAtomPred.IS_EXILED_WITH_SOURCE: (frozenset(), frozenset()),
-    # CONTROLLER_COUNT_GT (grammar round 8, R8-9): dual-filter count
-    # comparison — "controls more creatures than you" (Garruk, Primal
-    # Hunter's rivals): inner_filter counts the referent controller's
-    # objects, right_inner_filter the comparison side's. Both slots are
-    # REQUIRED (the comparison has no one-sided reading).
+    # CONTROLLER_COUNT_GT: both filters are REQUIRED (the comparison has
+    # no one-sided reading).
     FAtomPred.CONTROLLER_COUNT_GT: (
         frozenset({"inner_filter", "right_inner_filter"}),
         frozenset({"inner_filter", "right_inner_filter"}),
     ),
-    # LIFE_LEAD_OVER_START_GE (grammar round 9, R9-2): net life lead over
-    # the referent player's starting total — count = the threshold Quantity
-    # (rule row {count}-only, the CARDS_DRAWN-style single-slot precedent;
-    # no who slot: the predicate binds its subject player directly).
+    # LIFE_LEAD_OVER_START_GE: count = the threshold; no who slot (the
+    # predicate binds its subject player directly).
     FAtomPred.LIFE_LEAD_OVER_START_GE: (frozenset({"count"}), frozenset({"count"})),
-    # NAME_PARTITION_COUNT_GE / ATTACK_AGAINST_COUNT_GE (grammar round 10,
-    # R10-2/R10-3): inner_filter + count, twin of the CONTROLLER_COUNT_GE
-    # rule above — both slots required, no others.
     FAtomPred.NAME_PARTITION_COUNT_GE: (
         frozenset({"inner_filter", "count"}),
         frozenset({"inner_filter", "count"}),
@@ -3945,11 +3679,9 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"count", "inner_filter"}),
         frozenset({"count", "inner_filter"}),
     ),
-    # OPPONENT_OF (grammar round 11, R11-1): the destination identity pred
-    # — who = the side the subject must NOT be on (ControllerRef or
-    # referent Selector, the CONTROLLER_IS single-slot precedent).
+    # OPPONENT_OF: who = the side the subject must NOT be on.
     FAtomPred.OPPONENT_OF: (frozenset({"who"}), frozenset({"who"})),
-    # Turn history (2026-11-05): the event searched for and how much of it
+    # Turn history: the event searched for and how much of it
     # (count >= 1 and its presence are checked in FAtom.__post_init__).
     FAtomPred.EVENT_THIS_TURN: (
         frozenset({"event", "count"}),
@@ -3961,11 +3693,7 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     ),
 }
 
-# Atom role -> allowed value types. "types" is a tuple of card-type strings
-# (data); "color" is a WUBRG string plus colourless "C" and (grammar round
-# 8, R8-3) "ANY" = "mana of any one color" — a choice among WUBRG, distinct
-# from colourless "C" (validated in AtomArgs.__post_init__).
-# Per-predicate closed vocabularies for FAtom.string_value (ontology R5-10).
+# Per-predicate closed vocabularies for FAtom.string_value.
 # A predicate listed here takes only these tokens; every other string_value
 # predicate (TYPE_EQ, SUBTYPE_EQ, SUPERTYPE_EQ, NAME_EQ, NAME_CONTAINS) reads
 # open card data (type, subtype and card names).
@@ -3974,13 +3702,16 @@ _FATOM_STRING_VOCAB: dict[FAtomPred, tuple[str, ...]] = {
 }
 
 
+# Atom role -> allowed value types. "types" is a tuple of card-type strings
+# (data); "color" is a WUBRG string, colourless "C" or "ANY" (validated in
+# AtomArgs.__post_init__).
 _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "target": (Selector,),
     "source": (Selector,),
     "cards": (Selector,),
     "equipment": (Selector,),
-    # "controller" takes a referent Selector too (grammar round 4,
-    # object anaphora): Gloom Sower's "its controller loses life" =
+    # "controller" takes a referent Selector too: Gloom Sower's "its
+    # controller loses life" =
     # controller=Selector(referent="event"); the executor derives the
     # controller of the bound object.
     "controller": (ControllerRef, Selector),
@@ -4002,60 +3733,54 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "cost": (Cost,),  # PAY's cost role; CAST's optional extra-cost / waiver role
     "tapped_on_enter": (bool,),  # MOVE_ZONE/SEARCH: "put it on the battlefield tapped"
     "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
-    # name_filter (grammar round 7, R7-4): CHOOSE_NAME's name restriction
-    # ("choose a nonbasic card name", Necromentia); Filter-valued like
-    # GRANT_ABILITY's ability / PREVENT_EFFECT's condition roles.
+    # name_filter: CHOOSE_NAME's name restriction ("choose a nonbasic card
+    # name", Necromentia); Filter-valued like GRANT_ABILITY's ability /
+    # PREVENT_EFFECT's condition roles.
     "name_filter": _F_CLASSES,
-    # dealer / recipient (grammar round 8, R8-5): DEAL_DAMAGE's optional
-    # damage-surface roles — "you" as recipient ("damage to you", Nine
-    # Lives) or a player-identity Filter naming a side. Widened like
-    # "controller": a referent, a referent Selector, or a Filter.
+    # dealer / recipient: DEAL_DAMAGE's optional damage-surface roles —
+    # "you" as recipient ("damage to you", Nine Lives) or a player-identity
+    # Filter naming a side. Widened like "controller": a referent, a
+    # referent Selector, or a Filter.
     "dealer": (ControllerRef, Selector) + _F_CLASSES,
     "recipient": (ControllerRef, Selector) + _F_CLASSES,
-    # filter (grammar round 9, R9-3): MANA_POLICY's / GRANT_ACTIVATION's
-    # shape restriction role — "spells that cost {X} or less to cast" —
-    # Filter-valued like the name_filter / condition roles above.
+    # filter: MANA_POLICY's / GRANT_ACTIVATION's shape restriction role —
+    # "spells that cost {X} or less to cast" — Filter-valued like the
+    # name_filter / condition roles above.
     "filter": _F_CLASSES,
-    # scope (grammar round 9, R9-3, C21): MANA_POLICY's closed string pair
-    # ("THIS_MANA" / "ALL_YOURS"), validated against _MANA_POLICY_SCOPES
-    # in AtomArgs.__post_init__ (the "color" role's vocab-check precedent).
+    # scope: MANA_POLICY's / DAMAGE_ASSIGN_POLICY's closed string
+    # vocabularies, validated in AtomArgs.__post_init__ and per verb in
+    # Atom.__post_init__.
     "scope": (str,),
-    # step (grammar round 9, R9-4): PREVENT_EFFECT's "during a target's
-    # next untap step" role (Frost Breath) — same Step enum the StepEvent
-    # and DurationUntilNextStep fields carry.
+    # step: PREVENT_EFFECT's "during a target's next untap step" role
+    # (Frost Breath) — same Step enum the StepEvent and
+    # DurationUntilNextStep fields carry.
     "step": (Step,),
-    # window (grammar round 9, R9-7): GRANT_ACTIVATION's optional timing
-    # role — which ActivationWindow the extra activation joins (Teferi,
-    # Master of Time's +2: "until end of turn" = the sorcery window).
+    # window: GRANT_ACTIVATION's optional timing role — which
+    # ActivationWindow the extra activation joins (Teferi, Master of
+    # Time's +2: "until end of turn" = the sorcery window).
     "window": (ActivationWindow,),
-    # T4 P1a (2026-10-07), the merged MOVE atom's three new slots:
-    # "from" — the visible departure-zone axis (menu-visibility law §10:
-    # the mill/discard shapes ENCODE their source zone instead of leaning
-    # on the verb name; old MOVE_ZONE rows stay from-less = "wherever the
-    # objects are").
+    # MOVE_ZONE's departure zone: the mill/discard shapes ENCODE their
+    # source zone instead of leaning on the verb name; a move without
+    # "from" takes the objects from wherever they are.
     "from": (Zone,),
-    # "journal_kind" — A2(ii): the literal journalled event kind carried
-    # as a SLOT so the merge moves no journal bytes ("MILL", else the
-    # "MOVE" default); closed vocabulary _MOVE_JOURNAL_KINDS below.
+    # "journal_kind" — the journalled event kind ("MILL", else the "MOVE"
+    # default); closed vocabulary _MOVE_JOURNAL_KINDS.
     "journal_kind": (str,),
-    # "pop_order" — A2(iii): mill's top-of-library pop, pinned explicitly
-    # (never a selector-order resolution); "TOP" only.
+    # "pop_order" — mill's top-of-library pop, pinned explicitly (never a
+    # selector-order resolution); "TOP" only.
     "pop_order": (str,),
 }
 
 # Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
 # least one of power/toughness (enforced in Atom.__post_init__). The optional
-# "duration" role (Duration) marks the temporary-effect verbs: MODIFY_PT,
-# SET_PT, GRANT_ABILITY, GRANT_TYPE, PREVENT_EFFECT ("until end of turn"),
-# plus TAP / UNTAP (a tap or untap is a temporary effect) and MANDATE_ATTACK
-# (a continuous "attacks each combat if able").
+# "duration" role (Duration) marks the temporary-effect verbs: MODIFY_PT, SET_PT,
+# GRANT_ABILITY, GRANT_TYPE, PREVENT_EFFECT ("until end of turn"), plus TAP /
+# UNTAP (a tap or untap is a temporary effect) and MANDATE_ATTACK (a continuous
+# "attacks each combat if able").
 _VERB_ROLES: dict[Verb, dict[str, bool]] = {
-    # dealer / recipient (grammar round 8, R8-5): optional roles for the
-    # C-4 damage-surface rows — "damage THAT WOULD BE DEALT TO you"
-    # restrictions (Nine Lives) and explicit "to you" recipients. Both
-    # accept a ControllerRef, a referent Selector, or a Filter (the
-    # player-identity FAtom names a side of the comparison); the
-    # templates opt in during the 8-B fidelity flip.
+    # dealer / recipient: optional damage-surface roles — "damage THAT
+    # WOULD BE DEALT TO you" restrictions (Nine Lives) and explicit "to
+    # you" recipients.
     Verb.DEAL_DAMAGE: {
         "target": True,
         "amount": True,
@@ -4069,14 +3794,12 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.GAIN_LIFE: {"controller": True, "amount": True},
     Verb.LOSE_LIFE: {"controller": True, "amount": True},
     Verb.ADD_MANA: {"controller": True, "amount": True, "color": False},
-    # CREATE_TOKEN += controller (grammar round 11, R11-2, batch 6 ruling
-    # /10): the anaphoric "ITS CONTROLLER creates a … token" creator
-    # (Secure the Scene / Angelic Ascension s2). Optional; omitted = the
-    # ability's controller (every pre-round row, byte-unchanged). The
-    # value is a ControllerRef or referent Selector (LOSE_LIFE-controller
-    # precedent, Gloom-Sower/Death-Mage lanes).
+    # CREATE_TOKEN's optional controller: the anaphoric "ITS CONTROLLER
+    # creates a … token" creator (Secure the Scene); omitted = the
+    # ability's controller. A ControllerRef or referent Selector, as for
+    # LOSE_LIFE.
     Verb.CREATE_TOKEN: {"tokens": True, "count": False, "controller": False},
-    # T5-D (Sanctum of All): how many EXTRA times the matched ability
+    # TRIGGER_ADDITIONAL (Sanctum of All): how many EXTRA times the matched ability
     # triggers — a full Quantity (QConst 1 for "an additional time", a
     # derived QBin/QCount for a per-category self-repeat).
     Verb.TRIGGER_ADDITIONAL: {"count": True},
@@ -4088,7 +3811,7 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
         "toughness": False,
         "duration": False,
     },
-    # SET_PT (grammar round 6, R6-3): power/toughness are each optional,
+    # SET_PT: power/toughness are each optional,
     # but at least one is required (Kinetic Augur defines only power —
     # "power is equal to the number of …"); the at-least-one check is
     # enforced in Atom.__post_init__ alongside MODIFY_PT's.
@@ -4104,18 +3827,16 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.UNTAP: {"target": True, "duration": False},
     # MOVE_ZONE / SEARCH: the optional `tapped_on_enter` bool role marks the
     # entered state ("put that card onto the battlefield tapped"); the
-    # value is wrapped in a "Bool" tag inside the pairs (T3 round 2, item 4).
-    # MOVE_ZONE — T4 P1a (2026-10-07): the ONE move atom. `destination`
-    # is the mandatory `to`; the object arrives on exactly one of three
-    # axes, one per predecessor shape: `cards` (selector/binding, old
-    # MOVE_ZONE), `target` (designation lane, old EXILE — role key kept
-    # per A2(iv) so spell designation shadowing still finds it), or
-    # `controller`+`amount` with `pop_order`="TOP" (old MILL's library
-    # pop, A2(iii)). `from` states the departure zone where the shape
-    # knows it (mill/discard); `journal_kind` carries A2(ii)'s literal
-    # journal row kind. Axes stay orthogonal (§9): operation × menu ×
-    # count × journal kind, no fused special-case verb.
-    # duration (ontology R5-1, 2026-10-29, CR 610.3): "exile that card until
+    # value is wrapped in a "Bool" tag inside the pairs.
+    # MOVE_ZONE is the ONE move atom. `destination` is the mandatory `to`;
+    # the objects arrive on one of three axes: `cards` (a selector or
+    # binding), `target` (the designation lane — the role key spell
+    # designation shadowing looks for), or `controller`+`amount` with
+    # `pop_order`="TOP" (a mill's library pop). `from` states the
+    # departure zone where the shape knows it (mill/discard);
+    # `journal_kind` carries the journal row kind. Axes stay orthogonal:
+    # operation × menu × count × journal kind, no fused special-case verb.
+    # duration (CR 610.3): "exile that card until
     # this creature leaves the battlefield". The move happens; when the
     # duration ends, a second one-shot effect returns the object to its
     # previous zone. Only durations that end on an event are accepted
@@ -4144,21 +3865,19 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.SACRIFICE: {"target": True},
     Verb.DISCARD: {"controller": True, "cards": True},
     Verb.SCRY: {"controller": True, "count": True},
-    # REVEAL += duration (grammar round 8 R8-3 / round 9, R9-8): Snoop's
-    # "Play with the top card of your library revealed" is a continuous
-    # revealed state — DurationPermanent, top-of-library implicit per the
-    # LOOK_AT convention (doc /10).
+    # REVEAL's duration: "Play with the top card of your library revealed"
+    # is a continuous revealed state — DurationPermanent, top of library
+    # implicit as for LOOK_AT.
     Verb.REVEAL: {"controller": True, "count": True, "duration": False},
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},
-    # GAIN_CONTROL: duration (grammar round 7, R7-2) — "gain control of
-    # target creature until end of turn" (Traitorous), "…until this
-    # creature leaves the battlefield" pairs with DurationUntilLeaves.
+    # GAIN_CONTROL's duration: "gain control of target creature until end
+    # of turn" (Traitorous Greed), "…until this creature leaves the
+    # battlefield" pairs with DurationUntilLeaves.
     Verb.GAIN_CONTROL: {"target": True, "controller": True, "duration": False},
-    # PREVENT_EFFECT += step (grammar round 9, R9-4): Frost Breath's
-    # "a target's next untap step" is prevented during Step.UNTAP — the
-    # step slot names WHICH step the prevention covers, paired with
-    # DurationUntilNextStep (doc /10).
+    # PREVENT_EFFECT's step: Frost Breath's "a target's next untap step" is
+    # prevented during Step.UNTAP — the step slot names WHICH step the
+    # prevention covers, paired with DurationUntilNextStep.
     Verb.PREVENT_EFFECT: {
         "condition": True,
         "event": True,
@@ -4171,9 +3890,8 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.EXTRA_TURN: {"count": True},
     Verb.END_TURN: {},
     Verb.MANDATE_ATTACK: {"cards": True, "controller": False, "duration": False},
-    # MANDATE_BLOCK (grammar round 6, R6-5): mirrors MANDATE_ATTACK exactly
-    # — "must be blocked if able" (Canopy Stalker); subject-scoped, the
-    # executor is deferred per the PHASE_IN-orphan precedent.
+    # MANDATE_BLOCK mirrors MANDATE_ATTACK exactly — "must be blocked if
+    # able" (Canopy Stalker); subject-scoped.
     Verb.MANDATE_BLOCK: {"cards": True, "controller": False, "duration": False},
     # CAST: source is the Selector over the source zone (top-of-library via
     # Zone.position). The optional `cost` role carries the cost paid
@@ -4189,60 +3907,36 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # FLIP_COIN: no roles — the coin is flipped; the outcome is read by
     # FAtomPred.FLIP_WON, never by an arg.
     Verb.FLIP_COIN: {},
-    # CHOOSE (grammar round 7, R7-1): "You choose a noncreature, nonland
-    # card from it" (Duress, Kitesail) — `target` is the pool chosen FROM
-    # (typically a referent="result" Selector over the previous
-    # sentence's zone); the pick records the ability's result register.
+    # CHOOSE: `target` is the pool chosen FROM (typically a
+    # referent="result" Selector over the previous sentence's zone); the
+    # pick records the ability's result register.
     Verb.CHOOSE: {"target": True, "count": False, "duration": False},
-    # CHOOSE_NAME (grammar round 7, R7-4): "choose a name" (Runed Halo —
-    # no filter; Necromentia — "a nonbasic card name", name_filter). The
-    # pick is read back by FAtomPred.NAME_CHOSEN. Role decision: optional,
-    # mirroring the bare-vs-parametrized split of GRANT/ATTACH analogues
-    # (KeywordAbility params, PREVENT_EFFECT.condition) — the filter only
-    # narrows which names are legal picks.
+    # CHOOSE_NAME: "choose a name" (Runed Halo — no filter; Necromentia —
+    # "a nonbasic card name", name_filter). The pick is read back by
+    # FAtomPred.NAME_CHOSEN; the optional filter only narrows which names
+    # are legal picks.
     Verb.CHOOSE_NAME: {"name_filter": False},
-    # FIGHT (grammar round 7, R7-8): "This creature fights another target
-    # creature" (Brash Taunter), "it fights up to one target creature you
-    # don't control" (Primal Might). The attacker is the source/IT
-    # referent, never a role. Executor deferred per the MANDATE_BLOCK /
-    # PHASE_IN orphan precedent (PC-6 unaffected).
+    # FIGHT: the attacker is the source/IT referent, never a role.
     Verb.FIGHT: {"target": True},
-    # LOSE_ABILITY (grammar round 7, R9a): "that permanent loses
-    # indestructible until end of turn" (Soul Sear) — mirrors
-    # GRANT_ABILITY's roles exactly.
+    # LOSE_ABILITY mirrors GRANT_ABILITY's roles exactly.
     Verb.LOSE_ABILITY: {"target": True, "ability": True, "duration": False},
-    # GET_EMBLEM (grammar round 8, R8-7, C19): NO roles — mirroring the
-    # FLIP_COIN role-less row exactly. The verb is the marker "you get an
-    # emblem"; the emblem's own abilities are the payload via the
-    # card-level emblem attach (compiler.py two-pass). The quoted text
-    # NEVER enters the ability IR (no emblem_ref role: C19).
+    # GET_EMBLEM: NO roles (see the Verb member).
     Verb.GET_EMBLEM: {},
-    # ADD_LAND_PLAY (grammar round 8, R8-8): "You may play two additional
-    # lands on each of your turns" (Azusa, Lost but Seeking). `count` =
-    # the number of additional plays, `duration` scopes the grant
-    # (DurationPermanent for "on each of your turns"). Executor deferred
-    # per the FIGHT / MANDATE_ATTACK orphan precedent.
+    # ADD_LAND_PLAY: `count` = the number of additional plays, `duration`
+    # scopes the grant (DurationPermanent for "on each of your turns").
     Verb.ADD_LAND_PLAY: {"count": False, "duration": False},
-    # MANA_POLICY (grammar round 9, R9-3, C21): spend-restriction verbs —
-    # Vodalian Invoice's "this spell can't be countered" style mana-use
-    # policies are scope=THIS_MANA, Orrery-style "you may spend mana as
-    # though it were mana of any color to cast that spell" is
-    # scope=ALL_YOURS with a filter over the spell's cast shape. Executor
-    # deferred per the ADD_LAND_PLAY orphan precedent (consumed in 9-B).
+    # MANA_POLICY: scope THIS_MANA restricts the mana the ability added
+    # (Vodalian Arcanist); scope ALL_YOURS is a standing permission over
+    # the player's mana (Chromatic Orrery), with a filter over the spells
+    # it applies to.
     Verb.MANA_POLICY: {"scope": True, "filter": False},
-    # GRANT_ACTIVATION (grammar round 9, R9-7): "You may activate an
-    # additional loyalty ability of targets named Teferi this turn" —
-    # filter over the permanent shape (NAME_CONTAINS gate, closing the 8-C
-    # withdrawal), window (R9-1's ActivationWindow) names which timing
-    # window the extra activation joins. Executor deferred per the FIGHT /
-    # ADD_LAND_PLAY orphan precedent.
+    # GRANT_ACTIVATION: filter = the permanents whose abilities may be
+    # activated (a NAME_CONTAINS("Teferi") gate); window = the
+    # ActivationWindow the extra activation joins.
     Verb.GRANT_ACTIVATION: {"filter": True, "window": False},
-    # DAMAGE_ASSIGN_POLICY (grammar round 10, R10-4, C28): combat-damage
-    # assignment policies — scope carries the closed _DAMAGE_ASSIGN_SCOPES
-    # vocabulary (AS_UNBLOCKED), filter optionally narrows the affected
-    # damage dealers. The "You may" vertex lives OUTSIDE the atom (C15:
-    # the granted StaticAbility holds OptionalEffect wrapping this Atom).
-    # Executor deferred per the MANA_POLICY orphan precedent.
+    # DAMAGE_ASSIGN_POLICY: scope carries the closed _DAMAGE_ASSIGN_SCOPES
+    # vocabulary (AS_UNBLOCKED); filter optionally narrows the affected
+    # damage dealers.
     Verb.DAMAGE_ASSIGN_POLICY: {"scope": True, "filter": False},
 }
 
@@ -4255,7 +3949,7 @@ _KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
     Keyword.BATTALION: ((_Q_CLASSES,),),
     Keyword.PROTECTION: ((_F_CLASSES,),),
     Keyword.HEXPROOF: ((), (_F_CLASSES,)),
-    # B-49 follow-up #2 (2026-10-29): "Enchant [object or player]" (CR 702.5a) carries what
+    # "Enchant [object or player]" (CR 702.5a) carries what
     # the Aura may target and enchant; bare when the Enchant line did not parse.
     Keyword.ENCHANT: ((), (_F_CLASSES,)),
 }
@@ -4264,7 +3958,7 @@ _KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
 # ---------------------------------------------------------------------------
 # Serialization — to_dict / from_dict / canonical_json / fingerprint.
 #
-# Stable encoding (golden files and PC-9 depend on it — never renumber):
+# Stable encoding (golden files and fingerprints depend on it — never renumber):
 #   dataclass   -> {"tag": <ClassName>, <field>: enc, ...}
 #   Enum        -> {"tag": <EnumClassName>, "name": <MEMBER>}
 #   frozenset   -> {"tag": "ColorSet", "items": <sorted list>}
@@ -4385,19 +4079,15 @@ _DATACLASSES: tuple[type, ...] = (
 _CLASS_BY_TAG: dict[str, type] = {c.__name__: c for c in _DATACLASSES}
 _TAG: dict[type, str] = {c: c.__name__ for c in _DATACLASSES}
 
-# tag -> ((field, converter), ...). Converters: "int", "bool", "str",
-# "opt:X", "tup:X", "enum:<Name>", "colorset", "qprop_referent",
-# "atom_pairs", "atom_value", and the union names in _UNION_CONVS.
+# tag -> ((field, converter), ...). A converter is a scalar (int, bool, str),
+# opt:X, tup:X, enum:<Name>, one of the named cases in _decode (colorset,
+# qprop_referent, atom_pairs, ...) or a union name in _UNION_CONVS.
 _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "QConst": (("value", "int"),),
     "QX": (),
     "QUnbounded": (),
     "QCount": (("selector", "selector"),),
-    # grammar round 9, R9-6: distinct-color count of the selector's cards
-    # (Orrery draw-per-color); same single-selector encoding as QCount.
     "QDistinctColorCount": (("selector", "selector"),),
-    # ZND-3 G1 (spec /107): party census — distinct party classes among
-    # the selector's objects; same single-selector encoding as QCount.
     "QPartyCount": (("selector", "selector"),),
     "QProp": (
         ("referent", "qprop_referent"),
@@ -4408,8 +4098,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("op", "enum:QBinOp"),
         ("left", "quantity"),
         ("right", "quantity"),
-        # T5-D rounding policy: omitted at the None default (_OMIT_IF_EMPTY
-        # row) - every pre-T5-D QBin keeps its golden bytes.
         ("rounding", "opt:enum:Rounding"),
     ),
     "QThisTurn": (("kind", "enum:ThisTurnKind"), ("referent", "enum:ControllerRef")),
@@ -4424,9 +4112,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("count", "quantity"),
         ("mode", "enum:SelectorMode"),
         ("filter", "filter"),
-        # R0 zone-fold: the scalar ("zone","zone") row is DELETED — the
-        # single zones SET field is the only zone carrier (it never omits:
-        # no empty default exists, see _OMIT_IF_EMPTY note).
+        # zones is never omitted: it has no empty default.
         ("zones", "tup:zone"),
         ("referent", "opt:referent_str"),
     ),
@@ -4441,29 +4127,23 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("count", "opt:quantity"),
         ("counter_kind", "opt:enum:CounterKind"),
         ("keyword", "opt:enum:Keyword"),
-        # who widens to a referent Selector (grammar round 4, object
-        # anaphora): ControllerRef OR a tagged Selector dict.
+        # who: a ControllerRef OR a tagged referent Selector dict.
         ("who", "opt:controller_ref_or_selector"),
         ("inner_filter", "opt:filter"),
         ("zone", "opt:zone"),
         ("from_zone", "opt:zone"),
         ("to_zone", "opt:zone"),
         ("referent", "opt:str"),
-        # right_inner_filter (grammar round 8, R8-9): omit-when-None.
         ("right_inner_filter", "opt:filter"),
-        # event (2026-11-05, turn history): omit-when-None.
         ("event", "opt:event"),
     ),
     "DurationEot": (),
     "DurationPermanent": (),
     "DurationUntilNextTurn": (),
     "DurationWhileCondition": (("filter", "filter"),),
-    # source (grammar round 7, R7-2): a referent string, serialized bare;
-    # vocabulary validated in __post_init__ (also on the from_dict path).
+    # source: a referent string, serialized bare; its vocabulary is
+    # validated in __post_init__ (so also on the from_dict path).
     "DurationUntilLeaves": (("source", "str"),),
-    # grammar round 9, R9-4: "until <owner>'s next <step>" (Frost Breath
-    # pairs it with PREVENT_EFFECT step=Step.UNTAP); owner_scoped True
-    # (the default) serializes as a bare bool, byte-stable like TapStateEvent.
     "DurationUntilNextStep": (("step", "enum:Step"), ("owner_scoped", "bool")),
     "ZoneChangeEvent": (
         ("from_zone", "zone"),
@@ -4475,38 +4155,26 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("actor", "opt:filter"),
         ("from_zone", "opt:zone"),
         ("ordinal", "opt:int"),
-        # from_zone_not (grammar round 4): "from anywhere other than the
-        # hand" — mutually exclusive with from_zone, omitted when None.
         ("from_zone_not", "opt:zone"),
     ),
     "DeclareAttackersEvent": (
         ("filter", "filter"),
-        # attacked (grammar round 10, R10-3): narrows the attacked-side
-        # object; omitted when None.
         ("attacked", "opt:filter"),
     ),
     "DeclareBlockersEvent": (
         ("filter", "filter"),
         ("subject", "opt:filter"),
-        # blocked (grammar round 6, R6-4): narrows the blocked-side
-        # creature; omitted when None.
         ("blocked", "opt:filter"),
-        # count (2026-11-06): how many creatures block it; omitted when None.
         ("count", "opt:quantity"),
     ),
-    # R2 fold (/140): "CombatDamageEvent" removed — DamageDealtEvent is the
-    # single damage host (fields below).
     "CounterPlacedEvent": (
         ("counter_kind", "enum:CounterKind"),
         ("filter", "filter"),
-        # count (grammar round 5, R5-2): the number placed; omitted when None.
         ("count", "opt:quantity"),
     ),
     "CreatureDiesEvent": (("filter", "filter"),),
     "BecomesBlockedEvent": (("filter", "filter"),),
     "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
-    # T5-D: the Sanctum-of-All family event atom (subject = the
-    # triggering ability's source permanent).
     "AbilityTriggerEvent": (("filter", "filter"),),
     "TurnPhaseEvent": (("phase", "enum:Phase"), ("actor", "opt:filter")),
     "StepEvent": (
@@ -4520,24 +4188,19 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("source", "opt:filter"),
         ("combat", "opt:bool"),
     ),
-    # actor (ontology R5-6): the targeting spell or ability's controller; omitted
-    # when None (_OMIT_IF_EMPTY row), so every pre-R5-6 TargetingEvent keeps its bytes.
     "TargetingEvent": (("filter", "filter"), ("actor", "opt:filter")),
     "CardDrawnEvent": (
         ("actor", "opt:filter"),
         ("ordinal", "opt:int"),
     ),
     "LifeGainedEvent": (("actor", "opt:filter"),),
-    # 2026-11-05: the life-loss twin (actor omitted when None, as above).
     "LifeLostEvent": (("actor", "opt:filter"),),
     "SacrificeEvent": (("actor", "opt:filter"),),
-    # R5-7: replaces LoyaltyActivatedEvent; kind is required (no default).
     "AbilityActivatedEvent": (
         ("source", "filter"),
         ("kind", "enum:AbilityKind"),
         ("actor", "opt:filter"),
     ),
-    # 2026-11-05: "can't be countered" (CR 701.6a): filter over the countered object.
     "CounteredEvent": (("filter", "filter"),),
     "LiteralName": (("name", "str"),),
     "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
@@ -4550,8 +4213,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("toughness", "opt:quantity"),
         ("keywords", "tup:enum:Keyword"),
         ("abilities", "tup:ability"),
-        # R5-11: colors replaces round 8's ("color", "opt:str"); omitted at
-        # the () default like the R8-4 flags (_OMIT_IF_EMPTY row).
         ("colors", "tup:str"),
         ("enters_tapped", "opt:bool"),
         ("enters_attacking", "opt:bool"),
@@ -4587,9 +4248,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "Repeat": (("count", "quantity"), ("inner", "effect")),
     "EachPlayer": (("ref", "enum:ControllerRef"), ("effect", "effect")),
-    # grammar round 9, R9-5 (C22): duration REQUIRED — a delayed trigger
-    # without a lifetime window is just a TriggeredAbility. Tag order
-    # mirrors TriggeredAbility's event/condition/effect trio.
     "DelayedTrigger": (
         ("duration", "duration"),
         ("event", "event"),
@@ -4606,8 +4264,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("cost", "cost"),
         ("effect", "effect"),
         ("condition", "opt:filter"),
-        # timing (grammar round 9, R9-1, C20): omitted at the None
-        # default (_OMIT_IF_EMPTY row) — byte-stable.
         ("timing", "opt:enum:ActivationWindow"),
     ),
     "SpellAbility": (
@@ -4623,8 +4279,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "CostModifier": (
         ("filter", "filter"),
-        # controller_ref (grammar round 5, R5-3): ControllerRef, OR a
-        # Selector (the controller of the selected object — convention C7).
+        # controller_ref: a ControllerRef OR a Selector (the controller of
+        # the selected object).
         ("controller_ref", "controller_ref_or_selector"),
         ("delta", "cost_delta"),
         ("condition", "opt:filter"),
@@ -4637,8 +4293,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "KickerAbility": (("cost", "cost"),),
     "EmblemAbility": (("embedded", "ability"),),
-    # ZND-2f: the face's abilities omit when empty (the silent no-op face
-    # of the pay-3-life pair serializes as {face_name} only — the residue
+    # A face with no abilities serializes as {face_name} only (its text
     # lives in the unparsed register, never in a fake tree).
     "BackFace": (("face_name", "str"), ("abilities", "tup:ability")),
     "CardRecord": (
@@ -4776,10 +4431,9 @@ _ATOM_VALUE_TAGS = (
             "PtDelta",
             "ControllerRef",
             "CounterKind",
-            "Cost",  # PAY / CAST's `cost` role carries a full Cost (T3 round)
-            # grammar round 9, R9-4/R9-7: PREVENT_EFFECT's `step` role and
-            # GRANT_ACTIVATION's `window` role carry enum values — the
-            # CounterKind / ControllerRef enum-in-pairs precedent.
+            "Cost",  # PAY / CAST's `cost` role carries a full Cost
+            # PREVENT_EFFECT's `step` role and GRANT_ACTIVATION's `window`
+            # role carry enum values, like CounterKind / ControllerRef.
             "Step",
             "ActivationWindow",
         }
@@ -4807,73 +4461,42 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
 
 # tag -> fields whose EMPTY DEFAULT (None, or the empty tuple) is
 # serialized by OMITTING the key entirely, instead of serializing
-# null / []. Added by the T3 grammar round (binding constraint: every
-# tree constructible before T3 must serialize byte-identical — PC-4/PC-9
-# rail), so the table lists only NEW fields on pre-existing classes;
-# pre-existing optional fields (CostTap.target, FAtom.slots, ...) keep
-# serializing their null / [] defaults exactly as before. from_dict
-# accepts these keys both absent (the empty default is injected) and
-# present. This table is the only place a spec field may be absent from
-# the tagged dict.
+# null / []. A field added to an existing class is registered here as well
+# as in _SPECS, so every tree that does not use it keeps its exact bytes
+# (without the row every existing golden byte-diffs on regeneration;
+# pinned for TokenSpec and FAtom by test_ability_tree_r9.py). The older
+# optional fields (CostTap.target, the first FAtom slots, ...) serialize
+# their null / [] defaults. from_dict accepts these keys both absent (the
+# empty default is injected) and present. This table is the only place a
+# spec field may be absent from the tagged dict.
 _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
-    # rounding (T5-D): omit when None - byte-stable.
-    # ZNR kicker EtBState condition: omit when None — M21 bytes unchanged.
     "EtBState": frozenset({"condition"}),
-    # ZND-2f: BackFace.abilities omits at the () default — byte-stable.
     "BackFace": frozenset({"abilities"}),
     "QBin": frozenset({"rounding"}),
-    # referent (grammar round 4): omit when None — byte-stable.
-    # R0 zone-fold: zones is a REQUIRED non-empty set (no empty default),
-    # so it is no longer omit-able — a stale dict without zones (or with
-    # the deleted `zone` key) must FAIL LOUD at from_dict, never be
-    # silently defaulted.
+    # Selector.zones is REQUIRED (no empty default): a dict without zones
+    # must FAIL LOUD at from_dict, never be silently defaulted.
     "Selector": frozenset({"referent"}),
     "Zone": frozenset({"position"}),
     "ZoneChangeEvent": frozenset({"subject"}),
-    # attacked (grammar round 10, R10-3): omit when None — byte-stable.
     "DeclareAttackersEvent": frozenset({"attacked"}),
-    # subject (r3b) + blocked (grammar round 6, R6-4): omit when None.
     "DeclareBlockersEvent": frozenset({"subject", "blocked", "count"}),
-    # from_zone_not (grammar round 4): omit when None. actor (E1, /65):
-    # omit when None — byte-stable re-encode discipline.
     "CastSpellEvent": frozenset({"actor", "from_zone", "ordinal", "from_zone_not"}),
-    # ordinal (grammar round 4): omit when None.
     "CardDrawnEvent": frozenset({"ordinal", "actor"}),
-    # actor (E1, /65): the single direction axis omits when None on every
-    # event row that carries it.
     "TurnPhaseEvent": frozenset({"actor"}),
     "LifeGainedEvent": frozenset({"actor"}),
-    "LifeLostEvent": frozenset({"actor"}),  # 2026-11-05, the LifeGainedEvent twin
+    "LifeLostEvent": frozenset({"actor"}),
     "SacrificeEvent": frozenset({"actor"}),
     "AbilityActivatedEvent": frozenset({"actor"}),
-    "TargetingEvent": frozenset({"actor"}),  # R5-6
-    # count (grammar round 5, R5-2): omit when None.
+    "TargetingEvent": frozenset({"actor"}),
     "CounterPlacedEvent": frozenset({"count"}),
-    # zone/from_zone/to_zone (grammar round 4, R4-4): omit when None. Every
-    # pre-round-4 FAtom serializes byte-identical because these three keys
-    # are absent (the pre-existing null/[] slots still serialize as before).
-    # referent (grammar round 7, R7-1): same omission discipline — every
-    # pre-round-7 FAtom keeps its exact bytes.
-    # right_inner_filter (grammar round 8, R8-9): same discipline — every
-    # pre-round-8 FAtom keeps its exact bytes.
-    # event (2026-11-05, turn history): same discipline — every earlier FAtom
-    # keeps its exact bytes.
     "FAtom": frozenset(
         {"zone", "from_zone", "to_zone", "referent", "right_inner_filter", "event"}
     ),
-    # color/enters_tapped/enters_attacking (grammar round 8, R8-2/R8-4):
-    # TokenSpec had NO row before round 8 — without it, every existing
-    # token golden would byte-diff on regeneration (dual-registration
-    # rule, PITFALLS 2026-09-28; pinned in test_ability_tree_r9.py).
-    # R5-11: ``colors`` (omitted at ()) replaced ``color``.
     "TokenSpec": frozenset({"colors", "enters_tapped", "enters_attacking"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),
     "StaticAbility": frozenset({"condition"}),
-    # timing (grammar round 9, R9-1, C20): omit when None — without this
-    # row every existing ActivatedAbility golden would byte-diff
-    # (dual-registration rule, PITFALLS 2026-09-28).
     "ActivatedAbility": frozenset({"condition", "timing"}),
 }
 
@@ -4904,7 +4527,7 @@ def _decode(conv: str, d: Any) -> Any:
         return d
     if conv == "loyalty_delta":
         # a literal int stays bare; a Quantity arrives as its tagged dict
-        # (T3 round 2, item 6: Ugin's "[−X]" dynamic loyalty cost).
+        # (Ugin's "[−X]" dynamic loyalty cost).
         if isinstance(d, bool):
             raise ValueError(
                 "CostLoyalty delta: expected an int or a Quantity, got bool"
@@ -4948,7 +4571,7 @@ def _decode(conv: str, d: Any) -> Any:
             return d
         return _decode_union(d, frozenset({"Selector"}), "qprop referent")
     if conv == "referent_str":
-        # Selector.referent (grammar round 4, object anaphora): a bare
+        # Selector.referent: a bare
         # string from the _QPROP_STR_REFERENTS vocabulary — never a tagged
         # dict (a bound object's name is data, not a node).
         if not isinstance(d, str):
@@ -4959,11 +4582,9 @@ def _decode(conv: str, d: Any) -> Any:
             )
         return d
     if conv == "controller_ref_or_selector":
-        # Shared by FAtom.who (grammar round 4, object anaphora) and
-        # CostModifier.controller_ref (grammar round 5, R5-3): a
+        # Shared by FAtom.who and CostModifier.controller_ref: a
         # ControllerRef tagged dict, OR a Selector tagged dict (the
-        # referent selector — convention C7: the controller of the
-        # selected object).
+        # controller of the selected object).
         if isinstance(d, dict) and d.get("tag") == "Selector":
             return _decode_union(
                 d, frozenset({"Selector"}), "controller_ref/who selector"
@@ -5040,7 +4661,7 @@ def to_dict(node: Any) -> Any:
         for field in dataclasses.fields(node):
             value = getattr(node, field.name)
             if field.name in omit and (value is None or value == ()):
-                continue  # T3 additive field at its empty default: omit the key
+                continue  # an _OMIT_IF_EMPTY field at its empty default: omit the key
             out[field.name] = to_dict(value)
         return out
     if isinstance(node, Enum):
@@ -5104,7 +4725,7 @@ def from_dict(tag: str, d: Any) -> Any:
                 "with post-fold code (no silent migration anywhere)"
             )
         raise ValueError(f"from_dict: {tag}: unknown fields {extra}")
-    # omit-if-empty fields (T3 round) may be absent: the empty default is
+    # omit-if-empty fields may be absent: the empty default is
     # injected. Every other missing field still raises.
     missing = sorted(f for f in set(fields) - set(d) if f not in omit)
     if missing:
@@ -5127,12 +4748,12 @@ def from_dict(tag: str, d: Any) -> Any:
 
 def canonical_json(node: Any) -> str:
     """Canonical JSON of `node` (sort_keys=True, separators=(',',':')) —
-    the golden-file body (PC-4)."""
+    the golden-file body."""
     return json.dumps(to_dict(node), sort_keys=True, separators=(",", ":"))
 
 
 def fingerprint(node: Any) -> str:
-    """sha256 hexdigest of canonical_json — the PC-9 stability key."""
+    """sha256 hexdigest of canonical_json — the golden-file key."""
     return hashlib.sha256(canonical_json(node).encode("utf-8")).hexdigest()
 
 
@@ -5142,14 +4763,14 @@ def walk(node: Any, *, skip: type | tuple[type, ...] = ()) -> Iterator[Any]:
     zones, quantities, filters, events, costs, tokens, the emblem). Enum
     and scalar leaves are not yielded (their parent handles them). This is
     the instrument both the executor and the EC-2 unhandled-node-rate
-    measurement (METRICS.md §3) walk the tree with.
+    measurement (docs/METRICS.md §3) walk the tree with.
 
-    `skip` (ZND-2f, /106 §3): a node type (or tuple of types) whose
-    SUBTREE is not descended — the node itself is still yielded. Every
-    consumer that computes a card-level VERDICT from the tree (executor
-    produces_mana, compiler engine_support, coverage verb histograms)
-    passes skip=BackFace: an unplayable back face's abilities must never
-    reach a front-face verdict (§10 phantom defense).
+    `skip`: a node type (or tuple of types) whose SUBTREE is not
+    descended — the node itself is still yielded. Every consumer that
+    computes a card-level VERDICT from the tree (executor produces_mana,
+    compiler engine_support, coverage verb histograms) passes
+    skip=BackFace: an unplayable back face's abilities must never reach a
+    front-face verdict.
     """
     yield node
     if skip and isinstance(node, skip):
@@ -5170,7 +4791,7 @@ def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]
             yield from _walk_value(item, skip)
 
 
-# ---- Ability classification (ontology R5-7: one 605.1a classifier) ----
+# ---- Ability classification (one CR 605.1a classifier) ----
 
 #: Nodes whose subtree belongs to ANOTHER ability: a granted ability, a
 #: keyword, a token's own abilities, and a delayed trigger (created when the
@@ -5250,7 +4871,7 @@ def _atom_moves_library_card(atom: Atom) -> bool:
     destination is a library, or its departure (``from``, the mill shape's
     top-of-library pop, or the zones of the selector naming what moves) may
     be one. A referent selector ("it", "that card") carries the neutral zone
-    of convention C2, not a departure zone, so it is not read: the atom that
+    Zone(ANY, ANY), not a departure zone, so it is not read: the atom that
     produced the referent is judged on its own. Scry and shuffle keep the
     cards in the library (701.22a, 701.24a), reveal and look move nothing."""
     if atom.verb in _LIBRARY_POP_VERBS:
