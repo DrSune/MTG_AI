@@ -495,3 +495,31 @@ walks. Next: measure B* (the batch at which signal equals noise) and compare dup
 (each deal played twice with seats swapped, so the deal's luck cancels) on the same data; then train
 with at least B* decisions per optimizer step. Side note: checkpoints from before the London mulligan
 sample keep/mulligan 50/50 (both rows grown from "other"), and frozen versions keep doing so.
+
+## 26. B*: outcome-only credit needs ~2.2M decisions per useful step (2026-11-06)
+The audit agent's follow-up (pinned 8f1ced4; r20 v2 vs a frozen copy, coherent decks with the M20
+mix, every deal played twice with the seats swapped: 22,927 deals, 45,892 games, 2.10M learner
+decisions; split-gradient test over 16 groups of whole deals). B* = decisions per optimizer step at
+which the gradient is half signal, half noise:
+| Variant | B* (decisions) | games per step | minutes per step at 17 games/s |
+|---|---|---|---|
+| GAE lambda 0.95 (current) | 2.2M +- 1.2M (>= 1.06M at 95%) | 48k | 47 |
+| duplicate pair mean (z + z')/2 | 2.3M +- 1.0M | 50k | 49 |
+| control variate z + 0.25 z' (best c) | 2.3M +- 1.2M | 50k | 49 |
+| lambda = 1 (Monte-Carlo) | no signal detected: >= 2.65M | >= 58k | >= 57 |
+| lambda = 1 + pairing or control variate | >= 3.0-4.1M | >= 66k | >= 64 |
+| lambda = 1 + privileged critic (ESTIMATE) | >= 1.5-2.0M | >= 32k | >= 31 |
+- At r22's 98k-decision updates the gradient is ~4% signal (GAE) and under 1% (lambda = 1).
+- Replicas of a deal give the same seat's result with correlation 0.69; 85% of deals split 1-1. The
+  value head explains 5% of outcome variance early, 28% mid-game, 88% late; most gradient noise comes
+  from mid-game decisions, where the value head already reflects the deal, so pairing does not lower
+  B* (the deal's share of what the critic misses falls from 45% early to 2% late). Pairing does cut
+  evaluation variance: the pair mean has 0.15 of one game's variance (3.2x fewer games per precision).
+- GAE's detectable signal is a small residue of two large, nearly opposite components (cos -0.71)
+  and agrees only weakly with the unbiased lambda = 1 direction: part of it may be the critic's bias.
+- Privileged deal features (both opening hands, next draws, curve, colour fit) predict 24% of
+  single-game outcome variance (cross-validated); the current critic explains 5% early.
+Reading: outcome-only credit is too noisy for this machine's throughput; the candidate lever is
+per-decision targets from search (alternatives compared on the same deal, so its luck cancels).
+This bears on OWNER_PREFERENCES #6 (lambda = 1): raised with the owner, not decided here.
+Scripts and results: scratchpad ppo_audit/ (dup_snr.py, dup_eval.py, privileged_estimate.py).
