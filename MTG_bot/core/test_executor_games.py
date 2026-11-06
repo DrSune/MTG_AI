@@ -2648,3 +2648,51 @@ class EffectEnteredPermanentTest(unittest.TestCase):
         self.assertIn(forest, executor.binder.handle_record)
         sources = {tap.source for options in _mana_tap_options(executor, p0) for tap in options}
         self.assertIn(forest, sources)
+
+
+class DealtSpellOwnCostModifierTest(unittest.TestCase):
+    """2026-11-06 (reviewing r19's games): Volcanic Salvo ({10}{R}{R}, "This spell costs {X} less
+    to cast, where X is the total power of creatures you control") was never offered with 13 power
+    and 7 lands. The CR 601.2f fold read the spell's own modifier through the per-handle record,
+    which a dealt card in hand does not have (``_setup_game`` attaches the pool before dealing; a
+    card is bound when it is cast, played or put onto the battlefield), so every affordability
+    check, the cast's included, priced the printed cost: ``cost:mana_generic:5<10``. A pack could
+    not see it: the pack runner binds every placed card."""
+
+    def test_volcanic_salvo_in_a_dealt_hand_costs_x_less(self) -> None:
+        from MTG_bot.core.executor.legality import plan_mana_taps, tap_for_payment
+
+        supply = get_supply("verified", "M21")
+        oid = {m.name: o for o, m in supply.metas.items()}
+        field = ("Mountain",) * 7 + ("Colossal Dreadmaw", "Garruk's Gorehorn")  # power 6 + 7
+        deck = tuple(oid[n] for n in ("Volcanic Salvo", *field))
+        game = _setup_game(
+            7, supply, (deck + (oid["Island"],) * (DECK_SIZE - len(deck)), (oid["Island"],) * DECK_SIZE)
+        )
+        world, executor = game.world, game.executor
+        p0 = world.player_order[0]
+        mine = sorted((h for h in world.cards if world.controller_of(h) == p0), key=lambda h: h.index)
+        salvo = next(h for h in mine if world.cards[h].identity.name == "Volcanic Salvo")
+        world.move_to_zone(salvo, p0, ZONE_HAND)  # dealt into the opening hand
+        for name in sorted(set(field)):
+            for card in [h for h in mine if world.cards[h].identity.name == name]:
+                executor.apply_effect(  # each enters as in a game, which binds its record
+                    _atom(
+                        Verb.MOVE_ZONE,
+                        target=Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                        zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result"),
+                        destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                    ),
+                    source=p0, controller=p0, bindings={"result": [card]},
+                )
+        executor.begin_turn(p0)
+        self.assertNotIn(salvo, executor.binder.handle_record)  # unbound, as dealt
+        taps = plan_mana_taps(executor, p0, lambda: spell_castable(executor, p0, salvo)[0])
+        self.assertIsNotNone(taps)  # offered: X = 13 leaves {R}{R}
+        self.assertEqual(len(taps), 2)
+        tap_for_payment(executor, p0, taps)
+        dreadmaw = next(h for h in mine if world.cards[h].identity.name == "Colossal Dreadmaw")
+        cast(executor, p0, salvo, targets=(dreadmaw,))
+        self.assertEqual(world.zone_of(salvo).kind, ZONE_GRAVEYARD)
+        mountains = [h for h in mine if world.cards[h].identity.name == "Mountain"]
+        self.assertEqual(sum(world.cards[h].tapped for h in mountains), 2)

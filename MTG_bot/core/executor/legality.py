@@ -746,7 +746,10 @@ def build_payment_plan(
     # spell's OWN record (only "this spell costs" for a permanent spell, CR
     # 113.6; see the loop) plus every battlefield permanent's record (both
     # armies — Watcher of the Spheres discounts through the permanent's
-    # controller, not the spell's owner); each modifier's filter, payer
+    # controller, not the spell's owner), each through :func:`spell_record`:
+    # a dealt card in hand has no per-handle record until it is cast, played
+    # or put onto the battlefield (until 2026-11-06 the fold missed it, and
+    # every dealt Volcanic Salvo cost {10}{R}{R}); each modifier's filter, payer
     # scope and condition judge the CASTING SPELL in the MODIFIER CARD's
     # coordinates, exactly like a static trigger's filter reads the world
     # from its source's seat. Deltas sum additively, increases first and
@@ -794,7 +797,7 @@ def build_payment_plan(
             # cut {2}, stronger than printed). The cast lane's judge is on the stack.
             mod_hosts.extend(h for h in sorted(ex.battlefield(seat)) if h != judge)
         for host in mod_hosts:
-            rec = ex.binder.handle_record.get(host)
+            rec = spell_record(ex, host)
             if rec is None:
                 continue
             mods = [n for n in rec.abilities if isinstance(n, CostModifier)]
