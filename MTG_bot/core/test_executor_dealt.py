@@ -281,3 +281,30 @@ def test_conspicuous_snoop_cast_from_the_top_can_be_countered() -> None:
     g.enter(snoop)
     g.to_library_top(goblin)  # unbound, as a dealt library card is
     _countered_through_permission(g, snoop, goblin, {"R": 1})
+
+
+def test_a_dealt_game_taps_colourless_for_generic_and_keeps_the_swamp() -> None:
+    # The router's payment (bench/router.py): plan the free sources, tap them, cast. {1}{B} for
+    # Masked Blackguard from two Swamps and Radiant Fountain ({T}: Add {C}) must tap the Fountain
+    # for the {1} (colourless pays no coloured symbol, CR 106.1b), so Duress's {B} stays payable.
+    from MTG_bot.core.executor.legality import plan_mana_taps, tap_for_payment
+
+    g = G("M21", ("Masked Blackguard", "Duress", "Swamp", "Swamp", "Radiant Fountain"))
+    s1, s2 = g.cards(g.p0, "Swamp", ZONE_LIBRARY)
+    fountain = g.one(g.p0, "Radiant Fountain", ZONE_LIBRARY)
+    assert s1 < s2 < fountain, "the order in which the old tie-break tapped a Swamp for the {1}"
+    blackguard = g.one(g.p0, "Masked Blackguard", ZONE_LIBRARY)
+    duress = g.one(g.p0, "Duress", ZONE_LIBRARY)
+    g.to_hand(blackguard)
+    g.to_hand(duress)
+    g.ex.begin_turn(g.p0)
+    for land in (s1, s2, fountain):
+        g.enter(land)
+    taps = plan_mana_taps(g.ex, g.p0, lambda: spell_castable(g.ex, g.p0, blackguard)[0])
+    assert taps is not None
+    tap_for_payment(g.ex, g.p0, taps)
+    cast(g.ex, g.p0, blackguard)
+    assert g.zone(blackguard) == ZONE_BATTLEFIELD
+    assert g.world.cards[fountain].tapped, "the Fountain pays the generic {1}"
+    pay = lambda: spell_castable(g.ex, g.p0, duress, targets=(g.p1,))[0]
+    assert plan_mana_taps(g.ex, g.p0, pay) is not None, "a Swamp is left for Duress's {B}"

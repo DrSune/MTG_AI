@@ -146,9 +146,12 @@ MAIN_PHASES = frozenset({None, Phase.FIRST_MAIN.name, SECOND_MAIN})
 
 # The mana-pool key convention written by ``_v_add_mana`` (verbs.py): pool
 # keys are exactly _COLORS_VOCAB = W U B R G C. CostManaColor is payable
-# only from its own key (CR 118.3a "removing the indicated mana"); generic
-# mana draws from any key in this canonical order.
+# only from its own key (CR 118.3a "removing the indicated mana").
 MANA_KEYS = ("W", "U", "B", "R", "G", "C")
+# Generic mana draws from any key, colourless first: colourless pays no
+# coloured symbol (CR 106.1b), so a later coloured cost stays payable when it
+# can be (CR 601.2h: the payer chooses which mana pays).
+GENERIC_KEYS = ("C", "W", "U", "B", "R", "G")
 
 # The payment fold's canonical step order (deterministic journal sequence).
 PAYMENT_ORDER = ("mana", "tap", "sacrifice", "discard", "counter", "loyalty", "life")
@@ -1084,12 +1087,12 @@ def build_payment_plan(
         life += extra_life
         if world.players[ctx.controller].life < life:
             return None, f"cost:life:{world.players[ctx.controller].life}<{life}"
-    # Generic mana draws from any remaining key in canonical order.
+    # Generic mana draws from any remaining key, colourless first.
     if generic_need:
         pool_left = sum(remaining.get(k, 0) - spent.get(k, 0) for k in MANA_KEYS)
         if pool_left < generic_need:
             return None, f"cost:mana_generic:{pool_left}<{generic_need}"
-        for key in MANA_KEYS:
+        for key in GENERIC_KEYS:
             take = min(remaining.get(key, 0) - spent.get(key, 0), generic_need)
             if take > 0:
                 spent[key] = spent.get(key, 0) + take
@@ -2284,9 +2287,10 @@ def _paying_tap(
 def _keeps_open(taps: list[ManaTap], free: list[list[ManaTap]]) -> tuple[int, int, Handle]:
     """plan_mana_taps' order, smallest first: the most colours the other free
     sources still make once this one is tapped, then the fewest colours this one
-    makes, then the lowest Handle."""
-    left = {t.production[0] for other in free if other is not taps for t in other}
-    return (-len(left), len(taps), taps[0].source)
+    makes, then the lowest Handle. Colourless is not a colour (CR 105.1, 106.1b):
+    a colourless source pays only generic costs, so it pays them first."""
+    left = {t.production[0] for other in free if other is not taps for t in other} - {"C"}
+    return (-len(left), len({t.production[0] for t in taps} - {"C"}), taps[0].source)
 
 
 def plan_mana_taps(

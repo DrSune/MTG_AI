@@ -209,6 +209,16 @@ class TestManaFold(LegalityCase):
         plan, reason = self.plan(CostManaColor("G", QConst(1)))
         self.assertIsNone(plan, msg=f"colorless paid a green symbol: {plan}")
 
+    def test_generic_spends_colourless_before_a_colour(self):
+        # Round-3 finding (2026-11-06): B2 R2 C4 paying {2}{B}{R} left C4, so a following {B}
+        # failed. Colourless pays no coloured symbol (CR 106.1b): it pays the {2} first.
+        self.pool(self.p0, B=2, R=2, C=4)
+        plan, _ = self.plan(
+            CostManaGeneric(QConst(2)), CostManaColor("B", QConst(1)), CostManaColor("R", QConst(1))
+        )
+        assert plan is not None
+        self.assertEqual(plan.mana, (("B", 1), ("C", 2), ("R", 1)))
+
     def test_hybrid_canonical_first_colour_preference(self):
         self.pool(self.p0, U=1)
         plan, reason = self.plan(CostManaHybrid(("W", "U"), QConst(1)))
@@ -950,6 +960,18 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         self.land("Island", add_mana("U"))
         (tap,) = self.plan(CostManaGeneric(QConst(1)))
         self.assertEqual(tap.source, island)  # the lone Forest still makes {G}
+
+    def test_generic_mana_taps_a_colourless_source_first(self):
+        # Colourless is not a colour (CR 105.1, 106.1b): its source pays only generic costs, so
+        # it pays them before a coloured source, and a Swamp stays for a later {B}.
+        swamp = self.land("Swamp", add_mana("B"))
+        self.land("Swamp", add_mana("B"))
+        self.land("Mountain", add_mana("R"))
+        wastes = self.land("Wastes", add_mana("C"))
+        (tap,) = self.plan(CostManaGeneric(QConst(1)))
+        self.assertEqual(tap.source, wastes)
+        taps = self.plan(CostManaColor("B", QConst(1)), CostManaGeneric(QConst(1)))
+        self.assertEqual({(t.source, t.production[0]) for t in taps}, {(swamp, "B"), (wastes, "C")})
 
     def test_an_excluded_source_is_never_tapped(self):
         # An ability whose own cost is {T} cannot also tap its source for mana.

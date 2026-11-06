@@ -1,0 +1,25 @@
+{
+  "set": "M20",
+  "world": {
+    "life": 20,
+    "seed": 7
+  },
+  "cards": [
+    {"key": "ogre", "real": "Ogre Siegebreaker", "zone": "battlefield", "controller": 0},
+    {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+    {"key": "opp_hurt", "name": "Opp Hurt", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1},
+    {"key": "mine_hurt", "name": "Mine Hurt", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "deal_damage", "source": "pinger", "target": "opp_hurt", "amount": 1},
+    {"op": "deal_damage", "source": "pinger", "target": "mine_hurt", "amount": 1},
+    {"op": "mana", "seat": 0, "add": {"B": 2, "R": 2, "C": 4}},
+    {"op": "activate", "key": "ogre", "idx": 0, "seat": 0, "targets": ["opp_hurt"]},
+    {"op": "activate", "key": "ogre", "idx": 0, "seat": 0, "targets": ["mine_hurt"]}
+  ],
+  "expect": {
+    "zone": {"opp_hurt": "graveyard", "mine_hurt": "graveyard", "ogre": "battlefield"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Round-3 verification finding (2026-11-06). Ogre Siegebreaker: '{2}{B}{R}: Destroy target creature that was dealt damage this turn.' With B2 R2 C4 floating, the first activation must pay its {2} with colourless mana, which pays no coloured symbol (CR 106.1b), leaving B1 R1 C2: exactly the second activation. The payer chooses which mana pays (CR 601.2h); until the fix the automatic payment spent B1 R1 on the {2}, left C4, and the second activation was refused (cost:mana:B:0<1)."
+}
