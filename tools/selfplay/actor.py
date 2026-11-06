@@ -13,10 +13,11 @@ Messages, worker -> learner: ("infer", wid, group, [req]), ("done", wid, [result
 ("need", wid, n). Learner -> worker: ("ans", group, [(action, logp, value)]), ("jobs", [job]),
 ("stop",).
 
-A job: {"gid", "kind" ("train"|"eval"|"bc"), "seed", "deck_mode", "set_code", "pool_mode",
-"seats": [spec, spec], "greedy": [bool, bool], "record": [bool, bool]}; a seat spec is "learner", "eval", a frozen
-version "v<k>", "snap:opp", "heuristic" or "random", and a network spec ending in "+search"
-searches its decisions (search.py, options in job["search"]).
+A job: {"gid", "kind" ("train"|"eval"|"bc"|"capture"), "seed", "deck_mode", "set_code",
+"pool_mode", "seats": [spec, spec], "greedy": [bool, bool], "record": [bool, bool]}; a seat spec is
+"learner", "eval", a frozen version "v<k>", "snap:opp", "heuristic" or "random", and a network spec
+ending in "+search" searches its decisions (search.py, options in job["search"]). A capture job
+(job["capture"] = the share of decisions captured) records the opponent simulator's data (Capture).
 """
 
 from __future__ import annotations
@@ -28,6 +29,9 @@ import traceback
 from collections import deque
 from typing import Any
 
+import numpy as np
+
+from MTG_bot.core.state import ZONE_HAND, ZONE_LIBRARY
 from tools.selfplay import features as FT
 from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
@@ -143,6 +147,36 @@ class RecordingHeuristic:
         return idx
 
 
+class Capture:
+    """A seat of a capture game, the opponent simulator's data (simulator.py). At a share ``p`` of
+    its real decisions it records what this seat may know (features.sim_view) in ``views`` and,
+    kept apart in ``truth``, the labels: the opponent's hand and library as sorted card-table rows.
+    The wrapped agent decides as it would unwrapped: the capture only reads the game, and draws
+    from its own random stream."""
+
+    def __init__(self, inner: Any, seat: int, table: FT.CardTable, p: float, seed: int) -> None:
+        self.inner = inner
+        self.table = table
+        self.p = p
+        self.rng = random.Random(f"capture:{seed}:{seat}")
+        self.views: list[dict] = []
+        self.truth: list[tuple[np.ndarray, np.ndarray]] = []
+
+    def __getattr__(self, name: str) -> Any:  # the seat's own (name, plan_combat, overflow, ...)
+        return getattr(self.inner, name)
+
+    def decide(self, ask: Any, obs: Any) -> int:
+        if len(ask.options) > 1 and self.rng.random() < self.p:
+            ex = obs.executor
+            self.views.append(FT.sim_view(ex, ask.seat, ask, self.table, obs.ctx))
+            world = ex.world
+            zones = world.players[world.player_order[1 - ask.seat]].zones
+            self.truth.append(tuple(np.array(sorted(
+                self.table.row(world.cards[h].identity.oracle_id) for h in zones[z].entries),
+                np.int16) for z in (ZONE_HAND, ZONE_LIBRARY)))
+        return self.inner.decide(ask, obs)
+
+
 class _Slot(threading.Thread):
     def __init__(self, worker: Worker, index: int) -> None:
         super().__init__(daemon=True)
@@ -223,6 +257,9 @@ class Worker:
                 agents.append(_UniformRandom(job["seed"] * 7 + seat))
             else:
                 raise ValueError(f"unknown seat spec {spec!r}")
+        if job.get("capture"):
+            agents = [Capture(a, seat, self.table, job["capture"], job["seed"])
+                      for seat, a in enumerate(agents)]
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"],
                         set_code=job["set_code"], pool_mode=job["pool_mode"])
         res["gid"] = job["gid"]
@@ -237,6 +274,9 @@ class Worker:
         bc = [a.samples if isinstance(a, RecordingHeuristic) else None for a in agents]
         if any(s is not None for s in bc):
             res["bc"] = bc
+        if job.get("capture"):
+            res["views"] = [v for a in agents for v in a.views]
+            res["truth"] = [t for a in agents for t in a.truth]
         return res
 
     # --- main thread
