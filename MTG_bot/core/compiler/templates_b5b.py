@@ -1,105 +1,23 @@
-"""B5b bucket templates — 79 templates covering 88 of 90 B5b shapes.
+"""B5b bucket templates.
 
-Bucket input: ``/tmp/opencode/phase1_buckets/B5b.json`` (90 normalized shape
-keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
-carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
-sentence, never the normalized key.
+Each template fullmatches a concrete oracle sentence of the B5b bucket
+(``/tmp/opencode/phase1_buckets/B5b.json``, written by tools/gen_buckets.py),
+never the normalized shape key. A sentence fullmatches at most one template
+(pinned in tests). A multi-shape template uses one closed alternation for the
+varying part, and its builder branches on the captured text.
 
-Coverage (90 = 88 template + 0 rule-reminder + 2 uncovered):
+Conventions:
 
-- **84 template-covered shapes** (75 templates: 57 single-shape tids +
-  5 multi-shape normalized tids — put-counter ×3, return-cards-hand ×2,
-  named-damage ×2, it-gains-kw-eot ×3, if-it-type-then ×2;
-  ``B5b-modpt-plus`` is one shape with two concrete rows):
-  keyword rule-reminder sentences (Flash/Haste/Hexproof/Lifelink/Menace/
-  Prowess/Reach), continuation effects (discard/draw/gain-life/gain-mana-
-  value/modPT+keyword), token creation (Demon/Zombie), counter placement,
-  zone moves (graveyard → battlefield / hand / owner's hand), cost
-  modifiers (noncreature spells cost {N} more), scry/reveal,
-  search/shuffle, named/any-target damage, activated abilities
-  (sacrifice-grant, tap-spirits), P/T modifications (+N, -N, +X),
-  reveal-hand, sacrifice-flying, discard-2, replacement/"instead" effects
-  (died-gain-life, nontoken-enter-exile, triple-damage, counter-plus-one,
-  die-exile, graveyard-exile, draw-not-first) and the counter-unless-pays
-  cost modifier (grammar round 5, doc-07 batch), conditional attack
-  restriction (Gadrak: StaticAbility.condition = FNot(CONTROLLER_COUNT_GE
-  Artifact) over a PREVENT_EFFECT/DeclareAttackersEvent — C9/C10) and
-  dynamic power definition (Kinetic Augur: SET_PT power-only via
-  QCount(GY instant-or-sorcery) — grammar round 6 R6-3), and the grammar
-  round-7 anaphora batch (doc 2026-09-28/03 §3 R7-A): result-referent
-  grants ("It gains …"), the Duress choose/discard chain, the Garruk
-  If-it's/Otherwise Conditional pair, Necromentia's choose-name →
-  search-by-name → per-exile-token chain, ONE_OF/REST split moves
-  (Waker of Waves, See the Truth, Garruk's Harbinger, Cultivate), the
-  cast-elsewhere Conditional, LOSE_ABILITY (Soul Sear) and
-  GAIN_CONTROL's new duration role (Traitorous Greed) and the grammar
-  round-8-C coverage batch (doc 2026-09-28/08 §8-C): Scavenging Ooze's
-  C18 was-type Conditional, Peer into the Abyss's round-up-half library
-  draw (+ the rounding-directive marker row), Invigorating Surge's
-  counter-doubling (QProp COUNTER_COUNT referent=target, R8-11), Garruk
-  Unleashed's CONTROLLER_COUNT_GT loyalty gate (R8-9) and the
-  ``It gains haste."`` emblem-quote residue marker (C19 — payload lives
-  in the emblem attach).
-- **0 rule-reminder shapes** — no fully-parenthesised sentences in B5b.
-- **2 uncovered shapes** — Sanctum-of-All's additional-trigger gate and
-  the search-shuffle boilerplate note (compiler built-in, recorded not
-  template-driven).  Round 11 C3 retired Transmogrify's reveal-until dig
-  (deferred D14) as a top-of-library SEARCH + TARGET_PLAYER SHUFFLE pair.
-  Recorded in ``UNCOVERED`` below and pinned by tests.
-
-Conventions (documented build decisions):
-
-- ``this creature`` / self-referent targets are encoded as
-  ``Selector(QConst(1), SelectorMode.CHOOSE, FAtom(IS_SOURCE),
-  Zone(BATTLEFIELD, ANY))`` — B5a's semantic self-reference convention
-  (shapes #25, #63).
-- ``another target creature you control`` →
-  ``Selector(QConst(1), TARGET, FAnd(TYPE_EQ Creature, CONTROLLER_IS You),
-  Zone(BATTLEFIELD, ANY))`` (shape #63).
-- ``target creature or planeswalker`` →
-  ``Selector(QConst(1), TARGET, FOr(TYPE_EQ Creature, TYPE_EQ
-  Planeswalker), Zone(BATTLEFIELD, ANY))`` (shapes #64, #71).
-- ``any target`` (Shock) →
-  ``Selector(QConst(1), TARGET, FAnd(children=()), Zone(ANY, ANY))``
-  (shape #70).
-- ``+N/+N`` → ``PtDelta(INCREASE, QConst(N))``; ``-N/-N`` →
-  ``PtDelta(DECREASE, QConst(N))``; ``+X/+X`` →
-  ``PtDelta(INCREASE, QX())`` (shapes #25, #75, #77, #78, #79, #80).
-- Token colors: the printed color word populates ``TokenSpec.colors``
-  (shapes #21, #22 — round 8 / C-2 repair).
-- ``that creature's mana value`` → ``QProp("target", MANA_VALUE, FIRST)``
-  — best-effort; the sacrificed creature has no clean grammar referent
-  (shape #27).
-- Multi-shape templates use a single closed-alternation pattern for the
-  varying part; the builder branches on the captured text (put-counter,
-  return-cards-hand, named-damage).  ``B5b-modpt-plus`` covers two
-  concrete rows for one normalized shape without branching.
-- ``Sacrifice this creature:`` and ``Tap two untapped Spirits you control:``
-  are ``ActivatedAbility`` nodes with typed cost parts (shapes #63, #73).
-- ``Return target spell or creature to its owner's hand`` →
-  ``Selector(QConst(1), TARGET, FOr(FNot(IS_PERMANENT), TYPE_EQ Creature),
-  Zone(STACK, ANY), zones=(Zone(BATTLEFIELD, ANY),))`` with destination
-  ``Zone(HAND, OWNER)`` (shape #60 — spell-or-creature disjunction over
-  STACK ∪ BATTLEFIELD; "its owner" is ``ControllerRef.OWNER``).
-- ``Noncreature spells cost {N} more to cast`` →
-  ``CostModifier(FNot(TYPE_EQ Creature), ANY, CostDeltaIncreaseGeneric)``
-  as a sibling ``Ability`` node via ``AbilityOutcome`` (shape #44; no
-  "you" in the sentence → ``ControllerRef.ANY``).
-- **C6** (doc-07, binding): a replacement "If X would …, do Y instead"
-  sentence compiles to a card-level ``ReplacementAbility(event,
-  condition, action)`` via ``AbilityOutcome`` regardless of which
-  sentence it follows — the event scoping binds it to the right action.
-- **C7** (doc-07, binding): a ``Selector`` in ``CostModifier.controller_ref``
-  means *the controller of the selected object*; the modifier applies to
-  costs that controller pays for the filtered object, including ``unless``
-  payments (``B5b-counter-unless-pays``: ``Selector(referent="target")``
-  makes the targeted spell's controller pay the {1}→{4} unless-cost).
-- **C8** (doc-07, binding): ``it`` / ``that X`` in a replacement action is
-  the event subject → ``Selector(referent="event")`` (convention C2 shape:
-  CHOOSE + ``QConst(1)`` + neutral zone ``Zone(ANY, ANY)``).
-
-PC-3: every B5b concrete sentence fullmatches **at most one** template
-(patterns are pairwise disjoint by construction); verified in tests.
+- ``this creature`` and other self-references are
+  ``Selector(QConst(1), CHOOSE, FAtom(IS_SOURCE), Zone(BATTLEFIELD, ANY))``.
+- A replacement "If X would ..., do Y instead" compiles to a card-level
+  ``ReplacementAbility(event, condition, action)`` via ``AbilityOutcome``,
+  whichever sentence it follows: the event scoping binds it to the right
+  action. An "instead" that rewrites the spell's own previous instruction
+  (CR 608.2c) is a ``KickerEffectOutcome(replaces=True)`` arm instead.
+- ``it`` / ``that X`` in a replacement action is the event subject
+  (``_event_referent``); after a sentence that revealed, chose, exiled or
+  moved something it is the result register (``_result_selector``).
 """
 
 from __future__ import annotations
@@ -212,14 +130,8 @@ def _each_creature_you_control() -> Selector:
 
 
 def _up_to_two_target_creatures() -> Selector:
-    """Selector for ``up to two target creatures``.
-
-    Grammar round 8 / C17: targeted "up to N" is TARGET + QAtMost(N)
-    (designation 1..2; resolution 0..2) — CHOOSE-for-targeted erases the
-    legal-target distribution (C15), so this replaces the interim CHOOSE
-    convention from the R7 batches.  Used by "Put a +1/+1 counter on each
-    of up to two target creatures" and "Tap up to two target creatures".
-    """
+    """Selector for ``up to two target creatures``: TARGET + QAtMost(2) (designate 1..2,
+    resolve 0..2). CHOOSE would erase which targets are legal."""
     return Selector(
         QAtMost(2),
         SelectorMode.TARGET,
@@ -269,11 +181,8 @@ def _target_permanent_card_your_graveyard() -> Selector:
 
 
 def _up_to_two_target_creature_cards_your_graveyard() -> Selector:
-    """Selector for ``up to two target creature cards from your graveyard``.
-
-    TARGET + QAtMost(2) per C17 (round 8) — targeted designation 1..2 from
-    the graveyard, same collapse repair as _up_to_two_target_creatures.
-    """
+    """Selector for ``up to two target creature cards from your graveyard``: TARGET +
+    QAtMost(2), as in _up_to_two_target_creatures."""
     return Selector(
         QAtMost(2),
         SelectorMode.TARGET,
@@ -314,17 +223,10 @@ def _target_creature_not_you() -> Selector:
 
 
 def _any_target() -> Selector:
-    """Selector for ``any target`` (the r17-2 idiom).
-
-    r17-2 (geyser-FIX): printed "any target" designates a creature, a
-    planeswalker or a player (CR 109.5) — NEVER a card hiding in a hand or
-    library. The card side compiles to the battlefield population with the
-    FOr type-idiom filter; the PLAYER side joins through the engine's
-    idiom widening (query._widen_any_target / selectors._is_any_universal
-    recognize this exact shape), so the filter is never evaluated on a
-    player handle. (Pre-fix this emitted Zone(ANY, ANY) + the universal
-    FAnd, which enumerated opponent-hidden zones — the D10/E3 leak.)
-    """
+    """Selector for ``any target``: a creature, planeswalker or player (CR 109.5), never a card in
+    a hand or library. The card side is the battlefield with the FOr type filter; the player side
+    joins through the engine's widening (query._widen_any_target and selectors._is_any_universal
+    recognize this exact shape), so the filter is never evaluated on a player."""
     return Selector(
         QConst(1),
         SelectorMode.TARGET,
@@ -332,12 +234,10 @@ def _any_target() -> Selector:
             (
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                # r17-2 discriminator: the third branch never matches a
-                # card (no card carries "Player" in its types) — it marks
-                # the population as the CR 109.5 "any target" one so the
-                # engine widening can tell it apart from the printed
-                # "target creature or planeswalker" two-branch shape
-                # (which NEVER denotes a player, CR 115.1d).
+                # Never matches a card (no card has the type "Player"): it marks the
+                # population as CR 109.5 "any target", so the engine widening tells it
+                # apart from "target creature or planeswalker", which never denotes a
+                # player (CR 115.1d).
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Player"),
             )
         ),
@@ -388,7 +288,7 @@ def _build_token_demon(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(Keyword.FLYING,),
                         abilities=(),
-                        colors=("B",),  # C-2 repair (round 8): printed "black"
+                        colors=("B",),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -414,7 +314,7 @@ def _build_token_zombie(m: re.Match[str]) -> SentenceOutcome:
                         toughness=QConst(int(m.group(2))),
                         keywords=(),
                         abilities=(),
-                        colors=("B",),  # C-2 repair (round 8): printed "black"
+                        colors=("B",),
                     ),
                 ),
                 ("count", QConst(1)),
@@ -583,7 +483,6 @@ def _build_prowess(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_put_counter(m: re.Match[str]) -> SentenceOutcome:
-    """Branch on the captured target description (group 3)."""
     target_desc = m.group(3)
     if target_desc == "each creature you control":
         target = _each_creature_you_control()
@@ -635,16 +534,13 @@ def _build_return_creatures_battlefield(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_return_cards_hand(m: re.Match[str]) -> SentenceOutcome:
-    """Branch on the captured card description (group 1)."""
     card_desc = m.group(1)
     if card_desc == "target permanent card":
         cards = _target_permanent_card_your_graveyard()
     elif card_desc == "up to two target creature cards":
         cards = _up_to_two_target_creature_cards_your_graveyard()
     elif card_desc == "target card":
-        # ZND-4 T5 (Bala Ged Recovery, spec /115): ANY card from YOUR
-        # graveyard — the unfiltered-TARGET idiom of
-        # templates_b5a._build_counter_spell (empty FAnd matches all).
+        # Any card from your graveyard (Bala Ged Recovery): the empty FAnd matches all.
         cards = Selector(
             QConst(1),
             SelectorMode.TARGET,
@@ -700,11 +596,8 @@ def _build_return_spell_creature_owner_hand(m: re.Match[str]) -> SentenceOutcome
 
 def _build_sacr_grant(m: re.Match[str]) -> SentenceOutcome:
     """Selfless Savior: "Sacrifice this creature: Another target creature you
-    control gains indestructible until end of turn." V5 (2026-10-29):
-    "Another" is FNot(IS_SOURCE), the Niambi encoding of "another target
-    creature you control"; without it the Savior could target itself, so alone
-    it was a free sacrifice outlet (CR 601.2c, 602.2b: only an appropriate
-    target can be chosen)."""
+    control gains indestructible until end of turn." "Another" is FNot(IS_SOURCE),
+    so the Savior cannot target itself (CR 601.2c, 602.2b)."""
     effect = Atom(
         verb=Verb.GRANT_ABILITY,
         args=AtomArgs(
@@ -1026,19 +919,11 @@ def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
     """Run Afoul: "Target opponent sacrifices a creature of their choice with
     flying."
 
-    The edict shape of Goremand's "each opponent sacrifices a creature":
-    EachPlayer rotates the controller to the player who sacrifices, and the
-    SACRIFICE pick is YOU-relative (CONTROLLER_IS YOU), so only that player's
-    creatures are candidates and that player is the one choosing (CR 701.21a:
-    a player can sacrifice only a permanent they control). Here the player is
-    the spell's target opponent, EachPlayer(TARGET_OPPONENT, ...); the query
-    gives the spell its player target slot from that ref.
-    m21-fidelity (review batch J, 2026-10-29): it had no player at all, a
-    pick over every player's fliers, so the caster's own flier could go.
-    V21 (merged 2026-10-30): the ref is TARGET_OPPONENT, "target opponent",
-    so the slot offers opponents only (CR 102.2); TARGET_PLAYER now names any
-    player, the caster included (CR 115.1). V10 fixed the same flier menu on
-    its branch with CONTROLLER_IS TARGET_OPPONENT; this edict shape replaces it.
+    The edict shape: EachPlayer(TARGET_OPPONENT, ...) rotates the controller to
+    the player who sacrifices, and the SACRIFICE pick is YOU-relative
+    (CONTROLLER_IS YOU), so only that player's fliers are candidates and that
+    player chooses (CR 701.21a). The ref gives the spell its player target
+    slot, which offers opponents only (CR 102.2).
     """
     atom = Atom(
         verb=Verb.SACRIFICE,
@@ -1103,14 +988,13 @@ def _build_noncreature_cost_modifier(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Replacement-effect builders (grammar round 5 — doc-07 binding batch)
+# Replacement-effect builders
 # ---------------------------------------------------------------------------
 
 
 def _event_referent() -> Selector:
-    """Convention C8: ``it`` / ``that X`` in a replacement action = the
-    event subject → referent-bound selector (C2 shape: CHOOSE, QConst(1),
-    neutral zone, empty zones)."""
+    """``it`` / ``that X`` in a replacement action: the event subject, a referent-bound
+    CHOOSE of one in the neutral zone."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -1124,17 +1008,12 @@ def _build_repl_died_gain_life(m: re.Match[str]) -> SentenceOutcome:
     """Life Goes On: "If a creature died this turn, you gain 8 life
     instead."
 
-    The "instead" is a replacement (CR 614.1a) of the spell's OWN previous
-    instruction only ("You gain 4 life."; CR 608.2c: later text modifies
-    earlier text), so it is the conditional arm
+    The "instead" replaces only the spell's own previous instruction ("You
+    gain 4 life."; CR 608.2c, 614.1a), so it is the conditional arm
     KickerEffectOutcome(pred=DIED_THIS_TURN, replaces=True), which the
     compiler folds into Conditional(DIED_THIS_TURN, gain 8, else=gain 4):
-    one life gain, its amount chosen at resolution.
-    m21-fidelity item 4 (2026-10-29): until then this was a card-level
-    ReplacementAbility over every LifeGainedEvent, registered for the rest
-    of the turn, so every later life gain that turn became 8 (stronger than
-    printed). C6 (above) stays the rule for a replacement that watches
-    other events ("If that creature would die this turn, exile it instead").
+    one life gain, its amount chosen at resolution. A card-level
+    ReplacementAbility would turn every later life gain that turn into 8.
     """
     return KickerEffectOutcome(
         effect=Atom(
@@ -1154,8 +1033,6 @@ def _build_repl_died_gain_life(m: re.Match[str]) -> SentenceOutcome:
 def _build_repl_nontoken_enter_exile(m: re.Match[str]) -> SentenceOutcome:
     """Containment Priest: "If a nontoken creature would enter and it
     wasn't cast, exile it instead."
-
-    Lossy: none.
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1190,12 +1067,8 @@ def _build_repl_triple_damage(m: re.Match[str]) -> SentenceOutcome:
     permanent or player, it deals triple that damage to that permanent or
     player instead."
 
-    Lossy (verbatim): the EVENT recipient "a permanent or player" →
-    universal (no player predicate on the event filter).  Faithful since
-    round 8 (C-4 repair): the replacement DEAL_DAMAGE atom carries
-    dealer=FAtom(CONTROLLER_IS, YOU) — the printed "a source you control"
-    dealer side, the 8-A R8-5 dealer role vocabulary; "to that permanent
-    or player" rides the event-referent target selector as before.
+    Lossy: the event recipient "a permanent or player" is universal (no
+    player predicate on the event filter).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1209,7 +1082,6 @@ def _build_repl_triple_damage(m: re.Match[str]) -> SentenceOutcome:
                 verb=Verb.DEAL_DAMAGE,
                 args=AtomArgs(
                     pairs=(
-                        # dealer = "a source you control" (R8-5 role)
                         (
                             "dealer",
                             FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
@@ -1234,9 +1106,6 @@ def _build_repl_counter_plus_one(m: re.Match[str]) -> SentenceOutcome:
     """Conclave Mentor: "If one or more +1/+1 counters would be put on a
     creature you control, that many plus one +1/+1 counters are put on
     that creature instead."
-
-    Lossy: none — "one or more" = QAtLeast(1); "that many" =
-    QProp("event", COUNTER_COUNT) (grammar round 5, R5-2).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1276,14 +1145,10 @@ def _build_repl_die_exile(m: re.Match[str]) -> SentenceOutcome:
     """Scorching Dragonfire: "If that creature or planeswalker would die
     this turn, exile it instead."
 
-    Lossy (verbatim): "this turn" scoping dropped (death is a moment;
-    CreatureDiesEvent has no turn-scope slot).
-    Play is right (m21-fidelity item 4, packs scorching_dragonfire*,
-    2026-10-29): the executor gives a resolving instant's ReplacementAbility
-    an end-of-turn lifetime (stack.py), scoped to the cast's designation, so
-    the target that dies later this turn is exiled and one that dies next
-    turn is not. Only the tree is silent on the duration (no `duration` on
-    ReplacementAbility; recorded in docs/BACKLOG.md B-77).
+    The tree drops "this turn" (ReplacementAbility has no duration;
+    docs/BACKLOG.md B-77), but play is right: the executor gives a resolving
+    instant's ReplacementAbility an end-of-turn lifetime scoped to the cast's
+    designation (stack.py).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1306,8 +1171,7 @@ def _build_repl_graveyard_exile(m: re.Match[str]) -> SentenceOutcome:
     """Chandra, Flame's Catalyst [−2]: "If that spell would be put into
     your graveyard, exile it instead."
 
-    Lossy (verbatim): "that spell" = the spell's target (IS_ANY_TARGET) —
-    documented C6/C8.
+    "that spell" is the ability's target (IS_ANY_TARGET).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1335,22 +1199,17 @@ def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
     spell unless its controller pays {4} instead."
 
     The "instead" rewrites the spell's own previous instruction ("Counter
-    target spell unless its controller pays {1}."; CR 608.2c), the Life
-    Goes On shape: the conditional arm KickerEffectOutcome(pred, replaces=
-    True), folded into Conditional(you control a creature with flying,
-    COUNTER unless {4}, else=COUNTER unless {1}). "that spell" is the same
-    TARGET selector as the first sentence, so both branches share the one
-    target slot. The pred is the "Activate only if you control a creature
-    with flying" bytes (CONTROLLER_COUNT_GE over Creature + flying).
-    m21-fidelity (2026-10-29): this was a +{N-1} CostModifier on the unless
-    cost whose condition was judged over the spell itself, so it never
-    applied: the {4} branch never happened (weaker than printed).
+    target spell unless its controller pays {1}."; CR 608.2c), as in Life
+    Goes On: the arm KickerEffectOutcome(pred, replaces=True) folds into
+    Conditional(you control a creature with flying, COUNTER unless {4},
+    else=COUNTER unless {1}). "that spell" is the same TARGET selector as
+    the first sentence, so both branches share one target slot.
     """
     counter = Atom(
         verb=Verb.COUNTER_SPELL,
         args=AtomArgs(
             pairs=(
-                # R5-10: the first sentence's "target spell" (STACK_KIND_EQ SPELL)
+                # the first sentence's "target spell"
                 ("target", target_spell()),
                 ("unless", Cost(parts=(CostManaGeneric(amount=QConst(int(m.group(1)))),))),
             )
@@ -1373,9 +1232,6 @@ def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
     """Teferi's Ageless Insight: "If you would draw a card except the
     first one you draw in each of your draw steps, draw two cards
     instead."
-
-    Lossy: none — "except the first one you draw" =
-    FAtom(NOT_FIRST_DRAW_THIS_STEP, who=YOU) (grammar round 5, R5-4).
     """
     return AbilityOutcome(
         ability=ReplacementAbility(
@@ -1398,20 +1254,13 @@ def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-# ---------------------------------------------------------------------------
-# Round-6 batch builders (Gadrak, Kinetic Augur — decision doc guessed b4,
-# the JSON partition owns these keys in B5b)
-# ---------------------------------------------------------------------------
-
-
 def _build_cant_attack_unless_artifacts(m: re.Match[str]) -> SentenceOutcome:
     """Gadrak can't attack unless you control four or more artifacts.
-    (Gadrak, the Crown-Scourge; C9 — the "unless" gate is
-    ``StaticAbility.condition`` = FNot(CONTROLLER_COUNT_GE Artifact), never
-    a duration approximation; C10 — the restriction is a PREVENT_EFFECT
-    over DeclareAttackersEvent with the source as event filter (B4
-    cant-block idiom).  "Gadrak" is the card self-referent (IS_SOURCE).
-    The literal "four" follows the Gnarled Sage word-pinned pattern idiom.)"""
+
+    The "unless" gate is ``StaticAbility.condition`` = FNot(CONTROLLER_COUNT_GE
+    Artifact), never a duration; the restriction is a PREVENT_EFFECT over
+    DeclareAttackersEvent with the source as event filter. "Gadrak" is the
+    self-referent (IS_SOURCE)."""
     is_source = FAtom(pred=FAtomPred.IS_SOURCE)
     atom = Atom(
         verb=Verb.PREVENT_EFFECT,
@@ -1438,11 +1287,8 @@ def _build_cant_attack_unless_artifacts(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_set_pt_power_gy_count(m: re.Match[str]) -> SentenceOutcome:
     """Kinetic Augur's power is equal to the number of instant and sorcery
-    cards in your graveyard.  (Kinetic Augur; grammar round 6 R6-3 —
-    SET_PT power/toughness roles are each optional with at-least-one
-    enforced, so the power-only definition carries a single role; the
-    count reuses B5a's Weird-token instant-or-sorcery graveyard QCount
-    shape.  Named subject = the card self-referent, IS_SOURCE.)"""
+    cards in your graveyard: SET_PT with only the power role (each role is
+    optional, at least one is required)."""
     atom = Atom(
         verb=Verb.SET_PT,
         args=AtomArgs(
@@ -1477,7 +1323,7 @@ def _build_set_pt_power_gy_count(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Grammar round-7 batch builders (family-2 anaphora — doc 2026-09-28/03 §3)
+# Anaphora builders
 # ---------------------------------------------------------------------------
 
 _KW_GAIN: dict[str, Keyword] = {
@@ -1490,10 +1336,8 @@ _KW_LOSE: dict[str, Keyword] = {
     "indestructible": Keyword.INDESTRUCTIBLE,
 }
 
-# C15 (doc 2026-09-28/05): "protection from the color of your choice" is
-# a controller decision — it is expanded into the game's five color options
-# as an explicit Choose node instead of defaulting one color (the C-3
-# colorless-conflation is exactly what C15 forbids in new templates).
+# "protection from the color of your choice" is a controller decision: an explicit Choose over
+# the five colors, never a defaulted one.
 _COLORS_WUBRG: tuple[str, ...] = ("W", "U", "B", "R", "G")
 
 
@@ -1501,11 +1345,9 @@ _UNIVERSAL: Final[Filter] = FAnd(children=())
 
 
 def _result_selector(filter: Filter | None = None) -> Selector:
-    """Grammar round 7 (R7-1): the anaphoric ``it`` / ``that card`` /
-    ``them`` — the object(s) the previous sentence acted on (revealed /
-    chosen / exiled / moved).  ``referent="result"`` (C12: the result
-    register is compiler state, never an English antecedent); the neutral
-    zone mirrors the r8 round-trip canonical selector."""
+    """The anaphoric ``it`` / ``that card`` / ``them``: the object(s) the previous sentence
+    revealed, chose, exiled or moved. ``referent="result"`` reads the compiler's result
+    register, never an English antecedent."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -1518,7 +1360,7 @@ def _result_selector(filter: Filter | None = None) -> Selector:
 def _looked_top_library(filter: Filter | None = None) -> Selector:
     """The set the previous "Look at the top N cards" sentence exposed:
     still on top of your library, so the zone is typed rather than a
-    result referent (r8 ONE_OF/REST canonical)."""
+    result referent."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
@@ -1534,7 +1376,7 @@ def _looked_top_library(filter: Filter | None = None) -> Selector:
 def _build_it_gains_kw_eot(m: re.Match[str]) -> SentenceOutcome:
     """``It gains <kw> until end of turn.`` (Basri Ket, Seasoned
     Hallowblade, Basri Devoted Paladin, Traitorous Greed) — GRANT_ABILITY
-    onto the result-referent object with the EOT duration (R7-1)."""
+    onto the result-referent object with the EOT duration."""
     kw = _KW_GAIN[m.group("kw")]
     atom = Atom(
         verb=Verb.GRANT_ABILITY,
@@ -1567,7 +1409,7 @@ def _build_it_gains_haste(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_it_gains_protection_choice(m: re.Match[str]) -> SentenceOutcome:
     """``It gains protection from the color of your choice until end of
-    turn.`` (Feat of Resistance) — C15: the color is a controller
+    turn.`` (Feat of Resistance) — the color is a controller
     decision, so the grant is an explicit one-of-five Choose over
     color-parameterized PROTECTION grants; nothing is defaulted."""
     options = tuple(
@@ -1594,9 +1436,9 @@ def _build_it_gains_protection_choice(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_that_player_discards_that_card(m: re.Match[str]) -> SentenceOutcome:
     """``That player discards that card.`` (Duress s3) — the player is the
-    spell's targeted opponent (TARGET_PLAYER role); the card is the card
-    the previous CHOOSE picked off the revealed hand → referent="result"
-    (R7-1; antecedent ``B4-you-choose-from-it`` is in this batch)."""
+    spell's targeted opponent (TARGET_PLAYER role); the card is the one the
+    previous CHOOSE (``B4-you-choose-from-it``) picked off the revealed hand,
+    referent="result"."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1613,11 +1455,10 @@ def _build_that_player_discards_that_card(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_if_it_type_then(m: re.Match[str]) -> SentenceOutcome:
     """``If it's a creature [or land] card, ...`` (Garruk Savage Herald
-    s2, Track Down s2) — Conditional whose subject is the previous
-    sentence's revealed card (result register; FAtom rules keep the
-    referent slot closed to IS_ATTACHED_TO, so the condition's subject is
-    the register by executor convention, and the MOVED card itself is the
-    referent="result" selector)."""
+    s2, Track Down s2) — Conditional on the previous sentence's revealed
+    card. FAtom has a referent slot only on IS_ATTACHED_TO, so the
+    condition's subject is the result register by executor convention; the
+    moved card is the referent="result" selector."""
     then = m.group("then")
     if then == "draw a card":
         if m.group("or_land") is None:
@@ -1659,7 +1500,7 @@ def _build_if_it_type_then(m: re.Match[str]) -> SentenceOutcome:
 def _build_otherwise_bottom(m: re.Match[str]) -> SentenceOutcome:
     """``Otherwise, put it on the bottom of your library.`` (Garruk
     Savage Herald s3) — the compiler's ``_merge_otherwise`` attaches this
-    effect as the preceding Conditional's ``else_effect`` (R7-3); the
+    effect as the preceding Conditional's ``else_effect``; the
     moved card is again the result referent."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
@@ -1683,10 +1524,9 @@ def _build_otherwise_bottom(m: re.Match[str]) -> SentenceOutcome:
 def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
     """``Search target opponent's graveyard, hand, and library for any
     number of cards with that name and exile them.`` (Necromentia s2) —
-    the name filter is the CHOOSE_NAME read-back (R7-4); "any number" is
-    the unbounded CHOOSE quantity choice (C15: 0..∞ preserved, not a
-    defaulted count).  The found cards then leave via EXILE on the result
-    referent."""
+    the name filter reads the CHOOSE_NAME pick; "any number" is an
+    unbounded CHOOSE (0 or more, not a defaulted count). The found cards
+    then go to exile via the result referent."""
     search = Atom(
         verb=Verb.SEARCH,
         args=AtomArgs(
@@ -1723,16 +1563,9 @@ def _build_search_name_exile(m: re.Match[str]) -> SentenceOutcome:
 def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
     """``That player shuffles, then creates a P/T black Zombie creature
     token for each card exiled from their hand this way.`` (Necromentia
-    s3) — SHUFFLE + CREATE_TOKEN.  R11-4a: the count is a scoped
-    QCount(exiled cards named <chosen> that moved HAND→EXILE under the
-    target this turn), NOT the R7-5 THIS_WAY_COUNT tally (which counted
-    graveyard/hand/library exiles alike).
-    Faithful since round 8: TokenSpec.colorss=("B",) carries "black" (C-2
-    repair).  m21-fidelity (wave 4, 2026-10-30): "that player ... creates"
-    is the CREATE_TOKEN ``controller`` role (R11-2) = TARGET_PLAYER, the
-    target opponent (CR 111.2: the player who creates a token owns and
-    controls it). Without the role the caster got the Zombies (stronger
-    than printed)."""
+    s3) — SHUFFLE + CREATE_TOKEN. "that player ... creates" is the
+    CREATE_TOKEN ``controller`` role, TARGET_PLAYER (CR 111.2: the player
+    who creates a token owns and controls it)."""
     token = TokenSpec(
         name="Zombie",
         type_line="Creature — Zombie",
@@ -1742,7 +1575,7 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(int(m.group("t"))),
         keywords=(),
         abilities=(),
-        colors=("B",),  # C-2 repair (round 8)
+        colors=("B",),
     )
     shuffle = Atom(
         verb=Verb.SHUFFLE,
@@ -1750,11 +1583,9 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
             pairs=(("zone", Zone(ZoneKind.LIBRARY, ControllerRef.TARGET_PLAYER)),)
         ),
     )
-    # R11-4a: the count is "each card exiled FROM THEIR HAND this way" —
-    # cards in the target's exile zone that carry the chosen name AND moved
-    # hand→exile this turn under the target's control.  A bare
-    # QProp(THIS_WAY_COUNT) tallied the whole search (graveyard/hand/library
-    # combined), over-creating tokens for non-hand exiles.
+    # "each card exiled from their hand this way": chosen-name cards in the target's exile that
+    # moved there from their hand this turn. THIS_WAY_COUNT would also count the graveyard and
+    # library exiles of the search.
     hand_exiles = Selector(
         QUnbounded(),
         SelectorMode.ALL,
@@ -1787,12 +1618,9 @@ def _build_shuffle_then_token_per_exiled(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_that_permanent_loses_kw(m: re.Match[str]) -> SentenceOutcome:
     """``That permanent loses <kw> until end of turn.`` (Soul Sear s2) —
-    Verb.LOSE_ABILITY mirrors GRANT_ABILITY's roles (R7-9a).
-    DECISION: "That permanent" is the spell's damaged target → R4
-    referent="target" (binds the s0 TARGET selector today), not the
-    round-7 result register — the deviation from the spec sketch is
-    deliberate and documented (target-vocabulary anaphora binds without
-    the register machinery)."""
+    Verb.LOSE_ABILITY mirrors GRANT_ABILITY's roles. "That permanent" is the
+    spell's damaged target, so it binds referent="target", not the result
+    register."""
     kw = _KW_LOSE[m.group("kw")]
     atom = Atom(
         verb=Verb.LOSE_ABILITY,
@@ -1818,8 +1646,8 @@ def _build_that_permanent_loses_kw(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_one_of_other(m: re.Match[str]) -> SentenceOutcome:
     """``Put one of them into your hand and the other into your
-    graveyard.`` (Waker of Waves s3) — the ONE_OF/REST split pair
-    (R7-7): exactly one of the looked-at set to hand, everything
+    graveyard.`` (Waker of Waves s3) — the ONE_OF/REST split pair:
+    exactly one of the looked-at set to hand, everything
     remaining ("the other", here exactly one) to the graveyard."""
     to_hand = Atom(
         verb=Verb.MOVE_ZONE,
@@ -1861,8 +1689,8 @@ def _build_one_of_other(m: re.Match[str]) -> SentenceOutcome:
 def _build_one_of_rest_bottom(m: re.Match[str]) -> SentenceOutcome:
     """``Put one of those cards into your hand and the rest on the bottom
     of your library in any order.`` (See the Truth s2) — ONE_OF/REST
-    again; the destination order ("in any order") is controller-chosen
-    ordering with no ordering field in the grammar — dropped, documented."""
+    again. Lossy: "in any order" is dropped (the destination has no
+    ordering field)."""
     to_hand = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1910,9 +1738,8 @@ def _build_one_of_rest_bottom(m: re.Match[str]) -> SentenceOutcome:
 def _build_rest_bottom_random(m: re.Match[str]) -> SentenceOutcome:
     """``Put the rest on the bottom of your library in a random order.``
     (Garruk's Harbinger s3) — REST over the looked-at top cards.
-    LOSSY: "in a random order" — the destination has no ordering field
-    (SelectorMode.RANDOM would replace REST, not order it); dropped,
-    documented."""
+    Lossy: "in a random order" is dropped; the destination has no ordering
+    field (SelectorMode.RANDOM would replace REST, not order it)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1944,12 +1771,11 @@ def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
     """``Search your library for up to two basic land cards, reveal those
     cards, put one onto the battlefield tapped and the other into your
     hand, then shuffle.`` (Cultivate) — "up to two" is CHOOSE+QConst(2)
-    (C15: the 0/1/2 sub-choice stays open); the split is ONE_OF (BF,
+    (the 0/1/2 sub-choice stays open); the split is ONE_OF (battlefield,
     tapped) + REST (hand); the inline "then shuffle" is the same
     search-shuffle step ``_build_search_shuffle`` builds.
-    LOSSY: REVEAL counts the searched cards with an unbounded count — the
-    grammar cannot reference the found set (b2b's documented REVEAL
-    limitation)."""
+    Lossy: REVEAL has an unbounded count, since the grammar cannot
+    reference the found set."""
     search = Atom(
         verb=Verb.SEARCH,
         args=AtomArgs(
@@ -2018,31 +1844,21 @@ def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_transmog_reveal_creature(m: re.Match[str]) -> SentenceOutcome:
     """``That creature's controller reveals cards from the top of their
-    library until they reveal a creature card.`` (Transmogrify s2, grammar
-    round 11 C3 — the deferred D14 reveal-until dig retired: encoded as a
-    top-of-library creature CHOOSE search.  ``ZonePosition.TOP`` enumerates
-    exactly the library top (the r8 ``_looked_top_library`` canonical,
-    ``entries[-1:]``), so CHOOSE can never reach a deeper card and never a
-    bottom-of-library draw; ``ControllerRef.TARGET_PLAYER`` carries "that
-    creature's controller" (bound by the s1 exile's target).
-    DIVERGENCE: a non-creature top card finds nothing instead of scanning
-    deeper — the grammar has no reveal-until iterator; documented.
-    T5-E (2026-10-10, clause-audit residual closure): the disclosure is
-    now TRACEABLE — a REVEAL(controller=TARGET_PLAYER, count=QUnbounded)
-    step trails the Seq (the ``_build_reveal_hand`` whole-zone atom, 13a
-    "counts the whole zone" idiom = the closest existing encoding of the
-    unbounded "reveals cards ... until a creature" loop; the recorded
-    no-op executor lane ``_look`` journals the disclosure, nothing
-    moves).  It TRAILS the dig on purpose: a REVEAL opens the r19b look
-    window, and the dig's promoted ONE_OF+LIBRARY-TOP Selector re-scopes
-    its menu to the open window (selectors.py:364), so leading here
-    turned the dig population into the whole library (transmogrify pack
-    regression, caught by the 398 gate).  Trailing keeps the dig menu
-    byte-identical and the window dies in the s3 SHUFFLE (non-look
-    verbs close it).  ORDER divergence (disclosure journalled after the
-    put) is the price of the no-iterator grammar; documented alongside
-    the existing "non-creature top finds nothing" one.  The dig itself
-    stays the SEARCH-top atom."""
+    library until they reveal a creature card.`` (Transmogrify s2): a CHOOSE
+    search for a creature on top of TARGET_PLAYER's library, then a
+    whole-zone REVEAL that journals the disclosure (nothing moves).
+    ``ZonePosition.TOP`` enumerates exactly the library top, so the search
+    never reaches a deeper card; TARGET_PLAYER is "that creature's
+    controller", bound by the s1 exile's target.
+
+    The REVEAL trails the search on purpose: a REVEAL opens a look window,
+    and the search's library-top selector (promoted to ONE_OF) re-scopes its
+    menu to an open window (executor selectors.py), which would make the
+    whole library its menu. The s3 SHUFFLE closes the window.
+
+    Lossy, as the grammar has no reveal-until iterator: a non-creature top
+    card finds nothing instead of digging deeper, and the disclosure is
+    journalled after the put."""
     reveal = Atom(
         verb=Verb.REVEAL,
         args=AtomArgs(
@@ -2082,14 +1898,10 @@ def _build_transmog_reveal_creature(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_transmog_shuffle_rest(m: re.Match[str]) -> SentenceOutcome:
     """``That player puts that card onto the battlefield, then shuffles the
-    rest into their library.`` (Transmogrify s3, grammar round 11 C3 — the
-    put-half rides s2's SEARCH destination (the grammar cannot name "that
-    card" across the reveal-until; documented lossless-split convention);
-    the remaining emission is the remainder SHUFFLE, TARGET_PLAYER-owned so
-    the anaphoric "That player" reads the s1-exile target binding (the
-    Vodalian ``Zone(LIBRARY, TARGET_PLAYER)`` shuffle precedent).  Neither
-    sentence carries a continuation prefix: card assembly folds the
-    instant's three plain effects into one ``Seq`` (multi-effect fold)."""
+    rest into their library.`` (Transmogrify s3): the put is s2's SEARCH
+    destination (the grammar cannot name "that card" across the
+    reveal-until), so this is only the SHUFFLE of TARGET_PLAYER's library
+    ("That player" is the s1 exile's target)."""
     shuffle = Atom(
         verb=Verb.SHUFFLE,
         args=AtomArgs(
@@ -2110,16 +1922,14 @@ def _build_transmog_shuffle_rest(m: re.Match[str]) -> SentenceOutcome:
 def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
     """``If this spell was cast from anywhere other than your hand, put
     each of those cards into your hand instead.`` (See the Truth s3) —
-    Conditional on the cast-zone read-back (CAST_THIS_TURN_FROM, negated
-    for "anywhere other than your hand") moving the whole result set to
-    hand.
-    LOSSY: "instead" — the grammar has no branch-exclusion marker, so the
-    Conditional is a sibling step of the normal one-and-rest split
-    sequence rather than a replacement of it; documented (the R5
-    ReplacementAbility carrier is event-shaped, not cast-zone-shaped).
-    "Each of those cards" rides the C2 canonical referent selector —
-    referent selectors are pinned to CHOOSE/QConst(1)/neutral-zone, so the
-    register's plurality is applied per object executor-side."""
+    Conditional on the cast zone (CAST_THIS_TURN_FROM, negated for
+    "anywhere other than your hand") moving the whole result set to hand.
+    Lossy: "instead" — the grammar has no branch-exclusion marker, so the
+    Conditional is a sibling step after the one-and-rest split rather than
+    a replacement of it (ReplacementAbility is event-shaped, not
+    cast-zone-shaped). A referent selector is always CHOOSE/QConst(1)/
+    neutral zone, so the executor applies the register's plurality per
+    object."""
     cond = FNot(
         inner=FAtom(
             pred=FAtomPred.CAST_THIS_TURN_FROM,
@@ -2141,8 +1951,7 @@ def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_gain_control_eot(m: re.Match[str]) -> SentenceOutcome:
     """``Gain control of target creature until end of turn.`` (Traitorous
-    Greed s1) — GAIN_CONTROL's optional duration role (R7-2,
-    ``_VERB_ROLES`` row extended by the grammar phase)."""
+    Greed s1) — GAIN_CONTROL with its optional duration role."""
     atom = Atom(
         verb=Verb.GAIN_CONTROL,
         args=AtomArgs(
@@ -2164,30 +1973,18 @@ def _build_gain_control_eot(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-# ---------------------------------------------------------------------------
-# Grammar round-7-B batch builders (doc 2026-09-28/03 §3, R7-B top-ups)
-# ---------------------------------------------------------------------------
-
-
 def _build_keyword_list_params(m: re.Match[str]) -> SentenceOutcome:
     """``Flying, first strike, lifelink, protection from Demons and from
     Dragons`` (Baneslayer Angel) and ``Reach, hexproof from blue``
-    (Sporeweb Weaver) — keyword-list sentences carrying one parameterized
-    member that ``_KEYWORDS_BARE_UNBUILDABLE`` proves cannot be built from
-    the bare identity string (PROTECTION needs a Filter, and HEXPROOF's
-    second ``_KEYWORD_PARAMS`` signature takes one).  The template emits
-    ONLY the parameterized member: the bare members (Flying / First
-    strike / Lifelink / Reach) already arrive via ``raw.keywords`` and the
-    compiler's keyword-dedup merge keeps one copy each, so the card ends
-    complete.  Baneslayer's protection filter is the OR of the two named
-    creature subtypes (SUBTYPE_EQ is singular, Equipment precedent);
-    Sporeweb's hexproof filter is COLOR_HAS blue (Feat-of-Resistance
-    param shape).  Scryfall's keyword field lists bare 'Hexproof' beside
-    'Hexproof from' for Sporeweb Weaver; since m21-fidelity item 1
-    (2026-10-29) the bare keyword path builds a whole-ability keyword only
-    if the face prints it (compiler._face_prints_keyword), so the card no
-    longer carries a parameterless HEXPROOF.  C16: none — forced static
-    grants."""
+    (Sporeweb Weaver) — keyword lists with one parameterized member, which
+    ``_KEYWORDS_BARE_UNBUILDABLE`` marks as not buildable from the bare
+    keyword string (PROTECTION and "hexproof from" take a Filter). The
+    template emits only that member: the bare members arrive via
+    ``raw.keywords`` and the compiler's keyword merge keeps one copy each.
+    Baneslayer's filter is the OR of the two subtypes (SUBTYPE_EQ is
+    singular); Sporeweb's is COLOR_HAS blue. Scryfall also lists a bare
+    'Hexproof' for Sporeweb Weaver, but the bare keyword path builds a
+    keyword only if the face prints it (compiler._face_prints_keyword)."""
     if m.group("form").startswith("Flying"):
         return KeywordOutcome(
             keyword=Keyword.PROTECTION,
@@ -2209,13 +2006,10 @@ def _build_keyword_list_params(m: re.Match[str]) -> SentenceOutcome:
 def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
     """``If a creature died this turn, create two 1/1 green Saproling
     creature tokens.`` (Fungal Rebirth s2) — Conditional over the
-    turn-scoped DIED_THIS_TURN atom (resolution-time check, not a
-    trigger), then CREATE_TOKEN.  C14: the spelled-out ``two`` is outside
-    the number regex, so the count is word-pinned ``QConst(2)`` (Gnarled
-    Sage house idiom).  The sentence carries no continuation prefix, so
-    the instant's effect fold appends it as the sibling step after s1
-    (already landed).  Faithful since round 8: TokenSpec.colorss=("G",) carries
-    ``green`` (C-2 repair).  C16: none — fully forced."""
+    turn-scoped DIED_THIS_TURN atom (checked at resolution, not a
+    trigger), then CREATE_TOKEN. The spelled-out ``two`` is outside the
+    number regex, so the pattern pins the word and the count is
+    ``QConst(2)``."""
     token = TokenSpec(
         name="Saproling",
         type_line="Creature — Saproling",
@@ -2225,7 +2019,7 @@ def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
         toughness=QConst(1),
         keywords=(),
         abilities=(),
-        colors=("G",),  # C-2 repair (round 8)
+        colors=("G",),
     )
     return EffectOutcome(
         effect=Conditional(
@@ -2241,27 +2035,17 @@ def _build_if_died_two_tokens(m: re.Match[str]) -> SentenceOutcome:
 def _build_would_damage_incarnation(m: re.Match[str]) -> SentenceOutcome:
     """``If a source would deal damage to you, prevent that damage and put
     an incarnation counter on this enchantment.`` (Nine Lives) —
-    ReplacementAbility over DamageDealtEvent (r5 landed pattern: Life
-    Goes On / Containment Priest / Conclave Mentor).
-    ``source=None`` IS the printed universal ``a source`` — no narrowing
-    (the mission's flagged lossy candidate stays faithful).
-    Faithful since round 8 (C-4 damage-surface repair, R8-5 vocabulary):
-    the event filter — which names the DAMAGED object — carries
-    ``FAtom(CONTROLLER_IS, who=YOU)``, restoring the printed ``to you``
-    recipient (the player's controller is the player itself).
-    Remaining lossy (verbatim): ``prevent that damage`` has no PREVENT atom inside the action —
-    PREVENT_EFFECT is the duration-scoped restriction verb (can't-be-
-    blocked family), not a replacement step; per the landed r5 convention
-    the replacement itself subsumes prevention (Containment Priest's
-    "exile it instead" carries no prevent atom either), so the action is
-    just PUT_COUNTER(INCARNATION, 1) on the self enchantment.
-    C16: none — fully forced."""
+    ReplacementAbility over DamageDealtEvent. ``source=None`` is the printed
+    universal "a source". The event filter names the damaged object, here
+    you: ``FAtom(CONTROLLER_IS, who=YOU)`` (a player is its own controller).
+    "prevent that damage" has no atom: the replacement itself replaces the
+    damage (PREVENT_EFFECT is the duration-scoped restriction verb, not a
+    replacement step), so the action is just PUT_COUNTER(INCARNATION, 1) on
+    this enchantment."""
     return AbilityOutcome(
         ability=ReplacementAbility(
             event=DamageDealtEvent(
                 amount=QUnbounded(),
-                # "to you" restored (round 8): the damaged-object filter
-                # names YOU via the C-4/R8-5 player-identity vocabulary.
                 filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             ),
             condition=None,
@@ -2292,15 +2076,9 @@ def _build_would_damage_incarnation(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_flip_won(m: re.Match[str]) -> SentenceOutcome:
     """``If you win the flip, you gain 6 life.`` (Tavern Swindler s2) —
-    Conditional gated on FAtomPred.FLIP_WON (who=YOU; r3b vocabulary —
-    "you lose it" would be FNot).  Sibling of the b5c B5c-flip-cost
-    activation: the two rows together consume the FLIP_COIN orphan verb.
-    Assembly note (documented deviation): the sentence has no continuation
-    prefix, so the creature-card effect fold wraps it into a
-    SpellAbility(CREATURE); rules-wise it is the activation's second
-    sentence — the FLIP_WON gate keeps the stochastic branch explicit
-    either way.  C16: the coin flip itself is the stochastic vertex;
-    gain amount forced."""
+    Conditional gated on FAtomPred.FLIP_WON (who=YOU; "you lose it" would be
+    FNot). The compiler appends it to the B5c-flip-cost activation it is
+    printed under (compiler._activation_trailing_idx)."""
     return EffectOutcome(
         effect=Conditional(
             pred=FAtom(pred=FAtomPred.FLIP_WON, who=ControllerRef.YOU),
@@ -2319,14 +2097,10 @@ def _build_flip_won(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_choice_of_grants(m: re.Match[str]) -> SentenceOutcome:
     """``Target creature gets +1/+1 and gains your choice of deathtouch or
-    lifelink until end of turn.`` (Alchemist's Gift) — one sentence, one
-    spell step: Seq(MODIFY_PT, Choose) where the Choose is the C15
-    controller decision — one of two KeywordAbility grants, nothing
-    defaulted (Feat-of-Resistance five-way shape, reduced to the printed
-    two).  The grant targets the spell's own target via
-    ``referent="target"`` (R4 vocabulary) so no second target declaration
-    is minted.  C16: target choice (1 creature) × keyword choice
-    (deathtouch | lifelink) stay open."""
+    lifelink until end of turn.`` (Alchemist's Gift) — one spell step,
+    Seq(MODIFY_PT, Choose): the Choose is the controller's pick of one of
+    the two keyword grants, nothing defaulted. The grant names the spell's
+    own target via ``referent="target"``, so no second target is declared."""
     p, t = int(m.group("p")), int(m.group("t"))
     grant_target = Selector(
         QConst(1),
@@ -2375,20 +2149,11 @@ def _build_choice_of_grants(m: re.Match[str]) -> SentenceOutcome:
 def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
     """``Its controller creates a 4/4 white Angel creature token with
     flying.`` (Angelic Ascension s2) and ``Its controller creates a 1/1
-    white Soldier creature token.`` (Secure the Scene s2) — CREATE_TOKEN;
-    ``Its`` = the spell's exiled target (both cards' s1 already landed
-    with a TARGET selector; the non-continuation s2 folds into the same
-    SpellAbility Seq, so the antecedent is the ability's own target —
-    executor-side referent binding per R4).
-    Faithful since round 8: TokenSpec.colorss=("W",) carries ``white`` (C-2
-    repair — the row's pattern pins the word "white" for both Angel and
-    Soldier sentences).  FAITHFUL since grammar round 11 (R11-2, batch 6
-    ruling /10): ``Its controller`` lands as the CREATE_TOKEN ``controller``
-    role — the exact R4 referent-target Selector shape the Liliana Death
-    Mage "its controller loses life" row uses (the antecedent is the s1
-    TARGET designation; ``role_players`` folds the exiled card to its
-    controller at execution).
-    C16: none — fully forced."""
+    white Soldier creature token.`` (Secure the Scene s2) — CREATE_TOKEN
+    whose ``controller`` role is a ``referent="target"`` selector: ``Its``
+    is the spell's exiled target (s1's TARGET selector, in the same
+    SpellAbility Seq), and ``role_players`` folds the exiled card to its
+    controller at execution."""
     subtype = m.group("st")
     return EffectOutcome(
         effect=Atom(
@@ -2416,7 +2181,7 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
                             toughness=QConst(int(m.group("t"))),
                             keywords=(Keyword.FLYING,) if m.group("fly") else (),
                             abilities=(),
-                            colors=("W",),  # C-2 repair (round 8)
+                            colors=("W",),
                         ),
                     ),
                 )
@@ -2427,16 +2192,10 @@ def _build_its_controller_token(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_its_controller_loses_life(m: re.Match[str]) -> SentenceOutcome:
     """``Its controller loses 2 life.`` (Liliana, Death Mage [−3] s2) —
-    LOSE_LIFE whose controller role carries an R4 ``referent="target"``
-    selector: the controller-of-the-selected-object executor convention,
-    Gloom-Sower precedent (B2b-gloom-sower puts the event-referent
-    Selector in the same role).  ``Its`` = the [−3]'s destroyed creature.
-    Assembly note (documented deviation): the sentence has no continuation
-    prefix, so the planeswalker effect fold lands it as a card-level
-    SpellAbility(PLANESWALKER); rules-wise it belongs inside the [−3]
-    ActivatedAbility, whose target the referent names — the closest
-    structured binding available without compiler changes.
-    C16: none — fully forced."""
+    LOSE_LIFE whose controller role is a ``referent="target"`` selector,
+    read as the controller of the selected object (B2b-gloom-sower puts the
+    event referent in the same role). ``Its`` is the [−3]'s destroyed
+    creature."""
     return EffectOutcome(
         effect=Atom(
             verb=Verb.LOSE_LIFE,
@@ -2459,26 +2218,13 @@ def _build_its_controller_loses_life(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-# ---------------------------------------------------------------------------
-# Grammar round-8-C coverage batch builders (doc 2026-09-28/08 §8-C)
-# ---------------------------------------------------------------------------
-
-
 def _build_if_was_creature_counter_gain(m: re.Match[str]) -> SentenceOutcome:
     """``If it was a creature card, put a +1/+1 counter on this creature and
-    you gain 1 life.`` (Scavenging Ooze) — C18 was-check.  FAtom rules
-    keep the referent slot closed to IS_ATTACHED_TO, so the conditional
-    subject is the result register by executor convention (the landed
-    B5b-if-it-type-then precedent, verbatim); the executor SNAPSHOTS the
-    exiled card's printed type at the antecedent event (C18: "was" reads
-    the value-at-antecedent-event — the card's printed type is immutable
-    across zones, so the register subject carries it).  Then-branch is a
-    two-step Seq: PUT_COUNTER on the Ooze itself (B5b self convention
-    CHOOSE/QConst(1)/IS_SOURCE/BATTLEFIELD-ANY) + GAIN_LIFE you 1.
-
-    C16: the counter/gain-life pair is gated on the exiled card's printed
-    type (game state, not a choice); the exile target of s1 stays open
-    there — nothing defaulted here."""
+    you gain 1 life.`` (Scavenging Ooze) — a Conditional on the result
+    register, as in _build_if_it_type_then. "was" reads the value at the
+    antecedent event; a card's printed type does not change across zones,
+    so the register's subject carries it. Then-branch: PUT_COUNTER on the
+    Ooze itself, then GAIN_LIFE."""
     counter = Atom(
         verb=Verb.PUT_COUNTER,
         args=AtomArgs(
@@ -2518,32 +2264,17 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
     """``Target player draws cards equal to half the number of cards in
     their library and loses half their life.`` (Peer into the Abyss s1).
 
-    Draw: DRAW controller=ControllerRef.TARGET_PLAYER, amount = the
-    round-up half of the TARGET player's library — "their" is the spell's
-    player target, so the count rides
-    QCount(Selector(ALL, QUnbounded, universal filter,
-    Zone(LIBRARY, TARGET_PLAYER))), not QProp CARDS_IN_LIBRARY (that
-    field is pinned to the ability controller, QProp validator).
-    Round-up = the explicit T5-D rounding policy: DIV carries
-    rounding=Rounding.CEIL (the (n + 1) // 2 idiom stays legal, but the
-    policy is now a first-class axis — the companion row ``Round up
-    each time.`` is consumed as the rounding directive
-    (B5b-peer-round-up-each-time) and the tree shows Rounding.CEIL.
+    Draw: DRAW controller=TARGET_PLAYER, amount = half the target player's
+    library. "their" is the spell's player target, so the count is a QCount
+    over Zone(LIBRARY, TARGET_PLAYER), not QProp CARDS_IN_LIBRARY (that
+    field is pinned to the ability controller).
 
-    Life loss (m21-fidelity item 2, 2026-10-29; the clause was dropped
-    until then, so the spell was a free half-library draw): the second
-    step, ``EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE / 2)))``.
-    A life total is read only through QProp(controller, LIFE) (QCount
-    counts zone objects; QProp validates LIFE to the controller referent),
-    so the step rotates the controller to the target player (EachPlayer,
-    the "each opponent loses half their life" shape pinned in
-    test_executor_r24a) and reads THEIR life, never the caster's. The draw
-    step keeps its own TARGET_PLAYER reads, which give the spell its player
-    target slot. Printed order (O2): draw, then lose. Both halves round up
-    (CR 107.1a; "Round up each time").
-    C16: open — which player is targeted (s1 TARGET selector lives with
-    the covered target-prefix template); both halves are board-dynamic
-    quantities, nothing controller-chosen is defaulted."""
+    Life loss: ``EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE / 2)))``.
+    A life total is read only through QProp(controller, LIFE), so the step
+    rotates the controller to the target player and reads their life, never
+    the caster's. The draw step's TARGET_PLAYER reads give the spell its
+    player target slot. Printed order: draw, then lose. Both halves round up
+    (CR 107.1a; "Round up each time." is s2)."""
     library_count = QCount(
         Selector(
             QUnbounded(),
@@ -2589,30 +2320,19 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_peer_round_up_each_time(m: re.Match[str]) -> SentenceOutcome:
-    """``Round up each time.`` (Peer into the Abyss s2) — rounding
-    directive consumed as a RuleReminderOutcome, the landed precedent for
-    anaphoric instruction rows being matched rather than defaulted
-    (B2b-double-vision-new-targets, reason 'anaphoric_continuation').
-    The rounding itself is the s1 amount's policy: the DIV carries
-    rounding=Rounding.CEIL (T5-D), so this row carries no residual
-    payload and must NOT spawn a duplicate draw/lose step.  "each time" = both
-    half-computations of s1 (library draw and life loss, each a CEIL DIV —
-    see _build_peer_half_library).
-    C16: none — computation directive, fully forced."""
+    """``Round up each time.`` (Peer into the Abyss s2) — consumed as a
+    RuleReminderOutcome: the rounding is already s1's policy (each DIV in
+    _build_peer_half_library carries Rounding.CEIL), so this row adds no
+    payload and must not spawn a second draw/lose step."""
     return RuleReminderOutcome(reason="rounding_directive")
 
 
 def _build_double_counters_on_target(m: re.Match[str]) -> SentenceOutcome:
     """``Put a +1/+1 counter on target creature you control, then double the
     number of +1/+1 counters on that creature.`` (Invigorating Surge) —
-    Seq inside the spell's effect: step 1 PUT_COUNTER +1/+1 x1 on the
-    TARGET (B5b convention #63 TARGET selector); step 2 doubles by
-    PUT_COUNTER of QProp(referent="target", field=COUNTER_COUNT) (R8-11 —
-    the counter count of the chosen target): adding the CURRENT count to
-    itself is the doubling, the "that creature" anaphor binds
-    referent="target" (R4 vocabulary, the spell's designation).
-    C16: open — the target creature; the doubled amount is board-dynamic
-    (evaluated at resolution), not a choice."""
+    Seq: PUT_COUNTER +1/+1 on the target, then PUT_COUNTER of the target's
+    current COUNTER_COUNT (adding the count to itself doubles it); "that
+    creature" binds referent="target"."""
     target = _target_creature_you_control()
     put_one = Atom(
         verb=Verb.PUT_COUNTER,
@@ -2651,19 +2371,13 @@ def _build_double_counters_on_target(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_then_if_opponent_more_creatures(m: re.Match[str]) -> SentenceOutcome:
     """``Then if an opponent controls more creatures than you, put a loyalty
-    counter on Garruk.`` (Garruk, Unleashed [−2] s2) — "Then " continuation
-    merged into the [−2] ActivatedAbility;
-    Conditional(CONTROLLER_COUNT_GT) — R8-9 dual-filter comparison:
-    inner_filter counts creatures an OPPONENT controls (FAnd TYPE_EQ
-    Creature + CONTROLLER_IS who=OPPONENT, the Nine Lives flipped shape),
-    right_inner_filter counts YOUR creatures; both slots REQUIRED by the
-    predicate's role entry.  "an opponent" = ControllerRef.OPPONENT (the
-    per-opponent reading — the executor evaluates each rival, C13-
-    adjacent, documented).  Then-branch: PUT_COUNTER LOYALTY (the
-    CounterKind exists since T3, Pestilent Haze) x1 on Garruk = the
-    ability's SOURCE object (IS_SOURCE CHOOSE selector, B5b self
-    convention).
-    C16: none new — board comparison gate, forced counter."""
+    counter on Garruk.`` (Garruk, Unleashed [−2] s2) — the "Then "
+    continuation merges into the [−2] ActivatedAbility. Conditional on
+    CONTROLLER_COUNT_GT, a two-filter comparison (both required):
+    inner_filter counts the creatures an opponent controls,
+    right_inner_filter counts yours. "an opponent" is ControllerRef.OPPONENT
+    (the executor evaluates each opponent). Then-branch: one LOYALTY
+    counter on Garruk, the ability's source."""
     gated = Conditional(
         pred=FAtom(
             pred=FAtomPred.CONTROLLER_COUNT_GT,
@@ -2713,38 +2427,21 @@ def _build_then_if_opponent_more_creatures(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_it_gains_haste_emblem_residue(m: re.Match[str]) -> SentenceOutcome:
-    """``It gains haste."`` (Liliana, Waker of the Dead — trailing-quote
-    ingest artifact: the second sentence of the [−7]'s QUOTED emblem text,
-    sentence-splitter residue; class E in the module header, queue-pinned
-    since r7-A).
+    """``It gains haste."`` (Liliana, Waker of the Dead): sentence-splitter
+    residue, the second sentence of the [−7]'s quoted emblem text.
 
-    Consumed as a RuleReminderOutcome (B2b-double-vision precedent).
-    C19 binds: the quoted emblem text NEVER enters the row's payload —
-    the haste grant is already compiled INSIDE the attached emblem
-    CardRecord by ``B5b-it-gains-haste`` (verified: the landed Liliana
-    golden's emblem carries the two-ability trigger with the grant).
-    Re-granting at the planeswalker's card level would DUPLICATE the
-    payload outside the emblem the text belongs to — the marker row is
-    the C19-honest consumption (Double Vision class: semantics live
-    elsewhere in the tree).
-    C16: none — payload lives in the emblem attach."""
+    Consumed as a RuleReminderOutcome: the haste grant is already compiled
+    inside the attached emblem by ``B5b-it-gains-haste``, so granting it at
+    the planeswalker's card level would duplicate it outside the emblem."""
     return RuleReminderOutcome(reason="emblem_text_payload_attached")
 
 
 def _build_spend_this_mana_is_or_sorcery(m: re.Match[str]) -> SentenceOutcome:
     """``Spend this mana only to cast an instant or sorcery spell.``
-    (Vodalian Arcanist) — grammar round 9-B row 10, the C21 event-anchored
-    sibling of the b4 ALL_YOURS row: Verb.MANA_POLICY (R9-3) with scope
-    "THIS_MANA" (the policy binds the mana THIS ability adds — the card's
-    own ``{T}: Add {C}`` row — executor-side anchoring) and filter =
-    FOr(TYPE_EQ Instant, TYPE_EQ Sorcery) narrowing the permitted spend
-    to the two spell types.  No OptionalEffect — the sentence is a
-    restriction ("only to"), not a permission; no may to keep open (C15
-    silent here).  Executor deferred per the MANA_POLICY orphan precedent
-    (PC-6: verb consumed this round — in b4 — stays consumed here).
-
-    C16: none — fully forced restriction (which instant/sorcery to cast is
-    the player's casting decision, not this atom's)."""
+    (Vodalian Arcanist) — Verb.MANA_POLICY with scope "THIS_MANA" (the
+    executor binds it to the mana this card's own ``{T}: Add {C}`` adds)
+    and filter FOr(Instant, Sorcery). A restriction ("only to"), not a
+    permission, so there is no OptionalEffect."""
     instant_or_sorcery = FOr(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Instant"),
@@ -2760,14 +2457,9 @@ def _build_spend_this_mana_is_or_sorcery(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_play_top_revealed(m: re.Match[str]) -> SentenceOutcome:
     """``Play with the top card of your library revealed.`` (Conspicuous
-    Snoop) — grammar round 9-B row 11: the R9-8 REVEAL duration role makes
-    the continuous revealed state expressible: REVEAL (controller=YOU,
-    count=QConst(1), duration=DurationPermanent) as a StaticAbility — the
-    library-top target is IMPLICIT per the LOOK_AT convention (LOOK_AT has
-    no zone role — top-of-library, Radha/Sasaya precedent; REVEAL's roles
-    mirror it, the count names how many cards stay face-up).
-
-    C16: none — a continuous zone-state rule, fully forced."""
+    Snoop) — a StaticAbility of REVEAL(controller=YOU, count=QConst(1),
+    duration=DurationPermanent). The library top is implicit, as for
+    LOOK_AT (no zone role); the count is how many cards stay face up."""
     atom = Atom(
         verb=Verb.REVEAL,
         args=AtomArgs(
@@ -2781,23 +2473,14 @@ def _build_play_top_revealed(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
 
-# ---------------------------------------------------------------------------
-# Template registry
-# ---------------------------------------------------------------------------
-
-
 def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
     """``If an ability of another Shrine you control triggers while you
     control six or more Shrines, that ability triggers an additional
-    time.`` (Sanctum of All s2) — T5-D: the AbilityTriggerEvent atom
-    (the when-event of the extra-trigger family) over the triggering
-    ability's SOURCE permanent: SUBTYPE_EQ Shrine + CONTROLLER_IS YOU +
-    FNot(IS_SOURCE) for "another" (the B2a convention, doc line 40); the
-    "while you control six or more Shrines" clause is the ability's
-    CONDITION (CONTROLLER_COUNT_GE, Gadrak's vocabulary); the effect is
-    the reusable TRIGGER_ADDITIONAL verb carrying the {count} axis —
-    QConst(1) for "an additional time" (a derived Quantity for a
-    per-category carrier rides the SAME verb, §9 orthogonality)."""
+    time.`` (Sanctum of All s2) — an AbilityTriggerEvent over the triggering
+    ability's source: SUBTYPE_EQ Shrine + CONTROLLER_IS YOU + FNot(IS_SOURCE)
+    for "another". "while you control six or more Shrines" is the ability's
+    condition (CONTROLLER_COUNT_GE). The effect is TRIGGER_ADDITIONAL with
+    its count axis, QConst(1) for "an additional time"."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=AbilityTriggerEvent(
@@ -2820,6 +2503,11 @@ def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
             ),
         )
     )
+
+
+# ---------------------------------------------------------------------------
+# Template registry
+# ---------------------------------------------------------------------------
 
 
 TEMPLATES: tuple[Template, ...] = (
@@ -3036,9 +2724,8 @@ TEMPLATES: tuple[Template, ...] = (
         name="<card> deals N damage to target creature or planeswalker",
         bucket=_BUCKET,
         # The subject never spans a colon: "<cost>: ... deals N damage" is an
-        # activated ability (CR 602.1), never this spell effect (2026-11-05:
-        # Elite Headhunter and Chandra, Bold Pyromancer's [−3] compiled to the
-        # card's spell effect through it).
+        # activated ability (CR 602.1), never this spell effect (Elite
+        # Headhunter, Chandra, Bold Pyromancer's [−3]).
         pattern=re.compile(
             r"^([^:]+) deals (\d+) damage to target creature or "
             r"planeswalker\.$"
@@ -3304,7 +2991,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_set_pt_power_gy_count,
     ),
-    # --- grammar round-7 batch (family-2 anaphora; doc 2026-09-28/03 §3) ---
     Template(
         tid="B5b-it-gains-kw-eot",
         name="it gains <kw> until end of turn (result-referent grant)",
@@ -3458,7 +3144,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_gain_control_eot,
     ),
-    # --- grammar round-7-B batch (no-grammar top-ups; doc 2026-09-28/03 §3) ---
     Template(
         tid="B5b-keyword-list-params",
         name="keyword list with parameterized PROTECTION/HEXPROOF member",
@@ -3530,7 +3215,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_its_controller_loses_life,
     ),
-    # --- grammar round-8-C coverage batch (doc 2026-09-28/08 §8-C) ---
     Template(
         tid="B5b-if-was-creature-counter-gain",
         name="if it was a creature card, counter + gain life (C18 result TYPE_EQ)",
@@ -3592,7 +3276,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_it_gains_haste_emblem_residue,
     ),
-    # --- grammar round-9-B coverage batch (doc 2026-09-28/11 §9-B rows 10-11) ---
     Template(
         tid="B5b-spend-this-mana-is-or-sorcery",
         name="mana policy: THIS_MANA anchored to instant/sorcery casts (MANA_POLICY, C21)",
@@ -3611,7 +3294,6 @@ TEMPLATES: tuple[Template, ...] = (
         priority=_PRIORITY,
         build=_build_play_top_revealed,
     ),
-    # --- grammar round-11 C3 coverage batch (Transmogrify reveal-until pair) ---
     Template(
         tid="B5b-transmogrify-reveal-creature",
         name="top-of-library creature search for that player (SEARCH TOP, C3)",
