@@ -1,11 +1,10 @@
-"""The model-facing QUERY SURFACE (round 12c, /06 §12c).
+"""The model-facing QUERY SURFACE.
 
-The Slate contract of `docs/DESIGN_ACTION_SPACE.md`, served on the executor
-side: **one engine call per decision** (§1.4), returning typed references
-to the SAME IR objects the executor consumes — §8.3 builder/executor
-identity: no DTO layer, no prose anywhere in an option (V_role tags from
-§1.2 are type tags on slots, never payload strings), every candidate list
-canonical Handle-sorted (§5.5, ruling 5).
+The executor side of the Slate contract of `docs/DESIGN_ACTION_SPACE.md`
+(§1.4): typed references to the SAME IR objects the executor consumes —
+§8.3 builder/executor identity: no DTO layer, no prose anywhere in an option
+(V_role tags from §1.2 are type tags on slots, never payload strings), every
+candidate list canonical Handle-sorted (§5.5).
 
 Role mapping (V_role §1.2 → this module), for the verbs in the §1.3 field
 schedule:
@@ -22,45 +21,40 @@ schedule:
   auto-fill (exactly one legal filler).
 * ``MODE:PTR*`` / ``OPTION:PTR*`` / RESOLVE_CHOICE's ``CHOICE_SLOT`` —
   :func:`choose_options` enumerates every legal option SET of a
-  :class:`~MTG_bot.core.ability_tree.Choose` node (C15: every decision is
+  :class:`~MTG_bot.core.ability_tree.Choose` node (every decision is
   enumerable; a missed option is a contract violation).
 * the may-offer (``OptionalEffect``) — :func:`optional_offer` returns the
-  two-way decision tokens exactly as the 12b/12a decision channel consumes
-  them (``"fire"``/``"skip"``), narrowed to one when firing is not
-  actionable (a cost-bearing may with nothing to pay it with).
+  two-way decision tokens exactly as the decision channel consumes them
+  (``"fire"``/``"skip"``), narrowed to one when firing is not actionable
+  (e.g. a cost-bearing may with nothing to pay it with).
 * ``ONE_OF`` / ``REST`` (the split-selection pair, SelectorMode docstring)
-  — :func:`legal_targets` reports ``ONE_OF`` as an exactly-one slot over
-  the partition population, and the deterministic remainder with
-  :func:`rest_of` (:class:`TargetSlot` marks ``REST`` forced — the engine
-  takes everything left).
+  — :func:`legal_targets` reports ``ONE_OF`` as a slot over the partition
+  population, and the deterministic remainder with :func:`rest_of`
+  (:class:`TargetSlot` marks ``REST`` forced — the engine takes everything
+  left).
 
-C-contract pins encoded here:
+Contracts encoded here:
 
-* **C17** — ``TARGET`` + :class:`QAtMost` is a legal *designation* range
-  ``0..n`` (V15, 2026-10-29: CR 601.2c, 115.6; it was min 1), resolving to
-  ``0..remaining``;
+* **Up to N** — ``TARGET`` + :class:`QAtMost` is a legal *designation* range
+  ``0..n`` (CR 601.2c, 115.6), resolving to ``0..remaining``;
   ``CHOOSE`` + up-to (and ``Choose`` + ``QAtMost``) is a resolution-time
   enumeration that DOES include the empty selection (``0..n``). The two
-  zero-cards sit in different phases and the tests pin both.
-* **C15** — completeness of enumeration: may = both options when
-  actionable, Choose = every legal option set, QAtMost = every legal
-  cardinality, ONE_OF/REST = the partition.
-* **§5.5** — option/selection enumeration order is canonical: sizes
-  ascending, then index-lex (a bijection from set to sequence).
+  zeros sit in different phases and the tests pin both.
+* **Completeness** — may = both options when actionable, Choose = every
+  legal option set, QAtMost = every legal cardinality, ONE_OF/REST = the
+  partition.
+* **Canonical order** (§5.5) — option/selection enumeration order is
+  canonical: sizes ascending, then index-lex (a bijection from set to
+  sequence).
 
-The 12a NotImplemented-map closures delivered here (in-scope per /06 §12c):
-ONE_OF/REST partition enumeration, OWNER referent (the activation context
-supplies the owner — see legality.source_owner), CHOOSE-mode candidate
-enumeration, and Zone(ANY) population. AMENDED 14c (B-13/B-15): the
-resolution side now consumes THESE enumerations rather than re-deriving
+The resolution side consumes THESE enumerations rather than re-deriving
 them — ONE_OF asks the vocabulary-addressed channel with the Handle-sorted
 candidate list (``selectors.resolve_selector``), TARGET reads the spell's
-designation, REST takes the deterministic complement — and the raises
-stay honest exactly where the world is illegal: an ONE_OF ask no lane can
-answer, or an UNdesignated TARGET, is never guessed. The Choose NODE's
-dispatch has been wired since 12d (the ORDER contract below); the option
-subtree it dispatches is the same enumeration :func:`choose_options`
-returns, which is what a Slate answer unfolds to anyway.
+designation, REST takes the deterministic complement, and a Choose NODE
+dispatches the option subtree :func:`choose_options` enumerates (the ORDER
+contract on :class:`OptionChoice`) — and the raises stay honest exactly
+where the world is illegal: a ONE_OF ask no lane can answer, or an
+UNdesignated TARGET, is never guessed.
 """
 
 from __future__ import annotations
@@ -142,16 +136,16 @@ __all__ = [
 ]
 
 # The two-way may-decision vocabulary, verbatim as ExecCtx.take_decision
-# consumes it (binding.py may-offers, 12b fire order).
+# consumes it (binding.py may-offers).
 MAY_VOCAB: tuple[str, str] = ("fire", "skip")
 
 
 @dataclass(frozen=True)
 class ActivationOption:
-    """One candidate row of the ``ACTIVATE`` Slate (§1.4: a row of
+    """One candidate row of the ``ACTIVATE`` Slate (a row of
     ``Slate.handles`` + its ``roles_ok`` type mask): the world Handle, the
     ability's index in the attached compiled record (the ``ABILITY:PTR``
-    target), the typed IR object itself (§8.3), and the folded payment.
+    target), the typed IR object itself, and the folded payment.
     Target/COST_TARGET slots are queried per slot (legal_targets) — an
     option never stores a cross-slot product.
 
@@ -173,26 +167,25 @@ class ActivationOption:
 
 @dataclass(frozen=True)
 class TargetSlot:
-    """The per-slot answer for one ``TARGET:PTR x n`` field (§1.3): the
+    """The per-slot answer for one ``TARGET:PTR x n`` field: the
     Selector IR (identity), the Handle-sorted candidate population, the
-    legal cardinality range, and §1.4's ``forced`` flag (exactly one legal
+    legal cardinality range, and the ``forced`` flag (exactly one legal
     filler — the auto-resolve lever).
 
-    Cardinality semantics (C17, Selector docstring):
+    Cardinality semantics (Selector docstring):
 
     * ``TARGET`` + ``QConst(n)``   — exactly n (min = max = n);
-    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 0..n (V15: CR 601.2c,
+    * ``TARGET`` + ``QAtMost(n)``  — DESIGNATION is 0..n (CR 601.2c,
       115.6; zero chosen = not targeted), resolution clamps 0..remaining;
     * ``TARGET`` + ``QAtLeast(n)`` — n..candidates ("one or more");
     * ``CHOOSE`` (up-to)           — 0..min(n, candidates): a resolution-
-      time choice, so the EMPTY selection is legal (contrast the C17 pin
-      above — the tests pin both zeros);
+      time choice, so the EMPTY selection is legal;
     * ``ALL``                      — the whole population, forced;
     * ``RANDOM``                   — engine-side: forced for the player
       (the seeded rng picks at resolution, never a model decision);
     * ``ONE_OF``                   — ``want`` of the partition population
-      (T2 k-of-n: QConst exact, QAtMost 1..want with a NONE stop after
-      the mandatory first pick; the frozen goldens are all want==1);
+      (k of n: QConst exact, QAtMost 1..want with a NONE stop after the
+      mandatory first pick);
     * ``REST``                     — the remainder: forced (engine takes
       everything the ONE_OF pick left — :func:`rest_of`)."""
 
@@ -201,24 +194,24 @@ class TargetSlot:
     min_count: int
     max_count: int
     forced: bool
-    #: 14b (B-5/B-8): True for the SYNTHESIZED player-coordinate slot of a
-    #: "target opponent" TARGET_PLAYER ControllerRef (no compiled Selector
-    #: exists — the grammar gap). The candidate population (opponent seats)
-    #: comes from the ENGINE's own CR rule, so no caller mirrors it.
+    #: True for a slot the query SYNTHESIZED because no compiled Selector
+    #: exists: the player slot of "target player" / "target opponent" (a
+    #: designated-player ControllerRef), whose population comes from the
+    #: ENGINE's own CR rule so no caller mirrors it, and an aura's enchant slot.
     synthetic: bool = False
 
 
 @dataclass(frozen=True)
 class OptionChoice:
-    """One legal OPTION-set of a ``Choose`` node (§1.3 ``OPTION:PTR*`` /
+    """One legal OPTION-set of a ``Choose`` node (``OPTION:PTR*`` /
     RESOLVE_CHOICE ``CHOICE_OPTION:PTR``): the Choose IR (identity) and
     the ascending tuple of option indices; the typed option effects are
-    ``choose.options[i]`` — the same objects apply_effect dispatches
-    (§8.3). Executing a choice = ``executor.apply_effect`` on the chosen
-    option subtree(s) directly, or (12d) dispatching the Choose NODE with
+    ``choose.options[i]`` — the same objects apply_effect dispatches.
+    Executing a choice = ``executor.apply_effect`` on the chosen
+    option subtree(s) directly, or dispatching the Choose NODE with
     a decision token.
 
-    ORDER CONTRACT (12d-pinned): the runtime decision token for a Choose
+    ORDER CONTRACT: the runtime decision token for a Choose
     is ``str(i)`` where ``i`` is the position of the chosen OptionChoice
     in THIS module's enumeration order — size-ascending, index-lex
     (:func:`choose_options`). ``choose_options`` is the single source of
@@ -251,16 +244,16 @@ def inert_row(
     whose offer is narrowed to skip (CR 117.3: nothing it could do is possible). The
     compiler's permission-row idiom ("you may play lands from the top of your library",
     Radha, Heart of Keld) is such a row whenever nothing is castable through it, and for
-    a land it never is until the permission lane (DESIGN_ATOM_ONTOLOGY R5-2/R5-3).
+    a land it never is until the engine has a permission lane (docs/BACKLOG.md B-100).
 
     A row with a cost is inert only when no step could ever act: each step casts the
     row's own source from a zone other than the battlefield, and the row is offered only
     while the source is on the battlefield (``compiler.casts_itself_from_another_zone``;
-    Demonic Embrace's graveyard permission compiled to such a row and was a discard
-    outlet, B-100). A real row whose effect just does nothing right now stays: nothing in
-    activating an ability (CR 602.2) requires its effect to be able to act, and the cost
-    is paid (Idol of Endurance with no card exiled with it). Any unconditional step of a
-    free row makes it live."""
+    offered, Demonic Embrace's graveyard permission would be a discard outlet). A real
+    row whose effect just does nothing right now stays: nothing in activating an ability
+    (CR 602.2) requires its effect to be able to act, and the cost is paid (Idol of
+    Endurance with no card exiled with it). Any unconditional step of a free row makes
+    it live."""
     effect = ability.effect
     steps = effect.steps if isinstance(effect, Seq) else (effect,)
     if ability.cost.parts:
@@ -282,29 +275,28 @@ def legal_activations(
     world: GameWorld, executor: Executor, seat: Handle
 ) -> list[ActivationOption]:
     """Every activation available to ``seat`` right now, Handle-sorted by
-    (source, ability_idx) (§5.5; ruling 5) — the ``ACTIVATE`` field's
-    candidate rows. Scans ``seat``'s battlefield permanents that carry an
-    attached compiled record (the 12b oracle-id bridge) and keeps the
-    :class:`ActivatedAbility` nodes whose gate triple
-    (window/condition/cost — legality.ability_playable) is green.
+    (source, ability_idx) — the ``ACTIVATE`` field's candidate rows. Scans
+    ``seat``'s battlefield permanents that carry an attached compiled record
+    (the oracle-id bridge) and keeps the :class:`ActivatedAbility` nodes whose
+    gate triple (window/condition/cost — legality.ability_playable) is green.
 
-    12d: GRANTED activated abilities (round-12d GRANT_ABILITY layers) are
-    rows too — addressed by NEGATIVE index ``-k-1`` = entry ``k`` of
+    GRANTED activated abilities (GRANT_ABILITY layers) are rows too —
+    addressed by NEGATIVE index ``-k-1`` = entry ``k`` of
     ``executor.layers.granted_activated(source)`` (layer-seq order), so a
     Slate row can name a granted ability without a compiled record (the
     granted object may be a token). The final row list is sorted on the
     same documented ``order_key``: for one source, granted rows (-k)
     precede printed rows (0+), each internally ascending.
 
-    A cost kind the executor cannot check (CostLoyalty, QX amounts)
+    A cost the executor cannot check (an {X} mana activation cost)
     RAISES through the scan — flag, don't degrade: a hole in the legality
     oracle must crash the query, never silently shrink the option set
-    (the mask oracle's bugs are silent, §8; this is the loud half)."""
+    (the mask oracle's bugs are silent; this is the loud half)."""
     options: list[ActivationOption] = []
     for handle in sorted(executor.binder.handle_record):
         if handle not in world.cards:
             continue
-        if executor.controller_of(handle) != seat:  # 16e overlay-aware
+        if executor.controller_of(handle) != seat:  # the effective controller
             continue
         if world.zone_of(handle).kind != "battlefield":
             continue
@@ -336,10 +328,10 @@ def legal_activations(
                     x_max=x_max,
                 )
             )
-    # 12d granted rows (see docstring): every battlefield permanent of the
+    # Granted rows (see docstring): every battlefield permanent of the
     # seat — compiled record or not (tokens activate what they're granted).
     for handle in sorted(world.cards):
-        if executor.controller_of(handle) != seat:  # 16e overlay-aware
+        if executor.controller_of(handle) != seat:  # the effective controller
             continue
         if world.zone_of(handle).kind != "battlefield":
             continue
@@ -386,8 +378,8 @@ def legal_targets(
     bindings: dict[str, Binding] | None = None,
 ) -> TargetSlot:
     """The per-slot candidate list + legal cardinality for one Selector
-    (§1.3 ``TARGET:PTR x n``). See :class:`TargetSlot` for the per-mode
-    range table (C17's declaration-1..n vs resolution-0..n live here)."""
+    (the ``TARGET:PTR x n`` field). See :class:`TargetSlot` for the per-mode
+    range table."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
@@ -406,11 +398,11 @@ def legal_targets(
         min_count = max_count = min(want, n)
         forced = True  # the seeded rng designates, not the model
     elif mode is SelectorMode.ONE_OF:
-        # T2 k-of-n (doc 30): the query mirrors the resolve_selector ask
-        # loop — one ask per pick over the shrinking menu. want==1 stays
-        # the frozen exactly-one report (replay pins); k>1 is EXACT for
-        # QConst (the auto-filled last filler still lands) and 1..k for
-        # QAtMost (NONE may stop it after the mandatory first pick).
+        # k of n: the query mirrors the resolve_selector ask loop — one
+        # ask per pick over the shrinking menu. want==1 is the exactly-one
+        # report (replay pins); k>1 is EXACT for QConst (the auto-filled
+        # last filler still lands) and 1..k for QAtMost (NONE may stop it
+        # after the mandatory first pick).
         count = selector.count
         if isinstance(count, QConst):
             want = count.value
@@ -425,12 +417,10 @@ def legal_targets(
             min_count, max_count = 1, min(1, n)  # n=0 → infeasible (max<min)
             forced = n == 1
         else:
-            # T3 legality unification (doc 36): the shared count_semantics
-            # gives the ANNOUNCE-TIME answer here — a QConst partition is
-            # EXACT (CR 601.2c): min=max=N past an under-size population
-            # means INFEASIBLE (announce-time rejection), the same answer
-            # the TARGET branch below gives; the old min(want, n) clamp
-            # was the legality triad's third divergent reading. The
+            # The shared count_semantics gives the ANNOUNCE-TIME answer
+            # here — a QConst partition is EXACT (CR 601.2c): min=max=N past
+            # an under-size population means INFEASIBLE (announce-time
+            # rejection), the same answer the TARGET branch below gives. The
             # resolve_selector loop keeps its 608.2c mid-loop best-effort
             # lane; this slot is where the full-size law is enforced.
             announceable, k = count_semantics(count, n)
@@ -447,16 +437,15 @@ def legal_targets(
     elif mode is SelectorMode.TARGET:
         count = selector.count
         if isinstance(count, (QConst, QAtMost, QAtLeast)):
-            # T3 (doc 36): same shared answer as the ONE_OF branch and
-            # the executor loops — see ability_tree.count_semantics.
+            # Same shared answer as the ONE_OF branch and the executor
+            # loops — see ability_tree.count_semantics.
             announceable, k = count_semantics(count, n)
             if isinstance(count, QAtMost):
-                # V15 (2026-10-29): "up to N targets" is 0..N. CR 601.2c: the
-                # player announces how many targets they will choose; 115.6:
-                # zero may be chosen, and the spell or ability is then not
-                # targeted. C17 had pinned min 1, so an "up to one" with no
-                # candidate was uncastable (Liliana, Death Mage's +1 on an
-                # empty graveyard).
+                # "Up to N targets" is 0..N. CR 601.2c: the player announces
+                # how many targets they will choose; 115.6: zero may be
+                # chosen, and the spell or ability is then not targeted. So
+                # an "up to one" with no candidate stays castable (Liliana,
+                # Death Mage's +1 on an empty graveyard).
                 min_count = 0
                 max_count = k
             elif isinstance(count, QAtLeast):
@@ -482,7 +471,7 @@ def legal_targets(
         else:
             want = resolve(count, ctx)
             min_count, max_count = 0, min(want, n)
-        forced = max_count == 0  # nothing offerable: no decode step (§1.4)
+        forced = max_count == 0  # nothing offerable: no decode step
     return TargetSlot(
         selector=selector,
         candidates=candidates,
@@ -499,12 +488,12 @@ def legal_search(
     *,
     seat: Handle,
 ) -> tuple[Handle, ...]:
-    """The SEARCH offer surface (13a): the candidate set one SEARCH atom's
+    """The SEARCH offer surface: the candidate set one SEARCH atom's
     ``cards`` role may designate — the same enumeration
     :func:`MTG_bot.core.executor.verbs._search_designation` resolves at
     effect time, so the query and the handler can never disagree about what
-    was searchable (§8.3 identity). Handle-sorted (ruling 5), card-namespace
-    only. ``node`` is the SEARCH Atom or its ``cards`` Selector directly."""
+    was searchable. Handle-sorted, card-namespace only. ``node`` is the
+    SEARCH Atom or its ``cards`` Selector directly."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     selector = node.args.get("cards") if isinstance(node, Atom) else node
@@ -523,15 +512,15 @@ def legal_search(
 def validate_target_selection(slot: TargetSlot, chosen: Sequence[Handle]) -> str | None:
     """Whole-legality of one selection against its slot: no duplicates,
     every handle from the candidate population, cardinality inside the
-    slot's C17/legal range, and the list in canonical Handle-sort (§5.5 —
-    the canonicalisation is a bijection, so an unsorted emission is a
+    slot's legal range, and the list in canonical Handle-sort (the
+    canonicalisation is a bijection, so an unsorted emission is a
     different token for the same set: illegal at the Slate). ``None`` when
     legal, else the machine reason."""
     seq = list(chosen)
     if len(set(seq)) != len(seq):
         return "selection:duplicate_handles"  # checked BEFORE sort order:
     # a repeated handle is also a sort violation, and the duplicate reason
-    # is the informative one (ruling 5: handles are strictly ordered).
+    # is the informative one (handles are strictly ordered).
     if any(seq[i] >= seq[i + 1] for i in range(len(seq) - 1)):
         return "selection:not_canonically_sorted"
     population = set(slot.candidates)
@@ -549,10 +538,10 @@ def rest_of(
     slot: TargetSlot, one_of_picks: Handle | tuple[Handle, ...]
 ) -> tuple[Handle, ...]:
     """The REST partition of a ONE_OF/REST split, given the pick(s) — the
-    deterministic complement (§5.5-sorted), i.e. everything the choices
+    deterministic complement (Handle-sorted), i.e. everything the choices
     left ("put one of them in your hand, the rest into your graveyard").
-    T2 k-of-n (doc 30): accepts a single Handle (frozen legacy callers)
-    or the resolution's pick tuple — REST subtracts EVERY pick."""
+    Accepts a single Handle or the resolution's pick tuple — REST subtracts
+    EVERY pick."""
     picked = {one_of_picks} if isinstance(one_of_picks, Handle) else set(one_of_picks)
     return tuple(h for h in slot.candidates if h not in picked)
 
@@ -581,12 +570,12 @@ def choose_options(
     controller: Handle,
     bindings: dict[str, Binding] | None = None,
 ) -> list[OptionChoice]:
-    """EVERY legal option SET of a ``Choose`` node (C15 completeness; the
-    ``OPTION:PTR*`` / ``CHOICE_OPTION`` slots of §1.3): all k-subsets for
+    """EVERY legal option SET of a ``Choose`` node (completeness; the
+    ``OPTION:PTR*`` / ``CHOICE_OPTION`` slots): all k-subsets for
     k in the node's legal range, canonicalised size-ascending then
-    index-lex (§5.5 bijection). ``Choose`` + ``QAtMost`` includes the EMPTY
+    index-lex (a bijection). ``Choose`` + ``QAtMost`` includes the EMPTY
     set (resolution-time CHOOSE semantics — the option-set counterpart of
-    the C17 resolution clamp); ``QConst(1)`` gives exactly the n printed
+    the up-to resolution clamp); ``QConst(1)`` gives exactly the n printed
     options ('Choose one — A; B' → 2).
 
     An EMPTY-set choice consumes the skip path: dispatching zero option
@@ -612,31 +601,26 @@ def optional_offer(
     when firing is actionable, narrowed to ``("skip",)`` when the inner
     action CANNOT be performed (a 'you may discard a card' with an empty
     hand: CR 117.3 — no resources, no action; the offer stays enumerable,
-    just one-way that turn). Consumed by the 12a decision channel in tree
-    order (C15), the same vocab binding.py's may-offers drain (§fire/skip).
+    just one-way that turn). Consumed by the decision channel in tree
+    order, the same vocab binding.py's may-offers drain.
 
     Actionability is deliberately narrow: only exact-count selector roles
     (TARGET/CHOOSE/RANDOM with a concrete count) gate the offer — an action
-    with NO candidate at all. r18a widened two over-filters that erased
-    legal branches (CR 117.3 only ever removes an action there are no
-    resources/candidates for — a merely-undersupplied search keeps its
-    branch: the runtime CHOOSE resolves what exists, the C17 clamp, and a
-    search for "a card named X and/or a card named Y" is satisfiable at
-    one hit):
+    with NO candidate at all. CR 117.3 only ever removes an action there are
+    no resources/candidates for, so a merely-undersupplied search keeps its
+    branch (the runtime CHOOSE resolves what exists):
 
-    * a gate compares candidates to ZERO, never to the wanted count — the
-      old ``len(candidates) < want`` narrowed Alpine Houndmaster's
-      may-offer (two wanted, one in the library) to ``("skip",)`` while
-      the runtime CHOOSE would have honestly taken the one (C15 theft);
-    * a MOVE_ZONE tail after a SEARCH in the same effect (the 13a
-      re-search compile idiom — Fabled Passage/Chandra's Firemaw/Garruk's
-      Warsteed/Teferi's Wavecaster) is NOT gated against the
+    * a gate compares candidates to ZERO, never to the wanted count;
+    * a MOVE_ZONE tail after a SEARCH in the same effect (the re-search
+      compile idiom — Fabled Passage) is NOT gated against the
       pre-execution world: its candidates are PRODUCED mid-effect by the
-      search (the result register the 14e seam writes), so pre-execution
-      they are legitimately empty. The SEARCH selector's own population
-      still gates above it. ALL-mode and pure numeric actions stay always
-      actionable (doing an empty ALL is a legal no-op, e.g. scrying with
-      a bare library)."""
+      search (the result register), so pre-execution they are legitimately
+      empty. The SEARCH selector's own population still gates above it.
+      ALL-mode and pure numeric actions stay always actionable (doing an
+      empty ALL is a legal no-op, e.g. scrying with a bare library).
+
+    An unpayable PAY and a CAST with nothing castable narrow the offer too
+    (see the body)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     if not isinstance(effect, OptionalEffect):
@@ -647,16 +631,16 @@ def optional_offer(
             f"optional_offer: needs an OptionalEffect, got {type(effect).__name__}"
         )
     ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
-    # 13b: a PAY atom is the other unactionable-action shape — "You may pay
-    # {2}" with an empty pool offers only skip (CR 117.3: no resources, no
+    # A PAY atom is the other unactionable-action shape — "You may pay {2}"
+    # that nothing can pay offers only skip (CR 117.3: no resources, no
     # action), and _v_pay RAISES if a 'fire' decision ever reaches an
     # unpaid cost, so the offer MUST narrow first (query/runtime identity).
     for node in walk(effect.inner):
         if isinstance(node, Atom) and node.verb is Verb.PAY:
             pay_cost = node.args.get("cost")
             if isinstance(pay_cost, Cost):
-                # B-90 (a) (CR 605.3a): payable from the pool or by tapping
-                # the payer's {T}-only mana abilities while paying.
+                # CR 605.3a: payable from the pool or by tapping the payer's
+                # {T}-only mana abilities while paying.
                 from MTG_bot.core.executor.legality import plan_mana_taps
 
                 if (
@@ -672,10 +656,10 @@ def optional_offer(
     for node in walk(effect.inner):
         if not isinstance(node, Atom):
             continue
-        # r18a: the 13a re-search tail — a MOVE_ZONE after a SEARCH (in
-        # walk order, the same effect) reads the found cards (result
-        # register / top-of-library stand-in); pre-execution there is
-        # nothing to enumerate and that is NOT inactionability.
+        # The re-search tail — a MOVE_ZONE after a SEARCH (in walk order,
+        # the same effect) reads the found cards (result register /
+        # top-of-library stand-in); pre-execution there is nothing to
+        # enumerate and that is NOT inactionability.
         tail_of_search = node.verb is Verb.MOVE_ZONE and search_seen
         if node.verb is Verb.SEARCH:
             search_seen = True
@@ -690,10 +674,10 @@ def optional_offer(
             ):
                 continue  # ALL / ONE_OF / REST: no exact-count gate here
             if isinstance(value.count, (QUnbounded, QAtMost)):
-                # m21-fidelity wave 4 (2026-10-30): "up to N" includes zero,
-                # so an empty population never makes it unactionable (Alpine
-                # Houndmaster's "a card named A and/or a card named B" with
-                # only A in the library is still a search worth firing).
+                # "Up to N" includes zero, so an empty population never makes
+                # it unactionable (Alpine Houndmaster's "a card named A and/or
+                # a card named B" with only A in the library is still a search
+                # worth firing).
                 continue
             if tail_of_search or value.referent in ("event", "result"):
                 continue  # produced mid-effect: not a pre-execution gate
@@ -703,28 +687,24 @@ def optional_offer(
             if len(enumerate_candidates(value, ctx)) == 0 and not (
                 # "any target" includes players (CR 115.4), which no zone holds: count them the
                 # way the target ask does (_widen_any_target), or a board with no creature or
-                # planeswalker narrowed Goblin Arsonist's may to skip (2026-11-05)
+                # planeswalker would narrow Goblin Arsonist's may to skip
                 _player_widening_applies(value)
                 and any(not protected_from(executor, h, source) for h in executor.world.players)
             ):
                 return MAY_VOCAB[1:]
-    # r23a (Radha, Heart of Keld): the CAST atom's third unactionable shape.
-    # The frozen compiler turns "you may play lands from the top of your
-    # library" (and every "you may cast that card" rider) into an optional
-    # Verb.CAST whose SOURCE is a Selector; the engine's cast lane answers a
-    # card WITHOUT a SpellAbility (a land — CR 305's special action is not a
-    # cast) with the loud 'CAST Island: no SpellAbility' raise. When the
-    # designated population holds NOTHING the cast lane can run, CR 117.3
-    # narrows the may-offer to skip — the same "no candidates, no action"
-    # rule that gates the empty-hand discard above, read through the
-    # castability structure (does a SpellAbility carrier exist) AND — the
-    # /125 asymmetry fix — MANA payability: the runtime cast lane raises
-    # LOUD at stack.cast_card when the designated card's total cost cannot
-    # be paid (seed 777003: Conspicuous Snoop's may-offer fired with a
-    # {3}{R} top-card over a {R:3} pool), so an offer whose designees are
-    # all unpayable is an impossible action (CR 117.3) and narrows to
-    # skip — one payment oracle, the SAME build_payment_plan the engine
-    # folds, never a second affordability arithmetic.
+    # The CAST atom's third unactionable shape. The compiler turns "you may
+    # play lands from the top of your library" (Radha, Heart of Keld; and
+    # every "you may cast that card" rider) into an optional Verb.CAST whose
+    # SOURCE is a Selector; the engine's cast lane answers a card WITHOUT a
+    # SpellAbility (a land — CR 305's special action is not a cast) with the
+    # loud 'CAST Island: no SpellAbility' raise, and raises LOUD at
+    # stack.cast_card when the designated card's total cost cannot be paid
+    # (Conspicuous Snoop's {3}{R} top card over a {R:3} pool). When no
+    # designee could be run AND paid for, firing is an impossible action
+    # (CR 117.3: the same "no candidates, no action" rule that gates the
+    # empty-hand discard above) and the may-offer narrows to skip — one
+    # payment oracle, the SAME build_payment_plan the engine folds, never a
+    # second affordability arithmetic.
     for node in walk(effect.inner):
         if isinstance(node, Atom) and node.verb is Verb.CAST:
             sel = node.args.get("source")
@@ -746,12 +726,12 @@ def _cast_option_payable(
     the atom's ``cost`` role when present (an EMPTY Cost is the corpus
     cost-waiver idiom, CR 118.9 "without paying its mana cost"; a Cost
     with parts is paid ON TOP of the printed cost, CR 601.2f), else the
-    card's printed cost, plus the spell's additional costs (V36:
-    legality.effect_cast_cost). The fold runs with cast_card's own context
+    card's printed cost, plus the spell's additional costs
+    (legality.effect_cast_cost). The fold runs with cast_card's own context
     shape (source=the card, the effect cast's declared X default 0, CR
     107.4) and the same ``mana_use`` restriction read. One source of
     truth: this is literally the same :func:`build_payment_plan` call
-    stack.py:1093 makes — legality and execution can never disagree."""
+    ``stack.cast_card`` makes — legality and execution can never disagree."""
     from MTG_bot.core.executor.legality import effect_cast_cost, spell_record
 
     record = spell_record(executor, handle)
@@ -761,7 +741,7 @@ def _cast_option_payable(
         else None
     )
     if node is not None:
-        cost = effect_cast_cost(record, node, cost_override)  # V36: + additional costs
+        cost = effect_cast_cost(record, node, cost_override)  # + additional costs
     else:
         cost = (
             cost_override
@@ -769,7 +749,7 @@ def _cast_option_payable(
             else (record.mana_cost if record is not None else None)
         )
     if cost is None or not cost.parts:
-        return True  # waiver (CR 498.2) / costless: nothing to fold
+        return True  # waiver (CR 118.9) / costless: nothing to fold
     plan, _why = build_payment_plan(
         executor.world,
         ctx_for(
@@ -797,9 +777,9 @@ def cast_carrier(executor: Executor, handle: Handle):
 
 
 def cast_run_gap(executor: Executor, handle: Handle) -> bool:
-    """The /115 TYPED face-cast shape: a compiled record whose every
+    """The TYPED face-cast shape: a compiled record whose every
     ability sits behind a ``BackFace`` (the front text never reached the
-    spell grammar — all 20 ZNR spell-front MDFCs). This is NOT a clamp
+    spell grammar — ZNR's spell-front MDFCs). This is NOT a clamp
     member: the designated card still OWNS the typed refusal, so the
     clamp must preserve it — ``cast_card`` raises ``FaceCastAbsentError``
     and the guarded resolution lane SKIPS and LEDGERS it (never silent,
@@ -817,17 +797,15 @@ def permission_cast(executor: Executor, source: Handle, atom: Atom) -> bool:
     """Is ``atom`` (a CAST) a permission to cast: an atom of one of ``source``'s activated
     abilities other than a loyalty ability?
 
-    2026-11-05 (known_bugs cast_from_top_ignores_timing): the compiler writes a permission,
-    "You may cast Goblin spells from the top of your library" (Conspicuous Snoop, the Mystic
-    Forge draft) or "Until end of turn, you may cast a creature spell from among cards exiled
-    with this artifact" (Idol of Endurance), as an activated ability whose resolution casts the
-    card. A permission changes where a card may be cast from, not when (CR 601.3): the card is
-    cast at its own timing, a creature or sorcery only in its controller's main phase with an
-    empty stack unless it has flash (CR 302.1, 307.1, 702.8a). Cast as part of the ability's
-    resolution, Idol of Endurance flashed a creature in on the opponent's turn. A CAST in a
-    spell, a triggered ability or a loyalty ability (Chandra, Flame's Catalyst's [-2]) is made
-    while that ability resolves and ignores timing; no activated ability in the compiled pools
-    is such a cast."""
+    The compiler writes a permission, "You may cast Goblin spells from the top of your library"
+    (Conspicuous Snoop) or "Until end of turn, you may cast a creature spell from among cards
+    exiled with this artifact" (Idol of Endurance), as an activated ability whose resolution
+    casts the card. A permission changes where a card may be cast from, not when (CR 601.3): the
+    card is cast at its own timing, a creature or sorcery only in its controller's main phase
+    with an empty stack unless it has flash (CR 302.1, 307.1, 702.8a); otherwise Idol of
+    Endurance would flash a creature in on the opponent's turn. A CAST in a spell, a triggered
+    ability or a loyalty ability (Chandra, Flame's Catalyst's [-2]) is made while that ability
+    resolves and ignores timing; no activated ability in the compiled pools is such a cast."""
     from MTG_bot.core.executor.legality import spell_record
 
     record = spell_record(executor, source)
@@ -849,19 +827,18 @@ def cast_designee_ok(
     *,
     atom: Atom | None = None,
 ) -> bool:
-    """B1/B2 designee law (/125 gate round): the execution-acceptance
-    predicate for one CAST designee — carrier (a land is not a spell:
-    CAST designee sets RANGE OVER SPELLS) AND payable (CR 601.2e: the
-    payment fold the engine itself performs) — OR the /115 typed
-    face-cast gap, which the guard lane must still RUN into (its skip
-    is LOUD and LEDGERED, never a silent clamp-drop). THE single choke
-    point: the offer gate (here) AND the runtime designation read
-    (:func:`selectors.role_handles`, CAST branch → the three-shape clamp
-    of :func:`selectors.resolve_selector`: population menus clamp, the
-    finite CHOOSE head is CHECKED positionally, TARGET-bound drops
-    ledger) evaluate THIS predicate, so the model-visible menu and what
-    execution accepts are the same computation (§10 menu-visibility,
-    /114 one-oracle law).
+    """The CAST designee law: the execution-acceptance predicate for one
+    CAST designee — carrier (a land is not a spell: CAST designee sets RANGE
+    OVER SPELLS) AND payable (CR 601.2e: the payment fold the engine itself
+    performs) — OR the typed face-cast gap (:func:`cast_run_gap`), which the
+    guard lane must still RUN into (its skip is LOUD and LEDGERED, never a
+    silent clamp-drop). THE single choke point: the offer gate (here) AND
+    the runtime designation read (:func:`selectors.role_handles`, CAST
+    branch → the three-shape clamp of :func:`selectors.resolve_selector`:
+    population menus clamp, the finite CHOOSE head is CHECKED positionally,
+    TARGET-bound drops ledger) evaluate THIS predicate, so the model-visible
+    menu and what execution accepts are the same computation (AGENTS §10
+    menu visibility).
 
     ``atom`` is the CAST being judged. Through a permission (:func:`permission_cast`) the card
     must also be castable at its own timing right now."""
@@ -884,10 +861,10 @@ def cast_designee_ok(
 
 
 def _register_cast_gap(executor: Executor, flag: str) -> None:
-    """B3 (/112 ledger pattern): a CAST-shape gap the gate had to work
-    around is REGISTERED — one-time, deduped, queryable on
-    ``executor.unresolved_effects`` — never silently silenced. The gate
-    keeps the honest skip; the compiler lane gets the ledger."""
+    """A CAST-shape gap the gate had to work around is REGISTERED —
+    one-time, deduped, queryable on ``executor.unresolved_effects`` — never
+    silently silenced. The gate keeps the honest skip; the compiler lane
+    gets the ledger."""
     counts = executor.unresolved_effect_counts
     if flag in counts:
         counts[flag] += 1
@@ -897,11 +874,11 @@ def _register_cast_gap(executor: Executor, flag: str) -> None:
 
 
 def register_cast_gap(executor: Executor, host: Handle, note: str) -> None:
-    """Public B3 lane for RUNTIME-side cast refusals (F2, re-gate round 3
-    /125): composes the standard ``cast-gap <host>: <note>`` flag and
-    writes it into the deduped ledger, so the positional-head refusal and
-    the TARGET designation drop are QUERYABLE rows — never silent no-ops,
-    never raise-traps (:meth:`selectors.resolve_selector` is the caller)."""
+    """The public ledger lane for RUNTIME-side cast refusals: composes the
+    standard ``cast-gap <host>: <note>`` flag and writes it into the deduped
+    ledger, so the positional-head refusal and the TARGET designation drop
+    are QUERYABLE rows — never silent no-ops, never raise-traps
+    (:func:`selectors.resolve_selector` is the caller)."""
     from MTG_bot.core.executor.legality import spell_record
 
     rec = spell_record(executor, host)
@@ -910,8 +887,8 @@ def register_cast_gap(executor: Executor, host: Handle, note: str) -> None:
 
 
 def cast_refusal_note(executor: Executor, host: Handle, bad: Sequence[Handle]) -> str:
-    """Ledger text naming each refused CAST designee WITH its reason (F2,
-    /125), read through the same primitives the gate uses:
+    """Ledger text naming each refused CAST designee WITH its reason,
+    read through the same primitives the gate uses:
     ``not a SpellAbility carrier`` (land / face-shape outside the cast
     lane) vs ``cannot be paid for right now`` (a carrier whose payment
     failed the host cost fold — ``ok`` is only False on a carrier when
@@ -933,12 +910,12 @@ def _cast_effect_actionable(
     executor: Executor, node: Atom, sel: Selector, ctx: ExecCtx
 ) -> bool:
     """Is one CAST atom fireable — would the card(s) the DESIGNATION lane
-    actually feed ``_v_cast`` RUN (carrier) and be PAID (CR 601.2e)? B1
-    (gate round): the lanes cast WHOLE slices / populations, so the gate
-    prices the designation set with the same per-candidate law the
-    runtime applies (:func:`cast_designee_ok`), lane by lane:
+    actually feed ``_v_cast`` RUN (carrier) and be PAID (CR 601.2e)? The
+    lanes cast WHOLE slices / populations, so the gate prices the
+    designation set with the same per-candidate law the runtime applies
+    (:func:`cast_designee_ok`), lane by lane:
 
-    * 12a SOURCE BINDINGS — an explicit designation casting ALL bound
+    * SOURCE BINDINGS — an explicit designation casting ALL bound
       cards (the waiver shape): every bound card must pass the law;
       a non-carrier binding stays the runtime's LOUD raise (never a
       silently dropped designation), so the branch fires only when the
@@ -952,16 +929,16 @@ def _cast_effect_actionable(
       offered set clamps to spell carriers and every one of them must
       be payable (the runtime mirrors both halves).
     * TARGET / ONE_OF — ONE designee the seat picks: the branch is
-      actionable iff at least one candidate passes (r18a: merely
+      actionable iff at least one candidate passes (merely
       undersupplied menus keep their branch), and the ASK VOCABULARY
-      is clamped to exactly the passing candidates (B2: the seat is
+      is clamped to exactly the passing candidates (the seat is
       never offered an option execution would raise on).
     """
     from MTG_bot.core.executor.legality import enumerate_candidates, spell_record
 
     cost_override = node.args.get("cost")
     if not isinstance(cost_override, Cost):
-        cost_override = None  # no cost role, or a 12a Ref (resolved at runtime)
+        cost_override = None  # no cost role, or a Ref (resolved at runtime)
 
     def ok(handle: Handle) -> bool:
         return cast_designee_ok(executor, ctx, handle, cost_override, atom=node)
@@ -975,9 +952,9 @@ def _cast_effect_actionable(
     host_rec = spell_record(executor, ctx.source)
     host = getattr(host_rec, "name", None) or str(ctx.source)
     if cands and not carriers:
-        # B3: the selector's filter admits ZERO runnable spell designees.
+        # The selector's filter admits ZERO runnable spell designees.
         if gaps:
-            # the /115 face-cast-absent population (DFC front text never
+            # the face-cast-absent population (DFC front text never
             # compiled): the typed guard owns the RUN lanes, but a may-
             # offer that can only ever guard-skip is registered here so
             # the may-lane gap is never silent either.
@@ -1003,7 +980,7 @@ def _cast_effect_actionable(
         # (a land never joins a CAST population — the runtime applies the
         # same clamp at role_handles, so lands stay put and the spells
         # cast: play stays alive, no raise), and the WHOLE clamped set is
-        # cast, so every carrier must be payable — never any(). The /115
+        # cast, so every carrier must be payable — never any(). The
         # run-gap members are NOT clamped (their typed guard stays in
         # front of the payment fold), so they do not count as drops.
         dropped = len(cands) - len(carriers) - len(gaps)
@@ -1018,8 +995,8 @@ def _cast_effect_actionable(
                 f"cast-gap {host}: CAST population "
                 f"admits {dropped} non-spell designees sel={sel!r}",
             )
-        # 2026-10-30 (coordinator, Radha/Snoop): casting NOTHING is not an
-        # action (CR 117.3); an empty population offered "fire" for a no-op.
+        # Casting NOTHING is not an action (CR 117.3): an empty population
+        # must not offer "fire" for a no-op.
         return bool(carriers) and all(ok(c) for c in carriers)
     designees = sorted(cands)[: resolve(sel.count, ctx)]  # mirror the stand-in
     # An empty designation casts nothing (a nonland on top for Radha's land row,
@@ -1033,18 +1010,18 @@ def _cast_effect_actionable(
 
 @dataclass(frozen=True)
 class CastOption:
-    """One row of the 13b ``CAST``/``PLAY_LAND`` decision surface — the
+    """One row of the ``CAST``/``PLAY_LAND`` decision surface — the
     SAME object ``legal_casts`` enumerates and ``stack.cast``/
-    ``stack.play_land`` re-check (§8.3 identity: query answer and legality
-    oracle are one computation, never two that can disagree).
+    ``stack.play_land`` re-check (query answer and legality oracle are one
+    computation, never two that can disagree).
 
     Two shapes share this row type because they share the Slate field
-    (§1.4's CAST decision covers the land drop — both are "put a card
-    from hand into play", and C15 demands BOTH be enumerable on one
+    (the CAST decision covers the land drop — both are "put a card
+    from hand into play", and BOTH must be enumerable on one
     surface, or the model sees a hidden action):
 
     * spell row — ``land=False``: the :class:`SpellAbility` node (IR
-      identity, §8.3), the compiled 601.2f cost fold in ``payment``
+      identity), the compiled 601.2f cost fold in ``payment``
       (X enumerated at its documented 0-floor witness when the caller
       passed no ``x``), and the handle;
     * land row — ``land=True``: ``node=None, payment=None`` — a land has
@@ -1052,17 +1029,17 @@ class CastOption:
       modelling it as ``payment=empty`` would pretend at a cost fold
       that does not exist.
 
-    ``order_key`` is the bare Handle: rows sort Handle-first (ruling 5),
-    spells and lands interleaved by their card handle — the world's own
-    object order, stable across replays.
+    ``order_key``: rows sort Handle-first, spells and lands interleaved by
+    their card handle — the world's own object order, stable across
+    replays.
 
-    ``kicked`` (ZND-1e, CR 601.2b): a card with a KickerAbility the
+    ``kicked`` (CR 601.2b): a card with a KickerAbility the
     executor can price appears TWICE on the surface when both totals are
     payable — the base row (``kicked=False``) and the kicked row
     (``kicked=True``, its payment folded WITH the kicker cost). Rows sort
     Handle-first, base before kicked (the CR's natural order: the cheaper
     declaration first), so the surface enumerates every legal way to
-    cast without hiding the optional-cost action (C15)."""
+    cast without hiding the optional-cost action."""
 
     handle: Handle
     node: SpellAbility | None
@@ -1080,21 +1057,20 @@ def legal_casts(
     """Every card ``seat`` may put into play from hand RIGHT NOW — spells
     via :func:`legality.spell_castable` (window + cost fold), lands via
     :func:`stack.land_playable` (the CR 305.1 special action, its own
-    option SHAPE on the same surface — C15: the land drop must not be a
+    option SHAPE on the same surface — the land drop must not be a
     hidden action). PURE: world read-only, no journal write, no rng —
     pre-cast enumeration of the total cost (601.2f) is a QUERY, exactly
     as ``legal_activations`` is; the cast itself RE-checks.
 
-    X handling (12c's X_VALUE field folded): with ``x=None`` a QX spell is
+    X handling (the X_VALUE field folded): with ``x=None`` a QX spell is
     enumerated on the documented **X=0 witness** (a legal declaration, CR
     107.1) so the row stays enumerable; pass ``x=k`` to ask "is it
     castable declaring X=k" — the row's payment then folds {X}=k, and a
     too-big k disappears the row (shortage reason, never a raise).
 
-    A cost the executor cannot check at all (e.g. a loyalty COST on a
-    spell) RAISES through the scan — the loud-half convention of
-    ``legal_activations``: a hole in the legality oracle must crash the
-    query, never silently shrink the option set."""
+    A cost the executor cannot check at all RAISES through the scan — the
+    loud-half convention of ``legal_activations``: a hole in the legality
+    oracle must crash the query, never silently shrink the option set."""
     from MTG_bot.core.executor.stack import is_land_card, land_playable
 
     rows: list[CastOption] = []
@@ -1109,17 +1085,17 @@ def legal_casts(
                 rows.append(
                     CastOption(handle=handle, node=node, land=False, payment=plan)
                 )
-                # ZND-1e (CR 601.2b + C15): a priced kicker means the
-                # SAME card is legally castable two ways — enumerate the
-                # kicked row too when the total (printed + kicker) is
-                # payable. A card without a kicker yields no second row
-                # (honest reason from the fold, swallowed here exactly
-                # like an unaffordable base cast). ZND-1g: an X-kicker
-                # rides this lane too — its kicked row folds {X} at the
-                # caller's x (the X=0 witness when none was passed), so
-                # an X-kicker shows BOTH rows even on a base-priced
-                # pool: the zero-floor kick is a legal declaration, and
-                # the priced-to-x kicked row disappears on shortage.
+                # CR 601.2b: a priced kicker means the SAME card is
+                # legally castable two ways — enumerate the kicked row too
+                # when the total (printed + kicker) is payable. A card
+                # without a kicker yields no second row (honest reason
+                # from the fold, swallowed here exactly like an
+                # unaffordable base cast). An X-kicker rides this lane
+                # too — its kicked row folds {X} at the caller's x (the
+                # X=0 witness when none was passed), so an X-kicker shows
+                # BOTH rows even on a base-priced pool: the zero-floor
+                # kick is a legal declaration, and the priced-to-x kicked
+                # row disappears on shortage.
                 kreason, _kn, _kr, kplan = spell_castable(
                     executor, seat, handle, x=x, kicked=True
                 )
@@ -1138,10 +1114,10 @@ def legal_casts(
 
 
 def filter_has_pred(filter_: object, pred: FAtomPred) -> bool:
-    """r19c (Experimental Overload): does this filter tree carry ``pred``
-    anywhere (FAnd/FOr children, FNot inner)? The cast lane's self-
-    designation clause keys on exactly this shape — a TARGET selector whose
-    ONLY way to be satisfied is the source spell itself."""
+    """Does this filter tree carry ``pred`` anywhere (FAnd/FOr children,
+    FNot inner)? The cast lane's self-designation clause keys on exactly
+    this shape — a TARGET selector whose ONLY way to be satisfied is the
+    source spell itself (Experimental Overload)."""
     from MTG_bot.core.ability_tree import FNot, FOr
 
     if isinstance(filter_, FAtom):
@@ -1154,8 +1130,8 @@ def filter_has_pred(filter_: object, pred: FAtomPred) -> bool:
 
 
 def _designation_selector(selector: Selector) -> Selector:
-    """r19c (Rookie Mistake): the DESIGNATION face of a TARGET selector —
-    the filter with its ``IS_ANY_TARGET`` atoms read as TAUTOLOGIES.
+    """The DESIGNATION face of a TARGET selector (Rookie Mistake) — the
+    filter with its ``IS_ANY_TARGET`` atoms read as TAUTOLOGIES.
 
     CR 601.2c designates targets one at a time; an anaphoric filter like
     "target creature that's targeted by this spell" ('another target
@@ -1163,7 +1139,7 @@ def _designation_selector(selector: Selector) -> Selector:
     being built — nothing is targeted yet, so the raw predicate empties the
     candidate population and the slot becomes uncastable by construction
     (the same chicken-and-egg the runtime answers from the finished
-    designation, quantity._eval_atom's closed-C12 reading). At DESIGNATION
+    designation, quantity._eval_atom's reading). At DESIGNATION
     time every card is a POTENTIAL target, so the atom must pass; the
     runtime keeps evaluating the ORIGINAL filter (the designation exists
     by then — ExecCtx.designation_union), and the slot keeps the original
@@ -1181,7 +1157,7 @@ def _designation_selector(selector: Selector) -> Selector:
             for child in filter_.children:
                 kept, was = strip(child)
                 changed = changed or was
-                # a tautology conjunct drops out of the AND (§ universal)
+                # a tautology conjunct drops out of the AND
                 if changed and isinstance(kept, FAnd) and not kept.children:
                     continue
                 kids.append(kept)
@@ -1202,16 +1178,15 @@ def _designation_selector(selector: Selector) -> Selector:
 
 
 def _designated_player_refs(value: object) -> set[ControllerRef]:
-    """Which designated-player refs this atom role reads (V21: "target player"
+    """Which designated-player refs this atom role reads ("target player"
     TARGET_PLAYER, "target opponent" TARGET_OPPONENT). A bare ControllerRef
     (Duress's "target opponent"), a Zone it controls, a filter that reads the
-    bound player (E1 FIX-2), or (B-49 follow-up #3, 2026-10-29) a Selector over
-    zones it controls. Tormod's Crypt's "Exile target player's graveyard"
-    selects ALL cards in Zone(GRAVEYARD, TARGET_PLAYER). The word "target"
-    makes the player a target (CR 115.1), so it needs the player slot. Without
-    it the activation resolved with nothing bound and raised "TARGET_PLAYER
+    bound player, or a Selector over zones it controls (Tormod's Crypt's
+    "Exile target player's graveyard" selects ALL cards in Zone(GRAVEYARD,
+    TARGET_PLAYER)). The word "target" makes the player a target (CR 115.1),
+    so it needs the player slot, or the resolution raises "TARGET_PLAYER
     needs a bound target". The spell and activation lanes share this one
-    predicate; trigger designation (binding._designate) is unchanged."""
+    predicate; trigger designation (binding._designate) has its own scan."""
     if isinstance(value, ControllerRef):
         return {value} if value in DESIGNATED_PLAYER_REFS else set()
     if isinstance(value, Zone):
@@ -1230,14 +1205,13 @@ def player_target_slot(
     *,
     source: Handle | None = None,
 ) -> TargetSlot:
-    """The synthesized designation slot of a designated player (V21). CR 115.1:
+    """The synthesized designation slot of a designated player. CR 115.1:
     "target player" names any player, the caster included; "target opponent"
     an opponent of the caster (CR 102.2, 102.3). A tree reading TARGET_OPPONENT
     anywhere names an opponent: "that player" anaphora after "Target opponent
     reveals their hand" read TARGET_PLAYER, and the designating word decides.
-    Before V21 both meant opponents only, so "target player" could not target
-    you (B-53). V44 (CR 702.16b, merged 2026-10-30): a player with protection
-    from ``source`` (the spell, or the ability's source) can't be its target."""
+    A player with protection from ``source`` (the spell, or the ability's
+    source) can't be its target (CR 702.16b)."""
     players = executor.world.player_order
     opponent_only = ControllerRef.TARGET_OPPONENT in refs
     candidates = tuple(
@@ -1265,7 +1239,7 @@ def player_target_slot(
 
 
 def modal_choose(node: SpellAbility) -> Choose | None:
-    """V17: a modal spell's mode menu (CR 700.2: options in a bulleted list
+    """A modal spell's mode menu (CR 700.2: options in a bulleted list
     after "choose one" or similar), which the compiler makes the spell's
     top-level Choose. A Choose inside a sentence ("your choice of deathtouch
     or lifelink") is not a mode: it is chosen as the effect resolves (CR
@@ -1275,7 +1249,7 @@ def modal_choose(node: SpellAbility) -> Choose | None:
 
 
 def with_modes(node: SpellAbility, modes: tuple[int, ...]) -> SpellAbility:
-    """V17: the spell as cast with the announced modes (CR 601.2b): only
+    """The spell as cast with the announced modes (CR 601.2b): only
     those options, in printed order (CR 700.2d's "treated as if that mode
     appeared that many times in sequence" reads the same way)."""
     choose = modal_choose(node)
@@ -1295,7 +1269,7 @@ def cast_mode_options(
     seat: Handle,
     pay=None,
 ) -> list[tuple[int, tuple[int, ...]]]:
-    """V17 (CR 601.2b, 700.2a): the mode sets the caster may announce, as
+    """The mode sets the caster may announce (CR 601.2b, 700.2a), as
     ``(order index, option indices)`` in :func:`choose_options` order (the
     order index is the runtime Choose's decision token). A set is legal only
     if every target its modes need can be chosen (700.2a: a mode that would
@@ -1319,7 +1293,7 @@ def cast_mode_options(
 
 
 def role_target_selectors(value: object) -> list[Selector]:
-    """V25 (CR 115.1, 601.2c): the TARGET-mode Selectors a role value designates:
+    """The TARGET-mode Selectors a role value designates (CR 115.1, 601.2c):
     the value itself, or one nested in a quantity, as in "Target creature you
     control deals damage equal to ITS power to another target creature" (Garruk,
     Savage Herald's -2: the amount is QProp(referent=Selector(TARGET, creature you
@@ -1348,11 +1322,10 @@ def _spell_slot(
     seat: Handle,
 ) -> TargetSlot:
     """One TARGET selector's slot: the per-selector body both slot walkers share."""
-    # r19c (Rookie Mistake): candidates enumerate through the
-    # DESIGNATION face (IS_ANY_TARGET = potential-target tautology);
-    # the slot keeps the ORIGINAL selector as its identity — the
-    # cast lane repr-matches designations to the atom's own Selector
-    # and the runtime re-evaluates the un-stripped filter.
+    # Candidates enumerate through the DESIGNATION face (IS_ANY_TARGET =
+    # potential-target tautology); the slot keeps the ORIGINAL selector as
+    # its identity — the cast lane repr-matches designations to the atom's
+    # own Selector and the runtime re-evaluates the un-stripped filter.
     enum_value = _designation_selector(value)
     slot = legal_targets(
         executor.world,
@@ -1370,12 +1343,12 @@ def _spell_slot(
 
 
 def _rotation_player_refs(node: object) -> set[ControllerRef]:
-    """m21-fidelity (2026-10-29): an EachPlayer whose ref is a designated player runs its effect
-    as that player (Run Afoul's "Target opponent sacrifices a creature of their choice with
-    flying", the Goremand edict shape with a target). Its atoms are YOU-relative, so no atom role
-    names the ref; the ref itself makes the player a target (CR 115.1) and needs the slot, or the
-    resolution raises "TARGET_PLAYER needs a bound target". V21 (merge 2026-10-30): either
-    designated ref, so the slot tells "target opponent" from "target player"."""
+    """An EachPlayer whose ref is a designated player runs its effect as that player (Run
+    Afoul's "Target opponent sacrifices a creature of their choice with flying", the Goremand
+    edict shape with a target). Its atoms are YOU-relative, so no atom role names the ref; the
+    ref itself makes the player a target (CR 115.1) and needs the slot, or the resolution raises
+    "TARGET_PLAYER needs a bound target". Either designated ref, so the slot tells "target
+    opponent" from "target player"."""
     if isinstance(node, EachPlayer) and node.ref in DESIGNATED_PLAYER_REFS:
         return {node.ref}
     return set()
@@ -1392,33 +1365,32 @@ def spell_target_slots(
 ) -> list[TargetSlot]:
     """The TARGET-selection slots of a SPELL's effect tree: every
     TARGET-mode Selector reachable under the SpellAbility's effect, as the
-    SAME per-slot :class:`TargetSlot` the activation surface returns
-    (§8.3 identity — one slot type, one validation oracle for every
-    ability in the game). Coordinates: ``source`` = the spell card itself
-    (601.2c designates about the spell), ``controller`` = the caster.
+    SAME per-slot :class:`TargetSlot` the activation surface returns (one
+    slot type, one validation oracle for every ability in the game).
+    Coordinates: ``source`` = the spell card itself (601.2c designates about
+    the spell), ``controller`` = the caster.
 
-    "Any target" widening (CR 109.5): a Zone(ANY) selection also names
-    PLAYERS — the frozen card-only enumeration cannot know a DEAL_DAMAGE
-    target may be a player, so for a universal-filtered ANY selector the
-    player seats join the candidate population (a NON-universal filter
-    cannot be evaluated against a player handle — the predicate would
-    crash on ``world.cards[player]`` — so those selectors stay
-    card-only, which is also the rules answer: "target creature" excludes
-    players anyway).
+    "Any target" widening (CR 109.5, :func:`_player_widening_applies`): the
+    card-only enumeration cannot know a DEAL_DAMAGE target may be a player,
+    so for a universal-filtered ANY selector, or the compiled "any target"
+    idiom, the player seats join the candidate population. Any other filter
+    cannot be evaluated against a player handle — the predicate would crash
+    on ``world.cards[player]`` — so those selectors stay card-only, which is
+    also the rules answer: "target creature" excludes players anyway.
 
-    The corpus' "target opponent" (Duress) compiles to a TARGET_PLAYER
-    ControllerRef with NO Selector. 14b (B-8/B-5 fix): that coordinate now
-    gets a SYNTHESIZED slot — the opponent-seat population comes from the
-    ENGINE's own player rule (exactly the one
-    ``stack._validate_spell_targets`` re-checks, which stays the oracle),
-    so a caller designates from a QUERY instead of mirroring the CR rule
-    (/03 row B-5 mirror #4, deleted).
+    A designated player ("target opponent": Duress) compiles to a
+    TARGET_PLAYER / TARGET_OPPONENT ControllerRef with NO Selector. That
+    coordinate gets a SYNTHESIZED slot
+    (:func:`player_target_slot`) — the population comes from the ENGINE's
+    own player rule (exactly the one ``stack._validate_spell_targets``
+    re-checks, which stays the oracle), so a caller designates from a QUERY
+    instead of mirroring the CR rule.
 
-    ``modes`` (V17, CR 601.2c): for a modal spell, the option indices the
+    ``modes`` (CR 601.2c): for a modal spell, the option indices the
     caster announced; only those modes' targets exist. None walks every mode
     (the mode-blind union, which is what a caller gets before announcing).
 
-    ``pay`` (2026-11-05): how a target-dependent total is priced, as
+    ``pay``: how a target-dependent total is priced, as
     ``pay(targets) -> bool`` (:func:`_affordable_target_slots`). None prices it
     against the pool alone, as :func:`stack.cast` pays; a caller that taps free
     sources before casting (the bench menu, the response windows) passes its
@@ -1428,14 +1400,11 @@ def spell_target_slots(
     slots: list[TargetSlot] = []
     seen: set[str] = set()
     if node.effect is None:
-        # 16e hole (ZNR fuzz 2026-10-19, Bubble Snare, 21/500): an aura's
-        # SpellAbility can carry NO effect — its gameplay rides entirely on
-        # sibling ETB/static abilities — yet the cast STILL requires an
-        # enchant designation (CR 601.2c). Returning here skipped the aura
-        # ENCHANT synthesis below, so _validate_spell_targets saw a
-        # targetless spell and stack.py's resolution invariant fired.
-        # 2026-11-05: and it skipped the V29 pricing, so Rousing Read was
-        # offered at an opponent's Pursued Whale it could not pay for.
+        # An aura's SpellAbility can carry NO effect (Bubble Snare) — its
+        # gameplay rides entirely on sibling ETB/static abilities — yet the
+        # cast STILL requires an enchant designation (CR 601.2c), and that
+        # designation is still priced (_affordable_target_slots: Rousing Read
+        # must not be offered at an opponent's Pursued Whale it cannot pay for).
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
         if aura is None:
             return slots
@@ -1447,7 +1416,7 @@ def spell_target_slots(
             continue
         for _role, role_value in inner.args.pairs:
             player_refs |= _designated_player_refs(role_value)
-            for value in role_target_selectors(role_value):  # V25: nested too
+            for value in role_target_selectors(role_value):  # nested ones too
                 key = repr(value)
                 if key in seen:
                     continue
@@ -1456,20 +1425,18 @@ def spell_target_slots(
                     _spell_slot(executor, inner, _role, value, spell_handle, seat)
                 )
     if not slots and not player_refs:
-        # 16e (CR 702.5a): an AURA spell carries no TARGET-mode selector
+        # CR 702.5a: an AURA spell carries no TARGET-mode selector
         # (its effect reads IS_ATTACHED_TO_SOURCE, not a designation) —
-        # yet the cast REQUIRES an enchant target (CR 601.2c). The slot is
-        # synthesized from the aura's own tree: the enchantment filter is
-        # the co-located selector's filter minus the IS_ATTACHED_TO_SOURCE
-        # atom, falling back to "any permanent you could put an aura on".
+        # yet the cast REQUIRES an enchant target (CR 601.2c), so
+        # aura_enchant_slot synthesizes the slot.
         aura = aura_enchant_slot(executor, node, spell_handle=spell_handle, seat=seat)
         if aura is not None:
             slots.append(aura)
     if player_refs:
-        # 14b (B-8/B-5): the TARGET_PLAYER coordinate's designation slot —
-        # the CR population the runtime REQUIRES, now answered by the query
-        # so no caller mirrors the rule (V21: by which ref the tree reads;
-        # V44: a player with protection from the spell is no candidate).
+        # The designated player's slot — the CR population the runtime
+        # REQUIRES, answered by the query so no caller mirrors the rule (by
+        # which ref the tree reads; a player with protection from the spell
+        # is no candidate).
         slots.append(player_target_slot(executor, seat, player_refs, source=spell_handle))
     return _affordable_target_slots(executor, slots, spell_handle, seat, pay)
 
@@ -1490,7 +1457,7 @@ def _reads_targets_source(filter_: object) -> bool:
 def _affordable_target_slots(
     executor: Executor, slots: list[TargetSlot], spell_handle: Handle, seat: Handle, pay=None
 ) -> list[TargetSlot]:
-    """V29 (CR 601.2f, 601.2h): with a target-dependent cost increase on the
+    """CR 601.2f, 601.2h: with a target-dependent cost increase on the
     battlefield ("Spells your opponents cast that target this creature cost {3}
     more", Pursued Whale; Terror of the Peaks' 3 life), a candidate whose total
     cost the caster cannot pay is not a live option: casting the spell at it is
@@ -1534,7 +1501,7 @@ def _affordable_target_slots(
 
 
 def designation_bound(filter_: object) -> bool:
-    """V34: does a filter name the ability's own target (an IS_ANY_TARGET
+    """Does a filter name the ability's own target (an IS_ANY_TARGET
     conjunct)? Its other conjuncts then describe that target ("another target
     creature with power 2 or less"), so they are targeting restrictions."""
     if isinstance(filter_, FAtom):
@@ -1548,7 +1515,7 @@ def designation_bound(filter_: object) -> bool:
 
 
 def combat_target_filters(event: object) -> list[object]:
-    """V34: the designation-bound filters of a combat event's slots, the places
+    """The designation-bound filters of a combat event's slots, the places
     a "target creature can't be blocked / can't block" ability keeps its target
     (Subira, Tulzidi Caravanner: DeclareBlockersEvent.blocked)."""
     from MTG_bot.core.ability_tree import DeclareAttackersEvent, DeclareBlockersEvent
@@ -1565,14 +1532,14 @@ def combat_target_filters(event: object) -> list[object]:
 def _designation_only_slot(
     executor: Executor, effect: object, source: Handle, seat: Handle
 ) -> TargetSlot | None:
-    """V34 (CR 115.1, 602.2b): an ability whose ONLY trace of its target is an
+    """CR 115.1, 602.2b: an ability whose ONLY trace of its target is an
     IS_ANY_TARGET filter in a combat event slot ("{1}: Another target creature
     with power 2 or less can't be blocked this turn", Subira, Tulzidi Caravanner;
-    ZNR Sneaking Guide, FDN Goblin Smuggler) still has a target, so it gets a
-    slot: one creature on the battlefield passing that filter (combat slots only
-    ever see creatures). Without it the act window activated the ability with no
-    designation and it did nothing. Single-target by construction: every such
-    encoding in M21/ZNR/FDN prints one target."""
+    ZNR Sneaking Guide) still has a target, so it gets a slot: one creature on
+    the battlefield passing that filter (combat slots only ever see creatures).
+    Without it the ability would be activated with no designation and do
+    nothing. Single-target by construction: every such encoding in M21/ZNR/FDN
+    prints one target."""
     for inner in walk(effect):
         if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
             continue
@@ -1600,20 +1567,19 @@ def activation_target_slots(
     source: Handle,
     seat: Handle,
 ) -> list[TargetSlot]:
-    """r23a (Liliana's Steward): the TARGET-selection slots of an ACTIVATED
-    ability — the activation twin of :func:`spell_target_slots`, one slot
-    type and one validation oracle for every ability in the game (§8.3).
+    """The TARGET-selection slots of an ACTIVATED ability — the activation
+    twin of :func:`spell_target_slots`, one slot type and one validation
+    oracle for every ability in the game.
 
-    The games policy's activation lane previously walked the effect for
-    TARGET-mode Selectors only. The corpus' "target opponent" activations
-    (Steward's "{T}, Sacrifice: target opponent discards") carry NO
-    TARGET-mode Selector at all — the coordinate is a TARGET_PLAYER
-    ControllerRef on the discard atom (plus a CHOOSE-zone hand) — so the
-    lane never designated it and the RUNTIME hit the 12c
-    'TARGET_PLAYER needs a bound target' raise mid-resolution. The spell
-    lane already synthesizes that slot from the engine's own player rule;
-    the activation lane now asks the same question, so a caller designates
-    from a QUERY instead of crashing into the runtime prompt."""
+    The corpus' "target opponent" activations (Liliana's Steward's "{T},
+    Sacrifice: target opponent discards") carry NO TARGET-mode Selector at
+    all — the coordinate is a designated-player ControllerRef on the discard
+    atom (plus a CHOOSE-zone hand) — so, like the spell lane, this
+    synthesizes the player slot from the engine's own player rule: a caller
+    designates from a QUERY instead of crashing into the runtime's
+    'TARGET_PLAYER needs a bound target' raise mid-resolution. An ability
+    whose only trace of its target is a combat event filter gets
+    :func:`_designation_only_slot`."""
     slots: list[TargetSlot] = []
     seen: set[str] = set()
     if effect is None:
@@ -1625,7 +1591,7 @@ def activation_target_slots(
             continue
         for _role, role_value in inner.args.pairs:
             player_refs |= _designated_player_refs(role_value)
-            for value in role_target_selectors(role_value):  # V25: nested too
+            for value in role_target_selectors(role_value):  # nested ones too
                 key = repr(value)
                 if key in seen:
                     continue
@@ -1637,7 +1603,7 @@ def activation_target_slots(
             slots.append(bound)
     if player_refs:
         # Same synthesized player slot as the spell lane (CR 601.2c's
-        # population rule is coordinate-agnostic; V44: protection from the
+        # population rule is coordinate-agnostic; protection from the
         # ability's source removes a player).
         slots.append(player_target_slot(executor, seat, player_refs, source=source))
     return slots
@@ -1651,7 +1617,7 @@ def _clamp_cast_target_slot(
     host: Handle,
     seat: Handle,
 ) -> TargetSlot:
-    """B2 (gate round — /10 menu-visibility, never a raise-trap): a TARGET
+    """Menu visibility, never a raise-trap (AGENTS §10): a TARGET
     slot whose OWNER atom is a Verb.CAST and whose role is the cast's
     ``source`` designation ranges over SPELLS the seat can actually pay
     for RIGHT NOW (CR 601.2b designations must be legal at announcement,
@@ -1684,17 +1650,16 @@ def _is_universal(filter_: object) -> bool:
 
 
 def _is_any_target_idiom(filter_: object) -> bool:
-    """r17-2 (geyser-FIX): the compiled printed-"any target" idiom — an
-    FOr of exactly the three TYPE_EQ atoms ``Creature`` / ``Planeswalker``
-    / ``Player`` (the battlefield card side the templates emit; the player
-    side is EXACTLY this widening's job, CR 109.5). The third branch never
+    """The compiled printed-"any target" idiom — an FOr of exactly the
+    three TYPE_EQ atoms ``Creature`` / ``Planeswalker`` / ``Player`` (the
+    battlefield card side the templates emit; the player side is EXACTLY
+    this widening's job, CR 109.5). The third branch never
     matches a card (no card carries "Player" in its types) — it is the
     discriminator that separates this population from the printed
     "target creature or planeswalker" TWO-branch shape, which never
-    denotes a player (CR 115.1d; the Finishing Blow regression this
-    guards). One shape, two lanes: the twins in :mod:`selectors` read it
-    identically so offer and resolution legality never diverge
-    (§8.3 identity)."""
+    denotes a player (CR 115.1d; Finishing Blow). One shape, two lanes:
+    the twins in :mod:`selectors` read it identically so offer and
+    resolution legality never diverge."""
     from MTG_bot.core.ability_tree import FOr
 
     if not isinstance(filter_, FOr) or len(filter_.children) != 3:
@@ -1714,12 +1679,11 @@ def _is_any_target_idiom(filter_: object) -> bool:
 def _player_widening_applies(selector: Selector) -> bool:
     """The ONE widening predicate (query offer lane and selectors runtime
     legality share it through :func:`_widen_any_target` /
-    :func:`selectors._is_any_universal`): either the legacy universal
-    shape (empty FAnd over an ANY zone — the 13b lane, unchanged) or the
-    r17-2 battlefield "any target" idiom (FOr Creature/Planeswalker over
-    BATTLEFIELD zones only). Both are population answers — neither
-    evaluates a predicate on a player handle."""
-    zones = list(selector.zones)  # R0: the zones field IS the legal-zone set
+    :func:`selectors._is_any_universal`): either the universal shape (empty
+    FAnd over an ANY zone) or the battlefield "any target" idiom
+    (:func:`_is_any_target_idiom` over BATTLEFIELD zones only). Both are
+    population answers — neither evaluates a predicate on a player handle."""
+    zones = list(selector.zones)  # the zones field IS the legal-zone set
     if _is_universal(selector.filter) and any(z.kind is ZoneKind.ANY for z in zones):
         return True
     return _is_any_target_idiom(selector.filter) and all(
@@ -1733,13 +1697,13 @@ def _widen_any_target(
     slot: TargetSlot,
     source: Handle | None = None,
 ) -> TargetSlot | None:
-    """Players join a "any target" population — the legacy universal
-    ANY-zone shape or the r17-2 battlefield idiom (see
-    :func:`spell_target_slots`); None means "no widening applies".
-    V44 (CR 702.16b): a player with protection from ``source`` (the spell, or
-    the source of the ability, doing the targeting) is not added; the cards
-    already faced the same veto in ``enumerate_candidates``. Runed Halo naming
-    Shock keeps its controller out of Shock's "any target"."""
+    """Players join an "any target" population — the universal ANY-zone
+    shape or the battlefield idiom (:func:`_player_widening_applies`); None
+    means "no widening applies". CR 702.16b: a player with protection from
+    ``source`` (the spell, or the source of the ability, doing the
+    targeting) is not added; the cards already faced the same veto in
+    ``enumerate_candidates``. Runed Halo naming Shock keeps its controller
+    out of Shock's "any target"."""
     if not _player_widening_applies(selector):
         return None
     world = executor.world
@@ -1761,7 +1725,7 @@ def _widen_any_target(
 
 
 def is_aura_spell(world: GameWorld, handle: Handle) -> bool:
-    """16e: the ENCHANT keyword (CR 702.5) is the aura marker — every
+    """The ENCHANT keyword (CR 702.5) is the aura marker — every
     compiled aura in the corpus carries it (Enthralling Hold golden), and
     no non-aura does (equipment carry EQUIP, not ENCHANT)."""
     state = world.cards.get(handle)
@@ -1802,19 +1766,16 @@ def aura_enchant_slot(
     spell_handle: Handle,
     seat: Handle,
 ) -> TargetSlot | None:
-    """The synthesized exactly-1 ENCHANT slot of an aura spell (16e), or
-    None for a non-aura. The host population comes from the aura's own
-    effect tree: the first selector whose filter co-names
-    IS_ATTACHED_TO_SOURCE contributes its remaining filter (Enthralling
-    Hold: TYPE_EQ Creature); with no such selector the corpus fallback is
-    any permanent on the battlefield. The aura itself is never a
-    candidate (CR 702.5c "another object").
-
-    B-49 follow-up #2 (2026-10-29): the compiled ENCHANT keyword's own restriction comes
-    first. "Enchant creature" limits what the Aura spell can target (CR 303.4a,
+    """The synthesized exactly-1 ENCHANT slot of an aura spell, or None for
+    a non-aura. The compiled ENCHANT keyword's own restriction comes first:
+    "Enchant creature" limits what the Aura spell can target (CR 303.4a,
     702.5a), and an Aura cast through the effect-less carrier has no effect
-    tree to read it from: Dub, Capture Sphere and six more M21 Auras (and ZNR's
-    Bubble Snare) could be cast onto a land and stay there."""
+    tree to read it from (Dub, ZNR's Bubble Snare). Without one, the host
+    population comes from the aura's own effect tree: the first selector
+    whose filter co-names IS_ATTACHED_TO_SOURCE contributes its remaining
+    filter (Enthralling Hold: TYPE_EQ Creature); with no such selector the
+    corpus fallback is any permanent on the battlefield. The aura itself is
+    never a candidate (CR 702.5c "another object")."""
     from MTG_bot.core.executor.legality import spell_record
 
     world = executor.world
@@ -1882,32 +1843,30 @@ def verb_choose_options(
 ) -> tuple[tuple[Handle, ...], ...]:
     """The enumerable picks of a ``Verb.CHOOSE`` atom (Duress/Kitesail's
     "You choose a card from it"): the candidate pool resolved through the
-    SAME machinery the runtime handler uses (§8.3 identity), one singleton
-    row per candidate in Handle order. The handler's decision vocabulary
-    is ``str(i)`` into THIS order — the same ORDER contract ``choose_
-    options`` pins for Choose NODES (12d), extended to the atom.
+    SAME machinery the runtime handler uses, one singleton row per candidate
+    in Handle order. The handler's decision vocabulary is ``str(i)`` into
+    THIS order — the same ORDER contract :func:`choose_options` pins for
+    Choose NODES, extended to the atom.
 
     v1 scope is the corpus shape: a single pick (every compiled CHOOSE
     atom carries ``count = QConst(1)``). Only an under-filled pool makes the
-    EMPTY row legal (choosing nothing from fewer candidates than demanded is
-    the C17-clamp sibling; with count 1 that is the empty pool, returned as
-    the lone empty row); a MULTI-pick CHOOSE atom raises —
-    combination-order for its tokens is a later round, and the corpus has
-    zero rows needing it (flag, don't degrade)."""
+    EMPTY row legal (choosing nothing from fewer candidates than demanded,
+    like the up-to clamp; with count 1 that is the empty pool, returned as
+    the lone empty row); a MULTI-pick CHOOSE atom raises — no combination
+    order is defined for its tokens, and the corpus has zero rows needing
+    one (flag, don't degrade)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     selector = atom.args.get("target")
     if not isinstance(selector, Selector):
         raise TypeError(f"verb_choose_options: no target selector on {atom!r}")
-    # 14a B-8a: the caller's bindings ride along. Without them a CHOOSE atom
-    # whose pool is scoped to the spell's target — Duress's "You choose a card
-    # from it" reads Zone(HAND, TARGET_PLAYER) — rebuilt a context with no
-    # target and raised 'TARGET_PLAYER needs a bound target' INSIDE the runtime
-    # handler that was holding the binding. Defaulting to None keeps every
-    # pre-14a caller byte-identical.
+    # The caller's bindings ride along: a CHOOSE atom whose pool is scoped to
+    # the spell's target — Duress's "You choose a card from it" reads
+    # Zone(HAND, TARGET_PLAYER) — needs the target the runtime handler holds,
+    # or it raises 'TARGET_PLAYER needs a bound target'.
     ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
     # enumerate_candidates, NOT resolve_selector: the CHOOSE-mode resolver
-    # applies its 12a deterministic-first-n stand-in (it returns the
+    # applies its deterministic-first-n stand-in (it returns the
     # DESIGNATION), which would clamp the pool to one row before ANY
     # choice exists. The query enumerates the filtered POPULATION; the
     # handler then consumes the player's pick and writes it to 'result'.
@@ -1925,9 +1884,8 @@ def verb_choose_options(
         return ((),)
     rows: list[tuple[Handle, ...]] = [(h,) for h in pool]
     if len(pool) < want:
-        # the legal under-filled zero (C17 clamp sibling): only a pool that
-        # cannot fill the count may choose fewer. V19 (2026-10-29, B-51): the
-        # empty row was appended always, so Duress's mandatory "You choose a
-        # noncreature, nonland card from it" could choose nothing.
+        # the legal under-filled zero: only a pool that cannot fill the count
+        # may choose fewer (Duress's "You choose a noncreature, nonland card
+        # from it" is mandatory).
         rows.append(())
     return tuple(rows)

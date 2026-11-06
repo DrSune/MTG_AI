@@ -1,12 +1,10 @@
-"""Deprecated name for :mod:`MTG_bot.core.executor.durations` (round 12d).
+"""Deprecated name for :mod:`MTG_bot.core.executor.durations`.
 
-12d superseded the minimal end-of-turn ledger with the full Duration
-vocabulary. Per the delegation's migration option the ledger class name is
-CARRIED and this module path stays importable: every 12a/12b import site
-(``verbs``, ``binding``, ``events``, ``quantity``, ``__init__``) resolves
-through this shim to the single real implementation — there is exactly one
-``DurationLedger`` class object in the package, so isinstance checks and
-dump formats cannot drift between call sites.
+A re-export shim: the import sites that still use this path (``verbs``,
+``binding``, ``events``, ``quantity`` and some tests) resolve to the single
+real implementation — there is exactly one ``DurationLedger`` class object
+in the package, so isinstance checks and dump formats cannot drift between
+call sites.
 """
 
 from __future__ import annotations

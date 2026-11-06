@@ -1,4 +1,4 @@
-"""V32 (2026-10-29): what an Aura enchants when it enters without being cast.
+"""What an Aura enchants when it enters without being cast.
 
 CR 303.4f: if an Aura is entering the battlefield under a player's control by any means other than
 by resolving as an Aura spell, and the effect putting it onto the battlefield doesn't specify what
@@ -40,8 +40,7 @@ def aura_entry_hosts(executor: Executor, aura: Handle, controller: Handle) -> li
     """The objects ``aura`` may enchant as it enters under ``controller`` (CR 303.4f): battlefield
     permanents passing its ENCHANT filter, judged with ``controller`` as "you", the Aura itself
     excluded (303.4d). A phased-out permanent is treated as though it does not exist (CR 702.26b),
-    so ``Executor.battlefield`` leaves it out (R5-1 branch, where phasing lives; agreed with V32's
-    author). Handle-sorted."""
+    so ``Executor.battlefield`` leaves it out. Handle-sorted."""
     world = executor.world
     enchant = _enchant_filter(executor, aura)
     ctx = ctx_for(executor, source=aura, controller=controller)
@@ -51,7 +50,7 @@ def aura_entry_hosts(executor: Executor, aura: Handle, controller: Handle) -> li
         for card in executor.battlefield(player)
         if card != aura
         and eval_filter(enchant, card, ctx)
-        # V44 (CR 702.16c): a permanent with protection from the Aura can't be
+        # CR 702.16c: a permanent with protection from the Aura can't be
         # enchanted by it, so it is not a legal choice (303.4f).
         and not protected_from(executor, card, aura)
     ]

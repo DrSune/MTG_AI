@@ -1,88 +1,38 @@
-"""The core state-visible executor (rounds 12a–12d, plan /06 §12a–§12d).
+"""The executor: runs compiled ability IR against a :class:`~MTG_bot.core.state.GameWorld`.
 
-``Executor(world)`` runs compiled ability IR against the Phase-0
-:class:`~MTG_bot.core.state.GameWorld`: :meth:`Executor.execute` for one
-Atom, :meth:`Executor.apply_effect` for an Effect tree (Seq /
-OptionalEffect / Conditional — the decision-bearing nodes; Choose consumes
-its decision at runtime from 12d (index into ``query.choose_options``'
-ORDER contract — see that docstring); EachPlayer runs per-player
-sub-executions with the CONTROLLER rotated (14f; the templates compile the
-inner effect YOU-relative); Repeat remains not-implemented and RAISES at
-dispatch; DelayedTrigger SCHEDULES into the
-12b binder, C22). 12b adds the living-ability half:
+``Executor(world)`` keeps the game state the world has no fields for (durations, layers,
+replacements, the event journal and trigger binder, turn, combat and stack state, damage marks,
+control changes, phasing, emblems, attachments) and runs:
 
-  * :meth:`Executor.attach_card` / :meth:`Executor.attach_pool` — compiled
-    records bind to world Handles (oracle-id bridge, identity checked);
-    leaving the battlefield detaches, re-entering re-registers;
-  * an :class:`~MTG_bot.core.executor.events.EventJournal` — every Atom
-    boundary diffs the world and emits the structured events triggers
-    subscribe to (zone moves, C18 dies snapshots, draws, counters, taps,
-    damage, life, turn phases);
-  * :meth:`Executor.fire_triggers` / the auto-drain at the end of every
-    public op — matched triggers resolve through the world's APNAP
-    ``order_key``, in Handle-tie-broken order, until the queue empties
-    (``MAX_TRIGGER_FIRES`` tripwire: a self-retriggering source is
-    QUARANTINED and flagged in ``trigger_loops``, never run).
-    12c adds the decision half: :mod:`executor.legality` (activation
-    legality, the CR-checked cost fold, ``pay_costs`` through the
-    journalled verbs, the folded ``activate`` move) and
-    :mod:`executor.query` (the Slate-shaped query surface —
-    ``legal_activations``/``legal_targets``/``choose_options``/
-    ``optional_offer``, the C15/C17 enumerations; DESIGN_ACTION_SPACE
-    §1.3/§1.4/§5.5/§8.3).
-    12d adds the duration + continuous half: :mod:`executor.durations`
-    (the full Duration vocab on the ledger — WHILE condition cycles,
-    UNTIL_NEXT_STEP ticks, UNTIL_LEAVES zone interception, UNTIL_NEXT_
-    TURN begin-turn expiry, all tombstoned for the audit dump),
-    :mod:`executor.layers` (StaticAbility/KeywordAbility continuous
-    layers: anthems recompute over the set, keyword_of / granted_abilities
-    oracles, GRANT_ABILITY/LOSE_ABILITY verbs, PT payloads materialized
-    into the single ledger PT stack) and :mod:`executor.replacements`
-    (ReplacementAbility interceptor — Nine Lives' damage-to-you consumed
-    before the world mutation, action journalled; PREVENT_EFFECT veto
-    records with the UNTAP-step consumer live, combat-side exposed).
-    The turn skeleton gains its UNTAP step: ``begin_turn`` untaps the
-    active player's permanents except those a live prevention vetoes
-    (Frost Breath freeze — survives exactly one untap tick), journalling
-    every untap as a TapStateEvent, then expires the step-scoped durations.
-    13a gives the same skeleton a **phase clock** (``Executor.phase`` /
-    ``turn_open``, the honest sorcery-window gate), an **extra-turn queue**
-    (``advance_turn`` pops it before rotating, CR 500.7 stand-in), an
-    ``END_TURN`` request flag consumed by the op loop, a ``lost_players``
-    ledger and the CR 606.3 ``loyalty_clock`` the legality gate reads.
+  * :meth:`Executor.execute` (one Atom) and :meth:`Executor.apply_effect` (an Effect tree: Seq,
+    OptionalEffect, Conditional, Choose, EachPlayer, DelayedTrigger);
+  * the turn skeleton: :meth:`~Executor.begin_turn` (untap, upkeep and draw steps),
+    :meth:`~Executor.combat_step`, :meth:`~Executor.end_turn` (end and cleanup steps) and
+    :meth:`~Executor.advance_turn` (turn order, extra turns);
+  * :meth:`~Executor.attach_card` / :meth:`~Executor.attach_pool`, which bind a card's compiled
+    abilities through the :class:`TriggerBinder`.
 
-Design mandates:
+Each Atom runs inside an atom boundary: the :class:`EventJournal` diffs the world around it and
+emits the events triggers match on. A top-level op ends by settling: state-based actions, then
+the matched triggers in APNAP order, with the check repeated after each one. A self-retriggering
+source is quarantined and listed in ``trigger_loops`` instead of looping (``MAX_TRIGGER_FIRES``).
+Casting, costs, legality and the legal-move enumerations live in :mod:`.stack`,
+:mod:`.legality` and :mod:`.query`; this package re-exports their public names.
 
-  * **flag, don't degrade** — every unsupported verb/effect/quantity/pred
-    raises ``NotImplementedError`` at dispatch, naming the node; the
-    executor never guesses a silent no-op (LOOK_AT/REVEAL are recorded,
-    legitimate no-ops).
-  * **explicit decisions** — every controller decision is answered
-    externally (C15): an explicit per-op ``decisions`` pool for a KNOWN
-    tree, or the 14b vocabulary-addressed stream (per-(vocab, what) FIFO
-    / ask-time provider, :mod:`executor.decisions`) which needs no
-    pre-enumeration of what an op will arm (B-4 ruling). Exhaustion raises.
-  * **executor-owned randomness** — the only randomness is a
-    :class:`random.Random` seeded from ``sha256(master_seed:op_seq:tag)``;
-    two executors fed the same ops replay byte-identically (P12). The
-    replay fingerprint is ``world.fingerprint()`` + the
-    :class:`DurationLedger` dump + the 12a event log + the 12b journal and
-    binder dumps (ruling 1: the ledger IS replayed state, since state.py
-    stays frozen).
-  * ``SUPPORTED_VERBS_V1`` is the frozen round-12 capability **contract** —
-    the literal 24-verb set v1 goldens were measured against, pinned as a
-    version so a later round's handler cannot silently widen a v1 gate.
-    ``SUPPORTED_VERBS_V2`` is the honest **live** capability set, derived
-    from the dispatch table so the two can never drift. Neither is wired
-    into ``compile_pool`` gating (that is 12e's job).
+Design rules:
 
-13a brought the library/turn verbs into the live set: ``DRAW`` (the atom the
-v1 scope list excluded — now a real handler over :meth:`GameWorld.draw`; the
-library->hand ``MOVE_ZONE`` idiom cards compile to stays equally valid),
-``SEARCH`` (the Cultivate compile), and the turn-flow four ``FLIP_COIN`` /
-``END_TURN`` / ``EXTRA_TURN`` / ``LOSE_GAME``, which mutate **executor-side**
-ledgers (the frozen :class:`GameWorld` carries no flip/turn/loss fields) and
-are therefore the only verbs needing an executor-backed context.
+  * **flag, don't degrade**: an unsupported verb, effect node (Repeat), quantity or predicate
+    raises ``NotImplementedError`` naming it; the executor never guesses a silent no-op.
+  * **explicit decisions**: every choice is answered from outside, by the per-op ``decisions``
+    pool or the executor's vocabulary-addressed :class:`~.decisions.DecisionStream`; an ask
+    nothing answers raises. An offer with one legal answer is taken without asking
+    (:func:`~.offers.offer_or_autopick`).
+  * **executor-owned randomness**: the only randomness is a :class:`random.Random` seeded from
+    ``sha256(master_seed:op_seq:tag)``, so two executors fed the same ops replay identically,
+    with equal :meth:`Executor.state_fingerprint`.
+  * ``SUPPORTED_VERBS_V2`` is the set of verbs with a handler, derived from the dispatch table;
+    ``compile_pool(supported_verbs=...)`` marks a card that uses any other verb
+    engine-unsupported.
 """
 
 from __future__ import annotations
@@ -212,11 +162,9 @@ from MTG_bot.core.state import (
     GameWorld,
 )
 
-# The v1 capability CONTRACT — the round-12 24-verb set every v1 golden and
-# the round-12 cross-check were measured against.  Deliberately a literal
-# now, not a derivation: 13a grew the dispatch table (DRAW, SEARCH and the
-# turn-flow four), and a versioned contract must not widen just because a
-# later round shipped a handler.  ``SUPPORTED_VERBS_V2`` is the live set.
+# The first 24-verb capability set, a literal rather than derived from the dispatch table so
+# it never widens. Only tests read it, and DISCARD, EXILE and MILL in it have no handler.
+# ``SUPPORTED_VERBS_V2`` is the live set.
 SUPPORTED_VERBS_V1 = frozenset(
     {
         Verb.MOVE_ZONE,
@@ -246,35 +194,28 @@ SUPPORTED_VERBS_V1 = frozenset(
     }
 )
 
-# The 12e capability set: exactly the verbs ``run_atom`` dispatches to a real
-# handler today (round-12 cross-check against all 48 corpus verbs).  Derived,
-# never retyped: 12b/12d brought GRANT_ABILITY, LOSE_ABILITY and
-# PREVENT_EFFECT, and 13a brought the library/turn verbs (DRAW, SEARCH,
-# FLIP_COIN, END_TURN, EXTRA_TURN, LOSE_GAME), and 16a brought FIGHT
-# (CR 701.12, the damage-exchange orphan verb).  The verbs still without a
-# handler (COPY, PHASE_IN) stay outside: flagged by
-# ``compile_pool(supported_verbs=...)``, never faked (ruling 6).
+# The live capability set: exactly the verbs ``run_atom`` dispatches to a handler, derived from
+# the table so the two cannot drift. A card using any other verb is flagged by
+# ``compile_pool(supported_verbs=...)``, never faked.
 SUPPORTED_VERBS_V2 = frozenset(HANDLERS)
 
 Event = tuple[object, ...]
 
-# 14a: the CR 504.5-c turn draw, as the IR node the turn skeleton runs for the
-# active player. A module-level constant because ``Atom`` is frozen — one
-# node shared by every turn, never re-constructed, so the DRAW atom is
-# byte-identical across replays. ``ControllerRef.YOU`` resolves through
-# :func:`selectors.role_player` to the context's controller, which the
-# skeleton sets to the active seat (:meth:`Executor._turn_draw`).
+# The CR 504.1 turn draw, the IR node the turn skeleton runs for the active player. Atoms are
+# immutable, so one node serves every turn. ``ControllerRef.YOU`` resolves through
+# :func:`selectors.role_player` to the context's controller, which the skeleton sets to the
+# active seat (:meth:`Executor._turn_draw`).
 _TURN_DRAW = Atom(
     verb=Verb.DRAW,
     args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))),
 )
 
-# V36 (CR 402.2): a player's maximum hand size, "normally seven". The rule
-# itself, not a tuning knob: no compiled card changes it today ("You have no
-# maximum hand size" compiles nowhere; BACKLOG B-96).
+# CR 402.2: a player's maximum hand size, "normally seven". The rule itself, not a tuning knob:
+# no compiled card changes it ("You have no maximum hand size" compiles nowhere;
+# docs/BACKLOG.md B-96).
 MAX_HAND_SIZE = 7
 
-# V36 (CR 514.1, 701.9a): the cleanup step's discard, the same hand-to-
+# CR 514.1, 701.9a: the cleanup step's discard, the same hand-to-
 # graveyard MOVE_ZONE shape a discard cost pays (legality.pay_costs). The
 # cards the active player chose ride in through the ``cards`` binding, so the
 # placeholder selector is never resolved.
@@ -298,12 +239,9 @@ _CLEANUP_DISCARD = Atom(
     ),
 )
 
-# 16b: the player-side target of one combat-damage atom — the same
-# PLAYER-zone TARGET Selector shape the player-damage tests use
-# (test_executor_verbs L200); the dealer rides ctx.source (the journal's
-# cause column), the recipient is the bound handle (14c B-16: a bound
-# handle outranks the selector — a PLAYER handle bound to a PLAYER-zone
-# selector is returned as-is).
+# The player lane of a combat-damage atom. The dealer is ctx.source (the journal's cause
+# column); the recipient is the bound player handle, which a PLAYER-zone TARGET selector
+# returns as-is.
 _PLAYER_TARGET = Selector(
     QConst(1),
     SelectorMode.TARGET,
@@ -311,14 +249,12 @@ _PLAYER_TARGET = Selector(
     zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),),
 )
 
-# V41: "a planeswalker", the live type-line test the attack options read.
+# "A planeswalker": the live type-line test the attack options read.
 _IS_PLANESWALKER = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker")
 
-# 16c: the CARD lane of the combat-damage atom. A player-zone selector is
-# deliberately BLIND to a binding (the 16a Brash rule in role_handles), so
-# a blocker recipient must be announced through a battlefield-zone TARGET
-# selector — binding-first — or the wave would keep landing on the
-# defending player no matter what was assigned.
+# The card lane of a combat-damage atom. A PLAYER-zone selector turns a bound card into that
+# card's controller (the Brash Taunter rule in ``selectors.resolve_selector``), so a creature or
+# planeswalker recipient goes through a battlefield-zone TARGET selector, which keeps the card.
 _CARD_TARGET = Selector(
     QConst(1),
     SelectorMode.TARGET,
@@ -326,8 +262,8 @@ _CARD_TARGET = Selector(
     zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
 )
 
-# Ontology R5-1 (CR 610.3): the zones an "until" return goes back to, in the
-# fixed order the batch moves them (one MOVE_ZONE per zone), and their IR kinds.
+# CR 610.3: the zones an "until" return goes back to, in the fixed order the batch moves them
+# (one MOVE_ZONE per zone), and their IR kinds.
 _RETURN_ZONES = (ZONE_BATTLEFIELD, ZONE_HAND, ZONE_GRAVEYARD, ZONE_EXILE)
 _RETURN_ZONE_KIND = {
     ZONE_BATTLEFIELD: ZoneKind.BATTLEFIELD,
@@ -338,12 +274,8 @@ _RETURN_ZONE_KIND = {
 
 
 def _combat_damage_atom(amount: int, recipient: object) -> Atom:
-    """One DEAL_DAMAGE atom of ``amount`` to the announced recipient. A
-    builder, not a constant: the amount is per-dealer, the RECIPIENT picks
-    the lane (16c — blockers take their announced share, the attacked
-    object takes the rest; pre-16c every combat atom was the unblocked
-    player shape), and the frozen-Atom discipline keeps every atom of one
-    damage step byte-identical across replays."""
+    """One DEAL_DAMAGE atom of ``amount`` to the announced recipient: a player takes the
+    player lane, a card (a blocker, a blocked attacker, a planeswalker) the card lane."""
     target = _PLAYER_TARGET if str(recipient).startswith("player:") else _CARD_TARGET
     return Atom(
         verb=Verb.DEAL_DAMAGE,
@@ -406,7 +338,7 @@ __all__ = [
 ]
 
 
-# V11 (2026-10-29): predicates that test an object's own characteristics.
+# Predicates that test an object's own characteristics.
 _CHARACTERISTIC_PREDS = frozenset(
     {
         FAtomPred.TYPE_EQ,
@@ -440,7 +372,7 @@ def _tests_characteristics_only(pred: object) -> bool:
 def _ends_in_optional(effect: object) -> bool:
     """Does a Seq step end in an ``OptionalEffect`` (a bare optional, or a Seq
     whose last step is one, through nested Seqs)? Such a step's may-offer
-    keeps its own "If you do" record (V12); any other step is a mandatory
+    keeps its own "If you do" record; any other step is a mandatory
     antecedent whose record the Seq runner writes."""
     if isinstance(effect, OptionalEffect):
         return True
@@ -450,7 +382,7 @@ def _ends_in_optional(effect: object) -> bool:
 
 
 def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
-    """What a bare Conditional's predicate is judged on (V11), when the
+    """What a bare Conditional's predicate is judged on, when the
     predicate only tests an object's characteristics: the object the previous
     sentence acted on (the result register, written by the atom just before:
     ``ctx.result_fresh``), None when that register names no single object;
@@ -493,12 +425,12 @@ class Executor:
         self.ledger = DurationLedger()
         self.events: list[Event] = []
         self.token_counts: dict[str, int] = {}
-        # 16a (CR 120.6): damage MARKED on cards. The frozen GameWorld has
-        # no damage field, so the marks are executor-side replayed state
-        # (ruling 1: folded into state_fingerprint, removed at the cleanup
-        # step and when the permanent leaves the battlefield).
+        # CR 120.6: damage marked on permanents. GameWorld has no damage
+        # field, so the marks live here as replayed state (folded into
+        # state_fingerprint), removed in the cleanup step and when the
+        # permanent leaves the battlefield.
         self.damage: dict[Handle, int] = {}
-        # CR 702.26 (2026-10-29): PHASED-OUT permanents. Phasing is a status
+        # CR 702.26: PHASED-OUT permanents. Phasing is a status
         # of the permanent (CR 110.5), not a zone: the card stays in its
         # battlefield zone, no zone-change event happens (702.26d), and the
         # engine's battlefield readers leave it out (it is treated as though
@@ -508,57 +440,45 @@ class Executor:
         # None when it phased out directly, 702.26g). Replayed state, folded
         # into state_fingerprint when non-empty.
         self.phased_out: dict[Handle, tuple[Handle, Handle | None]] = {}
-        # r23a (Wildwood Scourge, CR 614.1c): the X declared by a spell's
-        # cast (601.2f) travels to that permanent's ETB firings. stack.cast
-        # records the declared X as the spell ENTERS the battlefield; the
-        # binder's _ctx hands it to the firing's ExecCtx (x_value) for that
-        # entry ONLY, consuming it. Cleared when the permanent leaves the
-        # battlefield so a graveyard re-entry (reanimation) is NOT cast-
-        # context: its ETB firing reads X = 0 (CR 107.3b; binding._ctx).
+        # CR 614.1c (Wildwood Scourge): the X declared by a spell's cast
+        # (601.2f) travels to that permanent's ETB firings. stack.cast
+        # records it as the spell enters the battlefield; the binder's _ctx
+        # hands it to the firings of that entry (x_value). Cleared when the
+        # permanent leaves the battlefield, so an entry without a cast
+        # (reanimation) reads X = 0 (CR 107.3b).
         self.etb_x: dict[Handle, int] = {}
-        # r23a (Rin and Seri): LOUD refusals of the guarded-static lane —
-        # a StaticAbility whose payload is not layer-parseable (12e) is
-        # skipped at battlefield attach and recorded here (handle + the
-        # engine's own message). NOT folded into state_fingerprint: it is
-        # a pure derivation of the world + records, never a hidden
-        # decision. Coverage reporting and the scenario packs assert it.
+        # Refusals of the guarded static lane: a StaticAbility whose payload
+        # the layers cannot parse (Rin and Seri) is skipped at battlefield
+        # attach and recorded here (handle and the engine's message). Not
+        # folded into state_fingerprint: it derives from the world and the
+        # records, never a hidden decision. Only tests read it.
         self.unparseable_statics: list[str] = []
-        # r23a (Chandra's Incinerator, games seeds 17/50): the tripwire
-        # guard's loud ledger. A self-retriggering trigger source hits the
-        # drain tripwire; the guard QUARANTINES the source (its queued and
-        # future firings are dropped) and records the event here — "flag
-        # it, never run it", the drain continues instead of killing the
-        # game. Like unparseable_statics this is a coverage-visible record,
-        # NOT folded into state_fingerprint (the quarantine set itself,
-        # which is state, rides the fold through the binder).
+        # The trigger-loop tripwire's record. A self-retriggering source
+        # (Chandra's Incinerator eating its own damage rows) is
+        # quarantined, its queued and future firings dropped, and listed
+        # here; the drain goes on with everything else. Like
+        # unparseable_statics it is not folded into state_fingerprint; the
+        # quarantine set itself is, through the binder's dump.
         self.trigger_loops: list[str] = []
-        # r24/r24a (ZNR fuzz, /111+/112): LOUD refusals of the live-game
-        # guard. An effect whose anaphora (``result``/``target``) reads a
-        # register no producer in this execution wrote is a compiler
-        # mis-fold (unparsed antecedent sentence), not a game bug: the
-        # guarded lanes skip the failing step, the spell still resolves,
-        # and the refusal is recorded here (lane + card + the engine's
-        # own message, deduped by key with an OCCURRENCES count per key
-        # — distinct same-message atoms sharing one key stay visible
-        # through ``unresolved_effect_counts``). Queryable, surfacing
-        # pending: the ledger has NO consumer yet (cards stay
-        # engine_supported=True; the compiler-wave fold gates are the
-        # fix). Same contract as unparseable_statics / trigger_loops:
-        # NOT folded into state_fingerprint, and only
-        # selectors.referent_absent refusals (dedicated error TYPE +
-        # exact site message) are caught — every other error still
-        # propagates.
+        # Refusals recorded instead of raised, as "<lane> <card>: <message>"
+        # rows, deduplicated, with ``unresolved_effect_counts`` counting the
+        # repeats: the steps the live-game guard skipped
+        # (:meth:`_run_guarded_effect`: an effect whose ``result``/``target``
+        # anaphora reads a register nothing in this execution wrote, a
+        # compiler mis-fold rather than a game bug) and the cast lane's
+        # refused designations (``query.register_cast_gap``). Only tests
+        # read it. Not folded into state_fingerprint.
         self.unresolved_effects: list[str] = []
         self.unresolved_effect_counts: dict[str, int] = {}
         self.journal = EventJournal(world, self.ledger)
-        # V7: dies rows record the controller as of death through the 16e
-        # control overlay (a bound method, so a deepcopy fork rebinds it).
+        # Dies rows record the controller as of death through the control
+        # overlay (a bound method, so a deepcopy fork rebinds it).
         self.journal.controller_override = self._overlay_controller
-        # Ontology R5-1 (CR 610.3): objects moved "until" an event, waiting to
-        # return. Replayed state, folded into state_fingerprint while non-empty.
+        # CR 610.3: objects moved "until" an event, waiting to return.
+        # Replayed state, folded into state_fingerprint while non-empty.
         self.returns = ReturnRegistry()
-        # 12d registries (built BEFORE the binder: the binder's lifecycle
-        # hooks reach them during attach).
+        # Built before the binder: its lifecycle hooks reach them during
+        # attach.
         self.layers = LayerRegistry(self)
         self.replacements = ReplacementRegistry(self)
         self.binder = TriggerBinder(self)
@@ -571,13 +491,12 @@ class Executor:
         # between ops, so not fingerprinted.
         self._resolving = 0
         self._turn_started = False
-        # ------------------------------------------------------ 13a turn state
-        # The frozen GameWorld has no phase/turn-flow/loss fields, so the
-        # turn skeleton owns this ledger (ruling 1: replayed state lives on
-        # the executor, and every field below is in state_fingerprint).
-        # ``phase`` is the last phase marker recorded (None before the first
-        # begin_turn); ``turn_open`` is the "a turn is in progress" flag the
-        # legality gates read.
+        # ---------------------------------------------------------- turn state
+        # GameWorld has no phase, turn-flow or loss fields, so the turn
+        # skeleton keeps them here; state_fingerprint folds the replayed
+        # ones. ``phase`` is the last phase marker recorded (None before the
+        # first begin_turn); ``turn_open`` is the "a turn is in progress"
+        # flag the legality gates read.
         self.phase: str | None = None
         self.turn_open = False
         # CR 500.7: EXTRA_TURN pushes onto the FRONT (the most recently
@@ -602,34 +521,32 @@ class Executor:
         self.last_flip_won_by: Handle | None = None
         # END_TURN's deferred close (consumed by the op loop).
         self.end_turn_requested = False
-        # V37 (CR 724.1a): the journal length when the first END_TURN atom of
-        # the request ran; folded into the fingerprint while a request is open.
+        # CR 724.1a: the journal length when the first END_TURN atom of the
+        # request ran; folded into the fingerprint while a request is open.
         self.end_turn_mark = 0
         self._closing_turn = False
-        # ------------------------------------------------- 13b stack + mana
-        # The spell stack (LIFO frames, CR 405): no-interaction v1 pushes
-        # only during a cast, but the container, the ZONE_STACK parking and
-        # the fingerprint fold are permanent (risk-1: a future response
-        # window reads SpellObject frames, not a re-derived world).
+        # -------------------------------------------------------- stack + mana
+        # The spell stack (CR 405): LIFO SpellObject frames, folded into the
+        # fingerprint.
         self.stack = SpellStack()
-        # CR 305.1 once-per-turn land gate: seat -> (turn, plays);
-        # extra_land_plays is the 13c ADD_LAND_PLAY hook (Azusa), 0 today.
+        # CR 305.1 once-per-turn land gate: seat -> (turn, plays).
+        # extra_land_plays widens the allowance; nothing writes it outside
+        # tests (ADD_LAND_PLAY registers a layer instead), so it stays 0.
         self.land_ledger: dict[Handle, tuple[int, int]] = {}
         self.extra_land_plays = 0
-        # The segment mirror of the frozen mana pool (THIS_MANA
-        # restrictions; tags EMPTY everywhere in the 12a/12b corpus, which
-        # is what keeps their totals-path replay pins byte-identical).
+        # The segment mirror of the world's mana pool: which mana carries a
+        # spend restriction (THIS_MANA).
         self.mana_ledger = ManaLedger()
         # CHOOSE_NAME's write-side (Runed Halo): source permanent -> the
         # chosen name, read back by the NAME_CHOSEN filter predicate.
         self.name_choices: dict[Handle, str] = {}
-        # CHOOSE_NAME's read-side (B-29, 2026-11-05): the format's card pool,
+        # CHOOSE_NAME's read-side: the format's card pool,
         # every card a deck builder of this game could have used (name, printed
         # type line), set by games._setup_game. Public information: the names
         # offered never depend on the game's hidden zones. Empty in a rig with
         # no format (unit tests, scenario packs): the world's names then.
         self.name_pool: tuple[tuple[str, str], ...] = ()
-        # ------------------------------------------------- 13c emblems + attachments
+        # ----------------------------------------------- emblems + attachments
         # Granted emblems are replayed state that is NOT world cards (an
         # emblem never enters a zone): (owner, emblem oracle_id) -> the
         # synthetic Handle("emblem", n) the binder bound its triggers to.
@@ -638,21 +555,18 @@ class Executor:
         self.emblems: dict[tuple[Handle, str], Handle] = {}
         self._emblem_seq = 0
         # Attachment relation (auras/equipment): AURA handle -> HOST handle.
-        # The frozen CardState has no attachment field, so the table lives
+        # CardState has no attachment field, so the table lives
         # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
         # edge touching a handle that leaves the battlefield.
         self.attachments: dict[Handle, Handle] = {}
-        # r20c (Malefic Scythe): LAST-KNOWN-INFORMATION snapshot of the
-        # attachment relation at a HOST's battlefield departure — HOST ->
-        # sorted auras/equipment that were attached to it. The journal
-        # writes ZONE_CHANGE before CREATURE_DIES in the same diff sweep,
-        # so by the time a dies-trigger's IS_ATTACHED_TO_SOURCE filter is
-        # judged the live table is already pruned; the LKI row is that
-        # object's own departure-time truth (CR 400.7's information-
-        # timestamp doctrine). Replaced wholesale per sweep keyed on the
-        # departing host — a re-entry/dying captures fresh truth. Derived
-        # state replayed from the same detaches, so it is NOT part of the
-        # replay fingerprint (pin-stable).
+        # Last-known information of the attachment relation as a host leaves
+        # the battlefield: HOST -> the sorted Auras and Equipment attached to
+        # it then (Malefic Scythe). The journal writes ZONE_CHANGE before
+        # CREATURE_DIES in the same diff sweep, so by the time a dies
+        # trigger's IS_ATTACHED_TO_SOURCE filter is judged the live table is
+        # already pruned; this row is the departure-time truth (CR 400.7).
+        # Replaced per departing host. Derived from the same detaches, so not
+        # in the fingerprint.
         self.detach_lki: dict[Handle, tuple[Handle, ...]] = {}
         # The one last-known-information snapshot of each permanent that left the
         # battlefield (quantity.LastKnown: power, toughness, counters, keywords with
@@ -667,58 +581,54 @@ class Executor:
         # the card re-enters (a new object, CR 400.7). Derived state replayed from
         # the same departures, NOT in the fingerprint (the detach_lki precedent).
         self.departed_lki: dict[Handle, LastKnown] = {}
-        # r20c (Speaker of the Heavens): the game's STARTING life per seat,
-        # snapshotted at executor construction — the fact the frozen world
-        # takes as a ``start_life`` parameter but never stores. LIFE_LEAD_-
-        # OVER_START_GE reads current minus this (the journal cannot
-        # reconstruct the lead: a non-damage life loss leaves no row). The
-        # replay rebuilds the world at the same start_life
-        # (games.py:1175), so the snapshot is replay-identical and stays
-        # OUT of the replay fingerprint.
+        # Each seat's starting life, snapshotted at construction: GameWorld
+        # takes ``start_life`` as a parameter but does not store it.
+        # LIFE_LEAD_OVER_START_GE (Speaker of the Heavens) reads current life
+        # minus this; the journal cannot reconstruct the lead, since a
+        # non-damage life loss leaves no row. A replay rebuilds the world at
+        # the same start_life (games._setup_game), so the snapshot stays out
+        # of the fingerprint.
         self.starting_life: dict[Handle, int] = {
             p: world.players[p].life for p in world.player_order
         }
-        # -------------------------------------------------- 16e control overlay
-        # GAIN_CONTROL (CR 611, 110.2): the frozen GameWorld derives
-        # controller_of from the ZONE OWNER and R16-4 DENIED the additive
-        # hook there, so control changes are executor-side replayed state
-        # (ruling 1: folded into state_fingerprint). ``control_entries`` is
-        # the source of truth — one row per live GAIN_CONTROL application
-        # (seq, creature, controller, expiry tag, anchor, turn gained);
-        # ``control_overlay`` is the DERIVED effective-controller map the
-        # executor read sites consult (later entries win, CR 613.2
-        # timestamps), and ``control_gained_turn`` the CR 302.6 sickness
-        # clock: the turn of each creature's last change of effective
-        # controller (control-based, not ownership-based). A creature with no
-        # entry reads its zone owner, which is why the empty overlay keeps
-        # every pre-16e replay byte-identical.
+        # ----------------------------------------------------- control overlay
+        # GAIN_CONTROL (CR 611, 110.2): GameWorld derives controller_of from
+        # the zone's owner and has no control field, so control changes are
+        # replayed state here, folded into state_fingerprint.
+        # ``control_entries`` is the source of truth, one row per live
+        # GAIN_CONTROL application (seq, creature, controller, expiry tag,
+        # anchor, turn gained); ``control_overlay`` is the derived
+        # effective-controller map the executor's read sites consult (later
+        # entries win, CR 613.2 timestamps), and ``control_gained_turn`` the
+        # CR 302.6 sickness clock: the turn of each creature's last change of
+        # effective controller. A creature with no entry is controlled by its
+        # zone's owner.
         self.control_entries: list[
             tuple[int, Handle, Handle, str, Handle | None, int]
         ] = []
         self._control_seq = 0
         self.control_overlay: dict[Handle, Handle] = {}
         self.control_gained_turn: dict[Handle, int] = {}
-        # --------------------------------------------------- 16b combat state
-        # The frozen GameWorld has no combat fields, so the attack record
-        # is executor-side replayed state (ruling 1, folded into
-        # state_fingerprint): the current attackers in declaration order,
-        # each one's ATTACKED object (v1: the defending player — blocker
-        # and planeswalker assignment are 16c), the phase's defending seat,
-        # and the declare-window flag the enters-attacking token path
-        # reads (CR 508.1i). ``mandates`` is the DISPATCHED MANDATE_ATTACK
-        # ledger (the static shape lives as layers' "mandate" records).
+        # -------------------------------------------------------- combat state
+        # GameWorld has no combat fields, so the attack record is replayed
+        # state here, folded into state_fingerprint: the attackers in
+        # declaration order, what each attacks (the defending player or a
+        # planeswalker that player controls), the defending seat, and the
+        # declare-window flag the enters-attacking token path reads (CR
+        # 508.1i). ``mandates`` is the DISPATCHED MANDATE_ATTACK ledger (the
+        # static shape lives as layers' "mandate" records).
         self.attackers: list[Handle] = []
         self.attacked: dict[Handle, Handle] = {}
         self.defending_player: Handle | None = None
         self.declaring = False
         self._declare_group = 0
         self.mandates: set[Handle] = set()
-        # -------------------------------------------------- 16c block state
+        # --------------------------------------------------------- block state
         # ``blocked_by``: attacker -> the creatures blocking it, in DECLARE
         # order (CR 509.1b: one attacker per blocker, so a handle appears in
         # exactly one list; multiple blockers per attacker ARE legal — the
         # assignment order is asked per attacker, CR 510.1). Cleared with
-        # the attack record at end of combat; replayed state (ruling 1).
+        # the attack record at end of combat; replayed state.
         self.blocked_by: dict[Handle, list[Handle]] = {}
         # DISPATCHED MANDATE_BLOCK ledger (the static shape rides layers'
         # "mandate_block" records; Canopy Stalker's rule line).
@@ -730,11 +640,11 @@ class Executor:
         # The combat-damage wave flag: the op number of the combat damage
         # step being dealt (0 outside one), set for the atom boundaries inside
         # it so record_atom marks the DAMAGE rows (amount, step) — the
-        # DamageDealtEvent ``combat`` scope (16c, Garruk's Harbinger / Subira's
+        # DamageDealtEvent ``combat`` scope (Garruk's Harbinger, Subira's
         # delayed trigger), and the one damage event the step is (CR 510.2).
         self._combat_wave_open = 0
-        # r22b (Teferi's Ageless Insight): the CR 504.5 draw-step register.
-        # _draw_step_open is True ONLY while :meth:`_turn_draw` runs; the
+        # The draw step's register (Teferi's Ageless Insight).
+        # _draw_step_open is True only while :meth:`_turn_draw` runs; the
         # ordinal map counts the draws that happened inside that window per
         # player (_v_draw stamps, NOT_FIRST_DRAW_THIS_STEP reads, see
         # quantity.py). Transient like the combat flag — never fingerprinted.
@@ -746,11 +656,11 @@ class Executor:
         self.damage_deathtouch: set[Handle] = set()
         # Public alias of the seeded factory (the binder builds ExecCtxs too).
         self.rng = self._rng
-        # 14b: the vocabulary-addressed decision channel (B-4 ruling). One
-        # stream per executor/replay: FIFO priming, ask-time provider and
-        # the ask log ride EVERY context the executor builds — effect ops,
-        # trigger firings, payments, replacement actions — which is what
-        # lets a policy answer a demand a running op armed mid-drain.
+        # The vocabulary-addressed decision channel. One stream per
+        # executor: FIFO priming, ask-time provider and the ask log ride
+        # every context the executor builds (effect ops, trigger firings,
+        # payments, replacement actions), which is what lets a policy answer
+        # a demand a running op armed mid-drain.
         self.decisions = DecisionStream()
 
     # ------------------------------------------------------------------ rng
@@ -786,16 +696,15 @@ class Executor:
             events=self.events,
             rng=self._rng,
             token_counts=self.token_counts,
-            # 12d: the registries ride on every effect context (layer
-            # verbs, the damage-replacement interceptor).
+            # The registries ride on every effect context (layer verbs, the
+            # damage-replacement interceptor).
             layers=self.layers,
             replacements=self.replacements,
             executor=self,
             x_value=x_value,
             stream=self.decisions,
-            # 14d (B-7): the journal rides on every effect context too (the
-            # history preds answer identically from a query ctx or a firing
-            # ctx — §8.3 query/runtime identity over the SAME rows).
+            # The journal too, so the history predicates answer identically
+            # from a query context and a firing context (the same rows).
             journal=self.journal,
         )
 
@@ -807,7 +716,7 @@ class Executor:
         decisions: Sequence[str],
         x: int | None,
     ) -> ExecCtx:
-        """13b: the spell-resolution context — the ordinary effect context
+        """The spell-resolution context: the ordinary effect context
         with the cast's declared X bound (CR 601.2f: X was chosen with the
         total cost; the effect's ``{X}`` readings resolve off it)."""
         return self._ctx(
@@ -835,13 +744,12 @@ class Executor:
         bindings: dict[str, Binding] | None = None,
         decisions: Sequence[str] = (),
     ) -> tuple[Event, ...]:
-        """Run one Atom; returns the 12a events this call appended.
+        """Run one Atom; returns the ``events`` rows this call appended.
         Unsupported verbs raise ``NotImplementedError`` at dispatch. The
         atom's world changes are journalled; any trigger the change arms
-        drains afterwards (APNAP). Trigger-drain decisions arrive through
-        the executor's vocabulary-addressed stream (14b, B-4) — the old
-        positional ``trigger_decisions`` kwarg is deleted: it could not
-        carry demands the op itself armed."""
+        drains afterwards (APNAP). Trigger decisions arrive through the
+        executor's decision stream: the caller cannot know in advance
+        which triggers the op arms."""
         if not isinstance(atom, Atom):
             raise ValueError(
                 f"Executor: execute needs an Atom, got {type(atom).__name__}"
@@ -866,19 +774,19 @@ class Executor:
         x_value: int | None = None,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
-        KNOWN tree in ask order, and every demand it cannot serve reaches
-        the executor's vocabulary-addressed stream (14b). OptionalEffect
-        asks the query-narrowed offer vocab (``fire``/``skip``), Seq runs
-        its steps, Conditional judges the pred against the *source*
-        handle (r19b: or the previous sentence's revealed card when a
-        look window is open), Choose (12d: ONE decision token = the index of the chosen
-        option-set in ``query.choose_options`` order), EachPlayer (14f:
-        one sub-execution per denoted player, controller rotated — the
-        inner effect is compiled YOU-relative, so the rotation IS the
-        rebinding) and DelayedTrigger (scheduled, C22) are wired; Repeat
-        raises as an unimplemented node (12e). ``x_value`` is an activated
-        ability's announced X (CR 107.3a; ``legality.activate``'s X lane),
-        None for every effect with no X."""
+        known tree in ask order, and every demand it cannot serve reaches
+        the executor's decision stream. OptionalEffect asks the
+        query-narrowed offer (``fire``/``skip``), Seq runs its steps,
+        Conditional judges its predicate (the subject: the revealed card
+        while a look window is open, else :func:`_conditional_subject`),
+        Choose takes ONE decision token (the index of the chosen option
+        set in ``query.choose_options`` order), EachPlayer runs one
+        sub-execution per denoted player with that player as controller
+        (the inner effect is compiled YOU-relative, so the rotation IS the
+        rebinding) and DelayedTrigger is scheduled on the binder; any other
+        node (Repeat) raises ``NotImplementedError``. ``x_value`` is an
+        activated ability's announced X (CR 107.3a; ``legality.activate``'s
+        X lane), None for every effect with no X."""
         if not isinstance(
             effect,
             (
@@ -903,8 +811,8 @@ class Executor:
             x_value=x_value,
         )
         if slot_designations:
-            # V25: an activation's per-target designations (legality.activate),
-            # the same per-slot map the cast lane sets on a multi-target spell.
+            # An activation's per-target designations (legality.activate), the
+            # same per-slot map the cast lane sets on a multi-target spell.
             ctx.slot_designations = slot_designations
             ctx.designation_union = tuple(
                 sorted({h for one in slot_designations.values() for h in one})
@@ -918,11 +826,11 @@ class Executor:
         resolution (CR 704.3: state-based actions are checked only when a player would
         receive priority; CR 603.3: triggered abilities are put on the stack then too).
         Paying a cost an effect asks for ("You may pay 2 life. If you do, ...") runs each
-        payment step as an op; settling after each step ran the player-loss check in the
-        middle of the resolution, so paying down to 0 life before the effect gained life
-        back ended the game, and the triggers the payment caused resolved before the rest
-        of the effect. Such an op leaves its events to the outermost op's settle, whose
-        journal pass sees them (TriggerBinder.on_events reads every unseen row)."""
+        payment step as an op; settling there would run the player-loss check in the middle
+        of the resolution (paying down to 0 life before the effect gains life back would end
+        the game) and resolve the payment's triggers before the rest of the effect. Such an
+        op leaves its events to the outermost op's settle, whose journal pass sees them
+        (TriggerBinder.on_events reads every unseen row)."""
         nested = self._resolving > 0
         self._resolving += 1
         try:
@@ -934,9 +842,9 @@ class Executor:
 
     @staticmethod
     def _partition_step(step: object) -> bool:
-        """r19a (Cultivate) partition scan, one encoding (shared by the
-        ``_run_effect`` Seq branch and the guarded lane): a partition
-        MOVE_ZONE is one whose ``cards`` Selector is ONE_OF/REST."""
+        """The partition scan (Cultivate), shared by the ``_run_effect`` Seq
+        branch and the guarded lane: a partition MOVE_ZONE is one whose
+        ``cards`` Selector is ONE_OF/REST."""
         if not isinstance(step, Atom) or step.verb is not Verb.MOVE_ZONE:
             return False
         sel = step.args.get("cards")
@@ -946,41 +854,32 @@ class Executor:
         )
 
     def _run_guarded_effect(self, effect: Effect, ctx: ExecCtx, lane: str) -> None:
-        """r24/r24a (ZNR fuzz, /111+/112): the LIVE-GAME effect runner
-        with the dangling-anaphora guard (spell resolution lanes
-        cast/cast_card/aura + the trigger-firing lane). Runs
-        ``_run_effect``; if the effect refuses because its
-        ``result``/``target`` anaphora has NO producer in this execution
-        (a compiler mis-fold: the antecedent clause was never compiled —
-        Acquisitions Expert's dangling discard, Shell Shield's dangling
-        kicker hexproof), the step is skipped and the refusal recorded
-        on ``unresolved_effects`` — the spell still resolves / the game
-        still plays (the r23a unparseable-statics law: lose the
-        mis-shaped half, not the match). r24a (adversarial gate): (i) the
-        skip matches ONLY the dedicated ReferentAbsentError types with
-        the exact site message (selectors.referent_absent) — a look-alike
-        message, the QProp referent refusal or anything else PROPAGATES;
-        (ii) CR 609.7 do-as-much-as-possible: a TOP-LEVEL ``Seq`` runs
-        step-by-step, so a dangling MID-step skips that step and the
-        TAIL still executes. Boundary, stated honestly: the granularity
-        is the top level only — a nested inner Seq (or Optional/
-        Conditional wrapper) that fails mid-way is skipped AT WHOLE-STEP
-        granularity, its remaining inner steps lost with it; only the
-        compiler-wave fold gates make either shape moot. Every other
-        error propagates unchanged, and the unit contract (unset referent
-        reads RAISE) stays byte-identical on the raw ``_run_effect``
-        lane the tests pin.
+        """The live-game effect runner (spell resolution in the ``cast`` and
+        ``cast_card`` lanes, an Aura's included, and the ``trigger`` lane):
+        ``_run_effect`` with the dangling-anaphora guard. When a step
+        refuses because its ``result``/``target`` anaphora has no producer
+        in this execution (a compiler mis-fold: the antecedent clause was
+        never compiled, as in Acquisitions Expert's discard), the step is
+        skipped and the refusal recorded on ``unresolved_effects``; the
+        spell still resolves and the game goes on. Only the dedicated
+        refusals are skipped (``selectors.referent_absent``,
+        ``stack.face_cast_absent``: the error type and the exact site
+        message); every other error propagates. CR 609.7: a top-level
+        ``Seq`` runs step by step, so a
+        skipped step does not stop the rest. Only the top level: a nested
+        Seq (or Optional/Conditional wrapper) that fails part-way is skipped
+        whole. The raw ``_run_effect`` keeps raising, as the unit tests pin.
         """
         from MTG_bot.core.executor.selectors import referent_absent
         from MTG_bot.core.executor.stack import face_cast_absent
 
         steps = effect.steps if isinstance(effect, Seq) else (effect,)
         saved_partition = ctx.search_partition
-        saved_found = ctx.search_found  # W4-6: the found set is Seq-scoped too
+        saved_found = ctx.search_found  # the found set is Seq-scoped too
         if isinstance(effect, Seq):
             # the Seq branch's SEARCH-designation context, reproduced so
             # the guarded per-step lane behaves identically to a raw
-            # Seq run (r19a partition law).
+            # Seq run.
             ctx.search_partition = saved_partition or any(
                 self._partition_step(step) for step in steps
             )
@@ -995,7 +894,7 @@ class Executor:
                 except (NotImplementedError, ValueError) as exc:
                     if not (referent_absent(exc) or face_cast_absent(exc)):
                         raise
-                    # V23: the skipped step's atom boundary never closes.
+                    # The skipped step's atom boundary never closes.
                     self.journal.drop_open(depth)
                     # A skipped step was not done (an "If you do" after it
                     # must not read an older step's record).
@@ -1008,8 +907,8 @@ class Executor:
                         if src in self.world.cards
                         else "?"
                     )
-                    # /115: the ledger entry IS the trace (r24a pattern —
-                    # a guard skip journals nothing, it registers).
+                    # A guard skip journals nothing: this ledger entry is
+                    # its only trace.
                     flag = f"{lane} {name}: {exc}"
                     if flag not in self.unresolved_effect_counts:
                         self.unresolved_effects.append(flag)
@@ -1024,10 +923,9 @@ class Executor:
     def _note_step_done(
         self, step: Effect, before: tuple[int, int], ctx: ExecCtx
     ) -> None:
-        """m21-fidelity wave 4 (2026-10-30, coordinator ruling (a)): "[Do
-        something]. If you do, [effect]" (CR 118.12) asks whether a MANDATORY
-        step actually happened, exactly as V12 asks it of an optional one.
-        After each step of a sequence, a step that does not end in an
+        """CR 118.12: "[Do something]. If you do, [effect]" asks whether a
+        MANDATORY step actually happened, exactly as it asks of an optional
+        one. After each step of a sequence, a step that does not end in an
         OptionalEffect records whether it changed anything (journal or event
         rows) under the ability's may-site, which MAY_DONE reads; an optional
         step keeps the record its own OptionalEffect branch wrote. A step
@@ -1041,13 +939,13 @@ class Executor:
 
     def _run_effect(self, effect: Effect, ctx: ExecCtx) -> None:
         if isinstance(effect, Atom):
-            # 12b: the journalled Atom boundary — snapshot, run, diff. This
-            # is the ONLY place world mutations happen on the executor path,
-            # so the journal sees every trigger-relevant change without a
-            # single verbs.py edit.
+            # The journalled Atom boundary: snapshot, run, diff. The journal
+            # derives the trigger-relevant world changes from the diff; a
+            # verb handler emits a row itself only for an event the world
+            # does not show (a countered spell).
             before = self.journal.snapshot()
             start = len(self.events)
-            # r19c (Rookie Mistake / Hunter's Edge): on a MULTI-slot spell
+            # Rookie Mistake, Hunter's Edge: on a MULTI-slot spell
             # each TARGET atom acts on ITS OWN designation — the shared
             # union binding cannot serve two populations, so the Atom lane
             # shadows bindings["target"] to the atom's slot (repr-matched,
@@ -1065,7 +963,7 @@ class Executor:
             if slot_key is not None and designations is not None:
                 shadow_prev = ctx.bindings.get("target")
                 ctx.bindings["target"] = list(designations[slot_key])
-            # V3 (CR 120.1, 120.2b): a DEAL_DAMAGE atom that names its dealer
+            # CR 120.1, 120.2b: a DEAL_DAMAGE atom that names its dealer
             # journals that object as the damage's cause, so "whenever a
             # creature deals damage" readers see the creature, not the spell.
             # Read before the atom runs, in the same bindings the verb sees.
@@ -1089,22 +987,21 @@ class Executor:
                 self.events[start:],
                 combat=self._combat_wave_open,
             )
-            # 12d hook 1: the UNTIL_LEAVES zone interceptor. Every zone
-            # change the journal just saw gets its anchor checked — a
-            # permanent leaving the battlefield terminal-expires the
-            # durations anchored on it (return does not restore, r5).
+            # The zone-change bookkeeping: a permanent leaving the
+            # battlefield ends what is anchored on it (a return does not
+            # restore it), one entering gets its entered state.
             self._on_zone_changes(new_events)
-            # 12d hook 2: damage replacements consumed during the atom run
-            # (C24: the damage never applied) queue their ACTION here, so
-            # it journalled as ITS OWN atom boundary — one diff per
-            # mutation, no double-emitted events.
+            # Replacements consumed during the atom run (the replaced event
+            # never happened) queue their ACTION here, so it is journalled
+            # as ITS OWN atom boundary — one diff per mutation, no
+            # double-emitted events.
             while ctx.pending_replacements:
                 entry = ctx.pending_replacements.pop(0)
                 repl_bindings: dict[str, Binding] | None = None
                 counter_reg: tuple[CounterKind, int] | None = None
                 if isinstance(entry, tuple):
                     if len(entry) == 4:
-                        # r22b (Conclave Mentor): a counter-placement
+                        # Conclave Mentor: a counter-placement
                         # consumer queued (record, receiving card, kind,
                         # amount) — the action's referent binds to the
                         # card AND the COUNTER_COUNT prop register carries
@@ -1114,7 +1011,7 @@ class Executor:
                         repl_bindings = {"event": [event_card]}
                         counter_reg = (counter_kind, counter_n)
                     else:
-                        # r20b (Containment Priest): a zone-change consumer
+                        # Containment Priest: a zone-change consumer
                         # queued (record, moving card) — the action's
                         # referent selector ("exile it") resolves against
                         # the binding the die lane uses.
@@ -1130,13 +1027,13 @@ class Executor:
                 )
                 if counter_reg is not None:
                     inner.event_counter_count = counter_reg[1]
-                # r19a: the CR 614.4a chain guard travels with the action —
-                # the record that consumed THIS event cannot consume the
-                # event its own action produces.
+                # The CR 614.5 chain guard travels with the action: the
+                # record that consumed THIS event cannot consume the event
+                # its own action produces.
                 inner.replaced_seq = ctx.replaced_seq | {repl.seq}
                 self._run_effect(repl.action, inner)
         elif isinstance(effect, Seq):
-            # r19a (Cultivate): when a partition MOVE_ZONE (the ONE_OF pick
+            # Cultivate: when a partition MOVE_ZONE (the ONE_OF pick
             # / REST complement) appears among the steps, a SEARCH atom in
             # this sequence DESIGNATES instead of delivering — the
             # partition re-searches the found set and would find nothing
@@ -1145,7 +1042,7 @@ class Executor:
             # SEARCH/REVEAL/MOVE/MOVE/SHUFFLE as direct steps).
             partition = any(self._partition_step(step) for step in effect.steps)
             saved = ctx.search_partition
-            saved_found = ctx.search_found  # W4-6: the found set is Seq-scoped too
+            saved_found = ctx.search_found  # the found set is Seq-scoped too
             ctx.search_partition = saved or partition
             try:
                 for step in effect.steps:
@@ -1156,16 +1053,13 @@ class Executor:
                 ctx.search_partition = saved
                 ctx.search_found = saved_found
         elif isinstance(effect, OptionalEffect):
-            # 14b (B-5, query/runtime identity): the ASK vocabulary is the
-            # query surface's own narrowed optional_offer — the policy gets
-            # exactly what a query would answer ("may pay {2}" with an
-            # empty pool offers only skip, CR 117.3, so a provider can never
-            # answer fire where firing is illegal). The site tag keys the
-            # answer to THIS ability's offer (B-4 vocabulary addressing):
-            # T5-F1 adds the OFFER digest, so two may-offers on ONE source
-            # are two sites (the source-only tag mispaired their FIFO
-            # primings), and a skip-narrowed surface is auto-consumed by
-            # the shared phantom gate instead of billed as a decision.
+            # The ASK vocabulary is the query surface's own narrowed
+            # optional_offer, so the policy gets exactly what a query would
+            # answer ("may pay {2}" with an empty pool offers only skip, CR
+            # 117.3: a provider can never answer fire where firing is
+            # illegal). The site tag carries the offer's digest, so two
+            # may-offers on one source are two sites, and a skip-only offer
+            # is taken without asking.
             offer = optional_offer(
                 self,
                 effect,
@@ -1180,27 +1074,25 @@ class Executor:
             ):
                 before = (len(self.events), len(self.journal.events))
                 self._run_effect(effect.inner, ctx)
-                # V12 (CR 118.12): "If you do" asks whether the optional
+                # CR 118.12: "If you do" asks whether the optional
                 # action was carried out, not what was answered: an action
                 # that changed nothing (a discard with no legal card, a
                 # sacrifice with nothing to sacrifice) was not done.
                 done = (len(self.events), len(self.journal.events)) != before
             ctx.may_done[f"may:{ctx.source}"] = done
         elif isinstance(effect, Conditional):
-            # r19b (Track Down): the compiler's sentence convention
-            # (templates_b5b _build_if_it_type_then: "Conditional whose
-            # subject is the previous sentence's revealed card") — when the
+            # The compiler's sentence convention
+            # (templates_b5b._build_if_it_type_then: "Conditional whose
+            # subject is the previous sentence's revealed card"): when the
             # preceding atom was a LOOK_AT/REVEAL, the pred judges the
-            # revealed card, not the ability source (whose types could
-            # never match "is a creature or land" and silently killed the
-            # DRAW tail). run_atom cleared the window on every other verb,
-            # so every bare Conditional keeps the ctx.source subject.
-            # V11 (2026-10-29): ... unless the predicate tests only an
-            # object's characteristics ("If it was a creature card",
-            # Scavenging Ooze): then, as the B5b if-it-type templates
-            # document, "it" is the object the previous sentence acted on,
-            # the result register, read as it last existed (CR 608.2h). No
-            # such object means the condition is false (CR 608.2b).
+            # revealed card, not the ability source (Track Down's "if it's
+            # a creature or land card"). run_atom closes the window after
+            # every other verb. A bare Conditional judges ctx.source, unless
+            # the predicate tests only an object's characteristics ("If it
+            # was a creature card", Scavenging Ooze): then "it" is the
+            # object the previous sentence acted on, the result register,
+            # read as it last existed (CR 608.2h). No such object means the
+            # condition is false (CR 608.2b).
             subj = (
                 ctx.look_window[0]
                 if ctx.look_window
@@ -1211,11 +1103,10 @@ class Executor:
             elif effect.else_effect is not None:
                 self._run_effect(effect.else_effect, ctx)
         elif isinstance(effect, Choose):
-            # 12d runtime consumption — ORDER CONTRACT (query.OptionChoice
-            # docstring): the decision token is str(i), the i-th OPTION-SET
-            # of query.choose_options (size-ascending, index-lex). One
-            # decision picks the whole set (a k-choose is one compound
-            # choice, C15: the Slate's OPTION:PTR* slot is one token).
+            # ORDER CONTRACT (query.OptionChoice docstring): the decision
+            # token is str(i), the i-th OPTION-SET of query.choose_options
+            # (size-ascending, index-lex). One decision picks the whole set:
+            # a k-choose is one compound choice.
             opts = choose_options(
                 self,
                 effect,
@@ -1224,12 +1115,10 @@ class Executor:
                 bindings=ctx.bindings,
             )
             vocab = tuple(str(i) for i in range(len(opts)))
-            # r19c (Return to Nature, CR 601.2b): a mode DECLARED at cast
-            # time (the cast lane consumed the ORDER token before the
-            # targets — modes before targets) arrives as a pre-chosen
-            # token; asking again would bill the pack for a decision the
-            # caster already made. Empty everywhere else — every pre-19c
-            # Choose keeps asking its token at resolution, byte-unchanged.
+            # CR 601.2b (Return to Nature): a mode DECLARED at cast time
+            # (the cast lane consumed the ORDER token before the targets —
+            # modes before targets) arrives as a pre-chosen token and is not
+            # asked again. Every other Choose asks its token at resolution.
             if ctx.prechosen_modes:
                 pick = ctx.prechosen_modes.pop(0)
                 if pick not in vocab:
@@ -1237,11 +1126,9 @@ class Executor:
                         f"executor: choose: declared mode {pick!r} not in {vocab}"
                     )
             else:
-                # T5-F1 (CR 601.2b, stack.py:442's rule in the decision
-                # channel): a menu whose bounds clamp to ONE option set
-                # ("choose two" over two options) is FORCED — the shared
-                # phantom gate consumes it silently and journals the pick;
-                # a 1-candidate ask is a §10 phantom, never a decision.
+                # CR 601.2b: a menu whose bounds clamp to ONE option set
+                # ("choose two" over two options) is FORCED: it is taken
+                # without asking and the pick journalled.
                 pick = offer_or_autopick(
                     ctx,
                     vocab,
@@ -1250,23 +1137,17 @@ class Executor:
             for idx in opts[int(pick)].option_idxs:
                 self._run_effect(effect.options[idx], ctx)
         elif isinstance(effect, EachPlayer):
-            # 14f (B-20): "each opponent …" (Goremand's ETB sacrifice,
-            # Keral Keep Disciples' damage, Pursued Whale's tokens, Thieves'
-            # Guild Enforcer's mills — the four corpus faces, ALL_OPPONENTS).
-            # One sub-execution per denoted player with the CONTROLLER
-            # rotated: the templates compile the inner effect YOU-relative
-            # (b2a/b2b ruling — Goremand's SACRIFICE filter CONTROLLER_IS
-            # YOU, MILL's controller role, Zone(PLAYER,YOU)), so rotation
-            # IS the rebinding; the spell's designations stay visible
-            # (bindings carried, never rewritten). Iteration order is
-            # players_for_ref's seat order; CR 800.2 runs each-player
-            # effects APN-first — in the duel the two coincide, and the
-            # seat-order reading is the documented convention (doc
-            # 09-30/09), never a silent rule. The per-op decision POOL
-            # cursor rides across the sub-contexts (one positional supply
-            # answers every station in ask order, byte-identical to the
-            # single-context consumption the 12a-era pins use) and is
-            # written back; the vocabulary-addressed stream lanes are
+            # "Each opponent …" (Goremand's ETB sacrifice, Pursued Whale's
+            # tokens): one sub-execution per denoted player with the
+            # CONTROLLER rotated. The templates compile the inner effect
+            # YOU-relative (Goremand's SACRIFICE filter CONTROLLER_IS YOU,
+            # MILL's controller role, Zone(PLAYER,YOU)), so rotation IS the
+            # rebinding; the spell's designations stay visible (bindings
+            # carried, never rewritten). Players go in players_for_ref's
+            # seat order, not APNAP order (CR 101.4); the two differ only
+            # when a later seat is active. The per-op decision POOL cursor
+            # rides across the sub-contexts (one positional supply answers
+            # every ask in order) and is written back; the stream lanes are
             # executor-owned and need no forwarding. Each inner atom
             # journals its own boundary under the stable source.
             for player in players_for_ref(effect.ref, ctx):
@@ -1281,7 +1162,7 @@ class Executor:
                 self._run_effect(effect.effect, inner)
                 ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):
-            # C22: schedule into the journal matcher (12b), expire at Eot.
+            # Scheduled on the binder's journal matcher; expires at end of turn.
             self.binder.schedule_delayed(effect, ctx.source, ctx.controller)
         else:  # pragma: no cover - apply_effect pre-checks the node type
             raise NotImplementedError(
@@ -1289,12 +1170,18 @@ class Executor:
             )
 
     def _on_zone_changes(self, events: list[GameEvent]) -> None:
-        """UNTIL_LEAVES expiry: a tracked anchor leaving the battlefield
-        terminal-expires every duration anchored on it (ledger entries,
-        layer records, prevention records). Deterministic: the journal's
-        emit order.
+        """The bookkeeping for the zone changes one atom boundary journalled, in
+        the journal's emit order.
 
-        Ontology R5-1 (CR 610.3): the rows a MOVE_ZONE "until" staged in this
+        A permanent leaving the battlefield is a new object in its new zone
+        (CR 400.7): its last-known information is snapshotted, then what was
+        keyed on it ends (durations, P/T changes, layer, prevention and
+        control records, marked damage, its place in combat) and it is
+        untapped. A card moving anywhere but the battlefield loses its
+        counters (CR 122.2). A permanent entering gets its compiled entered
+        state (CR 614.1c).
+
+        CR 610.3: the rows a MOVE_ZONE "until" staged in this
         boundary get their entry clocks first; then every row anchored on a
         permanent that left the battlefield here ends, and those objects
         return together after the whole batch is processed (610.3d)."""
@@ -1331,36 +1218,35 @@ class Executor:
             elif event.zone_move[1] == ZONE_BATTLEFIELD:
                 self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
-                # V31b, CR 122.2: "Counters on an object are not retained if that
+                # CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to
                 # exist." The journal row above was emitted first, so a dies row's
-                # was-P/T still folds them (the C18 snapshot). A battlefield entry
-                # keeps what its entry stamped (the loyalty seed, EtBState counters).
+                # was-P/T still folds them. A battlefield entry keeps what its
+                # entry stamped (the loyalty seed, EtBState counters).
                 self.world.cards[event.subject].counters.clear()
             if from_state != ZONE_BATTLEFIELD:
                 if event.zone_move[1] == ZONE_BATTLEFIELD:
-                    # 17a: the symmetric ENTER branch — the compiled
-                    # EtBState node ("enters the battlefield tapped",
-                    # "enters with a soul counter") finally gets its
-                    # consumer. CR 614.1c: the entered state is stamped
-                    # as the permanent enters, BEFORE its ETB triggers
-                    # go on the stack (the settle order below already
-                    # matches: this runs, then binder drains).
+                    # The compiled EtBState node ("enters the battlefield
+                    # tapped", "enters with a soul counter"). CR 614.1c:
+                    # the entered state is stamped as the permanent
+                    # enters, BEFORE its ETB triggers go on the stack (this
+                    # runs at the atom boundary, the binder drains at the
+                    # settle).
                     self._apply_etb_state(event.subject)
                 continue
             anchor = event.subject
             self.ledger.expire_leaves(anchor)
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
-            self.etb_x.pop(anchor, None)  # r23a: cast-X leaves with it
-            self.damage.pop(anchor, None)  # 16a: CR 120.6, marks leave with it
-            self.damage_deathtouch.discard(anchor)  # 16c: the flag rides along
-            # V43 (2026-10-29): status leaves with the permanent. CR 110.5d: cards
-            # not on the battlefield are neither tapped nor untapped; 110.5b: a
-            # permanent enters untapped unless something says otherwise (an
-            # "enters tapped" stamp lands after the move). One CardState spans
-            # every zone, so a tapped creature bounced, exiled or reanimated
-            # came back tapped.
+            self.etb_x.pop(anchor, None)  # the cast X leaves with it
+            self.damage.pop(anchor, None)  # CR 120.6: marks leave with it
+            self.damage_deathtouch.discard(anchor)  # the deathtouch flag too
+            # Status leaves with the permanent. CR 110.5d: cards not on the
+            # battlefield are neither tapped nor untapped; 110.5b: a permanent
+            # enters untapped unless something says otherwise (an "enters
+            # tapped" stamp lands after the move). One CardState spans every
+            # zone, so without this a creature bounced, exiled or reanimated
+            # while tapped would come back tapped.
             if anchor in self.world.cards:
                 self.world.cards[anchor].tapped = False
             # CR 506.4: a permanent that leaves the battlefield is removed
@@ -1369,25 +1255,25 @@ class Executor:
             self._remove_from_combat({anchor})
             self.mandates.discard(anchor)
             self.mandate_block.discard(anchor)
-            # B-59: the timed (resolved-layer) twin of the two discards
-            # above; a returning creature is a new object (CR 400.7). The
-            # same for the resolved preventions and replacement designations.
+            # The timed (resolved-layer) twin of the two discards above; a
+            # returning creature is a new object (CR 400.7). The same for the
+            # resolved preventions and replacement designations.
             self.layers.forget_departed(anchor)
             self.replacements.forget_departed(anchor)
             self.damage_policies.pop(anchor, None)
-            # 16e: a departing permanent drops every control entry keyed on
+            # A departing permanent drops every control entry keyed on
             # it — as CREATURE (the stolen card itself) or as ANCHOR (the
             # aura/source whose leaving ends the effect, CR 611.3's duration
             # reading for Enthralling Hold's missing Duration node).
             self._expire_control(creature=anchor, anchor=anchor)
             if event.zone_move[1] != ZONE_BATTLEFIELD:
-                # R5-1, CR 610.3: "until ~ leaves the battlefield" ends.
+                # CR 610.3: "until ~ leaves the battlefield" ends.
                 due.extend(self.returns.end_leaves(anchor))
         if due:
             self._run_returns(due)
 
     def _run_returns(self, rows: list[ReturnRow]) -> None:
-        """Ontology R5-1, CR 610.3: the second one-shot effect of a zone move
+        """CR 610.3: the second one-shot effect of a zone move
         "until" an event, created immediately after that event.
 
         Each row whose object is still the object the move put there returns
@@ -1399,7 +1285,7 @@ class Executor:
         of that zone's objects at once, through the normal move path, so
         replacement effects apply (614: Containment Priest exiles a returning
         creature instead) and a returning Aura's owner chooses what it
-        enchants as it enters, or it stays in exile (303.4f-g, V32 in
+        enchants as it enters, or it stays in exile (303.4f-g,
         ``_v_move_zone``)."""
         live = [
             row
@@ -1450,7 +1336,7 @@ class Executor:
             if not isinstance(node, EtBState):
                 continue
             if node.condition is not None:
-                # ZND-1e (CR 614.1c): gated entering state — "if this
+                # CR 614.1c: gated entering state — "if this
                 # creature entered the battlefield kicked ..." (Cragplate
                 # Baloth's 4 +1/+1 counters). The judged handle is the
                 # entering permanent itself and it is ALREADY on the
@@ -1474,7 +1360,7 @@ class Executor:
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:
-                # m21-fidelity (2026-10-29): "enters with X +1/+1 counters"
+                # "Enters with X +1/+1 counters"
                 # (Wildwood Scourge, the X hydras) — CR 614.1c, the count is
                 # part of the entering state. X is the value the spell was cast
                 # with (stack.cast records it in etb_x as the spell lands); an
@@ -1514,7 +1400,7 @@ class Executor:
                 counters = self.world.cards[card].counters
                 counters[kind.name] = counters.get(kind.name, 0) + n
 
-    # -------------------------------------------------------- 12b: triggers
+    # ------------------------------------------------------------- triggers
 
     def attach_card(self, handle: Handle, compiled: object) -> int:
         """Bind the compiled record's TriggeredAbility nodes to a world
@@ -1529,20 +1415,20 @@ class Executor:
 
     def fire_triggers(self) -> int:
         """Drain the pending trigger queue (APNAP, Handle-tie-broken).
-        Decisions arrive through the executor's stream (14b): may-offers
+        Decisions arrive through the executor's stream: may-offers
         hit the vocabulary-addressed lanes, nothing positional is consumed.
         Returns the number of firings."""
         self.binder.on_events()
         return self.binder.fire_all()
 
-    # ------------------------------------ 16a: damage marks + state checks
+    # ----------------------------------------- damage marks + state checks
 
     def mark_damage(self, card: Handle, n: int, deathtouch: bool = False) -> None:
         """Mark ``n`` damage on a card (CR 120.4). The mark STAYS — marked
         until the permanent leaves the battlefield (CR 120.6) or the cleanup
         step removes it (CR 514.2); destruction is the state-based check
-        below, never the dealing of the damage itself. 16c: ``deathtouch``
-        (CR 702.2b) — damage from a deathtouch source is LETHAL damage no
+        below, never the dealing of the damage itself. ``deathtouch``
+        (CR 702.2b): damage from a deathtouch source is LETHAL damage no
         matter the amount, so the flag rides the ledger for the SBA."""
         if n <= 0:
             return
@@ -1551,11 +1437,12 @@ class Executor:
             self.damage_deathtouch.add(card)
 
     def _lethal_creatures(self) -> list[Handle]:
-        """CR 704.5a + 704.3 read over the battlefield (Handle-sorted,
-        ruling 5): a creature marked with damage >= its LIVE toughness dies
-        unless it has indestructible (CR 702.12b); toughness <= 0 kills even
-        an indestructible creature. A permanent with no toughness (lands,
-        non-creature artifacts) is not a creature-side death at all."""
+        """CR 704.5f-h read over the battlefield (Handle-sorted): a
+        creature marked with damage >= its LIVE toughness, or with any
+        deathtouch damage, dies unless it has indestructible (CR 702.12b);
+        toughness <= 0 kills even an indestructible creature. A permanent
+        with no toughness (lands, non-creature artifacts) is not a
+        creature-side death at all."""
         dying: list[Handle] = []
         for player in self.world.player_order:
             for card in self.battlefield(player):  # CR 702.26b
@@ -1569,7 +1456,7 @@ class Executor:
                     toughness <= 0
                     or (
                         self.damage.get(card, 0) >= toughness
-                        or card in self.damage_deathtouch  # 16c CR 702.2b
+                        or card in self.damage_deathtouch  # CR 702.2b
                     )
                     and not (self.layers.keyword_of(card, Keyword.INDESTRUCTIBLE))
                 ):
@@ -1577,16 +1464,16 @@ class Executor:
         return sorted(dying)
 
     def _cease_tokens(self) -> list[Handle]:
-        """V35 (CR 704.5d: "If a token is in a zone other than the battlefield, it
-        ceases to exist"; 111.7, 111.8). A dead, bounced or exiled token is not a
+        """CR 704.5d: "If a token is in a zone other than the battlefield, it
+        ceases to exist" (111.7, 111.8). A dead, bounced or exiled token is not a
         card in a graveyard, hand or exile: it leaves the world, so graveyard counts
         and "target creature card from your graveyard" never see it. A token on the
         stack is not a thing in this engine (spell copies are not tokens). No journal
         row: ceasing to exist is not a zone change and triggers nothing. Returns the
         tokens removed (Handle-sorted).
 
-        W4-4: state-based actions now run before triggered abilities resolve (CR
-        117.5), so a token's own leave triggers can still be queued here. A token
+        State-based actions run before triggered abilities resolve (CR 117.5),
+        so a token's own leave triggers can still be queued here. A token
         a queued firing names (its source, or its event's subject or cause) waits
         for the next check after that firing resolves: the engine keeps it as the
         last-known information those triggers read (CR 603.10a)."""
@@ -1608,16 +1495,17 @@ class Executor:
         return sorted(gone)
 
     def _unattached_auras(self) -> list[Handle]:
-        """CR 704.5q (16e): an Aura on the battlefield that isn't attached
+        """CR 704.5m: an Aura on the battlefield that isn't attached
         is put into its owner's graveyard. Attachment state is the
         executor's one ``attachments`` table (the IS_ATTACHED_TO_SOURCE
         oracle); the binder drops edges whose host left, so a MISSING edge
         is the unattached read. Detection is the ENCHANT keyword on the
         printed identity (the aura marker — equipment carry EQUIP and are
         NOT swept: an unattached Equipment legally stays on the
-        battlefield, CR 301.5). The graveyard lands in the last
-        controller's zone: the frozen world has no owner axis, the same
-        documented stand-in the planeswalker-loyalty check uses."""
+        battlefield, CR 301.5). The Aura goes to the graveyard of the player
+        whose battlefield holds it: the world has no owner field, so that
+        zone's player stands in for the owner, as in the other lanes of the
+        check."""
         world = self.world
         out: list[Handle] = []
         for player in world.player_order:
@@ -1629,7 +1517,7 @@ class Executor:
                     host is None
                     or host not in world.cards
                     or world.zone_of(host).kind != ZONE_BATTLEFIELD
-                    # V44 (CR 702.16c, 704.5m): an Aura attached to a permanent with
+                    # CR 702.16c, 704.5m: an Aura attached to a permanent with
                     # protection from it is attached to an illegal object.
                     or protected_from(self, host, card)
                 ):
@@ -1642,11 +1530,10 @@ class Executor:
         recompute ends the equipped bonuses. Illegal means (CR 301.5, 301.5c): the
         host is not a creature (Riddleform once its "until end of turn" animation
         ends), the Equipment is itself a creature (nothing here has reconfigure),
-        or (V44, CR 702.16d) the host has protection from the Equipment. Creature
+        or the host has protection from the Equipment (CR 702.16d). Creature
         is the live type line, the GRANT_TYPE overlay included: the TYPE_EQ
         reading attack legality uses. A phased-out Equipment does not exist (CR
-        702.26b). The name predates the first two cases; it is kept so the sweep
-        that calls it stays unchanged."""
+        702.26b)."""
         world = self.world
         creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
         freed: list[Handle] = []
@@ -1670,14 +1557,11 @@ class Executor:
         return sorted(freed)
 
     def _zero_loyalty_walkers(self) -> list[Handle]:
-        """r21a (CR 704.5h): planeswalkers on the battlefield with 0 or
-        less loyalty. Damage is the SECOND path to zero next to the pay-
-        ment path (which still runs its own immediate check in legality,
-        because the generic counter verb deletes a zeroed key); a missing
-        ledger key therefore reads the printed loyalty, never 0 — the
-        13a ``_loyalty_of`` twin. V31 (CR 704.5i): the counter verb now keeps
-        a zeroed LOYALTY key, so counter removal (Pestilent Haze) and a loyalty
-        cost paid down to 0 reach this check too."""
+        """CR 704.5i: planeswalkers on the battlefield with 0 or less
+        loyalty, whatever brought it there: damage, counter removal
+        (Pestilent Haze) or a loyalty cost paid down to 0 (the counter verb
+        keeps a zeroed LOYALTY key). A missing key reads the printed
+        loyalty, never 0 (``legality._loyalty_of``)."""
         from MTG_bot.core.executor.legality import _loyalty_of
 
         world = self.world
@@ -1692,7 +1576,7 @@ class Executor:
         return sorted(out)
 
     def _legend_rule_groups(self) -> list[tuple[Handle, list[Handle]]]:
-        """V22 (CR 704.5j, the legend rule): every ``(player, permanents)``
+        """CR 704.5j, the legend rule: every ``(player, permanents)``
         where that player controls two or more legendary permanents with the
         same name, Handle-sorted inside, in APNAP order of the choosing
         players (CR 101.4) and then by name. Legendary is the printed
@@ -1718,7 +1602,7 @@ class Executor:
         return [(p, cards) for p, _name, cards in groups]
 
     def _legend_rule_losers(self, groups: list[tuple[Handle, list[Handle]]]) -> list[Handle]:
-        """V22 (CR 704.5j): the player chooses which one stays, asked under
+        """CR 704.5j: the player chooses which one stays, asked under
         ``legend:<seat>:<digest>`` over the same-name permanents (the
         vocabulary is the live group, two or more, so never a phantom); the
         rest are returned, to be put into their owners' graveyards."""
@@ -1756,40 +1640,36 @@ class Executor:
             raise GameOver(", ".join(str(p) for p in self.lost_players))
 
     def _state_checks(self) -> int:
-        """The 16a state-based action sweep (CR 704.3: repeat until the
-        table is stable), run at every settle point — the end of each
-        public op. Lethal creatures die when the thing that hurt them
-        finishes, not inside the damage atom (the 12a instant-lethal
-        stand-in is retired). Each kill batch is journalled as its OWN atom
-        boundary (cause ``None``: an SBA has no card behind it, coverage
-        credits none) so dies-triggers see the C18 was-PT snapshot, then
-        those firings drain before the next scan. r21a: the sweep is also
-        the zero-loyalty planeswalker lane (CR 704.5h) — damage-driven
-        walkers are buried here, the same graveyard-move SBA reading the
-        frozen-world stand-in already uses for the other lanes. V22: and
-        the legend rule (CR 704.5j); its choices are made before anything
-        moves, because every action of one check happens at once (704.3).
+        """The state-based action check (CR 704.3), run at every settle
+        point: player losses (704.5a/b), tokens off the battlefield
+        (704.5d), lethal creatures (704.5f-h), unattached Auras (704.5m),
+        zero-loyalty planeswalkers (704.5i), the legend rule (704.5j) and
+        illegally attached Equipment (704.5n). Lethal creatures die here,
+        when the thing that hurt them has finished, not inside the damage
+        atom. Every action of one check happens at once (704.3), so the
+        legend-rule choices are made before anything moves, and each batch
+        is journalled as its OWN atom boundary (cause ``None``: an SBA has
+        no card behind it, coverage credits none) so dies triggers see the
+        was-P/T snapshot.
 
-        W4-4 (CR 704.3, 117.5): the check repeats until no action applies
-        BEFORE any triggered ability resolves. The triggers a batch causes
-        (a creature's dies trigger) are matched and queued here, and the
-        settle resolves them afterwards, checking again after each one; the
-        sweep used to resolve them between its own batches, and the settle
-        resolved the op's triggers before the first check at all. Returns the
-        number of batches performed."""
+        CR 704.3, 117.5: the check repeats until no action applies BEFORE
+        any triggered ability resolves. The triggers a batch causes (a
+        creature's dies trigger) are matched and queued here, and the
+        settle resolves them afterwards, checking again after each one.
+        Returns the number of batches performed."""
         batches = 0
         while True:
             # CR 704.5a/b: a player who loses here ends a two-player game.
             self._player_losses()
-            # V35 (CR 704.5d, 111.7): a token off the battlefield ceases to exist.
-            # W4-4: one whose leave triggers are still queued waits for them.
+            # CR 704.5d, 111.7: a token off the battlefield ceases to exist;
+            # one whose leave triggers are still queued waits for them.
             self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
-            unattached = self._unattached_auras()  # 16e, CR 704.5m (V44: protection)
-            walkers = self._zero_loyalty_walkers()  # r21a CR 704.5h
-            legends = self._legend_rule_groups()  # V22 CR 704.5j
-            freed = self._protected_equipment()  # V44, CR 704.5n
+            unattached = self._unattached_auras()  # CR 704.5m
+            walkers = self._zero_loyalty_walkers()  # CR 704.5i
+            legends = self._legend_rule_groups()  # CR 704.5j
+            freed = self._protected_equipment()  # CR 704.5n
             if (
                 not dying
                 and not unattached
@@ -1806,7 +1686,7 @@ class Executor:
             ]
             before = self.journal.snapshot()
             start = len(self.events)
-            # V44 (CR 704.5n): checked in the same snapshot as the other actions
+            # CR 704.5n: checked in the same snapshot as the other actions
             # (CR 704.3, simultaneous); the Equipment stays on the battlefield and
             # the next pass, after the recompute, sees the equipped bonuses gone.
             for card in freed:
@@ -1814,17 +1694,12 @@ class Executor:
                 self.events.append(
                     (len(self.events), "STATE_CHECK", str(card), f"UNATTACHED:{host}")
                 )
-            # r19b (Scorching Dragonfire): dies-window replacements consult
-            # BEFORE the graveyard move (C24 replacement-before-apply, the
-            # die-lane twin of the damage/life hooks in verbs.py). A matched
-            # death is NOT moved — the record's ACTION (the exile) runs as
-            # its own journalled atom in this iteration's drain below.
-            # v1 GAP (documented): the consumed death emits no
-            # BATTLEFIELD->GRAVEYARD diff, so events.py's KIND_CREATURE_DIES
-            # never fires for a replaced death — dies-triggers stay silent
-            # for it (the real CR 614.8 reading differs; no corpus card's
-            # scenario depends on the pair yet, so this stays a flagged
-            # stand-in, never a fake CREATURE_DIES row).
+            # Dies-window replacements (Scorching Dragonfire) are consulted
+            # BEFORE the graveyard move, the die-lane twin of the damage and
+            # life replacements in verbs.py. A matched death is NOT moved —
+            # the record's ACTION (the exile) runs as its own journalled atom
+            # in this iteration's drain below. A replaced death emits no
+            # BATTLEFIELD->GRAVEYARD diff, so no CREATURE_DIES row.
             replaced: list[tuple[Handle, ReplacementRecord]] = []
             for card in dying:
                 repl = self.replacements.replacement_for_death(card)
@@ -1855,13 +1730,12 @@ class Executor:
                     continue  # a walker killed in this same batch
                 if any(card == c for c, _repl in replaced):
                     continue  # a creature-walker whose death is already replaced
-                # r21a: the zeroed LOYALTY key is DELETED on the way out
-                # (generic-counter-verb convention): the battlefield re-
-                # entry seeds via setdefault (binding.py 13a), and a stale
-                # 0 would ride the re-entry into an instant second death.
-                # An exile replacement below is a way out too.
+                # The zeroed LOYALTY key is DELETED on the way out (an exile
+                # replacement below is a way out too); a battlefield re-entry
+                # seeds the printed loyalty with setdefault
+                # (TriggerBinder._register).
                 self.world.cards[card].counters.pop("LOYALTY", None)
-                # B-62, CR 704.5i + 700.4: the zero-loyalty SBA puts the
+                # CR 704.5i + 700.4: the zero-loyalty SBA puts the
                 # walker into its owner's graveyard from the battlefield, so
                 # it DIES and the dies-window replacements apply exactly as
                 # in the lethal-creature lane above ("if that creature or
@@ -1884,7 +1758,7 @@ class Executor:
                     (len(self.events), "STATE_CHECK", str(card), "ZERO_LOYALTY")
                 )
             for card in legend_losers:
-                # V22, CR 704.5j: the ones not kept go to their owners'
+                # CR 704.5j: the ones not kept go to their owners'
                 # graveyards. From the battlefield to a graveyard is dying
                 # (CR 700.4), so the dies-window replacements apply as in the
                 # lanes above. A walker's loyalty key goes with it (a new
@@ -1909,9 +1783,9 @@ class Executor:
                 before, None, "STATE_CHECK", self.events[start:]
             )
             self._on_zone_changes(new_events)
-            # r19b: drain the consumed deaths — each replacement's ACTION is
+            # Drain the consumed deaths — each replacement's ACTION is
             # its OWN atom boundary (the _run_effect damage-lane pattern),
-            # with the CR 614.4a guard on the inner ctx and the dead card
+            # with the CR 614.5 guard on the inner ctx and the dead card
             # bound as the ``event`` referent its selector reads. The drain
             # runs BEFORE the trigger drain so no firing sees a limbo
             # creature still marked lethal on the battlefield.
@@ -1924,21 +1798,21 @@ class Executor:
                 )
                 inner.replaced_seq = frozenset({repl.seq})
                 self._run_effect(repl.action, inner)
-            # W4-4: queue the triggers this batch caused; they resolve once the
+            # Queue the triggers this batch caused; they resolve once the
             # check is stable (the settle's drain).
             self.binder.on_events()
             batches += 1
 
     def _settle(self) -> int:
-        """Match the journal's new events and drain — the end of every
-        public op. With nothing attached this is a no-op (12a behaviour).
-        12d: the settle tail is also the recompute point — WHILE-condition
-        truth is re-evaluated on the ledger, and the layer registry
-        re-reads the set (new/lost members, condition toggles) and rebuilds
-        the keyword / granted-ability oracles. All of it is pure function
-        of the journal's final state, so replays are byte-identical.
+        """Match the journal's new events, run the state-based actions and
+        drain the triggers — the end of every top-level op. The settle tail
+        is also the recompute point: WHILE-condition truth is re-evaluated
+        on the ledger, and the layer registry re-reads the set (new/lost
+        members, condition toggles) and rebuilds the keyword /
+        granted-ability oracles. All of it is a pure function of the
+        journal's final state, so replays are byte-identical.
 
-        W4-4 (CR 117.5, 704.3): "the game first performs all applicable
+        CR 117.5, 704.3: "the game first performs all applicable
         state-based actions as a single event, then repeats this process
         until no state-based actions are performed. Then triggered abilities
         are put on the stack." The check runs first, and again after each
@@ -1946,7 +1820,7 @@ class Executor:
         be dead (a 0/0 reanimated Archfiend's Vessel dies before its enter
         trigger resolves, and that trigger can no longer exile it)."""
         self.binder.on_events()
-        # 16a: the state-based check sits at the settle point (CR 704.3), so
+        # The state-based check sits at the settle point (CR 704.3), so
         # execute / apply_effect / end_turn all reach it.
         self._state_checks()
         fired = self.binder.fire_all(between=self._state_checks)
@@ -1955,7 +1829,7 @@ class Executor:
         return fired
 
     def _finish_op(self) -> None:
-        """The end of a public op. V37 (CR 724.1): when the op's own effect
+        """The end of a public op. CR 724.1: when the op's own effect
         ended the turn, the turn ends BEFORE any settle, so the abilities
         its resolution triggered cease to exist (724.1a) instead of
         resolving; otherwise the settle runs, then any request a trigger
@@ -1965,7 +1839,7 @@ class Executor:
             self._consume_end_turn()
 
     def _consume_end_turn(self) -> bool:
-        """13a: an END_TURN atom only SETS the request flag (mid-op state
+        """An END_TURN atom only SETS the request flag (mid-op state
         must not change under the atoms still running); the turn ends at the
         op boundary (:meth:`_finish_op`) through :meth:`_end_the_turn`.
         Returns whether the turn ended here. While the end or cleanup step
@@ -1981,7 +1855,7 @@ class Executor:
         return True
 
     def _end_the_turn(self) -> int:
-        """V37, CR 724.1: an effect ends the turn. 724.1a-d run first
+        """CR 724.1: an effect ends the turn. 724.1a-d run first
         (:meth:`_end_the_turn_process`); then the game skips straight to the
         cleanup step (724.1d). The end step is skipped, so no END_TURN
         marker is journalled and "at the beginning of the end step"
@@ -2005,7 +1879,7 @@ class Executor:
         on the stack is exiled. 724.1c: state-based actions are checked, and
         no triggered ability is put onto the stack (the binder holds the
         firings for the cleanup step). 724.1d: the current step ends, so
-        unspent mana empties (V2, CR 500.5), and every creature leaves
+        unspent mana empties (CR 500.5), and every creature leaves
         combat."""
         self.end_turn_requested = False
         self.binder.cease_triggered_before(self.end_turn_mark)
@@ -2025,10 +1899,8 @@ class Executor:
         included. A resolving spell goes to exile at its own put
         (stack.cast). A spell still waiting on the stack below it is exiled
         here and its frame flagged, so the cast that pushed it never
-        resolves it; no compiled card reaches this lane today (the response
-        and combat windows never offer an END_TURN spell). Abilities are not
-        stack objects in this engine: a triggered ability resolves as it
-        fires."""
+        resolves it. Abilities are not stack objects in this engine: a
+        triggered ability resolves as it fires."""
         frames = list(self.stack.frames)
         if not frames:
             return
@@ -2064,21 +1936,21 @@ class Executor:
         assert meta.condition is not None
         return eval_filter(meta.condition, meta.anchor, ctx)
 
-    # ------------------------------------------------- 12b/12d: turn skeleton
+    # -------------------------------------------------------- turn skeleton
     #
-    # The MINIMAL executor-owned turn: active rotation + world.turn clock +
-    # the UNTAP STEP (12d) + phase markers. 16b adds the COMBAT phase
-    # (:meth:`Executor.combat_step`, driven between the main-phase acts
-    # and end_turn by the harness); the markers the frozen grammar has
-    # triggers for: UPKEEP + FIRST_MAIN + COMBAT at the beginning of a
-    # turn's work, END_TURN at the end of one. The untap step is a
-    # RULE step, not an Atom: it mutates the
-    # world directly and journalls one TapStateEvent per untap, so
-    # "whenever a creature untaps" triggers and the fingerprint see it.
+    # The executor-owned turn: active rotation, the world.turn clock, the
+    # untap, upkeep and draw steps, the COMBAT phase
+    # (:meth:`Executor.combat_step`, driven between the main-phase acts and
+    # end_turn by the game driver), the end and cleanup steps, and the
+    # phase markers the grammar has triggers for: UPKEEP, FIRST_MAIN and
+    # COMBAT at the beginning of a turn's work, END_TURN at the end of one.
+    # The untap step is a RULE step, not an Atom: it mutates the world
+    # directly and journals one TapStateEvent per untap, so "whenever a
+    # creature untaps" triggers and the fingerprint see it.
 
     def begin_turn(self, player: Handle) -> int:
         """Begin ``player``'s turn: active rotation, turn clock, the UNTAP
-        step (12d), UPKEEP and FIRST_MAIN markers, per-turn event trackers
+        step, UPKEEP and FIRST_MAIN markers, per-turn event trackers
         reset; drains triggers. Returns the firing count. Each step resolves
         its own triggers: the upkeep's before the draw step (CR 503.1a, 504),
         the draw step's before the main phase. The first turn of a two-player
@@ -2097,13 +1969,12 @@ class Executor:
         self.phase = Phase.UPKEEP.name
         self.journal.begin_turn(player)
         self._untap_step(player)
-        # UNTIL_NEXT_TURN expiry: the recorded owner's turn is beginning —
-        # the precise next-turn-start end the 12a ledger deferred (the
-        # binder's DELAYED windows keep their documented Eot stand-in).
+        # UNTIL_NEXT_TURN expiry: the recorded owner's turn is beginning
+        # (the binder's delayed triggers end at end of turn instead).
         self.ledger.expire_until_next_turn(player)
         self.layers.expire_until_next_turn(player)
         self.replacements.expire_until_next_turn(player)
-        # R5-1 (CR 610.3): zone moves "until your next turn" return now.
+        # CR 610.3: zone moves "until your next turn" return now.
         returning = self.returns.end_next_turn(player)
         if returning:
             self._run_returns(returning)
@@ -2113,7 +1984,7 @@ class Executor:
         # the upkeep resolves in the upkeep, before the draw step (an upkeep
         # discard never sees the card this turn draws).
         fired = self._settle()
-        # 14a: the DRAW step (CR 504.1), journalled INSIDE the skeleton so
+        # The DRAW step (CR 504.1), journalled INSIDE the skeleton so
         # 'whenever you draw' triggers and the fingerprint see it; its
         # triggers and its state-based check (CR 704.5b) follow at once.
         # CR 103.8a: in a two-player game the player who plays first skips
@@ -2127,20 +1998,19 @@ class Executor:
         return fired + self._settle()
 
     def _turn_draw(self, player: Handle) -> None:
-        """The CR 504.5-c draw step of the active player (14a).
+        """The CR 504.1 draw of the active player's draw step.
 
-        The frozen grammar has no phase-marker draw — the DRAW *verb* is the
-        corpus idiom (`library -> hand`), so the skeleton runs the shared
-        :data:`_TURN_DRAW` atom inline through the same journalled path a
-        card's own draw uses: the DRAW handler calls
-        :meth:`GameWorld.draw` and the journal auto-detects the
-        library->hand move as a MOVE_ZONE atom boundary.
+        The grammar has no draw-step phase marker, so the skeleton runs the
+        shared :data:`_TURN_DRAW` atom inline through the same journalled
+        path a card's own draw uses: the DRAW handler calls
+        :meth:`GameWorld.draw`, and the journal's diff of that atom boundary
+        emits the zone change and the CARD_DRAWN row.
 
-        Two deliberate omissions, both the skeleton's existing discipline:
-        no nested ``_settle`` (:meth:`begin_turn` settles right after this
-        step, so the draw step's triggers resolve before the main phase) and
-        no nested ``_consume_end_turn`` (an END_TURN requested by such a
-        trigger closes at the next op boundary, never mid-skeleton). An
+        Two deliberate omissions: no nested ``_settle`` (:meth:`begin_turn`
+        settles right after this step, so the draw step's triggers resolve
+        before the main phase) and no nested ``_consume_end_turn`` (an
+        END_TURN requested by such a trigger closes at the next op boundary,
+        never mid-skeleton). An
         empty library draws nothing here; ``_v_draw`` records the attempt
         and the state-based check of that settle makes the player lose (CR
         704.5b, :meth:`_player_losses`).
@@ -2150,11 +2020,11 @@ class Executor:
         a 'you drew' trigger's APNAP controller already is."""
         self._op_seq += 1
         ctx = self._ctx(source=player, controller=player, bindings=None, decisions=())
-        # r22b: the draw-step window. _v_draw stamps draw_step_ordinal only
+        # The draw-step window. _v_draw stamps draw_step_ordinal only
         # while this flag is open; NOT_FIRST_DRAW_THIS_STEP (Teferi's Ageless
         # Insight condition, quantity.py) answers per that register. Cleared
         # unconditionally — a draw-armed trigger firing later sees the
-        # window shut (CR 504.5: the register is scoped to the step).
+        # window shut (the register is scoped to the step).
         self._draw_step_open = True
         self.draw_step_ordinal = {}
         try:
@@ -2163,19 +2033,16 @@ class Executor:
             self._draw_step_open = False
 
     def _untap_step(self, player: Handle) -> int:
-        """The 12d untap step. Every tapped permanent the ACTIVE player
+        """The untap step. Every tapped permanent the ACTIVE player
         controls untaps — except one a live PREVENT/UNTIL_NEXT_STEP record
-        vetoes (Frost Breath's freeze; no defender-style exclusions exist
-        pre-combat, and there are none in the frozen data for this step).
-        APNAP note: untap is a simultaneous rule action, not a player
-        choice — the Handle-sorted loop is the deterministic stand-in for
-        the simultaneous replacement (documented, no player interaction
-        is involved, so no APNAP ordering applies).
+        vetoes (Frost Breath's freeze). Untapping is one simultaneous rule
+        action, not a player choice, so the Handle-sorted loop is just its
+        deterministic order (no APNAP ordering applies).
         AFTER the tick: UNTIL_NEXT_STEP(UNTAP) records are consumed by the
         step they just survived and terminal-expire — the freeze therefore
-        survives EXACTLY one untap tick (pinned). Returns the untap count.
+        survives EXACTLY one untap tick. Returns the untap count.
 
-        CR 502.1 (2026-10-29): the phasing turn-based action comes FIRST, so
+        CR 502.1: the phasing turn-based action comes FIRST, so
         a permanent that phases in here untaps in the same step (502.3); a
         permanent still phased out does not exist and does not untap."""
         world = self.world
@@ -2189,7 +2056,7 @@ class Executor:
                 continue
             if card in self.phased_out:  # CR 702.26b
                 continue
-            if self.controller_of(card) != player:  # 16e overlay-aware
+            if self.controller_of(card) != player:  # the effective controller
                 continue
             if self.replacements.prevents_untap(card):
                 continue
@@ -2202,33 +2069,30 @@ class Executor:
         self.ledger.expire_at_step(Step.UNTAP, player, controller_of)
         return untapped
 
-    # ------------------------------------------------- 16b: the COMBAT phase
+    # ------------------------------------------------------ the COMBAT phase
     #
-    # FIRST_MAIN -> COMBAT -> SECOND_MAIN -> END. R16-1 (doc /11): the
-    # phase runs UNINTERRUPTED - no opponent response window (our instants
-    # are own-turn-only by construction, so nothing illegal is claimed);
-    # the CR 704.3 honesty is the SBA sweep at every settle point between
-    # the damage steps and the phase hand-off. 16c ships the blocker step
-    # (CR 509), the damage-assignment asks (CR 510), TRAMPLE, DEATHTOUCH
-    # and the Herald AS_UNBLOCKED policy. V41 (2026-10-30): each attacker
-    # attacks the defending player or a planeswalker that player controls
-    # (CR 506.2, 508.1b); the attack ask names the choice.
-    # v1 limits, documented per the R16-1 mandate: no chain spells, no
-    # flash responses.
+    # FIRST_MAIN -> COMBAT -> SECOND_MAIN -> END. Declare attackers (each
+    # attacks the defending player or a planeswalker that player controls,
+    # CR 506.2, 508.1b; the attack ask names the choice), declare blockers
+    # (CR 509), one instant window after the blocks
+    # (stack.open_combat_window), then the combat damage step(s) with the
+    # CR 510 assignment asks (TRAMPLE, DEATHTOUCH, the Herald AS_UNBLOCKED
+    # policy). State-based actions run at every settle point between the
+    # steps (CR 704.3). No other priority window opens in combat.
 
     def combat_step(self, seat: Handle) -> int:
-        """Run the active player's whole COMBAT phase (CR 506-511 v1):
+        """Run the active player's whole COMBAT phase (CR 506-511):
         the beginning-of-combat marker (the Phase.COMBAT cards fire), the
-        declare-attackers step (one binary ask per legal creature, whole-
-        set validated, mandates narrowing the vocab), the declare-blockers
+        declare-attackers step (one ask per legal creature, whole-set
+        validated, mandates narrowing the vocab), the declare-blockers
         step (CR 509: one ask per defending creature, candidates = the
         attackers it may legally block plus NONE, CR 509.1a untapped-only,
         whole-assignment validated), the combat damage step(s) with the
         first/double-strike split and the CR 510 assignment asks, and the
         end of combat. Returns the trigger-firing count. A creature with no
         legal declaration is never asked (it cannot attack); a mandatory
-        attacker's ask is ATTACK-only (C15 - the policy is never offered
-        an illegal answer).
+        attacker is not offered DECLINE (the policy is never offered an
+        illegal answer).
 
         Runs :meth:`combat_attacks` then :meth:`combat_blocks`; the split is the
         search substrate's ``pre_blocks`` boundary (games._play), where no
@@ -2250,11 +2114,11 @@ class Executor:
             raise ValueError(f"combat_step: {seat} has no defending player")
         self.defending_player = opponents[0]
         fired = 0
-        # V2 (CR 500.5): the main phase ends here; unspent mana empties.
+        # CR 500.5: the main phase ends here; unspent mana empties.
         self.empty_mana_pools()
-        # Beginning of combat (TurnPhaseEvent COMBAT - the BINDING 16b
-        # feed: Battle-Rattle Shaman, Dire Fleet Warmonger, Adherent of
-        # Hope, the Basri Ket / Liliana Waker emblems).
+        # Beginning of combat (TurnPhaseEvent COMBAT, which "at the
+        # beginning of combat" triggers read: Battle-Rattle Shaman, the
+        # Basri Ket emblem).
         self.journal.record_turn_phase(Phase.COMBAT.name)
         self.phase = Phase.COMBAT.name
         fired += self._settle()
@@ -2279,7 +2143,7 @@ class Executor:
         509-511), for the attack :meth:`combat_attacks` declared. Returns
         the trigger-firing count."""
         fired = 0
-        # Declare blockers (CR 509, 16c) - after the attack-trigger drain
+        # Declare blockers (CR 509) - after the attack-trigger drain
         # (CR 508.3: the triggers resolve BEFORE the blocking player gets
         # the declaration duty), before any damage step.
         fired += self._declare_blockers(seat)
@@ -2288,22 +2152,21 @@ class Executor:
         # "blocks a creature with flying" pump, Gloom Sower's life swap,
         # Elder Gargaroth's choice) resolve BEFORE the combat damage step.
         fired += self._settle()
-        # RUNG-2 (CR 506.4/510's first slice, 2026-10-05): the combat
-        # INSTANT window — after declare-blockers and its settle, before
-        # the damage step, both seats may answer the fight with a legal
-        # instant (kill the blocker before it fights, pump the defender
-        # over a lethal threshold, snipe the attacker). One round in
-        # player order, no priority re-asks (the rung-1 narrowing); a
-        # no-attacker combat has no declare-blockers or damage step, so
-        # there is nothing to respond to and no ask is made (C15). The
-        # cast's own settle removes dead creatures and folds pumped P/T
-        # into the ledger BEFORE _combat_damage reads it.
+        # The combat INSTANT window — after declare-blockers and its
+        # settle, before the damage step, both seats may answer the fight
+        # with a legal instant (kill the blocker before it fights, pump the
+        # defender over a lethal threshold, snipe the attacker). One round
+        # in player order, no priority re-asks. A no-attacker combat has no
+        # declare-blockers or damage step, so there is nothing to respond
+        # to and no ask is made. The cast's own settle removes dead
+        # creatures and folds pumped P/T into the ledger BEFORE
+        # _combat_damage reads it.
         if self.attackers:
             open_combat_window(self)
         self.empty_mana_pools()  # end of the declare blockers step
         fired += self._combat_damage(seat)
         self.empty_mana_pools()  # end of the combat damage step
-        # End of combat: the settle is the R16-1 SBA pass; the attack
+        # End of combat: the settle runs the state-based actions; the attack
         # record closes with the phase (CR 506.4 - nothing "is attacking"
         # once combat ended, and IS_ATTACKING reads exactly that).
         fired += self._settle()
@@ -2312,14 +2175,14 @@ class Executor:
         self.attacked = {}
         self.blocked_by = {}
         self.defending_player = None
-        # V26 (CR 511.3: as the end of combat step ends, all creatures are removed
-        # from combat): re-read the statics that select attacking or blocking
+        # CR 511.3: as the end of combat step ends, all creatures are removed
+        # from combat. Re-read the statics that select attacking or blocking
         # creatures ("Attacking creatures you control get +1/+0", Warded
         # Battlements) now that nothing is attacking; the last recompute ran inside
         # the settle above, while the attack record still stood.
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
-        # CR 505.1: the second main phase. The frozen grammar's Phase vocab
+        # CR 505.1: the second main phase. The grammar's Phase vocab
         # has no SECOND_MAIN member (no trigger reads it), so the marker is
         # executor-clock-only and nothing is journalled; the sorcery-speed
         # gates read it as a main phase (legality.MAIN_PHASES).
@@ -2327,9 +2190,9 @@ class Executor:
         return fired
 
     def _declare_attackers(self, seat: Handle) -> None:
-        """The CR 508.1 binary asks + the whole-set check, then the
+        """The CR 508.1 asks + the whole-set check, then the
         declaration commit: tap everything that declared except the
-        vigilance carriers (CR 702.53a), journalled as TapState rows
+        vigilance carriers (CR 702.20a), journalled as TapState rows
         BEFORE the declare rows (a "becomes tapped" trigger sits UNDER
         the attack triggers, CR 508.1m), then one DECLARE_ATTACKERS row
         per attacker - shared declare-group id, the binder's CR 603.2
@@ -2342,7 +2205,7 @@ class Executor:
         mandated = mandated_attackers(self, seat) & set(candidates)
         defender = self.defending_player
         assert defender is not None  # combat_step opens the phase with one
-        # V41 (CR 506.2, 508.1b): when the defending player controls
+        # CR 506.2, 508.1b: when the defending player controls
         # planeswalkers, the active player announces what each attacker
         # attacks: ATTACK is the defending player, a planeswalker's handle
         # is that planeswalker. With none, the ask keeps its binary shape.
@@ -2350,11 +2213,10 @@ class Executor:
         chosen: list[Handle] = []
         attacking: dict[Handle, Handle] = {}
         for card in candidates:
-            # T5-F1 (§10): a MANDATED attacker (furor/must-attack) has a
-            # one-word surface — not a decision. The phantom gate consumes
-            # ATTACK silently and journals it; the pack/provider cannot
-            # decline what CR forces, and no 1-candidate ask is billed. It
-            # still chooses what it attacks (CR 508.1d).
+            # A MANDATED attacker (must attack) is not offered DECLINE: the
+            # policy cannot decline what the rules force, and with no
+            # planeswalker to choose its one-word offer is taken without
+            # asking. It still chooses what it attacks (CR 508.1d).
             vocab = ("ATTACK",) + tuple(str(w) for w in walkers)
             if card not in mandated:
                 vocab += ("DECLINE",)
@@ -2401,11 +2263,11 @@ class Executor:
                 (self._declare_group,),
             )
 
-    # ------------------------------------------------ 16c: declare blockers
+    # ----------------------------------------------------- declare blockers
 
     def _declare_blockers(self, seat: Handle) -> int:
-        """CR 509 v1 (16c). ONE ask per defending creature that could legal-
-        ly block at least one attacker, Handle-sorted (C16), site
+        """CR 509. ONE ask per defending creature that could legal-
+        ly block at least one attacker, Handle-sorted, site
         ``block:<card>:<turn>``: the vocabulary is the attackers that perma-
         nent may block (CR 509.1a untapped-only, CR 509.1b one attacker per
         blocker, reach/menace/protection and the PREVENT_EFFECT restrictions
@@ -2417,13 +2279,10 @@ class Executor:
         CR 702.111b; none past its blocker limit, CR 509.1b) and obeys as
         many requirements as such a declaration can (CR 509.1c: a must-be-
         blocked attacker is one, obeyed by whichever creature blocks it).
-        /115 (seed 1269): the test is a bipartite match over pair-LEGAL
-        completions; the old gate counted remaining CANDIDATES and offered a
-        lone blocker the menace word no later blocker could legally pair
-        behind. Every candidate keeps a word. Never dropped when the answer
-        would merely be inadvisable (C15). Tapped/defender
-        creatures are never asked; a
-        creature legal against nothing is never asked. Each committed pair
+        The test is a bipartite match over pair-LEGAL completions
+        (``most_obeyed``). Every candidate keeps a word, and none is dropped
+        because the answer would merely be inadvisable. Tapped creatures and
+        creatures legal against nothing are never asked. Each committed pair
         emits one DECLARE_BLOCKERS row (subject = the blocker — the
         DeclareBlockersEvent feed: filter/subject read the blocker, blocked
         reads the attacker; BecomesBlockedEvent answers the same rows for
@@ -2447,8 +2306,8 @@ class Executor:
             return 0
         mandated = mandated_to_be_blocked(self) & set(attackers)
         by_word = {str(a): a for a in attackers}
-        # /115 (seed 1269): the pair matrix is precomputed once — asks
-        # mutate no state, so the legality picture is fixed for the step.
+        # The pair matrix is precomputed once — asks mutate no state, so
+        # the legality picture is fixed for the step.
         pair_ok: dict[Handle, set[Handle]] = {
             blocker: {
                 attacker
@@ -2530,8 +2389,8 @@ class Executor:
             ctx = self._ctx(
                 source=blocker, controller=defender, bindings=None, decisions=()
             )
-            # T5-F1 (§10): a creature left ONE word (the last that can obey a requirement, or
-            # a menace attacker's second blocker) is consumed by the phantom gate, not asked.
+            # A creature left ONE word (the last that can obey a requirement, or a menace
+            # attacker's second blocker) gets it without being asked.
             answer = offer_or_autopick(ctx, tuple(words), f"block:{blocker}:{world.turn}")
             if answer == "NONE":
                 continue
@@ -2586,7 +2445,7 @@ class Executor:
         if self.defending_player is None or creature in self.attackers:
             return
         self.attackers.append(creature)
-        # V41, CR 508.4: its controller chooses what it attacks, the
+        # CR 508.4: its controller chooses what it attacks, the
         # defending player or a planeswalker that player controls (the
         # corpus' "tapped and attacking" effects never say which).
         walkers = self._attackable_walkers()
@@ -2611,7 +2470,7 @@ class Executor:
         )
 
     def _attackable_walkers(self) -> list[Handle]:
-        """V41 (CR 506.2, 506.3): the planeswalkers a creature may attack this
+        """CR 506.2, 506.3: the planeswalkers a creature may attack this
         combat, Handle-sorted: those the defending player controls."""
         return sorted(
             card
@@ -2646,21 +2505,20 @@ class Executor:
         ]
 
     def _combat_damage(self, seat: Handle) -> int:
-        """CR 702.7/702.8 first-strike / double-strike split. If anything
+        """CR 702.7/702.4 first-strike / double-strike split. If anything
         ATTACKING OR BLOCKING has first or double strike there is a FIRST
         COMBAT DAMAGE STEP for the FS union DS carriers, then the settle's
         SBA sweep (a killer first strike buries its victim before the
         normal step), then the NORMAL step for the non-FS dealers plus the
-        surviving DS carriers. 16c: the dealer set is BOTH SIDES of the
-        attack (CR 510.1a — blockers assign to the attacker they blocked,
-        in the same simultaneous step; the 16b attacker-only wave is
-        superseded). Every damage atom is the 16a DEAL_DAMAGE funnel -
-        the C24 replacement site intercepts (Nine Lives reads combat damage
-        exactly like any other), marks ride the ledger, lethality is the
-        settle's SBA. Each dealer's assignment obeys CR 510 (below) -
-        blockers first up to lethal, TRAMPLE excess by asked partition,
-        the Herald policy able to route it past blockers as though
-        unblocked."""
+        surviving DS carriers. The dealer set is BOTH SIDES of the attack
+        (CR 510.1a — blockers assign to the attacker they blocked, in the
+        same simultaneous step). Every damage atom goes through the
+        DEAL_DAMAGE verb — damage replacements apply (Nine Lives reads
+        combat damage exactly like any other), marks ride the ledger,
+        lethality is the settle's SBA. Each dealer's assignment obeys
+        CR 510 (below) - blockers first up to lethal, TRAMPLE excess by
+        asked partition, the Herald policy able to route it past blockers
+        as though unblocked."""
         dealers = self._combat_dealers()
 
         def live(items: list[Handle]) -> list[Handle]:
@@ -2700,17 +2558,17 @@ class Executor:
     def _assign_damage(
         self, dealer: Handle, power: int, controller: Handle
     ) -> tuple[tuple[int, Handle], ...]:
-        """CR 510.1 v1 (16c): one dealer's legal assignment announcement.
+        """CR 510.1: one dealer's legal assignment announcement.
 
         * UNBLOCKED: everything to the ATTACKED object, the defending player
-          or a planeswalker (V41, CR 510.1b). A creature whose planeswalker
+          or a planeswalker (CR 510.1b). A creature whose planeswalker
           was removed from combat attacks nothing (CR 506.4c) and, unblocked,
           assigns no combat damage; with trample its excess can only go to
           its blockers (CR 702.19b, 702.19f).
-        * BLOCKED, but every blocker has left combat (B-61): the creature
+        * BLOCKED, but every blocker has left combat: the creature
           is still blocked (CR 509.1h), so it assigns NO combat damage
           (CR 510.1c), unless it has trample, which assigns all of it to
-          the attacked object (CR 702.19e); the Herald policy below may
+          the attacked object (CR 702.19d); the Herald policy below may
           still route it there. A double striker whose first-strike damage
           killed its blocker is the common case.
         * Herald policy (Garruk, Savage Herald's −7 grant, AS_UNBLOCKED):
@@ -2721,15 +2579,15 @@ class Executor:
           stand; CR 506.5a-style blocked status is untouched) — the policy
           only reroutes the ASSIGNMENT.
         * Multiple blockers: the ORDER is asked per attacker (site
-          ``order:<card>:<turn>``) as a POSITIONAL pick from the Handle-
-          sorted remaining candidates at each slot — the exact decision
-          surface of the permutation index, with a ≤n-word vocabulary at
-          every ask (a literal 6-permutation cap would raise inside live
-          games at the 4th blocker: the gate demands zero crashes).
+          ``order:<card>:<slot>:<turn>``) as a POSITIONAL pick from the
+          Handle-sorted remaining candidates at each slot — the exact
+          decision surface of the permutation index, with a ≤n-word
+          vocabulary at every ask (one ask over whole orders would need n!
+          words).
         * LETHAL per blocker is toughness-minus-marked (CR 704.2, the
           marked ledger keeps the first-strike step's scars) or 1 from a
           DEATHTOUCH dealer (CR 702.2b).
-        * TRAMPLE (CR 702.9): once every blocker is covered lethal, the
+        * TRAMPLE (CR 702.19): once every blocker is covered lethal, the
           excess is asked RECIPIENT BY RECIPIENT in order — each blocker
           gets ``trample:<card>:<slot>:<turn>`` from 0..remaining, the
           defending player takes the rest (the composition space of the
@@ -2741,7 +2599,7 @@ class Executor:
         defender = self.defending_player
         assert defender is not None  # combat_step opens the phase with one
         if dealer not in self.attackers:
-            # 16c blocker-side dealer: a blocker assigns to the ONE attacker
+            # A blocker-side dealer: a blocker assigns to the ONE attacker
             # it blocked (CR 510.1a). If that attacker has already left
             # combat (a first-strike kill), the blocker deals NOTHING -
             # there is no trample-style carryover for a blocker whose
@@ -2762,10 +2620,10 @@ class Executor:
             and attacked.namespace == "card"
             and not self._attacked_walker_live(attacked)
         ):
-            attacked = None  # V41, CR 506.4c: attacking nothing now
+            attacked = None  # CR 506.4c: attacking nothing now
         if dealer not in self.blocked_by:
             return ((power, attacked),) if attacked is not None else ()  # unblocked
-        # B-61, CR 509.1h: the blocked_by entry outlives its blockers (a
+        # CR 509.1h: the blocked_by entry outlives its blockers (a
         # departing blocker is removed from the list, the key stays), so an
         # empty live list here still means BLOCKED.
         blockers = [
@@ -2795,9 +2653,8 @@ class Executor:
             ):
                 return ((power, attacked),) if attacked is not None else ()
         if not blockers:
-            # B-61, CR 510.1c: blocked with no creature blocking it, no
-            # trample: it assigns no combat damage. Before the fix this
-            # case sent the whole damage to the player.
+            # CR 510.1c: blocked with no creature blocking it, no
+            # trample: it assigns no combat damage.
             return ()
         ordered = list(blockers)
         if len(ordered) > 1:
@@ -2811,9 +2668,8 @@ class Executor:
                     bindings=None,
                     decisions=(),
                 )
-                # T5-F1 (§10): the LAST slot has exactly one remaining
-                # creature — the phantom gate consumes the trivial "0"
-                # instead of asking for the obvious.
+                # The LAST slot has exactly one remaining creature: its
+                # "0" is taken without asking.
                 answer = offer_or_autopick(
                     ctx, vocab, f"order:{dealer}:{slot}:{world.turn}"
                 )
@@ -2880,7 +2736,7 @@ class Executor:
         if excess and attacked is not None:
             plan.append((excess, attacked))
         elif excess:
-            # V41, CR 702.19b/f: its planeswalker left combat, so the excess
+            # CR 702.19b/f: its planeswalker left combat, so the excess
             # can only go to the blockers: the last one in order takes it.
             last = ordered[-1]
             for i, (a, h) in enumerate(plan):
@@ -2899,9 +2755,9 @@ class Executor:
         nothing a later dealer's ask could read has mutated yet), then the
         atoms run inside ONE op boundary (simultaneous, CR 506/510 — no
         trigger can intervene between two attackers), each dealer's atoms
-        journalled under ITS OWN cause (16a attribution fix) and with the
-        step's op number (CR 510.2: one damage event, which an "is dealt
-        damage" trigger counts once per recipient), each damage-
+        journalled under ITS OWN cause and with the step's op number
+        (CR 510.2: one damage event, which an "is dealt damage" trigger
+        counts once per recipient), each damage-
         bearing dealer emits ONE COMBAT_DAMAGE row carrying the whole as-
         signment (CR 603.2: one "deals combat damage" event per dealer,
         however it splits), and the settle after the wave is the step's SBA
@@ -2917,14 +2773,13 @@ class Executor:
             )
             if not power or power < 0:
                 # 0, a negative, or an unmaterialized * : CR 120.7 - not
-                # dealt at all. The negative lane became REACHABLE with the
-                # Rung-2 combat window (a -X/-X instant cast between the
-                # declaration and the damage step can push a dealer's
-                # effective power below zero); damage is never negative.
+                # dealt at all. A -X/-X instant cast in the combat window
+                # can push a dealer's effective power below zero; damage is
+                # never negative.
                 continue
             plan = self._assign_damage(dealer, power, self.controller_of(dealer))
             if not plan:
-                # 16c: a blocker whose attacker left combat deals nothing -
+                # A blocker whose attacker left combat deals nothing -
                 # no damage, no COMBAT_DAMAGE event (CR 120.7's reading).
                 continue
             strikes.append((dealer, plan))
@@ -2996,19 +2851,19 @@ class Executor:
         (end-step triggers see the pre-expiry state), trigger drain, THEN
         :meth:`_cleanup_step`. Returns the firing count.
 
-        V37: a turn that is already over does nothing: an effect ended it
+        A turn that is already over does nothing: an effect ended it
         (CR 724.1 skipped its end step and ran its cleanup step), or its end
         step already ran. Drivers call this once per turn whatever happened
         in it. An effect that ends the turn during the end step skips the
         rest of that step (CR 724.1a-c) before the cleanup step.
 
-        V2 (CR 500.5): unspent mana empties as the phase before the end step,
+        CR 500.5: unspent mana empties as the phase before the end step,
         the end step and each cleanup step end (:meth:`_cleanup_step`); an
         effect that ends the turn empties it at CR 724.1d
         (:meth:`_end_the_turn_process`)."""
         if self._turn_started and not self.turn_open:
             return 0
-        self.empty_mana_pools()  # V2: the phase before the end step ends
+        self.empty_mana_pools()  # the phase before the end step ends
         self.phase = Phase.END_TURN.name
         self.turn_open = False
         self._closing_turn = True
@@ -3017,7 +2872,7 @@ class Executor:
             fired = self._settle()
             if self.end_turn_requested:
                 self._end_the_turn_process()
-            self.empty_mana_pools()  # V2: the end step ends (no-op after 724.1d)
+            self.empty_mana_pools()  # the end step ends (no-op after 724.1d)
             return fired + self._cleanup_step()
         finally:
             self._closing_turn = False
@@ -3027,10 +2882,10 @@ class Executor:
 
         514.1: the active player discards down to their maximum hand size
         (:meth:`_discard_to_hand_size`). 514.2: the end-of-turn expiry sweep:
-        Eot ledger entries, Eot-tagged LAYER records (12d: until-end-of-turn
-        grants die here) and Eot-tagged PREVENTION records, the turn-window
-        delayed triggers (C22), marked damage, and the zone moves "until end
-        of turn" return (R5-1, CR 610.3). 514.3a: then state-based
+        Eot ledger entries, Eot-tagged LAYER records (until-end-of-turn
+        grants die here), PREVENTION records and control entries, the
+        turn-window delayed triggers, marked damage, and the zone moves
+        "until end of turn" return (CR 610.3). 514.3a: then state-based
         actions and the triggers waiting (a discard's, say) are handled; when
         anything happened another cleanup step begins. The discard runs no
         settle of its own, so its triggers resolve after the 514.2 sweep, as
@@ -3041,10 +2896,10 @@ class Executor:
             self.ledger.sweep_at_eot()
             self.layers.sweep_at_eot()
             self.replacements.sweep_at_eot()
-            self._expire_control(eot=True)  # 16e: Traitorous Greed's DurationEot
-            self.damage.clear()  # 16a: CR 514.2 — cleanup removes marked damage
-            self.damage_deathtouch.clear()  # 16c: the deathtouch flag rides along
-            # R5-1 (CR 514.2, 610.3): zone moves "until end of turn" return in the
+            self._expire_control(eot=True)  # Traitorous Greed's DurationEot
+            self.damage.clear()  # CR 514.2 — cleanup removes marked damage
+            self.damage_deathtouch.clear()  # the deathtouch flag too
+            # CR 514.2, 610.3: zone moves "until end of turn" return in the
             # cleanup step, and what their return triggers resolves (514.3a).
             returned = 0
             returning = self.returns.end_eot()
@@ -3061,11 +2916,11 @@ class Executor:
             settled = self._settle()  # CR 514.3a
             fired += settled
             if self.end_turn_requested:
-                # V37, CR 724.1d: an effect ended the turn during the cleanup
+                # CR 724.1d: an effect ended the turn during the cleanup
                 # step; 724.1a-c, then a new cleanup step begins.
                 self._end_the_turn_process()
                 continue
-            self.empty_mana_pools()  # V2: this cleanup step ends (CR 500.5)
+            self.empty_mana_pools()  # this cleanup step ends (CR 500.5)
             if not (settled or returned) and len(self.journal.events) == journalled:
                 return fired
 
@@ -3101,14 +2956,13 @@ class Executor:
 
     def empty_mana_pools(self) -> None:
         """CR 500.5 / 106.4: as a step or phase ends, any unspent mana left in
-        a player's mana pool empties (a turn-based action, CR 703.4q). The 13b
+        a player's mana pool empties (a turn-based action, CR 703.4q). The
         segment mirror (spend restrictions) empties with it, so a restriction
         can never outlive its mana. A non-empty pool leaves an ``EMPTY_MANA``
         audit row on the event log (the PAY_MANA precedent), so the replay
-        fingerprint records what was lost. No compiled card retains mana
-        ("you don't lose this mana as steps and phases end": Upwelling, Savage
-        Ventmaw, Leyline Tyrant, ... all compile partly today); the first one
-        that compiles needs a retention lane here."""
+        fingerprint records what was lost. Mana retention ("you don't lose
+        this mana as steps and phases end": Upwelling) is not modelled: every
+        pool empties."""
         for player in self.world.player_order:
             pool = self.world.players[player].mana_pool
             lost = tuple(sorted((k, v) for k, v in pool.items() if v))
@@ -3117,7 +2971,7 @@ class Executor:
             pool.clear()
             self.mana_ledger.segments.pop(player, None)
 
-    # ---------------------------------------------------- 13c emblem / attach
+    # ------------------------------------------------------- emblem / attach
 
     def get_emblem(self, owner: Handle, emblem: CardRecord) -> Handle | None:
         """Grant ``owner`` their emblem (CR 113.7). Returns the synthetic
@@ -3138,11 +2992,11 @@ class Executor:
         return handle
 
     def attach_aura(self, aura: Handle, host: Handle) -> None:
-        """Record that ``aura`` (equipment/aura permanent) is attached to
-        ``host`` — the API half of the IS_ATTACHED_TO_SOURCE oracle (the
-        corpus has no enchantment/equipment cast surface in v1, so
-        attachment is an explicit op, replayed and fingerprint-folded;
-        CR 303.4-style leave-detachment is automatic in the binder)."""
+        """Record that ``aura`` (an Aura or Equipment) is attached to
+        ``host``: the table the IS_ATTACHED_TO_SOURCE oracle reads, written
+        by the Aura cast and move lanes and the ATTACH verb. Replayed and
+        fingerprint-folded; the binder drops the edge when either end
+        leaves the battlefield."""
         if aura not in self.world.cards or host not in self.world.cards:
             raise ValueError(
                 f"attach_aura: both ends must be world cards ({aura}, {host})"
@@ -3266,15 +3120,15 @@ class Executor:
             self.layers.recompute()
         return back
 
-    # -------------------------------------------------- 16e control overlay
+    # ------------------------------------------------------ control overlay
 
     def _overlay_controller(self, handle: Handle) -> Handle | None:
-        """The 16e overlay's controller for ``handle``, None when the zone's
-        player controls it (the journal's V7 as-of-death read)."""
+        """The control overlay's controller for ``handle``, None when the
+        zone's player controls it (the journal's as-of-death read)."""
         return self.control_overlay.get(handle)
 
     def controller_of(self, handle: Handle) -> Handle:
-        """The EFFECTIVE controller of a card (16e): the GAIN_CONTROL
+        """The EFFECTIVE controller of a card: the GAIN_CONTROL
         overlay wins over the zone-owner read. OWNER-semantic call sites
         (graveyard/exile destination, owner-of-source, library to search)
         keep reading ``world.controller_of`` — a stolen permanent still
@@ -3370,10 +3224,11 @@ class Executor:
     # ------------------------------------------------------------ replay id
 
     def state_fingerprint(self) -> str:
-        """World fingerprint + ledger dump + event log + the 12b journal
-        and binder dumps + the 12d layer and replacement registries
-        (ruling 1): equal iff every replayed atom and every fired trigger
-        produced the same state transitions."""
+        """World fingerprint + ledger dump + event log + the journal and
+        binder dumps + the layer and replacement registries + the other
+        executor-side replayed state below (the world has no fields for it):
+        equal iff every replayed atom and every fired trigger produced the
+        same state transitions."""
         h = hashlib.sha256()
         h.update(self.world.fingerprint().encode())
         h.update(repr(self.ledger.dump()).encode())
@@ -3386,9 +3241,9 @@ class Executor:
         h.update(repr(self.binder.dump()).encode())
         h.update(repr(self.layers.dump()).encode())
         h.update(repr(self.replacements.dump()).encode())
-        # 16a: damage marks are replayed state too (ruling 1, CR 120.6).
+        # Damage marks (CR 120.6).
         h.update(repr(sorted(self.damage.items())).encode())
-        # CR 702.26 (2026-10-29): the phased-out status is replayed state.
+        # CR 702.26: the phased-out status.
         # Folded only when some permanent is phased out, so every replay
         # without phasing keeps its fingerprint bytes.
         if self.phased_out:
@@ -3400,19 +3255,18 @@ class Executor:
                     )
                 ).encode()
             )
-        # Ontology R5-1 (CR 610.3): the return registry is replayed state.
+        # CR 610.3: the return registry.
         # Folded only while a row exists, so every replay without an "until"
         # zone move keeps its fingerprint bytes.
         if self.returns.rows:
             h.update(repr(self.returns.dump()).encode())
-        # r23a: the cast-declared X ledger rides the same fold.
+        # The cast-declared X ledger.
         h.update(repr(sorted(map(str, self.etb_x.items()))).encode())
-        # 16c: the deathtouch flag rides the same fold (CR 702.2b kills).
+        # The deathtouch flags (CR 702.2b kills).
         h.update(repr(sorted(map(str, self.damage_deathtouch))).encode())
-        # 16b: the attack record + the dispatched mandate ledger are
-        # replayed state under the same ruling — a replay that attacked
-        # with a different set, or lost an "attacks if able" rule, MUST
-        # differ here.
+        # The attack record + the dispatched mandate ledger: a replay that
+        # attacked with a different set, or lost an "attacks if able" rule,
+        # MUST differ here.
         h.update(
             repr(
                 (
@@ -3422,9 +3276,8 @@ class Executor:
                     self.declaring,
                     self._declare_group,
                     tuple(sorted(map(str, self.mandates))),
-                    # 16c: the block record, the must-block ledger and the
-                    # dispatched damage-assignment policies are the same
-                    # kind of replayed combat state.
+                    # The block record, the must-block ledger and the
+                    # dispatched damage-assignment policies.
                     tuple(
                         sorted(
                             (str(k), tuple(str(b) for b in bs))
@@ -3436,7 +3289,7 @@ class Executor:
                 )
             ).encode()
         )
-        # 13a: the turn ledger is replayed state too (same ruling).
+        # The turn ledger.
         h.update(
             repr(
                 (
@@ -3446,21 +3299,18 @@ class Executor:
                     tuple(self.lost_players),
                     tuple(sorted(self.loyalty_clock.items())),
                     self.last_flip_won_by,
-                    # V37: the CR 724.1a mark rides the flag while a request
-                    # is open; with none open the bytes are the old False.
+                    # The CR 724.1a mark rides the flag while a request is
+                    # open; False with none open.
                     self.end_turn_mark if self.end_turn_requested else False,
                 )
             ).encode()
         )
-        # 13b: the STACK COMPLETENESS FOLD. state.py's fingerprint loop
-        # iterates PLAYER_ZONES and ZONE_STACK is NOT one of them (L48:
-        # "the stack is shared, so it is not in this list"), so a card
-        # parked on the stack is invisible to world.fingerprint() BY
-        # DESIGN — this fold is what closes that hole: two worlds
-        # differing only by a stack card MUST differ here (pinned by
-        # test_stack_visible_in_executor_fingerprint). The land ledger,
-        # mana segments and chosen names are executor-side replayed
-        # state under the same ruling.
+        # The stack. GameWorld.fingerprint iterates PLAYER_ZONES, which
+        # leaves out the shared ZONE_STACK, so a card parked on the stack is
+        # invisible to it; this fold closes that hole: two states differing
+        # only by a stack frame MUST differ here (pinned by
+        # test_stack_frame_fold_changes_the_fingerprint). Then the land
+        # ledger, mana segments and chosen names.
         h.update(repr(self.stack.dump()).encode())
         h.update(
             repr(
@@ -3474,10 +3324,9 @@ class Executor:
                 tuple(sorted((str(s), n) for s, n in self.name_choices.items()))
             ).encode()
         )
-        # 13c: the emblems table (owner-keyed synthetic handles) and the
-        # attachment edges are replayed state under the same ruling — a
-        # replay that granted a different emblem set or missed an
-        # attachment MUST differ here.
+        # The emblems table (owner-keyed synthetic handles) and the
+        # attachment edges: a replay that granted a different emblem set or
+        # missed an attachment MUST differ here.
         h.update(
             repr(
                 tuple(
@@ -3493,7 +3342,7 @@ class Executor:
                 tuple(sorted((str(a), str(h_)) for a, h_ in self.attachments.items()))
             ).encode()
         )
-        # 16e: the control overlay (derived) rides the fingerprint beside
+        # The control overlay (derived) rides the fingerprint beside
         # the entries that produce it (seq + gained-turn make the fold
         # order-independent and expiry-sensitive).
         h.update(
@@ -3520,7 +3369,7 @@ class Executor:
         )
         return h.hexdigest()
 
-    # Alias the module-level helpers that tests and callers reach through
-    # the package face.
+    # Executor-attribute aliases of two module-level helpers; nothing in
+    # MTG_bot or tools reaches them this way.
     resolve_selector = staticmethod(resolve_selector)
     token_oracle_id = staticmethod(token_oracle_id)

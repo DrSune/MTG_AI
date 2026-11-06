@@ -1,4 +1,4 @@
-"""The return registry: zone moves "until" an event (ontology R5-1, 2026-10-29; CR 610.3).
+"""The return registry: zone moves "until" an event (CR 610.3).
 
 "Exile that card until this creature leaves the battlefield" is two one-shot effects (CR 610.3):
 the move, and a second one created immediately after the specified event, which returns the object
@@ -15,7 +15,7 @@ zone.
 
 The registry is replayed state: :meth:`ReturnRegistry.dump` feeds the executor's replay fingerprint
 (only while a row exists, so a replay that never uses it keeps its bytes), and the per-seat view
-(``bench/view.py``) and the G1 probe show every row.
+(``bench/view.py``) and the card probe (``tools/cards/probe.py``) show every row.
 """
 
 from __future__ import annotations

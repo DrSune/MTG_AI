@@ -1,29 +1,28 @@
-"""T5-F1 — the shared phantom-offer gate (§10 menu-visibility law).
+"""The shared phantom-offer gate (AGENTS.md §10, the menu-visibility law).
 
-§10's PHANTOM violation class: an encoding/ask that presents a decision the
+The PHANTOM violation class: an encoding/ask that presents a decision the
 engine resolves anyway. A one-word offer surface (``("0",)`` after a bounds
 clamp, ``("skip",)`` after the CR 117.3 narrowing of ``optional_offer``) is
-such an ask — there is exactly one legal answer, so asking bills the pack
-and the BC stream for a decision nobody makes (and, worse, mis-pairs
-vocabulary-addressed FIFO primings that key on the site).
+such an ask — there is exactly one legal answer, so asking would bill the
+pack and every ask recorder for a decision nobody makes (and, worse,
+mis-pair vocabulary-addressed FIFO primings that key on the site).
 
-The rule is the one ``stack.py`` forced auto-designation already runs at
-cast time (CR 601.2c, stack.py:442): a single option the bounds force is
-CONSUMED, never presented. This module lifts that rule from the target
-lane into the decision channel: :func:`offer_or_autopick` is THE way any
-decision generator presents an offer surface.
+The rule is the one the stack's forced auto-designation already runs at
+cast time (CR 601.2c, ``stack._plan_cast_designation``): a single option
+the bounds force is CONSUMED, never presented. :func:`offer_or_autopick`
+lifts that rule into the decision channel: it is THE way any decision
+generator presents an offer surface.
 
-Journal semantics (owner ruling T5-F1): a silent consume writes to
-:meth:`DecisionStream.journal` — the ordered audit of EVERY resolved
-demand, asked or auto-picked — and NEVER to ``ask_log`` (the public lane
-BC/rollout recorders consume; a phantom row there is what this fix
-eliminates). MAY_DONE and other history guards read the journal, so an
+Journal semantics: a silent consume writes to
+:attr:`DecisionStream.journal` — the ordered audit of EVERY resolved
+demand, asked or auto-picked — and NEVER to ``ask_log`` (the record of
+genuine asks). MAY_DONE and other history guards read the journal, so an
 auto-resolved may-offer still answers "if you do" — FALSE on a forced
 skip — instead of going loud as an unanswered question.
 
 The zero-candidate edge is an explicit site-contract error: an empty ask
 has no answer to validate, so the PRODUCING site must gate before
-offering (mirrors the pre-fix exhaustion raise, attributed to its owner).
+offering.
 """
 
 from __future__ import annotations

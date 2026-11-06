@@ -1,49 +1,41 @@
-"""The spell stack + the casting pipeline (round 13b, /11 §13b).
+"""The spell stack and the casting pipeline.
 
-CR 601.2 ordered declaration, then resolution — folded into ONE engine call
-per cast, exactly the way 12c folded ``ACTIVATE``: re-check legality, choose
-modes/targets/X (601.2c–e), determine and LOCK the total cost (601.2f), pay
-(601.2g), put the spell on the stack (601.2h), resolve it (601.4), move the
-card to its after-resolution zone (601.2j / 400.7).
-**Rung-1 response window vs CR 608.2 — the narrowed gap.** A real spell
-waits on the stack while players get a RESPONSE WINDOW (CR 608.2: mana
-abilities first, then spells/abilities in APNAP order). Round-13b had
-none: casts resolved IMMEDIATELY and ``COUNTER_SPELL`` was a loud
-NotImplementedError. RUNG-1 opens the first slice of that window: after
-the cast's triggers settle and BEFORE resolution, every opponent in
-seat order is asked (through the 14b decision channel, tag
-``counter:<seat>:<digest>``) whether they respond — ``PASS`` or the
-handle of a payable counterspell from hand, which is cast at the frame
-in a nested LIFO push (a counter can itself be countered). The window
-is ONE response round, in seat order, with no priority re-asks and no
-mana-ability lane: a real window interleaves passes and active-player
-rounds; this is rung 1 of the arc, and everything beyond it (instants-
-in-reply, priority, mana abilities) STAYS a documented gap. A frame a
-counter flags is popped without its effect running (601.4 interrupted;
-the card still goes to its graveyard, 400.7). A seat with nothing
-castable is never asked (C15 — an empty choice set is never offered).
-Every declaration field the CR makes public (601.2b–e: modes, targets,
-X, total cost, timing choices) is stored on :class:`SpellObject` and
-journalled (risk-1, doc /11) — the window reads a complete frame
-instead of re-deriving one.
+A cast is one engine call, as an activation is, in CR 601.2 order: re-check
+legality, choose modes/targets/X (601.2c–e), determine and LOCK the total cost
+(601.2f), pay (601.2g), put the spell on the stack (601.2h), resolve it
+(601.4), move the card to its after-resolution zone (601.2j / 400.7).
 
-Stack placement: the frozen :mod:`MTG_bot.core.state` already declares
-``ZONE_STACK`` (L41) but keeps it OUT of ``PLAYER_ZONES``, and the
-fingerprint loop (:meth:`GameWorld.fingerprint`) iterates exactly ``PLAYER
-_ZONES`` — so a card parked in the stack zone is INVISIBLE to the world
-fingerprint. This module therefore parks cards in a lazily-created per-
-player ``ZONE_STACK`` :class:`~MTG_bot.core.state.ZoneState` slot
-(``zones.setdefault`` — a zero-edit state.py win: ``zone_of``/``move_card``
-see it, the world fingerprint does not), and the EXECUTOR fingerprint fold
-(``Executor.state_fingerprint``) adds the stack dump + cast ledger — the
-established ruling-1 pattern (journal/ledger/layers). The completeness test
-is :meth:`SpellStack.dump` round-trip: two worlds differing only by a card
-in the stack MUST produce different executor fingerprints (pinned).
+**Response window vs CR 608.2.** A real spell waits on the stack while
+players get a RESPONSE WINDOW (CR 608.2: mana abilities first, then
+spells/abilities in APNAP order). Here, after the cast's triggers settle and
+BEFORE resolution, every opponent in seat order is asked (decision tag
+``counter:<seat>:<digest>``) whether they respond — ``PASS`` or the handle of
+a payable counterspell from hand, which is cast at the frame in a nested LIFO
+push (a counter can itself be countered). The window is ONE response round,
+in seat order, with no priority re-asks; the engine taps free mana sources to
+pay (:func:`_window_taps`), and other mana abilities, non-counter replies and
+real priority stay a documented gap. A frame a counter flags is popped
+without its effect running (601.4 interrupted; the card still goes to its
+graveyard, 400.7). A seat with nothing castable is never asked (an empty
+choice set is never offered). Every declaration field the CR makes public
+(601.2b–e: modes, targets, X, total cost, timing choices) is stored on
+:class:`SpellObject` and journalled, so the window reads a complete frame
+instead of re-deriving one. :func:`open_combat_window` is the same kind of
+round for instants after blockers are declared.
 
-LIFO: :attr:`Executor.stack` is a list, append = push, resolve = pop the
-top. v1 pushes exactly the spell being cast (no other player can interpose
-in a no-interaction world), so pop-top is trivially the CR 405 LIFO order;
-the list still makes the ordering explicit and future-visible.
+Stack placement: :mod:`MTG_bot.core.state` declares ``ZONE_STACK`` but keeps
+it OUT of ``PLAYER_ZONES``, and the world fingerprint
+(:meth:`GameWorld.fingerprint`) iterates exactly ``PLAYER_ZONES``, so a card
+parked in the stack zone is INVISIBLE to it. This module parks cards in a
+per-player ``ZONE_STACK`` :class:`~MTG_bot.core.state.ZoneState` created on
+first use (``zone_of``/``move_card`` see it), and the executor fingerprint
+(``Executor.state_fingerprint``) folds in :meth:`SpellStack.dump`: two worlds
+differing only by a card on the stack MUST produce different executor
+fingerprints (pinned by ``test_stack_frame_fold_changes_the_fingerprint``).
+
+LIFO: :attr:`Executor.stack` is a list, append = push, resolve = pop the top
+(CR 405). A counterspell cast in the response window is pushed above the
+frame it answers and resolves first.
 """
 
 from __future__ import annotations
@@ -104,7 +96,7 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
 
 # Where a resolved spell's card goes (CR 601.2j + 400.7). INSTANT/SORCERY
 # are the only non-permanent kinds; PLANESWALKER enters with its printed
-# loyalty, which the 13a binder seeds at registration (binding._register).
+# loyalty, which the binder seeds at registration (binding._register).
 _PERMANENT_KINDS = frozenset(
     {
         SpellKind.CREATURE,
@@ -118,29 +110,25 @@ _PERMANENT_KINDS = frozenset(
 
 @dataclass
 class SpellObject:
-    """One stack frame: the 601.2b–e declaration record (risk-1 mitigation,
-    doc /11). Every field is what the CR makes PUBLIC on the stack — the
-    future response window reads this frame instead of re-deriving it.
+    """One stack frame: the 601.2b–e declaration record. Every field is what
+    the CR makes PUBLIC on the stack — the response window reads this frame
+    instead of re-deriving it.
 
-    * ``node`` — the :class:`SpellAbility` IR (§8.3 identity: the same
-      object ``legal_casts`` returned and ``apply_effect`` runs);
+    * ``node`` — the :class:`SpellAbility` IR (the same object
+      ``legal_casts`` returned and resolution runs);
     * ``x_value`` — the locked X (601.2f — X is chosen with the total cost
       and can no longer change);
     * ``declared_targets`` — the designation tuple (601.2c; canonical
-      Handle-sort, ruling 5);
-    * ``mode_choices`` — chosen option-set indices under the 12d ORDER
-      contract (601.2d "choose a mode"): stored as the positions in
-      ``query.choose_options`` order. v1 CONSUMES modes through the effect
-      tree's own ``decisions`` channel (the Choose runtime, 12d); this
-      field records the declaration for the future window, and the
-      sequence alignment is the caller's contract, pinned by cast()'s
-      pass-through;
+      Handle-sort);
+    * ``mode_choices`` — a modal spell's declared mode set (601.2b), as the
+      set's index in ``query.choose_options`` order: the token the runtime
+      Choose consumes at resolution instead of asking again;
     * ``payment`` — the determined-and-locked plan (601.2f's total);
     * ``declared_clock`` — the journal clock the frame was pushed at;
-    * ``kicked`` — ZND-1e (CR 702.27a): was the optional kicker cost paid
-      with the total cost? The same truth rides the journalled CAST row
-      (the durable carrier WAS_KICKED reads); the frame keeps it visible
-      on the stack for the response window and the diagnostics dump.
+    * ``kicked`` — CR 702.27a: was the optional kicker cost paid with the
+      total cost? The same truth rides the journalled CAST row (the
+      durable carrier WAS_KICKED reads); the frame keeps it visible on the
+      stack for the response window and the diagnostics dump.
     """
 
     handle: Handle
@@ -154,11 +142,11 @@ class SpellObject:
     declared_clock: int = 0
     from_zone: str | None = None
     kicked: bool = False
-    # RUNG-1: the counter flag. Set by the COUNTER_SPELL handler when a
+    # The counter flag. Set by the COUNTER_SPELL handler when a
     # response-window cast interrupts THIS frame; the popper sees it and
     # returns without running the effect (CR 601.4's interrupted
-    # resolution). Transient within one cast() call — the frame pops the
-    # same breath it is flagged, so dump()/fingerprints never observe it.
+    # resolution). Transient: the frame is popped as soon as the
+    # counterspell's cast returns, so dump() leaves the flag out.
     countered: bool = False
 
 
@@ -206,12 +194,11 @@ class SpellStack:
 
 
 def stack_zone(world: GameWorld, seat: Handle) -> ZoneState:
-    """The per-player ``ZONE_STACK`` slot, created on first use (the state.
-    py FROZEN-file convention: ``zones.setdefault``, never a constructor
-    edit). The world fingerprint loop iterates ``PLAYER_ZONES`` and skips
-    it BY DESIGN — :meth:`SpellStack.dump`'s fold is what makes the stack
-    visible to the replay fingerprint (completeness test in
-    test_executor_stack.py)."""
+    """The per-player ``ZONE_STACK`` slot, created on first use (a player is
+    built with ``PLAYER_ZONES`` only). The world fingerprint loop iterates
+    ``PLAYER_ZONES`` and skips it BY DESIGN — :meth:`SpellStack.dump`'s fold
+    is what makes the stack visible to the replay fingerprint (pinned by
+    ``test_stack_frame_fold_changes_the_fingerprint``)."""
     player = world.players[seat]
     zone = player.zones.get(ZONE_STACK)
     if zone is None:
@@ -238,8 +225,8 @@ def park(executor: Executor, seat: Handle, handle: Handle) -> ZoneState:
 
 def is_land_card(world: GameWorld, handle: Handle) -> bool:
     """A card PLAYABLE as a land: the printed type line carries the Land
-    type word (the frozen ``CardIdentity`` has no structured types field —
-    the data-only word test, C12, same convention as TYPE_EQ). The corpus'
+    type word (``CardIdentity`` has no structured types field — the
+    data-only word test, same convention as TYPE_EQ). The corpus'
     lands carry no SpellAbility node (they compile to a bare {T}
     ActivatedAbility), which is exactly why the land drop is its own option
     shape on the ``legal_casts`` surface."""
@@ -255,12 +242,11 @@ def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | Non
     """Why this land cannot be played by ``seat`` right now (``None`` =
     legal). Gates: the card is a land in the seat's hand, the seat's turn
     is open, the phase is one of the seat's main phases (CR 305.1, 505.6b:
-    :data:`legality.MAIN_PHASES`, which reads a not-yet-stamped clock as
-    inside, the 13a test-skeleton convention), the stack is empty (v1 proxy:
-    nothing can actually be on it mid-op, but the parked-frame API keeps
-    the gate honest), and the allowance, one land per turn in total across
-    both main phases (CR 305.2, 505.6b) widened by ``executor.extra_land_plays`` +
-    the live ADD_LAND_PLAY layer sum (13c)."""
+    :data:`legality.MAIN_PHASES`, which reads a world with no turn begun, a
+    bare test rig, as inside), the stack is empty, and the allowance, one
+    land per turn in total across both main phases (CR 305.2, 505.6b)
+    widened by ``executor.extra_land_plays`` + the live ADD_LAND_PLAY layer
+    sum."""
     world = executor.world
     if not is_land_card(world, handle):
         return "land:not_a_land"
@@ -298,7 +284,7 @@ def _validate_spell_targets(
     """CR 601.2c designation checks, raising ``ValueError(reason)``:
     TARGET-mode selectors are validated through the query surface's own
     :func:`validate_target_selection` (the SAME oracle
-    ``legal_targets`` feeds a Slate — §8.3 identity); the TARGET_PLAYER
+    ``legal_targets`` feeds a Slate); the TARGET_PLAYER
     channel (compiled "target opponent", a ControllerRef with NO selector
     to validate — the grammar's documented representational gap) is
     checked as a player-coordinate rule: an opponent seat of the caster.
@@ -311,10 +297,10 @@ def _validate_spell_targets(
     slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
     if not targets and not slots:
         return  # targetless spell — the common case
-    # 16e: a spell WITH a slot (TARGET selector or the synthesized aura
-    # ENCHANT slot) designated nothing falls through to the validator
-    # (count_below_min) — never a silent targetless resolution (the
-    # Enthralling Hold no-op hole this phase closes).
+    # A spell WITH a slot (TARGET selector or the synthesized aura ENCHANT
+    # slot) that designated nothing falls through to the validator
+    # (count_below_min) — never a silent targetless resolution (an
+    # Enthralling Hold with no target would resolve as a no-op).
     if not slots:
         # TARGET_PLAYER-only designation (Duress shape): every entry must
         # be a player the caster's opponents include.
@@ -379,9 +365,9 @@ def designate_slots(
     stand_in=None,
     lane: str = "cast",
 ) -> dict[str, tuple[Handle, ...]]:
-    """r19c, 2026-11-06: a MULTI-slot designation (CR 601.2c), the cast and
-    activation lanes' one rule. :func:`slot_groups` reads ``targets``; each
-    slot's group is validated against its OWN slot by the query's oracle
+    """A MULTI-slot designation (CR 601.2c), the cast and activation lanes'
+    one rule. :func:`slot_groups` reads ``targets``; each slot's group is
+    validated against its OWN slot by the query's oracle
     (``validate_target_selection``: its population, its count, and no object
     twice for one word "target", CR 115.3), and an "another target" slot must
     not share a target with another slot (:func:`another_target_reason`). The
@@ -490,13 +476,13 @@ def recheck_targets(
 
 
 def another_target_reason(slots: list, targets: Sequence) -> str | None:
-    """V13 (2026-10-29): "target creature ... and another target creature"
-    (Rookie Mistake, Garruk, Savage Herald's -2). The compiler marks the
-    "another" slot with FAtom(IS_ANY_TARGET) (templates_b5c: the documented
-    distinct-target encoding); its targets must differ from every other slot's
-    (CR 115.3 lets one object fill several "target" words; "another" forbids
-    it here). ``targets``: one group per slot, or one handle per slot. None
-    when the designation is legal."""
+    """The "another target" rule: "target creature ... and another target
+    creature" (Rookie Mistake, Garruk, Savage Herald's -2). The compiler
+    marks the "another" slot with FAtom(IS_ANY_TARGET) (templates_b5c: the
+    documented distinct-target encoding); its targets must differ from every
+    other slot's (CR 115.3 lets one object fill several "target" words;
+    "another" forbids it here). ``targets``: one group per slot, or one
+    handle per slot. None when the designation is legal."""
     groups = [(t,) if isinstance(t, Handle) else tuple(t) for t in targets]
     for i, slot in enumerate(slots):
         marked = any(
@@ -522,18 +508,18 @@ def cast_modes(
     decisions: tuple[str, ...] = (),
     pay=None,
 ) -> tuple[int, tuple[int, ...], tuple[str, ...]]:
-    """V17 (CR 601.2b, 700.2a): announce a modal spell's modes as it is cast.
+    """Announce a modal spell's modes as it is cast (CR 601.2b, 700.2a).
 
     Returns ``(token, option indices, decisions left)``; ``token`` is the
     runtime Choose's decision token for that set (``query.choose_options``
     order), which the resolution consumes instead of asking again. The modes
     come from ``mode_choices`` (option indices, as the act windows and the
     probe pass them), else from a leading decision token naming a legal set
-    (the pack lane; the same token the resolution ask used to take), else
-    from an ask of the caster over the legal sets, ``choose:<spell>:<digest>``
-    (forced when only one is legal, never a phantom). A set whose modes need
-    a target that cannot be chosen is not legal (700.2a); with no legal set
-    the spell cannot be cast. An act window calls this before choosing
+    (the pack lane), else from an ask of the caster over the legal sets,
+    ``choose:<spell>:<digest>`` (forced when only one is legal, never a
+    phantom). A set whose modes need a target that cannot be chosen is not
+    legal (700.2a); with no legal set the spell cannot be cast. An act
+    window calls this before choosing
     targets, then designates through ``spell_target_slots(..., modes=)``;
     ``pay`` prices the targets as that window pays (``spell_target_slots``)."""
     from MTG_bot.core.executor.query import cast_mode_options
@@ -593,28 +579,26 @@ def _plan_cast_designation(
     tuple[int, ...],
     SpellAbility,
 ]:
-    """r19c: the CR 601.2b/2c DECLARATION lane — modes, then targets, with
-    the three machinery gaps the suspects pinned, each closing a loud raise:
+    """The CR 601.2b/2c DECLARATION lane — modes, then targets:
 
     * **modes before targets** (601.2b): a modal spell cannot be validated
-      option-blind — the chosen modes decide WHICH slots exist at all. V17:
-      every modal spell announces its mode set here (:func:`cast_modes`):
-      from ``mode_choices`` (the set's option indices; R5-10: several for
-      "choose one or more"), else from the leading token of ``decisions``
-      naming a legal set (the pack's scripted answer, consumed HERE so the
-      runtime Choose never re-asks a decision already made), else from an
-      ask of the caster over the legal sets;
-    * **forced auto-designation** (601.2c, the 18b trigger-lane convention
-      mirrored): when the spell designated nothing and EVERY slot has one
-      single legal filler — a lone-opponent TARGET_PLAYER population
-      (Duress/Mind Rot/Peer/Necromentia), a one-candidate target, or the
-      self-exile clause (a TARGET selector whose only satisfier is the
-      source spell — Experimental Overload's IS_SOURCE/BATTLEFIELD shape,
-      empty at designation because 601.2h parks the spell only LATER; CR
-      115.4's own-spell clause) — the cast takes THE answer, because there
-      is exactly one and the Slate cannot state it any other way. Any
-      slot that leaves a real choice stays loud (count_below_min), never a
-      guess;
+      option-blind — the chosen modes decide WHICH slots exist at all.
+      Every modal spell announces its mode set here (:func:`cast_modes`):
+      from ``mode_choices`` (the set's option indices; several for "choose
+      one or more"), else from the leading token of ``decisions`` naming a
+      legal set (the pack's scripted answer, consumed HERE so the runtime
+      Choose never re-asks a decision already made), else from an ask of
+      the caster over the legal sets;
+    * **forced auto-designation** (601.2c, as the trigger lane does): when
+      the spell designated nothing and EVERY slot has one single legal
+      filler — a lone-opponent TARGET_PLAYER population (Duress, Mind
+      Rot), a one-candidate target, or the self-exile clause (a TARGET
+      selector whose only satisfier is the source spell — Experimental
+      Overload's IS_SOURCE/BATTLEFIELD shape, empty at designation because
+      601.2h parks the spell only LATER; CR 115.4's own-spell clause) — the
+      cast takes THE answer, because there is exactly one and the Slate
+      cannot state it any other way. Any slot that leaves a real choice
+      stays loud (count_below_min), never a guess;
     * **multi-slot designation** (601.2c): several TARGET selectors
       designate slot by slot (:func:`designate_slots`), an "up to" slot
       possibly empty, and return the repr-keyed per-slot map the effect
@@ -637,16 +621,13 @@ def _plan_cast_designation(
     modes: tuple[int, ...] = ()
 
     # --- modes before targets (601.2b) ------------------------------------
-    # V17 (2026-10-29): EVERY modal spell announces its modes as it is cast,
-    # and only the chosen modes' targets exist (CR 601.2c, 700.2a). Before,
-    # only a multi-slot Choose did, so a one-target mode was required on
-    # every cast (Destructive Tampering's mode 2 was uncastable without an
-    # artifact) and the mode was asked at resolution. R5-10 (merged
-    # 2026-10-30): a declaration may name a mode SET ("choose one or more",
-    # CR 700.2d), as ``mode_choices`` with more than one entry; cast_modes
-    # matches it against the legal sets, and the chosen modes' slots are
-    # designated in walk order (the r19c positional rule) as one combined
-    # effect. ``modes`` carries the set's token, the runtime Choose's own.
+    # Only the chosen modes' targets exist (CR 601.2c, 700.2a), so a mode
+    # whose target is missing does not block a cast of the other modes. A
+    # declaration may name a mode SET ("choose one or more", CR 700.2d), as
+    # ``mode_choices`` with more than one entry; cast_modes matches it
+    # against the legal sets, and the chosen modes' slots are designated in
+    # walk order as one combined effect. ``modes`` carries the set's token,
+    # the runtime Choose's own.
     if modal_choose(node) is not None:
         token, chosen, remaining = cast_modes(
             executor, seat, handle, node, mode_choices=mode_choices, decisions=remaining
@@ -656,8 +637,8 @@ def _plan_cast_designation(
     slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat)
 
     if not slots:
-        # targetless / TARGET_PLAYER-only legacy shapes: the original
-        # player-coordinate oracle validates (it re-derives the same slots).
+        # targetless or TARGET_PLAYER-only: the player-coordinate oracle
+        # validates (it re-derives the same slots).
         _validate_spell_targets(executor, seat, handle, node, targets)
         return targets, {}, remaining, modes, node
 
@@ -701,9 +682,6 @@ def _plan_cast_designation(
         return targets, {}, remaining, modes, node
 
     slot_designations = designate_slots(slots, targets, skip=auto_skip)
-    # a Choose-pruned multi-slot spell lands in the len==1 branch above;
-    # a mode the caller supplied AND a multi-slot residue would mean the
-    # option STILL fans slots — per-slot threading covers it unchanged.
     targets = tuple(h for slot in slots for h in slot_designations[repr(slot.selector)])
     return targets, slot_designations, remaining, modes, node
 
@@ -711,8 +689,8 @@ def _plan_cast_designation(
 def _tree_has_counter(node: object) -> bool:
     """Does an IR subtree (SpellAbility effect trees, Seq/Choose/
     Conditional shapes) contain a COUNTER_SPELL atom? Generic dataclass
-    walk — rung-1 must not re-encode the effect grammar; the IR is a
-    finite tree (no cycles), so the recursion terminates."""
+    walk, so it does not re-encode the effect grammar; the IR is a finite
+    tree (no cycles), so the recursion terminates."""
     if isinstance(node, Atom):
         return node.verb is Verb.COUNTER_SPELL
     if is_dataclass(node) and not isinstance(node, Handle):
@@ -728,11 +706,11 @@ def _tree_has_counter(node: object) -> bool:
 
 def _tree_verb_closure(node: object, acc: set) -> set:
     """Every Atom verb inside an IR subtree (the same generic dataclass
-    walk as :func:`_tree_has_counter`). The window's engine-support gate
+    walk as :func:`_tree_has_counter`). The windows' engine-support gate
     asks for the FULL closure, not just the counter atom: a card that
-    counts a spell but also executes COPY (Sublime Epiphany) is not
-    executable by the engine, and offering it in a vocab that promises
-    executability crashed seed 96 of the 100-seed games smoke."""
+    counters a spell but also executes COPY (Sublime Epiphany) is not
+    executable by the engine, so a vocab that promises executability must
+    not offer it."""
     if isinstance(node, Atom):
         acc.add(node.verb)
     elif is_dataclass(node) and not isinstance(node, Handle):
@@ -749,30 +727,29 @@ def _tree_verb_closure(node: object, acc: set) -> set:
 def _counter_vocab(
     executor: Executor, seat: Handle, frame_handle: Handle
 ) -> tuple[str, ...]:
-    """RUNG-1 response vocabulary for one seat facing ONE stack frame:
-    PASS plus the HANDLED string of every hand card that is a counter
-    spell it could legally cast AGAINST THAT FRAME right now. Four gates,
-    each the honest answer to a smoke-test failure:
+    """The response vocabulary for one seat facing ONE stack frame: PASS
+    plus the handle string of every hand card that is a counterspell it
+    could legally cast AGAINST THAT FRAME right now. Four gates:
 
-    * counter atom AND ``spell_castable`` (window, mana, record; C15:
-      nothing the seat cannot pay is offered);
+    * a COUNTER_SPELL atom, and castable now (:func:`_window_taps`:
+      window, mana with the free sources the window may tap, record);
+      nothing the seat cannot pay is offered;
     * **verb closure** — every atom of the spell node lies in HANDLERS
-      (the runtime twin of the compile-time ``engine_supported`` gate;
-      Sublime Epiphany's COPY is not offered);
+      (the runtime twin of the compile-time ``engine_supported`` gate; a
+      counterspell with a COPY mode is not offered);
     * **designability** — the frame passes the counter's own TARGET-slot
       legality via :func:`validate_target_selection` (Miscast's
-      instant/sorcery filter is never offered at a creature spell — the
-      seed-16 crash); ``spell_castable`` cannot see this because it is
-      target-blind;
+      instant/sorcery filter is never offered at a creature spell);
+      ``spell_castable`` cannot see this because it is target-blind;
     * **declaration** — a modeless counter has exactly one TARGET slot
       and the frame passes it: the window casts it with
-      ``targets=(frame,)``. A Choose-based counter (R5-10, Sublime
-      Epiphany) is offered when some legal mode set counters the frame
+      ``targets=(frame,)``. A Choose-based counter ("choose one or more")
+      is offered when some legal mode set counters the frame
       (:func:`_modal_counter_sets`); answering it opens the visible mode
       ask, then the target asks (:func:`_declare_modal_counter`), so no
-      mode is ever a silent pick (seed 96 was the old crash).
+      mode is ever a silent pick.
 
-    Handle-sorted (ruling 5)."""
+    Handle-sorted."""
     from MTG_bot.core.executor.query import (
         spell_target_slots,
         validate_target_selection,
@@ -810,11 +787,11 @@ def _window_taps(
     executor: Executor, seat: Handle, handle: Handle, targets: tuple[Handle, ...] = (),
     x: int | None = None,
 ):
-    """B-90 (a): the free sources ``seat`` taps to cast ``handle`` at
-    ``targets`` (with ``x`` for an X spell) in a response window (CR 601.2g,
-    605.3a: mana abilities may be activated while paying; 601.2f: the total
-    includes X and a target's cost increase), () when the pool already pays,
-    None when the spell cannot be cast (C15: then it is never offered)."""
+    """The free sources ``seat`` taps to cast ``handle`` at ``targets`` (with
+    ``x`` for an X spell) in a response window (CR 601.2g, 605.3a: mana
+    abilities may be activated while paying; 601.2f: the total includes X
+    and a target's cost increase), () when the pool already pays, None when
+    the spell cannot be cast (then it is never offered)."""
     return plan_mana_taps(
         executor, seat, lambda: spell_castable(executor, seat, handle, x=x, targets=targets)[0]
     )
@@ -860,7 +837,7 @@ def _modal_counter_sets(
     node: SpellAbility,
     frame_handle: Handle,
 ) -> list[tuple[int, tuple[int, ...], list]]:
-    """R5-10 (CR 601.2b, 700.2a): the mode sets a Choose-based counterspell
+    """CR 601.2b, 700.2a: the mode sets a Choose-based counterspell
     may declare in the counter window against ``frame_handle``, as
     ``(option-set index, modes, target slots)`` in ``query.choose_options``'
     canonical order (the runtime Choose's own token contract). A set is
@@ -929,7 +906,7 @@ def _declare_modal_counter(
     node: SpellAbility,
     frame_handle: Handle,
 ) -> tuple[tuple[int, ...], tuple[Handle, ...]]:
-    """R5-10: the declaration of a Choose-based counterspell answering the
+    """The declaration of a Choose-based counterspell answering the
     counter window, in CR 601.2b-c order. First the mode set (a ``choose``
     ask whose tokens are the runtime Choose's option-set indices, offering
     only the legal sets of :func:`_modal_counter_sets`), then the targets of
@@ -968,11 +945,11 @@ def _declare_modal_counter(
     return modes, tuple(targets)
 
 
-#: RUNG-2 (2026-10-05 combat-window arc): the effect atoms that make an
-#: instant worth asking about in a post-declare-blockers window — the
+#: The effect atoms that make an instant worth asking about in the
+#: post-declare-blockers window (:func:`open_combat_window`) — the
 #: combat-relevant payloads the corpus actually prints (burn a blocker /
 #: attacker, pump your own creature's P/T). Deliberately NARROW, the same
-#: way the rung-1 counter vocab is narrow: an instant whose every atom is
+#: way the counter vocab is narrow: an instant whose every atom is
 #: combat-irrelevant (a discard, a draw) is never offered here — the
 #: window exists to model the fight, not to re-open every decision.
 _COMBAT_INSTANT_ATOMS = frozenset({Verb.DEAL_DAMAGE, Verb.MODIFY_PT, Verb.SET_PT})
@@ -995,15 +972,15 @@ def _tree_has_any_atom(node: object, verbs: frozenset) -> bool:
 
 
 def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
-    """RUNG-2 response vocabulary for one seat in the combat instant
-    window: PASS plus one ``<card>@<target>`` token per legal
-    (instant, single-target designation) pair it could cast RIGHT NOW.
-    The four rung-1 gates (docstring of :func:`_counter_vocab` — each
-    one the honest answer to a seed-crash) are re-applied with the
-    combat shape swapped in for the counter shape:
+    """The response vocabulary for one seat in the combat instant window:
+    PASS plus one ``<card>@<target>`` token per legal (instant,
+    single-target designation) pair it could cast RIGHT NOW; an X spell
+    gets one token per payable X, ``:x<N>`` appended when X > 0. The four
+    gates of :func:`_counter_vocab` are re-applied with the combat shape
+    swapped in for the counter shape:
 
     * INSTANT kind + a combat-relevant atom (:data:`_COMBAT_INSTANT_ATOMS`)
-      and ``spell_castable`` (mana, record; C15);
+      and castable now (:func:`_window_taps`: mana, record);
     * **verb closure** ⊆ HANDLERS (the runtime twin of engine_supported);
     * **designability** — exactly one TARGET slot with 1 inside its
       cardinality range, and EVERY token is candidate-checked through
@@ -1038,8 +1015,7 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
             continue
         if not _tree_verb_closure(node, set()) <= set(HANDLERS):
             continue
-        # one token per payable X, as the act menu offers (an X spell cast here was locked
-        # at X = 0 until 2026-11-05: Volcanic Geyser dealt 0 in combat)
+        # one token per payable X, as the act menu offers
         record_cost = spell_cost(record, tuple(node.additional_costs))
         for x in count() if _cost_has_x(record_cost) else (None,):
             if _window_taps(executor, seat, handle, (), x) is None:
@@ -1056,24 +1032,23 @@ def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
 
 
 def open_combat_window(executor: Executor) -> None:
-    """RUNG-2 (CR 506.4/510's first slice): the post-declare-blockers
-    combat INSTANT window. After blockers are declared and their triggers
-    have settled, BEFORE the damage step, both players may cast instants
-    (the H3 kill-shot / pump-the-defender fight). One round in
-    ``player_order`` (the active player gets the first priority of the
-    step, CR 506.4 — the design doc's defender-first sketch is superseded
-    by the CR), no priority re-asks: the same documented narrowing as
-    rung 1, and every answer is a full-payload ``card@target`` token the
-    lane casts via the SAME :func:`cast` pipeline (which nests its own
-    rung-1 counter window — the windows compose for free — and settles
-    triggers + SBAs internally, so a dead blocker is gone and a pumped
-    creature's ledger is live before ``_combat_damage`` reads it).
+    """The post-declare-blockers combat INSTANT window (CR 506.4/510's
+    first slice). After blockers are declared and their triggers have
+    settled, BEFORE the damage step, both players may cast instants (kill
+    a blocker, pump a defender). One round in ``player_order`` (the active
+    player gets the first priority of the step, CR 506.4), no priority
+    re-asks: the same documented narrowing as the counter window, and
+    every answer is a full-payload ``card@target`` token the lane casts via
+    the SAME :func:`cast` pipeline (which nests its own counter window, so
+    the windows compose, and settles triggers + SBAs internally, so a dead
+    blocker is gone and a pumped creature's ledger is live before
+    ``_combat_damage`` reads it).
 
-    A seat with NOTHING castable is never asked and gets NO row (C15).
+    A seat with NOTHING castable is never asked and gets NO row.
     Journal rows reuse WINDOW_OPEN/WINDOW_PASS with cause_verb
     ``COMBAT_WINDOW`` and subject=None (no stack frame to point at); the
-    decision tag is ``cw:<seat>:<digest>`` — a distinct lane the rig can
-    fall back on WITHOUT touching the rung-1 counter:/pay: bytes."""
+    decision tag is ``cw:<seat>:<digest>``, a lane of its own, apart from
+    the counter window's ``counter:`` and the ``pay:`` asks."""
     digest = site_digest(("combat-window", str(executor.journal.clock)))
     for seat in executor.world.player_order:
         vocab = _combat_instant_vocab(executor, seat)
@@ -1091,24 +1066,25 @@ def open_combat_window(executor: Executor) -> None:
 
 
 def _response_window(executor: Executor, frame: SpellObject) -> None:
-    """RUNG-1 (CR 608.2's first slice): the RESPONSE WINDOW of a spell just
-    cast, after its cast triggers have settled and before it resolves. Every
+    """The RESPONSE WINDOW of a spell just cast (CR 608.2's first slice),
+    after its cast triggers have settled and before it resolves. Every
     opponent of its caster, in seat order, MAY answer the frame with a
     counterspell. One round, seat-ordered, no priority re-asks (the
     documented narrowing in the module docstring); a dead frame ends the
     round early; a seat with nothing to offer is skipped WITHOUT an ask
-    (C15) and without a journal row. The nested ``cast`` is the LIFO push:
+    and without a journal row. The nested ``cast`` is the LIFO push:
     the counter resolves ON TOP of this frame, and its own window opens
-    recursively (a counter can be countered). Answers arrive through the 14b
-    channel's provider lane: ``executor.decisions.take`` DIRECTLY, bypassing
-    the pool, because the per-op ``decisions=`` pool belongs to the spell's
-    declaration (modes/targets), and letting a window answer consume it
-    would silently re-target the cast (the contamination the pin tests).
+    recursively (a counter can be countered). Answers come from
+    ``executor.decisions.take`` DIRECTLY, bypassing the pool, because the
+    per-op ``decisions=`` pool belongs to the spell's declaration
+    (modes/targets), and letting a window answer consume it would silently
+    re-target the cast (pinned by
+    ``test_window_bypasses_the_declaration_pool``).
 
     Both cast lanes open it: :func:`cast` and the CAST atom's
-    :func:`cast_card` (2026-11-06). A spell cast through a permission or by
-    an effect is a spell on the stack like one cast from hand (CR 601.2i,
-    117.3c, 608.1), so it gets the same chances to be answered."""
+    :func:`cast_card`. A spell cast through a permission or by an effect is
+    a spell on the stack like one cast from hand (CR 601.2i, 117.3c,
+    608.1), so it gets the same chances to be answered."""
     world = executor.world
     handle, seat = frame.handle, frame.controller
     digest = site_digest((str(handle), frame.declared_clock))
@@ -1131,12 +1107,12 @@ def _response_window(executor: Executor, frame: SpellObject) -> None:
             (a for a in counter_record.abilities if isinstance(a, SpellAbility)), None
         ) if counter_record is not None else None
         if counter_node is not None and isinstance(counter_node.effect, Choose):
-            # R5-10 (CR 601.2b-c): a modal counter declares its mode set, then
-            # its targets, through visible asks; the window never picks a mode.
+            # CR 601.2b-c: a modal counter declares its mode set, then its
+            # targets, through visible asks; the window never picks a mode.
             modes, chosen = _declare_modal_counter(
                 executor, responder, counter, counter_node, handle
             )
-            # B-90 (a), CR 601.2g: the mana abilities are activated after the
+            # CR 601.2g: the mana abilities are activated after the
             # declaration (601.2b-c), while the cost is paid.
             tap_for_payment(
                 executor, responder, _window_taps(executor, responder, counter, chosen) or ()
@@ -1159,17 +1135,18 @@ def cast(
 ) -> SpellObject:
     """The folded CR 601.2 → 601.4 move (the ``CAST`` decision of the
     Slate's field schedule — legality, declaration, payment, resolution,
-    one call; ``legal_casts`` MUST be consulted first per C15).
+    one call; ``legal_casts`` MUST be consulted first: an illegal cast
+    raises ``ValueError``).
 
-    Order (each step is the CR's, and the step names appear in the event
-    audit):
+    Order (each step is the CR's):
 
     1. **window + shape gate** (:func:`legality.spell_castable`) — the
        card is in hand, its record carries a :class:`SpellAbility`, the
-       spell's own window holds (instants anytime; the rest sorcery-
-       timed — 13a's phase clock × the empty stack).
-    2. **modes** (601.2d) — recorded on the frame; the effect tree's
-       Choose nodes CONSUME the 12d ORDER tokens from ``decisions``.
+       spell's own window holds (instants anytime; the rest at sorcery
+       speed: a main phase of the caster's turn with an empty stack).
+    2. **modes** (601.2b) — a modal spell announces its mode set
+       (:func:`cast_modes`), recorded on the frame; its top-level Choose
+       runs the declared set at resolution instead of asking again.
     3. **targets** (601.2c) — validated through ``validate_target_
        selection`` (or the player-coordinate TARGET_PLAYER rule). A spell
        with several target slots takes one tuple per slot
@@ -1180,26 +1157,28 @@ def cast(
     5. **payment** (601.2g) — ``pay_costs``, mana segments consumed
        untagged-first with THIS_MANA restrictions honoured for THIS
        spell as the use subject.
-    5b. **kick** (601.2b, ZND-1e / CR 702.27a) — ``kicked=True`` declares
-       the optional extra cost PAID: the kicker Cost joins the 601.2f
-       fold inside ``spell_castable`` (a too-poor pool disappears the
-       cast with an ordinary shortage), the choice rides the SpellObject
+    5b. **kick** (601.2b, CR 702.27a) — ``kicked=True`` declares the
+       optional extra cost PAID: the kicker Cost joins the 601.2f fold
+       inside ``spell_castable`` (a pool too poor for it refuses the cast
+       with an ordinary shortage), the choice rides the SpellObject
        frame AND the journalled CAST row, and WAS_KICKED reads the row
        back for every later judge (spell arm, ETB trigger condition,
        gated EtBState). Kicking a card without a kicker is an
-       illegal-cast REASON, never a guess; an X-kicker (ZND-1g) prices
+       illegal-cast REASON, never a guess; an X-kicker prices
        {X} with the cast's X declaration — the same zero-floor law as an
        X-spell (CR 107.1; an explicit ``x`` wins), and the declared X
        lands on the frame and the CAST row.
     6. **push** (601.2h) — park in the stack zone, push the frame, emit
        the journalled ``CAST`` event (the cast-trigger feed, ordinals
-       included) and settle — cast triggers resolve ABOVE the spell.
-    7. **resolve + put** (601.4, 601.2j) — pop the LIFO frame, run the
-       effect (targets bound as ``target``), move the card: instants and
-       sorceries to the owner's graveyard, creatures/enchantments/
-       planeswalkers to the battlefield (auto-attaching the registered
-       compiled record so ETB triggers go live BEFORE the settle sees the
-       ETB event).
+       included) and settle — cast triggers resolve ABOVE the spell; then
+       the response window (:func:`_response_window`).
+    7. **resolve + put** (601.4, 601.2j) — pop the LIFO frame (a countered
+       frame stops here), check the targets again (CR 608.2b: with none
+       legal the spell does not resolve), run the effect (targets bound as
+       ``target``), move the card: instants and sorceries to the owner's
+       graveyard, permanent spells to the battlefield (auto-attaching the
+       registered compiled record so ETB triggers go live BEFORE the
+       settle sees the ETB event).
     """
     world = executor.world
     reason, node, _record, plan = spell_castable(
@@ -1208,19 +1187,14 @@ def cast(
     if reason is not None or node is None or plan is None:
         raise ValueError(f"executor: illegal cast: {reason}")
 
-    # 14c (QX, /11 B-14 follow-up): CR 601.2f chooses X WITH the total
-    # cost, so the X the legality fold paid (the documented X=0 floor,
-    # CR 107.1, when the caller passed no x) MUST be the X the effect
-    # reads — the 13b wiring only ever bound the caller's x, leaving
-    # x_value None and killing Primal Might deep in resolution when a QX
-    # sat in an effect quantity instead of the cost. An explicit x still
-    # wins; a spell without X keeps x_value None (the 12c unbound flag
-    # outside casting is untouched).
-    # ZND-1g (X-kicker, /95 closed): the kicker cost joins the total when
-    # the kick was declared, so an X-KICKER announces X exactly like an
-    # X-spell — the same zero-floor rule must land the value on the
-    # frame and the CAST row, or the fold pays {X}=0 while the journal
-    # claims no declaration was made (the Primal Might bug, cost-side).
+    # CR 601.2f chooses X WITH the total cost, so the X the legality fold
+    # paid (the documented X=0 floor, CR 107.1, when the caller passed no x)
+    # MUST be the X the effect reads: a QX in an effect quantity (Primal
+    # Might) needs a bound x_value. An explicit x wins; a spell without X
+    # keeps x_value None. The kicker cost joins the total when the kick was
+    # declared, so an X-KICKER announces X exactly like an X-spell — the
+    # same zero-floor rule lands the value on the frame and the CAST row,
+    # or the fold would pay {X}=0 while the journal claims no declaration.
     if x is None:
         from MTG_bot.core.executor.legality import (
             _cost_has_x,
@@ -1236,9 +1210,9 @@ def cast(
         if _cost_has_x(spell_cost(_record, declared_extra)):
             x = 0
 
-    # 2-3: declaration — r19c: modes (601.2b) then targets (601.2c) through
-    # the PLAN lane, which owns auto-designation, the Choose-mode prune and
-    # per-slot multi-slot validation (and thereby the validation itself).
+    # 2-3: declaration — modes (601.2b) then targets (601.2c) through
+    # _plan_cast_designation, which owns auto-designation, the mode narrowing
+    # and per-slot multi-slot validation (and thereby the validation itself).
     targets, slot_designations, decisions, declared_modes, target_node = _plan_cast_designation(
         executor,
         seat,
@@ -1249,7 +1223,7 @@ def cast(
         mode_choices=mode_choices,
     )
     if targets:
-        # V29 (CR 601.2f): the total cost is determined AFTER the targets are
+        # CR 601.2f: the total cost is determined AFTER the targets are
         # chosen, so a cost increase for spells that target a permanent (Terror of
         # the Peaks' 3 life, Pursued Whale's {3}) is folded now; the plan above was
         # priced before any target existed. An unpayable total is an illegal cast
@@ -1260,11 +1234,10 @@ def cast(
         if reason is not None or plan is None:
             raise ValueError(f"executor: illegal cast: {reason}")
 
-    # r20b: the TARGETING feed (CR 601.2c). Designation IS an event — one
-    # row per designated object, Handle-sorted — emitted the moment the
-    # targets are declared, BEFORE payment and the park, so a "whenever
-    # ... targets" trigger queues over the spell and drains at the next
-    # checkpoint (the mission's mid-cast-feed contract).
+    # The TARGETING feed (CR 601.2c). Designation IS an event — one row per
+    # designated object, Handle-sorted — emitted the moment the targets are
+    # declared, BEFORE payment and the park, so a "whenever ... targets"
+    # trigger queues over the spell and drains at the next checkpoint.
     executor.journal.emit_targeting(handle, seat, targets)
 
     # 6: park + frame + event. The payment happens BEFORE the park
@@ -1303,13 +1276,12 @@ def cast(
 
     # 7: resolution. The effect runs WITHOUT an intervening settle — the
     # spell leaves the stack and the PUT happens before anything its
-    # mutations armed may fire (CR 608.3's resolution is indivisible in v1
-    # no-interaction terms; the settle below is the spell's own trigger
-    # aftermath).
+    # mutations armed may fire (CR 608.3: resolution is indivisible; the
+    # settle in _finish_op below is the spell's own trigger aftermath).
     popped = executor.stack.pop()
-    assert popped is frame  # LIFO: single-caster v1 always pops what pushed
+    assert popped is frame  # LIFO: every response cast above it has resolved
     if frame.countered:
-        # RUNG-1 (CR 601.4 interrupted): the COUNTER_SPELL handler already
+        # CR 601.4 interrupted: the COUNTER_SPELL handler already
         # flagged the frame, journalled the COUNTER row and moved the card
         # to its graveyard (400.7). The effect never runs and the spell
         # gets no SPELL_PUT — a countered spell was never put anywhere.
@@ -1348,25 +1320,21 @@ def cast(
     if chosen:
         bindings["target"] = chosen
     ctx = executor._cast_ctx(handle, seat, bindings, decisions, x)
-    # r19c: the per-slot designation map (multi-TARGET spells) and the
-    # spell-wide union IS_ANY_TARGET means; both None/empty on every pre-
-    # 19c single-slot shape, leaving those lanes byte-unchanged. A mode the
-    # declaration consumed for a single-option-set Choose rides on as a
-    # PRE-CHOSEN token so the runtime node honours the 601.2b answer
-    # instead of re-asking a decision the caster already made.
+    # A multi-TARGET spell threads its per-slot designation map and the
+    # spell-wide union IS_ANY_TARGET means; a single-slot spell sets neither.
     if slot_designations:
         ctx.slot_designations = slot_designations
         ctx.designation_union = tuple(sorted(set(targets)))
     if declared_modes and isinstance(node.effect, Choose):
-        # V17: every modal spell's announced set (any count) is consumed by
-        # its top-level Choose at resolution (CR 601.2b: chosen once, as cast).
+        # Every modal spell's announced set (any count) is consumed by its
+        # top-level Choose at resolution (CR 601.2b: chosen once, as cast).
         # The token is the set's index in choose_options' canonical order, so
-        # a "choose one or more" (Sublime Epiphany, R5-10) keeps its declared
-        # set instead of being asked again at resolution.
+        # a "choose one or more" (Sublime Epiphany) keeps its declared set
+        # instead of being asked again at resolution.
         ctx.prechosen_modes = [str(m) for m in declared_modes]
     from MTG_bot.core.executor.query import is_aura_spell
 
-    # 16e (CR 303.4a/608.2a): an aura enters the battlefield ATTACHED, and
+    # CR 303.4a/608.2a: an aura enters the battlefield ATTACHED, and
     # its resolution effect runs AFTER the edge exists — the corpus aura
     # effect (Enthralling Hold's GAIN_CONTROL) READS IS_ATTACHED_TO_SOURCE,
     # so attach-then-effect is not cosmetic: effect-first would resolve it
@@ -1378,28 +1346,28 @@ def cast(
             "(_validate_spell_targets should have refused the cast first)"
         )
     if not aura and node.kind not in _PERMANENT_KINDS:
-        # r19a: an instant/sorcery's own ReplacementAbility nodes go live
+        # An instant/sorcery's own ReplacementAbility nodes go live
         # AT RESOLUTION START — the spell never attaches, so this is the
         # only lifecycle hook the turn-shaped corpus idiom ("…would die
         # this turn, exile it instead", Scorching Dragonfire) has;
         # registering before the effect runs lets the spell replace events
         # its own effect causes. Eot-expired: the tree carries no duration,
-        # and "this turn" is the printed one for every such card (19 sets).
+        # and "this turn" is the printed one for every such card.
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
-            # r19b (Scorching Dragonfire): the designation snapshot rides
-            # the record — the dies window outlives this ExecCtx, but its
+            # The designation snapshot rides the record (Scorching
+            # Dragonfire): the dies window outlives this ExecCtx, but its
             # anaphora ("that creature") still MEANS this cast's targets.
             executor.replacements.register_ephemeral_replacements(
                 handle, seat, registered, designated=tuple(chosen)
             )
-    if not aura and node.effect is not None:  # effect-less castable creatures (T3 r3)
+    if not aura and node.effect is not None:  # effect-less castable creatures
         executor._run_guarded_effect(node.effect, ctx, "cast")
     before_put = executor.journal.snapshot()
     start_put = len(executor.events)
     dest = ZONE_GRAVEYARD if node.kind not in _PERMANENT_KINDS else ZONE_BATTLEFIELD
     if dest == ZONE_GRAVEYARD and executor.end_turn_requested:
-        # r19b (Discontinuity), CR 724.1b: ending the turn exiles every object
+        # Discontinuity, CR 724.1b: ending the turn exiles every object
         # on the stack, the resolving spell included, so the spell whose
         # effect just ended the turn is put into exile, not the graveyard.
         # _v_end_turn (verbs.py) is the only setter of the flag, it fires
@@ -1407,7 +1375,7 @@ def cast(
         # consumed until the op closes (_consume_end_turn), so no other
         # spell's graveyard move can be re-routed by this branch.
         dest = ZONE_EXILE
-    # r19c (Experimental Overload): a spell's own effect may relocate ITSELF
+    # Experimental Overload: a spell's own effect may relocate ITSELF
     # off the stack (the self-exile clause resolves before 601.2j's PUT).
     # The graveyard/battlefield move then has no subject — the spell is not
     # in the stack zone any more, its own MOVE row already journalled the
@@ -1423,11 +1391,10 @@ def cast(
         (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
     )
     if dest == ZONE_BATTLEFIELD:
-        # r23a (Wildwood Scourge, CR 614.1c): the cast-declared X rides to
-        # this permanent's ETB firings — recorded as the spell enters, the
-        # binder consumes it for THIS entry only. The frozen IR compiles
-        # "enters with X counters" as a TriggeredAbility reading QX (EtBState
-        # initial-counters shape is a compiler follow-up), so the trigger
+        # Wildwood Scourge, CR 614.1c: the cast-declared X rides to this
+        # permanent's ETB firings — recorded as the spell enters, the
+        # binder consumes it for THIS entry only. The IR compiles "enters
+        # with X counters" as a TriggeredAbility reading QX, so the trigger
         # needs the cast context the declaration created.
         if x is not None:
             executor.etb_x[handle] = x
@@ -1446,17 +1413,15 @@ def cast(
     entered = executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
-    # H5 (CR 614.1c): the cast entry runs the SAME zone-change hooks the
-    # land drop runs — the compiled EtBState node (Malefic Scythe's "enters
-    # with a soul counter", the corpus' entered-tapped idiom) is stamped
-    # HERE, as the permanent enters, BEFORE its ETB triggers drain in
-    # _settle below. Without this call the node only lit on PLAY_LAND and
-    # the execute lane, so CASTING an EtB-state permanent entered with
-    # none of its declared entered state.
+    # CR 614.1c: the cast entry runs the SAME zone-change hooks the land
+    # drop runs — the compiled EtBState node (Malefic Scythe's "enters with
+    # a soul counter", the corpus' entered-tapped idiom) is stamped HERE, as
+    # the permanent enters, BEFORE its ETB triggers drain in the settle
+    # below.
     executor._on_zone_changes(entered)
     if aura and node.effect is not None:
         executor._run_guarded_effect(node.effect, ctx, "cast")
-    executor._finish_op()  # V37: an effect that ended the turn goes first (CR 724.1)
+    executor._finish_op()  # an effect that ended the turn goes first (CR 724.1)
     return frame
 
 
@@ -1469,16 +1434,15 @@ def _face_cast_msg(name: str) -> str:
 
 
 class FaceCastAbsentError(ValueError):
-    """/115 (ZNR fuzz seed 1715): an effect-designated MDFC whose compiled
-    record has NO SpellAbility — every ability of it sits behind a
-    ``BackFace`` node (all 20 ZNR spell-front MDFCs compile this way: the
-    front text is unparsed at template level, so the cast producer like
-    Coveted Prize picks a card that cannot legally be cast). The refusal
-    is LOUD and TYPED (r24a law: dedicated type + byte-exact message, so
-    the live-game guard skips ONLY this site); a plain land/creature
-    designation keeps the original byte-identical ValueError. The card is
-    never silently cast as its BACK face — /106 owner-gates back-face
-    casting."""
+    """An effect-designated MDFC whose compiled record has NO SpellAbility
+    — every ability of it sits behind a ``BackFace`` node (the ZNR
+    spell-front MDFCs compile this way: the front text is unparsed at
+    template level, so a cast producer like Coveted Prize can pick a card
+    that cannot legally be cast). The refusal is LOUD and TYPED (dedicated
+    type + byte-exact message, :func:`face_cast_absent`, so the live-game
+    guard ``Executor._run_guarded_effect`` skips ONLY this site); a plain
+    land/creature designation keeps its own ValueError. The card is never
+    silently cast as its BACK face."""
 
     def __init__(self, name: str) -> None:
         super().__init__(_face_cast_msg(name))
@@ -1510,14 +1474,14 @@ def cast_card(
     corpus' cost-waiver idiom (CR 118.9 "without paying its mana cost"),
     and a Cost WITH parts is paid on top of the printed cost (additional
     costs, CR 601.2f; legality.effect_cast_cost), plus the spell's own
-    additional costs either way (V36, CR 118.9d). No timing check here (an
+    additional costs either way (CR 118.9d). No timing check here (an
     effect casts while it resolves, outside the normal timing; a
     permission's timing is judged before the cast,
     ``query.cast_designee_ok``). The spell is on the stack like one cast
     from hand (CR 601.2i, 117.3c, 608.1), so after its cast triggers it
-    gets the same counter window (2026-11-06, :func:`_response_window`;
-    before, no opponent was ever asked). Returns ``True`` when the spell
-    was cast and resolved, ``False`` when it was countered.
+    gets the same counter window (:func:`_response_window`). Returns
+    ``True`` when the spell was cast and resolved, ``False`` when it was
+    countered.
 
     ``targets`` (CR 603.3: an effect that lets you cast a spell still
     gets its normal target choices — the effect's caster designates them
@@ -1532,17 +1496,15 @@ def cast_card(
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
-    triggers see it (CR 601.2m).
+    triggers see it (CR 601.2i).
 
-    2026-11-05 (CR 704.3): the spell is resolved here, inside the
-    resolution that cast it, and the two settles below stand for the
-    priority points that follow that resolution (its cast triggers above
-    the spell, then the response window and the spell, then its ETB
-    triggers). That holds because
-    every compiled CAST is the last instruction of its effect (Idol of
-    Endurance, Conspicuous Snoop, Radha, Coveted Prize, Chandra, Flame's
-    Catalyst's [-2]). The cost payment above is part of the resolution
-    and does not settle (Executor._run_resolution)."""
+    CR 704.3: the spell is resolved here, inside the resolution that cast
+    it, and the two settles below stand for the priority points that
+    follow that resolution (its cast triggers above the spell, then the
+    response window and the spell, then its ETB triggers). That holds
+    because every compiled CAST is the last instruction of its effect
+    (Idol of Endurance, Coveted Prize). The cost payment above is part of
+    the resolution and does not settle (Executor._run_resolution)."""
     from MTG_bot.core.executor.legality import ctx_for, effect_cast_cost
 
     world = executor.world
@@ -1555,15 +1517,15 @@ def cast_card(
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
     if node is None:
         if any(isinstance(a, BackFace) for a in record.abilities):
-            # /115 seed 1715: the designated card is a model DFC whose
-            # ONLY compiled abilities live on the far face — the front
-            # was never compiled into a SpellAbility. Refuse TYPED (the
-            # guard lane skips + ledgers it); never fabricate a face cast.
+            # The designated card is a model DFC whose ONLY compiled
+            # abilities live on the far face — the front was never
+            # compiled into a SpellAbility. Refuse TYPED (the guard lane
+            # skips + ledgers it); never fabricate a face cast.
             raise FaceCastAbsentError(record.name)
         raise ValueError(f"executor: CAST {record.name}: no SpellAbility on the card")
     if world.controller_of(handle) != caster:
-        # V24 (CR 108.3, 400.3): a spell waits in its caster's stack slot (park), and
-        # the frozen world reads a card's owner off its zone, so a card cast by a
+        # CR 108.3, 400.3: a spell waits in its caster's stack slot (park), and
+        # the world reads a card's owner off its zone, so a card cast by a
         # player who does not own it would come off the stack as the caster's. No
         # card in the dealt pools casts a card it does not own (every CAST source is
         # a YOU zone); refuse loudly rather than change an owner.
@@ -1571,7 +1533,7 @@ def cast_card(
             f"executor: CAST {record.name}: casting a card the caster does not own "
             "needs the owner to survive the stack (V24)"
         )
-    # V17: a modal spell cast by an effect announces its modes too (CR 608.2g
+    # A modal spell cast by an effect announces its modes too (CR 608.2g
     # runs 601.2a-i), and only those modes' targets are validated.
     from MTG_bot.core.executor.query import modal_choose, with_modes
 
@@ -1582,10 +1544,10 @@ def cast_card(
         target_node = with_modes(node, chosen_modes)
         declared_modes = (token,)
     _validate_spell_targets(executor, caster, handle, target_node, targets)
-    # r20b: TARGETING feed — same 601.2c contract as cast(): declare, then
+    # TARGETING feed — same 601.2c contract as cast(): declare, then
     # journal the designation rows before payment.
     executor.journal.emit_targeting(handle, caster, targets)
-    # V36 (CR 601.2f): the total cost adds the spell's own additional costs to the
+    # CR 601.2f: the total cost adds the spell's own additional costs to the
     # mana cost or the effect's alternative cost; an unpayable total refuses below.
     cost = effect_cast_cost(record, node, cost_override)
     plan = None
@@ -1639,8 +1601,8 @@ def cast_card(
     if aura and not chosen:
         raise ValueError("executor: CAST: an aura cast needs its enchant target")
     if not aura and node.kind not in _PERMANENT_KINDS:
-        # r19a: same instant-resolution replacement registration as the
-        # normal resolve lane (see resolve_spell's hook).
+        # The spell's own replacements go live at resolution start, as in
+        # cast().
         executor.replacements.register_ephemeral_replacements(handle, caster, record)
     if not aura and node.effect is not None:
         executor._run_guarded_effect(node.effect, ctx, "cast_card")
@@ -1652,7 +1614,7 @@ def cast_card(
         (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
     )
     if dest == ZONE_BATTLEFIELD:
-        if x is not None:  # r23a: same CR 614.1c X ride as the cast lane
+        if x is not None:  # same CR 614.1c X ride as cast()
             executor.etb_x[handle] = x
         registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
         if registered is not None:
@@ -1665,7 +1627,7 @@ def cast_card(
     entered = executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
-    # H5: same CR 614.1c entered-state stamp as the cast lane above —
+    # Same CR 614.1c entered-state stamp as cast() —
     # effect-cast permanents declare their EtBState too.
     executor._on_zone_changes(entered)
     if aura and node.effect is not None:
@@ -1684,8 +1646,8 @@ def play_land(
     """The ``PLAY_LAND`` move (CR 305.1, folded one-call like activate/
     cast): re-check :func:`land_playable`, move hand → battlefield (a
     special action — no stack, no cost, not an event anyone can respond
-    to, which is precisely why it IS safe in v1), journal the ETB, stamp
-    the once-per-turn ledger, and settle so land ETB triggers fire.
+    to), journal the ETB, stamp the once-per-turn ledger, and settle so
+    land ETB triggers fire.
     ``tapped`` is the rig's explicit override; a land whose compiled
     record declares an EtBState (the M21 checklands and temples "enter
     the battlefield tapped") gets that state from the journal's entry
@@ -1708,7 +1670,7 @@ def play_land(
     entered = executor.journal.record_atom(
         before, handle, "PLAY_LAND", list(executor.events[start:])
     )
-    # 17a: the land's entry runs the SAME zone-change hooks as every other
+    # The land's entry runs the SAME zone-change hooks as every other
     # battlefield entry — the compiled EtBState node (checklands, temples:
     # "enters the battlefield tapped") is stamped here.
     executor._on_zone_changes(entered)

@@ -1,49 +1,43 @@
-"""Round-14a: the random-policy full-M21 game harness (the executor's own
-systemic verification, and the first real PC-7 measurement).
+"""The random-policy game harness: the executor's own systemic verification.
 
-Why this module exists (plan /02 §14a): unit tests prove atoms, the goldens
-prove compilation. Nothing but *playing* proves that casts, triggers, layers,
-durations, replacements and the turn skeleton compose without a crash, on
-cards no test author picked. PC-7 (``game_turn_survival``) has been the Phase-2
-gate since T0 for exactly that reason.
+Unit tests prove atoms, the goldens prove compilation. Nothing but *playing*
+proves that casts, triggers, layers, durations, replacements and the turn
+skeleton compose without a crash, on cards no test author picked.
 
 Three moving parts.
 
-**Deck supply** (:func:`compile_supply`, :func:`build_deck`). The compiled
-pool is the path ``tools/measure_grammar.py`` used (deleted 2026-11-05: same
-ingest, same registry, same 305 goldens verified read-only). Decks are 60-card seeded
-random multisets, duplicates up to :data:`MAX_COPIES`, with one honest bias
-stated plainly: the first :data:`MIN_MANA_SOURCES` cards are mana sources (the
-five M21 basics first, then the fix lands and the 34 ADD_MANA producers),
-because a deck that cannot cast anything measures the shuffle and not the
-engine. This is a stress test of compiled cards, not a format tournament — the
-``all`` pool deliberately keeps the 19 engine-flagged cards, so their loud
-raises are data. ``engine`` deals from the 12e gated pass' 286 engine-supported
-cards (where a raise is always a bug); ``castable`` narrows to what the
-executor can actually put into play (a land, or a card carrying a
-``SpellAbility`` node), which is where the deep cross-cutting bugs live.
+**Deck supply** (:func:`compile_supply`, :func:`build_deck`). Decks are 60-card
+seeded random multisets of one compiled set (M21 by default), duplicates up to
+:data:`MAX_COPIES`, with one honest bias stated plainly: the first
+:data:`MIN_MANA_SOURCES` cards are mana sources (the basics first, then other
+mana-capable cards), because a deck that cannot cast anything measures the
+shuffle and not the engine. This is a stress test of compiled cards, not a
+format tournament — the ``all`` pool deliberately keeps the engine-flagged
+cards, so their loud raises are data. ``engine`` deals only the cards the gated
+compile pass marks engine-supported (where a raise is always a bug);
+``castable`` narrows to what the executor can actually put into play (a land,
+or a card carrying a ``SpellAbility`` node), which is where the deep
+cross-cutting bugs live.
 
 **The policy** (:class:`RandomPolicy`). It plays through the *query surface*:
 :func:`legal_casts` for the land drop and the spells,
 :func:`legal_activations` for activations, :func:`spell_target_slots` /
 :func:`legal_targets` with :func:`validate_target_selection` for targets
-(including the 14b synthesized TARGET_PLAYER coordinate slot — the opponent
-population the ENGINE's own rule requires, so no CR-rule mirror lives
-here anymore). Effect decisions never pre-enumerate anything (14b, B-4
-rebuild): the policy registers its seeded uniform choice as the executor's
-ask-time :attr:`~MTG_bot.core.executor.decisions.DecisionStream.provider`,
-and the engine hands it the exact vocabulary at the exact moment of demand
-— the same enumeration the query surface exposes, delivered where it is
-needed. That is the C15 contract strengthened, not weakened: the policy's
-vocabulary is the engine's own at the ask site, a may-offer arrives
-already narrowed by the query oracle (CR 117.3), and a demand with no
-answer still raises — which is the finding.
+(including the synthesized player slot of "target player" / "target
+opponent", whose population comes from the engine's own rule). Effect
+decisions are never pre-enumerated: the policy registers its seeded uniform
+choice as the executor's ask-time
+:attr:`~MTG_bot.core.executor.decisions.DecisionStream.provider`, and the
+engine hands it the exact vocabulary at the moment of demand, the same
+enumeration the query surface exposes. A may-offer arrives already narrowed
+by the query oracle (CR 117.3), and a demand with no answer still raises —
+which is the finding.
 
 Batch style, no priority simulation: a dealt game's mulligans (CR 103.5, the
-policy deciding), then each turn ``begin_turn`` (which now draws, CR 504.5-c
-— this harness found that missing), then up to :data:`MAX_ACTS_PER_STEP` acts in
-the first main phase's batch, the combat phase, up to as many again in the second
-main phase's batch (CR 505.1), then ``end_turn``.
+policy deciding), then each turn ``begin_turn`` (which draws, CR 504.1), then
+up to :data:`MAX_ACTS_PER_STEP` acts in the first main phase's batch, the
+combat phase, up to as many again in the second main phase's batch (CR
+505.1), then ``end_turn``.
 
 **Stats + crash ledger** (:func:`run_games`). Per seed: turns survived, whether
 the full cap was reached, how the game ended, the act digest, and on a crash the
@@ -52,15 +46,11 @@ the stack contents at the moment of the raise. Every crash becomes a seed-pinned
 repro test in ``test_executor_games.py``; ``--repro SEED`` replays one game with
 the traceback printed.
 
-Known ceilings the harness deliberately does NOT hide (all in
-``KNOWLEDGE/2026-09-30/03``): since V2 (2026-10-29) the pool empties as each step
-and phase ends (CR 500.5); a main phase's batch pays from what the policy tapped,
-and a payment outside it (a response window, "you may pay", "unless ... pays") taps
-a minimal set of the payer's {T}-only mana abilities, chosen by the engine (B-90
-(a), a scaffold: CR 605.3a lets the player choose), the CR 121.3
-draw-from-empty loss is a harness-side state check (13a left it out of the
-verbs), and a spell with more than one TARGET selector has no designation
-channel, which the policy filters rather than hands the engine a broken cast.
+Mana: the pool empties as each step and phase ends (CR 500.5); a main phase's
+batch pays from what the policy tapped, and a payment outside it (a response
+window, "you may pay", "unless ... pays") taps a minimal set of the payer's
+{T}-only mana abilities, chosen by the engine (a scaffold registered in
+docs/BACKLOG.md: CR 605.3a lets the player choose).
 
 Run it::
 
@@ -143,7 +133,7 @@ MIN_MANA_SOURCES = 10
 #: limit), registered in docs/BACKLOG.md "Scaffolds to remove".
 MAX_ACTS_PER_STEP = 10
 
-# Stall rule (KNOWLEDGE/2026-10-05/11, anchor CR 104.4b): a game whose
+# Stall rule (CR 104.4b): a game whose
 # WORLD FINGERPRINT is unchanged across REPEAT_ROUNDS consecutive rounds
 # of the same seat is an unbreakable repeated loop — MTG's ruling for
 # that is a DRAW for every player in the loop, and a game that cannot
@@ -165,10 +155,6 @@ TAP_MANA_P = 0.75  # tap a legal mana source
 CAST_P = 0.7  # cast a spell the query says is payable
 ACTIVATE_P = 0.4  # run a non-mana activation
 PASS_P = 0.15  # walk away from the batch (beginner's luck)
-
-# The 14b rebuild deleted the two mirrored CR vocabularies (SCRY top/bottom,
-# ADD_MANA any-colour) and the fire/skip trigger tail: the decision channel
-# now hands the policy the exact vocabulary at the ask (/03 rows B-4/B-5).
 
 _BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
 
@@ -198,8 +184,7 @@ class CardMeta:
     @property
     def playable(self) -> bool:
         """The executor can put this card into play: a land drop, or a spell
-        with a ``SpellAbility`` node. The 14a corpus ceiling is that most
-        permanents have no such node (/03 row B-1), so they are uncastable."""
+        with a ``SpellAbility`` node."""
         return self.is_land or self.has_spell_node
 
 
@@ -214,17 +199,17 @@ class Supply:
     engine_ids: frozenset[str]
     playable_engine_ids: frozenset[str]
     pool_seconds: float
-    #: /99: pool entries whose PRINTED SHAPE raises ``StateCorruptionError``
+    #: Pool entries whose PRINTED SHAPE raises ``StateCorruptionError``
     #: (the strict compile has no tolerance). Census-consistent ``ShapeGap``
     #: rows — the same ledger the coverage report writes — so an excluded
     #: card is REGISTERED here, never silent. Empty for every clean pool
     #: (all of M21; ZNR carries exactly one: Nighthawk Scavenger, P/T "1+*",
     #: whose power is defined by a card-type census the current quantity
-    #: grammar cannot express — see KNOWLEDGE/2026-10-18/99).
+    #: grammar cannot express; both pinned in ``test_executor_games.py``).
     shape_gaps: tuple[ShapeGap, ...] = ()
     #: docs/PLAN_CARD_ONBOARDING.md: cards whose current tree passed play-time verification (a
     #: card record's ``verified.tree_sha`` equals the tree dealt). Empty for a set with no
-    #: records (M21 today).
+    #: records.
     verified_ids: frozenset[str] = frozenset()
 
 
@@ -232,7 +217,7 @@ _SUPPLY_CACHE: dict[str, Supply] = {}
 
 
 def get_supply(mode: str = "all", set_code: str = SET_CODE) -> Supply:
-    """Process-wide compile cache — one 305-card compile per mode per run."""
+    """Process-wide compile cache — one compile per (mode, set) per process."""
     supply = _SUPPLY_CACHE.get(f"{mode}:{set_code}")
     if supply is None:
         supply = compile_supply(mode, set_code)
@@ -261,21 +246,21 @@ def compile_supply(
     records: dict | None = None,
     require_verified: bool = True,
 ) -> Supply:
-    """Compile the set the way the measurement harness does and build the deck
-    view. ``mode`` picks the dealt set:
+    """Compile the set and build the deck view. ``mode`` picks the dealt set:
 
-    * ``all`` — every non-token, non-emblem card (the 19 engine-flagged cards
+    * ``all`` — every non-token, non-emblem card (the engine-flagged cards
       included on purpose: flag-not-degrade cuts both ways, and a loud raise
       inside a game is exactly the data this harness exists to collect).
-    * ``engine`` — the honest 286 from the 12e gated pass (``supported_verbs=
-      SUPPORTED_VERBS_V2``), where a raise is always a bug.
+    * ``engine`` — the cards the gated pass (``supported_verbs=
+      SUPPORTED_VERBS_V2``) marks engine-supported, where a raise is always a bug.
     * ``castable`` — engine-supported AND put-into-playable by the executor.
     * ``compiled`` — castable AND fully compiled: no unparsed sentence, no
       ambiguity, no unparsed back face. The other modes deal partly compiled
-      cards with their unparsed text silently missing (B-28, against
-      DESIGN_CARD_POOL.md:219); this one plays only cards whose whole text is in
-      the tree. It equals ``castable`` on M21; it is how a new set (M20, KHM)
-      is played honestly while its grammar rounds run (KNOWLEDGE /159).
+      cards with their unparsed text silently missing (against
+      docs/DESIGN_CARD_POOL.md: a card that does not compile cleanly is not in
+      the enabled pool); this one plays only cards whose whole text is in the
+      tree. It is how a new set is played honestly while its grammar is
+      incomplete.
     * ``verified`` — compiled AND its current tree passed the play-time gates of
       docs/PLAN_CARD_ONBOARDING.md (a card record under ``MTG_bot/data/cards/<SET>/``
       whose ``verified.tree_sha`` matches). Cards mapped by agents enter every mode only
@@ -292,18 +277,14 @@ def compile_supply(
     started = time.perf_counter()
     raw = ingest_pool(REPO / "MTG_bot" / "data" / f"{set_code}.json")
     registry = build_full_registry()
-    # /99 (KNOWLEDGE/2026-10-18/99): a card whose PRINTED SHAPE the compiler
-    # honestly refuses (StateCorruptionError — today the whole ZNR supply
-    # hangs on exactly one: Nighthawk Scavenger, power "1+*", defined as
-    # "1 plus the number of card types among cards in your opponents'
-    # graveyards" — a derived census quantity the frozen Quantity grammar
-    # has no atom for; implementing it is a grammar round, NOT a parse
-    # kludge that would silently misstate the card). The strict compile
-    # stays strict — a raise inside a game is still always a bug — but the
-    # SUPPLY excludes the refusing shape and registers it as census-
-    # consistent ShapeGap rows (the coverage-report ledger, never a silent
-    # drop). M21 has zero shape gaps: the fast path below runs unchanged
-    # and its supply stays byte-identical.
+    # A card whose PRINTED SHAPE the compiler honestly refuses
+    # (StateCorruptionError; ZNR's Nighthawk Scavenger, power "1+*", "1 plus
+    # the number of card types among cards in your opponents' graveyards", a
+    # derived census quantity the Quantity grammar has no atom for). The
+    # strict compile stays strict — a raise inside a game is still always a
+    # bug — but the SUPPLY excludes the refusing shape and registers it as
+    # census-consistent ShapeGap rows (the coverage-report ledger, never a
+    # silent drop). A pool with no shape gap (M21) takes the fast path.
     shape_gaps: tuple[ShapeGap, ...] = ()
     if records is None:
         records = load_records(set_code)
@@ -325,9 +306,8 @@ def compile_supply(
                 f"supply[{set_code}]: shape-gap exclusion {gap.name!r}: {gap.error}",
                 file=sys.stderr,
             )
-    # The 12e second pass, as the deleted tools/measure_grammar.py ran it: the
-    # ungated pass stamps every card supported (the template's True default),
-    # so the 286 number ONLY exists in the gated fold.
+    # The second, gated pass decides engine support: the ungated pass stamps
+    # every card supported (the template's True default).
     gated = compile_pool(
         raw, registry, supported_verbs=set(SUPPORTED_VERBS_V2), records=records,
         require_verified=require_verified,
@@ -340,10 +320,9 @@ def compile_supply(
         record = res.card
         if oid in pool.emblems or record.is_token:
             continue  # emblems and tokens are created, never dealt
-        # ZND-2f §3 (phantom defense, /106 amendment 3): the BackFace
-        # subtree is EXCLUDED — an UNPLAYABLE face's {T}: Add {B} must
-        # never set produces_mana for the card (gold:false-shaped phantom
-        # mana). The face-playability wave (owner-gated) revisits this.
+        # The BackFace subtree is EXCLUDED: a face the engine cannot play
+        # must never make the card a mana source (its {T}: Add {B} would be
+        # phantom mana).
         verbs = frozenset(
             node.verb for node in walk(record, skip=BackFace) if isinstance(node, Atom)
         )
@@ -416,16 +395,13 @@ def identity_of(record: CardRecord) -> CardIdentity:
         power=_printed_pt(record.power),
         toughness=_printed_pt(record.toughness),
         keywords=tuple(str(item.keyword.name) for item in record.keywords),
-        # r19a (Chandra, Heart of Fire): the compiled record carries the
-        # printed starting loyalty, but this conversion silently DROPPED it,
-        # so binder._register's loyalty seed (which reads identity.loyalty)
-        # never ran and every cast planeswalker entered with an empty
-        # counters map. One field, one path — the seed itself is unchanged.
+        # binder._register seeds a planeswalker's loyalty counters from
+        # identity.loyalty, so the printed starting loyalty must cross here.
         loyalty=str(record.loyalty) if record.loyalty is not None else None,
-        # Fixer 3 (2026-10-30): a token record (the scenario runner's by-name token
-        # lane, "real": "Treasure") stays a token in the world, so the token rules
-        # see it (CR 704.5d ceasing to exist, IS_TOKEN filters). Dealt decks never
-        # hold token records (compile_supply filters them), so dealing is unchanged.
+        # A token record (the scenario runner's by-name token lane, "real":
+        # "Treasure") stays a token in the world, so the token rules see it
+        # (CR 704.5d ceasing to exist, IS_TOKEN filters). Dealt decks never
+        # hold token records (compile_supply filters them).
         is_token=bool(record.is_token),
     )
 
@@ -444,7 +420,7 @@ def build_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
 
     Composition, stated honestly (these are stress decks, not tournament
     decks): the first :data:`MIN_MANA_SOURCES` slots are mana sources — the
-    five basics in name order, then the remaining mana-capable cards shuffled —
+    basics, one each in pool order, then the other mana-capable cards shuffled —
     so every deck can pay for *something*; the rest is a uniform seeded sample
     of the dealt pool; at most :data:`MAX_COPIES` of any card; duplicates are
     otherwise encouraged, because a 60-card deck drawn out of ~300 cards makes
@@ -469,8 +445,8 @@ def build_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
         if copies.get(oid, 0) < MAX_COPIES:
             take(oid)
     if len(deck) < MIN_MANA_SOURCES:
-        # Loud, not a silently dealt 0-mana deck. The 14a pool has 23 lands and
-        # 34 ADD_MANA producers, so this only fires on a pool with no mana.
+        # Loud, not a silently dealt deck that cannot pay for anything: only a
+        # pool with fewer than MIN_MANA_SOURCES mana-capable cards gets here.
         raise ValueError(
             f"deck {deck_seed}: only {len(deck)} mana-capable cards available, "
             f"need {MIN_MANA_SOURCES} (pool_mode={supply.mode!r})"
@@ -610,22 +586,20 @@ class RandomPolicy:
     def coin(self) -> bool:
         return self.rng.random() < 0.5
 
-    # -- decisions (14b, B-4 rebuild)
+    # -- decisions
     def answer(self, vocab: tuple[str, ...], what: str) -> str:
         """The ask-time decision provider registered on the executor's
-        :class:`DecisionStream` (the B-4 ruling's zero-prediction lane).
+        :class:`DecisionStream`.
 
         The engine hands the EXACT vocabulary at the exact demand site —
         may-offers arrive already narrowed by the query oracle (CR 117.3,
-        ``query.optional_offer`` is the ask vocabulary now), scry arrives
-        ``('top','bottom')``, any-colour mana arrives the colour vocab —
-        so the policy draws uniformly from the enumeration it is GIVEN
-        and mirrors no vocabulary of its own (the four 14a mirrors are
-        deleted: /03 row B-5 closed). A non-member answer would raise in
-        the stream; exhaustion raises too (C15: no default, the tripwire
-        stands). Determinism: this consumes only ``self.rng``, and the
-        engine asks in a deterministic order, so one seed still identifies
-        the whole decision history (the replay pin relies on that)."""
+        ``query.optional_offer``), scry arrives ``('top','bottom')``,
+        any-colour mana arrives the colour vocab — so the policy draws
+        uniformly from the enumeration it is GIVEN and mirrors no vocabulary
+        of its own. A non-member answer would raise in the stream; exhaustion
+        raises too (no default). Determinism: this consumes only ``self.rng``,
+        and the engine asks in a deterministic order, so one seed still
+        identifies the whole decision history (the replay pin relies on that)."""
         return self.rng.choice(list(vocab))
 
     # -- targets
@@ -659,11 +633,8 @@ class RandomPolicy:
     def is_mana_activation(option: ActivationOption) -> bool:
         """A mana ability, recognised from the IR of the option the query
         handed over (the very ``ActivatedAbility`` the executor will run), not
-        from a card-name table. R5-7: the one CR 605.1a classifier
-        (:func:`~MTG_bot.core.ability_tree.is_mana_ability`) decides; the old
-        "only ADD_MANA or TAP atoms" test counted "tap target creature"
-        (Shacklegeist) as a mana ability and missed a mana ability that does
-        something else too."""
+        from a card-name table: the one CR 605.1a classifier
+        (:func:`~MTG_bot.core.ability_tree.is_mana_ability`) decides."""
         return is_mana_ability(option.ability)
 
     def mana_activations(
@@ -709,9 +680,8 @@ class RandomPolicy:
         assert isinstance(node, SpellAbility)  # a non-land legal_casts row has one
         name = game.name_of(row.handle)
         game.attempted = f"cast:{name}"
-        # V17 (CR 601.2b-c): a modal spell's modes are announced first, through
-        # the decision channel (the provider answers, as it did at resolution),
-        # and only the chosen modes' targets are designated.
+        # CR 601.2b-c: a modal spell's modes are announced first, through the
+        # decision channel, and only the chosen modes' targets are designated.
         modes: tuple[int, ...] | None = None
         if modal_choose(node) is not None:
             if not cast_mode_options(executor, node, spell_handle=row.handle, seat=seat):
@@ -723,10 +693,8 @@ class RandomPolicy:
         if targets is None:
             game.infeasible_skips += 1
             return
-        # B-8/B-5 CLOSED 14b: "target opponent" now rides the SYNTHESIZED
-        # coordinate slot of the query (engine CR population), so the
-        # opponent-seat mirror and the _names_a_player IR probe are gone —
-        # the designation above came from the slot like any other.
+        # A synthesized slot ("target player" / "target opponent", and also an
+        # aura's enchant slot) was designated above like any other.
         if any(slot.synthetic for slot in slots):
             game.player_target_designations += 1
         cast(
@@ -748,9 +716,8 @@ class RandomPolicy:
         executor = game.executor
         name = game.name_of(option.source)
         game.attempted = f"act:{name}#{option.ability_idx}"
-        # r23a (Liliana's Steward): the activation twin of the spell lane's
-        # slot question — TARGET-mode Selectors AND the synthesized
-        # TARGET_PLAYER coordinate the old Selector-only walk was blind to.
+        # The activation twin of the spell lane's slot question: TARGET-mode
+        # Selectors AND the synthesized player slot (Liliana's Steward).
         slots = list(
             activation_target_slots(
                 executor,
@@ -803,7 +770,7 @@ class RandomPolicy:
             if game.over_reason() is not None:
                 return
             if not executor.turn_open:
-                break  # V37 (CR 724.1): an effect ended the turn; no one acts in it again
+                break  # CR 724.1: an effect ended the turn; no one acts in it again
             rows = legal_casts(world, executor, seat)
             lands = [row for row in rows if row.land]
             spells = [row for row in rows if not row.land]
@@ -921,7 +888,7 @@ def world_snapshot(executor: Executor) -> dict[str, Any]:
         "land_plays": {str(seat): list(v) for seat, v in executor.land_ledger.items()},
     }
     if executor.returns.rows:
-        # Ontology R5-1 (CR 610.3): the return registry, as state_fingerprint folds it
+        # CR 610.3: the return registry, as state_fingerprint folds it
         # (only while a row exists, so traces without one keep their bytes).
         snapshot["returns"] = [repr(row) for row in executor.returns.dump()]
     return snapshot
@@ -977,10 +944,8 @@ class TraceRecorder:
     def wrap(self, answer: Any) -> Any:
         """Provider-lane recorder: logs (vocab, what, answer) at the ask.
 
-        Pool/FIFO-lane asks never reach a provider; they are caught by the
-        ask_log diff in :meth:`_decision_lanes_check` instead (none occur
-        on this harness's path, but the count check makes that measured,
-        not assumed)."""
+        Pool/FIFO-lane asks never reach a provider, so the trace does not see
+        them; this harness supplies neither lane."""
 
         def provider(vocab: tuple[str, ...], what: str) -> str:
             out = answer(vocab, what)
@@ -1144,32 +1109,31 @@ class Game:
     infeasible_skips: int = 0
     player_target_designations: int = 0
     reason: str = ""
-    # 16b: seats whose life crossed 0 DURING a COMBAT phase (combat
-    # deaths, reported separately from executor crashes - the meaning of
-    # a "survived" game shifted the moment games could die by fighting).
+    # Seats whose life crossed 0 DURING a COMBAT phase (combat deaths,
+    # reported separately from executor crashes).
     combat_losses: int = 0
     # The act in flight when the world raised: the completed-act digest cannot
     # name the card at fault, because the raise usually happens BEFORE the act
     # is logged (during target enumeration, or inside the op itself).
     attempted: str = ""
-    # 14g: optional trace recorder (export-only; None keeps every historical
-    # game byte-identical — the hooks below are guarded on this field).
+    # Optional trace recorder (export-only: the hooks are guarded on this
+    # field, and a traced game plays exactly like an untraced one).
     trace: TraceRecorder | None = None
-    # Stall rule (2026-10-05/11): seat -> (that seat's previous turn-top
-    # world fingerprint, identical-observation streak so far). A round trip
-    # with ANY net change anywhere resets the streak to 1.
+    # Stall rule: seat -> (that seat's previous turn-top world fingerprint,
+    # identical-observation streak so far). A round trip with ANY net change
+    # anywhere resets the streak to 1.
     stall_seen: dict[Handle, tuple[tuple, int]] = field(default_factory=dict)
-    # Search substrate (KNOWLEDGE/2026-10-10/67): a fork resumed with
-    # ``_play(..., resumed=True)`` right after an act window its caller
-    # played itself sets this, so the loop re-enters after that window
-    # instead of replaying it. The executor's phase clock says which main
-    # phase it was (combat is over once it reads SECOND_MAIN), so a resume
-    # never replays a combat either. Default False: a fork at a turn top or
-    # at the post_combat boundary resumes with its next act window.
+    # For the search: a fork resumed with ``_play(..., resumed=True)`` right
+    # after an act window its caller played itself sets this, so the loop
+    # re-enters after that window instead of replaying it. The executor's
+    # phase clock says which main phase it was (combat is over once it reads
+    # SECOND_MAIN), so a resume never replays a combat either. Default False:
+    # a fork at a turn top or at the post_combat boundary resumes with its
+    # next act window.
     skip_next_acts: bool = False
     # PRE_BLOCKS (attackers declared, no block asked yet): the resumed loop
     # skips the declare-attackers half of combat. Only a policy with a
-    # ``before_blocks`` hook has this boundary (see _play).
+    # ``before_blocks`` hook has this boundary (see _play_turns).
     skip_to_blocks: bool = False
     # A dealt game (_setup_game) has drawn its opening hands and not yet run
     # the mulligans (CR 103.5): _play runs them before the first turn. A
@@ -1220,7 +1184,8 @@ def _setup_game(
     executor.attach_pool(
         supply.pool
     )  # oracle-id bridge: everything later attaches by it
-    # B-29: a named card comes from the format's pool, never from the world.
+    # A chosen card name comes from the format's pool, never from the world
+    # (whose names would reveal cards in hidden zones).
     executor.name_pool = tuple(
         sorted({(supply.metas[oid].name, supply.metas[oid].type_line) for oid in supply.deckable})
     )
@@ -1230,18 +1195,19 @@ def _setup_game(
             trace.note_library(world, seat)  # pre-draw order, engine shuffle
         # The opening hand (CR 103.5) goes straight through GameWorld.draw: no
         # permanent is on the battlefield to miss a CARD_DRAWN event, and the
-        # DRAW verb is a game action the skeleton now owns. The mulligans
+        # DRAW verb is a game action the turn skeleton owns. The mulligans
         # that follow are decisions, so _play runs them, with the policy.
         world.draw(seat, OPENING_HAND)
     return Game(executor=executor, seed=seed, pool_mode=supply.mode, mulligans_pending=True)
 
 
 def coverage_of(game: Game) -> tuple[set[str], set[str]]:
-    """``(battlefield names, fired names)`` read out of the JOURNAL, i.e. the
-    engine's own record of what happened rather than the policy's opinion.
+    """``(battlefield names, fired names)``: the cards on the battlefield at the
+    end, and the cards read out of the JOURNAL, i.e. the engine's own record of
+    what happened rather than the policy's opinion.
 
     ``fired`` = every card that was the cause of at least one journalled
-    mutation row — the mission's 'abilities that executed >=1 action'. A purely
+    mutation row (its abilities executed at least one action). A purely
     passive static or an anthem never appears in it, which is why coverage sits
     below the pool size and is reported next to the battlefield count, never
     instead of it."""
@@ -1287,7 +1253,7 @@ class GameOutcome:
     acts: int = 0
     infeasible_skips: int = 0
     player_target_designations: int = 0
-    combat_losses: int = 0  # 16b: life-crossed-0 during a COMBAT phase
+    combat_losses: int = 0  # life crossed 0 during a COMBAT phase
     digest: list[str] = field(default_factory=list)
     battlefield_names: set[str] = field(default_factory=set)
     fired_names: set[str] = field(default_factory=set)
@@ -1354,8 +1320,8 @@ def play_game(
     """
     supply = supply or get_supply(pool_mode)
     decks = deal_decks(seed, deck_pairs_seed, supply, deck_mode)
-    # 14g trace: created BEFORE setup so it can note the pre-draw library
-    # order; attach() right after so journal/ask baselines start at zero.
+    # The trace is created BEFORE setup so it can note the pre-draw library
+    # order; attach() right after, so its journal lane starts after setup.
     recorder = TraceRecorder(supply, decks, turn_cap) if trace_path else None
     game = _setup_game(seed, supply, decks, trace=recorder)
     if recorder is not None:
@@ -1402,7 +1368,7 @@ def play_game(
 
 
 def _stall_fingerprint(executor: Executor) -> tuple:
-    """The STALL detector's world fingerprint (stall rule, 2026-10-05/11).
+    """The stall rule's world fingerprint.
 
     Deliberately NARROWER and cheaper than :meth:`Executor.state_fingerprint`
     (which replays every atom): this is a PROGRESS probe, not a replay
@@ -1417,12 +1383,9 @@ def _stall_fingerprint(executor: Executor) -> tuple:
     of the acting seat's turn, post-untap/post-draw, pre-act), so
     legitimate churn — life totals, counters, taps that survive the
     owner's next untap step, graveyard growth — always moves at least one
-    component. Honest limitation, documented: fingerprint repetition by
-    itself is the trigger; we do NOT separately verify that the same
-    ACTIONS recurs (a state-identity loop with different recurring
-    actions is still a zero-progress loop by the CR 104.4b spirit, and a
-    full round trip of identical world state IS the observable content of
-    "the same actions recurs")."""
+    component. Only state repetition is checked, not that the same actions
+    recur: a full round trip of identical world state is the observable
+    content of a CR 104.4b loop."""
     world = executor.world
     seats = []
     for seat in world.player_order:
@@ -1490,8 +1453,8 @@ def _play_turns(
     second main phase's act window (CR 500.1, 505.1): ``policy.take_acts`` runs
     once per main phase, and the executor's phase clock says which one it is.
 
-    Search substrate (KNOWLEDGE/2026-10-10/67): ``resumed=True`` starts the loop
-    on an ALREADY-OPEN turn, a fork of a game stopped at a boundary.
+    For the search, ``resumed=True`` starts the loop on an ALREADY-OPEN turn,
+    a fork of a game stopped at a boundary.
     ``stop_after(game, boundary)`` is consulted at the CLEAN boundaries, the
     points where no executor call is in flight: ``"turn_top"`` (a seat's turn
     has just opened, pre-stall-check, pre-acts), ``"pre_combat"`` (its first
@@ -1507,7 +1470,7 @@ def _play_turns(
     (the attackers are declared, no block asked): the hook runs there and a fork
     taken there resumes with ``skip_next_acts`` and ``skip_to_blocks`` set.
 
-    The stall rule (KNOWLEDGE/2026-10-05/11) rides at the top of every turn:
+    The stall rule rides at the top of every turn:
     one :func:`_stall_fingerprint` per turn, compared against the SAME
     seat's previous turn-top observation (a per-seat streak = comparison
     one FULL round later, when that seat acts again — the only fixed
@@ -1516,10 +1479,9 @@ def _play_turns(
     draw, CR 104.4b's practical generalisation."""
     executor = game.executor
     world = executor.world
-    # 14b (B-4): the policy IS the executor's decision answerer — the
-    # engine asks with the exact vocabulary at every demand site. The
-    # registration lives HERE so every driver (play_game and --repro)
-    # gets it.
+    # The policy IS the executor's decision answerer — the engine asks with
+    # the exact vocabulary at every demand site. The registration lives HERE
+    # so every driver of the loop gets it.
     executor.decisions.provider = policy.answer
     if not resumed:
         if game.mulligans_pending:
@@ -1562,19 +1524,18 @@ def _play_turns(
                 before_attacks = getattr(policy, "before_attacks", None)
                 if before_attacks is not None:
                     before_attacks(game, seat)
-            # 16b: the COMBAT phase rides between the two main phases -
-            # guarded on turn_open because an END_TURN atom played during
-            # take_acts already closed the turn (no combat after the end of
-            # the turn, CR 724.1). The life deltas across the phase are
-            # counted separately (combat deaths vs crashes is the semantic
-            # shift the engine numbers report).
+            # The COMBAT phase rides between the two main phases, guarded on
+            # turn_open because an END_TURN atom played during take_acts
+            # already closed the turn (no combat after the end of the turn,
+            # CR 724.1). Lives crossing 0 across the phase are counted as
+            # combat losses, apart from crashes.
             before = {s: world.players[s].life for s in world.player_order}
             try:
                 if not resume_blocks:
                     executor.combat_attacks(seat)
                     # PRE_BLOCKS exists only for a policy that plans blocks (a
                     # ``before_blocks`` hook): every other caller's stop_after
-                    # sees exactly the historical boundaries.
+                    # sees only the other three boundaries.
                     before_blocks = getattr(policy, "before_blocks", None)
                     if before_blocks is not None:
                         if stop_after is not None and stop_after(game, "pre_blocks"):
@@ -1637,7 +1598,7 @@ def _describe_crash(
     }
 
 
-#: Coherent-deck mode (B-45, KNOWLEDGE /164): two colours and 24 basics in 60, the constructed norm
+#: Coherent-deck mode: two colours and 24 basics in 60, the constructed norm
 #: (Limited plays 17 in 40). SCAFFOLD, registered in docs/BACKLOG.md: a stand-in until decks are
 #: built by a learned deckbuilder; it chooses colours and land count, never which spells.
 COHERENT_LANDS = 24
@@ -1651,8 +1612,8 @@ def build_coherent_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
     colour identity lies within the pair (colourless included), at most :data:`MAX_COPIES` each.
 
     The opt-in alternative to :func:`build_deck`'s five-colour stress piles (13.4 lands of 60 on
-    average, REVIEW_ARCHITECTURE_2026-10-27 F3). Like them it is a uniform sample: no curve and no
-    card choice beyond colour, so it adds no hand-tuned strategy."""
+    average). Like them it is a uniform sample: no curve and no card choice beyond colour, so it
+    adds no hand-tuned strategy."""
     rng = random.Random(deck_seed)
     metas = supply.metas
     basics = {
@@ -1690,8 +1651,8 @@ def deal_decks(
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Two decks per game, both derived from the ONE master seed, so the seed
     alone identifies the whole game (reproducibility rule: no second stream).
-    ``deck_mode`` "stress" (the default, byte-identical to every earlier deal) or
-    "coherent" (:func:`build_coherent_deck`, B-45)."""
+    ``deck_mode`` "stress" (the default, :func:`build_deck`) or "coherent"
+    (:func:`build_coherent_deck`)."""
     if deck_mode not in DECK_MODES:
         raise ValueError(f"unknown deck_mode {deck_mode!r} ({'|'.join(DECK_MODES)})")
     build = build_deck if deck_mode == "stress" else build_coherent_deck
@@ -1715,12 +1676,12 @@ def run_games(
     supply: Supply | None = None,
     trace_dir: Path | str | None = None,
 ) -> dict[str, Any]:
-    """The PC-7 v1 measurement: ``n_seeds`` games on one pool.
+    """``n_seeds`` games on one pool, summarised.
 
     ``survival_pct`` is the share of games that played the full turn cap with no
     loser and no crash. ``coverage_fired`` counts the cards that executed at
     least one mutation across the whole batch, against the dealt pool AND
-    against the 286 engine-supported set. ``crashes`` collapses by exception +
+    against the engine-supported set. ``crashes`` collapses by exception +
     frame, so fifty seeds with one root cause become one ledger row."""
     supply = supply or get_supply(pool_mode)
     trace_root = Path(trace_dir) if trace_dir else None
@@ -1801,9 +1762,9 @@ def summarise(
         "player_target_designations": sum(
             game.player_target_designations for game in outcomes
         ),
-        # 16b: combat deaths counted SEPARATELY from crashes - a game
-        # ending early because a seat was FIGHTED to 0 is a semantics
-        # outcome, not an engine defect.
+        # Combat deaths counted SEPARATELY from crashes: a game ending early
+        # because a seat was fought to 0 life is an outcome, not an engine
+        # defect.
         "combat_losses": sum(game.combat_losses for game in outcomes),
         "coverage_fired": len(fired),
         "coverage_fired_of_pool_pct": round(

@@ -1,4 +1,4 @@
-"""The ``compiled`` deal pool holds only cards whose whole text is in the tree (B-28, /159)."""
+"""The ``compiled`` deal pool holds only cards whose whole text is in the tree."""
 
 from __future__ import annotations
 
