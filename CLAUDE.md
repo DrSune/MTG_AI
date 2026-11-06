@@ -42,6 +42,7 @@ The MTG rules themselves are not heuristics — implement those exactly.
 | `docs/DECISIONS.md` | Settled calls, and the register of questions needing deeper reasoning |
 | `docs/TRAINING_REVIEW_PROTOCOL.md` | **What to do before, during and after every training run** |
 | `docs/METRICS.md` | The metric catalogue. Check §17 before adding any metric |
+| `docs/PLAN_LEARNING.md` | **The learning plan** (owner-approved): playout labels on the true future, the opponent simulator, memory, phases and powered gates (D20) |
 | `docs/OWNER_VISION_LEARNING.md` | **The owner's learning vision**: full credit, memory, inputs, the opponent simulator, the Teacher. Read before changing how the network learns |
 | `docs/COST_MODEL.md` | Why a parameter's cost depends on where you put it |
 | `docs/BACKLOG.md` | Scaffolds to remove, open engine faults, card-onboarding and training items, parked ideas; each with its reason |
