@@ -5,8 +5,8 @@
  "name": "Frilled Sandwalla",
  "text_sha": "8c8fd9852d40eb9aa999d751330cdd83b1d1020b4ce193edc65978ce114af0e8",
  "needs_atom": {
-  "missing": "'Activate only once each turn.': no activation-count limit. ActivatedAbility carries only a condition and a timing window (SORCERY/INSTANT); no FAtomPred or QThisTurn kind counts how often this ability was activated this turn, and the engine has no per-turn activation limit outside loyalty abilities (CostLoyalty). Without it the {1}{G}: +2/+2 until end of turn pump repeats (stronger than printed).",
-  "author": "claude-mapper-m20-8",
-  "date": "2026-11-05"
+  "missing": "The ability's own identity on AbilityActivatedEvent, for 'Activate only once each turn.' Since 49f10ca a turn-history condition on the ActivatedAbility could read this turn's activations (FNot(EVENT_THIS_TURN over AbilityActivatedEvent(source=IS_SOURCE), count 1)), but AbilityActivatedEvent(source, kind, actor) cannot name THIS ability (the journal row carries the ability index; no filter reads it), so that condition would count every activated ability of this creature, a granted one included (Gauntlets of Light's untap, Mask of Immolation's sacrifice): weaker than printed, so it is not exact. Needed: an ability-identity slot on AbilityActivatedEvent (or an activation-count limit on ActivatedAbility). Without the clause the {1}{G}: +2/+2 until end of turn pump (compiled, B3-modify-pt-self) repeats: stronger than printed.",
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06"
  }
 }

@@ -5,8 +5,8 @@
  "name": "Chandra's Outrage",
  "text_sha": "7b670c7f47714d11b4f2701aa7daa86db9bb7528f23c273a347f5546a1c95114",
  "needs_atom": {
-  "missing": "ENGINE: '... and 2 damage to that creature's controller'. The compiler's encoding (ZNR Synchronized Spellcraft, B8-party-four-and-x-controller: a second DEAL_DAMAGE whose target is a TARGET Selector over Zone(PLAYER, ANY), documented as folding the one creature designation to its controller) opens a second, free 'target player' slot in the engine, and the 2 damage hits whichever player the caster picks: kill your own creature, burn the opponent (stronger than printed). Pack scratchpad round_m20/mapped/m9/chandras_outrage/pack_controller_takes_2.json fails with draft_spellcraft_convention.py (life 20/18, expected 18/20). No other existing node fits: a referent='target' Selector hits the creature itself; an ALL Selector over Zone(PLAYER, TARGET_PLAYER) hits the right player but still opens a phantom player-target slot (draft.py, probe 'target slot (cast): 1..1 of [you, opp]'); DEAL_DAMAGE's recipient role raises in the executor. Synchronized Spellcraft (ZNR) has the same bug.",
-  "author": "claude-mapper-m20-9",
-  "date": "2026-11-05"
+  "missing": "A damage recipient meaning 'the controller of the designated creature' (CR 115.1: that player is not a target), for '... and 2 damage to that creature's controller'. No node expresses it: a second TARGET Selector over Zone(PLAYER, ANY) is a target slot of its own, so the caster picks who takes the 2 (stronger than printed; the compiler withdrew that encoding, B8-party-four-and-x-controller, in a67652e); a referent='target' Selector hits the creature itself; an ALL Selector over Zone(PLAYER, TARGET_PLAYER) still opens a phantom player-target slot; DEAL_DAMAGE's 'recipient' role raises in the executor (verbs.py _v_deal_damage). '4 damage to target creature' maps (Turn to Slag's DEAL_DAMAGE).",
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06"
  }
 }

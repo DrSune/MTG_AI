@@ -4,9 +4,711 @@
  "oracle_id": "fee680c6-afe2-4321-9d8a-8f81a612a53b",
  "name": "Sorin, Imperious Bloodlord",
  "text_sha": "bf5cc6c5a6236373d948a0cb730216f1557e267190bb1cad4699934687fe1d1f",
- "needs_atom": {
-  "missing": "ENGINE: stronger than printed. '[+1]: You may sacrifice a Vampire. When you do, Sorin deals 3 damage to any target and you gain 3 life' as Tolarian Kraken's OptionalEffect(Seq(SACRIFICE(CHOOSE your Vampire creature), DEAL_DAMAGE 3 any target, GAIN_LIFE 3)): the SACRIFICE 'target' role is hijacked by the ability's designated target (selectors.role_handles binding-first; the V28 'foreign' exemption does not fire), so it 'sacrifices' the TARGETED creature, even an opponent's, with no Vampire at all. Pack scratchpad round_m20/mapped/m1/sorin/pack_sac_novamp.json: no Vampire, target Opp Bear, 'fire' -> Opp Bear goes to the graveyard and you gain 3 (expected: nothing happens); pack_sac.json: your Vampire stays, the targeted Opp Bear is sacrificed. Also WEAKER: '[+1] ... If it's a Vampire, put a +1/+1 counter on it' never fires: GRANT_ABILITY writes no result register, so the bare Conditional is judged on Sorin (pack_vamp_counter.json: no counter on the targeted Vampire). The [-3] maps (OptionalEffect MOVE_ZONE hand->battlefield, Vampire creature card).",
-  "author": "claude-mapper-m20-1",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DEATHTOUCH"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "LIFELINK"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "SUBTYPE_EQ"
+          },
+          "string_value": "Vampire",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "PUT_COUNTER"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "count",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "counter_kind",
+           {
+            "tag": "CounterKind",
+            "name": "PLUS_1_PLUS_1"
+           }
+          ],
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "ANY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ],
+            "referent": "target"
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SACRIFICE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "SUBTYPE_EQ"
+               },
+               "string_value": "Vampire",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "DEAL_DAMAGE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 3
+             }
+            ],
+            [
+             "target",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "TARGET"
+              },
+              "filter": {
+               "tag": "FOr",
+               "children": [
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Creature",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Planeswalker",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Player",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                }
+               ]
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "BATTLEFIELD"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "ANY"
+                }
+               }
+              ]
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "GAIN_LIFE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 3
+             }
+            ],
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -3
+      }
+     ]
+    },
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "CHOOSE"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "SUBTYPE_EQ"
+             },
+             "string_value": "Vampire",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Sorin, Imperious Bloodlord {2}{B} loyalty 4\n# [+1] \"Target creature you control gains deathtouch and lifelink until end of turn. If it's a\n#      Vampire, put a +1/+1 counter on it.\"\n#      Loyalty cost: CostLoyalty(delta=1) (M21 Garruk, Unleashed / Basri Ket). The two keyword\n#      grants repeat one TARGET selector, as the compiler writes \"target creature ... gets X and\n#      gains Y\" (M21 Ranger's Guile, Garruk, Unleashed's +1) and \"gain hexproof and indestructible\"\n#      (Heroic Intervention). \"If it's a Vampire\" is a bare characteristics-only Conditional,\n#      judged on the object the grant step acted on (GRANT_ABILITY writes the result register since\n#      79e7447); \"it\" = the targeted creature (referent 'target', Alchemist's Gift).\n# [+1] \"You may sacrifice a Vampire. When you do, Sorin deals 3 damage to any target and you gain\n#      3 life.\"  Seq(OptionalEffect(SACRIFICE), Conditional(MAY_DONE, ...)): the M21 Dire Fleet\n#      Warmonger \"you may sacrifice ... If you do\" shape, so nothing happens unless a Vampire was\n#      sacrificed (OptionalEffect(Seq(SACRIFICE, damage, life)) deals the damage with no Vampire:\n#      stronger than printed). Any target: Chandra, Heart of Fire's B5c-loyalty-chandra-dmg-any.\n# [-3] \"You may put a Vampire creature card from your hand onto the battlefield.\"\n#      OptionalEffect over Ugin's hand -> battlefield MOVE_ZONE, one card.\ncreature_you_control = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nthe_target = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAnd(children=()),\n    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n    referent='target',\n)\nvampire = FAnd(\n    children=(\n        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Vampire'),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ),\n)\nplus1_grant = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=Seq(\n        steps=(\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.DEATHTOUCH),\n                'duration': DurationEot(),\n                'target': creature_you_control,\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.LIFELINK),\n                'duration': DurationEot(),\n                'target': creature_you_control,\n            }),\n            Conditional(\n                pred=vampire,\n                then_effect=A(Verb.PUT_COUNTER, {\n                    'count': QConst(value=1),\n                    'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                    'target': the_target,\n                }),\n            ),\n        ),\n    ),\n)\nplus1_sacrifice = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.SACRIFICE, {\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Vampire'),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=Seq(\n                    steps=(\n                        A(Verb.DEAL_DAMAGE, {\n                            'amount': QConst(value=3),\n                            'target': Selector(\n                                count=QConst(value=1),\n                                mode=SelectorMode.TARGET,\n                                filter=FOr(\n                                    children=(\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Player'),\n                                    ),\n                                ),\n                                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                            ),\n                        }),\n                        A(Verb.GAIN_LIFE, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n                    ),\n                ),\n            ),\n        ),\n    ),\n)\nminus3 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-3),)),\n    effect=OptionalEffect(\n        inner=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=vampire,\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        }),\n    ),\n)\nabilities = [plus1_grant, plus1_sacrifice, minus3, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: Target creature you control gains deathtouch and lifelink until end of turn.",
+    "ir": "abilities[0].cost, abilities[0].effect.steps[0], abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "If it's a Vampire, put a +1/+1 counter on it.",
+    "ir": "abilities[0].effect.steps[2]"
+   },
+   {
+    "clause": "[+1]: You may sacrifice a Vampire.",
+    "ir": "abilities[1].cost, abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "When you do, Sorin deals 3 damage to any target and you gain 3 life.",
+    "ir": "abilities[1].effect.steps[1]"
+   },
+   {
+    "clause": "[−3]: You may put a Vampire creature card from your hand onto the battlefield.",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (ENGINE: SACRIFICE took the target; GRANT wrote no result); both fixed on fix/w2-effects. 'When you do' (a reflexive trigger, CR 603.12) is written as the If-you-do gate Seq(OptionalEffect(SACRIFICE), Conditional(MAY_DONE, ...)) with its any-target slot chosen at activation, as the compiler's 'When you do' (Tolarian Kraken) chooses targets up front; the earlier OptionalEffect(Seq(...)) shape dealt 3 and gained 3 with no Vampire (pack_sac_novamp). Engine quirk: targeting the Vampire you then sacrifice marks the 3 damage on the card in the graveyard."
+ },
+ "probe": {
+  "sha": "cf7392260a3be993ad4c390ee164ed216f1f3d0275663652120b647201492301"
  }
 }

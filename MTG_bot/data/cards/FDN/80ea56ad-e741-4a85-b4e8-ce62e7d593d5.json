@@ -12,7 +12,23 @@
      "tag": "Keyword",
      "name": "ENCHANT"
     },
-    "params": []
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
    }
   ],
   "abilities": [
@@ -302,23 +318,23 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-A",
-  "date": "2026-10-29",
-  "draft_py": "_per_forest = QBin(\n    op=QBinOp.MUL,\n    left=QConst(value=1),\n    right=QCount(selector=Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Forest'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    )),\n)\naura_pt = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=_per_forest),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=_per_forest),\n    }),\n)\nabilities = [aura_pt, SpellAbility(kind=SpellKind.ENCHANTMENT)]\n",
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# FDN Blanchwood Armor {2}{G} Enchantment - Aura\n# \"Enchant creature\" / \"Enchanted creature gets +1/+1 for each Forest you control.\"\n# Enchant: the keyword carries its host filter (B-65; the compiler's B1-enchant-creature bytes, as\n# M20 Feral Invocation). The static: the B11-attached-pt subject with \"N for each X\" as\n# QBin(MUL, QConst(1), QCount(...)); \"Forest you control\" written like Rin and Seri's\n# \"Cats you control\" (CONTROLLER_IS YOU + SUBTYPE_EQ + the card type), here TYPE_EQ 'Land'.\n_forests = QBin(\n    op=QBinOp.MUL,\n    left=QConst(value=1),\n    right=QCount(\n        selector=Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Forest'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    ),\n)\nkeywords = [\n    KeywordAbility(\n        keyword=Keyword.ENCHANT,\n        params=(FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),),\n    ),\n]\nabilities = [\n    StaticAbility(\n        effect=A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=_forests),\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=_forests),\n        }),\n    ),\n    SpellAbility(kind=SpellKind.ENCHANTMENT),\n]\n",
   "clauses": [
    {
     "clause": "Enchant creature",
-    "ir": "keywords[0] (compiled ENCHANT); abilities[1] is the enchantment cast carrier"
+    "ir": "keywords[0]"
    },
    {
     "clause": "Enchanted creature gets +1/+1 for each Forest you control.",
-    "ir": "abilities[0] (StaticAbility MODIFY_PT, magnitude QBin(MUL, 1, QCount(ALL FAnd(CONTROLLER_IS YOU, SUBTYPE_EQ Forest, TYPE_EQ Land))) on ALL FAnd(IS_ATTACHED_TO_SOURCE, TYPE_EQ Creature); Malefic Scythe / Feral Invocation shapes)"
+    "ir": "abilities[0]"
    }
   ],
   "g0_warnings": [],
-  "notes": "ENGINE ISSUES (not mapping): (1) the per-Forest count is frozen when the static first materializes (layers._materialize_static skips targets that already have a ledger entry): self-test pack mapper_A/blanchwood/pack_landdrop.json expects 5/5 after a third Forest, engine gives 4/4. (2) With the effect-less SpellAbility carrier the enchant slot falls back to ANY permanent (query.aura_enchant_slot reads only the SpellAbility effect; KeywordAbility(ENCHANT) carries no filter), so 'Enchant creature' offers artifacts, enchantments and lands. Hold until both are fixed."
+  "notes": "Remap (blind review): ENCHANT now carries the host filter TYPE_EQ 'Creature' (B-65; was bare ENCHANT, which could enchant any permanent). Static unchanged."
  },
  "probe": {
-  "sha": "0431da2da18229c8ebd7124b28d05d9b281acd0750fb4b017c621ba2accb5688"
+  "sha": "e63dd7ce8df8e4afd0c42f1ad3c3649242cd623098570dee927eb99efdd6d00d"
  }
 }

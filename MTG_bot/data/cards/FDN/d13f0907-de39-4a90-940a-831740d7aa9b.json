@@ -29,7 +29,7 @@
           "controller",
           {
            "tag": "ControllerRef",
-           "name": "TARGET_PLAYER"
+           "name": "TARGET_OPPONENT"
           }
          ],
          [
@@ -189,9 +189,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-B",
-  "date": "2026-10-29",
-  "draft_py": "# Pilfer: \"Target opponent reveals their hand. You choose a nonland card from it. That player discards that card.\"\nreveal, discard = compiled[0].effect.steps\nchoose = A(Verb.CHOOSE, {\n    'count': QConst(value=1),\n    'target': Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),),\n    ),\n})\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(reveal, choose, discard)))]\n",
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# FDN Pilfer {1}{B} Sorcery\n# \"Target opponent reveals their hand. You choose a nonland card from it. That player discards that card.\"\n# Shape: M21 Duress (verified), with the filter \"nonland\" alone (one-part filter written bare).\n# The designation is TARGET_OPPONENT on the reveal (the B5b-reveal-hand template's own bytes);\n# the later steps read the same binding through TARGET_PLAYER, as Duress's templates write them.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(\n            steps=(\n                A(Verb.REVEAL, {'controller': ControllerRef.TARGET_OPPONENT, 'count': QUnbounded()}),\n                A(Verb.CHOOSE, {\n                    'count': QConst(value=1),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),),\n                    ),\n                }),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                        referent='result',\n                    ),\n                    'controller': ControllerRef.TARGET_PLAYER,\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),\n                }),\n            ),\n        ),\n    ),\n]\n",
   "clauses": [
    {
     "clause": "Target opponent reveals their hand.",
@@ -207,9 +207,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": ""
+  "notes": "Remap (blind review): 'Target opponent' is TARGET_OPPONENT on the reveal (was TARGET_PLAYER, which let the caster designate themself); the rest is M21 Duress's shape with the one-part filter 'nonland'."
  },
  "probe": {
-  "sha": "57420b93df85237ab076ecfed610aa2eefe891ca7943de2a886849311ed475dd"
+  "sha": "6ef377d113e979c235bc14689b61ef48ebfdc40e12e78ec11cb02209a98086aa"
  }
 }

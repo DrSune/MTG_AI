@@ -4,9 +4,162 @@
  "oracle_id": "5951f734-05d3-41ad-94ee-19bd310077d2",
  "name": "Skyship Buccaneer",
  "text_sha": "d1efdff3d47d16af98571e47c99d144f03dc733b7b37b4fb725286b1b6a23139",
- "needs_atom": {
-  "missing": "Raid — When this creature enters, if you attacked this turn, draw a card.: the intervening-if 'you attacked this turn' (raid) has no predicate: no FAtomPred / ThisTurnKind answers 'did <who> declare an attacker this turn' (DECLARE_ATTACKERS rows are journalled; ATTACK_AGAINST_COUNT_GE reads only a triggering DeclareAttackersEvent). Needs e.g. FAtomPred.ATTACKED_THIS_TURN(who=YOU) as the TriggeredAbility condition. ETB event, DRAW 1 and Flying are expressible/compiled.",
-  "author": "claude-mapper-B",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAnd",
+     "children": [
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TURN_OF"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": {
+        "tag": "ControllerRef",
+        "name": "YOU"
+       },
+       "inner_filter": null
+      },
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "EVENT_THIS_TURN"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": {
+        "tag": "QConst",
+        "value": 1
+       },
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null,
+       "event": {
+        "tag": "DeclareAttackersEvent",
+        "filter": {
+         "tag": "FAnd",
+         "children": []
+        }
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# FDN Skyship Buccaneer\n# The compiler now parses every printed sentence; its tree is kept as it is (checked clause by clause).\nabilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Raid — When this creature enters, if you attacked this turn, draw a card.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (raid predicate); the compiler now parses it (TURN_OF YOU + EVENT_THIS_TURN DeclareAttackersEvent, merge 49f10ca). Compiled tree kept; mapper self-check packs (raid after combat draws; no attack / opponent attacked: no draw) pass."
+ },
+ "probe": {
+  "sha": "c230796aa300155fe5caeb6848b01b6e166bbe78ada96d60d7b10ccbeb8c6e94"
  }
 }

@@ -4,9 +4,94 @@
  "oracle_id": "f4aed3d2-04f5-49a4-a6be-d3cf097903f8",
  "name": "Bristling Boar",
  "text_sha": "3a0231ed661074a21fdb03f4f232394c609701bd1ac7dbfb1b4f2654ae03726d",
- "needs_atom": {
-  "missing": "A maximum-blockers restriction: 'This creature can't be blocked by more than one creature' (CR 509.1b-c, a blocking restriction on the number of creatures blocking this attacker, at most 1). DeclareBlockersEvent has filter/subject/blocked axes but no blocker-count axis, PREVENT_EFFECT over it can only forbid a block outright ('can't be blocked', Tome Anima), and the executor's block declaration (executor/__init__.py _declare_blockers, completable()) knows only MENACE's minimum of two. Nothing expresses 'at most one blocker'; a whole-block prevention would be stronger than printed.",
-  "author": "claude-mapper-m20-2",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "count": {
+          "tag": "QAtLeast",
+          "n": 2
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Bristling Boar\n# The compiler now parses every printed sentence; its tree is kept as it is (checked clause by clause).\nabilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature can't be blocked by more than one creature.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (blocker limit); the compiler now parses it (B15, merge 7a598df). Compiled tree kept; packs blockers_bristling_boar(+_twin) pass on it."
+ },
+ "probe": {
+  "sha": "911534f49b654a62f36e395ef4bff99f13fe3a65c8dd1939fd3c9ca2000f4fc8"
  }
 }

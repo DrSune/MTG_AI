@@ -5,8 +5,8 @@
  "name": "Gatekeeper of Malakir",
  "text_sha": "5eeb6e7eabf159e752e96edc60fd9dc1f59ea5192af21824dad519abdbb5c7b1",
  "needs_atom": {
-  "missing": "When this creature enters, if it was kicked, target player sacrifices a creature of their choice.: no node expresses a TARGET-PLAYER edict (the targeted player chooses and sacrifices). SACRIFICE has only a 'target' role, and a TARGET_PLAYER designation binds under 'target', so selectors.role_handles (binding-first) hands the PLAYER handle to SACRIFICE (probe: KeyError 'unknown card player:1'); EachPlayer(ref=TARGET_PLAYER) is invisible to the trigger designation scan (binding._designate walks Atom args only: ValueError 'TARGET_PLAYER needs a bound target'); a bare SACRIFICE over CONTROLLER_IS TARGET_PLAYER lets the CASTER pick the victim via the R3 CHOOSE lift (stronger than printed; the Run Afoul ZND-9 deferral). Needs a sacrifice chooser/player role (or EachPlayer TARGET_PLAYER designation). The kicker head and the WAS_KICKED ETB trigger are expressible (Kitesail Cleric shape).",
-  "author": "claude-mapper-A",
-  "date": "2026-10-29"
+  "missing": "A target-player edict in a TRIGGER: 'When this creature enters, if it was kicked, target player sacrifices a creature of their choice.' Run Afoul's spell shape, EachPlayer(ref=TARGET_PLAYER, SACRIFICE over creatures that player controls), is not designated by the trigger binder (binding._designated_player_refs walks Atom args only, so EachPlayer.ref is unseen): G1 probe 2026-11-06, cast kicked -> 'ValueError: TARGET_PLAYER needs a bound target'. A bare SACRIFICE over FAnd(CONTROLLER_IS TARGET_PLAYER, TYPE_EQ Creature) designates the player, but the canonical pass promotes its CHOOSE to ONE_OF (compiler._promote_liftable_picks) and the ONE_OF ask is the ability controller's (selectors.py ONE_OF lane, ctx.take_decision), so the caster picks the victim: stronger than printed. Needed: the trigger designation scan reading EachPlayer's ref, or a chooser role on SACRIFICE. The kicker head (compiled) and the WAS_KICKED ETB trigger (Kitesail Cleric shape) are expressible.",
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06"
  }
 }

@@ -4,9 +4,337 @@
  "oracle_id": "b3fe2f61-c58e-4ebc-a5e3-99d6b6f62caf",
  "name": "Marauding Raptor",
  "text_sha": "24bcf9e3aee71ea0a2178475562160c2e80adcf0ed21a6876202b49ed5e86da3",
- "needs_atom": {
-  "missing": "ENGINE: 'If a Dinosaur is dealt damage this way, this creature gets +2/+0 until end of turn' has no correct subject. The natural tree (trigger: DEAL_DAMAGE 2 to the entering creature via referent 'event', then Conditional(pred=Dinosaur creature, then=self +2/+0 EOT)) plays STRONGER than printed: DEAL_DAMAGE writes no result register (verbs.run_atom/result_fresh), so the bare Conditional falls back to ctx.source, the Raptor itself, which is a Dinosaur, and it pumps on every creature entering. G1 probe of the draft (scratchpad round_m20/mapped/m1/raptor/trace.txt): stimuli 'a creature enters under your control' (you_spare) and 'you cast a creature (Yoked Ox)' both show 'card: P/T 2/3 -> 4/3'. Needs DEAL_DAMAGE to publish the objects actually dealt damage (after prevention) as the result register, or a 'dealt damage this way' predicate. Clauses 1-2 (CostModifier creature spells {1} less; the enters trigger dealing 2 to it) map with existing nodes.",
-  "author": "claude-mapper-m20-1",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "TYPE_EQ"
+     },
+     "string_value": "Creature",
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "event"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "SUBTYPE_EQ"
+          },
+          "string_value": "Dinosaur",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MODIFY_PT"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "duration",
+           {
+            "tag": "DurationEot"
+           }
+          ],
+          [
+           "power",
+           {
+            "tag": "PtDelta",
+            "direction": {
+             "tag": "PtDirection",
+             "name": "INCREASE"
+            },
+            "magnitude": {
+             "tag": "QConst",
+             "value": 2
+            }
+           }
+          ],
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "toughness",
+           {
+            "tag": "PtDelta",
+            "direction": {
+             "tag": "PtDirection",
+             "name": "INCREASE"
+            },
+            "magnitude": {
+             "tag": "QConst",
+             "value": 0
+            }
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Marauding Raptor {1}{R} 2/3 Dinosaur\n# 1 \"Creature spells you cast cost {1} less to cast.\" M21 Watcher of the Spheres' CostModifier\n#   without its flying conjunct (a one-part filter is written bare).\n# 2 \"Whenever another creature you control enters, this creature deals 2 damage to it.\"\n#   M21 Terror of the Peaks' event; \"it\" = the entering creature, the 'event' referent selector\n#   (M21 Basri, Devoted Paladin's \"put a +1/+1 counter on it\").\n# 3 \"If a Dinosaur is dealt damage this way, this creature gets +2/+0 until end of turn.\"\n#   A bare Conditional with a characteristics-only predicate is judged on the object the previous\n#   step dealt damage to (DEAL_DAMAGE writes the result register since 79e7447; nothing when the\n#   damage is prevented); \"a Dinosaur\" = SUBTYPE_EQ + TYPE_EQ 'Creature' (tribal noun). The pump is\n#   M21 Ornery Dilophosaur's triggered self MODIFY_PT with DurationEot, toughness +0.\ndiscount = CostModifier(\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n)\nit = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAnd(children=()),\n    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n    referent='event',\n)\nme = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ntrigger = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.DEAL_DAMAGE, {'amount': QConst(value=2), 'target': it}),\n            Conditional(\n                pred=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Dinosaur'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    ),\n                ),\n                then_effect=A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n                    'target': me,\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [discount, trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Creature spells you cast cost {1} less to cast.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever another creature you control enters, this creature deals 2 damage to it.",
+    "ir": "abilities[1].event, abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "If a Dinosaur is dealt damage this way, this creature gets +2/+0 until end of turn.",
+    "ir": "abilities[1].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (ENGINE: conditional judged on the source); fixed by 79e7447 (DEAL_DAMAGE writes the result register). Self-check packs: a Dinosaur entering pumps the Raptor, an Elf does not, an opponent's Dinosaur does not trigger; a {3}{G} creature costs {2}{G}, an instant is not reduced."
+ },
+ "probe": {
+  "sha": "e5230ed657df3af50042c15f6cc38cf50a0d60b623f25166f95ab0fbe1b8831a"
  }
 }

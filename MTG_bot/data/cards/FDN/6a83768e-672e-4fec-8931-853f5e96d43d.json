@@ -4,46 +4,187 @@
  "oracle_id": "6a83768e-672e-4fec-8931-853f5e96d43d",
  "name": "Stasis Snare",
  "text_sha": "c6313be8bef952906acadd56ac653921ebf8e78e814d38f96aff288fedeab35c",
- "needs_atom": {
-  "missing": "When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.: MOVE_ZONE (and EXILE) take no duration role, so the 'until this enchantment leaves the battlefield' window cannot carry DurationUntilLeaves (which exists, wired only to GAIN_CONTROL / grants). Mapping the exile without it makes the exile permanent (stronger than printed); a separate leaves-the-battlefield return trigger is the old two-ability O-Ring wording and differs in timing edge cases. Needs MOVE_ZONE += duration (DurationUntilLeaves) with the executor returning the card to the battlefield under its owner's control. Flash keyword is compiled correctly; carrier SpellAbility(ENCHANTMENT) would also be needed.",
-  "author": "claude-mapper-B",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLASH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "EXILE"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationUntilLeaves",
+         "source": "source"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "OPPONENT"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
  },
- "verified": {
-  "tree_sha": "465c6a3f292bf401671a8b13ef136c833d53aba30e5fe97d118837d21d9c2519",
-  "probe_sha": "b1a55243488acff4a26540a6537c45927d5e52c8f9e8ce4246386979ba10a317",
+ "mapping": {
+  "author": "claude-mapper-wave4",
   "date": "2026-11-06",
-  "reviewer": "claude-verifiers-fdn1",
+  "draft_py": "# FDN Stasis Snare\n# The compiler now parses every printed sentence; its tree is kept as it is (checked clause by clause).\nabilities = [*compiled]\n",
   "clauses": [
    {
     "clause": "Flash",
-    "status": "NOT_EXERCISED",
-    "evidence": "tree keywords FLASH, [cast] keywords +FLASH; no variant casts it outside the sorcery window. Pack stasis_snare_2: cast on the opponent's turn, its trigger exiles their creature. Control (not listed): Healer's Hawk cast on the opponent's turn is refused (window:not_your_turn).",
-    "issue": ""
+    "ir": "keywords[0]"
    },
    {
-    "clause": "When this enchantment enters, exile target creature an opponent controls",
-    "status": "OK",
-    "evidence": "[cast] variants: ask target: [opp_flier, opp_tapped, opp_bear, opp_giant] (no creature of yours); e.g. opp_flier is targeted, moves battlefield -> exile; you: mana W-3. Pack stasis_snare_3 pins the ask's words (only the opponent's creatures).",
-    "issue": ""
-   },
-   {
-    "clause": "... until this enchantment leaves the battlefield.",
-    "status": "NOT_EXERCISED",
-    "evidence": "The trace annotates 'until card leaves the battlefield, then back to the battlefield' but no variant removes the Snare. Pack stasis_snare_1: the Snare is destroyed and the exiled creature returns to the battlefield under its owner's control.",
-    "issue": ""
+    "clause": "When this enchantment enters, exile target creature an opponent controls until this enchantment leaves the battlefield.",
+    "ir": "abilities[0]"
    }
   ],
-  "packs": [
-   "tools/scenarios/cards/FDN/stasis_snare_1.json",
-   "tools/scenarios/cards/FDN/stasis_snare_2.json",
-   "tools/scenarios/cards/FDN/stasis_snare_3.json"
-  ],
-  "mutation": {
-   "mutants": 8,
-   "killed": 8,
-   "score": 1.0,
-   "survived": []
-  }
+  "g0_warnings": [],
+  "notes": "Was needs-atom (exile duration); the compiler now writes MOVE_ZONE EXILE with DurationUntilLeaves (ontology R5-1). Compiled tree kept."
+ },
+ "probe": {
+  "sha": "b1a55243488acff4a26540a6537c45927d5e52c8f9e8ce4246386979ba10a317"
  }
 }

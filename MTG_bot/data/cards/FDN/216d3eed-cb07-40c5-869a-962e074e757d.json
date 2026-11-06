@@ -4,9 +4,231 @@
  "oracle_id": "216d3eed-cb07-40c5-869a-962e074e757d",
  "name": "Joraga Invocation",
  "text_sha": "21b5b1e07ffbcdd59f2c50d496c8fe7440b3334e4a9cdaff7653e32be41825d5",
- "needs_atom": {
-  "missing": "Each creature you control gets +3/+3 until end of turn and must be blocked this turn if able.: the '+3/+3 until end of turn' half is expressible (MODIFY_PT ALL creatures you control, DurationEot), but no component gives a lure that ENDS this turn. The IR form MANDATE_BLOCK{cards: ALL creatures you control, duration: DurationEot} is accepted, but the executor's dispatch handler (verbs._v_mandate_block) ignores the duration and adds the creatures to executor.mandate_block, which is cleared only when a creature leaves the battlefield: mapper pack shows the opponent's wall still forced to block the bear on the NEXT turn (permanent lure, stronger than printed). The granted-static alternative GRANT_ABILITY(StaticAbility(MANDATE_BLOCK self), DurationEot) is not consumed by block legality (no forced block even this turn). Needs executor support for MANDATE_BLOCK's duration role (expire the dispatched entry at end of turn).",
-  "author": "claude-mapper-B",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 3
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 3
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MANDATE_BLOCK"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# FDN Joraga Invocation {4}{G}{G} Sorcery\n# \"Each creature you control gets +3/+3 until end of turn and must be blocked this turn if able.\"\n# +3/+3: the compiler's B4-modify-pt-eot-you shape (\"Creatures you control get +3/+3 until end of\n# turn.\" parses to it; \"each creature you control\" is the same population).\n# \"must be blocked this turn if able\": Canopy Stalker's MANDATE_BLOCK (B4-must-block) over the same\n# population, with duration=DurationEot() (\"this turn\"; the dispatch honours it since B-59).\n_yours = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=3)),\n                    'target': _yours,\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=3)),\n                }),\n                A(Verb.MANDATE_BLOCK, {'cards': _yours, 'duration': DurationEot()}),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Each creature you control gets +3/+3 until end of turn and must be blocked this turn if able.",
+    "ir": "abilities[0].effect.steps[0] (+3/+3 until end of turn), abilities[0].effect.steps[1] (must be blocked this turn)"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): atom MANDATE_BLOCK(cards,duration)"
+  ],
+  "notes": "Was needs-atom (MANDATE_BLOCK ignored its duration); B-59 fixed the dispatch, so 'must be blocked this turn' is MANDATE_BLOCK with DurationEot (Canopy Stalker's verb) after the compiler's B4-modify-pt-eot-you +3/+3. G0 flags MANDATE_BLOCK(cards,duration) as a composition no compiled card has. Self-check packs: the wall is forced to block this turn and free two turns later (a no-duration draft fails the second)."
+ },
+ "probe": {
+  "sha": "2da5d445604db52d75efc05d0bf13c40b4efec31ed810e62fd758d9147777447"
  }
 }

@@ -4,9 +4,181 @@
  "oracle_id": "e90e3f58-1197-41c1-81c5-008e946eb539",
  "name": "Fathom Fleet Cutthroat",
  "text_sha": "358a448a8449e3c48e197aa798a54b764d14ff621de04e4b0d8fb2a50a38442b",
- "needs_atom": {
-  "missing": "'... target creature an opponent controls that was dealt damage this turn.': no FAtomPred says an object was dealt damage this turn (the turn-scoped predicates are DIED_THIS_TURN, ENTERED_THIS_TURN_FROM, CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN, WAS_CAST_THIS_TURN; nothing reads marked damage or the turn's DAMAGE journal rows for the judged object). Needed: a DEALT_DAMAGE_THIS_TURN object predicate for the TARGET filter. The rest is the B13-etb + B11-destroy-np frame (Public Execution's 'Destroy target creature an opponent controls.').",
-  "author": "claude-mapper-m20-9",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DESTROY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "OPPONENT"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBJECT_OF_EVENT_THIS_TURN"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null,
+            "event": {
+             "tag": "DamageDealtEvent",
+             "amount": {
+              "tag": "QUnbounded"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             }
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-wave4",
+  "date": "2026-11-06",
+  "draft_py": "# M20 Fathom Fleet Cutthroat\n# The compiler now parses every printed sentence; its tree is kept as it is (checked clause by clause).\nabilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, destroy target creature an opponent controls that was dealt damage this turn.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (dealt damage this turn); the compiler now parses it (SUBJECT_OF_EVENT_THIS_TURN, merge 49f10ca). Compiled tree kept; packs turn_history_fathom_fleet_cutthroat(+_new_object) pass on it."
+ },
+ "probe": {
+  "sha": "0786df3da0892909bcb26bd1e0966e837aa864629fbfc792502bf5f754be3b42"
  }
 }
