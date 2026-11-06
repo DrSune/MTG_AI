@@ -313,8 +313,12 @@ class TestTheGameEnds(LossCase):
         policy = ScriptedPolicy()
         _play(game, policy, self.world.player_order, turn_cap=10)
         # p1 drew its last card on turn 2 and played on; it loses on turn 4,
-        # at the check after its draw step, before any act of that turn.
-        self.assertEqual(policy.windows, [(1, self.p0), (2, self.p1), (3, self.p0)])
+        # at the check after its draw step, before any act of that turn. Each
+        # turn before has two act windows, one per main phase (CR 505.1, B-74).
+        self.assertEqual(
+            policy.windows,
+            [(1, self.p0), (1, self.p0), (2, self.p1), (2, self.p1), (3, self.p0), (3, self.p0)],
+        )
         self.assertEqual(game.turns, 4)
         self.assertEqual(
             game.reason, "game over: player:1(draw from empty library (CR 704.5b))"

@@ -1,0 +1,17 @@
+{
+ "name": "postcombat_main_land_drop",
+ "note": "CR 305.2, 505.1: a player may play a land in either main phase of their turn, with an empty stack, one in total per turn. P0 plays no land before combat, attacks with a Bear, and plays a Forest in the second main phase: it enters. Red on main d0200d2: the land drop raised 'land:phase', land drops were first-main-only (B-74). Twin: postcombat_main_second_land_refused.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "forest", "real": "Forest", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "play", "key": "forest"}
+ ],
+ "expect": {
+  "life": {"1": 18},
+  "zone": {"forest": "battlefield"}
+ }
+}

@@ -157,11 +157,11 @@ class _Picker:
         return next((tokens.index(p) for p in self.prefer if p in tokens), 0)
 
 
-def _arranged(hand0=(), field0=(), field1=(), *, life0=20, tokens0=(), pool0=None):
-    """Seat 0's first main phase with exactly the named M21 cards in hand and on the battlefields
-    (``tokens0``: token names, e.g. Treasure, on seat 0's battlefield; ``pool0``: floating mana).
-    Libraries hold Islands."""
-    supply = get_supply("castable", "M21")
+def _arranged(hand0=(), field0=(), field1=(), *, life0=20, tokens0=(), pool0=None, set_code="M21"):
+    """Seat 0's first main phase with exactly the named cards of ``set_code`` in hand and on the
+    battlefields (``tokens0``: token names, e.g. Treasure, on seat 0's battlefield; ``pool0``:
+    floating mana). Libraries hold Islands."""
+    supply = get_supply("castable", set_code)
     oid = {m.name: o for o, m in supply.metas.items()}
     decks = tuple(
         tuple(oid[n] for n in (*hand, *field)) + (oid["Island"],) * 20
@@ -364,3 +364,20 @@ def test_a_dealt_game_names_cards_from_its_pool_so_name_asks_are_not_leaky() -> 
     assert ask.kind == "name" and not ask.leaky
     assert router.stats[0]["leaky_asks"] == 0
     assert [o.token for o in ask.options] == sorted({supply.metas[o].name for o in supply.deckable})
+
+
+def test_the_second_main_phase_has_its_own_act_window() -> None:
+    # B-74 (2026-11-06), CR 505.1, 305.2: after combat the active player gets a second act window,
+    # where a land not played before combat can still be played, and the prompt says which main
+    # phase it is. On main d0200d2 nothing was offered after combat.
+    game, supply = _arranged(hand0=("Forest",), field0=("Walking Corpse",))
+    forest = _handle(game, "Forest", zone=ZONE_HAND)
+    picker = _Picker("DECLINE", f"land:{forest}")
+    router = _router(game, supply, picker)
+    assert f"land:{forest}" in _menu(router, game)
+    game.executor.combat_step(P0)  # declines the attack: the land is still unplayed
+    assert game.executor.phase == "SECOND_MAIN"
+    router.take_acts(game, P0)
+    assert game.world.zone_of(forest).kind == ZONE_BATTLEFIELD
+    act = next(ask for ask in picker.asks if ask.kind == "act")
+    assert act.prompt.startswith("Your second main phase")

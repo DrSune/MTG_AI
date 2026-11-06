@@ -966,11 +966,13 @@ class TestSorceryPhaseGate(LibraryCase):
     def test_sorcery_gate_tracks_the_phase_clock(self):
         self.ex.begin_turn(self.p0)  # active p0, clock ends at FIRST_MAIN
         self.assertEqual(self.playable(), None)
-        for phase in ("UPKEEP", "END_TURN"):
+        for phase in ("UPKEEP", "COMBAT", "END_TURN"):
             self.ex.phase = phase
             self.assertEqual(self.playable(), "window:sorcery:phase")
-        self.ex.phase = "FIRST_MAIN"
-        self.assertEqual(self.playable(), None)
+        # B-74 (CR 505.1, 602.5d): "activate only as a sorcery" holds in both main phases
+        for phase in ("FIRST_MAIN", "SECOND_MAIN"):
+            self.ex.phase = phase
+            self.assertEqual(self.playable(), None)
 
 
 # ------------------------------------------------------------ QUERY: SEARCH

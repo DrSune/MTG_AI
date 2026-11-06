@@ -1,0 +1,19 @@
+{
+ "name": "postcombat_main_second_land_refused",
+ "note": "CR 305.2: a player can normally play one land during their turn, so the land play is one per turn in total, not one per main phase. P0 plays a Forest in the first main phase, attacks, and the second Forest is refused in the second main phase because the turn's land play is used ('land:used_this_turn'), not because of the phase. Red on main d0200d2: the refusal was 'land:phase' (land drops were first-main-only, B-74). Twin: postcombat_main_land_drop.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "f1", "real": "Forest", "zone": "hand", "controller": 0},
+  {"key": "f2", "real": "Forest", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "f1"},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "play", "key": "f2", "expect_raise": "land:used_this_turn"}
+ ],
+ "expect": {
+  "life": {"1": 18},
+  "zone": {"f1": "battlefield", "f2": "hand"}
+ }
+}
