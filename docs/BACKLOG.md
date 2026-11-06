@@ -40,6 +40,14 @@ are neutral; each one is teaching the agent something.
 ---
 
 ## Open engine faults
+- **The search's determinisation deals the opponent impossible hands** (red team of the learning
+  plan, 2026-11-06): `search.py` (~72-79) re-draws the opponent's hidden cards from the whole
+  five-colour pool, while training deals two-colour coherent decks. Measured on 12 deals: the
+  sampled opponent holds 6-10% lands (true 37-40%) and 54-61% off-colour spells (true 0%); over 32
+  positions the searching seat's playout value rises from +0.14 to +0.68 and the sign of "develop vs
+  pass" flips on 6 of 14 clear positions. Every eval+search number so far was measured against
+  crippled imagined opponents. Fix (~30 lines): sample hidden cards the way the deck generator builds
+  decks (prototype matches the true-cards control, +0.15 vs +0.14). Prerequisite of DECISIONS D20.
 
 Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds the outcome the
 printed text demands, so it FAILS today and passes once the bug is fixed; then it moves to
