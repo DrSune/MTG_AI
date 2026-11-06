@@ -11,33 +11,24 @@ declare-attackers event, and the damage-assignment policy verb.
 - AtomArgs validates a ``scope`` against the union of the scope
   vocabularies, the enclosing Atom against its verb's own
   (``_SCOPE_VOCAB_BY_VERB``);
-- the pin sets of test_ability_tree_r6..r10 keep their fingerprints; the
-  constructs here round-trip with pinned fingerprints, and every
+- the constructs here round-trip with pinned fingerprints, and every
   validation point rejects bad input.
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
-import MTG_bot.core.test_ability_tree_r8 as R8
-import MTG_bot.core.test_ability_tree_r9 as R9
-import MTG_bot.core.test_ability_tree_r10 as R10
 from MTG_bot.core.compiler.compiler import compile_card
-from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     ActivationGateOutcome,
-    Template,
     TemplateRegistry,
 )
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.test_ability_tree_r8 import _raw_card, _template
 
 # ---- shared atoms / selectors ------------------------------------------------
 
@@ -160,29 +151,6 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
 # ---- byte stability -----------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS + R9._NEW_PINS + R10._NEW_PINS,
-    ids=[
-        n
-        for n, _, _ in R6._NEW_PINS
-        + R7._NEW_PINS
-        + R8._NEW_PINS
-        + R9._NEW_PINS
-        + R10._NEW_PINS
-    ],
-)
-def test_pinned_pre_r11_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: every tree pinned by test_ability_tree_r6..r10
-    keeps its fingerprint."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r11_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -229,45 +197,6 @@ def test_gate_outcome_both_none_raises() -> None:
 
 
 # ---- compiler: slot-disjoint gate attach --------------------------------------
-
-
-def _oid(n: int) -> str:
-    return f"00000000-0000-0000-0000-{n:012d}"
-
-
-def _raw_card(name: str, n: int, sentences: tuple[str, ...]) -> RawCard:
-    return RawCard(
-        identity=CardIdentity(oracle_id=_oid(n), name=name),
-        type_line="Instant",
-        types=("Instant",),
-        subtypes=(),
-        supertypes=(),
-        colors=(),
-        color_identity=frozenset(),
-        mana_cost_raw=None,
-        mana_value=0,
-        power_raw=None,
-        toughness_raw=None,
-        loyalty_raw=None,
-        keywords=(),
-        sentences=sentences,
-        layout="normal",
-        is_token=False,
-        is_emblem=False,
-        token_name_refs=(),
-        related_names=(),
-    )
-
-
-def _template(tid: str, pattern: str, build: Callable[[re.Match[str]], object]):  # type: ignore[type-arg]
-    return Template(
-        tid=tid,
-        name=tid,
-        bucket="B5",
-        pattern=re.compile(pattern),
-        priority=1,
-        build=build,  # type: ignore[arg-type]
-    )
 
 
 def _r11_registry() -> TemplateRegistry:

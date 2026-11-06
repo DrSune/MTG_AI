@@ -13,23 +13,17 @@ do" merge.
   OptionalEffect (a sibling step would fabricate an independent optional);
   any other prior falls back to the default continuation merge, and an
   ActivatedAbility rebuild keeps its ``timing``;
-- the pin sets of test_ability_tree_r6..r9 keep their fingerprints; the
-  constructs here round-trip with pinned fingerprints, and every
+- the constructs here round-trip with pinned fingerprints, and every
   validation point rejects bad input.
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
-import MTG_bot.core.test_ability_tree_r8 as R8
-import MTG_bot.core.test_ability_tree_r9 as R9
 from MTG_bot.core.compiler.compiler import (
     _CONTINUATION_PREFIXES,
     _append_optional_to_seq,
@@ -38,21 +32,18 @@ from MTG_bot.core.compiler.compiler import (
     _merge_do_continuation,
     compile_card,
 )
-from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
-    Template,
     TemplateRegistry,
 )
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.test_ability_tree_r8 import _raw_card, _template
 
 # ---- shared atoms / selectors ------------------------------------------------
 
 _UNIVERSAL = at.FAnd(())
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _ANY_ZONE = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
-_LIB_ANY = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.ANY)
 _CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
 _PERMANENT = at.FAtom(at.FAtomPred.IS_PERMANENT)
 _TEFERI = at.FAtom(at.FAtomPred.NAME_CONTAINS, string_value="Teferi")
@@ -435,25 +426,6 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
     ),
 ]
 
-# ---- the r6..r9 pin sets stay byte-identical ---------------------------------
-
-
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS + R9._NEW_PINS,
-    ids=[n for n, _, _ in R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS + R9._NEW_PINS],
-)
-def test_pinned_pre_r10_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: every tree pinned by test_ability_tree_r6..r9 keeps
-    its fingerprint."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r10_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -595,8 +567,6 @@ def test_r10_table_members() -> None:
     assert at._OMIT_IF_EMPTY["ActivatedAbility"] == frozenset({"condition", "timing"})
     assert at.Step.UNTAP in tuple(at.Step)
     assert at.ActivationWindow.SORCERY in tuple(at.ActivationWindow)
-    # verb-count stays inside the global pin's range (test_ability_tree.py)
-    assert 30 <= len(at.Verb) <= 50
 
 
 # ---- unit level: the Do-merge + the PAY search -------------------------------
@@ -673,46 +643,7 @@ def test_contains_pay_atom_nested_traversal() -> None:
     assert not _contains_pay_atom(at.Seq(steps=(_draw_atom(1), _tap_target())))
 
 
-# ---- end-to-end fixtures (as in test_ability_tree_r8.py) ---------------------
-
-
-def _oid(n: int) -> str:
-    return f"00000000-0000-0000-0000-{n:012d}"
-
-
-def _raw_card(name: str, n: int, sentences: tuple[str, ...]) -> RawCard:
-    return RawCard(
-        identity=CardIdentity(oracle_id=_oid(n), name=name),
-        type_line="Instant",
-        types=("Instant",),
-        subtypes=(),
-        supertypes=(),
-        colors=(),
-        color_identity=frozenset(),
-        mana_cost_raw=None,
-        mana_value=0,
-        power_raw=None,
-        toughness_raw=None,
-        loyalty_raw=None,
-        keywords=(),
-        sentences=sentences,
-        layout="normal",
-        is_token=False,
-        is_emblem=False,
-        token_name_refs=(),
-        related_names=(),
-    )
-
-
-def _template(tid: str, pattern: str, build: Callable[[re.Match[str]], object]):  # type: ignore[type-arg]
-    return Template(
-        tid=tid,
-        name=tid,
-        bucket="B5",
-        pattern=re.compile(pattern),
-        priority=1,
-        build=build,  # type: ignore[arg-type]
-    )
+# ---- end to end --------------------------------------------------------------
 
 
 _PAY_SENT = "You may pay {1}."

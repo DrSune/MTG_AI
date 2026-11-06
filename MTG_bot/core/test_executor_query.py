@@ -426,7 +426,6 @@ class TestGoldenSurface(unittest.TestCase):
         self.assertIsInstance(v.ability, ActivatedAbility)
         self.assertEqual(v.payment.tap, (self.visionary,))  # COST_TARGET: {T}
         self.assertEqual(v.payment.mana, ())  # PAYMENT: none — mana is the EFFECT
-        self.assertTrue(v.payment.is_empty() is False)
         c = opts[self.crypt]
         self.assertEqual(c.payment.tap, (self.crypt,))
         self.assertEqual(c.payment.sacrifice, (self.crypt,))  # IS_SOURCE CHOOSE 1

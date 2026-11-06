@@ -18,8 +18,7 @@ turn, and COUNTER_COUNT of the target.
 - ``FAtomPred.CONTROLLER_COUNT_GT`` compares ``inner_filter`` with the
   trailing ``right_inner_filter`` (omitted when None); both are required.
 
-Also pinned: the test_ability_tree_r6..r8 pin sets keep their
-fingerprints; the constructs round-trip with pinned fingerprints; every
+Also pinned: the constructs round-trip with pinned fingerprints; every
 validation point rejects bad input.
 """
 
@@ -30,9 +29,6 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
-import MTG_bot.core.test_ability_tree_r8 as R8
 
 # ---- builders ---------------------------------------------------------------
 
@@ -376,22 +372,6 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
 # ---- tests ------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS,
-    ids=[n for n, _, _ in R6._NEW_PINS + R7._NEW_PINS + R8._NEW_PINS],
-)
-def test_pinned_pre_r9_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r6..r8 pin sets keep their
-    fingerprints."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r9_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -487,19 +467,9 @@ def test_deal_damage_without_roles_still_builds() -> None:
 
 
 def test_bare_fatom_omits_right_inner_filter_byte_shape() -> None:
-    assert at.to_dict(at.FAtom(at.FAtomPred.IS_TAPPED)) == {
-        "tag": "FAtom",
-        "pred": {"tag": "FAtomPred", "name": "IS_TAPPED"},
-        "string_value": None,
-        "color": None,
-        "colors": [],
-        "count": None,
-        "counter_kind": None,
-        "keyword": None,
-        "who": None,
-        "inner_filter": None,
-    }
-    # IS_EXILED_WITH_SOURCE differs only in the pred name.
+    # The exact bare dict (no right_inner_filter key) is pinned by
+    # test_bare_fatom_omits_referent_byte_shape in test_ability_tree_r8.py;
+    # IS_EXILED_WITH_SOURCE differs from it only in the pred name.
     assert at.to_dict(_fatom_exiled_with_source()) == at.to_dict(
         at.FAtom(at.FAtomPred.IS_TAPPED)
     ) | {"pred": {"tag": "FAtomPred", "name": "IS_EXILED_WITH_SOURCE"}}

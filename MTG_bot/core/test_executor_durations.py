@@ -506,10 +506,10 @@ class TestNineLivesReplacement(unittest.TestCase):
 
 
 class TestPreventionExposure(DurationCase):
-    def test_combat_prevent_registers_and_exposes_without_consumer(self):
+    def test_combat_prevent_registers_as_a_live_prevention(self):
         # Faith's Fetters / Capture Sphere shape: a universal "can't
-        # attack" veto. Registered, dumped, EXPOSED as a combat
-        # prevention, and nothing else (the untap step) is affected.
+        # attack" veto. Registered as a live prevention, dumped, and
+        # nothing else (the untap step) is affected.
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
@@ -519,7 +519,10 @@ class TestPreventionExposure(DurationCase):
             source=self.alpha,
             controller=self.p0,
         )
-        self.assertEqual(len(self.ex.replacements.combat_preventions()), 1)
+        self.assertEqual(
+            [(type(r.event), r.status) for r in self.ex.replacements.preventions],
+            [(DeclareAttackersEvent, "live")],
+        )
         self.assertEqual(len(self.ex.replacements.dump()), 1)
         self.assertFalse(self.ex.replacements.prevents_untap(self.beta))
 

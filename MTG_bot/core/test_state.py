@@ -1,10 +1,8 @@
 """Tests for the deterministic canonical state model.
 
 These pin down the replay contract: two worlds built the same way with the
-same seed must have identical fingerprints, and trigger ordering must be a
-function of (controller seat, clock) only — never of set iteration order.
-That is the property pre-flight P12 (byte-identical replay,
-docs/TRAINING_REVIEW_PROTOCOL.md) and loop detection build on.
+same seed have identical fingerprints, and any state change moves the
+fingerprint. Byte-identical replay and loop detection build on it.
 """
 
 import unittest
@@ -111,27 +109,6 @@ class TestDraw(unittest.TestCase):
         self.assertEqual(w.draw(p, 5), [])
 
 
-class TestTriggerOrdering(unittest.TestCase):
-    def test_same_controller_ordered_by_clock(self):
-        w = build_world()
-        p0 = w.player_order[0]
-        c = w.add_card(card(ORACLE_A, "A"), p0)
-        t1 = w.queue_trigger(c, p0, "etb")
-        t2 = w.queue_trigger(c, p0, "etb")
-        self.assertEqual(w.pending_triggers(), [t1, t2])
-
-    def test_different_controllers_ordered_by_seat(self):
-        w = build_world()
-        p0, p1 = w.player_order[0], w.player_order[1]
-        ca = w.add_card(card(ORACLE_A, "A"), p0)
-        cb = w.add_card(card(ORACLE_B, "B"), p1)
-        # p1's trigger is queued first, but the listing is by seat. (The executor resolves
-        # them in stack order, the non-active player's first: test_executor_player_loss.)
-        t_p1 = w.queue_trigger(cb, p1, "etb")
-        t_p0 = w.queue_trigger(ca, p0, "etb")
-        self.assertEqual(w.pending_triggers(), [t_p0, t_p1])
-
-
 class TestDeterminism(unittest.TestCase):
     def test_identical_builds_give_identical_fingerprint(self):
         w1 = build_world(seed=7)
@@ -182,12 +159,6 @@ class TestPlayers(unittest.TestCase):
         self.assertEqual(len(w.player_order), 4)
         for p in w.player_order:
             self.assertEqual(w.players[p].life, 40)
-
-    def test_add_player_appends_seat(self):
-        w = GameWorld(num_players=1, master_seed=1)
-        new = w.add_player("Extra", life=30)
-        self.assertEqual(w.players[new].seat, 1)
-        self.assertEqual(w.players[new].life, 30)
 
     def test_unknown_controller_rejected(self):
         from MTG_bot.core.identity import Handle

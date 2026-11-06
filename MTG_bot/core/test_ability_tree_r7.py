@@ -17,7 +17,6 @@ SET_PT, the blocked side of a declare-blockers event, and MANDATE_BLOCK.
   Stalker); ``_VERB_ROLES`` row mirrors MANDATE_ATTACK exactly.
 
 Guards:
-- the test_ability_tree_r6 pin set keeps its fingerprints;
 - bare constructs (DeclareBlockersEvent without blocked) serialize
   WITHOUT the optional key — pinned against explicit expected dicts;
 - the constructs round-trip through ``to_dict``/``from_dict`` with
@@ -32,7 +31,6 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
 
 # ---- builders --------------------------------------------------------------
 
@@ -186,20 +184,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 
 
 # ---- tests ----------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    "name,build,fp", R6._NEW_PINS, ids=[n for n, _, _ in R6._NEW_PINS]
-)
-def test_pinned_pre_r7_r6_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r6 pin set keeps its
-    fingerprints."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
 
 
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])

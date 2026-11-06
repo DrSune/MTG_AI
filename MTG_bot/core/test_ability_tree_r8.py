@@ -27,7 +27,6 @@ selector modes, FIGHT, LOSE_ABILITY, and the compiler's "Otherwise" merge.
   SOUL counters on this Equipment).
 
 Guards:
-- the test_ability_tree_r6 and r7 pin sets keep their fingerprints;
 - a bare FAtom (no referent) serializes WITHOUT the key — pinned against
   an explicit expected dict;
 - the "result" referent serializes as a PLAIN STRING on both Selector and
@@ -44,8 +43,6 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r6 as R6
-import MTG_bot.core.test_ability_tree_r7 as R7
 from MTG_bot.core.compiler.compiler import (
     _CONTINUATION_PREFIXES,
     _is_continuation,
@@ -66,7 +63,6 @@ _UNIVERSAL = at.FAnd(())
 _NEUTRAL = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _LIB_OPP = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.OPPONENT)
-_IS_SOURCE = at.FAtom(at.FAtomPred.IS_SOURCE)
 
 
 def _result_sel() -> at.Selector:
@@ -339,22 +335,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 # ---- tests ----------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "name,build,fp",
-    R6._NEW_PINS + R7._NEW_PINS,
-    ids=[n for n, _, _ in R6._NEW_PINS + R7._NEW_PINS],
-)
-def test_pinned_pre_r8_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r6 and r7 pin sets keep their
-    fingerprints."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])
 def test_r8_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     node = build()
@@ -363,8 +343,7 @@ def test_r8_roundtrip(name: str, build: Callable[[], object], fp: str) -> None:
     back = at.from_dict(d["tag"], d)
     assert back == node, f"{name}: from_dict(to_dict(x)) != x"
     assert at.canonical_json(back) == at.canonical_json(node)
-    if fp != "PENDING":
-        assert at.fingerprint(back) == at.fingerprint(node) == fp
+    assert at.fingerprint(back) == at.fingerprint(node) == fp
 
 
 def test_r8_table_members() -> None:

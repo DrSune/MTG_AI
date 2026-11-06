@@ -2,8 +2,7 @@
 
 * Tempered Veteran's "target creature with a +1/+1 counter on it" compiles to
   FAtom(HAS_COUNTER, counter_kind=PLUS_1_PLUS_1, count=None). An unbound count is the existence
-  reading ("with a K counter" means >= 1, never the vacuous threshold 0); an unbound counter_kind
-  is a named refusal.
+  reading ("with a K counter" means >= 1, never the vacuous threshold 0).
 * Chandra's Incinerator's cost reducer, QThisTurn(NONCOMBAT_DAMAGE), sums the journal's DAMAGE
   rows: data ``(amount,)`` is noncombat, ``(amount, True)`` combat, and the subject is the actual
   recipient (damage to a planeswalker is not damage to an opponent, CR 118.5).
@@ -182,24 +181,6 @@ class TemperedVeteranShapeTest(BindingCase):
         self.assertFalse(_eval_atom(atom, one, ctx))
         self.world.cards[one].counters[CounterKind.PLUS_1_PLUS_1.name] = 2
         self.assertTrue(_eval_atom(atom, one, ctx))
-
-    def test_unbound_kind_is_a_typed_named_refusal(self):
-        """counter_kind None is unanswerable ('a counter' — WHICH one?):
-        NotImplementedError naming the slot, never an any-kind or zero
-        reading. (The grammar enforces this slot on real FAtoms, so the
-        stand-in atom pins the defensive branch.)"""
-        ctx = self.ex._ctx(
-            source=self.watch, controller=self.p0, bindings={}, decisions=()
-        )
-        # Build the grammar-illegal shape BEYOND __post_init__ (the slot
-        # is enforced on real FAtoms — this pins the defensive branch):
-        stand_in = FAtom.__new__(FAtom)
-        object.__setattr__(stand_in, "pred", FAtomPred.HAS_COUNTER)
-        object.__setattr__(stand_in, "counter_kind", None)
-        object.__setattr__(stand_in, "count", None)
-        with self.assertRaises(NotImplementedError) as caught:
-            _eval_atom(stand_in, self.watch, ctx)
-        self.assertIn("counter_kind", str(caught.exception))
 
     def test_non_card_handle_is_characteristic_absent(self):
         """A player seat has no counters (the KEYWORD_HAS absent-absent

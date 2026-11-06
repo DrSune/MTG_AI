@@ -44,7 +44,6 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.coverage import _compile_pool_tolerant, build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
-from MTG_bot.core.executor import selectors
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
@@ -536,26 +535,19 @@ class SilentLanesStaySilent(unittest.TestCase, _RecorderMixin):
 
 
 # ---------------------------------------------------------------------------
-# The deferral law, pinned by tests: the oracle-table contents, the
-# reason-class map for every non-lifted L-B row, and the Run Afoul behavior.
+# The deferral law, pinned by tests: the reason-class map for every
+# non-lifted L-B row, and the Run Afoul behavior.
 # ---------------------------------------------------------------------------
 RUN_AFOUL_ORACLE = "5462cb38-7cd7-46e8-a273-35d0d1af45b4"
 
 
 class DeferredDeferralTable(unittest.TestCase):
-    """Table-content pin: who is oracle-deferred, and WHY every other
-    deferred class is deferred by a GATE RULE instead (so deleting one
-    mechanism cannot silently reclassify the others)."""
+    """Every deferred L-B row and the GATE RULE that defers its class (so
+    deleting one mechanism cannot silently reclassify the others)."""
 
     @classmethod
     def setUpClass(cls):
         cls.ledger = json.loads(LEDGER.read_text())
-
-    def test_oracle_table_is_exactly_run_afoul(self):
-        # Run Afoul's tree says whose fliers (CONTROLLER_IS TARGET_PLAYER)
-        # and a sacrifice menu asks its controller, so the direction is
-        # encoded and the table is empty.
-        self.assertEqual(selectors.R3_CHOOSE_DEFERRED_ORACLES, frozenset())
 
     def test_uuid_is_the_compiled_m21_run_afoul(self):
         rec = _pool("M21").get(RUN_AFOUL_ORACLE)
@@ -564,12 +556,10 @@ class DeferredDeferralTable(unittest.TestCase):
 
     def test_reason_class_map_covers_every_deferred_lb_row(self):
         merged, unbounded, opponent = set(), set(), set()
-        oid_of = {}
         for n in self.ledger["nodes"]:
             if n["lane"] != "L-B":
                 continue
             key = (n["set"], n["card"])
-            oid_of[key] = n["oracle_id"]
             if key in LIFT_CARDS:
                 continue
             if n["zones"] == ["HAND:ANY"]:
@@ -604,18 +594,10 @@ class DeferredDeferralTable(unittest.TestCase):
                 ("M21", "Run Afoul"),
             },
         )
-        # Every deferred card is OUTSIDE the lift set, and none is
-        # oracle-tabled: the opponent-chooser and merged-menu classes ask the
-        # deciding player (the ledger rows above are the committed
-        # classification).
+        # Every deferred card is OUTSIDE the lift set (the ledger rows above
+        # are the committed classification).
         deferred_cards = merged | unbounded | opponent
         self.assertFalse(deferred_cards & LIFT_CARDS)
-        for set_name, card_name in deferred_cards:
-            self.assertNotIn(
-                oid_of[(set_name, card_name)],
-                selectors.R3_CHOOSE_DEFERRED_ORACLES,
-                (card_name, "no card is oracle-tabled after V10"),
-            )
 
 
 class RunAfoulDeferralBehavior(unittest.TestCase, _RecorderMixin):

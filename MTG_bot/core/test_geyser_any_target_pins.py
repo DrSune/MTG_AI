@@ -135,7 +135,7 @@ class GeyserCase(unittest.TestCase):
         self.ex.attach_card(handle, rec)
         return handle, rec
 
-    def slot_of(self, handle, rec):
+    def slot_of(self, handle):
         node = next(
             a
             for a in self.ex.binder.handle_record[handle].abilities
@@ -190,16 +190,16 @@ class TestGeyserHiddenZoneLeak(GeyserCase):
         """Query lane: the Geyser slot offers ONLY
         battlefield creatures + planeswalkers + both players — no hand,
         no library, not even the spell card in the caster's own hand."""
-        handle, rec = self.give_spell("Volcanic Geyser")
-        slot = self.slot_of(handle, rec)
+        handle, _rec = self.give_spell("Volcanic Geyser")
+        slot = self.slot_of(handle)
         self.assert_clean_shape(slot.candidates)
 
     def test_shock_reaches_players_and_not_hidden_cards(self):
         """Shock-family guard: the same restricted idiom must STILL name
         both players (the widening survives the type filter) while the
         hidden population stays out."""
-        handle, rec = self.give_spell("Shock")
-        slot = self.slot_of(handle, rec)
+        handle, _rec = self.give_spell("Shock")
+        slot = self.slot_of(handle)
         self.assertIn(self.p1, slot.candidates)
         self.assertIn(self.p0, slot.candidates)
         self.assert_clean_shape(slot.candidates)

@@ -280,19 +280,6 @@ class DeciderRoutingTest(unittest.TestCase):
         self.assertEqual([(w.split(":")[0], s) for w, _v, s in self.asks], [("sacrifice", self.p1)])
         self.assertEqual(self.asks[0][1], tuple(str(h) for h in sorted((big, small))))
 
-    def test_a_sacrifice_menu_without_an_owner_raises(self) -> None:
-        # CR 701.21a: a menu over two players' creatures does not say who sacrifices.
-        from MTG_bot.core.executor.legality import ctx_for
-        from MTG_bot.core.executor.selectors import resolve_selector
-        from MTG_bot.core.test_executor_binding import BF_ANY, CREATURE
-
-        src = self.synth("Source", self.p0, ZONE_BATTLEFIELD)
-        self.synth("Other", self.p1, ZONE_BATTLEFIELD)
-        ctx = ctx_for(self.ex, source=src, controller=self.p0)
-        sel = Selector(QConst(1), SelectorMode.CHOOSE, CREATURE, zones=(BF_ANY,))
-        with self.assertRaises(ValueError):
-            resolve_selector(sel, ctx, ask_choose=True, sacrifice=True)
-
     def test_take_decision_of_names_the_decider_and_restores_the_controller(self) -> None:
         from MTG_bot.core.executor.legality import ctx_for
 

@@ -67,8 +67,7 @@ class TestHandleSpace(unittest.TestCase):
         for _ in range(3):
             cards.allocate()
         self.assertEqual(zones.allocate(), Handle("zone", 0))
-        self.assertEqual(cards.count, 3)
-        self.assertEqual(zones.count, 1)
+        self.assertEqual(cards.allocate(), Handle("card", 3))
 
     def test_no_reuse_within_a_space(self):
         space = HandleSpace("card")
@@ -109,17 +108,10 @@ class TestCardIdentity(unittest.TestCase):
         with self.assertRaises(Exception):
             c.name = "changed"  # frozen dataclass
 
-    def test_primary_key_is_oracle_id(self):
-        self.assertEqual(self._ugin().primary_key, A_ORACLE)
-
     def test_distinct_cards_are_distinct(self):
         ugin = self._ugin()
         other = CardIdentity(oracle_id=B_ORACLE, name="Some Other Card")
         self.assertNotEqual(ugin, other)
-
-    def test_color_identity_from_colors_and_cost(self):
-        c = CardIdentity(oracle_id=A_ORACLE, name="X", colors=("W", "U"), mana_cost="{1}{U}", cmc=1)
-        self.assertEqual(c.color_identity(), frozenset({"W", "U"}))
 
     def test_rejects_bad_oracle_id_at_construction(self):
         with self.assertRaises(ValueError):
@@ -130,7 +122,6 @@ class TestCardIdentity(unittest.TestCase):
         self.assertIsNone(plains.cmc)
         self.assertEqual(plains.colors, ())
         self.assertFalse(plains.is_token)
-        self.assertEqual(plains.color_identity(), frozenset())
 
 
 if __name__ == "__main__":

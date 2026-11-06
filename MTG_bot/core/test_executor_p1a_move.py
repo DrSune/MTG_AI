@@ -65,7 +65,6 @@ def atom(verb, **roles):
 BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
 BF_YOU = Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
 GY_YOU = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
-GY_ANY = Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
 HAND_YOU = Zone(ZoneKind.HAND, ControllerRef.YOU)
 EXILE_ANY = Zone(ZoneKind.EXILE, ControllerRef.ANY)
 LIB_YOU = Zone(ZoneKind.LIBRARY, ControllerRef.YOU)

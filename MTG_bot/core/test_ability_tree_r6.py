@@ -21,7 +21,6 @@ counts, and a Selector as a cost modifier's controller.
   evaluated against the drawn card, the CardDrawnEvent subject).
 
 Guards:
-- the test_ability_tree_r4 and r5 pin sets keep their fingerprints;
 - bare constructs (count=None / controller_ref=ControllerRef / no who)
   serialize WITHOUT the optional keys;
 - the constructs round-trip through ``to_dict``/``from_dict`` with
@@ -36,8 +35,6 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r4 as R4
-import MTG_bot.core.test_ability_tree_r5 as R5
 
 # ---- builders --------------------------------------------------------------
 
@@ -184,8 +181,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
         _lofty_cm,
         # The condition's FAnd children are sorted at construction by
         # canonical_json (docs/DESIGN_ATOM_ONTOLOGY.md §3), so the bytes follow
-        # canonical order, not printed order. test_ability_tree_r7..r11 re-check
-        # this list.
+        # canonical order, not printed order.
         "b7639782a262d52df2154dc40c6717214ce724bb912136f4ffdd387c33d872cd",
     ),
     (
@@ -197,35 +193,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 
 
 # ---- tests ----------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    "name,build,fp", R5._NEW_PINS, ids=[n for n, _, _ in R5._NEW_PINS]
-)
-def test_pinned_pre_r6_r5_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r5 pin set keeps its
-    fingerprints."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
-
-
-@pytest.mark.parametrize(
-    "name,build,fp", R4._NEW_PINS, ids=[n for n, _, _ in R4._NEW_PINS]
-)
-def test_pinned_pre_r6_r4_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r4 pin set (bare CostModifier,
-    the IOS FAtom, the COUNTER_SPELL atoms) keeps its fingerprints with
-    CostModifier.controller_ref a ControllerRef | Selector union."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
 
 
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])

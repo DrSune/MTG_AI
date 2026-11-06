@@ -18,7 +18,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
 )
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.quantity import ExecCtx, resolve
 from MTG_bot.core.state import GameWorld
 from MTG_bot.core.test_executor_binding import atom, card_id, reset_oracle_ids

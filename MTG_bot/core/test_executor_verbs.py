@@ -44,7 +44,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
-from MTG_bot.core.executor import SUPPORTED_VERBS_V1, Executor, GameOver
+from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.verbs import token_oracle_id
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
@@ -1038,11 +1038,6 @@ class TestDispatchRaises(ExecutorCase):
                         atom(verb, **roles), source=self.alpha, controller=self.p0
                     )
                 self.assertIn(verb.name, str(cm.exception))
-
-    def test_supported_set_is_exactly_the_table(self):
-        # the frozen first capability set never widens
-        self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)
 
     def test_execute_and_world_type_guards(self):
         with self.assertRaises(ValueError):

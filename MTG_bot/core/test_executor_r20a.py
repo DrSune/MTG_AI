@@ -60,8 +60,6 @@ from MTG_bot.core.test_executor_binding import (
     reset_oracle_ids,
 )
 
-CREATURE_F = None  # filters use UNIV / the binding rig's helpers
-
 
 def atom(verb, **roles) -> Atom:
     return Atom(verb=verb, args=AtomArgs(pairs=tuple(roles.items())))

@@ -1,11 +1,9 @@
-"""Grammar pins for the verb classes and the merged MOVE atom (docs/T4_SPEC.md §1, §6).
+"""Grammar pins for the merged MOVE atom (docs/T4_SPEC.md §6).
 
-The verb CLASS partition, the merged MOVE atom's slot vocabulary, and the
-closed-vocab raises.  Executor-side behaviour (journal kind, pop order,
-result register, trigger matching) is locked in test_executor_p1a_move.py.
+The merged MOVE atom's slot vocabulary and the closed-vocab raises.
+Executor-side behaviour (journal kind, pop order, result register, trigger
+matching) is locked in test_executor_p1a_move.py.
 """
-
-from collections import Counter
 
 import pytest
 
@@ -18,30 +16,9 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Verb,
-    VerbClass,
-    VERB_CLASS,
     Zone,
     ZoneKind,
 )
-
-
-def test_verb_class_partitions_the_full_enum_exactly_once() -> None:
-    # 6 OPERATION / 7 POLICY / 37 EFFECT == 50 members, no gaps, no
-    # double-classing (CLASS = payload role, the shared PICK wrapper holds
-    # selection).
-    assert set(VERB_CLASS) == set(Verb)
-    counts = Counter(VERB_CLASS.values())
-    assert counts == {
-        VerbClass.OPERATION: 6,
-        VerbClass.POLICY: 7,
-        VerbClass.EFFECT: 37,
-    }
-    # Mandates are legality policies; MOVE_ZONE and its move-shape twins
-    # (MILL, DISCARD, EXILE) are EFFECTs.
-    assert VERB_CLASS[Verb.MANDATE_ATTACK] is VerbClass.POLICY
-    assert VERB_CLASS[Verb.MANDATE_BLOCK] is VerbClass.POLICY
-    for legacy in (Verb.MILL, Verb.DISCARD, Verb.EXILE, Verb.MOVE_ZONE):
-        assert VERB_CLASS[legacy] is VerbClass.EFFECT
 
 
 GY_YOU = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
@@ -94,7 +71,7 @@ def test_closed_vocab_and_object_axis_raise() -> None:
 
 def test_legacy_move_shapes_still_construct() -> None:
     # The move-shape twins have no executor handler (MOVE_ZONE carries
-    # them), but their atoms stay constructible (CLASS partition).
+    # them), but their atoms stay constructible.
     Atom(
         verb=Verb.DISCARD,
         args=AtomArgs(

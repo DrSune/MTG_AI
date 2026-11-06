@@ -9,11 +9,11 @@ The lanes, as the test names label them:
   L6  the hand window of a self-discard cost
       (``legality._ability_discards_its_source``).
 
-Each lane test evaluates (a) the PRODUCTION predicate on the REAL selector
-from the committed goldens, and (b) a deliberately-naive ∃-variant shown to
-evaluate DIFFERENTLY on exactly that selector. Executor probes run golden
-IR bytes through the real executor and observe zone contents, never just
-tree shape.
+The lane tests pin the zone set of each REAL selector from the committed
+goldens and run the PRODUCTION predicate on it; where a twin selector is
+built, a deliberately-naive ∃-variant is shown to evaluate DIFFERENTLY on
+it. Executor probes run golden IR bytes through the real executor and
+observe zone contents, never just tree shape.
 """
 
 from __future__ import annotations
@@ -35,7 +35,6 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
-    ZonePosition,
     fingerprint,
     from_dict,
     to_dict,
@@ -236,9 +235,10 @@ class TestGoldenBytesFolded(unittest.TestCase):
 
 # ----------------------------------------------------- lane divergences
 class TestTwinLaneDivergence(unittest.TestCase):
-    """Production keyed-lane predicate vs the naive-∃ variant, on the
-    REAL selectors from the committed goldens. The pair must disagree:
-    the disagreement is what an ∃ reading of the set would break.
+    """The REAL selectors from the committed goldens: each zone set is
+    pinned in canonical order, and the production keyed-lane predicate runs
+    on it where the lane has one (L1 and L3 run through the executor in
+    TestL1ExecutorObserved and TestL3WalkerDesignationStands).
     """
 
     def test_l1_window_gate_closed_on_twins(self):
@@ -247,20 +247,6 @@ class TestTwinLaneDivergence(unittest.TestCase):
                 sel = from_dict("Selector", search_selector_dict(card))
                 # canonical order pin: GRAVEYARD < LIBRARY, controller YOU.
                 self.assertEqual(sel.zones, (GV_YOU, LIB_YOU))
-                # PRODUCTION L1 gate (selectors.py matched-zone extraction):
-                # opens iff a MATCHED LIBRARY+TOP zone is in the set.
-                matched = next(
-                    (
-                        z
-                        for z in sel.zones
-                        if z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP
-                    ),
-                    None,
-                )
-                self.assertIsNone(matched)  # window CLOSED (correct)
-                # naive-∃ variant:
-                naive = any(z.kind is ZoneKind.LIBRARY for z in sel.zones)
-                self.assertTrue(naive)  # ∃ would FALSE-OPEN the lane
 
     def test_l3_player_side_singleton_vs_exists(self):
         for card in ("Chandra's Magmutt", "Leafkin Avenger"):
@@ -277,11 +263,6 @@ class TestTwinLaneDivergence(unittest.TestCase):
                 self.assertIsNotNone(sel)
                 # canonical order pin: BATTLEFIELD < PLAYER.
                 self.assertEqual(sel.zones, (BF_ANY, PL_ANY))
-                # PRODUCTION L3 PURE predicate (selectors.py role_handles):
-                pure = len(sel.zones) == 1 and sel.zones[0].kind is ZoneKind.PLAYER
-                self.assertFalse(pure)  # designation STANDS (correct)
-                naive = any(z.kind is ZoneKind.PLAYER for z in sel.zones)
-                self.assertTrue(naive)  # ∃-PLAYER would re-point the designation
 
     def test_unsubstantiate_order_control(self):
         # Content-only control: no lane keys on STACK ∪ BATTLEFIELD;

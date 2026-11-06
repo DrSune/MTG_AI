@@ -50,7 +50,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     OptionalEffect,
     QConst,
-    QUnbounded,
     Seq,
     Selector,
     SelectorMode,
@@ -59,11 +58,10 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.errors import StateCorruptionError
-from MTG_bot.core.executor.legality import build_payment_plan, ctx_for, pay_costs
+from MTG_bot.core.executor.legality import ctx_for, pay_costs
 from MTG_bot.core.executor.query import MAY_VOCAB, optional_offer
 from MTG_bot.core.executor.selectors import _filter_is_self_referential, role_handles
 from MTG_bot.core.state import (
-    ZONE_BATTLEFIELD,
     ZONE_GRAVEYARD,
     ZONE_LIBRARY,
 )
@@ -72,9 +70,8 @@ from MTG_bot.core.test_executor_binding import (
     IS_SOURCE,
     UNIV,
     atom,
-    reset_oracle_ids,
 )
-from MTG_bot.core.test_executor_legality import LegalityCase, cost
+from MTG_bot.core.test_executor_legality import LegalityCase
 from MTG_bot.core.test_executor_r22a import SacrificeVocabulary
 from MTG_bot.core.test_executor_query import QueryCase
 from MTG_bot.core.test_ontology_r3 import _pool, _record
@@ -571,7 +568,6 @@ class TestEmptyLibrarySemantics(QueryCase):
 
     def test_empty_library_choose_shape_gated_to_skip(self):
         # the CHOOSE shape (documents WHY the fold changes the gate outcome)
-        self.world.move_all_library_to_graveyard if False else None
         self.assertEqual(self.offer(SelectorMode.CHOOSE), MAY_VOCAB[1:])
 
     def test_empty_library_folded_all_offers_fire(self):

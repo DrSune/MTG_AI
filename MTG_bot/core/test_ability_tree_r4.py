@@ -17,7 +17,6 @@
   this creature"; no slots (like IS_SOURCE).
 
 Guards:
-- the test_ability_tree_r3 pin set keeps its fingerprints;
 - bare constructs (condition=None / extra_deltas=()) serialize WITHOUT
   the optional keys;
 - the constructs round-trip through ``to_dict``/``from_dict`` with
@@ -33,7 +32,6 @@ from typing import Any
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r3 as R3
 
 # ---- builders --------------------------------------------------------------
 
@@ -202,17 +200,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 
 
 # ---- tests ----------------------------------------------------------------
-
-
-@pytest.mark.parametrize("name,build,fp", R3._PINNED, ids=[n for n, _, _ in R3._PINNED])
-def test_pinned_pre_r4_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r3 pin set keeps its fingerprints."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
 
 
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])

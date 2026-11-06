@@ -27,7 +27,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     Verb,
 )
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import ExecCtx

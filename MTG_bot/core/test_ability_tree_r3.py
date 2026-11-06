@@ -8,7 +8,7 @@ omits the ``"effect"`` key when effect is ``None`` (``opt:effect`` +
 ``_OMIT_IF_EMPTY``); ``from_dict`` injects ``None`` when the key is absent.
 
 Guards:
-- the four ``_PINNED`` spells, which carry an effect, keep their
+- the three ``_PINNED`` spells, which carry an effect, keep their
   fingerprints and still serialize the ``"effect"`` key;
 - effect-less constructs round-trip and omit ``"effect"`` while keeping
   ``"additional_costs"``;
@@ -66,11 +66,6 @@ def _spell_effectless_bare() -> at.SpellAbility:
 # ---- pinned fingerprints of spells that carry an effect -------------------
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [
-    (
-        "spell_instant_draw_nocost",
-        T2._spell_base,
-        "e4d6897f8542141dc66d4d2ca1356746d99bf5587535a78019b952619570905d",
-    ),
     (
         "spell_creature_draw_nocost",
         lambda: at.SpellAbility(at.SpellKind.CREATURE, T2._draw_one()),

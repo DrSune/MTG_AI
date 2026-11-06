@@ -428,7 +428,7 @@ class QPropRefusalStaysLoudTest(StackCase):
 
 
 class SeqMidStepTest(StackCase):
-    def tap_first(self, name):
+    def tap_first(self):
         """Seq(TAP (CHOOSE stand-in), dangling MOVE_ZONE, DAMAGE 1): the
         mid-step's 'target' designation never existed; the TAIL must
         still execute."""
@@ -460,7 +460,7 @@ class SeqMidStepTest(StackCase):
             card_id("First", "1", "4"), self.p0, ZONE_BATTLEFIELD
         )
         handle = self.give(
-            "MidStepClone", SpellKind.INSTANT, effect=self.tap_first("x")
+            "MidStepClone", SpellKind.INSTANT, effect=self.tap_first()
         )
         cast(self.ex, self.p0, handle)
         gy = list(self.world.players[self.p0].zone(ZONE_GRAVEYARD).entries)

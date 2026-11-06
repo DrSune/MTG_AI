@@ -313,14 +313,12 @@ class TestDiscountTraceInvariance(R1bCase):
         self.assertEqual(plan_a.mana, (("U", 1),))
         # failing leg: empty pool — the discount frees the {U}, the
         # GENERIC X payment is what fails; string stable under permutation
-        world_b = GameWorld(num_players=2, start_life=20, master_seed=13)
         self.world.players[self.p0].mana_pool.clear()
         plan_c, reason_c = self._plan_folded(printed)
         plan_d, reason_d = self._plan_folded(permuted)
         self.assertIsNone(plan_c)
         self.assertEqual(reason_c, reason_d)
         self.assertEqual(reason_c, "cost:mana_generic:0<1")
-        del world_b
 
 
 # ---------------------------------------------------------------------------

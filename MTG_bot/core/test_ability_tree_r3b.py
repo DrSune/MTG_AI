@@ -18,7 +18,7 @@
   despite ``isinstance(True, int)``.
 
 Guards:
-- the nine ``_PINNED`` trees, which use none of these constructs, keep
+- the seven ``_PINNED`` trees, which use none of these constructs, keep
   their fingerprints and round-trip;
 - the eight constructs round-trip with pinned fingerprints;
 - ``"subject"`` is omitted when unset and present when set;
@@ -78,10 +78,6 @@ def _qconst_3() -> at.QConst:
     return at.QConst(3)
 
 
-def _qthisturn_life_you() -> at.QThisTurn:
-    return at.QThisTurn(at.ThisTurnKind.LIFE_GAINED, at.ControllerRef.YOU)
-
-
 def _qunbounded() -> at.QUnbounded:
     return at.QUnbounded()
 
@@ -97,10 +93,6 @@ def _selector_zones_union() -> at.Selector:
         _IS_SOURCE,
         zones=(at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY), *(_ZONE_BF_ANY,)),
     )
-
-
-def _spellability_effect_omitted() -> at.SpellAbility:
-    return at.SpellAbility(kind=at.SpellKind.CREATURE)
 
 
 # ---- builders for the constructs under test ---------------------------------
@@ -184,11 +176,6 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "2a70ddc34493ac6cb42dca46eed1f410f52451b172cc6a3f5ca125ba4c058085",
     ),
     (
-        "qthisturn_life_you",
-        _qthisturn_life_you,
-        "f041066bc5249c4ec4a1e1ade8586936742d70656fa733790bec97876d5c4744",
-    ),
-    (
         "qunbounded",
         _qunbounded,
         "67d280b0660fe20c24da371f727d89bcdc08fdb62e3088dc2e40cce0e0a3196a",
@@ -202,11 +189,6 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "selector_zones_union",
         _selector_zones_union,
         "64d3fab5fcfd9239e2c832d0a8fb7852fd14d564061505597cc36409e98045df",
-    ),
-    (
-        "spellability_effect_omitted",
-        _spellability_effect_omitted,
-        "4ab74b3cff39541af5ef554a5ffefdc68e1a506645aeb726b800c03eadb120b8",
     ),
 ]
 

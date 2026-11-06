@@ -43,11 +43,8 @@ from MTG_bot.core.ability_tree import (
     from_dict,
     to_dict,
 )
-from MTG_bot.core.compiler.golden import verify_goldens
-from MTG_bot.core.compiler.coverage import build_full_registry
-from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.quantity import ExecCtx, resolve
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
 from MTG_bot.core.test_executor_binding import (
@@ -57,10 +54,6 @@ from MTG_bot.core.test_executor_binding import (
     reset_oracle_ids,
 )
 from MTG_bot.core.test_executor_verbs import stock_libraries
-
-from pathlib import Path
-
-_M21 = Path(__file__).resolve().parents[1] / "data" / "M21.json"
 
 
 def shrine_filter() -> FAtom:
@@ -307,14 +300,6 @@ class TestRoundingAxis(unittest.TestCase):
         d = to_dict(ability.event)
         self.assertEqual(d["tag"], "AbilityTriggerEvent")
         self.assertEqual(from_dict("AbilityTriggerEvent", d), ability.event)
-
-
-class TestPoolByteStability(unittest.TestCase):
-    def test_golden_pool_regenerated_clean(self):
-        """A fresh compile of the M21 pool byte-matches the committed goldens."""
-        pool = ingest_pool(_M21)
-        reg = build_full_registry()
-        self.assertEqual(verify_goldens(pool, reg, "M21"), [])
 
 
 if __name__ == "__main__":

@@ -41,7 +41,6 @@ from MTG_bot.core.ability_tree import (
     from_dict,
 )
 from MTG_bot.core.executor import (
-    SUPPORTED_VERBS_V1,
     SUPPORTED_VERBS_V2,
     Executor,
     GameOver,
@@ -1022,39 +1021,7 @@ class TestReplayDeterminism(unittest.TestCase):
 
 
 class TestCapabilitySurface(unittest.TestCase):
-    def test_v2_derives_the_growth_set_v1_stays_frozen(self):
-        # The live set (the dispatch table) beyond the frozen first 24.
-        new = {
-            Verb.DRAW,
-            Verb.SEARCH,
-            Verb.FLIP_COIN,
-            Verb.END_TURN,
-            Verb.EXTRA_TURN,
-            Verb.LOSE_GAME,
-            Verb.PAY,
-            Verb.CAST,
-            Verb.CHOOSE,
-            Verb.CHOOSE_NAME,
-            Verb.MANA_POLICY,
-            Verb.GET_EMBLEM,
-            Verb.GRANT_TYPE,
-            Verb.GRANT_ACTIVATION,
-            Verb.ADD_LAND_PLAY,
-            Verb.FIGHT,
-            Verb.MANDATE_ATTACK,
-            Verb.MANDATE_BLOCK,
-            Verb.DAMAGE_ASSIGN_POLICY,
-            Verb.GAIN_CONTROL,
-            Verb.ATTACH,
-            Verb.COUNTER_SPELL,
-            Verb.TRIGGER_ADDITIONAL,
-            Verb.PHASE_OUT,
-        }
-        self.assertEqual(SUPPORTED_VERBS_V2 - SUPPORTED_VERBS_V1, new)
-        self.assertNotIn(Verb.DRAW, SUPPORTED_VERBS_V1)  # V1 never widens
-        self.assertEqual(len(SUPPORTED_VERBS_V1), 24)
-        # EXILE/DISCARD/MILL are in V1 but have no handler: they run through
-        # the merged MOVE_ZONE dispatch.
+    def test_v2_size(self):
         self.assertEqual(len(SUPPORTED_VERBS_V2), 45)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):

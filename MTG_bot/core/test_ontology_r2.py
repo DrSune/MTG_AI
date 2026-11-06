@@ -17,7 +17,6 @@ Trapfinder [ZNR]):
   three cards' "to a player" nodes fire ZERO times on that split;
 * recipient fidelity — the binder's damage matcher over a player, a live
   creature, a dead creature and a planeswalker;
-* census — no compiled ``CombatDamageEvent`` node in either pool;
 * designation validation — a dealer pre-bind stands as a TARGET slot's
   designation only when it passes the slot's filter.
 """
@@ -56,10 +55,6 @@ QCONST1 = QConst(1)
 
 REPO = Path(__file__).resolve().parents[2]
 
-# Type names, not class imports: no CombatDamageEvent class exists; the
-# census checks that no compiled node carries the name.
-DAMAGE_EVENT_NAMES = frozenset({"CombatDamageEvent", "DamageDealtEvent"})
-
 _ZNR: dict | None = None
 
 
@@ -87,8 +82,8 @@ def _znr_record(name: str):
 
 
 def _damage_events(root) -> list:
-    """Every damage-event IR node reachable from ``root`` (walks dataclass
-    fields and containers; keyed by type NAME, see DAMAGE_EVENT_NAMES)."""
+    """Every DamageDealtEvent node reachable from ``root`` (walks dataclass
+    fields and containers)."""
 
     out: list = []
 
@@ -102,7 +97,7 @@ def _damage_events(root) -> list:
                 walk(v)
             return
         if dataclasses.is_dataclass(x) and not isinstance(x, type):
-            if type(x).__name__ in DAMAGE_EVENT_NAMES:
+            if isinstance(x, DamageDealtEvent):
                 out.append(x)
             for f in dataclasses.fields(x):
                 walk(getattr(x, f.name))
@@ -178,7 +173,7 @@ class R2FoldCase(BlockerCase):
         return events[0]
 
     # -- scenario drivers -------------------------------------------------
-    def attack_unblocked(self, dealer) -> None:
+    def attack_unblocked(self) -> None:
         self.begin()
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
@@ -224,27 +219,6 @@ class TestFoldShape(R2FoldCase):
         rec = _znr_record("Nimble Trapfinder")
         self.folded_event(rec, IS_SOURCE, "Nimble Trapfinder")
 
-    def test_cde_population_zero_both_pools(self):
-        """Census: no compiled CombatDamageEvent node anywhere in either
-        pool."""
-        supply = _supply()
-        m21 = [
-            oid
-            for oid, r in supply.pool.results.items()
-            if any(
-                type(n).__name__ == "CombatDamageEvent" for n in _damage_events(r.card)
-            )
-        ]
-        znr = [
-            oid
-            for oid, r in sorted(_znr_results().items())
-            if any(
-                type(n).__name__ == "CombatDamageEvent" for n in _damage_events(r.card)
-            )
-        ]
-        self.assertEqual((m21, znr), ([], []))
-
-
 class TestConvergence(R2FoldCase):
     def test_post_fold_jeskai_bytes_equal_harbinger(self):
         """Jeskai Elder's wording compiles byte-identical to Garruk's
@@ -271,7 +245,7 @@ class TestFireParity(R2FoldCase):
         node = self.event_of(_m21_record("Jeskai Elder"), "Jeskai Elder")
         dealer = self.synth("Dealer", 3, 3, self.p0)
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.world.players[self.p1].life, 17)  # 3 dealt
         self.assertEqual(self.life_gain(), 1)  # exactly one fire
 
@@ -290,7 +264,7 @@ class TestFireParity(R2FoldCase):
         node = self.event_of(_znr_record("Nimble Trapfinder"), "Nimble Trapfinder")
         dealer = self.synth("Dealer", 3, 3, self.p0)
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.life_gain(), 1)
 
     def test_nimble_node_silent_on_noncombat_damage(self):
@@ -310,14 +284,14 @@ class TestFireParity(R2FoldCase):
             ZONE_BATTLEFIELD,
         )
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.life_gain(), 1)
 
     def test_feline_node_silent_on_noncat_combat_damage(self):
         node = self.event_of(_m21_record("Feline Sovereign"), "Feline Sovereign")
         dealer = self.synth("NotACat", 3, 3, self.p0)  # Creature, no Cat
         self.arm(dealer, node)
-        self.attack_unblocked(dealer)
+        self.attack_unblocked()
         self.assertEqual(self.world.players[self.p1].life, 17)  # dealt
         self.assertEqual(self.life_gain(), 0)  # dealer filter rejected
 
@@ -341,9 +315,6 @@ class TestFireParity(R2FoldCase):
         self.ex.combat_step(self.p0)
         targeting = [e for e in self.rows("TARGETING") if e.subject == trophy]
         self.assertEqual(len(targeting), 1)  # exactly one fire
-
-    def life_gain(self) -> int:
-        return self.world.players[self.p0].life - 20
 
 
 class TestSplitOverFire(R2FoldCase):

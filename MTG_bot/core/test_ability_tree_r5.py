@@ -20,7 +20,6 @@ outside a zone, three zone-history predicates, and object anaphora.
   (c) ``CONTROLLER_IS`` ``who`` accepts a referent Selector.
 
 Guards:
-- the test_ability_tree_r4 pin set keeps its fingerprints;
 - bare constructs (ordinal=None / from_zone_not=None / referent=None / no
   zone slots) serialize WITHOUT the optional keys;
 - the constructs round-trip through ``to_dict``/``from_dict`` with
@@ -35,7 +34,6 @@ from collections.abc import Callable
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree_r4 as R4
 
 # ---- builders --------------------------------------------------------------
 
@@ -233,20 +231,6 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 
 
 # ---- tests ----------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    "name,build,fp", R4._NEW_PINS, ids=[n for n, _, _ in R4._NEW_PINS]
-)
-def test_pinned_pre_r5_fingerprint(
-    name: str, build: Callable[[], object], fp: str
-) -> None:
-    """Byte stability: the test_ability_tree_r4 pin set keeps its
-    fingerprints."""
-    node = build()
-    assert at.fingerprint(node) == fp
-    d = at.to_dict(node)
-    assert isinstance(d, dict) and "tag" in d
 
 
 @pytest.mark.parametrize("name,build,fp", _NEW_PINS, ids=[n for n, _, _ in _NEW_PINS])

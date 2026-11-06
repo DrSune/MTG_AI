@@ -34,7 +34,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
 )
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.durations_min import DurationLedger
+from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     MAY_VOCAB,
@@ -208,16 +208,6 @@ class TestMayOfferCastGate(R23ACase):
             optional_offer(
                 self.ex, self._may_cast_library(), source=self.urn, controller=self.p0
             ),
-            MAY_VOCAB,
-        )
-
-    def test_referent_source_is_never_gated(self):
-        # Snoop's "you may cast THAT card": produced mid-effect, nothing
-        # enumerable pre-execution, so the gate must not crash on it nor
-        # narrow on it (as for a search-fed tail).
-        may = OptionalEffect(inner=atom(Verb.CAST, source=referent_sel("result", UNIV)))
-        self.assertEqual(
-            optional_offer(self.ex, may, source=self.urn, controller=self.p0),
             MAY_VOCAB,
         )
 

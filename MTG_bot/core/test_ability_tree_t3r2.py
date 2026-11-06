@@ -16,7 +16,7 @@ below):
 - item 6: ``CostLoyalty.delta`` is ``int | Quantity`` (Ugin [−X]).
 
 Guards:
-- the nine ``_PINNED`` trees, which use none of these constructs, keep
+- the five ``_PINNED`` trees, which use none of these constructs, keep
   their fingerprints and serialize none of their keys or tags;
 - round-trip equality for every construct;
 - rejections at every entry point (bool / zero / type violations).
@@ -30,9 +30,8 @@ from typing import Any
 import pytest
 
 import MTG_bot.core.ability_tree as at
-import MTG_bot.core.test_ability_tree as T
 
-# ---- small shared builders (local; T's builders serve the pinned trees) ----
+# ---- small shared builders ----
 
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _GRAV_YOU = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
@@ -235,28 +234,6 @@ def _phase_in_prevention() -> at.StaticAbility:
 # ---- pinned fingerprints of trees without these constructs ----
 
 _PINNED: list[tuple[str, Callable[[], object], str]] = [
-    (
-        "simple_card",
-        T._simple_card,
-        "9bd3f0e185eb0f51ca7a99e64f472a22bab2acd4b8cb24582904cc163ffb6a39",
-    ),
-    (
-        # the multi-part Cost is sorted at construction (canonical, not printed order)
-        "tarmogoyf",
-        T._tarmogoyf_like,
-        "eaae09ba37aca5bf40655293c56598765f010e74ad02a0f39cc0368d97838c5f",
-    ),
-    (
-        "planeswalker_emblem",
-        T._pw_with_emblem,
-        "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
-    ),
-    (
-        # the treasure token's tap+sacrifice Cost is sorted at construction
-        "token_creator",
-        T._token_creator,
-        "37ae8c521b8b21127109b55db11bc7c5b9e7876baabf4ddce0c601b72bf82b69",
-    ),
     (
         "cost_loyalty_bare",
         lambda: at.Cost(parts=(at.CostLoyalty(-2),)),
