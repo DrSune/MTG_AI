@@ -663,6 +663,13 @@ class TriggerBinder:
             # delayed tail binds clean — the pre-16c bind-time raise is
             # retired with its consumers.
             return
+        if isinstance(event, DeclareBlockersEvent) and event.count is not None:
+            # 2026-11-06: only the blocker-limit prevention reads the count (a block row is
+            # one pair, so a trigger matched on it would ignore the count)
+            raise NotImplementedError(
+                f"executor: {card_name} trigger event DeclareBlockersEvent with a blocker "
+                "count has no trigger reader"
+            )
 
     # ------------------------------------------------------------ matching
 

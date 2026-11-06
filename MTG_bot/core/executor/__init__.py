@@ -2461,6 +2461,18 @@ class Executor:
             for attacker in attackers
             if self.layers.keyword_of(attacker, Keyword.MENACE)
         }
+        # CR 509.1b: "can't be blocked by more than one creature" limits how many creatures may
+        # block an attacker. Restrictions add up, so a menace attacker allowed fewer than two
+        # blockers can't be blocked at all (CR 702.111b).
+        allowed: dict[Handle, int] = {}
+        for attacker in attackers:
+            limit = self.replacements.blockers_allowed(attacker)
+            if limit is None:
+                continue
+            allowed[attacker] = limit
+            if attacker in menace and limit < 2:
+                for legal in pair_ok.values():
+                    legal.discard(attacker)
 
         def completable(
             partial: dict[Handle, list[Handle]], tail: list[Handle]
@@ -2515,6 +2527,7 @@ class Executor:
                 attacker
                 for attacker in attackers
                 if attacker in pair_ok[blocker]
+                and (attacker not in allowed or len(assigned.get(attacker, ())) < allowed[attacker])
                 and completable(
                     {**assigned, attacker: [*assigned.get(attacker, []), blocker]},
                     tail,
@@ -2581,6 +2594,11 @@ class Executor:
                     "(CR 702.113 — the ask narrowing should have prevented "
                     "this)"
                 )
+            if attacker in allowed and len(blockers) > allowed[attacker]:
+                raise RuntimeError(
+                    f"executor: {attacker} was blocked by {len(blockers)} creatures, more "
+                    "than it may be (CR 509.1b — the ask narrowing should have prevented this)"
+                )
         for attacker in mandated:
             if assigned.get(attacker):
                 continue
@@ -2595,7 +2613,7 @@ class Executor:
             # blocker is not a violated mandate, it is CR 702.113 making
             # the mandate unfulfillable (must-block reads "if able").
             need = 2 if attacker in menace else 1
-            if len(free) >= need:
+            if len(free) >= need and need <= allowed.get(attacker, need):
                 raise RuntimeError(
                     f"executor: MANDATE_BLOCK violated - {attacker} had to be "
                     f"blocked and {len(free)} free legal blocker"

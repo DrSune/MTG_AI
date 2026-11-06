@@ -120,10 +120,27 @@ def sacrificing_player(ctx: ExecCtx, menu: list[Handle]) -> Handle:
     return owners[0] if owners else ctx.controller
 
 
+def defending_players(ctx: ExecCtx) -> list[Handle]:
+    """The defending player (CR 506.2), as a list: empty outside combat.
+
+    CR 508.5 makes it, for an ability of an attacking creature or one that names an attacking
+    creature, the player that creature attacks or the controller of the planeswalker it attacks.
+    The engine's combat has one defending player, whom every attacker attacks, it or a
+    planeswalker that player controls (``Executor.combat_attacks``, V41), so that player is the
+    answer for every attacking creature. A multiplayer combat would resolve it per creature
+    (CR 508.5a) from ``Executor.attacked``."""
+    if ctx.executor is None:
+        raise ValueError("executor: the defending player needs an executor-backed ExecCtx")
+    seat = ctx.executor.defending_player
+    return [] if seat is None else [seat]
+
+
 def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
     """The player seats a ControllerRef denotes, in seat order."""
     if ref is ControllerRef.YOU:
         return [ctx.controller]
+    if ref is ControllerRef.DEFENDING_PLAYER:
+        return defending_players(ctx)
     if ref in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return _opponents(ctx)
     if ref is ControllerRef.ANY:
@@ -160,6 +177,8 @@ def controller_matches(
         return actual in players
     if who is ControllerRef.YOU:
         return actual == ctx.controller
+    if who is ControllerRef.DEFENDING_PLAYER:
+        return actual in defending_players(ctx)
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
     if who in DESIGNATED_PLAYER_REFS:
