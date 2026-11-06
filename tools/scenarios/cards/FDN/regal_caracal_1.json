@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Regal Caracal, printed: 'Other Cats you control get +1/+1 and have lifelink. When this creature enters, create two 1/1 white Cat creature tokens with lifelink.' Cast for exactly {3}{W}{W}: two Cat tokens enter (2/2 with the boost). Your other Cat is 3/3 with lifelink; the opponent's Cat and your non-Cat Bear are unchanged; the Caracal itself stays 3/3 without lifelink.",
+ "cards": [
+  {"key": "rc", "real": "Regal Caracal", "zone": "hand", "controller": 0},
+  {"key": "mycat", "name": "My Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oppcat", "name": "Their Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "key": "rc", "real": "Regal Caracal", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"rc": "battlefield"},
+  "tokens": {"Cat": 2},
+  "power": {"rc": 3, "mycat": 3, "oppcat": 2, "bear": 2},
+  "toughness": {"rc": 3, "mycat": 3, "oppcat": 2, "bear": 2},
+  "battlefield_keywords": {"My Cat": ["LIFELINK"], "Their Cat": [], "My Bear": [], "Regal Caracal": []},
+  "mana_pool": {"0": {}}
+ }
+}

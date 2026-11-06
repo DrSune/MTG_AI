@@ -1696,3 +1696,11 @@ W&B key in history is revoked; a private split exists outside the public repo.
   threshold was set for one 10-act window per turn; with the postcombat main there are two, so a
   legal 7 activations now flags (Seasoned Hallowblade, discarding a real card each time). Count per
   main phase.
+- **G3 refuses cards on equivalent mutants** (2026-11-06, FDN): Battlesong Berserker (`target->all`
+  on a trigger whose two steps share one designation: identical selectors merge, binding.py ~1950,
+  and `role_handles` returns the bound target whatever the mode, selectors.py ~1315) and Searslicer
+  Goblin (`your turn -> each turn` when the condition already requires TURN_OF YOU: the actor check,
+  binding.py ~1104, and the condition test the same thing). No game can tell either mutant from the
+  card. `gates._twin_targets` (gates.py ~348) treats only spells as sharing one target; extend it to
+  triggers, and treat a trigger-scope mutant as dead when the condition already fixes the turn. Both
+  verdict copies are ready to re-run (scratchpad g3kill_fdn/verdicts).

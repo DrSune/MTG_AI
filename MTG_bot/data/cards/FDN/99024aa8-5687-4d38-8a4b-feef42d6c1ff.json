@@ -346,5 +346,28 @@
  },
  "probe": {
   "sha": "6b4d396657bc50ab225f22d291577e9448497f1be01596ad06865dc05d9d2b87"
+ },
+ "verified": {
+  "tree_sha": "34bd1a6ec5c1449b4b5feede5a4ab2051771977738afd66955ae1d77c1c6d667",
+  "probe_sha": "e2708b6c53a5cbeed326acccf799796f6cc1f3ce378a8e290756d18d76d10ad9",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Skeletons you control and other Zombies you control get +1/+1 and have deathtouch.",
+    "status": "OK",
+    "evidence": "Static diff: you_skeleton 2/2 -> 3/3, +DEATHTOUCH; opp_skeleton (on the probe board) unchanged; Death Baron itself 2/2 with no deathtouch ('other'). [this card is dealt lethal damage]: you_skeleton back to 2/2, -DEATHTOUCH. No other Zombie is on the probe battlefield, so pack death_baron_1 adds one: seat 0's Zombie and Skeleton get +1/+1 and deathtouch (1 damage from each destroys a 0/6), the Baron, seat 0's Human and seat 1's Zombie and Skeleton do not (1 damage from each leaves the 0/6 alive). Note for G3: layers.py:700 applies every step of a static Seq to the FIRST step's target selector, so mutants of the deathtouch step's own filter are equivalent (no pack can kill them); the two filters here are identical, so the card plays as printed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/death_baron_1.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 16,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

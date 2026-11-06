@@ -1,0 +1,74 @@
+{
+ "set": "FDN",
+ "name": "crypt_feaster_menace_two_blockers_may_block_it",
+ "notes": "Printed: 'Menace (This creature can't be blocked except by two or more creatures.)' The probe shows one blocker refused. Here two opposing 1/1s both block the Feaster (3/4, no threshold: empty graveyard): the block stands, nothing reaches the opponent (20), the Feaster takes 2 and survives, and its 3 damage kills both blockers (one ordering pick is answered with the default).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "feaster",
+   "real": "Crypt Feaster",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b1",
+   "name": "Blocker One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "b2",
+   "name": "Blocker Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "feaster": true
+   },
+   "block": {
+    "b1": "feaster",
+    "b2": "feaster"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "feaster": true
+  },
+  "blocked": {
+   "feaster": [
+    "b1",
+    "b2"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "feaster": "battlefield",
+   "b1": "graveyard",
+   "b2": "graveyard"
+  },
+  "damage_received": {
+   "feaster": 2
+  },
+  "damage": {
+   "feaster": 2
+  }
+ }
+}

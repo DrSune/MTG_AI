@@ -395,5 +395,41 @@
  },
  "probe": {
   "sha": "d4009b78f7e1402fe2efd3b8067e4c1d9bb630da254a0e228c166cec9b416c6c"
+ },
+ "verified": {
+  "tree_sha": "1f8a955a802aecb1593a66d7b288ea12c5611b7129938e2e3484fec6bf0facbb",
+  "probe_sha": "64f571dc7c8e390889a0de3903351e58a76575f49a8b05717e7cb4e9897b88d7",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Other Cats you control get +1/+1 and have lifelink.",
+    "status": "OK",
+    "evidence": "[cast]: you_cat P/T 2/2 -> 3/3, keywords +LIFELINK; the Cat tokens show 2/2 (1/1 + 1); the card itself stays 3/3 (static: 'card on the battlefield: 3/3'); [stimulus: this card is dealt lethal damage]: you_cat 3/3 -> 2/2, -LIFELINK.",
+    "issue": ""
+   },
+   {
+    "clause": "(... Cats YOU control: an opponent's Cat and a non-Cat are unaffected; the granted lifelink gains life)",
+    "status": "NOT_EXERCISED",
+    "evidence": "No opposing Cat on the probe board. Pack regal_caracal_1: the opponent's Cat stays 2/2 without lifelink, your Bear 2/2, your Cat 3/3 LIFELINK, Caracal 3/3 no lifelink; pack regal_caracal_2: your boosted Cat attacks for 3 and you gain 3.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create two 1/1 white Cat creature tokens with lifelink.",
+    "status": "OK",
+    "evidence": "[cast]: card's triggered ability [1] triggers; you:Cat#1 and you:Cat#2 move new -> battlefield (2/2 with the static, LIFELINK); also on [stimulus: from your hand, the card enters during the opponent's turn]. Tree TokenSpec 1/1, colors W, LIFELINK.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/regal_caracal_1.json",
+   "tools/scenarios/cards/FDN/regal_caracal_2.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 19,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

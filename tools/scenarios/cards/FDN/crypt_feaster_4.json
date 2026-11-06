@@ -1,0 +1,26 @@
+{"set": "FDN", "name": "crypt_feaster_threshold_bonus_is_plus_2_plus_0",
+ "notes": "Pcd8f82145a G3 kill (amount+1 at the toughness magnitude). Printed: 'Threshold - Whenever this creature attacks, if there are seven or more cards in your graveyard, this creature gets +2/+0 until end of turn.' Seven cards are in seat 0's graveyard, so the Feaster attacks as a 5/4. Menace lets two creatures block it together: two 2/2s do. Its 5 damage is enough to destroy both, and their 2 + 2 = 4 damage destroys the 5/4 Feaster. Nothing reaches a player and no damage stays marked. A +2/+1 bonus would leave the Feaster alive as a 5/5 with 4 damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "feaster", "real": "Crypt Feaster", "zone": "battlefield", "controller": 0},
+  {"key": "g0", "name": "Grave Card 0", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g1", "name": "Grave Card 1", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Grave Card 2", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g3", "name": "Grave Card 3", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g4", "name": "Grave Card 4", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g5", "name": "Grave Card 5", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "g6", "name": "Grave Card 6", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "b1", "name": "Blocker One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "b2", "name": "Blocker Two", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"feaster": true}, "block": {"b1": "feaster", "b2": "feaster"}}
+ ],
+ "expect": {
+  "attackers": {"feaster": true},
+  "blocked": {"feaster": ["b1", "b2"]},
+  "damage_received": {"feaster": 4},
+  "zone": {"feaster": "graveyard", "b1": "graveyard", "b2": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

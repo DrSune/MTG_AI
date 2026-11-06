@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "goblin_oriflamme_bonus_only_for_your_attacking_creatures",
+ "notes": "P97166045ed G4. Printed: 'Attacking creatures you control get +1/+0.' Seat 0 attacks with its 2/2 and keeps its 3/3 home: the attacker deals 3 (seat 1 at 17). After combat neither creature is attacking: the 2/2 is 2 power again and the 3/3 never changed. On seat 1's turn seat 1's 2/2 attacks seat 0 and deals only 2 (an opponent's attacker gets nothing).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ori", "real": "Goblin Oriflamme", "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "myape", "name": "My Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"mybear": true, "myape": false}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"obear": true}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "attackers": {"obear": true},
+  "power": {"mybear": 2, "myape": 3, "obear": 2},
+  "life": {"0": 18, "1": 17}
+ }
+}

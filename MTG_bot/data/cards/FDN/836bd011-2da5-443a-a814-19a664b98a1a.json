@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "836bd011-2da5-443a-a814-19a664b98a1a",
+ "name": "Goblin Oriflamme",
+ "text_sha": "d6e0ad7a5d543fdbab4d0c5de3880cc0753fc69a786c9642a0613ff68c425c5b",
+ "verified": {
+  "tree_sha": "be1bdf4ac88f4e7e4b9f90ec22704a240390faa142ae6e83e1df5d8c22f34215",
+  "probe_sha": "20a4fa53e88e149a5457f1262fbf27b31cbdb9e3b4f01e6bff8026ff1abffcf8",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Attacking creatures you control get +1/+0.",
+    "status": "OK",
+    "evidence": "[stimulus: another creature you control (you_bear) attacks]: 'opp is dealt 3 damage' from the 2/2. [stimulus: on the opponent's turn, opp_bear attacks you] is the same as without the card (no bonus for the opponent's attacker); no P/T change on non-attacking creatures. Pack goblin_oriflamme_only_while_attacking.json PASSES (bonus only for your attacker, gone after combat, none for the opponent's attacker); wrong twin fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/goblin_oriflamme_1.json",
+   "tools/scenarios/cards/FDN/goblin_oriflamme_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 4,
+   "score": 0.6666666666666666,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
+ }
+}

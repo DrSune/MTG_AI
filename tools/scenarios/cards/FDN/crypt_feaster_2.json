@@ -1,0 +1,155 @@
+{
+ "set": "FDN",
+ "name": "crypt_feaster_no_bonus_with_six_in_your_graveyard_even_if_the_opponent_has_seven",
+ "notes": "Printed: '... if there are seven or more cards in YOUR graveyard, this creature gets +2/+0 until end of turn.' Six cards are in your graveyard and seven in the opponent's. The Feaster attacks alone, unblocked, as a 3/4: the opponent goes 20 -> 17.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "feaster",
+   "real": "Crypt Feaster",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mine0",
+   "name": "MINE Card 0",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mine1",
+   "name": "MINE Card 1",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mine2",
+   "name": "MINE Card 2",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mine3",
+   "name": "MINE Card 3",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mine4",
+   "name": "MINE Card 4",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mine5",
+   "name": "MINE Card 5",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "theirs0",
+   "name": "THEIRS Card 0",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs1",
+   "name": "THEIRS Card 1",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs2",
+   "name": "THEIRS Card 2",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs3",
+   "name": "THEIRS Card 3",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs4",
+   "name": "THEIRS Card 4",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs5",
+   "name": "THEIRS Card 5",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "theirs6",
+   "name": "THEIRS Card 6",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "feaster": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "feaster": true
+  },
+  "life": {
+   "0": 20,
+   "1": 17
+  },
+  "power": {
+   "feaster": 3
+  }
+ }
+}

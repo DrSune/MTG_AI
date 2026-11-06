@@ -1,0 +1,19 @@
+{"set": "FDN", "name": "goblin_oriflamme_attacking_bonus_is_power_only",
+ "notes": "P97166045ed G3 kill (amount+1 at the toughness magnitude). Printed: 'Attacking creatures you control get +1/+0.' Seat 0's 2/2 attacks and seat 1's 2/2 blocks it. As printed the attacker is a 3/2: it deals 3 to the blocker and the blocker's 2 damage destroys it, so both creatures die, nothing reaches a player and no damage stays marked. A +1/+1 bonus would leave the attacker alive as a 3/3 with 2 damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ori", "real": "Goblin Oriflamme", "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"mybear": true}, "block": {"obear": "mybear"}}
+ ],
+ "expect": {
+  "attackers": {"mybear": true},
+  "blocked": {"mybear": ["obear"]},
+  "damage_received": {"mybear": 2, "obear": 3},
+  "zone": {"ori": "battlefield", "mybear": "graveyard", "obear": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

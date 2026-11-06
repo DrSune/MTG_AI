@@ -190,5 +190,45 @@
  },
  "probe": {
   "sha": "0c1df8e7b5e1de3186bbebfeedf199e2aa4133262038f1df5109c068f6d36ca9"
+ },
+ "verified": {
+  "tree_sha": "ca09a55b98762d353f49b2b870070add0aca17bf0b062d49b37cf9bcf1f1c1d5",
+  "probe_sha": "422fcb0481e8c29703b0fed5e5e75934df879f355ed9eeb0ae6e86fa7e23f7b6",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-fdn1",
+  "clauses": [
+   {
+    "clause": "Menace (This creature can't be blocked except by two or more creatures.)",
+    "status": "OK",
+    "evidence": "keywords +MENACE; [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp dealt 3 (a lone blocker is refused). Pack crypt_feaster_menace_two_blockers.json PASS: two 1/1s may block it together (blocked [b1, b2], both die, the Feaster takes 2, opponent stays 20); wrong twin (block refused) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "Threshold — Whenever this creature attacks, if there are seven or more cards in your graveyard, this creature gets +2/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe board has 2 cards in your graveyard: [this creature attacks alone, unblocked] shows no trigger and 3 damage (right for a false condition). Pack crypt_feaster_threshold_seven_bonus_until_eot.json PASS: 7 cards, it attacks as 5/4 (opp 20 -> 15) and is 3/4 after the turn. Pack crypt_feaster_threshold_six_no_bonus.json PASS: 6 cards in yours and 7 in the opponent's graveyard: 3 damage (20 -> 17). Wrong twins (17 at seven; power 5 after the turn; 15 at six) fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/crypt_feaster_1.json",
+   "tools/scenarios/cards/FDN/crypt_feaster_2.json",
+   "tools/scenarios/cards/FDN/crypt_feaster_3.json",
+   "tools/scenarios/cards/FDN/crypt_feaster_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 1,
+   "score": 0.125,
+   "survived": [
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/who",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  }
  }
 }

@@ -1,0 +1,16 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Regal Caracal: the lifelink it grants works: your boosted Cat (3/3 lifelink) attacks alone, unblocked, deals 3 (opponent 20 -> 17) and you gain 3 (20 -> 23).",
+ "cards": [
+  {"key": "rc", "real": "Regal Caracal", "zone": "battlefield", "controller": 0},
+  {"key": "mycat", "name": "My Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"mycat": true, "rc": false}}
+ ],
+ "expect": {
+  "attackers": {"mycat": true, "rc": false},
+  "life": {"0": 23, "1": 17}
+ }
+}

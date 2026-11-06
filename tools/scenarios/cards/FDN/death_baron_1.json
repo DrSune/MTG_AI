@@ -1,0 +1,204 @@
+{
+ "set": "FDN",
+ "name": "death_baron_1",
+ "notes": "P37f434fb0a G4 (verifier v1). Printed: 'Skeletons you control and other Zombies you control get +1/+1 and have deathtouch.' Seat 0's Zombie and Skeleton get +1/+1 and deathtouch; Death Baron (a Zombie itself) does not ('other'); seat 0's Human and seat 1's Zombie and Skeleton do not ('you control'). Deathtouch shown by 1 damage to 0/6 walls: from seat 0's Zombie and Skeleton the wall dies (CR 702.2b), from the Baron, the Human and seat 1's Zombie and Skeleton it survives with 1 damage.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "baron",
+   "real": "Death Baron",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "my_zombie",
+   "name": "My Zombie",
+   "type": "Creature — Zombie",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "my_skel",
+   "name": "My Skeleton",
+   "type": "Creature — Skeleton",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "my_human",
+   "name": "My Human",
+   "type": "Creature — Human",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opp_zombie",
+   "name": "Opp Zombie",
+   "type": "Creature — Zombie",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "opp_skel",
+   "name": "Opp Skeleton",
+   "type": "Creature — Skeleton",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_1",
+   "name": "Opp Wall One",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_2",
+   "name": "Opp Wall Two",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_3",
+   "name": "Opp Wall Three",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_4",
+   "name": "Opp Wall Four",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "my_wall_1",
+   "name": "My Wall One",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "my_wall_2",
+   "name": "My Wall Two",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "6",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "my_zombie",
+   "target": "wall_1",
+   "amount": 1,
+   "controller": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "my_skel",
+   "target": "wall_2",
+   "amount": 1,
+   "controller": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "baron",
+   "target": "wall_3",
+   "amount": 1,
+   "controller": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "my_human",
+   "target": "wall_4",
+   "amount": 1,
+   "controller": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "opp_zombie",
+   "target": "my_wall_1",
+   "amount": 1,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "opp_skel",
+   "target": "my_wall_2",
+   "amount": 1,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "power": {
+   "baron": 2,
+   "my_zombie": 3,
+   "my_skel": 2,
+   "my_human": 2,
+   "opp_zombie": 2,
+   "opp_skel": 1
+  },
+  "toughness": {
+   "baron": 2,
+   "my_zombie": 3,
+   "my_skel": 2,
+   "my_human": 2,
+   "opp_zombie": 2,
+   "opp_skel": 1
+  },
+  "battlefield_keywords": {
+   "My Zombie": [
+    "DEATHTOUCH"
+   ],
+   "My Skeleton": [
+    "DEATHTOUCH"
+   ],
+   "Death Baron": [],
+   "My Human": [],
+   "Opp Zombie": [],
+   "Opp Skeleton": []
+  },
+  "zone": {
+   "wall_1": "graveyard",
+   "wall_2": "graveyard",
+   "wall_3": "battlefield",
+   "wall_4": "battlefield",
+   "my_wall_1": "battlefield",
+   "my_wall_2": "battlefield"
+  },
+  "damage": {
+   "wall_3": 1,
+   "wall_4": 1,
+   "my_wall_1": 1,
+   "my_wall_2": 1
+  }
+ }
+}
