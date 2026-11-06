@@ -472,3 +472,26 @@ Predictions:
 - Merged meanwhile (not in r22's pinned code): the London mulligan (ad749d4) and spells with several
   target slots (face6b8: Primal Might, Hunter's Edge, Rabid Bite are now offered). Gates on face6b8:
   5322 / 138 / 738.
+
+## 25. The PPO audit: the pipeline is right; the gradient is below its noise (2026-11-06)
+A fresh agent instrumented the real learner, workers and trainer (46,787 games, 1.92M decisions,
+code 8f1ced4) and checked each part:
+- Outcome attribution, action alignment, inference vs training log-probs (KL 5-9e-5), GAE and
+  lambda-returns, advantage normalisation, loss signs and clipping: **correct**.
+- The per-minibatch KL stop measured distance from the behaviour policy; ~40% of each batch is
+  played on the previous weights, so r22 stopped in 29 of 31 updates and trained ~45% of each batch.
+  **Fixed** (KL from the start-of-update policy). Not the cause of the stall.
+- **Signal below noise:** split-gradient test on 262k self-play decisions at r20 v2: the gradient's
+  mean is indistinguishable from the same test with advantages shuffled (|E g|^2 -0.0005 +- 0.0012
+  against noise 0.167 per 8.2k-decision group). At most 15% of a 98k-decision update is signal; signal
+  equals noise only past ~570k decisions. The value head explains 3% of outcome variance in a seat's
+  first tenth of decisions, 28% mid-game, 87% at the end; 60% of decisions have p(chosen) > 0.99.
+  Deal luck dominates: the learner's two seat-swapped games on one deal correlate -0.58 (79% split).
+- Positive control: the new mulligan ask (sampled 50/50 by old checkpoints) gives a clear gradient
+  (group cosine 0.55 at 4k decisions) and the win rate vs the heuristic rises: the pipeline learns
+  when the signal exists.
+Reading: each update follows noise; Adam sets the step by the learning rate, so the policy random-
+walks. Next: measure B* (the batch at which signal equals noise) and compare duplicate pairing
+(each deal played twice with seats swapped, so the deal's luck cancels) on the same data; then train
+with at least B* decisions per optimizer step. Side note: checkpoints from before the London mulligan
+sample keep/mulligan 50/50 (both rows grown from "other"), and frozen versions keep doing so.
