@@ -1,0 +1,17 @@
+{"set": "M20", "name": "ethereal_elk_finds_vivien_in_graveyard_no_shuffle",
+ "notes": "P5b5749e9f4 G4. Printed: '... search your library and/or graveyard for a card named Vivien, Nature's Avenger ... If you search your library this way, shuffle.' The Elk enters, accepts the may and searches the graveyard only (option 2): Vivien goes from the graveyard to hand and, the library not having been searched, it is NOT shuffled: its order is exactly as it was.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elk", "real": "Ethereal Elk", "zone": "hand", "controller": 0},
+  {"key": "vivien", "name": "Vivien, Nature's Avenger", "type": "Legendary Planeswalker — Vivien", "loyalty": 3, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "elk", "decisions": ["fire", "2"]}
+ ],
+ "expect": {
+  "zone": {"elk": "battlefield", "vivien": "hand"},
+  "hand": {"0": 1},
+  "graveyard": {"0": []},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

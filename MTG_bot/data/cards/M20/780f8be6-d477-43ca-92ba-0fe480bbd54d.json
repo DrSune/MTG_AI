@@ -1,0 +1,56 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "780f8be6-d477-43ca-92ba-0fe480bbd54d",
+ "name": "Goblin Bird-Grabber",
+ "text_sha": "343d919e838a1cfed1015fe18831a3139d1506697acfa6124b2b42472aa2efe7",
+ "verified": {
+  "tree_sha": "6ef407902d3fad948d33716e6ea87744a98c761f69f2426a3f8af2b54cd71849",
+  "probe_sha": "95dc10eee7e1ff2c6b9dacb7fc9b4604570c10f395dbcaee4c8bd6b89fcd460b",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "{R}: This creature gains flying until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "never activated on the standard board ('ability [0] not activatable from battlefield: condition:false': you control no flier). Pack goblin_bird_grabber_1 PASSES (with your 1/1 flier, {R} grants FLYING; the opponent's ground 2/2 is never offered a block; 2 damage); goblin_bird_grabber_2 PASSES (FLYING gone after end_turn). Drafts killed: REACH granted instead (pack 1), DurationPermanent (pack 2).",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only if you control a creature with flying.",
+    "status": "OK",
+    "evidence": "'ability [0] not activatable from battlefield: condition:false' on the standard board, where only the opponent controls a flier (opp_flier). Pack goblin_bird_grabber_3 PASSES (refused 'illegal activation: condition:false', {R} unspent) and kills a draft with the condition dropped; pack 1 shows it allowed when you control a flier.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 2/1 Goblin for {1}{R}",
+    "status": "OK",
+    "evidence": "[cast]: mana R-1 W-1; P/T 2/1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/goblin_bird-grabber_1.json",
+   "tools/scenarios/cards/M20/goblin_bird-grabber_2.json",
+   "tools/scenarios/cards/M20/goblin_bird-grabber_3.json",
+   "tools/scenarios/cards/M20/goblin_bird-grabber_4.json",
+   "tools/scenarios/cards/M20/goblin_bird-grabber_5.json",
+   "tools/scenarios/cards/M20/goblin_bird-grabber_6.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 1,
+   "score": 0.1111111111111111,
+   "survived": [
+    "drop cost part 0 (CostManaColor) at 1/0/cost",
+    "amount+1 at 1/0/cost/parts/0/amount",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/target/filter/children/0/who",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter"
+   ]
+  }
+ }
+}

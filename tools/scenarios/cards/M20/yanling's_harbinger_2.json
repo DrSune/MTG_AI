@@ -1,0 +1,17 @@
+{"set": "M20", "name": "yanlings_harbinger_finds_mu_yanling_in_graveyard_no_shuffle",
+ "notes": "Pf8fa4a9835 G4. Printed: '... search your library and/or graveyard ... If you search your library this way, shuffle.' The Harbinger enters, accepts the may and searches the graveyard only (option 2): Mu Yanling, Celestial Wind goes from the graveyard to hand, and the unsearched library keeps its exact order (no shuffle).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "harbinger", "real": "Yanling's Harbinger", "zone": "hand", "controller": 0},
+  {"key": "mu", "name": "Mu Yanling, Celestial Wind", "type": "Legendary Planeswalker — Yanling", "loyalty": 5, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "harbinger", "decisions": ["fire", "2"]}
+ ],
+ "expect": {
+  "zone": {"harbinger": "battlefield", "mu": "hand"},
+  "hand": {"0": 1},
+  "graveyard": {"0": []},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

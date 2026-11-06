@@ -1,0 +1,16 @@
+{"set": "M20", "name": "ethereal_elk_may_decline",
+ "notes": "P5b5749e9f4 G4. Printed: 'you may search ...'. The Elk enters and its controller declines: Vivien stays in the library, nothing is drawn or moved, and the library order is unchanged (no shuffle).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elk", "real": "Ethereal Elk", "zone": "hand", "controller": 0},
+  {"key": "vivien", "name": "Vivien, Nature's Avenger", "type": "Legendary Planeswalker — Vivien", "loyalty": 3, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "elk", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"elk": "battlefield", "vivien": "library"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Vivien, Nature's Avenger"]}
+ }
+}

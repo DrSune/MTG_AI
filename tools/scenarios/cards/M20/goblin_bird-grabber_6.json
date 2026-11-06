@@ -1,0 +1,56 @@
+{
+ "set": "M20",
+ "name": "goblin_bird_grabber_flying_ends_with_the_turn",
+ "notes": "Printed: '{R}: This creature gains flying until end of turn.' The flying ends with the turn (CR 514.2): after the activation and the end of the turn the Goblin has no flying. Kills the until-end-of-turn->permanent mutant G3 left alive (M20 round 2, 2026-11-06).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "real": "Goblin Bird-Grabber",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Flier",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "g": "battlefield"
+  },
+  "battlefield_keywords": {
+   "Goblin Bird-Grabber": []
+  }
+ }
+}

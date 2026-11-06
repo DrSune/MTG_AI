@@ -1,0 +1,19 @@
+{"set": "M20", "name": "yanlings_harbinger_finds_mu_yanling_in_library",
+ "notes": "Pf8fa4a9835 G4. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Mu Yanling, Celestial Wind, reveal it, and put it into your hand. If you search your library this way, shuffle.' Seat 0 casts Yanling's Harbinger ({3}{U}{U}, spent exactly), accepts the may and searches the library only (option 1): Mu Yanling, Celestial Wind goes to hand; a decoy planeswalker named Mu Yanling, Sky Dancer stays in the (shuffled) library.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "harbinger", "real": "Yanling's Harbinger", "zone": "hand", "controller": 0},
+  {"key": "mu", "name": "Mu Yanling, Celestial Wind", "type": "Legendary Planeswalker — Yanling", "loyalty": 5, "zone": "library", "controller": 0},
+  {"key": "decoy", "name": "Mu Yanling, Sky Dancer", "type": "Legendary Planeswalker — Yanling", "loyalty": 2, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "harbinger", "real": "Yanling's Harbinger", "decisions": ["fire", "1"]}
+ ],
+ "expect": {
+  "zone": {"harbinger": "battlefield", "mu": "hand", "decoy": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]},
+  "mana_pool": {"0": {}}
+ }
+}

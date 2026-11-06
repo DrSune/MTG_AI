@@ -1,0 +1,16 @@
+{"set": "M20", "name": "yanlings_harbinger_may_decline",
+ "notes": "Pf8fa4a9835 G4. Printed: 'you may search ...'. The Harbinger enters and its controller declines: Mu Yanling stays in the library, nothing moves, and the library order is unchanged.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "harbinger", "real": "Yanling's Harbinger", "zone": "hand", "controller": 0},
+  {"key": "mu", "name": "Mu Yanling, Celestial Wind", "type": "Legendary Planeswalker — Yanling", "loyalty": 5, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "harbinger", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"harbinger": "battlefield", "mu": "library"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Mu Yanling, Celestial Wind"]}
+ }
+}

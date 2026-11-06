@@ -1,0 +1,69 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "82d643ef-8380-4fdc-a88d-ed205324dbd9",
+ "name": "Ethereal Elk",
+ "text_sha": "b0a56bbb8c7ddb9740bf0615c662f05f3dc3f78fbb72c0f6103ce7973efa1b0d",
+ "verified": {
+  "tree_sha": "f7dafe14c6158d0ebeb70494396d9794e604b47fa74928d79e357aee1a5f077e",
+  "probe_sha": "3c7d6733d456cbab6614a7f46dd0bc6a5c49ed0baead42d5cf58b96623c868b2",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "status": "NOT_EXERCISED",
+    "evidence": "The only blocked attack is 3 power into the 4/4 opp_giant (no excess). Pack ethereal_elk_trample (PASS): a 1/1 blocks, it dies, seat 1 20 -> 18, the Elk takes 1; fails if no damage tramples over.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you may search your library and/or graveyard for a card named Vivien, Nature's Avenger, reveal it, and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows 'ask may: [fire, skip]' and 'ask choose: [0, 1, 2]' (both zones / library / graveyard) but no card of that name is on the board, so nothing moves. Packs (PASS): ethereal_elk_finds_vivien_in_library (option 1: Vivien to hand, a decoy 'Vivien Reid' stays in the library, {3}{G}{G} spent exactly); ethereal_elk_finds_vivien_in_graveyard_no_shuffle (option 2: graveyard -> hand); ethereal_elk_may_decline (skip: nothing moves, order kept).",
+    "issue": ""
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "SHUFFLE sits in options 0 and 1 only (the guide's and_or_zone_search shape). Pack ethereal_elk_finds_vivien_in_graveyard_no_shuffle pins the exact library order after a graveyard-only search; the same pack with option 0 reorders the library under seed 7, so the lane would catch a shuffle that is not printed. The library-only shuffle itself can only be asserted as a wildcard order (runner limit).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/ethereal_elk_1.json",
+   "tools/scenarios/cards/M20/ethereal_elk_2.json",
+   "tools/scenarios/cards/M20/ethereal_elk_3.json",
+   "tools/scenarios/cards/M20/ethereal_elk_4.json",
+   "tools/scenarios/cards/M20/ethereal_elk_5.json",
+   "tools/scenarios/cards/M20/ethereal_elk_6.json",
+   "tools/scenarios/cards/M20/ethereal_elk_7.json",
+   "tools/scenarios/cards/M20/ethereal_elk_8.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 5,
+   "score": 0.20833333333333334,
+   "survived": [
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
+   ]
+  }
+ }
+}

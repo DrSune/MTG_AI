@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "goblin_bird_grabber_flying_ends_at_end_of_turn",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "myflier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": []}
+ },
+ "notes": "Printed: '... gains flying until end of turn.' After the turn ends the Bird-Grabber no longer has flying."
+}

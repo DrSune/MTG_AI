@@ -1,0 +1,68 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "c4bf4397-22e5-458d-b9d1-3f3a0a27e9e5",
+ "name": "Yanling's Harbinger",
+ "text_sha": "dab4f525f74d6f6611881f9c6e1fe0cac396a16dc9e556bb7c3f277e69672284",
+ "verified": {
+  "tree_sha": "94eba6d536228bc0c806db4c6fc37694cd87241287239c3cc214919f443862b6",
+  "probe_sha": "1040400eb17941d767732dfdd23842af567b3cb38a3d52712a15be128e9aef6d",
+  "date": "2026-11-06",
+  "reviewer": "claude-verifiers-m20v2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block, opp dealt 2 (20 -> 18).",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you may search your library and/or graveyard for a card named Mu Yanling, Celestial Wind, reveal it, and put it into your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows 'ask may: [fire, skip]' and 'ask choose: [0, 1, 2]' but no card of that name exists on the board. Same shape as Ethereal Elk. Packs (PASS): yanlings_harbinger_finds_mu_yanling_in_library (option 1: to hand, a decoy 'Mu Yanling, Sky Dancer' stays, {3}{U}{U} spent exactly); yanlings_harbinger_finds_mu_yanling_in_graveyard_no_shuffle (option 2); yanlings_harbinger_may_decline (skip: nothing moves).",
+    "issue": ""
+   },
+   {
+    "clause": "If you search your library this way, shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "SHUFFLE in options 0 and 1 only; the graveyard-only pack pins the exact library order (no shuffle). The library-only shuffle is asserted only as a wildcard order (runner limit).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/yanling's_harbinger_1.json",
+   "tools/scenarios/cards/M20/yanling's_harbinger_2.json",
+   "tools/scenarios/cards/M20/yanling's_harbinger_3.json",
+   "tools/scenarios/cards/M20/yanling's_harbinger_4.json",
+   "tools/scenarios/cards/M20/yanling's_harbinger_5.json",
+   "tools/scenarios/cards/M20/yanling's_harbinger_6.json",
+   "tools/scenarios/cards/M20/yanling's_harbinger_7.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 5,
+   "score": 0.20833333333333334,
+   "survived": [
+    "amount+1 at 1/0/effect/inner/count",
+    "drop step 0 at 1/0/effect/inner/options/0",
+    "drop step 1 at 1/0/effect/inner/options/0",
+    "drop step 2 at 1/0/effect/inner/options/0",
+    "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/0/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/1",
+    "drop step 1 at 1/0/effect/inner/options/1",
+    "drop step 2 at 1/0/effect/inner/options/1",
+    "amount+1 at 1/0/effect/inner/options/1/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/1/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/1/steps/0/args/destination",
+    "drop step 0 at 1/0/effect/inner/options/2",
+    "drop step 1 at 1/0/effect/inner/options/2",
+    "amount+1 at 1/0/effect/inner/options/2/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/options/2/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/options/2/steps/0/args/destination"
+   ]
+  }
+ }
+}

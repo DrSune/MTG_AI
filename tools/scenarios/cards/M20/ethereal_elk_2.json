@@ -1,0 +1,19 @@
+{"set": "M20", "name": "ethereal_elk_finds_vivien_in_library",
+ "notes": "P5b5749e9f4 G4. Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Vivien, Nature's Avenger, reveal it, and put it into your hand. If you search your library this way, shuffle.' Seat 0 casts Ethereal Elk ({3}{G}{G}, spent exactly); it accepts the may and searches the library only (option 1 of: both zones, library, graveyard). The card named Vivien, Nature's Avenger goes to hand; a decoy planeswalker named Vivien Reid stays in the library, and the library (shuffled) still holds the six filler cards and the decoy.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elk", "real": "Ethereal Elk", "zone": "hand", "controller": 0},
+  {"key": "vivien", "name": "Vivien, Nature's Avenger", "type": "Legendary Planeswalker — Vivien", "loyalty": 3, "zone": "library", "controller": 0},
+  {"key": "decoy", "name": "Vivien Reid", "type": "Legendary Planeswalker — Vivien", "loyalty": 5, "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "elk", "real": "Ethereal Elk", "decisions": ["fire", "1"]}
+ ],
+ "expect": {
+  "zone": {"elk": "battlefield", "vivien": "hand", "decoy": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]},
+  "mana_pool": {"0": {}}
+ }
+}

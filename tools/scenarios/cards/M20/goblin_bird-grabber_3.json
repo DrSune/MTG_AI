@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "goblin_bird_grabber_refused_without_a_flier_of_yours",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "oflier", "name": "Opp Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0, "expect_raise": "illegal activation: condition:false"}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": []},
+  "mana_pool": {"0": {"R": 1}}
+ },
+ "notes": "Printed: 'Activate only if you control a creature with flying.' Only the opponent controls a flier, so the activation is refused and the {R} stays unspent."
+}

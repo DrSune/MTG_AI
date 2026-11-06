@@ -1,0 +1,60 @@
+{
+ "set": "M20",
+ "name": "goblin_bird_grabber_red_pays_the_activation",
+ "notes": "Printed: '{R}: This creature gains flying until end of turn. Activate only if you control a creature with flying.' With a flier in play and {R} in the pool the activation resolves and spends exactly the {R}.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "real": "Goblin Bird-Grabber",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Flier",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "g": "battlefield"
+  },
+  "mana_pool": {
+   "0": {
+    "C": 1
+   }
+  },
+  "battlefield_keywords": {
+   "Goblin Bird-Grabber": [
+    "FLYING"
+   ]
+  }
+ }
+}

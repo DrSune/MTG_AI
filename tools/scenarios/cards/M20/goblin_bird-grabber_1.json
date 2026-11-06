@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "goblin_bird_grabber_gains_flying_with_a_flier_of_yours",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "myflier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"grab": true}}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": ["FLYING"]},
+  "mana_pool": {"0": {}},
+  "attackers": {"grab": true},
+  "not_asked_to_block": ["obear"],
+  "blocked": {"grab": []},
+  "life": {"0": 20, "1": 18}
+ },
+ "notes": "Printed: '{R}: This creature gains flying until end of turn. Activate only if you control a creature with flying.' You control a 1/1 flier, so the {R} activation is legal; the Bird-Grabber gains flying and the opponent's ground 2/2 cannot block it (never offered a block); it deals 2."
+}

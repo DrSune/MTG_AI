@@ -1,0 +1,17 @@
+{"set": "M20", "name": "ethereal_elk_trample",
+ "notes": "P5b5749e9f4 G4. Printed: 'Trample'. Ethereal Elk (3/3) attacks and a 1/1 blocks it: it assigns lethal damage (1) to the blocker and the other 2 to the defending player (CR 702.19b). The blocker dies, seat 1 goes to 18, the Elk takes 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elk", "real": "Ethereal Elk", "zone": "battlefield", "controller": 0},
+  {"key": "chump", "name": "Chump", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"elk": true}, "block": {"chump": "elk"}, "trample": {"elk": [0]}}
+ ],
+ "expect": {
+  "blocked": {"elk": ["chump"]},
+  "life": {"0": 20, "1": 18},
+  "zone": {"elk": "battlefield", "chump": "graveyard"},
+  "damage": {"elk": 1}
+ }
+}

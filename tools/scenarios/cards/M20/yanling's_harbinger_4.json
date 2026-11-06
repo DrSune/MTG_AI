@@ -1,0 +1,64 @@
+{
+ "set": "M20",
+ "name": "yanlings_harbinger_fetches_one_of_two",
+ "notes": "Printed: 'When this creature enters, you may search your library and/or graveyard for a card named Mu Yanling, Celestial Wind, reveal it, and put it into your hand. If you search your library this way, shuffle.' One card in all: with a copy in the library AND one in the graveyard, searching both zones (option 0) puts exactly one into the hand: the graveyard copy, picked by name, so the zone is pinned too. Kills the search-count+1 mutant G3 left alive (M20 round 2, 2026-11-06). ",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "c",
+   "real": "Yanling's Harbinger",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lib",
+   "name": "Mu Yanling, Celestial Wind",
+   "type": "Legendary Planeswalker \u2014 Yanling",
+   "loyalty": 3,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "name": "Mu Yanling, Celestial Wind",
+   "type": "Legendary Planeswalker \u2014 Yanling",
+   "loyalty": 3,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "c",
+   "real": "Yanling's Harbinger",
+   "decisions": [
+    "fire",
+    "0",
+    "gy"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "c": "battlefield",
+   "gy": "hand",
+   "lib": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

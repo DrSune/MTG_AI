@@ -1,0 +1,43 @@
+{
+ "set": "M20",
+ "name": "goblin_bird_grabber_activation_costs_red",
+ "notes": "Printed: '{R}: This creature gains flying until end of turn. Activate only if you control a creature with flying.' With a flier in play the restriction holds, so with no mana the activation is refused for its {R} cost alone. Kills the dropped-cost mutant G3 left alive (M20 round 2, 2026-11-06).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "real": "Goblin Bird-Grabber",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f",
+   "name": "Flier",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "illegal activation"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "g": "battlefield"
+  }
+ }
+}
