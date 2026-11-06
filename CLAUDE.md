@@ -137,18 +137,20 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B2** (2026-11-05, the round-two integration f908287, KNOWLEDGE/2026-11-05/184):
-  **4686 passed / 39 deselected / 66 subtests passed, nothing failed or xfailed**, about 40 s. Other
-  docs point here. It is reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
+  **Baseline B3** (2026-11-06, the cleanup f332d17 on main 8f1ced4; KNOWLEDGE/NUMBERS.md):
+  **5297 passed / 39 deselected / 66 subtests passed, nothing failed or xfailed**, 57 s at nice 15
+  beside a training run. B2 (2026-11-05, f908287) was 4686. Other docs point here. It is
+  reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
   - **No expected failures: any failure is a regression.** B0 (2026-10-24) carried 2 by-design
     failures and 23 xfails; all were legacy tests, deleted with `rule_engine/` and `strategic_brain/`.
   - The 39 deselected are the R3b red-first battery (`MTG_bot/core/test_ontology_r3b.py`).
     `-m red_first` gives 13 passed / 26 failed on 2026-11-05, the same on `main`; the 15 / 24 in
     `reports/r3b_red_prechange.txt` is from 2026-10-24.
-  - The 689 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`). The runner
+  - The 732 scenario packs run inside this suite (`MTG_bot/core/test_scenario_packs.py`). The runner
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 126 passed, about 20 s (the ontology baselines were
-    re-recorded after the reviewed M21 campaign; NUMBERS.md). `tools/run_scenarios.py` = 689/689.
+  - Companion numbers: `pytest tools -q` = 131 passed, 37 s beside a training run (the ontology
+    baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
+    `tools/run_scenarios.py` = 732/732.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.

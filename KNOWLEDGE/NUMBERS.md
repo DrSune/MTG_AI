@@ -5,6 +5,14 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-06 (cleanup, branch `chore/cleanup-2026-11-06`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| `docs/BACKLOG.md` | **1,778 -> 1,081 lines** | `wc -l docs/BACKLOG.md` on main 8f1ced4 and on the branch | closed entries removed, duplicates merged, one structure (616168f) |
+| gates after the cleanup (f332d17) | pytest MTG_bot **5297 passed** / 39 deselected / 66 subtests (main 8f1ced4: 5298; the cleanup deleted one obsolete guard test); pytest tools **131** (131); packs **732/732** (732/732) | `.venv/bin/python -m pytest MTG_bot -q`; `.venv/bin/python -m pytest tools -q`; `.venv/bin/python tools/run_scenarios.py` | run at `nice -n 15` beside the r21 training run |
+| play identity: 100 seeded heuristic games per verified pool | M21 **cce8c437b6c53324**, M20 **0d2642e11372d50f** on main 8f1ced4 and on the branch at f332d17 (the per-game digest lists byte-identical) | `tools.selfplay.rig.play_game(910000 + i, [HeuristicAgent()] * 2, deck_mode="stress" if i % 3 else "coherent", pool_mode="verified", set_code=...)`, `preflight._digest(...)[:12]` per game; the value is the first 16 hex of sha256 over the JSON list | no game behaviour changed |
+
 ## 2026-11-06 (defending player, blocker limit, created token; branch `engine/atoms-wave2`)
 
 | Number | Value | Command | Notes |
