@@ -5,7 +5,7 @@
 - **CUDA Safety Mandate**: Because `qwen-nvfp4` runs resident in Docker occupying ~73 GiB, only 15–25 GiB of headroom is available on the machine.
   - **Never launch massive CUDA training or heavy GPU pytest sweeps while vLLM is running**.
   - Always default training scripts and test invocations to `--device cpu`.
-  - The self-play learner enforces a floor programmatically: below `--mem-floor-gib` of free memory it saves a checkpoint and stops its workers (`tools/selfplay/learner.py` `check_memory`). (`assert_cuda_headroom(25.0)` and `@needs_safe_cuda` exist only on branch `rl/rl-v2-offline-core`.)
+  - The self-play learner enforces a floor programmatically: below `--mem-floor-gib` of free memory it saves a checkpoint and stops its workers (`tools/selfplay/learner.py` `check_memory`). (`assert_cuda_headroom(25.0)` and `@needs_safe_cuda` exist only in the archived tag `archive/rl-v2-offline-core`.)
   - If available memory drops below 5.0 GiB, `spark-memory-guard.service` will terminate high-RSS ML processes automatically.
 - **Orchestrator Role**: The main agent (`build` / `plan`) is an **Architect and Coordinator**. It does not write repetitive boilerplate or read massive logs directly. It delegates bounded tasks to subagents and synthesizes their results.
 

@@ -62,7 +62,8 @@ The MTG rules themselves are not heuristics — implement those exactly.
 Deleted on 2026-11-05 and reachable with `git show dbd6e9d:<path>`: the pre-rebuild engine and
 model (`MTG_bot/rule_engine/`, `MTG_bot/strategic_brain/`), `attic/`, and the `PointerBC` stack the
 self-play stack replaced (`tools/training/`, `tools/eval/`, the rest of `tools/search/`). Unmerged
-work on that stack lives on the branches `rl/rl-v2-offline-core` and `era/dryrun-2026-11-03`.
+work on that stack is kept as the tags `archive/rl-v2-offline-core` and `archive/era-dryrun-2026-11-03`
+(the branches were deleted 2026-11-06; there are no branches besides `main`).
 
 ## Environment facts that will bite you
 
