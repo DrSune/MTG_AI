@@ -324,7 +324,7 @@ class ScenarioRunner:
             for kind, n in card.get("counters", {}).items():
                 self.world.cards[self.handles[card["key"]]].counters[kind] = int(n)
         # The real cards' triggers/abilities register from the compiled pool.
-        self.registered = self.ex.attach_pool(supply.pool)
+        self.ex.attach_pool(supply.pool)
         for seat, colors in pack.get("mana", {}).items():
             for color, n in colors.items():
                 self.world.players[self.seats[int(seat)]].mana_pool[color] = n
@@ -353,28 +353,23 @@ class ScenarioRunner:
         # library-peek/scry asks would offer opaque "Library N" candidates.
         # A pack that sets ``"world": {"library_top": true}`` re-raises its
         # OWN library-zone cards above the filler (relative order preserved).
-        filler = []
         for seat_idx in (0, 1):
             for i in range(6):
-                filler.append(
-                    self.world.add_card(
-                        CardIdentity(
-                            oracle_id=f"9f00000{i}-0000-0000-0000-00000000000{seat_idx}",
-                            name=f"Library {i}",
-                            type_line="Creature",
-                            power="1",
-                            toughness="1",
-                            cmc=1,
-                        ),
-                        self.seats[seat_idx],
-                        ZONE_LIBRARY,
-                    )
+                self.world.add_card(
+                    CardIdentity(
+                        oracle_id=f"9f00000{i}-0000-0000-0000-00000000000{seat_idx}",
+                        name=f"Library {i}",
+                        type_line="Creature",
+                        power="1",
+                        toughness="1",
+                        cmc=1,
+                    ),
+                    self.seats[seat_idx],
+                    ZONE_LIBRARY,
                 )
         if pack.get("world", {}).get("library_top"):
             for key, handle in self.handles.items():
                 if self.world.zone_of(handle).kind != ZONE_LIBRARY:
-                    continue
-                if handle in filler:  # cannot happen (keys only name pack cards)
                     continue
                 pl = self.world.players[self.world.controller_of(handle)]
                 entries = pl.zone(ZONE_LIBRARY).entries
@@ -950,11 +945,11 @@ class ScenarioRunner:
                 # Token-ness is read from the IDENTITY first: the executor
                 # only mints a handle_record for tokens that carry compiled
                 # abilities (a bare 2/2 Knight has none).
-                if getattr(card.identity, "is_token", False):
+                if card.identity.is_token:
                     got[card.identity.name] += 1
                     continue
                 rec = self.ex.binder.handle_record.get(handle)
-                if rec is not None and getattr(rec, "is_token", False):
+                if rec is not None and rec.is_token:
                     got[card.identity.name] += 1
             for name, n in expect["tokens"].items():
                 if got.get(name, 0) != int(n):
