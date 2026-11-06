@@ -6,6 +6,14 @@ same. The net runs in eval() mode (no name dropout): the ratio must compare the 
 function. Minibatches are length-sorted, capped by ``mb`` decisions and ``tok_budget`` padded
 tokens (activation memory is system memory on the Spark), collated once and reused by every
 epoch. Non-finite steps are skipped and counted.
+
+The KL early stop bounds how far THIS update moves: it measures KL from the policy at the start
+of the update (one no-grad pass at collation), not from the behaviour log-probs. Rows played
+while the previous update ran (the overlap, ~40% of a batch) were sampled by the previous
+weights, so measured against them the first minibatch already carried the previous update's
+movement, and r22 stopped in 29 of 31 updates (2026-11-06 audit). The clipped ratio still uses
+the behaviour log-probs (the data's policy); ``kl`` stays the KL from them, ``kl_update`` is the
+stop's measure.
 """
 
 from __future__ import annotations
@@ -55,20 +63,26 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     for ch in chunks(packed.lengths(), a.mb, a.tok_budget):
         if check:
             check()
+        b = M.collate_packed(packed, ch, device)
+        act_t = torch.from_numpy(act[ch].astype(np.int64)).to(device)
+        with torch.no_grad(), torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
+            logits0, _ = model(b)
+        lp0 = torch.log_softmax(logits0, -1).gather(1, act_t[:, None]).squeeze(1)
         batches.append((
-            M.collate_packed(packed, ch, device),
-            torch.from_numpy(act[ch].astype(np.int64)).to(device),
+            b,
+            act_t,
             torch.from_numpy(logp[ch].astype(np.float32)).to(device),
             torch.from_numpy(adv_n[ch]).to(device),
             torch.from_numpy(ret[ch].astype(np.float32)).to(device),
             torch.from_numpy(v_old[ch].astype(np.float32)).to(device),
+            lp0,
         ))
     collate_s = time.perf_counter() - t_col
     t_train = time.perf_counter()
     for epoch in range(a.epochs):
         kls = []
         random.shuffle(batches)
-        for step, (b, act_t, old_logp, A, R, V0) in enumerate(batches):
+        for step, (b, act_t, old_logp, A, R, V0, lp0) in enumerate(batches):
             if check:
                 check()
             if release and step and step % 16 == 0:
@@ -89,9 +103,11 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             loss = loss * (len(act_t) * len(batches) / max(n, 1))
             with torch.no_grad():
                 kl = ((ratio - 1) - (lp - old_logp)).mean().item()
-            # Stop before a step on a minibatch the policy has already left by 1.5x the target
+                d0 = lp - lp0
+                kl_upd = (torch.exp(d0) - 1 - d0).mean().item()
+            # Stop before a step on a minibatch this update has already moved by 1.5x the target
             # (as SB3 does): checked only between epochs, the target never acted at --epochs 1.
-            if a.target_kl > 0 and kl > 1.5 * a.target_kl:
+            if a.target_kl > 0 and kl_upd > 1.5 * a.target_kl:
                 stop = True
                 break
             opt.zero_grad(set_to_none=True)
@@ -106,7 +122,8 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 continue
             opt.step()
             with torch.no_grad():
-                kls.append(kl)
+                kls.append(kl_upd)
+                stats["kl_update"].append(kl_upd)
                 stats["pg"].append(pg.item())
                 stats["v"].append(vloss.item())
                 stats["ent"].append(ent.mean().item())

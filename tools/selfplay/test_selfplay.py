@@ -626,12 +626,7 @@ def test_a_crashed_world_is_neutral_between_candidates() -> None:
     assert mean_scores({"a": [None], "b": [None]}) == {"a": -1.0, "b": -1.0}
 
 
-def test_ppo_stops_inside_the_epoch_when_the_policy_has_left_the_data(table) -> None:
-    """--target-kl was checked only between epochs, so at --epochs 1 it never acted (2026-11-05
-    red-team). With data whose behaviour policy is far from the network, no step is taken."""
-    from types import SimpleNamespace
-
-    from tools.selfplay.ppo import ppo_train
+def _ppo_case(table):
     recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
     play_game(7, recs, deck_mode="coherent")
     samples = recs[0].samples + recs[1].samples
@@ -640,15 +635,54 @@ def test_ppo_stops_inside_the_epoch_when_the_policy_has_left_the_data(table) -> 
     acts = np.array([s[1] for s in samples])
     torch.manual_seed(0)
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
-    before = [p.detach().clone() for p in net.parameters()]
-    opt = torch.optim.AdamW(net.parameters(), lr=1e-3)
+    torch.nn.init.normal_(net.policy_head[-1].weight, std=0.5)
+    net.eval()
+    with torch.no_grad():
+        logits, _ = net(M.collate_packed(packed, np.arange(n), "cpu"))
+        lp = torch.log_softmax(logits, -1).gather(1, torch.from_numpy(acts)[:, None]).squeeze(1)
+    return net, packed, acts, lp.numpy().astype(np.float32), n
+
+
+def test_ppo_stops_inside_the_epoch_once_the_update_has_moved(table) -> None:
+    """--target-kl was checked only between epochs, so at --epochs 1 it never acted (2026-11-05
+    red-team). It bounds the update's own movement (KL from the policy at the start of the
+    update): a large first step stops the epoch before the remaining minibatches."""
+    from types import SimpleNamespace
+
+    from tools.selfplay.ppo import ppo_train
+    net, packed, acts, lp, n = _ppo_case(table)
+    opt = torch.optim.AdamW(net.parameters(), lr=0.05)
+    steps = []
+    step = opt.step
+    opt.step = lambda *a, **k: (steps.append(1), step(*a, **k))[1]
     a = SimpleNamespace(epochs=1, mb=16, tok_budget=10**9, clip=0.2, vclip=0.2, vcoef=0.5,
                         ent=0.0, max_grad=1.0, target_kl=0.03)
-    far = np.full(n, -15.0, dtype=np.float32)  # the data's actions had ~0 probability
+    adv = np.random.default_rng(0).standard_normal(n).astype(np.float32)
     zeros = np.zeros(n, dtype=np.float32)
-    out = ppo_train(net, opt, packed, acts, far, zeros, zeros + 1, zeros + 1, a, torch.device("cpu"))
-    assert out["kl_stop"]
-    assert all(torch.equal(b, p) for b, p in zip(before, net.parameters(), strict=True))
+    out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"))
+    assert out["kl_stop"] and 1 <= len(steps) < out["minibatches"]
+
+
+def test_rows_from_the_previous_weights_do_not_stop_an_update_that_has_not_moved(table) -> None:
+    """Rows played while the previous update ran (~40% of a batch) carry its movement: measured
+    from the behaviour log-probs, r22 (lr 1.5e-4) stopped in 29 of 31 updates and trained on about
+    half of each batch (2026-11-06 audit). Data one r22-sized update away (k3 KL ~0.05) must not
+    stop an update before its first step; the clipped ratio still uses the behaviour log-probs."""
+    from types import SimpleNamespace
+
+    from tools.selfplay.ppo import ppo_train
+    net, packed, acts, lp, n = _ppo_case(table)
+    shift = np.where(np.arange(n) % 2 == 0, 0.33, -0.33).astype(np.float32)
+    assert ((np.exp(shift) - 1) - shift).mean() > 1.5 * 0.03
+    before = [p.detach().clone() for p in net.parameters()]
+    opt = torch.optim.AdamW(net.parameters(), lr=1e-4)
+    a = SimpleNamespace(epochs=1, mb=10**6, tok_budget=10**9, clip=0.2, vclip=0.5, vcoef=0.5,
+                        ent=0.002, max_grad=1.0, target_kl=0.03)
+    adv = np.random.default_rng(0).standard_normal(n).astype(np.float32)
+    zeros = np.zeros(n, dtype=np.float32)
+    out = ppo_train(net, opt, packed, acts, lp - shift, zeros, adv, adv, a, torch.device("cpu"))
+    assert not out["kl_stop"]
+    assert any(not torch.equal(b, p) for b, p in zip(before, net.parameters(), strict=True))
 
 
 def test_heuristic_casts_a_raid_creature_after_it_attacks() -> None:
