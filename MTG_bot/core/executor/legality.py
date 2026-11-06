@@ -1,68 +1,65 @@
-"""Activation legality + cost payment (round 12c, /06 §12c).
+"""Activation legality + cost payment.
 
 The state-side half of the ``ACTIVATE`` decision: is this activated ability
 payable right now, and what exactly does paying it do to the world? The
 question the model-facing Slate must answer for one candidate row of the
 ``ACTIVATE / ACTIVATE_MANA`` field schedule
-(:class:`docs.DESIGN_ACTION_SPACE` §1.3 — ``ABILITY:PTR``,
+(``docs/DESIGN_ACTION_SPACE.md`` §1.3 — ``ABILITY:PTR``,
 ``COST_TARGET:PTR*``, ``PAYMENT:PTR*``), and whose payment folds into the
 move itself (CR 601.2g; §1.3 "Mana payment folds into the move that needs
-it").
+it"). The module also holds the spell-casting gate (:func:`spell_castable`),
+the free mana sources a payment may tap (:func:`plan_mana_taps`), and
+attack and block legality.
 
 Contract highlights:
 
-* **Builder/executor identity (§8.3)** — :func:`ability_playable` and the
-  :class:`PaymentPlan` carry typed references to the SAME IR objects the
-  executor consumes (:class:`ActivatedAbility`, :class:`Cost`, world
-  :class:`Handle`\\ s). No DTOs, no prose in the data (§1.2 role tags are
-  type tags, never payloads); the optional ``reason`` return of the
-  legality probes is a developer diagnostic, not model-facing data.
-* **Canonical order (§5.5)** — every handle tuple in a plan is Handle-sorted
-  (ruling 5); the fold's choices (which land taps, which card discards) are
-  the canonical first-``n``-sorted witness. The remaining payment freedom
-  (which of five forests produced the ``{G}``) is the ``ARITH`` mana-array
-  class of §3.3, not an enumerable option.
+* **Builder/executor identity** (DESIGN_ACTION_SPACE.md §8.3) —
+  :func:`ability_playable` and the :class:`PaymentPlan` carry typed
+  references to the SAME IR objects the executor consumes
+  (:class:`ActivatedAbility`, :class:`Cost`, world :class:`Handle`\\ s). No
+  DTOs, no prose in the data (role tags are type tags, never payloads); the
+  optional ``reason`` return of the legality probes is a developer
+  diagnostic, not model-facing data.
+* **Canonical order** (DESIGN_ACTION_SPACE.md §5.5) — every handle tuple in
+  a plan is Handle-sorted; the fold's choices (which land taps, which card
+  discards) are the canonical first-``n``-sorted witness. The remaining
+  payment freedom (which of five forests produced the ``{G}``) is the
+  ``ARITH`` mana-array class of §3.3, not an enumerable option.
 * **Cost vocabulary** is the closed grammar union in ``ability_tree`` —
   ``CostTap / CostManaColor / CostManaGeneric / CostManaHybrid / CostLife /
-  CostSacrifice / CostDiscard / CostPutCounter / CostLoyalty``. (The
-  mission's "CostExile" has no member in the frozen grammar — the closed
-  vocabulary wins; there is no exile-as-cost node.) ``CostLoyalty`` is the
-  13a addition: the frozen :class:`CardState` has no loyalty field, so the
-  ledger rides on its ``counters`` map under ``CounterKind.LOYALTY.name``
-  (seeded from the printed :attr:`CardIdentity.loyalty` at binding,
-  :mod:`executor.binding`) and steps through the journalled counter verbs.
+  CostSacrifice / CostDiscard / CostPutCounter / CostLoyalty``; there is no
+  exile-as-cost node. :class:`CardState` has no loyalty field, so the
+  ``CostLoyalty`` ledger rides on its ``counters`` map under
+  ``CounterKind.LOYALTY.name`` (seeded from the printed
+  :attr:`CardIdentity.loyalty` at binding, :mod:`executor.binding`) and
+  steps through the journalled counter verbs.
 
 Rules encoded, with citations:
 
-* **CR 117.3** — "A player can't pay a cost unless they have the necessary
+* **CR 118.3** — "A player can't pay a cost unless they have the necessary
   resources to pay it fully … a permanent that's already tapped can't be
   tapped to pay a cost." That is the untapped check on :class:`CostTap`
   and the candidate-count floor on every selector-shaped cost.
-* **CR 119.4** (life-payment; legacy numbering 118.4) — a life payment
-  ``N > 0`` is legal only if the payer's life total is ``>= N``; paying is
-  losing that life, so reaching exactly 0 by payment is LEGAL (the death
-  is the state-based check afterwards, CR 119.6/704). **CR 119.4b** — a
-  0-life payment is always legal. The mission's "life > 1" question is
-  settled here as ``life >= amount``: the floor is 0, not 1.
-* **C20** (:class:`ActivationWindow`) — ``timing=SORCERY`` means own-main
-  phase with an empty stack. The executor has no stack (§1.3 note: the
-  query is asked before anything is cast); ``stack_empty`` is an explicit
-  parameter, and "own main" is the turn skeleton's ``world.active_player``
-  (§12b skeleton: main phases are its only phases).
+* **CR 119.4** — a life payment ``N > 0`` is legal only if the payer's
+  life total is ``>= N``; paying is losing that life, so reaching exactly
+  0 by payment is LEGAL (the death is the state-based check afterwards, CR
+  119.6/704). **CR 119.4b** — a 0-life payment is always legal.
+* **Activation windows** (:class:`ActivationWindow`) — ``timing=SORCERY``
+  means the seat's own turn, a main phase (:data:`MAIN_PHASES`) and an
+  empty stack. Emptiness is the caller's ``stack_empty`` argument (default
+  True): activation legality does not read ``executor.stack``.
 * **Summoning sickness (CR 302.6 / 602.5a)** — a creature's ability with
   ``{T}`` in its cost is refused unless the creature has been under its
   controller's control since their most recent turn began, or has haste
-  (CR 702.10). The clock is the journal read :func:`_controlled_since_turn_start`
-  that attack legality already used (V1, 2026-10-29; until then ``{T}``
-  costs were checked as CR 117.3 tap-legality only).
+  (CR 702.10). The clock is the journal read
+  :func:`_controlled_since_turn_start` that attack legality uses too.
 
-:func:`pay_costs` executes a plan through the 12a journalled verbs, so
+:func:`pay_costs` executes a plan through the journalled verbs, so
 costs fire the same ``TapState`` / ``ZONE_CHANGE`` / ``SACRIFICE`` events
-as any other world mutation (/06 §12c: "the journal sees them — good").
-Mana is the exception: no spend-verb exists in ``SUPPORTED_VERBS_V1``, so
+as any other world mutation. Mana is the exception: no verb spends mana, so
 the pool arithmetic is a direct deterministic subtraction with a
-``("PAY_MANA", …)`` audit row appended to the executor's event log (it
-reaches the replay fingerprint, P12).
+``("PAY_MANA", …)`` audit row appended to the executor's event log (which
+the replay fingerprint folds in).
 """
 
 from __future__ import annotations
@@ -137,10 +134,10 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
 #: CR 505.1: a turn has two main phases, the first (precombat) and the second (postcombat), with
 #: the combat phase between them. Sorcery speed is "a main phase of your turn with an empty
 #: stack" (CR 117.1a, 505.6a-b; per type 302.1, 305.1, 307.1; abilities 602.5d, 606.3), so every
-#: sorcery-speed gate reads this one set. The phase clock names the second main phase SECOND_MAIN (``combat_blocks`` stamps it);
-#: the frozen grammar's ``Phase`` is the trigger vocabulary and has no member for it, since no card
-#: in the pools triggers at the beginning of a second main phase. ``None`` is a world with no turn
-#: begun (bare test rigs), read as inside (13a).
+#: sorcery-speed gate reads this one set. The phase clock names the second main phase SECOND_MAIN
+#: (``combat_blocks`` stamps it); the grammar's ``Phase`` is the trigger vocabulary and has no
+#: member for it, since no card in the pools triggers at the beginning of a second main phase.
+#: ``None`` is a world with no turn begun (bare test rigs), read as inside.
 SECOND_MAIN = "SECOND_MAIN"
 MAIN_PHASES = frozenset({None, Phase.FIRST_MAIN.name, SECOND_MAIN})
 
@@ -162,42 +159,40 @@ PAYMENT_ORDER = ("mana", "tap", "sacrifice", "discard", "counter", "loyalty", "l
 
 @dataclass
 class ManaSegment:
-    """One ADD_MANA production in the 13b side-ledger: a colour key, an
+    """One ADD_MANA production in the :class:`ManaLedger`: a colour key, an
     amount, and the spend RESTRICTIONS carried as closed-grammar Filters
     (``tags`` — Vodalian Arcanist's "Spend this mana only to cast instant
     or sorcery spells" compiles to ``FOr(TYPE_EQ Instant, TYPE_EQ
-    Sorcery)``). EMPTY tags = ordinary mana: every totals-path computation
-    is exactly the 12a/12b arithmetic, which is what keeps the replay pins
-    byte-identical (risk-2 mitigation, doc /11)."""
+    Sorcery)``). EMPTY tags = ordinary mana, paid exactly like the plain
+    pool totals."""
 
     color: str
     amount: int
-    tags: tuple[Filter, ...] = ()  # spend-restriction Filters (R9-3 shape)
+    tags: tuple[Filter, ...] = ()  # spend-restriction Filters
 
 
 class ManaLedger:
-    """The executor-side segment mirror of the frozen per-player mana pool.
+    """The executor-side segment mirror of the per-player mana pool.
 
     WHY a mirror: ``PlayerState.mana_pool`` is a colour-keyed ``Dict[str,
     int]`` totals map — it CANNOT express "this {C} came from Vodalian
-    Arcanist and may only buy instants". Redesigning the frozen pool would
-    churn every 12a/12b payment pin, so segments ride ALONGSIDE (ruling-1
-    executor state, folded into the replay fingerprint):
+    Arcanist and may only buy instants". So segments ride ALONGSIDE the
+    pool (executor state, folded into the replay fingerprint):
 
-    * ``add`` is called by the ADD_MANA handler next to the untouched pool
-      totals write (tags decided by the source's live THIS_MANA policy);
+    * ``add`` is called wherever mana enters the pool (the ADD_MANA handler,
+      :func:`tap_for_payment`), next to the pool totals write (tags decided
+      by the source's live THIS_MANA policy);
     * :meth:`restricted_amounts` is the spend-validator's ONLY consult in
       :func:`build_payment_plan` — tagged segments whose filters do not
       match the payment's use (the spell being cast) are removed from the
       usable totals, so a plan can never BE built on forbidden mana;
     * :meth:`consume` settles the mirror after :func:`pay_costs` subtracts
-      the frozen totals, untagged-first (the mission-sanctioned canonical
-      order; the CR lets the payer choose, determinism pins the witness).
+      the pool totals, untagged-first (the CR lets the payer choose;
+      determinism pins the witness).
 
-    A pool written to directly (bare tests, non-ADD_MANA grants) is simply
-    UNTRACKED = unrestricted — documented mirror drift (the segment list
-    floors at empty; nothing crashes), honest because the corpus' mana all
-    arrives through ADD_MANA."""
+    A pool written to directly (bare tests, non-ADD_MANA grants) is
+    UNTRACKED = unrestricted: the segment list floors at empty and nothing
+    crashes. All of the corpus' mana arrives through ADD_MANA."""
 
     def __init__(self) -> None:
         self.segments: dict[Handle, list[ManaSegment]] = {}
@@ -224,9 +219,8 @@ class ManaLedger:
         use_ok,  # Callable[[Filter], bool] | None — None = no use context
     ) -> dict[str, int]:
         """Amounts per colour key that the CURRENT payment may not touch:
-        tagged segments whose filters fail against the payment's use.
-        Empty dict (the ONLY pre-13b reality) leaves the plan arithmetic
-        byte-identical to the 12a/12b totals path."""
+        tagged segments whose filters fail against the payment's use. An
+        empty dict leaves the plan arithmetic on the plain pool totals."""
         out: dict[str, int] = {}
         for seg in self.segments.get(player, ()):
             if seg.tags and not self._matches(seg, use_ok):
@@ -241,7 +235,7 @@ class ManaLedger:
         non-matching tagged segments are NEVER touched (the plan could not
         have used them, and a stale plan paying them must not silently
         drain a restriction). Untracked pool mana floors the draw at the
-        available segments — mirror drift, documented, never a crash."""
+        available segments, never a crash."""
         segs = self.segments.get(player, [])
         for key, amount in mana:
             left = amount
@@ -277,13 +271,13 @@ class ManaLedger:
 @dataclass(frozen=True)
 class PaymentPlan:
     """The canonical witness that a :class:`Cost` is payable: typed world
-    references only (§8.3 identity, §1.2 role tags are types not tokens),
-    every tuple Handle-sorted (§5.5, ruling 5).
+    references only, every handle tuple Handle-sorted.
 
     * ``mana``      — the ``PAYMENT:PTR``-array fold: (pool key, amount)
-      pairs in :data:`MANA_KEYS` order; ``tap``/``sacrifice``/``discard``
-      are the ``COST_TARGET:PTR*`` designations (§1.3 ACTIVATE schedule);
+      pairs, sorted by key; ``tap``/``sacrifice``/``discard`` are the
+      ``COST_TARGET:PTR*`` designations of the ACTIVATE schedule;
     * ``counters``  — (handle, CounterKind name, count) for CostPutCounter;
+    * ``loyalty``   — the signed CostLoyalty delta;
     * ``life``      — the CostLife amount (CR 119.4-checked).
     """
 
@@ -294,28 +288,21 @@ class PaymentPlan:
     counters: tuple[tuple[Handle, str, int], ...] = ()
     loyalty: int = 0
     life: int = 0
-    # r22a (sacrifice-cost vocabulary, /21 wave5a findings): the FULL
-    # Handle-sorted candidate pool of every CostSacrifice segment, with
-    # that segment's need — the raw decision space the frozen
-    # ``cands[:need]`` witness above silently collapsed to its lowest
-    # Handles. The plan stays the canonical payable WITNESS (legality
-    # probes must never ask, §C15); :func:`pay_costs` re-opens the choice
-    # through the 14b vocabulary channel when a segment really offers a
+    # The FULL Handle-sorted candidate pool of every CostSacrifice segment,
+    # with that segment's need: the decision space behind the ``sacrifice``
+    # witness (its lowest Handles). The plan stays the canonical payable
+    # WITNESS (a legality probe never asks); :func:`pay_costs` asks the
+    # payer through the decision channel when a segment really offers a
     # choice (len(pool) > need) and keeps the forced witness pick when it
-    # does not. Hand-built plans (tests) carry the default () and pay
-    # exactly as before.
+    # does not. Hand-built plans (tests) carry the default () and pay the
+    # witness.
     sacrifice_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
-    # R3 (2026-10-20, owner BINDING spec /141 §6): the same r22a re-open
-    # rides the two cost lanes the R3 lift gates cover — CostTap ("tap an
-    # untapped creature you control") and CostDiscard ("discard a card").
-    # Recorded ONLY when the ledger's lift verdict for EVERY target-branch
-    # segment of that cost is LIFT-NOW (:func:`selectors._choose_lift_
-    # allowed`, applied at PLAN time — all-or-nothing per cost, so a cost
-    # mixing a liftable and a deferred segment keeps the frozen witness
-    # path wholesale). Deferred shapes — merged HAND:ANY menus (ZND-7(a)),
-    # opponent-owned hidden zones, non-QConst counts, oracle-deferred
-    # cards — carry the default () and pay exactly as before. Hand-built
-    # plans carry the default () too (the frozen path).
+    # The same choice for CostTap ("tap an untapped creature you control")
+    # and CostDiscard ("discard a card"), recorded ONLY when
+    # :func:`selectors._choose_lift_allowed` lets EVERY targeted segment of
+    # that cost ask, judged at PLAN time: all-or-nothing per cost, so a cost
+    # mixing an askable and a deferred segment pays its witness wholesale.
+    # Deferred shapes and hand-built plans carry the default ().
     tap_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
     discard_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
 
@@ -343,11 +330,10 @@ def ctx_for(
     x_value: int | None = None,
 ) -> ExecCtx:
     """An :class:`ExecCtx` sharing the executor's world, ledger, seeded rng
-    factory and token counters — the activation context that closes the 12a
-    OWNER-referent gap: OWNER reads resolve to the source's zone controller
-    (:func:`enumerate_candidates`), which is exactly what an activation
-    context supplies (/06 §12c close-out list). 13b: ``x_value`` carries
-    the cast's declared X (QX resolves; ``None`` keeps the 12c flag)."""
+    factory, token counters, registries and journal: the context for
+    legality queries and payments. OWNER reads in it resolve to the
+    source's zone controller (:func:`source_owner`). ``x_value`` carries
+    the declared X (QX resolves; with ``None`` a QX read raises)."""
     return ExecCtx(
         world=executor.world,
         ledger=executor.ledger,
@@ -358,42 +344,41 @@ def ctx_for(
         events=[],
         rng=executor.rng,
         token_counts=executor.token_counts,
-        # 12d: the query/payment context sees the registries too (a paid
-        # tap-cost can trip a replacement; layer verbs fired from an
-        # activation effect reach them through the effect ctx).
+        # The query/payment context sees the registries too (a paid
+        # tap-cost can trip a replacement).
         layers=executor.layers,
         replacements=executor.replacements,
         executor=executor,
         x_value=x_value,
         stream=executor.decisions,
-        # 14d (B-7): the journal binds into the QUERY context as well —
-        # journal-aware eval at every entry point. Purity holds: the journal
-        # is state, the read is deterministic and fingerprinted (12b dump).
+        # The journal binds into the QUERY context as well, so history
+        # predicates evaluate at every entry point. Purity holds: the journal
+        # is state, the read is deterministic and fingerprinted.
         journal=executor.journal,
     )
 
 
 def source_owner(world: GameWorld, ctx: ExecCtx) -> Handle:
     """The OWNER referent in an activation context: the zone controller of
-    the source (the frozen state tracks zone control only — the documented
-    stand-in, matching ``selectors.zone_owner``'s OWNER handling)."""
+    the source (the world tracks zone control only, matching
+    ``selectors.zone_owner``'s OWNER handling)."""
     if ctx.source.namespace == "card" and ctx.source in world.cards:
         return world.controller_of(ctx.source)
     return ctx.controller
 
 
 def _loyalty_of(world: GameWorld, handle: Handle) -> int:
-    """The loyalty ledger value (13a): the ``"LOYALTY"`` counter, falling
+    """The loyalty ledger value: the ``"LOYALTY"`` counter, falling
     back to the printed :attr:`CardIdentity.loyalty` only for a raw card
     whose ledger has not been seeded yet (a card built straight into a
     zone, before binding). 0 when the card has no loyalty at all (a non-
     planeswalker paying a loyalty cost is illegal, and
     :func:`build_payment_plan` flags it).
 
-    Note (V31, 2026-10-29): the counter verb keeps a zeroed LOYALTY key (every
-    other counter kind is deleted at 0), so a walker brought to 0 reads 0 here,
-    never its printed loyalty. The key is dropped when the walker leaves the
-    battlefield (CR 122.2).
+    The counter verb keeps a zeroed LOYALTY key (every other counter kind is
+    deleted at 0), so a walker brought to 0 reads 0 here, never its printed
+    loyalty. The key is dropped when the walker leaves the battlefield
+    (CR 122.2).
     """
     state = world.cards.get(handle)
     if state is None:
@@ -413,27 +398,21 @@ def _loyalty_of(world: GameWorld, handle: Handle) -> int:
 
 
 def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
-    """Candidate enumeration for the QUERY surface — the map that closes
-    the 12a raises this phase owns (/06 §12c): ``Zone(ANY)`` becomes every
-    player zone in seat × :data:`PLAYER_ZONES` order, and an ``OWNER``
+    """Candidate enumeration for the QUERY surface: ``Zone(ANY)`` becomes
+    every player zone in seat × :data:`PLAYER_ZONES` order, and an ``OWNER``
     controller ref becomes the activation owner's zone.
 
-    14a: Zone(STACK) USED to raise here ("the frozen state has no stack and
-    the queue shapes are OUT") — that was round-12 truth and 13b made it
-    stale: the executor has a stack now, journalled as each seat's
-    ``ZONE_STACK`` slot by :func:`stack.stack_zone` with ``SpellStack`` frames
-    on top. Answering instead of raising is load-bearing, not cosmetic: a card
-    whose TARGET selector names the stack (M21 Unsubstantiate prints
-    ``BATTLEFIELD + STACK``) was unreachable through the query surface by a
-    route that looked legal — :func:`legal_casts` folded its cost and called it
-    castable, then :func:`spell_target_slots` raised on the very next question
-    (games harness /03 row B-2). The stack stays OUT of :data:`PLAYER_ZONES`,
-    so ``Zone(ANY)`` keeps its 12a meaning and only an explicit STACK zone
-    reaches these entries.
+    ``Zone(STACK)`` answers each seat's ``ZONE_STACK`` slot
+    (:func:`stack.stack_zone`). A card whose TARGET selector names the
+    stack (M21 Unsubstantiate prints ``BATTLEFIELD + STACK``) must enumerate
+    here, or :func:`legal_casts` would fold its cost and call it castable
+    while :func:`spell_target_slots` raised on the very next question. The
+    stack stays OUT of :data:`PLAYER_ZONES`, so ``Zone(ANY)`` never reaches
+    it; only an explicit STACK zone does.
 
-    The 12a :func:`~MTG_bot.core.executor.selectors.enumerate_zone` is
-    reused for everything else, so effect-time resolution and query-time
-    enumeration share one zone-order convention (§8.3 identity)."""
+    The effect-time :func:`~MTG_bot.core.executor.selectors.enumerate_zone`
+    serves everything else, so effect-time resolution and query-time
+    enumeration share one zone-order convention."""
     world = ctx.world
     if zone.kind is ZoneKind.STACK:
         from MTG_bot.core.executor.selectors import players_for_ref
@@ -459,51 +438,42 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
             for kind in PLAYER_ZONES:
                 handles.extend(world.players[player].zone(kind).entries)
         return existing(ctx, handles)
-    # 12a path (PLAYER refs, positions, TOP/BOTTOM): identical semantics.
+    # PLAYER refs, positions, TOP/BOTTOM: the effect-time enumeration.
     from MTG_bot.core.executor.selectors import enumerate_zone
 
     return enumerate_zone(ctx, zone)
 
 
-# Local mirror of selectors.ZONE_KIND_TO_STATE (kept lazy-cycle-free; the
-# enum is frozen so the table cannot drift silently — a test pins it).
 from MTG_bot.core.executor.selectors import ZONE_KIND_TO_STATE as _STATE_KIND
 from MTG_bot.core.executor.selectors import controller_matches
 from MTG_bot.core.executor.selectors import controller_of as _effective_controller
 
 
 def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
-    """T4-P1c (gap L-4, CR 702.11b): does ``candidate``'s live HEXPROOF
-    forbid targeting from ``ctx``'s source? Same single-oracle shape as
-    the 16c PROTECTION pair consumer (``block_pair_blocked_reason``):
-    the keyword's quality rows are evaluated against the OTHER side of
-    the pair — here (targeting source, candidate).
+    """CR 702.11b: does ``candidate``'s live HEXPROOF forbid targeting from
+    ``ctx``'s source? The keyword's quality rows are evaluated against the
+    targeting source, the same single-oracle shape as protection
+    (:func:`protected_from`).
 
-    Direction (CR 702.11b, no new encoding): hexproof blocks only
-    OPPONENT-controlled sources; the engine's opponent convention is a
-    distinct seat in player_order (every ``ControllerRef.OPPONENT``
-    resolution and ``selectors._opponents`` read), and the controller
-    always targets their own object freely. The candidate's controller
-    is read through ``controller_of`` (16e GAIN_CONTROL overlay aware).
+    Direction (CR 702.11b): hexproof blocks only OPPONENT-controlled
+    sources; any other seat is an opponent, and the controller always
+    targets their own object freely. The candidate's controller is read
+    through ``controller_of`` (GAIN_CONTROL overlay aware).
 
     Zone relevance (CR 702.11b "on a permanent"; CR 113.6): the keyword
     functions only on the battlefield. A creature spell is not a
     permanent, so an opponent's counterspell may target a hexproof spell
-    (Sporeweb Weaver is countered by a blue Cancel; Carnage Tyrant and
-    Sphinx of the Final Word print "can't be countered" for this reason).
-    The engine had it working on the stack from 2026-10-07 (KNOWLEDGE
-    2026-10-07/42) until an FDN verifier found it on 2026-11-06. The
-    identity-seeded keyword names are zone-less, so this consumer guard
-    is what keeps a hexproof card off the battlefield an ordinary
-    target. A candidate the layers registry does not know (a player
-    seat: 702.11 protects the hexproof OBJECT, never its controller; a
-    token/overlay without a map entry) is never vetoed here.
+    (Sporeweb Weaver is countered by a blue Cancel; Carnage Tyrant prints
+    "can't be countered" for this reason). The identity-seeded keyword
+    names are zone-less, so this consumer guard is what keeps a hexproof
+    card off the battlefield an ordinary target. A candidate the layers
+    registry does not know (a player seat: 702.11 protects the hexproof
+    OBJECT, never its controller) is never vetoed here.
 
-    Filter rows evaluate against ``ctx.source`` exactly as the block
-    consumer evaluates against the attacker: printed identity colors
-    via ``eval_filter`` (COLOR_HAS reads the source card's own
-    identity), so an opponent's blue spell trips a hexproof-from-blue
-    permanent's COLOR_HAS-U row and a red Shock does not."""
+    Filter rows evaluate against ``ctx.source`` through ``eval_filter``
+    (COLOR_HAS reads the source card's own identity), so an opponent's
+    blue spell trips a hexproof-from-blue permanent's COLOR_HAS-U row and
+    a red Shock does not; a ``None`` row is plain hexproof."""
     layers = ctx.layers
     if layers is None:
         return False
@@ -521,8 +491,8 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
 
 
 def _own_targeting_restrictions(ctx: ExecCtx) -> list[Filter]:
-    """V20 (2026-10-29, B-66): the targets the SOURCE's own static abilities
-    forbid it to choose as it is cast. Enthralling Hold's "You can't choose an
+    """The targets the SOURCE's own static abilities forbid it to choose as
+    it is cast. Enthralling Hold's "You can't choose an
     untapped creature as this spell's target as you cast it" compiles to
     ``StaticAbility(PREVENT_EFFECT(event=TargetingEvent(filter=untapped
     creature), condition=IS_ANY_TARGET))``, the condition naming the spell's
@@ -530,8 +500,7 @@ def _own_targeting_restrictions(ctx: ExecCtx) -> list[Filter]:
     CR 113.6e: an object's ability that restricts how that object can be cast
     functions in the zones it can be cast from and on the stack, so it is read
     off the record while the source is anywhere but the battlefield, and only
-    at the choice (resolution never re-checks it: "as you cast it"). Nothing
-    consumed the record before, so the Aura could steal an untapped creature."""
+    at the choice (resolution never re-checks it: "as you cast it")."""
     ex = ctx.executor
     source = ctx.source
     if ex is None or source.namespace != "card" or source not in ctx.world.cards:
@@ -560,7 +529,7 @@ def _own_targeting_restrictions(ctx: ExecCtx) -> list[Filter]:
 
 
 def protected_from(executor: Executor | None, holder: Handle, source: Handle | None) -> bool:
-    """V44 (CR 702.16): does ``holder``, a permanent on the battlefield or a player,
+    """CR 702.16: does ``holder``, a permanent on the battlefield or a player,
     have protection from ``source``? The one oracle every protection consumer reads:
     targeting (702.16b), Auras and Equipment (702.16c-d), damage (702.16e) and
     blocking (702.16f).
@@ -591,7 +560,7 @@ def protected_from(executor: Executor | None, holder: Handle, source: Handle | N
 
 
 def _protection_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
-    """V44 (CR 702.16b): "A permanent or player with protection can't be targeted
+    """CR 702.16b: "A permanent or player with protection can't be targeted
     by spells with the stated quality and can't be targeted by abilities from a
     source with the stated quality." ``ctx.source`` is the spell, or the source of
     the ability, doing the targeting."""
@@ -600,18 +569,19 @@ def _protection_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
 
 def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     """The legal candidate set of one Selector IR node in ``ctx`` —
-    Handle-sorted (§5.5). This is the per-slot candidate list the query
-    surface returns; whole-selection legality is
-    :func:`legality.validate_target_selection`'s counterpart in query.py
-    (combinatorial explosion guard: candidates per slot, never a product
-    of per-slot lists).
+    Handle-sorted. This is the per-slot candidate list the query surface
+    returns; whole-selection legality is
+    :func:`query.validate_target_selection` (combinatorial explosion
+    guard: candidates per slot, never a product of per-slot lists).
 
-    A referent selector (C2/C12 closed vocab) resolves through
+    A ``"target"`` referent reads the bound designation (none bound: no
+    candidates); every other referent resolves through
     :func:`~MTG_bot.core.executor.selectors.resolve_selector` — the SAME
     resolver the executor runs at resolution time. A TARGET-mode selector
-    without the 12a designations is still enumerable here: the population
-    is what the query asks for; the designation is what the Slate answers
-    (CR 601.2 / §1.3 ``TARGET:PTR x n``)."""
+    with no designation yet is still enumerable here: the population is
+    what the query asks for; the designation is what the Slate answers
+    (CR 601.2, ``TARGET:PTR x n``). TARGET mode also drops what hexproof,
+    protection or the source's own casting restriction forbids."""
     from MTG_bot.core.executor.selectors import resolve_selector
 
     if sel.referent is not None:
@@ -621,25 +591,25 @@ def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
         elif sel.referent in ("source", "controller"):
             candidates = resolve_selector(sel, ctx)
         else:
-            candidates = resolve_selector(sel, ctx)  # raises cleanly (12b reg)
+            candidates = resolve_selector(sel, ctx)  # event/result; unknown raises
     else:
         candidates = []
-        for zone_spec in sel.zones:  # R0: the zones field IS the legal-zone set
+        for zone_spec in sel.zones:  # the zones field IS the legal-zone set
             candidates.extend(_zone_handles(ctx, zone_spec))
     handles = sorted(h for h in candidates if eval_filter(sel.filter, h, ctx))
     if sel.mode is SelectorMode.TARGET:
-        # T4-P1c (CR 702.11b): the ONE hexproof chokepoint. Every target
-        # surface consumes this enumeration (legal_targets, spell_target_
-        # slots, the 601.2c cast validator via validate_target_selection,
-        # the trigger _designate ask menus, optional_offer actionability),
-        # so the query and the runtime present the same legal menu (§8.3
-        # identity, §10 blindness audit). TARGET-only by mode: ALL/CHOOSE/
-        # ONE_OF selections never TARGET, so sweepers are untouched.
+        # CR 702.11b: the ONE hexproof chokepoint. Every target surface
+        # consumes this enumeration (legal_targets, spell_target_slots, the
+        # 601.2c cast validator via validate_target_selection, the trigger
+        # _designate ask menus, optional_offer actionability), so the query
+        # and the runtime present the same legal menu. TARGET-only by mode:
+        # ALL/CHOOSE/ONE_OF selections never TARGET, so sweepers are
+        # untouched.
         handles = [h for h in handles if not _hexproof_vetoes_target(h, ctx)]
-        # V20: and the source's own "you can't choose ... as you cast it".
+        # And the source's own "you can't choose ... as you cast it".
         for forbidden in _own_targeting_restrictions(ctx):
             handles = [h for h in handles if not eval_filter(forbidden, h, ctx)]
-        # V44 (CR 702.16b): protection is another veto at the same chokepoint.
+        # CR 702.16b: protection is another veto at the same chokepoint.
         handles = [h for h in handles if not _protection_vetoes_target(h, ctx)]
     return handles
 
@@ -649,12 +619,11 @@ def _required_count(sel: Selector, ctx: ExecCtx, available: int) -> int:
     CR 118.3). QUnbounded in a cost position is the degenerate "any
     number"; the resource floor is one (paying zero is not paying).
 
-    V33 (2026-10-29): an ALL selector with no bound is "all of them" ("Discard
+    The exception is an ALL selector with no bound, "all of them" ("Discard
     your hand", Subira, Tulzidi Caravanner): it demands every one of the
     ``available`` candidates, and none when there are none. Discarding an empty
     hand pays that cost in full (CR 118.3; 701.9a), as paying 0 mana or 0 life
-    does (118.3a/b). The old floor of one discarded a single card and refused
-    an empty hand."""
+    does (118.3a/b)."""
     count = sel.count
     if isinstance(count, QUnbounded):
         return available if sel.mode is SelectorMode.ALL else 1
@@ -665,14 +634,14 @@ def _required_count(sel: Selector, ctx: ExecCtx, available: int) -> int:
 
 
 def _mana_use_ok(executor: Executor, ctx: ExecCtx, mana_use: Handle | None):
-    """The 13b spend-validator's filter judge: does a restriction Filter
+    """The spend-validator's filter judge: does a restriction Filter
     accept this payment's use? The use subject is the SPELL being paid for
-    (Vodalian's compiled filter is a CastSpellEvent-shape ``TYPE_EQ``
-    reading over the spell card — the grammar R9-3 design). No use context
-    (an activation cost, a payment outside a cast) can demonstrate the
-    filter's subject, so a tagged segment is simply NOT available — the
-    conservative, rule-honest reading ("Spend this mana only to cast
-    instant or sorcery spells" cannot be demonstrated by an activation)."""
+    (Vodalian Arcanist's compiled filter is a CastSpellEvent-shape
+    ``TYPE_EQ`` reading over the spell card). No use context (an activation
+    cost, a payment outside a cast) can demonstrate the filter's subject,
+    so the judge is None and a tagged segment is NOT available ("Spend this
+    mana only to cast instant or sorcery spells" cannot be demonstrated by
+    an activation)."""
     if mana_use is None:
         return None
 
@@ -693,30 +662,30 @@ def build_payment_plan(
     """Fold one :class:`Cost` against the world into the canonical
     :class:`PaymentPlan`, or a machine-readable reason string.
 
-    Returns ``(plan, None)`` when every part is payable, ``(None, reason)``
-    when a resource is short, and raises ``NotImplementedError`` for cost
-    kinds the executor must not guess (``CostLoyalty``: no loyalty field in
-    the frozen state; ``QX`` amounts: the Slate's ``X_VALUE`` NUM field is
-    a declaration the caller must supply — ``quantity.resolve`` flags it).
+    Returns ``(plan, None)`` when every part is payable and ``(None,
+    reason)`` when a resource is short. A ``QX`` amount with no declared X
+    raises ``NotImplementedError`` (``quantity.resolve``): the Slate's
+    ``X_VALUE`` NUM field is a declaration the caller must supply.
 
-    13b mana restrictions (only-when-tagged, risk-2): the plan arithmetic
-    runs on the RESTRICTION-ADJUSTED pool — an executor whose ManaLedger
-    has tagged segments removes from the usable totals every tagged amount
-    whose filter fails against ``mana_use`` (the spell being paid for;
-    :func:`_mana_use_ok`). With no segments/tags in play — every 12a/12b
-    corpus payment — the adjusted pool IS the pool and the arithmetic is
-    byte-identical. The OTHER policy axis, the ALL_YOURS permission
-    (Chromatic Orrery's "spend mana as though it were mana of any color"),
-    makes a coloured demand drawable from any colour key (own key first,
-    then :data:`MANA_KEYS` order — the canonical witness; the CR lets the
-    payer choose freely)."""
+    ``mana_use`` is the spell being paid for (the cast lane), ``activation``
+    the source of the ability being activated (the activation lane); either
+    one, when it is ``ctx.source``, turns on the cost-modifier fold below.
+    Mana restrictions: the plan arithmetic runs on the RESTRICTION-ADJUSTED
+    pool — an executor whose ManaLedger has tagged segments removes from the
+    usable totals every tagged amount whose filter fails against
+    ``mana_use`` (:func:`_mana_use_ok`). With no tagged segments the
+    adjusted pool IS the pool. The OTHER policy axis, the ALL_YOURS
+    permission (Chromatic Orrery's "spend mana as though it were mana of any
+    color"), makes a coloured demand drawable from any colour key (own key
+    first, then :data:`MANA_KEYS` order — the canonical witness; the CR lets
+    the payer choose freely)."""
     tap: list[Handle] = []
     sacrifice: list[Handle] = []
     sacrifice_options: list[tuple[tuple[Handle, ...], int]] = []
     tap_options: list[tuple[tuple[Handle, ...], int]] = []
     discard_options: list[tuple[tuple[Handle, ...], int]] = []
-    # R3 all-or-nothing law (see PaymentPlan.tap_options): one deferred
-    # target-branch segment defers the WHOLE cost's re-open.
+    # All-or-nothing (see PaymentPlan.tap_options): one deferred targeted
+    # segment keeps the WHOLE cost on its witness.
     tap_options_allowed = True
     discard_options_allowed = True
     discard: list[Handle] = []
@@ -734,7 +703,7 @@ def build_payment_plan(
         # segment mirror — a direct pool write has no segments but the
         # permission still governs). The restriction shortfall is the
         # mirror's alone: with no tagged segments the adjusted pool IS the
-        # frozen pool, byte-identical to the 12a/12b arithmetic.
+        # pool.
         all_yours = ex.mana_permission(ctx.controller)
         if ex.mana_ledger.has(ctx.controller):
             shortfall = ex.mana_ledger.restricted_amounts(
@@ -747,26 +716,24 @@ def build_payment_plan(
                 else:
                     remaining.pop(key, None)
 
-    # r19b (CR 601.2f): continuous :class:`CostModifier` nodes fold into
-    # the total cost BEFORE the payment arithmetic — Discontinuity's
-    # your-turn {2}{U} window, Sanguine Indulgence's gained-3 discount,
-    # Stormwing Entity's cast-triggered {2}{U}, Volcanic Salvo's SUM(POWER)
-    # fold. The scan is SPELL-LANE only (``mana_use`` is the spell being
-    # cast and IS the cost's source): activation lanes and bare PAY atoms
-    # have no total-cost step (CR 112.6b abilities pay their printed
-    # cost), so with no spell in play the arithmetic below is byte-
-    # identical to the pre-r19b plan. Modifiers are read from the casting
-    # spell's OWN record (only "this spell costs" for a permanent spell, CR
-    # 113.6; see the loop) plus every battlefield permanent's record (both
-    # armies — Watcher of the Spheres discounts through the permanent's
-    # controller, not the spell's owner), each through :func:`spell_record`:
-    # a dealt card in hand has no per-handle record until it is cast, played
-    # or put onto the battlefield (until 2026-11-06 the fold missed it, and
-    # every dealt Volcanic Salvo cost {10}{R}{R}); each modifier's filter, payer
-    # scope and condition judge the CASTING SPELL in the MODIFIER CARD's
-    # coordinates, exactly like a static trigger's filter reads the world
-    # from its source's seat. Deltas sum additively, increases first and
-    # reductions second (CR 601.2f's order), every component clamped at
+    # CR 601.2f: continuous :class:`CostModifier` nodes fold into the total
+    # cost BEFORE the payment arithmetic — Discontinuity's your-turn {2}{U}
+    # window, Sanguine Indulgence's gained-3 discount, Volcanic Salvo's
+    # SUM(POWER) fold. ``judge`` (below) is the discounted object: the spell
+    # being cast (``mana_use``) or the source of the ability being activated
+    # (``activation``); a bare PAY atom passes neither and pays its printed
+    # cost. Modifiers are read from the judge's OWN record (only "this spell
+    # costs" for a permanent spell, CR 113.6; see the loop) plus every
+    # battlefield permanent's record (both armies — Watcher of the Spheres
+    # discounts through the permanent's controller, not the spell's owner),
+    # each through :func:`spell_record`: a dealt card in hand has no
+    # per-handle record until it is cast, played or put onto the
+    # battlefield, so the oracle-id registry answers for it (else every
+    # dealt Volcanic Salvo would cost {10}{R}{R}). Each modifier's filter,
+    # payer scope and condition judge the CASTING SPELL in the MODIFIER
+    # CARD's coordinates, exactly like a static trigger's filter reads the
+    # world from its source's seat. Deltas sum additively, increases first
+    # and reductions second (CR 601.2f's order), every component clamped at
     # zero — a discount never spills across colour or kind. Amounts
     # resolve in the modifier's coordinates, which is what Volcanic
     # Salvo's QProp (total power of ITS controller's creatures) requires.
@@ -779,19 +746,12 @@ def build_payment_plan(
     generic_add = 0
     generic_cut = 0
     extra_life = 0
-    # r21b (Sanctum of Tranquil Light): the fold now ALSO runs on the
-    # ACTIVATION lane — "activated abilities … cost less" cards compile a
-    # CostModifier whose IS_SOURCE filter reads the ABILITY'S SOURCE, and
-    # with mana_use None the whole lane was dead, silently charging the
-    # printed cost. The activation shape stays pinned to the verified
-    # corpus: only a modifier whose filter is exactly ``FAtom(IS_SOURCE)``
-    # folds there (the discount describes the host's OWN ability), so no
-    # cast-lane reduction (Vryn/Watcher's blanket auras, Discontinuity's
-    # conditional window, TARGETS_SOURCE/IS_ANY_TARGET spell filters) can
-    # leak into an activation; and the golden audit shows Sanctum is the
-    # ONLY IS_SOURCE host that also carries an ActivatedAbility, so the
-    # cast-lane five fold exactly as before and no activation of theirs
-    # exists to fold. ``judge`` names the discounted object on both lanes.
+    # On the ACTIVATION lane only a modifier whose filter is exactly
+    # ``FAtom(IS_SOURCE)`` folds ("activated abilities … cost less" describes
+    # the host's OWN ability, Sanctum of Tranquil Light), so no cast-lane
+    # reduction (Vryn/Watcher's blanket auras, Discontinuity's conditional
+    # window, TARGETS_SOURCE/IS_ANY_TARGET spell filters) can leak into an
+    # activation.
     judge = mana_use if mana_use is not None else activation
     if (
         ex is not None
@@ -804,10 +764,10 @@ def build_payment_plan(
         mod_hosts: list[Handle] = [judge]
         for seat in world.player_order:
             # CR 702.26b: a phased-out permanent's modifier does not exist.
-            # m21-fidelity (2026-10-29): on the activation lane the judge IS a
-            # battlefield permanent, so it must not be scanned twice (Sanctum of
-            # Tranquil Light's "{1} less for each Shrine" folded twice: one Shrine
-            # cut {2}, stronger than printed). The cast lane's judge is on the stack.
+            # On the activation lane the judge IS a battlefield permanent, so
+            # it must not be scanned twice (Sanctum of Tranquil Light's "{1}
+            # less for each Shrine" would cut {2} per Shrine). The cast lane's
+            # judge is not on the battlefield.
             mod_hosts.extend(h for h in sorted(ex.battlefield(seat)) if h != judge)
         for host in mod_hosts:
             rec = spell_record(ex, host)
@@ -821,7 +781,7 @@ def build_payment_plan(
             else:
                 mod_ctx = ex._ctx(
                     source=host,
-                    # V29: "your opponents" is relative to the host's controller
+                    # "your opponents" is relative to the host's controller
                     # (the control overlay), not its owner's zone.
                     controller=ex.controller_of(host),
                     bindings=dict(ctx.bindings),
@@ -830,9 +790,9 @@ def build_payment_plan(
                 )
             # CR 113.6: a permanent spell's abilities do not function on the stack, so
             # the permanent being cast reads only its own "this spell costs" modifier
-            # (IS_SOURCE, CR 601.2f): Warden of Evos Isle's "creature spells with
-            # flying you cast cost {1} less" discounted its own cast (M20 verification,
-            # 2026-11-05). An instant's or sorcery's abilities do function there.
+            # (IS_SOURCE, CR 601.2f); otherwise Warden of Evos Isle's "creature spells
+            # with flying you cast cost {1} less" would discount its own cast. An
+            # instant's or sorcery's abilities do function there.
             own_only = activation_lane or (
                 host == judge and not {"Instant", "Sorcery"} & set(rec.types)
             )
@@ -871,7 +831,7 @@ def build_payment_plan(
 
     for part in cost.parts:
         if isinstance(part, CostManaColor):
-            # r19b: the folded symbol window applies before the colour
+            # The folded symbol window applies before the colour
             # search — additive symbols first, the consumed share of the
             # discount is DEPLETED here (min-clamped), so a {U} discount
             # can never leak into a second symbol or another colour.
@@ -911,17 +871,15 @@ def build_payment_plan(
         elif isinstance(part, CostTap):
             if part.target is None:  # "the source itself" — every {T}:
                 if world.cards[ctx.source].tapped:
-                    # CR 117.3: an already-tapped permanent can't be tapped.
+                    # CR 118.3: an already-tapped permanent can't be tapped.
                     return None, "cost:tap:source_tapped"
                 tap.append(ctx.source)
             else:
-                # R3 (mirroring the sacrifice lane's CR 701.14a clause and
-                # CR 701.20's tap rule): a tap cost acts on permanents YOU
-                # control. The raw ANY-zone enumeration carries the
-                # opponent's permanents — the frozen cands[:need] never
-                # exposed the hole (your lowest handle always won). The
-                # clause is a property of the tap verb, not of the card, so
-                # it is enforced HERE, lane-agnostic, before the pool is
+                # A tap cost acts on permanents YOU control (CR 701.20's tap
+                # rule, mirroring the sacrifice lane's CR 701.14a clause): the
+                # raw ANY-zone enumeration carries the opponent's permanents.
+                # The clause is a property of the tap verb, not of the card,
+                # so it is enforced HERE, lane-agnostic, before the pool is
                 # recorded.
                 cands = [
                     h
@@ -944,16 +902,14 @@ def build_payment_plan(
                     tap_options.append((tuple(sorted(cands)), need))
                 tap.extend(cands[:need])
         elif isinstance(part, CostSacrifice):
-            # r22a (CR 701.14a): a sacrifice acts on a permanent YOU
-            # control. The bridge compiles "sacrifice another creature"
-            # with a controller=ANY battlefield zone (the filter only
-            # says Creature AND NOT is-source), so the raw enumeration
-            # carries the OPPONENT'S creatures — the frozen
-            # cands[:need] witness never exposed the hole (your lowest
-            # handle always won), but the r22a vocabulary would OFFER
-            # an illegal answer. The controller clause is a property of
-            # the sacrifice verb, not of the card, so it is enforced
-            # HERE, lane-agnostic, before the pool is recorded.
+            # CR 701.14a: a sacrifice acts on a permanent YOU control. The
+            # bridge compiles "sacrifice another creature" with a
+            # controller=ANY battlefield zone (the filter only says Creature
+            # AND NOT is-source), so the raw enumeration carries the
+            # OPPONENT'S creatures, which the payer's ask must never offer.
+            # The controller clause is a property of the sacrifice verb, not
+            # of the card, so it is enforced HERE, lane-agnostic, before the
+            # pool is recorded.
             cands = [
                 h
                 for h in enumerate_candidates(part.target, ctx)
@@ -964,25 +920,23 @@ def build_payment_plan(
                 return None, (
                     f"cost:sacrifice:insufficient_candidates:{len(cands)}<{need}"
                 )
-            # r22a: the witness keeps the canonical cands[:need] pick (a
-            # probe must never ask), but the FULL pool rides along on the
-            # plan — pay_costs re-opens the choice through the 14b
-            # vocabulary channel when this segment really offers one.
+            # The witness keeps the canonical cands[:need] pick (a probe
+            # must never ask), but the FULL pool rides along on the plan —
+            # pay_costs asks the payer through the decision channel when
+            # this segment really offers a choice.
             sacrifice_options.append((tuple(cands), need))
             sacrifice.extend(cands[:need])
         elif isinstance(part, CostDiscard):
             cands = enumerate_candidates(part.target, ctx)
-            # r19b (Thrill of Possibility / Sparkhunter Masticore): the
-            # cast fold runs the plan while the spell is STILL in hand
+            # The cast fold runs the plan while the spell is STILL in hand
             # (stack.py pays, then parks), so the spell is a raw hand
-            # candidate — the Handle-sorted cands[:need] silently spent
-            # the cast on itself (Thrill's lowest handle). CR 601.2h
-            # forbids an object paying its own cast cost; the exclusion
-            # is lane-agnostic (every lane's ``source`` is the object
-            # owning the cost — the same reading CostTap's no-target
+            # candidate — the Handle-sorted cands[:need] would spend the
+            # cast on itself (Thrill of Possibility, Sparkhunter Masticore).
+            # CR 601.2h forbids an object paying its own cast cost; the
+            # exclusion is lane-agnostic (every lane's ``source`` is the
+            # object owning the cost — the same reading CostTap's no-target
             # "source itself" branch takes).
-            # r20c (Waker of Waves) carve-back: the exclusion is for an
-            # object paying its own CAST cost. When the selector's filter
+            # The exception (Waker of Waves): when the selector's filter
             # itself demands IS_SOURCE ("Discard this card:" activations,
             # cycling family), the source is the ONLY legal candidate —
             # excluding it would make a printed cost unsatisfiable. The
@@ -1026,20 +980,18 @@ def build_payment_plan(
                 return None, f"cost:life:{payer.life}<{amount}"
             life += amount
         elif isinstance(part, CostLoyalty):
-            # 13a: the loyalty ledger lives on the source's counters map
+            # The loyalty ledger lives on the source's counters map
             # (``"LOYALTY"``), seeded from the printed CardIdentity.loyalty
-            # at binding (binding.py). The source may be absent (a test
-            # calling build_payment_plan against a raw ctx), so the printed
-            # identity is the fallback.
-            # 13b QUIRK FIX (13a's pinned asymmetry): a loyalty cost is
-            # legal ONLY on a card with a loyalty identity — CR 606.1b
-            # "A loyalty ability can't be activated unless the permanent
-            # has loyalty" cuts BOTH signs, and the +1 side previously read
-            # "always payable" on a non-planeswalker (a crafted [−2]/[+1]
-            # cost on a plain creature now returns a reason for either
-            # sign; counters-seeded loyalty counts as a loyalty identity —
-            # a token that gained loyalty counters is the edge the CR
-            # actually allows).
+            # at binding (binding.py); :func:`_loyalty_of` reads the printed
+            # value for an unseeded card. A source absent from the world (a
+            # test calling build_payment_plan against a raw ctx) skips the
+            # identity check below and reads loyalty 0.
+            # A loyalty cost is legal ONLY on a card with a loyalty identity
+            # — CR 606.1b "A loyalty ability can't be activated unless the
+            # permanent has loyalty" cuts BOTH signs (a crafted [−2] or [+1]
+            # cost on a plain creature returns a reason). Counters-seeded
+            # loyalty counts as a loyalty identity: a token that gained
+            # loyalty counters is the edge the CR allows.
             src = world.cards.get(ctx.source)
             if (
                 src is not None
@@ -1075,7 +1027,7 @@ def build_payment_plan(
             if chosen is None:
                 return None, f"cost:mana_hybrid:{colors}:{count} unpayable"
             spent[chosen] = spent.get(chosen, 0) + 1
-    # r19b: the folded window lands on the generic symbol after the loop
+    # The folded window lands on the generic symbol after the loop
     # (additions first, reductions second, CR 601.2f) — clamped at zero,
     # so an over-reduction is WASTED, never a credit or a colour spill.
     if generic_add or generic_cut:
@@ -1122,9 +1074,9 @@ def build_payment_plan(
 
 
 def _ability_discards_its_source(ability: ActivatedAbility) -> bool:
-    """r20c (Waker of Waves): True when an activation cost contains
-    ``CostDiscard`` over a HAND-zone selector whose filter demands
-    ``IS_SOURCE`` — the printed "Discard this card:" activation. Such an
+    """True when an activation cost contains ``CostDiscard`` over a
+    HAND-zone selector whose filter demands ``IS_SOURCE`` — the printed
+    "Discard this card:" activation (Waker of Waves). Such an
     ability is LEGAL from the hand (the card is the ability's object while
     it sits there, cf. cycling CR 702.29a); the battlefield window gate in
     :func:`ability_playable` opens exactly for this cost shape and nothing
@@ -1135,11 +1087,11 @@ def _ability_discards_its_source(ability: ActivatedAbility) -> bool:
     return any(
         isinstance(part, CostDiscard)
         and part.target is not None
-        # R0 zone-fold (/129 §2 L6): SINGLETON-HAND predicate on the zone
-        # set — the printed "Discard this card:" window opens for a cost
-        # that discards from the hand ALONE, never for a widened
-        # hand-or-graveyard cost shape (∃-HAND would widen the activation
-        # window silently — same law as the L3/L5 singleton guards).
+        # SINGLETON-HAND predicate on the zone set: the printed "Discard
+        # this card:" window opens for a cost that discards from the hand
+        # ALONE, never for a widened hand-or-graveyard cost shape (testing
+        # only that HAND is among the zones would widen the activation
+        # window silently).
         and len(part.target.zones) == 1
         and part.target.zones[0].kind is ZoneKind.HAND
         and _filter_is_self_referential(part.target.filter)
@@ -1162,22 +1114,27 @@ def ability_playable(
 
     Gates, in order:
 
-    1. **window** — the attached record must exist (the 12b bridge), the
-       node must be an :class:`ActivatedAbility`, and for
-       ``timing=SORCERY`` (C20) the seat must be ``world.active_player``
-       (the skeleton's own main phase) with ``stack_empty=True``. The
-       executor has no stack, so emptiness is an explicit parameter of the
-       pre-casting query, per the grammar's C20 note. The window includes
-       the R5-7 activation lock (CR 602.5): a live PREVENT_EFFECT over an
-       AbilityActivatedEvent that covers this ability's kind and object
-       answers ``prohibited:activation_lock`` before anything is paid.
-    2. **condition** — ``ActivatedAbility.condition`` (a state predicate
-        over the source, the StaticAbility convention) judged against the
-        source handle; an unsupported pred raises (flag, never guess).
-    3. **cost** — :func:`build_payment_plan` (CR 117.3 resource
-       arithmetic + the untapped check + CR 119.4 life floor).
+    1. **window** — a printed ability's record must exist
+       (:func:`spell_record`) and the node must be an
+       :class:`ActivatedAbility`; the source must be on the battlefield (or
+       in hand for a "Discard this card:" cost), not phased out, and
+       controlled by ``seat``; the activation lock (CR 602.5: a live
+       PREVENT_EFFECT over an AbilityActivatedEvent that covers this
+       ability's kind and object) answers ``prohibited:activation_lock``. A
+       loyalty ability and a ``timing=SORCERY`` one need the seat's own
+       turn, a main phase and ``stack_empty`` (the caller's statement,
+       default True) unless a GRANT_ACTIVATION layer gives the permanent
+       instant speed; a loyalty ability also runs once per permanent per
+       turn.
+    2. **summoning sickness** — CR 302.6 for a creature's ``{T}`` ability.
+    3. **condition** — ``ActivatedAbility.condition`` (a state predicate
+       over the source, the StaticAbility convention) judged against the
+       source handle; an unsupported pred raises (flag, never guess).
+    4. **cost** — :func:`build_payment_plan` (CR 118.3 resource
+       arithmetic + the untapped check + CR 119.4 life floor), an X cost
+       folded at X = 0.
 
-    12d — GRANTED abilities are addressed by NEGATIVE index: row ``-k-1``
+    GRANTED abilities are addressed by NEGATIVE index: row ``-k-1``
     is entry ``k`` of ``executor.layers.granted_activated(handle)`` (layer-
     seq order, the canonical basis :func:`legal_activations` uses). The
     CONTROLLER RULE: the source is the granted permanent and every
@@ -1194,11 +1151,11 @@ def ability_playable(
             )
         ability = granted[idx].node
     else:
-        # r20c (Waker of Waves): spell_record first tries the battlefield
-        # bridge, then the oracle-id registry — a hand card is never
-        # ATTACHED (attachment is the battlefield lifecycle) but its
-        # compiled IR is the same record, the same lookup spell_castable
-        # already uses for hand casting.
+        # spell_record first tries the battlefield bridge, then the
+        # oracle-id registry — a hand card is never ATTACHED (attachment is
+        # the battlefield lifecycle) but its compiled IR is the same record
+        # (Waker of Waves activates from hand), the same lookup
+        # spell_castable uses for hand casting.
         record = spell_record(executor, handle)
         if record is None:
             return f"bridge:no_record:{handle}"
@@ -1209,13 +1166,12 @@ def ability_playable(
         ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):
         return f"ability:not_activated:{type(ability).__name__}"
-    # r20c (Waker of Waves): the one printed hand-activation shape — an
-    # ability whose own cost is "Discard this card" (cycling CR 702.29a
-    # family). The card is the ability's object while in hand, so the
-    # window opens; every other activation from anywhere but the
-    # battlefield stays the loud reason (CR 602.3 a player can activate
-    # only abilities of permanents they control, plus the printed hand
-    # exceptions).
+    # The one printed hand-activation shape (Waker of Waves): an ability
+    # whose own cost is "Discard this card" (cycling CR 702.29a family).
+    # The card is the ability's object while in hand, so the window opens;
+    # every other activation from anywhere but the battlefield stays the
+    # loud reason (CR 602.3 a player can activate only abilities of
+    # permanents they control, plus the printed hand exceptions).
     if (
         handle in world.cards
         and world.zone_of(handle).kind != ZONE_BATTLEFIELD
@@ -1232,7 +1188,7 @@ def ability_playable(
         # CR 602.3: only the permanent's controller can activate it.
         return f"window:not_controller:{seat}"
     if executor.replacements.prevents_activation(handle, seat, ability):
-        # R5-7, CR 602.5: a player can't begin to activate an ability that's
+        # CR 602.5: a player can't begin to activate an ability that's
         # prohibited from being activated (Faith's Fetters' NON_MANA lock).
         # The gate sits here, before anything is announced or paid, so every
         # caller that asks ability_playable inherits it: legal_activations,
@@ -1261,26 +1217,24 @@ def ability_playable(
     if ability.timing is ActivationWindow.SORCERY and not (
         executor.layers.instant_window_granted(handle)
     ):
-        # 13c (Teferi, Who Outcast Oversight's controller-rule static): a
-        # live GRANT_ACTIVATION layer whose filter matches this permanent
-        # relaxes the SORCERY block to instant speed — EVERY gate below and
-        # above it (controller, loyalty clock, costs, conditions) stays.
-        # The grant is not seat-scoped at THIS layer: layers are global
-        # views, so an opponent's Teferi static is visible to their own
-        # activations exactly as printed ("You may activate ..." is written
-        # to the permanent's controller, and only the controller passes the
-        # not-controller gate above).
+        # A live GRANT_ACTIVATION layer whose filter matches this permanent
+        # (a controller-rule static, "You may activate ...") relaxes the
+        # SORCERY block to instant speed — EVERY gate below and above it
+        # (controller, loyalty clock, costs, conditions) stays. The grant is
+        # not seat-scoped at THIS layer: layers are global views, and "You
+        # may activate ..." is written to the permanent's controller, the
+        # only seat that passes the not-controller gate above.
         if world.active_player != seat:
             return "window:sorcery:not_own_turn"
         if not stack_empty:
             return "window:sorcery:stack_nonempty"
-        # 13a: the skeleton's phase clock (Executor.phase) is the honest
-        # sorcery-window gate: "activate only as a sorcery" holds in either
-        # main phase (CR 602.5d, 505.1), never in combat or once a mid-turn
-        # END_TURN atom has stamped the ending phase.
+        # The skeleton's phase clock (Executor.phase) is the sorcery-window
+        # gate: "activate only as a sorcery" holds in either main phase
+        # (CR 602.5d, 505.1), never in combat or once a mid-turn END_TURN
+        # atom has stamped the ending phase.
         if executor.phase not in MAIN_PHASES:
             return "window:sorcery:phase"
-    # CR 606.3 (13a): one loyalty ability per permanent per turn, keyed on
+    # CR 606.3: one loyalty ability per permanent per turn, keyed on
     # the permanent and the turn number. It holds inside Teferi, Master of
     # Time's widened window too (the static changes when, never how often);
     # the loyalty window itself is the gate above.
@@ -1339,17 +1293,16 @@ def spell_record(executor: Executor, handle: Handle):
 
 
 def kicker_of(record):
-    """ZND-1e (CR 702.27a): the card's KickerAbility node, or None. The
-    cast lane, ``legal_casts``' kicked row and the engine-supported gate
-    all ask the same question through this one accessor (one encoding per
-    concept, §9)."""
+    """CR 702.27a: the card's KickerAbility node, or None. The cast lane,
+    ``legal_casts``' kicked row and the engine-supported gate all ask the
+    same question through this one accessor (one encoding per concept)."""
     return next((a for a in record.abilities if isinstance(a, KickerAbility)), None)
 
 
 def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
     """The spell's total printed cost: CardRecord.mana_cost (the frozen
     grammar keeps the printed cost on the record, NOT on SpellAbility)
-    plus the "as an additional cost to cast" parts (T3 r2) — one Cost the
+    plus the "as an additional cost to cast" parts — one Cost the
     plan fold can walk in canonical part order."""
     parts: list = []
     if record.mana_cost is not None:
@@ -1360,10 +1313,9 @@ def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
 
 
 def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> Cost | None:
-    """V36 (CR 601.2f, 118.9d): the total cost of a spell an effect casts
+    """CR 601.2f, 118.9d: the total cost of a spell an effect casts
     (stack.cast_card, and the offer oracle query._cast_option_payable, so the two
-    can never disagree). The CAST atom's ``cost`` role means (the documented 13b
-    convention, ``verbs._v_cast``; DESIGN_ATOM_ONTOLOGY R5-2):
+    can never disagree). The CAST atom's ``cost`` role means (``verbs._v_cast``):
     - absent: the spell's mana cost;
     - an EMPTY Cost: "without paying its mana cost", an alternative cost (118.9);
     - a Cost WITH parts: additional costs paid on top of the mana cost ("by
@@ -1447,7 +1399,7 @@ def ask_activation_x(
     """Announce X for an activation (CR 602.2b -> 601.2b). The menu is the
     live bounded range ``0..x_max`` (AGENTS §9/§10: every offered value is
     payable, and the bound is the menu itself). With one legal value there
-    is no decision, so nothing is asked (§10: no single-candidate phantom).
+    is no decision, so nothing is asked (AGENTS §10: no single-candidate phantom).
     The activation's explicit ``decisions`` pool answers first (ask order:
     X, then the effect's own asks); the rest of the pool is returned for
     the effect."""
@@ -1461,22 +1413,17 @@ def ask_activation_x(
     return int(answer), tuple(decisions[ctx.decision_idx :])
 
 
-# SpellAbility windows: the frozen grammar gives SpellAbility NO timing
-# slot (its own docstring: "what casting the card does" — the timing is
-# the CARD CLASS, SpellKind), so the window folds from the kind:
-#   INSTANT     — any time its controller would have priority. The
-#                 executor has no priority state (API boundary, 12c
-#                 ruling): instants are ungated — INCLUDING on the
-#                 opponent's turn, which the test suite pins as the
-#                 documented permissive reading (an instant in hand is
-#                 always an option; a future phase/priority ledger may
-#                 narrow it, the cast() surface will not change).
-#   everything else (SORCERY/CREATURE/ENCHANTMENT/PLANESWALKER/LAND) —
-#                 the sorcery window: the caster's own turn, either main
-#                 phase (CR 505.1, :data:`MAIN_PHASES` on 13a's phase
-#                 clock), and an EMPTY stack (v1: the
-#                 executor's own LIFO frames — nothing else can be on it
-#                 mid-op, but the parked-frame API keeps the gate real).
+# SpellAbility windows: the grammar gives SpellAbility NO timing slot (its
+# own docstring: "what casting the card does" — the timing is the CARD
+# CLASS, SpellKind), so the window folds from the kind:
+#   INSTANT     — any time its controller would have priority. The window
+#                 asks no priority question: instants are ungated —
+#                 INCLUDING on the opponent's turn, the permissive reading
+#                 ``test_window_table`` pins (an instant in hand is always
+#                 an option).
+#   every other kind — the sorcery window: the caster's own turn, either
+#                 main phase (CR 505.1, :data:`MAIN_PHASES`), and an EMPTY
+#                 stack (``executor.stack.frames``).
 _SORCERY_WINDOW_KINDS = frozenset(
     {
         SpellKind.SORCERY,
@@ -1495,22 +1442,21 @@ def spell_window_reason(
     """Why a spell of ``kind`` cannot be cast by ``seat`` RIGHT NOW (None
     = the window holds). See the window table above.
 
-    r23a (CR 702.9a, Masked Blackguard): ``flash`` — the card CARRIES the
+    CR 702.9a (Masked Blackguard): ``flash`` — the card CARRIES the
     FLASH keyword (the cast lane's own record answers; a granted-from-
     battlefield FLASH would not describe a card sitting in hand) — is an
     ADDITIVE window bypass: it lifts ONLY the sorcery-window restrictions
-    (not_your_turn / phase / empty-stack), never the instant baseline, and
-    never the OTHER gates (window, mana and targets stay fully re-checked
-    in spell_castable). An instant-timing spell already passes the table,
-    so the flag only ever widens CREATURE/SORCERY/ENCHANTMENT/
-    PLANESWALKER carriers exactly as printed."""
+    (not_your_turn / phase / empty-stack), never the OTHER gates (hand,
+    mana and targets stay fully re-checked in spell_castable). An
+    instant-timing spell already passes the table, so the flag only ever
+    widens the other kinds' carriers, exactly as printed."""
     if kind not in _SORCERY_WINDOW_KINDS:
         return None
     if flash:
         # FLASH says "cast any time you could cast an INSTANT" — the
-        # carrier joins the instant row of the table wholesale (v1's
-        # permissive instant reading: every gate above is a sorcery-
-        # window gate, and an instant answers none of them).
+        # carrier joins the instant row of the table wholesale (every gate
+        # below is a sorcery-window gate, and an instant answers none of
+        # them).
         return None
     world = executor.world
     if world.active_player != seat:
@@ -1527,11 +1473,11 @@ def card_window_reason(
 ) -> str | None:
     """:func:`spell_window_reason` for one card: its spell's kind, with the card's own FLASH.
 
-    r23a (CR 702.9a): the cast lane's own record answers FLASH — the
-    compiled card carries KeywordAbility(FLASH) in its KEYWORDS tuple
-    (Masked Blackguard; the abilities list keeps only the cast/activated
-    nodes). Keyword grants from the battlefield describe permanents, not
-    a card waiting in hand, so the record is the honest source for a cast."""
+    CR 702.9a: the cast lane's own record answers FLASH — the compiled
+    card carries KeywordAbility(FLASH) in its KEYWORDS tuple (Masked
+    Blackguard); its abilities tuple is scanned too. Keyword grants from
+    the battlefield describe permanents, not a card waiting in hand, so the
+    record is the honest source for a cast."""
     flash = any(
         isinstance(k, KeywordAbility) and k.keyword is Keyword.FLASH
         for k in record.keywords
@@ -1552,22 +1498,23 @@ def spell_castable(
     targets: tuple[Handle, ...] = (),
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
-    (§8.3: same answer as the one ``legal_casts`` gave, until the world
+    (same answer as the one ``legal_casts`` gave, until the world
     changes). Returns ``(reason, node, record, plan)``: exactly one of
     ``reason`` / (node+plan) is set.
 
     Gates, in CR order: the card sits in the caster's HAND (601.1 "cast
-    it from where it is" — v1 hand-only; the effect-side cast_from bypass
-    covers library/graveyard casts); its record carries a SpellAbility
+    it from where it is" — hand only; an effect's cast from another zone
+    runs through ``stack.cast_card``); its record carries a SpellAbility
     (lands and unregistered cards have none); the kind's window holds;
-    then the 601.2f fold — printed cost + additional costs against the
-    pool, with ``x`` bound for QX (a declared-too-big X shrinks the pool
-    fold into an ordinary ``cost:mana`` SHORTAGE — an illegal-cast reason,
-    never a raise: X is enumerated at 0-floor by ``legal_casts``) and the
-    spell handle as the mana-USE subject (THIS_MANA restrictions read
-    their filter over the spell being cast).
+    then the 601.2f fold — printed cost + additional costs (+ the kicker
+    cost when ``kicked``) against the pool, with ``x`` bound for QX (a
+    declared-too-big X shrinks the pool fold into an ordinary
+    ``cost:mana`` SHORTAGE — an illegal-cast reason, never a raise: X is
+    enumerated at 0-floor by ``legal_casts``) and the spell handle as the
+    mana-USE subject (THIS_MANA restrictions read their filter over the
+    spell being cast); last, an Aura needs something it could enchant.
 
-    V29 (2026-10-29): ``targets`` binds the declared targets into the fold, so a
+    ``targets`` binds the declared targets into the fold, so a
     target-dependent cost increase ("Spells your opponents cast that target this
     creature cost {3} more", Pursued Whale; "... an additional 3 life", Terror of
     the Peaks) is part of the total. CR 601.2f determines the total cost after
@@ -1588,25 +1535,21 @@ def spell_castable(
         return window, None, None, None
     additional = node.additional_costs
     if kicked:
-        # ZND-1e (CR 601.2b): the kick choice is MADE with the total cost
-        # — the kicker cost joins the 601.2f fold, so the plan (and every
-        # later re-check) prices the spell WITH the extra cost. A card
-        # without a kicker cannot be kicked (reason, never a silent
-        # downgrade to the base cost).
-        # ZND-1g (X-kicker lane delivered, /95 closed): a kicker cost
-        # containing {X} rides the SAME fold — the cast's ``x`` IS the
-        # kicker's announcement. Thieving Skydiver is the resolving
-        # card ("Kicker {X}. X can't be 0."): the spell's printed cost
-        # {1}{U} carries no X, so the kicker's {X} is the spell's ONLY X
-        # — CR 107.4a gives one declared value per object, consumed by
-        # the cost AND the (uncompiled) ETB filter alike. ONE announcement
-        # therefore serves both roles here; no separate kicker-X slot.
-        # The zero-floor law stays the engine's standing X precedent (CR
-        # 107.1, x=0 folds below): an X=0 kick pays zero and IS a legal
-        # kick. This card's printed "X can't be 0." is UNPARSED — the
-        # frozen grammar has no X-bound atom, so the engine cannot
-        # enforce a constraint it cannot see (registered effect gap,
-        # KNOWLEDGE/2026-10-18/105; never a silent side-channel check).
+        # CR 601.2b: the kick choice is MADE with the total cost — the
+        # kicker cost joins the 601.2f fold, so the plan (and every later
+        # re-check) prices the spell WITH the extra cost. A card without a
+        # kicker cannot be kicked (reason, never a silent downgrade to the
+        # base cost).
+        # A kicker cost containing {X} rides the SAME fold — the cast's
+        # ``x`` IS the kicker's announcement. Thieving Skydiver ("Kicker
+        # {X}. X can't be 0."): the spell's printed cost {1}{U} carries no
+        # X, so the kicker's {X} is the spell's ONLY X — CR 107.4a gives one
+        # declared value per object, consumed by the cost AND the
+        # (uncompiled) ETB filter alike, so ONE announcement serves both.
+        # An X=0 kick pays zero and IS a legal kick (CR 107.1, x=0 folds
+        # below): the printed "X can't be 0." is UNPARSED — the grammar has
+        # no X-bound atom, and the engine never enforces a constraint it
+        # cannot see through a side channel.
         kicker = kicker_of(record)
         if kicker is None:
             return f"cast:not_a_kicker:{handle}", None, None, None
@@ -1630,7 +1573,7 @@ def spell_castable(
 
     aura_slot = aura_enchant_slot(executor, node, spell_handle=handle, seat=seat)
     if aura_slot is not None and not aura_slot.candidates:
-        # 16e (CR 601.2e): an aura with nothing it could enchant is
+        # CR 601.2e: an aura with nothing it could enchant is
         # UNCASTABLE — the synthesized ENCHANT slot's population is
         # the oracle, and an empty one disappears the legal_casts row
         # instead of letting a floating aura resolve into a no-op.
@@ -1643,9 +1586,8 @@ def spell_castable(
 
 def _binding_atom(verb: Verb, role: str, handles: Sequence[Handle], **extra) -> Atom:
     """An Atom whose ``role`` carries a placeholder Selector while the real
-    designation rides in via bindings — the 12a convention (role_handles
-    checks bindings first), so the payment runs through the journalled
-    verb dispatch unchanged."""
+    designation rides in via bindings (role_handles checks bindings first),
+    so the payment runs through the journalled verb dispatch unchanged."""
     pairs = dict(extra)
     pairs[role] = Selector(
         QConst(max(1, len(handles))),
@@ -1662,22 +1604,17 @@ def _loyalty_death_check(
     controller: Handle,
     loyalty_after: int | None = None,
 ) -> None:
-    """CR 704.2 (13a): a planeswalker with 0 or less loyalty is put into its
-    owner's graveyard. The frozen world has no state-based-action pass, so
-    the check is run in exactly two places: immediately after the loyalty
-    payment (this call — the generic counter verb deletes a zeroed key, so
-    the ledger cannot be reread here), and since r21a in the settle sweep
-    for the DAMAGE path (CR 120.4d decrement → ``_zero_loyalty_walkers``
-    in __init__.py).
-    It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
-    the documented stand-in for the SBZA's graveyard replacement; destroy
-    *replacement* effects (Rest in Peace) would see it as a destroy, a
-    corner the frozen corpus has no golden for.
+    """CR 704.2: a planeswalker with 0 or less loyalty is put into its
+    owner's graveyard. :func:`pay_costs` calls this right after a loyalty
+    payment, with ``loyalty_after`` the loyalty the payment left. The settle
+    that closes the payment's own atom (apply_effect) already buries a
+    walker paid down to 0 through the state check (CR 704.5i,
+    ``Executor._zero_loyalty_walkers``), so this call finds it gone; it
+    stays as the backstop for a caller without that settle.
 
-    V31 (2026-10-29): the counter verb now keeps a zeroed LOYALTY key, so the
-    settle that closes the payment's own atom (apply_effect) already buries a
-    walker paid down to 0 through the state check (CR 704.5i), and this call
-    finds it gone. It stays as the backstop for a caller without that settle."""
+    It fires the journalled ``DESTROY`` verb (dies triggers, graveyard) as
+    the stand-in for the state-based move to the graveyard; destroy
+    *replacement* effects (Rest in Peace) would see it as a destroy."""
     world = executor.world
     state = world.cards.get(source)
     if state is None or state.identity.loyalty is None:
@@ -1703,20 +1640,19 @@ def pay_costs(
     controller: Handle,
     mana_use: Handle | None = None,
 ) -> None:
-    """Execute a :class:`PaymentPlan` through the 12a journalled verbs in
-    :data:`PAYMENT_ORDER` — taps, sacrifices, discards and counters fire
-    their journal events exactly like effect atoms (TapState, ZONE_CHANGE,
-    SACRIFICE…), and each step settles triggers the payment armed. Mana is
-    the deterministic pool subtraction (no v1 spend-verb exists) with a
-    ``PAY_MANA`` audit row on the executor event log.
+    """Execute a :class:`PaymentPlan` through the journalled verbs in the
+    order mana, tap, sacrifice, discard, counters, loyalty, life — taps,
+    sacrifices, discards and counters fire their journal events exactly
+    like effect atoms (TapState, ZONE_CHANGE, SACRIFICE…). Mana is the
+    deterministic pool subtraction (no verb spends mana) with a
+    ``PAY_MANA`` audit row on the executor event log. Where the plan
+    recorded a real choice (``tap_options``, ``sacrifice_options``,
+    ``discard_options``), the payer picks through the decision channel.
 
-    Ordering note, honestly made: costs are paid simultaneously in the
-    real game, and the trigger from a sacrificed permanent resolves
-    ahead of the activation only because the stack orders it so — the
-    executor has no stack (§1.3 note; queue shapes OUT), so a sac-trigger
-    settles mid-payment here, at the step boundary. No golden exercises
-    that interleaving; it is a documented stack-phase debt, not a silent
-    one."""
+    Costs are paid simultaneously in the real game. Here each step is its
+    own op: at top level it settles the triggers it armed, so a sacrificed
+    creature's dies trigger resolves mid-payment, at the step boundary;
+    inside a running resolution the outermost op settles them."""
     world = executor.world
     if plan.mana:
         pool = world.players[controller].mana_pool
@@ -1733,22 +1669,19 @@ def pay_costs(
             (len(executor.events), "PAY_MANA", str(controller), plan.mana)
         )
         if executor.mana_ledger.has(controller):
-            # 13b: mirror the subtraction onto the segment side-ledger —
+            # Mirror the subtraction onto the segment side-ledger —
             # untagged first, then filter-matching tagged segments; a
             # restricted segment is NEVER touched unless the payment can
-            # demonstrate its use (see ManaLedger.consume). The totals
-            # subtraction above stays the frozen path; only the mirror
-            # moves here, so a tag-free world pays exactly as in 12a/12b.
+            # demonstrate its use (see ManaLedger.consume).
             ctx = ctx_for(executor, source=source, controller=controller)
             executor.mana_ledger.consume(
                 controller, plan.mana, _mana_use_ok(executor, ctx, mana_use)
             )
     if plan.tap:
-        # R3 (spec /141 §6): the r22a re-open rides the lifted tap segment
-        # — WHICH permanent taps is the payer's decision when the recorded
+        # WHICH permanent taps is the payer's decision when the recorded
         # pool really offers one (len(pool) > need). A forced segment
-        # (§1.4 auto-fill) and every plan without recorded options pay the
-        # frozen witness pick byte-identically.
+        # (auto-filled, no ask) and every plan without recorded options pay
+        # the witness pick.
         tapped = plan.tap
         if plan.tap_options:
             ctx = ctx_for(executor, source=source, controller=controller)
@@ -1775,17 +1708,15 @@ def pay_costs(
             bindings={"target": list(tapped)},
         )
     if plan.sacrifice:
-        # r22a (the sacrifice-cost vocabulary law): WHO dies is the
-        # controller's decision, not an accident of Handle order. When a
-        # segment's recorded pool really offers a choice (len(pool) >
-        # need), the victims go through the 14b vocabulary channel — the
-        # same lane the trigger designation and the ONE_OF choose use
+        # WHO dies is the controller's decision, not an accident of Handle
+        # order. When a segment's recorded pool really offers a choice
+        # (len(pool) > need), the victims go through the decision channel
+        # — the same lane the trigger designation and the ONE_OF choose use
         # (ask key sacrifice:<seat>:<source>:<digest>, vocabulary = the
         # Handle strings). A forced segment (len(pool) == need — every
         # IS_SOURCE self-sac, the sole-creature floor) keeps the plan's
-        # witness pick byte-identically: §1.4 forced auto-fill, no ask.
-        # A hand-built plan (default () options — every pre-r22a test)
-        # pays exactly the frozen path.
+        # witness pick: forced auto-fill, no ask. A hand-built plan
+        # (default () options) pays the witness.
         victims = plan.sacrifice
         if plan.sacrifice_options:
             ctx = ctx_for(executor, source=source, controller=controller)
@@ -1814,9 +1745,9 @@ def pay_costs(
             bindings={"target": list(victims)},
         )
     if plan.discard:
-        # R3 (spec /141 §6): the discard-cost pool re-opens through the
-        # same lane as the r22a sacrifice below — WHICH cards burn is the
-        # payer's decision, not an accident of Handle order.
+        # The discard-cost pool asks through the same lane as the sacrifice
+        # above — WHICH cards burn is the payer's decision, not an accident
+        # of Handle order.
         burned = plan.discard
         if plan.discard_options:
             ctx = ctx_for(executor, source=source, controller=controller)
@@ -1837,7 +1768,7 @@ def pay_costs(
                     remaining_d.remove(pick)
             burned = tuple(sorted(chosen_d))
         executor.apply_effect(
-            # T4 P1a: cost-DISCARD merged into MOVE_ZONE (HAND -> GY).
+            # A cost discard is a MOVE_ZONE (HAND -> GY) of the designated cards.
             _binding_atom(
                 Verb.MOVE_ZONE,
                 "cards",
@@ -1864,11 +1795,9 @@ def pay_costs(
             bindings={"target": [handle]},
         )
     if plan.loyalty:
-        # 13a: the loyalty ledger steps through the same journalled counter
-        # verbs (PUT/REMOVE with CounterKind.LOYALTY) so the +1/-0/-N rows
-        # are the ones the golden event stream already knows, then the
-        # zero-loyalty planeswalker death check (CR 704.2) fires its own
-        # journalled DESTROY.
+        # The loyalty ledger steps through the same journalled counter
+        # verbs (PUT/REMOVE with CounterKind.LOYALTY), then the zero-loyalty
+        # planeswalker death check (CR 704.2) runs.
         loyalty_before = _loyalty_of(world, source)
         executor.apply_effect(
             _binding_atom(
@@ -1912,7 +1841,7 @@ def activation_target_reason(
     seat: Handle,
     targets: Sequence[Handle] | Sequence[Sequence[Handle]],
 ) -> str | None:
-    """V8 (2026-10-29): why ``targets`` is not a legal designation for the
+    """Why ``targets`` is not a legal designation for the
     ability's target slots (query.activation_target_slots, the slots the
     policies designate from), or None. One slot: the slot's own oracle
     (validate_target_selection, as a single-slot cast), on the sorted
@@ -1921,7 +1850,7 @@ def activation_target_reason(
     to" slot possibly empty, an "another target" slot sharing no target). On
     the synthesized player slot ("target opponent") a card stands for its
     controller, the runtime's own re-point rule. No targets, or no slot the
-    walker can see, keeps the old lane."""
+    walker can see: None (nothing to check)."""
     from MTG_bot.core.executor.query import (
         activation_target_slots,
         validate_target_selection,
@@ -1961,16 +1890,19 @@ def activate(
     stack_empty: bool = True,
     x: int | None = None,
 ) -> tuple:
-    """The folded ``ACTIVATE`` move (§1.3: legality, payment, effect — one
-    engine call, no five micro-decisions to tap five lands): re-check
-    :func:`ability_playable` against the live world (illegal →
-    ``ValueError(reason)``), :func:`pay_costs`, then run the ability's
-    effect with ``targets`` designated as the ``target`` bindings the 12a
-    role readers consume (an ability with several target slots: one tuple
-    per slot, or one handle per slot, as stack.designate_slots reads a
-    spell's). The effect tree's own decisions
-    (``OptionalEffect`` fire/skip, any-colour ADD_MANA) come through
-    ``decisions`` in tree order (C15). Returns the effect's event tuple.
+    """The folded ``ACTIVATE`` move (DESIGN_ACTION_SPACE.md §1.3: legality,
+    payment, effect — one engine call, no five micro-decisions to tap five
+    lands): re-check :func:`ability_playable` against the live world
+    (illegal → ``ValueError(reason)``), validate ``targets`` against the
+    ability's slots, :func:`pay_costs`, then run the ability's effect with
+    ``targets`` designated as the ``target`` bindings the role readers
+    consume (an ability with several target slots: one tuple per slot, or
+    one handle per slot, as stack.designate_slots reads a spell's). The
+    targets are checked again as the ability resolves (CR 608.2b); with
+    none still legal it does not resolve and the call returns ``()``. The
+    effect tree's own decisions (``OptionalEffect`` fire/skip, any-colour
+    ADD_MANA) come through ``decisions`` in tree order. Returns the
+    effect's event tuple.
 
     X lane (CR 602.2b -> 601.2b, 107.3a): an activation whose cost carries
     X announces it before paying. ``x`` is the caller's announcement
@@ -1989,14 +1921,14 @@ def activate(
     if reason is not None:
         raise ValueError(f"executor: illegal activation: {reason}")
     if ability_idx < 0:
-        # 12d granted row (see ability_playable's controller rule): the
+        # A granted row (see ability_playable's controller rule): the
         # ability's SOURCE is the granted permanent and the effect runs in
         # the GRANTEE's coordinates (``seat``) — source=handle below.
         granted = executor.layers.granted_activated(handle)
         ability = granted[-ability_idx - 1].node
     else:
-        # r20c (Waker of Waves): same oracle-registry fallback as
-        # ability_playable — a hand activation has no bridge record.
+        # Same oracle-registry fallback as ability_playable — a hand
+        # activation (Waker of Waves) has no bridge record.
         record = spell_record(executor, handle)
         if record is None:  # pragma: no cover - ability_playable just checked
             raise ValueError(f"executor: illegal activation: bridge:no_record:{handle}")
@@ -2022,7 +1954,7 @@ def activate(
             x_value = x
     elif x is not None:
         raise ValueError("executor: illegal activation: x:no_x_in_cost")
-    # V8 (2026-10-29): the targets are announced next (CR 602.2b, 601.2c),
+    # The targets are announced next (CR 602.2b, 601.2c),
     # before costs are paid, and must be legal for the ability's own target
     # slots, exactly as stack.cast validates a spell's: a policy or tool
     # passing an illegal target is refused before anything is paid.
@@ -2040,18 +1972,18 @@ def activate(
     pay_costs(executor, plan, source=handle, controller=seat)
     loyalty_ability = is_loyalty_ability(ability)
     if loyalty_ability:
-        # CR 606.3 once-per-turn clock (13a), keyed on the permanent. Keyed
+        # CR 606.3 once-per-turn clock, keyed on the permanent. Keyed
         # on the COST SHAPE, not the paid amount: a loyalty [−X] with X = 0
         # (or a [0] ability) removes no counter and is still the turn's
         # loyalty ability.
         executor.loyalty_clock[handle] = executor.world.turn
-    # R5-7 (CR 602.2, 605.3b): ONE ABILITY_ACTIVATED row per activation, mana
+    # CR 602.2, 605.3b: ONE ABILITY_ACTIVATED row per activation, mana
     # abilities included — the AbilityActivatedEvent feed. The row carries the
     # 605.1a verdict and the paid loyalty delta (None = not a loyalty
     # ability), so a trigger of kind NON_MANA or LOYALTY reads the
     # classification made at activation time. It lands after payment (the
-    # documented one-call compromise of the r20b targeting rows below): the
-    # queued trigger sees the post-payment world.
+    # same one-call compromise as the targeting rows below): the queued
+    # trigger sees the post-payment world.
     executor.journal.emit_ability_activation(
         handle,
         seat,
@@ -2064,14 +1996,14 @@ def activate(
     chosen = sorted(flat)
     if chosen:
         bindings["target"] = chosen
-        # r20b: TARGETING feed. Clock-order caveat of the FOLDED move:
-        # activate() pays before it designates, so these rows land after
-        # the payment rows — a documented compromise of the one-call
+        # TARGETING feed. Clock-order caveat of the FOLDED move: the targets
+        # are validated before payment but journalled after it, so these
+        # rows land after the payment rows — a compromise of the one-call
         # surface, not CR 602.2b's declare-then-pay order.
         executor.journal.emit_targeting(handle, seat, chosen)
     effect = ability.effect
     assert effect is not None  # ActivatedAbility.effect is a required field
-    # V25 (CR 602.2b, 601.2c): an ability with several targets ("Target creature
+    # CR 602.2b, 601.2c: an ability with several targets ("Target creature
     # you control deals damage equal to its power to another target creature",
     # Garruk, Savage Herald's -2) designates per slot, exactly as the cast lane
     # threads a spell's (stack.designate_slots, validated above); each TARGET
@@ -2113,18 +2045,18 @@ def activate(
     )
 
 
-# --------------------------------------- B-90 (a): mana abilities while paying
+# --------------------------------------------- mana abilities while paying
 # CR 601.2g / 605.3a: a player may activate mana abilities while paying a
 # cost, including in the middle of a resolution. The engine pays from the
-# pool, and since V2 the pool empties as each step and phase ends, so a
-# payment asked OUTSIDE the active player's act window (a response window, a
-# "you may pay", an "unless its controller pays") had no mana. These helpers
-# let such a payment tap the payer's FREE sources (non-creature permanents
-# whose mana ability costs only {T}: lands, plain mana rocks): a minimal set
-# the payment planner proves sufficient, never all. The act window's menu
-# pays the same way (bench/router.py, 2026-11-05). Every other mana ability
-# (a creature's, a sacrifice, a mana-cost filter) has a cost of its own and
-# is never activated on the player's behalf.
+# pool, and the pool empties as each step and phase ends, so a payment
+# asked OUTSIDE the active player's act window (a response window, a "you
+# may pay", an "unless its controller pays") would have no mana. These
+# helpers let such a payment tap the payer's FREE sources (non-creature
+# permanents whose mana ability costs only {T}: lands, plain mana rocks): a
+# minimal set the payment planner proves sufficient, never all. The act
+# window's menu pays the same way (bench/router.py). Every other mana
+# ability (a creature's, a sacrifice, a mana-cost filter) has a cost of its
+# own and is never activated on the player's behalf.
 # SCAFFOLD (BACKLOG "scaffolds to remove"): the engine picks the sources, a
 # decision hidden from the player (AGENTS §10); removed by the PAYMENT asks
 # of DESIGN_ACTION_SPACE §1.3 (a learned payment choice).
@@ -2163,9 +2095,9 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
     creature costs its attack and its block); eligible: cost exactly {T};
     effect one ADD_MANA atom (fixed colour or any colour) or a Choose between
     ADD_MANA atoms (dual lands); and activatable by ``payer`` right now
-    (ability_playable: so tapped sources and locked abilities are out). Printed
-    and granted abilities, the legal_activations scan, which this does not call
-    because it raises on cost kinds it cannot check."""
+    (ability_playable: so tapped sources and locked abilities are out). Scans
+    printed and granted abilities like legal_activations, which this does not
+    call because it raises on cost kinds it cannot check."""
     from MTG_bot.core.ability_tree import Choose
     from MTG_bot.core.executor.query import choose_options
     from MTG_bot.core.executor.verbs import _ANY_COLOR_VOCAB
@@ -2173,7 +2105,7 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
     world = executor.world
     out: list[list[ManaTap]] = []
     # The battlefields' entries, not every world card: this runs once per payment the menu
-    # prices (2026-11-05 profile: world.zone_of over every card was a third of a game's time).
+    # prices (a world.zone_of scan over every card cost a third of a game's time).
     permanents = (h for p in world.player_order for h in world.players[p].zone(ZONE_BATTLEFIELD).entries)
     for handle in sorted(permanents):
         if executor.controller_of(handle) != payer:
@@ -2304,7 +2236,7 @@ def plan_mana_taps(
     ``check()`` returns None when the payment is plannable, else the planner's
     reason. Returns () when the pool already pays, the taps when they make it
     pay, and None when no set of free sources does (the payment is then
-    declined exactly as before). ``exclude``: permanents the payment itself
+    declined). ``exclude``: permanents the payment itself
     taps (an ability's own {T}), never tapped for mana.
 
     One deterministic rule, which keeps the most mana options open: each
@@ -2395,7 +2327,7 @@ def tap_for_payment(
     middle of the resolution. The planned taps are exactly the eligible
     single-ADD_MANA shapes, so the in-place result equals the activation's.
 
-    Either way each tap journals the R5-7 ABILITY_ACTIVATED row that
+    Either way each tap journals the ABILITY_ACTIVATED row that
     :func:`activate` writes (CR 602.2, 605.3b: one per activation, mana
     abilities included), so a "whenever a player activates an ability" trigger
     sees a mana ability activated while paying. The planner only picks
@@ -2418,12 +2350,12 @@ def tap_for_payment(
         )
 
 
-# ------------------------------------------------------- 16b: attack legality
+# ------------------------------------------------------------ attack legality
 # The CR 508.1 declare-attackers surface. The COMBAT skeleton asks one
-# binary question per CREATURE (v1 = no blocker-side decisions, doc /11
-# §16c); this module is the honest candidate list the ask is built from —
-# the policy is NEVER offered a DECLINE it cannot legally answer (C15),
-# and the assembled set is whole-set-checked before anything taps.
+# binary question per CREATURE; this module is the honest candidate list
+# the ask is built from — the policy is NEVER offered a DECLINE it cannot
+# legally answer, and the assembled set is whole-set-checked before
+# anything taps.
 _IS_CREATURE = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
 
 from MTG_bot.core.executor.events import (
@@ -2444,8 +2376,8 @@ def _controlled_since_turn_start(
     — first arrival, a blink return, a graveyard replay — means the
     permanent is not yet ready. No rows after the marker = continuous
     presence since the turn began (setup creatures carry no rows at all
-    and read ready, which is the correct pre-game-control reading). 16e:
-    a CONTROL change is not a zone change — the overlay's gained-turn
+    and read ready, which is the correct pre-game-control reading). A
+    CONTROL change is not a zone change — the overlay's gained-turn
     marker is the second half of this oracle (CR 302.6 is control-based,
     not ownership-based), and a returned owner is a fresh period too.
     Both halves must hold: a marker left by an earlier control change does
@@ -2454,7 +2386,7 @@ def _controlled_since_turn_start(
 
     ``seat`` None or the active player anchors on the most recent UPKEEP
     marker (the attack lane: only the active player attacks). Any other
-    seat anchors on ITS OWN most recent turn (V1, 2026-10-29): a creature
+    seat anchors on ITS OWN most recent turn: a creature
     that entered during its controller's turn stays sick through the
     opponent's turn ("their most recent turn", CR 302.6). That turn's
     number is the current one minus the turns begun since."""
@@ -2489,16 +2421,16 @@ def attack_blocked_reason(
 ) -> str | None:
     """Why ``creature`` may not attack for ``seat`` right now, or ``None``
     when the declaration is legal. Encoded restrictions (CR 508.1 pre-
-    check): creature-ness (the LIVE type line — GRANT_TYPE overlay aware),
-    controller, untapped (CR 508.1a: the chosen creatures must be untapped,
-    so a creature tapped for mana or by Frost Breath cannot attack; attacking
-    then taps the rest, VIGILANCE excepted, CR 508.1f), DEFENDER (CR 702.3b;
-    Drowsing Tyrannodon's "can attack as
-    though it didn't have defender" lifts it through a LOSE_ABILITY static),
-    summoning sickness (CR 302.6) unless the
+    check): on the battlefield and not phased out (CR 702.26b), controller,
+    creature-ness (the LIVE type line — GRANT_TYPE overlay aware), untapped
+    (CR 508.1a: the chosen creatures must be untapped, so a creature tapped
+    for mana or by Frost Breath cannot attack; attacking then taps the rest,
+    VIGILANCE excepted, CR 508.1f), DEFENDER (CR 702.3b; Drowsing
+    Tyrannodon's "can attack as though it didn't have defender" lifts it
+    through a LOSE_ABILITY static), summoning sickness (CR 302.6) unless the
     creature has HASTE (CR 702.10a), and the PREVENT_EFFECT attack veto
-    (16c — Faith's Fetters' "enchanted permanent can't attack", consumed
-    through the prevention registry)."""
+    (Faith's Fetters' "enchanted permanent can't attack", consumed through
+    the prevention registry)."""
     world = executor.world
     if world.zone_of(creature).kind != ZONE_BATTLEFIELD:
         return "not on the battlefield"
@@ -2524,7 +2456,7 @@ def attack_blocked_reason(
 
 def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
     """The Handle-sorted candidate set the declare-attackers asks are
-    enumerated from (ruling 5 canonical order)."""
+    enumerated from (canonical order)."""
     world = executor.world
     return tuple(
         card
@@ -2537,7 +2469,7 @@ def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
 
 def _mandate_subjects(executor: Executor, layer: LayerRecord) -> tuple[Handle, ...]:
     """The creatures one LIVE mandate layer binds. A ``resolved`` record
-    (B-59: a dispatched mandate with a duration) designated its creatures
+    (a dispatched mandate with a duration) designated its creatures
     once, at resolution; a static one re-resolves its ``cards`` selector in
     the layer anchor's coordinates every combat, like any continuous-effect
     scope."""
@@ -2558,7 +2490,7 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
     """Creatures ``seat`` controls that MUST attack this combat if able
     (CR 508.1 "attacks each combat if able"), from BOTH carrier shapes:
     the dispatched mandates ledger (MANDATE_ATTACK verb without a duration;
-    with one it is a ``resolved`` layer, B-59) and the LIVE mandate layers
+    with one it is a ``resolved`` layer) and the LIVE mandate layers
     (the static shape — Furor of the Bitten, the Pirate token), whose
     ``cards`` selectors resolve in the layer anchor's coordinates exactly
     like a continuous-effect scope. A mandated creature that is ILLEGAL
@@ -2583,7 +2515,7 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
     return frozenset(mandated)
 
 
-# ------------------------------------------------------- 16c: block legality
+# ------------------------------------------------------------- block legality
 # The CR 509 declare-blockers surface, mirrored on the attack side: the ask
 # vocabulary is the honest candidate list — a blocker is never offered an
 # attacker it cannot legally block, and NONE is dropped by the ASK LOOP in
@@ -2603,13 +2535,13 @@ def block_pair_blocked_reason(
     property of the WHOLE assignment, so the ask loop applies it beside
     this reason, never buried inside it. Consumers:
       * creature-ness (only creatures block). DEFENDER is no veto: it
-        only forbids attacking (CR 702.3b), so a wall blocks (V40);
+        only forbids attacking (CR 702.3b), so a wall blocks;
       * REACH (CR 509.1b): a flying attacker is unblockable without reach
         (Snarespinner, Elder Gargaroth carry it for themselves);
-      * PROTECTION (CR 702.16f, V44): the ATTACKER's protection from the
+      * PROTECTION (CR 702.16f): the ATTACKER's protection from the
         blocker vetoes the pair (Baneslayer Angel's "protection from red and
         from black"); a protected blocker may block (``protected_from``);
-      * the PREVENT_EFFECT block veto (16c): Tome Anima / Ghostly Pilferer
+      * the PREVENT_EFFECT block veto: Tome Anima / Ghostly Pilferer
         "can't be blocked" (blocked-side slots), Pirate "can't block" and
         Shacklegeist "can block only creatures with flying" (blocker-side
         slots), Subira's activated "another target creature can't be
@@ -2637,11 +2569,10 @@ def block_pair_blocked_reason(
         or executor.layers.keyword_of(blocker, Keyword.FLYING)
     ):
         return "flying attacker, neither flying nor reach (CR 509.1b)"
-    # V44 (CR 702.16f): "Attacking creatures with protection can't be blocked by
+    # CR 702.16f: "Attacking creatures with protection can't be blocked by
     # creatures that have the stated quality." Only the ATTACKER's protection
     # restricts the pair: a creature with protection from red may block a red
-    # attacker (its damage to the blocker is prevented instead, 702.16e). The old
-    # blocker-side veto kept every protected creature from blocking that quality.
+    # attacker (its damage to the blocker is prevented instead, 702.16e).
     if protected_from(executor, attacker, blocker):
         return "attacker's protection (CR 702.16f)"
     if executor.replacements.prevents_block_declaration(blocker, attacker):
@@ -2658,7 +2589,7 @@ def blocker_askable(
     against each attacker. A blocker legal against nothing is never asked
     (no decision exists); tapped creatures fall out here — the "tapped
     creatures cannot block" face of CR 509.1a. A creature with defender
-    blocks like any other (CR 702.3b forbids only attacking; V40)."""
+    blocks like any other (CR 702.3b forbids only attacking)."""
     world = executor.world
     if world.zone_of(blocker).kind != ZONE_BATTLEFIELD:
         return False
@@ -2683,7 +2614,7 @@ def blocker_askable(
 def mandated_to_be_blocked(executor: Executor) -> frozenset[Handle]:
     """Attackers that MUST be blocked if able (Canopy Stalker), from both
     carrier shapes like the attack side: the DISPATCHED MANDATE_BLOCK ledger
-    (a timed one is a ``resolved`` layer, B-59) and the LIVE
+    (a timed one is a ``resolved`` layer) and the LIVE
     ``"mandate_block"`` layers (selector resolved in the layer anchor's
     coordinates). Each is one blocking requirement (CR 509.1c), obeyed by
     whichever creature blocks it; the declare-blockers asks keep the
