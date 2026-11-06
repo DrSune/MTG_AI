@@ -424,3 +424,15 @@ Predictions:
 - ladder vs heuristic, coherent deals: a version >= v0 + 0.04 within 60 self-play updates; falsified by no version above v0 + 0.02 by self-play update 80.
 - ladder vs heuristic, stress deals: stays within 0.04 of v0; falsified by two consecutive ladder evals below v0 - 0.05.
 - Elo of r21's frozen versions: a version >= v0 + 25 on r21's ladder; falsified by none by self-play update 80.
+- r21 opening: v0 (r20 v2) vs heuristic 0.688 (coherent deals **0.767**, stress **0.61**, 150 games
+  each; the baselines of predictions 1 and 2), Elo 351.6, heuristic 219.4. Teacher gate at 5 (0.66),
+  v1 frozen at 6 (357 Elo).
+
+## 22. The learner barely exploits a fixed opponent (2026-11-06)
+Training win rate against the newest frozen version, over stretches where that version did not change
+(iteration rows, ~1,000 games each): r19 vs v2, 66 updates: 0.501 -> 0.511, slope **+0.015 per 100
+updates**; r20 vs v1, 65 updates: 0.493 -> 0.504, **+0.013**; r21 vs v1, first 31 updates: no rise.
+A fixed opponent is the easiest target self-play has, and 100 updates are ~150,000 games, so the
+plateau is not only measurement: learning itself is slow. Each update moves the policy ~0.009 KL
+(lr 5e-5, one epoch, 37 minibatches). Next single change after r21: the learning rate, with this
+exploitation slope as the primary metric (it is far more sensitive than the gates).
