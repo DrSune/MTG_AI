@@ -308,3 +308,27 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
   piles with ~13.4 lands of 60 (games.py build_deck), so mana decides them: a coherent deal holds
   about twice the skill signal, and half of training (`--coherent-share 0.5`) and of every gate and
   ladder is stress. Candidate for r20, after r19's falsifier at self-play update 80.
+
+## 16. FDN verified; a game review finds dead lands, and that effect polarity is memorised (2026-11-06)
+- **FDN round 1:** 135 blind packets (122 real, 13 planted), four fresh verifiers: planted faults
+  caught 13/13. 110 cards stamped; the FDN verified pool is 165 cards with 36 lands. Six real WRONG:
+  two records to remap (Pilfer, Blanchwood Armor), three Raid cards dead without a postcombat main
+  phase (B-74), and Sphinx of the Final Word, which found the next bug.
+- **Hexproof worked on the stack** (since 2026-10-07): an opponent could not target a hexproof
+  creature spell, so Sporeweb Weaver could not be countered by a blue Cancel. CR 702.11b defines
+  hexproof on a permanent. Fixed (d0200d2); 1 of 100 seeded M21 heuristic games changes.
+- **Game review** (fresh agent, r19 v1, 24 games vs the heuristic, 20 won; 6 masked replays):
+  - Engine: a dealt card an effect puts onto the battlefield had no abilities, so **fetched and
+    ramped lands made no mana** (6 dead lands in 4 of 24 games; fixed 4b646f3, 8 of 100 M21 games
+    change). Sporeweb Weaver triggers once per damage source (stronger than printed); Volcanic
+    Salvo's reduction is not seen by the affordability check (never offered); two-target spells are
+    never offered (the multi-slot scaffold: Primal Might, Hunter's Edge, Rabid Bite are dead); no
+    mulligan. An agent is fixing the first two.
+  - Play: found 13 of 13 guaranteed lethals; mana creatures tapped for mana it never spends 13 of 20
+    times (one cost lethal); 8 beneficial effects put on opposing creatures; 5 of 59 blocks lost the
+    blocker for nothing; passed with a castable spell 9 of 34 times.
+  - **Names masked:** 89.5% of decisions unchanged (attacks 96%), curve and removal targets intact,
+    but 6 of 10 own-side pumps flip to opposing creatures. Whether a targeted effect helps or hurts
+    is mostly read from the card's NAME, not its components: a generalisation gap for the King
+    goal's second tier. Training masks names only 10% of the time (`name_dropout` 0.1).
+  - The heuristic anchor misdirects too (Pacifism on its own creature, buffs on the network's).

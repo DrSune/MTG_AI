@@ -1578,3 +1578,23 @@ W&B key in history is revoked; a private split exists outside the public repo.
   the broken engine; only a test through `_setup_game` was red). Make the runner bind like a game
   (battlefield, stack and graveyard at setup; hand and library unbound), then audit the
   `handle_record.get(...)` readers for cards in hand or library.
+- **No mulligan** (2026-11-06, the r19 game review): every player keeps the opening seven (CR 103.5,
+  the London mulligan, is not implemented). The network kept a 0-land hand; the heuristic sat on one
+  land for whole games. Real play mulligans those hands, so every such game is decided by the deal.
+  Implement the London mulligan as a decision (keep or mulligan, then which cards go to the bottom).
+- **FDN round 1 tool findings** (2026-11-06; none of the cards involved is verified):
+  - Remap: Pilfer (TARGET_PLAYER, printed "target opponent"); Blanchwood Armor (ENCHANT without the
+    creature filter, so it enchants any permanent).
+  - Probe blind spots: a 0/0 X creature dies at setup (Wildwood Scourge); stimuli never end the turn,
+    so "until end of turn" on a triggered effect goes unexercised; the opponent's attack stimulus never
+    asks for blocks; an Equipment's attachment is invisible without a static; combat stimuli answer
+    trigger target asks and unprimed "may" choices internally; pools emptying at end of turn hide
+    payments.
+  - Pack runner: in a combat step, a creature missing from the `attack` map takes its attack answer
+    from the step's `decisions`, which shifts the words meant for a trigger.
+  - Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of the
+    creature (CR 502.3: only the untap step). Check the verified "next untap step" cards too (Frost
+    Breath M21, Frost Lynx M20); it matters only when an untap effect is in play.
+  - Incinerating Blast's mapped discard is ONE_OF where the compiler writes CHOOSE; the pick is
+    journalled as a targeting event on the discarded card.
+  - Good-Fortune Unicorn's trigger placed no counter in a verifier's pack (not investigated).
