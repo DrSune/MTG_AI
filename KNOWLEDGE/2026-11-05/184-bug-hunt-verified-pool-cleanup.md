@@ -268,3 +268,9 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
   "can't be countered" as a prevention of a CounteredEvent (the counterspell still targets and
   resolves). 51 sentences newly parse, 25 cards newly fully compiled across the 19 sets; no compiled
   tree changed; 100 seeded M21 games identical before and after. Gates: 5014 / 127 / 709.
+- Relaunched (2026-11-06): the first r19 start ran from the main checkout and was stopped at update
+  5 (renamed `runs/selfplay/r19_ppo_aborted`, nothing from it used) so main can take engine fixes
+  during the run. r19 now runs from a detached worktree pinned at 449bd0f (`../MTG_AI-run`), the
+  same commit and arguments as pre-registered; its manifest records git_commit 449bd0f. Rule added
+  to TRAINING_REVIEW_PROTOCOL §1. The aborted start's opening ladder: v0 (r18 last.pt) 428 Elo,
+  heuristic 326, random 0; v0 vs heuristic 0.648 (300 games).

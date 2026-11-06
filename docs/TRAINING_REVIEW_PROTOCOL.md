@@ -79,6 +79,12 @@ are gone.** Every line is a hard blocker unless marked ADVISORY. Pre-flight writ
 `.venv/bin/python -m tools.selfplay.preflight <run>` implements P1, P8, P9 and P12 (2026-11-05);
 the test gates (P7) are `tools/check.sh`.
 
+**Launch from the pinned run worktree, never from the main checkout** (2026-11-06):
+`git worktree add --detach ../MTG_AI-run <commit>` (or `git -C ../MTG_AI-run checkout --detach
+<commit>`), then from inside it run pre-flight and the learner with absolute `--run`/`--init` paths
+into the main checkout's `runs/`. The engine has ~170 function-level imports and the workers load card
+records lazily, so editing the checkout a run started from can change the game mid-run, unrecorded.
+
 ### 1.1 Code, config and data identity
 
 | # | Check | Passing condition | Status today |
