@@ -13,3 +13,6 @@ b726e89d516b1ef16b06711ae4350fc38c9ff5fe5253ebf97b90ae727af2c97a  runs/selfplay/
 f70a003ce7e205e71140f97a0c31799b877849d6ab52e946b0b655236614bc35  runs/selfplay/r18_ppo/v4.pt
 ee65196f458341efc67c6f0148a024464ed69dc151726ff01934a14874fff856  runs/selfplay/r19_ppo/v3.pt
 f2e63c71dbd89dab632a31e089e6ca57f4fadb557926912bd70abee9a32174f0  runs/selfplay/r20_ppo/v2.pt
+# r23_mulligan gen.pt: r20 v2 after the PPO mulligan stage (update 31), the generator of E1 and E3
+#   (KNOWLEDGE/2026-11-06/186 §1-2).
+3dddae50a3651f8a0f73866c8f11717c8c1f5410ab892c79f481c83d56532afb  runs/selfplay/r23_mulligan/gen.pt
