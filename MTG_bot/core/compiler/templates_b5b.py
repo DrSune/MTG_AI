@@ -1344,27 +1344,27 @@ _COLORS_WUBRG: tuple[str, ...] = ("W", "U", "B", "R", "G")
 _UNIVERSAL: Final[Filter] = FAnd(children=())
 
 
-def _result_selector(filter: Filter | None = None) -> Selector:
+def _result_selector() -> Selector:
     """The anaphoric ``it`` / ``that card`` / ``them``: the object(s) the previous sentence
     revealed, chose, exiled or moved. ``referent="result"`` reads the compiler's result
     register, never an English antecedent."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
-        filter if filter is not None else _UNIVERSAL,
+        _UNIVERSAL,
         zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
         referent="result",
     )
 
 
-def _looked_top_library(filter: Filter | None = None) -> Selector:
+def _looked_top_library() -> Selector:
     """The set the previous "Look at the top N cards" sentence exposed:
     still on top of your library, so the zone is typed rather than a
     result referent."""
     return Selector(
         QConst(1),
         SelectorMode.CHOOSE,
-        filter if filter is not None else _UNIVERSAL,
+        _UNIVERSAL,
         zones=(Zone(
             kind=ZoneKind.LIBRARY,
             controller=ControllerRef.YOU,
@@ -3327,12 +3327,5 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_sanctum_all_extra_trigger,
-    ),
-)
-
-UNCOVERED: tuple[tuple[str, str], ...] = (
-    (
-        "If you search your library this way, shuffle.",
-        "Conditional shuffle on library-search trigger",
     ),
 )

@@ -1,7 +1,7 @@
 """Tests for the B5b bucket templates (templates_b5b.py).
 
 Every concrete sentence of ``/tmp/opencode/phase1_buckets/B5b.json`` is either
-template-covered or UNCOVERED, and fullmatches at most one template. The one
+template-covered or uncovered, and fullmatches at most one template. The one
 uncovered row, "If you search your library this way, shuffle.", is built into
 the compiler (test_compiler.py::TestContinuation::test_search_shuffle_*).
 """
@@ -662,7 +662,7 @@ class TestShapeTable(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: Matching
+# Test: one match per sentence
 # ---------------------------------------------------------------------------
 
 
@@ -2000,7 +2000,7 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         )
         by_pred = {c.pred: c for c in sel.filter.children}
         self.assertEqual(len(by_pred), 2)
-        name_f = by_pred[FAtomPred.NAME_CHOSEN]
+        self.assertIn(FAtomPred.NAME_CHOSEN, by_pred)
         move_f = by_pred[FAtomPred.MOVED_TO_ZONE_THIS_TURN]
         self.assertEqual(
             move_f.from_zone, Zone(ZoneKind.HAND, ControllerRef.TARGET_PLAYER)
