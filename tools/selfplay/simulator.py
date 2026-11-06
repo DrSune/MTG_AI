@@ -392,8 +392,8 @@ def train(a: argparse.Namespace) -> None:
     total = a.epochs * len(chunks(lengths, a.mb, a.tok_budget))
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / 200) * (
         0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(1.0, s / total)))))
-    print(json.dumps({"positions": len(idx), "steps": total, "params": sum(
-        p.numel() for p in net.parameters()), **vars(a)}), flush=True)
+    print(json.dumps({**vars(a), "positions": len(idx), "steps": total, "params": sum(
+        p.numel() for p in net.parameters())}), flush=True)
     for epoch in range(a.epochs):
         net.train()
         t0, ls = time.time(), []
