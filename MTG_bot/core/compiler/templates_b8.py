@@ -609,7 +609,7 @@ def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# "where X is the number of creatures in your party" (X := QPartyCount)
+# "where X is the number of creatures in your party": X is the party count
 # ---------------------------------------------------------------------------
 
 

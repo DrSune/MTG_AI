@@ -195,8 +195,6 @@ def _m21_sentences() -> list[str]:
     import os
 
     m21 = os.path.join(os.path.dirname(__file__), "..", "..", "data", "M21.json")
-    if not os.path.exists(m21):
-        return []
     with open(m21) as f:
         cards = json.load(f)["data"]["cards"]
     out: list[str] = []
@@ -291,8 +289,6 @@ class TestB7Patterns(unittest.TestCase):
 
     def test_m21_pool_sentences_never_match_b7(self) -> None:
         sentences = _m21_sentences()
-        if not sentences:
-            self.skipTest("M21.json not present")
         for s in sentences:
             hits = [t.tid for t in TEMPLATES if t.pattern.fullmatch(s)]
             self.assertEqual(hits, [], f"M21 sentence matched B7: {s!r}")
@@ -429,8 +425,6 @@ class TestB4EntersTappedWidening(unittest.TestCase):
         # M21 prints no "This artifact/enchantment enters tapped." sentence, so these
         # arms cannot move an M21 golden or bucket.
         sentences = _m21_sentences()
-        if not sentences:
-            self.skipTest("M21.json not present")
         for noun in ("artifact", "enchantment"):
             s = _ENTERS_TAPPED[noun]
             self.assertEqual(sentences.count(s), 0, noun)
@@ -515,8 +509,6 @@ class TestB6Znd2Extensions(unittest.TestCase):
 
     def test_m21_never_matches_the_new_b6_shapes(self) -> None:
         sentences = _m21_sentences()
-        if not sentences:
-            self.skipTest("M21.json not present")
         for s in sentences:
             hits = [
                 t.tid
