@@ -1,0 +1,43 @@
+{
+ "name": "token_referent_ancestral_blade_gone",
+ "set": "M20",
+ "note": "Ancestral Blade leaves the battlefield before its enters trigger resolves: the Soldier is still created, and 'attach this Equipment to it' does nothing (CR 701.3b: an Equipment that can't be attached doesn't move; it is in the graveyard). The Soldier stays 1/1. Red on main b02d7fc: no trigger, no Soldier.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "blade",
+   "real": "Ancestral Blade",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "blade",
+   "hold_triggers": true
+  },
+  {
+   "op": "move",
+   "key": "blade",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 1
+  },
+  "battlefield_pt": {
+   "Soldier": [
+    1,
+    1
+   ]
+  },
+  "zone": {
+   "blade": "graveyard"
+  }
+ }
+}

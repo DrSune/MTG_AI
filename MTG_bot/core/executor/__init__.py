@@ -2464,6 +2464,27 @@ class Executor:
             for attacker in attackers
             if self.layers.keyword_of(attacker, Keyword.MENACE)
         }
+        # CR 509.1b: "can't be blocked by more than one creature" limits how many creatures may
+        # block an attacker. Restrictions add up, so a menace attacker allowed fewer than two
+        # blockers can't be blocked at all (CR 702.111b).
+        allowed: dict[Handle, int] = {}
+        for attacker in attackers:
+            limit = self.replacements.blockers_allowed(attacker)
+            if limit is None:
+                continue
+            allowed[attacker] = limit
+            if attacker in menace and limit < 2:
+                for legal in pair_ok.values():
+                    legal.discard(attacker)
+        # CR 509.1c: requirements are obeyed only as far as the restrictions allow. One that no
+        # declaration can obey (no creature may block that attacker, or fewer than the two a
+        # menace attacker needs) is not obeyed, and must not keep the other blocks from being
+        # declared: every completion would fail on it, so no blocker would be asked at all.
+        mandated = {
+            attacker
+            for attacker in mandated
+            if sum(attacker in legal for legal in pair_ok.values()) >= (2 if attacker in menace else 1)
+        }
 
         def completable(
             partial: dict[Handle, list[Handle]], tail: list[Handle]
@@ -2518,6 +2539,7 @@ class Executor:
                 attacker
                 for attacker in attackers
                 if attacker in pair_ok[blocker]
+                and (attacker not in allowed or len(assigned.get(attacker, ())) < allowed[attacker])
                 and completable(
                     {**assigned, attacker: [*assigned.get(attacker, []), blocker]},
                     tail,
@@ -2583,6 +2605,11 @@ class Executor:
                     f"exactly one creature {[str(b) for b in blockers]} "
                     "(CR 702.113 — the ask narrowing should have prevented "
                     "this)"
+                )
+            if attacker in allowed and len(blockers) > allowed[attacker]:
+                raise RuntimeError(
+                    f"executor: {attacker} was blocked by {len(blockers)} creatures, more "
+                    "than it may be (CR 509.1b — the ask narrowing should have prevented this)"
                 )
         for attacker in mandated:
             if assigned.get(attacker):

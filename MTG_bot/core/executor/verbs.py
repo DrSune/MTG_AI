@@ -1315,6 +1315,7 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
                 f"{len(resolved)} players (need exactly 1)"
             )
         creator = resolved[0]
+    created: list[Handle] = []
     for _ in range(n):
         power = None if spec.power is None else resolve(spec.power, ctx)
         toughness = None if spec.toughness is None else resolve(spec.toughness, ctx)
@@ -1330,6 +1331,7 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
             is_token=True,
         )
         handle = ctx.world.add_card(identity, creator, ZONE_BATTLEFIELD)
+        created.append(handle)
         # 16c (the token-record binder registration — the /13 named gap):
         # the token's own rule lines ("This token can't block", "Creatures
         # you control attack each combat if able" — the Pursued Whale
@@ -1387,6 +1389,9 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
                 str(handle),
             )
         )
+    # 2026-11-06: the tokens are the objects this instruction acted on, so a later one names
+    # them ("create a 1/1 Soldier creature token, then attach this Equipment to it").
+    ctx.bindings["result"] = created
 
 
 def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
@@ -2388,16 +2393,21 @@ def _v_attach(ctx: ExecCtx, atom: Atom) -> None:
         raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
     equipment = role_handles(ctx, atom, "equipment")
     hosts = role_handles(ctx, atom, "target")
+    world = ctx.world
+    if not equipment or not hosts or any(
+        handle not in world.cards or world.zone_of(handle).kind != ZONE_BATTLEFIELD
+        for handle in (*equipment, *hosts)
+    ):
+        # CR 701.3b: an Equipment that can't be attached doesn't move. One that left the
+        # battlefield before "attach this Equipment to it" resolved (Ancestral Blade) stays
+        # where it is, and the effect does nothing.
+        return
     if len(equipment) != 1 or len(hosts) != 1:
         raise ValueError(
             f"executor: ATTACH needs exactly one equipment and one host, got "
             f"{len(equipment)}/{len(hosts)}"
         )
     equipment, host = equipment[0], hosts[0]
-    world = ctx.world
-    for handle in (equipment, host):
-        if handle not in world.cards or world.zone_of(handle).kind != ZONE_BATTLEFIELD:
-            raise ValueError(f"executor: ATTACH ends must be battlefields ({handle})")
     ctx.executor.attach_aura(equipment, host)
     ctx.events.append((len(ctx.events), atom.verb.name, str(equipment), str(host)))
 

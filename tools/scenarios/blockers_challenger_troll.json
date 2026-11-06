@@ -1,0 +1,91 @@
+{
+ "name": "blockers_challenger_troll",
+ "set": "WAR",
+ "note": "Challenger Troll: 'Each creature you control with power 4 or greater can't be blocked by more than one creature.' The Troll (6/5) takes one blocker, after which no Wall is offered it; the 3/3 Cub, power under 4, is blocked by two. Red on main b02d7fc: the sentence did not parse, so Wall B was offered the Troll as well.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "troll",
+   "real": "Challenger Troll",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cub",
+   "name": "Cub",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall_a",
+   "name": "Wall A",
+   "power": "0",
+   "toughness": "7",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_b",
+   "name": "Wall B",
+   "power": "0",
+   "toughness": "7",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall_c",
+   "name": "Wall C",
+   "power": "0",
+   "toughness": "7",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "troll": true,
+    "cub": true
+   },
+   "block": {
+    "wall_a": "troll",
+    "wall_b": "cub",
+    "wall_c": "cub"
+   },
+   "order": {
+    "cub": [
+     "0"
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "troll": [
+    "wall_a"
+   ],
+   "cub": [
+    "wall_b",
+    "wall_c"
+   ]
+  },
+  "block_asks": {
+   "wall_b": "<cub>,NONE"
+  },
+  "damage": {
+   "wall_a": 6,
+   "wall_b": 3
+  }
+ }
+}

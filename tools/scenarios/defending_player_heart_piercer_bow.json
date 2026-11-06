@@ -1,0 +1,71 @@
+{
+ "name": "defending_player_heart_piercer_bow",
+ "set": "M20",
+ "note": "Heart-Piercer Bow: 'Whenever equipped creature attacks, this Equipment deals 1 damage to target creature defending player controls.' The equipped Bear attacks; the Bow deals 1 damage to the defending player's Ogre, the only legal target (P0's Goat is not). Red on main b02d7fc: the trigger did not parse, so no damage was dealt.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bow",
+   "real": "Heart-Piercer Bow",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "goat",
+   "name": "Goat",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "bow",
+   "host": "bear"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true,
+    "goat": false
+   }
+  }
+ ],
+ "expect": {
+  "attached": {
+   "bow": "bear"
+  },
+  "damage": {
+   "ogre": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

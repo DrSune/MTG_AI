@@ -1,0 +1,34 @@
+{
+ "name": "token_referent_ancestral_blade",
+ "set": "M20",
+ "note": "Ancestral Blade: 'When this Equipment enters, create a 1/1 white Soldier creature token, then attach this Equipment to it.' The token is the object the create step acted on, so the Blade is attached to it and it is 2/2 ('Equipped creature gets +1/+1'). Red on main b02d7fc: the trigger did not parse, so no Soldier was made.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "blade",
+   "real": "Ancestral Blade",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "blade"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 1
+  },
+  "battlefield_pt": {
+   "Soldier": [
+    2,
+    2
+   ]
+  }
+ }
+}

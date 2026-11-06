@@ -353,7 +353,7 @@ def test_r7_table_members() -> None:
     assert at.FAtomPred.ZONE_COUNT_GE.value == "ZONE_COUNT_GE"
     assert at.Verb.MANDATE_BLOCK.value == "MANDATE_BLOCK"
     assert at._OMIT_IF_EMPTY["DeclareBlockersEvent"] == frozenset(
-        {"subject", "blocked"}
+        {"subject", "blocked", "count"}  # count: the blocker limit, 2026-11-06
     )
     spec = dict(at._SPECS["DeclareBlockersEvent"])
     assert spec["blocked"] == "opt:filter"

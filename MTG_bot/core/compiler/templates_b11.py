@@ -10,12 +10,14 @@ This bucket parses a clause FAMILY once, from shared parts, and builds exactly t
 templates build for the same meaning (identity law, DESIGN_ATOM_ONTOLOGY §6):
 
 * a target noun phrase: one card type or two joined by "or", or "nonland permanent"; optional
-  "you control" / "an opponent controls" / "you don't control"; optional "with <keyword>" or
+  "you control" / "an opponent controls" / "you don't control" / "defending player controls"
+  (2026-11-06, ``ControllerRef.DEFENDING_PLAYER``, CR 506.2, 508.5); optional "with <keyword>" or
   "with power N or less|greater"; optional "that was dealt damage this turn" (2026-11-05, the
   turn-history atom of conditions.py: Ogre Siegebreaker, Fathom Fleet Cutthroat). The pattern IS
   the grammar (built from the same tables the builder reads), so a pattern can never match a
   phrase its builder cannot encode (B-36).
-* the verbs over it: destroy, exile, return to its owner's hand, tap, untap.
+* the verbs over it: destroy, exile, return to its owner's hand, tap, untap, and "this
+  <permanent> deals N damage to" it (2026-11-06; the source deals it, as the B3 carriers encode).
 * exile it "until this <permanent> leaves the battlefield" (ontology R5-1, CR 610.3).
 * "Enchanted|Equipped creature gets +P/+T [and has <keywords>]." statics.
 * a bare "Equip {cost}" line (the specific template needs the reminder text, which rares omit).
@@ -118,7 +120,9 @@ _KW_ALT: Final[str] = _alt(_KEYWORDS)
 _TYPES_RE: Final[str] = (
     rf"(?:(?P<nonland>nonland permanent)|(?P<t1>{_TYPE_ALT})(?: or (?P<t2>{_TYPE_ALT}))?)"
 )
-_CTL_RE: Final[str] = r"(?P<ctl>you control|an opponent controls|you don't control)"
+_CTL_RE: Final[str] = (
+    r"(?P<ctl>you control|an opponent controls|you don't control|defending player controls)"
+)
 _WITH_RE: Final[str] = (
     rf"with (?:(?P<wkw>{_KW_ALT})|power (?P<pw>\d+) or (?P<pdir>less|greater))"
 )
@@ -162,6 +166,8 @@ def _np_filter(m: re.Match[str]) -> Filter:
         conjuncts.append(
             FNot(inner=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU))
         )
+    elif ctl == "defending player controls":
+        conjuncts.append(FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.DEFENDING_PLAYER))
     kw = m.group("wkw") or m.group("w2wkw")
     if kw:
         conjuncts.append(FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=_KEYWORDS[kw]))
@@ -237,6 +243,15 @@ def _build_bounce_np(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
+def _build_deal_damage_np(m: re.Match[str]) -> SentenceOutcome:
+    # Mirrors the B3 damage carriers: DEAL_DAMAGE(target, amount), the ability's source the dealer.
+    atom = Atom(
+        verb=Verb.DEAL_DAMAGE,
+        args=AtomArgs(pairs=(("amount", QConst(int(m.group("dmg")))), ("target", _target(m)))),
+    )
+    return EffectOutcome(effect=atom)
+
+
 def _tap_like(verb: Verb):
     def build(m: re.Match[str]) -> SentenceOutcome:
         return EffectOutcome(effect=Atom(verb=verb, args=AtomArgs(pairs=(("target", _target(m)),))))
@@ -276,17 +291,23 @@ _NUMBER_WORDS: Final[dict[str, int]] = {
 _COLOR_LETTER: Final[dict[str, str]] = {
     "white": "W", "blue": "U", "black": "B", "red": "R", "green": "G",
 }
-_TOKEN_RE: Final[str] = (
-    rf"^Create (?P<count>{_alt(_NUMBER_WORDS)}) (?P<p>\d+)/(?P<t>\d+) "
-    rf"(?:(?P<color>{_alt(_COLOR_LETTER)})|colorless) "
-    r"(?P<subs>[A-Z][a-z]+(?: [A-Z][a-z]+)*) (?P<art>artifact )?creature tokens?"
-    rf"(?: with {_KW_LIST_RE})?\.$"
+_TOKEN_KIND: Final[str] = (
+    rf"(?P<p>\d+)/(?P<t>\d+) (?:(?P<color>{_alt(_COLOR_LETTER)})|colorless) "
+    r"(?P<subs>[A-Z][a-z]+(?: [A-Z][a-z]+)*) (?P<art>artifact )?creature"
 )
+#: The tokens a "create" clause names: "two 1/1 white Soldier creature tokens [with <keywords>]".
+_TOKENS_RE: Final[str] = (
+    rf"(?P<count>{_alt(_NUMBER_WORDS)}) {_TOKEN_KIND} tokens?(?: with {_KW_LIST_RE})?"
+)
+#: One token, for a clause that goes on to name it ("..., then attach this Equipment to it").
+ONE_TOKEN_RE: Final[str] = rf"(?P<count>a) {_TOKEN_KIND} token(?: with {_KW_LIST_RE})?"
+_TOKEN_RE: Final[str] = rf"^Create {_TOKENS_RE}\.$"
 
 
 def _build_create_tokens(m: re.Match[str]) -> SentenceOutcome:
     """Mirrors the token carriers (b2a ``_soldier_token``, B5b-token-demon): CREATE_TOKEN with
-    ``count`` and a TokenSpec named by its subtypes, a one-letter colors tuple or () (colorless)."""
+    ``count`` and a TokenSpec named by its subtypes, a one-letter colors tuple or () (colorless).
+    ``m`` is any match with the token phrase's groups (:data:`ONE_TOKEN_RE` too)."""
     subtypes = tuple(m.group("subs").split(" "))
     artifact = bool(m.group("art"))
     spec = TokenSpec(
@@ -331,6 +352,9 @@ TEMPLATES: tuple[Template, ...] = (
     _t("B11-bounce-np", "return <target noun phrase> to its owner's hand",
        rf"^Return {_NP_RE} to its owner's hand\.$", _build_bounce_np),
     _t("B11-tap-np", "tap <target noun phrase>", rf"^Tap {_NP_RE}\.$", _tap_like(Verb.TAP)),
+    _t("B11-deal-damage-np", "this <permanent> deals N damage to <target noun phrase>",
+       rf"^This (?:creature|artifact|enchantment|Equipment) deals (?P<dmg>\d+) damage to "
+       rf"{_NP_RE}\.$", _build_deal_damage_np),
     _t("B11-untap-np", "untap <target noun phrase>", rf"^Untap {_NP_RE}\.$",
        _tap_like(Verb.UNTAP)),
     _t("B11-attached-pt", "enchanted/equipped creature gets +P/+T [and has <keywords>]",

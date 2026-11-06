@@ -1,0 +1,45 @@
+{
+ "name": "token_referent_elven_bow",
+ "set": "KHM",
+ "note": "Elven Bow: 'When this Equipment enters, you may pay {2}. If you do, create a 1/1 green Elf Warrior creature token, then attach this Equipment to it.' P0 pays {2}: the token is made and equipped ('Equipped creature gets +1/+2 and has reach', so 2/3). Falsified by token_referent_elven_bow_declined. Red on main b02d7fc: neither sentence parsed.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bow",
+   "real": "Elven Bow",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "bow",
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Elf Warrior": 1
+  },
+  "battlefield_pt": {
+   "Elf Warrior": [
+    2,
+    3
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

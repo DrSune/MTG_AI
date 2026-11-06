@@ -988,23 +988,13 @@ class ReplacementRegistry:
         subject over the BLOCKER and blocked over the ATTACKER; attack
         records filter over the ATTACKER (an ``attacked`` slot has no
         corpus carrier — the raise, never a silent ignore)."""
-        if rec.status == "expired":
-            return False
-        # C5 (Destructive Tampering "can't block this turn"): a RESOLVED
-        # effect outlives its source (CR 611.2a — the sorcery is long in the
-        # graveyard by the declare-blockers step), whatever its duration: a
-        # "can't block" with no end or until your next turn applies too (it
-        # used to need DurationEot). Static carriers (registered through the
-        # battlefield lifecycle) keep the liveness gate.
-        if not rec.resolved and not self._source_alive(rec.source):
-            return False
-        ctx = self._rec_ctx(rec, subject)
-        if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
-            rec.duration.filter, rec.source, ctx
-        ):
+        ctx = self._live_ctx(rec, subject)
+        if ctx is None:
             return False
         event = rec.event
         if isinstance(event, DeclareBlockersEvent):
+            if event.count is not None:
+                return False  # a limit on the number of blockers: blockers_allowed
             blocker, blocked = subject, other
             if rec.condition is not None and not (
                 eval_filter(rec.condition, blocker, ctx)
@@ -1035,6 +1025,54 @@ class ReplacementRegistry:
                 return False
             return self._slot_holds(rec, event.filter, subject, ctx)
         return False
+
+    def _live_ctx(self, rec, subject: Handle) -> ExecCtx | None:
+        """The consult context of a combat prevention that applies now, or None."""
+        if rec.status == "expired":
+            return None
+        # C5 (Destructive Tampering "can't block this turn"): a RESOLVED
+        # effect outlives its source (CR 611.2a — the sorcery is long in the
+        # graveyard by the declare-blockers step), whatever its duration: a
+        # "can't block" with no end or until your next turn applies too (it
+        # used to need DurationEot). Static carriers (registered through the
+        # battlefield lifecycle) keep the liveness gate.
+        if not rec.resolved and not self._source_alive(rec.source):
+            return None
+        ctx = self._rec_ctx(rec, subject)
+        if isinstance(rec.duration, DurationWhileCondition) and not eval_filter(
+            rec.duration.filter, rec.source, ctx
+        ):
+            return None
+        return ctx
+
+    def blockers_allowed(self, attacker: Handle) -> int | None:
+        """2026-11-06 (CR 509.1b): the most creatures that may block ``attacker``, None for no
+        limit. "This creature can't be blocked by more than one creature." is a prevention of
+        the attacker becoming blocked by ``QAtLeast(2)`` creatures, so it allows one. Judged in
+        the record's coordinates like the pair consults, the condition and the ``blocked`` slot
+        over the attacker. Which creatures count is the event's ``filter``; every carrier counts
+        any creature, and a narrower one is refused rather than counted wrong."""
+        allowed: int | None = None
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            event = rec.event
+            if not isinstance(event, DeclareBlockersEvent) or event.count is None:
+                continue
+            ctx = self._live_ctx(rec, attacker)
+            if ctx is None:
+                continue
+            if event.subject is not None or event.filter != FAnd(()):
+                raise NotImplementedError(
+                    "executor: a blocker-count limit that counts only some blockers has no "
+                    "consumer (no carrier prints one)"
+                )
+            if rec.condition is not None and not eval_filter(rec.condition, attacker, ctx):
+                continue
+            assert event.blocked is not None and isinstance(event.count, QAtLeast)
+            if not self._slot_holds(rec, event.blocked, attacker, ctx):
+                continue
+            limit = event.count.n - 1
+            allowed = limit if allowed is None else min(allowed, limit)
+        return allowed
 
     @staticmethod
     def _slot_holds(rec, filter_, handle: Handle, ctx: ExecCtx) -> bool:

@@ -135,6 +135,11 @@ Design decisions (each pinned by tests in test_ability_tree.py):
   and two events: ``LifeLostEvent`` (actor) and ``CounteredEvent`` (filter;
   "can't be countered" is a PREVENT_EFFECT over it). Additive: every earlier
   tree keeps its bytes.
+- **defending player, blocker count (2026-11-06)**:
+  ``ControllerRef.DEFENDING_PLAYER`` (CR 506.2, 508.5) and
+  ``DeclareBlockersEvent.count`` ("can't be blocked by more than one
+  creature" is a PREVENT_EFFECT over ``count=QAtLeast(2)``, CR 509.1b;
+  omit-when-None). Additive: every earlier tree keeps its bytes.
 - **No orphan guarantee yet**: verbs are cited to pool cards in docstrings;
   orphans are MEASURED by PC-6 and pruned then — the vocabulary is the
   Phase-1 hypothesis, not the post-hoc truth.
@@ -471,6 +476,11 @@ class ControllerRef(Enum):
     # opponent of the controller (CR 102.2, 102.3). It shared TARGET_PLAYER's bytes before,
     # so "target player" could never designate you.
     TARGET_OPPONENT = "TARGET_OPPONENT"
+    # 2026-11-06: "defending player" — the player being attacked in the current combat
+    # (CR 506.2). For an attacking creature's ability, or an ability that names an attacking
+    # creature, it is the player that creature attacks or the controller of the planeswalker
+    # it attacks (CR 508.5). Outside combat there is none, so the ref names no player.
+    DEFENDING_PLAYER = "DEFENDING_PLAYER"
 
 
 #: The refs naming the player a spell or ability designated (V21): "target player" and
@@ -1661,10 +1671,13 @@ class FAtom:
                 raise ValueError(f"FAtom: {self.pred.name} requires slot 'count'")
             if isinstance(self.count, QConst) and self.count.value < 1:
                 raise ValueError(f"FAtom: {self.pred.name} requires count >= 1")
-            if isinstance(self.event, (StepEvent, AbilityTriggerEvent, CounteredEvent)):
-                # no history to read: the first two are never journalled, and a
+            if isinstance(self.event, (StepEvent, AbilityTriggerEvent, CounteredEvent)) or (
+                isinstance(self.event, DeclareBlockersEvent) and self.event.count is not None
+            ):
+                # no history to read: the first two are never journalled, a
                 # countered spell has left the stack before its row could be
-                # matched (a "spell" filter cannot be judged afterwards)
+                # matched (a "spell" filter cannot be judged afterwards), and a
+                # block row is one pair, so a blocker count cannot be read off it
                 raise ValueError(
                     f"FAtom: {self.pred.name} cannot read {type(self.event).__name__} "
                     "(no journal history the matcher can judge)"
@@ -1697,12 +1710,13 @@ class FAtom:
                 ControllerRef.OPPONENT,
                 ControllerRef.TARGET_PLAYER,
                 ControllerRef.TARGET_OPPONENT,
+                ControllerRef.DEFENDING_PLAYER,
             )
             and not (isinstance(self.who, Selector) and self.who.referent is not None)
         ):
             raise ValueError(
                 "FAtom: CONTROLLER_IS who must be you, opponent, the target "
-                "player, or a referent Selector (grammar round 4)"
+                "player, the defending player, or a referent Selector (grammar round 4)"
             )
         if self.pred is FAtomPred.OPPONENT_OF and not (
             isinstance(self.who, ControllerRef)
@@ -1944,11 +1958,18 @@ class DeclareBlockersEvent:
     — "can't be blocked" / "can block only creatures with flying"
     restrict the blocked participant (Tome Anima, Ghostly Pilferer,
     Subira, Shacklegeist); omitted from the tagged dict when None, so
-    pre-round-6 trees keep byte-identical canonical JSON."""
+    pre-round-6 trees keep byte-identical canonical JSON.
+    ``count`` (2026-11-06) is how many creatures block the ``blocked``
+    creature: the event is that creature becoming blocked by ``count``
+    creatures. "Can't be blocked by more than one creature" is a
+    PREVENT_EFFECT over it with ``QAtLeast(2)``, a restriction on the
+    number of blockers (CR 509.1b), not on any one blocker. Only that
+    prevention reads it (no trigger does); omitted when None."""
 
     filter: Filter
     subject: Filter | None = None
     blocked: Filter | None = None
+    count: Quantity | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
@@ -1962,6 +1983,11 @@ class DeclareBlockersEvent:
         if self.blocked is not None and not _is_filter(self.blocked):
             raise ValueError(
                 f"DeclareBlockersEvent: blocked must be a Filter, got {type(self.blocked).__name__}"
+            )
+        if self.count is not None and (not isinstance(self.count, QAtLeast) or self.blocked is None):
+            # the count is the number of creatures blocking ONE blocked creature
+            raise ValueError(
+                "DeclareBlockersEvent: count must be a QAtLeast over a blocked creature"
             )
 
 
@@ -4465,6 +4491,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         # blocked (grammar round 6, R6-4): narrows the blocked-side
         # creature; omitted when None.
         ("blocked", "opt:filter"),
+        # count (2026-11-06): how many creatures block it; omitted when None.
+        ("count", "opt:quantity"),
     ),
     # R2 fold (/140): "CombatDamageEvent" removed — DamageDealtEvent is the
     # single damage host (fields below).
@@ -4805,7 +4833,7 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     # attacked (grammar round 10, R10-3): omit when None — byte-stable.
     "DeclareAttackersEvent": frozenset({"attacked"}),
     # subject (r3b) + blocked (grammar round 6, R6-4): omit when None.
-    "DeclareBlockersEvent": frozenset({"subject", "blocked"}),
+    "DeclareBlockersEvent": frozenset({"subject", "blocked", "count"}),
     # from_zone_not (grammar round 4): omit when None. actor (E1, /65):
     # omit when None — byte-stable re-encode discipline.
     "CastSpellEvent": frozenset({"actor", "from_zone", "ordinal", "from_zone_not"}),
