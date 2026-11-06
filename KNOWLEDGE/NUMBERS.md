@@ -5,6 +5,18 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-06 (defending player, blocker limit, created token; branch `engine/atoms-wave2`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| candidate components measured before building (19 sets, needs-atom notes and UNPARSED sentences) | cards that would become fully compiled: **blocker limit 6, created token 5 (+1 with the blocker limit), defending player 4, delayed trigger 4, cost parts 4, discard trigger 3, life-total threshold 3** | sentence classification over the census snapshot of main b02d7fc, each sentence's remaining clause checked with `cardtool.py parse` on a stand-in wording | built the first three; skipped: delayed trigger (CR 603.7b/c one-shot lifecycle that remembers objects, the largest engine change), cost parts (a second cost grammar and two payment lanes; 2 cards more need graveyard activation, CR 113.6m), discard trigger, life-total threshold |
+| compile delta over the 19 sets (pure compiler, no card records), main b02d7fc -> branch | **35 sentences newly parse, 16 cards newly fully compiled** (1,674 -> 1,690 of 5,439; unparsed 6,072 -> 6,037 of 11,390); M21 **0 trees changed**; 0 sentences stop parsing, 0 new ambiguities, 0 changes to a fully compiled tree or to an ability a partly compiled card already had | `.venv/bin/python tools/audit/compile_census.py snapshot <checkout> <out.json>` on an export of main and on the branch, then `... diff before.json after.json` (script held by **2e84a8c**, deleted after) | per set (sentences / cards): M20 6/4, KHM 10/4, 10E 2/1, M11 1/0, M14 2/1, M15 3/2, ORI 1/0, M19 5/2, WAR 2/1, FDN 1/0, ELD 1/0, IKO 1/1; the rest 0/0. Cards: Ancestral Blade, Bristling Boar (M20, M19, IKO), Heart-Piercer Bow, Wolfrider's Saddle; Draugr's Helm, Dwarven Hammer, Elven Bow, Valkyrie's Sword; Stalking Tiger; Master of Diversion; Charging Rhino, Leeching Sliver; Star-Crowned Stag; Challenger Troll |
+| `pytest MTG_bot` | **5086 passed** / 39 deselected / 66 subtests (main b02d7fc: 5037) | `.venv/bin/python -m pytest MTG_bot -q` | +49: test_executor_defending_player.py 6, test_executor_blocker_limit.py 9, test_executor_token_referent.py 6, compiler/test_templates_b15.py 17, 11 packs |
+| new scenario packs on main b02d7fc vs branch | **2/11 -> 11/11** (the 2 that pass on main are exactly the falsifying twins) | `.venv/bin/python tools/run_scenarios.py --dir <dir of the 11 packs>` in each checkout | all packs: 709/709 -> **720/720**; `pytest tools` 128 -> 128 |
+| red first, unit tests | **16 of the 21 executor tests fail** with only the new IR on main's executor (the 5 that pass: IR validation, the two twins, and the menace case, which main reads as plain "can't be blocked"); test_templates_b15.py cannot be collected on main | the new test files copied into an export of main b02d7fc with the branch's ability_tree.py | |
+| frames differential (specific template vs frame + clause, M21/ZNR/M20/KHM) | **78 agree / 0 differ** (was 75 / 0): Liliana's Devotee (end step + if + "you may pay"), Skyway Sniper and Sparkhunter Masticore (activated + "this creature deals N damage to <noun phrase>") | `.venv/bin/python -m pytest MTG_bot/core/compiler/test_frames.py -q` | |
+| play identity: 100 seeded heuristic games per verified pool | M21 **e444f1f417865816**, M20 **3f2e25772b62577c** on both main b02d7fc and the branch | the replay digest (`tools.selfplay.rig.play_game`, seeds 910000+, `pool_mode="verified"`) run from each checkout | the modules printed after the run are the checkout's own |
+
 ## 2026-11-06 (turn history and "can't be countered", branch `engine/turn-history-uncounterable`)
 
 | Number | Value | Command | Notes |
