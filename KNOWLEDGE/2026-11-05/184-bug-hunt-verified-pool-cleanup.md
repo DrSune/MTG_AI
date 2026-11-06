@@ -386,3 +386,13 @@ Predictions:
 - v0 vs heuristic, opening ladder on the new game: 0.60-0.68; falsified by below 0.58 (the rule changes or the new ask broke the network) or above 0.72.
 - Elo of r20's frozen versions: one version >= v0 + 25 on r20's own ladder within 60 self-play updates; falsified by none by self-play update 80.
 - casting after combat, 24 traced games vs heuristic at the decision point (M21 and M20): the network casts a sorcery-speed spell in a second main in at least 5 games; falsified by fewer than 2.
+- **r20 opening** (2026-11-06): v0 vs heuristic **0.665** on the new game (prediction 1: **hit**);
+  Elo v0 365, heuristic 239, random 0. The heuristic beats random only 0.79 here (0.873 on the old
+  game): a random seat that passes early in the first main now has a second main to cast in, so
+  r20's Elo scale is not r19's. Teacher gate at 5 (0.656), v1 frozen at 7 (358 Elo).
+- **Crash at update 28:** `torch.multinomial` hit a device-side assert on a non-finite probability
+  row in inference (training reported no non-finite values). The cause is not known yet. The learner
+  now checks the rows first and, on a bad one, saves the batch to `<run>/nonfinite_infer_it<N>.pt`
+  and raises with the row's ask, option count and whether its logits were NaN or all -inf (36ed712,
+  no randomness used). r20 resumed from update 28 at 36ed712 (pre-flight passed; the AdamW moments
+  restart on resume).
