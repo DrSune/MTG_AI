@@ -123,3 +123,25 @@ Var(z_a - z_b) 0.081 per future, 98% of futures tie):
 
 **Cost.** The GPU is shared with E0's training: label jobs measured 550-920 forward passes a second
 (smoke runs, 20:00), so a look takes about 50-80 minutes.
+
+## 3. A finding from the regression test: the target's step decides the owner's example
+
+PLAN §1.4: distilling per-world labels converges on R2 "with the linear target". The plan's step,
+eta = 0.5 / SE, is linear enough only when SE includes the spread between the hidden worlds the
+policy cannot tell apart. Repeated distillation of the 45/30/25 example (each round the policy
+becomes the mean of the per-world targets, `search.mmd_target`), R2's share of the pair after 1,000
+rounds (scratch `labels/eta_owner_example.py`):
+
+| eta | 0.02 | 0.05 | 0.1 | 0.25 | 0.5 | 1.0 | 2.7 | hard labels |
+|---|---|---|---|---|---|---|---|---|
+| R2 share | 0.971 | 0.997 | 0.975 | 0.704 | 0.608 | 0.566 | 0.551 | 0.550 |
+
+R2 is the fixed point only while eta is below about 0.1 here (the second-order term of the
+exponential step, 2 eta^2, must stay below the first-order advantage, 0.2 eta). Each label's own
+futures share its hidden cards, so their spread (the per-future variance) misses exactly this
+between-world noise: with it, SE is about 0.2 for greedy playouts (§2's predictions) and eta about
+2.5, which behaves like hard labels. With the between-world spread (here about 2), eta = 0.25 still
+stops at 70/30. For greedy deployment the argmax is right in all of these (R2 has the larger mean
+target); the stochastic policy is not. The regression test pins the linear regime (eta = 0.05);
+the step itself is a registered scaffold (BACKLOG) and a Phase 1 question: anneal it, or bound it
+by the advantage it must resolve.
