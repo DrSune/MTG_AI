@@ -1,11 +1,7 @@
 """Tests for pre-flight check P11: all RNG seeded, streams separated.
 
-The load-bearing test here is test_consuming_one_stream_does_not_perturb_another. The other
-tests would pass under a single global seed; that one would not, and it is the property the
-protocol actually needs. docs/TRAINING_REVIEW_PROTOCOL.md says P11 to P13 gate the entire
-protocol, and the reason is that without stream separation an A/B comparison silently
-measures the wrong thing: changing a hyperparameter changes how many numbers its stream
-consumes, which shifts every later draw from any stream it shares.
+test_consuming_one_stream_does_not_perturb_another is the load-bearing one: the others would
+also pass under a single global seed.
 """
 
 import hashlib
@@ -38,14 +34,8 @@ def test_streams_are_distinct_from_each_other():
 
 
 def test_consuming_one_stream_does_not_perturb_another():
-    """THE P11 property. Draw an arbitrary amount from exploration, then check every other
-    stream is untouched.
-
-    Before MTG_bot/utils/rng.py existed, every draw in the project came from the one global
-    `random` module, so this failed: raising the exploration rate consumed a different
-    number of draws and shifted every subsequent library shuffle. Two runs differing only in
-    a hyperparameter faced different decks.
-    """
+    """THE P11 property: draw an arbitrary amount from exploration, and every other stream is
+    untouched."""
     _seeded()
     baseline = {n: [rng.stream(n).random() for _ in range(5)]
                 for n in rng.STREAM_NAMES if n != "exploration"}
@@ -63,12 +53,7 @@ def test_consuming_one_stream_does_not_perturb_another():
 
 
 def test_stream_seeds_are_derived_from_the_name_not_from_draw_order():
-    """Pins the derivation so that adding a stream later cannot renumber existing ones.
-
-    With sequential splitting of a parent generator, inserting a sixth stream shifts every
-    stream after it and silently invalidates the reproducibility of every earlier run. This
-    asserts the documented sha256(master:name) scheme instead.
-    """
+    """Pins the sha256(master:name) derivation, so adding a stream cannot renumber the others."""
     master = 4242
     for name in rng.STREAM_NAMES:
         expected = int.from_bytes(

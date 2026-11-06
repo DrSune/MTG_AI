@@ -1,42 +1,13 @@
-"""Seeded, stream-separated randomness.
+"""Seeded, stream-separated randomness (pre-flight P11, docs/TRAINING_REVIEW_PROTOCOL.md).
 
-This exists for pre-flight check P11 in docs/TRAINING_REVIEW_PROTOCOL.md, which requires
-"All RNG seeded, streams separated (shuffle / engine / policy / exploration)" with "four
-independent streams". P11 to P13 gate the entire protocol: until they pass, no comparison
-in that document can conclude anything.
+Each concern draws from its own named stream. Draws from one stream are consumed in sequence,
+so two concerns sharing a stream are coupled: raising the exploration rate consumes more
+numbers and shifts every later library shuffle, and an A/B comparison then measures different
+decks, not the change.
 
-WHY SEPARATE STREAMS AND NOT JUST ONE SEED
-------------------------------------------
-Before this module, every random draw in MTG_bot came from the one global ``random``
-module: library shuffles and starting player (game_initializer), deck construction
-(deck_generator), engine choices (engine), and policy sampling and exploration (student).
-A single global seed would not have been enough, and the reason is the whole point of P11.
-
-Draws from one stream are consumed in sequence. If exploration and shuffling share a
-stream, then changing the exploration rate changes *how many* numbers exploration consumes,
-which shifts every subsequent shuffle. Two runs that differ only in a hyperparameter would
-then face different decks, and the difference you measured would be the decks, not the
-change. That makes an A/B comparison meaningless in exactly the way it looks trustworthy.
-
-Separated streams mean a change to one concern cannot perturb another.
-
-WHY STREAMS ARE DERIVED FROM A HASH OF THEIR NAME
--------------------------------------------------
-Each stream's seed is ``sha256(master_seed : name)``, not a sequential split of a parent
-generator. That is deliberate. With sequential splitting, adding a sixth stream later
-renumbers the ones after it and silently invalidates every earlier run's reproducibility.
-Name-derived seeds are stable: adding a stream changes nothing about the others, forever.
-
-``hashlib`` is used rather than the builtin ``hash()`` because ``hash()`` on a str is
-salted by PYTHONHASHSEED and differs between processes, which would break P12's
-requirement that the same seed replays identically "in two processes".
-
-WHAT THIS DOES NOT FIX
-----------------------
-P12, byte-identical replay, also needed integer entity handles and an ordered trigger
-queue. The legacy engine had neither (``uuid.uuid4()`` ids, triggers from ``set``
-differences); the rebuilt engine (``MTG_bot/core``) has both, the legacy one was deleted
-on 2026-11-05, and ``tools/selfplay/preflight.py`` checks P12.
+Each stream's seed is ``sha256(master_seed:name)``, not a sequential split of a parent
+generator, so adding a stream never renumbers the others. ``hashlib``, not the builtin
+``hash()``, which is salted per process and would break replay across processes (P12).
 """
 
 from __future__ import annotations
@@ -47,12 +18,9 @@ import os
 import random
 from typing import Dict, Optional
 
-logger = logging.getLogger(__name__)  # handlers belong to the application, not a library
+logger = logging.getLogger(__name__)
 
-# The four P11 requires, plus one. Deck construction is genuinely a different concern from
-# in-game shuffling: it runs once per matchup, off the per-decision path, and its draw count
-# changes whenever the archetype recipe changes. Folding it into "shuffle" would reintroduce
-# the exact coupling this module exists to remove. Declared here rather than added silently.
+# One stream per concern. Add a name rather than reuse a stream: sharing couples draw counts.
 STREAM_NAMES = (
     "shuffle",       # library shuffles, starting player
     "engine",        # engine-internal choices: discard to hand size, choice menus
@@ -74,11 +42,8 @@ def _derive(master: int, name: str) -> int:
 
 
 def seed_all(master_seed: int, *, seed_frameworks: bool = True) -> int:
-    """Seed every stream from one master seed. Returns the master seed.
-
-    Record the return value in the run manifest: P1 and P11 both want it there, and a run
-    whose seed was not written down is not reproducible even though it was deterministic.
-    """
+    """Seed every stream from one master seed and return it. Record it in the run manifest
+    (P1, P11): a run whose seed was not written down cannot be reproduced."""
     global _master_seed
     _master_seed = int(master_seed)
     _streams.clear()
@@ -86,8 +51,7 @@ def seed_all(master_seed: int, *, seed_frameworks: bool = True) -> int:
         _streams[name] = random.Random(_derive(_master_seed, name))
 
     if seed_frameworks:
-        # numpy and torch keep their own global state. Seed them off named streams too, so
-        # they inherit the same stability property.
+        # numpy and torch keep their own global state; seed them from name-derived seeds too.
         try:
             import numpy as np
 
@@ -108,12 +72,11 @@ def seed_all(master_seed: int, *, seed_frameworks: bool = True) -> int:
 def substream(name: str, *key: object) -> random.Random:
     """A fresh generator derived from the master seed, a declared stream name and a key.
 
-    For randomness that must not depend on how many draws OTHER games made from the shared
-    stream. The benchmark seeds each (deal, game, seat) agent this way, so the second game of a
-    duplicate pair is reproducible on its own. The same inputs give the same generator, and the
-    named stream itself is never consumed. Added 2026-10-24.
+    For randomness that must not depend on how many draws other games made from the shared
+    stream (the benchmark seeds each (deal, game, seat) agent this way). The same inputs give the
+    same generator, and the named stream itself is never consumed.
     """
-    stream(name)  # validates the name and auto-seeds (with its warning) exactly as stream() does
+    stream(name)  # validates the name and auto-seeds exactly as stream() does
     assert _master_seed is not None
     return random.Random(_derive(_master_seed, ":".join([name, *map(str, key)])))
 
@@ -127,9 +90,8 @@ def stream(name: str) -> random.Random:
     """Return the named generator. Use this instead of the ``random`` module.
 
     If nothing has been seeded yet, a master seed is drawn from OS entropy and logged at
-    WARNING. That is deliberate: crashing would break every test and ad-hoc script, but an
-    unseeded run must never be silent, because its numbers cannot be reproduced and the
-    protocol forbids reporting them.
+    WARNING: crashing would break every test and ad-hoc script, but an unseeded run must never
+    be silent, because its numbers cannot be reproduced.
     """
     if name not in _streams:
         if _master_seed is None:
