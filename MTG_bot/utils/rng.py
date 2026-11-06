@@ -52,12 +52,10 @@ def seed_all(master_seed: int, *, seed_frameworks: bool = True) -> int:
 
     if seed_frameworks:
         # numpy and torch keep their own global state; seed them from name-derived seeds too.
-        try:
-            import numpy as np
+        # torch is optional (not a declared dependency: the wheel differs per machine).
+        import numpy as np
 
-            np.random.seed(_derive(_master_seed, "numpy") % (2**32))
-        except ImportError:
-            pass
+        np.random.seed(_derive(_master_seed, "numpy") % (2**32))
         try:
             import torch
 
