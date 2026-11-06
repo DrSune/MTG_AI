@@ -2473,6 +2473,15 @@ class Executor:
             if attacker in menace and limit < 2:
                 for legal in pair_ok.values():
                     legal.discard(attacker)
+        # CR 509.1c: requirements are obeyed only as far as the restrictions allow. One that no
+        # declaration can obey (no creature may block that attacker, or fewer than the two a
+        # menace attacker needs) is not obeyed, and must not keep the other blocks from being
+        # declared: every completion would fail on it, so no blocker would be asked at all.
+        mandated = {
+            attacker
+            for attacker in mandated
+            if sum(attacker in legal for legal in pair_ok.values()) >= (2 if attacker in menace else 1)
+        }
 
         def completable(
             partial: dict[Handle, list[Handle]], tail: list[Handle]
@@ -2613,7 +2622,7 @@ class Executor:
             # blocker is not a violated mandate, it is CR 702.113 making
             # the mandate unfulfillable (must-block reads "if able").
             need = 2 if attacker in menace else 1
-            if len(free) >= need and need <= allowed.get(attacker, need):
+            if len(free) >= need:
                 raise RuntimeError(
                     f"executor: MANDATE_BLOCK violated - {attacker} had to be "
                     f"blocked and {len(free)} free legal blocker"

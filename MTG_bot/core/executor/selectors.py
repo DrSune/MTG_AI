@@ -1374,6 +1374,12 @@ def role_player(ctx: ExecCtx, atom: Atom, role: str = "controller") -> Handle:
                 f"executor: {atom.verb.name} {role!r} is one player, but ControllerRef."
                 f"{value.name} denotes {len(players)} here (B-108)"
             )
+        if not players:
+            # DEFENDING_PLAYER outside combat names nobody (CR 506.2)
+            raise NotImplementedError(
+                f"executor: {atom.verb.name} {role!r} is one player, but ControllerRef."
+                f"{value.name} denotes none here"
+            )
         return players[0]
     raise NotImplementedError(
         f"executor: {atom.verb.name} {role!r} referent-selector player is 12b's"

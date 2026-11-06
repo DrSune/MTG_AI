@@ -291,20 +291,23 @@ _NUMBER_WORDS: Final[dict[str, int]] = {
 _COLOR_LETTER: Final[dict[str, str]] = {
     "white": "W", "blue": "U", "black": "B", "red": "R", "green": "G",
 }
-#: The token a "create" clause names: "a 1/1 white Soldier creature token [with <keywords>]".
-TOKEN_RE: Final[str] = (
-    rf"(?P<count>{_alt(_NUMBER_WORDS)}) (?P<p>\d+)/(?P<t>\d+) "
-    rf"(?:(?P<color>{_alt(_COLOR_LETTER)})|colorless) "
-    r"(?P<subs>[A-Z][a-z]+(?: [A-Z][a-z]+)*) (?P<art>artifact )?creature tokens?"
-    rf"(?: with {_KW_LIST_RE})?"
+_TOKEN_KIND: Final[str] = (
+    rf"(?P<p>\d+)/(?P<t>\d+) (?:(?P<color>{_alt(_COLOR_LETTER)})|colorless) "
+    r"(?P<subs>[A-Z][a-z]+(?: [A-Z][a-z]+)*) (?P<art>artifact )?creature"
 )
-_TOKEN_RE: Final[str] = rf"^Create {TOKEN_RE}\.$"
+#: The tokens a "create" clause names: "two 1/1 white Soldier creature tokens [with <keywords>]".
+_TOKENS_RE: Final[str] = (
+    rf"(?P<count>{_alt(_NUMBER_WORDS)}) {_TOKEN_KIND} tokens?(?: with {_KW_LIST_RE})?"
+)
+#: One token, for a clause that goes on to name it ("..., then attach this Equipment to it").
+ONE_TOKEN_RE: Final[str] = rf"(?P<count>a) {_TOKEN_KIND} token(?: with {_KW_LIST_RE})?"
+_TOKEN_RE: Final[str] = rf"^Create {_TOKENS_RE}\.$"
 
 
 def _build_create_tokens(m: re.Match[str]) -> SentenceOutcome:
     """Mirrors the token carriers (b2a ``_soldier_token``, B5b-token-demon): CREATE_TOKEN with
     ``count`` and a TokenSpec named by its subtypes, a one-letter colors tuple or () (colorless).
-    ``m`` is any match of :data:`TOKEN_RE`'s groups."""
+    ``m`` is any match with the token phrase's groups (:data:`ONE_TOKEN_RE` too)."""
     subtypes = tuple(m.group("subs").split(" "))
     artifact = bool(m.group("art"))
     spec = TokenSpec(

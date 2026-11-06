@@ -183,7 +183,7 @@ def _t(tid: str, name: str, pattern: str, build) -> Template:
 
 
 _CREATE_ATTACH: Final[str] = (
-    rf"create {templates_b11.TOKEN_RE}, then attach this Equipment to it\.$"
+    rf"create {templates_b11.ONE_TOKEN_RE}, then attach this Equipment to it\.$"
 )
 
 TEMPLATES: tuple[Template, ...] = (

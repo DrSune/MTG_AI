@@ -141,7 +141,8 @@ def mean_scores(raw: dict) -> dict:
 def block_answer(ask: Any, plan: frozenset) -> int | None:
     """The index a block ask gets under ``plan`` ((blocker, attacker) pairs; a blocker not in
     it blocks nothing), or None when the engine did not offer that word (it offers only words
-    that keep the whole assignment CR-completable: menace pairs, must-be-blocked attackers)."""
+    that keep the whole assignment CR-completable: menace pairs, must-be-blocked attackers, and
+    no more blockers than "can't be blocked by more than one creature" allows)."""
     h = _handle(":".join(ask.site.split(":")[1:3]))
     target = next((a for b, a in plan if b == h), None)
     tok = "NONE" if target is None else str(target)

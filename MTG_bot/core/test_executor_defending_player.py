@@ -98,6 +98,13 @@ class TestDefendingPlayer(LimitCase):
         self.assertEqual(sum(self.world.cards[h].tapped for h in (bear, ogre)), 1)
         self.assertFalse(self.world.cards[mine].tapped)
 
+    def test_one_acting_player_outside_combat_is_refused(self) -> None:
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        draw = Atom(Verb.DRAW, AtomArgs(pairs=(("amount", QConst(1)), ("controller", DEFENDING))))
+        with self.assertRaisesRegex(NotImplementedError, "denotes none"):
+            self.ex.execute(draw, source=self.p0, controller=self.p0)
+
     def test_a_bare_context_cannot_know_the_combat(self) -> None:
         bare = ExecCtx(world=self.world, ledger=self.ex.ledger, controller=self.p0,
                        source=self.p0, bindings={}, decisions=())

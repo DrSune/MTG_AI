@@ -1539,7 +1539,21 @@ W&B key in history is revoked; a private split exists outside the public repo.
   per combat however many creatures block (CR 509.3c), BecomesBlockedEvent is anchored to the
   source, and DeclareBlockersEvent(blocked=...) fires once per blocker.
 - **Leeching Sliver plays weaker than printed until B-103** ("whenever a Sliver you control attacks"
-  fires once per declaration, not once per attacking Sliver, CR 603.2c). Its tree is right.
+  fires once per declaration, not once per attacking Sliver, CR 603.2c). Its tree is right; repro
+  `tools/scenarios/known_bugs/leeching_sliver_each_attacking_sliver.json` (fails today, as Hooded
+  Blightfang's does). B-102 applies too: a Sliver put onto the battlefield attacking would trigger it.
+- **Must-be-blocked requirements obeyed only where they can be** (fresh-eyes review, 2026-11-06):
+  `_declare_blockers` now drops a requirement no declaration can obey (no creature may block that
+  attacker, or fewer than a menace attacker needs; CR 509.1c), which used to fail every completion,
+  so no blocker was asked at all (a must-be-blocked flyer and no reach blocker did it on main too).
+  Two older gaps remain. Requirements that can be obeyed one at a time but not together (two
+  must-be-blocked attackers, one possible blocker) still fail every completion: the declaration
+  must obey the most it can (CR 509.1c). And the narrowing forces the first blocker in handle order
+  onto an unassigned must-be-blocked attacker, so the defender cannot choose which creature obeys
+  it ("Wall A blocks the Bear, Wall B the Boar" is never offered).
+- **A Conditional after a step that made two or more tokens judges nothing**
+  (`executor._conditional_subject` takes the result register only when it holds one object): no
+  tree has such a step today; "if they ..." over several tokens would need its own reading.
 - **Ancient Hellkite** now compiles "{R}: This creature deals 1 damage to target creature defending
   player controls." but not "Activate only if this creature is attacking."; and the combat window
   offers instants only (`stack.open_combat_window`), so no ability can be activated while attacking.

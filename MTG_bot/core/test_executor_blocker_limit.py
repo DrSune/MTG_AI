@@ -5,9 +5,10 @@ CR 509.1b: a restriction may limit how many creatures block an attacker. The pre
 attacker becoming blocked by two or more creatures, so one creature may block it and, once one
 does, no other is offered the block. Restrictions add up (CR 509.1b), so a menace attacker
 (CR 702.111b: "can't be blocked except by two or more creatures") under the limit can't be blocked
-at all; a requirement to block it is obeyed as far as the restrictions allow (CR 509.1c). The
-limit is consulted by ``ReplacementRegistry.blockers_allowed``; no single blocker/attacker pair is
-vetoed by it.
+at all; a requirement to block it is obeyed as far as the restrictions allow (CR 509.1c), and one
+no declaration can obey (the menace attacker under the limit, a flyer nobody can block) does not
+keep the other creatures from blocking. The limit is consulted by
+``ReplacementRegistry.blockers_allowed``; no single blocker/attacker pair is vetoed by it.
 """
 
 from __future__ import annotations
@@ -145,6 +146,34 @@ class TestOneBlockerAtMost(LimitCase):
         self.assertEqual(self.forced_block(self.wall_a), str(self.boar))
         self.assertEqual(self.forced_block(self.wall_b), "NONE")
         self.assertEqual(self.blocked_map(), {str(self.boar): [str(self.wall_a)]})
+
+
+class TestRequirementsTheRestrictionsForbid(LimitCase):
+    """CR 509.1c: a requirement that can't be obeyed is not, and the rest of the declaration
+    stands (the fresh-eyes review's repro; before, no blocker was asked at all)."""
+
+    LURE = StaticAbility(effect=Atom(Verb.MANDATE_BLOCK, AtomArgs(pairs=(("cards", SELF),))))
+
+    def test_a_menace_attacker_under_the_limit_leaves_the_other_blocks_open(self) -> None:
+        self.boar = self.custom("Boar", 4, 3, self.p0, (at_most_one_blocker(IS_SOURCE), self.LURE),
+                                keywords=(Keyword.MENACE,))
+        self.bear = self.synth("Bear", 2, 2, self.p0)
+        self.wall_a = self.synth("Wall A", 0, 5, self.p1)
+        self.wall_b = self.synth("Wall B", 0, 5, self.p1)
+        self.begin()
+        self.fight(wall_a="bear")
+        self.assertEqual(self.vocab_for(self.wall_a), (str(self.bear), "NONE"))
+        self.assertEqual(self.blocked_map(), {str(self.bear): [str(self.wall_a)]})
+        self.assertEqual(self.world.players[self.p1].life, 16)  # the Boar is unblocked
+
+    def test_a_requirement_nobody_may_obey_leaves_the_other_blocks_open(self) -> None:
+        self.kite = self.custom("Kite", 2, 2, self.p0, (self.LURE,), keywords=(Keyword.FLYING,))
+        self.bear = self.synth("Bear", 2, 2, self.p0)
+        self.wall_a = self.synth("Wall A", 0, 5, self.p1)  # no reach: it may not block the Kite
+        self.begin()
+        self.fight(wall_a="bear")
+        self.assertEqual(self.blocked_map(), {str(self.bear): [str(self.wall_a)]})
+        self.assertEqual(self.world.players[self.p1].life, 18)
 
 
 class TestOverAClass(LimitCase):
