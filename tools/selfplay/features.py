@@ -11,7 +11,7 @@ One decision encodes to (shapes; E = card entities, K = options):
 * ``cards_f``  float32[E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost
 * ``players_f``float32[2, PF]  me then the opponent: life, zone counts, mana pool, board counts
 * ``glob_f``   float32[GF]     turn, whose turn, stack size, ask details
-* ``ask_i``    int32  [1]      ask kind
+* ``ask_i``    int32  [1]      ask kind (the act menu's says which main phase)
 * ``opts_i``   int32  [K, 4]   option type, entity ref, second entity ref, ability index
 * ``opts_f``   float32[K, 2]   number value, kicked
 
@@ -28,6 +28,7 @@ import numpy as np
 
 from MTG_bot.core.ability_tree import CounterKind, Phase, to_dict
 from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
+from MTG_bot.core.executor.legality import SECOND_MAIN
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -45,10 +46,16 @@ ASK_KINDS = (
     "order", "trample", "policy", "cw", "counter", "pay", "sacrifice", "discard", "tap", "name",
     "other",
     # appended, never inserted: a checkpoint's rows keep their meaning, and model.load starts a
-    # kind added after the checkpoint as "other", which is how it was encoded before
+    # kind added after the checkpoint as the kind it was encoded as before (ASK_GROWN_FROM)
     "legend", "enchant", "x", "replace",
+    # the act menu of the second main phase, after combat (CR 505.1; B-74, 2026-11-06): the same
+    # menu as the first main phase's, so the observation could not tell the two apart
+    "act_second_main",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
+#: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
+#: "other". An old network plays the second main phase's menu as it plays the first's.
+ASK_GROWN_FROM = {"act_second_main": "act"}
 
 ZONES = ("pad", ZONE_HAND, ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, "stack", ZONE_COMMAND,
          ZONE_LIBRARY)
@@ -377,7 +384,10 @@ def _handle(text: str) -> Handle | None:
 _OPTS = _OptCache()
 
 
-def ask_kind_index(kind: str) -> int:
+def ask_kind_index(kind: str, phase: str | None = None) -> int:
+    """The embedding row of an ask; an act menu's row says which main phase it is in."""
+    if kind == "act" and phase == SECOND_MAIN:
+        kind = "act_second_main"
     return ASK_INDEX.get(kind, ASK_INDEX["other"])
 
 
@@ -602,7 +612,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         "cards_f": cards_f.astype(np.float16),
         "players_f": players_f.astype(np.float16),
         "glob_f": glob_f.astype(np.float16),
-        "ask_i": np.array([ask_kind_index(ask.kind)], dtype=np.int16),
+        "ask_i": np.array([ask_kind_index(ask.kind, executor.phase)], dtype=np.int16),
         "opts_i": opts_i.astype(np.int16),
         "opts_f": opts_f.astype(np.float16),
     }

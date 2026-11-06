@@ -3,11 +3,14 @@
 It is deliberately simple and deterministic (no RNG), and it reads only what its seat may know:
 the public board, its own hand, and the cards an ask offers. Its rules, in order of the asks:
 
-* act: play a land, cast the highest mana value spell (kicked when offered, the largest X, never
-  X = 0; the menu pays from lands and mana rocks), activate a planeswalker, otherwise pass. A
-  harmful non-damage spell is not cast while the opponent controls no creature. A creature's or a
-  Treasure's mana is used only when its mana makes a spell in hand castable, never a mana-cost
-  filter (Prismite). Other activated abilities are never used.
+* act (in both main phases): play a land, cast the highest mana value spell (kicked when
+  offered, the largest X, never X = 0; the menu pays from lands and mana rocks), activate a
+  planeswalker, otherwise pass. A harmful non-damage spell is not cast while the opponent
+  controls no creature. A creature's or a Treasure's mana is used only when its mana makes a
+  spell in hand castable, never a mana-cost filter (Prismite). Other activated abilities are
+  never used. In the first main phase, when the spell it would cast reads whether it attacked
+  this turn (raid) and it has a creature that can attack, it passes instead: that spell and the
+  rest of its plays come in the second main phase, after the attack.
 * target: a harmful source (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
   creature, then the opponent; a helpful one at its own best creature, then itself.
 * attack: attack unless an untapped opposing creature that can block it would kill it and
@@ -27,16 +30,22 @@ from MTG_bot.core.ability_tree import (
     CostManaGeneric,
     CostManaHybrid,
     CostSacrifice,
+    DeclareAttackersEvent,
+    FAtom,
+    FAtomPred,
     SpellAbility,
     is_mana_ability,
     to_dict,
+    walk,
 )
 from MTG_bot.core.executor.legality import (
+    SECOND_MAIN,
     ManaTap,
     _cost_has_x,
     _mana_atom_output,
     _with_trial_mana,
     ctx_for,
+    legal_attackers,
     plan_mana_taps,
     spell_castable,
     spell_record,
@@ -52,6 +61,7 @@ HARM_VERBS = {
     "Verb.MOVE_ZONE", "Verb.REMOVE_COUNTER",
 }
 _TOKENS_CACHE: dict[str, frozenset] = {}
+_RAID_CACHE: dict[str, bool] = {}
 
 
 def _record_tokens(executor: Any, oracle_id: str) -> frozenset:
@@ -74,6 +84,19 @@ def is_harmful(executor: Any, handle: Handle | None) -> bool:
         return True
     # -N/-N: the compiler writes PtDelta(direction=DECREASE) with a positive magnitude now
     return "Verb.MODIFY_PT" in toks and ("num:neg" in toks or "PtDirection.DECREASE" in toks)
+
+
+def reads_raid(executor: Any, handle: Handle) -> bool:
+    """The card's text reads whether its controller attacked this turn (raid: "if you attacked
+    this turn", compiled as EVENT_THIS_TURN over a DeclareAttackersEvent, conditions.py)."""
+    oid = executor.world.cards[handle].identity.oracle_id
+    hit = _RAID_CACHE.get(oid)
+    if hit is None:
+        rec = executor.binder.records.get(oid)
+        hit = _RAID_CACHE[oid] = rec is not None and any(
+            isinstance(n, FAtom) and n.pred is FAtomPred.EVENT_THIS_TURN
+            and isinstance(n.event, DeclareAttackersEvent) for n in walk(rec))
+    return hit
 
 
 def deals_damage(executor: Any, handle: Handle | None) -> bool:
@@ -176,6 +199,10 @@ class HeuristicAgent:
             if best_key is None or key > best_key:
                 best, best_key = i, key
         if best is not None:
+            h = cast_token(tokens[best])[0]
+            if (self.ex.phase != SECOND_MAIN and "PASS" in tokens and reads_raid(self.ex, h)
+                    and legal_attackers(self.ex, self.me)):
+                return tokens.index("PASS")  # cast it after the attack (CR 505.1)
             return best
         mana = self._mana_row(tokens)
         if mana is not None:

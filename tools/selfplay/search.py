@@ -1,6 +1,7 @@
 """Decision-time lookahead: try the candidate moves in copies of the game and keep the best.
 
-At a main-phase decision (play which land, cast what, activate, pass) the searching seat:
+At a main-phase decision (play which land, cast what, activate, pass; either main phase) the
+searching seat:
 
 1. asks the network for its option probabilities and keeps the top ``k`` options;
 2. for each kept option, ``d`` times: forks the game (``tools/search/fork.py``), re-samples
@@ -21,10 +22,13 @@ Tavern Swindler (2026-11-05 audit). Known approximation: coherent two-colour dec
 as five-colour piles.
 
 Searched decisions are the clean points of this rig, where no engine call is in flight: the
-router's act loop, and the pre-combat boundary (the end of the act window), where whole attack
-plans are compared (``plan_attacks``) and the engine's per-creature attack asks are then answered
-from the chosen plan. Blocks (--search-blocks) are planned the same way at the engine's
-pre-blocks boundary, where the opponent's attack is declared and no block asked yet.
+router's act loop in both main phases, and the pre-combat boundary (the end of the first main
+phase), where whole attack plans are compared (``plan_attacks``) and the engine's per-creature
+attack asks are then answered from the chosen plan. Blocks (--search-blocks) are planned the same
+way at the engine's pre-blocks boundary, where the opponent's attack is declared and no block
+asked yet. A candidate act is played forward from the window it was offered in: the copy resumes
+after that window (``skip_next_acts``), and the phase clock keeps a second-main-phase copy from
+replaying its combat.
 """
 
 from __future__ import annotations

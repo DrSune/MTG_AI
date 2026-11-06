@@ -78,13 +78,12 @@ class SelfplayRouter(SeatRouter):
                 self._blocks[blocker] = attacker
         return token
 
-    def take_acts(self, game: Any, seat: Handle) -> None:
-        super().take_acts(game, seat)
-        # The pre-combat boundary: a driver that plans its combat (search.py) does it here,
-        # with no engine call in flight.
-        driver = self.drivers[self._index(seat)]
-        plan = getattr(driver, "plan_combat", None)
-        if plan is not None and game.over_reason() is None and game.executor.turn_open:
+    def before_attacks(self, game: Any, seat: Handle) -> None:
+        """The pre-combat boundary (games._play, after ``seat``'s first main phase): a driver
+        that plans its combat (search.py) does it here, no engine call in flight. The end of an
+        act window is not that boundary: the second main phase's comes after combat."""
+        plan = getattr(self.drivers[self._index(seat)], "plan_combat", None)
+        if plan is not None and game.over_reason() is None:
             plan(game, self._index(seat))
 
     def before_blocks(self, game: Any, seat: Handle) -> None:

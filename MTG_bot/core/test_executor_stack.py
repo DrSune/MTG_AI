@@ -639,9 +639,9 @@ class TestLandDrop(StackCase):
 
 class TestBothMainPhases(StackCase):
     """B-74 (2026-11-06), CR 505.1: a turn has two main phases with combat between them. Sorcery
-    speed (CR 117.1a, 302.1, 307.1) and the land play (CR 305.1) hold in both, the land play once
-    per turn in total (CR 305.2); nothing sorcery-speed holds during combat or on another
-    player's turn. The phase clock is the real turn's: ``combat_attacks`` opens combat,
+    speed (CR 117.1a, 505.6a, 302.1, 307.1) and the land play (CR 305.1, 505.6b) hold in both,
+    the land play once per turn in total (CR 305.2); nothing sorcery-speed holds during combat
+    or on another player's turn. The phase clock is the real turn's: ``combat_attacks`` opens combat,
     ``combat_blocks`` ends it in the second main phase."""
 
     def setUp(self):

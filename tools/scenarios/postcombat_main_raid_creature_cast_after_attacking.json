@@ -1,7 +1,7 @@
 {
  "name": "postcombat_main_raid_creature_cast_after_attacking",
  "set": "FDN",
- "note": "CR 505.1, 302.1: a creature spell can be cast in either main phase of its controller's turn, so a Raid creature can be cast after the attack it rewards. P0 attacks with a Bear, then in the second main phase casts Goblin Boarders ('Raid — This creature enters with a +1/+1 counter on it if you attacked this turn'): it enters with the counter, a 3/3. Red on main d0200d2: the cast raised 'illegal cast: window:phase', sorcery speed meant the first main phase only (B-74), and every Raid card was dead. Twin: postcombat_main_raid_creature_cast_without_attacking.",
+ "note": "CR 505.1, 302.1: a creature spell can be cast in either main phase of its controller's turn, so a Raid creature can be cast after the attack it rewards. P0 attacks with a Bear, then in the second main phase casts Goblin Boarders ('Raid — This creature enters with a +1/+1 counter on it if you attacked this turn'): the printed 3/2 enters with the counter, a 4/3. Red on main d0200d2: the cast raised 'illegal cast: window:phase', sorcery speed meant the first main phase only (B-74), and every Raid card was dead. Twin: postcombat_main_raid_creature_cast_without_attacking.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "boarders", "real": "Goblin Boarders", "zone": "hand", "controller": 0},
@@ -16,6 +16,6 @@
   "life": {"1": 18},
   "zone": {"boarders": "battlefield"},
   "counters": {"boarders": {"PLUS_1_PLUS_1": 1}},
-  "power": {"boarders": 3}
+  "power": {"boarders": 4}
  }
 }

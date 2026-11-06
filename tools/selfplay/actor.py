@@ -110,7 +110,7 @@ class NetAgent:
                                     self.record, feats)))
 
     def plan_combat(self, game: Any, seat: int) -> None:
-        """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.take_acts)."""
+        """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.before_attacks)."""
         if self.searcher is None:
             return
         self.attack_plan = self.searcher.plan_attacks(game, seat)

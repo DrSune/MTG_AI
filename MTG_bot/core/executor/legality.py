@@ -134,6 +134,16 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.executor import Executor
     from MTG_bot.core.executor.layers import LayerRecord
 
+#: CR 505.1: a turn has two main phases, the first (precombat) and the second (postcombat), with
+#: the combat phase between them. Sorcery speed is "a main phase of your turn with an empty
+#: stack" (CR 117.1a, 505.6a-b; per type 302.1, 305.1, 307.1; abilities 602.5d, 606.3), so every
+#: sorcery-speed gate reads this one set. The phase clock names the second main phase SECOND_MAIN (``combat_blocks`` stamps it);
+#: the frozen grammar's ``Phase`` is the trigger vocabulary and has no member for it, since no card
+#: in the pools triggers at the beginning of a second main phase. ``None`` is a world with no turn
+#: begun (bare test rigs), read as inside (13a).
+SECOND_MAIN = "SECOND_MAIN"
+MAIN_PHASES = frozenset({None, Phase.FIRST_MAIN.name, SECOND_MAIN})
+
 # The mana-pool key convention written by ``_v_add_mana`` (verbs.py): pool
 # keys are exactly _COLORS_VOCAB = W U B R G C. CostManaColor is payable
 # only from its own key (CR 118.3a "removing the indicated mana"); generic
@@ -1232,16 +1242,16 @@ def ability_playable(
         # controller, with priority and an empty stack, during a main phase
         # of their own turn. The compiler gives loyalty abilities no
         # ``timing`` (CR 606.3 is a rule of the ability type, not printed
-        # text), so the window lives here. Both main phases are main phases;
-        # Teferi, Master of Time's GRANT_ACTIVATION relaxes it to "any time
-        # you could cast an instant" for itself, and the once-per-turn clock
-        # below still holds. A world with no turn begun has no active player
-        # (bare test rigs): like ``phase is None`` below, it reads as inside.
+        # text), so the window lives here. Teferi, Master of Time's
+        # GRANT_ACTIVATION relaxes it to "any time you could cast an instant"
+        # for itself, and the once-per-turn clock below still holds. A world
+        # with no turn begun has no active player (bare test rigs): like
+        # ``phase is None``, it reads as inside.
         if world.active_player is not None and world.active_player != seat:
             return "window:loyalty:not_own_turn"
         if not stack_empty:
             return "window:loyalty:stack_nonempty"
-        if executor.phase not in (None, Phase.FIRST_MAIN.name, "SECOND_MAIN"):
+        if executor.phase not in MAIN_PHASES:
             return "window:loyalty:not_main_phase"
     if ability.timing is ActivationWindow.SORCERY and not (
         executor.layers.instant_window_granted(handle)
@@ -1260,10 +1270,10 @@ def ability_playable(
         if not stack_empty:
             return "window:sorcery:stack_nonempty"
         # 13a: the skeleton's phase clock (Executor.phase) is the honest
-        # sorcery-window gate — a sorcery-timed activation after the first
-        # main phase (the END_TURN marker of a mid-turn END_TURN atom) is
-        # out of window. ``phase is None`` / FIRST_MAIN = inside.
-        if executor.phase not in (None, Phase.FIRST_MAIN.name):
+        # sorcery-window gate: "activate only as a sorcery" holds in either
+        # main phase (CR 602.5d, 505.1), never in combat or once a mid-turn
+        # END_TURN atom has stamped the ending phase.
+        if executor.phase not in MAIN_PHASES:
             return "window:sorcery:phase"
     # CR 606.3 (13a): one loyalty ability per permanent per turn, keyed on
     # the permanent and the turn number. It holds inside Teferi, Master of
@@ -1458,9 +1468,9 @@ def ask_activation_x(
 #                 always an option; a future phase/priority ledger may
 #                 narrow it, the cast() surface will not change).
 #   everything else (SORCERY/CREATURE/ENCHANTMENT/PLANESWALKER/LAND) —
-#                 the sorcery window: the caster's own turn, the first
-#                 main phase (13a's phase clock; None = not-yet-stamped
-#                 skeleton convention), and an EMPTY stack (v1: the
+#                 the sorcery window: the caster's own turn, either main
+#                 phase (CR 505.1, :data:`MAIN_PHASES` on 13a's phase
+#                 clock), and an EMPTY stack (v1: the
 #                 executor's own LIFO frames — nothing else can be on it
 #                 mid-op, but the parked-frame API keeps the gate real).
 _SORCERY_WINDOW_KINDS = frozenset(
@@ -1501,7 +1511,7 @@ def spell_window_reason(
     world = executor.world
     if world.active_player != seat:
         return "window:not_your_turn"
-    if executor.phase not in (None, "FIRST_MAIN"):
+    if executor.phase not in MAIN_PHASES:
         return "window:phase"
     if executor.stack.frames:
         return "window:stack_nonempty"

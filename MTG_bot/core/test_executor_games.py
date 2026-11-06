@@ -2531,10 +2531,15 @@ class StallRuleTest(unittest.TestCase):
         # the seeded trajectory. Decisive again: player 1 loses on turn 37,
         # 65 acts, the stall rule does not fire (double-run replay verified:
         # same fingerprint, turns and reason).
+        # re-pinned 2026-11-06 (B-74): the random policy also acts in the
+        # second main phase (CR 505.1), so the trajectory shifts. Still
+        # decisive, now player 0 loses on turn 54, 161 acts, the stall rule
+        # does not fire (double-run replay verified: same fingerprint and
+        # digest).
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 37)
-        self.assertEqual(game.reason, "game over: player:1(life<=0)")
+        self.assertEqual(game.turns, 54)
+        self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()
@@ -2657,7 +2662,8 @@ class BothMainPhasesDriverTest(unittest.TestCase):
 
 
 class _LoopDeckPolicy(RandomPolicy):
-    """Deterministic policy: each turn, cast exactly one legal spell.
+    """Deterministic policy: each turn, cast exactly one legal spell, in the
+    first main phase (the second main phase's window passes).
 
     RandomPolicy's dice would take an expected ~250 turns per candidate
     cast window here, making the stall statistically unreachable inside the
@@ -2665,6 +2671,8 @@ class _LoopDeckPolicy(RandomPolicy):
     """
 
     def take_acts(self, game: Game, seat: Handle) -> None:
+        if game.executor.phase != "FIRST_MAIN":
+            return
         self.turn = game.world.turn
         self.seat_index = game.world.player_order.index(seat)
         rows = [r for r in legal_casts(game.world, game.executor, seat) if not r.land]

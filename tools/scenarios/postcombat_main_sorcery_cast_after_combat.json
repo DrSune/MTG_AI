@@ -1,6 +1,6 @@
 {
  "name": "postcombat_main_sorcery_cast_after_combat",
- "note": "CR 307.1, 505.1: a player who has priority may cast a sorcery during a main phase of their turn when the stack is empty, and a turn has two main phases. P0 attacks with a Bear, then casts Basri's Solidarity ('Put a +1/+1 counter on each creature you control') in the second main phase: the Bear gets the counter. Red on main d0200d2: the cast raised 'illegal cast: window:phase' (B-74). Guards: postcombat_main_sorcery_refused_on_opponents_turn, and the combat half in MTG_bot/core/test_executor_stack.py TestBothMainPhases.",
+ "note": "CR 307.1, 505.6a: a player who has priority may cast a sorcery during a main phase of their turn when the stack is empty, and a turn has two main phases (CR 505.1). P0 attacks with a Bear, then casts Basri's Solidarity ('Put a +1/+1 counter on each creature you control') in the second main phase: the Bear gets the counter. Red on main d0200d2: the cast raised 'illegal cast: window:phase' (B-74). Guards: postcombat_main_sorcery_refused_on_opponents_turn, and the combat half in MTG_bot/core/test_executor_stack.py TestBothMainPhases.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "solidarity", "real": "Basri's Solidarity", "zone": "hand", "controller": 0},
