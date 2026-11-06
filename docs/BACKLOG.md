@@ -747,6 +747,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ---
 
 ## Training and measurement
+- **Explore/exploit league** (owner idea, 2026-11-06; after the PPO audit): alternate exploration and
+  exploitation to climb in "level ups": exploiter agents trained only against the frozen main policy
+  find new strategies; a behavioural-diversity measure (how differently a candidate decides on a fixed
+  probe set of states) keeps the explored strategies distinct; the main policy then trains against the
+  promising ones (prioritised by how hard they are to beat), freezes, and the cycle repeats at the new
+  level. Established forms: AlphaStar's league with exploiters, PSRO, population-based training.
+  Blocked on the audit: an exploiter is "learn to beat a fixed opponent", which the learner does not do
+  today (/184 §22-23).
+- **More name masking** (2026-11-06, the r19 game review): the network reads whether a targeted effect
+  helps or hurts from card names, not components (`name_dropout` 0.1); raise it so it must read the
+  rules text, and measure masked play.
 
 ### Self-play stack
 
