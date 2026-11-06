@@ -17,8 +17,7 @@ Deliberate non-goals:
   ("Angel", "Knight"), so a bare occurrence in the text is no token-creation signal ("is a Knight
   in addition to its other types" creates no token). Matching the whole "create a ... token"
   sentence belongs to the template compiler.
-- ``UnknownCardError`` is not raised here: ingest stores no cross-card references. Malformed data
-  that a clean MTGJSON file never holds is ``StateCorruptionError``.
+- Malformed data that a clean MTGJSON file never holds is ``StateCorruptionError``.
 
 Reprint duplicates: a pool file can repeat a card, every captured field identical and only raw
 fields the ingest drops (card number, uuid, rarity) differing. The oracle id names the card, not
