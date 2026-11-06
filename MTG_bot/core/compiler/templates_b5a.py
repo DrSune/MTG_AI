@@ -155,10 +155,6 @@ def _pt_delta(m: re.Match[str], group: int) -> PtDelta:
     return PtDelta(PtDirection.INCREASE, QConst(int(m.group(group))))
 
 
-def _draw_controller() -> ControllerRef:
-    return ControllerRef.YOU
-
-
 # ---------------------------------------------------------------------------
 # Build functions (one per template)
 # ---------------------------------------------------------------------------
@@ -533,22 +529,12 @@ def _build_destroy(m: re.Match[str], f: Filter, zone: Zone) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-def _destroy_target_filter(m: re.Match[str], extra: tuple[Filter, ...]) -> Filter:
-    """``target creature [with extra conjuncts]``; a lone conjunct comes back
-    bare (a one-child ``FAnd`` would be a phantom wrapper)."""
-    base: list[Filter] = [
-        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-    ]
-    base.extend(extra)
-    if len(base) == 1:
-        return base[0]
-    return FAnd(children=tuple(base))
-
-
 def _build_destroy_power_ge(m: re.Match[str]) -> SentenceOutcome:
-    f = _destroy_target_filter(
-        m,
-        (FAtom(pred=FAtomPred.POWER_GE, count=QConst(int(m.group(1)))),),
+    f = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.POWER_GE, count=QConst(int(m.group(1)))),
+        )
     )
     return _build_destroy(
         m, f, Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
@@ -593,7 +579,7 @@ def _build_double_power(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-def _build_exile_target(m: re.Match[str], f: "object") -> SentenceOutcome:
+def _build_exile_target(f: Filter) -> SentenceOutcome:
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -604,7 +590,7 @@ def _build_exile_target(m: re.Match[str], f: "object") -> SentenceOutcome:
                     Selector(
                         QConst(1),
                         SelectorMode.TARGET,
-                        f,  # type: ignore[arg-type]
+                        f,
                         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
                     ),
                 ),
@@ -619,7 +605,7 @@ def _build_draw_one(m: re.Match[str]) -> SentenceOutcome:
         effect=Atom(
             verb=Verb.DRAW,
             args=AtomArgs(
-                pairs=(("controller", _draw_controller()), ("amount", QConst(1)))
+                pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))
             ),
         )
     )
@@ -630,7 +616,7 @@ def _build_draw_two(m: re.Match[str]) -> SentenceOutcome:
         effect=Atom(
             verb=Verb.DRAW,
             args=AtomArgs(
-                pairs=(("controller", _draw_controller()), ("amount", QConst(2)))
+                pairs=(("controller", ControllerRef.YOU), ("amount", QConst(2)))
             ),
         )
     )
@@ -641,19 +627,19 @@ def _build_draw_three_then_discard(m: re.Match[str]) -> SentenceOutcome:
     draw = Atom(
         verb=Verb.DRAW,
         args=AtomArgs(
-            pairs=(("controller", _draw_controller()), ("amount", QConst(3)))
+            pairs=(("controller", ControllerRef.YOU), ("amount", QConst(3)))
         ),
     )
     discard = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
-                ("controller", _draw_controller()),
+                ("controller", ControllerRef.YOU),
                 (
                     "destination",
-                    Zone(ZoneKind.GRAVEYARD, _draw_controller()),
+                    Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                 ),
-                ("from", Zone(ZoneKind.HAND, _draw_controller())),
+                ("from", Zone(ZoneKind.HAND, ControllerRef.YOU)),
                 (
                     "cards",
                     Selector(
@@ -674,7 +660,7 @@ def _build_draw_frantic_inventory(m: re.Match[str]) -> SentenceOutcome:
     first = Atom(
         verb=Verb.DRAW,
         args=AtomArgs(
-            pairs=(("controller", _draw_controller()), ("amount", QConst(1)))
+            pairs=(("controller", ControllerRef.YOU), ("amount", QConst(1)))
         ),
     )
     second_amount = QCount(
@@ -689,7 +675,7 @@ def _build_draw_frantic_inventory(m: re.Match[str]) -> SentenceOutcome:
         verb=Verb.DRAW,
         args=AtomArgs(
             pairs=(
-                ("controller", _draw_controller()),
+                ("controller", ControllerRef.YOU),
                 ("amount", second_amount),
             )
         ),
@@ -715,7 +701,7 @@ def _build_trample_counter(m: re.Match[str]) -> SentenceOutcome:
                                 ),
                                 FAtom(
                                     pred=FAtomPred.HAS_COUNTER,
-                                    counter_kind=_PLUS_1_PLUS_1,
+                                    counter_kind=CounterKind.PLUS_1_PLUS_1,
                                     count=QConst(int(m.group(2))),
                                 ),
                                 FAtom(
@@ -823,7 +809,7 @@ def _build_enchant_pt_death_draw(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.DRAW,
             args=AtomArgs(
                 pairs=(
-                    ("controller", _draw_controller()),
+                    ("controller", ControllerRef.YOU),
                     ("amount", QConst(1)),
                 )
             ),
@@ -1019,9 +1005,6 @@ def _build_exile_self(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     return EffectOutcome(effect=atom)
-
-
-_PLUS_1_PLUS_1 = CounterKind.PLUS_1_PLUS_1
 
 
 def _bf_any() -> Zone:
@@ -1853,13 +1836,12 @@ TEMPLATES: tuple[Template, ...] = (
         pattern=re.compile(r"^Exile target creature or planeswalker\.$"),
         priority=_PRIORITY,
         build=lambda m: _build_exile_target(
-            m,
             FOr(
                 children=(
                     FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                     FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
                 )
-            ),  # type: ignore[arg-type]
+            ),
         ),
     ),
     Template(
@@ -1869,8 +1851,7 @@ TEMPLATES: tuple[Template, ...] = (
         pattern=re.compile(r"^Exile target creature\.$"),
         priority=_PRIORITY,
         build=lambda m: _build_exile_target(
-            m,
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),  # type: ignore[arg-type]
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         ),
     ),
     Template(
@@ -1880,13 +1861,12 @@ TEMPLATES: tuple[Template, ...] = (
         pattern=re.compile(r"^Exile target nonland permanent\.$"),
         priority=_PRIORITY,
         build=lambda m: _build_exile_target(
-            m,
             FAnd(
                 children=(
                     FAtom(pred=FAtomPred.IS_PERMANENT),
                     FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land")),
                 )
-            ),  # type: ignore[arg-type]
+            ),
         ),
     ),
     Template(

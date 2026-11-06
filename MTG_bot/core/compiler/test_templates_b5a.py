@@ -427,7 +427,6 @@ def _raw(
     types: tuple[str, ...] = ("Instant",),
     subtypes: tuple[str, ...] = (),
     colors: tuple[str, ...] = (),
-    keywords: tuple[str, ...] = (),
     mana_cost_raw: str | None = None,
     mana_value: int = 0,
     power_raw: str | None = None,
@@ -454,7 +453,7 @@ def _raw(
         power_raw=power_raw,
         toughness_raw=toughness_raw,
         loyalty_raw=None,
-        keywords=keywords,
+        keywords=(),
         sentences=sentences,
         layout="normal",
         is_token=False,
@@ -648,7 +647,7 @@ class TestUncovered(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: Matching
+# Test: Sentence Matching
 # ---------------------------------------------------------------------------
 
 
@@ -1719,8 +1718,6 @@ class TestRound7Structures(unittest.TestCase):
         assert isinstance(prop, QProp)
         self.assertIs(prop.field, QPropField.COUNTER_COUNT)
         self.assertEqual(prop.referent, "source")
-        target = p["target"]
-        _ = target
 
     def test_destroy_attached_equipment(self) -> None:
         outcome = self._match_one("Destroy all Equipment attached to that creature.")

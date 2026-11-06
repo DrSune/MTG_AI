@@ -103,7 +103,11 @@ from MTG_bot.core.compiler.templates import (
     Template,
 )
 from MTG_bot.core.compiler.templates_b2b import _to_a_player
-from MTG_bot.core.compiler.templates_b5a import target_spell, target_stack_ability
+from MTG_bot.core.compiler.templates_b5a import (
+    _self_selector,
+    target_spell,
+    target_stack_ability,
+)
 
 _BUCKET = "B5c"
 _PRIORITY = 100
@@ -112,29 +116,6 @@ _PRIORITY = 100
 # ---------------------------------------------------------------------------
 # Shared node builders
 # ---------------------------------------------------------------------------
-
-
-def _self_selector(zone: Zone) -> Selector:
-    """Selector for ``this <permanent>`` — the source of the ability.
-
-    A BATTLEFIELD zone with a specific controller folds onto the
-    CONTROLLER_IS atom like an inline Selector zone (BATTLEFIELD-ANY plus the
-    seat atom), so the idiom keeps one encoding shape."""
-    filt = FAtom(pred=FAtomPred.IS_SOURCE)
-    if zone.kind is ZoneKind.BATTLEFIELD and zone.controller is not ControllerRef.ANY:
-        filt = FAnd(
-            children=(
-                filt,
-                FAtom(pred=FAtomPred.CONTROLLER_IS, who=zone.controller),
-            )
-        )
-        zone = Zone(kind=zone.kind, controller=ControllerRef.ANY)
-    return Selector(
-        QConst(1),
-        SelectorMode.CHOOSE,
-        filt,
-        zones=(zone,),
-    )
 
 
 def _loyalty_delta(m: re.Match[str], group: int) -> int:

@@ -810,13 +810,13 @@ def _cost_part_types(ability: ActivatedAbility) -> tuple[type, ...]:
     return tuple(type(p) for p in ability.cost.parts)
 
 
-def _find_fnot(node: Any, depth: int = 0) -> Any:
+def _find_fnot(node: Any) -> Any:
     """Recursively find the first FNot in a filter tree (returns None if none)."""
     if isinstance(node, FNot):
         return node
     if isinstance(node, (FAnd, FOr)):
         for child in node.children:
-            found = _find_fnot(child, depth + 1)
+            found = _find_fnot(child)
             if found is not None:
                 return found
     return None
@@ -929,7 +929,7 @@ class TestB5cShapeTable(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test: Matching
+# Test: Sentence Matching
 # ---------------------------------------------------------------------------
 
 
