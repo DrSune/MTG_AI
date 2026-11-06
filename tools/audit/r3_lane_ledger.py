@@ -61,7 +61,7 @@ def fpreds(f):
         elif isinstance(x, at.FAtom):
             v = (
                 x.string_value
-                or (x.who.name if getattr(x, "who", None) else None)
+                or (x.who.name if x.who else None)
                 or x.count
             )
             out.append(f"{x.pred.name}" + (f"({v})" if v not in (None, "", 0) else ""))

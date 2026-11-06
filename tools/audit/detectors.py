@@ -17,8 +17,7 @@ Two scan modes:
 
 Independence rule (D5): the effective-PT recompute is derived HERE from
 journal rows only (COUNTER_PLACED increments, CREATURE_DIES was-PT
-assertions, and a defensively-implemented SET_PT/MODIFY_PT fold for row
-kinds the journal does not yet emit). Engine ledger code is NEVER imported.
+assertions). Engine ledger code is NEVER imported.
 
 Output: ``tools/audit/anomalies.json`` — per seed per detector: hits (row
 references) or clean/exempt. Run::
@@ -57,15 +56,10 @@ KIND_LIFE_GAINED = "LIFE_GAINED"
 # (CR 118.5), so it is its own kind and its own fold term.
 KIND_LIFE_LOST = "LIFE_LOST"
 KIND_TURN_PHASE = "TURN_PHASE"
-KIND_GAME_LOST = "GAME_LOST"
-KIND_COMBAT_DAMAGE = "COMBAT_DAMAGE"
-# Row kinds the journal does NOT emit today (mana verbs, PT layers). The
-# detectors fold them defensively so that when the verbs arrive the lanes
-# stop being EXEMPT for free.
+# Mana row kinds the journal does NOT emit today. D2 folds them (its tests
+# pin the fold); without them the lane stays EXEMPT.
 KIND_MANA_ADDED = "MANA_ADDED"
 KIND_MANA_SPENT = "MANA_SPENT"
-KIND_SET_PT = "SET_PT"
-KIND_MODIFY_PT = "MODIFY_PT"
 
 BATTLEFIELD = "battlefield"
 
@@ -90,10 +84,6 @@ class Handle:
 
     def __str__(self) -> str:
         return f"{self.namespace}:{self.index}"
-
-
-def _handle(value: object) -> str:
-    return str(value)
 
 
 def _to_int(value: object) -> int:
@@ -484,8 +474,7 @@ class _Death:
 def d5_pt_recompute(g: ReplayData) -> Verdict:
     """Independently re-derive effective PT and diff vs the engine's own
     CREATURE_DIES was-PT assertions. The fold is re-implemented HERE:
-    counters stack on the base, SET_PT overwrites the base at its point,
-    MODIFY_PT adds — none of it imported from the engine's ledger."""
+    counters stack on the base — nothing imported from the engine's ledger."""
     v = Verdict("D5_pt_recompute", "clean")
     deaths = [
         r
@@ -496,10 +485,6 @@ def d5_pt_recompute(g: ReplayData) -> Verdict:
         v.note = "no was-PT assertions (no deaths) in this game"
         return v
     placements = counter_deltas(g.rows)
-    pt_rows: dict[str, list[Row]] = {}
-    for row in g.rows:
-        if row.kind in (KIND_SET_PT, KIND_MODIFY_PT):
-            pt_rows.setdefault(row.subject, []).append(row)
 
     def fold(handle: str, died_at: int) -> tuple[int, int]:
         dp = dt = 0
@@ -508,16 +493,6 @@ def d5_pt_recompute(g: ReplayData) -> Verdict:
                 step = PT_COUNTER_DELTA.get(kind_name, (0, 0))
                 dp += step[0] * amount
                 dt += step[1] * amount
-        for row in pt_rows.get(handle, []):
-            if (
-                row.kind == KIND_MODIFY_PT
-                and row.clock <= died_at
-                and row.data is not None
-            ):
-                dp += _to_int(row.data[0])
-                dt += _to_int(row.data[1]) if len(row.data) > 1 else 0
-                # SET_PT rewrites the base — it is folded into the anchor
-                # derivation (derived base), not the delta, by design.
         return dp, dt
 
     parsed: list[_Death] = []
@@ -619,7 +594,6 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
         v.status = "EXEMPT"
         v.note = "registers not captured (catalog rows) — lifecycle unverifiable"
         return v
-    notes: list[str] = []
 
     if g.binder_dump is not None:
         # (i) registered-never-drained: a delayed trigger still pending at
@@ -705,7 +679,7 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
                         "dead-handle-bound-ref",
                         handle,
                     )
-    notes.append(
+    v.note = (
         "delayed triggers legitimately expire mid-game (clock-bounded); only "
         "game-end survivors are flagged; attached-on-graveyard is suspect "
         "(graveyard triggers are legal), adjudication decides; repl lane "
@@ -713,8 +687,6 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
         "CR 614.3 needs co-existence); grant/lose source-side dead handles "
         "are CR 611.2a-legal (effect outlives its source)"
     )
-    if notes:
-        v.note = "; ".join(notes)
     return v
 
 
@@ -769,10 +741,7 @@ def replay_game(
             final_zone[tag] = str(world.zone_of(handle).kind)
         except (KeyError, ValueError):
             pass  # unzoned card (removed from play) — no final zone
-        identity_name[tag] = str(
-            getattr(record.identity, "name", "")
-            or getattr(record.identity, "type_line", "")
-        )
+        identity_name[tag] = str(record.identity.name or record.identity.type_line)
     binder: dict[str, list[Any]] = {}
     for group in game.executor.binder.dump():
         if (
@@ -805,7 +774,7 @@ def load_catalog() -> dict[str, ReplayData]:
         rows = []
         for i, (_sha, label) in enumerate(game["entries"]):
             parts = label.split("|")
-            kind = parts[0] if parts else "?"
+            kind = parts[0]
             subject = parts[1] if len(parts) > 1 else "?"
             cause = parts[2] if len(parts) > 2 else "?"
             verb = parts[3] if len(parts) > 3 else "?"

@@ -129,9 +129,7 @@ def compile_pools(sets=SETS):
         out[s] = {
             "cards": {oid: r.card for oid, r in results.items()},
             "gaps": len(gaps),
-            "emblem_oids": {
-                oid for oid, raw in pool.items() if getattr(raw, "is_emblem", False)
-            },
+            "emblem_oids": {oid for oid, raw in pool.items() if raw.is_emblem},
         }
     return out
 

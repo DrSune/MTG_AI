@@ -62,7 +62,7 @@ for _name in (
     "_MOVE_JOURNAL_KINDS",
     "_MOVE_POP_ORDERS",
 ):
-    CLOSED_STR.update(getattr(at, _name, ()) or ())
+    CLOSED_STR.update(getattr(at, _name))
 
 STR_PH = "<S>"
 NUM_PH = "<N>"
@@ -256,28 +256,13 @@ def traverse(
                 )
         elif dataclasses.is_dataclass(v) and not isinstance(v, type):
             kids_by_field[f.name] = (v,)  # traversed exactly once by tail loop
-        else:
-            for x in v if isinstance(v, (tuple, list)) else ():
-                traverse(
-                    x,
-                    node_path,
-                    card,
-                    struct_sig,
-                    seq_stats,
-                    branches,
-                    verb_roles,
-                    order_rec,
-                    depth + 1,
-                )
     if cls in BRANCH_CLASSES:
         cont = classify_branch(node)
         if cont:
             branches[cls][cont] += 1
     if cls == "Atom":
         for role, val in node.args.pairs:
-            if isinstance(val, (at.Selector,)) or (
-                dataclasses.is_dataclass(val) and type(val).__name__ == "Selector"
-            ):
+            if isinstance(val, at.Selector):
                 shape = "Selector{" + fshape(val, 2) + "}"
                 verb_roles[node.verb.name][role][shape] += 1
             elif hasattr(val, "children") or type(val).__name__.startswith("F"):
@@ -379,10 +364,7 @@ def main() -> int:
     for card, sn, s, st, fl, _ab in all_abilities:
         if fl != s and s in struct_to_cards:
             k = (fl, s)
-            r = pair_rec.setdefault(
-                k, {"flat_count": 0, "nested_count": 0, "examples": []}
-            )
-            r["flat_count"] += 1
+            r = pair_rec.setdefault(k, {"nested_count": 0, "examples": []})
             r["nested_count"] += 1
             if len(r["examples"]) < 3:
                 r["examples"].append(card)

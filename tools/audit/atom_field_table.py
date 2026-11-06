@@ -32,11 +32,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-REPO = Path(__file__).resolve()
-for _anc in REPO.parents:  # walk up to find the repo root (contains MTG_bot)
-    if (_anc / "MTG_bot" / "core" / "ability_tree.py").is_file():
-        sys.path.insert(0, str(_anc))
-        break
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from MTG_bot.core import ability_tree as at  # noqa: E402
 
@@ -77,21 +73,11 @@ CLASSIFY: dict[tuple[str, str], str] = {
 
 def runtime_container_fields() -> dict[tuple[str, str], str]:
     """(class, field) -> raw annotation string, for every container field."""
-    classes = getattr(at, "_DATACLASSES", None)
-    if not classes:  # fallback: every dataclass defined in the module
-        classes = [
-            obj
-            for obj in vars(at).values()
-            if isinstance(obj, type) and dataclasses.is_dataclass(obj)
-        ]
     found: dict[tuple[str, str], str] = {}
-    for cls in classes:
-        if not dataclasses.is_dataclass(cls):
-            continue
+    for cls in at._DATACLASSES:
         for f in dataclasses.fields(cls):
-            ann = f.type if isinstance(f.type, str) else str(f.type)
-            if any(mark in ann for mark in CONTAINER_MARKERS):
-                found[(cls.__name__, f.name)] = ann
+            if any(mark in f.type for mark in CONTAINER_MARKERS):
+                found[(cls.__name__, f.name)] = f.type
     return found
 
 
