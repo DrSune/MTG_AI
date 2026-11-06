@@ -1,5 +1,9 @@
 # ATOM ONTOLOGY — canonical composition of atomized card subcomponents
 
+> **Note, 2026-11-06.** Still binding. `tools/audit/atom_sortdelta.py` and `tools/measure_grammar.py`,
+> cited as evidence instruments below, were deleted on 2026-11-05 (`git show dbd6e9d:<path>`); their
+> reports stay in `reports/`. Line citations are to the commit of each round.
+
 Status: **BINDING** (4 adversarial gate rounds 2026-10-19, round-4 GO; owner stop
 condition met — see §9). Owner directive
 2026-10-19: as FEW subcomponents as possible covering everything needed;

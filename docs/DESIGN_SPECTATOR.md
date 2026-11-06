@@ -1,8 +1,10 @@
 # Design: the spectator / prototyping tool
 
 Status: **designed, ready to build.** Every engine hook below cites a real line in the code as
-it stands, so this is buildable against today's engine and survives the engine rewrite — the
-event schema is the contract, not the engine internals.
+it stood, and the event schema is the contract, not the engine internals.
+
+> **Note, 2026-11-06.** The schema stands; the engine hooks below are in the pre-rebuild engine,
+> deleted on 2026-11-05 (`git show dbd6e9d:<path>`). The live engine is `MTG_bot/core/`.
 
 **Never runs during training.** Recording is off by default; only the validation entry point
 turns it on.

@@ -1,7 +1,13 @@
 # PITFALLS — standing traps (each dated; newest first)
 
+> **Note, 2026-11-06.** Entries that cite code deleted on 2026-11-05 (`rule_engine/`,
+> `strategic_brain/`, `attic/`, `tools/training/`, `tools/eval/`, `tools/measure_grammar.py`,
+> `dump_unparsed_queue.py`, `tools/selfplay/distill_lab.py`; `git show dbd6e9d:<path>`) record
+> traps of that code. Their lessons may still apply; their commands and paths do not.
+
 ## 2026-11-03
-- **[`gid % k` holdouts can select no search games: job ids follow a fixed interleave.]**
+- **[`gid % k` holdouts can select no search games: job ids follow a fixed interleave.]** (The
+  value and search jobs and `distill_lab.py` were removed on 2026-11-05; the lesson stands.)
   `tools/selfplay/learner.py` issues value and search jobs in a fixed ratio (6,000 : 1,500 = one
   search job every 5 ids), so all search games share one residue mod 5. A `gid % 5 == 0` holdout
   in `tools/selfplay/distill_lab.py` selected zero rows (2026-11-04). The learner's own rule
@@ -22,7 +28,7 @@
   `torch.set_num_threads(2)` each per-decision forward created and destroyed threads: ~2,400
   threads/s per process, 24K PIDs/s machine-wide (load average 28 on 20 cores). One intra-op and one
   inter-op thread brought the machine to ~40 new PIDs/s (`tools/selfplay/vs_legacy.py`).
-- **[`PointerBC` is not causal.]** `tools/training/bc_model.py` runs `TransformerEncoderLayer` with no
+- **[`PointerBC` is not causal.]** (Deleted with `tools/training/` on 2026-11-05.) `tools/training/bc_model.py` ran `TransformerEncoderLayer` with no
   attention mask although its docstring says causal; training sees each decision's future, play
   sees only the prefix (measured, KNOWLEDGE/2026-11-03/182 §1).
 
@@ -681,7 +687,7 @@
   library the lane reads top-first Library 5..0.
   **Superseded 2026-11-05 (CR 103.8a):** the opening `begin_turn` is turn 1 of a two-player game, so seat 0 skips its draw step and nothing is drawn at setup; a card the pack needs in hand is declared in hand.
 - **May-offer static gate vs result register (2026-09-30, round 17b B-9)**:
-  `optional_offer` (executor/query.py:508-527) requires EVERY exact-count
+  `optional_offer` (executor/query.py:603) requires EVERY exact-count
   CHOOSE/TARGET/RANDOM selector in `effect.inner` to have candidates in the
   PRE-EXECUTION world. Effects whose tail selector candidates are produced
   mid-effect by an earlier SEARCH (search-then-move pattern) fail the gate
@@ -709,13 +715,13 @@
   answered through the per-op `decisions` POOL inside a cast effect is
   validated RAW against the ask vocabulary — no pack-key→handle mapping.
   Pool answers for designation asks must be handle strings (`"card:1"`);
-  pack keys resolve ONLY via the provider lane (`run_scenarios.py:223-229`),
+  pack keys resolve ONLY via the provider lane (`run_scenarios.py:630` `_resolve_word`),
   which does not run for pool-supplied words. A wrong-lane word either
   raises `decision '…' not in (…)` or (worse, pre-r19a) fell back to
   `vocab[0]` silently. bad_deal's `['c1','c2']` never reached
   `take_decision` at all (they ride `_search_designation` bindings);
   grim_tutor's `"Cardinal"` is a NAME-declaration ask (vocab = card names,
-  verbs.py ~1166-1190). Before rewriting a pack's decisions, identify
+  verbs.py ~1975 `_v_choose_name`). Before rewriting a pack's decisions, identify
   which lane the ask actually consumes.
 - **A green assertion can be green ON a silent bug (2026-10-01, r19a)**:
   trufflesnout.json asserted 2/2 for a 2/2 that enters with a +1/+1
@@ -735,8 +741,8 @@
   pyproject rules bind and Δ-vs-HEAD is honest.
 - **Two event ledgers, assert against the right one (2026-10-01, r20b)**:
   feed rows the binder MATCHES (TARGETING, CAST, DAMAGE, TURN_PHASE …) live on
-  `ex.journal.events` as `GameEvent` objects (binding.match_new scans that list,
-  binding.py:504); raw verb audit rows (TAP/MOVE tuples) and replacement-created
+  `ex.journal.events` as `GameEvent` objects (`TriggerBinder.on_events` scans that list,
+  binding.py:684); raw verb audit rows (TAP/MOVE tuples) and replacement-created
   ledger rows (`DAMAGE_PREVENTED`) live on `ex.events`. A TARGETING assertion
   against `ex.events` reads empty and looks like a dead emit site.
 - **Trigger ctx answers only via the provider/FIFO lane (2026-10-01, r20b)**:
@@ -744,7 +750,7 @@
   a may-offer asked by a TRIGGER during the settle runs in a fresh ctx and
   raises `nothing is primed` unless `ex.decisions.provider` (or
   `decisions.push(vocab, what, …)`) answers — the scenario harness proves the
-  pattern (run_scenarios.py:232).
+  pattern (run_scenarios.py:414).
 
 - IS_ATTACHED_TO_SOURCE direction (r20c): the filter SUBJECT being evaluated is the HOST creature,
   `ctx.source` is the aura/equipment — the lookup is `attachments[source] == handle`, and after a
@@ -831,7 +837,7 @@
 - **2026-10-02 · C3: TARGET_PLAYER reads synthesize a SECOND cast slot.** A spell with
   a TARGET-mode Selector AND any `ControllerRef.TARGET_PLAYER` read (even a derived
   "that creature's controller" zone) gets the 14b synthesized positional slot
-  (query.py:778-798) — cast needs BOTH designations, positional, walk order
+  (query.py:1226 `player_target_slot`) — cast needs BOTH designations, positional, walk order
   (`_validate_positional`). Scenario packs supply the player via the r22b
   `decisions: ["player:N"]` token; auto-designation only fires when ZERO targets are
   given. `binding_one("target")` = FIRST designation, so TARGET_PLAYER still resolves
@@ -1014,12 +1020,12 @@
   repair was a deterministic write_goldens rerun. Scope formatters to *.py explicitly.
 
 ## 2026-10-07 — T4 P1b (docs/T4_PICK_ENUMERATION.md)
-- **r20c exemption is CHOOSE-MODE-GATED** (`selectors.py:648`): flipping an
+- **r20c exemption is CHOOSE-MODE-GATED** (`selectors.py:1225`): flipping an
   IS_SOURCE-filtered selector to ONE_OF silently drops the cost-hijack
   exemption → effect resolves against the wrong population (14 phantom
   "trigger-swallow" failures in the first probe were ALL this). Never lift
   self-ref; any future lift requires making the exemption mode-invariant first.
-- **Decision lanes consume independently** (`quantity.py:214` take_decision):
+- **Decision lanes consume independently** (`quantity.py:233` take_decision):
   per-op lane-1 pool matches RAW vocab words only (pack keys DO NOT resolve
   there — use `card:N`, cultivate precedent); the provider lane pops its own
   copy of the step's `decisions` list. A lane-1-matched may-offer is invisible
@@ -1077,7 +1083,7 @@ Six --rollout-device cuda gen_games workers killed the box: CUDA allocations are
 
 ## GATE LAW CORRECTION (2026-10-18, owner "continue" -> executed runbook at MemAvailable ~0): scoped CPU jobs COMPLETE at available≈0 when MemoryMax<=2-4G + MemorySwapMax=0 (box survived: post-run 0.52 GiB, swap intact). The P0 incident class was UNCAPPED MULTI-CUDA workers, not scoped CPU jobs. New law: (a) CPU jobs: ALWAYS attempt under hard scope (MemoryMax ~= job's honest RSS ceiling) — scope bounds the blast radius; the old "wait for 3 GiB" was over-conservative and cost days; (b) CUDA jobs: the multi-GiB-free rule STANDS unchanged (contexts are driver-charged, scopes don't bound them); (c) probe scope invocation once before trusting any queued runner (--wait+--scope law).
 - PARALLEL-SESSION COORDINATION (2026-10-18): a sibling session worked the SAME kicker round concurrently (my dispatch collided mid-edit on templates.py; merge resolved to the sibling's /95 spec carrier AdditionalCostOutcome.kicker+KickerGate, 865+176+24 tests green on merged state). Law: before dispatching ANY grammar/compiler task, check KNOWLEDGE/<today>/ for binding spec entries (/95-class) AND `ls -t` mtimes <15 min on target files => sibling active: dispatch only DISJOINT-file tasks (tools/eval/*, audits) or hold.
-- Ability-tree walker blind instrument: `ability_tree.walk()` SKIPS list-valued fields (ability_tree.py ~4608) — a gate or census built on walk() silently misses nodes inside lists. Verified latent 2026-10-18 (ZND-1e adversarial); no current pool ships nodes there, but any future list-carrying node makes verb/predicate gates blind. Check walk() covers every container type before trusting a zero-consumer claim.
+- Ability-tree walker blind instrument: `ability_tree.walk()` SKIPS list-valued fields (ability_tree.py:5139) — a gate or census built on walk() silently misses nodes inside lists. Verified latent 2026-10-18 (ZND-1e adversarial); no current pool ships nodes there, but any future list-carrying node makes verb/predicate gates blind. Check walk() covers every container type before trusting a zero-consumer claim.
 
 - **A dedup guard must not report the write it skipped (2026-10-18, /104)**: `measure_grammar._append_numbers_md` returned early on same-date same-set reruns (ZND-1e F2 guard) while main() unconditionally printed "NUMBERS.md row appended" — after ZND-2 landed, the ZNR headline stayed at the superseded 0.1879 under "Latest entry first" while the report JSON held 0.2411. Fixed in 4cffc8c (re-run REPLACES the day's set section; print reports the actual action). General law: any guard that silently skips a side-effect must make the success-channel report the skip — a stale "latest" table is worse than no table.
 - **KNOWLEDGE number claims are CLAIMED BY COMMIT (2026-10-18, second instance after the /97→/98 renumber)**: parallel sessions write their daily NN files blind; 104 was claimed twice within minutes (znd2-landfall committed, znd2f-backface appeared untracked). Rule of precedence: the FIRST COMMITTED keeps the number, the later author renumbers before committing its own file — check `ls KNOWLEDGE/<date>/` immediately before write AND before commit; never renumber the committed one.
@@ -1089,9 +1095,9 @@ Six --rollout-device cuda gen_games workers killed the box: CUDA allocations are
 - **Build-tests prove parsing, not EXECUTION — a compiled row whose executor semantics are unverified must be falsifier-tested or deferred (2026-10-19, ZND-3 FM2/T6)**: "reveals a number of cards from their hand equal to your party" compiled, matched one template, and was build-tested — but `Verb.REVEAL` executes through `_look` reading ZONE_LIBRARY (verbs.py:1102): a from-HAND reveal running as a library peek is a materially different effect. The row was withdrawn from the round (register counts it UNPARSED again) and named ZND-3f. Law: for a new consumer of a shared executor lane, the falsifier must OBSERVE the effect (or a pack must assert the outcome), not just the tree shape — `assertIsNotNone(outcome)` is a parser test wearing a semantics costume.
 - Signature-extension smoke law (mine, 2026-10-18): when adding a param to a worker/init function, grep EVERY call site incl. ProcessPoolExecutor initargs tuples — a --set flag passed workers=1 smoke but crashed ALL multi-worker evals (initargs stale); sibling fixed (3931bda). workers=1 smoke does NOT prove the fleet path.
 
-- **Verb.COPY is COMPILE-EMITTED ONLY — the engine never dispatches it (2026-10-19, ZND-5 gate G-A4)**: executor/__init__.py:228-237 lists COPY among non-dispatched verbs and the stack vocabulary gate EXCLUDES COPY-bearing cards from executable resolution (stack.py:510-538, seed-96 crash). A template emitting COPY compiles, scores PC-coverage, and can never execute — any copy work is an ENGINE lane (stack write + copy-object + retarget decision, CR 706 family), not a template round. Check dispatch-tables (executor verb dispatch + stack gate) before claiming a lane exists from a compile-side grep.
+- **Verb.COPY is COMPILE-EMITTED ONLY — the engine never dispatches it (2026-10-19, ZND-5 gate G-A4)**: executor/__init__.py:254-256 lists COPY among the verbs without a handler and the stack vocabulary gate EXCLUDES COPY-bearing cards from executable resolution (stack.py:510-538, seed-96 crash). A template emitting COPY compiles, scores PC-coverage, and can never execute — any copy work is an ENGINE lane (stack write + copy-object + retarget decision, CR 706 family), not a template round. Check dispatch-tables (executor verb dispatch + stack gate) before claiming a lane exists from a compile-side grep.
 - **Falsifier-lane trio (2026-10-19, ZND-5 /122)**: (a) COUNTER_SPELL is FRAME-ONLY — verbs.py raises for a parked/unframed card, so a counter falsifier must run the RUNG-1 response window (`Rung1Case.ex_cast`), never a direct `execute` with bindings; the direct lane is itself a useful negative test (assertRaises). (b) The kickback ask vocab ("PASS","PAY") is a SUBSET of the window-offer vocab ("PASS", <counter-handle>) — a provider that dispatches on "PASS" answers the OFFER with a kick token and dies at decisions.py:130; dispatch on "PAY" (or handle-presence) to tell the asks apart. (c) Empty-deck DRAW is a SILENT NO-OP: a may-draw fire/skip falsifier with an unseeded library measures zone math, not the MAY — seed ZONE_LIBRARY cards or the negative is blind.
-- **TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ are ONE type-line word-test in the engine (2026-10-19, ZND-5 diff gate)**: `quantity.py:726` evaluates all three predicates with the same `words & token` test over the printed type line — the ATOM-KIND choice is behaviorally neutral TODAY, so a spec that mandates SUBTYPE_EQ "because TYPE_EQ would never fire" is FICTION and any falsifier built on that claim is fake coverage (mutation probe: swap SUBTYPE_EQ→TYPE_EQ("Wizard") in b10 — executor tests stay green; recipe: `replace` the builder's third branch and re-run `pytest test_templates_b10.py`). The encoding law still stands on CR grounds ("Wizard" IS a subtype; SUBTYPE_EQ survives a future strict-predicate split), but it is a STRUCTURAL pin, and behavior falsifiers must target axes that actually vary (fire/never-fire per branch, non-matching negative). Pinned by `test_type_predicates_share_one_word_test_branch` — if the engine lane ever splits the predicates, that test goes red INTENTIONALLY (Type-1 decision). General law: before citing an engine trap as a falsifier, EXECUTE the mutant; a trap asserted from code-reading alone is a biased prior.
+- **TYPE_EQ/SUBTYPE_EQ/SUPERTYPE_EQ are ONE type-line word-test in the engine (2026-10-19, ZND-5 diff gate)**: `quantity.py:851` evaluates all three predicates with the same `words & token` test over the printed type line — the ATOM-KIND choice is behaviorally neutral TODAY, so a spec that mandates SUBTYPE_EQ "because TYPE_EQ would never fire" is FICTION and any falsifier built on that claim is fake coverage (mutation probe: swap SUBTYPE_EQ→TYPE_EQ("Wizard") in b10 — executor tests stay green; recipe: `replace` the builder's third branch and re-run `pytest test_templates_b10.py`). The encoding law still stands on CR grounds ("Wizard" IS a subtype; SUBTYPE_EQ survives a future strict-predicate split), but it is a STRUCTURAL pin, and behavior falsifiers must target axes that actually vary (fire/never-fire per branch, non-matching negative). Pinned by `test_type_predicates_share_one_word_test_branch` — if the engine lane ever splits the predicates, that test goes red INTENTIONALLY (Type-1 decision). General law: before citing an engine trap as a falsifier, EXECUTE the mutant; a trap asserted from code-reading alone is a biased prior.
 - Stale-pycache red battery (2026-10-19, castpay re-gate F1 incident): a 27-test-red claim from a mid-session mixed cache state (wave tests deleted mid-run, __pycache__/.pytest_cache regenerated) produced a false NO-GO signal — all reds vanished on clean-slate export AND dirty-tree full run. Law: BEFORE any NO-GO/fix dispatch on collected-failure evidence, re-run fresh (or export the tree to a clean dir); count must survive the rerun to be admissible.
 - Eval default --out writes a TRACKED ledger (2026-10-19): tools/eval/gameplay_eval_v2.py's default output path IS the tracked tools/eval/gameplay_eval_v2.json — ANY smoke run without --out clobbers the era-of-record ledger (103k-line diff caught pre-commit). Law: always pass --out for probe/gate runs; sibling lane should default to reports/ or refuse overwrite of a tracked path.
 - Frozen-golden cross-wave rewrite (2026-10-19): a FULL-SUITE pytest battery run WHILE a sibling compiler wave was uncommitted left 122 M21 golden files REWRITTEN in the worktree mid-battery (conjunct reordering; mtime = inside the pytest window; the measure harness itself is verify-only and did NOT write). A PC-4 '0 diffs' read against self-healed bytes is a FALSE GREEN — the check compared the tree against the tree. Laws: (1) after any battery, ALWAYS git-status-audit MTG_bot/core/golden/ before trusting PC-4 or committing; (2) restore with 'git checkout -- MTG_bot/core/golden/' unless your wave owns the re-baseline via explicit --refresh-goldens; (3) clean-slate export (git archive HEAD | tar -x) is the tiebreaker for 'who broke frozen data' — HEAD was proven pure (0 diffs) in this incident.

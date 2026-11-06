@@ -8,9 +8,16 @@ what gets written down, and who decides what happens next.
 requirements and per-metric reading notes live in [`METRICS.md`](METRICS.md). This document
 references metrics by name and does not redefine them.
 
+> **Note, 2026-11-06.** This protocol was written against the pre-rebuild stack. Its present-tense
+> status claims and code citations (`benchmarker.py`, `train.py`, `training_logger.py`,
+> `engine.py`, `environment.py`, `deck_generator.py`, `game_initializer.py`, `student.py`,
+> `teacher.py`, `tools/latency/bench.py`) describe code deleted on 2026-11-05
+> (`git show dbd6e9d:<path>`). The procedure binds the live stack (`MTG_bot/core/`,
+> `tools/selfplay/`); what implements each check today is said where it exists (§1: preflight).
+
 **Why it exists now, before training starts.** Nothing in the repository can currently tell you
 whether a change made the bot better. At HEAD (`bc14850`) the engine suite reported 10 passed / 29
-failed / 2 xfailed (historical; the current baseline is B1 in `CLAUDE.md`, 2026-11-05). The only scored benchmark pays a do-nothing policy **0.9000** on
+failed / 2 xfailed (historical; the current baseline is in `CLAUDE.md`). The only scored benchmark pays a do-nothing policy **0.9000** on
 `scenarios/M21/level_2` and **0.2358** on `level_1`, because `benchmarker.py:143-163` scores life
 proximity and 25 of the level_2 files are byte-identical copies of a state already sitting at 18/20
 life. The only opponent is `deepcopy(student)` from at most 20 games ago (`train.py:89-91`), so win
@@ -75,7 +82,8 @@ in `METRICS.md`, and the report renders the pair or neither.
 
 **A run that starts without these produces numbers nobody can trust, and the DGX hours spent on it
 are gone.** Every line is a hard blocker unless marked ADVISORY. Pre-flight writes
-`runs/<run_id>/preflight.json`; the run refuses to start without it. For the self-play stack,
+`runs/<run_id>/preflight.json`; nothing enforces it yet (the learner does not read it), so launch
+only after it passes. For the self-play stack,
 `.venv/bin/python -m tools.selfplay.preflight <run>` implements P1, P8, P9 and P12 (2026-11-05);
 the test gates (P7) are `tools/check.sh`.
 

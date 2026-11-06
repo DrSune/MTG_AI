@@ -5,7 +5,7 @@ The partition selector ASKS ``want`` times over the shrinking menu — the
 same loop shape ``binding.py``'s TARGET designation already runs (QConst
 exact / QAtMost + NONE-stop after the mandatory first pick), the tag
 progress token sits AFTER the frozen kind prefix (``one_of:1of2:…``) so
-bc_data's site-kind law needs no new vocabulary, and the want==1 lane is
+a consumer keyed on the kind prefix needs no new vocabulary, and the want==1 lane is
 BYTE-FROZEN (every golden that exists today is QConst(1); the replay pins
 must not move). Pool census (2026-10-07): ZERO pool cards fire want>1
 yet — this atom deliberately enters at volume 0 (doc 30 transfer-test);

@@ -10,8 +10,8 @@ gate since T0 for exactly that reason.
 Three moving parts.
 
 **Deck supply** (:func:`compile_supply`, :func:`build_deck`). The compiled
-pool is the same path ``tools/measure_grammar.py`` uses (same ingest, same
-registry, same 305 goldens verified read-only). Decks are 60-card seeded
+pool is the path ``tools/measure_grammar.py`` used (deleted 2026-11-05: same
+ingest, same registry, same 305 goldens verified read-only). Decks are 60-card seeded
 random multisets, duplicates up to :data:`MAX_COPIES`, with one honest bias
 stated plainly: the first :data:`MIN_MANA_SOURCES` cards are mana sources (the
 five M21 basics first, then the fix lands and the 34 ADD_MANA producers),
@@ -324,7 +324,7 @@ def compile_supply(
                 f"supply[{set_code}]: shape-gap exclusion {gap.name!r}: {gap.error}",
                 file=sys.stderr,
             )
-    # The 12e second pass, exactly as tools/measure_grammar.py runs it: the
+    # The 12e second pass, as the deleted tools/measure_grammar.py ran it: the
     # ungated pass stamps every card supported (the template's True default),
     # so the 286 number ONLY exists in the gated fold.
     gated = compile_pool(
@@ -1783,9 +1783,8 @@ def _reason_counts(outcomes: list[GameOutcome]) -> dict[str, int]:
 
 
 def _stamp() -> str:
-    """The report date, timezone-aware (DTZ011) — same convention as
-    ``tools/measure_grammar.py``, so a games report and a grammar report
-    written the same day carry the same date string."""
+    """The report date, timezone-aware (DTZ011), so reports written the same
+    day carry the same date string."""
     return datetime.now(UTC).date().isoformat()
 
 

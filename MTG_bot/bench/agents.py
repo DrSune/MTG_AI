@@ -11,7 +11,7 @@ The floors (docs/DESIGN_BENCHMARK.md §4, ABC R.13; METRICS §17):
   every optional effect. Any metric it scores well on must be published paired with one that
   requires acting well.
 - ``UniformRandomAgent``: uniform over the offered options at every ask. Unlike the hand-weighted
-  ``RandomPolicy`` (``games.py:154-157``), it is the honest random-legal baseline.
+  ``RandomPolicy`` (``games.py:163-166``), it is the honest random-legal baseline.
 """
 
 from __future__ import annotations

@@ -251,11 +251,9 @@ SUPPORTED_VERBS_V1 = frozenset(
 # never retyped: 12b/12d brought GRANT_ABILITY, LOSE_ABILITY and
 # PREVENT_EFFECT, and 13a brought the library/turn verbs (DRAW, SEARCH,
 # FLIP_COIN, END_TURN, EXTRA_TURN, LOSE_GAME), and 16a brought FIGHT
-# (CR 701.12, the damage-exchange orphan verb).  The remaining non-dispatched
-# verbs (CAST, COUNTER_SPELL, PHASE_OUT/PHASE_IN, COPY,
-# MANDATE_ATTACK, MANDATE_BLOCK, PAY, ATTACH, GAIN_CONTROL, ...)
-# stay outside: event-node-only or out-of-contract internals (ruling 6),
-# flagged by ``compile_pool(supported_verbs=...)``, never faked.
+# (CR 701.12, the damage-exchange orphan verb).  The verbs still without a
+# handler (COPY, PHASE_IN) stay outside: flagged by
+# ``compile_pool(supported_verbs=...)``, never faked (ruling 6).
 SUPPORTED_VERBS_V2 = frozenset(HANDLERS)
 
 Event = tuple[object, ...]
@@ -675,7 +673,7 @@ class Executor:
         # OVER_START_GE reads current minus this (the journal cannot
         # reconstruct the lead: a non-damage life loss leaves no row). The
         # replay rebuilds the world at the same start_life
-        # (games.py:1017), so the snapshot is replay-identical and stays
+        # (games.py:1175), so the snapshot is replay-identical and stays
         # OUT of the replay fingerprint.
         self.starting_life: dict[Handle, int] = {
             p: world.players[p].life for p in world.player_order

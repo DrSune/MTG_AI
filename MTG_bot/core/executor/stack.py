@@ -1488,9 +1488,9 @@ def cast_card(
     ``source``/``cost`` only), so ``verbs._v_cast`` passes an empty
     tuple: an effect-designated spell WITH targets can only be cast
     through this API directly. The gap is flagged by the spell's own
-    unbound-target raise, never a silent no-target resolution, and it is
-    live: Chandra, Flame's Catalyst's [-2] recasting a targeted red spell
-    raises (docs/BACKLOG.md, "Permission and effect casts").
+    unbound-target raise, never a silent no-target resolution: Chandra,
+    Flame's Catalyst's [-2] recasting a targeted red spell raises
+    (docs/BACKLOG.md, "The CAST atom has no target channel").
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"

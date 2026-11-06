@@ -33,12 +33,10 @@ requirement that the same seed replays identically "in two processes".
 
 WHAT THIS DOES NOT FIX
 ----------------------
-P12, byte-identical replay, needs more than this. Entity ids are still ``uuid.uuid4()``
-(game_graph.py:50) and zone-change triggers are computed by iterating ``set`` differences
-of those UUIDs, so trigger ordering is still nondeterministic under a fixed seed. Integer
-entity handles and an ordered trigger queue are the remaining work, and they belong to the
-D1 engine rebuild because they change the state model. This module is the half of the
-determinism problem that does not have to wait for that.
+P12, byte-identical replay, also needed integer entity handles and an ordered trigger
+queue. The legacy engine had neither (``uuid.uuid4()`` ids, triggers from ``set``
+differences); the rebuilt engine (``MTG_bot/core``) has both, the legacy one was deleted
+on 2026-11-05, and ``tools/selfplay/preflight.py`` checks P12.
 """
 
 from __future__ import annotations

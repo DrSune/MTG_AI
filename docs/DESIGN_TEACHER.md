@@ -1,6 +1,11 @@
 # DESIGN_TEACHER.md: the teacher, the critic, and the 1-by-1 drafter
 
 **Status:** design, not implementation. Written 2026-09-10 against HEAD `45047cd`.
+
+> **Note, 2026-11-06.** The design stands. Its code citations and present-tense status claims
+> describe the pre-rebuild code, deleted on 2026-11-05 (`git show dbd6e9d:<path>`); the live
+> stack is `MTG_bot/core/` and `tools/selfplay/`.
+
 **Scope:** what the teacher is trained on, what stops it gaming that signal, what it is
 architecturally, how it drafts one card at a time, how a deck's outcome reaches an individual pick,
 what it costs in games, and the order the pieces get built in.

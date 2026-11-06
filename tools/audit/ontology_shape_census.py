@@ -2,7 +2,7 @@
 """SHAPE-SIGNATURE CENSUS of every compiled IR tree (EVIDENCE for the atom
 ontology: canonical ordering + fusion of functionally-identical encodings).
 
-Reuses the exact compile pass of tools/measure_grammar.py:
+Reuses the compile pass of tools/measure_grammar.py (deleted 2026-11-05):
   ingest_pool(MTG_bot/data/{M21,ZNR}.json) + build_full_registry()
   + coverage._compile_pool_tolerant (M21 pinned 305, ZNR pool).
 

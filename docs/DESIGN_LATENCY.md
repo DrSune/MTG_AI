@@ -5,6 +5,11 @@ Status: **proposed.** Referenced by [`NORTH_STAR.md`](../NORTH_STAR.md) §1a and
 code, or derived by arithmetic that is shown so you can check it. Verified against working-tree
 `000e37c`.
 
+> **Note, 2026-11-06.** The design stands. Its code citations and present-tense status claims
+> describe the pre-rebuild code, deleted on 2026-11-05 (`git show dbd6e9d:<path>`); the live
+> stack is `MTG_bot/core/` and `tools/selfplay/`.
+> The latency harness it cites (`tools/latency/`) was deleted with it.
+
 This document answers one question the owner made binding: **can we afford a bigger model under a
 real match clock, and how does the agent learn to spend that clock itself?**
 

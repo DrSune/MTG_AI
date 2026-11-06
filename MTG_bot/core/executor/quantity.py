@@ -1764,7 +1764,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # and damage losses only), so a gains-sum would OVERSTATE the lead.
         # The start is the executor's construction-time snapshot (the same
         # start_life the world was built with; replay rebuilds the world at
-        # that value, games.py:1017). Bare-count atom: WHO is implicitly
+        # that value, games.py:1175). Bare-count atom: WHO is implicitly
         # YOU — the ability's controller (the gate never carries a seat).
         from MTG_bot.core.executor.selectors import players_for_ref
 

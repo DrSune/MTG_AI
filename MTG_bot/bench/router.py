@@ -25,7 +25,7 @@ BACKLOG:
   phase ends (CR 500.5). The engine's response windows pay the same way. Which free sources pay
   is a scaffold (BACKLOG): a learned payment choice removes it.
 - **Rows the engine cannot designate are hidden and counted:** more than one target slot, or a
-  slot with too few candidates (``games.py:562-573``).
+  slot with too few candidates (``games.py:653-661``).
 - **Targets are asked one at a time** from the slot's candidates, then validated by the engine's
   oracle (``validate_target_selection``). A slot with exactly one legal filler is filled without
   asking, as the engine's own phantom gate does (``offers.py:47-70``).
@@ -172,7 +172,7 @@ class SeatRouter:
         if ask_kind(what) != "scry":
             return ""
         # The k-th scry ask of one scry is about the k-th card from the top, which the scrying
-        # player is looking at (verbs.py:1072-1082 asks top-first before moving anything).
+        # player is looking at (verbs.py:1437-1441 asks top-first before moving anything).
         k = self.scry_position(what)
         self._scry_index[what] += 1
         library = self.game.world.players[seat].zone("library").entries

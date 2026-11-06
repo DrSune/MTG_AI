@@ -4,7 +4,8 @@ Started 2026-11-03 (Claude, taking over from the local agent; KNOWLEDGE/2026-11-
 
 ## Why a new stack
 
-The live `PointerBC` (`tools/training/bc_model.py`) cannot become a strong player as built:
+The `PointerBC` this stack replaced (`tools/training/bc_model.py`, deleted 2026-11-05;
+`git show dbd6e9d:<path>`) could not become a strong player as built:
 
 - **It sees hidden information.** Its observation (`ab_duel.snapshot_obs`, `bc_data_v2`) holds
   both hands and the top of both libraries. OWNER_PREFERENCES #1 forbids play built on that.

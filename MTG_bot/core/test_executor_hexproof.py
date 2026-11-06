@@ -19,10 +19,10 @@ stays put:
     means only SelectorMode.TARGET enumeration is filtered;
   * the keyword is zone-limited: a hexproof card in a graveyard is an
     ordinary target;
-  * the STACK lane (fresh-eyes MAJOR, CR 702.11b): a creature SPELL on
-    the stack keeps its QUALITY-conditioned hexproof — the binder's
-    continuous lifecycle fires only on battlefield entry, so the rows
-    are sourced from the compiled record, never collapsed to bare;
+  * the STACK lane: hexproof is defined on a permanent (CR 702.11b) and a
+    permanent card's abilities work only on the battlefield (CR 113.6), so
+    an opponent may target a hexproof creature SPELL (TestHexproofOnStack;
+    until 2026-11-06 the engine vetoed it);
   * the cast lane (601.2c) refuses the off-population designation, the
     trigger ask vocabulary never SHOWS the hexproof creature (menu
     presents the truth, §10), and a legal target still lands.

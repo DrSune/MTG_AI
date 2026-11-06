@@ -8,6 +8,11 @@ the owner's three binding preservation requirements:
 3. transferable learning of abilities, traits, stats and origins through learned encodings.
 
 It is written against working-tree `000e37c`. Every code claim below was read, not remembered.
+
+> **Note, 2026-11-06.** The design stands. Its code citations and present-tense status claims
+> describe the pre-rebuild code, deleted on 2026-11-05 (`git show dbd6e9d:<path>`); the live
+> stack is `MTG_bot/core/` and `tools/selfplay/`.
+
 It composes with [`DESIGN_CARD_POOL.md`](DESIGN_CARD_POOL.md) (§6),
 [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md) (§7) and
 [`DESIGN_TRAINING.md`](DESIGN_TRAINING.md) (Tier A / Tier B, graph capture).

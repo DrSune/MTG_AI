@@ -1,8 +1,8 @@
 """Duplicate-format matches (docs/DESIGN_BENCHMARK.md §6).
 
 Each deal fixes both decks and both library orders: decks depend only on
-``(seed, deck_pairs_seed)`` (``games.py:1457``), library order on the engine's seeded shuffle
-(``games.py:404``), and setup consults no policy. The deal is played twice with the agents' seats
+``(seed, deck_pairs_seed)`` (``games.py:1639`` ``deal_decks``), library order on the engine's seeded
+shuffle (``games.py:485`` ``shuffled_library``), and setup consults no policy. The deal is played twice with the agents' seats
 swapped, and **the pair is the unit**. Deal luck cancels inside a pair. Engine randomness during
 play still diverges once the two games diverge; that is inherent, and stated.
 

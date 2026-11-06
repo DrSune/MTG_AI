@@ -3,6 +3,10 @@
 **For the local agents to execute.** Claude wrote this plan and does not run it (owner, 2026-10-28:
 "prepare a plan, and then the agent later can do the actual plan ... we can save some usage").
 
+> **Note, 2026-11-06.** The goal stands. The tools this plan names (`tools/training/`,
+> `tools/eval/`, `tools/k1/`, `tools/k2/`) were deleted on 2026-11-05 (`git show dbd6e9d:<path>`);
+> the self-play stack in `tools/selfplay/` replaced them (KNOWLEDGE/2026-11-03/182).
+
 ## The goal, in the owner's words
 - "The network that places the card knows what the atomiser components mean."
 - It knows "when to choose what it can choose, when to choose which volumes, how much to sacrifice,

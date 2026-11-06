@@ -56,7 +56,7 @@ $PY tools/cards/cardtool.py --help
      - abilities in printed order;
      - then the spell's `SpellAbility`. For an instant or sorcery, that holds the effect, a `Seq` of
        steps in printed order. For a permanent, it is an effect-less carrier.
-   - **Permanent spells.** On branch `cards/integration` the compiler gives every enchantment,
+   - **Permanent spells.** The compiler gives every enchantment,
      artifact and planeswalker its cast carrier (B-49). Keep the one in `compiled` and never append
      a second: G0 fails a card with two SpellAbility nodes. Only for a card the compiler refuses
      outright (no `compiled` tree) do you add `SpellAbility(kind=SpellKind.ENCHANTMENT|ARTIFACT|
@@ -131,12 +131,12 @@ $PY tools/cards/cardtool.py --help
   - An Aura's carrier is `SpellAbility(kind=SpellKind.ENCHANTMENT)`.
   - An Equipment's carrier is `SpellAbility(kind=SpellKind.ARTIFACT)`.
   - An emblem record takes bare abilities: no carrier and no `EmblemAbility` wrapper.
-- **Enchant** (on `cards/integration`). The Enchant restriction rides on the keyword:
+- **Enchant.** The Enchant restriction rides on the keyword:
   `KeywordAbility(keyword=Keyword.ENCHANT, params=(<filter>,))`, for example the filter
   `FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')`. The engine reads it to decide what the
   Aura may enchant (CR 303.4a). An Aura record without it can enchant any permanent (B-65), which is
   stronger than printed.
-- **Equip** (on `cards/integration`): the compiled equip already carries
+- **Equip**: the compiled equip already carries
   `timing=ActivationWindow.SORCERY` (B-60). Keep it.
 - **Ability words** (Threshold, Raid, Morbid, Landfall, Battalion) are not keywords and have no
   rules meaning (CR 207.2c). Write the trigger and its condition. G0 ignores ability words
@@ -163,7 +163,7 @@ $PY tools/cards/cardtool.py --help
     the PLAYER zone is a target slot of its own, so the caster would pick who takes the damage.
     Mark such a card needs-atom (M20 Chandra's Outrage).
   - Equip carries `timing=ActivationWindow.SORCERY` ("Equip only as a sorcery"). The compiler's
-    equip template drops it (B-60), so add it.
+    equip template writes it (B-60, fixed); keep it in a hand-written tree.
 - **Tool tips.**
   - `parse` refuses a masked wording, so try a sibling wording (`{W} or {U}` instead of
     `{G} or {U}`).
@@ -190,8 +190,10 @@ $PY tools/cards/cardtool.py --help
     - A card with an upkeep trigger placed on the battlefield fires during the opening turn: start
       it in hand and `enter` it. A synthetic `"type": "Planeswalker"` card takes damage marks
       instead of losing loyalty: use a real planeswalker from the pool.
-  - Emblems can be probed and written. Token records cannot yet (G0 demands a SpellAbility):
-    skip them and list them in your report.
+  - Emblems and token records can be probed and written (since 2026-11-06: G0 asks a token for no
+    cast carrier, e17ae22, and the probe skips the from-hand stimulus for tokens, 79c5c84). Games
+    build a token from the creating card's TokenSpec, so a token record serves only the scenario
+    runner's by-name lane (KNOWLEDGE/2026-11-05/184 §14).
   - During a calibration round, `parse` hides a few exact wordings (digits are normalised, so
     every numeric sibling is hidden too). Try a different wording, or `similar`. The same sentence
     on another card or set may still show; if you see a hidden wording's tree, say so.

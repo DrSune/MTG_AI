@@ -118,8 +118,7 @@ def iter_nodes(obj):
 
 def compile_pools(sets=SETS):
     """set -> {"cards": oracle_id -> CardRecord, "gaps": int, "emblem_oids":
-    set} — the same tolerant compile pass as tools/audit/atom_sortdelta.py and
-    the shape census. ``emblem_oids`` mirrors the census' exclusion (an emblem
+    set} — the same tolerant compile pass as the shape census. ``emblem_oids`` mirrors the census' exclusion (an emblem
     is attached into its owner's record, so counting it as a card of its own
     would inflate every shape census against the committed baseline)."""
     registry = build_full_registry()

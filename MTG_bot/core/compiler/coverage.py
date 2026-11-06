@@ -13,8 +13,7 @@ Read-only measurement layer on top of ``ingest`` + ``compile``:
   yields the pinned 305 entries / 639 sentences / 510 unique sentences.
 
 This module never mutates existing modules and never stubs an executor
-(PC-7 stays ``pending_executor`` until T6 — reported by
-``tools/measure_grammar.py``).
+(PC-7 stays ``pending_executor`` until T6).
 
 Measurement semantics (per KNOWLEDGE/2026-09-14/02-phase1-plan.md, with the
 plan's 417/952 planning-time denominators replaced by the pinned real

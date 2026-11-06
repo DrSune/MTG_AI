@@ -965,8 +965,8 @@ def resolve_selector(
         # first pick mandatory both). want==1 stays the BYTE lane: every
         # golden that exists today is QConst(1) and its replay pins must
         # not move. want>1 numbers the asks AFTER the frozen kind prefix
-        # ("one_of:…:1of2:…") so bc_data's site-kind law (frozen prefix,
-        # bc_data.py:92-106) needs no new vocabulary.
+        # ("one_of:…:1of2:…") so a consumer keyed on the frozen kind prefix
+        # (the bench's ``ask_kind``) needs no new vocabulary.
         count = sel.count
         if isinstance(count, QConst):
             want = count.value

@@ -2543,8 +2543,8 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.LOSE_GAME: _v_lose_game,
     # 13b: the cast-side verbs — the gate-flip five (PAY, CAST, CHOOSE,
     # CHOOSE_NAME, MANA_POLICY). SUPPORTED_VERBS_V2 derives from THIS
-    # table, so these entries are exactly what moves measure_grammar's
-    # engine-supported count.
+    # table, so these entries are exactly what moves the engine-supported
+    # count.
     Verb.PAY: _v_pay,
     Verb.CAST: _v_cast,
     Verb.CHOOSE: _v_choose,

@@ -60,8 +60,8 @@ hidden information, reading novel cards, and managing a clock. A single number w
 one failed, so each track reports separately. The headline is never a composite.
 
 **Engine rung disclosure.** Every result is stamped with the engine revision and with the engine's
-known simplifications ("batch Magic": no priority, one counter-only response window, mana never
-empties; REVIEW A-3). A strong D score today means strong at that game.
+known simplifications ("batch Magic": no priority, response windows for counterspells and combat
+instants only, the engine picks the mana sources; REVIEW A-3). A strong D score today means strong at that game.
 
 ## 3. The harness: what an LLM gets
 
@@ -73,7 +73,7 @@ harness" lesson).
 
 | Tool / info | Contents | Implementation |
 |---|---|---|
-| `observe` | the deciding seat's legal view: own hand, all public zones, stack, life, counters, tapped, effective P/T, turn, active seat, opponents' hand and library **counts** | `bench/view.py` `seat_view`, `render_view` |
+| `observe` | the deciding seat's legal view: own hand, all public zones, stack, life, counters, tapped, effective P/T, turn, active seat, opponents' hand and library **counts** | `bench/view.py` `SeatLens.view`, `render_view` |
 | card text | oracle text and type line of every *visible* card, once per distinct card, in a reference block | from `ingest_pool` (live games carry no oracle text, REVIEW A-5) |
 | `options` | the current decision: kind, readable prompt, numbered options with labels | `bench/protocol.py` `Ask`, `Option` |
 | `act` | the option id; the engine validates it | `bench/router.py`; illegal → error and retry, k strikes → forfeit (recorded) |

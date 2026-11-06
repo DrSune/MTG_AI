@@ -1921,8 +1921,7 @@ def activation_target_reason(
     differ from the others (V13), as stack._validate_positional does for a
     spell. On the synthesized player slot ("target opponent") a card stands
     for its controller, the runtime's own re-point rule. No targets, or no
-    slot the walker can see (Subira's target rides a PREVENT_EFFECT
-    condition, BACKLOG "Weaker than printed"), keeps the old lane."""
+    slot the walker can see, keeps the old lane."""
     from MTG_bot.core.executor.query import (
         activation_target_slots,
         validate_target_selection,

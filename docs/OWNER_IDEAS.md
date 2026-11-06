@@ -141,8 +141,8 @@ The richest design document in the repository. It is indexed by nothing, includi
 | A3 | Multi-headed Synergy / Impact / Threat / Potential scores | `notes.txt:14-18` | self-retired | superseded by the owner at `notes.txt:43` |
 | A4 | **Potential score**: *"the likelihood of drawing synergistic or high-impact cards from the remaining deck"* | `notes.txt:18` | LOST (minor) | no successor named. The critic subsumes it in principle and no doc says so |
 | A5 | Opponent archetype detection, then hand inference conditioned on the archetype | `notes.txt:21-22` | **LOST (L6)** | nowhere |
-| A6 | Evaluation scores as an MCTS pruning heuristic | `notes.txt:25-26` | parked | `BACKLOG.md:75`; arithmetic at `DESIGN_TRAINING.md:352-363` |
-| A7 | "Hail Mary" logic: maximise `P(drawing an out)` instead of EV when desperate | `notes.txt:28-30` | parked, improved | `BACKLOG.md:92-95`, with the objection added that it needs a distributional value head |
+| A6 | Evaluation scores as an MCTS pruning heuristic | `notes.txt:25-26` | parked | `BACKLOG.md` "Information-set Monte Carlo tree search"; arithmetic at `DESIGN_TRAINING.md:352-363` |
+| A7 | "Hail Mary" logic: maximise `P(drawing an out)` instead of EV when desperate | `notes.txt:28-30` | parked, improved | `BACKLOG.md` "Hail Mary" logic, with the objection added that it needs a distributional value head |
 | A8 | Phase plan 0 to 3 | `notes.txt:32-37` | superseded | `DECISIONS.md` D1, D12 |
 | A9 | *"Don't feed the model the answers"*: no hand-crafted score inputs | `notes.txt:43-45` | on-path | `NORTH_STAR.md` §3. Derivation uncited, see §5.7 |
 | A10 | `GameState -> Transformer -> Actor + Critic`, self-play PPO | `notes.txt:47,55` | on-path | `DESIGN_TRAINING.md:64-90`; `DESIGN_ACTION_SPACE.md` §4 |
@@ -179,15 +179,15 @@ B24 to B29 exist only in the root copy. **Keep one file. Two copies will drift.*
 | B2 | Do not **forget** niche decks; the buffer cannot hold both | `ideas.md:2` | on-path | `METRICS.md` `ST-4`, `DFT-7/8`; `DESIGN_TEACHER.md:270` keeps MAP-Elites as a separate niche archive citing `ideas.md:1-11` |
 | B3 | **Revisit** niche decks and re-evaluate viability over time | `ideas.md:3` | **DISTORTED (S1)** | `DESIGN_TEACHER.md:123,238` `lambda_ret` measures the *student's retention*, not a *deck's viability*. See §5.1 |
 | B4 | Mutation and evolutionary strategies | `ideas.md:5` | on-path, partly refused | `DESIGN_DRAFTER.md` §9:636 refuses deck crossover with a reason, adopts the single-card swap |
-| B5 | Under-confidence sampling | `ideas.md:5` | parked | `BACKLOG.md:66`; measured at `METRICS.md:465` but not used to sample |
+| B5 | Under-confidence sampling | `ideas.md:5` | parked | `BACKLOG.md` "Deck-space evolution"; measured at `METRICS.md:465` but not used to sample |
 | B6 | Novelty reward | `ideas.md:5` | on-path, then refused as a reward | `DECISIONS.md` D14 promoted it; `DESIGN_DRAFTER.md` §9 refuses a novelty *term* and keeps conditioning on a measured statistic |
 | B7 | Elite pool of niche decks | `ideas.md:7` | on-path | `DECISIONS.md` D14; `DESIGN_TEACHER.md:270` capped archive |
-| B8 | Adversarial training against a constantly adapting opponent | `ideas.md:8` | on-path | `NORTH_STAR.md` §3; `BACKLOG.md:38` names the league the highest-value item; `METRICS.md` `ST-7` |
+| B8 | Adversarial training against a constantly adapting opponent | `ideas.md:8` | on-path | `NORTH_STAR.md` §3; `BACKLOG.md` "Self-play league" names the league the highest-value item; `METRICS.md` `ST-7` |
 | B9 | Robustness test by changing one or a few cards | `ideas.md:9` | on-path, cited | `DESIGN_TEACHER.md:376` quotes it verbatim as the leave-one-out sweep |
 | B10 | `R_final = R(D) + lambda * Robustness(D)`, **lambda annealed high to low** | `ideas.md:11` | **CONFLICT (S5)** | `BACKLOG.md` listed it as promoted; `DESIGN_DRAFTER.md` §9 refuses it as a hand-authored schedule. Resolved in this pass, see §5.5 |
 | B11 | The **worst-case-opponent trap** | `ideas.md:14-15` | **LOST (L5)** | nowhere. An open architectural question the owner posed and nobody answered |
-| B12 | ISMCTS with determinization | `ideas.md:19-27` | parked | `BACKLOG.md:73-75`; `METRICS.md:888` gives the determinized-oracle gap as the honest bound |
-| B13 | Separate NN for opponent hand, deck and strategy; *"dont predict discrete strategies, use RGB approach maybe"* | `ideas.md:25` | partly LOST | belief vector parked at `BACKLOG.md:44`. **The continuous-not-discrete point is recorded nowhere.** Folded into L6 |
+| B12 | ISMCTS with determinization | `ideas.md:19-27` | parked | `BACKLOG.md` "Information-set Monte Carlo tree search"; `METRICS.md:888` gives the determinized-oracle gap as the honest bound |
+| B13 | Separate NN for opponent hand, deck and strategy; *"dont predict discrete strategies, use RGB approach maybe"* | `ideas.md:25` | partly LOST | belief vector parked at `BACKLOG.md` "Belief vector". **The continuous-not-discrete point is recorded nowhere.** Folded into L6 |
 | B14 | Simulate the perfect-information game under the prediction; wrong predictions punish themselves | `ideas.md:26` | parked | inside the ISMCTS entry only |
 | B15 | Belief update on a surprising card: discard inconsistent determinizations, reset the tree | `ideas.md:38-47` | parked | with ISMCTS |
 | B16 | **Fix the opponent prediction for the whole simulation** | `ideas.md:52` | **LOST (L9a)** | nowhere |
@@ -198,7 +198,7 @@ B24 to B29 exist only in the root copy. **Keep one file. Two copies will drift.*
 | B21 | Cost-sensitive weighting `L_weighted = W(s) * L_aux`, `W(s)` proportional to `abs(V(s))` | `ideas.md:76-95` | **LOST (L4)** | nowhere |
 | B22 | Weighted rollouts: sample hands from `P(hand given s)`, let UCB stress the rare-but-lethal | `ideas.md:104-121` | parked | adjacent to ISMCTS |
 | B23 | Opponent **policy** head as the blueprint policy inside MCTS; best-response training | `ideas.md:128-149` | LOST as a design | `METRICS.md` `ST-7` measures best-response exploitability. Nothing trains toward it |
-| B24 | KV-cache board states across an action sequence | `ideas.md:154-156` | on-path | `BACKLOG.md:76`; `DESIGN_LATENCY.md` §2.4; `DESIGN_TRAINING.md` Tier A |
+| B24 | KV-cache board states across an action sequence | `ideas.md:154-156` | on-path | `BACKLOG.md` "KV cache of board analysis"; `DESIGN_LATENCY.md` §2.4; `DESIGN_TRAINING.md` Tier A |
 | B25 | Optimise the ability "vocabulary" as a first-class efficiency lever | `ideas.md:159` | on-path | `DESIGN_CARD_POOL.md` Step 1; `DESIGN_ACTION_SPACE.md` §6.5 |
 | B26 | Refine the **context window** | `ideas.md:160` | on-path | `DESIGN_TRAINING.md:123`, T 428 to 256 |
 | B27 | **TurboQuant** for the card-embedding vector database | `ideas.md:162-164` | **LOST (L8)** | zero hits anywhere. Directly blocks §2 |
@@ -214,25 +214,25 @@ Now at `docs/recovered/RL_ARCHITECTURE_pre_db5e024.md`. Line numbers are the ori
 | C1 | DB lookups happen **once at card load**, not per rollout | `:17` | on-path | `DESIGN_TRAINING.md:74-78` |
 | C2 | Dynamic entity tokens: component embedding, stats, zone, controller | `:28-35` | on-path | `DESIGN_TRAINING.md:70,105` |
 | C3 | **Global summary tokens** over zone counts and deck composition | `:37-39` | on-path | `DESIGN_CARD_POOL.md:180-184`; `DESIGN_TRAINING.md:59` |
-| C4 | **Short history tokens**: last K actions | `:41-49` | parked | `BACKLOG.md:44` only |
-| C5 | Belief vector `b_t` from a small RNN/GRU/MLP | `:59-63` | parked | `BACKLOG.md:44`; `DESIGN_TRAINING.md:105` lists the head, never specifies it |
+| C4 | **Short history tokens**: last K actions | `:41-49` | parked | `BACKLOG.md` "Belief vector" only |
+| C5 | Belief vector `b_t` from a small RNN/GRU/MLP | `:59-63` | parked | `BACKLOG.md` "Belief vector"; `DESIGN_TRAINING.md:105` lists the head, never specifies it |
 | C6 | **Three encodings for multiple opponent scenarios**, with a pros/cons table | `:64-66`, `:163-171` | parked | `BACKLOG.md` names them; **no design doc adopts one** |
-| C7 | Deterministic bookkeeping of exact opponent card counts, *"maintains mass conservation"* | `:68-71` | parked | `BACKLOG.md:44`; `METRICS.md` `CLS-3` uses the counting null as the **ruler** rather than as an input |
-| C8 | Optional particle sampling of M plausible opponent states | `:73-75` | parked | `BACKLOG.md:44` |
-| C9 | **Supervised pre-training of the belief net from self-play logs** | `:77-79` | parked | `BACKLOG.md:48` |
+| C7 | Deterministic bookkeeping of exact opponent card counts, *"maintains mass conservation"* | `:68-71` | parked | `BACKLOG.md` "Belief vector"; `METRICS.md` `CLS-3` uses the counting null as the **ruler** rather than as an input |
+| C8 | Optional particle sampling of M plausible opponent states | `:73-75` | parked | `BACKLOG.md` "Belief vector" |
+| C9 | **Supervised pre-training of the belief net from self-play logs** | `:77-79` | parked | `BACKLOG.md` "Belief vector" |
 | C10 | `rethink_counter` as an integer token in the observation | `:90` | on-path | `DESIGN_LATENCY.md` §3.4 |
 | C11 | **Frozen board cross-attention** | `:95-98` | on-path, cited by commit hash | `DESIGN_TRAINING.md:66-67`; `COST_MODEL.md` |
 | C12 | **Iterative memory and action memory**, so a pass can critique its own plan | `:100-103` | on-path | `DECISIONS.md` D11 |
 | C13 | **Rethink compute penalty**, so the model learns its own stopping point | `:105-107` | on-path | `DECISIONS.md` D11; `DESIGN_LATENCY.md` §3.2-3.3 |
 | C14 | Only the **latest** iteration reaches policy and value | `:110` | on-path | `DESIGN_LATENCY.md` §3.5 |
 | C15 | **Dynamic action sequences with reward only at the end of the phase sequence** | `:113-117` | **LOST as a recorded alternative** | `DESIGN_ACTION_SPACE.md` §4.3 gives every step its own advantage and §4.7 makes ending a plan cost something. Better, and **no doc records that the owner's version was considered**. See §4.10 |
-| C16 | Teacher builds decks card by card via a **Query Vector** plus **Vector Search** | `:136-138` | on-path | `BACKLOG.md:83`; `DESIGN_TEACHER.md` §4.3; `DESIGN_CARD_POOL.md:184`. **This is §2** |
+| C16 | Teacher builds decks card by card via a **Query Vector** plus **Vector Search** | `:136-138` | on-path | `BACKLOG.md` "Teacher by vector search"; `DESIGN_TEACHER.md` §4.3; `DESIGN_CARD_POOL.md:184`. **This is §2** |
 | C17 | Teacher input: *"win rate, 'confidence' gap, or reasoning depth used"* | `:139` | on-path, credited | `DESIGN_TEACHER.md` §1.4; `recovered/README.md` credits it for anticipating the noise study |
 | C18 | Teacher reward is the **Student's Learning Progress** | `:140-142` | on-path | `DESIGN_TEACHER.md` §1.4, §2.2 |
 | C19 | **Matchup history and diversity bonus** to break A beats B beats C beats A | `:145-147` | on-path, reshaped | `DESIGN_TEACHER.md` §2.3: *"diversity is a constraint, not an objective"* |
 | C20 | Deck rotation as **generalisation pressure** on the board encoder | `:148` | on-path | `DECISIONS.md` D14; `METRICS.md` GEN family |
 | C21 | Illegal Teacher proposals **penalised** | `:151-153` | refused, openly | `DESIGN_TEACHER.md` §8: legality is a rule of Magic, so it is a hard mask, never a reward term |
-| C22 | *"history is only directly used to generate the belief vector... do not embed into every entity token"* | `:180,183` | on-path | `BACKLOG.md:49-51`; reused by `DESIGN_CARD_POOL.md` for pool tokens |
+| C22 | *"history is only directly used to generate the belief vector... do not embed into every entity token"* | `:180,183` | on-path | `BACKLOG.md` "Belief vector"; reused by `DESIGN_CARD_POOL.md` for pool tokens |
 | C23 | Efficiency ladder: zone-local dense attention, top-K attention, low-rank attention, hierarchical pooling, incremental belief updates | `:189-193` | mostly LOST (minor) | **only hierarchical pooling survives** (`DESIGN_TRAINING.md:59`). Four of five options unrecorded |
 | C24 | *"Scalable representation for up to 300 entities"* | `:234` | on-path | `DESIGN_TRAINING.md:123` T = 256; `ARCHITECTURE.md:33` measures 214 entities at a Commander start |
 
@@ -265,10 +265,10 @@ Now at `docs/recovered/RL_ARCHITECTURE_pre_db5e024.md`. Line numbers are the ori
 | # | idea | source | status | where it is now |
 |---|---|---|---|---|
 | F1 | Dual purpose: Teacher RL for training **and** a real player utility | `project_goals.md:12-14` | on-path | `NORTH_STAR.md` §4a; `DECISIONS.md` D15 |
-| F2 | **Stockfish-style top-3 moves** with a move line | `:15` | parked | `BACKLOG.md:81` |
+| F2 | **Stockfish-style top-3 moves** with a move line | `:15` | parked | `BACKLOG.md` "Stockfish-style top-3 move suggestion" |
 | F3 | Draft from empty **or** complete a partial deck | `:15` | on-path | `NORTH_STAR.md` §4a; `DESIGN_DRAFTER.md` §3.6 |
-| F4 | Deck synergy analysis for humans | `:14` | parked | `BACKLOG.md:91` |
-| F5 | Card recognition, scraping, OCR, image vector DB, hard-negative mining | `:19-60`, `notes.txt:1-29` | parked, explicitly | `attic/README.md`; `BACKLOG.md` *"Abandoned, do not revive"* |
+| F4 | Deck synergy analysis for humans | `:14` | parked | `BACKLOG.md` "Deck analysis and suggestion for human players" |
+| F5 | Card recognition, scraping, OCR, image vector DB, hard-negative mining | `:19-60`, `notes.txt:1-29` | parked, explicitly | `attic/README.md` (deleted 2026-11-05); `BACKLOG.md` *"Abandoned, do not revive"* |
 | F6 | *"NO BACKGROUND in vector database"* / *"INCLUDE background in training samples"* | `notes.txt:12-13` | parked | same |
 | G1 | `effects_json` components are *"essential for... generalization to new or unseen cards"* | `gemini:8` | on-path | `DECISIONS.md` D2 quotes the equivalent reasoning verbatim |
 | G2 | **Encode, predict opponent, encode again with the prediction** | `gemini:15-18` | **LOST (L7)** | nowhere. The Tier A / Tier B split is a *caching* two-tier, structurally different |
@@ -289,15 +289,15 @@ Now at `docs/recovered/RL_ARCHITECTURE_pre_db5e024.md`. Line numbers are the ori
 | H3 | Conditional win-length penalty applied **only on wins**, *"to avoid premature surrender behaviours"* | `bptt_implementation_notes.md:5-9` | partly LOST | the term is in the scaffolds table; **the premature-surrender reasoning is not recorded** |
 | H4 | Analyse the Teacher's deck bias for **independent discovery** of the 40/60 ratio | `thought_checkpoint.md:24` | **DISTORTED (S2)** | `METRICS.md` `DFT-5` tests conformity to a declared heuristic. Opposite epistemics. See §5.2 |
 | H5 | Fine-tune pointer matching if card classes are ignored | `thought_checkpoint.md:25` | on-path, improved | `METRICS.md` `DQ-11 class_coverage_gap`, *"the cheapest high-value instrument in the catalogue"* |
-| H6 | M21 synthetic dataset, 100k board states, to pre-train the encoder | `MTG_bot/docs/TASKLIST.md:33` | parked | `BACKLOG.md:77` |
+| H6 | M21 synthetic dataset, 100k board states, to pre-train the encoder | `MTG_bot/docs/TASKLIST.md:33` | parked | `BACKLOG.md` "Synthetic board-state dataset" |
 | H7 | ISMCTS; weighted auxiliary loss for mid-game win probability; dynamic RL Teacher | `MTG_bot/tasklist.md:46-48` | parked / on-path / settled | `METRICS.md` `E-HEAD`; `DECISIONS.md` D15 with measured numbers |
 | H8 | Architecture search, 4 layers versus 8 | `MTG_bot/docs/TASKLIST.md:39` | on-path | `DESIGN_LATENCY.md` §5.4; `DECISIONS.md` D5 |
 | H9 | GUI visualizer for the GameGraph | `MTG_bot/docs/TASKLIST.md:41` | on-path | `DESIGN_SPECTATOR.md` |
-| H10 | Puzzle ladder **levels 3 and 4** | `progression_playbook.md:36-56` | parked, cited | `BACKLOG.md:59-62`, *"unreachable until the engine has real priority"* |
+| H10 | Puzzle ladder **levels 3 and 4** | `progression_playbook.md:36-56` | parked, cited | `BACKLOG.md` "Puzzle-ladder levels 3 and 4", *"unreachable until the engine has real priority"* |
 | H11 | *"A bot's success must be measured by its ability to navigate heuristics, not to brute-force a game tree"* | `progression_playbook.md:6` | partly LOST | the evaluation philosophy is not restated anywhere |
 | H12 | Puzzles scored on **incremental advantage**, and every puzzle **concept-tagged** so cards hot-swap across sets | `progression_playbook.md:62-69` | partly LOST | `METRICS.md` §10 rebuilds PZL. **The concept-tagging scheme for cross-set transfer is not carried over**, and it is the half that serves tied-rank-1 |
 | H13 | Effect-system mandates plus a **Chaos Test suite**: illegal target mid-resolution, zero and negative values, empty pools, circular dependencies | `EFFECT_SYSTEM_MANDATES.md` | partly LOST | `BACKLOG.md` carries the anti-hardcoding mandate. **The stress-test catalogue is in no metric or protocol** |
-| H14 | Logged engine gaps: stack LIFO, multi-step choices, **replacement effects do not exist** | `EFFECT_SYSTEM_MANDATES.md` §4 | on-path, cited | `BACKLOG.md` reproduces all three and adds seven more |
+| H14 | Logged engine gaps: stack LIFO, multi-step choices, **replacement effects do not exist** | `EFFECT_SYSTEM_MANDATES.md` §4 | on-path, cited | the rebuilt engine has replacement effects and choices during resolution; abilities still never use the stack (`BACKLOG.md` B-110) |
 | H15 | Benchmark metrics including `avg_mana_efficiency` | `MTG_bot/docs/BENCHMARKS.md` | on-path, gap named | `METRICS.md:788` records that neither numerator nor denominator exists |
 | H16 | Set-first scenario hierarchy and set-isolated generation | `PROCEDURAL_SCENARIOS.md` | on-path | `METRICS.md` §10 |
 | H17 | *"Update the tasklist with things out of scope or for the future, so we can come back to them without disturbing you"* | `MTG_bot/tasklist.md:8` | on-path | the ancestor of `BACKLOG.md`'s two rules and `NORTH_STAR.md` §2 |

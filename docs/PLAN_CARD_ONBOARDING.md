@@ -4,8 +4,9 @@ Owner, 2026-10-29: "We should get some more cards encoded, and make sure they wo
 play-time ... Use expert methods and techniques for both the mapping to components, and verifying
 they play out as intended in practice, so we dont introduce bugs for our play engine to abuse."
 
-Code lives on branch `cards/mapping` (worktree `/home/sune/Desktop/MTG_AI-sets`) until an era
-boundary: the record loader touches `MTG_bot/`, which the RL pin fingerprints.
+The code is on `main` (`tools/cards/`; the record loader `MTG_bot/core/compiler/card_records.py`).
+It was built on branch `cards/mapping`, which reached `main` with the `cards/integration` merge
+(a26578f, 2026-11-05).
 
 ## Where we stand (measured, S-3b reports, 2026-10-27)
 - 17 sets beyond M21/ZNR are ingested: 5,120 entries, 3,421 castable, but only **1,145 castable
@@ -111,7 +112,6 @@ boundary: the record loader touches `MTG_bot/`, which the RL pin fingerprints.
   families (REVIEW_2026-10-24 A-7: one model as mapper, worker and gate gives correlated errors).
 
 ## Era boundary (merge)
-- The branch merges only after the current RL window has ended, with the local agent's re-smoke and
-  explicit re-pin (PIN law, /146).
-- Before the merge, M21 must be byte-invariant: no records exist for M21, so its supply, goldens and
-  the 428 packs must be unchanged.
+Done: the branch merged into `main` with `cards/integration` (a26578f, 2026-11-05). Training now
+runs from a pinned run worktree, so engine and card work lands on `main` between runs
+(TRAINING_REVIEW_PROTOCOL §1).

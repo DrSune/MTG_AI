@@ -2,7 +2,7 @@
 
 One projection for every agent, our bot and LLM seats alike. The review found every admitted
 network omniscient (docs/REVIEW_2026-10-24.md A-1), and ``world_snapshot`` is an audit dump
-that reveals hands by design (``core/executor/games.py:716``). This module is the play view.
+that reveals hands by design (``core/executor/games.py:811``). This module is the play view.
 
 Visibility, one rule (``_visible``):
 - the viewer's own hand in full;
@@ -15,7 +15,7 @@ would leak library composition. Assigning them lazily from visible objects only 
 makes the view byte-identical when hidden cards change (the metamorphic test in
 ``test_view.py``).
 
-Live games carry no oracle text (``identity_of`` drops it, ``games.py:326-348``), so the text
+Live games carry no oracle text (``identity_of`` drops it, ``games.py:402``), so the text
 comes from the same MTGJSON files the supply compiles (``OracleIndex``).
 
 Known limit: cards a player has legitimately seen in a hidden zone (a revealed hand card, a

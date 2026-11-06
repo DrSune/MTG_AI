@@ -1,9 +1,8 @@
 """core — the rebuilt rule engine and card representation.
 
 This package is the D1 rebuild of the environment and the D2 ability-tree
-card representation. It is developed in parallel with the legacy
-``rule_engine``/``strategic_brain`` packages; the legacy code is attic'ed at
-cutover, not deleted in place, so nothing is lost mid-rebuild.
+card representation. It replaced the legacy ``rule_engine``/``strategic_brain``
+packages, deleted on 2026-11-05 (``git show dbd6e9d:<path>``).
 
 One representation, two consumers (DESIGN_CARD_POOL.md): the engine executes
 the ability tree and the network reads that same tree. A card that does not

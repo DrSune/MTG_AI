@@ -126,7 +126,7 @@ def card_tokens(rec: Any) -> list[str]:
 
 def ir_tokens(node: Any) -> list[str]:
     """Pre-order tokens of a ``to_dict`` tree: tags, enum values, roles, strings, bucketed
-    numbers. A card's own name never appears. (Same scheme as ``tools/k1/train.py``.)"""
+    numbers. A card's own name never appears."""
     out: list[str] = []
 
     def visit(value: Any) -> None:

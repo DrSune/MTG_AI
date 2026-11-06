@@ -13,7 +13,7 @@ optional_offer sites, and future lanes):
    journal (not ask_log), and the resulting state is IDENTICAL to the
    world that answered the (phantom) ask;
 2. a may-offer the query narrowed to ("skip",) auto-skips: the provider is
-   NEVER called (no bc_data degenerate row is even capturable), ask_log
+   NEVER called (no degenerate training row is even capturable), ask_log
    stays clean;
 3. two may-offers on ONE source carry DISTINCT site tags (the digest
    fix) and per-(vocab, what) FIFO primings pair to their OWN sites;

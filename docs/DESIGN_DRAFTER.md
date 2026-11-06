@@ -751,7 +751,7 @@ Three parts of that document, and their fate here. The **query vector plus vecto
 adopted, and is what this section specifies. The **illegal-proposal penalty** of its §5.3 is refused,
 at `DESIGN_TEACHER.md` §4.4:542, in favour of a hard mask. The **matchup history plus diversity
 bonus** survives as the archive with a per-cell cap, `DESIGN_TEACHER.md` §2.3:255. The idea is also
-parked in `BACKLOG.md:82-86` under "Product goals beyond the King Goal", and its acceleration half is
+parked in `BACKLOG.md` under "Product goals beyond the King Goal" ("Teacher by vector search"), and its acceleration half is
 `ideas.md:162-164` (TurboQuant). This section promotes the mechanism and keeps TurboQuant parked, for
 the measured reason in §12.2.
 
@@ -1036,7 +1036,7 @@ order of product value.
    hoc counterfactual*: "the deck is worse without X." The query gives an *ex ante intent*: "at pick
    34 I was looking for cheap white interaction; the best available scored 0.91, the second 0.89, and
    nothing in the pool matched the second head's ask at all." Those are different explanations, and
-   the second is the one a player asks for. It is also the missing mechanism under `BACKLOG.md:80`'s
+   the second is the one a player asks for. It is also the missing mechanism under `BACKLOG.md`'s
    Stockfish-style top-3 suggestion.
 
 **Do not ship a readout that has not passed its own falsifier.** `DFT-22 query_pick_agreement` is
