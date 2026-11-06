@@ -27,14 +27,15 @@ and stop for the owner.
     train, eval), 5 tests incl. a leak test; data: 40,000 games, 1,388,124 positions (54,886 held out).
 - `../MTG_AI-run`: detached worktree pinned for training runs (docs/TRAINING_REVIEW_PROTOCOL §1); no run
   is active.
-- Running when this was written (they stop on their own; do not kill them unless memory drops below
-  15 GB available):
-  - E1 configuration A: output `runs/labels/e1_A/`, progress `runs/labels/e1_A.looks`; its watcher stops
-    it by 10.6M forward passes (~23:00). Look 2: 17,374 labels, B* 3.07M forward passes [1.59M, 45.6M],
-    signal z 2.14, placebo z 0.30 (the gate is B* <= 2.65M and placebo z < 2: borderline).
-  - E0 training, two arms under `runs/simulator/`: PIDs 1993685 (no event window, ~22:30) and 1993686
-    (event window, ~22:45). Timings so far: capture 435 positions/s at 10 workers; 33-37 min per epoch,
-    8 GB RSS.
+- **Finished at 22:29-22:37, ready to score** (nothing is running):
+  - E1 configuration A: `runs/labels/e1_A/summary.json` (7,500 games, 29,960 labels, 9.07M forward
+    passes, 0 crashes, 0 leaky, 0 void, 751 playouts on the turn rail; config k 2, d 2, greedy). Looks in
+    `runs/labels/e1_A.looks`: look 3 at 7.96M forward passes: B* 2.81M [1.57M, 13.5M], signal z 2.53,
+    placebo z 0.16. The gate is B* <= 2.65M and placebo z < 2, scored at the end as the labels note §4
+    says: borderline, so score it carefully and exactly as pre-registered.
+  - E0: both arms trained to epoch 3: `runs/simulator/e0_sim_nowin.pt` (no event window) and
+    `runs/simulator/e0_sim_win.pt` (event window), logs `*.out` beside them. Timings so far: capture 435
+    positions/s at 10 workers; 33-37 min per epoch, 8 GB RSS.
 
 ## Monitoring
 - Processes: `ps -eo pid,etime,args | grep -E "[l]abel_run|[s]imulator|[l]earner" | grep -v bash`
