@@ -1,0 +1,236 @@
+diff --git i/docs/BACKLOG.md w/docs/BACKLOG.md
+index 81d2409..5313542 100644
+--- i/docs/BACKLOG.md
++++ w/docs/BACKLOG.md
+@@ -35,7 +35,6 @@ are neutral; each one is teaching the agent something.
+ | **PPO throttle: no new training games while a full next batch (`--steps`) is waiting** (2026-11-04) | `tools/selfplay/learner.py` `next_job` | Flow control so batches stay on-policy when workers outrun the trainer; it idles workers. Remove when the trainer keeps up (faster update) or when idle capacity is given other work (value games, evals). |
+ | **Teferi, Master of Time's instant-speed window has no window to use** (registered 2026-10-29, branch `engine/phasing`) | `core/executor/legality.py` `ability_playable` (CR 606.3 loyalty window; the GRANT_ACTIVATION relaxation); `core/executor/games.py` and `MTG_bot/bench/router.py` (one act window per main phase) | The legality oracle honours "You may activate loyalty abilities of Teferi on any player's turn any time you could cast an instant" (for Teferi itself only, CR 201.5c). The drivers ask for activations only in the active player's main phases (both since 2026-11-06, B-74), so the opponent's-turn half and the own-turn combat half never get a window, and Teferi plays as a sorcery-speed planeswalker: weaker than printed (its [−3] can never remove an attacker or a blocker). Remove with the priority rung: an activation window for the non-active seat and inside each step. |
+ | **The heuristic's mulligan rule** (2026-11-06, with the London mulligan) | `tools/selfplay/heuristic.py` `_mulligan`, `_mulligan_bottom` | An authored keep policy, not a rule of the game, in the anchor opponent and the BC teacher: keep a hand of five cards or fewer, or a bigger one with at least two lands and at least two other cards; the card a mulligan puts on the bottom is a land while lands outnumber the rest (a copy of the land held most), else the highest mana value card. The network learns its own mulligan by PPO and imitates this one only in teacher inter-play. Remove it with the heuristic as anchor and teacher: a league of frozen versions as the fixed opponents, and runs that start from a trained network. |
+-| **The deck-consistent yardstick** (2026-11-06, E0) | `tools/selfplay/simulator.py` `Yardstick`; KNOWLEDGE/2026-11-06/186 | A hand-built prior of the coherent deck generator (pairs the public cards allow, 12 basics a colour, spells uniform within the pair), the opponent simulator's yardstick, for measurement only (PLAN_LEARNING §8, ruling 5): it never reaches play or labels. Delete it once the simulator beats it and the result is in NUMBERS.md. |
+ | **Simulator data: each capture seat records a share 0.4 of its decisions; capture games are half network against itself, half against the heuristic; games whose seed is a multiple of 25 are held out** (2026-11-06, E0) | `tools/selfplay/learner.py` `capture` (`--capture-p`); `tools/selfplay/simulator.py` `HOLDOUT` | Collection knobs of E0's offline data. Remove when the simulator retrains on a sliding window of the league's own recent games (PLAN_LEARNING §4), held-out games drawn there. |
+ | **One fixed `TEST_MASTER_SEED` for the test suite** (2026-09-11) | `MTG_bot/conftest.py:24` | It is the right default now, but a conformance suite should eventually run over k seeds and assert the result is seed-independent, which is what P13's seed band is for. Once P13 exists, replace the constant with a parametrised seed sweep. |
+ 
+diff --git i/tools/selfplay/README.md w/tools/selfplay/README.md
+index 7267098..f142768 100644
+--- i/tools/selfplay/README.md
++++ w/tools/selfplay/README.md
+@@ -31,7 +31,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
+ | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
+ | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
+ | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
+-| `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head; the deck-consistent yardstick (a measurement scaffold). Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
++| `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
+ | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run; paired comparison of two evaluations on the same deals. |
+ 
+ ## Training: the curriculum (the owner's plan of 2026-11-03)
+@@ -159,7 +159,7 @@ plays; and several target slots: the network gets one ask per slot and sees whic
+ chose before, the heuristic judges each slot by its own effect, a checkpoint from before the slot
+ features loads and plays them, and the search plays a two-target cast in a fork.
+ 
+-`test_simulator.py` (5 tests): capture leaves a game byte-identical and keeps the truth apart;
++`test_simulator.py` (4 tests): capture leaves a game byte-identical and keeps the truth apart;
+ rewriting every hidden card and both libraries' order leaves the simulator's input and output
+-byte-identical; both decoders and the yardstick are distributions over multisets; a training step
+-reaches every parameter it trains.
++byte-identical; both decoders are distributions over multisets; a training step reaches every
++parameter it trains.
+diff --git i/tools/selfplay/simulator.py w/tools/selfplay/simulator.py
+index 83a142e..eeb38f8 100644
+--- i/tools/selfplay/simulator.py
++++ w/tools/selfplay/simulator.py
+@@ -34,8 +34,6 @@ import math
+ import random
+ import sys
+ import time
+-from collections import Counter
+-from itertools import combinations
+ from pathlib import Path
+ from typing import Any
+ 
+@@ -44,13 +42,7 @@ import torch
+ import torch.nn.functional as F
+ from torch import nn
+ 
+-from MTG_bot.core.executor.games import (
+-    _BASIC_COLOR,
+-    COHERENT_LANDS,
+-    DECK_SIZE,
+-    MAX_COPIES,
+-    get_supply,
+-)
++from MTG_bot.core.executor.games import MAX_COPIES, get_supply
+ from tools.selfplay import features as FT
+ from tools.selfplay import model as M
+ from tools.selfplay.ppo import chunks
+@@ -274,82 +266,6 @@ def loss(net: Simulator, b: dict[str, torch.Tensor]) -> torch.Tensor:
+     return (bce + poisson - (hand_lp + lib_lp).sum()) / len(hand_lp)
+ 
+ 
+-def _lc(n: int, k: int) -> float:
+-    return (math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)) if 0 <= k <= n else -math.inf
+-
+-
+-def _lmulti(c: Counter) -> float:
+-    return math.lgamma(sum(c.values()) + 1) - sum(math.lgamma(x + 1) for x in c.values())
+-
+-
+-def _lse(xs: list[float]) -> float:
+-    top = max(xs, default=-math.inf)
+-    return top + math.log(sum(math.exp(x - top) for x in xs)) if top > -math.inf else -math.inf
+-
+-
+-class Yardstick:
+-    """SCAFFOLD (docs/BACKLOG.md; PLAN_LEARNING §8), for measurement only: the hand-built
+-    deck-consistent prior the simulator must beat. It knows the coherent deck generator
+-    (``games.build_coherent_deck``): two colours, ``lands`` basics split evenly, the rest drawn
+-    uniformly from the spells within the pair (taken as independent draws: the copy limit is
+-    ignored). Each colour pair the opponent's public cards allow is weighted by how likely it
+-    makes them; the hand is dealt uniformly from the cards not yet seen and the library is the
+-    rest. It ignores how the opponent played: that is what the simulator can learn."""
+-
+-    def __init__(self, basics: dict[str, Any], spells: dict[Any, set], lands: int = COHERENT_LANDS,
+-                 size: int = DECK_SIZE) -> None:
+-        self.half, self.n_spells = lands // 2, size - lands
+-        self.pairs = [((basics[x], basics[y]), {o for o, c in spells.items() if c <= {x, y}})
+-                      for x, y in combinations(sorted(basics), 2)]
+-
+-    @classmethod
+-    def of(cls, supply: Any, row: Any = lambda oid: oid) -> Yardstick:
+-        metas = supply.metas
+-        return cls({_BASIC_COLOR[metas[o].name]: row(o) for o in supply.deckable
+-                    if metas[o].is_basic and metas[o].name in _BASIC_COLOR},
+-                   {row(o): set(supply.pool.results[o].card.color_identity)
+-                    for o in supply.deckable if not metas[o].is_land})
+-
+-    def logp(self, public: list, hand: list, library: list | None) -> tuple:
+-        """(log P(hand), log P(library | hand) or None, {card: P(card in hand)}), given the
+-        opponent's public cards."""
+-        pub, hd, h = Counter(public), Counter(hand), len(hand)
+-        prior, joint, lib, marg = [], [], [], []
+-        for (bx, by), spells in self.pairs:
+-            seen = Counter({o: c for o, c in pub.items() if o not in (bx, by)})
+-            if any(o not in spells for o in seen):
+-                continue
+-            n = len(spells)
+-            m = sum(seen.values())
+-            rx, ry, rs = self.half - pub[bx], self.half - pub[by], self.n_spells - m
+-            u = rx + ry + rs
+-            held = Counter({o: c for o, c in hd.items() if o not in (bx, by)})
+-            ks = sum(held.values())
+-            lp = (_lc(rx, hd[bx]) + _lc(ry, hd[by]) + _lc(rs, ks) - _lc(u, h) + _lmulti(held)
+-                  - ks * math.log(n)) if all(o in spells for o in held) else -math.inf
+-            prior.append(-m * math.log(n))
+-            joint.append(prior[-1] + lp)
+-            if library is not None:
+-                lb = Counter(library)
+-                rest = Counter({o: c for o, c in lb.items() if o not in (bx, by)})
+-                fits = ((lb[bx], lb[by], sum(rest.values())) == (rx - hd[bx], ry - hd[by], rs - ks)
+-                        and all(o in spells for o in rest))
+-                lib.append(joint[-1] + (_lmulti(rest) - (rs - ks) * math.log(n) if fits else -math.inf))
+-            pk = [math.exp(_lc(rs, k) + _lc(u - rs, h - k) - _lc(u, h)) for k in range(h + 1)]
+-            p_spell = 1.0 - sum(q * (1 - 1 / n) ** k for k, q in enumerate(pk))
+-            marg.append({bx: 1 - math.exp(_lc(u - rx, h) - _lc(u, h)),
+-                         by: 1 - math.exp(_lc(u - ry, h) - _lc(u, h)), **dict.fromkeys(spells, p_spell)})
+-        if not prior:
+-            raise ValueError("no colour pair allows the public cards: not a coherent deck")
+-        z = _lse(prior)
+-        out: Counter = Counter()
+-        for w, m in zip(prior, marg, strict=True):
+-            for o, p in m.items():
+-                out[o] += math.exp(w - z) * p
+-        lib_lp = _lse(lib) - _lse(joint) if library is not None else None
+-        return _lse(joint) - z, lib_lp, out
+-
+-
+ def held_out(seed: np.ndarray) -> np.ndarray:
+     return seed % HOLDOUT == 0
+ 
+@@ -396,8 +312,8 @@ def train(a: argparse.Namespace) -> None:
+ 
+ @torch.no_grad()
+ def evaluate(a: argparse.Namespace) -> None:
+-    """Every held-out position's hand and library NLL under the simulator and the yardstick,
+-    and every (position, pool card) pair's P(card in hand) from both, to ``--out``."""
++    """Every held-out position's hand and library NLL, and every (position, pool card) pair's
++    P(card in hand), to ``--out``."""
+     ck = torch.load(a.ckpt, map_location="cpu", weights_only=False)
+     table = FT.CardTable.from_json(ck["table"])
+     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+@@ -405,28 +321,21 @@ def evaluate(a: argparse.Namespace) -> None:
+     net.load_state_dict(ck["state"])
+     data = Data.load(a.data, table)
+     idx = np.flatnonzero(held_out(data.a["seed"]))
+-    yards = {s: Yardstick.of(get_supply(POOL, s), table.row) for s in np.unique(data.a["set"])}
+-    rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib", "yard_hand", "yard_lib")}
+-    pairs: dict[str, list] = {k: [] for k in ("pos", "card", "p_sim", "p_yard", "y")}
++    rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib")}
++    pairs: dict[str, list] = {k: [] for k in ("pos", "card", "p_sim", "y")}
+     for ch in np.array_split(idx, max(1, len(idx) // a.mb)):
+         b = data.batch(ch, dev)
+         hand_lp, lib_lp, marg, _ = net(b)
+         rows["sim_hand"] += (-hand_lp).tolist()
+         rows["sim_lib"] += (-lib_lp).tolist()
+-        cap, hand, lib = b["cap"].cpu().numpy(), b["hand"].cpu().numpy(), b["lib"].cpu().numpy()
++        cap, hand = b["cap"].cpu().numpy(), b["hand"].cpu().numpy()
+         p_sim = torch.sigmoid(marg).cpu().numpy()
+         for j, i in enumerate(ch):
+-            pub = data.a["public"][data.a["public_off"][i]:data.a["public_off"][i + 1]].tolist()
+-            hd, lb = hand[j, :data.a["h"][i]].tolist(), lib[j, :data.a["l"][i]].tolist()
+-            yh, yl, ym = yards[data.a["set"][i]].logp(pub, hd, lb)
+-            rows["yard_hand"].append(-yh)
+-            rows["yard_lib"].append(-yl)
+             cand = np.flatnonzero(cap[j] > 0)
+             pairs["pos"].append(np.full(len(cand), i))
+             pairs["card"].append(cand)
+             pairs["p_sim"].append(p_sim[j, cand])
+-            pairs["p_yard"].append(np.array([ym.get(c, 0.0) for c in cand]))
+-            pairs["y"].append(np.isin(cand, hd))
++            pairs["y"].append(np.isin(cand, hand[j, :data.a["h"][i]]))
+     out = {k: np.array(v) for k, v in rows.items()}
+     out.update({k: np.concatenate(v) for k, v in pairs.items()})
+     out.update({k: data.a[k][idx] for k in ("seed", "turn", "h", "l", "set", "seat", "net")
+diff --git i/tools/selfplay/test_simulator.py w/tools/selfplay/test_simulator.py
+index 1af44dd..9d92b2c 100644
+--- i/tools/selfplay/test_simulator.py
++++ w/tools/selfplay/test_simulator.py
+@@ -1,6 +1,6 @@
+ """Tests for the opponent simulator (simulator.py) and its data (actor.Capture): capture changes
+-no game, the truth stays apart, no input reads a hidden card, and both decoders and the
+-yardstick are proper distributions over multisets."""
++no game, the truth stays apart, no input reads a hidden card, and both decoders are proper
++distributions over multisets."""
+ 
+ from __future__ import annotations
+ 
+@@ -146,31 +146,6 @@ def test_hand_and_library_decoders_are_distributions_over_multisets(table) -> No
+     assert math.isclose(logp([hand] * len(libraries), libraries, 1), 0.0, abs_tol=1e-4)
+ 
+ 
+-def test_the_yardstick_is_a_distribution_over_hands_and_libraries() -> None:
+-    """A toy pool: five basics and two-colour spells. Given the public cards, the yardstick's
+-    hand probabilities sum to one over every possible hand, and its library probabilities sum
+-    to one over every library that completes the deck."""
+-    colours = "WUBRG"
+-    basics = {c: f"basic-{c}" for c in colours}
+-    spells = {"w1": "W", "w2": "W", "u1": "U", "wu": "WU", "g1": "G", "ub": "UB", "c0": ""}
+-    yard = S.Yardstick(basics, {k: set(v) for k, v in spells.items()}, lands=4, size=10)
+-    public = ["basic-W", "w1"]  # the pairs W/x stay possible, each as likely as it makes w1
+-    rows = sorted(set(basics.values()) | set(spells))
+-    total = 0.0
+-    for hand in itertools.combinations_with_replacement(rows, 2):
+-        total += math.exp(yard.logp(public, list(hand), None)[0])
+-    assert math.isclose(total, 1.0, rel_tol=1e-9)
+-    hand = ["basic-W", "u1"]
+-    unknown = 10 - len(public) - len(hand)
+-    total = 0.0
+-    for library in itertools.combinations_with_replacement(rows, unknown):
+-        total += math.exp(yard.logp(public, hand, list(library))[1])
+-    assert math.isclose(total, 1.0, rel_tol=1e-9)
+-    marginal = yard.logp(public, hand, None)[2]
+-    assert marginal["ub"] == 0.0  # every pair the public cards allow holds white
+-    assert 0.0 < marginal["wu"] < marginal["g1"] < marginal["basic-W"] < 1.0
+-
+-
+ def test_one_training_step_moves_every_trained_parameter(table) -> None:
+     torch.manual_seed(2)
+     net = S.Simulator(table, d=32, layers=1, heads=4, ff=64)

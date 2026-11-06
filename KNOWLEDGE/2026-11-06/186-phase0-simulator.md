@@ -107,3 +107,53 @@ mid-game, so the prediction that it will not be kept stands.
 The capture ran at 89e00a0 from a pinned worktree: 40,000 games, about 33-35k positions per
 1,000 games (§1 estimated 38.7 from the 40-game pilot), so about 1.37M positions and about 54k
 held-out, above the plan's 50k.
+
+## 3. State at hand-over (2026-11-06 21:37; the gate is NOT scored yet)
+
+**Built and tested** (branch `phase0/simulator`): capture (`actor.Capture`, `learner --capture`),
+`features.sim_view` (+ event window), `simulator.py` (network, decoders, marginal head, train,
+eval, yardstick). `pytest tools/selfplay/test_simulator.py` 5 passed (red before: module absent;
+the leak test fails on two injected leaks, `experiments/e0_mutation_check.py window|public`).
+Gates at 284906c: `pytest MTG_bot -q` 5091 passed / 39 deselected / 71 subtests; `pytest tools
+-q` 144 passed (at 1d54ea8); `tools/run_scenarios.py` 738/738.
+
+**Data** (done): `runs/simulator/e0_capture/capture` (40 shards, 5.6 GB, at 89e00a0): 40,000 games,
+0 void, 1,388,124 positions, 54,886 held out (1,600 games); every opponent card accounted for at
+every position, 0 held-out labels outside the masks (`experiments/e0_check_full.py`). Yardstick on
+the held-out positions alone: hand NLL 12.81, library 63.63, finite everywhere.
+
+**Running** (nohup, from the pinned worktree `../MTG_AI-sim-run` at 284906c; lr 1e-3, 4 epochs):
+- PID 1993685, no window: `runs/simulator/e0_sim_nowin.pt`, log `e0_sim_nowin.out`; epoch losses
+  154.76, 138.18; expected end ~22:30.
+- PID 1993686, window: `e0_sim_win.pt`, log `e0_sim_win.out`; 155.47, 138.18; end ~22:45.
+- Each epoch overwrites the .pt; snapshots `e0_sim_{nowin,win}_ep{0,1}.pt` exist (the copying
+  loop lived in the agent's session and may have stopped).
+Progress: `grep -h epoch runs/simulator/e0_sim_{nowin,win}.out | tail -4; ps -p 1993685,1993686`.
+
+**To score E0 as pre-registered** (from `../MTG_AI-sim-run`, repo root paths):
+```
+for a in nowin win; do .venv/bin/python -m tools.selfplay.simulator eval --data runs/simulator/e0_capture/capture --ckpt runs/simulator/e0_sim_$a.pt --out runs/simulator/e0_eval_$a.npz; done
+PYTHONPATH=. python tools/selfplay/experiments/e0_score_e0.py runs/simulator/e0_eval_nowin.npz runs/simulator/e0_eval_win.npz   # G1-G3 + window rule
+PYTHONPATH=. python tools/selfplay/experiments/e0_consistency.py runs/simulator/e0_sim_<kept>.pt 2000 64 runs/simulator/e0_capture/capture
+PYTHONPATH=. python tools/selfplay/experiments/e0_next_card.py runs/simulator/e0_sim_<kept>.pt runs/simulator/e0_capture/capture
+PYTHONPATH=. python tools/selfplay/experiments/e0_epoch_curve.py runs/simulator/e0_capture/capture runs/simulator/e0_sim_nowin_ep{0,1}.pt runs/simulator/e0_sim_nowin.pt
+PYTHONPATH=. python tools/selfplay/experiments/e0_bench_cost.py runs/simulator/e0_sim_<kept>.pt runs/simulator/e0_capture/capture   # on a quiet GPU
+```
+Retrain: `experiments/e0_launch_train.sh <commit>`. After the verdict: `git apply
+experiments/remove_window.patch` if the window is rejected, then `remove_yardstick.patch` once
+the simulator beats the yardstick and NUMBERS records it (both tested: 5 then 4 tests pass). On a
+gate failure: capture with `--seed 2` (fresh deals) up to 4M positions and retrain on both dirs.
+
+**Timings so far.** Capture: 435 positions/s at 10 workers over the run (12.5 games/s, 3,191 s),
+532/s over the last 20 shards; `features.sim_view` 0.21 ms per decision (p90 0.28). Training:
+33.2 min/epoch without the window, 37.2 with it (0.76 / 0.85 s per step of ≤512 positions, both
+arms on one shared GPU); RSS 12.1 GB peak (loading), 8.0 GB steady; GPU peak per training step
+3.7 GB. Inference, measured only on the untrained smoke model under heavy GPU contention (upper
+bounds, re-measure): one belief 23 ms (batch 1), 47 ms (128 decisions); one hand 98 ms, 32 hands
+108 ms; hand + library contents + next 3 or 5 cards 1.25 s (1 world), 1.75 s (32 worlds): the
+library decoder emits the whole contents (~47 sequential steps, no KV cache), so the next 3 and
+the next 5 cost the same.
+
+**Known problems.** Gate unscored. Library sampling costs ~l decoder steps (KV caching would cut
+it). Hand + next 3/5 quality needs the library order, which capture does not record (BACKLOG
+study); the k = 1 next-card NLL is `e0_next_card.py`.
