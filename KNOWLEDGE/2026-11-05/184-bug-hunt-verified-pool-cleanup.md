@@ -350,3 +350,9 @@ Merged for r20's epoch (r19 still runs on 449bd0f):
   game, games per second -14%. Preflight 200 games and M21/M20 soaks: 0 engine errors.
 - Gates on 46c7288: pytest MTG_bot 5150; pytest tools 131; packs 718/718. A red team is reviewing
   every fix since 449bd0f before r20.
+- **Component wave 2** (merge 7a598df): the defending player as a referent (CR 506.2, 508.5), "can't
+  be blocked by more than one creature" (509.1b; with menace, unblockable), and the created token as
+  a referent ("create a token, then attach this Equipment to it"; 701.3b). Chosen by measured gain
+  from seven candidates; 35 sentences newly parse, fully compiled cards across the 19 sets 1,674 ->
+  1,690 (M20 +4: Ancestral Blade, Bristling Boar, Heart-Piercer Bow, Wolfrider's Saddle); no
+  compiled tree changed; replay digests identical. Gates on 7a598df: 5202 / 131 / 729.
