@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Round-16a validation-pack runner (BINDING plan §16a, R16-1).
+"""Scenario-pack runner: the executable rules-conformance suite.
 
 A pack is a SMALL deterministic world-script: a handful of cards, one or
-two scripted engine actions, and a post-condition block. It is the
-executable form of "show me the rules interaction actually works" —
-scenario packs prove the 16a behaviours end to end through the REAL
-executor (compiled trigger IR included), not just the unit fixtures.
+two scripted engine actions, and a post-condition block. Packs prove rules
+interactions end to end through the REAL executor (compiled trigger IR
+included), not just through unit fixtures.
 
 Usage:
     .venv/bin/python tools/run_scenarios.py [--dir tools/scenarios]
@@ -18,15 +17,15 @@ Pack vocabulary (all keys required as noted):
   cards   : [{"key": str, "zone": "hand"|"battlefield"|"library"|"graveyard"
                     |"exile", "controller": 0|1,
               "real": "<pool card name>"  OR  "<compiled token name>"
-                                            (r24a: a token golden — "Treasure"
-                                            — addressed by name through the
+                                            (a token golden — "Treasure" —
+                                            addressed by name through the
                                             pool fallback; is_token records
                                             only), OR
               "name"/"power"/"toughness"/"type" (synthetic; optional
                                             "colors", "keywords", and
                                             "token": true for a token)}]
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
-  mulligan: [word...]                       optional (2026-11-06, CR 103.5): the pack starts
+  mulligan: [word...]                       optional (CR 103.5): the pack starts
                                             like a dealt game, each seat drawing seven from its
                                             library, and the London mulligan runs before the
                                             first turn (games.mulligans). The words answer its
@@ -45,36 +44,34 @@ Pack vocabulary (all keys required as noted):
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
              {"op": "enter", "key": k, "hold_triggers": true}
-                                            2026-10-29 (R5-1): the triggers
-                                            the entry arms wait, unresolved,
-                                            until the NEXT step's settle —
-                                            the stand-in for "in response to
-                                            the trigger" (the engine has no
-                                            priority window for triggers),
+                                            the triggers the entry arms wait,
+                                            unresolved, until the NEXT step's
+                                            settle — the stand-in for "in
+                                            response to the trigger" (the
+                                            engine has no priority window
+                                            for triggers),
              {"op": "move", "key": k, "to": "hand"|"graveyard"|"exile"
-              |"battlefield"|"library"}     2026-10-29 (R5-1): a journalled
-                                            move by "another effect" (a
-                                            bounce, a destroy, an exile) to
-                                            the card's OWNER's zone; its
-                                            settle drains held triggers
-                                            after the move,
-             {"op": "play", "key": k}       17a: the REAL land drop (CR
-                                            305.1, legality + once-per-
-                                            turn + EtBState entry hook),
+              |"battlefield"|"library"}     a journalled move by "another
+                                            effect" (a bounce, a destroy, an
+                                            exile) to the card's OWNER's
+                                            zone; its settle drains held
+                                            triggers after the move,
+             {"op": "play", "key": k}       the REAL land drop (CR 305.1,
+                                            legality + once-per-turn +
+                                            EtBState entry hook),
              {"op": "enter"|"enchant"|"play", ...,
-              "decisions": [str...]}         17a: ordered words the step's
-                                            asks consume (scry, modes,
-                                            may-offers); never forces a
-                                            word the vocabulary lacks,
-             {"op": "enchant", "aura": k, "host": k}   the 13c attach edge
-                                            (16e: restores a battlefield-
-                                             declared aura the setup CR
-                                             704.5q sweep already buried,
-                                             then attaches via the real
-                                             API — journalled re-entry
-                                             RE-REGISTERS its static),
+              "decisions": [str...]}        ordered words the step's asks
+                                            consume (scry, modes, may-offers);
+                                            never forces a word the
+                                            vocabulary lacks,
+             {"op": "enchant", "aura": k, "host": k}   attach an aura
+                                            (restores a battlefield-declared
+                                            aura the setup CR 704.5q sweep
+                                            already buried, then attaches via
+                                            the real API — journalled
+                                            re-entry RE-REGISTERS its static),
              {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
-             {"op": "mana", "seat": 0|1, "add": {"R": 1}}  V2: add mana to a
+             {"op": "mana", "seat": 0|1, "add": {"R": 1}}  add mana to a
                                             pool at this step (pools empty as
                                             each step and phase ends, CR 500.5;
                                             stands in for the lands tapped),
@@ -84,13 +81,13 @@ Pack vocabulary (all keys required as noted):
                                             X-cost activation (CR 602.2b);
                                             absent, the X ask takes a word
              {"op": "act", "seat": 0|1, "words": [word...]}
-                                            2026-11-06: one act window of the
-                                            seat through the bench router, as
-                                            a dealt game opens it (bench/
-                                            router.py). The words answer its
-                                            asks in order, one word per ask:
-                                            the menu row ("cast:<key>[:k]
-                                            [:x<N>]", "act:<key>:<index>",
+                                            one act window of the seat through
+                                            the bench router, as a dealt game
+                                            opens it (bench/router.py). The
+                                            words answer its asks in order,
+                                            one word per ask: the menu row
+                                            ("cast:<key>[:k][:x<N>]",
+                                            "act:<key>:<index>",
                                             "land:<key>"), then the asks it
                                             opens (the mode, then one target
                                             ask per pick, slot by slot, CR
@@ -100,59 +97,58 @@ Pack vocabulary (all keys required as noted):
                                             does not offer raises, naming the
                                             ask and its words,
              {"op": "combat", "seat": 0|1, "attack": {key: bool|pwKey},
-                                            (V41: a planeswalker's pack key
+                                            (a planeswalker's pack key
                                             attacks that planeswalker)
               "may": {key: bool},
-              "block": {blockerKey: attackerKey|null}, 16c per-blocker pick
-              "order": {attackerKey: [slot...]},        16c order asks
-              "trample": {attackerKey: [amount...]},    16c excess asks
+              "block": {blockerKey: attackerKey|null},  per-blocker pick
+              "order": {attackerKey: [slot...]},        order asks
+              "trample": {attackerKey: [amount...]},    excess asks
               "policy": {attackerKey: "UNBLOCKED"|
-                                  "AS_BLOCKED"}}        16c Herald policy
+                                  "AS_BLOCKED"}}        damage-assignment policy
                                             the whole COMBAT phase; the
                                             ask provider answers ONLY from
-                                            these maps (C15 narrowing is
-                                            the engine's, and recorded;
-                                            an unspecified block is NONE)]
+                                            these maps (the engine narrows
+                                            the vocabulary; an unspecified
+                                            block is NONE)]
   expect  : {"life": {"0": int...}, "zone": {key: zone...},  zone may be
                                             "ceased": a token gone (CR 704.5d),
-              "damage": {key: int...},      — damage is the 16a mark ledger
+              "damage": {key: int...},      — the damage mark ledger
               "damage_received": {key: int...}, — historical card DAMAGE rows
                                          summed (survives cleanup; subset lane)
               "attackers": {key: bool},     — the DECLARE_ATTACKERS rows,
              "blocked": {key: [blockerKey...]} — the DECLARE_BLOCKERS rows
-                                        of the last group (16c),
+                                        of the last group,
              "asks": {key: "ATTACK,DECLINE"},  — vocab per attack site,
-             "block_asks": {key: "a,b,NONE"},— vocab per 16c block site,
+             "block_asks": {key: "a,b,NONE"},— vocab per block site,
              "policy_asks": {key: "..."},    — vocab per policy ask,
              "not_asked": [key...],        — creatures never asked,
              "not_asked_to_block": [key],  — never offered a block ask,
              "tokens": {Name: n},          — battlefield token records
              "tapped": {key: bool},
-             "attached": {key: hostKey|null},  B-49 follow-up #2: the attachment table
+             "attached": {key: hostKey|null},  the attachment table
              "hand": {"0": int},
-             "lost": {"0": bool},          m21-fidelity 2026-10-29: the seat is
-                                            in executor.lost_players (LOSE_GAME,
+             "lost": {"0": bool},          the seat is in
+                                            executor.lost_players (LOSE_GAME,
                                             or CR 704.5a/b: a step that ends the
                                             game is the last one that runs),
-             "mana_pool": {"0": {"W": 1}},  r24a: the PlayerState.mana_pool
-                                            totals (frozen _v_add_mana write;
-                                            zero-equivalence both sides)
+             "mana_pool": {"0": {"W": 1}},  the PlayerState.mana_pool totals
+                                            (an absent colour equals 0)
              "kick_rows": {key: {"kicked": bool, "x": int|null}},
-                                        ZND-1g: the LAST CAST journal row of
-                                        the key's card (the same 6-tuple
+                                        the LAST CAST journal row of the
+                                        key's card (the same 6-tuple
                                         WAS_KICKED reads: paid flag + the
                                         declared X). A never-cast key FAILS
                                         loudly — no row, no silent False.
-             "counters": {key: {"KIND": n}},  17a: the counter table,
-             "power": {key: int},             17a: ledger effective_pt,
-             "toughness": {key: int},         17a: (base->timestamp fold),
-             "library": {"0": [names...TOP-first]},   17a: exact order,
-             "graveyard": {"0": [names...]},          17a: exact bag
-             "turn_seats": [0, 0, 1],  2026-10-29: the seat of every turn
-                                        begun, in order (CR 500.7 extra turns)
-             "phased_out": {key: bool},  2026-10-29: the CR 702.26 status
-             "controller": {key: 0|1}}  2026-10-29 (R5-1): the effective
-                                        controller's seat (CR 610.3c)
+             "counters": {key: {"KIND": n}},  the counter table,
+             "power": {key: int},             ledger effective_pt,
+             "toughness": {key: int},         (base->timestamp fold),
+             "library": {"0": [names...TOP-first]},   exact order,
+             "graveyard": {"0": [names...]},          exact bag
+             "turn_seats": [0, 0, 1],  the seat of every turn begun, in
+                                        order (CR 500.7 extra turns)
+             "phased_out": {key: bool},  the CR 702.26 status
+             "controller": {key: 0|1}}  the effective controller's seat
+                                        (CR 610.3c)
   setup cards may carry "counters": {"KIND": n}; an activate step's targets
   may name a player as "p0"/"p1".
   any step may carry "expect_raise": "<text>": the step must raise, with the
@@ -206,10 +202,10 @@ ZONE_OF_NAME = {
     "hand": ZONE_HAND,
     "graveyard": ZONE_GRAVEYARD,
     "exile": ZONE_EXILE,
-    "library": ZONE_LIBRARY,  # 17a: search/tutor assertions
+    "library": ZONE_LIBRARY,  # search/tutor assertions
 }
 UNIV = FAnd(())
-# R5-1 (2026-10-29): the "move" op's destinations.
+# The "move" op's destinations.
 _MOVE_TO = {
     "battlefield": ZoneKind.BATTLEFIELD,
     "hand": ZoneKind.HAND,
@@ -224,9 +220,8 @@ class PackError(Exception):
 
 
 def _keyword_tuple(card: dict) -> tuple[str, ...]:
-    """A synthetic card's printed keywords. Fixer 3 (2026-10-30): a bare string
-    ("FLYING") used to become a tuple of letters, so the card silently had no
-    keyword at all; it is refused now."""
+    """A synthetic card's printed keywords. A bare string ("FLYING") is refused: it would
+    become a tuple of letters, and the card would silently have no keyword."""
     keywords = card.get("keywords", ())
     if isinstance(keywords, str):
         raise PackError(f"card {card.get('key')!r}: keywords must be a list, got {keywords!r}")
@@ -249,8 +244,8 @@ def _bf_target():
 
 
 #: A decision word that takes the ask's first offered word: for an ask the pack does not test.
-#: Any other word must be one the ask offers, or the pack fails (a word the ask does not offer
-#: used to fall back to the first word silently, so a shifted queue still passed).
+#: Any other word must be one the ask offers, or the pack fails (a silent fallback would let a
+#: shifted queue pass).
 FIRST_LEGAL = "first-legal"
 _ORACLES: dict[str, Any] = {}  # the act op's card text, one index per set
 
@@ -282,18 +277,16 @@ class ScenarioRunner:
                         record = supply.pool.results[oid].card
                         break
                 if record is None:
-                    # r24a TOKEN-GOLDEN LANE (treasure_token_activation):
-                    # token identities are compiled golden rows, never dealt
-                    # pool METAS (the keyless-mint law's other face —
-                    # supply('all') filters is_token out of metas at
-                    # games.compile_supply). A metas miss therefore falls
-                    # back to the compiled TOKEN record by name. Only
-                    # is_token records qualify: the lane never fakes or
-                    # substitutes a printed identity, and the golden's REAL
-                    # oracle_id is what binder.attach_pool files under
-                    # ``records`` and what legality.spell_record reads — so
-                    # the pack-keyed token carries the SAME compiled
-                    # ActivatedAbility the engine's own mints carry.
+                    # Token identities are compiled golden rows, never dealt
+                    # pool metas (supply('all') filters is_token out of metas
+                    # in games.compile_supply), so a metas miss falls back to
+                    # the compiled token record by name. Only is_token records
+                    # qualify: the lane never substitutes a printed identity,
+                    # and the golden's real oracle_id is what
+                    # binder.attach_pool files under ``records`` and
+                    # legality.spell_record reads, so the pack-keyed token
+                    # carries the same compiled ActivatedAbility the engine's
+                    # own tokens carry.
                     for result in supply.pool.results.values():
                         if result.card.is_token and result.card.name == card["real"]:
                             record = result.card
@@ -310,30 +303,24 @@ class ScenarioRunner:
                     power=card.get("power"),
                     toughness=card.get("toughness"),
                     cmc=card.get("cmc", 2),
-                    # tools/cards probe board (2026-10-29): optional colour and printed keywords
-                    # for synthetic cards; absent keys are the dataclass defaults (byte-identical).
+                    # Optional colour and printed keywords; absent keys are the dataclass defaults.
                     colors=tuple(card.get("colors", ())),
                     keywords=_keyword_tuple(card),
-                    # V22 (2026-10-29): a synthetic TOKEN ("token": true), e.g. a token
-                    # copy of a legendary creature; absent = a card, byte-identical.
+                    # A synthetic TOKEN ("token": true), e.g. a token copy of a legendary creature.
                     is_token=bool(card.get("token", False)),
-                    # Fixer 3 (2026-10-30): a synthetic planeswalker may declare its printed
-                    # loyalty, so damage removes loyalty (CR 120.3c) instead of marking it
-                    # like creature damage; absent stays None (byte-identical).
+                    # A synthetic planeswalker may declare its printed loyalty, so damage
+                    # removes loyalty (CR 120.3c) instead of marking it like creature damage.
                     loyalty=str(card["loyalty"]) if "loyalty" in card else None,
                 )
             zone = ZONE_OF_NAME[card.get("zone", "battlefield")]
             self.handles[card["key"]] = self.world.add_card(
                 identity, self.seats[card["controller"]], zone
             )
-            # tools/cards probe board: a permanent that starts tapped. Fixer 3 (2026-10-30):
-            # applied after the opening begin_turn below, whose untap step used to untap seat
-            # 0's start_tapped permanents before any step ran; and the older "tapped" key that
-            # eight packs carry is now honoured too (B-63: ignored, it made them vacuous).
+            # A permanent that starts tapped ("start_tapped", or the older "tapped"). Applied
+            # after the opening begin_turn below, whose untap step would untap seat 0's.
             if card.get("start_tapped") or card.get("tapped"):
                 start_tapped.append(self.handles[card["key"]])
-            # 2026-10-29 (phasing packs): counters a setup card starts with, e.g.
-            # {"PLUS_1_PLUS_1": 1}. Absent keys are byte-identical.
+            # Counters a setup card starts with, e.g. {"PLUS_1_PLUS_1": 1}.
             for kind, n in card.get("counters", {}).items():
                 self.world.cards[self.handles[card["key"]]].counters[kind] = int(n)
         # The real cards' triggers/abilities register from the compiled pool.
@@ -343,14 +330,11 @@ class ScenarioRunner:
                 self.world.players[self.seats[int(seat)]].mana_pool[color] = n
         if "mulligan" in pack:
             self._mulligans(list(pack["mulligan"]))
-        # 16b: the clock opens for REAL (begin_turn: markers, ledger; turn 1
-        # of a two-player game, so seat 0 skips its draw step, CR 103.8a)
-        # — a faked turn desynced world.turn and the sickness
-        # clock against advance_turn. The old fakes turn_open/phase
-        # manually, which every combat pack now outgrows.
-        # tools/cards probe (2026-10-29): a card pre-placed on the battlefield can trigger at this
-        # first begin_turn (an upkeep or beginning-of-turn trigger) before any step installs an
-        # answerer; a caller may pass one for setup. None keeps every pack byte-identical.
+        # The clock opens for real (begin_turn: markers, ledger; turn 1 of a two-player game, so
+        # seat 0 skips its draw step, CR 103.8a); a faked turn would desync world.turn and the
+        # sickness clock against advance_turn. A card pre-placed on the battlefield can trigger
+        # at this first begin_turn (an upkeep or beginning-of-turn trigger) before any step
+        # installs an answerer; a caller may pass one for setup.
         self.ex.decisions.provider = setup_provider
         try:
             self.ex.begin_turn(self.p0)
@@ -358,20 +342,17 @@ class ScenarioRunner:
             self.ex.decisions.provider = None
         for handle in start_tapped:
             self.world.cards[handle].tapped = True
-        # 16b: the combat rig — asks the engine actually made, and
-        # libraries deep enough for real begin_turn/advance_turn draws.
+        # The asks the engine made, and libraries deep enough for real
+        # begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []
-        # Rung-1 (2026-10-05): every response-window / kickback ask the
-        # engine made, as (tag, vocab, ANSWER) triples — the expect lanes
-        # window_asks / kickback_asks / window_vocab read these.
+        # Every response-window / kickback ask the engine made, as (tag,
+        # vocab, ANSWER) triples; the expect lanes window_asks /
+        # kickback_asks / window_vocab read these.
         self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
-        # 2026-10-08 library-top knob: the filler below always lands ON TOP
-        # of a pack's typed library cards, so library-peek/scry asks would
-        # present opaque "Library N" strings as their candidates — the §10
-        # BLINDNESS the T4 audit flags. A pack that sets
-        # ``"world": {"library_top": true}`` re-raises its OWN library-zone
-        # cards above the filler after the filler is dealt (relative order
-        # preserved). Packs without the key are byte-identical.
+        # The filler below lands ON TOP of a pack's typed library cards, so
+        # library-peek/scry asks would offer opaque "Library N" candidates.
+        # A pack that sets ``"world": {"library_top": true}`` re-raises its
+        # OWN library-zone cards above the filler (relative order preserved).
         filler = []
         for seat_idx in (0, 1):
             for i in range(6):
@@ -424,21 +405,19 @@ class ScenarioRunner:
 
     def run_step(self, step: dict) -> None:
         if step.get("decisions") and step["op"] != "combat":
-            # 17a: the decision channel — a non-combat step (an ETB that
-            # scrys, a mode choice, a may-offer) carries the ordered words
-            # its asks consume, IN ARRIVAL ORDER. A word the vocabulary
-            # does not carry is never forced: the provider takes the
-            # engine's own first legal word (C15 narrowing respected).
+            # The decision channel: a non-combat step (an ETB that scrys, a
+            # mode choice, a may-offer) carries the ordered words its asks
+            # consume, IN ARRIVAL ORDER. A word the vocabulary does not carry
+            # is never forced: the ask takes its default and the miss fails
+            # the pack (self.unoffered).
             queue = list(step["decisions"])
 
             def prov(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
                 rung1 = what.startswith(("counter:", "pay:", "cw:"))
-                # Rung-1: the queue is the step's DECLARATION lane. A
-                # window/kickback ask whose word the queue does not reach
-                # takes the disciplined default "PASS" (queue exhaustion
-                # never crashes a window — the pack that wants another
-                # answer says so with a word).
+                # A window/kickback ask the queue does not reach takes
+                # "PASS" (queue exhaustion never crashes a window; a pack
+                # that wants another answer says so with a word).
                 if not queue:
                     answer = "PASS" if rung1 else vocab[0]
                     if rung1:
@@ -446,7 +425,7 @@ class ScenarioRunner:
                     return answer
                 got = queue.pop(0)
                 if got in self.handles:
-                    # 18b: a DESIGNATION answer may be given as a PACK KEY
+                    # A DESIGNATION answer may be given as a PACK KEY
                     # ("sheep", not "card:1") — resolved to the handle
                     # string the vocabulary actually carries. Pack-card
                     # order is deterministic, so the pin stays replay-exact
@@ -468,11 +447,9 @@ class ScenarioRunner:
                 self.ex.decisions.provider = None
             return
         if step["op"] != "combat":
-            # Rung-1 quiet lane: a step WITHOUT a decisions queue still
-            # answers response-window and kickback asks with PASS (the
-            # window is not the pack's declaration lane). Every OTHER ask
-            # raises the engine's OWN exhaustion message verbatim — the
-            # 339 semantics (silence on unprimed asks) are byte-preserved.
+            # A step WITHOUT a decisions queue still answers response-window
+            # and kickback asks with PASS. Every OTHER ask raises the
+            # engine's own exhaustion message verbatim.
             def quiet(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
                 if what.startswith(("counter:", "pay:", "cw:")):
@@ -509,7 +486,7 @@ class ScenarioRunner:
             if spell_key not in self.handles:
                 raise PackError(f"no hand card {spell_key!r} — add it under cards")
             targets = [self._target_handle(k) for k in step.get("targets", ())]
-            # r22b: a cast step's "player:N" decision token is a PLAYER
+            # A cast step's "player:N" decision token is a PLAYER
             # designation for the spell's target slot. The ASK channel never
             # answers CAST-time multi-candidate targeting (that stays loud by
             # harness policy), so the token lifts straight into the explicit
@@ -531,7 +508,7 @@ class ScenarioRunner:
         elif op == "advance_turn":
             self.ex.advance_turn()
         elif op == "play":
-            # 17a: the REAL land drop (CR 305.1) — legality re-check,
+            # The REAL land drop (CR 305.1) — legality re-check,
             # once-per-turn ledger, and the journal's entry hook that
             # stamps the compiled EtBState (the M21 checklands and
             # temples enter TAPPED; asserting the printed promise).
@@ -553,11 +530,9 @@ class ScenarioRunner:
                 destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
                 tapped_on_enter=bool(step.get("tapped", False)),
             )
-            # R5-1 (2026-10-29): "hold_triggers" leaves the armed triggers queued; the
-            # next step's settle resolves them after its own action (a response).
-            # W4-4 (2026-10-30): through the binder's own hold flag (fire_all then
-            # resolves nothing), not a monkeypatched fire_all, whose signature the
-            # settle's state-based-action hook changed.
+            # "hold_triggers" leaves the armed triggers queued, through the binder's own
+            # hold flag (fire_all then resolves nothing); the next step's settle resolves
+            # them after its own action (a response).
             binder = self.ex.binder
             held = bool(step.get("hold_triggers"))
             was_holding = binder.hold
@@ -573,8 +548,8 @@ class ScenarioRunner:
             finally:
                 binder.hold = was_holding
         elif op == "move":
-            # R5-1 (2026-10-29): a journalled zone move by another effect, to the
-            # card's owner's zone (the destroy / bounce / exile stand-in).
+            # A journalled zone move by another effect, to the card's owner's zone
+            # (the destroy / bounce / exile stand-in).
             handle = self.handles[step["key"]]
             self.ex.execute(
                 _atom(
@@ -592,11 +567,10 @@ class ScenarioRunner:
                 bindings={"cards": handle},
             )
         elif op == "enchant":
-            # 16e: a pack that DECLARES an aura on the battlefield meets the
+            # A pack that DECLARES an aura on the battlefield meets the
             # CR 704.5q unattached-aura SBA at setup (begin_turn's settle):
-            # the sweep graves the aura and terminal-expires its static
-            # layer, so the old raw-dict write attached a graveyard ghost.
-            # Restore the aura through the world, journal the move so the
+            # the sweep graves the aura and expires its static layer. So
+            # restore the aura through the world, journal the move so the
             # binder lifecycle RE-REGISTERS the static (attach_source mints
             # fresh layer records), then attach via the canonical API.
             aura = self.handles[step["aura"]]
@@ -610,13 +584,10 @@ class ScenarioRunner:
             self.ex.journal.record_atom(before, None, "ATTACH", [])
             self.ex.binder.on_events()  # GY->BF re-entry re-registers
             self.ex.layers.recompute()
-            # r19c (Capture Sphere): on_events only QUEUES; the aura's own
-            # "When this Aura enters the battlefield, tap enchanted
-            # creature" EtB sat pending forever. Drain like the activate op
-            # — static-grant auras (the four green enchant packs) have no
-            # EtB trigger and stay byte-unchanged; the attachment is
-            # already in the table when the trigger RESOLVES, so the
-            # "enchanted creature" selector reads the fresh host.
+            # on_events only QUEUES: drain like the activate op, so the
+            # aura's own EtB ("tap enchanted creature", Capture Sphere)
+            # resolves. The attachment is already in the table when the
+            # trigger RESOLVES, so "enchanted creature" reads the new host.
             self.ex.fire_triggers()
         elif op == "loyalty":
             # harness ledger write: seed the CR 606.3 loyalty counter so a
@@ -624,19 +595,17 @@ class ScenarioRunner:
             handle = self.handles[step["key"]]
             self.world.cards[handle].counters["LOYALTY"] = int(step["set"])
         elif op == "life":
-            # r20c (Speaker of the Heavens) harness ledger write (same
-            # convention as the loyalty seed): set a seat's life directly.
-            # The LIFE_LEAD_OVER_START_GE lane reads current life minus the
-            # executor's starting-life snapshot, so this is the honest
-            # setup for a "gained N since the start" scenario without
-            # dragging a whole healing spell into the pack.
+            # harness ledger write, as the loyalty seed: set a seat's life
+            # directly. The LIFE_LEAD_OVER_START_GE lane reads current life
+            # minus the executor's starting-life snapshot, so this sets up a
+            # "gained N since the start" scenario without a healing spell.
             seat = self.seats[int(step["seat"])]
             self.world.players[seat].life = int(step["set"])
         elif op == "mana":
-            # V2 (2026-10-29) harness pool write, the loyalty/life convention:
-            # mana now empties as each step and phase ends (CR 500.5), so a
-            # pack that pays after a phase or turn change adds the seat's
-            # mana at that step, standing in for the lands it would tap there.
+            # harness pool write, as loyalty/life: mana empties as each step
+            # and phase ends (CR 500.5), so a pack that pays after a phase or
+            # turn change adds the seat's mana at that step, standing in for
+            # the lands it would tap there.
             pool = self.world.players[self.seats[int(step["seat"])]].mana_pool
             for color, n in step["add"].items():
                 pool[color] = pool.get(color, 0) + int(n)
@@ -648,18 +617,14 @@ class ScenarioRunner:
                 self.handles[step["key"]],
                 int(step.get("idx", 0)),
                 seat=self.seats[int(step.get("seat", 0))],
-                # 2026-10-29: "p0"/"p1" designate a player (Teferi, Timeless
-                # Voyager's "target opponent"; V21's "target player" may be the
-                # caster), any other word a pack key.
+                # "p0"/"p1" designate a player (a "target opponent", or a "target
+                # player" that may be the caster); any other word is a pack key.
                 targets=tuple(self._target_handle(k) for k in step.get("targets", ())),
-                # 2026-11-06: no decisions pool. The step's words answer its asks through the
-                # provider alone (run_step), in arrival order. As the pool as well, each word
-                # reached two lanes: the pool answered a permission row's may-offer with "fire",
-                # then the provider handed the same "fire" to the counter window the cast opens
-                # (CR 601.2i), so no pack could answer both. All 729 packs ran identically
-                # either way (errors, decision journal, final fingerprint).
-                # 2026-10-29 activation X lane (CR 602.2b -> 601.2b): an explicit
-                # announcement; absent, X is asked through the decision channel.
+                # No decisions pool: the step's words answer its asks through the provider
+                # alone (run_step), in arrival order, so one word never answers two asks (a
+                # may-offer and the counter window the cast opens, CR 601.2i).
+                # The activation's X (CR 602.2b -> 601.2b): an explicit announcement;
+                # absent, X is asked through the decision channel.
                 x=step.get("x"),
             )
             self.ex.fire_triggers()
@@ -671,20 +636,17 @@ class ScenarioRunner:
             raise PackError(f"unknown op {op!r}")
 
     def _target_handle(self, key: str):
-        """A ``targets`` entry: a pack key, or (V21, 2026-10-29) ``p0``/``p1`` for a
-        player, so a "target player" slot can name the caster in a cast or an
-        activate step. Pack keys never start with a seat literal, so every
-        existing pack resolves byte-identically."""
+        """A ``targets`` entry: a pack key, or ``p0``/``p1`` for a player, so a "target
+        player" slot can name the caster in a cast or an activate step."""
         if key in ("p0", "p1") and key not in self.handles:
             return self.seats[int(key[1])]
         return self.handles[key]
 
     def _resolve_word(self, word: str) -> str:
-        """18b pack-key resolution, RUNG-2-extended: a word (or either
-        side of a ``card@target`` composite) given as a PACK KEY resolves
-        to the handle string the vocabulary actually carries; the seat
-        literals ``p0``/``p1`` resolve to the player handles (a "any
-        target" instant's vocabulary legitimately names players)."""
+        """A word (or either side of a ``card@target`` composite) given as a
+        PACK KEY resolves to the handle string the vocabulary carries; the
+        seat literals ``p0``/``p1`` resolve to the player handles (an "any
+        target" instant's vocabulary names players)."""
         if word in self.handles:
             return str(self.handles[word])
         if word in ("p0", "p1"):
@@ -743,22 +705,19 @@ class ScenarioRunner:
     def _combat(self, step: dict) -> None:
         """Run the whole COMBAT phase answering the engine's asks from the
         pack's answer maps ONLY. Site tags carry handles (attack:<card>:
-        <turn>, may:<card>); a DECLINE the engine does not offer (a C15
-        narrowed mandate) is no answer at all — the provider then takes
-        the first legal word, which is exactly ATTACK.
-        16c lanes: ``block`` maps a blocker key to the attacker key it
-        picks (or "NONE"); ``order`` maps an attacker key to the list of
-        positional picks its ordering asks consume in slot order;
+        <turn>, may:<card>). ``block`` maps a blocker key to the attacker
+        key it picks (or "NONE"); ``order`` maps an attacker key to the
+        list of positional picks its ordering asks consume in slot order;
         ``trample`` maps an attacker key to the list of excess amounts its
         recipient asks consume in order (the player takes the rest);
-        ``policy`` maps an attacker key to AS_BLOCKED/UNBLOCKED. An un-
-        specified block defaults to NONE (the pre-16c combat packs stay
-        byte-identical), and an answer the narrowed vocabulary does not
-        carry is never forced."""
+        ``policy`` maps an attacker key to AS_BLOCKED/UNBLOCKED. An
+        unspecified block defaults to NONE. An answer the vocabulary does
+        not offer is never forced: the ask takes its first legal word and
+        the miss fails the pack (self.unoffered)."""
         answers: dict[str, str] = {}
         queues: dict[str, list[str]] = {}
         for key, go in step.get("attack", {}).items():
-            # V41: a pack key names the planeswalker the creature attacks
+            # A pack key names the planeswalker the creature attacks
             # (its handle is the ask word); true/false keep their meaning.
             if isinstance(go, str):
                 word = str(self.handles[go])
@@ -776,26 +735,22 @@ class ScenarioRunner:
             queues[f"trample:{self.handles[key]}"] = [str(a) for a in amounts]
         for key, word in step.get("policy", {}).items():
             answers[f"policy:{self.handles[key]}"] = word
-        # r22a: a combat step may also carry a generic ``decisions``
-        # script — the ordered words for asks the answer maps do not
-        # cover (a dies-trigger's TARGET designation now asks, since the
-        # own-dies fix). Popped ONLY for sites no map/queue claims, so
-        # the pre-existing combat packs (no decisions field) stay
-        # byte-identical.
+        # A combat step may also carry a generic ``decisions`` script: the
+        # ordered words for asks the answer maps do not cover (a dies
+        # trigger's TARGET designation). Popped ONLY for sites no map or
+        # queue claims.
         script = list(step.get("decisions", ()))
 
         def answer(vocab, what):
             self.asks_seen.append((what, tuple(vocab)))
-            # RUNG-2 (2026-10-05): the combat instant window. Its tag
-            # (cw:<seat>:<digest>) is claimed by NO answer map, so its
-            # scripted words ride the r22a ``decisions`` script IN
-            # ARRIVAL ORDER (window asks precede post-damage dies
-            # asks); a pack key or a ``key@key`` composite resolves
-            # through _resolve_word, and an unreached word defaults to
-            # the disciplined "PASS" — queue exhaustion never crashes a
-            # window, and the old combat packs (no cw: asks existed)
-            # stay byte-identical. Answers are journalled for the
-            # combat_window_asks / combat_window_vocab expect lanes.
+            # The combat instant window. Its tag (cw:<seat>:<digest>) is
+            # claimed by NO answer map, so its scripted words ride the
+            # ``decisions`` script IN ARRIVAL ORDER (window asks precede
+            # post-damage dies asks); a pack key or a ``key@key``
+            # composite resolves through _resolve_word, and an unreached
+            # word defaults to "PASS" (queue exhaustion never crashes a
+            # window). Answers are journalled for the combat_window_asks
+            # / combat_window_vocab expect lanes.
             if what.startswith("cw:"):
                 got = self._resolve_word(script.pop(0)) if script else "PASS"
                 if got not in vocab:
@@ -850,32 +805,32 @@ class ScenarioRunner:
             if got != life:
                 fails.append(f"life[{seat}]: expected {life}, got {got}")
         for key, zone in self.pack.get("expect", {}).get("zone", {}).items():
-            # Fixer 3 (2026-10-30): "ceased" is the answer for a token that left the
-            # battlefield and ceased to exist (CR 704.5d, V35); it is in no zone.
+            # "ceased": a token that left the battlefield ceased to exist (CR 704.5d);
+            # it is in no zone.
             handle = self.handles[key]
             got = self.world.zone_of(handle).kind if handle in self.world.cards else "ceased"
             if got != ZONE_OF_NAME.get(zone, zone):
                 fails.append(f"zone[{key}]: expected {zone}, got {got}")
-        # B-49 follow-up #2 ATTACHED LANE: the executor's attachment table (aura or equipment
-        # -> host), the one IS_ATTACHED_TO_SOURCE reads; null = attached to nothing.
+        # The executor's attachment table (aura or equipment -> host), the one
+        # IS_ATTACHED_TO_SOURCE reads; null = attached to nothing.
         for key, host in self.pack.get("expect", {}).get("attached", {}).items():
             got_host = self.ex.attachments.get(self.handles[key])
             if got_host != (self.handles[host] if host is not None else None):
                 fails.append(f"attached[{key}]: expected {host}, got {got_host}")
-        # 2026-10-29 PHASED_OUT LANE (CR 702.26): the executor's phased-out status.
+        # The executor's phased-out status (CR 702.26).
         for key, want in self.pack.get("expect", {}).get("phased_out", {}).items():
             got_phased = self.handles[key] in self.ex.phased_out
             if got_phased != bool(want):
                 fails.append(f"phased_out[{key}]: expected {want}, got {got_phased}")
-        # 2026-10-29 CONTROLLER LANE (R5-1, CR 610.3c): the seat index of the card's
-        # effective controller (the control overlay included; off the battlefield, its owner).
+        # The seat index of the card's effective controller (CR 610.3c; the control
+        # overlay included; off the battlefield, its owner).
         for key, want in self.pack.get("expect", {}).get("controller", {}).items():
             got_seat = self.seats.index(self.ex.controller_of(self.handles[key]))
             if got_seat != int(want):
                 fails.append(f"controller[{key}]: expected {want}, got {got_seat}")
-        # 2026-10-29 TURN_SEATS LANE (CR 500.7 extra turns): the seat index of every turn
-        # begun so far, in order, read off the journal's UPKEEP markers (they carry the
-        # active player). The setup's opening begin_turn is the first entry.
+        # The seat index of every turn begun so far, in order (CR 500.7 extra turns), read
+        # off the journal's UPKEEP markers (they carry the active player). The setup's
+        # opening begin_turn is the first entry.
         if "turn_seats" in self.pack.get("expect", {}):
             got_seats = [
                 self.seats.index(e.data[1])
@@ -912,7 +867,7 @@ class ScenarioRunner:
                     fails.append(
                         f"damage_received[{key}]: expected {amount}, got {got_amount}"
                     )
-        # 16b: the attack record is read from the JOURNAL (DECLARE_ATTACKERS
+        # The attack record is read from the JOURNAL (DECLARE_ATTACKERS
         # rows of the LAST declare group — journalled truth, not the
         # executor's post-clear memory).
         if "attackers" in expect:
@@ -928,7 +883,7 @@ class ScenarioRunner:
                     fails.append(
                         f"attackers[{key}]: expected {on}, got {key in got_set}"
                     )
-        # 16c: the block record is read from the JOURNAL too — the
+        # The block record is read from the JOURNAL too — the
         # DECLARE_BLOCKERS rows of the LAST declare group (subject = the
         # blocker, data[0] = the attacker it blocked).
         if "blocked" in expect:
@@ -954,8 +909,8 @@ class ScenarioRunner:
                     )
         for lane, prefix in (
             ("asks", "attack"),
-            ("block_asks", "block"),  # 16c per-blocker declaration asks
-            ("policy_asks", "policy"),  # 16c Herald assignment policies
+            ("block_asks", "block"),  # per-blocker declaration asks
+            ("policy_asks", "policy"),  # damage-assignment policies
         ):
             for key, vocab in expect.get(lane, {}).items():
                 handle = self.handles[key]
@@ -985,17 +940,16 @@ class ScenarioRunner:
                 handle = self.handles[key]
                 if any(w.startswith(f"{prefix}:{handle}:") for w, _ in self.asks_seen):
                     fails.append(f"{lane}[{key}]: the engine asked anyway")
-        if "tokens" in expect:  # 16c: battlefield TOKEN records by name
+        if "tokens" in expect:  # battlefield TOKEN records by name
             from collections import Counter
 
             got: Counter = Counter()
             for handle, card in self.world.cards.items():
                 if self.world.zone_of(handle).kind != "battlefield":
                     continue
-                # 17a: token-ness is read from the IDENTITY first — the
-                # executor only mints a handle_record for tokens that
-                # carry compiled abilities (a bare 2/2 Knight has none),
-                # so the record-only read missed real tokens.
+                # Token-ness is read from the IDENTITY first: the executor
+                # only mints a handle_record for tokens that carry compiled
+                # abilities (a bare 2/2 Knight has none).
                 if getattr(card.identity, "is_token", False):
                     got[card.identity.name] += 1
                     continue
@@ -1019,23 +973,18 @@ class ScenarioRunner:
             got_lost = self.seats[int(seat)] in self.ex.lost_players
             if got_lost != bool(want_lost):
                 fails.append(f"lost[{seat}]: expected {want_lost}, got {got_lost}")
-        # r24a MANA-POOL LANE (treasure_token_activation; the gap documented
-        # since chromatic_orrery's note): assert the ADD_MANA totals directly
-        # on PlayerState.mana_pool — the frozen totals write _v_add_mana is,
-        # not the 13b segment mirror. ZERO-EQUIVALENCE both sides: a spent
-        # colour is DELETED from the dict by legality.pay_costs, so an
-        # absent key and an explicit 0 assert the same fact.
+        # The ADD_MANA totals on PlayerState.mana_pool. Zero-equivalence on
+        # both sides: legality.pay_costs DELETES a spent colour from the
+        # dict, so an absent key and an explicit 0 assert the same fact.
         for seat, colors in expect.get("mana_pool", {}).items():
             pool = self.world.players[self.seats[int(seat)]].mana_pool
             got_pool = {k: v for k, v in pool.items() if v}
             want_pool = {k: v for k, v in dict(colors).items() if v}
             if got_pool != want_pool:
                 fails.append(f"mana_pool[{seat}]: expected {want_pool}, got {got_pool}")
-        # ZND-1g KICK_ROWS LANE: read the LAST CAST journal row per key — the
-        # exact 6-tuple WAS_KICKED consumes (kicked flag + declared X). Proves
-        # an X-kicker cast journalled BOTH the paid kick and its X
-        # announcement, and an un-kicked cast journalled kicked=False. A key
-        # with no CAST row fails loudly (never a silent False).
+        # The LAST CAST journal row per key: the 6-tuple WAS_KICKED consumes
+        # (kicked flag + declared X). A key with no CAST row fails loudly
+        # (never a silent False).
         for key, want in expect.get("kick_rows", {}).items():
             handle = self.handles[key]
             rows = [
@@ -1054,19 +1003,17 @@ class ScenarioRunner:
                 )
             if "x" in want and got_x != want["x"]:
                 fails.append(f"kick_rows[{key}].x: expected {want['x']}, got {got_x}")
-        # Rung-1 lanes (2026-10-05 response-window arc) ----------------------
-        # window_asks / kickback_asks: per SEAT, the ordered ANSWERS the
-        # pack gave to the engine's counter:/pay: tags (a pack key names
-        # the counter spell; "PASS"/"PAY" are literals). window_vocab: the
-        # ordered VOCABULARIES of the counter: asks. Absent lanes are
-        # unchecked; an explicit [] pins "this seat was never asked".
+        # Response-window lanes. window_asks / kickback_asks: per SEAT, the
+        # ordered ANSWERS the pack gave to the engine's counter:/pay: tags (a
+        # pack key names the counter spell; "PASS"/"PAY" are literals).
+        # window_vocab: the ordered VOCABULARIES of the counter: asks. Absent
+        # lanes are unchecked; an explicit [] pins "this seat was never asked".
         want_tag = {
             lane: prefix
             for lane, prefix in (
                 ("window_asks", "counter:"),
                 ("kickback_asks", "pay:"),
-                # RUNG-2: the combat instant window's audit lanes — the
-                # same shape, the cw: lane's own prefix.
+                # the combat instant window: the same shape, its own prefix
                 ("combat_window_asks", "cw:"),
             )
         }
@@ -1098,7 +1045,7 @@ class ScenarioRunner:
                     f"window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
                 )
         if "combat_window_vocab" in expect:
-            # RUNG-2: ordered vocabularies of the cw: asks; every token
+            # Ordered vocabularies of the cw: asks; every token
             # is a "card@target" composite, pack keys resolvable both
             # sides.
             want_vocab = [
@@ -1112,7 +1059,6 @@ class ScenarioRunner:
                 fails.append(
                     f"combat_window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
                 )
-        # 17a lanes ------------------------------------------------------------
         for key, kinds in expect.get("counters", {}).items():
             got = dict(self.world.cards[self.handles[key]].counters)
             if got != dict(kinds):
@@ -1129,7 +1075,7 @@ class ScenarioRunner:
                 got_pt = (p, t)[idx]
                 if got_pt != want:
                     fails.append(f"{lane}[{key}]: expected {want}, got {got_pt}")
-        # 17a: battlefield assertions addressed by NAME — creatures and
+        # Battlefield assertions addressed by NAME — creatures and
         # tokens that ARRIVED from an engine effect (a Knight token, a
         # searched land) have no pack key, but their name is printed.
         for lane in ("battlefield_pt", "battlefield_keywords"):
@@ -1170,9 +1116,6 @@ class ScenarioRunner:
                             Keyword.LIFELINK,
                             Keyword.FIRST_STRIKE,
                             Keyword.DOUBLE_STRIKE,
-                            # r21a: INDESTRUCTIBLE added (Basri Ket +1 grant);
-                            # no existing green pack asserts it, vocab is
-                            # report-only so widening is additive.
                             Keyword.INDESTRUCTIBLE,
                         )
                         if self.ex.layers.keyword_of(handle, k)
@@ -1187,7 +1130,7 @@ class ScenarioRunner:
                 order = [self.world.cards[h].identity.name for h in zone.entries]
                 if lane == "library":
                     order = list(reversed(order))  # TOP first (draw pops last)
-                    # 17a: a "*" entry matches ANY name at that position —
+                    # A "*" entry matches ANY name at that position —
                     # the slot order a mandated shuffle leaves unknown
                     # (CR 701.21: the SET is still exactly asserted).
                     ok = len(order) == len(names) and all(
@@ -1202,11 +1145,8 @@ class ScenarioRunner:
         return fails
 
 
-# FAIL-REGISTERED convention (owner 2026-10-07): a reclassification is a
-# REGISTERED FAIL, never a silent exemption — every eval_reclassification
-# must carry a triage verdict plus evidence, and it stays counted in the
-# puzzle_cert summary (fail_registered). Un-triaged reclassifications are
-# how engine bugs hid (the 2026-10-07 feat_of_resistance false-premise audit).
+# A pack's eval_reclassification is a registered fail, never a silent exemption: it must
+# carry a triage verdict and a reason (un-triaged reclassifications hide engine bugs).
 RECLASS_VERDICTS = (
     "true-no-decision",
     "engine-semantics-gap",
@@ -1241,8 +1181,7 @@ def _triage_check(pack: dict) -> list[str]:
 
 class _Lanes(dict):
     """A pack's expect block that records which lanes the runner reads. A lane it never reads
-    is a typo or a check that does not exist, and the pack would pass without testing it
-    (2026-11-05: card mappers wrote packs whose only lane was silently ignored)."""
+    is a typo or a check that does not exist, and the pack would pass without testing it."""
 
     def __init__(self, lanes: dict) -> None:
         super().__init__(lanes)
@@ -1277,9 +1216,8 @@ def _run_pack(pack: dict, supply) -> list[str]:
         runner = ScenarioRunner(pack, supply)
     except PackError as e:
         return [f"setup: {e}"]
-    except Exception as e:  # noqa: BLE001 — r22a: audit-dir robustness
-        # a pool/attach
-        # failure is that pack's result, not a crash of the whole sweep.
+    except Exception as e:  # noqa: BLE001
+        # a pool/attach failure is that pack's result, not a crash of the whole sweep
         return [f"setup: {type(e).__name__}: {e}"]
     for step in pack["steps"]:
         want = step.get("expect_raise")
@@ -1292,7 +1230,7 @@ def _run_pack(pack: dict, supply) -> list[str]:
         except Exception as e:
             if want is None:
                 return [f"step {step}: {type(e).__name__}: {e}"]
-            # C5 negative packs: a step whose REFUSAL is the assertion —
+            # A step whose REFUSAL is the assertion —
             # an illegal activation must raise a CLEAN legality error
             # (refusal), not an engine crash. The substring names the
             # refusal class; the exception type is checked too.
@@ -1318,9 +1256,8 @@ def main(argv=None) -> int:
     if not packs:
         print(f"error: no packs in {args.dir}", file=sys.stderr)
         return 2
-    # ZND-1e: packs name their OWN set with a top-level "set" key
-    # (ZNR kicker packs); the default stays the M21 supply every existing
-    # pack ran on, byte-identically. Supplies are compiled once per set.
+    # A pack may name its own set with a top-level "set" key; the default
+    # is M21. Supplies are compiled once per set.
     supplies: dict[str, object] = {}
 
     def supply_for(code: str):
