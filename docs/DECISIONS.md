@@ -65,12 +65,35 @@ So: no model-size commitment until [`tools/latency/bench.py`](../tools/latency/b
 on the DGX Spark. First-pass numbers from the dev box are in `reports/`.
 
 ## D6 — Full-game BPTT is a hypothesis, not a requirement
-**2026-09-10.**
+**2026-09-10. Amended 2026-11-06 (owner ruling, with D20).**
 
 The owner: *"I want BPTT just because it is cool, but of course we need to test both."* Honest and
 correct. Step-level gradient checkpointing makes full-game BPTT cost about 141 KB per decision, so
-memory does not decide it. Serial wall-clock does, at roughly 10× truncated. Implement checkpointing
-unconditionally, default to K=256 with carried state, and run full-game as a periodic ablation.
+memory does not decide it. Serial wall-clock does, at roughly 10× truncated. Implement
+checkpointing unconditionally and run full-game as a periodic ablation of whatever memory is in
+use.
+
+**Amendment, 2026-11-06.** D20 trains on playouts forked from live games. A carried state as first
+specified ("default to K=256 with carried state") cannot be forked honestly:
+- in a belief-sampled fork, copying the opponent's state carries its true private history into a
+  world where its cards were resampled;
+- resetting the state shifts its distribution.
+
+So the Student's memory starts stateless:
+- a per-turn table of public counts for both seats, which also holds the public hand-age bounds;
+- the ledger of cards whose location is known;
+- on the opponent simulator's side, if its gate earns it, a window of recent public events.
+
+The K=256 default is suspended, not withdrawn.
+
+**Learned memory remains an open line of work.** The owner expects a fork-compatible memory to be
+found and trained. Candidate forms, cheapest first:
+- (a) a recurrent state over public events only, identical in the real game and in every fork;
+- (b) a private memory sampled by the opponent simulator jointly with the opponent's hand;
+- (c) a state recomputed inside each fork from the public history and the fork's private history.
+
+Each must pass D20's leak tests and beat the stateless baseline in a paired ablation. Then this
+decision's BPTT question (truncated against full-game, checkpointed) applies to it unchanged.
 
 ## D7 — Not mixture-of-experts per set
 **2026-09-09. Agent overruled the owner's suggestion; owner did not object.**
@@ -523,65 +546,100 @@ differently from a cap? It matters because it decides whether long, grindy and c
 the niche-deck clause of rank 1 protects, are learnable at all.
 
 ## D20 — The learning signal: compare decisions by playouts on shared futures (lambda = 1, luck cancelled)
-**2026-11-06. Owner approved: "we get the best of both worlds here. The disadvantages are on a level I
-can accept. Proceed."**
+**2026-11-06. Owner approved: "we get the best of both worlds here. The disadvantages are on a
+level I can accept. Proceed." Amended the same day after a red team and the owner's rulings.**
 
-**The problem, measured.** The PPO pipeline was audited end to end and is correct (KNOWLEDGE
-2026-11-05/184 §25), yet the learner does not even learn to beat a fixed copy of itself (§22-23):
-its gradient is below its noise. One useful optimizer step needs B* ≈ 2.2M decisions (~48k games,
-~47 min of play at 17 games/s) with GAE lambda 0.95; with lambda = 1 no signal was detected up to
-2.65M; seat-swapped deal pairing and control variates do not lower it; a privileged critic was
-estimated at only 1.3-1.8x and the owner dropped it (§26). The reason: one ±1 result per game is
-spread over ~60 decisions, and after the value head has absorbed the deal, most of the noise is what
-happens later (draws, the opponent's choices).
+**The problem, measured.** The PPO pipeline is correct (KNOWLEDGE 2026-11-05/184 §25), yet the
+learner does not learn to beat a fixed copy of itself: its gradient is below its noise.
+- With GAE lambda 0.95, one useful optimizer step needs B* ≈ 2.2M decisions.
+- With lambda = 1, no signal was detected up to 2.65M, about an hour of play per step at best.
+- Seat-swapped pairing and control variates do not lower it.
 
-**The call.** The core learning signal becomes per-decision comparisons. At a decision where the
-policy is unsure (plus a share of confident ones), several alternative actions are each played out
-to the end of the game (gamma = lambda = 1, no value bootstrap) on the same sampled futures (common
-random numbers: identical draws and identical guesses at hidden cards for every alternative), over
-many futures, and the policy is trained toward the alternatives that did better on average. Outcome
-RL remains for fine-tuning. The owner's description: take points of the game, replay them with
-different decisions, and see where each leads. The established name is expert iteration (AlphaZero's
-loop); unlike evolutionary methods it varies single decisions, not the whole network, so each game
-yields dense, per-decision signal.
+**The call.** The core learning signal becomes per-decision comparisons.
+- At a decision where the policy is unsure, and at a share of confident ones, 2-4 alternative
+  actions are each played out to the end of the game (gamma = lambda = 1, no value bootstrap).
+- Every alternative is played on the same futures (common random numbers).
+- The policy moves toward the actions with the better average, by a small, unrescaled
+  mirror-descent step.
 
-**Why this is the owner's full credit (OWNER_PREFERENCES #6).** Each compared decision is credited
-with its own result played to the end of the game. Luck cancels in the comparison, because every
-alternative meets the same luck, but stays in the problem: the target is the average over many
-possible futures, so the policy still learns to play the odds (play around likely cards, keep outs,
-value flexibility). Duplicate bridge is the analogy: luck leaves the scoring, not the decisions.
+Actions, not cards, are compared. Worlds that need the same response accumulate: threats at 45%,
+30% and 25%, where one answer covers the last two, make that answer right 55% of the time. They
+are never collapsed into one most-likely or most-dangerous hypothesis. In play-time search this
+happens within the weighted average; in training it happens across labels, which is why the
+target must stay linear. Established names: expert iteration; rollout policy iteration (Tesauro
+and Galperin, backgammon); update-equivalence search.
 
-**Guards, one per known failure mode.**
-1. Futures are sampled from the player's beliefs (the public-information sampler now, the opponent
-   simulator later), never the true hidden state. Clairvoyant futures would credit plays that work
-   only with knowledge the player lacks (OWNER_PREFERENCES #1).
-2. Later decisions inside a playout come from the policy itself, not a per-world optimising search:
-   per-world optimisation is strategy fusion, the classic flaw of perfect-information Monte Carlo.
-3. The opponent inside playouts is a mix, so the policy does not overfit one opponent model.
-4. Playouts go where the policy is unsure, not everywhere.
+**Why this is full credit (OWNER_PREFERENCES #6).** Each compared action is credited with its own
+result played to the end. Luck cancels in the comparison, because every alternative meets the same
+future, and stays in the problem, because the policy learns the expectation over what it cannot
+see. The policy still learns to play the odds.
 
-**Cost against its baseline** (the owner asked for one). Outcome PPO: ~47 min of play per useful
-step. One playout label: ~0.5-1 s (4 alternatives x 8 futures x the rest of the game), ~100k labels
-a day on the whole machine (plan estimate). Whether the labels trade up, more learning per
-machine-hour, is the first experiment's question, and it is decided by measurement.
+**The owner, on hidden information:** *"Using hidden cards and their orders to simulate
+same-scenario is fine, as long as this info doesn't leak between rollouts from the scenario. We
+don't want it memorizing what the opponent has and play good because of that. We want it to reduce
+luck, increase signal, and thus improve training speed."*
 
-**What it depends on, and what overturns it** (the plan's first gates, ~3 days):
-- E1: search with full playouts plays clearly better than the raw network (at least +0.04 over 300
-  seat-swapped pairs) and its labels reach a useful step in at most a tenth of PPO's machine time.
-  Killed below +0.02 or under 3x.
-- E2: beliefs from public history beat a no-history belief (hand NLL at least 25% lower, calibration
-  error under 0.05).
-- E3: the network generalises the labels: held-out agreement rises from 10k to 100k labels, and the
-  100k model beats its generator by at least +0.03. A flat curve keeps search for play time only.
-If E1 or E3 fails, the fallbacks are large-batch outcome PPO (~2.2M decisions per step) and, only if
-the owner reopens it, a privileged critic (PerfectDou's gains in DouDizhu were larger than our
-estimate). The October search-label attempt failed on an older engine and network (NUMBERS.md
-2026-10-15); E1 and E3 are what distinguish this attempt from that one.
+**Guards.**
+1. **Training labels may use the true hidden state (cards and library orders) only as common random
+   numbers for the comparison, never as any network's input. Play-time search uses beliefs.**
+   - (a) No network reads the true future: both seats play every playout from their own masked
+     view, and the label is the only product.
+   - (b) The target is nearly linear in the playout results, so each label is an unbiased sample of
+     the decision's value under the player's information, as the real result is in outcome RL.
+   - (c) Nothing carries over between rollouts or decisions: forks are discarded, and no cache or
+     ledger holds hidden identities.
+   - (d) No memorisation of what an opponent holds: true-future labels come only from fresh deals.
+     Matchup blocks, replays and reused decks get belief-sampled labels or none, and
+     generalisation is measured on unseen deals.
+   - (e) Leak tests: the policy's outputs are byte-invariant to the opponent's private state, and
+     labelling leaves the real game and the next decision unchanged.
 
-**Relation to earlier decisions.** D6 (memory and BPTT as a hypothesis) is taken up in the same
-plan: memory and the opponent simulator feed the beliefs the playouts sample from. D15 (the Teacher
-is a curator with a critic; the drafter a generative policy) is unchanged; the deal curriculum is
-built under it. The owner's design of the parts is docs/OWNER_VISION_LEARNING.md.
+   There is no privileged critic, ever: no network learns from hidden information.
+2. Later decisions inside a playout come from the policy, not a per-world optimising search
+   (strategy fusion).
+3. Inside playouts the Student plays both seats.
+   - This gives up adaptation to a specific opponent inside the search; continuation quality is
+     the policy's own.
+   - The league compensates: real games are against diverse opponents, the simulator learns their
+     habits, and the value head learns from their results. So do a periodically reset exploiter,
+     whose score measures exploitability, and the magnet.
+4. Playouts go where the policy is unsure, plus a 10% sample of confident decisions.
+5. The target is an unrescaled mirror-descent step, and a placebo with shuffled results must show
+   no signal.
+6. Only public hand information is encoded, for both seats. In belief futures the opponent's whole
+   private state is resampled.
+
+**The opponent simulator.**
+- It is a separate network, trained only by supervised learning on finished games. Nothing about
+  opponents is hand-built.
+- It predicts calibrated joint probabilities of whole hands and of the unknown library contents;
+  the next draws are random draws from those contents.
+- It supplies futures for play-time search and for labels on reused decks, importance-sampled
+  (proposal ∝ likelihood × consequence, reweighted) so rare devastating hands are seen without
+  bias.
+- The policy reads the whole belief as tokens (card embedding plus probability), with the gradient
+  stopped. The policy learns from wins how much to trust them; the simulator keeps its supervised
+  loss and stays calibrated.
+- A hand-built deck-consistent sampler exists only as a yardstick the simulator must beat.
+
+**Cost against its baseline.** A label costs k·d·47 forward passes: ~190 at k = 2, d = 2, or 0.11
+machine-seconds today. On the measured correlations of shared futures, labels are worth about
+1.7-4.5x outcome PPO's signal per forward pass with greedy playouts, and below 1x with sampled
+ones. So the first gate can kill this path.
+
+**What it depends on** (powered gates, plan v3 §12):
+- E1: a useful label step costs at most half of PPO's lambda-1 bound, with a silent placebo.
+- E3: the distilled network's regret falls to 0.8x its generator's or below, and it gains at least
+  +0.015 over 450 pairs on unseen deals.
+- E0: the simulator beats the yardstick on NLL and calibration.
+
+If E1 or E3 fails, the fallback is slow outcome PPO plus throughput work.
+
+**Relation to earlier decisions.**
+- D6 is amended: memory starts stateless, and learned memory remains open.
+- D14 gets a held-out niche set at every gate.
+- D15 and D16 are unchanged.
+- Two-player only for now; Commander later.
 
 ## Deferred pending information
 

@@ -148,6 +148,8 @@ learning works. Guard against memorising the block by measuring on matchups it h
 
 ## 8. Order of work (2026-11-06)
 
+Superseded in detail by docs/PLAN_LEARNING.md (owner-approved); kept as the first sketch.
+
 1. Signal: gamma = lambda = 1; duplicate deals; at least B* decisions per optimizer step (the audit
    is measuring B*); the KL-stop fix (b03c3ac).
 2. Learning test: the Student must beat a fixed opponent, or learn a matchup over a block.
