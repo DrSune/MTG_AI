@@ -31,6 +31,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
+| `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run; paired comparison of two evaluations on the same deals. |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
@@ -109,6 +110,13 @@ host, Python and torch versions, start time.
 .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/EVAL --init CKPT --eval-only \
     --eval-seat eval+search --eval-opponents heuristic --eval-deals 150 --search-k 3 \
     --search-d 2 --search-skip-p 0.99 --infer-bf16
+# the opponent simulator's data (E0: 40k games of the network against itself and the heuristic)
+.venv/bin/python -m tools.selfplay.learner --run runs/simulator/NAME --init CKPT --refresh-table \
+    --extend-sets M20 --mix-sets M20 --coherent-share 1.0 --infer-bf16 --workers 10 --slots 16 \
+    --groups 4 --capture 40000 --capture-p 0.4
+.venv/bin/python -m tools.selfplay.simulator train --data runs/simulator/NAME/capture --out SIM.pt
+.venv/bin/python -m tools.selfplay.simulator eval --data runs/simulator/NAME/capture --ckpt SIM.pt \
+    --out EVAL.npz
 .venv/bin/python -m tools.selfplay.paired A/eval_rows.jsonl B/eval_rows.jsonl
 .venv/bin/python -m tools.selfplay.report runs/selfplay/NAME
 .venv/bin/python -m tools.selfplay.trace --net CKPT --opp heuristic --seed 900007 --out /tmp/t.txt
@@ -150,3 +158,8 @@ mulligan: the network and the heuristic both answer it, and a checkpoint from be
 plays; and several target slots: the network gets one ask per slot and sees which slot and what it
 chose before, the heuristic judges each slot by its own effect, a checkpoint from before the slot
 features loads and plays them, and the search plays a two-target cast in a fork.
+
+`test_simulator.py` (4 tests): capture leaves a game byte-identical and keeps the truth apart;
+rewriting every hidden card and both libraries' order leaves the simulator's input and output
+byte-identical; both decoders are distributions over multisets; a training step reaches every
+parameter it trains.

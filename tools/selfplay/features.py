@@ -38,6 +38,7 @@ from MTG_bot.core.state import (
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
+    ZONE_STACK,
 )
 
 UNK = 1
@@ -638,3 +639,33 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         "opts_i": opts_i.astype(np.int16),
         "opts_f": opts_f.astype(np.float16),
     }
+
+
+# ------------------------------------------------------------------------------ the simulator's view
+
+PUBLIC = (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_STACK, ZONE_COMMAND)
+
+
+def public_cards(executor: Any, player: Handle, table: CardTable) -> np.ndarray:
+    """``player``'s own cards in public zones, tokens left out, as sorted table rows: what every
+    seat has seen of that player's deck."""
+    world = executor.world
+    zones = world.players[player].zones
+    return np.array(sorted(table.row(world.cards[h].identity.oracle_id) for z in PUBLIC
+                           if z in zones for h in zones[z].entries
+                           if not world.cards[h].identity.is_token), np.int16)
+
+
+def sim_view(executor: Any, seat: int, ask: Any, table: CardTable,
+             ctx: AskContext | None = None) -> dict[str, Any]:
+    """What the opponent simulator reads at a decision of seat ``seat``: the seat's encoding
+    without the options (the simulator answers no ask), the opponent's public cards, the sizes of
+    its hand and library, the turn and the seat."""
+    f = encode(executor, seat, ask, table, ctx)
+    world = executor.world
+    opp = world.player_order[1 - seat]
+    zones = world.players[opp].zones
+    return {**{k: f[k] for k in ("cards_i", "cards_f", "players_f", "glob_f", "ask_i")},
+            "public": public_cards(executor, opp, table),
+            "h": len(zones[ZONE_HAND].entries), "l": len(zones[ZONE_LIBRARY].entries),
+            "turn": world.turn, "seat": seat}

@@ -54,7 +54,8 @@ import torch.nn.functional as F
 from MTG_bot.core.executor.games import get_supply
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
-from tools.selfplay.actor import worker_main
+from tools.selfplay import simulator as S
+from tools.selfplay.actor import is_net, worker_main
 from tools.selfplay.ppo import chunks, pack_buffer
 from tools.selfplay.trainer import trainer_main
 
@@ -66,6 +67,7 @@ EVAL_SEED0 = 900_000
 GATE_SEED0 = 2_000_000
 TRAIN_SEED0 = 10_000_000
 BC_SEED0 = 5_000_000
+CAPTURE_SEED0 = 30_000_000  # + 1,000,000 x --seed: each capture run deals its own games
 
 
 def deal_interval(deal_scores: list[float], z: float = 1.96) -> tuple[float, float]:
@@ -651,6 +653,12 @@ class Learner:
                 row["tag"] = self.eval_meta.get("tag")
                 with (self.run / "eval_rows.jsonl").open("a") as fh:
                     fh.write(json.dumps(row) + "\n")
+            elif kind == "capture":
+                self.eval_pending.discard(r["gid"])
+                if not void:
+                    self.captured.append(r)
+                if len(self.captured) >= 1000:
+                    self._save_capture()
             elif kind == "bc":
                 self.bc_done += 1
                 if not void and r.get("bc"):
@@ -833,6 +841,43 @@ class Learner:
         games = self.counts["train:games"] + self.counts["eval:games"] + self.counts["bc:games"]
         return {"games_s": round((games - games0) / dt, 2),
                 "dec_s": round((self.infer_items - dec0) / dt, 1)}
+
+    def capture(self) -> None:
+        """--capture: play that many games, half the --init network against itself and half
+        against the heuristic (seats drawn at random), dealt like training games
+        (--coherent-share, --mix-sets). Their seats record the opponent simulator's data
+        (actor.Capture) into <run>/capture: views_<k>.npz, truth_<k>.npz and the card table."""
+        a = self.args
+        if a.pool != S.POOL:
+            raise ValueError(f"the simulator's candidates are the {S.POOL!r} pool, not {a.pool!r}")
+        (self.run / "capture").mkdir(exist_ok=True)
+        (self.run / "capture" / "table.json").write_text(json.dumps(self.table.to_json()))
+        self.captured, self.shards = [], 0
+        for i in range(a.capture):
+            opp = "learner" if i % 2 else "heuristic"
+            seats = ["learner", opp] if self.rng.random() < 0.5 else [opp, "learner"]
+            job = self._job("capture", CAPTURE_SEED0 + 1_000_000 * a.seed + i, seats,
+                            [False, False], [False, False], self._deck_mode())
+            self._mix(job)
+            job["capture"] = a.capture_p
+            self.eval_jobs.append(job)
+            self.eval_pending.add(job["gid"])
+        self.serve(lambda: not self.eval_pending)
+        self._save_capture()
+
+    def _save_capture(self) -> None:
+        games, self.captured = self.captured, []
+        rows = [(r, v, t) for r in games for v, t in zip(r["views"], r["truth"], strict=True)]
+        if rows:
+            S.Data.from_records(
+                [v for _, v, _ in rows], [t for _, _, t in rows],
+                [r["set_code"] for r, _, _ in rows], self.table,
+                seed=np.array([r["seed"] for r, _, _ in rows]),
+                net=np.array([[is_net(r["seats"][v["seat"]]), is_net(r["seats"][1 - v["seat"]])]
+                              for r, v, _ in rows])).save(self.run / "capture", self.shards)
+            self.shards += 1
+        self.log({"event": "capture", "shards": self.shards, "games": len(games),
+                  "positions": len(rows), "counts": dict(self.counts)})
 
     def eval_only(self) -> None:
         """Evaluate --init (as the "eval" seat, optionally with search) and exit."""
@@ -1080,6 +1125,9 @@ class Learner:
             if a.eval_only:
                 self.eval_only()
                 return
+            if a.capture:
+                self.capture()
+                return
             # teacher inter-play only for a network trained from scratch; a resume restores
             # the network from its run instead
             if a.bc_games > 0 and not (a.init or a.resume):
@@ -1138,6 +1186,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-opponents", default="heuristic")
     p.add_argument("--eval-seat", default="eval", help="'eval' or 'eval+search'")
     p.add_argument("--eval-only", action="store_true", help="evaluate --init and exit")
+    p.add_argument("--capture", type=int, default=0,
+                   help="play this many games recording the opponent simulator's data, and exit")
+    p.add_argument("--capture-p", type=float, default=0.4,
+                   help="the share of each seat's decisions a capture game records")
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--refresh-table", action="store_true",

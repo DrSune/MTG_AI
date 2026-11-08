@@ -81,7 +81,9 @@ class PolicyValueNet(nn.Module):
         mask = (ids > 0).unsqueeze(-1).to(emb.dtype)
         return (emb * mask).sum(1) / mask.sum(1).clamp(min=1.0)
 
-    def forward(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def tokens(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """The input tokens [global, me, opponent, cards..., options...] and which are real (the
+        opponent simulator reads the same view through them: simulator.py)."""
         cards_i, cards_f = b["cards_i"], b["cards_f"]
         bsz, e = cards_i.shape[:2]
         card_idx = cards_i[..., 0]
@@ -112,10 +114,15 @@ class PolicyValueNet(nn.Module):
         x_glob = (self.glob_f(b["glob_f"]) + self.ask_emb(b["ask_i"][:, 0]))[:, None]
         seg = self.segment.weight
         x = torch.cat([x_glob + seg[0], x_play + seg[1], x_card + seg[2], x_opt + seg[3]], dim=1)
-        k = opts_i.shape[1]
         valid = torch.cat([
             torch.ones(bsz, 3, dtype=torch.bool, device=x.device),
             b["card_mask"], b["opt_mask"]], dim=1)
+        return x, valid
+
+    def forward(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        x, valid = self.tokens(b)
+        bsz, e = b["cards_i"].shape[:2]
+        k = b["opts_i"].shape[1]
         h = self.encoder(self.in_norm(x), src_key_padding_mask=~valid)
         h = self.out_norm(h)
         logits = self.policy_head(h[:, 3 + e:]).squeeze(-1).float()
