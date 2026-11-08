@@ -27,10 +27,11 @@ under "Outcome" below, commit, push, and stop for the owner.
   decisions); 1 hand 22 ms, 32 hands 26 ms; hand + library + next 3-5 cards 241 ms (1 world), 403 ms
   (32 worlds; the library decoder is ~49 sequential steps); hand + next 3-5 from the marginal head's
   counts 26-31 ms. Files: `runs/phase0/e0_*.json`.
-- **E1 A, look 4 (2026-11-06 23:01): gray** (B*_FP 4.36M [2.31M, 39.5M], placebo z -0.16), so the
-  pre-registered extension runs: four more looks to 21.2M forward passes, then the point estimate
-  decides. Correction: this note said on 2026-11-06 that A had stopped at 22:37 with 9.07M; that was
-  wrong (a process listing cut short by `head`). A ran to its budget and its watcher scored look 4.
+- **E1 passes (2026-11-08 20:05):** A at look 8, B*_FP 2.17M [1.43M, 4.54M] (bar 2.65M), placebo z
+  -0.77; B failed at look 2 (28.8M). C runs (`runs/labels/e1_C.2`); its result is a measurement, since
+  A's pass fixes E3's configuration as A. Recorded in NUMBERS and the labels note §2. Only a greedy
+  configuration passed, so PLAN §14.1 (greedy playouts) goes to the owner. Correction: this note said
+  on 2026-11-06 that A had stopped at 22:37; it had not (a process listing cut short by `head`).
 - Generator `runs/selfplay/r23_mulligan/gen.pt` (pinned): r20 v2 plus 31 PPO updates against the
   heuristic; mulligan rate 0.50 -> ~0.003; greedy 0.0475 below r20 v2 against the heuristic.
 
@@ -61,10 +62,8 @@ reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed on
 1. **E0: done** (2026-11-08): recorded (NUMBERS, the simulator note §4), window and yardstick
    removed, merged into main at dd1e43f (gates green, replay digests identical over 200 games), branch,
    worktrees and the sim service removed.
-2. **E1**, as each configuration ends (`runs/phase0/e1_<cfg>.looks`, last line = verdict): record it
-   in the labels note §2 and NUMBERS. E1 passes when a configuration passes. If none passes, the kill
-   rule stands: record it and STOP for the owner on that point (the fallback, slow outcome PPO plus
-   throughput work, is the owner's call); the queue still runs E3 as a measurement (186 §5).
+2. **E1: A and B recorded.** When C ends (`runs/phase0/e1_C.looks`, last line = its verdict), record
+   it in the labels note §2 and NUMBERS beside A and B.
 3. **E3**, when the queue's `e3_gain` step is done: score it as 186 §5 says: regret from
    `runs/phase0/e3_regret.json` (the 100k apprentice's ratio, one-sided 95% bound <= 0.8), gain from
    the eval in `runs/selfplay/e3_gain/` (score - 0.5 >= +0.015 over the 450 pairs). Check the
