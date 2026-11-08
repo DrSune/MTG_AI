@@ -211,7 +211,12 @@ def e3_cfg() -> str:
 
 
 def e3_dirs() -> list[Path]:
-    return dirs_of(f"e1_{e3_cfg()}") + dirs_of(f"e3_{e3_cfg()}")
+    return dirs_of(f"e1_{e3_cfg()}") + dirs_of(f"e3_{e3_cfg()}") + dirs_of(f"e3b_{e3_cfg()}")
+
+
+def failed(c: str) -> bool:
+    f = Q / f"e1_{c}.looks"
+    return f.exists() and json.loads(f.read_text().splitlines()[-1])["verdict"].startswith("fail")
 
 
 def distill(out: str, sizes: str, dirs: list[Path]) -> None:
@@ -267,23 +272,33 @@ def parallel(*thunks) -> None:
 
 
 def job(base: str, seed0: int, **kw):
-    """A label job in E3's configuration (the regret positions: k 8, d 4, its playout mode)."""
-    k, d, greedy, _ = E1[e3_cfg()]
+    """A label job in E3's configuration; the regret positions: k 8, d 4, its playout mode."""
     if base == "e3_regret":
-        k, d = 8, 4
+        return run_labels(base, 8, 4, regret_mode() if regret_mode() is not None else E1[e3_cfg()][2], seed0, **kw)
+    k, d, greedy, _ = E1[e3_cfg()]
     return run_labels(base, k, d, greedy, seed0, **kw)
+
+
+def regret_mode() -> int | None:
+    """The regret positions' playout mode once every configuration E3 can still use (A as the
+    fallback, or any not failed) shares it; then they need not wait for E1's end."""
+    modes = {E1[c][2] for c in E1 if c == "A" or not failed(c)}
+    return modes.pop() if len(modes) == 1 else None
 
 
 def labels_lane() -> None:
     t0 = time.time()
     while not any((Q / f"sim/bench_win.{x}").exists() for x in ("done", "failed")) and time.time() - t0 < 3600:
         time.sleep(60)  # the simulator's cost bench wants a quiet GPU
-    parallel(*[lambda c=c: step(f"e1_{c}", lambda: e1(c)) for c in E1])
-    parallel(lambda: step("e3_labels", lambda: job(f"e3_{e3_cfg()}", 33_000_000,
-                                                   labels=100_000 - totals(dirs_of(f"e1_{e3_cfg()}"))["labels"])),
-             lambda: step("e3_regret_labels", lambda: job("e3_regret", 34_000_000, games=525, single=True)))
+    def regret_labels():
+        return step("e3_regret_labels", lambda: job("e3_regret", 34_000_000, games=525, single=True))
+
+    parallel(*[lambda c=c: step(f"e1_{c}", lambda: e1(c)) for c in E1], *([regret_labels] if regret_mode() is not None else []))
+    parallel(*[lambda b=b, s=s: step(f"{b}_labels", lambda: job(  # E3's labels from two jobs, to 100k
+        f"{b}_{e3_cfg()}", s, labels=(100_000 - totals(dirs_of(f"e1_{e3_cfg()}"))["labels"]) / 2))
+        for b, s in (("e3", 33_000_000), ("e3b", 33_500_000))], regret_labels)
     apps = [RUNS / f"labels/e3_app/app_{n}.pt" for n in (10000, 30000, 100000)]
-    step("e3_distill", lambda: distill("e3_app", "10000,30000,100000", e3_dirs()), ("e3_labels",))
+    step("e3_distill", lambda: distill("e3_app", "10000,30000,100000", e3_dirs()), ("e3_labels", "e3b_labels"))
     step("e3_regret", lambda: regret(apps, "e3_regret"), ("e3_distill", "e3_regret_labels"))
     step("e3_gain", lambda: gain(apps[-1], "e3_gain"), ("e3_distill",))
     for n in (300_000, 600_000, 1_000_000):  # exploratory: does distillation gain grow with labels?
