@@ -96,4 +96,17 @@ reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed on
   public history table. Open owner questions: PLAN_LEARNING §14.
 
 ## Outcome
-(the next agent appends here)
+**Phase 0, 2026-11-08 (for the owner).**
+- **E0, the opponent simulator: passes.** It reads the opponent's hand 11% better than a deck-aware
+  prior (18% late in the game), with honest probabilities; its picture of the library is no better
+  than the prior's. Merged into main.
+- **E1, the label signal: passes, narrowly.** A playout label buys a useful gradient step for 2.17M
+  forward passes, 2.4x cheaper than outcome-only PPO; only greedy playouts pass (PLAN §14.1 is yours).
+- **E3, distillation: fails.** One round of training on 100k labels changes 3% of the network's
+  choices and makes them slightly better (3.6% less regret), far too little to win more games;
+  the pre-registered epoch rule even kept the untrained network. The plan's kill rule says: search at
+  play time only, and PPO as the learner.
+- **Open for the owner:** accept the kill, or revise the distillation (pick epochs by regret rather
+  than held-out fit; a smaller step per PLAN §1.4 and 186 §3; more labels). The label-scaling runs
+  (300k on 11-09 morning, then 600k, 1M) show whether more labels make the effect matter.
+(later results are appended below)
