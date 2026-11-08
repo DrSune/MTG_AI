@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from e1_looks import decide
@@ -263,8 +264,9 @@ def labels_lane() -> None:
     t0 = time.time()
     while not any((Q / f"sim/bench_win.{x}").exists() for x in ("done", "failed")) and time.time() - t0 < 3600:
         time.sleep(60)  # the simulator's cost bench wants a quiet GPU
-    for c in E1:
-        step(f"e1_{c}", lambda c=c: e1(c))
+    with ThreadPoolExecutor(2) as ex:  # two 10-worker label jobs fill the 20 cores
+        list(ex.map(lambda c: step(f"e1_{c}", lambda: e1(c)), ("A", "B")))
+    step("e1_C", lambda: e1("C"))
 
     def labels_of(base: str, seed0: int, **kw):
         k, d, greedy, _ = E1[e3_cfg()]
