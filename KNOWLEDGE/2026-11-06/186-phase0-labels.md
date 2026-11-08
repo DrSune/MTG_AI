@@ -135,6 +135,16 @@ looks to 21.2M, then the point estimate decides. The extension runs from the una
 follow. Predictions so far: A at most 1.6M, miss (4.36M); corr 0.94-0.96, miss (0.90); Var(z_a -
 z_b) 0.03-0.08, miss (0.19); placebo z < 2, hit; under 1% on the rail, hit (0.68%); no crash, hit.
 
+### Result: B fails (2026-11-08 18:52)
+
+Look 1 (2.69M forward passes, 9,189 labels): B*_FP 9.87M [2.37M, inf), signal z 0.63, placebo z
+-0.70: continue. Look 2 (5.35M, 18,776 labels): B*_FP **28.8M** [6.34M, inf), signal z 0.56,
+placebo z -0.29: **fail** (B_low > 2.65M). Sampled playouts carry too little signal per forward
+pass. Predictions: B fails, hit (the plan's 8.8M was optimistic); placebo z < 2, hit. Its job ran
+beside A's extension from 17:25 (`runs/labels/e1_B`, seeds 31,000,001+; `runs/phase0/e1_B.looks`).
+A's extension so far: look 5 (13.28M, 43,485 labels) B*_FP 2.59M [1.67M, 5.75M], signal z 3.64;
+look 6 (15.91M, 52,273 labels) 2.72M [1.72M, 6.42M], z 3.47; placebo z -0.01, 0.08: continue.
+
 ## 3. A finding from the regression test: the target's step decides the owner's example
 
 PLAN §1.4: distilling per-world labels converges on R2 "with the linear target". The plan's step,
@@ -217,7 +227,8 @@ and what distillation does in practice is their open question. Its result is the
 the kill and decides nothing by itself.
 
 **Labels.** CONFIG's E1 labels (all of its directories) and more from the same label job on seeds
-33,000,001+, in game order, until 100k exist.
+33,000,001+ (two jobs side by side, the second on 33,500,001+, each to half of what is missing; a
+throughput change made 2026-11-08 before any E3 label existed), in game order, until 100k exist.
 The distillation sets are the first 10k, 30k and 100k labels (whole games); every 20th game of a
 set is held out to choose the epoch.
 
