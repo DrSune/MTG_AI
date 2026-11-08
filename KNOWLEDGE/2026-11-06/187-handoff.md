@@ -39,17 +39,23 @@ under "Outcome" below, commit, push, and stop for the owner.
 `mtg-phase0@sim` and `mtg-phase0@labels` (`~/.config/systemd/user/mtg-phase0@.service`; enabled, so a
 reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed one `.failed`).
 - sim lane: E0's measurements (done or nearly: bench, eval, score, consistency, next card, epochs).
-- labels lane, in order: E1 A's extension beside E1 B (two 10-worker jobs), then E1 C; E3 on the
-  configuration the rule in 186 §5 fixes (`runs/phase0/e3_config.json`): labels to 100k, 2,000 regret
-  positions (k 8, d 4), distillation at 10k/30k/100k, regret, gain (900 games); then label scaling
-  (exploratory, 186 §5): more labels distilled and measured at 300k, 600k and 1M.
+- labels lane, two 10-worker label jobs at a time: E1 A's extension beside B, C when the first ends;
+  E3 on the configuration the rule in 186 §5 fixes (`runs/phase0/e3_config.json`): labels to 100k
+  beside 2,000 regret positions (k 8, d 4), distillation at 10k/30k/100k, regret, gain (900 games);
+  then label scaling (exploratory, 186 §5): two label jobs (seeds 35M+ and 36M+), distilled and
+  measured at 300k, 600k and 1M. The lane started on a one-job-after-another driver; the transient
+  unit `mtg-phase0-switch` restarts it on the two-job driver (5312778) once E1 A and B have ended (the
+  run worktree is already at that commit, so a reboot also picks it up).
 - Watch: `tail -n 20 runs/phase0/labels.log runs/phase0/sim.log`; E1 looks in `runs/phase0/e1_<cfg>.looks`;
   label jobs in `runs/labels/<job>.out` (`label_progress` lines); `systemctl --user status mtg-phase0@labels`.
 - Stop: `systemctl --user stop mtg-phase0@labels` (stops its label jobs too; they flush on SIGTERM).
   Restart: `systemctl --user start mtg-phase0@labels` (resumes at the first undone step). For good:
   `systemctl --user disable --now mtg-phase0@sim mtg-phase0@labels`.
-- Rough timing: E1 A and B about 4 h from 17:25, C about 3 h, E3 3-10 h by configuration; label
-  scaling then runs until stopped (about 17 h to 300k labels).
+- Rough timing (each job ~1,000 forward passes a second): E1 A and B end by about 20:30 on 11-08 (B
+  earlier if its fail rule fires), C about 3 h later; E3 2-8 h by configuration; label scaling then
+  runs until stopped (about 8 h to 300k labels with two jobs).
+- The owner offered handing monitoring to `agy` (Antigravity CLI); not needed for the machine to stay
+  busy (the services restart themselves). The bookkeeping below waits for an agent.
 
 ## Tasks, in order
 1. **E0: done** (2026-11-08): recorded (NUMBERS, the simulator note §4), window and yardstick
