@@ -28,20 +28,7 @@ from typing import Any
 import numpy as np
 
 from MTG_bot.core.ability_tree import CounterKind, Phase, to_dict
-from MTG_bot.core.executor.events import (
-    KIND_ABILITY_ACTIVATED,
-    KIND_CARD_DRAWN,
-    KIND_CAST,
-    KIND_COUNTER_PLACED,
-    KIND_DAMAGE,
-    KIND_DECLARE_ATTACKERS,
-    KIND_DECLARE_BLOCKERS,
-    KIND_LIFE_GAINED,
-    KIND_LIFE_LOST,
-    KIND_TARGETING,
-    KIND_TURN_PHASE,
-    KIND_ZONE_CHANGE,
-)
+from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
 from MTG_bot.core.executor.legality import SECOND_MAIN
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
@@ -656,59 +643,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
 
 # ------------------------------------------------------------------------------ the simulator's view
 
-#: The journal rows of the opponent simulator's event window (simulator.py; PLAN_LEARNING §7: it
-#: stays only if E0 shows it helps). Left out: the response windows' rows (WINDOW_OPEN,
-#: WINDOW_PASS, KICKBACK), because the engine asks only a seat that holds an answer (stack.py),
-#: so their existence would tell what a hand holds; phase rows (a row carries how many turns ago
-#: it happened instead); mana taps and mana abilities, which automatic payment makes.
-EVENT_KINDS = (KIND_ZONE_CHANGE, KIND_CAST, KIND_CARD_DRAWN, KIND_DECLARE_ATTACKERS,
-               KIND_DECLARE_BLOCKERS, KIND_DAMAGE, KIND_LIFE_GAINED, KIND_LIFE_LOST,
-               KIND_COUNTER_PLACED, KIND_ABILITY_ACTIVATED, KIND_TARGETING)
-EVENT_INDEX = {k: i + 1 for i, k in enumerate(EVENT_KINDS)}  # 0 = padding
-N_EVENTS = 64
-EF = 3  # ev_f: turns ago, amount, during my turn
 PUBLIC = (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_STACK, ZONE_COMMAND)
-_AMOUNT = {KIND_DAMAGE: 0, KIND_LIFE_GAINED: 0, KIND_LIFE_LOST: 0, KIND_COUNTER_PLACED: 1}
-
-
-def encode_events(executor: Any, seat: int, table: CardTable) -> tuple[np.ndarray, np.ndarray]:
-    """The last N_EVENTS public journal rows, oldest first, for seat ``seat``: ``ev_i`` [N, 5]
-    int16 (kind, card row, zone from, zone to, player: 1 me, 2 the opponent) and ``ev_f``
-    [N, EF] float16 (turns ago, amount, during my turn). A row names its card only when the row
-    was public about it (a move from or to a public zone, or a spell, permanent or target) and
-    the card is public now: a draw never names its card and no row carries a handle, so nothing
-    tells which hidden card entered a hand when."""
-    world = executor.world
-    me = world.player_order[seat]
-    rel = {me: 1, world.player_order[1 - seat]: 2}
-    upkeep = Phase.UPKEEP.name
-    rows, turn, active = [], 0, None
-    for e in executor.journal.events:
-        if e.kind == KIND_TURN_PHASE:
-            turn += e.data[0] == upkeep
-            active = e.data[1]
-        elif e.kind in EVENT_INDEX and not (e.kind == KIND_ABILITY_ACTIVATED and e.data[1]
-                                            or e.kind == KIND_TARGETING and e.cause_verb != "TARGET"):
-            rows.append((e, turn, active))
-    ev_i = np.zeros((N_EVENTS, 5), np.int16)
-    ev_f = np.zeros((N_EVENTS, EF), np.float16)
-    for j, (e, t, act) in enumerate(rows[-N_EVENTS:]):
-        moved = e.kind == KIND_ZONE_CHANGE
-        h, card, player = e.subject, 0, e.subject
-        if h is not None and h.namespace == "card" and h in world.cards:
-            zone = world.zone_of(h)
-            player = zone.controller
-            seen = (e.data[0] in PUBLIC or e.data[1] in PUBLIC) if moved else e.kind != KIND_CARD_DRAWN
-            card = table.row(world.cards[h].identity.oracle_id) if seen and zone.kind in PUBLIC else UNK
-        if moved:
-            player = e.data[3]
-        elif e.kind in (KIND_CAST, KIND_CARD_DRAWN):
-            player = e.data[0]
-        amount = e.data[_AMOUNT[e.kind]] if e.kind in _AMOUNT else 0
-        ev_i[j] = (EVENT_INDEX[e.kind], card, ZONE_INDEX.get(e.data[0], 0) if moved else 0,
-                   ZONE_INDEX.get(e.data[1], 0) if moved else 0, rel.get(player, 0))
-        ev_f[j] = ((turn - t) / 5.0, amount / 5.0, act == me)
-    return ev_i, ev_f
 
 
 def public_cards(executor: Any, player: Handle, table: CardTable) -> np.ndarray:
@@ -724,14 +659,13 @@ def public_cards(executor: Any, player: Handle, table: CardTable) -> np.ndarray:
 def sim_view(executor: Any, seat: int, ask: Any, table: CardTable,
              ctx: AskContext | None = None) -> dict[str, Any]:
     """What the opponent simulator reads at a decision of seat ``seat``: the seat's encoding
-    without the options (the simulator answers no ask), the event window, the opponent's public
-    cards, the sizes of its hand and library, the turn and the seat."""
+    without the options (the simulator answers no ask), the opponent's public cards, the sizes of
+    its hand and library, the turn and the seat."""
     f = encode(executor, seat, ask, table, ctx)
-    ev_i, ev_f = encode_events(executor, seat, table)
     world = executor.world
     opp = world.player_order[1 - seat]
     zones = world.players[opp].zones
     return {**{k: f[k] for k in ("cards_i", "cards_f", "players_f", "glob_f", "ask_i")},
-            "ev_i": ev_i, "ev_f": ev_f, "public": public_cards(executor, opp, table),
+            "public": public_cards(executor, opp, table),
             "h": len(zones[ZONE_HAND].entries), "l": len(zones[ZONE_LIBRARY].entries),
             "turn": world.turn, "seat": seat}

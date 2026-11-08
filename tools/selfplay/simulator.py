@@ -7,9 +7,9 @@ opponent's hand and library). They are saved as ``views_<k>.npz`` and ``truth_<k
 truth is only ever a training target.
 
 Network. The policy network's input embedding and encoder (``model.PolicyValueNet.tokens``,
-built here with its own size; its policy and value heads are unused) read the view, plus, with
-``window``, the event window pooled into ``N_POOL`` tokens. Two decoders run in the same encoder
-as a prefix language model (decoder tokens see the view and the steps before them):
+built here with its own size; its policy and value heads are unused) read the view. Two decoders
+run in the same encoder as a prefix language model (decoder tokens see the view and the steps
+before them):
 - the hand as a sorted multiset, h steps (h is public): each step emits a vector scored by dot
   product against every card's embedding (name plus components); the product of the steps is the
   probability of the whole hand, so combinations are represented;
@@ -22,7 +22,7 @@ order, and that the remaining steps still fit. So both are distributions over mu
 
 Loss: the joint NLL of hand and library plus the marginal head's (binary cross-entropy, Poisson).
 
-    .venv/bin/python -m tools.selfplay.simulator train --data DIR... --out CKPT [--window]
+    .venv/bin/python -m tools.selfplay.simulator train --data DIR... --out CKPT
     .venv/bin/python -m tools.selfplay.simulator eval --data DIR... --ckpt CKPT --out FILE.npz
 """
 
@@ -34,8 +34,6 @@ import math
 import random
 import sys
 import time
-from collections import Counter
-from itertools import combinations
 from pathlib import Path
 from typing import Any
 
@@ -44,13 +42,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from MTG_bot.core.executor.games import (
-    _BASIC_COLOR,
-    COHERENT_LANDS,
-    DECK_SIZE,
-    MAX_COPIES,
-    get_supply,
-)
+from MTG_bot.core.executor.games import MAX_COPIES, get_supply
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.ppo import chunks
@@ -59,7 +51,6 @@ from tools.selfplay.ppo import chunks
 POOL = "verified"
 #: A basic land's copies: no copy limit (CR 100.2a); any number above a library's size will do.
 BASIC_CAP = 99
-N_POOL = 4  # tokens the event window is pooled into
 #: Parameters of the reused policy network that the simulator never reads.
 UNUSED = ("view.policy_head", "view.value_head")
 #: Held-out games: those whose seed is a multiple of this (E0's evaluation set).
@@ -88,9 +79,9 @@ def _ragged(lists: list) -> tuple[np.ndarray, np.ndarray]:
 
 
 class Data:
-    """Captured positions as flat arrays: the views (``model.Packed`` without options, event
-    windows, the opponent's public cards and hidden-zone sizes, turn, seat, set, seed) and the
-    truth (hand, lib: ragged rows). ``batch`` joins them for training and evaluation only."""
+    """Captured positions as flat arrays: the views (``model.Packed`` without options, the
+    opponent's public cards and hidden-zone sizes, turn, seat, set, seed) and the truth (hand,
+    lib: ragged rows). ``batch`` joins them for training and evaluation only."""
 
     TRUTH = ("hand_off", "hand", "lib_off", "lib")
 
@@ -113,8 +104,8 @@ class Data:
         # no position has an option (o_off stays 0); one unread row keeps collate_packed's
         # padding index in range
         a["opts_i"], a["opts_f"] = np.zeros((1, 4), np.int16), np.zeros((1, 2), np.float16)
-        a.update(ev_i=np.stack([v["ev_i"] for v in views]), ev_f=np.stack([v["ev_f"] for v in views]),
-                 set=np.array(sets), **{k: np.array([v[k] for v in views]) for k in ("h", "l", "turn", "seat")})
+        a.update(set=np.array(sets), **{k: np.array([v[k] for v in views])
+                                        for k in ("h", "l", "turn", "seat")})
         for name, lists in (("public", [v["public"] for v in views]), ("hand", [t[0] for t in truth]),
                             ("lib", [t[1] for t in truth])):
             a[name + "_off"], a[name] = _ragged(lists)
@@ -143,8 +134,8 @@ class Data:
         return cls(a, table)
 
     def lengths(self) -> np.ndarray:
-        """Tokens per position (view, window, decoders): the minibatch sort key."""
-        return np.diff(self.a["c_off"]) + self.a["h"] + self.a["l"] + N_POOL + 3
+        """Tokens per position (view and decoders): the minibatch sort key."""
+        return np.diff(self.a["c_off"]) + self.a["h"] + self.a["l"] + 3
 
     def batch(self, idx: np.ndarray, device: Any) -> dict[str, torch.Tensor]:
         a = self.a
@@ -154,8 +145,7 @@ class Data:
         for s in np.unique(a["set"][idx]):
             pool, basic = pool_rows(self.table, str(s))
             cap[a["set"][idx] == s] = np.where(basic, BASIC_CAP, np.where(pool, MAX_COPIES, 0))
-        out: dict[str, Any] = {"h": a["h"][idx], "l": a["l"][idx], "ev_i": a["ev_i"][idx],
-                               "ev_f": a["ev_f"][idx].astype(np.float32)}
+        out: dict[str, Any] = {"h": a["h"][idx], "l": a["l"][idx]}
         for name in ("public", "hand", "lib"):
             rows, mask = M._rows(a[name + "_off"], idx)
             flat = a[name] if len(a[name]) else np.zeros(1, np.int16)
@@ -163,8 +153,7 @@ class Data:
         pos, col = np.nonzero(out["public"])
         np.subtract.at(cap, (pos, out.pop("public")[pos, col]), 1)  # the public copies
         out["cap"] = cap.clip(min=0)
-        b.update({k: torch.as_tensor(np.asarray(v, np.int64) if k != "ev_f" else v).to(device)
-                  for k, v in out.items()})
+        b.update({k: torch.as_tensor(np.asarray(v, np.int64)).to(device) for k, v in out.items()})
         return b
 
 
@@ -179,7 +168,7 @@ def allowed(seq: torch.Tensor, n: torch.Tensor, cap: torch.Tensor) -> torch.Tens
     (real for ``n`` steps; later steps allow everything): a row with copies left, not below the
     previous card, and only where the steps still to come fit (the copies left in this row and
     every row above it)."""
-    bsz, t = seq.shape
+    t = seq.shape[1]
     one = F.one_hot(seq, cap.shape[1]).int()
     left = (cap[:, None] - (one.cumsum(1) - one)).clamp(min=0)
     room = left.flip(-1).cumsum(-1).flip(-1)
@@ -200,9 +189,9 @@ def seq_logp(logits: torch.Tensor, seq: torch.Tensor, n: torch.Tensor, cap: torc
 
 class Simulator(nn.Module):
     def __init__(self, table: FT.CardTable, d: int = 256, layers: int = 4, heads: int = 8,
-                 ff: int = 1024, window: bool = False) -> None:
+                 ff: int = 1024) -> None:
         super().__init__()
-        self.config = {"d": d, "layers": layers, "heads": heads, "ff": ff, "window": window}
+        self.config = {"d": d, "layers": layers, "heads": heads, "ff": ff}
         self.view = M.build(table, d=d, layers=layers, heads=heads, ff=ff)
         self.step = nn.Embedding(4, d)  # start of the hand, of the library; a hand, a library step
         self.left = nn.Linear(1, d)  # cards still to place (this one included) / 10
@@ -210,13 +199,6 @@ class Simulator(nn.Module):
         self.lib_q = nn.Linear(d, d)
         self.marg = nn.Linear(d, 2 * d)  # P(card in hand), expected library count
         self.marg_bias = nn.Parameter(torch.zeros(2))
-        if window:
-            self.ev_kind = nn.Embedding(len(FT.EVENT_KINDS) + 1, d)
-            self.ev_zone = nn.Embedding(2 * len(FT.ZONES), d)  # from, then to
-            self.ev_who = nn.Embedding(3, d)
-            self.ev_f = nn.Linear(FT.EF, d)
-            self.pool_q = nn.Parameter(torch.randn(N_POOL + 1, d) * 0.02)  # queries, a start key
-            self.pool = nn.MultiheadAttention(d, heads, batch_first=True)
         for name, m in self.named_modules():  # the policy network's own initialisation
             if not name.startswith("view") and isinstance(m, (nn.Linear, nn.Embedding)):
                 nn.init.normal_(m.weight, std=0.02)
@@ -224,15 +206,6 @@ class Simulator(nn.Module):
     def cards(self) -> torch.Tensor:
         """Every table row's embedding: name plus components."""
         return self.view.name_emb.weight + self.view.card_table_emb()
-
-    def window(self, b: dict[str, torch.Tensor], cards: torch.Tensor) -> torch.Tensor:
-        kind, card, z_from, z_to, who = b["ev_i"].unbind(-1)
-        x = (self.ev_kind(kind) + cards[card] * (card > 0)[..., None] + self.ev_zone(z_from)
-             + self.ev_zone(len(FT.ZONES) + z_to) + self.ev_who(who) + self.ev_f(b["ev_f"]))
-        keys = torch.cat([self.pool_q[-1].expand(len(x), 1, -1), x], 1)
-        pad = torch.cat([torch.zeros_like(kind[:, :1], dtype=torch.bool), kind == 0], 1)
-        return self.pool(self.pool_q[:-1].expand(len(x), -1, -1), keys, keys,
-                         key_padding_mask=pad, need_weights=False)[0]
 
     def _inputs(self, cards: torch.Tensor, seq: torch.Tensor, n: torch.Tensor, which: int) -> torch.Tensor:
         """A step's input: the card placed before it (a start token first) and the cards left."""
@@ -245,9 +218,6 @@ class Simulator(nn.Module):
         v = self.view
         cards = self.cards()
         x, valid = v.tokens(b)
-        if self.config["window"]:
-            w = self.window(b, cards)
-            x, valid = torch.cat([x, w], 1), torch.cat([valid, valid.new_ones(w.shape[:2])], 1)
         p = x.shape[1]
         pads = [torch.arange(s.shape[1], device=s.device)[None] >= n[:, None] for s, n, _ in blocks]
         x = torch.cat([x] + [self._inputs(cards, s, n, w) for s, n, w in blocks], 1)
@@ -296,82 +266,6 @@ def loss(net: Simulator, b: dict[str, torch.Tensor]) -> torch.Tensor:
     return (bce + poisson - (hand_lp + lib_lp).sum()) / len(hand_lp)
 
 
-def _lc(n: int, k: int) -> float:
-    return (math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)) if 0 <= k <= n else -math.inf
-
-
-def _lmulti(c: Counter) -> float:
-    return math.lgamma(sum(c.values()) + 1) - sum(math.lgamma(x + 1) for x in c.values())
-
-
-def _lse(xs: list[float]) -> float:
-    top = max(xs, default=-math.inf)
-    return top + math.log(sum(math.exp(x - top) for x in xs)) if top > -math.inf else -math.inf
-
-
-class Yardstick:
-    """SCAFFOLD (docs/BACKLOG.md; PLAN_LEARNING §8), for measurement only: the hand-built
-    deck-consistent prior the simulator must beat. It knows the coherent deck generator
-    (``games.build_coherent_deck``): two colours, ``lands`` basics split evenly, the rest drawn
-    uniformly from the spells within the pair (taken as independent draws: the copy limit is
-    ignored). Each colour pair the opponent's public cards allow is weighted by how likely it
-    makes them; the hand is dealt uniformly from the cards not yet seen and the library is the
-    rest. It ignores how the opponent played: that is what the simulator can learn."""
-
-    def __init__(self, basics: dict[str, Any], spells: dict[Any, set], lands: int = COHERENT_LANDS,
-                 size: int = DECK_SIZE) -> None:
-        self.half, self.n_spells = lands // 2, size - lands
-        self.pairs = [((basics[x], basics[y]), {o for o, c in spells.items() if c <= {x, y}})
-                      for x, y in combinations(sorted(basics), 2)]
-
-    @classmethod
-    def of(cls, supply: Any, row: Any = lambda oid: oid) -> Yardstick:
-        metas = supply.metas
-        return cls({_BASIC_COLOR[metas[o].name]: row(o) for o in supply.deckable
-                    if metas[o].is_basic and metas[o].name in _BASIC_COLOR},
-                   {row(o): set(supply.pool.results[o].card.color_identity)
-                    for o in supply.deckable if not metas[o].is_land})
-
-    def logp(self, public: list, hand: list, library: list | None) -> tuple:
-        """(log P(hand), log P(library | hand) or None, {card: P(card in hand)}), given the
-        opponent's public cards."""
-        pub, hd, h = Counter(public), Counter(hand), len(hand)
-        prior, joint, lib, marg = [], [], [], []
-        for (bx, by), spells in self.pairs:
-            seen = Counter({o: c for o, c in pub.items() if o not in (bx, by)})
-            if any(o not in spells for o in seen):
-                continue
-            n = len(spells)
-            m = sum(seen.values())
-            rx, ry, rs = self.half - pub[bx], self.half - pub[by], self.n_spells - m
-            u = rx + ry + rs
-            held = Counter({o: c for o, c in hd.items() if o not in (bx, by)})
-            ks = sum(held.values())
-            lp = (_lc(rx, hd[bx]) + _lc(ry, hd[by]) + _lc(rs, ks) - _lc(u, h) + _lmulti(held)
-                  - ks * math.log(n)) if all(o in spells for o in held) else -math.inf
-            prior.append(-m * math.log(n))
-            joint.append(prior[-1] + lp)
-            if library is not None:
-                lb = Counter(library)
-                rest = Counter({o: c for o, c in lb.items() if o not in (bx, by)})
-                fits = ((lb[bx], lb[by], sum(rest.values())) == (rx - hd[bx], ry - hd[by], rs - ks)
-                        and all(o in spells for o in rest))
-                lib.append(joint[-1] + (_lmulti(rest) - (rs - ks) * math.log(n) if fits else -math.inf))
-            pk = [math.exp(_lc(rs, k) + _lc(u - rs, h - k) - _lc(u, h)) for k in range(h + 1)]
-            p_spell = 1.0 - sum(q * (1 - 1 / n) ** k for k, q in enumerate(pk))
-            marg.append({bx: 1 - math.exp(_lc(u - rx, h) - _lc(u, h)),
-                         by: 1 - math.exp(_lc(u - ry, h) - _lc(u, h)), **dict.fromkeys(spells, p_spell)})
-        if not prior:
-            raise ValueError("no colour pair allows the public cards: not a coherent deck")
-        z = _lse(prior)
-        out: Counter = Counter()
-        for w, m in zip(prior, marg, strict=True):
-            for o, p in m.items():
-                out[o] += math.exp(w - z) * p
-        lib_lp = _lse(lib) - _lse(joint) if library is not None else None
-        return _lse(joint) - z, lib_lp, out
-
-
 def held_out(seed: np.ndarray) -> np.ndarray:
     return seed % HOLDOUT == 0
 
@@ -386,7 +280,7 @@ def train(a: argparse.Namespace) -> None:
     torch.manual_seed(a.seed)
     np.random.seed(a.seed)
     random.seed(a.seed)
-    net = Simulator(table, d=a.d, layers=a.layers, heads=a.heads, ff=a.ff, window=a.window).to(dev)
+    net = Simulator(table, d=a.d, layers=a.layers, heads=a.heads, ff=a.ff).to(dev)
     opt = torch.optim.AdamW(net.parameters(), lr=a.lr, weight_decay=a.wd)
     lengths = data.lengths()[idx]
     total = a.epochs * len(chunks(lengths, a.mb, a.tok_budget))
@@ -418,8 +312,8 @@ def train(a: argparse.Namespace) -> None:
 
 @torch.no_grad()
 def evaluate(a: argparse.Namespace) -> None:
-    """Every held-out position's hand and library NLL under the simulator and the yardstick,
-    and every (position, pool card) pair's P(card in hand) from both, to ``--out``."""
+    """Every held-out position's hand and library NLL, and every (position, pool card) pair's
+    P(card in hand), to ``--out``."""
     ck = torch.load(a.ckpt, map_location="cpu", weights_only=False)
     table = FT.CardTable.from_json(ck["table"])
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -427,28 +321,21 @@ def evaluate(a: argparse.Namespace) -> None:
     net.load_state_dict(ck["state"])
     data = Data.load(a.data, table)
     idx = np.flatnonzero(held_out(data.a["seed"]))
-    yards = {s: Yardstick.of(get_supply(POOL, s), table.row) for s in np.unique(data.a["set"])}
-    rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib", "yard_hand", "yard_lib")}
-    pairs: dict[str, list] = {k: [] for k in ("pos", "card", "p_sim", "p_yard", "y")}
+    rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib")}
+    pairs: dict[str, list] = {k: [] for k in ("pos", "card", "p_sim", "y")}
     for ch in np.array_split(idx, max(1, len(idx) // a.mb)):
         b = data.batch(ch, dev)
         hand_lp, lib_lp, marg, _ = net(b)
         rows["sim_hand"] += (-hand_lp).tolist()
         rows["sim_lib"] += (-lib_lp).tolist()
-        cap, hand, lib = b["cap"].cpu().numpy(), b["hand"].cpu().numpy(), b["lib"].cpu().numpy()
+        cap, hand = b["cap"].cpu().numpy(), b["hand"].cpu().numpy()
         p_sim = torch.sigmoid(marg).cpu().numpy()
         for j, i in enumerate(ch):
-            pub = data.a["public"][data.a["public_off"][i]:data.a["public_off"][i + 1]].tolist()
-            hd, lb = hand[j, :data.a["h"][i]].tolist(), lib[j, :data.a["l"][i]].tolist()
-            yh, yl, ym = yards[data.a["set"][i]].logp(pub, hd, lb)
-            rows["yard_hand"].append(-yh)
-            rows["yard_lib"].append(-yl)
             cand = np.flatnonzero(cap[j] > 0)
             pairs["pos"].append(np.full(len(cand), i))
             pairs["card"].append(cand)
             pairs["p_sim"].append(p_sim[j, cand])
-            pairs["p_yard"].append(np.array([ym.get(c, 0.0) for c in cand]))
-            pairs["y"].append(np.isin(cand, hd))
+            pairs["y"].append(np.isin(cand, hand[j, :data.a["h"][i]]))
     out = {k: np.array(v) for k, v in rows.items()}
     out.update({k: np.concatenate(v) for k, v in pairs.items()})
     out.update({k: data.a[k][idx] for k in ("seed", "turn", "h", "l", "set", "seat", "net")
@@ -464,7 +351,6 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--data", nargs="+", required=True, help="capture directories")
     p.add_argument("--out", required=True)
     p.add_argument("--ckpt", default="")
-    p.add_argument("--window", action="store_true", help="read the event window")
     p.add_argument("--positions", type=int, default=0, help="train on this many (0: all)")
     p.add_argument("--d", type=int, default=256)
     p.add_argument("--layers", type=int, default=4)

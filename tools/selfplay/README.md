@@ -31,7 +31,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
-| `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head; the deck-consistent yardstick (a measurement scaffold). Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
+| `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run; paired comparison of two evaluations on the same deals. |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
@@ -159,7 +159,7 @@ plays; and several target slots: the network gets one ask per slot and sees whic
 chose before, the heuristic judges each slot by its own effect, a checkpoint from before the slot
 features loads and plays them, and the search plays a two-target cast in a fork.
 
-`test_simulator.py` (5 tests): capture leaves a game byte-identical and keeps the truth apart;
+`test_simulator.py` (4 tests): capture leaves a game byte-identical and keeps the truth apart;
 rewriting every hidden card and both libraries' order leaves the simulator's input and output
-byte-identical; both decoders and the yardstick are distributions over multisets; a training step
-reaches every parameter it trains.
+byte-identical; both decoders are distributions over multisets; a training step reaches every
+parameter it trains.

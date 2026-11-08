@@ -1,6 +1,6 @@
 """Tests for the opponent simulator (simulator.py) and its data (actor.Capture): capture changes
-no game, the truth stays apart, no input reads a hidden card, and both decoders and the
-yardstick are proper distributions over multisets."""
+no game, the truth stays apart, no input reads a hidden card, and both decoders are proper
+distributions over multisets."""
 
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ class _Leak(HeuristicAgent):
     checks that the simulator's input and output stay byte-identical."""
 
     def __init__(self, table, net) -> None:
-        self.table, self.net, self.checked, self.window = table, net, 0, None
+        self.table, self.net, self.checked, self.public = table, net, 0, None
 
     def decide(self, ask, obs) -> int:
         ex = obs.executor
@@ -88,7 +88,7 @@ class _Leak(HeuristicAgent):
                 assert np.array_equal(np.asarray(before[key]), np.asarray(after[key])), key
             for x, y in zip(out, self._run(after), strict=True):
                 assert torch.equal(x, y)
-            self.window = before["ev_i"]
+            self.public = before["public"]
             self.checked = 1
         return super().decide(ask, obs)
 
@@ -102,12 +102,10 @@ class _Leak(HeuristicAgent):
 
 def test_the_simulator_never_reads_hidden_cards(table) -> None:
     torch.manual_seed(0)
-    net = S.Simulator(table, d=32, layers=1, heads=4, ff=64, window=True).eval()
+    net = S.Simulator(table, d=32, layers=1, heads=4, ff=64).eval()
     probe = _Leak(table, net)
     _game(23, [probe, HeuristicAgent()])
-    assert probe.checked
-    named = probe.window[:, 1] > FT.UNK
-    assert (probe.window[:, 0] > 0).sum() >= 20 and named.sum() >= 5  # the window is not empty
+    assert probe.checked and len(probe.public) >= 3  # the opponent has shown cards by then
 
 
 def _multisets(rows: list[int], cap: dict[int, int], n: int) -> list[list[int]]:
@@ -122,7 +120,7 @@ def test_hand_and_library_decoders_are_distributions_over_multisets(table) -> No
     """Over a small candidate set (one basic, three capped cards) the hand probabilities of every
     hand that keeps the copy limit sum to one, and so do the library's given a hand."""
     torch.manual_seed(1)
-    net = S.Simulator(table, d=32, layers=2, heads=4, ff=64, window=True).eval()
+    net = S.Simulator(table, d=32, layers=2, heads=4, ff=64).eval()
     seat = Capture(HeuristicAgent(), 0, table, 0.2, 31)
     _game(31, [seat, HeuristicAgent()], turn_cap=6)
     view = {**seat.views[-1], "h": 3, "l": 4}
@@ -148,34 +146,9 @@ def test_hand_and_library_decoders_are_distributions_over_multisets(table) -> No
     assert math.isclose(logp([hand] * len(libraries), libraries, 1), 0.0, abs_tol=1e-4)
 
 
-def test_the_yardstick_is_a_distribution_over_hands_and_libraries() -> None:
-    """A toy pool: five basics and two-colour spells. Given the public cards, the yardstick's
-    hand probabilities sum to one over every possible hand, and its library probabilities sum
-    to one over every library that completes the deck."""
-    colours = "WUBRG"
-    basics = {c: f"basic-{c}" for c in colours}
-    spells = {"w1": "W", "w2": "W", "u1": "U", "wu": "WU", "g1": "G", "ub": "UB", "c0": ""}
-    yard = S.Yardstick(basics, {k: set(v) for k, v in spells.items()}, lands=4, size=10)
-    public = ["basic-W", "w1"]  # the pairs W/x stay possible, each as likely as it makes w1
-    rows = sorted(set(basics.values()) | set(spells))
-    total = 0.0
-    for hand in itertools.combinations_with_replacement(rows, 2):
-        total += math.exp(yard.logp(public, list(hand), None)[0])
-    assert math.isclose(total, 1.0, rel_tol=1e-9)
-    hand = ["basic-W", "u1"]
-    unknown = 10 - len(public) - len(hand)
-    total = 0.0
-    for library in itertools.combinations_with_replacement(rows, unknown):
-        total += math.exp(yard.logp(public, hand, list(library))[1])
-    assert math.isclose(total, 1.0, rel_tol=1e-9)
-    marginal = yard.logp(public, hand, None)[2]
-    assert marginal["ub"] == 0.0  # every pair the public cards allow holds white
-    assert 0.0 < marginal["wu"] < marginal["g1"] < marginal["basic-W"] < 1.0
-
-
 def test_one_training_step_moves_every_trained_parameter(table) -> None:
     torch.manual_seed(2)
-    net = S.Simulator(table, d=32, layers=1, heads=4, ff=64, window=True)
+    net = S.Simulator(table, d=32, layers=1, heads=4, ff=64)
     seat = Capture(HeuristicAgent(), 1, table, 0.3, 41)
     _game(41, [HeuristicAgent(), seat], turn_cap=8)
     data = S.Data.from_records(seat.views, seat.truth, ["M21"] * len(seat.views), table)

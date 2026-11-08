@@ -157,3 +157,30 @@ the next 5 cost the same.
 **Known problems.** Gate unscored. Library sampling costs ~l decoder steps (KV caching would cut
 it). Hand + next 3/5 quality needs the library order, which capture does not record (BACKLOG
 study); the k = 1 next-card NLL is `e0_next_card.py`.
+
+## 4. Result (2026-11-08, scored as pre-registered)
+
+Scored by the unattended queue (`runs/phase0/sim.log`; code 75ae5aa; `simulator eval` on both arms,
+`e0_score_e0.py`, then the context scripts; outputs `runs/phase0/e0_*.json`) on the 54,886 held-out
+positions (1,600 games).
+- **Window:** mid-game hand NLL with / without 0.9986 [0.9973, 0.9999] (all positions 0.9967): not
+  kept (the rule needs 0.95). The no-window arm is scored. Prediction (§2, not kept): hit.
+- **G1** R_all 0.889 [0.886, 0.892] <= 1: pass. **G2** R_mid (turns 7-12) 0.883 [0.879, 0.886] <= 0.95:
+  pass. **G3** ECE 0.0004 < 0.05: pass (max bin error 0.0019; over each position's 24 likeliest cards
+  0.0025, the yardstick's 0.027). **E0 passes.**
+- Context: hand NLL ratio early (turns 0-6) 0.975, late (13+) 0.821; M20 0.892, M21 0.888; against
+  network opponents 0.877, the heuristic 0.930. Library NLL given the true hand 1.012x the yardstick's
+  and next-card NLL 1.0008x: no better than the prior. The marginal head against 64 sampled hands per
+  position (2,000 positions): corr 0.91, mean |difference| 0.017 against a sampling floor of 0.014.
+  Hand NLL by epoch 11.71, 11.52, 11.42, 11.38: still falling at the fourth.
+- **Costs** (the trained model, a quiet GPU; `e0_bench_cost.py`): belief 4.3 ms at batch 1, 10.8 ms
+  for 128 decisions; one hand 22 ms, 32 hands 26 ms; hand + library contents + next 3 or 5 cards
+  241 ms (1 world), 403 ms (32 worlds); hand + next 3-5 from the marginal head's counts 26-31 ms; a
+  training step 266 ms per 512 positions, 3.8 GB peak.
+- Then, as §3 planned, `remove_window.patch` and `remove_yardstick.patch` (the yardstick existed only
+  to score E0; the BACKLOG study can restore it from this commit's parent). test_simulator: 4 passed.
+
+What it means: the simulator reads the opponent's hand clearly better than the deck-consistent
+prior, more so as the game goes on (the history is evidence), with honest probabilities. Its picture
+of the remaining library is no better than the prior's, so the next 3-5 cards add nothing yet (the
+BACKLOG study "How far to take the opponent simulator"; capture records no library order).
