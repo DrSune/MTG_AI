@@ -64,13 +64,15 @@ reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed on
    worktrees and the sim service removed.
 2. **E1: A and B recorded.** When C ends (`runs/phase0/e1_C.looks`, last line = its verdict), record
    it in the labels note §2 and NUMBERS beside A and B.
-3. **E3**, when the queue's `e3_gain` step is done: score it as 186 §5 says: regret from
-   `runs/phase0/e3_regret.json` (the 100k apprentice's ratio, one-sided 95% bound <= 0.8), gain from
-   the eval in `runs/selfplay/e3_gain/` (score - 0.5 >= +0.015 over the 450 pairs). Check the
-   predictions in §5. A known issue, the owner's call: the plan's eta (1.61 at A's look 4) is near
-   hard labels (186 §3). If E3 fails, record it and STOP.
-4. **Label scaling** results (`runs/phase0/regret_<n>.json`, `runs/selfplay/scale_gain_<n>/`): record
-   them as exploratory, not gates.
+3. **E3: scored, it fails (2026-11-08 22:47) — STOP for the owner.** NUMBERS and the labels note §5
+   hold the verdict and an exploratory diagnostic: the distiller kept the generator (every trained
+   epoch fit held-out targets worse); trained epochs cut regret by up to 3.6% [0.932, 0.994], with no
+   measurable gain over 900 games. The kill rule (PLAN §12): search at play time only, and PPO as the
+   learner. For the owner: the kill, §14.1 (greedy playouts), and whether the label-scaling results
+   (task 4) change the picture.
+4. **Label scaling** (exploratory; amended before any of its distillations ran: every epoch saved and
+   measured): results in `runs/phase0/regret_<n>.json` and `runs/selfplay/scale_gain_<n>_ep<e>/` for
+   n = 300k (about 07:45 on 11-09), 600k (about 21:00), 1M (11-10). Record them as exploratory.
 5. **Merge** each branch once its gates are scored, pass or fail (the code is tested either way): merge
    into main and run the three gates on the merge; where the branch claims play is unchanged, compare
    `python -m tools.replay_digest 100` run from main and from the branch; push, check with `git fetch`,
