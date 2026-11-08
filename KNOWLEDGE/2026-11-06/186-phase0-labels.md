@@ -124,6 +124,17 @@ Var(z_a - z_b) 0.081 per future, 98% of futures tie):
 **Cost.** The GPU is shared with E0's training: label jobs measured 550-920 forward passes a second
 (smoke runs, 20:00), so a look takes about 50-80 minutes.
 
+### Result so far: A's fourth look (2026-11-06 23:01)
+
+The job ran to its budget (10.74M forward passes, 8,922 games, 35,641 labels, 0 crashes, 0 leaky,
+0 void, 967 of 142,564 playouts on the rail) and the watcher scored look 4 on 35,353 labels at
+10.65M: B*_FP **4.36M** [2.31M, 39.5M], signal z 2.25, placebo z -0.16; per future Var(z_a - z_b)
+0.194, corr 0.902, 95.2% ties. Verdict **gray: extension** (2.65M is inside the interval): four more
+looks to 21.2M, then the point estimate decides. The extension runs from the unattended queue
+(`experiments/phase0_queue.py`, 2026-11-08) in `runs/labels/e1_A.2` on seeds 30,009,619+; B and C
+follow. Predictions so far: A at most 1.6M, miss (4.36M); corr 0.94-0.96, miss (0.90); Var(z_a -
+z_b) 0.03-0.08, miss (0.19); placebo z < 2, hit; under 1% on the rail, hit (0.68%); no crash, hit.
+
 ## 3. A finding from the regression test: the target's step decides the owner's example
 
 PLAN §1.4: distilling per-world labels converges on R2 "with the linear target". The plan's step,
@@ -192,3 +203,63 @@ turns average 62, not 47): E3's 100k labels are about 30M FP, some 8 hours at to
 eta rule is too large for linear distillation in the owner's example (§3). (4) The generator is
 weaker than r20 v2 in greedy play (§1). (5) NUMBERS.md is not written yet: the numbers are in
 §1-§4 and in the run directories; the scripts above are to be deleted once the gates are scored.
+
+## 5. E3, distillation (pre-registration)
+
+**Question** (PLAN §12 E3). Does a network distilled from true-future labels learn: regret at most
+0.8x its generator's, and a gain of at least +0.015 over 450 pairs on unseen deals?
+
+**Configuration** (CONFIG; the queue fixes it at E3's first step in `runs/phase0/e3_config.json`): A
+(k 2, d 2, greedy; the plan's default and the cheapest label) if A passes E1; otherwise the passing
+configuration with the lowest B*_FP; if none passes, A. In that last case E1's kill stands and E3
+runs as a measurement only: the owner asked (2026-11-08) that the Spark not idle until they return,
+and what distillation does in practice is their open question. Its result is then reported beside
+the kill and decides nothing by itself.
+
+**Labels.** CONFIG's E1 labels (all of its directories) and more from the same label job on seeds
+33,000,001+, in game order, until 100k exist.
+The distillation sets are the first 10k, 30k and 100k labels (whole games); every 20th game of a
+set is held out to choose the epoch.
+
+**Target.** Per label pi' = `search.mmd_target(pi, S, q, se)`: pi the generator's probabilities on
+the label's encoding, q the mean results over its surviving futures, se = sqrt(V / d) with V the
+per-future variance of result differences that E1's instrument measured on CONFIG's labels
+at CONFIG's last look and d the label's surviving futures; so eta = 0.5 / sqrt(V / 2) at d = 2
+(the plan's rule, read with the pooled variance because two futures cannot estimate a label's own).
+At A's look 4, V = 0.194 and eta = 1.61: near hard labels, the regime §3 shows stopping short of
+R2 in the owner's example; the greedy argmax is unaffected there.
+
+**Apprentice.** From the generator: cross-entropy to pi' over every option of the decision, AdamW
+(lr 3e-5, weight decay 0.01), minibatches of up to 512 labels, up to 4 epochs, the epoch with the
+lowest held-out KL kept (scratch `labels/e3_distill.py`).
+
+**Regret.** 2,000 held-out positions from fresh deals (seeds 34,000,001+), from the same label job
+with k = 8 (every option of a menu of at most 8, Gumbel-top-8 otherwise) and d = 4 fresh futures,
+CONFIG's playout mode. A network's regret at a position is the best compared option's mean result
+minus its greedy option's (the bf16 network, as served); positions where any compared network's
+greedy option was not compared are left out. Gate: the 100k apprentice's mean regret at most 0.8x
+the generator's, read on the one-sided 95% upper bound of the ratio (bootstrap over games, 2,000
+resamples) (scratch `labels/e3_regret.py`; the 10k and 30k apprentices reported beside it).
+
+**Gain.** The 100k apprentice against the generator, greedy, on the 450 standard evaluation deals
+(seeds 900,000-900,449: half stress, half coherent, M21), each deal played with the seats swapped
+(900 games; `tools.selfplay.learner --eval-only --init APP --opp-ckpt GEN --eval-opponents
+snap:opp --eval-deals 450`). Gain = score - 0.5. Gate as written: at least +0.015 (the decision
+point between 0 and +0.03 at 450 pairs, §12).
+
+**E3 passes** when both hold. **Kill** (§12): search at play time only, and PPO as the learner.
+
+**Predictions** (written 2026-11-08 before any E3 label, apprentice or game exists).
+- Regret: the 100k apprentice's ratio to the generator 0.85-0.95, its one-sided 95% bound above
+  0.8 (the regret gate fails); 10k and 30k between 0.95 and 1.0.
+- Gain: about +0.010, most likely between -0.01 and +0.03 (SE 0.009 at 450 pairs): at or under the
+  +0.015 gate.
+- So E3 fails as a gate, more likely than not, with the direction positive (ratio below 1, gain
+  above 0). Why: 92% of the labels' result differences are ties; at A's look 4 one useful step costs
+  ~14.5k labels, so 100k labels hold ~7 useful steps of signal, about twice r22's whole PPO run,
+  which showed no measurable gain.
+
+**Label scaling (exploratory, after E1 B and C; the queue).** More CONFIG labels on seeds
+35,000,001+, distilled the same way at 300k, 600k and 1M labels, each apprentice scored for regret
+(the same 2,000 positions) and gain (the same 450 deals). Not a gate. Prediction: regret and gain
+improve with the label count, the 300k apprentice's gain at least the 100k one's.
