@@ -4,7 +4,7 @@ not idle. Two lanes, each a user service (mtg-phase0@sim, mtg-phase0@labels):
 - sim: E0's measurements on the two trained simulators (the cost bench first, on a quiet GPU);
 - labels: E1 A, B and C in looks (the extension if gray); E3 on the configuration that passed (A
   if it did, else the passing one with the lowest B*; if none did, A, as a measurement: 186 §5);
-  then more of its labels, distilled and measured at 300k, 600k and 1M.
+  then more of its labels, distilled and measured at 300k, 600k and 1M. Label jobs run two at a time.
 A step leaves runs/phase0/<lane>/<step>.done and a restart resumes at the first undone step; a
 failed step is logged and left undone. A label job that stops short resumes in a new directory on
 the next unused seeds (the instrument and the distiller read all of a job's directories).
@@ -260,22 +260,28 @@ def sim_lane() -> None:
     step("epoch_curve", lambda: run([PY, SX / "e0_epoch_curve.py", CAP, *eps], Q / "e0_epoch_curve.json", SIM))
 
 
+def parallel(*thunks) -> None:
+    """Two at a time: two 10-worker label jobs fill the 20 cores."""
+    with ThreadPoolExecutor(2) as ex:
+        list(ex.map(lambda f: f(), thunks))
+
+
+def job(base: str, seed0: int, **kw):
+    """A label job in E3's configuration (the regret positions: k 8, d 4, its playout mode)."""
+    k, d, greedy, _ = E1[e3_cfg()]
+    if base == "e3_regret":
+        k, d = 8, 4
+    return run_labels(base, k, d, greedy, seed0, **kw)
+
+
 def labels_lane() -> None:
     t0 = time.time()
     while not any((Q / f"sim/bench_win.{x}").exists() for x in ("done", "failed")) and time.time() - t0 < 3600:
         time.sleep(60)  # the simulator's cost bench wants a quiet GPU
-    with ThreadPoolExecutor(2) as ex:  # two 10-worker label jobs fill the 20 cores
-        list(ex.map(lambda c: step(f"e1_{c}", lambda: e1(c)), ("A", "B")))
-    step("e1_C", lambda: e1("C"))
-
-    def labels_of(base: str, seed0: int, **kw):
-        k, d, greedy, _ = E1[e3_cfg()]
-        return run_labels(base, k if base != "e3_regret" else 8, d if base != "e3_regret" else 4, greedy,
-                          seed0, **kw)
-
-    step("e3_labels", lambda: labels_of(f"e3_{e3_cfg()}", 33_000_000,
-                                        labels=100_000 - totals(dirs_of(f"e1_{e3_cfg()}"))["labels"]))
-    step("e3_regret_labels", lambda: labels_of("e3_regret", 34_000_000, games=525, single=True))
+    parallel(*[lambda c=c: step(f"e1_{c}", lambda: e1(c)) for c in E1])
+    parallel(lambda: step("e3_labels", lambda: job(f"e3_{e3_cfg()}", 33_000_000,
+                                                   labels=100_000 - totals(dirs_of(f"e1_{e3_cfg()}"))["labels"])),
+             lambda: step("e3_regret_labels", lambda: job("e3_regret", 34_000_000, games=525, single=True)))
     apps = [RUNS / f"labels/e3_app/app_{n}.pt" for n in (10000, 30000, 100000)]
     step("e3_distill", lambda: distill("e3_app", "10000,30000,100000", e3_dirs()), ("e3_labels",))
     step("e3_regret", lambda: regret(apps, "e3_regret"), ("e3_distill", "e3_regret_labels"))
@@ -285,10 +291,11 @@ def labels_lane() -> None:
             log("under 200 GB free: the label scaling stops")
             return
         app = RUNS / f"labels/scale_{n}/app_{n}.pt"
-        step(f"bank_{n}", lambda n=n: labels_of(f"bank_{e3_cfg()}", 35_000_000,
-                                                labels=n - totals(e3_dirs())["labels"]), ("e3_labels",))
-        step(f"distill_{n}", lambda n=n: distill(f"scale_{n}", str(n), e3_dirs() + dirs_of(f"bank_{e3_cfg()}")),
-             (f"bank_{n}",))
+        parallel(*[lambda b=b, s=s, n=n: step(f"{b}_{n}", lambda: job(
+            f"{b}_{e3_cfg()}", s, labels=(n - totals(e3_dirs())["labels"]) / 2), ("e3_labels",))
+            for b, s in (("bank", 35_000_000), ("bank2", 36_000_000))])
+        step(f"distill_{n}", lambda n=n: distill(f"scale_{n}", str(n), e3_dirs() + dirs_of(f"bank_{e3_cfg()}")
+                                                 + dirs_of(f"bank2_{e3_cfg()}")), (f"bank_{n}", f"bank2_{n}"))
         step(f"regret_{n}", lambda n=n, app=app: regret([app], f"regret_{n}"), (f"distill_{n}", "e3_regret_labels"))
         step(f"gain_{n}", lambda n=n, app=app: gain(app, f"scale_gain_{n}"), (f"distill_{n}",))
 
