@@ -145,6 +145,21 @@ beside A's extension from 17:25 (`runs/labels/e1_B`, seeds 31,000,001+; `runs/ph
 A's extension so far: look 5 (13.28M, 43,485 labels) B*_FP 2.59M [1.67M, 5.75M], signal z 3.64;
 look 6 (15.91M, 52,273 labels) 2.72M [1.72M, 6.42M], z 3.47; placebo z -0.01, 0.08: continue.
 
+### Result: A passes, so E1 passes (2026-11-08 20:05)
+
+Look 7 (18.61M forward passes, 61,265 labels): B*_FP 2.54M [1.67M, 5.35M], signal z 3.81, placebo z
+-0.71: continue. Look 8 (21.23M, 70,247 labels): B*_FP **2.17M** [1.43M, 4.54M], signal z 3.83,
+placebo z -0.77, data 9.8x B*: **pass (point estimate)**, the rule after the extension. E1 passes
+(PLAN §12): a true-future label buys a useful gradient step for 2.17M forward passes, 2.4x cheaper
+than outcome PPO's lambda-1 bound of 5.3M (/184 §26). Only a greedy configuration passed (B failed;
+C runs), so §14.1 (greedy playouts) goes to the owner, as pre-registered. Predictions: A at most
+1.6M, miss (2.17M); the plan's 3.3x advantage, miss (2.4x). The point estimate moved 1.52, 3.07,
+2.81, 4.36, 2.59, 2.72, 2.54, 2.17M over the eight looks: a true value near 2.2-2.7M, close to the
+bar. Deviations: none in the protocol; A's labels sit in `runs/labels/e1_A`, `e1_A.2` (stopped by the
+queue's first restart, 970 seeds) and `e1_A.3`; the looks in `runs/phase0/e1_A.looks`. C's first
+attempt (`e1_C`) was stopped 7 s after start by the queue's switch, before any game; its empty
+labels.pkl and summary.json were written by hand so that the instrument can read the directory.
+
 ## 3. A finding from the regression test: the target's step decides the owner's example
 
 PLAN §1.4: distilling per-world labels converges on R2 "with the linear target". The plan's step,

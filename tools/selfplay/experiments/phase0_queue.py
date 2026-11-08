@@ -81,6 +81,11 @@ def dirs_of(base: str) -> list[Path]:
     return out
 
 
+def with_labels(dirs: list[Path]) -> list[Path]:
+    """The directories a reader can open: a job stopped before its first flush has neither file."""
+    return [p for p in dirs if (p / "labels.pkl").exists() and (p / "summary.json").exists()]
+
+
 def totals(dirs: list[Path]) -> dict:
     t = {"forward_passes": 0, "labels": 0, "games": 0}
     for p in dirs:
@@ -171,7 +176,7 @@ def e1(cfg: str) -> None:
         if look > m or totals(ds)["forward_passes"] < look * LOOK:
             return None
         out = Q / f"e1_{cfg}_look{look}.json"
-        run([PY, X / "e1_instrument.py", GEN, *ds, "--K", 16, "--out", out], Q / f"e1_{cfg}_look{look}.log")
+        run([PY, X / "e1_instrument.py", GEN, *with_labels(ds), "--K", 16, "--out", out], Q / f"e1_{cfg}_look{look}.log")
         res = json.loads(out.read_text())
         v = decide(res, look, m)
         res["look"], res["verdict"] = look, v
@@ -222,7 +227,7 @@ def failed(c: str) -> bool:
 def distill(out: str, sizes: str, dirs: list[Path]) -> None:
     """V: the per-future variance of result differences at the configuration's last look."""
     v = last_look(e3_cfg())["per_future"]["var_diff"]
-    run([PY, X / "e3_distill.py", GEN, RUNS / "labels" / out, sizes, v, *dirs], Q / f"{out}.log")
+    run([PY, X / "e3_distill.py", GEN, RUNS / "labels" / out, sizes, v, *with_labels(dirs)], Q / f"{out}.log")
 
 
 def regret(apps: list[Path], name: str) -> None:
