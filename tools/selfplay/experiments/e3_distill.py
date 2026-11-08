@@ -7,7 +7,7 @@ and minimises the cross-entropy to the targets over all options; 5% of the games
 the epoch with the lowest held-out KL is kept.
 
     PYTHONPATH=<checkout> PY e3_distill.py GEN OUT_DIR N[,N...] V RUN_DIR [RUN_DIR ...]
-        [--lr 3e-5] [--epochs 4] [--mb 512]
+        [--lr 3e-5] [--epochs 4] [--mb 512] [--save-epochs 1]
 """
 
 from __future__ import annotations
@@ -79,7 +79,7 @@ def ce_epoch(net, feats, targets, idx, dev, opt=None, mb=512):
 
 def main() -> None:
     argv = sys.argv[1:]
-    opts = {"--lr": 3e-5, "--epochs": 4, "--mb": 512}
+    opts = {"--lr": 3e-5, "--epochs": 4, "--mb": 512, "--save-epochs": 0}
     for k in list(opts):
         if k in argv:
             i = argv.index(k)
@@ -131,6 +131,9 @@ def main() -> None:
             print(json.dumps({"n": n, **hist[-1]}), flush=True)
             if vkl < best[0]:
                 best = (vkl, copy.deepcopy(net.state_dict()))
+            if opts["--save-epochs"]:  # diagnostic: every epoch's apprentice, beside the kept one
+                M.save(str(out_dir / f"app_{n}_ep{epoch}.pt"), net, table,
+                       {"distilled_from": gen, "labels": len(sel), "epoch": epoch, "val_kl": vkl})
         net.load_state_dict(best[1])
         M.save(str(out_dir / f"app_{n}.pt"), net, table,
                {"distilled_from": gen, "labels": len(sel), "train": len(tr), "val": len(val),
