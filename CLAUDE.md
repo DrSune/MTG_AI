@@ -157,7 +157,7 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 139 passed, 37 s beside a training run (the ontology
+  - Companion numbers: `pytest tools -q` = 143 passed (139 + the simulator's 4, 2026-11-08), 37 s beside a training run (the ontology
     baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
     `tools/run_scenarios.py` = 738/738.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.

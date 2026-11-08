@@ -16,9 +16,9 @@ under "Outcome" below, commit, push, and stop for the owner.
 
 ## State (2026-11-08 17:30)
 - `main`: all gates green, baseline B4 in CLAUDE.md. Branches (pushed, unmerged), with worktrees:
-  `phase0/labels` (`../MTG_AI-labels`), `phase0/simulator` (`../MTG_AI-sim`). Run worktrees (detached,
-  pinned; nobody edits them): `../MTG_AI-labels-run` (the labels branch at the queue's commit),
-  `../MTG_AI-sim-run` (75ae5aa), `../MTG_AI-run` (main's training runs; idle).
+  `phase0/labels` (`../MTG_AI-labels`). Run worktrees (detached, pinned; nobody edits them):
+  `../MTG_AI-labels-run` (the labels branch at the queue's commit), `../MTG_AI-run` (main's training
+  runs; idle). `phase0/simulator` is merged (dd1e43f).
 - **E0 is scored: it passes** (the no-window arm; the event window adds 0.1%, so it is not kept):
   hand NLL / yardstick 0.889 [0.886, 0.892] overall (G1 <= 1), 0.883 [0.879, 0.886] mid-game turns
   7-12 (G2 <= 0.95), 0.975 early, 0.821 late; ECE 0.0004 (G3 < 0.05; top-24 0.0025; yardstick 0.0034);
@@ -52,10 +52,9 @@ reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed on
   scaling then runs until stopped (about 17 h to 300k labels).
 
 ## Tasks, in order
-1. **E0 bookkeeping**, if not yet done: E0's numbers into `KNOWLEDGE/NUMBERS.md` (commands: the
-   `simulator eval` / `e0_score_e0.py` lines in the simulator note §3; the queue logged each step),
-   the result into the simulator note, then the merge (task 5) with `remove_window.patch` (the window
-   was not kept) and `remove_yardstick.patch` as that note §3 says.
+1. **E0: done** (2026-11-08): recorded (NUMBERS, the simulator note §4), window and yardstick
+   removed, merged into main at dd1e43f (gates green, replay digests identical over 200 games), branch,
+   worktrees and the sim service removed.
 2. **E1**, as each configuration ends (`runs/phase0/e1_<cfg>.looks`, last line = verdict): record it
    in the labels note §2 and NUMBERS. E1 passes when a configuration passes. If none passes, the kill
    rule stands: record it and STOP for the owner on that point (the fallback, slow outcome PPO plus
