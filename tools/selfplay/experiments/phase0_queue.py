@@ -224,10 +224,11 @@ def failed(c: str) -> bool:
     return f.exists() and json.loads(f.read_text().splitlines()[-1])["verdict"].startswith("fail")
 
 
-def distill(out: str, sizes: str, dirs: list[Path]) -> None:
+def distill(out: str, sizes: str, dirs: list[Path], *extra) -> None:
     """V: the per-future variance of result differences at the configuration's last look."""
     v = last_look(e3_cfg())["per_future"]["var_diff"]
-    run([PY, X / "e3_distill.py", GEN, RUNS / "labels" / out, sizes, v, *with_labels(dirs)], Q / f"{out}.log")
+    run([PY, X / "e3_distill.py", GEN, RUNS / "labels" / out, sizes, v, *with_labels(dirs), *extra],
+        Q / f"{out}.log")
 
 
 def regret(apps: list[Path], name: str) -> None:
@@ -310,14 +311,16 @@ def labels_lane() -> None:
         if shutil.disk_usage(RUNS).free < 200e9:
             log("under 200 GB free: the label scaling stops")
             return
-        app = RUNS / f"labels/scale_{n}/app_{n}.pt"
+        eps = [RUNS / f"labels/scale_{n}/app_{n}_ep{e}.pt" for e in (1, 2, 3, 4)]  # every epoch (186 §5)
         parallel(*[lambda b=b, s=s, n=n: step(f"{b}_{n}", lambda: job(
             f"{b}_{e3_cfg()}", s, labels=(n - totals(e3_dirs())["labels"]) / 2), ("e3_labels",))
             for b, s in (("bank", 35_000_000), ("bank2", 36_000_000))])
         step(f"distill_{n}", lambda n=n: distill(f"scale_{n}", str(n), e3_dirs() + dirs_of(f"bank_{e3_cfg()}")
-                                                 + dirs_of(f"bank2_{e3_cfg()}")), (f"bank_{n}", f"bank2_{n}"))
-        step(f"regret_{n}", lambda n=n, app=app: regret([app], f"regret_{n}"), (f"distill_{n}", "e3_regret_labels"))
-        step(f"gain_{n}", lambda n=n, app=app: gain(app, f"scale_gain_{n}"), (f"distill_{n}",))
+                                                 + dirs_of(f"bank2_{e3_cfg()}"), "--save-epochs", 1),
+             (f"bank_{n}", f"bank2_{n}"))
+        step(f"regret_{n}", lambda n=n, eps=eps: regret(eps, f"regret_{n}"), (f"distill_{n}", "e3_regret_labels"))
+        for e, app in enumerate(eps, 1):
+            step(f"gain_{n}_ep{e}", lambda n=n, e=e, app=app: gain(app, f"scale_gain_{n}_ep{e}"), (f"distill_{n}",))
 
 
 def main() -> None:

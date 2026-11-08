@@ -289,3 +289,32 @@ point between 0 and +0.03 at 450 pairs, §12).
 35,000,001+, distilled the same way at 300k, 600k and 1M labels, each apprentice scored for regret
 (the same 2,000 positions) and gain (the same 450 deals). Not a gate. Prediction: regret and gain
 improve with the label count, the 300k apprentice's gain at least the 100k one's.
+
+### Result: E3 fails (2026-11-08 22:47; scored as pre-registered)
+
+E1 fixed the configuration as A (B and C failed: C at look 2, B*_FP not estimable, signal z -0.05,
+B_low 6.25M). Labels: A's 71,121 E1 labels plus 30,000 from two jobs (seeds 33,000,001+ and
+33,500,001+), 101,121 in all, 8,081 of them with a target that moves (the rest tie); V 0.197, eta
+1.59. Regret positions: 2,099 from 525 games (k 8, d 4, greedy). Distillation kept **epoch 0** at
+every size: each trained epoch fit the held-out targets worse than the generator itself (100k:
+held-out KL 0.0146 at epoch 0, then 0.026, 0.024, 0.022, 0.023), so each "apprentice" is the
+generator's weights (relative change 0). Hence regret ratio 1.0 (10k) and 1.003 (30k, 100k; one
+position of 2,099 differs, bf16 batching) against the 0.8 gate, and gain exactly 0.500 over 900
+games (identical play) against +0.015: **E3 fails both gates.** Kill (§12): search at play time only,
+and PPO as the learner; STOP for the owner. Predictions: regret ratio 0.85-0.95, miss (1.0); gain
+about +0.010, miss (0.000); "fails as a gate, direction positive": half (fails; see the diagnostic).
+
+**Diagnostic (exploratory, after the verdict; `e3_distill.py --save-epochs 1`, the same 100k labels,
+outputs runs/labels/e3_diag, runs/phase0/e3_diag_regret.json, runs/selfplay/e3_diag_gain).** The
+trained epochs do change play: 2.8-3.3% of greedy choices on the regret positions differ from the
+generator's. Regret ratio by epoch: 1.000 [0.984, 1.015], 0.986 [0.962, 1.006], **0.964 [0.932,
+0.994]**, 0.978 [0.949, 1.005]; epoch 4's gain over 900 games +0.002 [-0.009, +0.014]. So one round
+of distillation from 100k labels improves decisions a little (3.6% less regret at epoch 3, a real
+effect) and far too little to show in results or to meet the gate; the selection rule, held-out KL
+including epoch 0, hid that improvement, because 92% of the targets tie and any movement costs on
+them.
+
+**Label scaling, amended before any of its distillations ran (2026-11-08 23:10).** Because the
+selection keeps epoch 0, each scaling distillation saves every epoch (`--save-epochs 1`); regret is
+measured for all four epochs and the gain for each. Exploratory, not a gate: does the regret effect
+grow with labels (300k, 600k, 1M) to a size that shows in results?
