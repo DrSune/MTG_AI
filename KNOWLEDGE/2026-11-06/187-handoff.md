@@ -113,3 +113,7 @@ reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed on
 - **Label scaling, 300k (11-09 07:21):** tripling the labels left the effect unchanged: 2-4% less
   regret, no measurable gain (each of four epochs within +-0.013 of zero over 900 games). More labels
   alone do not rescue this distillation; the 600k and 1M points follow (11-09 evening, 11-10).
+- **2026-11-09: the owner chose the kill path** ("Go with option 1 for now, but we will look at it
+  closely at a later point"): DECISIONS D21. The queue was stopped before the 600k point and removed;
+  both branches are merged (main ff988a3), their worktrees and the services deleted. Phase 0 is closed
+  and this handoff is complete.

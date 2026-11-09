@@ -641,6 +641,26 @@ If E1 or E3 fails, the fallback is slow outcome PPO plus throughput work.
 - D15 and D16 are unchanged.
 - Two-player only for now; Commander later.
 
+## D21 — After Phase 0: PPO learns, search plays; the distillation is parked
+**2026-11-09. Owner: "Go with option 1 for now, but we will look at it closely at a later point."**
+
+**What Phase 0 measured** (KNOWLEDGE 2026-11-06/186; NUMBERS 2026-11-08/09).
+- E0 passes: the opponent simulator reads hidden hands 11% better than a deck-aware prior (18% late),
+  with honest probabilities; it reads the remaining library no better than the prior.
+- E1 passes, narrowly: a greedy true-future label buys a useful gradient step for 2.17M forward
+  passes, 2.4x cheaper than outcome PPO's lambda-1 bound; sampled playouts and k = 4 fail.
+- E3 fails: one round of distillation on 100k or 300k labels changes ~3% of the network's choices
+  and cuts regret by 2-4%, with no measurable gain in games.
+
+**The call** (D20's kill path for E3).
+- The learner is outcome PPO with gamma = lambda = 1 (OWNER_PREFERENCES #6), each update at least B*
+  (lambda = 1: at least 2.65M decisions, about an hour of play), plus throughput work.
+- Search contributes at play time: decision-time search on the simulator's futures (PLAN_LEARNING
+  Phase 2, E2) is the next build. PLAN_LEARNING Phase 1, the label trainer, does not run.
+- Distillation from playout labels is parked, not dropped: BACKLOG "Distillation from playout labels"
+  holds what to revisit and the data on disk. The labeller and its guards stay in main
+  (`search.Labeller`): play-time search shares its machinery.
+
 ## Deferred pending information
 
 **The deployment target's clock is unknown**, and it changes the arithmetic. **Superseded in

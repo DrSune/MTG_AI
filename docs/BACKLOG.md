@@ -772,6 +772,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ---
 
 ## Training and measurement
+- **Distillation from playout labels (parked by the owner, 2026-11-09; DECISIONS D21).** E3 failed:
+  one round changes ~3% of choices and cuts regret 2-4% (100k and 300k labels), winning nothing
+  measurable; the epoch rule (held-out KL, epoch 0 included) kept the untrained network because 92%
+  of the targets tie (KNOWLEDGE 2026-11-06/186 §5). To look at: stop or choose epochs by regret on
+  held-out positions, not by held-out fit; the step (eta 1.59 is near hard labels; 186 §3: the owner's
+  45/30/25 example converges only below ~0.1); more futures per label (fewer ties, less noise);
+  several rounds (expert iteration) rather than one; lr and epochs. On disk: 449k greedy k 2 d 2
+  labels from runs/selfplay/r23_mulligan/gen.pt (runs/labels: e1_A*, e3_A*, e3b_A*, bank_A*, bank2_A*),
+  19k sampled (e1_B), 10.5k k 4 (e1_C*), the 2,099 regret positions (e3_regret); 2.9 GB. Scripts:
+  `git show df8c4de:tools/selfplay/experiments/<name>`.
 - **How far to take the opponent simulator** (owner, 2026-11-06; after E0 and Phase 2's play-time
   search): test how much each extension helps against what it costs in compute time.
   - How many cards to predict: hand only; hand plus the next 3-5 library cards; the whole remaining

@@ -6,8 +6,9 @@ Read **[`NORTH_STAR.md`](NORTH_STAR.md)** in full. It is the project charter and
 file, every doc under `docs/`, and any idea raised mid-session. The summary below is a reminder, not
 a replacement — read the real thing.
 
-**Continuing the work? Read the current handoff first:** `KNOWLEDGE/2026-11-06/187-handoff.md`
-(Phase 0 of `docs/PLAN_LEARNING.md`: scoring the running experiments, mechanical tasks only).
+**Current state (2026-11-09):** Phase 0 of `docs/PLAN_LEARNING.md` is done (its outcome in
+`KNOWLEDGE/2026-11-06/187-handoff.md`); the owner chose outcome PPO as the learner and search at
+play time, with the distillation parked (DECISIONS D21).
 
 ## The King Goal, in one line
 
@@ -157,7 +158,7 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 143 passed (139 + the simulator's 4, 2026-11-08), 37 s beside a training run (the ontology
+  - Companion numbers: `pytest tools -q` = 148 passed (2026-11-09: + the simulator's 4 and the labels' 6, - 1), 37 s beside a training run (the ontology
     baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
     `tools/run_scenarios.py` = 738/738.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.

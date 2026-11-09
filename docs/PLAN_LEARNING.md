@@ -564,6 +564,10 @@ That is about +1,600-1,800 lines net through Phase 2.
 
 ## 15. Change log
 
+**2026-11-09, after Phase 0** (DECISIONS D21): E0 and E1 pass, E3 fails. The owner chose E3's kill
+path: outcome PPO learns (lambda = 1, updates at least B*), search plays (Phase 2's E2 is next);
+Phase 1 does not run; the distillation is parked (BACKLOG).
+
 Red-team issues (v2), as amended in v3:
 
 | Issue | Verdict | Change |
