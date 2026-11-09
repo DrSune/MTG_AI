@@ -318,3 +318,10 @@ them.
 selection keeps epoch 0, each scaling distillation saves every epoch (`--save-epochs 1`); regret is
 measured for all four epochs and the gain for each. Exploratory, not a gate: does the regret effect
 grow with labels (300k, 600k, 1M) to a size that shows in results?
+
+**Label scaling, 300k (2026-11-09 07:21).** 305,124 labels (24,230 with moving targets), the first
+300k distilled, every epoch kept. Regret ratio to the generator by epoch: 0.975 [0.955, 0.992],
+0.981 [0.952, 1.006], 0.986 [0.960, 1.013], 0.961 [0.920, 1.000]; greedy choices changed 2.6-3.4%;
+gain over 900 games -0.007, -0.005, -0.004, +0.002 (each about +-0.013). Prediction (regret and gain
+improve with labels): miss. Tripling the labels left the effect where 100k had it: 2-4% less regret,
+no measurable gain. 600k and 1M follow in the queue.
