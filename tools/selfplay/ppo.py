@@ -7,12 +7,13 @@ function. Minibatches are length-sorted, capped by ``mb`` decisions and ``tok_bu
 tokens (activation memory is system memory on the Spark), collated once and reused by every
 epoch. Non-finite steps are skipped and counted.
 
-The KL early stop bounds how far THIS update moves: it measures KL from the policy at the start
-of the update (one no-grad pass at collation), not from the behaviour log-probs. Rows played
-while the previous update ran (the overlap, ~40% of a batch) were sampled by the previous
-weights, so measured against them the first minibatch would already carry the previous update's
-movement. The clipped ratio still uses the behaviour log-probs (the data's policy); ``kl`` stays
-the KL from them, ``kl_update`` is the stop's measure.
+The KL early stop (``target_kl`` > 0) bounds how far THIS update moves: it measures KL from the
+policy at the start of the update (one no-grad pass over the batch, a quarter of the update's
+time, skipped when the stop is off), not from the behaviour log-probs. Rows played while the
+previous update ran (the overlap, ~40% of a batch) were sampled by the previous weights, so
+measured against them the first minibatch would already carry the previous update's movement.
+The clipped ratio still uses the behaviour log-probs (the data's policy); ``kl`` stays the KL
+from them, ``kl_update`` is the stop's measure.
 """
 
 from __future__ import annotations
@@ -60,9 +61,10 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     t_col = time.perf_counter()
     chunk_list = chunks(packed.lengths(), a.mb, a.tok_budget)
     n_batches = len(chunk_list)
-    lp0_arr = np.empty(n, dtype=np.float32)
+    kl_stop = a.target_kl > 0
+    lp0_arr = np.empty(n if kl_stop else 0, dtype=np.float32)
     with torch.no_grad():
-        for ch in chunk_list:
+        for ch in chunk_list if kl_stop else ():
             if check:
                 check()
             b = M.collate_packed(packed, ch, device)
@@ -91,7 +93,6 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             A = torch.from_numpy(adv_n[ch]).to(device)
             R = torch.from_numpy(ret[ch].astype(np.float32)).to(device)
             V0 = torch.from_numpy(v_old[ch].astype(np.float32)).to(device)
-            lp0 = torch.from_numpy(lp0_arr[ch]).to(device)
 
             with torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
                 logits, v = model(b)
@@ -109,39 +110,41 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             loss = loss * (len(act_t) * n_batches / max(n, 1))
             with torch.no_grad():
                 kl = ((ratio - 1) - (lp - old_logp)).mean().item()
-                d0 = lp - lp0
-                kl_upd = (torch.exp(d0) - 1 - d0).mean().item()
+                if kl_stop:
+                    d0 = lp - torch.from_numpy(lp0_arr[ch]).to(device)
+                    kl_upd = (torch.exp(d0) - 1 - d0).mean().item()
             # Stop before a step on a minibatch this update has already moved by 1.5x the target
             # (as SB3 does); a check only between epochs would never act at --epochs 1.
-            if a.target_kl > 0 and kl_upd > 1.5 * a.target_kl:
+            if kl_stop and kl_upd > 1.5 * a.target_kl:
                 stop = True
-                del b, act_t, old_logp, A, R, V0, lp0
+                del b, act_t, old_logp, A, R, V0
                 break
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(loss):
                 stats["nonfinite"].append(1.0)
-                del b, act_t, old_logp, A, R, V0, lp0
+                del b, act_t, old_logp, A, R, V0
                 continue
             loss.backward()
             gn = torch.nn.utils.clip_grad_norm_(model.parameters(), a.max_grad)
             if not torch.isfinite(gn):
                 opt.zero_grad(set_to_none=True)
                 stats["nonfinite"].append(1.0)
-                del b, act_t, old_logp, A, R, V0, lp0
+                del b, act_t, old_logp, A, R, V0
                 continue
             opt.step()
             with torch.no_grad():
-                kls.append(kl_upd)
-                stats["kl_update"].append(kl_upd)
+                if kl_stop:
+                    kls.append(kl_upd)
+                    stats["kl_update"].append(kl_upd)
                 stats["pg"].append(pg.item())
                 stats["v"].append(vloss.item())
                 stats["ent"].append(ent.mean().item())
                 stats["kl"].append(kl)
                 stats["clip"].append(((ratio - 1).abs() > a.clip).float().mean().item())
                 stats["gn"].append(float(gn))
-            del b, act_t, old_logp, A, R, V0, lp0
+            del b, act_t, old_logp, A, R, V0
         stats["epochs"].append(epoch + 1)
-        if stop or (a.target_kl > 0 and kls and float(np.mean(kls)) > a.target_kl):
+        if stop or (kls and float(np.mean(kls)) > a.target_kl):
             stop = True
             break
     if release:

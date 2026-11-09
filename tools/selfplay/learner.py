@@ -469,7 +469,9 @@ class Learner:
         the newest frozen version (most games), older versions and the heuristic (a few, so it
         does not forget how to beat them). Only the learner's seat is trained on."""
         a = self.args
-        seed = TRAIN_SEED0 + self.gid + 1
+        # --seed moves the deals: a run started from another run's checkpoint must not train
+        # again on the decks and shuffles its ancestors trained on
+        seed = TRAIN_SEED0 + 1_000_000_000 * a.seed + self.gid + 1
         if self.stage == "teacher":
             opp = "heuristic"
         else:

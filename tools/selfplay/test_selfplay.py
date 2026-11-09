@@ -419,6 +419,23 @@ def test_resume_refuses_another_pool(table, tmp_path, monkeypatch) -> None:
     assert learner("castable").load_state(str(src))["it"] == 3
 
 
+def test_the_run_seed_moves_the_training_deals(table, tmp_path, monkeypatch) -> None:
+    """Runs of one lineage (each --init from the last) must not train again on the decks and
+    shuffles an ancestor trained on: --seed moves the block of deals a run trains on."""
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+
+    def deals(run_seed: int) -> set[int]:
+        lr = L.Learner(L.parse(["--run", str(tmp_path / str(run_seed)), "--device", "cpu",
+                                "--d", "32", "--layers", "1", "--heads", "4", "--ff", "64",
+                                "--seed", str(run_seed)]))
+        lr.stage = "teacher"
+        return {lr.curriculum_job()["seed"] for _ in range(50)}
+
+    assert not deals(1) & deals(2)
+
+
 def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:
     """One file can hold rows without set and pool beside rows with them."""
     import json
@@ -671,6 +688,25 @@ def test_rows_from_the_previous_weights_do_not_stop_an_update_that_has_not_moved
     out = ppo_train(net, opt, packed, acts, lp - shift, zeros, adv, adv, a, torch.device("cpu"))
     assert not out["kl_stop"]
     assert any(not torch.equal(b, p) for b, p in zip(before, net.parameters(), strict=True))
+
+
+def test_ppo_without_a_kl_stop_reads_each_minibatch_once(table) -> None:
+    """--target-kl 0 turns the stop off, so the update skips the no-grad pass only the stop reads
+    (a quarter of an update's time): one forward pass per minibatch, and every step is taken."""
+    from types import SimpleNamespace
+
+    from tools.selfplay.ppo import ppo_train
+    net, packed, acts, lp, n = _ppo_case(table)
+    opt = torch.optim.AdamW(net.parameters(), lr=0.05)
+    passes = []
+    net.register_forward_hook(lambda *_: passes.append(1))
+    a = SimpleNamespace(epochs=1, mb=16, tok_budget=10**9, clip=0.2, vclip=0.2, vcoef=0.5,
+                        ent=0.0, max_grad=1.0, target_kl=0.0)
+    adv = np.random.default_rng(0).standard_normal(n).astype(np.float32)
+    zeros = np.zeros(n, dtype=np.float32)
+    out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"))
+    assert not out["kl_stop"] and "kl_update" not in out
+    assert len(passes) == out["minibatches"] > 1
 
 
 def test_heuristic_casts_a_raid_creature_after_it_attacks() -> None:

@@ -132,6 +132,10 @@ every `--progress-every` s, `init`, `refresh_table`, `resume`, `mem_floor`). Che
 `bc.pt`, `last.pt`, `best.pt` (last gate passed), `v<k>.pt` (frozen versions); `state.pkl`,
 `manifest.json`, `eval_rows.jsonl` (one row per evaluation game).
 
+Training deals are seeded `--seed` x 1e9 + the game's number, so a run started from another run's
+checkpoint gets decks and shuffles its ancestors never trained on: give each run of a lineage its
+own `--seed` (runs before r25 all dealt the same games whatever their seed).
+
 Evaluation: `--eval-deals` fixed deals (seeds 900000+), half stress and half coherent decks, each
 played twice with seats swapped; greedy play; a crash or a leaky ask (CHOOSE_NAME lists hidden
 cards) voids the pair. Score = (wins + draws/2) / games, Wilson 95% interval. A deal is (set,
