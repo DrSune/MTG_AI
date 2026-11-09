@@ -16,3 +16,18 @@ f2e63c71dbd89dab632a31e089e6ca57f4fadb557926912bd70abee9a32174f0  runs/selfplay/
 # r23_mulligan gen.pt: r20 v2 after the PPO mulligan stage (update 31), the generator of E1 and E3
 #   (KNOWLEDGE/2026-11-06/186 §1-2).
 3dddae50a3651f8a0f73866c8f11717c8c1f5410ab892c79f481c83d56532afb  runs/selfplay/r23_mulligan/gen.pt
+# E3 and its diagnostics (KNOWLEDGE/2026-11-06/186 §5, NUMBERS 2026-11-08/09): the distilled apprentices; e3_app's
+#   equal the generator (the epoch rule kept epoch 0); e3_diag and scale_300000 keep every epoch.
+70a5f622bcb69c57165aee753794cfee9c1ed7e8172e0a30ed70a5e46de96d09  runs/labels/e3_app/app_100000.pt
+5b1f9eec41ad0fa7adac59703cc37576e12111e3a3f799de2c707b4f1af9fa2d  runs/labels/e3_app/app_10000.pt
+1154420ed6df2ea628dc87a10101a2f233820f3de92d4447b814130f8e9a878d  runs/labels/e3_app/app_30000.pt
+28a51b0edd4e99e9fa06e91d1c48262110aea634f9377cb01ccca97fc3c36b47  runs/labels/e3_diag/app_100000_ep1.pt
+9e8d1bc9de57c921ec668f6f8dbcfaa9ce8c729be29d83ebb8fa8793b03ad589  runs/labels/e3_diag/app_100000_ep2.pt
+3339142654b696d235e3b3be83719d5226ccc96af86d87c1d30088a86f2d4344  runs/labels/e3_diag/app_100000_ep3.pt
+e5642b9d484ba2c07ee060821743623e71ac173cb344a719f81b21d8fb42ae41  runs/labels/e3_diag/app_100000_ep4.pt
+da7120f428b6ee8adc02992ddafdb79be3519c83de0dbaff00af17ea93ee6ade  runs/labels/e3_diag/app_100000.pt
+4a4151212040eb624722f5af40a9889c2493421f5c4d8aa765269a2fa030c9df  runs/labels/scale_300000/app_300000_ep1.pt
+655c31cbe18ce6f5bcb2c4ab8a19e8a38c4ce52b1cf0acbcca6d2dd10a260490  runs/labels/scale_300000/app_300000_ep2.pt
+9e2dbe634326021fc205078716b25b1c36d05ff2ac43820710d89af9c1f8b23c  runs/labels/scale_300000/app_300000_ep3.pt
+53f410213e73cf26bf2e4377215bb1dc78266125887142034523fb0b2426fa27  runs/labels/scale_300000/app_300000_ep4.pt
+120a7e1b60644ba591c4fa36a3455407ee9896ec8c483b06656a3b6033e4cf8b  runs/labels/scale_300000/app_300000.pt
