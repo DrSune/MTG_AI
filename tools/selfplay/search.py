@@ -28,10 +28,20 @@ way at the engine's pre-blocks boundary, where the opponent's attack is declared
 asked yet. A candidate act is played forward from the window it was offered in: the copy resumes
 after that window (``skip_next_acts``), and the phase clock keeps a second-main-phase copy from
 replaying its combat.
+
+A crashed simulation leaves out its world for every candidate, so the candidates stay compared on
+the same worlds (``mean_scores``). ``draw_worlds`` is where the worlds come from: uniform re-samples
+today, belief futures later (docs/PLAN_LEARNING.md §1.3).
+
+The true-future labeller (``Labeller``, PLAN_LEARNING §1.1-1.2) reuses the same playouts for
+training labels: alternatives at a real decision, each played to the end of the game on the
+game's true future (no re-sampling; ``reshuffle_unknown`` for the second future), and the
+mirror-descent target they define (``mmd_target``).
 """
 
 from __future__ import annotations
 
+import math
 import random
 from typing import Any
 
@@ -55,6 +65,14 @@ from tools.selfplay.rig import _ORACLES, SelfplayRouter
 #: A simulation is cut off (and scored by the value head) after this many network decisions:
 #: a rail against runaway loops, not a strategy limit.
 MAX_SIM_DECISIONS = 400
+#: Labelling scaffolds (BACKLOG): a decision is unsure when its top option has less than
+#: UNSURE_P; a CONFIDENT_SHARE of the confident ones is labelled as well; at most
+#: LABELS_PER_GAME positions of one game are labelled. LOGODDS_PER_SE sets a label's step: an error
+#: of one standard error in its results moves the target's log-odds by at most that much.
+UNSURE_P = 0.95
+CONFIDENT_SHARE = 0.10
+LABELS_PER_GAME = 4
+LOGODDS_PER_SE = 0.5
 
 _IDENT_CACHE: dict[str, Any] = {}
 
@@ -79,14 +97,18 @@ def determinize(game: Any, seat: int, supply: Any, rng: random.Random) -> None:
 
 
 class SimAgent:
-    """A network seat inside a simulation: greedy, never recorded. ``forced`` answers the first
-    act ask (the candidate being evaluated)."""
+    """A network seat inside a simulation, never recorded: greedy, or with ``rng`` sampling from
+    the network's probabilities with one draw per decision (a label's sampled playouts: every
+    alternative gets the same draws). ``forced`` answers the first act ask (the candidate being
+    evaluated)."""
 
-    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable) -> None:
+    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable,
+                 rng: random.Random | None = None) -> None:
         self.slot = slot
         self.gid = gid
         self.spec = spec
         self.table = table
+        self.rng = rng
         self.fallback = HeuristicAgent()
         self.name = f"sim:{spec}"
         self.decisions = 0
@@ -116,7 +138,10 @@ class SimAgent:
             return self.fallback.decide(ask, obs)
         self.decisions += 1
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
-        return int(self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats)))
+        if self.rng is None:
+            return int(self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats)))
+        _, _, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
+        return self.rng.choices(range(len(probs)), probs)[0]
 
 
 def plan_answer(ask: Any, plan: frozenset) -> int | None:
@@ -129,15 +154,18 @@ def plan_answer(ask: Any, plan: frozenset) -> int | None:
     return None
 
 
-def mean_scores(raw: dict) -> dict:
-    """Each candidate's score over its sampled worlds. A world whose simulation crashed (None)
-    scores the mean of every simulation of this search that did not: what the search believes
-    of the position, the same for every candidate. Dropping it would score a candidate only on
-    the worlds it survived (a move that crashes its bad worlds would look better); scoring it 0.0
-    would let the crashing move win in a bad position. Nothing survived: -1 for all."""
-    ok = [v for vals in raw.values() for v in vals if v is not None]
-    neutral = sum(ok) / len(ok) if ok else -1.0
-    return {c: sum(neutral if v is None else v for v in vals) / len(vals) for c, vals in raw.items()}
+def mean_scores(raw: dict, weights: list[float] | None = None) -> dict | None:
+    """Each candidate's (weighted) mean result over its worlds. A world in which any candidate's
+    simulation crashed (None) is left out for every candidate, so the means stay paired on the
+    same worlds (common random numbers) and no move looks better by crashing in its bad worlds
+    (PLAN_LEARNING §1.1). None when no world is left."""
+    n = len(next(iter(raw.values())))
+    weights = weights or [1.0] * n
+    keep = [w for w in range(n) if all(vals[w] is not None for vals in raw.values())]
+    if not keep:
+        return None
+    total = sum(weights[w] for w in keep)
+    return {c: sum(weights[w] * vals[w] for w in keep) / total for c, vals in raw.items()}
 
 
 def block_answer(ask: Any, plan: frozenset) -> int | None:
@@ -174,6 +202,11 @@ class Searcher:
         self.set_code = set_code
         self.stats = {"searched": 0, "skipped": 0, "sims": 0, "changed": 0, "sim_errors": 0}
 
+    def draw_worlds(self) -> list[tuple[int, float]]:
+        """The worlds every candidate is played in, with their weights: d re-samples from public
+        information (``determinize``), weight 1 each. Belief futures replace them (PLAN §1.3)."""
+        return [(self.rng.randrange(1 << 31), 1.0) for _ in range(self.d)]
+
     def choose(self, ask: Any, obs: Any, feats: dict) -> int:
         """The searched option index for one act ask (feats: its encoding)."""
         n = len(ask.options)
@@ -184,10 +217,10 @@ class Searcher:
         order = sorted(range(n), key=lambda i: -probs[i])[: self.k]
         # Common random numbers: every candidate is played in the SAME d sampled worlds, so a
         # difference in score is the move's, not the luck of the opponent's sampled hand.
-        worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
+        worlds = self.draw_worlds()
         scores = mean_scores({i: [self.simulate(obs.game, ask.seat, ask.options[i].token, world=w)
-                                  for w in worlds] for i in order})
-        best = max(order, key=lambda i: (scores[i], probs[i]))
+                                  for w, _ in worlds] for i in order}, [x for _, x in worlds])
+        best = a0 if scores is None else max(order, key=lambda i: (scores[i], probs[i]))
         self.stats["searched"] += 1
         self.stats["changed"] += int(best != a0)
         return int(best)
@@ -231,10 +264,10 @@ class Searcher:
             if pl not in uniq:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
-        worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
+        worlds = self.draw_worlds()
         scores = mean_scores({pl: [self.simulate(game, seat, None, attack_plan=pl, world=w)
-                                   for w in worlds] for pl in uniq})
-        best = max(uniq, key=lambda pl: (scores[pl], pl == base))
+                                   for w, _ in worlds] for pl in uniq}, [x for _, x in worlds])
+        best = base if scores is None else max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["plans"] = self.stats.get("plans", 0) + 1
         self.stats["plans_changed"] = self.stats.get("plans_changed", 0) + int(best != base)
         return best | mandated
@@ -297,10 +330,10 @@ class Searcher:
             if pl not in uniq:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
-        worlds = [self.rng.randrange(1 << 31) for _ in range(self.d)]
+        worlds = self.draw_worlds()
         scores = mean_scores({pl: [self.simulate(game, seat, None, block_plan=pl, world=w)
-                                   for w in worlds] for pl in uniq})
-        best = max(uniq, key=lambda pl: (scores[pl], pl == base))
+                                   for w, _ in worlds] for pl in uniq}, [x for _, x in worlds])
+        best = base if scores is None else max(uniq, key=lambda pl: (scores[pl], pl == base))
         self.stats["blocks"] = self.stats.get("blocks", 0) + 1
         self.stats["blocks_changed"] = self.stats.get("blocks_changed", 0) + int(best != base)
         return best
@@ -312,51 +345,24 @@ class Searcher:
         this act window), or None with ``attack_plan`` to start at the pre-combat boundary, or
         with ``block_plan`` at the pre-blocks boundary (the opponent's attack declared)."""
         self.stats["sims"] += 1
-        # The live provider is the real router's bound method: deepcopy would copy the router,
-        # its agents and their worker-thread locks. Detach it for the copy only.
-        decisions = game.executor.decisions
-        saved, decisions.provider = decisions.provider, None
-        try:
-            clone = fork(game, self.supply)
-        finally:
-            decisions.provider = saved
+        clone = fork_live(game, self.supply)
         determinize(clone, seat, self.supply, random.Random(world))
-        world = clone.world
-        me = world.player_order[seat]
-        start = world.turn
+        me = clone.world.player_order[seat]
+        start = clone.world.turn
         agents = [SimAgent(self.slot, self.gid, self.spec, self.table) for _ in (0, 1)]
         agents[seat].forced = token
         agents[seat].attack_plan = attack_plan
         agents[seat].block_plan = block_plan
-        oracle = _ORACLES.get(self.set_code) or OracleIndex.for_sets(self.set_code)
-        router = SelfplayRouter(clone, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
-                                supply=self.supply)
-        clone.executor.decisions.provider = router.answer
-        try:
-            if token is not None:
-                router.take_acts(clone, me)
-            clone.skip_next_acts = True
-            clone.skip_to_blocks = block_plan is not None
 
-            def stop(g: Any, boundary: str) -> bool:
-                return (boundary == "turn_top" and g.world.active_player == me
-                        and g.world.turn > start)
+        def stop(g: Any, boundary: str) -> bool:
+            return boundary == "turn_top" and g.world.active_player == me and g.world.turn > start
 
-            _play(clone, router, list(world.player_order), TURN_CAP, resumed=True,
-                  stop_after=stop)
-        except GameOver:
-            pass  # the candidate itself ended the game (CR 704.3: the loss check ends it there)
-        except Exception:  # noqa: BLE001 - a crashed simulation is counted, left out of the mean
+        router = play_out(clone, seat, agents, self.supply, self.set_code, token, block_plan, stop)
+        if router is None:
             self.stats["sim_errors"] += 1
             return None
-        if clone.over_reason() is not None:
-            losers = [s for s in world.player_order if clone.is_loser(s)]
-            if len(losers) == 1:
-                return 1.0 if losers[0] != me else -1.0
-            return 0.0
-        if (clone.reason or "").startswith(("turn cap", "STALL")):
-            return -1.0
-        return self.leaf_value(router, clone, seat)
+        z = outcome(clone, seat)
+        return z if z is not None else self.leaf_value(router, clone, seat)
 
     def leaf_value(self, router: SelfplayRouter, clone: Any, seat: int) -> float:
         """The network's value at this seat's next real decision: its turn-start act menu."""
@@ -367,3 +373,198 @@ class Searcher:
         feats = FT.encode(clone.executor, seat, ask, self.table, FT.AskContext())
         _, value = self.slot.infer((self.gid, seat, self.spec, True, False, feats, 1))
         return float(value)
+
+
+def fork_live(game: Any, supply: Any) -> Any:
+    """A copy of a game being played. Its decision provider is the real router's bound method,
+    which deepcopy would follow into the router, its agents and their worker-thread locks: it is
+    detached for the copy only."""
+    decisions = game.executor.decisions
+    saved, decisions.provider = decisions.provider, None
+    try:
+        return fork(game, supply)
+    finally:
+        decisions.provider = saved
+
+
+def play_out(clone: Any, seat: int, agents: list, supply: Any, set_code: str, token: str | None,
+             block_plan: frozenset | None = None, stop: Any = None) -> SelfplayRouter | None:
+    """Play a copy on from the decision ``seat`` is searching: ``token`` is the act it plays now
+    (the copy finishes that act window), or None to resume at a combat boundary (``block_plan``:
+    the pre-blocks one); ``agents`` then play until ``stop`` says so, else to the end of the
+    game. None when the engine crashed."""
+    oracle = _ORACLES.get(set_code) or OracleIndex.for_sets(set_code)
+    router = SelfplayRouter(clone, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
+                            supply=supply)
+    clone.executor.decisions.provider = router.answer
+    try:
+        if token is not None:
+            router.take_acts(clone, clone.world.player_order[seat])
+        clone.skip_next_acts = True
+        clone.skip_to_blocks = block_plan is not None
+        _play(clone, router, list(clone.world.player_order), TURN_CAP, resumed=True,
+              stop_after=stop)
+    except GameOver:
+        pass  # the candidate itself ended the game (CR 704.3: the loss check ends it there)
+    except Exception:  # noqa: BLE001 - a crashed playout is counted by the caller, never scored
+        return None
+    return router
+
+
+def outcome(clone: Any, seat: int) -> float | None:
+    """The result for ``seat`` once the game is over: +1 win, -1 loss, 0 when both lose at once,
+    -1 at the turn cap or the stall rule (the training reward's draw). None while it runs."""
+    order = clone.world.player_order
+    if clone.over_reason() is not None:
+        losers = [s for s in order if clone.is_loser(s)]
+        return 0.0 if len(losers) != 1 else (1.0 if losers[0] != order[seat] else -1.0)
+    if (clone.reason or "").startswith(("turn cap", "STALL")):
+        return -1.0
+    return None
+
+
+def reshuffle_unknown(game: Any, rng: random.Random) -> None:
+    """Shuffle, in each library, the cards whose position no player knows: the second true future
+    (PLAN_LEARNING §1.2). Known since the library was last shuffled (CR 701.24a erases what was
+    known): a card put into it, a card looked at or revealed, the bottoms of the player's last
+    London mulligan (CR 103.5) when nothing has shuffled it since, and both ends of a scried window
+    (the engine journals a scry's size, not its split). Every other card has sat there unseen since
+    the shuffle, so its order is uniform given all anyone knows: shuffling those cards draws
+    another future of the same deal."""
+    ex = game.executor
+    asks = ex.decisions.ask_log
+    for player in game.world.player_order:
+        name = str(player)
+        shuffles = [i for i, e in enumerate(ex.events)
+                    if e[1] == "SHUFFLE" and e[2] == name and e[3] == ZONE_LIBRARY]
+        known: set = set()
+        ends = 0
+        for e in ex.events[shuffles[-1] + 1:]:
+            data = e[3] if len(e) > 3 else None
+            if e[1] in ("LOOK_AT", "REVEAL") and e[2] == name:
+                known.update(data)
+            elif e[1] == "SCRY" and e[2] == name:
+                ends += data
+            elif isinstance(data, str) and data.endswith("->" + ZONE_LIBRARY):
+                known.add(e[2])
+        taken = sum(1 for w, a in asks if w.startswith(f"mulligan:{name}:") and a == "mulligan")
+        if taken and len(shuffles) == 1 + taken:
+            known.update([a for w, a in asks if w.startswith(f"mulligan_bottom:{name}:")][-taken:])
+        lib = game.world.players[player].zone(ZONE_LIBRARY).entries
+        free = [i for i in range(ends, len(lib) - ends) if str(lib[i]) not in known]
+        cards = [lib[i] for i in free]
+        rng.shuffle(cards)
+        for i, h in zip(free, cards, strict=True):
+            lib[i] = h
+
+
+def gumbel_top_k(probs: list[float], k: int, rng: random.Random) -> list[int]:
+    """``k`` distinct options drawn without replacement in proportion to ``probs``: the top k of
+    log p plus Gumbel noise."""
+    keys = [(math.log(p) if p > 0 else -math.inf) - math.log(-math.log(rng.random() or 1e-300))
+            for p in probs]
+    return sorted(range(len(probs)), key=lambda i: -keys[i])[:k]
+
+
+def mmd_target(probs: list[float], alts: list[int], q: list[float], se: float,
+               alpha: float = 0.0) -> list[float]:
+    """A label's target policy (PLAN_LEARNING §1.1): the unrescaled mirror-descent step of Sokota
+    et al. (ICLR 2024) on the compared options ``alts``, whose mean results are ``q`` (outcome
+    units): pi'(a) = pi(S) u(a) / sum_S u, u(a) = [pi(a) exp(eta q(a)) rho^(eta alpha)]^(1/(1+eta
+    alpha)) with rho the uniform magnet (its factor cancels), and eta = LOGODDS_PER_SE / se, so an
+    error of one standard error ``se`` in the results moves the log-odds by at most that much.
+    Options outside ``alts`` keep their probability."""
+    eta = LOGODDS_PER_SE / se
+    logu = [((math.log(probs[a]) if probs[a] > 0 else -math.inf) + eta * qa) / (1 + eta * alpha)
+            for a, qa in zip(alts, q, strict=True)]
+    top = max(logu)
+    u = [math.exp(x - top) for x in logu]
+    mass = sum(probs[a] for a in alts) / sum(u)
+    out = list(probs)
+    for a, ua in zip(alts, u, strict=True):
+        out[a] = mass * ua
+    return out
+
+
+def placebo(q: list[float], rng: random.Random) -> list[float]:
+    """A label's results shuffled across its alternatives (PLAN_LEARNING §1.1): a sound target
+    computed from them carries no signal, so the gradient test on them must find none."""
+    q = list(q)
+    rng.shuffle(q)
+    return q
+
+
+class Labeller:
+    """True-future labels for the act decisions of one game, both seats (PLAN_LEARNING §1.1-1.2).
+
+    During the game, ``offer`` sees each act decision a network seat makes and keeps a copy of the
+    position when it is unsure (its top option below UNSURE_P), or for a CONFIDENT_SHARE of the
+    confident ones: at most LABELS_PER_GAME positions, drawn uniformly from those (a reservoir).
+    The real game plays on untouched; its copies are taken without its decision provider.
+
+    After the game, ``labels`` compares k alternatives at each kept position, drawn by
+    Gumbel-top-k from the network's probabilities, on d futures: the first is the real one (the
+    true hidden cards and library orders), each later one keeps the true cards and every known
+    position and reshuffles the rest of both libraries (``reshuffle_unknown``). Each future has
+    its own engine seed and, in sampled playouts, its own move draws per seat, shared by every
+    alternative. Every alternative is played to the end of the game by the network on both seats,
+    each seat encoding only its own view (features.encode), and only its result comes back."""
+
+    def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, pool_mode: str,
+                 set_code: str, k: int, d: int, greedy: bool, seed: int) -> None:
+        self.slot = slot
+        self.gid = gid
+        self.spec = spec  # the network that plays both seats in the playouts
+        self.table = table
+        self.k = k
+        self.d = d
+        self.greedy = greedy
+        self.rng = random.Random(seed)
+        self.supply = get_supply(pool_mode, set_code)
+        self.set_code = set_code
+        self.kept: list[tuple] = []
+        self.stats = {"eligible": 0, "playouts": 0, "crashes": 0, "rails": 0, "fp": 0}
+
+    def offer(self, game: Any, ask: Any, feats: dict, probs: list[float]) -> None:
+        if max(probs) >= UNSURE_P and self.rng.random() >= CONFIDENT_SHARE:
+            return
+        self.stats["eligible"] += 1
+        n = self.stats["eligible"]
+        j = n - 1 if n <= LABELS_PER_GAME else self.rng.randrange(n)
+        if j < LABELS_PER_GAME:
+            pos = (fork_live(game, self.supply), ask.seat, [o.token for o in ask.options],
+                   feats, list(probs))
+            self.kept[j:j + 1] = [pos]
+
+    def labels(self) -> list[dict]:
+        out = []
+        for game, seat, tokens, feats, probs in self.kept:
+            alts = gumbel_top_k(probs, self.k, self.rng)
+            seeds = [self.rng.randrange(1 << 62) for _ in range(self.d)]
+            z = [[self.playout(game, seat, tokens[a], s, f > 0) for a in alts]
+                 for f, s in enumerate(seeds)]
+            q = mean_scores({i: [zf[i] for zf in z] for i in range(len(alts))})
+            if q is not None:
+                out.append({"feats": feats, "probs": probs, "alts": alts, "z": z,
+                            "q": [q[i] for i in range(len(alts))], "seat": seat,
+                            "turn": game.world.turn})
+        return out
+
+    def playout(self, game: Any, seat: int, token: str, seed: int, reshuffle: bool) -> float | None:
+        clone = fork(game, self.supply)
+        clone.world.master_seed = seed
+        if reshuffle:
+            reshuffle_unknown(clone, random.Random(f"{seed}:library"))
+        agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
+                           None if self.greedy else random.Random(f"{seed}:{s}")) for s in (0, 1)]
+        agents[seat].forced = token
+        router = play_out(clone, seat, agents, self.supply, self.set_code, token)
+        st = self.stats
+        st["playouts"] += 1
+        st["fp"] += sum(a.decisions for a in agents)
+        st["rails"] += (any(a.decisions >= MAX_SIM_DECISIONS for a in agents)
+                        or (clone.reason or "").startswith(("turn cap", "STALL")))
+        if router is None:
+            st["crashes"] += 1
+            return None
+        return outcome(clone, seat)

@@ -13,11 +13,13 @@ Messages, worker -> learner: ("infer", wid, group, [req]), ("done", wid, [result
 ("need", wid, n). Learner -> worker: ("ans", group, [(action, logp, value)]), ("jobs", [job]),
 ("stop",).
 
-A job: {"gid", "kind" ("train"|"eval"|"bc"|"capture"), "seed", "deck_mode", "set_code",
+A job: {"gid", "kind" ("train"|"eval"|"bc"|"capture"|"label"), "seed", "deck_mode", "set_code",
 "pool_mode", "seats": [spec, spec], "greedy": [bool, bool], "record": [bool, bool]}; a seat spec is
 "learner", "eval", a frozen version "v<k>", "snap:opp", "heuristic" or "random", and a network spec
 ending in "+search" searches its decisions (search.py, options in job["search"]). A capture job
 (job["capture"] = the share of decisions captured) records the opponent simulator's data (Capture).
+A job with "label" ({"k", "d", "greedy"}) labels its network seats' act decisions (search.Labeller);
+the labels come back in the result.
 """
 
 from __future__ import annotations
@@ -60,7 +62,8 @@ class NetAgent:
     asks the encoding cannot hold (more than MAX_OPTIONS options, or a ``name`` ask, which lists
     every card name of the format's pool) go to the fallback agent; both are counted."""
 
-    def __init__(self, slot: _Slot, job: dict, seat: int, table: FT.CardTable) -> None:
+    def __init__(self, slot: _Slot, job: dict, seat: int, table: FT.CardTable,
+                 labeller: Any = None) -> None:
         self.slot = slot
         self.job = job
         self.seat = seat
@@ -77,6 +80,7 @@ class NetAgent:
         self.plan_turn = -1
         self.block_plan = None
         self.block_turn = -1
+        self.labeller = labeller
         if spec.endswith(SEARCH_SUFFIX):
             from tools.selfplay.search import Searcher
 
@@ -110,6 +114,11 @@ class NetAgent:
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
         if self.searcher is not None and ask.kind == "act":
             return self.searcher.choose(ask, obs, feats)
+        if self.labeller is not None and ask.kind == "act":
+            a, _, probs = self.slot.infer((self.job["gid"], self.seat, self.spec, self.greedy,
+                                           self.record, feats, 2))
+            self.labeller.offer(obs.game, ask, feats, probs)
+            return int(a)
         return int(self.slot.infer((self.job["gid"], self.seat, self.spec, self.greedy,
                                     self.record, feats)))
 
@@ -245,11 +254,19 @@ class Worker:
         return self.jobs.popleft() if self.jobs else None
 
     def play(self, job: dict, slot: _Slot) -> dict:
+        labeller = None
+        if job.get("label"):
+            from tools.selfplay.search import Labeller
+
+            o = job["label"]
+            labeller = Labeller(slot, job["gid"], job["seats"][0], self.table,
+                                pool_mode=job["pool_mode"], set_code=job["set_code"], k=o["k"],
+                                d=o["d"], greedy=o["greedy"], seed=job["seed"])
         agents: list[Any] = []
         for seat in (0, 1):
             spec = job["seats"][seat]
             if is_net(spec):
-                agents.append(NetAgent(slot, job, seat, self.table))
+                agents.append(NetAgent(slot, job, seat, self.table, labeller))
             elif spec == "heuristic":
                 agents.append(RecordingHeuristic(seat, self.table) if job["record"][seat]
                               else HeuristicAgent())
@@ -277,6 +294,9 @@ class Worker:
         if job.get("capture"):
             res["views"] = [v for a in agents for v in a.views]
             res["truth"] = [t for a in agents for t in a.truth]
+        if labeller is not None:
+            res["labels"] = labeller.labels()
+            res["label_stats"] = labeller.stats
         return res
 
     # --- main thread
