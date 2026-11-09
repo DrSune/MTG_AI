@@ -527,6 +527,7 @@ class Learner:
             if time.monotonic() - last_log >= self.args.progress_every > 0:
                 last_log = time.monotonic()
                 self.log({"event": "progress", "phase": self.phase, "it": self.it,
+                          "buffer": len(self.buffer), "target": self.args.steps,
                           "bc_done": self.bc_done, "bc_target": self.bc_target,
                           "mem_gib": round(mem_available_gib(), 1)})
             ready = wait(self.conns, timeout=0.05)

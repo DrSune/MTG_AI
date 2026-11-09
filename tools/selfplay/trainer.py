@@ -59,6 +59,8 @@ def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
             _, payload = msg
             stats = ppo_train(model, opt, a=a, device=device, check=check, release=release,
                               **payload)
+            del payload
+            release()
             state = {k: v.detach().to("cpu") for k, v in model.state_dict().items()}
             conn.send(("done", state, stats))
     except BaseException as error:  # noqa: BLE001 - reported to the learner, which stops

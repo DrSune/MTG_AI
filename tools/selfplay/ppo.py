@@ -58,34 +58,41 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     stats: dict[str, list] = defaultdict(list)
     stop = False
     t_col = time.perf_counter()
-    batches = []
-    for ch in chunks(packed.lengths(), a.mb, a.tok_budget):
-        if check:
-            check()
-        b = M.collate_packed(packed, ch, device)
-        act_t = torch.from_numpy(act[ch].astype(np.int64)).to(device)
-        with torch.no_grad(), torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
-            logits0, _ = model(b)
-        lp0 = torch.log_softmax(logits0, -1).gather(1, act_t[:, None]).squeeze(1)
-        batches.append((
-            b,
-            act_t,
-            torch.from_numpy(logp[ch].astype(np.float32)).to(device),
-            torch.from_numpy(adv_n[ch]).to(device),
-            torch.from_numpy(ret[ch].astype(np.float32)).to(device),
-            torch.from_numpy(v_old[ch].astype(np.float32)).to(device),
-            lp0,
-        ))
+    chunk_list = chunks(packed.lengths(), a.mb, a.tok_budget)
+    n_batches = len(chunk_list)
+    lp0_arr = np.empty(n, dtype=np.float32)
+    with torch.no_grad():
+        for ch in chunk_list:
+            if check:
+                check()
+            b = M.collate_packed(packed, ch, device)
+            act_t = torch.from_numpy(act[ch].astype(np.int64)).to(device)
+            with torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
+                logits0, _ = model(b)
+            lp0 = torch.log_softmax(logits0, -1).gather(1, act_t[:, None]).squeeze(1)
+            lp0_arr[ch] = lp0.cpu().numpy()
+            del b, act_t, logits0, lp0
+    if release:
+        release()
     collate_s = time.perf_counter() - t_col
     t_train = time.perf_counter()
     for epoch in range(a.epochs):
         kls = []
-        random.shuffle(batches)
-        for step, (b, act_t, old_logp, A, R, V0, lp0) in enumerate(batches):
+        epoch_chunks = list(chunk_list)
+        random.shuffle(epoch_chunks)
+        for step, ch in enumerate(epoch_chunks):
             if check:
                 check()
             if release and step and step % 16 == 0:
                 release()  # every minibatch has its own shape: bound the allocator cache
+            b = M.collate_packed(packed, ch, device)
+            act_t = torch.from_numpy(act[ch].astype(np.int64)).to(device)
+            old_logp = torch.from_numpy(logp[ch].astype(np.float32)).to(device)
+            A = torch.from_numpy(adv_n[ch]).to(device)
+            R = torch.from_numpy(ret[ch].astype(np.float32)).to(device)
+            V0 = torch.from_numpy(v_old[ch].astype(np.float32)).to(device)
+            lp0 = torch.from_numpy(lp0_arr[ch]).to(device)
+
             with torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
                 logits, v = model(b)
             logp_all = torch.log_softmax(logits, -1)
@@ -99,7 +106,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             # Minibatches are length-sorted and token-capped, so their sizes differ a lot: a mean
             # loss per minibatch would weigh a long decision far above a short one. Scale so
             # every decision weighs the same.
-            loss = loss * (len(act_t) * len(batches) / max(n, 1))
+            loss = loss * (len(act_t) * n_batches / max(n, 1))
             with torch.no_grad():
                 kl = ((ratio - 1) - (lp - old_logp)).mean().item()
                 d0 = lp - lp0
@@ -108,16 +115,19 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             # (as SB3 does); a check only between epochs would never act at --epochs 1.
             if a.target_kl > 0 and kl_upd > 1.5 * a.target_kl:
                 stop = True
+                del b, act_t, old_logp, A, R, V0, lp0
                 break
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(loss):
                 stats["nonfinite"].append(1.0)
+                del b, act_t, old_logp, A, R, V0, lp0
                 continue
             loss.backward()
             gn = torch.nn.utils.clip_grad_norm_(model.parameters(), a.max_grad)
             if not torch.isfinite(gn):
                 opt.zero_grad(set_to_none=True)
                 stats["nonfinite"].append(1.0)
+                del b, act_t, old_logp, A, R, V0, lp0
                 continue
             opt.step()
             with torch.no_grad():
@@ -129,12 +139,11 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 stats["kl"].append(kl)
                 stats["clip"].append(((ratio - 1).abs() > a.clip).float().mean().item())
                 stats["gn"].append(float(gn))
+            del b, act_t, old_logp, A, R, V0, lp0
         stats["epochs"].append(epoch + 1)
         if stop or (a.target_kl > 0 and kls and float(np.mean(kls)) > a.target_kl):
             stop = True
             break
-    n_batches = len(batches)
-    del batches
     if release:
         release()
     out = {k: round(float(np.mean(v)), 5) for k, v in stats.items()
