@@ -110,3 +110,6 @@ reboot resumes them; a step leaves `runs/phase0/<lane>/<step>.done`, a failed on
   than held-out fit; a smaller step per PLAN §1.4 and 186 §3; more labels). The label-scaling runs
   (300k on 11-09 morning, then 600k, 1M) show whether more labels make the effect matter.
 (later results are appended below)
+- **Label scaling, 300k (11-09 07:21):** tripling the labels left the effect unchanged: 2-4% less
+  regret, no measurable gain (each of four epochs within +-0.013 of zero over 900 games). More labels
+  alone do not rescue this distillation; the 600k and 1M points follow (11-09 evening, 11-10).
