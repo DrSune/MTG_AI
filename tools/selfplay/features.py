@@ -632,13 +632,27 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     # compact dtypes: these arrays are pickled to the learner and buffered per decision
     return {
         "cards_i": cards_i.astype(np.int16),
-        "cards_f": cards_f.astype(np.float16),
-        "players_f": players_f.astype(np.float16),
-        "glob_f": glob_f.astype(np.float16),
+        "cards_f": _squash(cards_f).astype(np.float16),
+        "players_f": _squash(players_f).astype(np.float16),
+        "glob_f": _squash(glob_f).astype(np.float16),
         "ask_i": np.array([ask_kind_index(ask.kind, executor.phase)], dtype=np.int16),
         "opts_i": opts_i.astype(np.int16),
-        "opts_f": opts_f.astype(np.float16),
+        "opts_f": _squash(opts_f).astype(np.float16),
     }
+
+
+KNEE = 20.0
+
+
+def _squash(x: np.ndarray) -> np.ndarray:
+    """Game numbers have no ceiling: in r26 Light of Promise on a lifelink Baneslayer Angel
+    doubled its counters every combat to 296,000 power, past float16's 65,504, and the inf
+    became a NaN policy. Beyond +-KNEE (feature units: power 100, life 400) a number grows
+    logarithmically, so it stays finite and ordered; below it nothing changes."""
+    a = np.abs(x)
+    if a.max(initial=0.0) <= KNEE:
+        return x
+    return np.where(a > KNEE, np.sign(x) * (KNEE + np.log(np.maximum(a, KNEE) / KNEE)), x)
 
 
 # ------------------------------------------------------------------------------ the simulator's view

@@ -75,6 +75,14 @@ def test_encoding_never_reads_hidden_cards(table) -> None:
     assert sum(kinds.values()) >= 100 and {"act", "attack", "block"} <= set(kinds), kinds
 
 
+def test_unbounded_numbers_stay_finite_and_ordered() -> None:
+    x = np.array([0.0, 3.0, -20.0, 21.0, 59136.0, 1e30, -1e30], dtype=np.float32)
+    y = FT._squash(x)
+    assert np.isfinite(y.astype(np.float16)).all()
+    assert np.array_equal(y[:3], x[:3])
+    assert y[3] < y[4] < y[5] and y[6] == -y[5]
+
+
 def test_encodings_are_consistent_over_whole_games(table) -> None:
     recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
     res = play_game(5, recs, deck_mode="stress")
