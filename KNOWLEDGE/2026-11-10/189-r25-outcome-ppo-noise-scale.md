@@ -294,7 +294,8 @@ the other way: it would flatten the policy, which confounds the run as much as t
 did. The size whose push balances r25's fall, by the line above, is 0.0075 (0.006 to 0.009 over
 two standard errors of the slope). One correction is in that figure: the logged entropy is a mean
 over minibatches, the minibatches are sorted by length, and so long decisions weigh more than in
-a per-row mean; by the by-kind figures that overstates the fall by about 5%. **r26 runs with
+a per-row mean; by the by-kind figures that overstates the fall by about 5% (`weight_check.py`
+in `reports/v0_probes_2026-11-10/`, where the scripts and outputs of this section are). **r26 runs with
 `--ent 0.0075`**: under four times the bonus of r20-r23, under half of what the rule gave.
 
 Two more things in the tables, outside the decision:
