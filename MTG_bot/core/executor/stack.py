@@ -151,6 +151,17 @@ class StackObject:
     decisions: tuple[str, ...] = ()
     slot_designations: dict[str, tuple[Handle, ...]] = field(default_factory=dict)
     target_node: SpellAbility | None = None
+    # An ability on the stack (CR 113.1b, 405.1; ``spell_kind`` ACTIVATED or
+    # TRIGGERED, ``handle`` its own, in the "ability" namespace): ``node`` is
+    # the ability itself, never an index (a granted ability's index can shift
+    # while it waits, CR 113.7a), ``source`` the object it came from, and
+    # ``ability_idx`` only names it in event rows. A triggered ability keeps
+    # the event that triggered it and the context its modes and targets were
+    # chosen in (CR 603.3c-d), which its resolution runs in.
+    source: Handle | None = None
+    ability_idx: int | None = None
+    event: object = None
+    ctx: object = None
     # The counter flag. Set by the COUNTER_SPELL handler when a
     # response-window cast interrupts THIS frame; the popper sees it and
     # returns without running the effect (CR 601.4's interrupted
@@ -1244,7 +1255,9 @@ def cast(
 
 
 def resolve_top(executor: Executor) -> str:
-    """CR 608: the top object of the stack resolves. Returns "countered"
+    """CR 608: the top object of the stack resolves (an activated ability:
+    ``legality.resolve_activated``; a triggered one: ``TriggerBinder.resolve``).
+    Returns "countered"
     (it left the stack without resolving, CR 701.6a), "no_targets" (every
     target illegal, CR 608.2b) or "resolved". The caller settles afterwards;
     a countered spell's counter has already settled.
@@ -1267,6 +1280,12 @@ def resolve_top(executor: Executor) -> str:
         # to its graveyard (400.7). The effect never runs and the spell
         # gets no SPELL_PUT — a countered spell was never put anywhere.
         return "countered"
+    if frame.spell_kind == "ACTIVATED":
+        from MTG_bot.core.executor.legality import resolve_activated
+
+        return resolve_activated(executor, frame)
+    if frame.spell_kind == "TRIGGERED":
+        return executor.binder.resolve(frame)
     world = executor.world
     handle, seat, node, x = frame.handle, frame.controller, frame.node, frame.x_value
     targets: tuple[Handle, ...] = frame.declared_targets

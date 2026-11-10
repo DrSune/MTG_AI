@@ -109,7 +109,7 @@ from MTG_bot.core.executor.selectors import (
 from MTG_bot.core.executor.selectors import players_for_ref
 from MTG_bot.core.executor.stack import SpellStack, open_combat_window
 from MTG_bot.core.executor.verbs import HANDLERS, damage_source, run_atom
-from MTG_bot.core.identity import Handle
+from MTG_bot.core.identity import Handle, HandleSpace
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -409,6 +409,10 @@ class Executor:
         # The spell stack (CR 405): LIFO StackObject frames, folded into the
         # fingerprint.
         self.stack = SpellStack()
+        # Handles of the abilities put on the stack (CR 113.1b: an ability on
+        # the stack is an object of its own, not its source). Not folded: the
+        # count is a function of the journalled activations and firings.
+        self.ability_handles = HandleSpace("ability")
         # CR 305.1 once-per-turn land gate: seat -> (turn, plays).
         # extra_land_plays widens the allowance; nothing writes it outside
         # tests (ADD_LAND_PLAY registers a layer instead), so it stays 0.

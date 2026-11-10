@@ -610,7 +610,7 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
             # The trigger-antecedent reading (Basri Ket's -2). When the
             # "that many" rides a DECLARE_ATTACKERS-triggered effect there
             # IS no preceding producer atom: the DECLARATION itself is the
-            # antecedent set, and the binder's _fire records the whole
+            # antecedent set, and the binder's _put records the whole
             # declaration group under this register. The ``result``
             # register keeps strict precedence (Kinetic Augur stays on the
             # producer path); this fallback only answers when it is absent.

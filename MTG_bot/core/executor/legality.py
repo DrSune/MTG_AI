@@ -1912,7 +1912,6 @@ def activate(
         loyalty=plan.loyalty if loyalty_ability else None,
     )
     flat = tuple(h for t in targets for h in ((t,) if isinstance(t, Handle) else t))
-    bindings: dict[str, Binding] = {}
     chosen = sorted(flat)
     if chosen:
         # TARGETING feed. Clock-order caveat of the FOLDED move: the targets
@@ -1920,47 +1919,89 @@ def activate(
         # rows land after the payment rows — a compromise of the one-call
         # surface, not CR 602.2b's declare-then-pay order.
         executor.journal.emit_targeting(handle, seat, chosen)
-    effect = ability.effect
     # CR 602.2b, 601.2c: an ability with several targets ("Target creature
     # you control deals damage equal to its power to another target creature",
     # Garruk, Savage Herald's -2) designates per slot, exactly as the cast lane
     # threads a spell's (stack.designate_slots, validated above); each TARGET
     # selector then reads its own designation, not the union, and an "up to"
     # slot left empty acts on nothing.
-    slot_designations = None
+    from MTG_bot.core.executor.stack import StackObject, resolve_top, slot_groups
+
+    slot_designations: dict[str, tuple[Handle, ...]] = {}
     if targets:
         from MTG_bot.core.executor.query import activation_target_slots
-        from MTG_bot.core.executor.stack import recheck_targets, slot_groups
 
-        slots = activation_target_slots(executor, effect, source=handle, seat=seat)
+        slots = activation_target_slots(executor, ability.effect, source=handle, seat=seat)
         if len(slots) > 1:
             slot_designations = {
                 repr(slot.selector): tuple(sorted(group))
                 for slot, group in zip(slots, slot_groups(slots, targets), strict=True)
             }
-    if flat:
+    obj = StackObject(
+        handle=executor.ability_handles.allocate(),
+        node=ability,
+        controller=seat,
+        spell_kind="ACTIVATED",
+        x_value=x_value,
+        declared_targets=tuple(chosen),
+        payment=plan,
+        declared_clock=executor.journal.clock,
+        decisions=tuple(decisions),
+        slot_designations=slot_designations,
+        source=handle,
+        ability_idx=ability_idx,
+    )
+    start = len(executor.events)
+    if is_mana_ability(ability):
+        # CR 605.3b: a mana ability does not use the stack; it resolves at once.
+        status = resolve_activated(executor, obj)
+    else:
+        executor.stack.push(obj)
+        status = resolve_top(executor)
+    if status == "no_targets":
+        executor._finish_op()
+        return ()
+    return tuple(executor.events[start:])
+
+
+def resolve_activated(executor: Executor, obj) -> str:
+    """CR 608.2: an activated ability resolves (``stack.resolve_top`` for one on
+    the stack, :func:`activate` for a mana ability). Its targets are checked again
+    (CR 608.2b): with none still legal it does not resolve ("no_targets", and a
+    NO_LEGAL_TARGETS row). Otherwise its effect runs from its source, in its
+    controller's coordinates, with the targets bound and every X the announced X
+    (CR 107.3a); the effect op settles at its end. Returns "resolved"."""
+    from MTG_bot.core.executor.query import activation_target_slots
+    from MTG_bot.core.executor.stack import recheck_targets
+
+    ability, source, seat = obj.node, obj.source, obj.controller
+    bindings: dict[str, Binding] = {}
+    slot_designations = obj.slot_designations or None
+    if obj.declared_targets:
         # CR 608.2b: the targets are checked again as the ability resolves, after its
         # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).
-        legal_now, kept = recheck_targets(executor, slots, flat, designations=slot_designations)
+        slots = activation_target_slots(executor, ability.effect, source=source, seat=seat)
+        legal_now, kept = recheck_targets(
+            executor, slots, obj.declared_targets, designations=slot_designations
+        )
         if not legal_now:
-            # Every target is illegal: the ability doesn't resolve.
             executor.events.append(
-                (len(executor.events), "NO_LEGAL_TARGETS", str(handle), str(ability_idx))
+                (len(executor.events), "NO_LEGAL_TARGETS", str(source), str(obj.ability_idx))
             )
-            executor._finish_op()
-            return ()
+            return "no_targets"
         bindings["target"] = sorted(legal_now)
         if kept is not None:
             slot_designations = kept
-    return executor.apply_effect(
-        effect,
-        source=handle,
+    executor.apply_effect(
+        ability.effect,
+        source=source,
         controller=seat,
         bindings=bindings,
-        decisions=decisions,
+        decisions=obj.decisions,
         slot_designations=slot_designations,
-        x_value=x_value,  # CR 107.3a: every X in the ability is the announced X
+        x_value=obj.x_value,
     )
+    return "resolved"
 
 
 # --------------------------------------------- mana abilities while paying

@@ -893,7 +893,7 @@ class TriggerBinder:
         is the filter's own FNot(IS_SOURCE)). The synthetic event carries
         the matched payload so the TRIGGER_ADDITIONAL verb can re-queue
         it; the subscriber's condition (Sanctum's "six or more Shrines")
-        gates like any other trigger's: when it triggers and again at _fire
+        gates like any other trigger's: when it triggers and again at resolve
         time (CR 603.4). CR 603.2e: an
         extra-trigger carrier's OWN firings never fan out — the family's
         effect does not apply to instances of itself, which is what keeps
@@ -1383,6 +1383,8 @@ class TriggerBinder:
         creature it dealt lethal damage dies first)."""
         if self.hold:
             return 0  # CR 724.1c: no triggered ability is put onto the stack
+        from MTG_bot.core.executor.stack import resolve_top
+
         fired = 0
         per_source: dict[Handle, int] = {}
         while self.world.triggers:
@@ -1429,7 +1431,10 @@ class TriggerBinder:
                 continue
             instance = self._pop_next()
             payload = self.firings.pop(instance.clock)
-            self._fire(payload)
+            obj = self._put(payload)
+            if obj is not None:
+                self.executor.stack.push(obj)
+                resolve_top(self.executor)
             per_source[instance.source] = per_source.get(instance.source, 0) + 1
             fired += 1
             self.on_events()  # the firing's own events queue the next batch
@@ -1502,16 +1507,20 @@ class TriggerBinder:
         names none, in the trigger's own coordinates. It is read twice by this one
         function: when the trigger event occurs (``_queue``: false means the
         ability does not trigger at all) and again as the ability resolves
-        (``_fire``: false means it does nothing)."""
+        (``resolve``: false means it does nothing)."""
         if node.condition is None:
             return True
         subject = event.subject if event.subject is not None else source
         return eval_filter(node.condition, subject, ctx)
 
-    def _fire(self, payload: _Firing) -> None:
-        """One trigger resolution: the condition gate (CR 603.4's second
-        check), the TARGET-designation channel (:meth:`_designate`), then the
-        effect. May-offers ask the executor's decision stream."""
+    def _put(self, payload: _Firing):
+        """CR 603.3: the triggered ability is put on the stack, its mode chosen
+        (603.3c) and its targets (603.3d, :meth:`_designate`) as it goes there;
+        with no legal mode or no legal target for a required slot it is removed
+        (None). Returns the :class:`~MTG_bot.core.executor.stack.StackObject`,
+        which carries the context the choices were made in."""
+        from MTG_bot.core.executor.stack import StackObject
+
         event = payload.event
         ctx = self._ctx(payload.source, payload.controller, event)
         # Basri Ket's -2: a DECLARE_ATTACKERS firing records the attackers of
@@ -1544,14 +1553,12 @@ class TriggerBinder:
                 )
             ]
         node = payload.node
-        if not self._condition_holds(node, event, payload.source, ctx):
-            return  # CR 603.4: the intervening "if" is checked again on resolution
         if isinstance(node.effect, Choose) and self._modes_need_targets(node.effect):
             # CR 603.3c: a modal trigger's mode is chosen as it is put on the stack, before
             # its targets, and only the chosen mode's targets are chosen.
             node = self._declare_mode(node, ctx)
             if node is None:
-                return  # CR 700.2a: no mode can be chosen; the ability is removed
+                return None  # CR 700.2a: no mode can be chosen; the ability is removed
         # CR 603.1: designate targets BEFORE applying — the frozen IR
         # puts the ability's TARGET coordinates on the TRIGGERED-ABILITY node
         # itself, and CR 603.1 chooses targets as the ability goes on the
@@ -1619,13 +1626,33 @@ class TriggerBinder:
                 # CR 603.3d: a required target with no legal choice
                 # removes the ability from the stack. None of its effect
                 # happens, its untargeted steps included.
-                return
-        # The shared effect runner — the SAME dispatch execute() uses,
-        # journalled at its Atom boundaries by the Executor, and
-        # guarded like the spell lanes — a template mis-fold whose
-        # anaphora has no producer skips LOUD (unresolved_effects) instead
-        # of killing the match; every other error still propagates.
-        self.executor._run_guarded_effect(node.effect, ctx, "trigger")
+                return None
+        target = ctx.bindings.get("target")
+        targets = (target,) if isinstance(target, Handle) else tuple(target or ())
+        return StackObject(
+            handle=self.executor.ability_handles.allocate(),
+            node=node,
+            controller=payload.controller,
+            spell_kind="TRIGGERED",
+            declared_targets=tuple(sorted(t for t in targets if isinstance(t, Handle))),
+            declared_clock=self.executor.journal.clock,
+            source=payload.source,
+            event=event,
+            ctx=ctx,
+        )
+
+    def resolve(self, obj) -> str:
+        """CR 608.2: a triggered ability on the stack resolves (``stack.resolve_top``).
+        Its intervening "if" is checked again (CR 603.4): false, it is removed and does
+        nothing ("removed"). Otherwise its effect runs through the shared effect runner,
+        the SAME dispatch execute() uses, journalled at its Atom boundaries and guarded
+        like the spell lanes: a template mis-fold whose anaphora has no producer skips
+        LOUD (unresolved_effects) instead of killing the match; every other error still
+        propagates. May-offers ask the executor's decision stream."""
+        if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
+            return "removed"
+        self.executor._run_guarded_effect(obj.node.effect, obj.ctx, "trigger")
+        return "resolved"
 
     @staticmethod
     def _filter_reads_event_ref(filter_: object) -> bool:
@@ -1838,7 +1865,7 @@ class TriggerBinder:
         :meth:`_designation_slots`; walk enters Optional-/SeqEffect wrappers,
         so Goblin Arsonist's may-wrapped damage is seen)? A node that only
         reads the TARGET_PLAYER anaphora (Massacre Wurm's "that player")
-        answers False and keeps the dies pre-bind in :meth:`_fire`;
+        answers False and keeps the dies pre-bind in :meth:`_put`;
         a printed "…to ANY target" (Pitchburn Devils) answers True and
         routes to the designation ask."""
         selectors, _reads_player, _opponent_only = cls._designation_slots(node)
@@ -1888,9 +1915,9 @@ class TriggerBinder:
         ``ctx.bindings["target"]`` BEFORE the effect runs, the exact mirror
         of ``stack.cast``'s designate-then-apply.
 
-        Routing table (per-card, event-kind driven — see _fire):
+        Routing table (per-card, event-kind driven — see _put):
         * DAMAGE firing → the dealer (in _ctx);
-        * CREATURE_DIES firing → the dead creature (in _fire);
+        * CREATURE_DIES firing → the dead creature (in _put);
         * a single distinct TARGET-mode Selector → enumerated ask (below);
         * a designated-player read with no Selector ("target opponent",
           "target player") → the ABILITY CONTROLLER's opponents, or every
@@ -2076,7 +2103,7 @@ class TriggerBinder:
             # which reads bindings["target"]. In a DAMAGE firing that
             # designation IS the dealer — bind
             # it, so TARGET_PLAYER means "the controller of the source of
-            # that damage" (_fire lifts the pre-bind where it does not fit).
+            # that damage" (_put lifts the pre-bind where it does not fit).
             bindings["target"] = event.cause
         amount = (
             event.amount
