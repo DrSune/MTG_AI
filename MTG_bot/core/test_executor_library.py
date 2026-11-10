@@ -50,7 +50,8 @@ from MTG_bot.core.executor import (
 from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import legal_search
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.executor.stack import StackObject
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -880,10 +881,12 @@ class TestLoyaltyWindow(LibraryCase):
             self.playable(self.basri, 0, self.p1), "window:loyalty:not_own_turn"
         )
         self.assertIsNone(self.playable(self.tv, self.TV_PLUS, self.p0))
+        self.ex.stack.push(StackObject(Handle("card", 999_999), None, self.p1, "INSTANT"))
         self.assertEqual(
-            self.playable(self.tv, self.TV_PLUS, self.p0, stack_empty=False),
+            self.playable(self.tv, self.TV_PLUS, self.p0),
             "window:loyalty:stack_nonempty",
         )
+        self.ex.stack.pop()
         self.ex.phase = "COMBAT"
         self.assertEqual(
             self.playable(self.tv, self.TV_PLUS, self.p0),
@@ -895,9 +898,9 @@ class TestLoyaltyWindow(LibraryCase):
     def test_master_of_time_may_activate_itself_on_any_turn(self):
         self.ex.advance_turn()  # p1's turn
         self.assertIsNone(self.playable(self.mot, self.MOT_PLUS, self.p0))
-        self.assertIsNone(
-            self.playable(self.mot, self.MOT_PLUS, self.p0, stack_empty=False)
-        )
+        self.ex.stack.push(StackObject(Handle("card", 999_999), None, self.p1, "INSTANT"))
+        self.assertIsNone(self.playable(self.mot, self.MOT_PLUS, self.p0))
+        self.ex.stack.pop()
 
     def test_the_grant_covers_master_of_time_only(self):
         # Another Teferi of the same controller is not "Teferi" (CR 201.5).

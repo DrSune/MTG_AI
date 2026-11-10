@@ -7,25 +7,11 @@ contract and dispatches each call to the right seat's driver:
 - engine asks go to the seat the engine names (``protocol.resolve_ask_seat``);
 - the act window goes to the active seat.
 
-The act window mirrors the engine's surface, and its limits are registered as bench scaffolds in
-BACKLOG:
-- **The menu.** PASS, land drops, castable spells (base and kicked; a spell with X has one row
-  per X from 0 to the largest payable X, CR 601.2b, 107.3a) and activations, mana abilities
-  included except a free source's (below). Tokens: ``land:<card>``, ``cast:<card>[:k][:x<N>]``
-  (no ``:x`` for X = 0), ``act:<card>:<ability index>``.
-- **Payment is automatic: the pool first, then free sources** (CR 601.2g-h, 605.3a). The engine
-  pays only from the floating pool. A free source is a non-creature permanent whose mana ability
-  costs only {T} (lands, plain mana rocks). A cast or activation is offered when the pool plus
-  the untapped free sources pay its whole cost, a target's cost increase included (CR 601.2f:
-  Pursued Whale's {3}, Terror of the Peaks' 3 life, and life only up to the life total, CR
-  119.4); choosing it taps the sources ``legality.plan_mana_taps`` picks, by one deterministic
-  rule that keeps the most mana options open, and the engine then pays. Every other mana ability
-  is its own row that adds to the pool: a creature's (tapped, it cannot attack or block), a
-  sacrifice (Treasure), a mana-cost filter (Prismite's {2}). Pool mana lasts until this main
-  phase ends (CR 500.5). The engine's response windows pay the same way. Which free sources pay
-  is a scaffold (BACKLOG): a learned payment choice removes it.
-- **A row whose targets cannot all be chosen is hidden and counted** (CR 601.2c:
-  ``stack.can_designate``, a slot with too few candidates or an "another target" left without one).
+The act window offers PASS and the engine's menu (``core/executor/menu.py``: land drops, casts
+with their kicker and X rows, non-mana activations from the battlefield and the hand, priced with
+automatic payment from the pool, free sources and then costly ones; mana abilities are activated
+while paying, never rows). Its limits are registered as scaffolds in BACKLOG. The router labels the
+rows for its seat and asks:
 - **Targets are asked slot by slot, one question per pick** (CR 601.2c: each word "target" is
   announced in turn), site ``pick:<source>:<slot>:<picks so far>``, over the candidates
   ``stack.slot_options`` leaves: none already picked for that slot (CR 115.3) and none that would
@@ -47,7 +33,6 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Sequence
-from itertools import count
 from typing import TYPE_CHECKING, Any
 
 from MTG_bot.bench.agents import AgentError, Observation, is_raw
@@ -60,42 +45,11 @@ from MTG_bot.bench.protocol import (
     executor_text,
     resolve_ask_seat,
 )
-from MTG_bot.core.ability_tree import (
-    ActivatedAbility,
-    CostTap,
-    SpellAbility,
-    is_mana_ability,
-)
 from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP, Act
-from MTG_bot.core.executor.legality import (
-    SECOND_MAIN,
-    _cost_has_x,
-    _mana_tap_options,
-    ability_playable,
-    activate,
-    kicker_of,
-    plan_mana_taps,
-    spell_castable,
-    spell_cost,
-    spell_record,
-    tap_for_payment,
-)
-from MTG_bot.core.executor.query import (
-    activation_target_slots,
-    cast_mode_options,
-    inert_row,
-    modal_choose,
-    spell_target_slots,
-)
-from MTG_bot.core.executor.stack import (
-    can_designate,
-    cast,
-    cast_modes,
-    land_playable,
-    play_land,
-    slot_options,
-)
-from MTG_bot.core.state import ZONE_BATTLEFIELD
+from MTG_bot.core.executor.legality import SECOND_MAIN
+from MTG_bot.core.executor.menu import Row, menu, perform
+from MTG_bot.core.executor.query import spell_target_slots
+from MTG_bot.core.executor.stack import cast_modes, slot_options
 
 if TYPE_CHECKING:
     from MTG_bot.bench.view import SeatLens
@@ -233,82 +187,29 @@ class SeatRouter:
         game.digest.append(f"T{game.world.turn}.end")
 
     def _act_menu(self, game: Game, seat: Handle, i: int) -> list[tuple[Option, Any]]:
+        """PASS and the engine's menu (``executor.menu``), each row labelled for the seat."""
         executor = game.executor
-        world = executor.world
         lens = self.lenses[i]
-        menu: list[tuple[Option, Any]] = [(Option("PASS", "PASS: end this main phase"), None)]
-        for handle in sorted(world.players[seat].zone("hand").entries):
-            if land_playable(executor, seat, handle) is None:
-                menu.append((Option(f"land:{handle}", f"play land {lens.describe(executor, handle)}"), ("land", handle)))
+        out: list[tuple[Option, Any]] = [(Option("PASS", "PASS: end this main phase"), None)]
+        for row in menu(executor, seat, hidden=self.stats[i]):
+            out.append((Option(row.token, self._label(executor, lens, row)), row))
+        return out
+
+    def _label(self, executor: Any, lens: SeatLens, row: Row) -> str:
+        name = lens.describe(executor, row.handle)
+        if row.kind == "land":
+            return f"play land {name}"
+        if row.kind == "cast":
+            if row.slots is None:
+                more = " (then choose its mode)"
             else:
-                menu.extend(self._cast_rows(executor, seat, i, handle))
-        free = {(taps[0].source, taps[0].ability_idx) for taps in _mana_tap_options(executor, seat)}
-        for source, idx, ability in _activated_abilities(executor, seat):
-            if (source, idx) in free:
-                continue  # a free source's mana is paid automatically, never offered as a row
-            row = self._activation_row(executor, seat, i, source, idx, ability)
-            if row is not None:
-                menu.append(row)
-        return menu
-
-    def _cast_rows(self, executor: Any, seat: Handle, i: int, handle: Handle) -> list[tuple[Option, Any]]:
-        """One row per payable declaration of a spell in hand: base and kicked, and one per X."""
-        record = spell_record(executor, handle)
-        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
-        if node is None:
-            return []
-        name = self.lenses[i].describe(executor, handle)
-        kicker = kicker_of(record)
-        rows: list[tuple[Option, Any]] = []
-        for kicked in (False, True) if kicker is not None else (False,):
-            extra = tuple(node.additional_costs) + ((kicker.cost,) if kicked else ())
-            for x in count() if _cost_has_x(spell_cost(record, extra)) else (None,):
-
-                def pay(targets: Sequence[Handle], kicked: bool = kicked, x: int | None = x) -> bool:
-                    return _cast_taps(executor, seat, handle, kicked, x, tuple(targets)) is not None
-
-                if not pay(()):
-                    break  # a larger X costs more: no larger X is payable either
-                slots: list[Any] | None = None  # a modal spell's slots follow its modes (_execute)
-                if modal_choose(node) is None:
-                    slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat, pay=pay)
-                    designable = can_designate(slots)
-                    more = " (then choose targets)" if any(not s.forced for s in slots) else ""
-                else:
-                    # CR 601.2b-c: the modes are announced first (an engine ask, in
-                    # _execute), and only the chosen modes' targets exist. Offered when some
-                    # mode set is legal, i.e. its targets can be chosen (CR 700.2a).
-                    designable = bool(cast_mode_options(executor, node, spell_handle=handle, seat=seat, pay=pay))
-                    more = " (then choose its mode)"
-                if not designable:
-                    self.stats[i]["hidden_rows"] += 1
-                    break
-                token = f"cast:{handle}{':k' if kicked else ''}{f':x{x}' if x else ''}"
-                label = f"cast {name}{' with kicker' if kicked else ''}{'' if x is None else f' with X = {x}'}{more}"
-                rows.append((Option(token, label), ("cast", handle, node, kicked, x, slots, pay)))
-        return rows
-
-    def _activation_row(
-        self, executor: Any, seat: Handle, i: int, source: Handle, idx: int, ability: ActivatedAbility
-    ) -> tuple[Option, Any] | None:
-        # An ability whose cost taps its own source cannot also tap that source for mana.
-        own_tap = any(isinstance(part, CostTap) and part.target is None for part in ability.cost.parts)
-        exclude = frozenset({source}) if own_tap else frozenset()
-        if _activation_taps(executor, seat, source, idx, exclude) is None:
-            return None
-        if inert_row(executor, ability, source, seat):
-            return None  # a phantom option: it could do nothing (Radha's land row)
-        mana = is_mana_ability(ability)
-        slots = [] if mana else list(activation_target_slots(executor, ability.effect, source=source, seat=seat))
-        if not can_designate(slots):
-            self.stats[i]["hidden_rows"] += 1
-            return None
-        lens = self.lenses[i]
-        text = ability_line(self._record_of(source), executor_text(lens, executor, source), idx)
-        what = f'"{lens.text(text)}"' if text else f"ability #{idx} (see the card text)"
-        adds = " (adds the mana to your pool)" if mana else ""
-        option = Option(f"act:{source}:{idx}", f"activate {lens.describe(executor, source)}: {what}{adds}")
-        return option, ("activate", source, idx, slots, exclude)
+                more = " (then choose targets)" if any(not s.forced for s in row.slots) else ""
+            kicked = " with kicker" if row.kicked else ""
+            x = "" if row.x is None else f" with X = {row.x}"
+            return f"cast {name}{kicked}{x}{more}"
+        text = ability_line(self._record_of(row.handle), executor_text(lens, executor, row.handle), row.ability_idx)
+        what = f'"{lens.text(text)}"' if text else f"ability #{row.ability_idx} (see the card text)"
+        return f"activate {name}: {what}"
 
     def _targets(self, game: Game, slots: Sequence[Any], i: int, source: Handle) -> tuple:
         """The designation, asked slot by slot (CR 601.2c; the module docstring): one slot's
@@ -352,74 +253,34 @@ class SeatRouter:
         self.targets_so_far = ()
         return groups[0] if len(slots) == 1 else tuple(groups)
 
-    def _execute(self, game: Game, seat: Handle, i: int, option: Option, payload: Any) -> None:
+    def _execute(self, game: Game, seat: Handle, i: int, option: Option, row: Row) -> None:
         executor = game.executor
-        kind = payload[0]
-        if kind == "land":
-            source = payload[1]
-            game.attempted = f"land:{game.name_of(source)}"
-            play_land(executor, seat, source)
-            self._log(i, "land", source)
+        name = game.name_of(row.handle)
+        if row.kind == "land":
+            game.attempted = f"land:{name}"
+            perform(executor, seat, row)
+            self._log(i, "land", row.handle)
             return
-        if kind == "activate":
-            _, source, idx, slots, exclude = payload
-            targets = self._targets(game, slots, i, source) if slots else ()
-            game.attempted = f"act:{game.name_of(source)}#{idx}"
-            tap_for_payment(executor, seat, _activation_taps(executor, seat, source, idx, exclude) or ())
-            activate(executor, source, idx, seat=seat, targets=targets)
-            self._log(i, "act", source, f"#{idx}")
+        if row.kind == "activate":
+            targets = self._targets(game, row.slots, i, row.handle) if row.slots else ()
+            game.attempted = f"act:{name}#{row.ability_idx}"
+            perform(executor, seat, row, targets)
+            self._log(i, "act", row.handle, f"#{row.ability_idx}")
             return
-        _, source, node, kicked, x, slots, pay = payload
         modes: tuple[int, ...] = ()
+        slots = row.slots
         if slots is None:
             # A modal spell. The mode ask goes through the engine channel (this
             # router answers it, routed to this seat), then its own slots are designated.
-            _token, modes, _rest = cast_modes(executor, seat, source, node, pay=pay)
-            slots = spell_target_slots(executor, node, spell_handle=source, seat=seat, modes=modes, pay=pay)
-        targets = self._targets(game, slots, i, source) if slots else ()
+            _token, modes, _rest = cast_modes(executor, seat, row.handle, row.node, pay=row.pay)
+            slots = spell_target_slots(executor, row.node, spell_handle=row.handle, seat=seat, modes=modes, pay=row.pay)
+        targets = self._targets(game, slots, i, row.handle) if slots else ()
         flat = targets if len(slots) <= 1 else tuple(h for group in targets for h in group)
-        taps = _cast_taps(executor, seat, source, kicked, x, flat)
-        if taps is None:
+        game.attempted = f"cast:{name}"
+        if not perform(executor, seat, row, targets, modes):
             # Each candidate is priced alone; several targets can together cost more than the
-            # pool and the free sources pay (two taxed targets, CR 601.2f): the cast is illegal
-            # and nothing happens. Counted.
+            # sources pay (two taxed targets, CR 601.2f): the cast is illegal and nothing
+            # happens. Counted.
             self.stats[i]["unpayable_targets"] += 1
             return
-        game.attempted = f"cast:{game.name_of(source)}"
-        tap_for_payment(executor, seat, taps)
-        cast(executor, seat, source, x=x, kicked=kicked, mode_choices=modes, targets=targets)
-        self._log(i, "cast", source, f"{len(flat)}t" + ("" if x is None else f":x{x}"))
-
-
-def _cast_taps(
-    executor: Any, seat: Handle, handle: Handle, kicked: bool, x: int | None, targets: tuple[Handle, ...]
-) -> Any:
-    """The free sources that pay this declaration's total cost (CR 601.2f-h) with what the pool
-    holds: () when the pool pays it, None when nothing does."""
-    return plan_mana_taps(
-        executor, seat, lambda: spell_castable(executor, seat, handle, x=x, kicked=kicked, targets=targets)[0]
-    )
-
-
-def _activation_taps(executor: Any, seat: Handle, source: Handle, idx: int, exclude: frozenset) -> Any:
-    """The free sources, never one in ``exclude``, that pay an activation; as :func:`_cast_taps`."""
-    return plan_mana_taps(
-        executor, seat, lambda: ability_playable(executor.world, executor, source, idx, seat=seat), exclude=exclude
-    )
-
-
-def _activated_abilities(executor: Any, seat: Handle) -> list[tuple[Handle, int, ActivatedAbility]]:
-    """Every activated ability of a permanent ``seat`` controls, printed and granted (a granted one
-    is numbered -k-1), in ``legal_activations``' order: its scan, without its price (the pool
-    alone)."""
-    world = executor.world
-    rows: list[tuple[Handle, int, ActivatedAbility]] = []
-    for handle in sorted(h for p in world.player_order for h in world.players[p].zone(ZONE_BATTLEFIELD).entries):
-        if executor.controller_of(handle) != seat:
-            continue
-        record = executor.binder.handle_record.get(handle)
-        printed = list(enumerate(record.abilities)) if record is not None else []
-        granted = [(-k - 1, entry.node) for k, entry in enumerate(executor.layers.granted_activated(handle))]
-        rows += [(handle, idx, ab) for idx, ab in printed + granted if isinstance(ab, ActivatedAbility)]
-    rows.sort(key=lambda row: (row[0], row[1]))
-    return rows
+        self._log(i, "cast", row.handle, f"{len(flat)}t" + ("" if row.x is None else f":x{row.x}"))

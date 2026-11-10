@@ -46,8 +46,7 @@ Rules encoded, with citations:
   119.6/704). **CR 119.4b** — a 0-life payment is always legal.
 * **Activation windows** (:class:`ActivationWindow`) — ``timing=SORCERY``
   means the seat's own turn, a main phase (:data:`MAIN_PHASES`) and an
-  empty stack. Emptiness is the caller's ``stack_empty`` argument (default
-  True): activation legality does not read ``executor.stack``.
+  empty stack (``executor.stack``).
 * **Summoning sickness (CR 302.6 / 602.5a)** — a creature's ability with
   ``{T}`` in its cost is refused unless the creature has been under its
   controller's control since their most recent turn began, or has haste
@@ -1087,7 +1086,6 @@ def ability_playable(
     ability_idx: int,
     *,
     seat: Handle,
-    stack_empty: bool = True,
 ) -> str | None:
     """Is ``handle``'s ``ability_idx``-th compiled ability activatable by
     ``seat`` right now? ``None`` when legal, else a machine-readable reason
@@ -1103,8 +1101,8 @@ def ability_playable(
        PREVENT_EFFECT over an AbilityActivatedEvent that covers this
        ability's kind and object) answers ``prohibited:activation_lock``. A
        loyalty ability and a ``timing=SORCERY`` one need the seat's own
-       turn, a main phase and ``stack_empty`` (the caller's statement,
-       default True) unless a GRANT_ACTIVATION layer gives the permanent
+       turn, a main phase and an empty stack unless a GRANT_ACTIVATION layer
+       gives the permanent
        instant speed; a loyalty ability also runs once per permanent per
        turn.
     2. **summoning sickness** — CR 302.6 for a creature's ``{T}`` ability.
@@ -1191,7 +1189,7 @@ def ability_playable(
         # ``phase is None``, it reads as inside.
         if world.active_player is not None and world.active_player != seat:
             return "window:loyalty:not_own_turn"
-        if not stack_empty:
+        if executor.stack.frames:
             return "window:loyalty:stack_nonempty"
         if executor.phase not in MAIN_PHASES:
             return "window:loyalty:not_main_phase"
@@ -1207,7 +1205,7 @@ def ability_playable(
         # only seat that passes the not-controller gate above.
         if world.active_player != seat:
             return "window:sorcery:not_own_turn"
-        if not stack_empty:
+        if executor.stack.frames:
             return "window:sorcery:stack_nonempty"
         # The skeleton's phase clock (Executor.phase) is the sorcery-window
         # gate: "activate only as a sorcery" holds in either main phase
@@ -1809,7 +1807,6 @@ def activate(
     seat: Handle,
     targets: Sequence[Handle] | Sequence[Sequence[Handle]] = (),
     decisions: Sequence[str] = (),
-    stack_empty: bool = True,
     x: int | None = None,
 ) -> tuple:
     """The folded ``ACTIVATE`` move (DESIGN_ACTION_SPACE.md §1.3: legality,
@@ -1838,7 +1835,6 @@ def activate(
         handle,
         ability_idx,
         seat=seat,
-        stack_empty=stack_empty,
     )
     if reason is not None:
         raise ValueError(f"executor: illegal activation: {reason}")
@@ -2027,12 +2023,39 @@ def resolve_activated(executor: Executor, obj) -> str:
 class ManaTap:
     """One mana ability to activate: ``decisions`` choose its colour (an
     any-colour ADD_MANA, or a Choose between ADD_MANA options) and
-    ``production`` is what it adds, as (colour, amount, spend-restriction tags)."""
+    ``production`` is what it adds, as (colour, amount, spend-restriction tags).
+    ``tier`` is what activating it costs besides the mana (:func:`_source_tier`)."""
 
     source: Handle
     ability_idx: int
     decisions: tuple[str, ...]
     production: tuple[str, int, tuple[Filter, ...]]
+    tier: int = 0
+
+
+def _source_tier(ability: ActivatedAbility, creature: bool) -> int | None:
+    """How dear a mana source is to tap while paying, None for one never tapped
+    on the payer's behalf. 0: a free source, a non-creature permanent whose
+    ability costs only {T} (lands, plain mana rocks). 1: a creature's {T}
+    ability (tapped, it cannot attack or block). 2: an ability that also
+    sacrifices its own permanent (the Treasure). Any other cost (a mana cost,
+    a filter like Prismite's {2}; another permanent to sacrifice) is never
+    paid for the payer."""
+    from MTG_bot.core.executor.selectors import _filter_is_self_referential
+
+    tap = sacrifice = False
+    for part in ability.cost.parts:
+        if isinstance(part, CostTap) and part.target is None:
+            tap = True
+        elif isinstance(part, CostSacrifice) and _filter_is_self_referential(part.target.filter):
+            sacrifice = True
+        else:
+            return None
+    if sacrifice:
+        return 2
+    if tap:
+        return 1 if creature else 0
+    return None
 
 
 def _mana_atom_output(atom: object, ctx: ExecCtx) -> tuple[str | None, int] | None:
@@ -2050,13 +2073,15 @@ def _mana_atom_output(atom: object, ctx: ExecCtx) -> tuple[str | None, int] | No
     return (None if color in (None, "ANY") else str(color)), resolve(amount, ctx)
 
 
-def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
-    """Per free source of ``payer`` (Handle order), the ways its first eligible
-    ability can add mana. A free source is a non-creature permanent (tapping a
-    creature costs its attack and its block); eligible: cost exactly {T};
-    effect one ADD_MANA atom (fixed colour or any colour) or a Choose between
-    ADD_MANA atoms (dual lands); and activatable by ``payer`` right now
-    (ability_playable: so tapped sources and locked abilities are out). Scans
+def _mana_tap_options(
+    executor: Executor, payer: Handle, costly: bool = False
+) -> list[list[ManaTap]]:
+    """Per mana source of ``payer`` (Handle order), the ways its first eligible
+    ability can add mana. Free sources only (:func:`_source_tier` 0), or with
+    ``costly`` the dearer ones too; eligible: an effect of one ADD_MANA atom
+    (fixed colour or any colour) or a Choose between ADD_MANA atoms (dual
+    lands), and activatable by ``payer`` right now (ability_playable: so tapped
+    sources, summoning-sick creatures and locked abilities are out). Scans
     printed and granted abilities like legal_activations, which this does not
     call because it raises on cost kinds it cannot check."""
     from MTG_bot.core.ability_tree import Choose
@@ -2071,7 +2096,8 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
     for handle in sorted(permanents):
         if executor.controller_of(handle) != payer:
             continue
-        if eval_filter(_IS_CREATURE, handle, ctx_for(executor, source=handle, controller=payer)):
+        creature = eval_filter(_IS_CREATURE, handle, ctx_for(executor, source=handle, controller=payer))
+        if creature and not costly:
             continue
         rows: list[tuple[int, object]] = []
         record = executor.binder.handle_record.get(handle)
@@ -2084,8 +2110,8 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
         for idx, ability in rows:
             if not isinstance(ability, ActivatedAbility):
                 continue
-            parts = ability.cost.parts
-            if len(parts) != 1 or not isinstance(parts[0], CostTap) or parts[0].target is not None:
+            tier = _source_tier(ability, creature)
+            if tier is None or (tier and not costly):
                 continue  # (the cheap test first: is_mana_ability walks the whole tree)
             if not is_mana_ability(ability):
                 continue  # CR 605.3a: only a mana ability (605.1a) is activated while paying
@@ -2101,7 +2127,7 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
                     colors = _ANY_COLOR_VOCAB if color is None else (color,)
                     decide = color is None
                     taps = [
-                        ManaTap(handle, idx, (c,) if decide else (), (c, n, tags))
+                        ManaTap(handle, idx, (c,) if decide else (), (c, n, tags), tier)
                         for c in colors
                     ]
             elif isinstance(effect, Choose):
@@ -2116,7 +2142,7 @@ def _mana_tap_options(executor: Executor, payer: Handle) -> list[list[ManaTap]]:
                     if got is None or got[0] is None:
                         taps = []
                         break
-                    taps.append(ManaTap(handle, idx, (str(token),), (got[0], got[1], tags)))
+                    taps.append(ManaTap(handle, idx, (str(token),), (got[0], got[1], tags), tier))
             taps = [t for t in taps if t.production[1] > 0]
             if not taps:
                 continue
@@ -2177,13 +2203,14 @@ def _paying_tap(
     return next((t for c in colors for t in taps if t.production[0] == c), None)
 
 
-def _keeps_open(taps: list[ManaTap], free: list[list[ManaTap]]) -> tuple[int, int, Handle]:
-    """plan_mana_taps' order, smallest first: the most colours the other free
-    sources still make once this one is tapped, then the fewest colours this one
-    makes, then the lowest Handle. Colourless is not a colour (CR 105.1, 106.1b):
-    a colourless source pays only generic costs, so it pays them first."""
+def _keeps_open(taps: list[ManaTap], free: list[list[ManaTap]]) -> tuple[int, int, int, Handle]:
+    """plan_mana_taps' order, smallest first: the cheapest tier
+    (:func:`_source_tier`), then the most colours the other untapped sources
+    still make once this one is tapped, then the fewest colours this one makes,
+    then the lowest Handle. Colourless is not a colour (CR 105.1, 106.1b): a
+    colourless source pays only generic costs, so it pays them first."""
     left = {t.production[0] for other in free if other is not taps for t in other} - {"C"}
-    return (-len(left), len({t.production[0] for t in taps} - {"C"}), taps[0].source)
+    return (taps[0].tier, -len(left), len({t.production[0] for t in taps} - {"C"}), taps[0].source)
 
 
 def plan_mana_taps(
@@ -2192,13 +2219,18 @@ def plan_mana_taps(
     check,
     *,
     exclude: frozenset[Handle] = frozenset(),
+    costly: bool = False,
 ) -> tuple[ManaTap, ...] | None:
-    """The free sources ``payer`` taps so a payment can be made (pool first).
+    """The mana sources ``payer`` taps so a payment can be made (pool first).
     ``check()`` returns None when the payment is plannable, else the planner's
     reason. Returns () when the pool already pays, the taps when they make it
     pay, and None when no set of free sources does (the payment is then
     declined). ``exclude``: permanents the payment itself
-    taps (an ability's own {T}), never tapped for mana.
+    taps (an ability's own {T}), never tapped for mana. Free sources pay first;
+    with ``costly`` (a cast or activation from the menu, ``executor.menu``) the
+    dearer sources pay what they cannot, a creature's before a sacrifice
+    (:func:`_source_tier`). A payment inside a resolution taps free sources only
+    (:func:`tap_for_payment` taps them in place).
 
     One deterministic rule, which keeps the most mana options open: each
     shortfall the planner names (coloured symbols before generic ones) is
@@ -2213,9 +2245,17 @@ def plan_mana_taps(
     reason = check()
     if reason is None:
         return ()
-    options = [taps for taps in _mana_tap_options(executor, payer) if taps[0].source not in exclude]
     any_colour = executor.mana_permission(payer)
-    chosen = _fill(executor, payer, check, options, any_colour, [], reason, set())
+    chosen = None
+    for dear in (False, True) if costly else (False,):
+        options = [
+            taps
+            for taps in _mana_tap_options(executor, payer, dear)
+            if taps[0].source not in exclude
+        ]
+        chosen = _fill(executor, payer, check, options, any_colour, [], reason, set())
+        if chosen is not None:
+            break
     if chosen is None:
         return None
     for tap in list(reversed(chosen)):

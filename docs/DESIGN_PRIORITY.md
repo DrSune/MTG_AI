@@ -445,6 +445,10 @@ Tests call the engine outside any game loop about 1,200 times (`execute` 341, `b
 Commits, each with the suite green; behaviour changes are rules fixes, and a test that pinned the
 old behaviour is changed with a reason in the commit:
 
+Steps 1-3 landed on 2026-11-10/11 (37d14e1, 43ad5a2, 271ba26) with no test moved: in random
+games triggers now wait on the stack up to three deep. The trigger-order ask of §2.5 moves to step
+5, with the other new ask kinds.
+
 1. Stack objects: `SpellObject` becomes one typed object for spells and abilities, carrying the
    state of §2.3; `resolve_top` does a spell's resolution; `cast` and `cast_card` share it.
 2. Abilities on the stack: `activate` puts the ability on the stack (payment atomic) and the
@@ -452,7 +456,10 @@ old behaviour is changed with a reason in the commit:
 3. The settle of CR 117.5 (state-based actions and triggers onto the stack, repeated) and the
    undriven auto-pass; atomic casting.
 4. The menu moves into the engine (`executor/menu.py`) for the router and `RandomPolicy`; abilities
-   from every zone; costly mana sources folded into payment; the pre-check.
+   from every zone; costly mana sources folded into payment; the pre-check. Done for the router
+   (2026-11-11); `RandomPolicy` and the pre-check move to step 5, where every priority point
+   builds a menu. One change to §2.7: the engine picks which costly source pays, by the
+   scaffold's own rule (BACKLOG "Automatic payment"), instead of asking.
 5. The step machine and the driven loop; the windows deleted; `take_acts` becomes one decision per
    priority point in `RandomPolicy`, the router, the heuristic, the test drivers and the search
    (minimal: forks and resumes at priority points); packs with window lanes rewritten; the act

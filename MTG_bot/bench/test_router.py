@@ -212,8 +212,9 @@ def _play_row(router, game, token) -> None:
 
 
 def test_a_cast_taps_only_the_lands_it_needs() -> None:
-    # A cast is offered when the pool plus untapped free sources pay it, and choosing it taps
-    # only what it needs: never a creature's mana ability (it could then not attack or block).
+    # A cast is offered when the pool and the mana sources pay it, and choosing it taps only what
+    # it needs: lands first, never a creature's mana ability the lands can spare (it could then
+    # not attack or block).
     game, supply = _arranged(
         hand0=("Rousing Read",),
         field0=("Island", "Island", "Island", "Mountain", "Walking Corpse", "Llanowar Visionary"),
@@ -224,8 +225,7 @@ def test_a_cast_taps_only_the_lands_it_needs() -> None:
     read = _handle(game, "Rousing Read")
     assert "TAP_ALL_MANA" not in menu
     assert f"cast:{read}" in menu
-    assert f"act:{visionary}:1" in menu  # a creature's mana ability is its own row
-    assert not any(t.startswith("act:") and t != f"act:{visionary}:1" for t in menu)  # lands: none
+    assert not any(t.startswith("act:") for t in menu)  # mana abilities are never rows (CR 605.3a)
     _play_row(router, game, f"cast:{read}")
     world = game.world
     lands = [h for h in world.players[P0].zone(ZONE_BATTLEFIELD).entries if "Land" in world.cards[h].identity.type_line]
@@ -234,24 +234,41 @@ def test_a_cast_taps_only_the_lands_it_needs() -> None:
     assert world.players[P0].mana_pool == {}
 
 
-def test_creature_treasure_and_filter_mana_are_rows_never_paid_automatically() -> None:
+def test_dearer_mana_sources_pay_only_what_the_lands_cannot() -> None:
+    # Mana abilities are activated while paying (CR 601.2g, 605.3a), never offered as rows. The
+    # lands pay first: Fierce Empath's {2}{G} from three Forests keeps the Treasure and leaves
+    # Llanowar Visionary untapped, and Prismite's filter ({2}: add one mana) never pays.
     game, supply = _arranged(
         hand0=("Fierce Empath",),
         field0=("Forest", "Forest", "Forest", "Llanowar Visionary", "Prismite"),
         tokens0=("Treasure",),
     )
-    visionary, prismite = _handle(game, "Llanowar Visionary"), _handle(game, "Prismite")
-    treasure = _handle(game, "Treasure")
+    visionary, treasure = _handle(game, "Llanowar Visionary"), _handle(game, "Treasure")
     router = _router(game, supply)
     menu = _menu(router, game)
-    assert {f"act:{visionary}:1", f"act:{prismite}:0", f"act:{treasure}:0"} <= set(menu)
+    assert not any(t.startswith("act:") for t in menu)
     _play_row(router, game, f"cast:{_handle(game, 'Fierce Empath')}")
     world = game.world
     assert world.zone_of(treasure).kind == ZONE_BATTLEFIELD  # not sacrificed to pay
     assert not world.cards[visionary].tapped
-    # the Treasure's row adds its mana to the pool when chosen
-    _play_row(router, game, f"act:{treasure}:0")
-    assert sum(world.players[P0].mana_pool.values()) == 1
+
+
+def test_a_creature_then_a_treasure_pays_what_the_lands_cannot() -> None:
+    # With one Forest, {2}{G} is offered and paid by the Forest, then Llanowar Visionary's {T},
+    # then the Treasure (sacrificed): a creature's mana before a sacrifice.
+    game, supply = _arranged(
+        hand0=("Fierce Empath",), field0=("Forest", "Llanowar Visionary"), tokens0=("Treasure",)
+    )
+    empath, visionary = _handle(game, "Fierce Empath"), _handle(game, "Llanowar Visionary")
+    treasure = _handle(game, "Treasure")
+    router = _router(game, supply)
+    assert f"cast:{empath}" in _menu(router, game)
+    _play_row(router, game, f"cast:{empath}")
+    world = game.world
+    assert world.zone_of(empath).kind == ZONE_BATTLEFIELD
+    assert world.cards[visionary].tapped
+    assert treasure not in world.cards or world.zone_of(treasure).kind != ZONE_BATTLEFIELD
+    assert world.players[P0].mana_pool == {}
 
 
 def test_an_ability_never_taps_its_own_source_for_mana() -> None:

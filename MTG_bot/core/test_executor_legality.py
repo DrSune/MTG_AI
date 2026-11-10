@@ -5,7 +5,7 @@ counts, life resources), the CR 119.4 life-payment rule (legal iff
 life >= amount — reaching EXACTLY 0 is legal; 0-life always payable per
 119.4b), the mana fold on the ``_v_add_mana`` pool key convention
 (colour-specific vs generic vs hybrid), the sorcery window against the
-turn skeleton + the explicit stack_empty param, the loyalty-cost source
+turn skeleton and the stack, the loyalty-cost source
 gate, the notimpl flag for an undeclared X, pay_costs running through the
 journalled verbs (TapState/ZONE_CHANGE events fire from costs), and the
 folded activate move end to end. Also: {T} abilities and summoning
@@ -52,6 +52,8 @@ from MTG_bot.core.executor.legality import (
     plan_mana_taps,
     tap_for_payment,
 )
+from MTG_bot.core.executor.stack import StackObject
+from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_GRAVEYARD,
@@ -339,25 +341,20 @@ class TestSelectorCosts(LegalityCase):
 
 class TestTimingWindow(LegalityCase):
     """SORCERY = own main phase (skeleton's active seat) + empty stack
-    (an explicit pre-casting query param). Default/INSTANT = any turn."""
+    (executor.stack). Default/INSTANT = any turn."""
 
     def test_sorcery_window_matrix(self):
         self.attach([ability(cost(), timing=ActivationWindow.SORCERY)])
-        probe = lambda: ability_playable(
-            self.world, self.ex, self.alpha, 0, seat=self.p0, stack_empty=True
-        )
+        probe = lambda: ability_playable(self.world, self.ex, self.alpha, 0, seat=self.p0)
         self.assertEqual(probe(), "window:sorcery:not_own_turn")  # no turn begun
         self.ex.begin_turn(self.p0)
         self.assertIsNone(probe())
         self.ex.begin_turn(self.p1)
         self.assertEqual(probe(), "window:sorcery:not_own_turn")
         self.ex.begin_turn(self.p0)
-        self.assertEqual(
-            ability_playable(
-                self.world, self.ex, self.alpha, 0, seat=self.p0, stack_empty=False
-            ),
-            "window:sorcery:stack_nonempty",
-        )
+        self.ex.stack.push(StackObject(Handle("card", 999_999), None, self.p1, "INSTANT"))
+        self.assertEqual(probe(), "window:sorcery:stack_nonempty")
+        self.ex.stack.pop()
 
     def test_instant_default_legal_on_opponent_turn(self):
         self.attach([ability(cost(CostTap()), timing=ActivationWindow.INSTANT)])

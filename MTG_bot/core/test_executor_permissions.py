@@ -44,8 +44,8 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import ability_playable, activate, ctx_for
 from MTG_bot.core.executor.quantity import eval_filter
-from MTG_bot.core.executor.stack import land_playable, play_land
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.executor.stack import StackObject, land_playable, play_land
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
 
 _ORACLE = iter(range(1, 1 << 16))
@@ -402,12 +402,14 @@ class TestActivationWindow(PermCase):
         self.ex.begin_turn(self.p0)
 
     def query(self, handle, seat, stack_empty):
-        return (
-            ability_playable(
-                self.world, self.ex, handle, 0, seat=seat, stack_empty=stack_empty
-            )
-            or ""
-        )
+        # The timing gates read executor.stack: a spell waits there unless it is empty.
+        if not stack_empty:
+            self.ex.stack.push(StackObject(Handle("card", 999_999), None, seat, "INSTANT"))
+        try:
+            return ability_playable(self.world, self.ex, handle, 0, seat=seat) or ""
+        finally:
+            if not stack_empty:
+                self.ex.stack.pop()
 
     def grant_static(self):
         # Flip Teferi's compiled static on: the OptionalEffect-wrapped
