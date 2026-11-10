@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pickle
 import random
+from collections import Counter
 
 import numpy as np
 import pytest
@@ -27,51 +28,51 @@ def table() -> FT.CardTable:
 
 
 class _Probe:
-    """Heuristic seat that, at its first act ask after turn 3, checks the hidden-info invariant:
-    rewriting the opponent's hand and both libraries must not change this seat's encoding."""
+    """Heuristic seat that checks the hidden-info invariant at every one of its decisions:
+    rewriting the opponent's hand and both libraries (all but the cards the ask itself offers or
+    shows, a search or a scry) must not change this seat's encoding."""
 
     name = "probe"
 
     def __init__(self, table: FT.CardTable) -> None:
         self.inner = HeuristicAgent()
         self.table = table
-        self.checked = 0
+        self.kinds: Counter = Counter()
 
     def decide(self, ask, obs) -> int:
         ex = obs.executor
-        if ask.kind == "act" and ex.world.turn >= 3 and not self.checked:
-            before = FT.encode(ex, ask.seat, ask, self.table, obs.ctx)
-            world = ex.world
-            opp = world.player_order[1 - ask.seat]
-            saved = {}
-            hidden = list(world.players[opp].zone(ZONE_HAND).entries)
-            for p in world.player_order:
-                hidden += list(world.players[p].zone(ZONE_LIBRARY).entries)
-            offered = {o.token for o in ask.options}
-            for h in hidden:
-                if str(h) in offered:
-                    continue
-                card = world.cards[h]
-                saved[h] = card.identity
-                card.identity = CardIdentity(oracle_id="00000000-0000-0000-0000-000000000000",
-                                             name="Swapped", type_line="Creature", power="9",
-                                             toughness="9", cmc=9)
-            after = FT.encode(ex, ask.seat, ask, self.table, obs.ctx)
-            for h, ident in saved.items():
-                world.cards[h].identity = ident
-            for key in before:
-                assert np.array_equal(before[key], after[key]), key
-            self.checked = 1
+        world = ex.world
+        before = FT.encode(ex, ask.seat, ask, self.table, obs.ctx)
+        opp = world.player_order[1 - ask.seat]
+        hidden = list(world.players[opp].zone(ZONE_HAND).entries)
+        for p in world.player_order:
+            hidden += list(world.players[p].zone(ZONE_LIBRARY).entries)
+        shown = {o.token for o in ask.options} | {str(obs.ctx.revealed)}
+        saved = {}
+        for h in hidden:
+            if str(h) in shown:
+                continue
+            card = world.cards[h]
+            saved[h] = card.identity
+            card.identity = CardIdentity(oracle_id="00000000-0000-0000-0000-000000000000",
+                                         name="Swapped", type_line="Creature", power="9",
+                                         toughness="9", cmc=9)
+        after = FT.encode(ex, ask.seat, ask, self.table, obs.ctx)
+        for h, ident in saved.items():
+            world.cards[h].identity = ident
+        for key in before:
+            assert np.array_equal(before[key], after[key]), (ask.kind, key)
+        self.kinds[ask.kind] += 1
         return self.inner.decide(ask, obs)
 
 
 def test_encoding_never_reads_hidden_cards(table) -> None:
-    checked = 0
-    for seed in (11, 12, 13):
+    kinds: Counter = Counter()
+    for seed, mode in ((11, "coherent"), (12, "coherent"), (13, "stress"), (14, "stress")):
         probe = _Probe(table)
-        play_game(seed, [probe, HeuristicAgent()], deck_mode="coherent")
-        checked += probe.checked
-    assert checked >= 2
+        play_game(seed, [probe, HeuristicAgent()], deck_mode=mode)
+        kinds += probe.kinds
+    assert sum(kinds.values()) >= 100 and {"act", "attack", "block"} <= set(kinds), kinds
 
 
 def test_encodings_are_consistent_over_whole_games(table) -> None:

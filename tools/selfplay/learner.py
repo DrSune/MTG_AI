@@ -778,7 +778,7 @@ class Learner:
         for opp in opponents or a.eval_opponents.split(","):
             for i in range(deals or a.eval_deals):
                 seed = seed0 + i
-                mode = "stress" if i % 2 == 0 else "coherent"
+                mode = "coherent"  # random piles are not the game being learned (190 §3.1)
                 for a_seat in (0, 1):
                     seats = [me, opp] if a_seat == 0 else [opp, me]
                     job = self._job("eval", seed, seats, [True, True], [False, False], mode)

@@ -102,15 +102,9 @@ host, Python and torch versions, start time.
 ## Run
 
 ```
-# the canonical run (r17)
-.venv/bin/python -m tools.selfplay.learner --run runs/selfplay/r17_ppo \
-    --init runs/selfplay/r16_ppo/last.pt --refresh-table --infer-bf16 --workers 18 --slots 16 \
-    --groups 4 --steps 98304 --mb 4096 --tok-budget 98304 --epochs 1 --lr 5e-5 --target-kl 0.03 \
-    --ent 0.002 --teacher-iters 20 --teacher-gate 0.65 --eval-every 5 --eval-deals 200 \
-    --gate-every 5 --gate-deals 300 --gate-score 0.5 --ladder-deals 150 --p-heuristic 0.15 \
-    --p-past 0.15 --iters 3000 --save-every 1 --mem-floor-gib 12
-# continue it: the same command plus --resume runs/selfplay/r17_ppo --pool castable (r17 dealt
-# castable cards; a run on the verified pool starts from its weights: --init .../r17_ppo/last.pt)
+# the current run (r26) is started by launch.sh under a systemd user unit: its text, with the
+# full command, is in KNOWLEDGE/2026-11-10/189 §9 (gates: --gate-every 25 --gate-deals 1000
+# --gate-score 0.55; a gate at 0.5 checked every few updates passes on luck, 190 §1.4)
 # from scratch: teacher inter-play first
 .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --workers 18 --slots 16 \
     --groups 4 --d 512 --layers 8 --heads 8 --ff 2048 --bc-games 16000 --teacher-iters 40 \
@@ -145,7 +139,8 @@ Training deals are seeded `--seed` x 1e9 + the game's number, so a run started f
 checkpoint gets decks and shuffles its ancestors never trained on: give each run of a lineage its
 own `--seed` (runs before r25 all dealt the same games whatever their seed).
 
-Evaluation: `--eval-deals` fixed deals (seeds 900000+), half stress and half coherent decks, each
+Evaluation: `--eval-deals` fixed deals (seeds 900000+), coherent decks only (random piles are not
+the game being learned; before 2026-11-10 half were stress decks, read `by_mode`), each
 played twice with seats swapped; greedy play; a crash or a leaky ask (CHOOSE_NAME lists hidden
 cards) voids the pair. Score = (wins + draws/2) / games, Wilson 95% interval. A deal is (set,
 pool, seed, deck mode): `paired.py` pairs only rows with all four equal.
