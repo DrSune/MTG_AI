@@ -33,3 +33,10 @@ da7120f428b6ee8adc02992ddafdb79be3519c83de0dbaff00af17ea93ee6ade  runs/labels/e3
 9e2dbe634326021fc205078716b25b1c36d05ff2ac43820710d89af9c1f8b23c  runs/labels/scale_300000/app_300000_ep3.pt
 53f410213e73cf26bf2e4377215bb1dc78266125887142034523fb0b2426fa27  runs/labels/scale_300000/app_300000_ep4.pt
 120a7e1b60644ba591c4fa36a3455407ee9896ec8c483b06656a3b6033e4cf8b  runs/labels/scale_300000/app_300000.pt
+# The v0 probes of 2026-11-10 (KNOWLEDGE/2026-11-10/190 §10, 189 §8; scripts in reports/v0_probes_2026-11-10/):
+#   v0.pt is r23_mulligan/gen.pt as r25 froze it; ppo_N.pkl are v0's own decisions (250 games each,
+#   deals 8100000, 8101000, 8102000), the rows of the gradient shares and the one-update ablation.
+d2408dff336dbb62c993adb68eed371f911d9b2a2d15431aa7767f58c7a8609b  runs/selfplay/r25_outcome_ppo/v0.pt
+f97c4728b8012e26eaecf6a985e18724695e9e2f2ef7b8da1dfd16ea2a04d374  runs/v0_probes_2026-11-10/ppo_0.pkl
+e7fad5f65aef9cd024aa00730a25b733686f6831080863249d21d7f17a771678  runs/v0_probes_2026-11-10/ppo_1.pkl
+6b88c4da5e1a8482cbd3c25302f852f2f810c3fd76bbe53bfa7c003588910de5  runs/v0_probes_2026-11-10/ppo_2.pkl
