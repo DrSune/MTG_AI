@@ -465,3 +465,24 @@ games triggers now wait on the stack up to three deep. The trigger-order ask of 
    (minimal: forks and resumes at priority points); packs with window lanes rewritten; the act
    cap per player per step.
 6. The tests of §4 that can find priority bugs, and the trajectories re-pinned.
+
+Step 5 goes in two commits:
+
+- **5a, the step machine, undriven.** `Executor.phase` holds the step (UPKEEP, DRAW, FIRST_MAIN,
+  COMBAT for the beginning of combat, DECLARE_ATTACKERS, DECLARE_BLOCKERS, FIRST_STRIKE_DAMAGE,
+  COMBAT_DAMAGE, END_OF_COMBAT, SECOND_MAIN, END_TURN for the end step, CLEANUP; the name stays,
+  `MAIN_PHASES` and every reader keep working). Priority state beside it, fingerprinted: holder,
+  passes in succession, `tba_done`, actions per player this step, and the creatures that had
+  first or double strike as the first damage step began (CR 510.4). `pass_priority` does CR
+  117.3d-117.4: the next player, or with all passed the top object resolves and the active player
+  gets priority (117.3b), or with an empty stack the step ends: mana empties (CR 500.4, every
+  step), the next step begins, skipping blockers and damage with no attackers (508.8) and adding
+  the first-strike step when 510.4 asks for it. `begin_turn`, `combat_attacks`, `combat_blocks`,
+  `end_turn` and `advance_turn` become "both players pass until" the boundaries they stop at
+  today (first main with an empty stack, attackers declared, second main, turn closed). The
+  combat window stays inside the declare-blockers turn-based action until 5b.
+- **5b, the driven loop.** `_play_turns` asks the holder at every priority point
+  (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
+  the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the
+  search and the packs move to priority; the act cap per player per step; the trigger-order ask;
+  the `priority` ask kind grown from `cw`; the pre-check.
