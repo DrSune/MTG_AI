@@ -1,6 +1,9 @@
 # Design: real priority (the priority rung)
 
-Status: **proposed 2026-11-10, red-teamed the same day (§10), not built.** The owner,
+Status: **approved by the owner 2026-11-10, red-teamed the same day (§10); stage 1 in progress.**
+The owner on approving: "Yes all of this sounds correct, especially the proper priority sounds
+like something that will teach real game mechanics, and one point more where it can learn
+something real, and get good too". The owner on asking for it,
 2026-11-10: "make sure the game works as Magic. It is important to get it up to speed in terms of
 the basics. Having the skeleton set up so we train the network for realistic games from the
 beginning, seems important. Not having the instant mini-rounds or what it is, is bad."
@@ -376,7 +379,7 @@ throughout.
 The game changes at stage 1 and the yardstick at stage 2 (a heuristic that plays instants and
 abilities), so every Elo, gate and ladder before them is history, not a baseline.
 
-## 7. Decisions for the owner
+## 7. Decisions for the owner (all four taken as recommended, 2026-11-10)
 
 1. **Faithful priority in every step** (recommended; the alternative, more windows, is the
    current scaffold grown).
