@@ -1701,13 +1701,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return any(isinstance(a, KickerAbility) for a in record.abilities)
     if pred is FAtomPred.STACK_KIND_EQ:
         # CR 405.1, 111.1/112.1: a card or a copy of a card on the stack is a
-        # spell; abilities on the stack are not (CR 113.7a). This engine
-        # never puts an activated or triggered ability on the stack
-        # (activate() and the trigger drain resolve them at once; BACKLOG
-        # B-110), so the only stack objects are spell cards in the
-        # stack zone: SPELL holds for them, ACTIVATED and TRIGGERED hold for
-        # nothing. A mode or target that needs an ability on the stack has no
-        # legal candidate and is never offered (CR 700.2a), not guessed.
+        # spell; abilities on the stack are not (CR 113.7a). Abilities are
+        # stack objects (stack.StackObject, handles in the "ability"
+        # namespace), but no selector enumerates them yet (DESIGN_PRIORITY
+        # stage 1), so the only candidates are spell cards in the stack zone:
+        # SPELL holds for them, ACTIVATED and TRIGGERED hold for nothing. A
+        # mode or target that needs an ability on the stack has no legal
+        # candidate and is never offered (CR 700.2a), not guessed.
         from MTG_bot.core.state import ZONE_STACK
 
         if atom.string_value != "SPELL":

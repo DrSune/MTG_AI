@@ -34,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.executor.events import KIND_COUNTER
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
 from MTG_bot.core.test_executor_binding import UNIV, card_id
@@ -49,6 +50,11 @@ STACK_TARGET = Selector(
     QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.STACK, ControllerRef.ANY),)
 )
 
+
+
+def was_countered(ex, frame) -> bool:
+    """CR 701.6a: a countered spell left the stack, with a COUNTER row."""
+    return any(e.kind == KIND_COUNTER and e.subject == frame.handle for e in ex.journal.events)
 
 class Rung1Case(StackCase):
     """StackCase + scripted provider + the counter-card idiom."""
@@ -115,7 +121,7 @@ class TestResponseWindow(Rung1Case):
         # the interruption: effect never ran, card in the graveyard.
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.zone_kind(shock), ZONE_GRAVEYARD)
-        self.assertFalse(cast_frame.countered is False)
+        self.assertTrue(was_countered(self.ex, cast_frame))
         # counter paid, moved to its own graveyard, stack popped clean.
         self.assertEqual(self.zone_kind(cancel), ZONE_GRAVEYARD)
         self.assertEqual(self.ex.stack.frames, [])

@@ -1620,10 +1620,10 @@ def pay_costs(
     recorded a real choice (``tap_options``, ``sacrifice_options``,
     ``discard_options``), the payer picks through the decision channel.
 
-    Costs are paid simultaneously in the real game. Here each step is its
-    own op: at top level it settles the triggers it armed, so a sacrificed
-    creature's dies trigger resolves mid-payment, at the step boundary;
-    inside a running resolution the outermost op settles them."""
+    Each step is its own op, and none settles: casting and activating pay
+    inside ``Executor.atomic`` (CR 601.2g-h, 602.2b), and an effect's payment
+    inside its resolution, so a sacrificed creature's dies trigger waits for
+    the next priority point and goes on the stack above the spell or ability."""
     world = executor.world
     if plan.mana:
         pool = world.players[controller].mana_pool
@@ -1889,7 +1889,9 @@ def activate(
     )
     if plan is None:  # pragma: no cover - ability_playable just checked
         raise ValueError(f"executor: illegal activation: {plan_reason}")
-    pay_costs(executor, plan, source=handle, controller=seat)
+    floor = len(executor.stack.frames)
+    with executor.atomic():  # CR 602.2b: the costs are paid as part of activating
+        pay_costs(executor, plan, source=handle, controller=seat)
     loyalty_ability = is_loyalty_ability(ability)
     if loyalty_ability:
         # CR 606.3 once-per-turn clock, keyed on the permanent. Keyed
@@ -1925,7 +1927,7 @@ def activate(
     # threads a spell's (stack.designate_slots, validated above); each TARGET
     # selector then reads its own designation, not the union, and an "up to"
     # slot left empty acts on nothing.
-    from MTG_bot.core.executor.stack import StackObject, resolve_top, slot_groups
+    from MTG_bot.core.executor.stack import StackObject, slot_groups
 
     slot_designations: dict[str, tuple[Handle, ...]] = {}
     if targets:
@@ -1954,13 +1956,13 @@ def activate(
     start = len(executor.events)
     if is_mana_ability(ability):
         # CR 605.3b: a mana ability does not use the stack; it resolves at once.
-        status = resolve_activated(executor, obj)
+        with executor.atomic():
+            resolve_activated(executor, obj)
     else:
+        # What activating triggered goes on the stack above the ability and
+        # resolves first (CR 117.5), then the ability (both players pass).
         executor.stack.push(obj)
-        status = resolve_top(executor)
-    if status == "no_targets":
-        executor._finish_op()
-        return ()
+    executor._finish_op(floor)
     return tuple(executor.events[start:])
 
 
@@ -1970,7 +1972,7 @@ def resolve_activated(executor: Executor, obj) -> str:
     (CR 608.2b): with none still legal it does not resolve ("no_targets", and a
     NO_LEGAL_TARGETS row). Otherwise its effect runs from its source, in its
     controller's coordinates, with the targets bound and every X the announced X
-    (CR 107.3a); the effect op settles at its end. Returns "resolved"."""
+    (CR 107.3a). Returns "resolved"; the caller settles afterwards."""
     from MTG_bot.core.executor.query import activation_target_slots
     from MTG_bot.core.executor.stack import recheck_targets
 

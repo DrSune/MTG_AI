@@ -132,9 +132,12 @@ class StackObject:
     * ``decisions``, ``slot_designations``, ``target_node`` — what the
       resolution reads and the declaration made: the per-op decision pool
       left after the modes and targets were taken from it, a multi-target
-      spell's per-slot designation (:func:`designate_slots`), and the node
-      narrowed to the declared modes, whose slots the targets are checked
-      against again (CR 608.2b).
+      spell's per-slot designation (:func:`designate_slots`), and what the
+      targets are checked against again (CR 608.2b): a spell's node narrowed
+      to its declared modes, a triggered ability's TARGET Selector.
+
+    A countered object leaves the stack at once (CR 701.6a), so whoever
+    pushed it tells it was countered by its absence.
     """
 
     handle: Handle
@@ -150,7 +153,7 @@ class StackObject:
     kicked: bool = False
     decisions: tuple[str, ...] = ()
     slot_designations: dict[str, tuple[Handle, ...]] = field(default_factory=dict)
-    target_node: SpellAbility | None = None
+    target_node: object = None
     # An ability on the stack (CR 113.1b, 405.1; ``spell_kind`` ACTIVATED or
     # TRIGGERED, ``handle`` its own, in the "ability" namespace): ``node`` is
     # the ability itself, never an index (a granted ability's index can shift
@@ -162,12 +165,6 @@ class StackObject:
     ability_idx: int | None = None
     event: object = None
     ctx: object = None
-    # The counter flag. Set by the COUNTER_SPELL handler when a
-    # response-window cast interrupts THIS frame; the popper sees it and
-    # returns without running the effect (CR 601.4's interrupted
-    # resolution). Transient: the frame is popped as soon as the
-    # counterspell's cast returns, so dump() leaves the flag out.
-    countered: bool = False
 
 
 @dataclass
@@ -1075,7 +1072,7 @@ def _response_window(executor: Executor, frame: StackObject) -> None:
     for responder in world.player_order:
         if responder == seat:
             continue
-        if frame.countered or world.zone_of(handle).kind != ZONE_STACK:
+        if frame not in executor.stack.frames:
             break
         vocab = _counter_vocab(executor, responder, handle)
         if len(vocab) <= 1:
@@ -1233,34 +1230,38 @@ def cast(
         slot_designations=dict(slot_designations),
         target_node=target_node,
     )
+    floor = len(executor.stack.frames)
     before = executor.journal.snapshot()
     start = len(executor.events)
-    pay_costs(
-        executor,
-        plan,
-        source=handle,
-        controller=seat,
-        mana_use=handle,
-    )
+    with executor.atomic():  # CR 601.2g-h: the costs are paid as part of casting
+        pay_costs(
+            executor,
+            plan,
+            source=handle,
+            controller=seat,
+            mana_use=handle,
+        )
     park(executor, seat, handle)
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
-    executor._settle()  # cast triggers resolve first
+    # What casting triggered (its costs included) goes on the stack above the
+    # spell and resolves first (CR 117.5, 601.2i).
+    executor._settle(floor + 1)
     _response_window(executor, frame)  # 6b
-    assert executor.stack.frames[-1] is frame  # LIFO: every response above it has resolved
-    if resolve_top(executor) != "countered":
-        executor._finish_op()  # an effect that ended the turn goes first (CR 724.1)
+    if frame in executor.stack.frames:  # not countered
+        assert executor.stack.frames[-1] is frame  # LIFO: every response above it resolved
+        resolve_top(executor)
+    executor._finish_op(floor)  # an effect that ended the turn goes first (CR 724.1)
     return frame
 
 
 def resolve_top(executor: Executor) -> str:
     """CR 608: the top object of the stack resolves (an activated ability:
     ``legality.resolve_activated``; a triggered one: ``TriggerBinder.resolve``).
-    Returns "countered"
-    (it left the stack without resolving, CR 701.6a), "no_targets" (every
-    target illegal, CR 608.2b) or "resolved". The caller settles afterwards;
-    a countered spell's counter has already settled.
+    Returns "no_targets" (every target illegal, CR 608.2b), "removed" (a
+    trigger's intervening "if" is false, CR 603.4) or "resolved". The caller
+    settles afterwards.
 
     A spell (CR 608.2-608.3, 601.2j): its targets are checked again, its
     effect runs with the targets bound as ``target`` and the declared modes
@@ -1271,21 +1272,21 @@ def resolve_top(executor: Executor) -> str:
     intervening settle: the spell leaves the stack and the PUT happens
     before anything its mutations armed may fire (CR 608.3: resolution is
     indivisible)."""
+    frame = executor.stack.pop()
+    with executor.atomic():  # CR 608.2: nothing settles inside a resolution
+        if frame.spell_kind == "ACTIVATED":
+            from MTG_bot.core.executor.legality import resolve_activated
+
+            return resolve_activated(executor, frame)
+        if frame.spell_kind == "TRIGGERED":
+            return executor.binder.resolve(frame)
+        return _resolve_spell(executor, frame)
+
+
+def _resolve_spell(executor: Executor, frame: StackObject) -> str:
+    """:func:`resolve_top` for a spell."""
     from MTG_bot.core.executor.query import is_aura_spell, spell_target_slots
 
-    frame = executor.stack.pop()
-    if frame.countered:
-        # CR 601.4 interrupted: the COUNTER_SPELL handler already
-        # flagged the frame, journalled the COUNTER row and moved the card
-        # to its graveyard (400.7). The effect never runs and the spell
-        # gets no SPELL_PUT — a countered spell was never put anywhere.
-        return "countered"
-    if frame.spell_kind == "ACTIVATED":
-        from MTG_bot.core.executor.legality import resolve_activated
-
-        return resolve_activated(executor, frame)
-    if frame.spell_kind == "TRIGGERED":
-        return executor.binder.resolve(frame)
     world = executor.world
     handle, seat, node, x = frame.handle, frame.controller, frame.node, frame.x_value
     targets: tuple[Handle, ...] = frame.declared_targets
@@ -1568,6 +1569,7 @@ def cast_card(
         from_zone=world.zone_of(handle).kind,
         target_node=target_node,
     )
+    floor = len(executor.stack.frames)
     before = executor.journal.snapshot()
     start = len(executor.events)
     if plan is not None:
@@ -1582,12 +1584,13 @@ def cast_card(
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
     executor.journal.emit_cast(handle, caster, node.kind.name, frame.from_zone, x)
-    executor._settle()
+    executor._settle(floor + 1)
     _response_window(executor, frame)
-    assert executor.stack.frames[-1] is frame
-    if resolve_top(executor) == "countered":
+    if frame not in executor.stack.frames:
         return False  # CR 701.6a: removed from the stack, none of its effects occur
-    executor._settle()
+    assert executor.stack.frames[-1] is frame
+    resolve_top(executor)
+    executor._settle(floor)
     return True
 
 

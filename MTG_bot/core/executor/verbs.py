@@ -2303,11 +2303,10 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
     """COUNTER_SPELL: counter the designated spell on the stack.
 
     The designated target is the framed CARD (the window casts the counter
-    with ``targets=(frame.handle,)``). The handler flags the victim's
-    :class:`~MTG_bot.core.executor.stack.StackObject`, so the popper in
-    :func:`stack.cast` interrupts the resolution (CR 601.4) — the frame's
-    effect never runs and the card moves to its owner's graveyard
-    (CR 400.7).
+    with ``targets=(frame.handle,)``). The handler removes the victim's
+    :class:`~MTG_bot.core.executor.stack.StackObject` from the stack (CR
+    701.6a), so it never resolves, and the card moves to its owner's
+    graveyard (CR 400.7).
 
     The ``unless`` role (CR 601.2h "unless its controller pays <cost>", the
     Miscast/Lofty Denial shape) is an ASK-TIME decision, not a guess: when
@@ -2338,8 +2337,6 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
             f"executor: COUNTER_SPELL target {spell} is not on the stack "
             "(only a framed spell can be countered)"
         )
-    if frame.countered:
-        raise ValueError(f"executor: COUNTER_SPELL target {spell} already countered")
 
     unless = atom.args.get("unless")
     if unless is not None:
@@ -2387,7 +2384,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         # so there is no COUNTER row.
         ctx.events.append((len(ctx.events), "NOT_COUNTERED", str(spell), str(ctx.source)))
         return
-    frame.countered = True
+    ex.stack.frames.remove(frame)  # CR 701.6a: a countered spell leaves the stack
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
     _move_to(ctx, spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)

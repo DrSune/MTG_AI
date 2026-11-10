@@ -39,7 +39,8 @@ from __future__ import annotations
 
 import hashlib
 import random
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from itertools import combinations
 
 from MTG_bot.core.ability_tree import (
@@ -716,13 +717,28 @@ class Executor:
         op leaves its events to the outermost op's settle, whose journal pass sees them
         (TriggerBinder.on_events reads every unseen row)."""
         nested = self._resolving > 0
+        floor = len(self.stack.frames)
         self._resolving += 1
         try:
             self._run_effect(effect, ctx)
         finally:
             self._resolving -= 1
         if not nested:
-            self._finish_op()
+            self._finish_op(floor)
+
+    @contextmanager
+    def atomic(self) -> Iterator[None]:
+        """An action or a resolution, with no priority point inside it (CR
+        601.2, 602.2: casting a spell or activating an ability, its costs paid
+        included; CR 608.2: an object resolving). The ops run inside it do not
+        settle, as ops started inside a resolution do not
+        (:meth:`_run_resolution`); the triggers they cause wait for the next
+        priority point and go on the stack above whatever is there."""
+        self._resolving += 1
+        try:
+            yield
+        finally:
+            self._resolving -= 1
 
     @staticmethod
     def _partition_step(step: object) -> bool:
@@ -1298,12 +1314,12 @@ class Executor:
         return self.binder.attach_pool(pool)
 
     def fire_triggers(self) -> int:
-        """Drain the pending trigger queue (APNAP, Handle-tie-broken).
-        Decisions arrive through the executor's stream: may-offers
-        hit the vocabulary-addressed lanes, nothing positional is consumed.
-        Returns the number of firings."""
-        self.binder.on_events()
-        return self.binder.fire_all()
+        """Put the waiting triggers on the stack and let both players pass
+        until it is empty (:meth:`_settle`). Decisions arrive through the
+        executor's stream: may-offers hit the vocabulary-addressed lanes,
+        nothing positional is consumed. Returns the number of triggered
+        abilities resolved."""
+        return self._settle()
 
     # ----------------------------------------- damage marks + state checks
 
@@ -1687,39 +1703,74 @@ class Executor:
             self.binder.on_events()
             batches += 1
 
-    def _settle(self) -> int:
-        """Match the journal's new events, run the state-based actions and
-        drain the triggers — the end of every top-level op. The settle tail
-        is also the recompute point: WHILE-condition truth is re-evaluated
-        on the ledger, and the layer registry re-reads the set (new/lost
-        members, condition toggles) and rebuilds the keyword /
-        granted-ability oracles. All of it is a pure function of the
-        journal's final state, so replays are byte-identical.
+    def _priority_check(self) -> None:
+        """CR 117.5, the check made each time a player would receive
+        priority: the state-based actions (CR 704.3, repeated until none
+        applies), then every ability that triggered since the last check goes
+        on the stack (CR 603.3, ``TriggerBinder.put_waiting``), and again,
+        until neither happens. Putting a trigger on the stack can itself
+        trigger ("becomes the target"). While an effect ends the turn the
+        binder holds the triggers (CR 724.1c)."""
+        while True:
+            self.binder.on_events()
+            self._state_checks()
+            if self.binder.hold or not self.world.triggers:
+                return
+            self.binder.put_waiting()
 
-        CR 117.5, 704.3: "the game first performs all applicable
-        state-based actions as a single event, then repeats this process
-        until no state-based actions are performed. Then triggered abilities
-        are put on the stack." The check runs first, and again after each
-        firing, so no trigger resolves beside a creature that should already
-        be dead (a 0/0 reanimated Archfiend's Vessel dies before its enter
-        trigger resolves, and that trigger can no longer exile it)."""
-        self.binder.on_events()
-        # The state-based check sits at the settle point (CR 704.3), so
-        # execute / apply_effect / end_turn all reach it.
-        self._state_checks()
-        fired = self.binder.fire_all(between=self._state_checks)
+    def _settle(self, floor: int = 0) -> int:
+        """Both players pass until the stack is down to ``floor`` objects
+        (DESIGN_PRIORITY §11, the undriven auto-pass): at each priority point
+        the CR 117.5 check (:meth:`_priority_check`), then the top object
+        resolves (CR 117.4, 608; ``stack.resolve_top``), and an effect that
+        ended the turn ends it there (CR 724.1). ``floor`` is the depth an op
+        found when it began, so an op never resolves what was on the stack
+        under it. Returns the number of triggered abilities resolved.
+
+        The tripwire: after ``MAX_TRIGGER_FIRES`` triggered abilities in one
+        settle, the source that resolved most is quarantined (its objects
+        leave the stack and its firings stop, ``TriggerBinder.quarantine``)
+        and the settle goes on.
+
+        The settle tail is also the recompute point: WHILE-condition truth is
+        re-evaluated on the ledger, and the layer registry re-reads the set
+        (new/lost members, condition toggles) and rebuilds the keyword /
+        granted-ability oracles. All of it is a pure function of the
+        journal's final state, so replays are byte-identical."""
+        from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
+        from MTG_bot.core.executor.stack import resolve_top
+
+        fired = 0
+        since_quarantine = 0
+        per_source: dict[Handle, int] = {}
+        while True:
+            self._priority_check()
+            if len(self.stack.frames) <= floor:
+                break
+            top = self.stack.frames[-1]
+            if top.spell_kind == "TRIGGERED":
+                if since_quarantine >= MAX_TRIGGER_FIRES:
+                    self.binder.quarantine(per_source)
+                    since_quarantine = 0
+                    continue
+                assert top.source is not None
+                per_source[top.source] = per_source.get(top.source, 0) + 1
+                fired += 1
+                since_quarantine += 1
+            resolve_top(self)
+            self._consume_end_turn()
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
         return fired
 
-    def _finish_op(self) -> None:
+    def _finish_op(self, floor: int = 0) -> None:
         """The end of a public op. CR 724.1: when the op's own effect
         ended the turn, the turn ends BEFORE any settle, so the abilities
         its resolution triggered cease to exist (724.1a) instead of
         resolving; otherwise the settle runs, then any request a trigger
         made during it."""
         if not self._consume_end_turn():
-            self._settle()
+            self._settle(floor)
             self._consume_end_turn()
 
     def _consume_end_turn(self) -> bool:
@@ -1781,17 +1832,18 @@ class Executor:
     def _exile_the_stack(self) -> None:
         """CR 724.1b: every object on the stack is exiled, the resolving one
         included. A resolving spell goes to exile at its own put
-        (stack.cast). A spell still waiting on the stack below it is exiled
-        here and its frame flagged, so the cast that pushed it never
-        resolves it. Abilities are not stack objects in this engine: a
-        triggered ability resolves as it fires."""
+        (stack.resolve_top). A spell still waiting on the stack below it is
+        exiled here and its object removed, so the cast that pushed it never
+        resolves it; an ability on the stack ceases to exist."""
         frames = list(self.stack.frames)
         if not frames:
             return
+        self.stack.frames.clear()  # removed from the stack: none resolves
         before = self.journal.snapshot()
         start = len(self.events)
         for frame in frames:
-            frame.countered = True  # removed from the stack: never resolves
+            if frame.spell_kind in ("ACTIVATED", "TRIGGERED"):
+                continue  # an ability is no card: it ceases to exist
             if self.world.zone_of(frame.handle).kind == ZONE_STACK:
                 self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
                 self.events.append(

@@ -38,6 +38,7 @@ from MTG_bot.core.compiler.templates_b5a import (
     target_spell,
     target_stack_ability,
 )
+from MTG_bot.core.executor.events import KIND_COUNTER
 from MTG_bot.core.executor.legality import ctx_for
 from MTG_bot.core.executor.quantity import eval_filter
 from MTG_bot.core.executor.stack import cast
@@ -126,6 +127,11 @@ def modal_counter_effect() -> Choose:
     )
 
 
+
+def was_countered(ex, frame) -> bool:
+    """CR 701.6a: a countered spell left the stack, with a COUNTER row."""
+    return any(e.kind == KIND_COUNTER and e.subject == frame.handle for e in ex.journal.events)
+
 class ModalWindowCase(Rung1Case):
     def setUp(self) -> None:
         super().setUp()
@@ -168,7 +174,7 @@ class TestStackKindEvaluation(ModalWindowCase):
         self.assertFalse(eval_filter(SPELL_ON_STACK, self.shock_card, ctx))  # in hand
         self.script("PASS")
         frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        self.assertFalse(frame.countered)
+        self.assertFalse(was_countered(self.ex, frame))
         # while the Shock was on the stack the window asked p1 (the vocab
         # offered the modal counter): the spell was a legal SPELL target
         (vocab, what), = self.asks
@@ -212,7 +218,7 @@ class TestModalCounterWindow(ModalWindowCase):
         self.assertEqual(self.asks[2][0], tuple(sorted((str(self.bear), str(self.giant)))))
         # resolution: the Shock is countered, the Giant bounced, p0 drew
         # (designated above)
-        self.assertTrue(frame.countered)
+        self.assertTrue(was_countered(self.ex, frame))
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.world.zone_of(self.shock_card).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(self.giant).kind, ZONE_HAND)
@@ -227,7 +233,7 @@ class TestModalCounterWindow(ModalWindowCase):
             self.world.move_to_zone(h, self.p0, ZONE_GRAVEYARD)
         self.script(str(self.epiphany), lambda vocab, what: self.set_token((0,)))
         frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        self.assertTrue(frame.countered)
+        self.assertTrue(was_countered(self.ex, frame))
         kinds = [what.split(":", 1)[0] for _vocab, what in self.asks]
         self.assertEqual(kinds, ["counter", "choose"])
         offered = [self.option_sets()[int(t)] for t in self.asks[1][0]]
@@ -249,7 +255,7 @@ class TestModalCounterWindow(ModalWindowCase):
         )
         self.script(str(card))
         frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        self.assertTrue(frame.countered)
+        self.assertTrue(was_countered(self.ex, frame))
         self.assertEqual([what.split(":", 1)[0] for _v, what in self.asks], ["counter"])
         forced = [(w, a) for w, a in self.ex.decisions.journal if w.startswith(f"choose:{card}:")]
         self.assertEqual(forced, [(forced[0][0], "0")])  # the set (0,) is index 0
@@ -274,7 +280,7 @@ class TestModalCounterWindow(ModalWindowCase):
         )
         self.script()
         frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        self.assertFalse(frame.countered)
+        self.assertFalse(was_countered(self.ex, frame))
         self.assertEqual(self.asks, [])
         self.assertEqual(self.world.players[self.p1].life, 18)
 

@@ -28,9 +28,9 @@ Contracts honoured:
   * **delayed triggers** — ``DelayedTrigger`` effect nodes schedule into
     the same matcher with a duration tag; the end-of-turn sweep expires the
     turn-window entries;
-  * **tripwire** — after ``MAX_TRIGGER_FIRES`` trigger instances in one
-    drain the guard QUARANTINES the runaway source (dropped firings
-    recorded in ``executor.trigger_loops``) and the drain continues — the
+  * **tripwire** — after ``MAX_TRIGGER_FIRES`` triggered abilities resolved
+    in one settle the guard QUARANTINES the runaway source (dropped firings
+    recorded in ``executor.trigger_loops``) and the settle continues — the
     loop is a bug to flag, never a bug to run;
   * **flag, don't degrade** — an event node no journal feed serves
     (``_UNSUPPORTED_EVENTS``, a blocker-count DeclareBlockersEvent) RAISES
@@ -45,7 +45,6 @@ deterministic by ``TestMayAndDeterminism`` (test_executor_binding.py).
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
@@ -140,9 +139,9 @@ from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
 if TYPE_CHECKING:  # pragma: no cover - typing only, dodges the import cycle
     from MTG_bot.core.executor import Executor
 
-# Infinite-loop tripwire: after this many trigger instances in one drain
-# (nested chains included), fire_all quarantines the source that fired most
-# — we never spin.
+# Infinite-loop tripwire: after this many triggered abilities resolved in one
+# settle (Executor._settle), TriggerBinder.quarantine stops the source that
+# resolved most — we never spin.
 MAX_TRIGGER_FIRES = 200
 
 # EventSpec kinds no journal feed serves: binding one RAISES — flag, don't
@@ -336,8 +335,9 @@ def functions_from_graveyard(ability: object) -> bool:
 
 
 class TriggerBinder:
-    """The (handle, ability-idx) trigger registry + event matcher + APNAP
-    fire loop. Owned by one :class:`~MTG_bot.core.executor.Executor`."""
+    """The (handle, ability-idx) trigger registry + event matcher; puts the
+    waiting triggers on the stack (APNAP) and resolves them. Owned by one
+    :class:`~MTG_bot.core.executor.Executor`."""
 
     def __init__(self, executor: Executor) -> None:
         self.executor = executor
@@ -355,7 +355,7 @@ class TriggerBinder:
         self.emblem_owner: dict[Handle, Handle] = {}
         self.firings: dict[int, _Firing] = {}
         # Tripwire guard (Chandra's Incinerator): sources whose trigger
-        # self-retriggers the drain are QUARANTINED by fire_all; _queue then
+        # self-retriggers the settle are QUARANTINED (quarantine); _queue then
         # drops their firings for the rest of the game — "flag it, never
         # run it". This is replayed state: the executor folds it into
         # state_fingerprint through :meth:`dump`.
@@ -1365,92 +1365,88 @@ class TriggerBinder:
 
     # -------------------------------------------------------------- fire
 
-    def fire_all(self, between: Callable[[], object] | None = None) -> int:
-        """Drain the world's trigger queue in stack order (:meth:`_pop_next`:
-        newest batch, then reverse APNAP, then trigger order; CR 603.3b).
-        Every firing runs through the executor's effect runner, whose
-        journalled events queue the next batch; loop until empty — the
-        tripwire guard QUARANTINES a self-retriggering source (recorded in
-        the executor's trigger_loops ledger) and the drain continues.
-        The drain consumes NO positional stream — every demand a firing
-        makes reaches the executor's
-        vocabulary-addressed decision channel (per-(vocab, what) FIFO /
-        ask-time provider), so a trigger the op itself armed mid-drain is
-        answerable exactly like one that was already pending.
-        CR 117.5, 704.3: ``between`` runs after each firing. The
-        settle passes the state-based-action check, so the next trigger
-        resolves only after the actions the last one made necessary (a
-        creature it dealt lethal damage dies first)."""
-        if self.hold:
-            return 0  # CR 724.1c: no triggered ability is put onto the stack
-        from MTG_bot.core.executor.stack import resolve_top
-
-        fired = 0
-        per_source: dict[Handle, int] = {}
+    def put_waiting(self) -> int:
+        """CR 603.3b: every ability that triggered since a player last received
+        priority goes on the stack, the active player's first, then the next
+        player's in turn order (APNAP), each player's in an order that player
+        chooses; modes and targets are chosen as each goes on (:meth:`_put`),
+        and one with no legal mode or required target is removed (603.3d).
+        The engine does not ask for the order yet: it puts each player's
+        triggers so they resolve in the order they triggered (the order
+        :meth:`_pop_next` gives, newest batch first, then reverse APNAP, then
+        trigger order). Returns how many went on the stack."""
+        order: list[_Firing] = []
         while self.world.triggers:
-            if fired >= MAX_TRIGGER_FIRES:
-                # The tripwire GUARDS rather than kill the game. The culprit
-                # is the source this drain fired MOST — its effect's own
-                # events re-arm it (Chandra's Incinerator's "whenever you deal
-                # noncombat damage" trigger eating its own damage row).
-                # QUARANTINE it: drop its queued instances, block its
-                # _queue for the rest of the game, record the event loudly
-                # in executor.trigger_loops — "flag it, never run it" —
-                # and continue the drain with everything else. With eight
-                # sources already quarantined in ONE game the next runaway
-                # raises: then the state itself is the anomaly, not a card.
-                culprit = next(
-                    (
-                        src
-                        for src, _n in sorted(
-                            per_source.items(), key=lambda kv: (-kv[1], str(kv[0]))
-                        )
-                        if src not in self.quarantined
-                    ),
-                    None,
-                )
-                if culprit is None or len(self.quarantined) >= 8:
-                    raise RuntimeError(
-                        "executor: trigger-loop tripwire — one drain resolved "
-                        f"{MAX_TRIGGER_FIRES} triggers and the queue is still "
-                        "growing (self-retriggering loop: flag it, never run it)"
-                    )
-                record = self.handle_record.get(culprit)
-                self.quarantined.add(culprit)
-                dropped = [t for t in self.world.triggers if t.source == culprit]
-                for t in dropped:
-                    self.world.triggers.remove(t)
-                    self.firings.pop(t.clock, None)
-                self.executor.trigger_loops.append(
-                    f"{culprit} ({getattr(record, 'name', culprit)!r}): "
-                    f"self-retriggering after {per_source.get(culprit, 0)} "
-                    f"drain fires — quarantined, {len(dropped)} queued "
-                    "firings dropped"
-                )
-                fired = 0
-                continue
             instance = self._pop_next()
-            payload = self.firings.pop(instance.clock)
+            order.append(self.firings.pop(instance.clock))
+        put = 0
+        for payload in reversed(order):  # the last to resolve goes on first
             obj = self._put(payload)
             if obj is not None:
                 self.executor.stack.push(obj)
-                resolve_top(self.executor)
-            per_source[instance.source] = per_source.get(instance.source, 0) + 1
-            fired += 1
-            self.on_events()  # the firing's own events queue the next batch
-            if between is not None:
-                between()
-        return fired
+                put += 1
+        return put
+
+    def quarantine(self, per_source: dict[Handle, int]) -> None:
+        """The trigger-loop tripwire (``Executor._settle``): a settle resolved
+        ``MAX_TRIGGER_FIRES`` triggered abilities and the stack still holds one.
+        The tripwire GUARDS rather than kill the game. The culprit is the source
+        whose triggers resolved MOST in it — its effect's own events re-arm it
+        (Chandra's Incinerator's "whenever you deal noncombat damage" trigger
+        eating its own damage row). QUARANTINE it: its triggered abilities leave
+        the stack, its queued firings are dropped, its _queue is blocked for the
+        rest of the game, and the event is recorded loudly in
+        executor.trigger_loops — "flag it, never run it". With eight sources
+        already quarantined in ONE game the next runaway raises: then the state
+        itself is the anomaly, not a card."""
+        culprit = next(
+            (
+                src
+                for src, _n in sorted(per_source.items(), key=lambda kv: (-kv[1], str(kv[0])))
+                if src not in self.quarantined
+            ),
+            None,
+        )
+        if culprit is None or len(self.quarantined) >= 8:
+            raise RuntimeError(
+                "executor: trigger-loop tripwire — one settle resolved "
+                f"{MAX_TRIGGER_FIRES} triggers and the stack is still "
+                "growing (self-retriggering loop: flag it, never run it)"
+            )
+        record = self.handle_record.get(culprit)
+        self.quarantined.add(culprit)
+        stack = self.executor.stack.frames
+        on_stack = [
+            o for o in stack if o.spell_kind == "TRIGGERED" and o.source == culprit
+        ]
+        for obj in on_stack:
+            stack.remove(obj)
+        dropped = [t for t in self.world.triggers if t.source == culprit]
+        for t in dropped:
+            self.world.triggers.remove(t)
+            self.firings.pop(t.clock, None)
+        self.executor.trigger_loops.append(
+            f"{culprit} ({getattr(record, 'name', culprit)!r}): "
+            f"self-retriggering after {per_source.get(culprit, 0)} "
+            f"drain fires — quarantined, {len(dropped) + len(on_stack)} queued "
+            "firings dropped"
+        )
 
     def pending_references(self) -> frozenset[Handle]:
-        """The objects the queued firings still name: their source and their
-        event's subject and cause. A token that left the battlefield stays in the
+        """The objects the waiting triggers (queued, or on the stack) still
+        name: their source and their event's subject and cause. A token that left the battlefield stays in the
         world (as its own last-known information) until the triggers its leaving
         caused have resolved; see ``Executor._cease_tokens``."""
         out: set[Handle] = set()
-        for payload in self.firings.values():
-            out.add(payload.source)
-            for handle in (payload.event.subject, payload.event.cause):
+        waiting = [(p.source, p.event) for p in self.firings.values()]
+        waiting += [
+            (o.source, o.event)
+            for o in self.executor.stack.frames
+            if o.spell_kind == "TRIGGERED"
+        ]
+        for source, event in waiting:
+            out.add(source)
+            for handle in (event.subject, event.cause):
                 if isinstance(handle, Handle):
                     out.add(handle)
         return frozenset(out)
@@ -1465,7 +1461,8 @@ class TriggerBinder:
         return (world.players[controller].seat - active_seat) % seats
 
     def _pop_next(self):
-        """The trigger that resolves next: the top of the stack.
+        """Of the waiting triggers, the one that would resolve first;
+        :meth:`put_waiting` puts them on the stack in the reverse order.
 
         CR 603.3b: the abilities that triggered since a player last received priority are
         put on the stack in APNAP order, the active player's first, each player's in the
@@ -1553,6 +1550,7 @@ class TriggerBinder:
                 )
             ]
         node = payload.node
+        designated = False  # targets chosen through _designate, checked again at resolution
         if isinstance(node.effect, Choose) and self._modes_need_targets(node.effect):
             # CR 603.3c: a modal trigger's mode is chosen as it is put on the stack, before
             # its targets, and only the chosen mode's targets are chosen.
@@ -1627,8 +1625,11 @@ class TriggerBinder:
                 # removes the ability from the stack. None of its effect
                 # happens, its untargeted steps included.
                 return None
+            else:
+                designated = True
         target = ctx.bindings.get("target")
         targets = (target,) if isinstance(target, Handle) else tuple(target or ())
+        selectors = self._designation_slots(node)[0] if designated else []
         return StackObject(
             handle=self.executor.ability_handles.allocate(),
             node=node,
@@ -1639,18 +1640,43 @@ class TriggerBinder:
             source=payload.source,
             event=event,
             ctx=ctx,
+            target_node=selectors[0] if selectors else None,
         )
 
     def resolve(self, obj) -> str:
         """CR 608.2: a triggered ability on the stack resolves (``stack.resolve_top``).
         Its intervening "if" is checked again (CR 603.4): false, it is removed and does
-        nothing ("removed"). Otherwise its effect runs through the shared effect runner,
+        nothing ("removed"). Its targets are checked again (CR 608.2b): none legal,
+        it does not resolve ("no_targets"). Otherwise its effect runs through the shared effect runner,
         the SAME dispatch execute() uses, journalled at its Atom boundaries and guarded
         like the spell lanes: a template mis-fold whose anaphora has no producer skips
         LOUD (unresolved_effects) instead of killing the match; every other error still
         propagates. May-offers ask the executor's decision stream."""
         if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
             return "removed"
+        if obj.target_node is not None and obj.declared_targets:
+            # CR 608.2b: the targets chosen from a TARGET slot are checked again
+            # against that slot now; with none still legal the ability does not
+            # resolve, otherwise it acts on those still legal.
+            from MTG_bot.core.executor.query import _widen_any_target, legal_targets
+
+            bindings = {k: v for k, v in obj.ctx.bindings.items() if k != "target"}
+            slot = legal_targets(
+                self.world,
+                self.executor,
+                obj.target_node,
+                source=obj.source,
+                controller=obj.controller,
+                bindings=bindings,
+            )
+            slot = _widen_any_target(self.executor, obj.target_node, slot, obj.source) or slot
+            kept = [h for h in obj.declared_targets if h in slot.candidates]
+            if not kept:
+                self.executor.events.append(
+                    (len(self.executor.events), "NO_LEGAL_TARGETS", str(obj.source), "trigger")
+                )
+                return "no_targets"
+            obj.ctx.bindings["target"] = kept if len(kept) != 1 else kept[0]
         self.executor._run_guarded_effect(obj.node.effect, obj.ctx, "trigger")
         return "resolved"
 

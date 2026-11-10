@@ -526,7 +526,7 @@ class ScenarioRunner:
                 tapped_on_enter=bool(step.get("tapped", False)),
             )
             # "hold_triggers" leaves the armed triggers queued, through the binder's own
-            # hold flag (fire_all then resolves nothing); the next step's settle resolves
+            # hold flag (nothing goes on the stack); the next step's settle resolves
             # them after its own action (a response).
             binder = self.ex.binder
             held = bool(step.get("hold_triggers"))
