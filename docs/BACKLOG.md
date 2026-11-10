@@ -195,7 +195,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Gap: `activate()` and the trigger drain resolve abilities at once (CR 602.2 and 603.3 put
     them on the stack), so STACK_KIND_EQ ACTIVATED/TRIGGERED holds for nothing. Sublime Epiphany's
     second mode and Tale's End's ability half are never offered (CR 700.2a), which is weaker than
-    printed. Remove with the priority and stack rung: abilities as stack objects.
+    printed. Remove with the priority and stack rung: abilities as stack objects. Design:
+    `docs/DESIGN_PRIORITY.md` (proposed 2026-11-10).
   - Not done (outside R5-10's registered blast radius): M21 Unsubstantiate's "Return target spell
     or creature" compiles the spell half as `FNot(IS_PERMANENT)` over the stack, so it cannot take
     an artifact, enchantment or planeswalker spell (weaker than printed, latent: no window offers it
