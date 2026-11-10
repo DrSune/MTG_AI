@@ -427,3 +427,34 @@ A fresh agent attacked the draft against the code and the rules. All eleven find
 | 9 | CR 508.8, 510.4, 514.3a and the 117.5 repetition were missing | §1, §2.2, §2.6 |
 | 10 | Abilities from hand and graveyard are in no menu; `stack_empty` is never passed; the pre-check needs to be a superset | §0, §2.7 |
 | 11 | What scales is asks, not menu builds; measure with the network too | §5 |
+
+## 11. Build order of stage 1 (2026-11-10)
+
+Baseline before the first change: `pytest MTG_bot` 5091 passed, 39 deselected, 71 subtests (54 s).
+Tests call the engine outside any game loop about 1,200 times (`execute` 341, `begin_turn` 274,
+`cast` 180, `apply_effect` 142, `combat_*` 98, `end_turn` 95, `advance_turn` 73, `activate`
+62), and expect a call to return resolved. So the engine gets two drivers of priority, one rule:
+
+- **Driven** (a game loop holds the executor): after every action and resolution the loop asks
+  the holder; the engine never passes for a player who has a choice.
+- **Undriven** (a unit test, a pack set-up, a tool): an op ends with both players passing until
+  the stack is empty (the auto-pass driver of §4, built in), and `begin_turn`, `combat_step`,
+  `end_turn` and `advance_turn` run the step machine with both players passing, up to the same
+  boundaries as today. It never ends a step on its own.
+
+Commits, each with the suite green; behaviour changes are rules fixes, and a test that pinned the
+old behaviour is changed with a reason in the commit:
+
+1. Stack objects: `SpellObject` becomes one typed object for spells and abilities, carrying the
+   state of §2.3; `resolve_top` does a spell's resolution; `cast` and `cast_card` share it.
+2. Abilities on the stack: `activate` puts the ability on the stack (payment atomic) and the
+   trigger drain puts each trigger on the stack with its modes and targets before resolving it.
+3. The settle of CR 117.5 (state-based actions and triggers onto the stack, repeated) and the
+   undriven auto-pass; atomic casting.
+4. The menu moves into the engine (`executor/menu.py`) for the router and `RandomPolicy`; abilities
+   from every zone; costly mana sources folded into payment; the pre-check.
+5. The step machine and the driven loop; the windows deleted; `take_acts` becomes one decision per
+   priority point in `RandomPolicy`, the router, the heuristic, the test drivers and the search
+   (minimal: forks and resumes at priority points); packs with window lanes rewritten; the act
+   cap per player per step.
+6. The tests of §4 that can find priority bugs, and the trajectories re-pinned.
