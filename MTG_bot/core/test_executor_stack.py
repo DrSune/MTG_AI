@@ -70,7 +70,7 @@ from MTG_bot.core.executor.query import (
     verb_choose_options,
 )
 from MTG_bot.core.executor.stack import (
-    SpellObject,
+    StackObject,
     cast,
     land_playable,
     park,
@@ -238,7 +238,7 @@ class StackCase(unittest.TestCase):
         )
 
     def dummy_frame(self, handle, x=None):
-        return SpellObject(
+        return StackObject(
             handle=handle,
             node=SpellAbility(kind=SpellKind.INSTANT),
             controller=self.p0,

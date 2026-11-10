@@ -406,7 +406,7 @@ class Executor:
         self.end_turn_mark = 0
         self._closing_turn = False
         # -------------------------------------------------------- stack + mana
-        # The spell stack (CR 405): LIFO SpellObject frames, folded into the
+        # The spell stack (CR 405): LIFO StackObject frames, folded into the
         # fingerprint.
         self.stack = SpellStack()
         # CR 305.1 once-per-turn land gate: seat -> (turn, plays).

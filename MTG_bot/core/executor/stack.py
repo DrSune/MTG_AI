@@ -19,7 +19,7 @@ without its effect running (601.4 interrupted; the card still goes to its
 graveyard, 400.7). A seat with nothing castable is never asked (an empty
 choice set is never offered). Every declaration field the CR makes public
 (601.2b–e: modes, targets, X, total cost, timing choices) is stored on
-:class:`SpellObject` and journalled, so the window reads a complete frame
+:class:`StackObject` and journalled, so the window reads a complete frame
 instead of re-deriving one. :func:`open_combat_window` is the same kind of
 round for instants after blockers are declared.
 
@@ -109,10 +109,10 @@ _PERMANENT_KINDS = frozenset(
 
 
 @dataclass
-class SpellObject:
-    """One stack frame: the 601.2b–e declaration record. Every field is what
-    the CR makes PUBLIC on the stack — the response window reads this frame
-    instead of re-deriving it.
+class StackObject:
+    """One object on the stack (CR 405.1): the 601.2b–e declaration record,
+    public on the stack, and what its resolution reads (CR 608). The
+    response window reads this frame instead of re-deriving it.
 
     * ``node`` — the :class:`SpellAbility` IR (the same object
       ``legal_casts`` returned and resolution runs);
@@ -128,7 +128,13 @@ class SpellObject:
     * ``kicked`` — CR 702.27a: was the optional kicker cost paid with the
       total cost? The same truth rides the journalled CAST row (the
       durable carrier WAS_KICKED reads); the frame keeps it visible on the
-      stack for the response window and the diagnostics dump.
+      stack for the response window and the diagnostics dump;
+    * ``decisions``, ``slot_designations``, ``target_node`` — what the
+      resolution reads and the declaration made: the per-op decision pool
+      left after the modes and targets were taken from it, a multi-target
+      spell's per-slot designation (:func:`designate_slots`), and the node
+      narrowed to the declared modes, whose slots the targets are checked
+      against again (CR 608.2b).
     """
 
     handle: Handle
@@ -142,6 +148,9 @@ class SpellObject:
     declared_clock: int = 0
     from_zone: str | None = None
     kicked: bool = False
+    decisions: tuple[str, ...] = ()
+    slot_designations: dict[str, tuple[Handle, ...]] = field(default_factory=dict)
+    target_node: SpellAbility | None = None
     # The counter flag. Set by the COUNTER_SPELL handler when a
     # response-window cast interrupts THIS frame; the popper sees it and
     # returns without running the effect (CR 601.4's interrupted
@@ -155,12 +164,12 @@ class SpellStack:
     """Executor-side stack container: the LIFO frame list + the deterministic
     dump the fingerprint folds."""
 
-    frames: list[SpellObject] = field(default_factory=list)
+    frames: list[StackObject] = field(default_factory=list)
 
-    def push(self, frame: SpellObject) -> None:
+    def push(self, frame: StackObject) -> None:
         self.frames.append(frame)
 
-    def pop(self) -> SpellObject:
+    def pop(self) -> StackObject:
         if not self.frames:
             raise ValueError("executor: stack resolution with an empty stack")
         return self.frames.pop()
@@ -182,6 +191,8 @@ class SpellStack:
                 f.declared_clock,
                 f.from_zone,
                 f.kicked,
+                f.decisions,
+                tuple(sorted((k, tuple(map(str, v))) for k, v in f.slot_designations.items())),
             )
             for i, f in enumerate(self.frames)
         )
@@ -1027,7 +1038,7 @@ def open_combat_window(executor: Executor) -> None:
                      int(x_tag) if x_tag else None)
 
 
-def _response_window(executor: Executor, frame: SpellObject) -> None:
+def _response_window(executor: Executor, frame: StackObject) -> None:
     """The RESPONSE WINDOW of a spell just cast (CR 608.2's first slice),
     after its cast triggers have settled and before it resolves. Every
     opponent of its caster, in seat order, MAY answer the frame with a
@@ -1094,7 +1105,7 @@ def cast(
     mode_choices: tuple[int, ...] = (),
     targets: tuple[Handle, ...] | SlotGroups = (),
     decisions: tuple[str, ...] = (),
-) -> SpellObject:
+) -> StackObject:
     """The folded CR 601.2 → 601.4 move (the ``CAST`` decision of the
     Slate's field schedule — legality, declaration, payment, resolution,
     one call; ``legal_casts`` MUST be consulted first: an illegal cast
@@ -1122,7 +1133,7 @@ def cast(
     5b. **kick** (601.2b, CR 702.27a) — ``kicked=True`` declares the
        optional extra cost PAID: the kicker Cost joins the 601.2f fold
        inside ``spell_castable`` (a pool too poor for it refuses the cast
-       with an ordinary shortage), the choice rides the SpellObject
+       with an ordinary shortage), the choice rides the StackObject
        frame AND the journalled CAST row, and WAS_KICKED reads the row
        back for every later judge (spell arm, ETB trigger condition,
        gated EtBState). Kicking a card without a kicker is an
@@ -1134,15 +1145,8 @@ def cast(
        the journalled ``CAST`` event (the cast-trigger feed, ordinals
        included) and settle — cast triggers resolve ABOVE the spell; then
        the response window (:func:`_response_window`).
-    7. **resolve + put** (601.4, 601.2j) — pop the LIFO frame (a countered
-       frame stops here), check the targets again (CR 608.2b: with none
-       legal the spell does not resolve), run the effect (targets bound as
-       ``target``), move the card: instants and sorceries to the owner's
-       graveyard, permanent spells to the battlefield (auto-attaching the
-       registered compiled record so ETB triggers go live BEFORE the
-       settle sees the ETB event).
+    7. **resolve + put** (608, 601.2j) — :func:`resolve_top`.
     """
-    world = executor.world
     reason, node, _record, plan = spell_castable(
         executor, seat, handle, x=x, kicked=kicked
     )
@@ -1202,7 +1206,7 @@ def cast(
     # (pay_costs' own apply_effect boundaries journal the taps/sacrifices
     # exactly as activate() does); the parking gets its own journal
     # boundary so the hand->stack ZONE_CHANGE row exists at all.
-    frame = SpellObject(
+    frame = StackObject(
         handle=handle,
         node=node,
         controller=seat,
@@ -1214,6 +1218,9 @@ def cast(
         declared_clock=executor.journal.clock,
         from_zone="hand",
         kicked=kicked,
+        decisions=tuple(decisions),
+        slot_designations=dict(slot_designations),
+        target_node=target_node,
     )
     before = executor.journal.snapshot()
     start = len(executor.events)
@@ -1230,27 +1237,47 @@ def cast(
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
     executor._settle()  # cast triggers resolve first
     _response_window(executor, frame)  # 6b
+    assert executor.stack.frames[-1] is frame  # LIFO: every response above it has resolved
+    if resolve_top(executor) != "countered":
+        executor._finish_op()  # an effect that ended the turn goes first (CR 724.1)
+    return frame
 
-    # 7: resolution. The effect runs WITHOUT an intervening settle — the
-    # spell leaves the stack and the PUT happens before anything its
-    # mutations armed may fire (CR 608.3: resolution is indivisible; the
-    # settle in _finish_op below is the spell's own trigger aftermath).
-    popped = executor.stack.pop()
-    assert popped is frame  # LIFO: every response cast above it has resolved
+
+def resolve_top(executor: Executor) -> str:
+    """CR 608: the top object of the stack resolves. Returns "countered"
+    (it left the stack without resolving, CR 701.6a), "no_targets" (every
+    target illegal, CR 608.2b) or "resolved". The caller settles afterwards;
+    a countered spell's counter has already settled.
+
+    A spell (CR 608.2-608.3, 601.2j): its targets are checked again, its
+    effect runs with the targets bound as ``target`` and the declared modes
+    consumed by its top-level Choose, and the card moves, an instant or
+    sorcery to its owner's graveyard, a permanent spell to the battlefield
+    (auto-attaching the registered compiled record so ETB triggers go live
+    BEFORE the settle sees the ETB event). The effect runs WITHOUT an
+    intervening settle: the spell leaves the stack and the PUT happens
+    before anything its mutations armed may fire (CR 608.3: resolution is
+    indivisible)."""
+    from MTG_bot.core.executor.query import is_aura_spell, spell_target_slots
+
+    frame = executor.stack.pop()
     if frame.countered:
         # CR 601.4 interrupted: the COUNTER_SPELL handler already
         # flagged the frame, journalled the COUNTER row and moved the card
         # to its graveyard (400.7). The effect never runs and the spell
         # gets no SPELL_PUT — a countered spell was never put anywhere.
-        return frame
+        return "countered"
+    world = executor.world
+    handle, seat, node, x = frame.handle, frame.controller, frame.node, frame.x_value
+    targets: tuple[Handle, ...] = frame.declared_targets
+    slot_designations = frame.slot_designations
     if targets:
-        # CR 608.2b: the targets are checked again as the spell resolves; the cast
-        # triggers above it have resolved by now.
-        from MTG_bot.core.executor.query import spell_target_slots
-
+        # CR 608.2b: the targets are checked again as the spell resolves.
         legal_now, kept = recheck_targets(
             executor,
-            spell_target_slots(executor, target_node, spell_handle=handle, seat=seat),
+            spell_target_slots(
+                executor, frame.target_node or node, spell_handle=handle, seat=seat
+            ),
             targets,
             own=handle,
             designations=slot_designations or None,
@@ -1267,8 +1294,7 @@ def cast(
             executor.journal.record_atom(
                 before_put, handle, "CAST", list(executor.events[start_put:])
             )
-            executor._finish_op()
-            return frame
+            return "no_targets"
         targets = legal_now
         if kept is not None:
             slot_designations = kept
@@ -1276,21 +1302,19 @@ def cast(
     chosen = sorted(targets)
     if chosen:
         bindings["target"] = chosen
-    ctx = executor._cast_ctx(handle, seat, bindings, decisions, x)
+    ctx = executor._cast_ctx(handle, seat, bindings, frame.decisions, x)
     # A multi-TARGET spell threads its per-slot designation map and the
     # spell-wide union IS_ANY_TARGET means; a single-slot spell sets neither.
     if slot_designations:
         ctx.slot_designations = slot_designations
         ctx.designation_union = tuple(sorted(set(targets)))
-    if declared_modes and isinstance(node.effect, Choose):
+    if frame.mode_choices and isinstance(node.effect, Choose):
         # Every modal spell's announced set (any count) is consumed by its
         # top-level Choose at resolution (CR 601.2b: chosen once, as cast).
         # The token is the set's index in choose_options' canonical order, so
         # a "choose one or more" (Sublime Epiphany) keeps its declared set
         # instead of being asked again at resolution.
-        ctx.prechosen_modes = [str(m) for m in declared_modes]
-    from MTG_bot.core.executor.query import is_aura_spell
-
+        ctx.prechosen_modes = [str(m) for m in frame.mode_choices]
     # CR 303.4a/608.2a: an aura enters the battlefield ATTACHED, and
     # its resolution effect runs AFTER the edge exists — the corpus aura
     # effect (Enthralling Hold's GAIN_CONTROL) READS IS_ATTACHED_TO_SOURCE,
@@ -1310,13 +1334,13 @@ def cast(
         # registering before the effect runs lets the spell replace events
         # its own effect causes. Eot-expired: the tree carries no duration,
         # and "this turn" is the printed one for every such card.
-        registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
-        if registered is not None:
+        record = spell_record(executor, handle)
+        if record is not None:
             # The designation snapshot rides the record (Scorching
             # Dragonfire): the dies window outlives this ExecCtx, but its
             # anaphora ("that creature") still MEANS this cast's targets.
             executor.replacements.register_ephemeral_replacements(
-                handle, seat, registered, designated=tuple(chosen)
+                handle, seat, record, designated=tuple(chosen)
             )
     if not aura and node.effect is not None:  # effect-less castable creatures
         executor._run_guarded_effect(node.effect, ctx, "cast")
@@ -1370,16 +1394,15 @@ def cast(
     entered = executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
-    # CR 614.1c: the cast entry runs the SAME zone-change hooks the land
+    # CR 614.1c: the cast entry runs the SAME zone-change hooks as the land
     # drop runs — the compiled EtBState node (Malefic Scythe's "enters with
     # a soul counter", the corpus' entered-tapped idiom) is stamped HERE, as
     # the permanent enters, BEFORE its ETB triggers drain in the settle
-    # below.
+    # that follows.
     executor._on_zone_changes(entered)
     if aura and node.effect is not None:
         executor._run_guarded_effect(node.effect, ctx, "cast")
-    executor._finish_op()  # an effect that ended the turn goes first (CR 724.1)
-    return frame
+    return "resolved"
 
 
 def _face_cast_msg(name: str) -> str:
@@ -1436,9 +1459,9 @@ def cast_card(
     permission's timing is judged before the cast,
     ``query.cast_designee_ok``). The spell is on the stack like one cast
     from hand (CR 601.2i, 117.3c, 608.1), so after its cast triggers it
-    gets the same counter window (:func:`_response_window`). Returns
-    ``True`` when the spell was cast and resolved, ``False`` when it was
-    countered.
+    gets the same counter window (:func:`_response_window`) and resolves
+    through :func:`resolve_top`. Returns ``False`` when it was countered,
+    else ``True``.
 
     ``targets`` (CR 603.3: an effect that lets you cast a spell still
     gets its normal target choices — the effect's caster designates them
@@ -1513,7 +1536,7 @@ def cast_card(
         plan, why = build_payment_plan(world, ctx, cost, mana_use=handle)
         if plan is None:
             raise ValueError(f"executor: CAST cannot pay: {why}")
-    frame = SpellObject(
+    frame = StackObject(
         handle=handle,
         node=node,
         controller=caster,
@@ -1524,6 +1547,7 @@ def cast_card(
         payment=plan,
         declared_clock=executor.journal.clock,
         from_zone=world.zone_of(handle).kind,
+        target_node=target_node,
     )
     before = executor.journal.snapshot()
     start = len(executor.events)
@@ -1541,54 +1565,9 @@ def cast_card(
     executor.journal.emit_cast(handle, caster, node.kind.name, frame.from_zone, x)
     executor._settle()
     _response_window(executor, frame)
-    popped = executor.stack.pop()
-    assert popped is frame
-    if frame.countered:
+    assert executor.stack.frames[-1] is frame
+    if resolve_top(executor) == "countered":
         return False  # CR 701.6a: removed from the stack, none of its effects occur
-    bindings: dict[str, Binding] = {}
-    chosen = sorted(targets)
-    if chosen:
-        bindings["target"] = chosen
-    ctx = executor._cast_ctx(handle, caster, bindings, (), x)
-    if declared_modes:
-        ctx.prechosen_modes = [str(m) for m in declared_modes]
-    from MTG_bot.core.executor.query import is_aura_spell
-
-    aura = is_aura_spell(world, handle)
-    if aura and not chosen:
-        raise ValueError("executor: CAST: an aura cast needs its enchant target")
-    if not aura and node.kind not in _PERMANENT_KINDS:
-        # The spell's own replacements go live at resolution start, as in
-        # cast().
-        executor.replacements.register_ephemeral_replacements(handle, caster, record)
-    if not aura and node.effect is not None:
-        executor._run_guarded_effect(node.effect, ctx, "cast_card")
-    before_put = executor.journal.snapshot()
-    start_put = len(executor.events)
-    dest = ZONE_GRAVEYARD if node.kind not in _PERMANENT_KINDS else ZONE_BATTLEFIELD
-    world.move_to_zone(handle, caster, dest)
-    executor.events.append(
-        (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
-    )
-    if dest == ZONE_BATTLEFIELD:
-        if x is not None:  # same CR 614.1c X ride as cast()
-            executor.etb_x[handle] = x
-        registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
-        if registered is not None:
-            executor.binder.attach_card(handle, registered)
-        if aura:
-            executor.attach_aura(handle, chosen[0])
-            executor.events.append(
-                (len(executor.events), "ATTACH", str(handle), str(chosen[0]))
-            )
-    entered = executor.journal.record_atom(
-        before_put, handle, "CAST", list(executor.events[start_put:])
-    )
-    # Same CR 614.1c entered-state stamp as cast() —
-    # effect-cast permanents declare their EtBState too.
-    executor._on_zone_changes(entered)
-    if aura and node.effect is not None:
-        executor._run_guarded_effect(node.effect, ctx, "cast_card")
     executor._settle()
     return True
 

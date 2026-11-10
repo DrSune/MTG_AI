@@ -2304,7 +2304,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
 
     The designated target is the framed CARD (the window casts the counter
     with ``targets=(frame.handle,)``). The handler flags the victim's
-    :class:`~MTG_bot.core.executor.stack.SpellObject`, so the popper in
+    :class:`~MTG_bot.core.executor.stack.StackObject`, so the popper in
     :func:`stack.cast` interrupts the resolution (CR 601.4) — the frame's
     effect never runs and the card moves to its owner's graveyard
     (CR 400.7).
