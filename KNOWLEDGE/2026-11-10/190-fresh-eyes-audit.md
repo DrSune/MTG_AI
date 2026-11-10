@@ -75,6 +75,19 @@ Open:
     figure 0.595" for gen.pt was r20 v2's 100-deal ladder under the mulligan engine. Note 186 has
     gen.pt at 0.5875 [0.555, 0.620], which r25's start ladder confirms (0.590 [0.564, 0.616]).
 
+13. **The heuristic answers both instant windows without judgement** (found 2026-11-10 while
+    surveying for the priority rung). It has no `_cw` and no `_counter` method, so `decide`
+    (`heuristic.py:163-168`) falls back to `_first_non_refuse` (`:172`): the first option after
+    PASS. The combat window's options are PASS and then every legal one-target damage or pump
+    instant on every legal target, sorted by handle text (`stack.py:993`), so the heuristic casts
+    whichever comes first: it can burn its own creature or pump the attacker. In the counter
+    window it counters every spell it can. The heuristic is the rating anchor and the behaviour
+    cloning teacher, so every figure against it carries this. The fix belongs to the priority
+    rung, which replaces both windows (its heuristic needs exactly this judgement).
+14. **Huge game numbers overflowed the network's input** (fixed 2026-11-10, e176c47): float16
+    tops out at 65,504, and Light of Promise on a lifelink Baneslayer Angel reached 296,000
+    power in r26, which crashed it once (NUMBERS, r26 at update 320).
+
 Already in BACKLOG ("Self-play stack"): optimizer moments lost on `--resume`; an evaluation running
 at a resume is lost; workers importing torch (about 9.5 GB for 18).
 
