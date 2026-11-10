@@ -399,3 +399,34 @@ the gates needs 0.508 (2.4 SE). If the entropy of the late window differs from t
 scale (next: both seats' decisions to the learner, then a larger step); no gain with prediction 3
 met says it is exhausted at this policy on this hardware, and the learner needs a denser signal
 than the game result (the owner's parked question, D21); prediction 3 falsified says rerun larger.
+
+## 10. r26 at update 500: the first registered read (2026-11-10 23:30, at update 536)
+
+Numbers in NUMBERS ("r26 AT UPDATE 500"). The run passed two gates, which §9 treated as unlikely,
+and that changed what predictions 1 and 2 measure: after v1 froze at 202 the gates and
+`win.frozen` compare with v1, and after 378 with v2.
+
+| # | Read | Verdict |
+|---|---|---|
+| 1 | `win.frozen` 0.530 -> 0.4995, but against v0 then v2 | not comparable; the freezes answer it: falsified toward a gain |
+| 2 | gates against v0 stopped at 202; v1 passed at 202, v2 at 378 | falsified: a gain |
+| 3 | `kl` 0.0057 | above the range: twice the movement per update predicted; not the falsifier (moving too little) |
+| 4a | entropy slope +0.00056 | met |
+| 4b | entropy 0.4275 | falsified: the bonus is too strong; a successor changes it |
+| 5 | `ev` 0.416 | met |
+| 6 | 50.3 GiB minimum, 49.4 early | met |
+| 7 | 138 s | met |
+| 8 | 0.590 at the start | met |
+
+Kill criteria: K1 fired once, at update 173 (an input overflow at inference, fixed in main as
+`features._squash`; the pinned run keeps the old code and restarts itself if it recurs). None
+other.
+
+**What it means**, by §9: a gain. Outcome PPO at gamma = lambda = 1 with this batch learns: v2 is
+76 Elo above v0 after 378 updates and scores 0.684 against the heuristic where v0 scored 0.590.
+Since v2 the gates sit at 0.46-0.53 and the next pass is not in sight at 536; the dip at 425-475
+is in the stress half, decks the run does not train on. The gain is not attributed to the bonus
+alone: r26 differs from r20-r23 in learning rate, gamma and lambda, batch and gates. For the
+successor, which is the first run on the game with priority (`docs/DESIGN_PRIORITY.md` stage 5):
+a smaller bonus, read per decision kind. Next looks: update 1,000 (about 18:00 on 2026-11-11)
+and 2,000 (about 10:00 on 2026-11-13).
