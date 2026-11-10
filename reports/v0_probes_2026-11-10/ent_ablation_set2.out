@@ -1,0 +1,52 @@
+rows 78182: train 52875, held-out 25307
+before: entropy train 0.22376 held-out 0.22747; value bias held-out +0.1341, ev 0.4313
+
+G  policy term only, advantages permuted  [22 steps, gn 0.53438, logged kl 0.00146, 50s]
+  entropy change: held-out +0.00102  train +0.00072
+  KL(before||after): held-out 0.00213  train 0.00242
+  top choice changed: held-out 0.0104  train 0.0116
+  value held-out: bias +0.1153  ev 0.4322
+  held-out entropy change by ask kind: act +0.0026  attack -0.0034  block -0.0021  target +0.0032  act_second_main +0.0032  one_of +0.0038  choose +0.0092  discard +0.0029
+
+H5 bonus 0.005  [22 steps, gn 0.92942, logged kl 0.00172, 50s]
+  entropy change: held-out -0.00278  train -0.00232
+  KL(before||after): held-out 0.00251  train 0.00284
+  top choice changed: held-out 0.0096  train 0.0111
+  value held-out: bias +0.0302  ev 0.4423
+  held-out entropy change by ask kind: act -0.0011  attack -0.0043  block +0.0008  target -0.0067  act_second_main +0.0003  one_of -0.0105  choose +0.0021  discard -0.0086
+
+H10 bonus 0.01  [22 steps, gn 0.93009, logged kl 0.00171, 50s]
+  entropy change: held-out -0.00159  train -0.00115
+  KL(before||after): held-out 0.00247  train 0.00283
+  top choice changed: held-out 0.0101  train 0.0115
+  value held-out: bias +0.0302  ev 0.4423
+  held-out entropy change by ask kind: act +0.0001  attack -0.0032  block +0.0022  target -0.0051  act_second_main +0.0015  one_of -0.0090  choose +0.0032  discard -0.0055
+
+W  r25's loss in two calls: first file, then second call 1  [12 steps, gn 1.07306, logged kl 0.00163, 33s]
+  entropy change: held-out -0.00676  train -0.00655
+  KL(before||after): held-out 0.00244  train 0.00258
+  top choice changed: held-out 0.0098  train 0.0114
+  value held-out: bias -0.0543  ev 0.4415
+  held-out entropy change by ask kind: act -0.0053  attack -0.0088  block -0.0022  target -0.0118  act_second_main -0.0054  one_of -0.0168  choose -0.0057  discard -0.0115
+
+W  r25's loss in two calls: first file, then second call 2  [11 steps, gn 0.91768, logged kl 0.0025, 65s]
+  entropy change: held-out +0.00402  train +0.00422
+  KL(before||after): held-out 0.00133  train 0.00137
+  top choice changed: held-out 0.0073  train 0.0087
+  value held-out: bias +0.0114  ev 0.4440
+  held-out entropy change by ask kind: act +0.0043  attack +0.0053  block +0.0011  target +0.0069  act_second_main +0.0024  one_of +0.0038  choose +0.0048  discard +0.0021
+
+W2 r25's loss in two calls: second file, then first call 1  [11 steps, gn 1.0681, logged kl 0.0015, 32s]
+  entropy change: held-out +0.00189  train +0.00232
+  KL(before||after): held-out 0.00317  train 0.00324
+  top choice changed: held-out 0.0127  train 0.0128
+  value held-out: bias -0.0461  ev 0.4378
+  held-out entropy change by ask kind: act +0.0018  attack +0.0011  block +0.0107  target -0.0051  act_second_main +0.0077  one_of -0.0063  choose -0.0003  discard +0.0094
+
+W2 r25's loss in two calls: second file, then first call 2  [12 steps, gn 0.9364, logged kl 0.0031, 65s]
+  entropy change: held-out -0.00687  train -0.00726
+  KL(before||after): held-out 0.00232  train 0.00238
+  top choice changed: held-out 0.0112  train 0.0116
+  value held-out: bias +0.0087  ev 0.4415
+  held-out entropy change by ask kind: act -0.0054  attack -0.0070  block -0.0087  target -0.0042  act_second_main -0.0146  one_of -0.0086  choose -0.0025  discard -0.0230
+exit 0

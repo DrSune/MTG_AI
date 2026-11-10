@@ -1,0 +1,11 @@
+rows 78182 minibatches 31 sizes min/median/max 142 2457 4096
+act              row share 0.4162  minibatch-weighted share 0.3878  ratio 0.93  mean length 29.4
+attack           row share 0.2729  minibatch-weighted share 0.2781  ratio 1.02  mean length 33.4
+block            row share 0.0808  minibatch-weighted share 0.0843  ratio 1.04  mean length 34.0
+target           row share 0.0722  minibatch-weighted share 0.0894  ratio 1.24  mean length 38.3
+act_second_main  row share 0.0581  minibatch-weighted share 0.0550  ratio 0.95  mean length 30.5
+one_of           row share 0.0103  minibatch-weighted share 0.0196  ratio 1.91  mean length 42.8
+choose           row share 0.0095  minibatch-weighted share 0.0109  ratio 1.14  mean length 38.8
+discard          row share 0.0069  minibatch-weighted share 0.0057  ratio 0.82  mean length 26.3
+A's by-kind falls: per-row -0.00310, minibatch-weighted -0.00330, ratio 1.07
+A2's by-kind falls: per-row -0.00612, minibatch-weighted -0.00635, ratio 1.04

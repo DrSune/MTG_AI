@@ -85,6 +85,15 @@ teacher inter-play stage and must use the run's `--pool` (state files from befor
 `castable`). PPO's AdamW moments restart; an evaluation still running when the run stopped is
 not resumed (queued ones are).
 
+**Unattended runs (`launch.sh`).** `tools/selfplay/launch.sh RUN_DIR LEARNER-ARGS...` starts a
+run, or continues it with `--resume` when `RUN_DIR/state.pkl` exists. It first waits until 60 GiB
+of memory is available (`NEED_GIB`) and sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`,
+without which one PPO update reserves 54 GiB instead of 22. Under a systemd user unit with
+`Restart=on-failure` and `SuccessExitStatus=143`, a run that dies (memory floor, crash, kill)
+continues from its last save, and one stopped with `systemctl --user stop` stays stopped until
+`systemctl --user start`. A resume replays the updates after the last save, so read the last
+`iter` row per update. The unit text of r26 is in `KNOWLEDGE/2026-11-10/189` §9.
+
 **Run manifest.** Each start of the learner, a resume included, appends an entry to
 `<run>/manifest.json`: the parsed arguments, the git commit and whether the tree is dirty (with
 `git status --porcelain`; untracked files count, since card records on disk change the pools),

@@ -1,0 +1,49 @@
+rows 78182  games 750  mean ent 0.2250  ev 0.371  adv std 0.791  mean z +0.079
+
+ask kind: share, mean options, mean entropy, share of samples off the top choice (p < 0.5), mean advantage on / off the top choice
+  act               0.416  opts   4.1  ent 0.264  off 0.158  adv on -0.1565  off -0.1928
+  attack            0.273  opts   2.0  ent 0.136  off 0.054  adv on -0.1515  off -0.1877
+  block             0.081  opts   2.7  ent 0.323  off 0.159  adv on -0.0781  off -0.0471
+  target            0.072  opts   4.5  ent 0.229  off 0.110  adv on -0.0529  off -0.0410
+  act_second_main   0.058  opts   2.5  ent 0.214  off 0.083  adv on -0.1958  off -0.2199
+  order             0.020  opts   2.7  ent 0.001  off 0.000  adv on -0.1761  off +nan
+  mulligan          0.019  opts   2.0  ent 0.045  off 0.011  adv on -0.2187  off -0.7491
+  may               0.013  opts   2.0  ent 0.007  off 0.001  adv on -0.0453  off -1.2119
+  one_of            0.010  opts   7.9  ent 0.768  off 0.359  adv on -0.1746  off -0.1131
+  choose            0.009  opts   6.1  ent 0.503  off 0.263  adv on -0.1412  off -0.2055
+  discard           0.007  opts   5.7  ent 0.645  off 0.330  adv on -0.0586  off -0.0440
+  scry              0.006  opts   2.0  ent 0.252  off 0.110  adv on -0.1255  off -0.1271
+  cw                0.004  opts   5.6  ent 0.291  off 0.120  adv on -0.1941  off -0.0602
+  mana              0.003  opts   5.0  ent 0.017  off 0.000  adv on -0.2990  off +nan
+  trample           0.002  opts   4.3  ent 0.090  off 0.033  adv on -0.0331  off +0.0326
+  sacrifice         0.002  opts   4.6  ent 0.716  off 0.422  adv on +0.0672  off +0.0548
+  counter           0.001  opts   2.1  ent 0.092  off 0.052  adv on -0.2270  off -0.0689
+  x                 0.000  opts   6.4  ent 0.015  off 0.000  adv on +0.0724  off +nan
+  legend            0.000  opts   2.0  ent 0.512  off 0.345  adv on -0.3205  off +0.0168
+  pay               0.000  opts   2.0  ent 0.000  off 0.000  adv on -0.3130  off +nan
+  mulligan_bottom   0.000  opts   6.9  ent 0.810  off 0.294  adv on -0.5943  off -1.1513
+  enchant           0.000  opts   5.5  ent 0.459  off 0.500  adv on +0.6698  off +0.0405
+  replace           0.000  opts   2.0  ent 0.494  off 0.000  adv on +0.8930  off +nan
+all kinds: off-choice share 0.1171; mean advantage on -0.1436 (se 0.0030), off -0.1605 (se 0.0085)
+  game quarter 0.00-0.25: ent 0.260  |adv| 0.912  ev 0.033
+  game quarter 0.25-0.50: ent 0.201  |adv| 0.760  ev 0.208
+  game quarter 0.50-0.75: ent 0.204  |adv| 0.544  ev 0.490
+  game quarter 0.75-1.01: ent 0.234  |adv| 0.286  ev 0.746
+
+act asks 37082: option type, share of asks offering it, share of asks choosing it, chosen when offered
+  PASS           offered 1.000  chosen 0.229  chosen|offered 0.229
+  cast           offered 0.663  chosen 0.335  chosen|offered 0.505
+  activate       offered 0.550  chosen 0.160  chosen|offered 0.292
+  land           offered 0.277  chosen 0.276  chosen|offered 0.995
+mulligan asks 1516: {'keep': 1500, 'mulligan': 16}; mean p(chosen) 0.981
+
+parameters 27,248,130; trunk 26,721,792
+minibatches 31 (sizes 140-4096)
+
+trunk gradient norms per minibatch (mean) and of the whole-buffer mean:
+  pg       per-minibatch 0.7283   whole buffer 0.1173   ratio 0.161  (pure noise would give 0.180)
+  value    per-minibatch 1.1972   whole buffer 1.0068   ratio 0.841  (pure noise would give 0.180)
+  entropy  per-minibatch 0.0018   whole buffer 0.0012   ratio 0.651  (pure noise would give 0.180)
+  cosines per minibatch: pg,value +0.0040  pg,entropy +0.0191
+  cosines of whole-buffer means: pg,value +0.0424  pg,entropy +0.0149  value,entropy -0.1585
+  mean |ratio - 1| at v0 (bf16 against the recorded fp32 log-prob): 0.00157

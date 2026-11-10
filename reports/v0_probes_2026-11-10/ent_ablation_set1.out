@@ -1,0 +1,52 @@
+rows 78182: train 52875, held-out 25307
+before: entropy train 0.22376 held-out 0.22747; value bias held-out +0.1341, ev 0.4313
+
+A  r25: value 0.5, bonus 0  [22 steps, gn 0.93175, logged kl 0.00176, 50s]
+  entropy change: held-out -0.00375  train -0.00334
+  KL(before||after): held-out 0.00255  train 0.00288
+  top choice changed: held-out 0.0100  train 0.0111
+  value held-out: bias +0.0297  ev 0.4422
+  held-out entropy change by ask kind: act -0.0021  attack -0.0049  block -0.0004  target -0.0082  act_second_main -0.0012  one_of -0.0122  choose +0.0010  discard -0.0117
+
+A2 same, other minibatch order  [22 steps, gn 0.86509, logged kl 0.0016, 50s]
+  entropy change: held-out -0.00691  train -0.00668
+  KL(before||after): held-out 0.00209  train 0.00237
+  top choice changed: held-out 0.0084  train 0.0096
+  value held-out: bias +0.0079  ev 0.4435
+  held-out entropy change by ask kind: act -0.0048  attack -0.0082  block -0.0019  target -0.0116  act_second_main -0.0085  one_of -0.0191  choose -0.0025  discard -0.0254
+
+B  bonus 0.002  [22 steps, gn 0.92968, logged kl 0.00174, 50s]
+  entropy change: held-out -0.00358  train -0.00316
+  KL(before||after): held-out 0.00254  train 0.00286
+  top choice changed: held-out 0.0101  train 0.0114
+  value held-out: bias +0.0302  ev 0.4423
+  held-out entropy change by ask kind: act -0.0018  attack -0.0051  block -0.0004  target -0.0078  act_second_main -0.0003  one_of -0.0116  choose +0.0015  discard -0.0113
+
+C  policy term only (value 0)  [22 steps, gn 0.56422, logged kl 0.0015, 50s]
+  entropy change: held-out -0.00468  train -0.00479
+  KL(before||after): held-out 0.00287  train 0.00325
+  top choice changed: held-out 0.0114  train 0.0123
+  value held-out: bias +0.1148  ev 0.4318
+  held-out entropy change by ask kind: act -0.0032  attack -0.0063  block -0.0040  target -0.0092  act_second_main +0.0061  one_of -0.0105  choose +0.0039  discard -0.0126
+
+D  value term only (adv = 0)  [22 steps, gn 0.74488, logged kl 0.00144, 49s]
+  entropy change: held-out +0.00288  train +0.00299
+  KL(before||after): held-out 0.00206  train 0.00216
+  top choice changed: held-out 0.0092  train 0.0103
+  value held-out: bias +0.0383  ev 0.4425
+  held-out entropy change by ask kind: act +0.0037  attack +0.0008  block +0.0043  target -0.0010  act_second_main +0.0059  one_of -0.0030  choose +0.0000  discard +0.0089
+
+E  value 0.05, bonus 0  [22 steps, gn 0.56907, logged kl 0.00167, 50s]
+  entropy change: held-out -0.00528  train -0.00507
+  KL(before||after): held-out 0.00285  train 0.00323
+  top choice changed: held-out 0.0111  train 0.0116
+  value held-out: bias -0.0319  ev 0.4386
+  held-out entropy change by ask kind: act -0.0040  attack -0.0066  block -0.0020  target -0.0120  act_second_main +0.0034  one_of -0.0121  choose +0.0025  discard -0.0080
+
+F  bonus 0.02  [22 steps, gn 0.9294, logged kl 0.00168, 50s]
+  entropy change: held-out +0.00076  train +0.00125
+  KL(before||after): held-out 0.00246  train 0.00283
+  top choice changed: held-out 0.0102  train 0.0113
+  value held-out: bias +0.0303  ev 0.4423
+  held-out entropy change by ask kind: act +0.0026  attack -0.0014  block +0.0053  target -0.0018  act_second_main +0.0046  one_of -0.0047  choose +0.0055  discard +0.0011
+exit 0
