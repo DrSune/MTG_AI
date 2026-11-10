@@ -661,7 +661,7 @@ class TestBothMainPhases(StackCase):
         self.assertEqual(self.ex.phase, "FIRST_MAIN")
         self.assertEqual(self.windows(), (None, None, None))
         self.ex.combat_attacks(self.p0)
-        self.assertEqual(self.ex.phase, "COMBAT")
+        self.assertEqual(self.ex.phase, "DECLARE_ATTACKERS")
         self.assertEqual(self.windows(), ("window:phase", "window:phase", "land:phase"))
         self.ex.combat_blocks(self.p0)
         self.assertEqual(self.ex.phase, "SECOND_MAIN")

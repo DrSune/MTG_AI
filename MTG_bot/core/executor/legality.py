@@ -130,15 +130,33 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.executor import Executor
     from MTG_bot.core.executor.layers import LayerRecord
 
+#: The steps of a turn (CR 500.1, 501-514), the values of ``Executor.phase``, in order. Where the
+#: grammar's ``Phase`` (the trigger vocabulary) names a step, the step carries that name: UPKEEP,
+#: FIRST_MAIN, COMBAT (the beginning of combat step) and END_TURN (the end step). A main phase
+#: has no steps; it is its own entry. FIRST_STRIKE_DAMAGE is the first of two combat damage steps
+#: (CR 510.4). TURN_ENDED is no step: the turn's last cleanup step is over and the next turn has
+#: not begun.
+UNTAP = "UNTAP"
+UPKEEP = Phase.UPKEEP.name
+DRAW = "DRAW"
+FIRST_MAIN = Phase.FIRST_MAIN.name
+BEGIN_COMBAT = Phase.COMBAT.name
+DECLARE_ATTACKERS = "DECLARE_ATTACKERS"
+DECLARE_BLOCKERS = "DECLARE_BLOCKERS"
+FIRST_STRIKE_DAMAGE = "FIRST_STRIKE_DAMAGE"
+COMBAT_DAMAGE = "COMBAT_DAMAGE"
+END_OF_COMBAT = "END_OF_COMBAT"
+SECOND_MAIN = "SECOND_MAIN"
+END_STEP = Phase.END_TURN.name
+CLEANUP = "CLEANUP"
+TURN_ENDED = "TURN_ENDED"
+
 #: CR 505.1: a turn has two main phases, the first (precombat) and the second (postcombat), with
 #: the combat phase between them. Sorcery speed is "a main phase of your turn with an empty
 #: stack" (CR 117.1a, 505.6a-b; per type 302.1, 305.1, 307.1; abilities 602.5d, 606.3), so every
-#: sorcery-speed gate reads this one set. The phase clock names the second main phase SECOND_MAIN
-#: (``combat_blocks`` stamps it); the grammar's ``Phase`` is the trigger vocabulary and has no
-#: member for it, since no card in the pools triggers at the beginning of a second main phase.
-#: ``None`` is a world with no turn begun (bare test rigs), read as inside.
-SECOND_MAIN = "SECOND_MAIN"
-MAIN_PHASES = frozenset({None, Phase.FIRST_MAIN.name, SECOND_MAIN})
+#: sorcery-speed gate reads this one set. ``None`` is a world with no turn begun (bare test rigs),
+#: read as inside.
+MAIN_PHASES = frozenset({None, FIRST_MAIN, SECOND_MAIN})
 
 # The mana-pool key convention written by ``_v_add_mana`` (verbs.py): pool
 # keys are exactly W U B R G C. CostManaColor is payable only from its own

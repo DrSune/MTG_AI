@@ -429,7 +429,7 @@ class TestEndTurn(LibraryCase):
         self.assertTrue(self.ex.turn_open)
         self._do(atom(Verb.END_TURN))
         self.assertFalse(self.ex.turn_open)
-        self.assertEqual(self.ex.phase, "END_TURN")
+        self.assertEqual(self.ex.phase, "TURN_ENDED")  # its cleanup step ran (CR 724.1d)
         # "End the turn" skips the end step (CR 724.1d-e), so no END_TURN
         # marker is journalled.
         self.assertEqual(self._markers().count("END_TURN"), 0)

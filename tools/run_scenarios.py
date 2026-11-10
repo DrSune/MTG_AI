@@ -325,9 +325,6 @@ class ScenarioRunner:
                 self.world.cards[self.handles[card["key"]]].counters[kind] = int(n)
         # The real cards' triggers/abilities register from the compiled pool.
         self.ex.attach_pool(supply.pool)
-        for seat, colors in pack.get("mana", {}).items():
-            for color, n in colors.items():
-                self.world.players[self.seats[int(seat)]].mana_pool[color] = n
         if "mulligan" in pack:
             self._mulligans(list(pack["mulligan"]))
         # The clock opens for real (begin_turn: markers, ledger; turn 1 of a two-player game, so
@@ -342,6 +339,11 @@ class ScenarioRunner:
             self.ex.decisions.provider = None
         for handle in start_tapped:
             self.world.cards[handle].tapped = True
+        # The pack's mana is the pool in the first main phase: put in after the opening
+        # begin_turn, whose steps each empty the pools as they end (CR 500.4).
+        for seat, colors in pack.get("mana", {}).items():
+            for color, n in colors.items():
+                self.world.players[self.seats[int(seat)]].mana_pool[color] = n
         # The asks the engine made, and libraries deep enough for real
         # begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []

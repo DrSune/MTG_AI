@@ -62,7 +62,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     OptionalEffect,
-    Phase,
     QConst,
     Selector,
     SelectorMode,
@@ -88,7 +87,20 @@ from MTG_bot.core.executor.events import (
 )
 from MTG_bot.core.executor.layers import LayerRegistry
 from MTG_bot.core.executor.legality import (
+    BEGIN_COMBAT,
+    CLEANUP,
+    COMBAT_DAMAGE,
+    DECLARE_ATTACKERS,
+    DECLARE_BLOCKERS,
+    DRAW,
+    END_OF_COMBAT,
+    END_STEP,
+    FIRST_MAIN,
+    FIRST_STRIKE_DAMAGE,
     SECOND_MAIN,
+    TURN_ENDED,
+    UNTAP,
+    UPKEEP,
     ManaLedger,
     ability_playable,
     activate,
@@ -196,6 +208,22 @@ _RETURN_ZONE_KIND = {
     ZONE_HAND: ZoneKind.HAND,
     ZONE_GRAVEYARD: ZoneKind.GRAVEYARD,
     ZONE_EXILE: ZoneKind.EXILE,
+}
+
+
+#: The step after each step whose successor does not depend on the game (CR 500.1;
+#: Executor._next_step decides the rest).
+_NEXT_STEP = {
+    UNTAP: UPKEEP,
+    UPKEEP: DRAW,
+    DRAW: FIRST_MAIN,
+    FIRST_MAIN: BEGIN_COMBAT,
+    BEGIN_COMBAT: DECLARE_ATTACKERS,
+    FIRST_STRIKE_DAMAGE: COMBAT_DAMAGE,
+    COMBAT_DAMAGE: END_OF_COMBAT,
+    END_OF_COMBAT: SECOND_MAIN,
+    SECOND_MAIN: END_STEP,
+    END_STEP: CLEANUP,
 }
 
 
@@ -380,6 +408,17 @@ class Executor:
         # flag the legality gates read.
         self.phase: str | None = None
         self.turn_open = False
+        # The step machine (CR 117, 500-514; see begin_turn): whether the step's
+        # turn-based actions ran, who holds priority, how many players passed in
+        # succession, and the creatures that had first or double strike as the
+        # first combat damage step began (CR 510.4). Folded into the fingerprint.
+        self.tba_done = False
+        self.priority_holder: Handle | None = None
+        self.passes = 0
+        self.first_strikers: frozenset[Handle] | None = None
+        # CR 103.8a: the first player skips the draw of their first turn.
+        # A function of the turn counter, so not folded.
+        self._skip_draw = False
         # CR 500.7: EXTRA_TURN pushes onto the FRONT (the most recently
         # created turn is taken first), advance_turn pops index 0.
         self.extra_turn_queue: list[Handle] = []
@@ -1796,16 +1835,14 @@ class Executor:
         marker is journalled and "at the beginning of the end step"
         abilities do not trigger (724.1e). The triggers from the process
         resolve in the cleanup step, and another cleanup step follows
-        (724.1f, the 514.3a loop of :meth:`_cleanup_step`). Returns the
-        firing count."""
-        self.phase = Phase.END_TURN.name  # the ending phase: no sorcery window
+        (724.1f, CR 514.3a). Returns the firing count."""
         self.turn_open = False
         self._closing_turn = True
-        try:
-            self._end_the_turn_process()
-            return self._cleanup_step()
-        finally:
-            self._closing_turn = False
+        self._end_the_turn_process()
+        self.declaring = False
+        self.first_strikers = None
+        self._begin_step(CLEANUP)
+        return self._auto_pass_until(TURN_ENDED)
 
     def _end_the_turn_process(self) -> None:
         """CR 724.1a-d, the part of ending the turn before its cleanup step.
@@ -1874,10 +1911,8 @@ class Executor:
 
     # -------------------------------------------------------- turn skeleton
     #
-    # The executor-owned turn: active rotation, the world.turn clock, the
-    # untap, upkeep and draw steps, the COMBAT phase
-    # (:meth:`Executor.combat_step`, driven between the main-phase acts and
-    # end_turn by the game driver), the end and cleanup steps, and the
+    # The executor-owned turn: active rotation, the world.turn clock and the
+    # step machine below (every step of CR 500.1, with priority), and the
     # phase markers the grammar has triggers for: UPKEEP, FIRST_MAIN and
     # COMBAT at the beginning of a turn's work, END_TURN at the end of one.
     # The untap step is a RULE step, not an Atom: it mutates the world
@@ -1885,53 +1920,253 @@ class Executor:
     # creature untaps" triggers and the fingerprint see it.
 
     def begin_turn(self, player: Handle) -> int:
-        """Begin ``player``'s turn: active rotation, turn clock, the UNTAP
-        step, UPKEEP and FIRST_MAIN markers, per-turn event trackers
-        reset; drains triggers. Returns the firing count. Each step resolves
-        its own triggers: the upkeep's before the draw step (CR 503.1a, 504),
-        the draw step's before the main phase. The first turn of a two-player
-        game has no draw step (CR 103.8a)."""
+        """Begin ``player``'s turn: active rotation, turn clock, per-turn event
+        trackers reset, then the untap, upkeep and draw steps (CR 502-504) with
+        both players passing (the undriven auto-pass, DESIGN_PRIORITY §11), up
+        to the first main phase with an empty stack. Returns how many triggered
+        abilities resolved. Each step resolves its own triggers: the upkeep's
+        before the draw step (CR 503.1a, 504), the draw step's before the main
+        phase. The first turn of a two-player game has no draw step (CR
+        103.8a)."""
         if player not in self.world.players:
             raise ValueError(f"begin_turn: {player} is not a player of this world")
-        first_turn = not self._turn_started
+        # CR 103.8a: in a two-player game the player who plays first skips the
+        # draw step of their first turn (103.8c: in other multiplayer games
+        # nobody skips it).
+        self._skip_draw = not self._turn_started and len(self.world.player_order) == 2
         if self._turn_started:
             self.world.turn += 1
         self._turn_started = True
         self.world.active_player = player
         self.turn_open = True
-        # The UNTAP step has no grammar phase marker (Phase is the closed
-        # {UPKEEP, FIRST_MAIN, COMBAT, END_TURN} vocab), so the clock sits
-        # at UPKEEP across it — nothing can activate during a rule step.
-        self.phase = Phase.UPKEEP.name
+        self._closing_turn = False
         self.journal.begin_turn(player)
-        self._untap_step(player)
-        # UNTIL_NEXT_TURN expiry: the recorded owner's turn is beginning
-        # (the binder's delayed triggers end at end of turn instead).
-        self.ledger.expire_until_next_turn(player)
-        self.layers.expire_until_next_turn(player)
-        self.replacements.expire_until_next_turn(player)
-        # CR 610.3: zone moves "until your next turn" return now.
-        returning = self.returns.end_next_turn(player)
+        self._begin_step(UNTAP)
+        return self._auto_pass_until(FIRST_MAIN)
+
+    # ------------------------------------------------ the step machine (CR 500-514, 117)
+    #
+    # ``phase`` is the current step (legality's step names), ``tba_done`` whether
+    # its turn-based actions ran, ``priority_holder`` and ``passes`` CR 117's
+    # priority: who holds it and how many players passed in succession; and
+    # ``first_strikers`` the creatures that had first or double strike as the
+    # first combat damage step began (CR 510.4). All of it is replayed state,
+    # folded into state_fingerprint, so a game stopped at a priority point
+    # resumes there. ``begin_turn``, ``combat_attacks``, ``combat_blocks``,
+    # ``end_turn`` and ``advance_turn`` run it with both players passing.
+
+    def _begin_step(self, step: str) -> None:
+        self.phase = step
+        self.tba_done = False
+        self.priority_holder = None
+        self.passes = 0
+
+    def _to_priority(self) -> bool:
+        """Run the game on until a player receives priority (CR 117.3a-b): the
+        current step's turn-based actions if they have not run, a step in which
+        nobody receives priority ended at once, then the CR 117.5 check. False
+        when the turn has ended instead."""
+        while self.phase != TURN_ENDED:
+            if not self.tba_done:
+                self.tba_done = True
+                if not self._turn_based_actions():
+                    self._end_step()
+                    continue
+                self.priority_holder = self.world.active_player
+                self.passes = 0
+            self._priority_check()
+            return True
+        return False
+
+    def _auto_pass_until(self, step: str) -> int:
+        """Both players pass at every priority point (the undriven auto-pass)
+        until ``step`` holds priority with an empty stack, or the turn has
+        ended. Returns how many triggered abilities resolved."""
+        fired = 0
+        while self._to_priority():
+            fired += self._settle()
+            if self.phase in (step, TURN_ENDED):
+                break
+            self._end_step()  # every player passed with an empty stack (CR 117.4)
+        return fired
+
+    def _turn_based_actions(self) -> bool:
+        """The current step's turn-based actions (CR 703.4). Returns whether
+        players receive priority in it: not in the untap step (CR 502.4), and in
+        a cleanup step only when state-based actions or triggers happen there
+        (CR 514.3a)."""
+        step = self.phase
+        active = self.world.active_player
+        if step == UNTAP:
+            assert active is not None
+            self._untap_step(active)
+            # "Until your next turn" ends as the turn begins (CR 611.2b); zone
+            # moves "until your next turn" return now (CR 610.3). What they
+            # trigger waits for the upkeep (CR 503.1a).
+            self.ledger.expire_until_next_turn(active)
+            self.layers.expire_until_next_turn(active)
+            self.replacements.expire_until_next_turn(active)
+            returning = self.returns.end_next_turn(active)
+            if returning:
+                self._run_returns(returning)
+            return False
+        if step == DRAW:
+            # The draw (CR 504.1), journalled inside the skeleton so "whenever
+            # you draw" triggers and the fingerprint see it.
+            if not self._skip_draw:
+                assert active is not None
+                self._turn_draw(active)
+            return True
+        if step == BEGIN_COMBAT:
+            # CR 506.2: in a two-player game the non-active player defends.
+            self.defending_player = next(
+                (p for p in self.world.player_order if p != active), None
+            )
+        if step == END_STEP:
+            # The ending phase: no sorcery window, and an effect that ends the
+            # turn here is left to the end and cleanup steps (CR 724.1).
+            self.turn_open = False
+            self._closing_turn = True
+        if step in (UPKEEP, FIRST_MAIN, BEGIN_COMBAT, END_STEP):
+            # The marker "at the beginning of ..." triggers read.
+            self.journal.record_turn_phase(step)
+            return True
+        if step == DECLARE_ATTACKERS:
+            # CR 508.1. The declare window stays open for the whole step, so the
+            # enters-attacking tokens attack triggers create join the attack
+            # (CR 508.1i).
+            assert active is not None
+            self._op_seq += 1
+            self._declare_group = self._op_seq
+            self.declaring = True
+            self._declare_attackers(active)
+            return True
+        if step == DECLARE_BLOCKERS:
+            # CR 509; the block triggers resolve, then (until the driven loop of
+            # DESIGN_PRIORITY §11 5b) the combat window's one round of instants.
+            assert active is not None
+            self._declare_blockers(active)
+            self._settle()
+            open_combat_window(self)
+            return True
+        if step == FIRST_STRIKE_DAMAGE:
+            # CR 510.4: only creatures with first or double strike deal damage
+            # in the first combat damage step.
+            self.first_strikers = frozenset(h for h in self._combat_dealers() if self._strikes_first(h))
+            self._damage_wave(sorted(self.first_strikers))
+            return True
+        if step == COMBAT_DAMAGE:
+            # CR 510.4: after a first-strike step, the creatures that had
+            # neither first nor double strike as it began, and those that have
+            # double strike now.
+            done = self.first_strikers or frozenset()
+            self._damage_wave(
+                [
+                    h
+                    for h in self._combat_dealers()
+                    if h not in done or self.layers.keyword_of(h, Keyword.DOUBLE_STRIKE)
+                ]
+            )
+            return True
+        if step == CLEANUP:
+            return self._cleanup_actions()
+        return True  # END_OF_COMBAT, the main phases: no turn-based action
+
+    def _strikes_first(self, creature: Handle) -> bool:
+        return self.layers.keyword_of(creature, Keyword.FIRST_STRIKE) or self.layers.keyword_of(
+            creature, Keyword.DOUBLE_STRIKE
+        )
+
+    def _next_step(self, step: str) -> str:
+        """The step after ``step`` (CR 500.1): no blockers and no damage without
+        attackers (CR 508.8), a first-strike damage step when a creature in
+        combat has first or double strike (CR 510.4), another cleanup step after
+        one in which players received priority (CR 514.3a)."""
+        if step == DECLARE_ATTACKERS:
+            return DECLARE_BLOCKERS if self.attackers else END_OF_COMBAT
+        if step == DECLARE_BLOCKERS:
+            if any(self._strikes_first(h) for h in self._combat_dealers()):
+                return FIRST_STRIKE_DAMAGE
+            return COMBAT_DAMAGE
+        if step == CLEANUP:
+            return CLEANUP if self.priority_holder is not None else TURN_ENDED
+        return _NEXT_STEP[step]
+
+    def _end_step(self) -> None:
+        """The current step ends (CR 500.4: unspent mana empties; CR 511.3: the
+        end of combat removes every creature from combat) and the next begins.
+        An effect that ended the turn during the end or cleanup step ends it
+        here (CR 724.1a-d, then a cleanup step)."""
+        step = self.phase
+        if step in (END_STEP, CLEANUP) and self.end_turn_requested:
+            self._end_the_turn_process()
+            if step == END_STEP:
+                self._begin_step(CLEANUP)
+                return
+        self.empty_mana_pools()
+        if step == DECLARE_ATTACKERS:
+            self.declaring = False
+        if step == END_OF_COMBAT:
+            self._leave_combat()
+        nxt = self._next_step(step)
+        if nxt == TURN_ENDED:
+            self._closing_turn = False
+        self._begin_step(nxt)
+
+    def _jump_to(self, step: str) -> None:
+        """A driver that skips ahead (``combat_attacks`` from a second main
+        phase, ``end_turn`` before combat): the current step ends, combat
+        included, and ``step`` begins."""
+        self.empty_mana_pools()
+        self.declaring = False
+        if self.attackers or self.defending_player is not None:
+            self._leave_combat()
+        self._begin_step(step)
+
+    def _leave_combat(self) -> None:
+        """CR 511.3: as the end of combat step ends, all creatures are removed
+        from combat. The attack record closes with the phase (CR 506.4: nothing
+        "is attacking" once combat ended, and IS_ATTACKING reads exactly that);
+        the statics that select attacking or blocking creatures ("Attacking
+        creatures you control get +1/+0", Warded Battlements) are read again."""
+        self.attackers = []
+        self.attacked = {}
+        self.blocked_by = {}
+        self.defending_player = None
+        self.first_strikers = None
+        self.ledger.settle_while(self._while_eval)
+        self.layers.recompute()
+
+    def _cleanup_actions(self) -> bool:
+        """The cleanup step's turn-based actions (CR 514.1-514.2), then CR
+        514.3a: when state-based actions or triggers happen, players receive
+        priority (True) and another cleanup step follows.
+
+        514.1: the active player discards down to their maximum hand size
+        (:meth:`_discard_to_hand_size`). 514.2: the end-of-turn expiry sweep:
+        Eot ledger entries, Eot-tagged LAYER records (until-end-of-turn grants
+        die here), PREVENTION records and control entries, the turn-window
+        delayed triggers, marked damage, and the zone moves "until end of turn"
+        return (CR 610.3). What the discard or the returns trigger waits for
+        the 514.3a check, after the sweep."""
+        self._discard_to_hand_size()
+        self.ledger.sweep_at_eot()
+        self.layers.sweep_at_eot()
+        self.replacements.sweep_at_eot()
+        self._expire_control(eot=True)  # Traitorous Greed's DurationEot
+        self.damage.clear()  # CR 514.2 — cleanup removes marked damage
+        self.damage_deathtouch.clear()  # the deathtouch flag too
+        returning = self.returns.end_eot()
         if returning:
             self._run_returns(returning)
-        self.journal.record_turn_phase(Phase.UPKEEP.name)
-        self.phase = Phase.UPKEEP.name
-        # CR 503.1a: what triggered in the untap step or at the beginning of
-        # the upkeep resolves in the upkeep, before the draw step (an upkeep
-        # discard never sees the card this turn draws).
-        fired = self._settle()
-        # The DRAW step (CR 504.1), journalled INSIDE the skeleton so
-        # 'whenever you draw' triggers and the fingerprint see it; its
-        # triggers and its state-based check (CR 704.5b) follow at once.
-        # CR 103.8a: in a two-player game the player who plays first skips
-        # the draw step of their first turn (103.8c: in other multiplayer
-        # games nobody skips it).
-        if not (first_turn and len(self.world.player_order) == 2):
-            self._turn_draw(player)
-            fired += self._settle()
-        self.journal.record_turn_phase(Phase.FIRST_MAIN.name)
-        self.phase = Phase.FIRST_MAIN.name
-        return fired + self._settle()
+        self.binder.expire_delayed()
+        # Rebuild the oracles after the sweep — a granted keyword that
+        # expired at end of turn must not survive into next turn's
+        # keyword_of/legal_activations.
+        self.layers.recompute()
+        journalled = len(self.journal.events)
+        self._priority_check()  # CR 514.3a
+        return bool(self.stack.frames) or len(self.journal.events) != journalled
 
     def _turn_draw(self, player: Handle) -> None:
         """The CR 504.1 draw of the active player's draw step.
@@ -2007,123 +2242,55 @@ class Executor:
 
     # ------------------------------------------------------ the COMBAT phase
     #
-    # FIRST_MAIN -> COMBAT -> SECOND_MAIN -> END. Declare attackers (each
-    # attacks the defending player or a planeswalker that player controls,
-    # CR 506.2, 508.1b; the attack ask names the choice), declare blockers
-    # (CR 509), one instant window after the blocks
-    # (stack.open_combat_window), then the combat damage step(s) with the
-    # CR 510 assignment asks (TRAMPLE, DEATHTOUCH, the Herald AS_UNBLOCKED
-    # policy). State-based actions run at every settle point between the
-    # steps (CR 704.3). No other priority window opens in combat.
+    # The beginning of combat, declare attackers (each attacks the defending
+    # player or a planeswalker that player controls, CR 506.2, 508.1b; the
+    # attack ask names the choice), declare blockers (CR 509; until the
+    # driven loop, one instant window after the blocks,
+    # stack.open_combat_window), the combat damage step or steps with the CR
+    # 510 assignment asks (TRAMPLE, DEATHTOUCH, the Herald AS_UNBLOCKED
+    # policy) and the end of combat, each a step of the machine with its
+    # priority point (CR 117.3a, 704.3).
 
     def combat_step(self, seat: Handle) -> int:
-        """Run the active player's whole COMBAT phase (CR 506-511):
-        the beginning-of-combat marker (the Phase.COMBAT cards fire), the
-        declare-attackers step (one ask per legal creature, whole-set
-        validated, mandates narrowing the vocab), the declare-blockers
-        step (CR 509: one ask per defending creature, candidates = the
-        attackers it may legally block plus NONE, CR 509.1a untapped-only,
-        whole-assignment validated), the combat damage step(s) with the
-        first/double-strike split and the CR 510 assignment asks, and the
-        end of combat. Returns the trigger-firing count. A creature with no
-        legal declaration is never asked (it cannot attack); a mandatory
-        attacker is not offered DECLINE (the policy is never offered an
-        illegal answer).
-
-        Runs :meth:`combat_attacks` then :meth:`combat_blocks`; the split is the
-        search substrate's ``pre_blocks`` boundary (games._play), where no
-        executor call is in flight between the two declarations."""
+        """Run the active player's whole COMBAT phase (CR 506-511) with both
+        players passing: :meth:`combat_attacks` then :meth:`combat_blocks`; the
+        split is the search substrate's ``pre_blocks`` boundary (games._play).
+        Returns the trigger-firing count."""
         return self.combat_attacks(seat) + self.combat_blocks(seat)
 
     def combat_attacks(self, seat: Handle) -> int:
-        """The first half of :meth:`combat_step`: the beginning-of-combat
-        marker and the declare-attackers step with its trigger settle (CR
-        506-508). Leaves ``attackers`` and ``defending_player`` set for
-        :meth:`combat_blocks`. Returns the trigger-firing count."""
+        """The beginning of combat step (CR 507: the marker "at the beginning
+        of combat" triggers read) and the declare attackers step (CR 508: one
+        ask per legal creature, whole-set validated, mandates narrowing the
+        vocab; a creature with no legal declaration is never asked, a mandatory
+        attacker is not offered DECLINE), with both players passing, up to the
+        declared attack with an empty stack. Leaves ``attackers`` and
+        ``defending_player`` set for :meth:`combat_blocks`. Returns the
+        trigger-firing count."""
         world = self.world
         if not self.turn_open:
             raise ValueError(f"combat_step: no turn is open ({seat})")
         if world.active_player != seat:
             raise ValueError(f"combat_step: {seat} is not the active player")
-        opponents = [p for p in world.player_order if p != seat]
-        if not opponents:
+        if not any(p != seat for p in world.player_order):
             raise ValueError(f"combat_step: {seat} has no defending player")
-        self.defending_player = opponents[0]
-        fired = 0
-        # CR 500.5: the main phase ends here; unspent mana empties.
-        self.empty_mana_pools()
-        # Beginning of combat (TurnPhaseEvent COMBAT, which "at the
-        # beginning of combat" triggers read: Battle-Rattle Shaman, the
-        # Basri Ket emblem).
-        self.journal.record_turn_phase(Phase.COMBAT.name)
-        self.phase = Phase.COMBAT.name
-        fired += self._settle()
-        self.empty_mana_pools()  # end of the beginning of combat step
-        # Declare attackers (CR 508.1). The declare window stays open
-        # across the post-declare settle so enters-attacking tokens the
-        # attack triggers create JOIN the attack (CR 508.1i).
-        self._op_seq += 1
-        self._declare_group = self._op_seq
-        self.declaring = True
-        try:
-            self._declare_attackers(seat)
-            fired += self._settle()
-        finally:
-            self.declaring = False
-        self.empty_mana_pools()  # end of the declare attackers step
-        return fired
+        if self.phase not in (BEGIN_COMBAT, DECLARE_ATTACKERS):
+            self._jump_to(BEGIN_COMBAT)
+        return self._auto_pass_until(DECLARE_ATTACKERS)
 
     def combat_blocks(self, seat: Handle) -> int:
-        """The second half of :meth:`combat_step`: declare blockers, the
-        combat instant window, the damage step(s) and the end of combat (CR
-        509-511), for the attack :meth:`combat_attacks` declared. Returns
-        the trigger-firing count."""
-        fired = 0
-        # Declare blockers (CR 509) - after the attack-trigger drain
-        # (CR 508.3: the triggers resolve BEFORE the blocking player gets
-        # the declaration duty), before any damage step.
-        self._declare_blockers(seat)
-        # CR 509.4: the declare-blockers turn-based action ends, both
-        # players get passes, and the BLOCK triggers (Snarespinner's
-        # "blocks a creature with flying" pump, Gloom Sower's life swap,
-        # Elder Gargaroth's choice) resolve BEFORE the combat damage step.
-        fired += self._settle()
-        # The combat INSTANT window — after declare-blockers and its
-        # settle, before the damage step, both seats may answer the fight
-        # with a legal instant (kill the blocker before it fights, pump the
-        # defender over a lethal threshold, snipe the attacker). One round
-        # in player order, no priority re-asks. A no-attacker combat has no
-        # declare-blockers or damage step, so there is nothing to respond
-        # to and no ask is made. The cast's own settle removes dead
-        # creatures and folds pumped P/T into the ledger BEFORE
-        # _combat_damage reads it.
-        if self.attackers:
-            open_combat_window(self)
-        self.empty_mana_pools()  # end of the declare blockers step
-        fired += self._combat_damage()
-        self.empty_mana_pools()  # end of the combat damage step
-        # End of combat: the settle runs the state-based actions; the attack
-        # record closes with the phase (CR 506.4 - nothing "is attacking"
-        # once combat ended, and IS_ATTACKING reads exactly that).
-        fired += self._settle()
-        self.empty_mana_pools()  # end of the end of combat step
-        self.attackers = []
-        self.attacked = {}
-        self.blocked_by = {}
-        self.defending_player = None
-        # CR 511.3: as the end of combat step ends, all creatures are removed
-        # from combat. Re-read the statics that select attacking or blocking
-        # creatures ("Attacking creatures you control get +1/+0", Warded
-        # Battlements) now that nothing is attacking; the last recompute ran inside
-        # the settle above, while the attack record still stood.
-        self.ledger.settle_while(self._while_eval)
-        self.layers.recompute()
-        # CR 505.1: the second main phase. The grammar's Phase vocab
-        # has no SECOND_MAIN member (no trigger reads it), so the marker is
-        # executor-clock-only and nothing is journalled; the sorcery-speed
-        # gates read it as a main phase (legality.MAIN_PHASES).
-        self.phase = SECOND_MAIN
-        return fired
+        """The rest of the combat phase with both players passing (CR 509-511):
+        declare blockers (CR 509: one ask per defending creature, candidates =
+        the attackers it may legally block plus NONE, CR 509.1a untapped-only,
+        whole-assignment validated), the combat damage step or steps with the
+        CR 510 assignment asks (TRAMPLE, DEATHTOUCH, the Herald AS_UNBLOCKED
+        policy), and the end of combat, up to the second main phase (CR 505.1).
+        No blockers and no damage without attackers (CR 508.8). Returns the
+        trigger-firing count; nothing when the turn has already ended."""
+        del seat  # the active player's combat, as declared
+        if self.phase == TURN_ENDED:
+            return 0
+        return self._auto_pass_until(SECOND_MAIN)
 
     def _declare_attackers(self, seat: Handle) -> None:
         """The CR 508.1 asks + the whole-set check, then the
@@ -2438,43 +2605,6 @@ class Executor:
             and self.controller_of(card) == seat
         ]
 
-    def _combat_damage(self) -> int:
-        """CR 702.7/702.4 first-strike / double-strike split. If anything
-        ATTACKING OR BLOCKING has first or double strike there is a FIRST
-        COMBAT DAMAGE STEP for the FS union DS carriers, then the settle's
-        SBA sweep (a killer first strike buries its victim before the
-        normal step), then the NORMAL step for the non-FS dealers plus the
-        surviving DS carriers. The dealer set is BOTH SIDES of the attack
-        (CR 510.1a — blockers assign to the attacker they blocked, in the
-        same simultaneous step). Every damage atom goes through the
-        DEAL_DAMAGE verb — damage replacements apply (Nine Lives reads
-        combat damage exactly like any other), marks ride the ledger,
-        lethality is the settle's SBA. Each dealer's assignment obeys
-        CR 510 (below) - blockers first up to lethal, TRAMPLE excess by
-        asked partition, the Herald policy able to route it past blockers
-        as though unblocked."""
-        dealers = self._combat_dealers()
-
-        def live(items: list[Handle]) -> list[Handle]:
-            return [
-                h
-                for h in items
-                if h in self.world.cards
-                and self.world.zone_of(h).kind == ZONE_BATTLEFIELD
-            ]
-
-        first = {h for h in dealers if self.layers.keyword_of(h, Keyword.FIRST_STRIKE)}
-        doubled = {
-            h for h in dealers if self.layers.keyword_of(h, Keyword.DOUBLE_STRIKE)
-        }
-        fired = 0
-        if first or doubled:
-            fired += self._damage_wave(sorted(first | doubled))
-            dealers = live(dealers)  # a first-strike kill removes the dealer
-        normal = [h for h in dealers if h not in first or h in doubled]
-        fired += self._damage_wave(sorted(normal))
-        return fired
-
     def _combat_dealers(self) -> list[Handle]:
         """Everyone assigning combat damage: the live attackers plus every
         live blocker (a creature blocks exactly one attacker, CR 509.1b,
@@ -2683,7 +2813,7 @@ class Executor:
         # canonical row order keeps the journal deterministic.
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
 
-    def _damage_wave(self, dealers: list[Handle]) -> int:
+    def _damage_wave(self, dealers: list[Handle]) -> None:
         """One combat-damage substep: EVERY dealer's legal assignment is
         announced first (CR 510.1: all announcements, then all damage —
         nothing a later dealer's ask could read has mutated yet), then the
@@ -2694,8 +2824,8 @@ class Executor:
         counts once per recipient), each damage-
         bearing dealer emits ONE COMBAT_DAMAGE row carrying the whole as-
         signment (CR 603.2: one "deals combat damage" event per dealer,
-        however it splits), and the settle after the wave is the step's SBA
-        + trigger drain. CR 120.7: a 0-power attacker deals no damage at
+        however it splits); the step's priority point that follows checks the
+        state-based actions and puts the triggers on the stack. CR 120.7: a 0-power attacker deals no damage at
         all — no life change, no DAMAGE row, no combat-damage event."""
         strikes: list[tuple[Handle, tuple[tuple[int, Handle], ...]]] = []
         for dealer in dealers:
@@ -2716,7 +2846,7 @@ class Executor:
                 continue
             strikes.append((dealer, plan))
         if not strikes:
-            return 0
+            return
         self._op_seq += 1
         self._combat_wave_open = self._op_seq
         try:
@@ -2739,7 +2869,6 @@ class Executor:
                 "COMBAT_DAMAGE",
                 (plan,),
             )
-        return self._settle()
 
     def advance_turn(self) -> int:
         """End the active turn (if one is open) and begin the next one.
@@ -2760,10 +2889,7 @@ class Executor:
         if self.world.active_player is None or not self._turn_started:
             nxt = order[0]
         else:
-            if self.turn_open:
-                # An END_TURN atom already closed the turn inside the op —
-                # never emit a second END_TURN marker for it.
-                self.end_turn()
+            self.end_turn()
             if self.extra_turn_queue:
                 if self.normal_turn_seat is None:
                     # The extras follow the first turn, a normal turn.
@@ -2779,82 +2905,22 @@ class Executor:
         return self.begin_turn(nxt)
 
     def end_turn(self) -> int:
-        """The end step, then the cleanup step. END_TURN marker FIRST
-        (end-step triggers see the pre-expiry state), trigger drain, THEN
-        :meth:`_cleanup_step`. Returns the firing count.
+        """The end step, then the cleanup step (CR 513-514), with both players
+        passing, from wherever the turn is: a driver that calls it before
+        combat skips what is left of the turn before the end step. The
+        END_TURN marker comes first (end-step triggers see the pre-expiry
+        state). Returns the firing count.
 
-        A turn that is already over does nothing: an effect ended it
-        (CR 724.1 skipped its end step and ran its cleanup step), or its end
-        step already ran. Drivers call this once per turn whatever happened
-        in it. An effect that ends the turn during the end step skips the
-        rest of that step (CR 724.1a-c) before the cleanup step.
+        A turn that is already over does nothing: an effect ended it (CR
+        724.1 skipped its end step and ran its cleanup step), or its end step
+        already ran. Drivers call this once per turn whatever happened in it.
 
-        CR 500.5: unspent mana empties as the phase before the end step,
-        the end step and each cleanup step end (:meth:`_cleanup_step`); an
-        effect that ends the turn empties it at CR 724.1d
-        (:meth:`_end_the_turn_process`)."""
-        if self._turn_started and not self.turn_open:
+        CR 500.4: unspent mana empties as each step and phase ends."""
+        if self.phase == TURN_ENDED:
             return 0
-        self.empty_mana_pools()  # the phase before the end step ends
-        self.phase = Phase.END_TURN.name
-        self.turn_open = False
-        self._closing_turn = True
-        try:
-            self.journal.record_turn_phase(Phase.END_TURN.name)
-            fired = self._settle()
-            if self.end_turn_requested:
-                self._end_the_turn_process()
-            self.empty_mana_pools()  # the end step ends (no-op after 724.1d)
-            return fired + self._cleanup_step()
-        finally:
-            self._closing_turn = False
-
-    def _cleanup_step(self) -> int:
-        """The cleanup step (CR 514), repeated while 514.3a finds work.
-
-        514.1: the active player discards down to their maximum hand size
-        (:meth:`_discard_to_hand_size`). 514.2: the end-of-turn expiry sweep:
-        Eot ledger entries, Eot-tagged LAYER records (until-end-of-turn
-        grants die here), PREVENTION records and control entries, the
-        turn-window delayed triggers, marked damage, and the zone moves
-        "until end of turn" return (CR 610.3). 514.3a: then state-based
-        actions and the triggers waiting (a discard's, say) are handled; when
-        anything happened another cleanup step begins. The discard runs no
-        settle of its own, so its triggers resolve after the 514.2 sweep, as
-        514.3a orders. Returns the firing count."""
-        fired = 0
-        while True:
-            self._discard_to_hand_size()
-            self.ledger.sweep_at_eot()
-            self.layers.sweep_at_eot()
-            self.replacements.sweep_at_eot()
-            self._expire_control(eot=True)  # Traitorous Greed's DurationEot
-            self.damage.clear()  # CR 514.2 — cleanup removes marked damage
-            self.damage_deathtouch.clear()  # the deathtouch flag too
-            # CR 514.2, 610.3: zone moves "until end of turn" return in the
-            # cleanup step, and what their return triggers resolves (514.3a).
-            returned = 0
-            returning = self.returns.end_eot()
-            if returning:
-                self._run_returns(returning)
-                returned = self._settle()
-            fired += returned
-            self.binder.expire_delayed()
-            # Rebuild the oracles after the sweep — a granted keyword that
-            # expired at end of turn must not survive into next turn's
-            # keyword_of/legal_activations.
-            self.layers.recompute()
-            journalled = len(self.journal.events)
-            settled = self._settle()  # CR 514.3a
-            fired += settled
-            if self.end_turn_requested:
-                # CR 724.1d: an effect ended the turn during the cleanup
-                # step; 724.1a-c, then a new cleanup step begins.
-                self._end_the_turn_process()
-                continue
-            self.empty_mana_pools()  # this cleanup step ends (CR 500.5)
-            if not (settled or returned) and len(self.journal.events) == journalled:
-                return fired
+        if self.phase not in (END_STEP, CLEANUP):
+            self._jump_to(END_STEP)
+        return self._auto_pass_until(TURN_ENDED)
 
     def _discard_to_hand_size(self) -> None:
         """CR 514.1 (a turn-based action, no stack): the active player
@@ -3227,6 +3293,12 @@ class Executor:
                 (
                     self.phase,
                     self.turn_open,
+                    self.tba_done,
+                    str(self.priority_holder),
+                    self.passes,
+                    None
+                    if self.first_strikers is None
+                    else tuple(sorted(map(str, self.first_strikers))),
                     tuple(self.extra_turn_queue),
                     tuple(self.lost_players),
                     tuple(sorted(self.loyalty_clock.items())),
