@@ -560,6 +560,15 @@ Step 5 goes in two commits:
   creature no longer on the battlefield now deals and is dealt no fight damage (CR 701.12b,
   pack `brash_taunter_2`). Triggered abilities are not covered (their stimuli differ per card).
   `tools/cards/test_respond.py` runs it on three cards.
+- **Step 6, §4 item 5, 2026-11-11: every rule has a test.** New in `test_executor_rung1.py`
+  `TestPriorityRules`: a pass gives priority to the next player (117.3d); after a resolution the
+  active player receives priority (117.3b); only passes in succession resolve (117.4); all
+  passing with an empty stack ends the step (117.4, 500.2); both players' triggers go on in
+  APNAP order above the spell whose casting triggered them (603.3b). Already covered: 117.3a
+  (`PriorityLoopTest`), 117.3c (`TestResponses`), 500.4 (`test_executor_rung2.py`), 508.8
+  (`test_executor_games.py`), 510.4 (`sure_strike_1`, `sporeweb_weaver_first_strike_and_
+  regular_trigger_twice`), 514.3a (`test_executor_verify_fixes4.py`), 603.3d (three packs).
+  Left of step 6: the interleaving soak (it needs the pre-check).
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

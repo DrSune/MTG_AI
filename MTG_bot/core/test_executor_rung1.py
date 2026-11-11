@@ -18,6 +18,7 @@ players hold priority, and a spell cast in response resolves first.
 from __future__ import annotations
 
 from MTG_bot.core.ability_tree import (
+    CastSpellEvent,
     ControllerRef,
     Cost,
     CostManaColor,
@@ -27,6 +28,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     SpellKind,
+    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -35,11 +37,12 @@ from MTG_bot.core.executor.events import KIND_COUNTER
 from MTG_bot.core.executor.menu import menu
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
-from MTG_bot.core.test_executor_binding import UNIV, card_id
+from MTG_bot.core.test_executor_binding import UNIV, card_id, gain
 from MTG_bot.core.test_executor_stack import (
     ANY_ZONE,
     INSTANT_OR_SORCERY,
     StackCase,
+    any_target,
     atom,
 )
 
@@ -309,6 +312,79 @@ class TestKickback(Rung1Case):
         kick = self.journal_events("KICKBACK")
         self.assertEqual([k.data for k in kick], [("UNPAYABLE",)])
         self.assertEqual(len(self.journal_rows("COUNTER")), 1)
+
+
+class TestPriorityRules(Rung1Case):
+    """CR 117 one rule at a time, in a game whose players hold priority (DESIGN_PRIORITY §4
+    item 5; 117.3a, 117.3c, 500.4, 508.8, 510.4, 514.3a and 603.3d have their own tests and
+    packs)."""
+
+    def p1_shock(self):
+        shock = self.give(
+            "P1 Shock",
+            SpellKind.INSTANT,
+            cost=Cost((CostManaColor("R", QConst(1)),)),
+            effect=atom(Verb.DEAL_DAMAGE, target=any_target(), amount=QConst(2)),
+            seat=self.p1,
+        )
+        self.mana(self.p1, R=1)
+        return shock
+
+    def test_a_pass_gives_priority_to_the_next_player(self):
+        # CR 117.3d
+        with self.ex.holding_priority():
+            self.assertEqual(self.ex.priority_holder, self.p0)
+            self.ex.pass_priority()
+            self.assertEqual((self.ex.priority_holder, self.ex.passes), (self.p1, 1))
+
+    def test_after_a_resolution_the_active_player_receives_priority(self):
+        # CR 117.3b: the non-active player's spell resolves, then the active player has priority.
+        shock = self.p1_shock()
+        with self.ex.holding_priority():
+            self.ex.pass_priority()
+            self.ex_cast(self.p1, shock, targets=(self.p0,))
+            self.ex.acted(self.p1)
+            self.ex.pass_priority()
+            self.assertEqual(len(self.ex.stack.frames), 1)  # one pass is not enough
+            self.ex.pass_priority()
+            self.assertEqual(self.ex.stack.frames, [])
+            self.assertEqual(self.ex.priority_holder, self.p0)
+        self.assertEqual(self.world.players[self.p0].life, 18)
+
+    def test_an_action_starts_the_passes_in_succession_over(self):
+        # CR 117.4: only passes in succession resolve; P0 passing, P1 acting, P0 passing is not.
+        shock = self.p1_shock()
+        with self.ex.holding_priority():
+            self.ex.pass_priority()
+            self.ex_cast(self.p1, shock, targets=(self.p0,))
+            self.ex.acted(self.p1)
+            self.assertEqual(self.ex.passes, 0)
+            self.ex.pass_priority()
+            self.assertEqual(len(self.ex.stack.frames), 1)
+
+    def test_all_passing_with_an_empty_stack_ends_the_step(self):
+        # CR 117.4, 500.2: the first main phase ends; the beginning of combat follows.
+        with self.ex.holding_priority():
+            self.assertEqual(self.ex.phase, "FIRST_MAIN")
+            self.ex.pass_priority()
+            self.ex.pass_priority()
+            self.assertEqual(self.ex.phase, "COMBAT")
+
+    def test_both_players_triggers_go_on_in_apnap_order(self):
+        # CR 603.3b: the active player's triggers go on the stack first, so the non-active
+        # player's resolve first; all of them above the spell whose casting triggered them.
+        watch = TriggeredAbility(
+            event=CastSpellEvent(filter=INSTANT_OR_SORCERY), condition=None, effect=gain(1)
+        )
+        for seat in (self.p0, self.p1):
+            self.give(f"Watcher {seat}", SpellKind.ENCHANTMENT, seat=seat, zone=ZONE_BATTLEFIELD,
+                      type_line="Enchantment", types=("Enchantment",), extra_abilities=(watch,))
+        shock, frame = self.hold_shock()
+        with self.ex.holding_priority():
+            self.ex._priority_check()
+            frames = self.ex.stack.frames
+            self.assertIs(frames[0], frame)
+            self.assertEqual([f.controller for f in frames[1:]], [self.p0, self.p1])
 
 
 class TestReplay(Rung1Case):
