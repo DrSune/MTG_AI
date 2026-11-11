@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "priest", "real": "Containment Priest", "zone": "hand", "controller": 0},
+  {"key": "raider", "name": "Raider", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "pl1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "pl2", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"raider": true}, "block": {"priest": "raider"},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "priest", "real": "Containment Priest", "tap": true}]}}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "zone": {"priest": "battlefield", "raider": "graveyard"}, "damage": {"priest": 1}},
+ "notes": "Printed: 'Flash.' After the opponent declares its attacker, the defending player casts the Priest (2/2) with lands it taps while casting; it was cast, so its own replacement lets it enter, and it then blocks the 1/1 attacker and kills it, keeping 1 damage until the cleanup step (CR 514.2)."
+}

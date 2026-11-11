@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "cmc": 2, "zone": "battlefield", "controller": 0},
+  {"key": "hi", "real": "Heroic Intervention", "zone": "hand", "controller": 0},
+  {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 1}, "1": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "elim", "real": "Eliminate", "controller": 1, "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "hi", "real": "Heroic Intervention"}
+ ],
+ "expect": {"zone": {"bear": "battlefield", "elim": "graveyard", "hi": "graveyard"}},
+ "notes": "Printed: 'Permanents you control gain hexproof and indestructible until end of turn.' The opponent's Eliminate waits on the stack aimed at the Bear; Heroic Intervention resolves first, so when Eliminate tries to resolve its only target is illegal (hexproof against an opponent's spell) and it does nothing (CR 608.2b): the Bear lives."
+}

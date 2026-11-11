@@ -106,6 +106,10 @@ Pack vocabulary (all keys required as noted):
                                             it put on the stack waits too),
              {"op": "pass"}                 both players pass until the stack
                                             is empty,
+             {"op": "to_step", "step": S}   both players pass until step S
+                                            ("COMBAT" for the beginning of
+                                            combat, "END_TURN" for the end
+                                            step, ...) holds priority,
              "hold": true on any step: the player keeps
                                             priority and receives it again (CR
                                             117.3c): the waiting triggers go on
@@ -574,6 +578,12 @@ class ScenarioRunner:
         elif op == "pass":
             # Both players pass until the stack is empty.
             self.ex.fire_triggers()
+        elif op == "to_step":
+            # Both players pass until the step holds priority with an empty stack (an
+            # instant in the opponent's beginning of combat or end step).
+            self.ex.pass_until(step["step"])
+            if self.ex.phase != step["step"]:
+                raise PackError(f"to_step: the step {step['step']!r} never came")
         elif op == "end_turn":
             self.ex.end_turn()
         elif op == "advance_turn":

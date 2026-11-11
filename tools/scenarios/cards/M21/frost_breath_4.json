@@ -1,0 +1,18 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fb", "real": "Frost Breath", "zone": "hand", "controller": 0},
+  {"key": "one", "name": "Raider One", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "two", "name": "Raider Two", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "to_step", "step": "COMBAT"},
+  {"op": "mana", "seat": 0, "add": {"U": 3}},
+  {"op": "cast", "real": "Frost Breath", "key": "fb", "targets": ["one", "two"]},
+  {"op": "combat", "seat": 1, "attack": {"one": true, "two": true}}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "tapped": {"one": true, "two": true}, "zone": {"fb": "graveyard"}},
+ "notes": "Printed: instant, 'Tap up to two target creatures. ...' Cast in the opponent's beginning of combat, before attackers are declared (CR 507.2): both of its creatures are tapped, so neither can attack and seat 0 stays at 20."
+}

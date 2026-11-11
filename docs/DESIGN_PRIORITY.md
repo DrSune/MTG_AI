@@ -531,6 +531,17 @@ Step 5 goes in two commits:
   player receives priority again, CR 117.5), a target `ability:<key>` names that card's ability
   on the stack, and a cast step's own mode and target words are no longer read twice. New packs
   `sublime_epiphany_1/2`, `unsubstantiate_1/2`.
+- **Step 6, the printed-power packs of §4 item 6, 2026-11-11: all ten have a pack** (M21 card
+  packs, with a new runner op `to_step` that passes to a step's priority): Eliminate on an
+  attacker after attackers are declared (`eliminate_2`); Heroic Intervention in response to
+  removal (`heroic_intervention_1`); Opt in the opponent's end step (`opt_1`); Frost Breath in
+  the opponent's beginning of combat (`frost_breath_4`); a flash blocker (`containment_priest_4`);
+  counterspells (`cancel`, `cancel_pass` and the Negate packs); a triggered ability countered
+  (`sublime_epiphany_1`, Tale's End being unverified); Unsubstantiate on an artifact spell
+  (`unsubstantiate_1`); Waker of Waves activated from the hand in the opponent's end step
+  (`waker_of_waves_4`); first strike, then a pump in the first-strike damage step
+  (`sure_strike_1`). Left of step 6: the interleaving soak, the generated remove-the-source and
+  remove-the-target tests, and the per-rule tests of item 5 not yet covered.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

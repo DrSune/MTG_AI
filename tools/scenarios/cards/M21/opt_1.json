@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Alpha", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
+  {"key": "b", "name": "Beta", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "to_step", "step": "END_TURN"},
+  {"op": "mana", "seat": 0, "add": {"U": 1}},
+  {"op": "cast", "key": "opt", "real": "Opt", "decisions": ["bottom"]}
+ ],
+ "expect": {"zone": {"opt": "graveyard", "a": "hand", "b": "library"}, "hand": {"0": 1}, "turn_seats": [0, 1]},
+ "notes": "Printed: instant, 'Scry 1. Draw a card.' Cast in the opponent's end step. The top card is Beta: scried to the bottom, so the draw is Alpha."
+}

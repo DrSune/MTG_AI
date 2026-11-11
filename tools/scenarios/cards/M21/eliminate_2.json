@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raider", "name": "Raider", "type": "Creature", "power": "3", "toughness": "3", "cmc": 3, "zone": "battlefield", "controller": 0},
+  {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 1},
+  {"key": "sw1", "real": "Swamp", "zone": "battlefield", "controller": 1},
+  {"key": "sw2", "real": "Swamp", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"raider": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "elim", "real": "Eliminate", "controller": 1, "targets": ["raider"], "tap": true}]}}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "zone": {"raider": "graveyard", "elim": "graveyard"}},
+ "notes": "Printed: instant, 'Destroy target creature or planeswalker with mana value 3 or less.' After attackers are declared the defending player gets priority (CR 508.2, 117.3a) and destroys the attacker with lands it taps while casting; a destroyed attacker deals no combat damage, so seat 1 stays at 20."
+}

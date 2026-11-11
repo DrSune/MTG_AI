@@ -1,0 +1,22 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "duelist", "name": "Duelist", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "brawler", "name": "Brawler", "power": 2, "toughness": 2, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ss", "real": "Sure Strike", "zone": "hand", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "f2", "real": "Forest", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"duelist": true, "brawler": true},
+   "respond": {
+    "DECLARE_BLOCKERS": [{"op": "cast", "key": "ss", "real": "Sure Strike", "targets": ["duelist"], "tap": true}],
+    "FIRST_STRIKE_DAMAGE": [{"op": "cast", "key": "tg", "real": "Titanic Growth", "targets": ["brawler"], "tap": true}]
+   }}
+ ],
+ "expect": {"life": {"0": 20, "1": 9}, "power": {"duelist": 5, "brawler": 6}},
+ "notes": "Printed: 'Target creature gets +3/+0 and gains first strike until end of turn.' Two unblocked 2/2 attackers; after blockers, Sure Strike makes the Duelist a 5/2 first striker, so there is a first-strike damage step (CR 510.4): 5 damage, 20 -> 15. In that step's priority Titanic Growth (+4/+4) makes the Brawler 6/6, and in the regular damage step only the Brawler deals damage (the Duelist already did): 15 -> 9."
+}

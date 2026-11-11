@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "w", "real": "Waker of Waves", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Alpha", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
+  {"key": "b", "name": "Beta", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "to_step", "step": "END_TURN"},
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "activate", "key": "w", "idx": 1, "seat": 0, "decisions": ["a"]}
+ ],
+ "expect": {"zone": {"w": "graveyard", "a": "hand", "b": "graveyard"}, "hand": {"0": 1}, "turn_seats": [0, 1]},
+ "notes": "Printed: '{1}{U}, Discard this card: Look at the top two cards of your library. Put one of them into your hand and the other into your graveyard.' An activated ability that works from the hand, at instant speed: activated in the opponent's end step; Alpha to hand, Beta to the graveyard."
+}
