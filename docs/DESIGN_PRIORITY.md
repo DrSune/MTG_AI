@@ -623,6 +623,24 @@ Stage 2 (the players), 2026-11-11:
   table, `view.STEP_WORDS`, which the router's priority prompt reads too. The engine notes, the
   primer and `duel.py` changed in stage 1; an LLM seat's calls and latency were already in each
   game row.
+
+Stage 3 (search and labeller), 2026-11-11: what was left is small. The value leaf already is the
+seat's next real decision: "turn_top" is its first priority point of the first main phase with an
+empty stack, after its upkeep and draw (stage 1). A copy resumes at the act decision it was taken
+at, and `forced` answers it. Searching `priority` asks waits for the first training run on the new
+game, as planned; the opponent simulator's recapture is a GPU job and waits its turn behind r26.
+`MAX_SIM_DECISIONS` stays 400: a heuristic game now asks 155 decisions of both seats together.
+Position copies are 2.5x faster (`tools/search/fork.py`: a dict memo; 14.5 -> 5.8 ms).
+
+Stage 4 (card census), 2026-11-11. 190 §4.1's table again, for M21's verified pool, from 600 random
+games acting at about 30% of the priority points outside their own main phases (300 coherent, 300
+stress): all 36 instants and all 7 flash permanents were cast at instant speed, and 43 of the 53
+cards with non-mana activated abilities were activated at instant speed; the other 10 have only
+sorcery-speed abilities (loyalty, equip, "activate only as a sorcery"), Teferi, Master of Time
+included, whose instant-speed loyalty the menu offers in the opponent's turn but no game had on
+the battlefield. The audit's "about 30% of M21's nonland cards weaker than printed" for timing is
+gone. The probe has stimuli in the opponent's turn and in an end step after a spell; BACKLOG's
+timing rows are updated.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the
