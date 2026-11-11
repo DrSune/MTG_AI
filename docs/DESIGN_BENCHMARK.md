@@ -60,8 +60,9 @@ hidden information, reading novel cards, and managing a clock. A single number w
 one failed, so each track reports separately. The headline is never a composite.
 
 **Engine rung disclosure.** Every result is stamped with the engine revision and with the engine's
-known simplifications ("batch Magic": no priority, response windows for counterspells and combat
-instants only, the engine picks the mana sources; REVIEW A-3). A strong D score today means strong at that game.
+known simplifications (REVIEW A-3; until 2026-11-11 "batch Magic": no priority, response windows
+for counterspells and combat instants only; since then real priority in every step, and still the
+engine picks the mana sources). A strong D score means strong at the engine's game of that date.
 
 ## 3. The harness: what an LLM gets
 
@@ -335,9 +336,9 @@ Measured with it (exploratory; M21 castable pool):
 
 Registered in [`BACKLOG.md`](BACKLOG.md) with removal conditions:
 - k = 3 strikes per decision;
-- payment is automatic: the pool first, then the free sources (lands, plain mana rocks) the engine
-  picks; other mana abilities are act rows (since 2026-11-05, replacing `TAP_ALL_MANA`);
-- one act window per main phase, the engine's (no priority passing; both main phases since 2026-11-06);
+- payment is automatic: the pool first, then the mana sources the engine picks (free sources,
+  then a creature's, then a Treasure's; mana abilities are no rows since 2026-11-11);
+- the act cap: at most 10 actions per player per step (real priority since 2026-11-11);
 - stateless prompts;
 - hidden-card labels are conservative (a legitimately revealed card shows as "unrevealed").
 

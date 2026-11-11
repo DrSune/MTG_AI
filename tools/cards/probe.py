@@ -163,8 +163,9 @@ class Probe:
 
     def _stimulus_spells(self) -> dict[str, str]:
         """Real cards of the set to cast as stimuli: the cheapest instant or sorcery whose spell
-        has no target and no choice, and the cheapest vanilla creature. Only fully compiled cards
-        with no record, so a trace never depends on another card under review."""
+        has no target and no choice, the cheapest such instant (cast in the opponent's turn), and
+        the cheapest vanilla creature. Only fully compiled cards with no record, so a trace never
+        depends on another card under review."""
         from MTG_bot.core.ability_tree import Selector, SelectorMode
 
         found: dict[str, tuple[int, str]] = {}
@@ -195,8 +196,9 @@ class Probe:
             else:
                 continue
             cand = (rec.mana_value, rec.name)
-            if key not in found or cand < found[key]:
-                found[key] = cand
+            for k in (key, "you_cast_instant") if key == "you_cast_spell" and "Instant" in rec.types else (key,):
+                if k not in found or cand < found[k]:
+                    found[k] = cand
         return {k: v[1] for k, v in found.items()}
 
     def runner(self, where: str | None) -> ScenarioRunner:
@@ -671,8 +673,8 @@ class Probe:
         if "Emblem" not in self.card.types and not self.card.is_token:
             # an emblem (CR 114.1) or a token (CR 111.8: a token in a hand ceases to exist) is
             # never a card in a hand
-            out.append(("from your hand, the card enters during the opponent's turn, then that "
-                        "turn ends", enters_on_their_turn))
+            out.append((("from your hand, the card enters during the opponent's turn, then that "
+                         "turn ends"), enters_on_their_turn))
         if self.lands:
             out.insert(2, ("you play a land", lambda r: play_land(r.ex, r.p0, r.handles["you_land_drop"])))
         if "Creature" in self.card.types:
@@ -690,6 +692,25 @@ class Probe:
             if key in self.spells:
                 out.append((f"you cast {what} ({self.spells[key]})",
                             lambda r, k=key: cast(r.ex, r.p0, r.handles[k])))
+        if "you_cast_spell" in self.spells:
+
+            def cast_then_end_step(r: ScenarioRunner) -> None:
+                cast(r.ex, r.p0, r.handles["you_cast_spell"])
+                r._dispatch({"op": "end_turn"})
+
+            out.append((f"you cast {self.spells['you_cast_spell']}, then your end step comes",
+                        cast_then_end_step))
+        if "you_cast_instant" in self.spells:
+
+            def instant_on_their_turn(r: ScenarioRunner) -> None:
+                # the opponent's turn: an instant cast by you (mana empties as steps end)
+                r._dispatch({"op": "end_turn"})
+                r._dispatch({"op": "advance_turn"})
+                r._dispatch({"op": "mana", "seat": 0, "add": dict(MANA)})
+                cast(r.ex, r.p0, r.handles["you_cast_instant"])
+
+            out.append((f"on the opponent's turn, you cast an instant ({self.spells['you_cast_instant']})",
+                        instant_on_their_turn))
         return out
 
     def section_stimuli(self) -> list[Variant]:
