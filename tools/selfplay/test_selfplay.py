@@ -119,6 +119,55 @@ def test_a_pass_looks_the_same_whatever_the_passer_holds(table) -> None:
             assert np.array_equal(fa[key], fb[key]), (kind, site, key)
 
 
+def test_the_stack_its_order_targets_and_abilities_reach_the_encoding(table) -> None:
+    """DESIGN_PRIORITY §3.2: with Bone Pit Brute's trigger (aimed at the Ox) and a Shock (aimed
+    at seat 1) waiting on the stack, seat 1's encoding gives each object its depth (the Shock on
+    top), the trigger its kind, its ability index and a pointer to the Brute, each object a
+    pointer to its first target, the targets a mark, and the step and the pass."""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from run_scenarios import ScenarioRunner
+
+    from MTG_bot.bench.protocol import Ask, Option
+
+    pack = {"set": "M21", "world": {"life": 20, "seed": 7}, "mana": {"0": {"R": 1}}, "steps": [],
+            "cards": [{"key": "brute", "real": "Bone Pit Brute", "zone": "hand", "controller": 0},
+                      {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+                      {"key": "ox", "name": "Ox", "type": "Creature", "power": "2",
+                       "toughness": "2", "zone": "battlefield", "controller": 0}]}
+    r = ScenarioRunner(pack, get_supply("all", "M21"))
+    r.run_step({"op": "enter", "key": "brute", "hold": True, "decisions": ["ox"]})
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "targets": ["p1"], "hold": True})
+    ex = r.ex
+    ex.pass_priority()  # seat 0 passes: seat 1 holds priority
+    ask = Ask(seat=1, kind="priority", site=f"priority:{r.seats[1]}", prompt="",
+              options=(Option("PASS", "pass"),), refuse=0)
+    f = FT.encode(ex, 1, ask, table)
+    trig, spell = (frame.handle for frame in ex.stack.frames)
+    p0, p1 = r.seats
+    # the encoder's entity order: the stack top first, the decider's hand and battlefield, the
+    # opponent's battlefield (nothing else is in a public zone here)
+    zones = ex.world.players
+    ents = [fr.handle for fr in reversed(ex.stack.frames)]
+    ents += zones[p1].zone("hand").entries + zones[p1].zone("battlefield").entries
+    ents += zones[p0].zone("battlefield").entries
+    assert len(ents) == f["cards_i"].shape[0]
+    ci, cf = f["cards_i"], f["cards_f"].astype(np.float32)
+    s, t, ox, brute = (ents.index(h) for h in (spell, trig, r.handles["ox"], r.handles["brute"]))
+    assert 0 < cf[s, FT.F_STACK_DEPTH] < cf[t, FT.F_STACK_DEPTH]  # the Shock resolves first
+    assert cf[t, FT.F_TRIGGERED] == 1 and cf[t, FT.F_ACTIVATED] == 0 and cf[s, FT.F_TRIGGERED] == 0
+    assert ci[t, FT.C_SOURCE] == brute + 3  # entities: the two players, then the cards; +1
+    assert ci[t, FT.C_TARGET] == ox + 3
+    assert ci[s, FT.C_TARGET] == 1  # the Shock's target is seat 1, the decider: entity 0, +1
+    assert cf[ox, FT.F_STACK_TARGETED] > 0 and cf[brute, FT.F_STACK_TARGETED] == 0
+    players = f["players_f"].astype(np.float32)
+    assert players[0, FT.P_STACK_TARGETED] > 0 and players[1, FT.P_STACK_TARGETED] == 0
+    glob = f["glob_f"].astype(np.float32)
+    assert glob[FT.G_STEP0 + FT.STEPS.index("FIRST_MAIN")] == 1 and glob[FT.G_PASSED] == 1
+
+
 def test_unbounded_numbers_stay_finite_and_ordered() -> None:
     x = np.array([0.0, 3.0, -20.0, 21.0, 59136.0, 1e30, -1e30], dtype=np.float32)
     y = FT._squash(x)

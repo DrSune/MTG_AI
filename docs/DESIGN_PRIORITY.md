@@ -584,6 +584,19 @@ Step 5 goes in two commits:
   its caster's own Treasure that automatic payment sacrificed before the targets were
   declared; fixed (payment never sacrifices a target), with packs `treasure_*`. The `all`
   pool's Sublime Epiphany crash had the same cause. Stage 1 is done.
+
+Stage 2 (the players), 2026-11-11:
+
+- **What the network sees, §3.2.** `glob_f` gains the step (one column per step with priority)
+  and whether the other player has just passed (`G_STEP0`, `G_PASSED`); `cards_f` gains a stack
+  object's depth (the top is 1), an ability's kind (activated, triggered) and its index among
+  its source's abilities, and a mark on a card some stack object targets (`F_STACK_DEPTH` ..
+  `F_STACK_TARGETED`; `players_f[P_STACK_TARGETED]` for a player); `cards_i` gains two
+  pointers, an ability to its source's entity and a stack object to its first target
+  (`C_SOURCE`, `C_TARGET`; the model's `source_ptr`, `target_ptr`). An ability keeps its own
+  handle, so it never collides with its source permanent. All of it is public. `model.load`
+  starts the new columns and pointer layers at zero: r26's `last.pt` gives the same logits and
+  values, to 0.0, on 400 decisions of which 394 set the new columns.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

@@ -46,6 +46,9 @@ class PolicyValueNet(nn.Module):
         self.owner_emb = nn.Embedding(3, d)
         self.card_f = nn.Linear(FT.CF, d)
         self.host = nn.Linear(d, d, bias=False)
+        # a stack object's pointers: an ability to its source, the object to its first target
+        self.source_ptr = nn.Linear(d, d, bias=False)
+        self.target_ptr = nn.Linear(d, d, bias=False)
         self.player_f = nn.Linear(FT.PF, d)
         self.player_role = nn.Embedding(2, d)
         self.glob_f = nn.Linear(FT.GF, d)
@@ -104,8 +107,9 @@ class PolicyValueNet(nn.Module):
         ent = torch.cat([x_play, x_card], dim=1)  # [B, 2+E, d]
         zero = ent.new_zeros(bsz, 1, self.d)
         ent_ext = torch.cat([zero, ent], dim=1)
-        host = cards_i[..., 4]
-        x_card = x_card + self.host(_gather(ent_ext, host))
+        x_card = (x_card + self.host(_gather(ent_ext, cards_i[..., FT.C_HOST]))
+                  + self.source_ptr(_gather(ent_ext, cards_i[..., FT.C_SOURCE]))
+                  + self.target_ptr(_gather(ent_ext, cards_i[..., FT.C_TARGET])))
         ent = torch.cat([x_play, x_card], dim=1)
         ent_ext = torch.cat([zero, ent], dim=1)
         opts_i, opts_f = b["opts_i"], b["opts_f"]
@@ -172,7 +176,7 @@ def collate(obs: list[dict[str, np.ndarray]], device: torch.device | str) -> dic
     bsz = len(obs)
     e = max(1, max(o["cards_i"].shape[0] for o in obs))
     k = max(1, max(o["opts_i"].shape[0] for o in obs))
-    cards_i = np.zeros((bsz, e, 5), np.int64)
+    cards_i = np.zeros((bsz, e, FT.CI), np.int64)
     cards_f = np.zeros((bsz, e, FT.CF), np.float32)
     card_mask = np.zeros((bsz, e), bool)
     opts_i = np.zeros((bsz, k, 4), np.int64)
@@ -323,5 +327,9 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
         w = state[key]
         if w.shape[1] < width:
             state[key] = torch.cat([w, w.new_zeros(w.shape[0], width - w.shape[1])], dim=1)
+    # pointer layers added since this checkpoint (features.C_SOURCE, C_TARGET) start at zero too
+    for key, w in model.state_dict().items():
+        if key not in state and key.endswith("_ptr.weight"):
+            state[key] = torch.zeros_like(w)
     model.load_state_dict(state)
     return model.to(device), table, ck.get("extra", {})

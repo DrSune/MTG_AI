@@ -8,10 +8,13 @@ handles never reach the network; they are only used to point an option at an ent
 One decision encodes to (shapes; E = card entities, K = options; integers as int16, floats as
 float16):
 
-* ``cards_i``   [E, 5]   card vocab id, zone, controller, owner, attached-to entity
-* ``cards_f``   [E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost
+* ``cards_i``   [E, CI]  card vocab id, zone, controller, owner, attached-to entity, and for a
+                         stack object: its source's entity (an ability) and its first target
+* ``cards_f``   [E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost; on
+                         the stack: depth, ability kind and index; targeted by a stack object
 * ``players_f`` [2, PF]  me then the opponent: life, zone counts, mana pool, board counts
-* ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot)
+* ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot), the
+                         step, whether the other player has just passed
 * ``ask_i``     [1]      ask kind (the act menu's says which main phase)
 * ``opts_i``    [K, 4]   option type, entity ref, second entity ref, ability index
 * ``opts_f``    [K, 2]   number value, kicked
@@ -29,7 +32,20 @@ import numpy as np
 
 from MTG_bot.core.ability_tree import CounterKind, Phase, to_dict
 from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
-from MTG_bot.core.executor.legality import SECOND_MAIN
+from MTG_bot.core.executor.legality import (
+    BEGIN_COMBAT,
+    CLEANUP,
+    COMBAT_DAMAGE,
+    DECLARE_ATTACKERS,
+    DECLARE_BLOCKERS,
+    DRAW,
+    END_OF_COMBAT,
+    END_STEP,
+    FIRST_MAIN,
+    FIRST_STRIKE_DAMAGE,
+    SECOND_MAIN,
+    UPKEEP,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -98,11 +114,27 @@ F_POWER, F_TOUGH, F_DAMAGE, F_P1, F_M1, F_LOYALTY, F_COUNTERS, F_CMC, F_DECL_BLO
 # targets so far in the declaration being asked, and glob_f[G_SLOT], the target slot a target
 # ask is about (0 = the first or only one).
 F_TARGETED = F_DECL_BLOCKERS + 1
-CF = F_TARGETED + 1
 P_TARGETED = 16
-PF = P_TARGETED + 1
 G_SLOT = 8
-GF = G_SLOT + 1
+# Priority (DESIGN_PRIORITY §3.2): a stack object's depth (1 = the top, which resolves next), an
+# ability's kind and its index among its source's abilities; a card or player some stack object
+# targets; the step (one column each) and whether the other player has just passed (passing too
+# then resolves the top object or ends the step, CR 117.4).
+F_STACK_DEPTH, F_ACTIVATED, F_TRIGGERED, F_ABILITY_IDX, F_STACK_TARGETED = range(
+    F_TARGETED + 1, F_TARGETED + 6
+)
+CF = F_STACK_TARGETED + 1
+P_STACK_TARGETED = P_TARGETED + 1
+PF = P_STACK_TARGETED + 1
+STEPS = (UPKEEP, DRAW, FIRST_MAIN, BEGIN_COMBAT, DECLARE_ATTACKERS, DECLARE_BLOCKERS,
+         FIRST_STRIKE_DAMAGE, COMBAT_DAMAGE, END_OF_COMBAT, SECOND_MAIN, END_STEP, CLEANUP)
+G_STEP0 = G_SLOT + 1
+G_PASSED = G_STEP0 + len(STEPS)
+GF = G_PASSED + 1
+# cards_i: vocab id, zone, controller, owner, then entity pointers (+1, 0 = none): the host an
+# aura or equipment is attached to, an ability's source, a stack object's first target
+C_HOST, C_SOURCE, C_TARGET = 4, 5, 6
+CI = C_TARGET + 1
 
 OPTION_TYPES = (
     "pad", "PASS", "TAP_ALL_MANA", "land", "cast", "cast_kicked", "activate", "ATTACK",
@@ -409,6 +441,17 @@ def _handle(text: str) -> Handle | None:
 _OPTS = _OptCache()
 
 
+def _ability_index(executor: Any, frame: Any) -> int:
+    """An ability on the stack: its index among its source's printed abilities (a granted
+    activated ability's is negative, legality's numbering); -1 for a trigger the source's record
+    does not hold."""
+    if frame.spell_kind == "ACTIVATED":
+        return frame.ability_idx or 0
+    record = executor.binder.handle_record.get(frame.source)
+    abilities = record.abilities if record is not None else ()
+    return next((i for i, ab in enumerate(abilities) if ab is frame.node), -1)
+
+
 def ask_kind_index(kind: str, phase: str | None = None) -> int:
     """The embedding row of an ask; an act menu's row says which main phase it is in."""
     if kind == "act" and phase == SECOND_MAIN:
@@ -462,11 +505,16 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     # An ability on the stack shows as its source card, a public one, under its own handle (an
     # emblem's is left out); DESIGN_PRIORITY §3.2 gives abilities entities of their own.
     stack_card: dict[Handle, Handle] = {}
-    for frame in reversed(executor.stack.frames):  # top first
+    on_stack: dict[Handle, Any] = {}  # handle -> (depth, frame)
+    stack_targeted: dict[Handle, int] = {}
+    for depth, frame in enumerate(reversed(executor.stack.frames), start=1):  # top first
         card_of = frame.source if frame.spell_kind in ("ACTIVATED", "TRIGGERED") else frame.handle
         if card_of in world.cards:
             ents.append((frame.handle, "stack", frame.controller))
             stack_card[frame.handle] = card_of
+            on_stack[frame.handle] = (depth, frame)
+        for t in frame.declared_targets:
+            stack_targeted[t] = stack_targeted.get(t, 0) + 1
     groups = []
     for ph in (me_h, opp_h):
         zones = world.players[ph].zones
@@ -506,7 +554,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     ents = ents[: MAX_CARDS + 8]
 
     n = len(ents)
-    cards_i = np.zeros((n, 5), dtype=np.int32)
+    cards_i = np.zeros((n, CI), dtype=np.int32)
     cards_f = np.zeros((n, CF), dtype=np.float32)
     ent_index = {me_h: 0, opp_h: 1}
     for j, (h, _, _) in enumerate(ents):
@@ -538,8 +586,20 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         ci[3] = rel.get(owner, 2)
         host = attachments.get(h)
         if host is not None and host in ent_index:
-            ci[4] = ent_index[host] + 1
+            ci[C_HOST] = ent_index[host] + 1
         f = cards_f[j]
+        f[F_STACK_TARGETED] = stack_targeted.get(h, 0) / 2.0
+        if h in on_stack:
+            depth, frame = on_stack[h]
+            f[F_STACK_DEPTH] = depth / 3.0
+            if frame.spell_kind in ("ACTIVATED", "TRIGGERED"):
+                f[F_ACTIVATED if frame.spell_kind == "ACTIVATED" else F_TRIGGERED] = 1.0
+                f[F_ABILITY_IDX] = _ability_index(executor, frame) / 4.0
+                if frame.source in ent_index:
+                    ci[C_SOURCE] = ent_index[frame.source] + 1
+            first = frame.declared_targets[0] if frame.declared_targets else None
+            if first in ent_index:
+                ci[C_TARGET] = ent_index[first] + 1
         if on_bf:
             f[F_TAPPED] = card.tapped
             f[F_SICK] = is_creature and h in sick
@@ -618,6 +678,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         row[14] = untapped_lands / 10.0
         row[15] = ph in executor.lost_players
         row[P_TARGETED] = ph in ctx.targeted
+        row[P_STACK_TARGETED] = stack_targeted.get(ph, 0) / 2.0
 
     glob_f = np.zeros(GF, dtype=np.float32)
     glob_f[0] = world.turn / 20.0
@@ -629,6 +690,9 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     glob_f[6] = len(attackers) / 5.0
     glob_f[7] = 1.0 if ask.refuse is not None else 0.0
     glob_f[G_SLOT] = ctx.slot / 3.0
+    if executor.phase in STEPS:
+        glob_f[G_STEP0 + STEPS.index(executor.phase)] = 1.0
+    glob_f[G_PASSED] = executor.passes > 0
 
     k = len(parsed)
     opts_i = np.zeros((k, 4), dtype=np.int32)
