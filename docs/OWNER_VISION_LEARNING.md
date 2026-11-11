@@ -220,3 +220,26 @@ Notes (2026-11-11):
   measured results recorded, so any setting can be revisited.
 - The replay buffer of the search phase lives in RAM (121 GiB on this box, shared with the GPU).
 
+
+## 11. Fast opponents, the ceiling read, then the ceiling-striving run (2026-11-11, open)
+
+The owner, after §10's answers: "It sounds good with the sampling and searching. As little as
+possible unrealistic knowledge integrated, opponent simulator can be trained for every
+branching/deeper level of the search, making it really good at predicting the cards we care about
+(consequence * proability). Go ahead with a plan that goes along with this, and utilizes lower
+cieling but faster improvement models to get our high-cieling model up to speed fast by playing
+difficult opponents. That will help assess the cieling, after which we can do the cieling-striving
+training run that is explorative self-play from the beginning."
+
+The plan that follows this, with its gates and the owner's decisions: `docs/PLAN_CEILING.md`
+(draft 2026-11-11). Notes:
+- The simulator's probabilities stay calibrated; consequence decides where it spends capacity (the
+  positions whose decision depends on the hidden cards) and which futures the search samples
+  (importance sampling, weighted back exactly). Weighting each card's loss by its danger would make
+  the search fear rare cards more than they cost.
+- "Every level of the search" is made honest with truth lines: in training games the explored lines
+  are replayed on the true state for the simulator's labels only, never for a decision.
+- The fast models are the searcher (a frozen network plus search at play time, no training needed)
+  and, through two gates, a network trained by its search (expert iteration). Their ceiling is lower
+  because their targets inherit the value network's and the simulator's errors and settle on fixed
+  answers; outcome PPO has neither bias.
