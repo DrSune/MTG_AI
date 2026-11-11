@@ -1332,3 +1332,31 @@ def test_a_sampled_continuation_shares_its_draws_within_a_world(table) -> None:
                         set_code="M21", continuation="sampled", seed=0)
     scores = [searcher.simulate(game, 0, "PASS", world=w) for w in (5, 5, 6)]
     assert scores[0] == scores[1] is not None and searcher.stats["sim_errors"] == 0
+
+
+def test_the_n_curve_reads_paired_points_and_fits_log_n(tmp_path) -> None:
+    """tools/selfplay/ncurve.py: each run is one point (a deal is the mean of its two
+    seat-swapped games); the points differing only in n are fitted against log2 n."""
+    import json
+    from pathlib import Path
+
+    from tools.selfplay import ncurve
+
+    def run(name: str, n: int, wins: list[int]) -> Path:
+        d = tmp_path / name
+        d.mkdir()
+        args = {"search_n": n, "search_root": "gumbel", "init": "c.pt"}
+        (d / "manifest.json").write_text(json.dumps([{"args": args}]))
+        (d / "metrics.jsonl").write_text(json.dumps({"event": "eval", "search": {
+            "searched": 40, "changed": 10, "clear": 4}, "search_ms": {"p50": 12.6}}) + "\n")
+        rows = [{"seed": i // 2, "deck_mode": "coherent", "a_seat": i % 2, "outcome": "win",
+                 "winner": i % 2 if w else 1 - i % 2} for i, w in enumerate(wins)]
+        (d / "eval_rows.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+        return d
+
+    a = ncurve.point(run("a", 4, [1, 0, 1, 1, 0, 0, 1, 0]))
+    b = ncurve.point(run("b", 16, [1, 1, 1, 1, 0, 1, 1, 0]))
+    assert (a["score"], b["score"]) == (0.5, 0.75) and a["deals"] == 4
+    assert a["searched_per_game"] == 5.0 and a["changed"] == 0.25 and a["clear_per_game"] == 0.5
+    slope, se, icpt = ncurve.fit([a, b])
+    assert slope == pytest.approx(0.125) and se > 0  # +0.25 over two doublings

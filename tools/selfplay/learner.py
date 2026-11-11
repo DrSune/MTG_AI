@@ -892,7 +892,7 @@ class Learner:
         if a.opp_ckpt:
             opp, _, _ = M.load(a.opp_ckpt, self.device)
             self.models["snap:opp"] = opp.eval()
-        self.start_eval("eval-only")
+        self.start_eval("eval-only", seed0=a.eval_seed0)
         self.models["eval"] = self.model  # start_eval made a frozen copy; same weights
         self.phase = "idle"
         self.serve(lambda: not self.eval_pending)
@@ -1193,6 +1193,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--eval-opponents", default="heuristic")
     p.add_argument("--eval-seat", default="eval", help="'eval' or 'eval+search'")
     p.add_argument("--eval-only", action="store_true", help="evaluate --init and exit")
+    p.add_argument("--eval-seed0", type=int, default=EVAL_SEED0,
+                   help="eval-only: the first deal's seed; another value plays fresh deals "
+                        "(a confirmation must not reuse the deals it was selected on)")
     p.add_argument("--capture", type=int, default=0,
                    help="play this many games recording the opponent simulator's data, and exit")
     p.add_argument("--capture-p", type=float, default=0.4,
